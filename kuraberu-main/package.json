@@ -1,0 +1,48 @@
+{
+  "name": "kuraberu-ai-gas-cicd",
+  "version": "1.0.0",
+  "description": "外壁塗装くらべるAI - Google Apps Script CI/CD Pipeline",
+  "main": "gas-backend/webApp.gs",
+  "scripts": {
+    "setup": "chmod +x scripts/*.sh && ./scripts/setup-clasp.sh",
+    "deploy:dev": "./scripts/deploy.sh dev",
+    "deploy:prod": "./scripts/deploy.sh prod",
+    "deploy:prod:force": "./scripts/deploy.sh prod --force",
+    "clasp:login": "clasp login",
+    "clasp:logout": "clasp logout",
+    "clasp:list": "clasp list",
+    "clasp:pull:dev": "cd gas-backend && cp .clasp.dev.json .clasp.json && clasp pull && mv .clasp.json .clasp.dev.json",
+    "clasp:pull:prod": "cd gas-backend && clasp pull",
+    "clasp:open:dev": "cd gas-backend && cp .clasp.dev.json .clasp.json && clasp open && mv .clasp.json .clasp.dev.json",
+    "clasp:open:prod": "cd gas-backend && clasp open",
+    "test": "echo \"Test: clasp push dry-run\" && cd gas-backend && clasp push --dry",
+    "lint": "echo \"Linting: Check .gs files syntax\"",
+    "clean": "rm -f gas-backend/.clasp.json gas-backend/.clasp.*.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/kuraberu-ai-gas.git"
+  },
+  "keywords": [
+    "google-apps-script",
+    "gas",
+    "clasp",
+    "ci-cd",
+    "github-actions",
+    "外壁塗装",
+    "kuraberu-ai"
+  ],
+  "author": "Kuraberu AI Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@google/clasp": "^2.4.2",
+    "@types/google-apps-script": "^1.0.83"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "clasp": {
+    "scriptId": "",
+    "rootDir": "./gas-backend"
+  }
+}

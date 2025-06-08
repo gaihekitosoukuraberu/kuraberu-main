@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>郵便番号入力フォーム</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'kuraberu-blue': '#0ea5e9',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body class="bg-white">
+  <div class="p-3">
+    <!-- タイトル -->
+    <h2 class="text-base font-bold text-center mb-3 text-black">
+      郵便番号で今すぐ相場チェック！
+    </h2>
+    
+    <!-- フォーム -->
+    <div class="space-y-3">
+      <!-- 郵便番号入力 -->
+      <div class="relative">
+        <input 
+          type="text" 
+          id="postalCode" 
+          placeholder="150-0043" 
+          maxlength="8"
+          class="w-full py-2 px-3 text-base text-center border-2 border-gray-300 rounded-lg focus:border-kuraberu-blue focus:outline-none"
+        >
+      </div>
+      
+      <!-- 検索ボタン -->
+      <button 
+        id="searchButton" 
+        onclick="handleSearch();"
+        class="w-full bg-kuraberu-blue hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg transition-colors"
+      >
+        無料で相場を見る
+      </button>
+    </div>
+    
+    <!-- エラーメッセージ -->
+    <p id="postalError" class="text-red-500 text-center mt-2 hidden text-xs">
+      郵便番号を正しく入力してください
+    </p>
+  </div>
+
+  <script>
+    // 郵便番号入力制御
+    const postalCode = document.getElementById('postalCode');
+    const postalError = document.getElementById('postalError');
+    
+    if (postalCode) {
+      postalCode.addEventListener('input', function(e) {
+        // 数字とハイフン以外を削除
+        this.value = this.value.replace(/[^\d-]/g, '');
+        
+        // XXX-XXXXの形式に自動整形
+        if (this.value.length > 3 && this.value.indexOf('-') === -1) {
+          this.value = this.value.slice(0, 3) + '-' + this.value.slice(3);
+        }
+        
+        // 最大8文字に制限
+        if (this.value.length > 8) {
+          this.value = this.value.slice(0, 8);
+        }
+      });
+    }
+    
+    // 検索処理
+    function handleSearch() {
+      let code = postalCode.value.trim();
+      code = code.replace(/-/g, '');
+      
+      if (!/^\d{7}$/.test(code)) {
+        // 郵便番号が不正な場合
+        if (postalError) postalError.classList.remove('hidden');
+        return;
+      }
+      
+      // エラー表示を非表示
+      if (postalError) postalError.classList.add('hidden');
+      
+      // 親ウィンドウにメッセージを送信してメインサイトを開く
+      const mainSiteUrl = `./index.html?postal=${encodeURIComponent(postalCode.value)}`;
+      
+      if (window.parent !== window) {
+        // iframe内の場合、親ウィンドウにメッセージを送信
+        window.parent.postMessage({
+          type: 'OPEN_MAIN_SITE',
+          data: {
+            url: mainSiteUrl,
+            postalCode: postalCode.value
+          }
+        }, '*');
+      } else {
+        // 直接アクセスの場合、メインサイトに移動
+        window.location.href = mainSiteUrl;
+      }
+    }
+  </script>
+</body>
+</html>
