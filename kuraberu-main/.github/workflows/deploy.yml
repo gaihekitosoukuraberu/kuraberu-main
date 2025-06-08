@@ -1,0 +1,221 @@
+name: GAS CI/CD Pipeline
+
+on:
+  push:
+    branches: 
+      - main
+      - develop
+    paths:
+      - 'gas-backend/**'
+      - '.github/workflows/deploy.yml'
+  pull_request:
+    branches: 
+      - main
+    paths:
+      - 'gas-backend/**'
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: 🔍 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: 📥 Install dependencies
+      run: |
+        npm install -g @google/clasp
+        npm ci
+        
+    - name: 🔧 Setup clasp for development
+      run: |
+        echo '${{ secrets.CLASP_DEV_CONFIG }}' > gas-backend/.clasp.json
+        echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
+        
+    - name: 🧪 Deploy to development (dry-run test)
+      run: |
+        cd gas-backend
+        clasp push --force
+        echo "✅ Development deployment test successful"
+        
+    - name: 💬 Comment PR with test results
+      if: always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+          
+          const botComment = comments.find(comment => 
+            comment.user.type === 'Bot' && comment.body.includes('🧪 GAS テスト結果')
+          );
+          
+          const commentBody = `🧪 **GAS テスト結果**
+          
+          📋 **コミット**: ${context.sha.substring(0, 7)}
+          📅 **実行時刻**: ${new Date().toLocaleString('ja-JP')}
+          📊 **ステータス**: ${{ job.status === 'success' ? '✅ 成功' : '❌ 失敗' }}
+          
+          ${{ job.status === 'success' ? 
+            '🎉 開発環境へのデプロイテストが成功しました！' : 
+            '⚠️ デプロイテストでエラーが発生しました。ログを確認してください。' }}
+          `;
+          
+          if (botComment) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: commentBody
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: commentBody
+            });
+          }
+
+  deploy-dev:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment: development
+    
+    steps:
+    - name: 🔍 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: 📥 Install clasp
+      run: npm install -g @google/clasp
+      
+    - name: 🔧 Setup clasp for development
+      run: |
+        echo '${{ secrets.CLASP_DEV_CONFIG }}' > gas-backend/.clasp.json
+        echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
+        
+    - name: 🚀 Deploy to development
+      run: |
+        cd gas-backend
+        clasp push --force
+        
+    - name: 📝 Create deployment version
+      run: |
+        cd gas-backend
+        VERSION_DESC="Auto deploy dev $(date '+%Y-%m-%d %H:%M:%S') - ${{ github.sha }}"
+        clasp version "$VERSION_DESC"
+        
+    - name: 📢 Notify deployment success
+      if: success()
+      run: |
+        echo "🎉 Development deployment completed successfully!"
+        echo "📋 Commit: ${{ github.sha }}"
+        echo "🕐 Time: $(date '+%Y-%m-%d %H:%M:%S')"
+
+  deploy-prod:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    
+    steps:
+    - name: 🔍 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: 📥 Install clasp
+      run: npm install -g @google/clasp
+      
+    - name: 🔧 Setup clasp for production
+      run: |
+        echo '${{ secrets.CLASP_PROD_CONFIG }}' > gas-backend/.clasp.json
+        echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
+        
+    - name: 🎯 Deploy to production
+      run: |
+        cd gas-backend
+        clasp push --force
+        
+    - name: 📝 Create production version
+      run: |
+        cd gas-backend
+        VERSION_DESC="Production release $(date '+%Y-%m-%d %H:%M:%S') - ${{ github.sha }}"
+        clasp version "$VERSION_DESC"
+        
+    - name: 🚀 Publish web app (if applicable)
+      run: |
+        cd gas-backend
+        # Note: Web app publishing might require manual approval
+        echo "⚠️ Remember to manually publish the web app if needed"
+        
+    - name: 🎉 Production deployment notification
+      if: success()
+      run: |
+        echo "🚀 Production deployment completed successfully!"
+        echo "📋 Commit: ${{ github.sha }}"
+        echo "🕐 Time: $(date '+%Y-%m-%d %H:%M:%S')"
+        echo "🔗 Check your GAS console for the deployed version"
+
+  backup:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: deploy-prod
+    
+    steps:
+    - name: 🔍 Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        
+    - name: 📥 Install clasp
+      run: npm install -g @google/clasp
+      
+    - name: 🔧 Setup clasp
+      run: |
+        echo '${{ secrets.CLASP_PROD_CONFIG }}' > gas-backend/.clasp.json
+        echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
+        
+    - name: 💾 Pull latest from GAS and backup
+      run: |
+        cd gas-backend
+        clasp pull --force
+        
+    - name: 📚 Commit backup to git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add gas-backend/
+        if git diff --staged --quiet; then
+          echo "No changes to backup"
+        else
+          git commit -m "🔄 Auto backup after production deployment $(date '+%Y-%m-%d %H:%M:%S')"
+          git push
+        fi
