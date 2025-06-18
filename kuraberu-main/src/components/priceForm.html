@@ -1,0 +1,136 @@
+<section id="areaPrice" class="price-form hidden">
+  <div class="price-form__container">
+    <!-- 相場見出し -->
+    <div class="price-form__title">
+      <h2 id="locationHeading" class="price-form__heading">東京都新宿区の外壁塗装相場</h2>
+      <div class="price-form__subtitle">
+        <svg xmlns="http://www.w3.org/2000/svg" class="price-form__subtitle-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>一般的な2Fの戸建て（30坪）で、塗装面積が150〜180㎡の場合</span>
+      </div>
+    </div>
+    
+    <!-- 価格表示エリア（初期表示時はアニメーション） -->
+    <div id="priceRevealAnimation" class="price-form__loading">
+      <div class="price-form__progress-container">
+        <div class="price-form__progress-bar">
+          <div id="progressBar" class="price-form__progress-fill"></div>
+        </div>
+      </div>
+      <div class="price-form__loading-text">
+        <p>相場情報を取得中...</p>
+      </div>
+    </div>
+    
+    <!-- 価格結果（アニメーション後に表示） -->
+    <div id="priceResult" class="hidden">
+      <div class="price-form__results">
+        <!-- 左側：相場価格 -->
+        <div class="price-form__price-card">
+          <div class="price-form__card-badge">相場チェック結果</div>
+          
+          <div class="price-form__price-title">
+            <div class="price-form__price-label">相場価格</div>
+            <div class="price-form__price-display">
+              <div class="price-form__price-value-container">
+                <span id="priceRange" class="price-form__price-value">80〜120万円</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 詳細な相場情報 -->
+          <div class="price-form__details">
+            <div class="price-form__detail-item">
+              <div class="price-form__detail-label">最安値</div>
+              <div class="price-form__detail-value price-form__detail-value--red">68<span class="price-form__detail-unit">万円〜</span></div>
+            </div>
+            <div class="price-form__detail-item">
+              <div class="price-form__detail-label">最高値</div>
+              <div class="price-form__detail-value price-form__detail-value--blue">130<span class="price-form__detail-unit">万円〜</span></div>
+            </div>
+            <div class="price-form__detail-item">
+              <div class="price-form__detail-label">平均価格</div>
+              <div class="price-form__detail-value price-form__detail-value--green">95<span class="price-form__detail-unit">万円</span></div>
+            </div>
+            <div class="price-form__detail-item">
+              <div class="price-form__detail-label">㎡単価</div>
+              <div class="price-form__detail-value price-form__detail-value--gray">5,500<span class="price-form__detail-unit">円</span></div>
+            </div>
+          </div>
+          
+          <!-- パーソナライズされたメッセージ -->
+          <div class="price-form__description">
+            この地域では通常、築20年前後で外壁の塗り替えが必要です。価格差は使用する塗料のグレードや施工範囲により変わります。
+          </div>
+          
+          <!-- 複数見積もり推奨 -->
+          <button onclick="document.getElementById('wizardSection').scrollIntoView({behavior: 'smooth'})" class="price-form__cta-button">
+            <svg xmlns="http://www.w3.org/2000/svg" class="price-form__cta-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            最大3社の見積もりを無料で比較する
+          </button>
+        </div>
+        
+        <!-- 右側：お客様の声 -->
+        <div class="price-form__review-card">
+          <div class="price-form__review-title">
+            <div class="price-form__review-heading">この地域の利用者の声</div>
+            <div class="price-form__review-stars">
+              ★★★★★ <span class="price-form__review-rating">(4.9/5.0)</span>
+            </div>
+          </div>
+          
+          <!-- レビュー -->
+          <div class="price-form__reviews">
+            <div class="price-form__review-item">
+              <div class="price-form__review-header">
+                <div class="price-form__review-stars-small">★★★★★</div>
+                <div class="price-form__review-author">
+                  <span class="price-form__review-name">高橋さん</span>
+                  <span class="price-form__review-location">（新宿区・40代）</span>
+                </div>
+              </div>
+              <p class="price-form__review-text">
+                複数の業者を比較できて、最終的に相場より15万円も安く施工してもらえました。営業電話もなくてストレスフリーでした。
+              </p>
+            </div>
+            <div class="price-form__review-item">
+              <div class="price-form__review-header">
+                <div class="price-form__review-stars-small">★★★★★</div>
+                <div class="price-form__review-author">
+                  <span class="price-form__review-name">佐藤さん</span>
+                  <span class="price-form__review-location">（渋谷区・50代）</span>
+                </div>
+              </div>
+              <p class="price-form__review-text">
+                AIが選んでくれた業者さんは本当に丁寧で、質の高い施工をしてくれました。周りの家よりキレイに仕上がって大満足です。
+              </p>
+            </div>
+            <div class="price-form__review-item">
+              <div class="price-form__review-header">
+                <div class="price-form__review-stars-small">★★★★★</div>
+                <div class="price-form__review-author">
+                  <span class="price-form__review-name">鈴木さん</span>
+                  <span class="price-form__review-location">（中野区・30代）</span>
+                </div>
+              </div>
+              <p class="price-form__review-text">
+                初めての外壁塗装で不安でしたが、複数の見積もりを比較できて安心できました。工事も予定通り進み、仕上がりにも満足です。
+              </p>
+            </div>
+          </div>
+          
+          <!-- CTA -->
+          <button onclick="document.getElementById('wizardSection').scrollIntoView({behavior: 'smooth'})" class="price-form__explore-button">
+            <svg xmlns="http://www.w3.org/2000/svg" class="price-form__explore-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+            希望条件を入力して業者を探す
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

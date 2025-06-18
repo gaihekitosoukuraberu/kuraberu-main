@@ -1,0 +1,199 @@
+/* 
+ * 外壁塗装くらべる ランキングスタイル
+ * 
+ * このファイルは業者ランキングセクションのスタイルを定義します。
+ */
+
+/* ランキングセクション */
+.ranking {
+  padding: 20px 16px;
+}
+
+.ranking__header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.ranking__title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.ranking__description {
+  font-size: 14px;
+  color: #666;
+}
+
+.ranking__area {
+  font-weight: bold;
+  color: #0099cc;
+}
+
+.ranking__list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.ranking__item {
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.ranking__rank {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 40px;
+  height: 40px;
+  background-color: #ff6b6b;
+  color: white;
+  font-weight: bold;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.ranking__company-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.ranking__company-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+.ranking__company-info {
+  flex: 1;
+}
+
+.ranking__company-name {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.ranking__review {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.ranking__stars {
+  color: #ffcc00;
+  margin-right: 5px;
+}
+
+.ranking__review-count {
+  color: #666;
+  font-size: 12px;
+}
+
+.ranking__badges {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.ranking__badge {
+  background-color: #e1f5fe;
+  color: #0099cc;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.ranking__details {
+  margin-bottom: 15px;
+}
+
+.ranking__price-info {
+  margin-bottom: 10px;
+}
+
+.ranking__price-label {
+  font-size: 14px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.ranking__price {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ff6b6b;
+}
+
+.ranking__features {
+  margin-bottom: 15px;
+}
+
+.ranking__feature {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.ranking__check {
+  color: #10b981;
+  margin-right: 5px;
+}
+
+.ranking__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.ranking__button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  text-align: center;
+  font-size: 14px;
+}
+
+.ranking__button--primary {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+.ranking__button--secondary {
+  background-color: #0099cc;
+  color: white;
+}
+
+.ranking__see-more {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.ranking__more-button {
+  background-color: #f5f5f5;
+  color: #333;
+  font-weight: bold;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.ranking__more-icon {
+  margin-left: 5px;
+}
+EOL < /dev/null

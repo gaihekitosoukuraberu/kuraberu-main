@@ -1,0 +1,363 @@
+/**
+ * 外壁塗装くらべる - 相場表示セクション用スタイル
+ * BEM命名規則に準拠したCSS
+ */
+
+/* 相場表示セクション */
+.price-form {
+  background-color: white;
+  padding: 2rem 0 4rem;
+}
+
+.price-form__container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.price-form__title {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.price-form__heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .price-form__heading {
+    font-size: 1.875rem;
+  }
+}
+
+.price-form__subtitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.price-form__subtitle-icon {
+  height: 1.25rem;
+  width: 1.25rem;
+  color: #FFE600;
+  margin-right: 0.25rem;
+}
+
+/* アニメーション部分 */
+.price-form__loading {
+  margin-bottom: 1.5rem;
+}
+
+.price-form__progress-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  width: 100%;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.price-form__progress-bar {
+  width: 100%;
+  height: 0.75rem;
+  background-color: #f3f4f6;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.price-form__progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, #0ea5e9, #10b981);
+  width: 0%;
+  transition: width 0.2s ease-out;
+}
+
+.price-form__loading-text {
+  text-align: center;
+  color: #6b7280;
+  animation: pulse 1s infinite;
+}
+
+/* 結果表示部分 */
+.price-form__results {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .price-form__results {
+    flex-direction: row;
+  }
+}
+
+/* 左側：相場価格 */
+.price-form__price-card {
+  width: 100%;
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: 2px solid #FFE600;
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .price-form__price-card {
+    width: 50%;
+    margin-bottom: 0;
+  }
+}
+
+.price-form__card-badge {
+  position: absolute;
+  top: -0.75rem;
+  right: -0.75rem;
+  background-color: #0ea5e9;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.price-form__price-title {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.price-form__price-label {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.price-form__price-display {
+  display: inline-block;
+  background: linear-gradient(to right, #0ea5e9, #10b981);
+  padding: 0.1875rem;
+  border-radius: 0.5rem;
+}
+
+.price-form__price-value-container {
+  background-color: white;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1.5rem;
+}
+
+.price-form__price-value {
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(to right, #0ea5e9, #10b981);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* 詳細な相場情報 */
+.price-form__details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.price-form__detail-item {
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.price-form__detail-label {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.price-form__detail-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.price-form__detail-value--red {
+  color: #ef4444;
+}
+
+.price-form__detail-value--blue {
+  color: #0ea5e9;
+}
+
+.price-form__detail-value--green {
+  color: #10b981;
+}
+
+.price-form__detail-value--gray {
+  color: #4b5563;
+}
+
+.price-form__detail-unit {
+  font-size: 1rem;
+}
+
+/* 説明文 */
+.price-form__description {
+  background-color: #f9fafb;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin-bottom: 1rem;
+}
+
+/* 見積もりボタン */
+.price-form__cta-button {
+  width: 100%;
+  background-color: #10b981;
+  color: white;
+  font-weight: 700;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  transition-property: background-color;
+  transition-duration: 200ms;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  animation: pulse 3s infinite;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.price-form__cta-button:hover {
+  background-color: #059669;
+}
+
+.price-form__cta-icon {
+  height: 1.25rem;
+  width: 1.25rem;
+  margin-right: 0.25rem;
+}
+
+/* 右側：お客様の声 */
+.price-form__review-card {
+  width: 100%;
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+@media (min-width: 768px) {
+  .price-form__review-card {
+    width: 50%;
+  }
+}
+
+.price-form__review-title {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.price-form__review-heading {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.price-form__review-stars {
+  display: flex;
+  justify-content: center;
+  color: #FFE600;
+  font-size: 1.5rem;
+}
+
+.price-form__review-rating {
+  color: #4b5563;
+  margin-left: 0.25rem;
+  font-size: 1rem;
+}
+
+/* レビューリスト */
+.price-form__reviews {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.price-form__review-item {
+  border-bottom: 1px solid #f3f4f6;
+  padding-bottom: 0.75rem;
+}
+
+.price-form__review-item:last-child {
+  border-bottom: none;
+}
+
+.price-form__review-header {
+  display: flex;
+  align-items: start;
+  margin-bottom: 0.25rem;
+}
+
+.price-form__review-stars-small {
+  color: #FFE600;
+  font-size: 1rem;
+}
+
+.price-form__review-author {
+  margin-left: 0.5rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.price-form__review-name {
+  font-weight: 500;
+}
+
+.price-form__review-location {
+  font-size: 0.75rem;
+}
+
+.price-form__review-text {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+/* CTA ボタン */
+.price-form__explore-button {
+  width: 100%;
+  background-color: #0ea5e9;
+  color: white;
+  font-weight: 700;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  transition-property: background-color;
+  transition-duration: 200ms;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.price-form__explore-button:hover {
+  background-color: #0284c7;
+}
+
+.price-form__explore-icon {
+  height: 1.25rem;
+  width: 1.25rem;
+  margin-right: 0.25rem;
+}

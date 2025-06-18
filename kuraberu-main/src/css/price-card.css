@@ -1,0 +1,129 @@
+/**
+ * 外壁塗装くらべる - 相場カードスタイル
+ *
+ * このCSSファイルは郵便番号検索後に表示される相場結果カードのスタイルを定義します。
+ */
+
+/* 相場カード */
+.price-card {
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto 30px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.price-card__location {
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.price-card__zip {
+  font-size: 16px;
+  margin-bottom: 5px;
+  color: #666;
+}
+
+.price-card__area {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.price-card__price-info {
+  background-color: #e1f5fe;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.price-card__title {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.price-card__price-range {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.price-card__price-min,
+.price-card__price-max {
+  font-size: 32px;
+  font-weight: bold;
+  color: #0099cc;
+}
+
+.price-card__price-unit {
+  font-size: 16px;
+  color: #0099cc;
+}
+
+.price-card__price-separator {
+  font-size: 20px;
+  color: #0099cc;
+}
+
+.price-card__average {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.price-card__house-info {
+  font-size: 12px;
+  color: #666;
+}
+
+.price-card__discount {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.price-card__discount-badge {
+  display: inline-block;
+  background-color: #ff6b6b;
+  color: white;
+  font-weight: bold;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.price-card__discount-text {
+  font-size: 14px;
+}
+
+.price-card__wizard-prompt {
+  text-align: center;
+}
+
+.price-card__wizard-title {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.price-card__wizard-text {
+  font-size: 14px;
+  margin-bottom: 15px;
+  color: #666;
+}
+
+.price-card__wizard-button {
+  background-color: #ff6b6b;
+  color: white;
+  font-weight: bold;
+  padding: 15px 30px;
+  border-radius: 8px;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.price-card__wizard-icon {
+  margin-right: 5px;
+}
