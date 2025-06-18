@@ -51,7 +51,6 @@ jobs:
       run: |
         echo '{
           "scriptId": "1VSHOIsq4wKeJZY1wZAoGjn4cvYg7kIa0LUW0k42sSmEP8rDuoV10kyrh",
-          "rootDir": "./",
           "scriptExtensions": [".js", ".gs"],
           "htmlExtensions": [".html"],
           "jsonExtensions": [".json"],
@@ -61,8 +60,9 @@ jobs:
         echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
         
     - name: 🧪 Deploy to development (dry-run test)
+      working-directory: ./gas-backend
       run: |
-        cd gas-backend
+        ls -la
         clasp push --force
         echo "✅ Development deployment test successful"
         
@@ -140,8 +140,9 @@ jobs:
         echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
         
     - name: 🚀 Deploy to ${{ github.event.inputs.environment }}
+      working-directory: ./gas-backend
       run: |
-        cd gas-backend
+        ls -la
         clasp push --force
         
     - name: 📝 Create deployment version
@@ -177,12 +178,20 @@ jobs:
       
     - name: 🔧 Setup clasp for development
       run: |
-        echo '${{ secrets.CLASP_DEV_CONFIG }}' > gas-backend/.clasp.json
+        echo '{
+          "scriptId": "1VSHOIsq4wKeJZY1wZAoGjn4cvYg7kIa0LUW0k42sSmEP8rDuoV10kyrh",
+          "scriptExtensions": [".js", ".gs"],
+          "htmlExtensions": [".html"],
+          "jsonExtensions": [".json"],
+          "filePushOrder": [],
+          "skipSubdirectories": false
+        }' > gas-backend/.clasp.json
         echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
         
     - name: 🚀 Deploy to development
+      working-directory: ./gas-backend
       run: |
-        cd gas-backend
+        ls -la
         clasp push --force
         
     - name: 📝 Create deployment version
@@ -230,8 +239,10 @@ jobs:
         echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
         
     - name: 🎯 Deploy to production
+      working-directory: ./gas-backend
       run: |
-        cd gas-backend
+        ls -la
+        pwd
         clasp push --force
         
     - name: 📝 Create production version
