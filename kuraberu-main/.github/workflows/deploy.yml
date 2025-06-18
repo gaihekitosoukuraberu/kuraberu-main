@@ -13,6 +13,16 @@ on:
       - main
     paths:
       - 'gas-backend/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deploy environment'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - production
 
 env:
   NODE_VERSION: '18'
@@ -39,7 +49,15 @@ jobs:
         
     - name: 🔧 Setup clasp for development
       run: |
-        echo '${{ secrets.CLASP_DEV_CONFIG }}' > gas-backend/.clasp.json
+        echo '{
+          "scriptId": "1VSHOIsq4wKeJZY1wZAoGjn4cvYg7kIa0LUW0k42sSmEP8rDuoV10kyrh",
+          "rootDir": "./",
+          "scriptExtensions": [".js", ".gs"],
+          "htmlExtensions": [".html"],
+          "jsonExtensions": [".json"],
+          "filePushOrder": [],
+          "skipSubdirectories": false
+        }' > gas-backend/.clasp.json
         echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
         
     - name: 🧪 Deploy to development (dry-run test)
@@ -89,6 +107,55 @@ jobs:
               body: commentBody
             });
           }
+
+  manual-deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+    - name: 🔍 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: 📥 Install clasp
+      run: npm install -g @google/clasp
+      
+    - name: 🔧 Setup clasp configuration
+      run: |
+        echo '{
+          "scriptId": "1VSHOIsq4wKeJZY1wZAoGjn4cvYg7kIa0LUW0k42sSmEP8rDuoV10kyrh",
+          "rootDir": "./",
+          "scriptExtensions": [".js", ".gs"],
+          "htmlExtensions": [".html"],
+          "jsonExtensions": [".json"],
+          "filePushOrder": [],
+          "skipSubdirectories": false
+        }' > gas-backend/.clasp.json
+        echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
+        
+    - name: 🚀 Deploy to ${{ github.event.inputs.environment }}
+      run: |
+        cd gas-backend
+        clasp push --force
+        
+    - name: 📝 Create deployment version
+      run: |
+        cd gas-backend
+        VERSION_DESC="Manual deploy ${{ github.event.inputs.environment }} $(date '+%Y-%m-%d %H:%M:%S') - ${{ github.sha }}"
+        clasp version "$VERSION_DESC"
+        
+    - name: 🎉 Deployment notification
+      if: success()
+      run: |
+        echo "🚀 ${{ github.event.inputs.environment }} deployment completed successfully!"
+        echo "📋 Commit: ${{ github.sha }}"
+        echo "🕐 Time: $(date '+%Y-%m-%d %H:%M:%S')"
 
   deploy-dev:
     runs-on: ubuntu-latest
@@ -151,7 +218,15 @@ jobs:
       
     - name: 🔧 Setup clasp for production
       run: |
-        echo '${{ secrets.CLASP_PROD_CONFIG }}' > gas-backend/.clasp.json
+        echo '{
+          "scriptId": "1VSHOIsq4wKeJZY1wZAoGjn4cvYg7kIa0LUW0k42sSmEP8rDuoV10kyrh",
+          "rootDir": "./",
+          "scriptExtensions": [".js", ".gs"],
+          "htmlExtensions": [".html"],
+          "jsonExtensions": [".json"],
+          "filePushOrder": [],
+          "skipSubdirectories": false
+        }' > gas-backend/.clasp.json
         echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
         
     - name: 🎯 Deploy to production
@@ -200,7 +275,15 @@ jobs:
       
     - name: 🔧 Setup clasp
       run: |
-        echo '${{ secrets.CLASP_PROD_CONFIG }}' > gas-backend/.clasp.json
+        echo '{
+          "scriptId": "1VSHOIsq4wKeJZY1wZAoGjn4cvYg7kIa0LUW0k42sSmEP8rDuoV10kyrh",
+          "rootDir": "./",
+          "scriptExtensions": [".js", ".gs"],
+          "htmlExtensions": [".html"],
+          "jsonExtensions": [".json"],
+          "filePushOrder": [],
+          "skipSubdirectories": false
+        }' > gas-backend/.clasp.json
         echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
         
     - name: 💾 Pull latest from GAS and backup
