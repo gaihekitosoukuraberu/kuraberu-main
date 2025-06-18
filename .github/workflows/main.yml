@@ -30,7 +30,7 @@ jobs:
           ls -laR
 
       - name: 🚀 Deploy to GAS
-        working-directory: kuraberu-main/gas-backend  # 🔧ここを要修正
+        working-directory: gas-backend  # ← 正しい設定
         run: |
           echo '{
             "scriptId": "1VSHOIsq4wKeJZY1wZAoGjn4cvYg7kIa0LUW0k42sSmEP8rDuoV10kyrh",
