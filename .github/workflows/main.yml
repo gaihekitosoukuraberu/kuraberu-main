@@ -34,4 +34,4 @@ jobs:
         run: |
           echo '${{ secrets.CLASP_PROD_CONFIG }}' > .clasp.json
           clasp push --force
-          clasp version "Deployed by GitHub Actions: $(date)"
+          echo "✅ Deployed without version (limit workaround)"
