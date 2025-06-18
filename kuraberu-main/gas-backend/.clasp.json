@@ -1,17 +1,16 @@
 {
-  "scriptId": "1VALw14wYqzPq_lBaJZxboFkrG5FTJ_2X2XFaBxisK3lQZ5ppQFYxpHMg",
-  "rootDir": ".",
-  "filePushOrder": [
-    "appsscript.json",
-    "billing_system.gs",
-    "assignment_system.gs",
-    "cancel_request_system.gs",
-    "ranking_system.gs",
-    "slack_integration_system.gs",
-    "parent_admin_config_system.gs",
-    "child_ranking_visibility_system.gs",
-    "chatbotSpreadsheet.gs",
-    "webApp.gs",
-    "areaResolver.gs"
-  ]
+  "scriptId": "1VSHOIsq4wKeJZY1wZAoGjn4cvYg7kIa0LUW0k42sSmEP8rDuoV10kyrh",
+  "rootDir": "",
+  "scriptExtensions": [
+    ".js",
+    ".gs"
+  ],
+  "htmlExtensions": [
+    ".html"
+  ],
+  "jsonExtensions": [
+    ".json"
+  ],
+  "filePushOrder": [],
+  "skipSubdirectories": false
 }
