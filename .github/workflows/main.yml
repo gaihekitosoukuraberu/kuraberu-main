@@ -30,15 +30,8 @@ jobs:
           ls -laR
 
       - name: 🚀 Deploy to GAS
-        working-directory: kuraberu-main/gas-backend  # ←最終的に正しかったディレクトリ
+        working-directory: kuraberu-main/gas-backend
         run: |
-          echo '{
-            "scriptId": "1VSHOIsq4wKeJZY1wZAoGjn4cvYg7kIa0LUW0k42sSmEP8rDuoV10kyrh",
-            "scriptExtensions": [".js", ".gs"],
-            "htmlExtensions": [".html"],
-            "jsonExtensions": [".json"],
-            "filePushOrder": [],
-            "skipSubdirectories": false
-          }' > .clasp.json
+          echo '${{ secrets.CLASP_PROD_CONFIG }}' > .clasp.json
           clasp push --force
           clasp version "Deployed by GitHub Actions: $(date)"
