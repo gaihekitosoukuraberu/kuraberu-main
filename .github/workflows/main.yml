@@ -27,11 +27,10 @@ jobs:
       - name: 📂 Debug directory structure
         run: |
           echo "📁 Current directory: $(pwd)"
-          echo "📋 Listing all files recursively:"
           ls -laR
 
       - name: 🚀 Deploy to GAS
-        working-directory: gas-backend  # 👈 ls -laR の結果見て必要ならここを変更
+        working-directory: kuraberu-main/gas-backend  # 🔧ここを要修正
         run: |
           echo '{
             "scriptId": "1VSHOIsq4wKeJZY1wZAoGjn4cvYg7kIa0LUW0k42sSmEP8rDuoV10kyrh",
@@ -42,4 +41,4 @@ jobs:
             "skipSubdirectories": false
           }' > .clasp.json
           clasp push --force
-          clasp version "Deployed by GitHub Actions on $(date)"
+          clasp version "Deployed by GitHub Actions: $(date)"
