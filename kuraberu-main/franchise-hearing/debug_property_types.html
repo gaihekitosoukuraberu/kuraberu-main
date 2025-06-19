@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Types Debug</title>
+</head>
+<body>
+    <h1>Property Types Data Debug</h1>
+    <div id="results"></div>
+
+    <script>
+        function debugPropertyTypesData() {
+            const results = document.getElementById('results');
+            let html = '<h2>localStorage Data Analysis</h2>';
+            
+            // Check basic data
+            const basicData = localStorage.getItem('franchiseBasicData');
+            if (basicData) {
+                try {
+                    const parsed = JSON.parse(basicData);
+                    html += '<h3>Basic Data Found:</h3>';
+                    html += '<pre>' + JSON.stringify(parsed, null, 2) + '</pre>';
+                    
+                    if (parsed.propertyTypes) {
+                        html += '<h3>Property Types Analysis:</h3>';
+                        html += '<p>Type: ' + (Array.isArray(parsed.propertyTypes) ? 'Array' : typeof parsed.propertyTypes) + '</p>';
+                        html += '<p>Length: ' + (Array.isArray(parsed.propertyTypes) ? parsed.propertyTypes.length : 'N/A') + '</p>';
+                        
+                        if (Array.isArray(parsed.propertyTypes)) {
+                            parsed.propertyTypes.forEach((item, index) => {
+                                html += '<p>Item ' + index + ': ';
+                                if (typeof item === 'object') {
+                                    html += 'Object - type: "' + (item.type || 'undefined') + '", maxFloors: ' + (item.maxFloors || 'undefined');
+                                } else {
+                                    html += 'String - value: "' + item + '"';
+                                }
+                                html += '</p>';
+                            });
+                        }
+                    } else {
+                        html += '<p style="color: red;">❌ No propertyTypes found in basic data</p>';
+                    }
+                } catch (e) {
+                    html += '<p style="color: red;">❌ Error parsing basic data: ' + e.message + '</p>';
+                }
+            } else {
+                html += '<p style="color: red;">❌ No franchiseBasicData found in localStorage</p>';
+            }
+            
+            // Check area data
+            const areaData = localStorage.getItem('franchiseAreaSelections');
+            if (areaData) {
+                try {
+                    const parsed = JSON.parse(areaData);
+                    html += '<h3>Area Data Found:</h3>';
+                    html += '<pre>' + JSON.stringify(parsed, null, 2) + '</pre>';
+                } catch (e) {
+                    html += '<p style="color: red;">❌ Error parsing area data: ' + e.message + '</p>';
+                }
+            } else {
+                html += '<p style="color: orange;">⚠️ No franchiseAreaSelections found in localStorage</p>';
+            }
+            
+            results.innerHTML = html;
+        }
+        
+        // Run debug on page load
+        debugPropertyTypesData();
+        
+        // Add refresh button
+        document.body.insertAdjacentHTML('beforeend', '<button onclick="debugPropertyTypesData()" style="margin: 20px; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px;">Refresh Debug</button>');
+    </script>
+</body>
+</html>

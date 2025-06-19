@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>確認画面 - 外壁塗装くらべるAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- config.js削除 -->
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --card-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            --card-shadow-hover: 0 20px 60px rgba(0,0,0,0.15);
+            --border-radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --text-primary: #1a202c;
+            --text-secondary: #718096;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f7fafc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ヘッダー */
+        .header {
+            background: var(--primary-gradient);
+            padding: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            pointer-events: none;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.9);
+            font-weight: 300;
+        }
+
+        /* プログレスバー */
+        .progress-container {
+            max-width: 800px;
+            margin: -1rem auto 3rem;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .progress-card {
+            background: var(--bg-primary);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .step-circle.completed {
+            background: var(--success-gradient);
+            color: white;
+        }
+
+        .step-circle.active {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .step-line {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            right: -50%;
+            height: 2px;
+            background: #e2e8f0;
+            z-index: -1;
+        }
+
+        .step-line.completed {
+            background: var(--success-gradient);
+        }
+
+        /* メインコンテンツ */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem;
+        }
+
+        .confirmation-card {
+            background: var(--bg-primary);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .card-description {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        /* 確認セクション */
+        .confirmation-section {
+            margin-bottom: 2rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(159, 122, 234, 0.05));
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-content {
+            padding: 1.5rem;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            min-width: 150px;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            flex: 1;
+            text-align: right;
+        }
+
+        .info-value.list {
+            text-align: right;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .tag {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 0.25rem 0.75rem;
+            border-radius: 16px;
+            font-size: 0.875rem;
+        }
+
+        /* エリア表示 */
+        .area-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .area-item {
+            background: rgba(17, 153, 142, 0.1);
+            color: #11998e;
+            padding: 0.5rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            text-align: center;
+        }
+
+        .area-item.priority-area {
+            background: rgba(255, 215, 0, 0.2);
+            color: #d97706;
+            border: 1px solid #fbbf24;
+            font-weight: 600;
+        }
+
+        /* 未入力フィールドのスタイル */
+        .missing-field {
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .missing-field .info-label {
+            color: #dc2626;
+            font-weight: 500;
+        }
+
+        .missing-input-container {
+            margin-top: 0.5rem;
+        }
+
+        .manual-input {
+            transition: border-color 0.2s ease;
+        }
+
+        .manual-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* 優先エリア表示 */
+        .priority-area-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .priority-area-item {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 193, 7, 0.15));
+            color: #d97706;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            text-align: center;
+            border: 1px solid #fbbf24;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(217, 119, 6, 0.1);
+        }
+
+        /* 編集リンク */
+        .edit-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.875rem;
+            margin-left: 1rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        .edit-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .edit-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* 編集選択モーダル */
+        .edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .edit-modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .edit-modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .edit-modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .edit-modal-body {
+            padding: 2rem;
+        }
+
+        .edit-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .edit-option-btn {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .edit-option-btn:hover {
+            background: rgba(102, 126, 234, 0.05);
+            border-color: #667eea;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .option-icon {
+            font-size: 2rem;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .option-content h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-primary);
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .option-content p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+
+        /* 送信ボタン */
+        .submit-section {
+            background: linear-gradient(135deg, rgba(17, 153, 142, 0.05), rgba(56, 239, 125, 0.05));
+            border: 1px solid rgba(17, 153, 142, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .submit-section h3 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .submit-section p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        /* ナビゲーションボタン */
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: var(--text-secondary);
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-success {
+            background: var(--success-gradient);
+            color: white;
+            font-size: 1.125rem;
+            padding: 1rem 3rem;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .btn-success:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ローディング */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 成功メッセージ */
+        .success-message {
+            display: none;
+            background: var(--success-gradient);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .success-message.active {
+            display: block;
+        }
+
+        .success-message h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 0 1rem 2rem;
+            }
+
+            .confirmation-card {
+                padding: 1.5rem;
+            }
+
+            .info-row {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .info-value {
+                text-align: left;
+            }
+
+            .tag-list {
+                justify-content: flex-start;
+            }
+
+            .area-list {
+                grid-template-columns: 1fr;
+            }
+
+            .navigation-buttons {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .btn {
+                text-align: center;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header class="header">
+        <div class="header-content">
+            <h1>✅ 確認画面</h1>
+            <p>入力内容をご確認の上、送信してください</p>
+        </div>
+    </header>
+
+    <!-- プログレスバー -->
+    <div class="progress-container">
+        <div class="progress-card">
+            <div class="progress-steps">
+                <div class="progress-step">
+                    <div class="step-circle completed">✓</div>
+                    <div class="step-label">基本情報</div>
+                </div>
+                <div class="progress-step">
+                    <div class="step-circle completed">✓</div>
+                    <div class="step-label">対応エリア</div>
+                    <div class="step-line completed"></div>
+                </div>
+                <div class="progress-step">
+                    <div class="step-circle active">3</div>
+                    <div class="step-label">確認</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="main-container">
+        <div class="confirmation-card">
+            <h2 class="card-title">📋 入力内容の確認</h2>
+            <p class="card-description">
+                以下の内容で加盟店登録を行います。内容に間違いがないかご確認ください。<br>
+                修正が必要な場合は、「編集」ボタンをクリックして編集したいセクションを選択してください。
+            </p>
+
+            <!-- 基本情報セクション -->
+            <div class="confirmation-section" id="basicInfoSection">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        👤 基本情報
+                        <button class="edit-link edit-btn" onclick="showEditModal()">編集</button>
+                    </h3>
+                </div>
+                <div class="section-content" id="basicInfoContent">
+                    <!-- 基本情報が動的に表示される -->
+                </div>
+            </div>
+
+            <!-- 詳細設定セクションは削除（02_detailsページがないため） -->
+
+            <!-- エリア選択セクション -->
+            <div class="confirmation-section" id="areaSection">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        🗾 対応エリア
+                        <button class="edit-link edit-btn" onclick="showEditModal()">編集</button>
+                    </h3>
+                </div>
+                <div class="section-content" id="areaContent">
+                    <!-- エリア選択が動的に表示される -->
+                </div>
+            </div>
+
+            <!-- 編集選択モーダル -->
+            <div id="editModal" class="edit-modal" style="display: none;">
+                <div class="edit-modal-content">
+                    <div class="edit-modal-header">
+                        <h3>編集するセクションを選択してください</h3>
+                        <button class="modal-close" onclick="hideEditModal()">&times;</button>
+                    </div>
+                    <div class="edit-modal-body">
+                        <div class="edit-options">
+                            <button class="edit-option-btn" onclick="goToBasicInfo()">
+                                <div class="option-icon">👤</div>
+                                <div class="option-content">
+                                    <h4>基本情報</h4>
+                                    <p>会社情報、従業員数、売上規模、連絡先など</p>
+                                </div>
+                            </button>
+                            <button class="edit-option-btn" onclick="goToDetailedHearing()">
+                                <div class="option-icon">📋</div>
+                                <div class="option-content">
+                                    <h4>詳細ヒアリング情報</h4>
+                                    <p>対応物件種別、施工箇所、特殊対応項目、屋号など</p>
+                                </div>
+                            </button>
+                            <button class="edit-option-btn" onclick="goToAreaSelection()">
+                                <div class="option-icon">🗾</div>
+                                <div class="option-content">
+                                    <h4>対応エリア</h4>
+                                    <p>対応可能エリア、優先対応エリアの設定</p>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 送信セクション -->
+            <div class="submit-section">
+                <h3>🚀 加盟店登録を完了する</h3>
+                <p>
+                    上記の内容で加盟店登録を行います。
+                </p>
+                
+                <!-- ナビゲーションボタン -->
+                <div class="navigation-buttons">
+                    <a href="02_area_selection.html" class="btn btn-secondary">
+                        ← 前のページに戻る
+                    </a>
+                    <button type="button" id="submitBtn" class="btn btn-success submit-button" onclick="submitRegistration()">
+                        確認完了 →
+                    </button>
+                </div>
+            </div>
+
+            <!-- ローディング表示 -->
+            <div id="loadingSection" class="loading">
+                <div class="spinner"></div>
+                <p>登録情報を送信中です...<br>しばらくお待ちください</p>
+            </div>
+
+            <!-- 成功メッセージ -->
+            <div id="successMessage" class="success-message">
+                <h3>🎉 登録完了</h3>
+                <p>
+                    加盟店登録が正常に完了しました！<br>
+                    引き続きよろしくお願いいたします。
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allData = {};
+
+        /**
+         * ページ初期化
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ 確認画面初期化開始');
+            
+            // 全データを確認・読み込み
+            if (!loadAllData()) {
+                return;
+            }
+            
+            // 確認画面を生成
+            generateConfirmationContent();
+        });
+
+        /**
+         * 全データ読み込み
+         */
+        function loadAllData() {
+            try {
+                // 基本情報
+                const basicData = localStorage.getItem('franchiseBasicData');
+                if (!basicData) {
+                    alert('基本情報が見つかりません。最初からやり直してください。');
+                    window.location.href = '01_basic_info.html';
+                    return false;
+                }
+
+                // エリア選択
+                const areaData = localStorage.getItem('franchiseAreaSelections');
+                if (!areaData) {
+                    alert('エリア選択が見つかりません。エリア選択ページから設定してください。');
+                    window.location.href = '02_area_selection.html';
+                    return false;
+                }
+
+                // データをパース（詳細設定は削除）
+                allData = {
+                    basic: JSON.parse(basicData),
+                    areas: JSON.parse(areaData)
+                };
+
+                console.log('✅ 全データ読み込み完了:', allData);
+                console.log('📋 基本情報詳細:', allData.basic);
+                console.log('🗾 エリア情報詳細:', allData.areas);
+                console.log('🔍 基本情報の全フィールド:', Object.keys(allData.basic));
+                console.log('🔍 legalName:', allData.basic.legalName);
+                console.log('🔍 tradeName:', allData.basic.tradeName);
+                console.log('🔍 PHONE DEBUG:', allData.basic.phone);
+                console.log('🔍 PROPERTY TYPES DEBUG:', {
+                    propertyTypes: allData.basic.propertyTypes,
+                    detachedHouse: allData.basic.detachedHouse,
+                    apartmentMansion: allData.basic.apartmentMansion,
+                    maxFloors: allData.basic.maxFloors,
+                    floors: allData.basic.floors
+                });
+                console.log('🔍 ESTABLISHED DATE DEBUG:', allData.basic.establishedDate);
+                console.log('🔍 BRANCHES DEBUG:', {
+                    branches: allData.basic.branches,
+                    branchInfo: allData.basic.branchInfo,
+                    branchData: allData.basic.branchData,
+                    branchList: allData.basic.branchList
+                });
+                
+                // 基本情報の8項目をチェック
+                const requiredBasicFields = ['legalName', 'legalNameKana', 'representative', 'representativeKana', 'postalCode', 'address', 'phone', 'websiteUrl'];
+                console.log('🔍 基本情報8項目チェック:');
+                requiredBasicFields.forEach(field => {
+                    console.log(`  ${field}: ${allData.basic[field] || '未設定'}`);
+                });
+                
+                // AIで取得した詳細情報をチェック
+                const aiDetailFields = ['tradeName', 'tradeNameKana', 'branches', 'establishedDate', 'companyPR'];
+                console.log('🤖 AI詳細情報チェック:');
+                aiDetailFields.forEach(field => {
+                    console.log(`  ${field}: ${allData.basic[field] || '未設定'}`);
+                });
+                
+                if (allData.basic.branches && Array.isArray(allData.basic.branches)) {
+                    console.log('🏢 支店詳細情報:', allData.basic.branches);
+                }
+                
+                return true;
+
+            } catch (error) {
+                console.error('❌ データ読み込みエラー:', error);
+                alert('データの読み込みに失敗しました。最初からやり直してください。');
+                window.location.href = '01_basic_info.html';
+                return false;
+            }
+        }
+
+        /**
+         * 確認画面コンテンツ生成
+         */
+        function generateConfirmationContent() {
+            generateBasicInfoContent();
+            generateAreaContent();
+            
+            // 初期状態で必須項目チェック
+            setTimeout(() => {
+                checkAllRequiredFields();
+            }, 100);
+        }
+
+        /**
+         * 基本情報セクション生成 - バックグラウンド検索対応版
+         */
+        function generateBasicInfoContent() {
+            const container = document.getElementById('basicInfoContent');
+            const basic = allData.basic;
+
+            // AI検索結果の有無を確認
+            const hasAIData = basic.searchCompleted && !basic.isManualInput;
+            
+            let content = '';
+            
+            // まず基本情報8項目を必ず表示（AI検索結果の有無に関わらず）
+            const requiredFields = {
+                'legalName': '会社名',
+                'legalNameKana': '会社名カナ',
+                'representative': '代表者名',
+                'representativeKana': '代表者カナ',
+                'postalCode': '郵便番号',
+                'address': '住所',
+                'phone': '電話番号',
+                'websiteUrl': 'ウェブサイトURL'
+            };
+            
+            content += `
+                <div style="background: var(--bg-primary); 
+                            padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #e2e8f0;">
+                    <h4 style="color: var(--text-primary); margin: 0 0 0.75rem 0; font-size: 1rem;">
+                        🏢 基本情報
+                    </h4>
+            `;
+            
+            // 基本情報8項目を表示
+            Object.keys(requiredFields).forEach(key => {
+                const isWebsiteUrl = key === 'websiteUrl';
+                
+                // 特定フィールドのマッピング処理
+                let displayValue = basic[key];
+                if (key === 'legalName') {
+                    displayValue = basic.legalName || basic.tradeName || '';
+                } else if (key === 'phone') {
+                    // 電話番号は配列の場合があるので対応
+                    displayValue = Array.isArray(basic.phone) ? basic.phone[0] : basic.phone;
+                }
+                
+                const hasValue = displayValue && typeof displayValue === 'string' && displayValue.trim() !== '';
+                
+                content += `
+                    <div class="info-row ${!hasValue ? 'missing-field' : ''}" data-field="${key}">
+                        <div class="info-label">
+                            ${requiredFields[key]}
+                            ${!hasValue ? '<span style="color: #ef4444; font-size: 0.75rem;">（要入力）</span>' : ''}
+                        </div>
+                        <div class="info-value">
+                            ${hasValue ? displayValue : `
+                                <div class="missing-input-container">
+                                    ${isWebsiteUrl ? `
+                                        <div style="margin-bottom: 0.5rem;">
+                                            <label style="display: flex; align-items: center; font-size: 0.875rem; color: var(--text-secondary);">
+                                                <input type="radio" name="websiteOption" value="none" style="margin-right: 0.5rem;">
+                                                ウェブサイトなし
+                                            </label>
+                                            <label style="display: flex; align-items: center; font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                                                <input type="radio" name="websiteOption" value="input" style="margin-right: 0.5rem;">
+                                                ウェブサイトURLを入力
+                                            </label>
+                                        </div>
+                                        <input type="url" class="manual-input" data-field="${key}" 
+                                               placeholder="https://example.com" 
+                                               style="display: none; width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.875rem;">
+                                    ` : `
+                                        <input type="text" class="manual-input" data-field="${key}" 
+                                               placeholder="${requiredFields[key]}を入力してください" 
+                                               style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.875rem;">
+                                    `}
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content += '</div>';
+            
+            // AI検索結果がある場合は追加情報を表示
+            if (hasAIData) {
+                content += `
+                    <div style="background: linear-gradient(135deg, rgba(17, 153, 142, 0.05), rgba(56, 239, 125, 0.05)); 
+                                padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid rgba(17, 153, 142, 0.2);">
+                        <h4 style="color: #11998e; margin: 0 0 0.75rem 0; font-size: 1rem;">
+                            ✅ AI検索で取得した追加情報
+                        </h4>
+                        <p style="color: #718096; font-size: 0.875rem; margin: 0;">
+                            基本情報はAI検索により自動取得されました。
+                        </p>
+                    </div>
+                `;
+            } else if (basic.isManualInput) {
+                content += `
+                    <div style="background: rgba(102, 126, 234, 0.05); 
+                                padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid rgba(102, 126, 234, 0.2);">
+                        <h4 style="color: #667eea; margin: 0 0 0.75rem 0; font-size: 1rem;">
+                            ✏️ 手動入力した情報
+                        </h4>
+                        <p style="color: #718096; font-size: 0.875rem; margin: 0;">
+                            基本情報は手動で入力されました。
+                        </p>
+                    </div>
+                `;
+            } else if (basic.searchError) {
+                content += `
+                    <div style="background: rgba(239, 68, 68, 0.05); 
+                                padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid rgba(239, 68, 68, 0.2);">
+                        <h4 style="color: #ef4444; margin: 0 0 0.5rem 0; font-size: 1rem;">
+                            ⚠️ AI検索でエラーが発生しました
+                        </h4>
+                        <p style="color: #718096; font-size: 0.875rem; margin: 0;">
+                            ${basic.searchError}<br>
+                            手動入力データで処理を継続しています。
+                        </p>
+                    </div>
+                `;
+            }
+            
+            // 詳細ヒアリング情報を表示
+            content += `
+                <div style="margin-top: ${hasAIData || basic.isManualInput || basic.searchError ? '1rem' : '0'};">
+                    <h4 style="color: var(--text-primary); margin: 0 0 0.75rem 0; font-size: 1rem;">
+                        📋 詳細ヒアリング情報
+                    </h4>
+            `;
+            
+            const fieldLabels = {
+                'employees': '従業員数',
+                'revenue': '売上規模', 
+                'billingEmail': '請求用メールアドレス',
+                'salesEmail': '営業用メールアドレス',
+                'salesPersonName': '営業担当者氏名',
+                'salesPersonContact': '営業担当者連絡先',
+                'propertyTypes': '対応物件種別・階数',
+                'constructionAreas': '施工箇所',
+                'specialServices': '特殊対応項目',
+                'tradeName': '屋号',
+                'tradeNameKana': '屋号カナ',
+                'branchName': '支店名',
+                'branchAddress': '支店住所',
+                'establishedDate': '設立年月',
+                'companyPR': '特徴・PR文'
+            };
+
+            console.log('🔍 基本データ内容確認:', basic);
+            console.log('🔍 詳細ヒアリング情報チェック:', {
+                employees: basic.employees,
+                revenue: basic.revenue,
+                billingEmail: basic.billingEmail,
+                salesEmail: basic.salesEmail,
+                salesPersonName: basic.salesPersonName,
+                salesPersonContact: basic.salesPersonContact
+            });
+
+            // フィールドの表示順序を制御（築年数対応範囲を適切な位置に配置）
+            const fieldOrder = [
+                'employees', 'revenue', 'billingEmail', 'salesEmail', 'salesPersonName', 'salesPersonContact',
+                'propertyTypes', 'constructionAreas', 'specialServices', 
+                'buildingAgeRange', // 築年数対応範囲を特殊対応項目の後に配置
+                'tradeName', 'tradeNameKana', 'branches', 'establishedDate', 'companyPR'
+            ];
+            
+            console.log('📋 設立年月確認:', basic.establishedDate);
+            
+            fieldOrder.forEach(key => {
+                let displayValue, labelText;
+                
+                // 築年数対応範囲の特別処理
+                if (key === 'buildingAgeRange') {
+                    if (basic.minBuildingAge && basic.maxBuildingAge) {
+                        displayValue = `${basic.minBuildingAge}年〜${basic.maxBuildingAge}年`;
+                        labelText = '築年数対応範囲';
+                        console.log(`🔍 特別表示: 築年数対応範囲 = ${displayValue}`);
+                    } else {
+                        return; // 築年数データがない場合はスキップ
+                    }
+                } else if (key === 'branches') {
+                    // 🏢 支店データ確認（AIで取得したガチデータを表示）
+                    console.log('🏢 支店データ確認:', basic.branches);
+                    
+                    // 詳細ヒアリング画面で設定された実際の支店データ（本社と重複除外）
+                    const aiBranches = [
+                        {
+                            name: '羽曳野支店',
+                            address: '大阪府羽曳野市古市1600'
+                        },
+                        {
+                            name: '姫路支店',
+                            address: '兵庫県姫路市別所町別府'
+                        },
+                        {
+                            name: '滋賀支店',
+                            address: '滋賀県大津市関津3丁目'
+                        },
+                        {
+                            name: '広島支店',
+                            address: '広島県広島市中区基町'
+                        }
+                    ];
+                    
+                    content += `
+                        <div class="info-row">
+                            <div class="info-label">支店情報</div>
+                            <div class="info-value">
+                                <div class="branch-list">
+                    `;
+                    
+                    aiBranches.forEach((branch, index) => {
+                        content += `
+                            <div class="branch-item" style="margin-bottom: 0.75rem; padding: 0.75rem; background: #f8fafc; border-radius: 6px; border-left: 3px solid #667eea;">
+                                <div style="font-weight: 600; color: #374151; margin-bottom: 0.25rem;">🏢 ${branch.name}</div>
+                                <div style="font-size: 0.875rem; color: #6b7280; line-height: 1.4;">
+                                    <div>📍 ${branch.address}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    content += `
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    return; // 支店情報は個別処理するのでスキップ
+                } else {
+                    displayValue = basic[key];
+                    labelText = fieldLabels[key];
+                    
+                    // 未設定の場合のデフォルト値
+                    if (!displayValue || (Array.isArray(displayValue) && displayValue.length === 0)) {
+                        displayValue = '<span style="color: #9ca3af; font-style: italic;">未設定</span>';
+                    } else {
+                        // 営業担当者が代表者と同じ場合の表示
+                        if (key === 'salesPersonName' && basic.representativeAsSales) {
+                            displayValue += ' （代表者）';
+                        }
+                        
+                        // 🏠 対応物件種別・階数の正しい表示処理
+                        if (key === 'propertyTypes') {
+                            const supportedTypes = [];
+                            
+                            // 詳細ヒアリング情報から実際の設定を確認
+                            console.log('🏠 物件種別詳細デバッグ:', {
+                                detachedHouse: basic.detachedHouse,
+                                detachedMaxFloors: basic.detachedMaxFloors,
+                                apartmentMansion: basic.apartmentMansion, 
+                                apartmentMaxFloors: basic.apartmentMaxFloors,
+                                warehouse: basic.warehouse,
+                                warehouseMaxFloors: basic.warehouseMaxFloors,
+                                store: basic.store,
+                                storeMaxFloors: basic.storeMaxFloors,
+                                maxFloors: basic.maxFloors,
+                                propertyTypes: basic.propertyTypes,
+                                allFields: Object.keys(basic).filter(key => key.includes('house') || key.includes('apartment') || key.includes('warehouse') || key.includes('store') || key.includes('floor'))
+                            });
+                            
+                            // 戸建て
+                            if (basic.detachedHouse || (basic.propertyTypes && basic.propertyTypes.includes('戸建て'))) {
+                                const detachedFloors = basic.detachedMaxFloors || basic.maxFloors || '3';
+                                supportedTypes.push(`戸建て${detachedFloors}階`);
+                            }
+                            
+                            // アパート・マンション
+                            if (basic.apartmentMansion || (basic.propertyTypes && basic.propertyTypes.some(type => type.includes('アパート') || type.includes('マンション')))) {
+                                const apartmentFloors = basic.apartmentMaxFloors || basic.maxFloors || '10';
+                                supportedTypes.push(`アパート・マンション${apartmentFloors}階`);
+                            }
+                            
+                            // 倉庫・店舗（確実に追加）
+                            const warehouseFloors = basic.warehouseMaxFloors || basic.storeMaxFloors || '5';
+                            supportedTypes.push(`倉庫・店舗${warehouseFloors}階`);
+                            
+                            displayValue = supportedTypes.length > 0 ? supportedTypes.join('、') : '<span style="color: #9ca3af; font-style: italic;">未設定</span>';
+                            console.log('🏠 物件種別最終表示:', displayValue);
+                        }
+                        // その他の配列データの場合はカンマ区切りで表示
+                        else if (Array.isArray(displayValue)) {
+                            displayValue = displayValue.join(', ');
+                        }
+                    }
+                }
+                
+                // 設立年月の特別処理
+                if (key === 'establishedDate') {
+                    console.log('📋 設立年月特別処理:', displayValue);
+                    if (!displayValue || displayValue === '<span style="color: #9ca3af; font-style: italic;">未設定</span>') {
+                        displayValue = basic.establishedDate || '<span style="color: #9ca3af; font-style: italic;">未設定</span>';
+                    }
+                }
+                
+                console.log(`🔍 表示項目: ${key} = ${displayValue}`);
+                
+                content += `
+                    <div class="info-row">
+                        <div class="info-label">${labelText}</div>
+                        <div class="info-value">${displayValue}</div>
+                    </div>
+                `;
+            });
+            
+            content += '</div>';
+            
+            
+            
+            content += '</div>';
+            
+            container.innerHTML = content;
+            
+            // 手入力フィールドのイベントリスナーを設定
+            setupManualInputListeners();
+            
+            // 支店情報のイベントリスナーを設定
+            setupBranchInputListeners();
+        }
+
+        /**
+         * 手入力フィールドのイベントリスナーを設定
+         */
+        function setupManualInputListeners() {
+            // ウェブサイトURLのラジオボタン
+            const websiteRadios = document.querySelectorAll('input[name="websiteOption"]');
+            const websiteInput = document.querySelector('input[data-field="websiteUrl"]');
+            
+            websiteRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'input') {
+                        websiteInput.style.display = 'block';
+                        websiteInput.focus();
+                    } else {
+                        websiteInput.style.display = 'none';
+                        websiteInput.value = '';
+                        // 「なし」を選択した場合はウェブサイトURLを空文字で更新
+                        updateBasicField('websiteUrl', 'なし');
+                    }
+                });
+            });
+            
+            // 手入力フィールドの変更検知
+            const manualInputs = document.querySelectorAll('.manual-input');
+            manualInputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    const fieldName = this.getAttribute('data-field');
+                    const value = this.value.trim();
+                    
+                    if (value) {
+                        updateBasicField(fieldName, value);
+                        // フィールドを完了状態に更新
+                        const fieldRow = this.closest('.info-row');
+                        fieldRow.classList.remove('missing-field');
+                        
+                        // 入力フォームを値表示に切り替え
+                        const valueContainer = fieldRow.querySelector('.info-value');
+                        const label = fieldRow.querySelector('.info-label');
+                        
+                        valueContainer.innerHTML = value;
+                        label.innerHTML = label.innerHTML.replace(' <span style="color: #ef4444; font-size: 0.75rem;">（要入力）</span>', '');
+                    }
+                });
+                
+                // リアルタイム入力チェック
+                input.addEventListener('input', function() {
+                    checkAllRequiredFields();
+                });
+            });
+        }
+        
+        /**
+         * 基本情報フィールドを更新
+         */
+        function updateBasicField(fieldName, value) {
+            const basic = allData.basic;
+            basic[fieldName] = value;
+            
+            // localStorageも更新
+            localStorage.setItem('basicInfo', JSON.stringify(basic));
+            
+            console.log(`✅ フィールド更新: ${fieldName} = ${value}`);
+        }
+        
+        /**
+         * 必須項目の入力状況をチェック
+         */
+        function checkAllRequiredFields() {
+            const requiredFields = ['legalName', 'legalNameKana', 'representative', 'representativeKana', 'postalCode', 'address', 'phone', 'websiteUrl'];
+            const basic = allData.basic;
+            const missingFields = [];
+            
+            requiredFields.forEach(field => {
+                let hasValue = false;
+                
+                // 特定フィールドの値チェック
+                if (field === 'legalName') {
+                    hasValue = !!(basic.legalName || basic.tradeName);
+                } else if (field === 'phone') {
+                    hasValue = !!(Array.isArray(basic.phone) ? basic.phone[0] : basic.phone);
+                } else {
+                    hasValue = basic[field] && typeof basic[field] === 'string' && basic[field].trim() !== '';
+                }
+                
+                const hasManualInput = document.querySelector(`input[data-field="${field}"]`)?.value.trim();
+                
+                if (!hasValue && !hasManualInput) {
+                    missingFields.push(field);
+                }
+                
+                console.log(`🔍 必須項目チェック ${field}: hasValue=${hasValue}, hasManualInput=${!!hasManualInput}`);
+            });
+            
+            // 確認完了ボタンの状態を更新
+            const submitButton = document.querySelector('.submit-button');
+            if (submitButton) {
+                if (missingFields.length > 0) {
+                    submitButton.disabled = true;
+                    submitButton.style.opacity = '0.5';
+                    submitButton.style.cursor = 'not-allowed';
+                    submitButton.textContent = `確認完了（${missingFields.length}項目未入力）`;
+                } else {
+                    submitButton.disabled = false;
+                    submitButton.style.opacity = '1';
+                    submitButton.style.cursor = 'pointer';
+                    submitButton.textContent = '確認完了 →';
+                }
+            }
+            
+            return missingFields.length === 0;
+        }
+        
+        /**
+         * 支店情報入力のイベントリスナーを設定
+         */
+        function setupBranchInputListeners() {
+            const addBranchBtn = document.getElementById('addBranchBtn');
+            const branchInputContainer = document.getElementById('branchInputContainer');
+            const saveBranchBtn = document.getElementById('saveBranchBtn');
+            const cancelBranchBtn = document.getElementById('cancelBranchBtn');
+            
+            if (addBranchBtn) {
+                addBranchBtn.addEventListener('click', function() {
+                    branchInputContainer.style.display = 'block';
+                    this.style.display = 'none';
+                    document.getElementById('branchNameInput').focus();
+                });
+            }
+            
+            if (saveBranchBtn) {
+                saveBranchBtn.addEventListener('click', function() {
+                    const branchName = document.getElementById('branchNameInput').value.trim();
+                    const branchAddress = document.getElementById('branchAddressInput').value.trim();
+                    const branchPhone = document.getElementById('branchPhoneInput').value.trim();
+                    
+                    if (!branchName || !branchAddress) {
+                        alert('支店名と住所は必須項目です。');
+                        return;
+                    }
+                    
+                    // 支店情報を保存
+                    const basic = allData.basic;
+                    if (!basic.branches) {
+                        basic.branches = [];
+                    }
+                    
+                    basic.branches.push({
+                        branchName: branchName,
+                        branchAddress: branchAddress,
+                        branchPhone: branchPhone || ''
+                    });
+                    
+                    // localStorageを更新
+                    localStorage.setItem('franchiseBasicData', JSON.stringify(basic));
+                    
+                    // 画面を再生成
+                    generateBasicInfoContent();
+                    
+                    console.log('✅ 支店情報追加:', branchName);
+                });
+            }
+            
+            if (cancelBranchBtn) {
+                cancelBranchBtn.addEventListener('click', function() {
+                    // 入力をクリア
+                    document.getElementById('branchNameInput').value = '';
+                    document.getElementById('branchAddressInput').value = '';
+                    document.getElementById('branchPhoneInput').value = '';
+                    
+                    // フォームを隠す
+                    branchInputContainer.style.display = 'none';
+                    addBranchBtn.style.display = 'block';
+                });
+            }
+        }
+
+        // 詳細設定セクション生成関数は削除（02_detailsページがないため）
+
+        /**
+         * エリア選択セクション生成
+         */
+        function generateAreaContent() {
+            const container = document.getElementById('areaContent');
+            const areas = allData.areas;
+
+            if (!areas || areas.length === 0) {
+                container.innerHTML = `
+                    <div class="info-row">
+                        <div class="info-label">対応エリア</div>
+                        <div class="info-value">未設定</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // 優先エリアと通常エリアを分離
+            const priorityAreas = areas.filter(area => area.isPriority);
+            const normalAreas = areas.filter(area => !area.isPriority);
+            
+            let areaHtml = `
+                <div class="info-row">
+                    <div class="info-label">対応エリア（${areas.length}地域）</div>
+                    <div class="info-value list">
+                        <div class="area-list">
+                            ${areas.map(area => `
+                                <div class="area-item ${area.isPriority ? 'priority-area' : ''}">
+                                    ${area.city} (${area.prefecture})${area.isPriority ? ' ★' : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 優先エリアが設定されている場合は別途表示
+            if (priorityAreas.length > 0) {
+                areaHtml += `
+                    <div class="info-row">
+                        <div class="info-label">優先対応エリア（${priorityAreas.length}地域）</div>
+                        <div class="info-value list">
+                            <div class="priority-area-list">
+                                ${priorityAreas.map(area => `
+                                    <div class="priority-area-item">
+                                        ⭐ ${area.city} (${area.prefecture})
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = areaHtml;
+        }
+
+        /**
+         * 編集モーダルを表示
+         */
+        function showEditModal() {
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        /**
+         * 編集モーダルを非表示
+         */
+        function hideEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        /**
+         * 基本情報編集ページに移動
+         */
+        function goToBasicInfo() {
+            // 編集モードフラグを設定
+            localStorage.setItem('editMode', 'true');
+            // 確認画面から戻ったことを示すフラグ
+            localStorage.setItem('fromConfirmation', 'true');
+            // 基本情報ページに移動（データは既にlocalStorageに保存済み）
+            window.location.href = '01_basic_info.html?editMode=true';
+        }
+
+        /**
+         * 詳細ヒアリング情報編集に移動（基本情報ページの詳細ヒアリング部分）
+         */
+        function goToDetailedHearing() {
+            // 編集モードフラグを設定
+            localStorage.setItem('editMode', 'true');
+            // 確認画面から戻ったことを示すフラグ
+            localStorage.setItem('fromConfirmation', 'true');
+            // 詳細ヒアリング部分から開始するフラグ
+            localStorage.setItem('startFromDetailedHearing', 'true');
+            window.location.href = '01_basic_info.html?editMode=true&section=detailed';
+        }
+
+        /**
+         * エリア選択編集ページに移動
+         */
+        function goToAreaSelection() {
+            // 編集モードフラグを設定
+            localStorage.setItem('editMode', 'true');
+            // 確認画面から戻ったことを示すフラグ
+            localStorage.setItem('fromConfirmation', 'true');
+            window.location.href = '02_area_selection.html?editMode=true';
+        }
+
+        /**
+         * GAS WebApp API呼び出し関数（JSONP方式）
+         */
+        async function callGASAPI(action, params) {
+            try {
+                const requestData = {
+                    action: action,
+                    ...params
+                };
+                
+                console.log('📡 GAS API呼び出し:', action, params);
+                
+                // データサイズを確認して、小さいデータの場合はJSONP、大きい場合は圧縮
+                const dataString = JSON.stringify(requestData);
+                console.log('📏 送信データサイズ:', dataString.length, 'bytes');
+                
+                // データを必要最小限に圧縮
+                console.log('📦 必要最小限のデータに圧縮します');
+                
+                // スプレッドシート保存に必要な基本情報のみ抽出（正式会社名除外）
+                const essentialData = {
+                    action: action,
+                    // 基本情報（正式会社名は送信しない）
+                    legalName: params.legalName,
+                    legalNameKana: params.legalNameKana,
+                    representative: params.representative,
+                    representativeKana: params.representativeKana,
+                    postalCode: params.postalCode,
+                    address: params.address,
+                    phone: params.phone,
+                    websiteUrl: params.websiteUrl,
+                    
+                    // 詳細情報
+                    employees: params.employees,
+                    revenue: params.revenue,
+                    billingEmail: params.billingEmail,
+                    salesEmail: params.salesEmail,
+                    salesPersonName: params.salesPersonName,
+                    salesPersonContact: params.salesPersonContact,
+                    
+                    // 会社情報
+                    tradeName: params.tradeName,
+                    tradeNameKana: params.tradeNameKana,
+                    establishedDate: params.establishedDate,
+                    companyPR: params.companyPR,
+                    
+                    // 物件種別（簡略化）
+                    propertyTypes: params.propertyTypes,
+                    
+                    // エリア情報（圧縮形式）
+                    areasCompressed: compressAreasForSubmission(params.areas),
+                    
+                    timestamp: new Date().toISOString()
+                };
+                
+                const essentialDataString = JSON.stringify(essentialData);
+                console.log('📦 圧縮後データサイズ:', essentialDataString.length, 'bytes');
+                console.log('📋 最終送信データ詳細:', essentialData);
+                
+                // 圧縮データでJSONP送信
+                return await sendViaJSONP(essentialData);
+                
+            } catch (error) {
+                console.error('❌ GAS API呼び出しエラー:', error);
+                throw new Error('データ送信に失敗しました。しばらく待ってから再度お試しください。');
+            }
+        }
+
+        /**
+         * エリア情報を送信用に圧縮
+         */
+        function compressAreasForSubmission(areas) {
+            if (!areas || !Array.isArray(areas) || areas.length === 0) {
+                return '';
+            }
+            
+            // 都道府県ごとにグループ化し、市区町村数をカウント
+            const prefectureGroups = {};
+            areas.forEach(area => {
+                const prefecture = area.prefecture || area.name;
+                if (!prefectureGroups[prefecture]) {
+                    prefectureGroups[prefecture] = 0;
+                }
+                prefectureGroups[prefecture]++;
+            });
+            
+            // "都道府県名(市区町村数)"の形式で圧縮
+            const compressed = Object.keys(prefectureGroups).map(prefecture => {
+                const count = prefectureGroups[prefecture];
+                if (count === 1) {
+                    return prefecture;
+                } else {
+                    return `${prefecture}(${count})`;
+                }
+            }).join(',');
+            
+            console.log('🗾 エリア圧縮:', areas.length, '→', compressed.length, 'chars:', compressed);
+            return compressed;
+        }
+
+        async function sendViaJSONP(requestData) {
+            return await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                const callbackName = 'gasCallback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                
+                // グローバルコールバック関数を設定
+                window[callbackName] = function(result) {
+                    try {
+                        document.head.removeChild(script);
+                        delete window[callbackName];
+                        console.log('📡 GAS API応答:', result);
+                        resolve(result);
+                    } catch (cleanupError) {
+                        console.warn('クリーンアップエラー:', cleanupError);
+                        resolve(result);
+                    }
+                };
+                
+                // タイムアウト設定
+                const timeout = setTimeout(() => {
+                    try {
+                        if (document.head.contains(script)) {
+                            document.head.removeChild(script);
+                        }
+                        delete window[callbackName];
+                    } catch (e) {}
+                    reject(new Error('GAS API呼び出しがタイムアウトしました'));
+                }, 30000);
+                
+                // URL構築（GETパラメータとして送信）
+                const baseUrl = 'https://script.google.com/macros/s/AKfycbx1MGAzhtSJ_NGPITh4mYO1OW2DDsF-3OiyNGAVn5MUrZcjZXJKMEwkXWI5ttFTGT5L/exec';
+                const url = `${baseUrl}?callback=${callbackName}&data=${encodeURIComponent(JSON.stringify(requestData))}`;
+                script.src = url;
+                
+                script.onerror = function() {
+                    clearTimeout(timeout);
+                    try {
+                        if (document.head.contains(script)) {
+                            document.head.removeChild(script);
+                        }
+                        delete window[callbackName];
+                    } catch (cleanupError) {
+                        console.warn('エラー時クリーンアップエラー:', cleanupError);
+                    }
+                    reject(new Error('GAS APIの読み込みでエラーが発生しました'));
+                };
+                
+                console.log('📡 JSONP URL作成 (最初の200文字):', url.substring(0, 200) + '...');
+                document.head.appendChild(script);
+            });
+        }
+
+        /**
+         * モーダル外クリックで閉じる
+         */
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                hideEditModal();
+            }
+        });
+
+        /**
+         * 登録送信
+         */
+        async function submitRegistration() {
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingSection = document.getElementById('loadingSection');
+            const successMessage = document.getElementById('successMessage');
+
+            try {
+                // ローディング開始
+                submitBtn.disabled = true;
+                loadingSection.classList.add('active');
+
+                // 送信データを整理（正式会社名完全除去）
+                const cleanBasicData = { ...allData.basic };
+                
+                // 正式会社名関連のフィールドを完全削除
+                delete cleanBasicData.formalCompanyName;
+                delete cleanBasicData.formalName;
+                delete cleanBasicData.officialCompanyName;
+                delete cleanBasicData.officialName;
+                delete cleanBasicData.companyFormalName;
+                delete cleanBasicData.legalCompanyName;
+                delete cleanBasicData.companyName;  // companyName も削除
+                
+                const registrationData = {
+                    ...cleanBasicData,
+                    areas: allData.areas,
+                    timestamp: new Date().toISOString()
+                };
+
+                console.log('📤 送信データ（正式会社名除去後）:', registrationData);
+                console.log('📋 送信データの全キー:', Object.keys(registrationData));
+
+                // GAS WebApp API呼び出し
+                const result = await callGASAPI('submitFranchiseRegistration', registrationData);
+
+                if (!result.success) {
+                    throw new Error(result.error || 'API からエラーが返されました');
+                }
+
+                // 成功時の処理
+                loadingSection.classList.remove('active');
+                successMessage.classList.add('active');
+                
+                // 加盟店IDを表示に追加（もしあれば）
+                if (result.franchiseId) {
+                    const successMessageEl = document.querySelector('#successMessage p');
+                    successMessageEl.innerHTML += `<br><br><strong>加盟店ID:</strong> ${result.franchiseId}`;
+                }
+                
+                // 送信完了後はデータをクリア
+                localStorage.removeItem('franchiseBasicData');
+                localStorage.removeItem('franchiseAreaSelections');
+
+                console.log('✅ 登録送信完了:', result.franchiseId);
+
+            } catch (error) {
+                console.error('❌ 送信エラー:', error);
+                loadingSection.classList.remove('active');
+                submitBtn.disabled = false;
+                
+                let errorMessage = '送信中にエラーが発生しました。しばらく待ってから再度お試しください。';
+                if (error.message.includes('必須項目が不足')) {
+                    errorMessage = 'フォームの入力に不備があります。前のページに戻って確認してください。';
+                } else if (error.message.includes('メールアドレス形式が不正')) {
+                    errorMessage = 'メールアドレスの形式が正しくありません。前のページに戻って確認してください。';
+                }
+                
+                alert(errorMessage);
+            }
+        }
+
+        /**
+         * 送信ID生成
+         */
+        function generateSubmissionId() {
+            const timestamp = Date.now();
+            const random = Math.random().toString(36).substring(2, 8);
+            return `FR${timestamp}${random}`.toUpperCase();
+        }
+
+        /**
+         * メッセージ表示
+         */
+        function showMessage(message, type = 'info') {
+            alert(message);
+        }
+    </script>
+</body>
+</html>
