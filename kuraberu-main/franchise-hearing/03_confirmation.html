@@ -1516,8 +1516,8 @@
                     
                     // 詳細情報（画像②より）
                     propertyTypes: buildPropertyTypesWithFloors(params).split('、'),
-                    constructionAreas: compressServiceList(params.constructionAreas),
-                    specialServices: compressServiceList(params.specialServices),
+                    constructionAreas: params.constructionAreas,
+                    specialServices: params.specialServices,
                     buildingAgeRange: (function() {
                         try { return buildBuildingAgeRange(params); } 
                         catch(e) { console.error('buildingAgeRange error:', e); return params.buildingAgeRange || ''; }
@@ -1549,14 +1549,49 @@
                 console.log('🔍 送信データのconstructionAreas:', essentialData.constructionAreas);
                 console.log('🔍 送信データのspecialServices:', essentialData.specialServices);
                 
-                // データサイズが大きい場合はPOST、小さい場合はJSONP
-                if (essentialDataString.length > 500) {
-                    console.log('📦 データが大きいためPOST送信に切り替え');
-                    return await sendViaFetch(essentialData);
-                } else {
-                    console.log('📦 データが小さいためJSONP送信');
-                    return await sendViaJSONP(essentialData);
-                }
+                // 常にJSONP送信（CORS問題回避）
+                console.log('📦 JSONP送信でデータ送信');
+                
+                // データサイズを適度に削減（URL長制限対応、但し必要な情報は保持）
+                console.log('📦 バランス版データ作成中...');
+                let finalData = {
+                    action: essentialData.action,
+                    legalName: essentialData.legalName,
+                    legalNameKana: essentialData.legalNameKana,
+                    representative: essentialData.representative,
+                    representativeKana: essentialData.representativeKana,
+                    postalCode: essentialData.postalCode ? essentialData.postalCode.replace(/[-\s]/g, '') : '', // ハイフン除去
+                    address: essentialData.address, // 住所は完全版
+                    phone: Array.isArray(essentialData.phone) ? 
+                        essentialData.phone[0].replace(/[-\s]/g, '') : 
+                        (essentialData.phone ? essentialData.phone.replace(/[-\s]/g, '') : ''), // ハイフン除去
+                    websiteUrl: essentialData.websiteUrl,
+                    employees: essentialData.employees,
+                    revenue: essentialData.revenue,
+                    billingEmail: essentialData.billingEmail,
+                    salesEmail: essentialData.salesEmail,
+                    salesPersonName: essentialData.salesPersonName,
+                    salesPersonContact: essentialData.salesPersonContact,
+                    propertyTypes: essentialData.propertyTypes,
+                    constructionAreas: Array.isArray(essentialData.constructionAreas) ? 
+                        `選択済み${essentialData.constructionAreas.length}項目` : 
+                        essentialData.constructionAreas,
+                    specialServices: Array.isArray(essentialData.specialServices) ? 
+                        `選択済み${essentialData.specialServices.length}項目` : 
+                        essentialData.specialServices,
+                    buildingAgeRange: essentialData.buildingAgeRange,
+                    tradeName: essentialData.tradeName,
+                    tradeNameKana: essentialData.tradeNameKana,
+                    branchInfo: essentialData.branchInfo,
+                    establishedDate: essentialData.establishedDate,
+                    companyPR: essentialData.companyPR ? essentialData.companyPR.substring(0, 30) + '...' : '',
+                    areasCompressed: essentialData.areasCompressed, // 既に圧縮済み：神奈川(44),東京(46)...
+                    priorityAreas: essentialData.priorityAreas ? essentialData.priorityAreas.substring(0, 40) + '...' : '',
+                    timestamp: new Date().toISOString()
+                };
+                console.log('📦 バランス版データサイズ:', JSON.stringify(finalData).length, 'bytes');
+                
+                return await sendViaJSONP(finalData);
                 
             } catch (error) {
                 console.error('❌ GAS API呼び出しエラー:', error);
@@ -1776,35 +1811,34 @@
             return compressed;
         }
 
-        async function sendViaFetch(requestData) {
-            try {
-                console.log('📡 Fetch API送信開始');
-                const baseUrl = 'https://script.google.com/macros/s/AKfycbzP8Msqp3c9qxTaBJ0VOvQbuTUUesgXqpDlovN4w5d5SQ0vkHousoKSpqnIbu9Qm5U/exec';
-                
-                const response = await fetch(baseUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestData),
-                    mode: 'cors'
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP エラー: ${response.status} ${response.statusText}`);
-                }
-                
-                const result = await response.json();
-                console.log('📡 GAS API応答:', result);
-                return result;
-                
-            } catch (error) {
-                console.error('📡 Fetch API エラー:', error);
-                
-                // フォールバック: JSONP方式（データを短縮）
-                console.log('📡 JSONP フォールバックに切り替え');
-                return await sendViaJSONP(requestData);
+        // sendViaFetch関数を削除 - CORS問題のため
+        
+        /**
+         * 表示用フォーマット関数
+         */
+        function formatPostalCode(postalCode) {
+            if (!postalCode) return '';
+            const cleaned = postalCode.replace(/[^\d]/g, '');
+            if (cleaned.length === 7) {
+                return cleaned.substring(0, 3) + '-' + cleaned.substring(3);
             }
+            return postalCode;
+        }
+        
+        function formatPhoneNumber(phone) {
+            if (!phone) return '';
+            const cleaned = phone.replace(/[^\d]/g, '');
+            if (cleaned.length === 11 && cleaned.startsWith('0')) {
+                // 携帯電話: 090-1234-5678
+                return cleaned.substring(0, 3) + '-' + cleaned.substring(3, 7) + '-' + cleaned.substring(7);
+            } else if (cleaned.length === 10 && cleaned.startsWith('0')) {
+                // 固定電話: 03-1234-5678
+                return cleaned.substring(0, 2) + '-' + cleaned.substring(2, 6) + '-' + cleaned.substring(6);
+            } else if (cleaned.length >= 10) {
+                // フリーダイヤルなど: 0120-123-456
+                return cleaned.substring(0, 4) + '-' + cleaned.substring(4, 7) + '-' + cleaned.substring(7);
+            }
+            return phone;
         }
 
         async function sendViaJSONP(requestData) {
@@ -1837,7 +1871,7 @@
                 }, 30000);
                 
                 // URL構築（GETパラメータとして送信）
-                const baseUrl = 'https://script.google.com/macros/s/AKfycbzaf_0sGavkjrCaIHLMdxlj82Qbw27q_7j-0dRspikPbclY78JN68BirGzF-S68kpKU/exec';
+                const baseUrl = 'https://script.google.com/macros/s/AKfycbyAhdyccnqBBtQap-zZfQc6WzjJ8SzyH8isrYOOGCl2iJ-ROHv5XOtCqnXNMmYYl4Sy/exec';
                 const url = `${baseUrl}?callback=${callbackName}&data=${encodeURIComponent(JSON.stringify(requestData))}`;
                 script.src = url;
                 
@@ -1926,10 +1960,9 @@
                 loadingSection.classList.remove('active');
                 successMessage.classList.add('active');
                 
-                // 加盟店IDを表示に追加（フロントエンド生成ID使用）
-                const submissionId = generateSubmissionId();
+                // 加盟店IDを表示に追加（GASから返されたID使用）
                 const successMessageEl = document.querySelector('#successMessage p');
-                successMessageEl.innerHTML += `<br><br><strong>加盟店ID:</strong> ${submissionId}`;
+                successMessageEl.innerHTML += `<br><br><strong>加盟店ID:</strong> ${result.franchiseId}`;
                 
                 // 送信完了後はデータをクリア
                 localStorage.removeItem('franchiseBasicData');

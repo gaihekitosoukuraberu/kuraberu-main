@@ -2097,8 +2097,8 @@
         // 🌐 グローバル変数・設定
         // ===========================================
         
-        // GAS APIエンドポイント（DeepSeek完全版・75箇所修正済み）
-        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzP8Msqp3c9qxTaBJ0VOvQbuTUUesgXqpDlovN4w5d5SQ0vkHousoKSpqnIbu9Qm5U/exec';
+        // GAS APIエンドポイント（WebApp設定修正版）
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyAhdyccnqBBtQap-zZfQc6WzjJ8SzyH8isrYOOGCl2iJ-ROHv5XOtCqnXNMmYYl4Sy/exec';
         
         // アプリケーション状態
         let currentStep = 'company-input';
@@ -2193,10 +2193,8 @@
                 initializeEstablishedDateDropdowns();
             }, 100);
 
-            // 確認画面からの戻りの場合は、適切な画面状態に移動
-            setTimeout(() => {
-                checkForReturnFromConfirmation();
-            }, 200);
+            // 確認画面からの戻りの場合は、適切な画面状態に移動（即座実行）
+            checkForReturnFromConfirmation();
         });
         
         function showInitialStep() {
@@ -2208,17 +2206,8 @@
             // プログレスバーを初期状態に
             updateProgress(0, '会社名を入力してください');
             
-            // 即座に実行
+            // 1回だけ実行（無限ループ防止）
             resetToCompanyInput();
-            
-            // 念のため遅延実行も行う
-            setTimeout(() => {
-                resetToCompanyInput();
-            }, 100);
-            
-            setTimeout(() => {
-                resetToCompanyInput();
-            }, 500);
         }
         
         function resetToCompanyInput() {
@@ -3618,8 +3607,9 @@
          * 手入力モードに移行
          */
         function goToManualInput() {
-            console.log('🖋️ AI検索エラー - リロードして最初から');
-            location.reload();
+            console.log('🖋️ AI検索エラー - 手動入力に切り替え');
+            // リロードではなく、単純に会社名入力画面に戻る
+            showInitialStep();
         }
 
         /**
@@ -7216,8 +7206,11 @@
                         }
                     };
                     
-                    // URL構築（GETパラメータとして送信）
+                    // URL構築（GASのdoGet関数が期待するdata+callback形式）
                     const url = `${GAS_API_URL}?callback=${callbackName}&data=${encodeURIComponent(JSON.stringify(requestData))}`;
+                    
+                    console.log('🔍 構築されたJSONP URL:', url);
+                    console.log('🔍 送信データ:', JSON.stringify(requestData));
                     script.src = url;
                     
                     script.onerror = function() {
@@ -9507,8 +9500,8 @@
 
             } catch (error) {
                 console.log('⚠️ 基本情報ページ復元エラー:', error);
-                // エラー時は最初のページに戻る
-                location.reload();
+                // エラー時は最初のページに戻る（リロードではなく初期状態に戻す）
+                showInitialStep();
             }
         }
     </script>

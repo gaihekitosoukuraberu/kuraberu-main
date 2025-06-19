@@ -1084,8 +1084,15 @@ DeepSeekの既知データベースのみで企業情報を検索中: ${companyN
       return `検索結果が見つかりませんでした。会社名: ${companyName}`;
     }
     
-    // 🎯 第2段階検索をセッションに保存（バックグラウンド処理用）
-    PropertiesService.getScriptProperties().setProperty(`DETAIL_QUERIES_${companyName}`, JSON.stringify(detailQueries));
+    // 🎯 第2段階検索は即座に実行（Propertiesに保存しない）
+    Logger.log(`🔍 第2段階詳細検索を即座に実行: ${detailQueries.length}件のクエリ`);
+    
+    // 詳細検索を即座に実行してallResultsに追加
+    const detailResults = performQuickSearch(companyName, detailQueries);
+    if (detailResults && detailResults.length > 0) {
+      allResults += `\n\n=== 【第2段階詳細検索結果】 ===\n${detailResults}`;
+      Logger.log(`✅ 第2段階検索完了: +${detailResults.length}文字追加`);
+    }
     
     Logger.log(`✅ Web検索完了: ${allResults.length}文字のデータ取得`);
     return allResults;
@@ -1153,28 +1160,22 @@ function performQuickSearch(companyName, queries) {
 }
 
 /**
- * 詳細検索実行（第2段階・バックグラウンド用）
+ * 詳細検索実行（第2段階・即座実行版）
  * @param {string} companyName 会社名
+ * @param {Array} detailQueries 詳細検索クエリ配列
  * @returns {string} 追加検索結果
  */
-function performDetailSearch(companyName) {
+function performDetailSearch(companyName, detailQueries) {
   try {
     Logger.log(`🔍 第2段階詳細検索開始: ${companyName}`);
     
-    // 保存された詳細クエリを取得
-    const savedQueries = PropertiesService.getScriptProperties().getProperty(`DETAIL_QUERIES_${companyName}`);
-    if (!savedQueries) {
-      Logger.log(`❌ 第2段階クエリが見つかりません: ${companyName}`);
+    if (!detailQueries || detailQueries.length === 0) {
+      Logger.log(`❌ 詳細クエリが提供されていません: ${companyName}`);
       return '';
     }
     
-    const detailQueries = JSON.parse(savedQueries);
-    
     // 詳細検索実行
     const detailResults = performQuickSearch(companyName, detailQueries);
-    
-    // 使用済みクエリを削除
-    PropertiesService.getScriptProperties().deleteProperty(`DETAIL_QUERIES_${companyName}`);
     
     Logger.log(`✅ 第2段階検索完了: ${detailResults.length}文字の追加情報`);
     return detailResults;
