@@ -80,49 +80,6 @@
             box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
         }
 
-        .form-input.error {
-            border-color: #dc3545;
-        }
-
-        .password-input-container {
-            position: relative;
-        }
-
-        .password-toggle {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            padding: 4px;
-        }
-
-        .error-message {
-            font-size: 12px;
-            color: #dc3545;
-        }
-
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            color: #495057;
-        }
-
-        .checkbox-input {
-            width: 16px;
-            height: 16px;
-        }
-
-        .checkbox-text {
-            user-select: none;
-        }
-
         .login-btn {
             padding: 14px 20px;
             background: #dc2626;
@@ -145,32 +102,6 @@
             background: #6c757d;
             cursor: not-allowed;
             transform: none;
-        }
-
-        .login-error {
-            padding: 12px 16px;
-            background: #fee2e2;
-            border: 1px solid #fecaca;
-            color: #dc2626;
-            border-radius: 6px;
-            font-size: 14px;
-            text-align: center;
-            display: none;
-        }
-
-        .login-footer {
-            text-align: center;
-            margin-top: 24px;
-        }
-
-        .forgot-password {
-            color: #dc2626;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .forgot-password:hover {
-            text-decoration: underline;
         }
 
         @media (max-width: 480px) {
@@ -209,152 +140,50 @@
                     type="text"
                     class="form-input"
                     placeholder="admin@example.com"
-                    autocomplete="username"
-                    required
+                    value="admin@example.com"
                 >
-                <span id="email-error" class="error-message"></span>
             </div>
 
             <div class="form-group">
                 <label for="password" class="form-label">パスワード</label>
-                <div class="password-input-container">
-                    <input
-                        id="password"
-                        type="password"
-                        class="form-input"
-                        placeholder="パスワードを入力"
-                        required
-                    >
-                    <button
-                        type="button"
-                        class="password-toggle"
-                        id="toggleBtn"
-                    >
-                        👁️
-                    </button>
-                </div>
-                <span id="password-error" class="error-message"></span>
-            </div>
-
-            <div class="form-group">
-                <label class="checkbox-label">
-                    <input
-                        type="checkbox"
-                        id="rememberMe"
-                        class="checkbox-input"
-                    >
-                    <span class="checkbox-text">ログイン状態を保持する</span>
-                </label>
+                <input
+                    id="password"
+                    type="password"
+                    class="form-input"
+                    placeholder="パスワードを入力"
+                    value="password"
+                >
             </div>
 
             <button type="button" class="login-btn" id="loginBtn">
                 ログイン
             </button>
-
-            <div id="loginError" class="login-error"></div>
-        </div>
-
-        <div class="login-footer">
-            <a href="#" class="forgot-password" id="forgotLink">
-                パスワードを忘れた方はこちら
-            </a>
         </div>
     </div>
 
     <script>
-        // グローバル変数でアクセスを確実にする
-        window.loginInProgress = false;
-
-        console.log('=== SCRIPT LOADING ===');
-
-        // パスワード表示切り替え
-        function togglePassword() {
-            console.log('Toggle password function called');
-            const passwordInput = document.getElementById('password');
-            const toggleBtn = document.getElementById('toggleBtn');
+        console.log('Page loaded - checking elements');
+        
+        document.getElementById('loginBtn').onclick = function() {
+            console.log('Login button clicked');
             
-            if (passwordInput && toggleBtn) {
-                if (passwordInput.type === 'password') {
-                    passwordInput.type = 'text';
-                    toggleBtn.textContent = '🙈';
-                } else {
-                    passwordInput.type = 'password';
-                    toggleBtn.textContent = '👁️';
-                }
-            }
-        }
-
-        // バリデーション
-        function validateForm() {
-            console.log('=== VALIDATION START ===');
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const emailError = document.getElementById('email-error');
-            const passwordError = document.getElementById('password-error');
-            
-            console.log('Form values:', { email: email, passwordLength: password.length });
-            
-            let isValid = true;
-            
-            // エラーメッセージをリセット
-            emailError.textContent = '';
-            passwordError.textContent = '';
-            document.getElementById('email').classList.remove('error');
-            document.getElementById('password').classList.remove('error');
-            
-            if (!email) {
-                emailError.textContent = 'メールアドレスは必須です';
-                document.getElementById('email').classList.add('error');
-                isValid = false;
-                console.log('Email validation failed');
-            }
-            
-            if (!password) {
-                passwordError.textContent = 'パスワードは必須です';
-                document.getElementById('password').classList.add('error');
-                isValid = false;
-                console.log('Password validation failed');
-            }
-            
-            console.log('Validation result:', isValid);
-            return isValid;
-        }
-
-        // ログイン処理
-        function doLogin() {
-            console.log('=== LOGIN PROCESS START ===');
-            
-            if (window.loginInProgress) {
-                console.log('Login already in progress, ignoring');
-                return;
-            }
-            
-            window.loginInProgress = true;
-            
-            if (!validateForm()) {
-                console.log('Form validation failed, stopping login');
-                window.loginInProgress = false;
-                return;
-            }
-
-            const loginBtn = document.getElementById('loginBtn');
-            const loginError = document.getElementById('loginError');
-            const email = document.getElementById('email').value.trim();
+            const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
-            console.log('Processing login for:', email);
+            console.log('Email:', email);
+            console.log('Password length:', password.length);
             
-            // ローディング状態
-            loginBtn.disabled = true;
-            loginBtn.textContent = 'ログイン中...';
-            loginError.style.display = 'none';
-            
-            // 認証処理
-            setTimeout(function() {
-                try {
-                    console.log('Authenticating...');
+            if (email && password) {
+                console.log('Validation passed, processing login...');
+                
+                // ローディング状態
+                this.disabled = true;
+                this.textContent = 'ログイン中...';
+                
+                // 認証処理（簡単化）
+                setTimeout(() => {
+                    console.log('Setting localStorage and redirecting...');
                     
-                    // ログイン成功時の処理
                     localStorage.setItem('admin_token', 'admin-token-' + Date.now());
                     localStorage.setItem('admin_user', JSON.stringify({
                         id: 'admin-' + Date.now(),
@@ -363,91 +192,16 @@
                         role: 'admin'
                     }));
                     
-                    // Remember Me の処理
-                    if (document.getElementById('rememberMe').checked) {
-                        localStorage.setItem('rememberMe', 'true');
-                        localStorage.setItem('userEmail', email);
-                        console.log('Remember me enabled');
-                    } else {
-                        localStorage.removeItem('rememberMe');
-                        localStorage.removeItem('userEmail');
-                    }
-                    
-                    console.log('Login successful, redirecting to /admin/app.html');
+                    console.log('Redirecting to /admin/app.html');
                     window.location.href = '/admin/app.html';
-                    
-                } catch (error) {
-                    console.error('Login error:', error);
-                    loginError.textContent = 'ログインに失敗しました';
-                    loginError.style.display = 'block';
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = 'ログイン';
-                    window.loginInProgress = false;
-                }
-            }, 500);
-        }
-
-        // パスワード忘れ
-        function handleForgotPassword() {
-            alert('パスワードリセット機能は準備中です');
-        }
-
-        // 初期化
-        function initializePage() {
-            console.log('=== PAGE INITIALIZATION ===');
-            
-            // Remember Me の復元
-            if (localStorage.getItem('rememberMe') === 'true') {
-                const savedEmail = localStorage.getItem('userEmail');
-                if (savedEmail) {
-                    document.getElementById('email').value = savedEmail;
-                    document.getElementById('rememberMe').checked = true;
-                    console.log('Restored remember me data');
-                }
+                }, 1000);
+            } else {
+                console.log('Validation failed');
+                alert('メールアドレスとパスワードを入力してください');
             }
-            
-            // イベントリスナーの設定
-            const loginBtn = document.getElementById('loginBtn');
-            const toggleBtn = document.getElementById('toggleBtn');
-            const forgotLink = document.getElementById('forgotLink');
-            
-            if (loginBtn) {
-                loginBtn.addEventListener('click', doLogin);
-                console.log('Login button event listener added');
-            }
-            
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', togglePassword);
-                console.log('Toggle button event listener added');
-            }
-            
-            if (forgotLink) {
-                forgotLink.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    handleForgotPassword();
-                });
-                console.log('Forgot link event listener added');
-            }
-            
-            // Enterキーでログイン
-            document.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    doLogin();
-                }
-            });
-            
-            console.log('=== INITIALIZATION COMPLETE ===');
-        }
-
-        // ページ読み込み完了時に初期化
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializePage);
-        } else {
-            initializePage();
-        }
+        };
         
-        console.log('=== SCRIPT LOADED ===');
+        console.log('Script initialization complete');
     </script>
 </body>
 </html>
