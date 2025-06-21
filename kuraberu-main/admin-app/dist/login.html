@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>運営本部システム - ログイン</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .login-container {
+            background: white;
+            padding: 48px;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+        
+        .logo p {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.2s;
+            background: #ffffff;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+        
+        .login-button {
+            width: 100%;
+            padding: 12px 16px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+        
+        .login-button:hover {
+            background: #b91c1c;
+        }
+        
+        .login-button:active {
+            transform: translateY(1px);
+        }
+        
+        .login-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 16px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>外壁塗装くらべるAI</h1>
+            <p>運営本部システム</p>
+        </div>
+        
+        <div class="error-message" id="errorMessage"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label" for="email">メールアドレス</label>
+                <input type="email" id="email" class="form-input" placeholder="メールアドレスを入力" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="password">パスワード</label>
+                <input type="password" id="password" class="form-input" placeholder="パスワードを入力" required>
+            </div>
+            
+            <button type="submit" class="login-button" id="loginButton">
+                ログイン
+            </button>
+        </form>
+        
+        <div class="loading" id="loading">
+            認証中です...
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('loginForm');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const loginButton = document.getElementById('loginButton');
+            const errorMessage = document.getElementById('errorMessage');
+            const loading = document.getElementById('loading');
+
+            // 既にログイン済みかチェック
+            if (localStorage.getItem('admin_token')) {
+                window.location.href = './index.html';
+                return;
+            }
+
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+            }
+
+            function hideError() {
+                errorMessage.style.display = 'none';
+            }
+
+            function setLoading(isLoading) {
+                if (isLoading) {
+                    loginButton.disabled = true;
+                    loginButton.textContent = 'ログイン中...';
+                    loading.style.display = 'block';
+                } else {
+                    loginButton.disabled = false;
+                    loginButton.textContent = 'ログイン';
+                    loading.style.display = 'none';
+                }
+            }
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                hideError();
+
+                const email = emailInput.value.trim();
+                const password = passwordInput.value.trim();
+
+                if (!email || !password) {
+                    showError('メールアドレスとパスワードを入力してください');
+                    return;
+                }
+
+                setLoading(true);
+
+                // 簡単な認証チェック（実際のプロジェクトでは適切な認証を実装）
+                setTimeout(() => {
+                    if (email && password) {
+                        // 認証成功
+                        const token = 'admin_token_' + new Date().getTime();
+                        const user = {
+                            id: 'admin_' + Date.now(),
+                            email: email,
+                            name: '管理者',
+                            role: 'admin'
+                        };
+
+                        localStorage.setItem('admin_token', token);
+                        localStorage.setItem('admin_user', JSON.stringify(user));
+
+                        // ダッシュボードにリダイレクト
+                        window.location.href = './index.html';
+                    } else {
+                        setLoading(false);
+                        showError('メールアドレスまたはパスワードが正しくありません');
+                    }
+                }, 1000);
+            });
+
+            // Enterキーでフォーム送信
+            emailInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    passwordInput.focus();
+                }
+            });
+
+            passwordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    form.dispatchEvent(new Event('submit'));
+                }
+            });
+        });
+    </script>
+</body>
+</html>
