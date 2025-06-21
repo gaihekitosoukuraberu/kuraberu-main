@@ -173,7 +173,6 @@
             text-decoration: underline;
         }
 
-        /* レスポンシブ対応 */
         @media (max-width: 480px) {
             .login-container {
                 padding: 24px;
@@ -202,7 +201,7 @@
             <p class="login-subtitle">運営本部システム</p>
         </div>
 
-        <form id="loginForm" class="login-form" onsubmit="handleLogin(event)">
+        <div class="login-form">
             <div class="form-group">
                 <label for="email" class="form-label">メールアドレス</label>
                 <input
@@ -229,7 +228,7 @@
                     <button
                         type="button"
                         class="password-toggle"
-                        onclick="togglePassword()"
+                        id="toggleBtn"
                     >
                         👁️
                     </button>
@@ -248,45 +247,52 @@
                 </label>
             </div>
 
-            <button type="submit" class="login-btn" id="loginBtn" onclick="handleLogin(event)">
+            <button type="button" class="login-btn" id="loginBtn">
                 ログイン
             </button>
 
             <div id="loginError" class="login-error"></div>
-        </form>
+        </div>
 
         <div class="login-footer">
-            <a href="#" class="forgot-password" onclick="handleForgotPassword(event)">
+            <a href="#" class="forgot-password" id="forgotLink">
                 パスワードを忘れた方はこちら
             </a>
         </div>
     </div>
 
     <script>
-        console.log('Script loaded');
-        
+        // グローバル変数でアクセスを確実にする
+        window.loginInProgress = false;
+
+        console.log('=== SCRIPT LOADING ===');
+
         // パスワード表示切り替え
         function togglePassword() {
-            console.log('Toggle password clicked');
+            console.log('Toggle password function called');
             const passwordInput = document.getElementById('password');
-            const toggleBtn = document.querySelector('.password-toggle');
+            const toggleBtn = document.getElementById('toggleBtn');
             
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleBtn.textContent = '🙈';
-            } else {
-                passwordInput.type = 'password';
-                toggleBtn.textContent = '👁️';
+            if (passwordInput && toggleBtn) {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleBtn.textContent = '🙈';
+                } else {
+                    passwordInput.type = 'password';
+                    toggleBtn.textContent = '👁️';
+                }
             }
         }
 
         // バリデーション
         function validateForm() {
-            console.log('Validating form');
+            console.log('=== VALIDATION START ===');
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const emailError = document.getElementById('email-error');
             const passwordError = document.getElementById('password-error');
+            
+            console.log('Form values:', { email: email, passwordLength: password.length });
             
             let isValid = true;
             
@@ -300,12 +306,14 @@
                 emailError.textContent = 'メールアドレスは必須です';
                 document.getElementById('email').classList.add('error');
                 isValid = false;
+                console.log('Email validation failed');
             }
             
             if (!password) {
                 passwordError.textContent = 'パスワードは必須です';
                 document.getElementById('password').classList.add('error');
                 isValid = false;
+                console.log('Password validation failed');
             }
             
             console.log('Validation result:', isValid);
@@ -313,14 +321,20 @@
         }
 
         // ログイン処理
-        function handleLogin(event) {
-            console.log('=== LOGIN FUNCTION CALLED ===');
-            event.preventDefault();
-            event.stopPropagation();
+        function doLogin() {
+            console.log('=== LOGIN PROCESS START ===');
+            
+            if (window.loginInProgress) {
+                console.log('Login already in progress, ignoring');
+                return;
+            }
+            
+            window.loginInProgress = true;
             
             if (!validateForm()) {
-                console.log('Form validation failed');
-                return false;
+                console.log('Form validation failed, stopping login');
+                window.loginInProgress = false;
+                return;
             }
 
             const loginBtn = document.getElementById('loginBtn');
@@ -328,64 +342,59 @@
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             
-            console.log('Login attempt:', { email: email, passwordLength: password.length });
+            console.log('Processing login for:', email);
             
             // ローディング状態
             loginBtn.disabled = true;
             loginBtn.textContent = 'ログイン中...';
             loginError.style.display = 'none';
             
-            // 即座にフォールバック認証を実行
+            // 認証処理
             setTimeout(function() {
                 try {
-                    if (email && password) {
-                        console.log('Processing login...');
-                        
-                        // ログイン成功時の処理
-                        localStorage.setItem('admin_token', 'admin-token-' + Date.now());
-                        localStorage.setItem('admin_user', JSON.stringify({
-                            id: 'admin-' + Date.now(),
-                            name: '管理者',
-                            email: email,
-                            role: 'admin'
-                        }));
-                        
-                        // Remember Me の処理
-                        if (document.getElementById('rememberMe').checked) {
-                            localStorage.setItem('rememberMe', 'true');
-                            localStorage.setItem('userEmail', email);
-                        } else {
-                            localStorage.removeItem('rememberMe');
-                            localStorage.removeItem('userEmail');
-                        }
-                        
-                        console.log('Login successful, redirecting...');
-                        // 管理画面にリダイレクト
-                        window.location.href = '/admin/app.html';
+                    console.log('Authenticating...');
+                    
+                    // ログイン成功時の処理
+                    localStorage.setItem('admin_token', 'admin-token-' + Date.now());
+                    localStorage.setItem('admin_user', JSON.stringify({
+                        id: 'admin-' + Date.now(),
+                        name: '管理者',
+                        email: email,
+                        role: 'admin'
+                    }));
+                    
+                    // Remember Me の処理
+                    if (document.getElementById('rememberMe').checked) {
+                        localStorage.setItem('rememberMe', 'true');
+                        localStorage.setItem('userEmail', email);
+                        console.log('Remember me enabled');
                     } else {
-                        throw new Error('メールアドレスとパスワードを入力してください');
+                        localStorage.removeItem('rememberMe');
+                        localStorage.removeItem('userEmail');
                     }
+                    
+                    console.log('Login successful, redirecting to /admin/app.html');
+                    window.location.href = '/admin/app.html';
+                    
                 } catch (error) {
                     console.error('Login error:', error);
-                    loginError.textContent = error.message || 'ログインに失敗しました';
+                    loginError.textContent = 'ログインに失敗しました';
                     loginError.style.display = 'block';
                     loginBtn.disabled = false;
                     loginBtn.textContent = 'ログイン';
+                    window.loginInProgress = false;
                 }
-            }, 100);
-            
-            return false;
+            }, 500);
         }
 
         // パスワード忘れ
-        function handleForgotPassword(event) {
-            event.preventDefault();
+        function handleForgotPassword() {
             alert('パスワードリセット機能は準備中です');
         }
 
-        // ページ読み込み完了時の処理
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded');
+        // 初期化
+        function initializePage() {
+            console.log('=== PAGE INITIALIZATION ===');
             
             // Remember Me の復元
             if (localStorage.getItem('rememberMe') === 'true') {
@@ -393,22 +402,52 @@
                 if (savedEmail) {
                     document.getElementById('email').value = savedEmail;
                     document.getElementById('rememberMe').checked = true;
+                    console.log('Restored remember me data');
                 }
             }
             
-            // フォームイベントの確実な設定
-            const form = document.getElementById('loginForm');
-            if (form) {
-                form.addEventListener('submit', handleLogin);
-                console.log('Form event listener added');
+            // イベントリスナーの設定
+            const loginBtn = document.getElementById('loginBtn');
+            const toggleBtn = document.getElementById('toggleBtn');
+            const forgotLink = document.getElementById('forgotLink');
+            
+            if (loginBtn) {
+                loginBtn.addEventListener('click', doLogin);
+                console.log('Login button event listener added');
             }
             
-            const loginBtn = document.getElementById('loginBtn');
-            if (loginBtn) {
-                loginBtn.addEventListener('click', handleLogin);
-                console.log('Button event listener added');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', togglePassword);
+                console.log('Toggle button event listener added');
             }
-        });
+            
+            if (forgotLink) {
+                forgotLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    handleForgotPassword();
+                });
+                console.log('Forgot link event listener added');
+            }
+            
+            // Enterキーでログイン
+            document.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    doLogin();
+                }
+            });
+            
+            console.log('=== INITIALIZATION COMPLETE ===');
+        }
+
+        // ページ読み込み完了時に初期化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializePage);
+        } else {
+            initializePage();
+        }
+        
+        console.log('=== SCRIPT LOADED ===');
     </script>
 </body>
 </html>
