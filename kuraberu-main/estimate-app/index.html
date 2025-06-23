@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- グローバルメッセージハンドラー -->
+  <script>
+    // グローバルのiframeメッセージハンドラー（最優先で実行されるように頭に配置）
+    window.addEventListener('message', function(event) {
+      if (event.data === 'closeDetailOverlay') {
+        console.log('グローバルメッセージハンドラー: closeDetailOverlay受信');
+        const overlay = document.getElementById('detailOverlay');
+        if (overlay) {
+          overlay.remove();
+          document.body.style.overflow = '';
+          document.body.style.position = '';
+          document.body.style.width = '';
+          document.body.style.height = '';
+        }
+      }
+    }, false);
+  </script>
+  
+  <title>外壁塗装くらべる - AIで最適な業者を無料で比較 [NEW VERSION]</title>
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- カスタムスタイル -->
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- キープボタン（右上固定） -->
+  <div id="keepButton" class="fixed top-4 right-4 z-50 hidden">
+    <button id="viewKeptCompaniesTop" class="bg-white shadow-lg rounded-full p-3 border border-gray-200 hover:bg-gray-50 transition-colors relative">
+      <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      </svg>
+      <div id="keepCountBadgeTop" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold hidden">0</div>
+    </button>
+  </div>
+
+  <!-- キープボックス（モーダル） -->
+  <div id="keepBoxModal" class="fixed inset-0 bg-black bg-opacity-50 z-[60] hidden">
+    <div class="flex items-start justify-center min-h-screen p-2 pt-16">
+      <div class="bg-white rounded-2xl w-full max-w-sm">
+        <!-- ヘッダー -->
+        <div class="bg-pink-500 text-white p-3 flex justify-between items-center rounded-t-2xl">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-red-300" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            <h3 class="text-base font-bold">キープリスト</h3>
+          </div>
+          <button id="closeKeepBox" class="text-white hover:text-gray-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <!-- キープ項目リスト -->
+        <div id="keepBoxContent" class="p-3">
+          <!-- キープ項目がここに動的に挿入される -->
+        </div>
+        
+        <!-- 無料見積もりボタン -->
+        <div class="p-3 border-t border-gray-200 rounded-b-2xl">
+          <button class="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg font-bold text-sm">
+            無料見積もりを依頼する
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'kuraberu-yellow': '#FFE600',
+            'kuraberu-blue': '#0ea5e9',
+            'kuraberu-dark': '#0f172a',
+            'kuraberu-green': '#10b981',
+            'kuraberu-red': '#ef4444',
+          },
+          fontFamily: {
+            'sans': ['"Hiragino Sans"', '"Hiragino Kaku Gothic ProN"', 'Meiryo', 'sans-serif'],
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.5s ease-out',
+            'slide-up': 'slideUp 0.4s ease-out',
+            'slide-in': 'slideIn 0.3s ease-out',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(10px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            },
+            slideIn: {
+              '0%': { transform: 'translateX(10px)', opacity: '0' },
+              '100%': { transform: 'translateX(0)', opacity: '1' },
+            },
+          },
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-white">
+
+  <!-- メインセクション -->
+  <section class="bg-white py-16">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-center">
+        <div class="w-full max-w-lg">
+          <!-- フォーム部分 -->
+          <div class="bg-white rounded-2xl shadow-lg p-4 relative mb-3 mt-4 md:mt-0 max-w-xl mx-auto md:mx-0">
+            <!-- 現在のキャンペーンバッジ -->
+            <div class="absolute -top-2 -left-2 bg-white rounded-full p-1 z-20">
+              <div class="bg-kuraberu-blue text-white text-[10px] font-medium px-2 py-0.5 rounded-full animate-pulse-slow">
+                かんたん10秒！
+              </div>
+            </div>
+            
+            <h2 class="text-center text-lg font-bold mb-3 text-gray-800">郵便番号で今すぐ相場チェック！</h2>
+            
+            <div class="mb-0 text-center">
+              <div class="flex flex-col gap-3 justify-center max-w-lg mx-auto">
+                <div class="relative w-full">
+                  <input 
+                    type="text" 
+                    id="postalCode" 
+                    placeholder="例：100-0001" 
+                    maxlength="8"
+                    class="w-full py-4 px-6 border-2 border-blue-200 rounded-xl text-xl text-center shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200 font-medium tracking-wider"
+                    style="font-size: 24px; background: #f8faff;"
+                  >
+                </div>
+                <button 
+                  id="searchButton" 
+                  class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-6 rounded-xl transition-colors shadow-lg text-lg"
+                >
+                  <span class="flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    🔍 無料で相場を見る
+                  </span>
+                </button>
+              </div>
+              <p id="postalError" class="text-red-500 text-center mt-1 hidden text-xs">
+                郵便番号を正しく入力してください
+              </p>
+              <!-- SSL暗号化通信の安全性 -->
+              <div class="text-center mt-2 text-[10px] text-gray-500 max-w-xl mx-auto px-2 sm:px-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-green-500 mr-1 inline-block align-text-bottom" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                個人情報保護・SSL暗号化通信で安全
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 相場表示エリア（最初は非表示） -->
+  <section id="areaPrice" class="hidden bg-white py-8">
+    <div class="container mx-auto px-4">
+      <!-- 派手な演出エリア -->
+      <div id="priceRevealAnimation" class="mb-6 text-center">
+        <div class="text-2xl md:text-3xl font-extrabold mb-4 text-kuraberu-dark">あなたの地域の相場を<span class="text-kuraberu-blue">分析中</span>...</div>
+        <div class="relative h-4 bg-gray-200 rounded-full max-w-lg mx-auto mb-6 overflow-hidden">
+          <div id="progressBar" class="absolute h-full bg-gradient-to-r from-kuraberu-blue to-kuraberu-green rounded-full" style="width: 0%;"></div>
+        </div>
+        <div class="flex flex-wrap justify-center gap-3 mb-6 animate-pulse">
+          <div class="px-3 py-1 bg-white rounded-full shadow-sm text-sm text-gray-600">条件分析中...</div>
+          <div class="px-3 py-1 bg-white rounded-full shadow-sm text-sm text-gray-600">業者情報取得中...</div>
+          <div class="px-3 py-1 bg-white rounded-full shadow-sm text-sm text-gray-600">相場計算中...</div>
+        </div>
+      </div>
+      
+      <!-- 相場結果表示 -->
+      <div id="priceResult" class="bg-blue-100 rounded-xl shadow-lg p-4 mx-auto max-w-3xl relative mb-8 hidden">
+        <h2 class="text-center text-lg font-bold mb-3 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-kuraberu-blue mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span id="locationHeading">東京都杉並区の外壁塗装相場</span>
+        </h2>
+        
+        <div class="bg-white p-4 rounded-xl mb-4 border border-blue-200">
+          <p class="text-sm text-gray-600 mb-1 text-center" id="buildingInfo">2F建て戸建て築25年の場合（30坪）</p>
+          <div class="relative">
+            <div class="text-3xl font-extrabold text-center mb-2">
+              <span class="text-kuraberu-blue" id="priceRange">60万円〜180万円</span>
+            </div>
+          </div>
+          <p class="text-xs text-gray-500 text-center mb-2">※建物の状態や使用材料により価格は変動します</p>
+        </div>
+      </div>
+
+      <!-- 最下部固定チャットボット -->
+      <div id="chatbotContainer" class="fixed bottom-0 left-0 right-0 bg-white transform translate-y-full transition-transform duration-500 z-40 hidden">
+        <!-- プログレスバー -->
+        <div class="bg-blue-500 h-1 w-full">
+          <div class="bg-blue-600 h-full" style="width: 75%;"></div>
+        </div>
+        
+        <!-- 豆知識エリア（上部） -->
+        <div id="knowledgeSection" class="bg-blue-50 p-4">
+          <div class="flex items-start space-x-2">
+            <span class="text-yellow-500 text-lg">💡</span>
+            <div>
+              <h4 class="font-bold text-gray-800 mb-1">豆知識</h4>
+              <div id="knowledgeContent" class="text-sm text-gray-600">
+                <p>材質によって適切な塗料と工法が変わります。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- チェックマーク付き質問エリア -->
+        <div class="bg-white p-4 border-b border-gray-200">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-gray-900" id="currentQuestion">現在の外壁材質は何ですか？</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4択選択ボタン -->
+        <div class="p-4 bg-white">
+          <!-- 戻るボタン（左上に配置） -->
+          <div class="mb-3">
+            <button id="chatbotBackButton" class="flex items-center text-gray-600 text-sm font-medium" style="display: none;">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+              戻る
+            </button>
+          </div>
+          
+          <!-- 4択ボタン -->
+          <div id="choiceButtons" class="grid grid-cols-2 gap-3">
+            <button class="choice-btn bg-white hover:bg-blue-500 hover:text-white p-4 rounded-lg text-sm transition-colors duration-200 border-2 border-gray-300 font-medium" data-choice="1">サイディング</button>
+            <button class="choice-btn bg-blue-500 text-white p-4 rounded-lg text-sm transition-colors duration-200 border-2 border-blue-500 font-medium" data-choice="2">モルタル</button>
+            <button class="choice-btn bg-white hover:bg-blue-500 hover:text-white p-4 rounded-lg text-sm transition-colors duration-200 border-2 border-gray-300 font-medium" data-choice="3">タイル</button>
+            <button class="choice-btn bg-white hover:bg-blue-500 hover:text-white p-4 rounded-lg text-sm transition-colors duration-200 border-2 border-gray-300 font-medium" data-choice="4">その他</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- おすすめ業者ランキング -->
+      <div id="rankingSection" class="hidden w-full max-w-4xl mx-auto bg-blue-50 rounded-xl p-4 md:p-6 mt-6 mb-0">
+        <h2 class="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6">おすすめ業者ランキング</h2>
+        
+        <!-- 並び替えボタン（画像通り・レスポンシブ） -->
+        <div class="mb-4 md:mb-6">
+          <div class="text-sm font-medium text-gray-600 mb-2 ml-2">並び替え</div>
+          <div id="sortingContainer" class="bg-white border border-gray-200 rounded-lg p-3 w-full transition-colors">
+            <div class="grid grid-cols-4 gap-1 md:gap-2">
+            <button id="tabRecommend" onclick="switchSortTab('tabRecommend')" class="bg-blue-50 text-gray-700 px-2 md:px-3 py-2 md:py-3 rounded-lg text-xs md:text-sm font-medium border border-blue-200 transition-colors">
+              <div class="flex items-center justify-center h-5">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                </svg>
+              </div>
+              <div class="text-xs md:text-sm mt-1 whitespace-nowrap"><span class="md:hidden">おすすめ</span><span class="hidden md:inline">おすすめ順</span></div>
+            </button>
+            <button id="tabCheap" onclick="switchSortTab('tabCheap')" class="bg-white text-gray-700 px-2 md:px-3 py-2 md:py-3 rounded-lg text-xs md:text-sm font-medium border border-gray-200 hover:bg-yellow-50 transition-colors">
+              <div class="flex items-center justify-center h-5">
+                <svg class="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"/>
+                  <text x="12" y="16" text-anchor="middle" class="text-xs font-bold">$</text>
+                </svg>
+              </div>
+              <div class="text-xs md:text-sm mt-1 whitespace-nowrap">安い順</div>
+            </button>
+            <button id="tabReview" onclick="switchSortTab('tabReview')" class="bg-white text-gray-700 px-2 md:px-3 py-2 md:py-3 rounded-lg text-xs md:text-sm font-medium border border-gray-200 hover:bg-green-50 transition-colors">
+              <div class="flex items-center justify-center h-5">
+                <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+              </div>
+              <div class="text-xs md:text-sm mt-1 whitespace-nowrap">口コミ順</div>
+            </button>
+            <button id="tabQuality" onclick="switchSortTab('tabQuality')" class="bg-white text-gray-700 px-2 md:px-3 py-2 md:py-3 rounded-lg text-xs md:text-sm font-medium border border-gray-200 hover:bg-purple-50 transition-colors">
+              <div class="flex items-center justify-center h-5">
+                <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <div class="text-xs md:text-sm mt-1 whitespace-nowrap"><span class="md:hidden">高品質</span><span class="hidden md:inline">高品質順</span></div>
+            </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="rankingList" class="space-y-3">
+          <!-- ランキングデータがここに表示される -->
+        </div>
+        
+        <!-- もっと見るボタン -->
+        <div class="text-center my-4">
+          <button id="toggleAllCompanies" onclick="toggleAllCompanies()" class="text-blue-500 hover:text-blue-700 text-sm md:text-base font-medium flex items-center justify-center mx-auto">
+            <span>もっと見る</span>
+            <svg class="w-4 h-4 md:w-5 md:h-5 ml-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 電話番号入力セクション -->
+  <div id="phoneSection" style="display: none;" class="bg-white py-8 border-t border-gray-200 relative z-10">
+    <div class="container mx-auto px-4">
+      <div class="max-w-2xl mx-auto">
+        <div class="bg-pink-50 p-8 rounded-2xl border-2 border-red-300 shadow-lg">
+          <div class="text-center mb-6">
+            <h3 class="font-bold text-base sm:text-lg md:text-xl lg:text-2xl mb-3 whitespace-nowrap text-pink-800">電話番号を入力して業者名を表示させる</h3>
+          </div>
+          
+          <div class="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
+            <input 
+              type="tel" 
+              id="phoneNumber" 
+              placeholder="例：090-1234-5678" 
+              class="flex-1 px-6 py-4 border border-red-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-center text-lg"
+              maxlength="13"
+              oninput="formatPhoneNumber(this)"
+            >
+            <button 
+              id="showCompanyNamesBtn" 
+              class="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-xl font-medium text-lg whitespace-nowrap"
+            >
+              表示する
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 分離したJavaScriptファイルの読み込み -->
+  <script src="js/utils.js"></script>
+  <script src="js/ranking.js"></script>
+  <script src="js/phone-form.js"></script>
+  <script src="js/chatbot.js"></script>
+</body>
+</html>

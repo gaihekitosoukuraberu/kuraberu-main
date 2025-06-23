@@ -1,0 +1,3604 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- グローバルメッセージハンドラー -->
+  <script>
+    // グローバルのiframeメッセージハンドラー（最優先で実行されるように頭に配置）
+    window.addEventListener('message', function(event) {
+      if (event.data === 'closeDetailOverlay') {
+        console.log('グローバルメッセージハンドラー: closeDetailOverlay受信');
+        const overlay = document.getElementById('detailOverlay');
+        if (overlay) {
+          overlay.remove();
+          document.body.style.overflow = '';
+          document.body.style.position = '';
+          document.body.style.width = '';
+          document.body.style.height = '';
+        }
+      }
+    }, false);
+  </script>
+  
+  <title>外壁塗装くらべる - AIで最適な業者を無料で比較 [NEW VERSION]</title>
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- カスタムスタイル -->
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- キープボタン（右上固定） -->
+  <div id="keepButton" class="fixed top-4 right-4 z-50 hidden">
+    <button id="viewKeptCompaniesTop" class="bg-white shadow-lg rounded-full p-3 border border-gray-200 hover:bg-gray-50 transition-colors relative">
+      <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      </svg>
+      <div id="keepCountBadgeTop" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold hidden">0</div>
+    </button>
+  </div>
+
+  <!-- キープボックス（モーダル） -->
+  <div id="keepBoxModal" class="fixed inset-0 bg-black bg-opacity-50 z-[60] hidden">
+    <div class="flex items-start justify-center min-h-screen p-2 pt-16">
+      <div class="bg-white rounded-2xl w-full max-w-sm">
+        <!-- ヘッダー -->
+        <div class="bg-pink-500 text-white p-3 flex justify-between items-center rounded-t-2xl">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-red-300" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            <h3 class="text-base font-bold">キープリスト</h3>
+          </div>
+          <button id="closeKeepBox" class="text-white hover:text-gray-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <!-- キープ項目リスト -->
+        <div id="keepBoxContent" class="p-3">
+          <!-- キープ項目がここに動的に挿入される -->
+        </div>
+        
+        <!-- 無料見積もりボタン -->
+        <div class="p-3 border-t border-gray-200 rounded-b-2xl">
+          <button class="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg font-bold text-sm">
+            無料見積もりを依頼する
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- AIボット修正スクリプト（API連携版）削除 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'kuraberu-yellow': '#FFE600',
+            'kuraberu-blue': '#0ea5e9',
+            'kuraberu-dark': '#0f172a',
+            'kuraberu-green': '#10b981',
+            'kuraberu-red': '#ef4444',
+          },
+          fontFamily: {
+            'sans': ['"Hiragino Sans"', '"Hiragino Kaku Gothic ProN"', 'Meiryo', 'sans-serif'],
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.5s ease-out',
+            'slide-up': 'slideUp 0.4s ease-out',
+            'slide-in': 'slideIn 0.3s ease-out',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(10px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            },
+            slideIn: {
+              '0%': { transform: 'translateX(10px)', opacity: '0' },
+              '100%': { transform: 'translateX(0)', opacity: '1' },
+            },
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    @font-face {
+      font-family: 'Hiragino Sans';
+      src: local('Hiragino Sans');
+      font-weight: normal;
+    }
+    
+    body {
+      font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+    }
+    
+    .diagonal-stripes {
+      background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, 
+                        transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, 
+                        transparent 75%, transparent);
+      background-size: 40px 40px;
+    }
+    
+    .bg-gradient-main {
+      background: linear-gradient(135deg, #0ea5e9 0%, #10b981 100%);
+    }
+    
+    /* 電話番号入力フォームのエフェクト */
+    .phone-form-pulse {
+      animation: phonePulse 2s ease-in-out infinite;
+    }
+    
+    .phone-text-glow {
+      animation: textGlow 3s ease-in-out infinite;
+    }
+    
+    @keyframes phonePulse {
+      0%, 100% {
+        transform: scale(1);
+        border-color: #fca5a5;
+      }
+      50% {
+        transform: scale(1.02);
+        border-color: #ef4444;
+      }
+    }
+    
+    @keyframes textGlow {
+      0%, 100% {
+        color: #991b1b;
+        text-shadow: 0 0 5px rgba(239, 68, 68, 0.3);
+      }
+      50% {
+        color: #dc2626;
+        text-shadow: 0 0 10px rgba(239, 68, 68, 0.6), 0 0 20px rgba(239, 68, 68, 0.4);
+      }
+    }
+    
+    /* 吹き出し（楕円形） */
+    .speech-bubble-left, .speech-bubble-right {
+      position: relative;
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 8px 12px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      z-index: 30;
+      width: auto;
+      display: inline-block;
+    }
+    
+    /* PC用の吹き出し拡大とスマホの位置調整 */
+    @media (min-width: 768px) {
+      .phone-mockup {
+        width: 220px !important;
+        height: 440px !important;
+      }
+      
+      .speech-bubble-left, .speech-bubble-right {
+        padding: 10px 18px;
+        font-size: 1.1rem;
+      }
+      
+      .pc-mockup-wrap {
+        max-width: 320px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 4.5rem;
+        position: relative;
+      }
+    }
+    
+    .phone-mockup {
+      border: 8px solid #333;
+      border-radius: 30px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.1), 0 8px 8px -5px rgba(0, 0, 0, 0.04);
+      width: 180px;
+      height: 360px;
+      margin: 0 auto;
+      background: #ffffff;
+    }
+    
+    .phone-header {
+      height: 20px;
+      background: #333;
+      position: relative;
+    }
+    
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 35%;
+      height: 18px;
+      background-color: #333;
+      border-bottom-left-radius: 0.7rem;
+      border-bottom-right-radius: 0.7rem;
+      z-index: 40;
+    }
+    
+    .mosaic-blur {
+      position: relative;
+    }
+    
+    .mosaic-blur::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23FFFFFF' fill-opacity='0.7'%3E%3Crect width='10' height='10' /%3E%3Crect x='10' y='10' width='10' height='10' /%3E%3C/g%3E%3C/svg%3E");
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      border-radius: inherit;
+      z-index: 20;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    .animate-pulse-slow {
+      animation: pulse 3s infinite;
+    }
+    
+    .free-badge {
+      position: absolute;
+      background: linear-gradient(135deg, #FF6B6B 0%, #FFA0A0 100%);
+      color: white;
+      font-weight: bold;
+      border-radius: 9999px;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.9rem;
+      transform: rotate(5deg);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      z-index: 10;
+      right: 12px;
+      top: 16px;
+    }
+    
+    /* スマホ表示時の調整 */
+    @media (max-width: 768px) {
+      .mobile-order-1 {
+        order: 1;
+      }
+      
+      .mobile-order-2 {
+        order: 2;
+      }
+      
+      .mobile-order-3 {
+        order: 3;
+      }
+      
+      .mobile-order-4 {
+        order: 4;
+      }
+      
+      .hero-section {
+        min-height: 95vh;
+        padding-bottom: 0;
+      }
+      
+      .compact-content {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+      }
+      
+      .form-container {
+        margin-top: 0.5rem;
+      }
+      
+      .phone-mockup {
+        margin-top: 2px !important;
+      }
+      
+      .speech-bubble-left {
+        top: 50px !important;
+        margin-left: 30px !important;
+        font-size: 0.85rem !important;
+      }
+      
+      .speech-bubble-right {
+        bottom: 40px !important;
+        margin-right: 30px !important;
+        font-size: 0.85rem !important;
+      }
+    }
+    
+    /* タイピングアニメーション用スタイル */
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .typing-cursor {
+      animation: blink 1s infinite;
+    }
+  </style>
+</head>
+<body class="bg-white">
+
+  <!-- メインセクション -->
+  <section class="bg-white py-16">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-center">
+        <div class="w-full max-w-lg">
+          <!-- フォーム部分 -->
+          <div class="bg-white rounded-2xl shadow-lg p-4 relative mb-3 mt-4 md:mt-0 max-w-xl mx-auto md:mx-0">
+            <!-- 現在のキャンペーンバッジ -->
+            <div class="absolute -top-2 -left-2 bg-white rounded-full p-1 z-20">
+              <div class="bg-kuraberu-blue text-white text-[10px] font-medium px-2 py-0.5 rounded-full animate-pulse-slow">
+                かんたん10秒！
+              </div>
+            </div>
+            
+            <h2 class="text-center text-lg font-bold mb-3 text-gray-800">郵便番号で今すぐ相場チェック！</h2>
+            
+            <div class="mb-0 text-center">
+              <div class="flex flex-col gap-3 justify-center max-w-lg mx-auto">
+                <div class="relative w-full">
+                  <input 
+                    type="text" 
+                    id="postalCode" 
+                    placeholder="例：100-0001" 
+                    maxlength="8"
+                    class="w-full py-4 px-6 border-2 border-blue-200 rounded-xl text-xl text-center shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200 font-medium tracking-wider"
+                    style="font-size: 24px; background: #f8faff;"
+                  >
+                </div>
+                <button 
+                  id="searchButton" 
+                  onclick="showAreaPrice();"
+                  class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-6 rounded-xl transition-colors shadow-lg text-lg"
+                >
+                  <span class="flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    🔍 無料で相場を見る
+                  </span>
+                </button>
+              </div>
+              <p id="postalError" class="text-red-500 text-center mt-1 hidden text-xs">
+                郵便番号を正しく入力してください
+              </p>
+              <!-- SSL暗号化通信の安全性 -->
+              <div class="text-center mt-2 text-[10px] text-gray-500 max-w-xl mx-auto px-2 sm:px-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-green-500 mr-1 inline-block align-text-bottom" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                個人情報保護・SSL暗号化通信で安全
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  </section>
+
+  <!-- 相場表示エリア（最初は非表示） -->
+  <section id="areaPrice" class="hidden bg-gradient-to-b from-kuraberu-yellow/20 to-white py-8">
+    <div class="container mx-auto px-4">
+      <!-- 派手な演出エリア -->
+      <div id="priceRevealAnimation" class="mb-6 text-center">
+        <div class="text-2xl md:text-3xl font-extrabold mb-4 text-kuraberu-dark">あなたの地域の相場を<span class="text-kuraberu-blue">分析中</span>...</div>
+        <div class="relative h-4 bg-gray-200 rounded-full max-w-lg mx-auto mb-6 overflow-hidden">
+          <div id="progressBar" class="absolute h-full bg-gradient-to-r from-kuraberu-blue to-kuraberu-green rounded-full" style="width: 0%;"></div>
+        </div>
+        <div class="flex flex-wrap justify-center gap-3 mb-6 animate-pulse">
+          <div class="px-3 py-1 bg-white rounded-full shadow-sm text-sm text-gray-600">条件分析中...</div>
+          <div class="px-3 py-1 bg-white rounded-full shadow-sm text-sm text-gray-600">業者情報取得中...</div>
+          <div class="px-3 py-1 bg-white rounded-full shadow-sm text-sm text-gray-600">相場計算中...</div>
+        </div>
+      </div>
+      
+      <!-- 相場結果表示 -->
+      <div id="priceResult" class="bg-white rounded-xl shadow-lg p-4 mx-auto max-w-3xl relative mb-8 hidden">
+        <h2 class="text-center text-lg font-bold mb-3 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-kuraberu-blue mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span id="locationHeading">東京都杉並区の外壁塗装相場</span>
+        </h2>
+        
+        <div class="bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-xl mb-4 border border-blue-100">
+          <p class="text-sm text-gray-600 mb-1 text-center" id="buildingInfo">2F建て戸建て築25年の場合（30坪）</p>
+          <div class="relative">
+            <div class="text-3xl font-extrabold text-center mb-2">
+              <span class="text-kuraberu-blue" id="priceRange">70万〜135万円</span>
+            </div>
+          </div>
+          <p class="text-xs text-gray-500 text-center mb-3">※建物の状態や使用材料により価格は変動します</p>
+        </div>
+        
+        <!-- 最下部固定チャットボット（画像と全く同じ） -->
+        <div id="chatbotContainer" class="fixed bottom-0 left-0 right-0 bg-white transform translate-y-full transition-transform duration-500 z-40 hidden">
+          <!-- プログレスバー -->
+          <div class="bg-blue-500 h-1 w-full">
+            <div class="bg-blue-600 h-full" style="width: 75%;"></div>
+          </div>
+          
+          <!-- 豆知識エリア（上部） -->
+          <div id="knowledgeSection" class="bg-blue-50 p-4">
+            <div class="flex items-start space-x-2">
+              <span class="text-yellow-500 text-lg">💡</span>
+              <div>
+                <h4 class="font-bold text-gray-800 mb-1">豆知識</h4>
+                <div id="knowledgeContent" class="text-sm text-gray-600">
+                  <p>材質によって適切な塗料と工法が変わります。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- チェックマーク付き質問エリア -->
+          <div class="bg-white p-4 border-b border-gray-200">
+            <div class="flex items-center space-x-3">
+              <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-bold text-gray-900" id="currentQuestion">現在の外壁材質は何ですか？</h3>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4択選択ボタン -->
+          <div class="p-4 bg-white">
+            <!-- 戻るボタン（左上に配置） -->
+            <div class="mb-3">
+              <button id="chatbotBackButton" class="flex items-center text-gray-600 text-sm font-medium" style="display: none;">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                戻る
+              </button>
+            </div>
+            
+            <!-- 4択ボタン -->
+            <div id="choiceButtons" class="grid grid-cols-2 gap-3">
+              <button class="choice-btn bg-white hover:bg-blue-500 hover:text-white p-4 rounded-lg text-sm transition-colors duration-200 border-2 border-gray-300 font-medium" data-choice="1">サイディング</button>
+              <button class="choice-btn bg-blue-500 text-white p-4 rounded-lg text-sm transition-colors duration-200 border-2 border-blue-500 font-medium" data-choice="2">モルタル</button>
+              <button class="choice-btn bg-white hover:bg-blue-500 hover:text-white p-4 rounded-lg text-sm transition-colors duration-200 border-2 border-gray-300 font-medium" data-choice="3">タイル</button>
+              <button class="choice-btn bg-white hover:bg-blue-500 hover:text-white p-4 rounded-lg text-sm transition-colors duration-200 border-2 border-gray-300 font-medium" data-choice="4">その他</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- おすすめ業者ランキング（画像通り・レスポンシブ対応） -->
+        <div id="rankingSection" class="hidden w-full max-w-4xl mx-auto bg-gray-100 rounded-xl p-4 md:p-6 mt-6 mb-0">
+          <h2 class="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6">おすすめ業者ランキング</h2>
+          
+          <!-- 並び替えボタン（画像通り・レスポンシブ） -->
+          <div class="mb-4 md:mb-6">
+            <div class="text-sm font-medium text-gray-600 mb-2 ml-2">並び替え</div>
+            <div id="sortingContainer" class="bg-white border border-gray-200 rounded-lg p-3 w-full transition-colors">
+              <div class="grid grid-cols-4 gap-1 md:gap-2">
+              <button id="tabRecommend" class="bg-blue-100 text-gray-700 px-2 md:px-3 py-2 md:py-3 rounded-lg text-xs md:text-sm font-medium border border-blue-300 transition-colors">
+                <div class="flex items-center justify-center h-5">
+                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                  </svg>
+                </div>
+                <div class="text-xs md:text-sm mt-1 whitespace-nowrap"><span class="md:hidden">おすすめ</span><span class="hidden md:inline">おすすめ順</span></div>
+              </button>
+              <button id="tabCheap" class="bg-white text-gray-700 px-2 md:px-3 py-2 md:py-3 rounded-lg text-xs md:text-sm font-medium border border-gray-200 hover:bg-orange-50 transition-colors">
+                <div class="flex items-center justify-center h-5">
+                  <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/>
+                    <text x="12" y="16" text-anchor="middle" class="text-xs font-bold">$</text>
+                  </svg>
+                </div>
+                <div class="text-xs md:text-sm mt-1 whitespace-nowrap">安い順</div>
+              </button>
+              <button id="tabReview" class="bg-white text-gray-700 px-2 md:px-3 py-2 md:py-3 rounded-lg text-xs md:text-sm font-medium border border-gray-200 hover:bg-green-50 transition-colors">
+                <div class="flex items-center justify-center h-5">
+                  <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                  </svg>
+                </div>
+                <div class="text-xs md:text-sm mt-1 whitespace-nowrap">口コミ順</div>
+              </button>
+              <button id="tabQuality" class="bg-white text-gray-700 px-2 md:px-3 py-2 md:py-3 rounded-lg text-xs md:text-sm font-medium border border-gray-200 hover:bg-purple-50 transition-colors">
+                <div class="flex items-center justify-center h-5">
+                  <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <div class="text-xs md:text-sm mt-1 whitespace-nowrap"><span class="md:hidden">高品質</span><span class="hidden md:inline">高品質順</span></div>
+              </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="rankingList" class="space-y-3">
+            <!-- 1位 -->
+            <div class="bg-white rounded-lg p-4 relative shadow-sm">
+              <div class="absolute -top-2 -left-2 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-lg">1</div>
+              
+              <div class="flex justify-between items-start mb-3">
+                <div>
+                  <h3 class="text-2xl font-bold text-gray-900 mb-1">T社</h3>
+                  <p class="text-sm text-gray-500">※電話番号入力後に詳細開示</p>
+                </div>
+                <div class="text-right">
+                  <div class="flex items-center text-yellow-400 mb-1">
+                    <span class="text-lg">★★★★★</span>
+                    <span class="text-black font-bold ml-2">4.9</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="flex flex-wrap gap-2 mb-3">
+                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">地元密着</span>
+                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">保証充実</span>
+                <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">即日対応</span>
+              </div>
+              
+              <div class="flex justify-between items-center mb-3">
+                <div>
+                  <span class="text-sm text-gray-600">見積もり価格: </span>
+                  <span class="text-2xl font-bold text-blue-600">78万円〜</span>
+                </div>
+                <div class="text-sm text-gray-600">施工実績: 1,200件</div>
+              </div>
+              
+              <div class="flex gap-3">
+                <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium flex-1">詳細を見る</button>
+                <button class="bg-yellow-400 hover:bg-yellow-500 text-black px-6 py-2 rounded-lg font-bold">キープ中！</button>
+              </div>
+            </div>
+
+            <!-- 2位 -->
+            <div class="bg-white rounded-lg p-4 relative shadow-sm">
+              <div class="absolute -top-2 -left-2 w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center font-bold text-lg">2</div>
+              
+              <div class="flex justify-between items-start mb-3">
+                <div>
+                  <h3 class="text-2xl font-bold text-gray-900 mb-1">S社</h3>
+                  <p class="text-sm text-gray-500">※電話番号入力後に詳細開示</p>
+                </div>
+                <div class="text-right">
+                  <div class="flex items-center text-yellow-400 mb-1">
+                    <span class="text-lg">★★★★☆</span>
+                    <span class="text-black font-bold ml-2">4.7</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="flex flex-wrap gap-2 mb-3">
+                <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">最低価格保証</span>
+                <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">職人直営</span>
+              </div>
+              
+              <div class="flex justify-between items-center mb-3">
+                <div>
+                  <span class="text-sm text-gray-600">見積もり価格: </span>
+                  <span class="text-2xl font-bold text-blue-600">83万円〜</span>
+                </div>
+                <div class="text-sm text-gray-600">施工実績: 980件</div>
+              </div>
+              
+              <div class="flex gap-3">
+                <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium flex-1">詳細を見る</button>
+                <button class="bg-yellow-400 hover:bg-yellow-500 text-black px-6 py-2 rounded-lg font-bold">キープ中！</button>
+              </div>
+            </div>
+
+            <!-- 3位 -->
+            <div class="bg-white rounded-lg p-4 relative shadow-sm border-2 border-yellow-400">
+              <div class="absolute -top-2 -left-2 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-lg">3</div>
+              
+              <div class="flex justify-between items-start mb-3">
+                <div>
+                  <h3 class="text-2xl font-bold text-gray-900 mb-1">K社</h3>
+                  <p class="text-sm text-gray-500">※電話番号入力後に詳細開示</p>
+                </div>
+                <div class="text-right">
+                  <div class="flex items-center text-yellow-400 mb-1">
+                    <span class="text-lg">★★★★☆</span>
+                    <span class="text-black font-bold ml-2">4.5</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="flex flex-wrap gap-2 mb-3">
+                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">定期点検付</span>
+                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">環境配慮</span>
+              </div>
+              
+              <div class="flex justify-between items-center mb-3">
+                <div>
+                  <span class="text-sm text-gray-600">見積もり価格: </span>
+                  <span class="text-2xl font-bold text-blue-600">85万円〜</span>
+                </div>
+                <div class="text-sm text-gray-600">施工実績: 850件</div>
+              </div>
+              
+              <div class="flex gap-3">
+                <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium flex-1">詳細を見る</button>
+                <button class="bg-yellow-400 hover:bg-yellow-500 text-black px-6 py-2 rounded-lg font-bold">キープ中！</button>
+              </div>
+            </div>
+
+            <!-- 4位 -->
+            <div class="bg-white rounded-lg p-4 relative shadow-sm">
+              <div class="absolute -top-2 -left-2 w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center font-bold text-lg">4</div>
+              
+              <div class="flex justify-between items-start mb-3">
+                <div>
+                  <h3 class="text-2xl font-bold text-gray-900 mb-1">P社</h3>
+                  <p class="text-sm text-gray-500">※電話番号入力後に詳細開示</p>
+                </div>
+                <div class="text-right">
+                  <div class="flex items-center text-yellow-400 mb-1">
+                    <span class="text-lg">★★★★☆</span>
+                    <span class="text-black font-bold ml-2">4.3</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="flex flex-wrap gap-2 mb-3">
+                <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">10年保証</span>
+                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">高級塗料使用</span>
+              </div>
+              
+              <div class="flex justify-between items-center mb-3">
+                <div>
+                  <span class="text-sm text-gray-600">見積もり価格: </span>
+                  <span class="text-2xl font-bold text-blue-600">92万円〜</span>
+                </div>
+                <div class="text-sm text-gray-600">施工実績: 760件</div>
+              </div>
+              
+              <div class="flex gap-3">
+                <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium flex-1">詳細を見る</button>
+                <button class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg font-medium">キープする</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- もっと見るボタン -->
+          <div class="text-center my-4">
+            <button id="moreButton" class="text-blue-500 hover:text-blue-700 text-sm md:text-base font-medium flex items-center justify-center mx-auto">
+              <span id="moreButtonText">もっと見る</span>
+              <svg id="moreButtonIcon" class="w-4 h-4 md:w-5 md:h-5 ml-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    
+    <!-- 電話番号入力セクション（独立したセクション） -->
+    <div id="phoneSection" style="display: none;" class="bg-white py-8 border-t border-gray-200 relative z-10">
+      <div class="container mx-auto px-4">
+        <div class="max-w-2xl mx-auto">
+          <div class="bg-pink-50 p-8 rounded-2xl border-2 border-red-300 shadow-lg">
+            <div class="text-center mb-6">
+              <h3 class="font-bold text-base sm:text-lg md:text-xl lg:text-2xl mb-3 whitespace-nowrap text-pink-800">電話番号を入力して業者名を表示させる</h3>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
+              <input 
+                type="tel" 
+                id="phoneInput" 
+                placeholder="例：090-1234-5678" 
+                class="flex-1 px-6 py-4 border border-red-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-center text-lg"
+                maxlength="13"
+                oninput="formatPhoneNumber(this)"
+              >
+              <button 
+                id="showCompanyNamesBtn" 
+                class="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-xl font-medium text-lg whitespace-nowrap"
+              >
+                表示する
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 元のランキングセクション終了後のコンテンツ -->
+    <div class="container mx-auto px-4">
+        
+        <!-- ヒアリングボットセクション（最初は非表示） -->
+        <div id="hearingBotSection" class="hidden bg-gray-100 p-4 rounded-xl mb-4 relative">
+          <div class="absolute -top-4 -right-2 w-16 h-16">
+            <div class="relative w-full h-full">
+              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="absolute top-0 left-0 w-full h-full">
+                <circle cx="100" cy="100" r="80" fill="#0ea5e9" />
+                <circle cx="70" cy="80" r="15" fill="white" />
+                <circle cx="130" cy="80" r="15" fill="white" />
+                <circle cx="70" cy="80" r="7" fill="black" />
+                <circle cx="130" cy="80" r="7" fill="black" />
+                <path d="M 70 120 Q 100 150 130 120" stroke="white" stroke-width="5" fill="none" />
+              </svg>
+            </div>
+          </div>
+          
+          <div class="text-center mb-4">
+            <h3 class="font-bold text-lg mb-1 text-kuraberu-dark">AIヒアリングボット</h3>
+            <p class="text-sm text-gray-600">簡単な質問に答えてあなたに最適な業者を見つけます</p>
+          </div>
+          
+          <!-- 質問表示エリア -->
+          <div id="botQuestion" class="bg-white p-4 rounded-lg shadow-sm mb-4 animate-fade-in">
+            <div class="flex justify-between items-center mb-2">
+              <div class="w-16"></div><!-- 左側余白（バランス調整用） -->
+              <p class="font-bold animate-slide-up" id="typingContent"></p>
+              <div class="w-16"></div><!-- 右側余白（バランス調整用） -->
+            </div>
+            <div class="grid grid-cols-2 gap-2 animate-slide-up" id="botChoices" style="opacity: 0; transition: opacity 0.3s, transform 0.3s;">
+              <!-- 選択肢はJavaScriptで動的に生成されます -->
+            </div>
+          </div>
+
+          <!-- 戻るボタン -->
+          <div class="flex justify-start items-center mb-3">
+            <button id="backButton" class="hidden bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-lg text-xs font-medium flex items-center transition-colors animate-slide-in">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+              戻る
+            </button>
+          </div>
+
+          <!-- 完了メッセージエリア -->
+          <div id="completionMessage" class="mt-3 bg-white p-3 rounded-md shadow-sm hidden text-center py-4 animate-slide-up">
+            <div class="text-green-500 mb-2 animate-fade-in" style="animation-delay: 0.3s;">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 class="font-bold text-lg mb-2 animate-fade-in" style="animation-delay: 0.5s;">ヒアリング完了！</h3>
+            <p class="text-gray-600 text-sm animate-fade-in" style="animation-delay: 0.7s;">ご回答ありがとうございます。<br>お客様に最適な業者をご紹介いたします。</p>
+          </div>
+        </div>
+        
+        <!-- 旧ランキングセクション削除済み -->
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Google Apps Script Webアプリのエンドポイントを設定
+    // 本番環境ではデプロイしたWebアプリのURLに変更する
+    const SCRIPT_ENDPOINT = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+    
+    // セッション関連の変数
+    let sessionId = '';
+    let dynamicQuestions = [];
+    let currentQuestionIndex = 0;
+    let userAnswers = [];
+    let searchKeyword = '';
+    
+    // リファラー（検索キーワード）の抽出
+    function extractSearchKeyword() {
+      try {
+        // document.referrerから検索エンジンとクエリパラメータを抽出
+        const referrer = document.referrer;
+        if (!referrer) return '';
+        
+        const url = new URL(referrer);
+        let keyword = '';
+        
+        // Google検索
+        if (url.hostname.includes('google')) {
+          keyword = new URLSearchParams(url.search).get('q') || '';
+        }
+        // Yahoo検索
+        else if (url.hostname.includes('yahoo')) {
+          keyword = new URLSearchParams(url.search).get('p') || '';
+        }
+        // Bing検索
+        else if (url.hostname.includes('bing')) {
+          keyword = new URLSearchParams(url.search).get('q') || '';
+        }
+        
+        console.log('検索キーワード: ', keyword);
+        return keyword;
+      } catch (e) {
+        console.error('リファラー解析エラー:', e);
+        return '';
+      }
+    }
+    
+    // セッションIDの生成（ユニークIDの作成）
+    function generateSessionId() {
+      return 'session_' + Math.random().toString(36).substring(2, 15) + 
+             Math.random().toString(36).substring(2, 15) + 
+             '_' + new Date().getTime();
+    }
+    
+    // チャットセッションの初期化
+    function initChatSession() {
+      sessionId = generateSessionId();
+      searchKeyword = extractSearchKeyword();
+      
+      // セッションIDをローカルストレージに保存
+      localStorage.setItem('kuraberu_session_id', sessionId);
+      localStorage.setItem('kuraberu_search_keyword', searchKeyword);
+      
+      console.log('チャットセッション初期化: ', sessionId);
+      console.log('検索キーワード: ', searchKeyword);
+    }
+    
+    // Google Apps Scriptにリクエストを送信する関数
+    // セッションID生成関数
+    function generateSessionId() {
+      return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    async function callScriptApi(action, data = {}) {
+      console.log('GAS API呼び出し:', action, data);
+      
+      try {
+        const gasUrl = 'https://script.google.com/macros/s/1VSHOIsq4wKeJZY1wZAoGjn4cvYg7kIa0LUW0k42sSmEP8rDuoV10kyrh/exec';
+        
+        const response = await fetch(gasUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: action,
+            ...data
+          })
+        });
+        
+        const result = await response.json();
+        console.log('GAS API レスポンス:', result);
+        
+        return result;
+        
+      } catch (error) {
+        console.error('API呼び出しエラー:', error);
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+    }
+    
+    // モックAPIレスポンス（デモ用）
+    function mockApiResponse(action, data) {
+      // 実際の実装では削除し、本物のAPIと接続する
+      
+      switch (action) {
+        case 'getInitialMessage':
+          // 初期メッセージの取得
+          const initialMessage = searchKeyword ? 
+            `こんにちは！「${searchKeyword}」について興味をお持ちのようですね。外壁塗装について、まずは外壁の状態を教えていただけますか？` :
+            "こんにちは！外壁塗装くらべるへようこそ。まずは外壁の状態について教えていただけますか？";
+            
+          return {
+            success: true,
+            reply: initialMessage,
+            sessionId: data.sessionId
+          };
+          
+        case 'sendMessage':
+          // ユーザーメッセージに対する応答
+          let reply = "申し訳ありません、メッセージを処理できませんでした。";
+          
+          if (data.message.includes('良好') || data.message.includes('やや劣化')) {
+            reply = "そうなんですね。次に施工時に重視するポイントはありますか？";
+          } else if (data.message.includes('価格') || data.message.includes('品質')) {
+            reply = "わかりました。希望する施工時期はいつ頃でしょうか？";
+          } else if (data.message.includes('すぐ') || data.message.includes('3ヶ月')) {
+            reply = "かしこまりました。最後に建物の種類と大きさについて教えていただけますか？";
+          } else if (userAnswers.length >= 3 && !data.retry) {
+            // クロージングを試みる
+            reply = "ありがとうございます！お客様の条件に合った最適な業者をご紹介できます。今すぐ無料見積もりを受け取りますか？";
+          } else if (data.retry) {
+            // 2回目のクロージング試行
+            reply = "外壁塗装は早めに対応することで、将来的な修繕費用を大きく抑えられます。本当に無料見積もりを受け取らなくてよろしいですか？";
+          }
+          
+          return {
+            success: true,
+            reply: reply,
+            sessionId: data.sessionId
+          };
+          
+        case 'getRecommendation':
+          // 業者の提案取得
+          return {
+            success: true,
+            recommendation: `
+              【あなたにおすすめの業者】
+              
+              1. 匠塗装工房
+              - 特徴: 創業30年の実績、熟練職人による丁寧な施工
+              - 価格帯: 80万円〜110万円
+              - おすすめポイント: ${userAnswers[1] === "品質重視" ? "高品質な塗料を使用し、美しい仕上がりが特徴" : "価格と品質のバランスが良い"}
+              
+              2. 誠実ペイント
+              - 特徴: 地域密着型、保証内容が充実
+              - 価格帯: 75万円〜95万円
+              - おすすめポイント: ${userAnswers[0] === "かなり劣化" ? "劣化が進んだ外壁の補修・塗装に定評あり" : "無料点検と丁寧なアフターフォロー"}
+              
+              3. グリーンペイント
+              - 特徴: 環境に優しい塗料を使用、短期施工
+              - 価格帯: 68万円〜90万円
+              - おすすめポイント: ${userAnswers[2] === "緊急" ? "最短2週間からの施工対応可能" : "環境に配慮した塗料選定とコストパフォーマンスの高さ"}
+            `,
+            sessionId: data.sessionId
+          };
+          
+        default:
+          return {
+            success: false,
+            error: '不明なアクション',
+            reply: "申し訳ありません、エラーが発生しました。"
+          };
+      }
+    }
+    
+    // 相場表示関数は utils.js で管理
+      // 1日3回の検索制限チェック（テスト中は無効化）
+      // if (!checkSearchLimit()) {
+      //   return;
+      // }
+      
+      // 郵便番号・住所のバリデーション
+      const postalCode = document.getElementById('postalCode');
+      const postalError = document.getElementById('postalError');
+      
+      if (!postalCode || !postalCode.value.trim()) {
+        if (postalError) postalError.classList.remove('hidden');
+        return;
+      }
+      
+      const input = postalCode.value.trim();
+      let isValid = false;
+      let code = '';
+      
+      // 郵便番号の場合の処理
+      // ハイフンを削除して正規化
+      const normalizedInput = input.replace(/[-ー−‐]/g, '').replace(/[０-９]/g, function(s) {
+        return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+      });
+      
+      // 7桁の数字かチェック
+      if (/^\d{7}$/.test(normalizedInput)) {
+        isValid = true;
+        code = normalizedInput;
+      }
+      // 住所の場合の処理
+      else if (input.length >= 2) {
+        // 都道府県名や区市町村名が含まれているかチェック
+        const addressPattern = /(都|道|府|県|区|市|町|村|郡)/;
+        if (addressPattern.test(input)) {
+          isValid = true;
+          code = input; // 住所の場合はそのまま使用
+        }
+      }
+      
+      if (!isValid) {
+        if (postalError) {
+          postalError.textContent = '正しい郵便番号を入力してください（例：100-0001）';
+          postalError.classList.remove('hidden');
+        }
+        return;
+      }
+      
+      // エラーメッセージを非表示
+      if (postalError) postalError.classList.add('hidden');
+      
+      // セッションの初期化
+      initChatSession();
+      
+      // 相場エリアを表示
+      const areaPrice = document.getElementById('areaPrice');
+      if (areaPrice) {
+        areaPrice.classList.remove('hidden');
+        areaPrice.scrollIntoView({behavior: 'smooth'});
+      }
+      
+      // 検索ボタンの表示を変更（読み込み中）
+      const searchButton = document.getElementById('searchButton');
+      if (searchButton) {
+        searchButton.disabled = true;
+        searchButton.innerHTML = '<span class="flex items-center justify-center"><svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>検索中...</span>';
+      }
+      
+      // プログレスバーのアニメーション
+      let progress = 0;
+      const progressInterval = setInterval(function() {
+        progress += 3;
+        const progressBar = document.getElementById('progressBar');
+        if (progressBar) {
+          progressBar.style.width = progress + '%';
+        }
+        
+        if (progress >= 100) {
+          clearInterval(progressInterval);
+          
+          // 郵便番号をAPIに送る（デモでは地域名だけ更新）
+          updateLocationInfo(code);
+          
+          // アニメーションを非表示、結果を表示
+          const priceRevealAnimation = document.getElementById('priceRevealAnimation');
+          const priceResult = document.getElementById('priceResult');
+          
+          if (priceRevealAnimation) priceRevealAnimation.classList.add('hidden');
+          if (priceResult) priceResult.classList.remove('hidden');
+          
+          // 検索ボタンを元に戻す
+          if (searchButton) {
+            searchButton.disabled = false;
+            searchButton.innerHTML = `
+              <span class="flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                無料で相場を見る
+              </span>
+            `;
+          }
+          
+          // ローディング終了をトリガーに電話番号入力フォームを表示
+          const phoneSection = document.getElementById('phoneSection');
+          if (phoneSection) {
+            phoneSection.style.display = 'block';
+          }
+          
+          // 相場セクションを表示
+          const areaPrice = document.getElementById('areaPrice');
+          if (areaPrice) {
+            areaPrice.classList.remove('hidden');
+          }
+          
+          // ランキングセクションを表示
+          const rankingSection = document.getElementById('rankingSection');
+          if (rankingSection) {
+            rankingSection.classList.remove('hidden');
+            displayRanking();
+          }
+          
+          // 4択チャットボットを即座に自動起動
+          showChatbotImmediate();
+        }
+      }, 20);
+    }
+    
+    // 1日の検索回数制限チェック
+    function checkSearchLimit() {
+      const today = new Date().toDateString();
+      const searchData = JSON.parse(localStorage.getItem('priceSearchData') || '{}');
+      
+      if (searchData.date !== today) {
+        // 新しい日なのでリセット
+        searchData.date = today;
+        searchData.count = 0;
+      }
+      
+      if (searchData.count >= 3) {
+        alert('1日に3回までしか調べられません。明日またお試しください。');
+        return false;
+      }
+      
+      searchData.count++;
+      localStorage.setItem('priceSearchData', JSON.stringify(searchData));
+      return true;
+    }
+    
+    // 郵便番号・住所API（今後スプシ連携予定）
+    async function getLocationFromPostalCode(input) {
+      // TODO: 後でスプシAPIに置き換え
+      let prefecture = '';
+      let city = '';
+      
+      // 数字のみの場合は郵便番号として処理
+      if (/^\d{7}$/.test(input)) {
+        const areaCode = input.substring(0, 3);
+        
+        if (areaCode >= '100' && areaCode <= '199') {
+          prefecture = '東京都';
+          city = areaCode <= '105' ? '千代田区' : 
+                areaCode <= '112' ? '文京区' :
+                areaCode <= '154' ? '渋谷区' : '新宿区';
+        } else if (areaCode >= '200' && areaCode <= '259') {
+          prefecture = '神奈川県';
+          city = areaCode <= '220' ? '川崎市' : '横浜市';
+        } else if (areaCode >= '300' && areaCode <= '399') {
+          prefecture = '埼玉県';
+          city = 'さいたま市';
+        } else if (areaCode >= '260' && areaCode <= '299') {
+          prefecture = '千葉県';
+          city = '千葉市';
+        } else {
+          // その他の地域はランダムで大都市圏を設定
+          const cities = [
+            {prefecture: '大阪府', city: '大阪市'},
+            {prefecture: '愛知県', city: '名古屋市'},
+            {prefecture: '福岡県', city: '福岡市'},
+            {prefecture: '北海道', city: '札幌市'},
+            {prefecture: '宮城県', city: '仙台市'}
+          ];
+          const randomCity = cities[Math.floor(Math.random() * cities.length)];
+          prefecture = randomCity.prefecture;
+          city = randomCity.city;
+        }
+      } else {
+        // 住所として処理
+        // 簡易的な住所解析
+        if (input.includes('渋谷') || input.includes('シブヤ')) {
+          prefecture = '東京都';
+          city = '渋谷区';
+        } else if (input.includes('新宿') || input.includes('シンジュク')) {
+          prefecture = '東京都';
+          city = '新宿区';
+        } else if (input.includes('千代田') || input.includes('チヨダ')) {
+          prefecture = '東京都';
+          city = '千代田区';
+        } else if (input.includes('横浜') || input.includes('ヨコハマ')) {
+          prefecture = '神奈川県';
+          city = '横浜市';
+        } else if (input.includes('川崎') || input.includes('カワサキ')) {
+          prefecture = '神奈川県';
+          city = '川崎市';
+        } else if (input.includes('大阪') || input.includes('オオサカ')) {
+          prefecture = '大阪府';
+          city = '大阪市';
+        } else if (input.includes('名古屋') || input.includes('ナゴヤ')) {
+          prefecture = '愛知県';
+          city = '名古屋市';
+        } else if (input.includes('福岡') || input.includes('フクオカ')) {
+          prefecture = '福岡県';
+          city = '福岡市';
+        } else if (input.includes('札幌') || input.includes('サッポロ')) {
+          prefecture = '北海道';
+          city = '札幌市';
+        } else if (input.includes('仙台') || input.includes('センダイ')) {
+          prefecture = '宮城県';
+          city = '仙台市';
+        } else {
+          // 都道府県が含まれている場合の処理
+          const prefectures = ['東京都', '神奈川県', '大阪府', '愛知県', '福岡県', '北海道', '宮城県'];
+          const foundPref = prefectures.find(pref => input.includes(pref.replace(/[都道府県]/g, '')));
+          
+          if (foundPref) {
+            prefecture = foundPref;
+            city = '主要都市';
+          } else {
+            // デフォルト
+            prefecture = '東京都';
+            city = '新宿区';
+          }
+        }
+      }
+      
+      return { prefecture, city };
+    }
+    
+    // 相場データ取得（今後スプシ連携予定）
+    function getPriceData(workType = '外壁塗装') {
+      // 週毎に相場パターンを変える（1週間=7日周期）
+      const weekNumber = Math.floor(Date.now() / (1000 * 60 * 60 * 24 * 7)) % 3;
+      
+      // TODO: 後でスプシから動的に取得する
+      // 施工箇所別の基本価格設定
+      const priceByWorkType = {
+        '外壁塗装': [
+          { min: 64, max: 158 }, // パターン1
+          { min: 68, max: 162 }, // パターン2  
+          { min: 62, max: 155 }  // パターン3
+        ],
+        '外壁張り替え': [
+          { min: 120, max: 280 }, // パターン1
+          { min: 125, max: 285 }, // パターン2
+          { min: 118, max: 275 }  // パターン3
+        ],
+        '外壁カバー工法': [
+          { min: 95, max: 220 }, // パターン1
+          { min: 98, max: 225 }, // パターン2
+          { min: 92, max: 215 }  // パターン3
+        ],
+        '屋根塗装': [
+          { min: 45, max: 95 }, // パターン1
+          { min: 48, max: 98 }, // パターン2
+          { min: 42, max: 92 }  // パターン3
+        ],
+        '屋根張り替え': [
+          { min: 85, max: 180 }, // パターン1
+          { min: 88, max: 185 }, // パターン2
+          { min: 82, max: 175 }  // パターン3
+        ]
+      };
+      
+      const basePrices = priceByWorkType[workType] || priceByWorkType['外壁塗装'];
+      const currentPrice = basePrices[weekNumber];
+      
+      // ランダムで±5万円の変動を加える
+      const variation = Math.floor(Math.random() * 11) - 5; // -5 to +5
+      return {
+        min: Math.max(30, currentPrice.min + variation),
+        max: Math.min(300, currentPrice.max + variation),
+        workType: workType
+      };
+    }
+    
+    // 相場表示を更新する関数（施工箇所・建物情報に応じて動的変更）
+    function updatePriceDisplay(workType = '外壁塗装', location = null, buildingInfo = null) {
+      const locationHeading = document.getElementById('locationHeading');
+      const priceRange = document.getElementById('priceRange');
+      const buildingInfoElement = document.getElementById('buildingInfo');
+      
+      if (locationHeading && priceRange) {
+        // 相場データを取得
+        const priceData = getPriceData(workType);
+        
+        // 地域情報がある場合は使用、ない場合は現在の表示を維持
+        if (location) {
+          locationHeading.textContent = `${location.prefecture}${location.city}の${workType}相場`;
+        } else {
+          // 現在の地域名を取得して施工箇所だけ更新
+          const currentText = locationHeading.textContent;
+          const locationPart = currentText.replace(/の.*相場/, '');
+          locationHeading.textContent = `${locationPart}の${workType}相場`;
+        }
+        
+        // 建物情報を更新
+        if (buildingInfo && buildingInfoElement) {
+          buildingInfoElement.textContent = buildingInfo;
+        }
+        
+        // 価格を更新
+        priceRange.textContent = `${priceData.min}万〜${priceData.max}万円`;
+        
+        return priceData;
+      }
+    }
+    
+    // 建物情報のテンプレート生成
+    function generateBuildingInfo(floors = '2F', buildingType = '戸建て', age = '築25年', area = '30坪') {
+      return `${floors}建て${buildingType}${age}の場合（${area}）`;
+    }
+    
+    // 社名をイニシャルに変換する関数
+    function convertToInitial(companyName) {
+      // TODO: 後でスプシから取得する際の変換ロジック
+      if (!companyName) return 'A社';
+      
+      // 簡易的な変換（実際はスプシ側で管理）
+      const initials = ['A社', 'B社', 'C社', 'D社', 'E社', 'F社', 'G社', 'H社'];
+      const hash = companyName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      return initials[hash % initials.length];
+    }
+    
+    // スプシからランキングデータを取得する関数（今後実装予定）
+    async function getRankingDataFromSpreadsheet(location, workType) {
+      // TODO: 実際のスプシAPI連携を実装
+      // 現在はテストデータを返す
+      const testData = {
+        recommend: [
+          {
+            id: 1,
+            companyName: '株式会社田中塗装',
+            initialName: 'T社',
+            rating: 4.8,
+            price: '78万円〜',
+            features: ['15年保証', '地域密着'],
+            experience: '1,240件',
+            specialty: '外壁塗装専門'
+          },
+          {
+            id: 2,
+            companyName: '山田建装',
+            initialName: 'Y社',
+            rating: 4.6,
+            price: '85万円〜',
+            features: ['10年保証', '高級塗料使用'],
+            experience: '890件',
+            specialty: '一般住宅'
+          },
+          {
+            id: 3,
+            companyName: '佐藤リフォーム',
+            initialName: 'S社',
+            rating: 4.5,
+            price: '92万円〜',
+            features: ['12年保証', 'アフターサービス充実'],
+            experience: '760件',
+            specialty: '総合リフォーム'
+          }
+        ],
+        cheap: [
+          // 安い順のデータ
+        ],
+        review: [
+          // クチコミ順のデータ  
+        ],
+        quality: [
+          // 高品質順のデータ
+        ]
+      };
+      
+      return testData;
+    }
+    
+    
+    // ランキング表示関数（チャットボット完了後に呼び出し）
+    function showCompanyRanking() {
+      const rankingSection = document.getElementById('companyRanking');
+      if (rankingSection && window.currentRankingData) {
+        rankingSection.style.display = 'block';
+        
+        // ランキングHTMLを生成
+        const rankingHTML = generateRankingHTML(window.currentRankingData.recommend);
+        
+        // ランキングコンテンツを更新
+        const companiesContainer = document.getElementById('allCompanies');
+        if (companiesContainer) {
+          companiesContainer.innerHTML = rankingHTML;
+        }
+      }
+    }
+    
+    // ランキングHTML生成関数
+    function generateRankingHTML(companies) {
+      if (!companies) return '';
+      
+      return companies.map((company, index) => `
+        <div class="bg-white p-3 rounded-lg mb-2 relative border border-gray-200 shadow-sm company-card transition-all duration-300 hover:shadow-lg hover:border-yellow-300 hover:-translate-y-1">
+          <div class="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center text-white text-xs font-bold">${index + 1}</div>
+          <div class="pl-5">
+            <div class="flex justify-between mb-1">
+              <div class="font-bold company-name">${company.initialName}</div>
+              <div class="text-xs text-gray-500 detail-reveal-text">※電話番号入力後に詳細開示</div>
+            </div>
+            <div class="flex justify-between mb-1">
+              <div class="text-yellow-500">★★★★★ <span class="text-gray-500 text-xs">${company.rating}</span></div>
+            </div>
+            <div class="flex gap-1 mb-1">
+              ${company.features.map(feature => `<span class="bg-blue-100 text-blue-700 px-1 py-0.5 rounded text-[10px]">${feature}</span>`).join('')}
+            </div>
+            <div class="flex justify-between text-sm">
+              <div>見積もり価格: <span class="text-kuraberu-blue font-bold">${company.price}</span></div>
+              <div class="text-gray-500 text-xs">施工実績: ${company.experience}</div>
+            </div>
+            <div class="flex justify-between mt-1">
+              <div class="flex space-x-2 justify-end mt-2">
+                <button class="detail-btn bg-kuraberu-blue hover:bg-blue-600 text-white text-sm px-3 py-1 rounded-md transition-colors shadow-sm font-medium" data-company="${company.id}">
+                  詳細を見る
+                </button>
+                <button class="keep-btn bg-gray-200 hover:bg-kuraberu-yellow text-sm px-3 py-1 rounded-md transition-colors shadow-sm font-medium" data-company="${company.id}">
+                  キープする
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // 郵便番号に基づく地域情報更新
+    async function updateLocationInfo(postalCode) {
+      const locationHeading = document.getElementById('locationHeading');
+      const priceRange = document.getElementById('priceRange');
+      
+      if (locationHeading && priceRange) {
+        // 地域情報を取得
+        const location = await getLocationFromPostalCode(postalCode);
+        
+        // 初期表示は外壁塗装相場
+        updatePriceDisplay('外壁塗装', location);
+        
+        // ランキングデータを事前取得（表示は後で）
+        const rankingData = await getRankingDataFromSpreadsheet(location, '外壁塗装');
+        // グローバル変数に保存（後でランキング表示時に使用）
+        window.currentRankingData = rankingData;
+      }
+    }
+    
+    // ヒアリングボットの質問セット（ベース質問。APIから動的に変更される場合もある）
+    const baseQuestions = [
+      {
+        question: "Q1. 外壁の状態はどうですか？",
+        options: [
+          { text: "良好（目立った劣化なし）", value: "良好" },
+          { text: "やや劣化（部分的な汚れあり）", value: "やや劣化" },
+          { text: "劣化（ひび割れあり）", value: "劣化" },
+          { text: "かなり劣化（はがれ・浮きあり）", value: "かなり劣化" }
+        ]
+      },
+      {
+        question: "Q2. 施工時の重視ポイントは？",
+        options: [
+          { text: "価格の安さ", value: "価格重視" },
+          { text: "品質の高さ", value: "品質重視" },
+          { text: "保証の充実", value: "保証重視" },
+          { text: "対応の速さ", value: "スピード重視" }
+        ]
+      },
+      {
+        question: "Q3. 希望する塗装工事のタイミングは？",
+        options: [
+          { text: "すぐにでも（1ヶ月以内）", value: "緊急" },
+          { text: "3ヶ月以内", value: "3ヶ月以内" },
+          { text: "半年以内", value: "半年以内" },
+          { text: "検討中（1年以内）", value: "検討中" }
+        ]
+      },
+      {
+        question: "Q4. 塗装面積はおよそどれくらいですか？",
+        options: [
+          { text: "小さめ（15坪以下）", value: "小" },
+          { text: "やや小さめ（16〜25坪）", value: "中小" },
+          { text: "一般的（26〜35坪）", value: "中" },
+          { text: "大きめ（36坪以上）", value: "大" }
+        ]
+      }
+    ];
+    
+    // 追加の質問セット（ユーザーの回答に応じて動的に表示）
+    const additionalQuestions = {
+      // 外壁が劣化している場合の追加質問
+      "劣化": {
+        question: "ひび割れはどの程度ですか？",
+        options: [
+          { text: "細いひび割れが少しある", value: "軽微なひび割れ" },
+          { text: "複数の場所にひび割れがある", value: "複数箇所のひび割れ" },
+          { text: "大きなひび割れがある", value: "大きなひび割れ" },
+          { text: "よくわからない", value: "不明" }
+        ]
+      },
+      // 価格重視の場合の追加質問
+      "価格重視": {
+        question: "お考えの予算はどのくらいでしょうか？",
+        options: [
+          { text: "できるだけ安く（60万円以下）", value: "最低限" },
+          { text: "標準より安め（60〜80万円）", value: "安め" },
+          { text: "一般的な相場（80〜100万円）", value: "標準" },
+          { text: "予算は柔軟に検討できる", value: "柔軟" }
+        ]
+      },
+      // 緊急の場合の追加質問
+      "緊急": {
+        question: "急いでいる理由を教えてください",
+        options: [
+          { text: "雨漏りがしている", value: "雨漏り" },
+          { text: "外壁の剥がれが激しい", value: "剥がれ" },
+          { text: "近々の引っ越し・売却のため", value: "売却予定" },
+          { text: "他の事情（リフォームなど）", value: "その他" }
+        ]
+      }
+    };
+    
+    // 質問表示のための動的配列
+    let questions = [...baseQuestions];
+    
+    // 質問を初期化（最初のベース質問を設定）
+    function initQuestions() {
+      questions = [...baseQuestions];
+      currentQuestionIndex = 0;
+      userAnswers = [];
+    }
+    
+    // 前の質問に戻る処理
+    function goToPreviousQuestion() {
+      if (currentQuestionIndex > 0) {
+        // 現在の回答を削除
+        userAnswers.pop();
+        
+        // 回答履歴から削除
+        const botHistory = document.getElementById('botHistory');
+        const displayIndex = currentQuestionIndex + 1; // 1-indexedの表示用
+        const answerElement = document.getElementById(`answer${displayIndex}`);
+        if (answerElement && answerElement.parentElement) {
+          answerElement.parentElement.classList.add('hidden');
+        }
+        
+        // 前の質問のインデックスに戻る
+        currentQuestionIndex--;
+        
+        // 前の質問を表示
+        showQuestion(currentQuestionIndex);
+      }
+    }
+    
+    // 質問表示を開始する関数（チャットボットの初期化）
+    function initChatBot() {
+      try {
+        // 質問を初期化
+        initQuestions();
+
+        // APIコールをなくして直接表示
+        console.log('チャットボット初期化');
+
+        // 最初の質問を表示
+        showQuestion(0);
+      } catch (error) {
+        console.error('チャットボット初期化エラー:', error);
+      }
+    }
+    
+    // 質問表示関数（メッセージタイプ対応版）
+    function showQuestion(index) {
+      // 最下部固定チャットボットの要素を使用
+      const currentQuestionElement = document.getElementById('currentQuestion');
+      const choiceButtons = document.getElementById('choiceButtons');
+      const knowledgeContent = document.getElementById('knowledgeContent');
+      const backButton = document.getElementById('chatbotBackButton');
+      
+      if (!currentQuestionElement || !choiceButtons) return;
+      
+      const question = currentQuestions[index];
+      if (!question) return;
+      
+      console.log('質問表示:', question.type, question.question);
+      
+      // バックボタンの表示/非表示を設定
+      if (index > 0 && backButton) {
+        backButton.style.display = 'flex';
+      } else if (backButton) {
+        backButton.style.display = 'none';
+      }
+      
+      // 質問文を直接設定（タイピングアニメーションは簡略化）
+      currentQuestionElement.textContent = question.question;
+      
+      // 豆知識を表示（内容がある場合のみ）
+      const knowledgeSection = document.getElementById('knowledgeSection');
+      if (knowledgeContent && question.knowledge && question.knowledge.content && question.knowledge.content.trim() !== '') {
+        knowledgeContent.innerHTML = `<p>${question.knowledge.content}</p>`;
+        
+        // 豆知識セクションをスライドイン表示
+        if (knowledgeSection) {
+          knowledgeSection.style.display = 'block';
+          knowledgeSection.style.transform = 'translateY(20px)';
+          knowledgeSection.style.opacity = '0';
+          
+          setTimeout(() => {
+            knowledgeSection.style.transition = 'all 0.3s ease-out';
+            knowledgeSection.style.transform = 'translateY(0)';
+            knowledgeSection.style.opacity = '1';
+          }, 100);
+        }
+      } else {
+        // 豆知識がない場合は非表示
+        if (knowledgeSection) {
+          knowledgeSection.style.display = 'none';
+        }
+      }
+      
+      // 質問タイプに応じてUI生成
+      if (question.type === 'message') {
+        // メッセージタイプでも4択と同じ高さを保持
+        choiceButtons.innerHTML = `
+          <div class="message-placeholder bg-gray-50 p-4 rounded-lg text-center text-gray-600 text-sm">
+            メッセージを確認して次に進んでいます...
+          </div>
+        `;
+        choiceButtons.style.display = 'grid';
+        
+        // メッセージタイプの場合は2秒後に自動で次に進む
+        setTimeout(() => {
+          currentQuestionIndex++;
+          if (currentQuestionIndex < currentQuestions.length) {
+            showQuestion(currentQuestionIndex);
+          } else {
+            completeHearing();
+          }
+        }, 2000);
+      } else if (question.type === 'slider') {
+        // スライダータイプの場合
+        const minValue = question.options[0]?.value || 0;
+        const maxValue = question.options[1]?.value || 50;
+        const stepValue = question.options[2]?.value || 1;
+        const unit = question.options[3]?.value || '';
+        
+        choiceButtons.innerHTML = `
+          <div class="slider-container bg-white p-4 rounded-lg border border-gray-200">
+            <!-- チェックボックス選択 -->
+            <div class="mb-4">
+              <div class="flex gap-4">
+                <label class="flex items-center">
+                  <input type="radio" name="accuracy_${currentQuestionIndex}" value="おおよそ" checked class="mr-2">
+                  <span class="text-sm">おおよそ</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="accuracy_${currentQuestionIndex}" value="正確に" class="mr-2">
+                  <span class="text-sm">正確に</span>
+                </label>
+              </div>
+            </div>
+            
+            <!-- スライダー -->
+            <div class="mb-4">
+              <div class="flex items-center gap-3">
+                <span class="text-sm text-gray-600">${minValue}${unit}</span>
+                <input 
+                  type="range" 
+                  id="slider_${currentQuestionIndex}"
+                  min="${minValue}" 
+                  max="${maxValue}" 
+                  step="${stepValue}" 
+                  value="10"
+                  class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                >
+                <span class="text-sm text-gray-600">${maxValue}${unit}</span>
+              </div>
+              <div class="text-center mt-2">
+                <span id="slider_value_${currentQuestionIndex}" class="text-lg font-bold text-blue-600">10${unit}</span>
+              </div>
+            </div>
+            
+            <!-- 確定ボタン -->
+            <div class="text-center">
+              <button 
+                id="slider_confirm_${currentQuestionIndex}"
+                class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-6 rounded-lg text-sm font-medium transition-colors"
+              >
+                この値で決定
+              </button>
+            </div>
+          </div>
+        `;
+        
+        choiceButtons.style.display = 'block';
+        choiceButtons.style.opacity = '1';
+        choiceButtons.style.visibility = 'visible';
+        
+        console.log('🎚️ スライダー表示設定完了');
+        console.log('🎚️ スライダーHTML:', choiceButtons.innerHTML);
+        
+        // スライダーのイベントリスナーを設定
+        setupSliderEvents(currentQuestionIndex);
+      } else {
+        // 通常の4択の場合
+        choiceButtons.innerHTML = question.options.map((option, idx) => `
+          <button class="choice-btn bg-white hover:bg-blue-500 hover:text-white p-4 rounded-lg text-sm transition-colors duration-200 border-2 border-gray-300 font-medium" data-answer="${option.value}">
+            ${option.text}
+          </button>
+        `).join('');
+        
+        choiceButtons.style.display = 'grid';
+        choiceButtons.style.opacity = '1';
+        choiceButtons.style.visibility = 'visible';
+        
+        console.log('🔘 ボタンHTML:', choiceButtons.innerHTML);
+        console.log('🔘 ボタン表示状態:', choiceButtons.style.display);
+        console.log('🔘 ボタン透明度:', choiceButtons.style.opacity);
+        
+        // ボタンにイベントリスナーを設定
+        const choiceBtns = choiceButtons.querySelectorAll('.choice-btn');
+        console.log('🔘 ボタン設定:', choiceBtns.length + '個のボタン');
+        choiceBtns.forEach((button, idx) => {
+          button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const answer = this.getAttribute('data-answer');
+            console.log('🎯 ボタンクリック:', answer, 'index:', currentQuestionIndex);
+            console.log('🎯 Button element:', this);
+            console.log('🎯 Current questions:', currentQuestions);
+            handleAnswer(currentQuestionIndex, answer);
+          });
+        });
+      }
+      
+      // ボタンのイベントリスナーは startTypingAnimation 内で設定
+    }
+    
+    // タイピングアニメーション（メッセージタイプ対応版）
+    function startTypingAnimation(questionText) {
+      const typingContent = document.getElementById('typingContent');
+      const botChoices = document.getElementById('botChoices');
+      if (!typingContent || !botChoices) {
+        return;
+      }
+      
+      let currentText = "";
+      let fullText = questionText || "Q1. 外壁の状態はどうですか？";
+      let charIndex = 0;
+      
+      // 初めはカーソルだけ表示
+      typingContent.innerHTML = '<span class="typing-cursor">|</span>';
+      
+      // 現在の質問を取得
+      const questionsToUse = currentQuestions.length > 0 ? currentQuestions : questions;
+      const currentQuestion = questionsToUse[currentQuestionIndex];
+      
+      // タイピングエフェクト
+      const typingInterval = setInterval(() => {
+        if (charIndex < fullText.length) {
+          currentText += fullText.charAt(charIndex);
+          typingContent.innerHTML = currentText + '<span class="typing-cursor">|</span>';
+          charIndex++;
+        } else {
+          clearInterval(typingInterval);
+          
+          // メッセージタイプの場合は自動で次に進む
+          if (currentQuestion && currentQuestion.type === 'message') {
+            setTimeout(() => {
+              // メッセージタイプの場合は自動的に次の質問へ
+              currentQuestionIndex++;
+              if (currentQuestionIndex < questionsToUse.length) {
+                showQuestion(currentQuestionIndex);
+              } else {
+                completeHearing();
+              }
+            }, 2000); // 2秒間表示してから次へ
+          } else {
+            // 通常の質問の場合は選択肢を表示
+            setTimeout(() => {
+              if (botChoices.style.display !== 'none') {
+                if (currentQuestion.type === 'slider') {
+                  // スライダーの場合
+                  botChoices.style.display = 'block';
+                } else {
+                  // 4択の場合
+                  botChoices.style.display = 'grid';
+                }
+                
+                setTimeout(() => {
+                  botChoices.style.opacity = '1';
+                  
+                  if (currentQuestion.type === 'slider') {
+                    // スライダーのイベントリスナーを設定
+                    setupSliderEvents(currentQuestionIndex);
+                  } else {
+                    // 4択ボタンにイベントリスナーを設定
+                    const botAnswerButtons = document.querySelectorAll('.botAnswer');
+                    botAnswerButtons.forEach(button => {
+                      button.addEventListener('click', function() {
+                        const answer = this.getAttribute('data-answer');
+                        handleAnswer(currentQuestionIndex, answer);
+                      });
+                    });
+                  }
+                }, 50);
+              }
+            }, 700);
+          }
+        }
+      }, 50);
+    }
+    
+    // スライダーのイベントリスナー設定
+    function setupSliderEvents(questionIndex) {
+      const slider = document.getElementById(`slider_${questionIndex}`);
+      const valueDisplay = document.getElementById(`slider_value_${questionIndex}`);
+      const confirmButton = document.getElementById(`slider_confirm_${questionIndex}`);
+      
+      if (!slider || !valueDisplay || !confirmButton) return;
+      
+      // 現在の質問を取得して単位を決定
+      const currentQuestion = currentQuestions[questionIndex];
+      const unit = currentQuestion.options[3]?.value || '';
+      
+      // スライダーの値変更イベント
+      slider.addEventListener('input', function() {
+        valueDisplay.textContent = this.value + unit;
+      });
+      
+      // 確定ボタンのイベント
+      confirmButton.addEventListener('click', function() {
+        const sliderValue = slider.value;
+        const accuracyRadio = document.querySelector(`input[name="accuracy_${questionIndex}"]:checked`);
+        const accuracy = accuracyRadio ? accuracyRadio.value : 'おおよそ';
+        
+        // 回答を「正確性 + 値 + 単位」の形で作成
+        const answer = `${accuracy}${sliderValue}${unit}`;
+        
+        console.log('スライダー回答:', answer);
+        handleAnswer(questionIndex, answer);
+      });
+    }
+    
+    // 回答処理関数（動的質問に対応したバージョン）
+    function handleAnswer(index, answer) {
+      console.log('📝 回答処理開始:', answer, 'index:', index);
+      console.log('📝 Current questions array:', currentQuestions);
+      console.log('📝 Current question:', currentQuestions[index]);
+      
+      // 重複実行防止
+      if (userAnswers.length > index) {
+        console.log('⚠️ 重複回答をスキップ');
+        return;
+      }
+      
+      // 回答を保存
+      userAnswers.push(answer);
+      console.log('📝 回答保存完了. 現在の回答数:', userAnswers.length);
+
+      // 特別処理: 第3段階（クロージング）で「はい、お願いします」が選択された場合
+      const currentQuestion = currentQuestions[index];
+      if (currentQuestion && currentQuestion.stage === 3 && answer === 'はい、お願いします') {
+        console.log('🎯 クロージング成功！電話番号フォームを表示');
+        
+        // 少し待ってから電話番号フォームを表示
+        setTimeout(() => {
+          showPhoneInputForm();
+        }, 1000);
+      }
+
+      // 回答履歴を表示
+      updateAnswerHistory(index, answer);
+      
+      // ボタンを一時的に非表示
+      const choiceButtons = document.getElementById('choiceButtons');
+      if (choiceButtons) {
+        choiceButtons.style.opacity = '0';
+        setTimeout(() => {
+          choiceButtons.style.display = 'none';
+          
+          // 回答をAPIに送信し次のアクションを決定
+          processAnswer(index, answer);
+        }, 300);
+      } else {
+        console.error('❌ choiceButtons要素が見つかりません');
+      }
+    }
+    
+    // 回答を処理して次の質問を決定する関数
+    function processAnswer(index, answer) {
+      try {
+        console.log('🔄 回答を処理:', answer, 'for question index:', index);
+
+        // 次の質問へ進む
+        currentQuestionIndex++;
+        
+        console.log('📊 質問進行状況:', `${currentQuestionIndex}/${currentQuestions.length}`);
+        console.log('📊 現在の質問配列:', currentQuestions);
+        
+        if (currentQuestionIndex < currentQuestions.length) {
+          // まだ質問が残っている場合
+          console.log('➡️ 次の質問に進む:', currentQuestions[currentQuestionIndex]);
+          setTimeout(() => {
+            showQuestion(currentQuestionIndex);
+          }, 300);
+        } else {
+          // 全ての質問が終わった場合
+          console.log('✅ 全質問完了 - ヒアリング終了');
+          completeHearing();
+        }
+      } catch (error) {
+        console.error('❌ 回答処理中のエラー:', error);
+      }
+    }
+    
+    // 回答履歴の更新
+    function updateAnswerHistory(index, answer) {
+      const botHistory = document.getElementById('botHistory');
+      const currentQuestion = currentQuestions[index];
+      
+      if (!botHistory || !currentQuestion) return;
+      
+      // 回答履歴を表示
+      botHistory.classList.remove('hidden');
+      
+      // 必要な履歴要素を追加（最大4つまで）
+      let historyItemCount = botHistory.querySelectorAll('div.flex').length;
+      const displayIndex = index + 1; // 1-indexedの表示用
+      
+      // 既存の回答要素を検索
+      let answerElement = document.getElementById(`answer${displayIndex}`);
+      
+      if (!answerElement) {
+        // 要素が存在しない場合は新規作成
+        const historyItem = document.createElement('div');
+        historyItem.className = 'flex items-start mb-1';
+        historyItem.innerHTML = `
+          <span class="font-bold mr-2">Q${displayIndex}:</span>
+          <span id="answer${displayIndex}">${answer}</span>
+        `;
+        botHistory.appendChild(historyItem);
+      } else {
+        // 存在する場合は更新
+        answerElement.textContent = answer;
+        answerElement.parentElement.classList.remove('hidden');
+      }
+    }
+    
+    // ヒアリング完了関数（APIでデータを処理）
+    async function completeHearing() {
+      try {
+        // 質問エリアを完了メッセージに変更
+        const botQuestion = document.getElementById('botQuestion');
+        if (botQuestion) {
+          botQuestion.innerHTML = `
+            <div class="text-center py-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-kuraberu-green mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p class="font-bold text-kuraberu-blue mb-1">ヒアリング完了！</p>
+              <p class="text-sm text-gray-600">あなたにぴったりの業者を表示しています</p>
+            </div>
+          `;
+        }
+        
+        // スキップボタンを非表示
+        const skipHearing = document.getElementById('skipHearing');
+        if (skipHearing) {
+          skipHearing.classList.add('hidden');
+        }
+        
+        // ソートボタンを表示
+        const sortButtons = document.getElementById('sortButtons');
+        if (sortButtons) {
+          sortButtons.classList.remove('hidden');
+          
+          // デフォルトで「おすすめ順」を選択状態にする（BOTが完了したとき）
+          const tabRecommend = document.getElementById('tabRecommend');
+          if (tabRecommend) {
+            // 他のすべてのタブをデフォルト状態に
+            document.querySelectorAll('#tabCheap, #tabReview, #tabQuality').forEach(btn => {
+              if (btn.id === 'tabCheap') {
+                btn.querySelector('div').className = 'absolute inset-0 bg-gradient-to-b from-red-300 to-red-400 z-0';
+                btn.classList.remove('bg-red-600', 'hover:bg-red-700', 'border-red-700');
+                btn.classList.add('bg-red-300', 'hover:bg-red-400', 'border-red-400');
+              } else if (btn.id === 'tabReview') {
+                btn.querySelector('div').className = 'absolute inset-0 bg-gradient-to-b from-lime-300 to-lime-400 z-0';
+                btn.classList.remove('bg-green-600', 'hover:bg-green-700', 'border-green-700');
+                btn.classList.add('bg-lime-300', 'hover:bg-lime-400', 'border-lime-400');
+              } else if (btn.id === 'tabQuality') {
+                btn.querySelector('div').className = 'absolute inset-0 bg-gradient-to-b from-purple-300 to-purple-400 z-0';
+                btn.classList.remove('bg-purple-600', 'hover:bg-purple-700', 'border-purple-700');
+                btn.classList.add('bg-purple-300', 'hover:bg-purple-400', 'border-purple-400');
+              }
+            });
+            
+            // おすすめ順ボタンをアクティブに
+            tabRecommend.classList.remove('bg-white', 'border-gray-200');
+            tabRecommend.classList.add('bg-blue-100', 'border-blue-300');
+            
+            // 背景色を設定
+            const allCompanies = document.getElementById('allCompanies');
+            if (allCompanies) {
+              allCompanies.style.backgroundColor = 'rgba(239, 246, 255, 0.5)'; // 薄い青色
+            }
+          }
+        }
+        
+        // APIから業者の提案を取得
+        const recommendation = await callScriptApi('getRecommendation', {
+          answers: userAnswers
+        });
+        
+        if (recommendation.success) {
+          console.log('業者提案:', recommendation.recommendation);
+        }
+        
+        // ランキングの順序を変更（ここではシンプルに表現）
+        setTimeout(() => {
+          // 追加の業者を表示
+          const additionalCompanies = document.getElementById('additionalCompanies');
+          if (additionalCompanies) {
+            additionalCompanies.classList.remove('hidden');
+          }
+          
+          // コンバージョン提案機能は削除されました
+        }, 1000);
+      } catch (error) {
+        console.error('ヒアリング完了処理エラー:', error);
+      }
+    }
+    
+    // コンバージョン関連の機能はすべて削除されました
+
+    
+    // 相場ボタンのイベントリスナー
+    document.addEventListener('DOMContentLoaded', function() {
+      
+      // 戻るボタンのイベントリスナー
+      const backButton = document.getElementById('backButton');
+      if (backButton) {
+        backButton.addEventListener('click', function() {
+          goToPreviousQuestion();
+        });
+      }
+      
+      // 相場確認ボタンのイベントリスナーは下部のDOMContentLoadedで設定
+      
+      // キープボタンのイベントリスナー
+      const keepButtons = document.querySelectorAll('.keepButton');
+      // 最初の古いキープボタンのイベントは削除（新しいコードで下部に実装）
+      
+      // 会社データのサンプル（各ソート用に順序を変える）
+      const companyData = {
+        // おすすめ順
+        recommend: [
+          { id: 1, name: 'T社', rating: 4.9, price: '78万円〜', features: ['地元密着', '保証充実', '即日対応'], work: 1200 },
+          { id: 2, name: 'S社', rating: 4.7, price: '83万円〜', features: ['最低価格保証', '職人直営'], work: 980 },
+          { id: 3, name: 'K社', rating: 4.5, price: '85万円〜', features: ['定期点検付', '環境配慮'], work: 850 },
+          { id: 4, name: 'P社', rating: 4.3, price: '92万円〜', features: ['10年保証', '高級塗料使用'], work: 760 }
+        ],
+        // 安い順
+        cheap: [
+          { id: 5, name: 'M社', rating: 4.2, price: '76万円〜', features: ['5年保証', '丁寧施工'], work: 720 },
+          { id: 1, name: 'T社', rating: 4.9, price: '78万円〜', features: ['地元密着', '保証充実', '即日対応'], work: 1200 },
+          { id: 2, name: 'S社', rating: 4.7, price: '83万円〜', features: ['最低価格保証', '職人直営'], work: 980 },
+          { id: 3, name: 'K社', rating: 4.5, price: '85万円〜', features: ['定期点検付', '環境配慮'], work: 850 }
+        ],
+        // 口コミ順
+        review: [
+          { id: 1, name: 'T社', rating: 4.9, price: '78万円〜', features: ['地元密着', '保証充実', '即日対応'], work: 1200 },
+          { id: 2, name: 'S社', rating: 4.7, price: '83万円〜', features: ['最低価格保証', '職人直営'], work: 980 },
+          { id: 6, name: 'Q社', rating: 4.5, price: '96万円〜', features: ['実績多数', '水性塗料'], work: 680 },
+          { id: 3, name: 'K社', rating: 4.5, price: '85万円〜', features: ['定期点検付', '環境配慮'], work: 850 }
+        ],
+        // 高品質順
+        quality: [
+          { id: 4, name: 'P社', rating: 4.3, price: '92万円〜', features: ['10年保証', '高級塗料使用'], work: 760 },
+          { id: 1, name: 'T社', rating: 4.9, price: '78万円〜', features: ['地元密着', '保証充実', '即日対応'], work: 1200 },
+          { id: 7, name: 'A社', rating: 4.4, price: '98万円〜', features: ['家族経営', '紹介割引'], work: 510 },
+          { id: 2, name: 'S社', rating: 4.7, price: '83万円〜', features: ['最低価格保証', '職人直営'], work: 980 }
+        ]
+      };
+      
+      // 会社カードを作成する関数
+      function createCompanyCard(company, index) {
+        // ランキング表示用の色とラベル
+        const rankingColor = index === 0 ? 'bg-yellow-500' : 
+                            index === 1 ? 'bg-gray-500' : 
+                            index === 2 ? 'bg-orange-500' : 'bg-gray-400';
+        const rankNumber = index + 1;
+        
+        // 星評価を表示
+        const stars = "★".repeat(Math.floor(company.rating)) + "☆".repeat(5 - Math.floor(company.rating));
+        
+        // フィーチャーバッジの色をランダムに
+        const badgeColors = ['blue', 'green', 'red', 'orange', 'purple', 'yellow'];
+        
+        // フィーチャーバッジの作成
+        const featureBadges = company.features.map(feature => {
+          const color = badgeColors[Math.floor(Math.random() * badgeColors.length)];
+          return `<span class="bg-${color}-100 text-${color}-700 px-1 py-0.5 rounded text-[10px]">${feature}</span>`;
+        }).join('');
+        
+        // カードのHTMLを作成
+        return `
+          <div class="company-card bg-white p-3 rounded-lg mb-2 relative border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-yellow-300 hover:-translate-y-1">
+            <div class="absolute -top-1 -left-1 w-5 h-5 rounded-full ${rankingColor} flex items-center justify-center text-white text-xs font-bold">${rankNumber}</div>
+            <div class="pl-5">
+              <div class="flex justify-between mb-1">
+                <div class="font-bold">${company.name}</div><div class="text-xs text-gray-500">※電話番号入力後に詳細開示</div>
+                <div class="text-yellow-500">${stars} <span class="text-gray-500 text-xs">${company.rating}</span></div>
+              </div>
+              <div class="flex gap-1 mb-1">
+                ${featureBadges}
+              </div>
+              <div class="flex justify-between text-sm">
+                <div>見積もり価格: <span class="text-kuraberu-blue font-bold">${company.price}</span></div>
+                <div class="text-gray-500 text-xs">施工実績: ${company.work}件</div>
+              </div>
+              <div class="flex justify-between mt-1">
+                <div class="flex space-x-2 justify-end mt-2">
+                  <button class="detailButton bg-kuraberu-blue hover:bg-blue-600 text-white text-sm px-3 py-1 rounded-md transition-colors shadow-sm font-medium" data-company="${company.id}">
+                    詳細を見る
+                  </button>
+                  <button class="keepButton bg-gray-200 hover:bg-kuraberu-yellow text-sm px-3 py-1 rounded-md transition-colors shadow-sm font-medium" data-company="${company.id}">
+                    キープする
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      // タブ切り替えのイベントリスナー
+      const tabButtons = document.querySelectorAll('#tabRecommend, #tabCheap, #tabReview, #tabQuality');
+      const allCompanies = document.getElementById('allCompanies');
+      
+      // 初期状態ではおすすめ順を選択状態に
+      const rankingSection = document.getElementById('rankingSection');
+      if (allCompanies) {
+        allCompanies.style.backgroundColor = 'rgba(239, 246, 255, 0.5)'; // 薄い青色
+      }
+      if (rankingSection) {
+        rankingSection.style.backgroundColor = 'rgba(239, 246, 255, 0.8)'; // 薄い青色
+      }
+      
+      // おすすめ順ボタンをアクティブ化
+      const tabRecommend = document.getElementById('tabRecommend');
+      if (tabRecommend) {
+        tabRecommend.classList.remove('bg-white', 'border-gray-200');
+        tabRecommend.classList.add('bg-blue-100', 'border-blue-300');
+      }
+      
+      tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          // 全てのタブを非アクティブ状態に戻す
+          tabButtons.forEach(btn => {
+            btn.classList.remove('bg-blue-100', 'bg-orange-100', 'bg-green-100', 'bg-purple-100');
+            btn.classList.remove('border-blue-300', 'border-orange-300', 'border-green-300', 'border-purple-300');
+            btn.classList.remove('hover:bg-blue-100', 'hover:bg-orange-100', 'hover:bg-green-100', 'hover:bg-purple-100');
+            btn.classList.add('bg-white', 'border-gray-200');
+            
+            // ホバー状態を元に戻す
+            if (btn.id === 'tabRecommend') {
+              btn.classList.add('hover:bg-blue-50');
+            } else if (btn.id === 'tabCheap') {
+              btn.classList.add('hover:bg-orange-50');
+            } else if (btn.id === 'tabReview') {
+              btn.classList.add('hover:bg-green-50');
+            } else if (btn.id === 'tabQuality') {
+              btn.classList.add('hover:bg-purple-50');
+            }
+          });
+          
+          // カードとランキングセクションの背景色をリセット
+          const allCompanies = document.getElementById('allCompanies');
+          const rankingSection = document.getElementById('rankingSection');
+          if (allCompanies) {
+            allCompanies.style.backgroundColor = 'white';
+          }
+          if (rankingSection) {
+            rankingSection.style.backgroundColor = '#f3f4f6'; // 元のグレー色
+          }
+          
+          // クリックされたタブをアクティブに
+          if (this.id === 'tabRecommend') {
+            this.classList.remove('bg-white', 'border-gray-200', 'hover:bg-blue-50');
+            this.classList.add('bg-blue-100', 'border-blue-300', 'hover:bg-blue-100');
+            // ランキングセクションの背景色を連動
+            if (rankingSection) {
+              rankingSection.style.backgroundColor = 'rgba(239, 246, 255, 0.8)'; // 薄い青色
+            }
+            // カードの背景色を連動
+            if (allCompanies) {
+              allCompanies.style.backgroundColor = 'rgba(239, 246, 255, 0.5)'; // 薄い青色
+              
+              // カードの内容を入れ替え（デモ用コメント）
+              console.log('おすすめ順に表示: ', companyData.recommend);
+              
+              // 実際のプロジェクトでは以下のようなコードで表示更新
+              /*
+              // HTMLを生成
+              const companiesHTML = companyData.recommend.map(createCompanyCard).join('');
+              // HTMLを挿入
+              document.querySelector('#companyList').innerHTML = companiesHTML;
+              */
+            }
+          } else if (this.id === 'tabCheap') {
+            this.classList.remove('bg-white', 'border-gray-200', 'hover:bg-orange-50');
+            this.classList.add('bg-orange-100', 'border-orange-300', 'hover:bg-orange-100');
+            // ランキングセクションの背景色を連動
+            if (rankingSection) {
+              rankingSection.style.backgroundColor = 'rgba(255, 247, 237, 0.8)'; // 薄いオレンジ色
+            }
+            // カードの背景色を連動
+            if (allCompanies) {
+              allCompanies.style.backgroundColor = 'rgba(255, 247, 237, 0.5)'; // 薄いオレンジ色
+              
+              // カードの内容を入れ替え（デモ用コメント）
+              console.log('安い順に表示: ', companyData.cheap);
+              
+              // 実際のプロジェクトでは以下のようなコードで表示更新
+              /*
+              // HTMLを生成
+              const companiesHTML = companyData.cheap.map(createCompanyCard).join('');
+              // HTMLを挿入
+              document.querySelector('#companyList').innerHTML = companiesHTML;
+              */
+            }
+          } else if (this.id === 'tabReview') {
+            this.classList.remove('bg-white', 'border-gray-200', 'hover:bg-green-50');
+            this.classList.add('bg-green-100', 'border-green-300', 'hover:bg-green-100');
+            // ランキングセクションの背景色を連動
+            if (rankingSection) {
+              rankingSection.style.backgroundColor = 'rgba(240, 253, 244, 0.8)'; // 薄い緑色
+            }
+            // カードの背景色を連動
+            if (allCompanies) {
+              allCompanies.style.backgroundColor = 'rgba(240, 253, 244, 0.5)'; // 薄い緑色
+              
+              // カードの内容を入れ替え（デモ用コメント）
+              console.log('口コミ順に表示: ', companyData.review);
+              
+              // 実際のプロジェクトでは以下のようなコードで表示更新
+              /*
+              // HTMLを生成
+              const companiesHTML = companyData.review.map(createCompanyCard).join('');
+              // HTMLを挿入
+              document.querySelector('#companyList').innerHTML = companiesHTML;
+              */
+            }
+          } else if (this.id === 'tabQuality') {
+            this.classList.remove('bg-white', 'border-gray-200', 'hover:bg-purple-50');
+            this.classList.add('bg-purple-100', 'border-purple-300', 'hover:bg-purple-100');
+            // ランキングセクションの背景色を連動
+            if (rankingSection) {
+              rankingSection.style.backgroundColor = 'rgba(250, 245, 255, 0.8)'; // 薄い紫色
+            }
+            // カードの背景色を連動
+            if (allCompanies) {
+              allCompanies.style.backgroundColor = 'rgba(250, 245, 255, 0.5)'; // 薄い紫色
+              
+              // カードの内容を入れ替え（デモ用コメント）
+              console.log('高品質順に表示: ', companyData.quality);
+              
+              // 実際のプロジェクトでは以下のようなコードで表示更新
+              /*
+              // HTMLを生成
+              const companiesHTML = companyData.quality.map(createCompanyCard).join('');
+              // HTMLを挿入
+              document.querySelector('#companyList').innerHTML = companiesHTML;
+              */
+            }
+          }
+          
+          // タブの内容切り替え処理は省略（デモ用）
+        });
+      });
+      
+      // スロットマシン風の価格表示アニメーション関数
+      function animatePriceDisplay(element, finalPrice, duration = 1500, steps = 30) {
+        const priceText = element.textContent;
+        const originalText = element.innerHTML;
+        const finalText = finalPrice + '〜';
+        const numbers = [];
+        
+        // 数字のみを抽出
+        const matches = priceText.match(/\d+/);
+        if (!matches) return;
+        
+        const originalPrice = parseInt(matches[0]);
+        const finalPriceNum = parseInt(finalPrice);
+        
+        // スロットマシンのように完全にランダムな数字を最初に表示
+        for (let i = 0; i < Math.floor(steps * 0.7); i++) {
+          // 最初はまったくのランダム値
+          const randomValue = Math.floor(Math.random() * 150) + 50; // 50〜200の範囲でランダム
+          numbers.push(randomValue);
+        }
+        
+        // 後半は徐々に最終値に近づく
+        for (let i = 0; i < Math.floor(steps * 0.3); i++) {
+          const progress = i / (steps * 0.3);
+          const randomOffset = Math.random() * (1 - progress) * 15;
+          const stepValue = Math.round(numbers[numbers.length - 1] + (finalPriceNum - numbers[numbers.length - 1]) * progress + randomOffset);
+          numbers.push(stepValue);
+        }
+        
+        // 最後の値は必ず最終価格
+        numbers.push(finalPriceNum);
+        
+        // アニメーション実行
+        let step = 0;
+        const interval = duration / numbers.length;
+        
+        // アニメーション開始前の処理
+        element.style.transition = 'all 0.2s';
+        element.style.fontWeight = 'bold';
+        element.style.color = '#1A56DB'; // 青色を少し強調
+        
+        // 数字の周りをハイライト
+        const highlight = document.createElement('span');
+        highlight.className = 'absolute inset-0 bg-yellow-100 rounded-full animate-pulse';
+        highlight.style.opacity = '0';
+        highlight.style.zIndex = '-1';
+        
+        // 親要素をrelativeに
+        const parent = element.parentElement;
+        if (parent) {
+          parent.style.position = 'relative';
+          parent.insertBefore(highlight, element);
+        }
+        
+        // ハイライトを表示
+        setTimeout(() => {
+          highlight.style.opacity = '0.5';
+          
+          const timer = setInterval(() => {
+            if (step >= numbers.length) {
+              clearInterval(timer);
+              element.innerHTML = originalText.replace(/\d+/, finalPrice);
+              
+              // アニメーション完了時のエフェクト
+              element.style.fontSize = '110%';
+              setTimeout(() => {
+                element.style.fontSize = '100%';
+                
+                // ハイライトをフェードアウト
+                highlight.style.transition = 'opacity 0.5s';
+                highlight.style.opacity = '0';
+                setTimeout(() => {
+                  if (parent && highlight.parentNode === parent) {
+                    parent.removeChild(highlight);
+                  }
+                }, 500);
+              }, 200);
+              
+              return;
+            }
+            
+            element.textContent = numbers[step] + '万円〜';
+            
+            // スロットマシンっぽく数字を上下に揺らす
+            if (step % 2 === 0) {
+              element.style.transform = 'translateY(-1px)';
+            } else {
+              element.style.transform = 'translateY(1px)';
+            }
+            
+            step++;
+          }, interval);
+        }, 100);
+      }
+      
+    });
+    
+    // キープカウンター機能とフローティングボックスの設定
+    document.addEventListener('DOMContentLoaded', function() {
+      let keepCount = 0;
+      const keepBox = document.getElementById('keepFloatingBox');
+      const keepCountBadge = document.getElementById('keepCountBadge');
+      const keepCountBadge2 = document.getElementById('keepCountBadge2');
+      const viewKeptCompaniesBtn = document.getElementById('viewKeptCompanies');
+      
+      // キープボタンと詳細ボタンのイベントを設定
+      const keepButtons = document.querySelectorAll('.keepButton');
+      const detailButtons = document.querySelectorAll('.detailButton');
+      
+      // キープボタンのクリックイベント
+      keepButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          // キープ状態をトグル
+          if (this.classList.contains('bg-kuraberu-yellow')) {
+            // キープ解除
+            this.classList.remove('bg-kuraberu-yellow');
+            this.classList.add('bg-gray-200');
+            this.textContent = 'キープする';
+            keepCount = Math.max(0, keepCount - 1);
+          } else {
+            // キープする
+            this.classList.remove('bg-gray-200');
+            this.classList.add('bg-kuraberu-yellow');
+            this.textContent = 'キープ中！';
+            keepCount++;
+          }
+          
+          // カウンターを更新
+          updateKeepCounter();
+        });
+      });
+      
+      // 詳細ボタンのクリックイベント（オーバーレイ表示）
+      detailButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          // 詳細ページをiframeで表示
+          const overlay = document.createElement('div');
+          overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+          overlay.style.backdropFilter = 'blur(2px)';
+          overlay.id = 'detailOverlay';
+          
+          const frame = document.createElement('iframe');
+          
+          // メッセージ用のウィンドウオブジェクトをグローバルに公開
+          window.closeDetailOverlay = function() {
+            const overlay = document.getElementById('detailOverlay');
+            if (overlay) {
+              // 完全に削除
+              overlay.remove();
+              // スクロール禁止を解除
+              document.body.style.overflow = '';
+              // もし他にもスタイルを変更していた場合はリセット
+              document.body.style.position = '';
+              document.body.style.width = '';
+              document.body.style.height = '';
+              // 他の関連要素のクリーンアップ
+              document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            }
+          };
+          
+          // iframe用にwindowオブジェクトに関数を追加（アクセスしやすいように）
+          window.closeCompanyDetailIframe = function() {
+            const overlay = document.getElementById('detailOverlay');
+            if (overlay) {
+              // 完全に削除
+              overlay.remove();
+              // スクロール禁止を解除
+              document.body.style.overflow = '';
+              // もし他にもスタイルを変更していた場合はリセット
+              document.body.style.position = '';
+              document.body.style.width = '';
+              document.body.style.height = '';
+              // 他の関連要素のクリーンアップ
+              document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+              // 履歴操作
+              if (window.history && window.history.replaceState) {
+                try {
+                  window.history.replaceState(null, '', 'kuraberu-optimized-final-dynamic-new.html');
+                } catch(e) {
+                  console.error('履歴操作エラー:', e);
+                }
+              }
+            }
+          };
+          
+          // iframe からのメッセージを受信するイベントリスナーを追加
+          window.addEventListener('message', function(event) {
+            if (event.data === 'closeDetailOverlay') {
+              console.log('メッセージを受信: closeDetailOverlay');
+              window.closeCompanyDetailIframe();
+            }
+          }, false);
+          
+          // 共通のイベントリスナーとして追加（ページ全体で利用可能に）
+          if (!window._hasAddedMessageListener) {
+            window._hasAddedMessageListener = true;
+            // グローバルメッセージリスナー
+            window.addEventListener('message', function(event) {
+              if (event.data === 'closeDetailOverlay') {
+                console.log('グローバルメッセージを受信: closeDetailOverlay');
+                const overlay = document.getElementById('detailOverlay');
+                if (overlay) {
+                  overlay.remove();
+                  document.body.style.overflow = '';
+                }
+              }
+            }, false);
+          }
+          
+          // ページ離脱時にもイベントリスナーを設定
+          window.addEventListener('beforeunload', function() {
+            const overlay = document.getElementById('detailOverlay');
+            if (overlay) {
+              overlay.remove();
+            }
+          });
+          
+          // iframeのonloadイベントで閉じるボタンの処理を設定
+          frame.onload = function() {
+            try {
+              // iframeの中のクローズボタンを探して、イベントリスナーを設定
+              const iframeDoc = frame.contentDocument || frame.contentWindow.document;
+              if (iframeDoc) {
+                const closeBtn = iframeDoc.getElementById('closeDetailBtn');
+                if (closeBtn) {
+                  closeBtn.onclick = function() {
+                    // オーバーレイを完全に削除
+                    const overlay = document.getElementById('detailOverlay');
+                    if (overlay) {
+                      // DOMから要素を完全に削除
+                      overlay.remove();
+                      // スクロール禁止を解除
+                      document.body.style.overflow = '';
+                      // もし他にもスタイルを変更していた場合はリセット
+                      document.body.style.position = '';
+                      document.body.style.width = '';
+                      document.body.style.height = '';
+                    }
+                    return false;
+                  };
+                }
+              }
+            } catch (e) {
+              console.error('iframeアクセスエラー:', e);
+            }
+          };
+          
+          // iframeに安全なフレーム設定を追加
+          frame.src = 'company-detail.html';
+          frame.className = 'w-full h-full md:w-11/12 md:h-5/6 rounded-lg shadow-2xl';
+          frame.style.border = 'none';
+          frame.id = 'detailFrame';
+          frame.name = 'detailFrame'; // 名前を設定して参照しやすくする
+          frame.setAttribute('allowtransparency', 'true'); // 透過を許可
+          frame.setAttribute('allowfullscreen', 'true'); // フルスクリーン許可（より多くのアクセス権を付与）
+          frame.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'); // 様々な機能の使用を許可
+          
+          overlay.appendChild(frame);
+          document.body.appendChild(overlay);
+          
+          // スクロール禁止
+          document.body.style.overflow = 'hidden';
+          
+          // クリックで閉じる
+          overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+              window.closeCompanyDetailIframe();
+            }
+          });
+          
+          // Reload the page if the iframe isn't loading properly
+          frame.onerror = function() {
+            console.error('iframeの読み込みエラー');
+            window.location.reload();
+          };
+          
+          // ESCキーでも閉じられるように
+          const escKeyHandler = function(e) {
+            if (e.key === 'Escape') {
+              window.closeCompanyDetailIframe();
+              // イベントハンドラを削除
+              document.removeEventListener('keydown', escKeyHandler);
+            }
+          };
+          
+          document.addEventListener('keydown', escKeyHandler);
+        });
+      });
+      
+      // フローティングボックスを表示
+      function showKeepFloatingBox() {
+        keepBox.classList.remove('translate-y-full');
+        keepBox.classList.add('translate-y-0');
+      }
+      
+      // キープカウンターを更新
+      function updateKeepCounter() {
+        if (keepCount > 0) {
+          // 両方のバッジを更新
+          keepCountBadge.textContent = keepCount;
+          keepCountBadge2.textContent = keepCount;
+          
+          // バッジを表示
+          keepCountBadge.classList.remove('hidden');
+          keepCountBadge2.classList.remove('hidden');
+          
+          // キープ詳細ボタンを有効化
+          viewKeptCompaniesBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+          viewKeptCompaniesBtn.disabled = false;
+          
+          // フローティングボックスを表示
+          showKeepFloatingBox();
+        } else {
+          // キープがない場合
+          keepCountBadge.classList.add('hidden');
+          keepCountBadge2.classList.add('hidden');
+          
+          // キープ詳細ボタンを無効化
+          viewKeptCompaniesBtn.classList.add('opacity-50', 'cursor-not-allowed');
+          viewKeptCompaniesBtn.disabled = true;
+        }
+      }
+      
+      // キープ詳細ボタンの初期状態（無効）
+      if (viewKeptCompaniesBtn) {
+        viewKeptCompaniesBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        viewKeptCompaniesBtn.disabled = true;
+        
+        // クリックイベント
+        viewKeptCompaniesBtn.addEventListener('click', function() {
+          if (keepCount > 0) {
+            // キープ中の業者を表示するモーダル
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+            modal.innerHTML = `
+              <div class="bg-white rounded-lg overflow-hidden shadow-xl max-w-2xl w-full mx-4">
+                <div class="p-4 bg-gray-100 flex justify-between items-center">
+                  <h3 class="font-bold text-lg">キープ中の業者（${keepCount}社）</h3>
+                  <button id="closeKeptModal" class="text-gray-500 hover:text-gray-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div class="p-4">
+                  <div class="overflow-y-auto max-h-96">
+                    <div id="keptCompaniesList" class="space-y-3">
+                      <!-- キープリスト -->
+                    </div>
+                  </div>
+                  <div class="mt-4 flex justify-end">
+                    <button class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md font-medium transition-colors shadow-sm">
+                      一括見積もりを依頼する
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+            
+            // キープ中の業者リストを作成
+            document.body.appendChild(modal);
+            const keptCompaniesList = modal.querySelector('#keptCompaniesList');
+            
+            // キープボタンのデータを取得
+            document.querySelectorAll('.keepButton.bg-kuraberu-yellow').forEach((btn, index) => {
+              const companyId = btn.getAttribute('data-company');
+              const companyCard = btn.closest('.company-card');
+              if (companyCard) {
+                // 会社名とその他の情報を取得
+                const companyName = companyCard.querySelector('.font-bold').textContent;
+                const rating = companyCard.querySelector('.text-yellow-500').textContent;
+                const price = companyCard.querySelector('.text-kuraberu-blue.font-bold').textContent;
+                
+                // リストに追加
+                const listItem = document.createElement('div');
+                listItem.className = 'p-3 border rounded bg-gray-50';
+                listItem.innerHTML = `
+                  <div class="flex justify-between">
+                    <div>
+                      <div class="font-medium">${companyName}</div>
+                      <div class="text-sm">${rating}</div>
+                      <div class="text-sm">見積価格: ${price}</div>
+                    </div>
+                    <button class="text-red-500 hover:text-red-700" data-remove-keep="${companyId}">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                `;
+                keptCompaniesList.appendChild(listItem);
+              }
+            });
+            
+            // キープ解除ボタンの処理
+            modal.querySelectorAll('[data-remove-keep]').forEach(btn => {
+              btn.addEventListener('click', function() {
+                const companyIdToRemove = this.getAttribute('data-remove-keep');
+                // 対応するキープボタンを探す
+                const keepButtonToUpdate = document.querySelector(`.keepButton[data-company="${companyIdToRemove}"]`);
+                if (keepButtonToUpdate) {
+                  // クリックイベントをトリガー
+                  keepButtonToUpdate.click();
+                }
+                
+                // リストから削除
+                this.closest('.p-3').remove();
+                
+                // キープ数がゼロになったらモーダルを閉じる
+                if (keepCount === 0) {
+                  document.body.removeChild(modal);
+                } else {
+                  // タイトルを更新
+                  modal.querySelector('h3').textContent = `キープ中の業者（${keepCount}社）`;
+                }
+              });
+            });
+            
+            // 閉じるボタンのイベント
+            const closeButton = modal.querySelector('#closeKeptModal');
+            closeButton.addEventListener('click', function() {
+              document.body.removeChild(modal);
+            });
+            
+            // モーダル自体をクリックしても閉じる
+            modal.addEventListener('click', function(e) {
+              if (e.target === modal) {
+                document.body.removeChild(modal);
+              }
+            });
+          }
+        });
+      }
+      
+      // 動画ボタンのクリックイベント
+      const videoButton = document.getElementById('videoButton');
+      if (videoButton) {
+        videoButton.addEventListener('click', function() {
+          // 動画モーダルを表示する
+          const modal = document.createElement('div');
+          modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+          modal.innerHTML = `
+            <div class="bg-white rounded-lg overflow-hidden shadow-xl max-w-4xl w-full mx-4">
+              <div class="p-4 bg-gray-100 flex justify-between items-center">
+                <h3 class="font-bold text-lg">外壁塗装の見積もりの流れ</h3>
+                <button id="closeVideoModal" class="text-gray-500 hover:text-gray-800">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div class="p-4">
+                <div class="aspect-w-16 aspect-h-9 bg-gray-100 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p class="mt-4 text-gray-600">動画はデモ用です</p>
+                </div>
+                <div class="mt-4">
+                  <p class="text-sm text-gray-600">1. 無料で相見積もりを依頼</p>
+                  <p class="text-sm text-gray-600">2. 業者からの見積書を比較検討</p>
+                  <p class="text-sm text-gray-600">3. 最適な業者を選んで契約</p>
+                  <p class="text-sm text-gray-600">4. 高品質な施工と長期保証</p>
+                </div>
+              </div>
+            </div>
+          `;
+          
+          document.body.appendChild(modal);
+          
+          // 閉じるボタンのイベント
+          const closeButton = modal.querySelector('#closeVideoModal');
+          closeButton.addEventListener('click', function() {
+            document.body.removeChild(modal);
+          });
+          
+          // モーダル自体をクリックしても閉じる
+          modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+              document.body.removeChild(modal);
+            }
+          });
+        });
+      }
+    });
+  </script>
+  
+  <!-- キープ確認用フローティングボックス -->
+  <div id="keepFloatingBox" class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 p-3 transition-transform duration-300 transform translate-y-full z-50">
+    <div class="container mx-auto">
+      <!-- 3つのボタンを横並びに（アイコンを上部に配置） -->
+      <div class="flex justify-between items-stretch gap-4">
+        <div class="relative flex-1 min-w-0">
+          <button id="videoButton" class="bg-blue-400 hover:bg-blue-500 text-white px-3 py-2 rounded-md font-medium transition-colors shadow-sm w-full flex flex-col items-center justify-center text-xs">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            見積もりの流れ動画
+          </button>
+        </div>
+        
+        <div class="relative flex-1 min-w-0">
+          <button id="viewKeptCompanies" class="bg-yellow-300 hover:bg-yellow-400 text-black px-3 py-2 rounded-md font-medium transition-colors shadow-sm w-full flex flex-col items-center justify-center text-xs">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+            キープ中業者を見る
+          </button>
+          <div id="keepCountBadge2" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold hidden">0</div>
+        </div>
+        
+        <div class="relative flex-1 min-w-0">
+          <button id="showCompanyNamesFloatingBtn" class="bg-orange-400 hover:bg-orange-500 text-white px-3 py-2 rounded-md font-medium transition-colors shadow-sm w-full flex flex-col items-center justify-center text-xs">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            業者名を見る
+          </button>
+          <div id="keepCountBadge" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold hidden">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // チャットボット機能は chatbot.js で管理
+    
+    // チャットボット表示
+    // 古いshowChatbot関数を削除しました（重複防止）
+    
+    // 古いhandleAnswer関数とfinishChatbot関数を削除（新しい方を使用）
+    
+    // ランキングセクション表示
+    function showRankingSection() {
+      const rankingSection = document.getElementById('rankingSection');
+      if (rankingSection) {
+        rankingSection.classList.remove('hidden');
+        
+        // サンプルランキングデータを表示
+        displayRanking();
+        
+        // スクロール
+        rankingSection.scrollIntoView({behavior: 'smooth'});
+      }
+    }
+    
+    // ランキングデータは ranking.js で管理
+
+    // キープボタンの状態をチェックする関数
+    function getKeepButtonState(companyRank) {
+      const isKept = keepList.some(item => item.id === companyRank.toString());
+      return {
+        text: isKept ? 'キープ中！' : 'キープ',
+        classes: isKept 
+          ? 'keep-btn bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded text-xs flex-1'
+          : 'keep-btn bg-yellow-200 hover:bg-yellow-300 text-gray-700 px-2 py-1 rounded text-xs flex-1'
+      };
+    }
+
+    // 相場表示関数
+    function showPriceResult(postalCode) {
+      // 相場セクションを表示
+      const areaPrice = document.getElementById('areaPrice');
+      if (areaPrice) {
+        areaPrice.classList.remove('hidden');
+      }
+      
+      // モザイクランキングも表示
+      showRankingSection();
+      
+      console.log(`郵便番号 ${postalCode} の相場を表示しました`);
+    }
+
+
+    // ランキング表示
+    function displayRanking() {
+      const rankingList = document.getElementById('rankingList');
+      const companies = showingAll ? allCompanies : allCompanies.slice(0, 4);
+      
+      rankingList.innerHTML = companies.map(company => `
+        <div class="bg-white rounded-lg p-2.5 relative shadow-sm mb-2 border border-gray-200 hover:border-yellow-300 transition-colors">
+          <div class="absolute -top-1 -left-1 w-5 h-5 ${company.rank === 1 ? 'bg-yellow-400' : company.rank === 2 ? 'bg-gray-400' : company.rank === 3 ? 'bg-orange-400' : company.rank === 4 ? 'bg-gray-400' : company.rank === 5 ? 'bg-yellow-400' : company.rank === 6 ? 'bg-gray-400' : company.rank === 7 ? 'bg-orange-400' : 'bg-gray-400'} text-white rounded-full flex items-center justify-center font-bold text-xs">${company.rank}</div>
+          
+          <div class="pl-4">
+            <div class="flex justify-between items-center mb-2">
+              <div>
+                <h3 class="text-sm font-bold text-gray-900">${window.namesRevealed && realCompanies[company.rank - 1] ? realCompanies[company.rank - 1] : company.name}</h3>
+              </div>
+              <div class="text-right">
+                <div class="flex items-center text-yellow-400">
+                  <span class="text-sm">${'★'.repeat(Math.floor(company.rating))}${'☆'.repeat(5-Math.floor(company.rating))}</span>
+                  <span class="text-black font-bold ml-1 text-xs">${company.rating}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex justify-start items-center mb-2">
+              <div class="flex flex-wrap gap-1">
+                ${company.features.map((feature, i) => `
+                  <span class="bg-${i === 0 ? 'blue' : i === 1 ? 'green' : 'red'}-50 text-${i === 0 ? 'blue' : i === 1 ? 'green' : 'red'}-600 px-1.5 py-0.5 rounded text-xs">${feature}</span>
+                `).join('')}
+              </div>
+            </div>
+            
+            <div class="flex justify-between items-center mb-2">
+              <div class="text-left">
+                <div class="text-xs text-gray-600">参考価格: <span class="text-sm font-bold text-blue-400">${company.price}</span></div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm text-gray-600 font-medium">施工実績: ${Math.floor(company.reviews * 5)}件</div>
+              </div>
+            </div>
+            
+            <div class="flex gap-1">
+              <button class="bg-blue-400 hover:bg-blue-500 text-white px-2 py-1 rounded text-xs flex-1">詳細を見る</button>
+              <button class="keep-btn bg-yellow-200 hover:bg-yellow-300 text-gray-700 px-2 py-1 rounded text-xs flex-1" data-company-id="${company.rank}" data-company-name="${window.namesRevealed && realCompanies[company.rank - 1] ? realCompanies[company.rank - 1] : company.name}">キープ</button>
+              <button class="${window.namesRevealed ? 'bg-red-500 hover:bg-red-600' : 'bg-pink-400 hover:bg-pink-500'} text-white px-1 py-1 rounded text-xs flex-1 whitespace-nowrap"><span class="md:hidden">${window.namesRevealed ? '無料見積もり' : '業者名を見る'}</span><span class="hidden md:inline">${window.namesRevealed ? '無料見積もり' : '業者名を見る'}</span></button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    
+    
+    // YouTube動画読み込み
+    function loadYouTubeVideo() {
+      const videoContainer = document.querySelector('#knowledgeContent .aspect-video');
+      if (videoContainer) {
+        // サンプルYouTube動画（外壁塗装関連）
+        const videoId = 'dQw4w9WgXcQ'; // 実際の動画IDに変更してください
+        videoContainer.innerHTML = `
+          <iframe 
+            class="w-full h-full rounded"
+            src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+          </iframe>
+        `;
+      }
+    }
+    
+    // 豆知識コンテンツの更新（スプシ連携対応）
+    function updateKnowledgeContent(step) {
+      const knowledgeContent = document.getElementById('knowledgeContent');
+      if (!knowledgeContent) return;
+      
+      // スプシから取得予定のコンテンツ（今は固定値）
+      const contents = [
+        // ステップ1: 外壁材質の質問
+        {
+          text: "材質によって適切な塗料と工法が変わります。",
+          hasVideo: false,
+          videoId: null
+        },
+        // ステップ2: 築年数の質問
+        {
+          text: "築年数により劣化の進行度や必要な下地処理が異なります。",
+          hasVideo: false,
+          videoId: null
+        },
+        // ステップ3: 重視ポイントの質問
+        {
+          text: "業者選びでは見積もりの詳細さ、施工実績と保証内容が重要です。",
+          hasVideo: false,
+          videoId: null
+        },
+        // ステップ4: 施工時期の質問
+        {
+          text: "春と秋が塗装に適したシーズンです。梅雨時期は避けましょう。",
+          hasVideo: false,
+          videoId: null
+        }
+      ];
+      
+      if (contents[step]) {
+        const content = contents[step];
+        knowledgeContent.innerHTML = `<p>${content.text}</p>`;
+        
+        // 将来的にYouTube動画が設定されている場合の表示処理
+        if (content.hasVideo && content.videoId) {
+          knowledgeContent.innerHTML += `
+            <div class="mt-3 p-3 bg-gray-50 rounded">
+              <h5 class="font-medium mb-2">参考動画</h5>
+              <div class="aspect-video bg-gray-200 rounded flex items-center justify-center">
+                <div class="text-center">
+                  <div class="text-2xl mb-1">📹</div>
+                  <p class="text-xs">外壁塗装の基礎知識</p>
+                  <button onclick="loadYouTubeVideo('${content.videoId}')" class="mt-1 text-xs bg-red-500 text-white px-2 py-1 rounded">
+                    動画を見る
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      }
+    }
+    
+    // イベントリスナーの設定
+    document.addEventListener('DOMContentLoaded', function() {
+      // 郵便番号検索ボタンのイベントリスナー
+      const searchButton = document.getElementById('searchButton');
+      if (searchButton) {
+        searchButton.addEventListener('click', function() {
+          const postalCode = document.getElementById('postalCode').value;
+          
+          if (!postalCode || postalCode.length < 7) {
+            alert('正しい郵便番号を入力してください');
+            return;
+          }
+          
+          console.log('郵便番号検索:', postalCode);
+          
+          // 相場を表示
+          showPriceResult(postalCode);
+          
+          // 同時にチャットボットを自動起動
+          setTimeout(() => {
+            showChatbotImmediate();
+          }, 1000); // 相場表示後1秒でBOT起動
+        });
+      }
+      
+      // チャットボット閉じるボタン
+      const closeChatbot = document.getElementById('closeChatbot');
+      if (closeChatbot) {
+        closeChatbot.addEventListener('click', hideChatbot);
+      }
+      
+      
+      // もっと見るボタン
+      const moreButton = document.getElementById('moreButton');
+      if (moreButton) {
+        moreButton.addEventListener('click', function() {
+          showingAll = !showingAll;
+          displayRanking();
+          
+          const moreButtonText = document.getElementById('moreButtonText');
+          const moreButtonIcon = document.getElementById('moreButtonIcon');
+          
+          if (showingAll) {
+            // 8社全て表示されたらボタンを非表示
+            moreButton.style.display = 'none';
+          } else {
+            moreButtonText.textContent = 'もっと見る';
+            moreButtonIcon.style.transform = 'rotate(0deg)';
+          }
+        });
+      }
+      
+      
+      // キープ機能
+      let keepList = [];
+      
+      // キープボタンのイベントリスナー
+      document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('keep-btn')) {
+          const companyId = e.target.getAttribute('data-company-id');
+          const companyName = e.target.getAttribute('data-company-name');
+          
+          if (e.target.textContent === 'キープ') {
+            // 6社までの制限チェック
+            if (keepList.length >= 6) {
+              alert('キープできるのは最大6社までです。');
+              return;
+            }
+            
+            // キープに追加
+            const keepItem = {
+              id: companyId,
+              name: companyName
+            };
+            
+            if (!keepList.find(item => item.id === companyId)) {
+              keepList.push(keepItem);
+              localStorage.setItem('keepList', JSON.stringify(keepList));
+            } else {
+              // 既存のアイテムの名前を更新（電話番号入力後の実名反映のため）
+              const existingItem = keepList.find(item => item.id === companyId);
+              if (existingItem) {
+                existingItem.name = companyName;
+                localStorage.setItem('keepList', JSON.stringify(keepList));
+              }
+            }
+            
+            // ボタンの表示を変更
+            e.target.textContent = 'キープ済み';
+            e.target.classList.remove('bg-yellow-200', 'hover:bg-yellow-300', 'text-gray-700');
+            e.target.classList.add('bg-yellow-500', 'hover:bg-yellow-600', 'text-white');
+            
+            // ハートアイコンとバッジを更新
+            updateHeartIcon();
+            updateKeepCount();
+          } else {
+            // キープから削除
+            keepList = keepList.filter(item => item.id !== companyId);
+            localStorage.setItem('keepList', JSON.stringify(keepList));
+            
+            // ボタンの状態を戻す
+            e.target.textContent = 'キープ';
+            e.target.classList.remove('bg-yellow-500', 'hover:bg-yellow-600', 'text-white');
+            e.target.classList.add('bg-yellow-200', 'hover:bg-yellow-300', 'text-gray-700');
+            
+            // ハートアイコンとバッジを更新
+            updateHeartIcon();
+            updateKeepCount();
+          }
+        }
+      });
+      
+      // ハートアイコンの表示・非表示を管理する関数
+      function updateHeartIcon() {
+        const keepButton = document.getElementById('keepButton');
+        const keepCountBadge = document.getElementById('keepCountBadgeTop');
+        
+        if (keepList.length > 0) {
+          // キープ件数があればハートアイコンを表示
+          keepButton.classList.remove('hidden');
+          keepCountBadge.textContent = keepList.length;
+          keepCountBadge.classList.remove('hidden');
+        } else {
+          // キープ件数がなければハートアイコンを非表示
+          keepButton.classList.add('hidden');
+          keepCountBadge.classList.add('hidden');
+        }
+      }
+
+      // キープボックスを表示する関数
+      function showKeepBox() {
+        const keepBoxModal = document.getElementById('keepBoxModal');
+        const keepBoxContent = document.getElementById('keepBoxContent');
+        
+        if (!keepBoxModal || !keepBoxContent) return;
+        
+        // キープリストの内容を生成
+        if (keepList.length === 0) {
+          keepBoxContent.innerHTML = '<p class="text-gray-500 text-center py-8">まだキープされた業者がありません</p>';
+        } else {
+          // 最大6社まで表示
+          const displayList = keepList.slice(0, 6);
+          keepBoxContent.innerHTML = displayList.map((item, index) => `
+            <div class="border border-gray-200 rounded-lg p-2 mb-2 last:mb-0">
+              <div class="mb-1">
+                <h4 class="font-bold text-xs text-gray-900">${item.name}</h4>
+              </div>
+              <div class="flex gap-1">
+                <button class="bg-blue-400 hover:bg-blue-500 text-white px-2 py-1 rounded text-xs flex-1">詳細を見る</button>
+                <button class="bg-red-400 hover:bg-red-500 text-white px-2 py-1 rounded text-xs" onclick="removeFromKeepBox('${item.id}')">削除</button>
+              </div>
+            </div>
+          `).join('');
+        }
+        
+        keepBoxModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
+      // キープボックスを非表示にする関数
+      function hideKeepBox() {
+        const keepBoxModal = document.getElementById('keepBoxModal');
+        if (keepBoxModal) {
+          keepBoxModal.classList.add('hidden');
+          document.body.style.overflow = '';
+        }
+      }
+
+      // キープボックスから業者を削除する関数
+      window.removeFromKeepBox = function(companyId) {
+        keepList = keepList.filter(item => item.id !== companyId);
+        localStorage.setItem('keepList', JSON.stringify(keepList));
+        
+        // 対応するランキングボタンの状態を更新
+        const button = document.querySelector(`[data-company-id="${companyId}"]`);
+        if (button) {
+          button.textContent = 'キープ';
+          button.classList.remove('bg-yellow-500', 'hover:bg-yellow-600', 'text-white');
+          button.classList.add('bg-yellow-200', 'hover:bg-yellow-300', 'text-gray-700');
+        }
+        
+        // ハートアイコンを更新
+        updateHeartIcon();
+        updateKeepCount();
+        
+        // キープボックスの内容を更新（リアルタイムで削除を反映）
+        showKeepBox();
+        
+        // キープリストが空になった場合はモーダルを閉じる
+        if (keepList.length === 0) {
+          hideKeepBox();
+        }
+      }
+
+      // ページ読み込み時にキープ状態を復元
+      function restoreKeepStates() {
+        keepList = JSON.parse(localStorage.getItem('keepList') || '[]');
+        updateKeepCount();
+        
+        // ハートアイコンを更新
+        updateHeartIcon();
+        
+        // displayRanking()実行後に実行するため、少し遅延させる
+        setTimeout(() => {
+          // 各ボタンの状態を復元
+          keepList.forEach(keepItem => {
+            const button = document.querySelector(`[data-company-id="${keepItem.id}"]`);
+            if (button) {
+              button.textContent = 'キープ済み';
+              button.classList.remove('bg-yellow-200', 'hover:bg-yellow-300', 'text-gray-700');
+              button.classList.add('bg-yellow-500', 'hover:bg-yellow-600', 'text-white');
+            }
+          });
+        }, 100);
+      }
+      
+      // キープ数を更新する関数
+      function updateKeepCount() {
+        const keepCountBadge = document.getElementById('keepCountBadge');
+        if (keepCountBadge) {
+          keepCountBadge.textContent = keepList.length;
+          keepCountBadge.style.display = keepList.length > 0 ? 'inline' : 'none';
+        }
+      }
+      
+      // リロード時にキープ状態をリセット
+      localStorage.removeItem('keepList');
+      keepList = [];
+      
+      // 初期化
+      displayRanking();
+      
+      // ハートアイコンをリフレッシュ
+      updateHeartIcon();
+      
+      // ハートアイコンクリックでキープボックスを表示
+      const viewKeptCompaniesTop = document.getElementById('viewKeptCompaniesTop');
+      if (viewKeptCompaniesTop) {
+        viewKeptCompaniesTop.addEventListener('click', function() {
+          showKeepBox();
+        });
+      }
+      
+      // キープボックス閉じるボタン
+      const closeKeepBox = document.getElementById('closeKeepBox');
+      if (closeKeepBox) {
+        closeKeepBox.addEventListener('click', function() {
+          hideKeepBox();
+        });
+      }
+      
+      // モーダル背景クリックで閉じる
+      const keepBoxModal = document.getElementById('keepBoxModal');
+      if (keepBoxModal) {
+        keepBoxModal.addEventListener('click', function(e) {
+          if (e.target === keepBoxModal) {
+            hideKeepBox();
+          }
+        });
+      }
+    });
+    
+    // キープリストの実名更新
+    function updateKeepListWithRealNames() {
+      let keepList = JSON.parse(localStorage.getItem('keepList') || '[]');
+      
+      keepList.forEach(item => {
+        const companyIndex = parseInt(item.id) - 1;
+        if (realCompanies[companyIndex]) {
+          item.name = realCompanies[companyIndex];
+        }
+      });
+      localStorage.setItem('keepList', JSON.stringify(keepList));
+    }
+    
+    // キープ中業者リストを表示する関数
+    function showKeptCompaniesList() {
+      const keepList = JSON.parse(localStorage.getItem('keepList') || '[]');
+      
+      if (keepList.length === 0) {
+        alert('キープ中の業者はありません');
+        return;
+      }
+      
+      // モーダルを作成
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+      modal.innerHTML = `
+        <div class="bg-white rounded-lg p-4 max-w-2xl w-full max-h-[500px] overflow-y-auto">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold">キープ中の業者 (${keepList.length}件)</h3>
+            <button id="closeKeptModal" class="text-gray-500 hover:text-gray-700">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="space-y-3">
+            ${keepList.map(company => `
+              <div class="border border-gray-200 rounded-lg p-3">
+                <div class="mb-2">
+                  <h4 class="font-medium">${company.name}</h4>
+                </div>
+                <div class="flex gap-2">
+                  <button class="detail-btn bg-blue-400 hover:bg-blue-500 text-white px-3 py-1 rounded text-sm flex-1" data-company-id="${company.id}">
+                    詳細を見る
+                  </button>
+                  <button class="remove-keep-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex-1" data-company-id="${company.id}">
+                    削除
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-200">
+            <button class="estimate-request-btn bg-red-400 hover:bg-red-500 text-white px-6 py-3 rounded-lg text-base font-medium w-full">
+              見積もりを依頼する
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // モーダル閉じるイベント
+      document.getElementById('closeKeptModal').addEventListener('click', function() {
+        document.body.removeChild(modal);
+      });
+      
+      // 背景クリックで閉じる
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          document.body.removeChild(modal);
+        }
+      });
+      
+      // キープ削除ボタンのイベント
+      modal.querySelectorAll('.remove-keep-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const companyId = this.getAttribute('data-company-id');
+          removeFromKeepList(companyId);
+          document.body.removeChild(modal);
+          updateKeepCountBadge();
+          
+          // キープが0になったら右上ボタンを非表示
+          if (JSON.parse(localStorage.getItem('keepList') || '[]').length === 0) {
+            const keepButton = document.getElementById('keepButton');
+            if (keepButton) {
+              keepButton.classList.add('hidden');
+            }
+          }
+        });
+      });
+      
+      // 詳細を見るボタンのイベント（業者カードの詳細ボタンと連動）
+      modal.querySelectorAll('.detail-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const companyId = this.getAttribute('data-company-id');
+          // TODO: 業者カードの詳細を見るボタンと同じ処理を実行
+          console.log(`業者ID ${companyId} の詳細を表示`);
+          // 将来的にここで業者詳細ページを開く処理を追加
+        });
+      });
+      
+      // 見積もりを依頼するボタンのイベント（業者カードの見積もりボタンと連動）
+      const estimateBtn = modal.querySelector('.estimate-request-btn');
+      if (estimateBtn) {
+        estimateBtn.addEventListener('click', function() {
+          // TODO: 業者カードの無料見積もり依頼ボタンと同じ処理を実行
+          console.log('キープ中の業者に見積もりを依頼');
+          // 将来的にここで見積もり依頼処理を追加
+        });
+      }
+    }
+    
+    // キープリストから削除する関数
+    function removeFromKeepList(companyId) {
+      let keepList = JSON.parse(localStorage.getItem('keepList') || '[]');
+      keepList = keepList.filter(item => item.id !== companyId);
+      localStorage.setItem('keepList', JSON.stringify(keepList));
+      
+      // ランキング表示も更新
+      displayRanking();
+    }
+    
+    // 電話番号自動フォーマット関数
+    function formatPhoneNumber(input) {
+      let value = input.value.replace(/[^0-9]/g, ''); // 数字以外を削除
+      
+      if (value.length >= 3 && value.length <= 7) {
+        value = value.slice(0, 3) + '-' + value.slice(3);
+      } else if (value.length > 7) {
+        value = value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7, 11);
+      }
+      
+      input.value = value;
+    }
+
+    // 4択チャットシステム - GAS API呼び出し関数
+    async function callGASAPI(action, parameters = {}) {
+      try {
+        const gasUrl = 'https://script.google.com/macros/s/AKfycbwZwxFeAimcpQ2FtAO02Sy83yRoyxeBcItJcl2R1-66gaNIrBtZ-lEu5CMPIKxWSZAv/exec';
+        
+        const requestBody = {
+          action: action,
+          ...parameters
+        };
+        
+        console.log('GAS API呼び出し:', action, parameters);
+        
+        const response = await fetch(gasUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          mode: 'cors',
+          body: JSON.stringify(requestBody)
+        });
+        
+        const result = await response.json();
+        console.log('GAS APIレスポンス:', result);
+        
+        return result;
+      } catch (error) {
+        console.error('GAS API呼び出しエラー:', error);
+        // フォールバック: デフォルトの質問データを返す
+        console.log('⚠️ API失敗 - デフォルトデータを使用');
+        return { success: false, error: error.toString() };
+      }
+    }
+
+    // スプレッドシートから質問データを取得
+    async function getQuestionsFromSpreadsheet(stage, requiredOnly = false) {
+      try {
+        console.log('📊 スプレッドシートから質問取得開始:', stage, requiredOnly);
+        const result = await callGASAPI('getQuestionsByStage', {
+          stage: stage,
+          requiredOnly: requiredOnly.toString()
+        });
+        
+        console.log('📊 API結果:', result);
+        
+        if (result.success && result.questions && result.questions.length > 0) {
+          console.log('✅ 質問取得成功:', result.questions.length + '件');
+          return result.questions;
+        } else {
+          console.error('❌ 質問取得失敗:', result.error || '質問データが空');
+          return [];
+        }
+      } catch (error) {
+        console.error('❌ 質問取得エラー:', error);
+        return [];
+      }
+    }
+
+    // スプレッドシートの質問データを内部形式に変換
+    function convertSpreadsheetQuestions(spreadsheetQuestions) {
+      let questionCounter = 0;
+      return spreadsheetQuestions.map((q, index) => {
+        // メッセージタイプの場合は質問番号を付けない
+        let questionText;
+        if (q.type === 'message') {
+          questionText = q.question;
+        } else {
+          questionCounter++;
+          questionText = `Q${questionCounter}. ${q.question}`;
+        }
+
+        return {
+          id: q.id,
+          question: questionText,
+          options: q.choices && q.choices.filter(choice => choice && choice.trim() !== '').map(choice => ({
+            text: choice,
+            value: choice
+          })) || [],
+          knowledge: {
+            title: q.knowledgeTitle,
+            content: q.knowledgeContent,
+            youtubeUrl: q.youtubeUrl
+          },
+          stage: q.stage,
+          type: q.type,
+          required: q.required
+        };
+      });
+    }
+
+    // 外部JSファイルで管理されている機能への参照のみ残す
+
+    // 業者名をイニシャルから実名に変更する関数
+    function revealCompanyNames() {
+      console.log('revealCompanyNames実行開始');
+      
+      // グローバルフラグを設定（イニシャルに戻ることを防ぐ）
+      window.namesRevealed = true;
+      console.log('window.namesRevealed =', window.namesRevealed);
+      
+      // T社、S社などを実名に変更
+      const companyNameElements = document.querySelectorAll('.company-name, h4, h3');
+      console.log('会社名要素数:', companyNameElements.length);
+      
+      companyNameElements.forEach(element => {
+        const text = element.textContent;
+        if (text.includes('T社')) {
+          element.textContent = text.replace('T社', '田中ホームテック');
+          console.log('T社を田中ホームテックに変更');
+        } else if (text.includes('S社')) {
+          element.textContent = text.replace('S社', '佐藤建装');
+          console.log('S社を佐藤建装に変更');
+        } else if (text.includes('Y社')) {
+          element.textContent = text.replace('Y社', '山田塗装工業');
+          console.log('Y社を山田塗装工業に変更');
+        } else if (text.includes('H社')) {
+          element.textContent = text.replace('H社', 'ハート工務店');
+          console.log('H社をハート工務店に変更');
+        } else if (text.includes('M社')) {
+          element.textContent = text.replace('M社', '松本リフォーム');
+          console.log('M社を松本リフォームに変更');
+        } else if (text.includes('K社')) {
+          element.textContent = text.replace('K社', '加藤建設');
+          console.log('K社を加藤建設に変更');
+        } else if (text.includes('W社')) {
+          element.textContent = text.replace('W社', '渡辺塗装店');
+          console.log('W社を渡辺塗装店に変更');
+        } else if (text.includes('N社')) {
+          element.textContent = text.replace('N社', '中村ペイント');
+          console.log('N社を中村ペイントに変更');
+        }
+      });
+      
+      // 「※電話番号入力後に詳細開示」の文言を削除
+      const noteElements = document.querySelectorAll('p, span');
+      noteElements.forEach(element => {
+        if (element.textContent.includes('※電話番号入力後に詳細開示')) {
+          element.style.display = 'none';
+        }
+      });
+      
+      // 「業者名を見る」ボタンを「無料見積もり」に変更
+      const companyButtons = document.querySelectorAll('button');
+      companyButtons.forEach(button => {
+        if (button.textContent.includes('業者名を見る')) {
+          button.innerHTML = button.innerHTML.replace('業者名を見る', '無料見積もり');
+        }
+      });
+      
+      console.log('revealCompanyNames実行完了');
+    }
+    
+    // 「業者名を見る」ボタンのイベントリスナー
+    document.addEventListener('DOMContentLoaded', function() {
+      const showCompanyBtn = document.getElementById('showCompanyNamesFloatingBtn');
+      if (showCompanyBtn) {
+        showCompanyBtn.addEventListener('click', function() {
+          // 電話番号入力セクションに自動スクロール
+          const phoneSection = document.getElementById('phoneSection');
+          if (phoneSection) {
+            phoneSection.scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      }
+      
+      // 業者カードの「業者名を見る」ボタン（全て）
+      const companyButtons = document.querySelectorAll('button');
+      companyButtons.forEach(button => {
+        if (button.textContent.trim() === '業者名を見る') {
+          button.addEventListener('click', function() {
+            // 電話番号入力セクションに自動スクロール
+            const phoneSection = document.getElementById('phoneSection');
+            if (phoneSection) {
+              phoneSection.scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+        }
+      });
+      
+      // 電話番号入力の「表示する」ボタンのイベントリスナー
+      const showCompanyNamesBtn = document.getElementById('showCompanyNamesBtn');
+      if (showCompanyNamesBtn) {
+        showCompanyNamesBtn.addEventListener('click', function() {
+          const phoneInput = document.getElementById('phoneInput');
+          const phoneNumber = phoneInput.value.trim();
+          
+          console.log('入力された電話番号:', phoneNumber, '文字数:', phoneNumber.length);
+          
+          if (phoneNumber.length < 8) {
+            alert('正しい電話番号を入力してください');
+            return;
+          }
+          
+          console.log('電話番号検証OK、業者名を表示中...');
+          
+          // 電話番号入力フォームをサンクスメッセージに切り替え
+          const phoneSection = document.getElementById('phoneSection');
+          if (phoneSection) {
+            phoneSection.innerHTML = `
+              <div class="container mx-auto px-4">
+                <div class="max-w-2xl mx-auto">
+                  <div class="bg-green-50 p-8 rounded-2xl border-2 border-green-300 shadow-lg text-center">
+                    <div class="text-6xl mb-4">🎉</div>
+                    <h3 class="font-bold text-lg sm:text-xl md:text-xl lg:text-xl text-green-800 mb-2 whitespace-nowrap">おめでとうございます！</h3>
+                    <p class="text-sm sm:text-base md:text-base lg:text-base text-green-700 whitespace-nowrap">無料見積もりが可能になりました！</p>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+          
+          // 業者名をイニシャルから実名に変更
+          revealCompanyNames();
+          
+          // 下部ボタンを「無料見積もり」に変更
+          const showCompanyBtn = document.getElementById('showCompanyNamesFloatingBtn');
+          if (showCompanyBtn) {
+            showCompanyBtn.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              業者名を見る
+            `;
+          }
+          
+          // ランキングを再描画して「無料見積もり」ボタンに更新
+          displayRanking();
+          
+          // 1秒後にランキングセクション上部へ素早くスクロール
+          setTimeout(() => {
+            const rankingSection = document.getElementById('rankingSection') || document.getElementById('companyRanking');
+            if (rankingSection) {
+              rankingSection.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+              });
+            }
+          }, 1000);
+          
+          // 電話番号入力完了後、第4段階（最終確認）に進む
+          setTimeout(() => {
+            proceedToStage4();
+          }, 3000);
+        });
+      }
+    });
+  </script>
+  
+  <!-- 分離したJavaScriptファイルの読み込み -->
+  <script src="js/utils.js"></script>
+  <script src="js/ranking.js"></script>
+  <script src="js/phone-form.js"></script>
+  <script src="js/chatbot.js"></script>
+</body>
+</html>
