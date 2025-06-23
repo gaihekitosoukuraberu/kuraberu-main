@@ -1,1 +1,103 @@
-404: Not Found
+name: Automated Backup System
+
+on:
+  schedule:
+    # 毎日15分おきにバックアップを実行
+    - cron: '*/15 * * * *'
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # 全履歴を取得
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Create timestamp
+      id: timestamp
+      run: echo "timestamp=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
+    
+    - name: Create backup archive
+      run: |
+        # 重要なファイルのみをバックアップ
+        mkdir -p backup
+        
+        # estimate-app のバックアップ
+        if [ -d "estimate-app" ]; then
+          cp -r estimate-app backup/estimate-app_${{ steps.timestamp.outputs.timestamp }}
+        fi
+        
+        # gas フォルダのバックアップ
+        if [ -d "gas" ]; then
+          cp -r gas backup/gas_${{ steps.timestamp.outputs.timestamp }}
+        fi
+        
+        # admin-app のバックアップ
+        if [ -d "admin-app" ]; then
+          cp -r admin-app backup/admin-app_${{ steps.timestamp.outputs.timestamp }}
+        fi
+        
+        # franchise-app のバックアップ
+        if [ -d "franchise-app" ]; then
+          cp -r franchise-app backup/franchise-app_${{ steps.timestamp.outputs.timestamp }}
+        fi
+        
+        # franchise-parent-app のバックアップ
+        if [ -d "franchise-parent-app" ]; then
+          cp -r franchise-parent-app backup/franchise-parent-app_${{ steps.timestamp.outputs.timestamp }}
+        fi
+        
+        # 設定ファイルのバックアップ
+        cp package.json backup/package_${{ steps.timestamp.outputs.timestamp }}.json || true
+        cp README.md backup/README_${{ steps.timestamp.outputs.timestamp }}.md || true
+        
+        # アーカイブを作成
+        tar -czf backup_${{ steps.timestamp.outputs.timestamp }}.tar.gz backup/
+    
+    - name: Upload backup to artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: backup-${{ steps.timestamp.outputs.timestamp }}
+        path: backup_${{ steps.timestamp.outputs.timestamp }}.tar.gz
+        retention-days: 30
+    
+    - name: Commit backup metadata (if changes exist)
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # バックアップメタデータを作成
+        echo "# Backup Metadata" > BACKUP_LOG.md
+        echo "Last backup: $(date)" >> BACKUP_LOG.md
+        echo "Commit: ${{ github.sha }}" >> BACKUP_LOG.md
+        echo "Files backed up:" >> BACKUP_LOG.md
+        ls -la backup/ >> BACKUP_LOG.md || echo "No backup directory" >> BACKUP_LOG.md
+        
+        # 変更があれば追加してコミット
+        git add BACKUP_LOG.md || true
+        git diff --staged --quiet || git commit -m "Update backup metadata - $(date +'%Y-%m-%d %H:%M:%S')"
+    
+    - name: Clean old backup artifacts
+      run: |
+        # ローカルの古いバックアップを削除（7日以上前）
+        find . -name "backup_*.tar.gz" -mtime +7 -delete || true
+    
+    - name: Backup summary
+      run: |
+        echo "✅ Backup completed successfully"
+        echo "📦 Backup file: backup_${{ steps.timestamp.outputs.timestamp }}.tar.gz"
+        echo "📅 Timestamp: ${{ steps.timestamp.outputs.timestamp }}"
+        echo "💾 Retention: 30 days"
+        echo "🔄 Next backup: 15 minutes"
