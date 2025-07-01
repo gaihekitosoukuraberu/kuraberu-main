@@ -99,13 +99,22 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async initializeAuth() {
-      // 強制的にログアウト状態にして認証を要求
-      localStorage.removeItem('admin_token')
-      localStorage.removeItem('admin_user')
+      // 既にログイン処理が完了している場合は状態を保持
+      if (this.isAuthenticated && this.token && this.user) {
+        return true
+      }
+      
+      // 初回アクセス時のみローカルストレージをクリア
+      if (!this.initialized) {
+        localStorage.removeItem('admin_token')
+        localStorage.removeItem('admin_user')
+      }
+      
       this.user = null
       this.token = null
       this.isAuthenticated = false
       this.role = 'admin'
+      
       return false
     },
 

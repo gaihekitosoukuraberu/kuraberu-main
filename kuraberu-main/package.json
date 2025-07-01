@@ -7,9 +7,30 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "start": "npx http-server -o",
+    "start": "vite",
+    "build": "vite build",
+    "build:lp": "vite build --mode lp",
+    "build:admin": "vite build --mode admin",
+    "build:production": "NODE_ENV=production vite build",
+    "preview": "vite preview",
     "lint": "eslint src/**/*.js",
-    "lint:fix": "eslint src/**/*.js --fix"
+    "lint:fix": "eslint src/**/*.js --fix",
+    "deploy": "scripts/deploy-xserver.sh",
+    "deploy:xserver": "scripts/deploy-xserver.sh",
+    "deploy:xserver-auto": "./scripts/deploy-xserver-automated.sh",
+    "update-env": "scripts/update-env.sh",
+    "update-gas-url": "scripts/update-env.sh",
+    "gas:push": "cd gas && clasp push",
+    "gas:pull": "cd gas && clasp pull",
+    "gas:deploy": "cd gas && clasp push && cd .. && npm run update-env",
+    "gas:test": "cd gas && clasp run 'runAllTests'",
+    "gas:test-ci": "cd gas && clasp run 'runTestsForCI'",
+    "gas:logs": "cd gas && clasp logs",
+    "gas:open": "cd gas && clasp open",
+    "gas:health": "cd gas && clasp run 'checkTestHealth'",
+    "gas:quick-test": "cd gas && clasp run 'quickCITest'",
+    "dev:setup": "./scripts/setup-local-dev.sh",
+    "full-deploy": "npm run gas:deploy && npm run deploy:xserver"
   },
   "keywords": [
     "外壁塗装",
@@ -28,7 +49,9 @@
     "http-server": "^14.1.1",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0"
+    "jest-environment-jsdom": "^29.7.0",
+    "terser": "^5.24.0",
+    "vite": "^4.5.0"
   },
   "browserslist": [
     "defaults",
@@ -56,5 +79,8 @@
   "bugs": {
     "url": "https://github.com/gaihekitosoukuraberu/lp_project/issues"
   },
-  "homepage": "https://github.com/gaihekitosoukuraberu/lp_project#readme"
+  "homepage": "https://github.com/gaihekitosoukuraberu/lp_project#readme",
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
 }

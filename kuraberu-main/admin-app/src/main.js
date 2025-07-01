@@ -8,11 +8,14 @@ import EnvUtils from '@/utils/env'
 console.log('🔧 [gaiheki-admin] GAS WebApp URL:', process.env.VUE_APP_GAS_WEBAPP_URL)
 
 // アプリ起動時に認証情報をクリア（開発環境）
+// 認証をテストするため一時的にコメントアウト
+/*
 if (process.env.NODE_ENV === 'development') {
   console.log('🧹 Clearing auth data for development')
   localStorage.removeItem('admin_token')
   localStorage.removeItem('admin_user')
 }
+*/
 
 // 開発環境で環境変数情報を表示
 EnvUtils.logEnvironmentInfo()

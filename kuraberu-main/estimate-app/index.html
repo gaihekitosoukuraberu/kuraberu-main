@@ -171,7 +171,7 @@
   </section>
 
   <!-- 相場表示エリア（最初は非表示） -->
-  <section id="areaPrice" class="hidden bg-white py-8">
+  <section id="areaPrice" class="hidden bg-white py-4">
     <div class="container mx-auto px-4">
       <!-- 派手な演出エリア -->
       <div id="priceRevealAnimation" class="mb-6 text-center">
@@ -187,7 +187,7 @@
       </div>
       
       <!-- 相場結果表示 -->
-      <div id="priceResult" class="bg-blue-100 rounded-xl shadow-lg p-4 mx-auto max-w-3xl relative mb-8 hidden">
+      <div id="priceResult" class="bg-blue-100 rounded-xl shadow-lg p-4 mx-auto max-w-3xl relative mb-4 hidden">
         <h2 class="text-center text-lg font-bold mb-3 flex items-center justify-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-kuraberu-blue mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -208,13 +208,14 @@
       </div>
 
       <!-- 最下部固定チャットボット -->
-      <div id="chatbotContainer" class="fixed bottom-0 left-0 right-0 bg-white transform translate-y-full transition-transform duration-500 z-40 hidden">
+      <div id="chatbotContainer" class="fixed bottom-0 left-0 right-0 bg-white transform translate-y-0 transition-transform duration-500 z-40">
         <!-- プログレスバー -->
         <div class="bg-blue-500 h-1 w-full">
           <div class="bg-blue-600 h-full" style="width: 75%;"></div>
         </div>
         
-        <!-- 豆知識エリア（上部） -->
+        <!-- 豆知識エリア（上部） - コメントアウト -->
+        <!-- 
         <div id="knowledgeSection" class="bg-blue-50 p-4">
           <div class="flex items-start space-x-2">
             <span class="text-yellow-500 text-lg">💡</span>
@@ -226,8 +227,9 @@
             </div>
           </div>
         </div>
-
-        <!-- チェックマーク付き質問エリア -->
+        -->
+        
+        <!-- 統合質問エリア -->
         <div class="bg-white p-4 border-b border-gray-200">
           <div class="flex items-center space-x-3">
             <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
@@ -235,8 +237,10 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
               </svg>
             </div>
-            <div>
-              <h3 class="font-bold text-gray-900" id="currentQuestion">現在の外壁材質は何ですか？</h3>
+            <div class="flex-1">
+              <div id="gptTalkContent" class="text-sm text-gray-700 mb-2">
+              </div>
+              <h3 class="font-bold text-gray-900" id="currentQuestion"></h3>
             </div>
           </div>
         </div>
@@ -255,16 +259,16 @@
           
           <!-- 4択ボタン -->
           <div id="choiceButtons" class="grid grid-cols-2 gap-3">
-            <button class="choice-btn bg-white hover:bg-blue-500 hover:text-white p-4 rounded-lg text-sm transition-colors duration-200 border-2 border-gray-300 font-medium" data-choice="1">サイディング</button>
-            <button class="choice-btn bg-blue-500 text-white p-4 rounded-lg text-sm transition-colors duration-200 border-2 border-blue-500 font-medium" data-choice="2">モルタル</button>
-            <button class="choice-btn bg-white hover:bg-blue-500 hover:text-white p-4 rounded-lg text-sm transition-colors duration-200 border-2 border-gray-300 font-medium" data-choice="3">タイル</button>
-            <button class="choice-btn bg-white hover:bg-blue-500 hover:text-white p-4 rounded-lg text-sm transition-colors duration-200 border-2 border-gray-300 font-medium" data-choice="4">その他</button>
+            <button class="choice-btn bg-white p-4 rounded-lg text-sm transition-colors duration-200 border-2 border-gray-300 font-medium text-gray-700" onclick="handleChoiceClick(this, 0)">選択肢を読み込み中...</button>
+            <button class="choice-btn bg-white p-4 rounded-lg text-sm transition-colors duration-200 border-2 border-gray-300 font-medium text-gray-700" onclick="handleChoiceClick(this, 1)">選択肢を読み込み中...</button>
+            <button class="choice-btn bg-white p-4 rounded-lg text-sm transition-colors duration-200 border-2 border-gray-300 font-medium text-gray-700" onclick="handleChoiceClick(this, 2)">選択肢を読み込み中...</button>
+            <button class="choice-btn bg-white p-4 rounded-lg text-sm transition-colors duration-200 border-2 border-gray-300 font-medium text-gray-700" onclick="handleChoiceClick(this, 3)">選択肢を読み込み中...</button>
           </div>
         </div>
       </div>
 
       <!-- おすすめ業者ランキング -->
-      <div id="rankingSection" class="hidden w-full max-w-4xl mx-auto bg-blue-50 rounded-xl p-4 md:p-6 mt-6 mb-0">
+      <div id="rankingSection" class="hidden w-full max-w-4xl mx-auto bg-blue-50 rounded-xl p-4 md:p-6 mt-4 mb-0">
         <h2 class="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6">おすすめ業者ランキング</h2>
         
         <!-- 並び替えボタン（画像通り・レスポンシブ） -->
@@ -272,7 +276,7 @@
           <div class="text-sm font-medium text-gray-600 mb-2 ml-2">並び替え</div>
           <div id="sortingContainer" class="bg-white border border-gray-200 rounded-lg p-3 w-full transition-colors">
             <div class="grid grid-cols-4 gap-1 md:gap-2">
-            <button id="tabRecommend" onclick="switchSortTab('tabRecommend')" class="bg-blue-50 text-gray-700 px-2 md:px-3 py-2 md:py-3 rounded-lg text-xs md:text-sm font-medium border border-blue-200 transition-colors">
+            <button id="tabRecommend" onclick="switchSortTab('tabRecommend')" class="bg-white text-gray-700 px-2 md:px-3 py-2 md:py-3 rounded-lg text-xs md:text-sm font-medium border border-gray-200 transition-colors">
               <div class="flex items-center justify-center h-5">
                 <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
@@ -327,8 +331,8 @@
   </section>
 
   <!-- 電話番号入力セクション -->
-  <div id="phoneSection" style="display: none;" class="bg-white py-8 border-t border-gray-200 relative z-10">
-    <div class="container mx-auto px-4">
+  <div id="phoneSection" style="display: none; margin-bottom: 200px;" class="bg-white border-t border-gray-200 relative z-10">
+    <div class="container mx-auto px-4 pb-8">
       <div class="max-w-2xl mx-auto">
         <div class="bg-pink-50 p-8 rounded-2xl border-2 border-red-300 shadow-lg">
           <div class="text-center mb-6">
@@ -356,10 +360,10 @@
     </div>
   </div>
 
-  <!-- 分離したJavaScriptファイルの読み込み -->
+  <!-- 分離したJavaScriptファイルの読み込み（依存関係順） -->
   <script src="js/utils.js"></script>
   <script src="js/ranking.js"></script>
+  <script src="js/chatbot-integration.js"></script>
   <script src="js/phone-form.js"></script>
-  <script src="js/chatbot.js"></script>
 </body>
 </html>

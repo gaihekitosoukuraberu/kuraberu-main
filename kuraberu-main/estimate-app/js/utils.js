@@ -49,36 +49,174 @@ function showRankingSection() {
 
 // 郵便番号検索関数（スプレッドシート連携）
 async function searchByPostalCode() {
-  const postalInput = document.getElementById('postalCode');
-  if (!postalInput) return;
-  
-  const postalValue = postalInput.value.trim().replace(/[^0-9]/g, ''); // 数字のみ抽出
-  console.log('郵便番号検索:', postalValue);
-  
-  if (postalValue.length < 7) {
-    alert('郵便番号を正しく入力してください（7桁）');
-    return;
-  }
-  
   try {
-    // 郵便番号DBスプレッドシートから住所を取得
-    const addressData = await getAddressFromPostalCode(postalValue);
+    const postalInput = document.getElementById('postalCode');
+    if (!postalInput) {
+      console.error('郵便番号入力フィールドが見つかりません');
+      return;
+    }
     
-    if (addressData && addressData.success) {
-      const areaText = `${addressData.prefecture}${addressData.city}${addressData.town}の相場`;
-      console.log('取得した住所:', areaText);
-      showAreaPrice(areaText);
-    } else {
-      // 見つからない場合は郵便番号に基づいた推測を使用
-      console.log('住所が見つからないため、郵便番号に基づいた推測を使用');
+    const postalValue = postalInput.value.trim().replace(/[^0-9]/g, ''); // 数字のみ抽出
+    console.log('郵便番号検索:', postalValue);
+    
+    if (postalValue.length < 7) {
+      alert('郵便番号を正しく入力してください（7桁）');
+      return;
+    }
+    
+    // 🚀 即座にローディング開始
+    startImmediateLoading();
+    
+    try {
+      // 郵便番号DBスプレッドシートから住所を取得
+      const addressData = await getAddressFromPostalCode(postalValue);
+      
+      if (addressData && addressData.success) {
+        const areaText = `${addressData.prefecture}${addressData.city}${addressData.town}の相場`;
+        console.log('取得した住所:', areaText);
+        showAreaPriceWithData(areaText);
+      } else {
+        // 見つからない場合は郵便番号に基づいた推測を使用
+        console.log('住所が見つからないため、郵便番号に基づいた推測を使用');
+        const areaText = getAreaFromPostalCode(postalValue) + 'の相場';
+        showAreaPriceWithData(areaText);
+      }
+    } catch (error) {
+      console.error('郵便番号検索エラー:', error);
+      // エラー時は郵便番号に基づいた推測を使用
       const areaText = getAreaFromPostalCode(postalValue) + 'の相場';
-      showAreaPrice(areaText);
+      showAreaPriceWithData(areaText);
     }
   } catch (error) {
-    console.error('郵便番号検索エラー:', error);
-    // エラー時は郵便番号に基づいた推測を使用
-    const areaText = getAreaFromPostalCode(postalValue) + 'の相場';
-    showAreaPrice(areaText);
+    console.error('郵便番号検索関数でエラーが発生しました:', error);
+    alert('検索中にエラーが発生しました。もう一度お試しください。');
+  }
+}
+
+// 🚀 即座にローディング開始
+function startImmediateLoading() {
+  // 相場セクションを表示
+  const areaPrice = document.getElementById('areaPrice');
+  if (areaPrice) {
+    areaPrice.classList.remove('hidden');
+  }
+  
+  // 既存のローディングセクションを表示
+  const priceRevealAnimation = document.getElementById('priceRevealAnimation');
+  if (priceRevealAnimation) {
+    priceRevealAnimation.style.display = 'block';
+  }
+  
+  // 結果セクションを非表示
+  const priceResult = document.getElementById('priceResult');
+  if (priceResult) {
+    priceResult.classList.add('hidden');
+  }
+  
+  // プログレスバーの滑らかなアニメーション
+  const progressBar = document.getElementById('progressBar');
+  if (progressBar) {
+    progressBar.style.width = '0%';
+    progressBar.style.transition = 'width 0.3s ease-out';
+    
+    // 段階的に滑らかに進行（高速化）
+    setTimeout(() => { progressBar.style.width = '50%'; }, 50);
+    setTimeout(() => { progressBar.style.width = '80%'; }, 150);
+    setTimeout(() => { progressBar.style.width = '95%'; }, 300);
+    
+    // インターバルIDをクリア用に保存（実際には使用しない）
+    window.currentProgressInterval = null;
+  }
+}
+
+// データ取得完了後の表示（ローディング既に表示済み）
+function showAreaPriceWithData(areaText = '東京都杉並区の相場') {
+  console.log('showAreaPriceWithData呼び出し:', areaText);
+  
+  // プログレスバーを100%にして完了
+  const progressBar = document.getElementById('progressBar');
+  if (progressBar) {
+    progressBar.style.transition = 'width 0.1s ease-in-out'; // より高速
+    progressBar.style.width = '100%';
+  }
+  
+  // プログレスインターバルをクリア（新方式では不要だが念のため）
+  if (window.currentProgressInterval) {
+    clearInterval(window.currentProgressInterval);
+  }
+  
+  // 少し待ってから結果を表示
+  setTimeout(() => {
+    // ローディングアニメーションを非表示
+    const priceRevealAnimation = document.getElementById('priceRevealAnimation');
+    if (priceRevealAnimation) {
+      priceRevealAnimation.style.display = 'none';
+    }
+    
+    // 結果セクションを表示
+    const priceResult = document.getElementById('priceResult');
+    if (priceResult) {
+      // 結果の内容を更新
+      priceResult.innerHTML = `
+        <h2 class="text-center text-lg font-bold mb-3 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-kuraberu-blue mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span id="locationHeading">${areaText}</span>
+        </h2>
+        
+        <div class="bg-white p-4 rounded-xl mb-4 border border-blue-200">
+          <p class="text-sm text-gray-600 mb-1 text-center" id="buildingInfo">2F建て戸建て築25年の場合（30坪）</p>
+          <div class="relative">
+            <div class="text-3xl font-extrabold text-center mb-2">
+              <span class="text-kuraberu-blue" id="priceRange">60万円〜180万円</span>
+            </div>
+          </div>
+          <p class="text-xs text-gray-500 text-center mb-2">※建物の状態や使用材料により価格は変動します</p>
+        </div>
+      `;
+      priceResult.classList.remove('hidden');
+    }
+    
+    // 後続処理
+    completeAreaPriceDisplay();
+  }, 20); // 0.02秒に短縮
+}
+
+// エリア価格表示完了後の処理
+function completeAreaPriceDisplay() {
+  // 電話番号入力フォームを表示
+  const phoneSection = document.getElementById('phoneSection');
+  if (phoneSection) {
+    phoneSection.style.display = 'block';
+  }
+  
+  // 相場セクションを表示
+  const areaPrice = document.getElementById('areaPrice');
+  if (areaPrice) {
+    areaPrice.classList.remove('hidden');
+  }
+  
+  // ランキングセクションを表示（モザイク付き）
+  if (typeof window.showRankingSection === 'function') {
+    window.showRankingSection();
+  } else {
+    console.log('showRankingSection関数がまだ定義されていません');
+    const rankingSection = document.getElementById('rankingSection');
+    if (rankingSection) {
+      rankingSection.classList.remove('hidden');
+      if (typeof window.displayRanking === 'function') {
+        window.displayRanking();
+      }
+    }
+  }
+  
+  // GPTチャットボットを即座に自動起動
+  if (typeof window.launchGPTChatbot === 'function') {
+    window.launchGPTChatbot();
+  } else {
+    console.log('launchGPTChatbot関数がまだ定義されていません');
   }
 }
 
@@ -133,171 +271,76 @@ function getAreaFromPostalCode(postalCode) {
 // 郵便番号DBスプレッドシートから住所を取得
 async function getAddressFromPostalCode(postalCode) {
   try {
-    // GASエンドポイントのURL（実際のスプレッドシートIDに変更する必要があります）
-    const gasUrl = 'https://script.google.com/macros/s/AKfycbwZwxFeAimcpQ2FtAO02Sy83yRoyxeBcItJcl2R1-66gaNIrBtZ-lEu5CMPIKxWSZAv/exec';
+    // GASエンドポイントのURL
+    const gasUrl = 'https://script.google.com/macros/s/AKfycby93xgNsu4UzkdVemTRNvUDanNF9s0HOMLvVTE7--LGYoyVGrTxUrFUom8I2cnM-T9T/exec';
     
-    const requestBody = {
+    const requestParams = {
       action: 'getAddressByPostalCode',
       postalCode: postalCode
     };
     
-    console.log('郵便番号API呼び出し:', requestBody);
+    console.log('郵便番号API呼び出し:', requestParams);
     
-    const response = await fetch(gasUrl, {
-      method: 'POST',
+    // 直接fetch APIでGETリクエスト（CORS対応）
+    const url = `${gasUrl}?${new URLSearchParams(requestParams)}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
-      mode: 'cors',
-      body: JSON.stringify(requestBody)
+      mode: 'cors'
     });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     
     const result = await response.json();
     console.log('郵便番号APIレスポンス:', result);
     
     return result;
+    
   } catch (error) {
-    console.error('郵便番号API呼び出しエラー:', error);
+    console.log('⚠️ 郵便番号API呼び出しエラー（フォールバック使用）:', error.message);
     return { success: false, error: error.toString() };
   }
 }
 
 // グローバル関数としてエクスポート
 window.showAreaPrice = showAreaPrice;
+window.showAreaPriceWithData = showAreaPriceWithData;
+window.startImmediateLoading = startImmediateLoading;
 window.showPriceResult = showPriceResult;
 window.showRankingSection = showRankingSection;
 window.formatPostalCode = formatPostalCode;
+window.adjustContentMarginForChatbot = adjustContentMarginForChatbot;
+window.toggleChatbot = toggleChatbot;
+window.closeChatbot = closeChatbot;
+window.searchByPostalCode = searchByPostalCode;
+window.completeAreaPriceDisplay = completeAreaPriceDisplay;
 
-// エリア価格表示（ローディング付き）
+// エリア価格表示（showAreaPriceWithDataから統合）
 function showAreaPrice(areaText = '東京都杉並区の相場') {
   console.log('showAreaPrice呼び出し:', areaText);
   
-  // 郵便番号入力フィールドから値を取得
-  const postalInput = document.getElementById('postalCode');
-  if (postalInput && postalInput.value.trim()) {
-    const postalValue = postalInput.value.trim().replace(/[^0-9]/g, '');
-    if (postalValue.length < 7) {
-      alert('郵便番号を正しく入力してください（7桁）');
-      return;
-    }
-    
-    // 検索回数制限チェック
-    if (!checkSearchLimit()) {
-      return;
-    }
-    
-    // areaTextはそのまま使用（郵便番号検索で設定される）
-  }
+  // すでにローディングが表示されている場合は結果表示のみ行う
+  const priceRevealAnimation = document.getElementById('priceRevealAnimation');
+  const isLoadingVisible = priceRevealAnimation && priceRevealAnimation.style.display !== 'none';
   
-  // 相場セクションを表示
-  const areaPrice = document.getElementById('areaPrice');
-  if (areaPrice) {
-    areaPrice.classList.remove('hidden');
-  }
-  let targetElement = document.getElementById('priceResult');
-  if (!targetElement) {
-    // フォールバック: resultで探してみる
-    targetElement = document.getElementById('result');
-  }
-  if (!targetElement) {
-    console.error('表示先要素が見つかりません');
+  if (isLoadingVisible) {
+    // ローディングが既に表示されている場合は、showAreaPriceWithDataの処理を実行
+    showAreaPriceWithData(areaText);
     return;
   }
   
-  // ローディング開始
-  targetElement.innerHTML = `
-    <div class="loading-container bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 rounded-2xl shadow-2xl">
-      <div class="text-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-        <h2 class="text-2xl font-bold mb-2">AIが分析中...</h2>
-        <p class="text-blue-100">最新の相場データを取得しています</p>
-        <div class="mt-4 bg-white bg-opacity-20 rounded-full h-2">
-          <div class="progress-bar bg-yellow-300 h-2 rounded-full" style="width: 0%"></div>
-        </div>
-      </div>
-    </div>
-  `;
+  // 新規のローディング開始処理
+  startImmediateLoading();
   
-  // プログレスバーのアニメーション
-  const progressBar = document.getElementById('progressBar') || targetElement.querySelector('.progress-bar');
-  let progress = 0;
-  const interval = setInterval(() => {
-    progress += Math.random() * 15;
-    if (progress > 100) progress = 100;
-    
-    if (progressBar) {
-      progressBar.style.width = progress + '%';
-    }
-    
-    if (progress >= 100) {
-      clearInterval(interval);
-      
-      // ローディング完了後、priceRevealAnimationを非表示にしてpriceResultを表示
-      setTimeout(() => {
-        // ローディングアニメーションを非表示
-        const priceRevealAnimation = document.getElementById('priceRevealAnimation');
-        if (priceRevealAnimation) {
-          priceRevealAnimation.style.display = 'none';
-        }
-        
-        // 相場結果を表示（ブルー系カード、中身は白）
-        targetElement.innerHTML = `
-          <h2 class="text-center text-lg font-bold mb-3 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-kuraberu-blue mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 616 0z" />
-            </svg>
-            <span id="locationHeading">${areaText}</span>
-          </h2>
-          
-          <div class="bg-white p-4 rounded-xl mb-4 border border-blue-200">
-            <p class="text-sm text-gray-600 mb-1 text-center" id="buildingInfo">2F建て戸建て築25年の場合（30坪）</p>
-            <div class="relative">
-              <div class="text-3xl font-extrabold text-center mb-2">
-                <span class="text-kuraberu-blue" id="priceRange">60万円〜180万円</span>
-              </div>
-            </div>
-            <p class="text-xs text-gray-500 text-center mb-2">※建物の状態や使用材料により価格は変動します</p>
-          </div>
-        `;
-        targetElement.classList.remove('hidden');
-        
-        // ローディング終了をトリガーに電話番号入力フォームを表示
-        const phoneSection = document.getElementById('phoneSection');
-        if (phoneSection) {
-          phoneSection.style.display = 'block';
-        }
-        
-        // 相場セクションを表示
-        const areaPrice = document.getElementById('areaPrice');
-        if (areaPrice) {
-          areaPrice.classList.remove('hidden');
-        }
-        
-        // ランキングセクションを表示（モザイク付き）
-        if (typeof window.showRankingSection === 'function') {
-          window.showRankingSection();
-        } else {
-          console.log('showRankingSection関数がまだ定義されていません');
-          // フォールバック
-          const rankingSection = document.getElementById('rankingSection');
-          if (rankingSection) {
-            rankingSection.classList.remove('hidden');
-            if (typeof window.displayRanking === 'function') {
-              window.displayRanking();
-            }
-          }
-        }
-        
-        // 4択チャットボットを即座に自動起動（関数が定義されている場合のみ）
-        if (typeof window.showChatbotImmediate === 'function') {
-          window.showChatbotImmediate();
-        } else {
-          console.log('showChatbotImmediate関数がまだ定義されていません');
-        }
-      }, 500);
-    }
-  }, 20);
+  // データ表示処理を少し遅延して実行
+  setTimeout(() => {
+    showAreaPriceWithData(areaText);
+  }, 400);
 }
 
 // 検索回数制限チェック（テスト用にコメントアウト）
@@ -333,10 +376,12 @@ function toggleChatbot() {
     // 表示
     chatbotContainer.classList.remove('translate-y-full');
     chatbotVisible = true;
+    adjustContentMarginForChatbot(true);
   } else {
     // 非表示
     chatbotContainer.classList.add('translate-y-full');
     chatbotVisible = false;
+    adjustContentMarginForChatbot(false);
   }
 }
 
@@ -345,6 +390,22 @@ function closeChatbot() {
   if (chatbotContainer) {
     chatbotContainer.classList.add('translate-y-full');
     chatbotVisible = false;
+    adjustContentMarginForChatbot(false);
+  }
+}
+
+// チャットボット表示状態に応じてコンテンツの余白を調整
+function adjustContentMarginForChatbot(isVisible) {
+  const body = document.body;
+  
+  if (isVisible) {
+    // チャットボット表示時：bodyにクラスを追加
+    body.classList.add('chatbot-visible');
+    console.log('チャットボット表示：余白追加');
+  } else {
+    // チャットボット非表示時：bodyからクラスを削除
+    body.classList.remove('chatbot-visible');
+    console.log('チャットボット非表示：余白削除');
   }
 }
 
@@ -422,5 +483,11 @@ function initializePage() {
 // DOMContentLoaded時の初期化
 document.addEventListener('DOMContentLoaded', function() {
   initializePage();
+  
+  // 初期状態ではチャットボットが非表示なので余白を削除
+  setTimeout(() => {
+    adjustContentMarginForChatbot(false);
+  }, 100);
+  
   console.log('estimate-app初期化完了');
 });

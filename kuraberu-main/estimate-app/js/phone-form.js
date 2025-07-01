@@ -168,16 +168,32 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       // ランキングを再描画して「無料見積もり」ボタンに更新
-      displayRanking();
+      if (typeof window.displayRanking === 'function') {
+        window.displayRanking();
+      } else {
+        console.log('displayRanking関数がまだ定義されていません');
+      }
       
       // 1秒後にランキングセクション上部へ素早くスクロール
       setTimeout(() => {
         const rankingSection = document.getElementById('rankingSection') || document.getElementById('companyRanking');
         if (rankingSection) {
-          rankingSection.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start' 
-          });
+          // 相場カードの上部に少し余白が見えるようにスクロール調整
+          const areaPrice = document.getElementById('areaPrice');
+          if (areaPrice) {
+            const offsetPosition = areaPrice.offsetTop + 10;
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          } else {
+            // フォールバック：ランキングセクションにスクロール
+            const offsetPosition = rankingSection.offsetTop + 10;
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          }
         }
       }, 1000);
       
@@ -196,7 +212,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const viewKeptCompaniesTop = document.getElementById('viewKeptCompaniesTop');
   if (viewKeptCompaniesTop) {
     viewKeptCompaniesTop.addEventListener('click', function() {
-      showKeepBox();
+      if (typeof window.showKeepBox === 'function') {
+        window.showKeepBox();
+      } else {
+        console.log('showKeepBox関数がまだ定義されていません');
+      }
     });
   }
   
@@ -204,7 +224,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const closeKeepBox = document.getElementById('closeKeepBox');
   if (closeKeepBox) {
     closeKeepBox.addEventListener('click', function() {
-      hideKeepBox();
+      if (typeof window.hideKeepBox === 'function') {
+        window.hideKeepBox();
+      } else {
+        console.log('hideKeepBox関数がまだ定義されていません');
+      }
     });
   }
   
@@ -213,7 +237,11 @@ document.addEventListener('DOMContentLoaded', function() {
   if (keepBoxModal) {
     keepBoxModal.addEventListener('click', function(e) {
       if (e.target === keepBoxModal) {
-        hideKeepBox();
+        if (typeof window.hideKeepBox === 'function') {
+          window.hideKeepBox();
+        } else {
+          console.log('hideKeepBox関数がまだ定義されていません');
+        }
       }
     });
   }

@@ -46,12 +46,17 @@ function showRankingSection() {
     
     // サンプルランキングデータを表示
     displayRanking();
-    console.log('ランキング表示完了、rankingListの内容:', document.getElementById('rankingList')?.innerHTML);
+    console.log('ランキング表示完了');
     
     // 相場セクションまでスクロール
     const areaPrice = document.getElementById('areaPrice');
     if (areaPrice) {
-      areaPrice.scrollIntoView({behavior: 'smooth', block: 'start'});
+      // 相場カードの上部に少し余白が見えるようにスクロール調整
+      const offsetPosition = areaPrice.offsetTop + 10;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
     }
     
     // 表示後にモザイクをかけるとメッセージを追加
@@ -77,10 +82,9 @@ function showRankingSection() {
             <path d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zM9 7c0-1.654 1.346-3 3-3s3 1.346 3 3v3H9V7z" fill="#0ea5e9"/>
           </svg>
         </div>
-        <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #333;">業者の比較ランキング！</div>
-        <div style="font-size: 14px; line-height: 1.5; color: #666;">
-          質問に答えて正確な相場と<br>
-          業者情報を確認しましょう！
+        <div style="font-size: 16px; line-height: 1.4; color: #333; font-weight: 600;">
+          下の4択質問に答えるだけで<br>
+          簡単にモザイクが解除されます！
         </div>
       `;
       messageDiv.id = 'rankingOverlayMessage';
@@ -125,11 +129,12 @@ function generateStarRating(rating) {
 
 // ランキング表示（正しい仕様に復元）
 function displayRanking() {
-  const rankingList = document.getElementById('rankingList');
-  if (!rankingList) {
-    console.error('rankingList要素が見つかりません');
-    return;
-  }
+  try {
+    const rankingList = document.getElementById('rankingList');
+    if (!rankingList) {
+      console.error('rankingList要素が見つかりません');
+      return;
+    }
   
   // 表示する会社数を決定（初期4社、もっと見るで5~8位まで）
   const companiesToShow = showingAll ? allCompanies : allCompanies.slice(0, 4);
@@ -203,6 +208,14 @@ function displayRanking() {
   }).join('');
   
   console.log('ランキング表示完了（正しい仕様に復元）');
+  
+  } catch (error) {
+    console.error('❌ ランキング表示でエラーが発生しました:', error);
+    // フォールバック表示
+    if (rankingList) {
+      rankingList.innerHTML = '<div class="text-center py-4 text-gray-500">ランキングの読み込みに失敗しました</div>';
+    }
+  }
 }
 
 // 業者名の開示状態を更新（動的生成のためランキングを再描画）
@@ -436,9 +449,9 @@ function scrollToPhoneForm() {
 function switchSortTab(tabType) {
   console.log('ソートタブ切り替え:', tabType, 'ヒアリング段階:', currentHearingStage);
   
-  // ヒアリング段階チェック
-  if (tabType !== 'tabRecommend' && currentHearingStage < 2) {
-    console.log('第2ヒアリング段階が完了していないため、このタブは利用できません');
+  // ヒアリング段階チェック（第1段階完了でソート機能解放）
+  if (tabType !== 'tabRecommend' && currentHearingStage < 1) {
+    console.log('第1ヒアリング段階が完了していないため、このタブは利用できません');
     return;
   }
   
@@ -448,8 +461,9 @@ function switchSortTab(tabType) {
     const tab = document.getElementById(tabId);
     if (tab && !tab.classList.contains('sort-tab-disabled')) {
       tab.className = tab.className.replace(/bg-\w+-\d+/g, 'bg-white');
-      tab.classList.remove('border-blue-300', 'border-orange-300', 'border-green-300', 'border-purple-300');
-      tab.classList.add('border-gray-200');
+      tab.className = tab.className.replace(/text-\w+-\d+/g, '');
+      tab.classList.remove('border-blue-300', 'border-yellow-300', 'border-green-300', 'border-purple-300');
+      tab.classList.add('border-gray-200', 'text-gray-700');
     }
   });
   
@@ -465,19 +479,19 @@ function switchSortTab(tabType) {
     
     switch(tabType) {
       case 'tabRecommend':
-        activeTab.classList.add('bg-blue-50', 'border-blue-200');
+        activeTab.classList.add('bg-blue-100', 'border-blue-300', 'text-blue-800');
         console.log('おすすめ順: 青色背景適用');
         break;
       case 'tabCheap':
-        activeTab.classList.add('bg-yellow-50', 'border-yellow-200');
+        activeTab.classList.add('bg-yellow-100', 'border-yellow-300', 'text-yellow-800');
         console.log('安い順: 黄色背景適用');
         break;
       case 'tabReview':
-        activeTab.classList.add('bg-green-50', 'border-green-200');
+        activeTab.classList.add('bg-green-100', 'border-green-300', 'text-green-800');
         console.log('クチコミ順: 緑色背景適用');
         break;
       case 'tabQuality':
-        activeTab.classList.add('bg-purple-50', 'border-purple-200');
+        activeTab.classList.add('bg-purple-100', 'border-purple-300', 'text-purple-800');
         console.log('高品質順: 紫色背景適用');
         break;
     }
@@ -670,6 +684,10 @@ function completeHearingStage(stage) {
     }
     
     console.log('第1ヒアリング完了: 派手なモザイク解除エフェクト実行');
+    
+    // 第1段階完了時にソートボタンを有効化
+    enableSortButtons(['tabCheap', 'tabReview', 'tabQuality']);
+    console.log('第1段階完了: 全ソートボタン有効化');
   }
   
   // 第2段階以降の処理は、chatbot.jsのtriggerSortEnableで制御

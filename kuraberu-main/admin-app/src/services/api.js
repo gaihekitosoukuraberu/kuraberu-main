@@ -3,8 +3,8 @@ import { useAuthStore } from '@/stores/auth'
 import { mockApiService } from './mockApi'
 
 // GAS WebApp API のベースURL（環境変数から取得）
-const BASE_URL = process.env.VUE_APP_GAS_WEBAPP_URL
-const MOCK_MODE = true // 一時的にモックモードを有効化
+const BASE_URL = process.env.VUE_APP_GAS_WEBAPP_URL || 'https://script.google.com/macros/s/AKfycbwuWND8p7hVxcy5tl5ga-NsDhP_TVKNumNX_-ZTO9wtTa_mwSsDEVoQX0oT_XEJwJn6/exec'
+const MOCK_MODE = false // 本番環境モード
 
 // Axiosインスタンスを作成
 const apiClient = axios.create({
@@ -265,7 +265,7 @@ export const apiService = {
     // GAS WebApp GET方式で呼び出し（JSONPを避ける）
     try {
       const params = new URLSearchParams({
-        action: 'login',
+        action: 'auth/login',
         role: 'admin',
         email: credentials.email,
         password: credentials.password

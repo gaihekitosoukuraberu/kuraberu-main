@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import BillingHistory from '@/views/BillingHistory.vue'
 
@@ -112,7 +112,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(process.env.NODE_ENV === 'production' ? '/admin/' : '/'),
+  history: createWebHashHistory(),
   routes,
   scrollBehavior(to, from, savedPosition) {
     // ページ遷移時のスクロール位置制御
