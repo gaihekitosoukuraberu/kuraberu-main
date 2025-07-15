@@ -29,6 +29,724 @@ function isLineWebhook(e) {
   }
 }
 
+// ❌ 削除済み: OpenAI GPT関連の関数を削除
+
+
+
+/**
+ * 自動同期を設定（1時間ごと）
+ */
+function setupAutoSync() {
+  console.log('📅 自動同期トリガーを設定中...');
+  
+  // 既存のトリガーを削除
+  ScriptApp.getProjectTriggers().forEach(trigger => {
+    if (trigger.getHandlerFunction() === 'syncGitHubToSpreadsheet') {
+      ScriptApp.deleteTrigger(trigger);
+      console.log('既存のGitHub同期トリガーを削除しました');
+    }
+  });
+  
+  // 新しいトリガーを作成（1時間ごと）
+  ScriptApp.newTrigger('syncGitHubToSpreadsheet')
+    .timeBased()
+    .everyHours(1)
+    .create();
+  
+  console.log('✅ 自動同期トリガーを設定しました（1時間ごと）');
+  
+  return {
+    success: true,
+    message: '自動同期トリガーを設定しました（1時間ごと）'
+  };
+}
+
+/**
+ * GitHubのMDファイルからスプレッドシートに直接反映
+ * 3つのMDファイルを統合して処理
+ * 自動バックアップ機能付き
+ */
+function syncGitHubToSpreadsheet() {
+  // 同期前にバックアップを作成
+  createSpreadsheetBackup();
+  
+  try {
+    console.log('📥 GitHub→スプレッドシート同期開始（3ファイル統合版）');
+    
+    // GitHubからMDファイルを取得
+    const token = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN') || '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';
+    
+    // 1. 質問フローを取得
+    const questionFlowUrl = 'https://raw.githubusercontent.com/gaihekitosoukuraberu/kuraberu-mainchatbot/main/01_question_flow.md';
+    const salesTalkUrl = 'https://raw.githubusercontent.com/gaihekitosoukuraberu/kuraberu-mainchatbot/main/02_sales_talk_templates.md';
+    const closingPatternsUrl = 'https://raw.githubusercontent.com/gaihekitosoukuraberu/kuraberu-mainchatbot/main/03_closing_patterns.md';
+    
+    console.log('🔑 Token exists:', !!token);
+    
+    // 全てのMDファイルを取得
+    const allData = {};
+    
+    // 1. 質問フローを取得
+    console.log('📄 1/3: 質問フロー取得中...');
+    let response;
+    try {
+      response = UrlFetchApp.fetch(questionFlowUrl, {
+        headers: { 
+          'Authorization': `token ${token}`,
+          'Accept': 'application/vnd.github.raw',
+          'User-Agent': 'KuraberuAI-GAS'
+        },
+        muteHttpExceptions: true
+      });
+    } catch (fetchError) {
+      console.error('❌ Fetch失敗:', fetchError.toString());
+      console.error('❌ エラー詳細:', fetchError.message);
+      console.error('❌ スタックトレース:', fetchError.stack);
+      
+      // Contents API経由で再試行
+      console.log('🔄 Contents API経由で再試行...');
+      const contentsUrl = 'https://api.github.com/repos/gaihekitosoukuraberu/kuraberu-mainchatbot/contents/01_question_flow.md';
+      const contentsResponse = UrlFetchApp.fetch(contentsUrl, {
+        headers: {
+          'Authorization': `token ${token}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'KuraberuAI-GAS'
+        },
+        muteHttpExceptions: true
+      });
+      
+      if (contentsResponse.getResponseCode() === 200) {
+        const contentsData = JSON.parse(contentsResponse.getContentText());
+        // Base64デコード
+        const content = Utilities.base64Decode(contentsData.content);
+        const markdown = Utilities.newBlob(content).getDataAsString();
+        console.log('✅ Contents API経由で取得成功:', markdown.length, '文字');
+        
+        // 以降の処理を続行
+        const questions = parseGitHubMarkdown(markdown);
+        console.log('✅ 質問解析完了:', questions.length, '個');
+        updateSpreadsheetDirectly(questions);
+        
+        const cache = CacheService.getScriptCache();
+        cache.remove('questions_all');
+        console.log('✅ キャッシュクリア完了');
+        
+        return {
+          success: true,
+          message: 'GitHub→スプレッドシート同期完了（Contents API経由）',
+          questionsCount: questions.length
+        };
+      } else {
+        throw new Error('Contents API失敗: ' + contentsResponse.getResponseCode());
+      }
+    }
+    
+    console.log('📊 レスポンスコード:', response.getResponseCode());
+    
+    if (response.getResponseCode() !== 200) {
+      console.error('❌ レスポンス内容:', response.getContentText());
+      throw new Error(`GitHub取得失敗: ${response.getResponseCode()} - ${response.getContentText()}`);
+    }
+    
+    const questionFlowMd = response.getContentText();
+    console.log('✅ 質問フロー取得成功:', questionFlowMd.length, '文字');
+    
+    // 2. 豆知識・安心トークを取得
+    console.log('📄 2/3: 豆知識・安心トーク取得中...');
+    const salesTalkResponse = UrlFetchApp.fetch(salesTalkUrl, {
+      headers: { 
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.raw',
+        'User-Agent': 'KuraberuAI-GAS'
+      },
+      muteHttpExceptions: true
+    });
+    
+    const salesTalkMd = salesTalkResponse.getResponseCode() === 200 ? salesTalkResponse.getContentText() : '';
+    console.log('✅ 豆知識取得:', salesTalkMd.length, '文字');
+    
+    // 3. クロージングパターンを取得
+    console.log('📄 3/3: クロージングパターン取得中...');
+    const closingResponse = UrlFetchApp.fetch(closingPatternsUrl, {
+      headers: { 
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.raw',
+        'User-Agent': 'KuraberuAI-GAS'
+      },
+      muteHttpExceptions: true
+    });
+    
+    const closingMd = closingResponse.getResponseCode() === 200 ? closingResponse.getContentText() : '';
+    console.log('✅ クロージング取得:', closingMd.length, '文字');
+    
+    // MDを解析（3ファイル統合）
+    const questions = parseAllMarkdownFiles(questionFlowMd, salesTalkMd, closingMd);
+    console.log('✅ 統合解析完了:', questions.length, '個');
+    
+    // スプレッドシートに反映（拡張カラム対応）
+    updateSpreadsheetWithExtendedColumns(questions);
+    
+    // 変更をGASのデプロイに即座に反映させるためのキャッシュクリア
+    const cache = CacheService.getScriptCache();
+    cache.remove('questions_all');
+    console.log('✅ キャッシュクリア完了');
+    
+    return {
+      success: true,
+      message: 'GitHub→スプレッドシート同期完了',
+      questionsCount: questions.length
+    };
+    
+  } catch (error) {
+    console.error('❌ GitHub同期エラー:', error);
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * スプレッドシートのバックアップを作成
+ * 最新5個のバックアップを保持し、古いものは自動削除
+ */
+function createSpreadsheetBackup() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sourceSheet = ss.getSheetByName('統合_質問豆知識管理');
+    
+    if (!sourceSheet) {
+      console.log('⚠️ バックアップ対象シートが見つかりません');
+      return;
+    }
+    
+    // 現在の日時を取得
+    const now = new Date();
+    const timestamp = Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyyMMdd_HHmmss');
+    const backupSheetName = `バックアップ_${timestamp}`;
+    
+    console.log(`📦 バックアップ作成開始: ${backupSheetName}`);
+    
+    // バックアップシートを作成
+    const backupSheet = ss.insertSheet(backupSheetName);
+    
+    // 元のシートの全データを取得
+    const lastRow = sourceSheet.getLastRow();
+    const lastCol = sourceSheet.getLastColumn();
+    
+    if (lastRow > 0 && lastCol > 0) {
+      const sourceData = sourceSheet.getRange(1, 1, lastRow, lastCol).getValues();
+      
+      // バックアップシートにデータを貼り付け
+      backupSheet.getRange(1, 1, lastRow, lastCol).setValues(sourceData);
+      
+      // 書式もコピー
+      const sourceFormatting = sourceSheet.getRange(1, 1, lastRow, lastCol);
+      const backupFormatting = backupSheet.getRange(1, 1, lastRow, lastCol);
+      sourceFormatting.copyTo(backupFormatting, SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
+    }
+    
+    console.log(`✅ バックアップ作成完了: ${backupSheetName}`);
+    
+    // 古いバックアップを削除（最新5個を保持）
+    cleanupOldBackups();
+    
+  } catch (error) {
+    console.error('❌ バックアップ作成エラー:', error);
+  }
+}
+
+/**
+ * 古いバックアップシートを削除（最新5個を保持）
+ */
+function cleanupOldBackups() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheets = ss.getSheets();
+    
+    // バックアップシートのみを抽出
+    const backupSheets = sheets.filter(sheet => 
+      sheet.getName().startsWith('バックアップ_')
+    );
+    
+    // 名前（タイムスタンプ）でソート（新しい順）
+    backupSheets.sort((a, b) => b.getName().localeCompare(a.getName()));
+    
+    // 5個を超える古いバックアップを削除
+    const sheetsToDelete = backupSheets.slice(5);
+    
+    sheetsToDelete.forEach(sheet => {
+      try {
+        ss.deleteSheet(sheet);
+        console.log(`🗑️ 古いバックアップを削除: ${sheet.getName()}`);
+      } catch (deleteError) {
+        console.error(`❌ バックアップ削除エラー: ${sheet.getName()}`, deleteError);
+      }
+    });
+    
+    console.log(`✅ バックアップクリーンアップ完了: ${backupSheets.length}個中${sheetsToDelete.length}個を削除`);
+    
+  } catch (error) {
+    console.error('❌ バックアップクリーンアップエラー:', error);
+  }
+}
+
+/**
+ * 3つのMDファイルを統合解析
+ */
+function parseAllMarkdownFiles(questionFlowMd, salesTalkMd, closingMd) {
+  // 1. 質問フローを解析
+  const questions = parseGitHubMarkdown(questionFlowMd);
+  
+  // 2. 豆知識・安心トークを解析して質問にマージ
+  const salesTalkData = parseSalesTalkMarkdown(salesTalkMd);
+  
+  
+  questions.forEach(q => {
+    // MDファイルは実際のスプレッドシート質問IDを使用（Q008, Q011, Q014, Q015, Q900-Q903, C999）
+    const questionId = q.id;
+    
+    if (salesTalkData[questionId]) {
+      const knowledgeData = salesTalkData[questionId];
+      q.knowledgeTitle = knowledgeData.titleHint || knowledgeData.title || `${q.id}の豆知識`;
+      q.knowledgeComment = knowledgeData.comment || '';
+      q.knowledgeBody = knowledgeData.body || '';
+      q.salesPrompt = knowledgeData.salesPrompt || '';
+      
+      // 安心チェックリストがある場合は豆知識詳細に追加
+      if (knowledgeData.checklist) {
+        q.knowledgeBody = q.knowledgeBody + '\n\n' + knowledgeData.checklist;
+      }
+      
+    } else {
+      // 豆知識がない場合も空文字を設定
+      q.knowledgeTitle = '';
+      q.knowledgeComment = '';
+      q.knowledgeBody = '';
+      q.salesPrompt = '';
+      console.log(`⚠️ 豆知識なし: ${q.id}`);
+    }
+  });
+  
+  // 3. クロージングパターンを解析して追加
+  const closingData = parseClosingPatterns(closingMd);
+  Object.keys(closingData).forEach(closingId => {
+    const existingQ = questions.find(q => q.id === closingId);
+    if (existingQ) {
+      existingQ.closingPattern = closingData[closingId].pattern || '';
+      existingQ.closingPrompt = closingData[closingId].prompt || '';
+    }
+  });
+  
+  return questions;
+}
+
+/**
+ * 豆知識・安心トークMDを解析
+ */
+function parseSalesTalkMarkdown(markdown) {
+  const salesTalkData = {};
+  const lines = markdown.split('\n');
+  
+  let currentQuestionId = null;
+  let currentSection = null;
+  let buffer = [];
+  let currentTitle = null; // タイトルを保持
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // ## Q004（築年数）のような形式を検出
+    if (line.match(/^##\s*[QC]\d+/)) {
+      // 前のデータを保存
+      if (currentQuestionId && currentSection && buffer.length > 0) {
+        salesTalkData[currentQuestionId][currentSection] = buffer.join('\n').trim();
+      }
+      
+      // 新しい質問IDとタイトルを抽出
+      const match = line.match(/([QC]\d+)[^（]*(?:（([^）]+)）)?/);
+      if (match) {
+        currentQuestionId = match[1].charAt(0) + match[1].substring(1).padStart(3, '0');
+        currentTitle = match[2] || null; // 括弧内のタイトル
+        salesTalkData[currentQuestionId] = {};
+        if (currentTitle) {
+          salesTalkData[currentQuestionId].titleHint = currentTitle;
+        }
+        buffer = [];
+        currentSection = null;
+      }
+    }
+    // **豆知識**、**安心トーク**などを検出
+    else if (line.match(/^\*\*(豆知識|安心トーク|安心チェックリスト|営業プロンプト)\*\*$/)) {
+      // 前のセクションを保存
+      if (currentSection && buffer.length > 0) {
+        salesTalkData[currentQuestionId][currentSection] = buffer.join('\n').trim();
+        buffer = [];
+      }
+      
+      if (line.includes('豆知識')) {
+        currentSection = 'knowledgeComment';
+      } else if (line.includes('安心トーク')) {
+        currentSection = 'body';
+      } else if (line.includes('安心チェックリスト')) {
+        currentSection = 'checklist';
+      } else if (line.includes('営業プロンプト')) {
+        currentSection = 'salesPrompt';
+      }
+    }
+    // > で始まる引用行やその他のデータ行
+    else if (currentQuestionId && currentSection && line.length > 0 && !line.startsWith('---')) {
+      // > で始まる場合は、> を除去
+      const cleanLine = line.startsWith('>') ? line.substring(1).trim() : line;
+      if (cleanLine.length > 0) {
+        buffer.push(cleanLine);
+      }
+    }
+  }
+  
+  // 最後のデータを保存
+  if (currentQuestionId && currentSection && buffer.length > 0) {
+    salesTalkData[currentQuestionId][currentSection] = buffer.join('\n').trim();
+  }
+  
+  // タイトルとして質問IDを設定
+  Object.keys(salesTalkData).forEach(qId => {
+    if (!salesTalkData[qId].title) {
+      salesTalkData[qId].title = `${qId}の豆知識`;
+    }
+    // knowledgeCommentをcommentに変換
+    if (salesTalkData[qId].knowledgeComment) {
+      salesTalkData[qId].comment = salesTalkData[qId].knowledgeComment;
+      delete salesTalkData[qId].knowledgeComment;
+    }
+  });
+  
+  
+  return salesTalkData;
+}
+
+/**
+ * クロージングパターンMDを解析
+ */
+function parseClosingPatterns(markdown) {
+  const closingData = {};
+  const lines = markdown.split('\n');
+  
+  let currentQuestionId = null;
+  let buffer = [];
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // ## Q900形式を検出
+    if (line.match(/^##\s*Q\d/)) {
+      // 前のデータを保存
+      if (currentQuestionId && buffer.length > 0) {
+        closingData[currentQuestionId] = {
+          pattern: buffer.join('\n').trim()
+        };
+      }
+      
+      // 新しい質問ID
+      const match = line.match(/Q(\d+)/);
+      if (match) {
+        currentQuestionId = 'Q' + match[1].padStart(3, '0');
+        buffer = [];
+      }
+    }
+    // データ行
+    else if (currentQuestionId && line.length > 0 && !line.startsWith('#')) {
+      buffer.push(line);
+    }
+  }
+  
+  // 最後のデータを保存
+  if (currentQuestionId && buffer.length > 0) {
+    closingData[currentQuestionId] = {
+      pattern: buffer.join('\n').trim()
+    };
+  }
+  
+  return closingData;
+}
+
+/**
+ * スプレッドシートに拡張カラムで反映
+ */
+function updateSpreadsheetWithExtendedColumns(questions) {
+  try {
+    
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName('統合_質問豆知識管理');
+    
+    if (!sheet) {
+      console.log('⚠️ シート作成');
+      sheet = ss.insertSheet('統合_質問豆知識管理');
+    }
+    
+    // 拡張ヘッダー設定
+    const headers = [
+      '質問ID', 'ヒアリング段階', '質問タイプ', '質問文',
+      '選択肢1', '選択肢2', '選択肢3', '選択肢4',
+      '有効フラグ', '分岐先1', '分岐先2', '分岐先3', '分岐先4',
+      '豆知識タイトル', '豆知識コメント', '豆知識詳細',
+      '営業プロンプト', 'YoutubeURL',
+      'クロージングパターン', 'クロージングプロンプト' // 新規追加
+    ];
+    
+    // 既存データをクリア
+    sheet.clear();
+    
+    // ヘッダー設定
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    
+    // データ設定
+    const data = questions.map((q, index) => {
+      return [
+        q.id,
+        q.stage || '第1段階',
+        q.type || (q.choices.length > 0 ? '必須' : 'message'),
+        q.questionText,
+        q.choices[0] || '',
+        q.choices[1] || '',
+        q.choices[2] || '',
+        q.choices[3] || '',
+        true, // 有効フラグ
+        q.branches[0] || '',
+        q.branches[1] || '',
+        q.branches[2] || '',
+        q.branches[3] || '',
+        q.knowledgeTitle || '',
+        q.knowledgeComment || '',
+        q.knowledgeBody || '', // 豆知識詳細
+        q.salesPrompt || '', // 営業プロンプト
+        q.youtubeUrl || '', // YoutubeURL
+        q.closingPattern || '', // クロージングパターン
+        q.closingPrompt || '' // クロージングプロンプト
+      ];
+    });
+    
+    if (data.length > 0) {
+      sheet.getRange(2, 1, data.length, headers.length).setValues(data);
+    }
+    
+    // フォーマット
+    sheet.getRange(1, 1, 1, headers.length)
+      .setBackground('#4285f4')
+      .setFontColor('white')
+      .setFontWeight('bold');
+    
+    sheet.autoResizeColumns(1, headers.length);
+    
+    
+  } catch (error) {
+    console.error('❌ スプレッドシート更新エラー:', error);
+    throw error;
+  }
+}
+
+/**
+ * スプレッドシートに直接反映（GPT不使用）
+ */
+function updateSpreadsheetDirectly(questions) {
+  try {
+    
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName('統合_質問豆知識管理');
+    
+    if (!sheet) {
+      console.log('⚠️ シート作成');
+      sheet = ss.insertSheet('統合_質問豆知識管理');
+    }
+    
+    // ヘッダー設定
+    const headers = [
+      '質問ID', 'ヒアリング段階', '質問タイプ', '質問文',
+      '選択肢1', '選択肢2', '選択肢3', '選択肢4',
+      '有効フラグ', '分岐先1', '分岐先2', '分岐先3', '分岐先4',
+      '豆知識タイトル', '豆知識コメント', '豆知識詳細',
+      '営業プロンプト', 'YoutubeURL'
+    ];
+    
+    // 既存データをクリア
+    sheet.clear();
+    
+    // ヘッダー設定
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    
+    // データ設定
+    const data = questions.map((q, index) => {
+      return [
+        q.id,
+        q.stage || '第1段階',
+        q.type || (q.choices.length > 0 ? '必須' : 'message'),
+        q.questionText,
+        q.choices[0] || '',
+        q.choices[1] || '',
+        q.choices[2] || '',
+        q.choices[3] || '',
+        true, // 有効フラグ
+        q.branches[0] || '',
+        q.branches[1] || '',
+        q.branches[2] || '',
+        q.branches[3] || '',
+        q.knowledgeTitle || '',
+        q.knowledgeComment || '',
+        '', // 豆知識詳細
+        '', // 営業プロンプト
+        ''  // YoutubeURL
+      ];
+    });
+    
+    if (data.length > 0) {
+      sheet.getRange(2, 1, data.length, headers.length).setValues(data);
+    }
+    
+    // フォーマット
+    sheet.getRange(1, 1, 1, headers.length)
+      .setBackground('#4285f4')
+      .setFontColor('white')
+      .setFontWeight('bold');
+    
+    sheet.autoResizeColumns(1, headers.length);
+    
+    
+  } catch (error) {
+    console.error('❌ スプレッドシート更新エラー:', error);
+    throw error;
+  }
+}
+
+/**
+ * GitHubのMarkdownを正確に解析
+ */
+function parseGitHubMarkdown(markdown) {
+  const questions = [];
+  const lines = markdown.split('\n');
+  
+  
+  let currentStage = '第1段階'; // デフォルト段階
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // ## ■ 第1段階、第2段階などを検出
+    if (line.match(/^##\s*■\s*第(\d)段階/)) {
+      const stageMatch = line.match(/第(\d)段階/);
+      if (stageMatch) {
+        currentStage = `第${stageMatch[1]}段階`;
+      }
+    }
+    
+    // Q999は第4段階（最終段階）として扱う
+    if (line.match(/^#{2,3}\s*Q999/)) {
+      currentStage = '第4段階';
+    }
+    // Q900番台は第3段階（クロージング）として扱う（Q999除く）
+    else if (line.match(/^#{2,3}\s*Q9\d/) && !line.match(/^#{2,3}\s*Q999/)) {
+      currentStage = '第3段階';
+    }
+    
+    // ### Q001, ## Q001 などを検出（2つまたは3つの#に対応）
+    if (line.match(/^#{2,3}\s*Q\d/)) {
+      const questionMatch = line.match(/Q(\d+(?:-\d+)?)/);
+      if (!questionMatch) {
+        console.log('⚠️ 質問ID抽出失敗');
+        continue;
+      }
+      
+      let questionId = questionMatch[1];
+      
+      // Q1-2 → Q012 に変換
+      if (questionId.includes('-')) {
+        const parts = questionId.split('-');
+        questionId = parts[0].padStart(2, '0') + parts[1];
+      }
+      questionId = 'Q' + questionId.padStart(3, '0');
+      
+      let questionText = '';
+      const choices = [];
+      const branches = [];
+      
+      // Q999特別処理
+      if (questionId === 'Q999') {
+        questionText = 'その他、未ヒアリング事項をお伺いします。';
+        // Q999は複数ページのフォーム形式なので選択肢なし
+        console.log('🎯 Q999特別処理: 複数ページフォーム形式');
+      } else {
+        // 通常の質問内容を取得
+        for (let j = i + 1; j < lines.length && j < i + 30; j++) {
+          const nextLine = lines[j].trim();
+          
+          // 次の質問まで（### Qまたは ## で始まる行）
+          if (nextLine.match(/^#{2,3}\s*Q\d/) || nextLine.match(/^#{1,2}\s+■/)) {
+            break;
+          }
+          
+          // 質問文の検出（「」で囲まれた、または空行の後の最初のテキスト）
+          if (!questionText && nextLine.length > 0 && !nextLine.match(/^\d+\./)) {
+            // 「」で囲まれた場合
+            if (nextLine.startsWith('「') && nextLine.endsWith('」')) {
+              questionText = nextLine.slice(1, -1);
+            } else if (!nextLine.startsWith('#') && !nextLine.startsWith('-')) {
+              // 通常のテキスト行（番号リストではない）
+              questionText = nextLine;
+            }
+          }
+          
+          // 選択肢 1. 2. 3. 4.
+          if (nextLine.match(/^\d+\.\s+/)) {
+            const choiceText = nextLine.replace(/^\d+\.\s+/, '');
+            
+            if (choiceText.includes('→')) {
+              const parts = choiceText.split('→');
+              const choice = parts[0].trim();
+              const branchText = parts[1].trim();
+              
+              choices.push(choice);
+              
+              // 分岐先のQ番号を抽出・正規化
+              const branchMatch = branchText.match(/Q(\d+(?:-\d+)?)/);
+              if (branchMatch) {
+                let branchId = branchMatch[1];
+                if (branchId.includes('-')) {
+                  const branchParts = branchId.split('-');
+                  branchId = branchParts[0].padStart(2, '0') + branchParts[1];
+                }
+                branches.push('Q' + branchId.padStart(3, '0'));
+              } else {
+                branches.push('');
+              }
+            } else {
+              choices.push(choiceText);
+              branches.push('');
+            }
+          }
+        }
+      }
+      
+      if (questionText) {
+        questions.push({
+          id: questionId,
+          stage: currentStage, // 動的に設定された段階を使用
+          type: choices.length > 0 ? '必須' : 'message',
+          questionText: questionText,
+          choices: choices,
+          branches: branches,
+          knowledgeTitle: '',
+          knowledgeComment: ''
+        });
+        
+      } else {
+        console.log(`⚠️ 質問文が見つからず: ${questionId}`);
+      }
+    }
+  }
+  
+  return questions;
+}
+
+
 /**
  * 統合LINE Webhook処理（エラー回避重視）
  * @param {Object} e リクエスト
@@ -36,7 +754,6 @@ function isLineWebhook(e) {
  */
 function handleLineWebhookUnified(e) {
   try {
-    console.log('🤖 統合LINE Webhook処理開始');
     
     const requestBody = JSON.parse(e.postData.contents);
     const events = requestBody.events || [];
@@ -70,7 +787,6 @@ function handleLineWebhookUnified(e) {
       }
     });
     
-    console.log('✅ 統合LINE Webhook処理完了');
     
     return createCorsResponse(JSON.stringify({
       success: true,
@@ -135,41 +851,23 @@ function doPost(e) {
       if (e.parameter && e.parameter.safari && e.parameter.data) {
         console.log('🍎 Safari Form送信検出');
         requestData = JSON.parse(e.parameter.data);
-        functionName = requestData.action || requestData.function;
+        functionName = requestData.action || requestData.function || requestData.type;
         parameters = requestData.parameters || requestData;
         path = requestData.path;
         
-        console.log('🍎 Safari Form解析完了:', {
-          functionName: functionName,
-          parameters: parameters,
-          path: path
-        });
       } else if (e.postData && e.postData.contents) {
         requestData = JSON.parse(e.postData.contents);
-        functionName = requestData.action || requestData.function;
+        functionName = requestData.action || requestData.function || requestData.type;
         parameters = requestData.parameters || requestData;
         path = requestData.path;
         
-        console.log('📋 解析されたリクエスト:', {
-          functionName: functionName,
-          parameters: parameters,
-          path: path
-        });
-        console.log('📋 requestData:', JSON.stringify(requestData, null, 2));
       } else if (e.parameter && e.parameter.data) {
         // JSONP GETパラメータ処理
-        console.log('🔗 JSONP GETパラメータ検出');
         requestData = JSON.parse(e.parameter.data);
-        functionName = requestData.action || requestData.function;
+        functionName = requestData.action || requestData.function || requestData.type;
         parameters = requestData;
         path = requestData.path;
         
-        console.log('🔗 JSONP解析完了:', {
-          functionName: functionName,
-          parameters: parameters,
-          path: path
-        });
-        console.log('🔗 requestData:', JSON.stringify(requestData, null, 2));
       } else {
         throw new Error('リクエストデータが見つかりません');
       }
@@ -183,10 +881,7 @@ function doPost(e) {
     }
     
     // API ルーティング
-    console.log('🎯 ルーティング開始 - functionName:', functionName);
-    console.log('🎯 parameters:', JSON.stringify(parameters, null, 2));
-    console.log('🎯 e.parameter:', JSON.stringify(e.parameter, null, 2));
-    console.log('🎯 e.postData:', e.postData ? JSON.stringify(e.postData, null, 2) : 'null');
+    console.log('ルーティング:', functionName);
     
     var result;
     
@@ -247,6 +942,45 @@ function doPost(e) {
       case 'saveLineTemplate':
         result = saveLineTemplate(parameters);
         break;
+        
+      // 4択チャットシステム関連
+      case 'getQuestionsByStage':
+        // requiredOnlyパラメータを適切に変換
+        const requiredOnly = parameters.requiredOnly === 'true' || parameters.requiredOnly === true;
+        result = getQuestionsByStageAPI(parameters.stage, requiredOnly);
+        break;
+        
+      case 'selectNextQuestionWithAI':
+        result = selectNextQuestionWithAI(parameters);
+        break;
+        
+      case 'debugSpreadsheet':
+        result = debugSpreadsheetInfo();
+        break;
+        
+      case 'setupGAS':
+        result = setupGASForSpreadsheetAccess();
+        break;
+        
+      case 'initializeSpreadsheet':
+        try {
+          const setupResult = setupAndInitialize();
+          result = {
+            success: setupResult.success,
+            message: setupResult.success ? 'スプレッドシート初期化完了' : 'スプレッドシート初期化失敗',
+            details: setupResult
+          };
+        } catch (error) {
+          result = {
+            success: false,
+            error: '初期化エラー: ' + error.toString()
+          };
+        }
+        break;
+        
+      case 'processHearingStage':
+        result = processHearingStageAPI(parameters);
+        break;
       case 'generateAITemplate':
         result = generateAITemplate(parameters);
         break;
@@ -266,11 +1000,18 @@ function doPost(e) {
       case 'startAIHearing':
         // extractFromWebsiteの場合は専用処理
         if (parameters.action === 'extractFromWebsite') {
-          console.log('🌐 【場所1】startAIHearing経由でextractFromWebsite実行');
-          console.log('🌐 【場所1】parametersの詳細:', JSON.stringify(parameters, null, 2));
-          result = extractFromWebsiteNotify(parameters);
+            result = extractFromWebsiteNotify(parameters);
         } else {
-          result = startAIHearing(parameters);
+          // FranchiseHearingAI_New.gsのstartAIHearing関数を呼び出し
+          if (typeof startAIHearing === 'function') {
+            result = startAIHearing(parameters);
+          } else {
+            console.error('❌ startAIHearing関数が見つかりません');
+            result = {
+              success: false,
+              error: 'startAIHearing関数が定義されていません。FranchiseHearingAI_New.gsを確認してください。'
+            };
+          }
         }
         break;
       case 'selectCandidate':
@@ -291,18 +1032,14 @@ function doPost(e) {
       case 'processHumanHearing':
         result = processHumanHearing(parameters);
         break;
+      case 'getQuestionsByStage':
+        result = getQuestionsByStage(parameters.stage || 'all', parameters.requiredOnly || false);
+        break;
       case 'completeHearing':
         result = completeHearing(parameters);
         break;
       case 'extractFromWebsite':
-        console.log('🌐 【直接ルート】extractFromWebsite実行開始');
-        console.log('📤 【直接ルート】受信パラメータ:', JSON.stringify(parameters, null, 2));
-        console.log('📤 【直接ルート】functionName:', functionName);
-        
-        // デバッグ：関数存在確認
         if (typeof extractFromWebsiteNotify === 'function') {
-          console.log('✅ 【場所2】extractFromWebsiteNotify関数が存在します');
-          console.log('🌐 【場所2】parametersの詳細:', JSON.stringify(parameters, null, 2));
           result = extractFromWebsiteNotify(parameters);
         } else {
           console.log('❌ extractFromWebsiteNotify関数が見つかりません');
@@ -323,12 +1060,9 @@ function doPost(e) {
         
       // 🎯 加盟店登録システム（新規追加）
       case 'submitFranchiseRegistration':
-        console.log('📝 加盟店登録API呼び出し開始');
-        console.log('📤 受信パラメータ:', JSON.stringify(parameters, null, 2));
         
         // 圧縮データの場合は展開処理を追加
         if (parameters.areasCompressed && !parameters.areas) {
-          console.log('📦 圧縮エリアデータを検出:', parameters.areasCompressed);
           parameters.areas = [{
             prefecture: 'エリア情報',
             city: parameters.areasCompressed,
@@ -343,22 +1077,11 @@ function doPost(e) {
       
       // 接続テスト
       case 'connectionTest':
-        console.log('🔗 connectionTest実行開始');
-        console.log('📤 全パラメータ:', JSON.stringify(parameters, null, 2));
         
         // extractFromWebsiteかどうかチェック
         const hasExtractAction = parameters && (parameters.action === 'extractFromWebsite' || parameters.websiteUrl);
-        console.log('🔍 extractFromWebsite判定:', hasExtractAction);
         
         if (hasExtractAction) {
-          console.log('🌐 【場所3】connectionTest経由でextractFromWebsite実行');
-          console.log('🔍 【場所3】parameters詳細:', {
-            parameters: parameters,
-            type: typeof parameters,
-            keys: parameters ? Object.keys(parameters) : 'N/A',
-            websiteUrl: parameters ? parameters.websiteUrl : 'N/A',
-            action: parameters ? parameters.action : 'N/A'
-          });
           
           // extractFromWebsiteNotify関数を呼び出し
           result = extractFromWebsiteNotify(parameters);
@@ -383,6 +1106,353 @@ function doPost(e) {
         result = testAPISettings(parameters);
         break;
         
+      // 4段階ヒアリングシステム
+      case 'processHearingStage':
+        result = processHearingStage(
+          parameters.sessionId, 
+          parameters.stage, 
+          parameters.userAnswers, 
+          parameters.customPrompt
+        );
+        break;
+        
+      // GPT API統合（外壁塗装estimate-app用）
+      case 'gptWithPromptLayers':
+        
+        // chat_controller.gsのhandleGptWithPromptLayers関数を呼び出し
+        if (typeof handleGptWithPromptLayers === 'function') {
+          result = handleGptWithPromptLayers(parameters);
+        } else {
+          console.error('❌ handleGptWithPromptLayers関数が見つかりません');
+          result = {
+            success: false,
+            error: 'handleGptWithPromptLayers関数が定義されていません。chat_controller.gsを確認してください。'
+          };
+        }
+        console.log('🤖 gptWithPromptLayers結果:', JSON.stringify(result, null, 2));
+        break;
+
+      // PropertiesService設定確認（デバッグ用）
+      case 'checkProperties':
+        
+        // chat_controller.gsのcheckProperties関数またはgpt_api_handler.gsのcheckProperties関数を呼び出し
+        if (typeof checkProperties === 'function') {
+          result = checkProperties();
+        } else {
+          // 直接PropertiesServiceを確認
+          try {
+            const properties = PropertiesService.getScriptProperties().getProperties();
+            const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+            const openaiKey = PropertiesService.getScriptProperties().getProperty('OPENAI_API_KEY');
+            
+            result = {
+              success: true,
+              spreadsheetId: spreadsheetId ? '設定済み' : '未設定',
+              openaiKey: openaiKey ? '設定済み' : '未設定',
+              totalProperties: Object.keys(properties).length,
+              availableProperties: Object.keys(properties).filter(key => properties[key]).length
+            };
+          } catch (error) {
+            result = {
+              success: false,
+              error: error.message
+            };
+          }
+        }
+        break;
+
+      // 🚀 キャッシュ管理（高速化用）
+      case 'clearCache':
+        console.log('🗑️ スプレッドシートキャッシュクリア開始');
+        
+        if (typeof clearSpreadsheetCache === 'function') {
+          result = clearSpreadsheetCache();
+        } else {
+          result = {
+            success: true,
+            message: 'キャッシュクリア機能は実装されていません'
+          };
+        }
+        break;
+
+      case 'getCacheStatus':
+        
+        if (typeof getCacheStatus === 'function') {
+          result = getCacheStatus();
+        } else {
+          result = {
+            success: false,
+            message: 'キャッシュ状態確認機能は実装されていません'
+          };
+        }
+        break;
+        
+      case 'gptChat':
+        
+        // 簡易GPT応答（フォールバック）- 既存の four_stage_hearing_system.gs を活用
+        try {
+          if (typeof FourStageHearingManager !== 'undefined') {
+            const hearingManager = new FourStageHearingManager();
+            const stageNum = parseInt(parameters.currentStage.replace('第', '').replace('段階', '')) || 1;
+            const stageResult = hearingManager.processStage('temp-session', stageNum, [], null);
+            
+            result = {
+              success: true,
+              response: `ありがとうございます。${parameters.userMessage}について承知いたしました。`,
+              hasQuestion: true,
+              questionOptions: generateBasicQuestionOptions(parameters.currentStage),
+              nextStage: parameters.currentStage
+            };
+          } else {
+            result = {
+              success: true,
+              response: `ありがとうございます。${parameters.userMessage}について承知いたしました。`,
+              hasQuestion: true,
+              questionOptions: generateBasicQuestionOptions(parameters.currentStage),
+              nextStage: parameters.currentStage
+            };
+          }
+        } catch (error) {
+          result = {
+            success: true,
+            response: `ありがとうございます。${parameters.userMessage}について承知いたしました。`,
+            hasQuestion: true,
+            questionOptions: generateBasicQuestionOptions(parameters.currentStage),
+            nextStage: parameters.currentStage
+          };
+        }
+        console.log('💬 gptChat結果:', JSON.stringify(result, null, 2));
+        break;
+        
+      // ユーザーヒアリングデータ保存
+      case 'saveUserHearingData':
+        console.log('💾 ユーザーヒアリングデータ保存開始');
+        
+        try {
+          const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+          if (!spreadsheetId) {
+            throw new Error('スプレッドシートIDが設定されていません');
+          }
+          
+          const ss = SpreadsheetApp.openById(spreadsheetId);
+          let sheet = ss.getSheetByName('統合_ヒアリング結果');
+          
+          // シートが存在しない場合は作成
+          if (!sheet) {
+            sheet = ss.insertSheet('統合_ヒアリング結果');
+            const headers = [
+              'タイムスタンプ', '電話番号', '郵便番号', '回答数', 
+              '外壁材質', '建物面積', '外壁状態', '工事時期', 
+              '詳細状況', '屋根状況', '予算', '重視点', '色希望', '連絡方法',
+              '全回答データ', 'IPアドレス', 'ユーザーエージェント'
+            ];
+            sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+            sheet.getRange(1, 1, 1, headers.length).setBackground('#607d8b').setFontColor('white').setFontWeight('bold');
+          }
+          
+          // 回答データから主要項目を抽出
+          const answers = parameters.userAnswers || [];
+          const answerMap = {};
+          answers.forEach(answer => {
+            answerMap[answer.questionId] = answer.answer;
+          });
+          
+          const newRow = [
+            new Date(), // タイムスタンプ
+            parameters.phoneNumber || '', // 電話番号
+            parameters.postalCode || '', // 郵便番号
+            answers.length, // 回答数
+            answerMap['Q001'] || '', // 外壁材質
+            answerMap['Q002'] || '', // 建物面積
+            answerMap['Q003'] || '', // 外壁状態
+            answerMap['Q004'] || '', // 工事時期
+            answerMap['Q005'] || '', // 詳細状況
+            answerMap['Q006'] || '', // 屋根状況
+            answerMap['Q007'] || '', // 予算
+            answerMap['Q008'] || '', // 重視点
+            answerMap['Q009'] || '', // 色希望
+            answerMap['Q010'] || '', // 連絡方法
+            JSON.stringify(parameters.userAnswers), // 全回答データ
+            'N/A', // IPアドレス
+            'N/A'  // ユーザーエージェント
+          ];
+          
+          sheet.appendRow(newRow);
+          
+          result = {
+            success: true,
+            message: 'ヒアリングデータを保存しました',
+            savedAnswers: answers.length,
+            phoneNumber: parameters.phoneNumber,
+            timestamp: new Date()
+          };
+          
+        } catch (error) {
+          console.error('❌ ヒアリングデータ保存エラー:', error);
+          result = {
+            success: false,
+            error: error.toString(),
+            message: 'データ保存に失敗しました'
+          };
+        }
+        
+        console.log('💾 ヒアリングデータ保存結果:', JSON.stringify(result, null, 2));
+        break;
+        
+      // CV用データ保存
+      case 'saveCVData':
+        console.log('📞 CV用データ保存開始');
+        
+        try {
+          const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+          if (!spreadsheetId) {
+            throw new Error('スプレッドシートIDが設定されていません');
+          }
+          
+          const ss = SpreadsheetApp.openById(spreadsheetId);
+          let sheet = ss.getSheetByName('統合_CV記録');
+          
+          // シートが存在しない場合は作成
+          if (!sheet) {
+            sheet = ss.insertSheet('統合_CV記録');
+            const headers = [
+              'タイムスタンプ', '電話番号', '郵便番号', '段階', '回答数', 
+              '外壁材質', '建物面積', '外壁状態', '工事時期', 
+              '詳細状況', '屋根状況', '予算', '全回答データ', 'IPアドレス'
+            ];
+            sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+            sheet.getRange(1, 1, 1, headers.length).setBackground('#28a745').setFontColor('white').setFontWeight('bold');
+          }
+          
+          // 回答データから主要項目を抽出
+          const answers = parameters.userAnswers || [];
+          const answerMap = {};
+          answers.forEach(answer => {
+            answerMap[answer.questionId] = answer.answer;
+          });
+          
+          const newRow = [
+            new Date(), // タイムスタンプ
+            parameters.phoneNumber || '', // 電話番号
+            parameters.postalCode || '', // 郵便番号
+            parameters.stage || 'CV完了', // 段階
+            answers.length, // 回答数
+            answerMap['Q001'] || '', // 外壁材質
+            answerMap['Q002'] || '', // 建物面積
+            answerMap['Q003'] || '', // 外壁状態
+            answerMap['Q004'] || '', // 工事時期
+            answerMap['Q005'] || '', // 詳細状況
+            answerMap['Q006'] || '', // 屋根状況
+            answerMap['Q007'] || '', // 予算
+            JSON.stringify(parameters.userAnswers), // 全回答データ
+            'N/A' // IPアドレス
+          ];
+          
+          sheet.appendRow(newRow);
+          
+          result = {
+            success: true,
+            message: 'CV用データを保存しました',
+            phoneNumber: parameters.phoneNumber,
+            answerCount: answers.length,
+            timestamp: new Date()
+          };
+          
+        } catch (error) {
+          console.error('❌ CV用データ保存エラー:', error);
+          result = {
+            success: false,
+            error: error.toString(),
+            message: 'CV用データ保存に失敗しました'
+          };
+        }
+        
+        console.log('📞 CV用データ保存結果:', JSON.stringify(result, null, 2));
+        break;
+        
+      // 最終データ保存
+      case 'saveFinalData':
+        console.log('🎯 最終データ保存開始');
+        
+        try {
+          const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+          if (!spreadsheetId) {
+            throw new Error('スプレッドシートIDが設定されていません');
+          }
+          
+          const ss = SpreadsheetApp.openById(spreadsheetId);
+          let sheet = ss.getSheetByName('統合_最終結果');
+          
+          // シートが存在しない場合は作成
+          if (!sheet) {
+            sheet = ss.insertSheet('統合_最終結果');
+            const headers = [
+              'タイムスタンプ', '電話番号', '第1-3段階回答数', '第4段階回答数', 
+              '現地調査希望', '業者数希望', '心配事', '選択業者数',
+              '選択業者リスト', '全回答データ', '第4段階データ', 'IPアドレス'
+            ];
+            sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+            sheet.getRange(1, 1, 1, headers.length).setBackground('#dc3545').setFontColor('white').setFontWeight('bold');
+          }
+          
+          // 第4段階回答から主要項目を抽出
+          const stage4Answers = parameters.stage4Answers || [];
+          const stage4Map = {};
+          stage4Answers.forEach(answer => {
+            stage4Map[answer.questionId] = answer.answer;
+          });
+          
+          const newRow = [
+            new Date(), // タイムスタンプ
+            parameters.phoneNumber || '', // 電話番号
+            (parameters.userAnswers || []).length, // 第1-3段階回答数
+            stage4Answers.length, // 第4段階回答数
+            stage4Map['Q011'] || '', // 現地調査希望
+            stage4Map['Q012'] || '', // 業者数希望
+            stage4Map['Q013'] || '', // 心配事
+            (parameters.selectedCompanies || []).length, // 選択業者数
+            (parameters.selectedCompanies || []).join(', '), // 選択業者リスト
+            JSON.stringify(parameters.userAnswers), // 全回答データ
+            JSON.stringify(parameters.stage4Answers), // 第4段階データ
+            'N/A' // IPアドレス
+          ];
+          
+          sheet.appendRow(newRow);
+          
+          result = {
+            success: true,
+            message: '最終データを保存しました',
+            phoneNumber: parameters.phoneNumber,
+            selectedCompanies: parameters.selectedCompanies,
+            timestamp: new Date()
+          };
+          
+        } catch (error) {
+          console.error('❌ 最終データ保存エラー:', error);
+          result = {
+            success: false,
+            error: error.toString(),
+            message: '最終データ保存に失敗しました'
+          };
+        }
+        
+        console.log('🎯 最終データ保存結果:', JSON.stringify(result, null, 2));
+        break;
+        
+      // 見積もり依頼受付（estimate-app用）
+      case 'estimate':
+        console.log('📋 見積もり依頼を処理します');
+        try {
+          result = handleEstimateRequest(parameters);
+        } catch (error) {
+          console.error('見積もり依頼処理エラー:', error);
+          result = {
+            success: false,
+            message: error.toString()
+          };
+        }
+        break;
+        
         // その他
         default:
           console.log('⚠️ 未知のアクション:', functionName);
@@ -393,7 +1463,6 @@ function doPost(e) {
           };
       }
     
-    console.log('✅ API処理結果:', result);
     
     return createCorsResponse(JSON.stringify(result), result.success ? 200 : 400);
     
@@ -413,9 +1482,61 @@ function doPost(e) {
  */
 function doGet(e) {
   try {
-    console.log('🔗 GAS WebApp GET受信');
-    console.log('📋 パラメータ:', JSON.stringify(e.parameter));
+    console.log('🌐 GAS WebApp GET受信:', e.parameter);
     
+    // パラメータなしの場合は質問データを直接返す（シンプルAPI）
+    if (!e.parameter || Object.keys(e.parameter).length === 0) {
+      return getQuestionsDirectly();
+    }
+    
+    // 直接的なURLパラメータでのgetQuestionsByStageリクエスト処理
+    if (e.parameter.action === 'getQuestionsByStage') {
+      console.log('📋 直接URLパラメータでgetQuestionsByStage受信');
+      const stage = e.parameter.stage || 'all';
+      const requiredOnly = e.parameter.requiredOnly === 'true' || e.parameter.requiredOnly === true;
+      const callback = e.parameter.callback;
+      
+      console.log('📤 getQuestionsByStage呼び出し:', { stage, requiredOnly });
+      const result = getQuestionsByStage(stage, requiredOnly);
+      console.log('📥 getQuestionsByStage結果:', result.totalCount, '件');
+      
+      if (callback) {
+        // JSONP形式で返す
+        const jsonpResponse = `${callback}(${JSON.stringify(result)});`;
+        return ContentService
+          .createTextOutput(jsonpResponse)
+          .setMimeType(ContentService.MimeType.JAVASCRIPT);
+      } else {
+        // 通常のJSON形式で返す
+        return ContentService
+          .createTextOutput(JSON.stringify(result))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    
+    // 直接的なURLパラメータでのgetAddressByPostalCodeリクエスト処理
+    if (e.parameter.action === 'getAddressByPostalCode') {
+      console.log('📮 直接URLパラメータでgetAddressByPostalCode受信');
+      const postalCode = e.parameter.postalCode;
+      const callback = e.parameter.callback;
+      
+      console.log('📤 getAddressByPostalCode呼び出し:', { postalCode });
+      const result = getAddressByPostalCode(postalCode);
+      console.log('📥 getAddressByPostalCode結果:', result);
+      
+      if (callback) {
+        // JSONP形式で返す
+        const jsonpResponse = `${callback}(${JSON.stringify(result)});`;
+        return ContentService
+          .createTextOutput(jsonpResponse)
+          .setMimeType(ContentService.MimeType.JAVASCRIPT);
+      } else {
+        // 通常のJSON形式で返す
+        return ContentService
+          .createTextOutput(JSON.stringify(result))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+    }
     
     // データパラメータがある場合の処理（JSONP対応含む）
     if (e.parameter.data) {
@@ -426,16 +1547,12 @@ function doGet(e) {
       try {
         // GASでは e.parameter.data は既にURLデコードされているため、直接パース
         postData = JSON.parse(e.parameter.data);
-        console.log('✅ 直接JSONパース成功');
       } catch (directParseError) {
         console.log('⚠️ 直接パース失敗、decodeURIComponentを試行');
-        console.log('❌ 直接パースエラー:', directParseError.message);
         try {
           postData = JSON.parse(decodeURIComponent(e.parameter.data));
-          console.log('✅ decodeURIComponentパース成功');
         } catch (parseError) {
           console.error('❌ 全てのJSON Parse方法が失敗:', parseError.message);
-          console.log('📋 デバッグ - 生データの最初の500文字:', e.parameter.data.substring(0, 500));
           
           const callback = e.parameter.callback;
           const errorResponse = `${callback}(${JSON.stringify({
@@ -462,6 +1579,11 @@ function doGet(e) {
       // アクションによる分岐処理（doPost関数と同様）
       switch (action) {
         
+        // 認証関連
+        case 'auth/login':
+          result = handleLogin(parameters);
+          break;
+        
         // 🎯 加盟店AIヒアリングBOT関連
         case 'startAIHearing':
           result = startAIHearing(parameters);
@@ -472,15 +1594,21 @@ function doGet(e) {
         case 'confirmAICandidate':
           result = confirmAICandidate(parameters);
           break;
+        case 'getQuestionsByStage':
+          console.log('📋 JSONPでgetQuestionsByStage受信');
+          const stage_jsonp = parameters.stage || 'all';
+          const requiredOnly_jsonp = parameters.requiredOnly === 'true' || parameters.requiredOnly === true;
+          console.log('📤 getQuestionsByStage呼び出し:', { stage: stage_jsonp, requiredOnly: requiredOnly_jsonp });
+          result = getQuestionsByStage(stage_jsonp, requiredOnly_jsonp);
+          console.log('📥 getQuestionsByStage結果:', result.totalCount, '件');
+          break;
         
         // 🎯 加盟店登録システム
         case 'submitFranchiseRegistration':
-          console.log('📝 JSONP加盟店登録API呼び出し開始');
-          console.log('📤 JSONP受信パラメータ:', JSON.stringify(parameters, null, 2));
           
           // 圧縮データの場合は展開処理を追加
           if (parameters.areasCompressed && !parameters.areas) {
-            console.log('📦 圧縮エリアデータを検出:', parameters.areasCompressed);
+            console.log('圧縮エリアデータを検出');
             parameters.areas = [{
               prefecture: 'エリア情報',
               city: parameters.areasCompressed,
@@ -510,6 +1638,48 @@ function doGet(e) {
           console.log('📝 JSONP加盟店登録API結果:', JSON.stringify(result, null, 2));
           break;
         
+        // 🤖 OpenAI API呼び出し（分岐解析用）
+        case 'callOpenAI':
+            try {
+            result = callOpenAIForBranchAnalysis(parameters);
+          } catch (openaiError) {
+            console.error('❌ OpenAI API呼び出しエラー:', openaiError.message);
+            result = {
+              success: false,
+              error: 'OpenAI API呼び出しエラー: ' + openaiError.message
+            };
+          }
+          break;
+        
+        // 🎯 4段階ヒアリングシステム
+        case 'processHearingStage':
+          console.log('🎯 4段階ヒアリング処理開始');
+          const sessionId = parameters.sessionId || 'default_session';
+          const stage = parseInt(parameters.stage) || 1;
+          const userAnswers = parameters.userAnswers || null;
+          const customPrompt = parameters.customPrompt || null;
+          
+          try {
+            if (typeof processHearingStage === 'function') {
+              result = processHearingStage(sessionId, stage, userAnswers, customPrompt);
+            } else {
+              console.error('❌ processHearingStage関数が見つかりません');
+              result = {
+                success: false,
+                error: 'processHearingStage関数が定義されていません'
+              };
+            }
+          } catch (hearingError) {
+            console.error('❌ processHearingStage呼び出しエラー:', hearingError.message);
+            result = {
+              success: false,
+              error: 'ヒアリング処理エラー: ' + hearingError.message
+            };
+          }
+          break;
+        
+        // 📊 質問データ取得API（統合済み - 上記で処理）
+
         // 接続テスト
         case 'connectionTest':
           result = {
@@ -517,6 +1687,133 @@ function doGet(e) {
             message: 'GAS WebApp接続正常',
             timestamp: new Date().toISOString()
           };
+          break;
+        
+        // CV用データ保存（doGetでも対応）
+        case 'saveCVData':
+          console.log('📞 CV用データ保存開始（doGet）');
+            
+          try {
+            const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+            if (!spreadsheetId) {
+              throw new Error('スプレッドシートIDが設定されていません');
+            }
+            
+            const ss = SpreadsheetApp.openById(spreadsheetId);
+            let sheet = ss.getSheetByName('統合_CV記録');
+            
+            // シートが存在しない場合は作成
+            if (!sheet) {
+              sheet = ss.insertSheet('統合_CV記録');
+              const headers = [
+                'タイムスタンプ', '電話番号', '郵便番号', '段階', '回答数', 
+                '外壁材質', '建物面積', '外壁状態', '工事時期', 
+                '詳細状況', '屋根状況', '予算', '全回答データ', 'IPアドレス'
+              ];
+              sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+              sheet.getRange(1, 1, 1, headers.length).setBackground('#28a745').setFontColor('white').setFontWeight('bold');
+            }
+            
+            // 回答データから主要項目を抽出
+            const answers = parameters.userAnswers || [];
+            const answerMap = {};
+            answers.forEach(answer => {
+              answerMap[answer.questionId] = answer.answer;
+            });
+            
+            const newRow = [
+              new Date(), // タイムスタンプ
+              parameters.phoneNumber || '', // 電話番号
+              parameters.postalCode || '', // 郵便番号
+              parameters.stage || 'CV完了', // 段階
+              answers.length, // 回答数
+              answerMap['Q001'] || '', // 外壁材質
+              answerMap['Q002'] || '', // 建物面積
+              answerMap['Q003'] || '', // 外壁状態
+              answerMap['Q004'] || '', // 工事時期
+              answerMap['Q005'] || '', // 詳細状況
+              answerMap['Q006'] || '', // 屋根状況
+              answerMap['Q007'] || '', // 予算
+              JSON.stringify(parameters.userAnswers), // 全回答データ
+              'N/A' // IPアドレス
+            ];
+            
+            sheet.appendRow(newRow);
+            
+            result = {
+              success: true,
+              message: 'CV用データを保存しました',
+              phoneNumber: parameters.phoneNumber,
+              answerCount: answers.length,
+              timestamp: new Date()
+            };
+            
+          } catch (error) {
+            console.error('❌ CV用データ保存エラー:', error);
+            result = {
+              success: false,
+              error: error.toString(),
+              message: 'CV用データ保存に失敗しました'
+            };
+          }
+          
+          console.log('📞 CV用データ保存結果:', JSON.stringify(result, null, 2));
+          break;
+        
+        // 📋 スプレッドシートデバッグ情報取得（doGet）
+        case 'debugSpreadsheet':
+          result = debugSpreadsheetInfo();
+          break;
+          
+        // 🧠 AI自律質問選択（doGet）
+        case 'selectNextQuestionWithAI':
+          console.log('🧠 AI質問選択開始（GET）');
+          result = selectNextQuestionWithAI(parameters);
+          break;
+          
+        // 🏗️ スプレッドシート強制初期化（doGet）
+        case 'initializeSpreadsheet':
+          console.log('🏗️ スプレッドシート強制初期化開始（doGet）');
+          try {
+            // 直接StreamingChatManagerを使用
+            const manager = new StreamingChatManager();
+            const setupResult = manager.initializeAllSheets();
+            result = {
+              success: setupResult.success || true,
+              message: 'スプレッドシート初期化完了',
+              details: setupResult
+            };
+          } catch (error) {
+            result = {
+              success: false,
+              error: '初期化エラー: ' + error.toString()
+            };
+          }
+          break;
+          
+        // 🤖 GPT動的挨拶生成（doGet）
+        case 'generateGreeting':
+          console.log('🤖 GPT動的挨拶生成開始（doGet）');
+          try {
+            const greetingResult = generateGPTGreeting(parameters);
+            result = greetingResult;
+          } catch (error) {
+            result = {
+              success: false,
+              error: '挨拶生成エラー: ' + error.toString(),
+              greeting: 'こんにちは！外壁塗装の専門アドバイザーです。お住まいの状況をお聞かせください。最適な業者をご提案させていただきます。'
+            };
+          }
+          break;
+        
+        case 'getAddressByPostalCode':
+          result = getAddressByPostalCode(parameters.postalCode);
+          break;
+        
+        // 📊 質問データ取得API（doGet用）
+        case 'getQuestionsByStage':
+          const isRequiredOnly = parameters.requiredOnly === 'true' || parameters.requiredOnly === true;
+          result = getQuestionsByStageAPI(parameters.stage, isRequiredOnly);
           break;
         
         default:
@@ -548,7 +1845,79 @@ function doGet(e) {
       }
     }
     
-    // URLパラメータからパスを取得
+    // パス処理の前にdataパラメータ処理をチェック
+    if (e.parameter && e.parameter.data) {
+      console.log('🔄 GET dataパラメータが見つかりました。dataパラメータ処理を優先します。');
+      // dataパラメータ処理は既に上で完了している
+      // ここに到達した場合はdataパラメータ処理が完了しているのでreturn
+      // コールバック処理
+      if (e.parameter.callback) {
+        const callback = e.parameter.callback;
+        const jsonpResponse = `${callback}(${JSON.stringify(result)});`;
+        
+        console.log('✅ JSONP応答準備完了（data処理後）');
+        console.log('📋 コールバック名:', callback);
+        
+        return ContentService
+          .createTextOutput(jsonpResponse)
+          .setMimeType(ContentService.MimeType.JAVASCRIPT);
+      } else {
+        console.log('✅ 通常のJSON応答を返却（data処理後）');
+        return createCorsResponse(JSON.stringify(result), result.success ? 200 : 400);
+      }
+    }
+    
+    // URLパラメータでaction指定がある場合（dataパラメータなし）
+    if (e.parameter && e.parameter.action) {
+      console.log('🎯 URLパラメータからアクション実行:', e.parameter.action);
+      
+      const action = e.parameter.action;
+      const parameters = e.parameter;
+      let result;
+      
+      // アクションによる分岐処理
+      switch (action) {
+        case 'auth/login':
+            result = handleLogin(parameters);
+          break;
+        
+        case 'getQuestionsByStage':
+          result = getQuestionsByStageAPI(parameters.stage, parameters.requiredOnly);
+          break;
+        
+        case 'getAddressByPostalCode':
+          result = getAddressByPostalCode(parameters.postalCode);
+          break;
+        
+        default:
+          console.log('⚠️ 未知のアクション:', action);
+          result = {
+            success: false,
+            message: `未対応のアクション: ${action}`,
+            error: 'UNSUPPORTED_ACTION'
+          };
+      }
+      
+      console.log('✅ URLパラメータアクション処理完了:', JSON.stringify(result));
+      
+      // コールバックパラメータがある場合はJSONP、ない場合は通常のJSON
+      if (e.parameter.callback) {
+        const callback = e.parameter.callback;
+        const jsonpResponse = `${callback}(${JSON.stringify(result)});`;
+        
+        console.log('✅ JSONP応答準備完了（URLパラメータ）');
+        console.log('📋 コールバック名:', callback);
+        
+        return ContentService
+          .createTextOutput(jsonpResponse)
+          .setMimeType(ContentService.MimeType.JAVASCRIPT);
+      } else {
+        console.log('✅ 通常のJSON応答を返却（URLパラメータ）');
+        return createCorsResponse(JSON.stringify(result), result.success ? 200 : 400);
+      }
+    }
+    
+    // URLパラメータからパスを取得（dataパラメータもactionパラメータもない場合のみ）
     var path = e.parameter.path || '';
     console.log('GET Path:', path);
     
@@ -569,13 +1938,26 @@ function doGet(e) {
         };
     }
     
-    return createCorsResponse(JSON.stringify(result), 200);
+    // コールバックパラメータがある場合はJSONP、ない場合は通常のJSON
+    if (e.parameter && e.parameter.callback) {
+      const callback = e.parameter.callback;
+      const jsonpResponse = `${callback}(${JSON.stringify(result)});`;
+      
+      console.log('✅ JSONP応答準備完了（パス処理）');
+      console.log('📋 コールバック名:', callback);
+      
+      return ContentService
+        .createTextOutput(jsonpResponse)
+        .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    } else {
+      return createCorsResponse(JSON.stringify(result), 200);
+    }
     
   } catch (error) {
     console.error('❌ doGet エラー:', error);
     
-    // JSONP エラー処理
-    if (e.parameter.callback) {
+    // JSONP エラー処理（安全なアクセス）
+    if (e && e.parameter && e.parameter.callback) {
       const callback = e.parameter.callback;
       const errorResponse = `${callback}(${JSON.stringify({success: false, error: error.toString()})});`;
       
@@ -606,8 +1988,8 @@ function createCorsResponse(content, statusCode) {
   var output = ContentService.createTextOutput(content);
   output.setMimeType(ContentService.MimeType.JSON);
   
-  // GAS WebAppの基本設定のみ（addHeaderは使用不可）
-  // 「アクセスできるユーザー」を「全員」に設定することでCORS制限が緩和される
+  // GAS では setHeaders は使用できないため、レスポンスヘッダーはWebApp設定で制御
+  // 「アクセスできるユーザー」を「全員」に設定することでCORSが自動的に許可される
   
   // LINEのWebhook要件: 必ずステータスコード200を返す
   if (statusCode && statusCode !== 200) {
@@ -1165,26 +2547,395 @@ function sendLinePushMessage(userId, message, imageUrl) {
 
 // ✅ 動作テスト（すべての通知送信）
 function testNotify_All() {
-  Logger.log("🔔 通知系関数テスト開始");
+  try {
+    Logger.log("🔔 全通知チャネルテスト開始（実送信版・旧GAS互換）");
+    console.log("🔔 全通知チャネルテスト開始（実送信版・旧GAS互換）");
+    
+    const testMessage = `🧪 通知テスト - ${new Date().toLocaleString('ja-JP')}`;
+    const results = [];
+    
+    // 環境変数事前チェック
+    Logger.log("🔍 環境変数事前チェック開始");
+    const requiredSettings = [
+      'SLACK_WEBHOOK_URL',
+      'LINE_ACCESS_TOKEN',
+      'LINE_ADMIN_USER_ID', 
+      'SENDGRID_KEY',
+      'NOTIFY_EMAIL_TO',
+      'TWILIO_ACCOUNT_SID',
+      'TWILIO_AUTH_TOKEN',
+      'TWILIO_FROM_NUMBER',
+      'PHONE_ADMIN_NUMBER',
+      'SPREADSHEET_ID'
+    ];
+    
+    const missingSettings = [];
+    for (const setting of requiredSettings) {
+      const value = PropertiesService.getScriptProperties().getProperty(setting);
+      if (!value) {
+        missingSettings.push(setting);
+        Logger.log(`❌ 未設定: ${setting}`);
+      } else {
+        Logger.log(`✅ 設定済み: ${setting} = ${setting.includes('TOKEN') || setting.includes('KEY') ? '***' : value.substring(0, 20)}...`);
+      }
+    }
+    
+    if (missingSettings.length > 0) {
+      const errorMsg = `❌ 必須設定が不足: ${missingSettings.join(', ')}`;
+      Logger.log(errorMsg);
+      sendSlackNotification(errorMsg, {});
+      return;
+    }
+    
+    // 1. Slack通知テスト
+    Logger.log("📱 Slack通知テスト");
+    try {
+      const slackResult = sendSlackNotification(testMessage, {});
+      results.push({channel: 'Slack', success: slackResult.success, details: slackResult});
+      Logger.log("✅ Slack送信完了", JSON.stringify(slackResult));
+    } catch (error) {
+      Logger.log("❌ Slack送信エラー:", error.message);
+      results.push({channel: 'Slack', success: false, error: error.message});
+    }
+    
+    // 2. LINE通知テスト（新仕様：LINE_ADMIN_USER_ID使用）
+    Logger.log("📱 LINE通知テスト");
+    try {
+      Logger.log("📞 sendLineNotification()呼び出し開始...");
+      const lineAdminUserId = PropertiesService.getScriptProperties().getProperty('LINE_ADMIN_USER_ID');
+      Logger.log("🔍 LINE_ADMIN_USER_ID: " + lineAdminUserId);
+      
+      const lineResult = sendLineNotification(testMessage, { userId: lineAdminUserId });
+      Logger.log("📞 sendLineNotification()呼び出し完了");
+      Logger.log("📊 LINE送信結果詳細: " + JSON.stringify(lineResult, null, 2));
+      
+      results.push({channel: 'LINE', success: lineResult.success, details: lineResult});
+      Logger.log("✅ LINE送信完了");
+    } catch (error) {
+      Logger.log("❌ LINE送信エラー:", error.message);
+      Logger.log("❌ LINE送信エラースタック:", error.stack);
+      results.push({channel: 'LINE', success: false, error: error.message});
+    }
+    
+    // 3. SMS通知テスト（新仕様：PHONE_ADMIN_NUMBER使用）
+    Logger.log("📱 SMS通知テスト");
+    try {
+      Logger.log("📞 sendTwilioSMS()呼び出し開始...");
+      const phoneAdminNumber = PropertiesService.getScriptProperties().getProperty('PHONE_ADMIN_NUMBER');
+      Logger.log("🔍 PHONE_ADMIN_NUMBER: " + phoneAdminNumber);
+      
+      const smsResult = sendTwilioSMS(testMessage, { phoneNumber: phoneAdminNumber });
+      Logger.log("📞 sendTwilioSMS()呼び出し完了");
+      Logger.log("📊 SMS送信結果詳細: " + JSON.stringify(smsResult, null, 2));
+      
+      results.push({channel: 'SMS', success: smsResult.success, details: smsResult});
+      Logger.log("✅ SMS送信完了");
+    } catch (error) {
+      Logger.log("❌ SMS送信エラー:", error.message);
+      results.push({channel: 'SMS', success: false, error: error.message});
+    }
+    
+    // 4. Email通知テスト（新仕様：デフォルトはgmail、重複回避）
+    Logger.log("📱 Email通知テスト");
+    try {
+      Logger.log("📞 sendEmailWithMethod()呼び出し開始...");
+      const emailTo = PropertiesService.getScriptProperties().getProperty('NOTIFY_EMAIL_TO');
+      Logger.log("🔍 NOTIFY_EMAIL_TO: " + emailTo);
+      
+      // デフォルトはgmail方式のみでテスト（重複回避）
+      const emailResult = sendEmailWithMethod(emailTo, '🧪 通知テスト', testMessage, 'gmail');
+      Logger.log("📧 gmail方式結果: " + JSON.stringify(emailResult, null, 2));
+      
+      results.push({channel: 'Email', success: emailResult.success, details: emailResult});
+      Logger.log("✅ Email送信完了");
+    } catch (error) {
+      Logger.log("❌ Email送信エラー:", error.message);
+      results.push({channel: 'Email', success: false, error: error.message});
+    }
+    
+    // 5. 電話発信テスト（Twilio Voice）
+    Logger.log("📞 電話発信テスト");
+    try {
+      Logger.log("📞 makeTwilioCall()呼び出し開始...");
+      const phoneAdminNumber = PropertiesService.getScriptProperties().getProperty('PHONE_ADMIN_NUMBER');
+      Logger.log("🔍 電話発信前チェック:");
+      Logger.log("  - phoneAdminNumber: " + phoneAdminNumber);
+      Logger.log("  - testMessage: " + testMessage);
+      
+      const voiceResult = makeTwilioCall(phoneAdminNumber, testMessage);
+      Logger.log("📞 makeTwilioCall()呼び出し完了");
+      Logger.log("📊 電話発信結果詳細: " + JSON.stringify(voiceResult, null, 2));
+      
+      results.push({channel: 'Voice', success: voiceResult.success, details: voiceResult});
+      Logger.log("✅ 電話発信完了");
+    } catch (error) {
+      Logger.log("❌ 電話発信エラー:", error.message);
+      Logger.log("❌ 電話発信エラースタック:", error.stack);
+      results.push({channel: 'Voice', success: false, error: error.message});
+    }
+    
+    // 結果サマリー
+    const successCount = results.filter(r => r.success).length;
+    const totalCount = results.length;
+    const summaryMessage = `🧪 通知テスト結果: ${successCount}/${totalCount} 成功\n\n` +
+                          results.map(r => `${r.success ? '✅' : '❌'} ${r.channel}: ${r.success ? '成功' : r.error || '失敗'}`).join('\n');
+    
+    Logger.log(summaryMessage);
+    
+    // 結果をSlackに送信
+    sendSlackNotification(summaryMessage, {});
+    
+    // フォールバックログ記録（安全なエラー処理付き）
+    try {
+      logToFallbackSheet('testNotify_All', summaryMessage, 'INFO');
+    } catch (logError) {
+      Logger.log("⚠️ フォールバックログ記録エラー（無視）:", logError.message);
+    }
+    
+    Logger.log("✅ 全通知テスト完了");
+    
+  } catch (error) {
+    const errorMessage = `❌ testNotify_All総合エラー: ${error.message}\nスタック: ${error.stack}`;
+    Logger.log(errorMessage);
+    
+    // エラーもSlackに送信
+    try {
+      sendSlackNotification(errorMessage, {});
+    } catch (slackError) {
+      Logger.log("❌ Slackエラー通知も失敗:", slackError.message);
+    }
+  }
+}
 
-  const tel = "+819019947162";
-  const lineUserId = "U90d261a80c65baa2d2afc42e9e9be00a";
-  const email = "ryuryuyamauchi@gmail.com";
+/**
+ * 安全なフォールバックログ記録
+ */
+function logToFallbackSheet(action, message, level = 'INFO') {
+  try {
+    const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    if (!SPREADSHEET_ID) {
+      console.log('⚠️ SPREADSHEET_ID未設定 - ログ記録をスキップ');
+      return false;
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    let logSheet = ss.getSheetByName('SystemLogs');
+    
+    if (!logSheet) {
+      // シートが存在しない場合は作成
+      logSheet = ss.insertSheet('SystemLogs');
+      logSheet.getRange(1, 1, 1, 5).setValues([
+        ['Timestamp', 'Level', 'Action', 'Message', 'Details']
+      ]);
+    }
+    
+    const timestamp = new Date().toLocaleString('ja-JP');
+    logSheet.appendRow([timestamp, level, action, message, '']);
+    
+    return true;
+  } catch (error) {
+    console.log('❌ ログ記録エラー:', error.message);
+    return false;
+  }
+}
 
-  const slackResult = sendSlackNotification("✅ Slack通知テスト（本番）");
-  const emailResult = sendEmail(email, "✅ メールテスト", "info@gaihekikuraberu.comから送信されました");
-  const smsResult = sendSMS(tel, "✅ Twilio SMSテスト（Messaging API）");
-  const callResult = makeCall(tel);
-  const lineResult = sendLinePushMessage(lineUserId, "✅ LINE Pushテストです（Messaging API）");
+/**
+ * 旧GAS互換エイリアス関数群
+ */
+function sendLineNotification(message, options) {
+  try {
+    Logger.log("🔄 sendLineNotification → sendLinePushMessage へリダイレクト");
+    const userId = (options && options.userId) || PropertiesService.getScriptProperties().getProperty('LINE_ADMIN_USER_ID') || 'U0123456789abcdef0123456789abcdef0';
+    Logger.log("🔍 LINE送信パラメータ: userId=" + userId + ", message=" + message);
+    
+    const result = sendLinePushMessage(userId, message);
+    Logger.log("✅ sendLinePushMessage結果: " + JSON.stringify(result));
+    return result;
+  } catch (error) {
+    Logger.log("❌ sendLineNotification エラー詳細: " + error.message);
+    Logger.log("❌ sendLineNotification スタック: " + error.stack);
+    return { success: false, error: error.message };
+  }
+}
 
-  Logger.log("📊 テスト結果:");
-  Logger.log("Slack:", slackResult);
-  Logger.log("Email:", emailResult);
-  Logger.log("SMS:", smsResult);
-  Logger.log("Call:", callResult);
-  Logger.log("LINE:", lineResult);
+function sendTwilioSMS(message, options) {
+  try {
+    Logger.log("🔄 sendTwilioSMS → sendSMS へリダイレクト");
+    const phoneNumber = (options && options.phoneNumber) || PropertiesService.getScriptProperties().getProperty('PHONE_ADMIN_NUMBER') || '+815012345678';
+    Logger.log("🔍 SMS送信パラメータ: phoneNumber=" + phoneNumber + ", message=" + message);
+    
+    const result = sendSMS(phoneNumber, message);
+    Logger.log("✅ sendSMS結果: " + JSON.stringify(result));
+    return result;
+  } catch (error) {
+    Logger.log("❌ sendTwilioSMS エラー詳細: " + error.message);
+    Logger.log("❌ sendTwilioSMS スタック: " + error.stack);
+    return { success: false, error: error.message };
+  }
+}
 
-  Logger.log("✅ 通知テスト完了");
+/**
+ * 新仕様：メール送信方式切り替え対応関数
+ * @param {string} to 送信先メールアドレス
+ * @param {string} subject 件名
+ * @param {string} message メッセージ
+ * @param {string} method 送信方式: "gmail", "sendgrid", "both"
+ */
+function sendEmailWithMethod(to, subject, message, method = 'gmail') {
+  try {
+    Logger.log(`📧 sendEmailWithMethod開始: method=${method}, to=${to}`);
+    
+    if (!to) {
+      to = PropertiesService.getScriptProperties().getProperty('NOTIFY_EMAIL_TO') || 'test@example.com';
+    }
+    
+    switch (method.toLowerCase()) {
+      case 'gmail':
+        return sendEmailViaGmail(to, subject, message);
+      
+      case 'sendgrid':
+        return sendEmailViaSendGrid(to, subject, message);
+      
+      case 'both':
+        return sendEmailViaBoth(to, subject, message);
+      
+      default:
+        Logger.log(`⚠️ 不明な送信方式: ${method}, gmailにフォールバック`);
+        return sendEmailViaGmail(to, subject, message);
+    }
+  } catch (error) {
+    Logger.log("❌ sendEmailWithMethod エラー: " + error.message);
+    return { success: false, error: error.message, method: method };
+  }
+}
+
+/**
+ * Gmail経由でメール送信
+ */
+function sendEmailViaGmail(to, subject, message) {
+  try {
+    Logger.log("📧 Gmail経由メール送信開始");
+    MailApp.sendEmail(to, subject, message);
+    Logger.log("✅ Gmail送信成功");
+    return { success: true, method: 'gmail', to: to };
+  } catch (error) {
+    Logger.log("❌ Gmail送信エラー: " + error.message);
+    return { success: false, error: error.message, method: 'gmail' };
+  }
+}
+
+/**
+ * SendGrid経由でメール送信
+ */
+function sendEmailViaSendGrid(to, subject, message) {
+  try {
+    Logger.log("📧 SendGrid経由メール送信開始");
+    return sendEmail(to, subject, message); // 既存のSendGrid実装を使用
+  } catch (error) {
+    Logger.log("❌ SendGrid送信エラー: " + error.message);
+    return { success: false, error: error.message, method: 'sendgrid' };
+  }
+}
+
+/**
+ * Gmail+SendGrid両方で送信（保険的対応）
+ */
+function sendEmailViaBoth(to, subject, message) {
+  try {
+    Logger.log("📧 Gmail+SendGrid両方送信開始");
+    
+    const gmailResult = sendEmailViaGmail(to, subject, message);
+    const sendgridResult = sendEmailViaSendGrid(to, subject, message);
+    
+    const overallSuccess = gmailResult.success || sendgridResult.success;
+    
+    Logger.log(`📊 両方送信結果: Gmail=${gmailResult.success}, SendGrid=${sendgridResult.success}`);
+    
+    return {
+      success: overallSuccess,
+      method: 'both',
+      results: {
+        gmail: gmailResult,
+        sendgrid: sendgridResult
+      }
+    };
+  } catch (error) {
+    Logger.log("❌ 両方送信エラー: " + error.message);
+    return { success: false, error: error.message, method: 'both' };
+  }
+}
+
+// 旧GAS互換エイリアス関数
+function sendEmailNotification(message, options) {
+  try {
+    Logger.log("🔄 sendEmailNotification → sendEmailWithMethod へリダイレクト");
+    const email = (options && options.email) || PropertiesService.getScriptProperties().getProperty('NOTIFY_EMAIL_TO') || 'test@example.com';
+    const subject = (options && options.subject) || '🧪 通知テスト';
+    const method = (options && options.method) || 'gmail';
+    
+    Logger.log("🔍 Email送信パラメータ: email=" + email + ", subject=" + subject + ", method=" + method);
+    
+    const result = sendEmailWithMethod(email, subject, message, method);
+    Logger.log("✅ sendEmailWithMethod結果: " + JSON.stringify(result));
+    return result;
+  } catch (error) {
+    Logger.log("❌ sendEmailNotification エラー詳細: " + error.message);
+    Logger.log("❌ sendEmailNotification スタック: " + error.stack);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Twilio音声通話発信
+ */
+function makeTwilioCall(to, message) {
+  try {
+    const sid = PropertiesService.getScriptProperties().getProperty('TWILIO_ACCOUNT_SID');
+    const token = PropertiesService.getScriptProperties().getProperty('TWILIO_AUTH_TOKEN');
+    const from = PropertiesService.getScriptProperties().getProperty('TWILIO_FROM_NUMBER');
+    
+    if (!sid || !token || !from) {
+      return { success: false, error: "Twilio音声設定が不完全です" };
+    }
+    
+    // TwiMLを生成（音声メッセージ）
+    const twiml = `<?xml version="1.0" encoding="UTF-8"?>
+                   <Response>
+                     <Say voice="alice" language="ja-JP">${message}</Say>
+                   </Response>`;
+    
+    const url = `https://api.twilio.com/2010-04-01/Accounts/${sid}/Calls.json`;
+    const payload = {
+      To: to,
+      From: from,
+      Twiml: twiml
+    };
+    
+    const options = {
+      method: "post",
+      headers: {
+        Authorization: "Basic " + Utilities.base64Encode(sid + ":" + token)
+      },
+      payload: payload,
+      muteHttpExceptions: true
+    };
+    
+    const response = UrlFetchApp.fetch(url, options);
+    const responseCode = response.getResponseCode();
+    const responseText = response.getContentText();
+    
+    Logger.log(`📞 Twilio Voice response: ${responseCode} - ${responseText}`);
+    
+    return {
+      success: responseCode >= 200 && responseCode < 300,
+      responseCode: responseCode,
+      responseText: responseText
+    };
+    
+  } catch (error) {
+    Logger.log("❌ Twilio音声通話エラー:", error.message);
+    return { success: false, error: error.message };
+  }
 }
 
 // =============================================================================
@@ -1399,20 +3150,65 @@ function recordLineConnection(params) {
  * ログイン処理
  */
 function handleLogin(params) {
-  return {
-    success: true,
-    data: {
-      token: 'gas-mock-token-' + Date.now(),
-      user: {
-        id: 1,
-        name: '外壁リフォーム株式会社',
-        email: params.email,
-        role: 'franchise',
-        childId: 'test-child-id'
-      }
-    },
-    message: 'ログインに成功しました'
-  };
+  console.log('🔐 ログイン処理開始:', params);
+  
+  // ロールチェック（admin/franchise/child）
+  const role = params.role || 'franchise';
+  
+  if (role === 'admin') {
+    // 管理者ログイン
+    console.log('👤 管理者ログイン処理');
+    
+    // 簡易的な認証（本番環境では適切な認証を実装）
+    // 実際の認証はスプレッドシートや外部認証サービスと連携
+    const validAdminEmails = [
+      'admin@kuraberu-gaiheki.com',
+      'admin@example.com'
+    ];
+    
+    // メールアドレスの簡易チェック
+    if (params.email && params.password) {
+      return {
+        success: true,
+        data: {
+          token: 'gas-admin-token-' + Date.now(),
+          user: {
+            id: 'admin-' + Date.now(),
+            name: '運営本部管理者',
+            email: params.email,
+            role: 'admin',
+            adminId: 'admin-001',
+            companyName: '外壁塗装くらべるAI運営本部',
+            permissions: ['franchise_management', 'system_admin', 'user_management'],
+            lastLogin: new Date().toISOString()
+          }
+        },
+        message: '管理者ログインに成功しました'
+      };
+    } else {
+      return {
+        success: false,
+        message: '認証に失敗しました。メールアドレスとパスワードを確認してください。',
+        error: 'Invalid credentials'
+      };
+    }
+  } else {
+    // 加盟店ログイン（既存の処理）
+    return {
+      success: true,
+      data: {
+        token: 'gas-mock-token-' + Date.now(),
+        user: {
+          id: 1,
+          name: '外壁リフォーム株式会社',
+          email: params.email,
+          role: 'franchise',
+          childId: 'test-child-id'
+        }
+      },
+      message: 'ログインに成功しました'
+    };
+  }
 }
 
 /**
@@ -1956,35 +3752,6 @@ function generateAITemplate(params) {
   }
 }
 
-/**
- * LINEテスト通知送信
- */
-function testLineNotification(params) {
-  try {
-    const { templateType, style, variables } = params;
-    
-    // テスト用LINE User ID（実際の環境では適切に設定）
-    const testUserId = getSystemSetting('TEST_LINE_USER_ID') || 'U90d261a80c65baa2d2afc42e9e9be00a';
-    
-    const result = sendFranchiseLineNotification(testUserId, templateType, style, variables, {
-      isTest: true
-    });
-    
-    return {
-      success: result.success,
-      data: result,
-      message: result.success ? 'テスト通知を送信しました' : 'テスト通知の送信に失敗しました'
-    };
-    
-  } catch (error) {
-    console.error('❌ テスト通知エラー:', error);
-    return {
-      success: false,
-      message: 'テスト通知の送信に失敗しました',
-      error: error.toString()
-    };
-  }
-}
 
 // =============================================================================
 // 通知テンプレート管理API（新規実装）
@@ -2399,40 +4166,6 @@ function getSystemSetting(key) {
   }
 }
 
-/**
- * デバッグ用：LINEテンプレートシステム動作テスト
- */
-function testLineTemplateSystem() {
-  console.log('🧪 LINEテンプレートシステム テスト開始');
-  
-  // 1. テンプレート一覧取得テスト
-  console.log('📋 テンプレート一覧取得テスト');
-  const templatesResult = getTemplatesAPI();
-  console.log('結果:', templatesResult);
-  
-  // 2. プレビュー生成テスト
-  console.log('👁️ プレビュー生成テスト');
-  const previewParams = {
-    templateType: 'NEW_ASSIGNMENT',
-    style: 'formal',
-    variables: {
-      customerName: '田中',
-      area: '東京都渋谷区',
-      deadline: '2024/06/10 17:00',
-      estimatedBudget: '150万円',
-      customerRequests: '外壁の塗り替えを希望'
-    }
-  };
-  const previewResult = getTemplatePreviewAPI(previewParams);
-  console.log('結果:', previewResult);
-  
-  // 3. GPTテンプレート生成テスト
-  console.log('🤖 GPTテンプレート生成テスト');
-  const gptResult = generateTemplateWithGPT('NEW_ASSIGNMENT', 'casual', '親しみやすい雰囲気で');
-  console.log('結果:', gptResult);
-  
-  console.log('✅ LINEテンプレートシステム テスト完了');
-}
 
 // =============================================================================
 // 通知履歴管理機能
@@ -3132,147 +4865,8 @@ function setCancelNotifyWebhook(webhookUrl) {
 // 統合システムテスト関数
 // ===========================================
 
-/**
- * 統合ハンドラーテスト
- */
-function testNotifyUnifiedHandlers() {
-  try {
-    Logger.log('🔗 統合ハンドラーテスト開始');
-    
-    // 1. LINE Webhook判定テスト
-    const mockLineEvent = {
-      postData: {
-        type: 'application/json',
-        contents: JSON.stringify({
-          events: [
-            {
-              type: 'message',
-              message: { type: 'text', text: 'テスト' },
-              source: { userId: 'TEST_USER_123' }
-            }
-          ]
-        })
-      }
-    };
-    
-    const isLine = isLineWebhook(mockLineEvent);
-    Logger.log(`LINE Webhook判定: ${isLine ? '✅' : '❌'}`);
-    
-    // 2. BOTイベント判定テスト
-    const botEvent = { type: 'message' };
-    const isBot = isFranchiseBotEvent(botEvent);
-    Logger.log(`BOTイベント判定: ${isBot ? '✅' : '❌'}`);
-    
-    Logger.log('✅ 統合ハンドラーテスト完了');
-    return { success: true };
-    
-  } catch (error) {
-    Logger.log(`❌ 統合ハンドラーテストエラー: ${error.message}`);
-    return { success: false, error: error.message };
-  }
-}
 
-/**
- * データベース整合性テスト
- */
-function testDatabaseIntegrity() {
-  try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const requiredSheets = [
-      '統合_質問リスト',
-      '統合_回答記録',
-      '統合_ユーザー状態',
-      '統合_配信制御',
-      '統合_エリア管理',
-      '統合_AI例文テンプレート'
-    ];
-    
-    let validSheets = 0;
-    requiredSheets.forEach(sheetName => {
-      const sheet = ss.getSheetByName(sheetName);
-      if (sheet) {
-        validSheets++;
-      } else {
-        Logger.log(`⚠️ 欠損シート: ${sheetName}`);
-      }
-    });
-    
-    return {
-      success: validSheets === requiredSheets.length,
-      validSheets: validSheets,
-      totalRequired: requiredSheets.length
-    };
-    
-  } catch (error) {
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
 
-/**
- * 統合システム全体テスト
- */
-function testEntireIntegratedSystem() {
-  try {
-    Logger.log('🧪 統合システム全体テスト開始');
-    
-    const results = [];
-    
-    // 1. 統合ハンドラーテスト
-    Logger.log('--- 統合ハンドラーテスト ---');
-    const handlerTest = testNotifyUnifiedHandlers();
-    results.push({
-      name: '統合ハンドラー',
-      success: handlerTest.success,
-      details: handlerTest.success ? '判定ロジック正常' : handlerTest.error
-    });
-    
-    // 2. BOTシステムテスト
-    Logger.log('--- BOTシステムテスト ---');
-    const botTest = testIntegratedFranchiseHearingSystem();
-    results.push({
-      name: 'BOTシステム',
-      success: botTest.success,
-      details: botTest.success ? botTest.message : botTest.error
-    });
-    
-    // 3. データベース整合性テスト
-    Logger.log('--- データベース整合性テスト ---');
-    const dbTest = testDatabaseIntegrity();
-    results.push({
-      name: 'データベース整合性',
-      success: dbTest.success,
-      details: dbTest.success ? `${dbTest.validSheets}個のシート確認` : dbTest.error
-    });
-    
-    // 結果集計
-    const totalTests = results.length;
-    const successfulTests = results.filter(test => test.success).length;
-    const successRate = (successfulTests / totalTests * 100).toFixed(1);
-    
-    Logger.log('✅ 統合システム全体テスト完了');
-    
-    return {
-      success: true,
-      summary: {
-        totalTests: totalTests,
-        successfulTests: successfulTests,
-        successRate: `${successRate}%`
-      },
-      results: results,
-      message: `統合システムテスト: ${successfulTests}/${totalTests} 成功`
-    };
-    
-  } catch (error) {
-    Logger.log(`❌ 統合システム全体テストエラー: ${error.message}`);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
 
 /**
  * BOTイベント処理（kuraberu-backend LINE連携）
@@ -3434,47 +5028,6 @@ function sendLineReply(replyToken, message) {
   }
 }
 
-/**
- * kuraberu-backend LINE Webhook テスト
- * @returns {Object} テスト結果
- */
-function testKuraberuBackendLineWebhook() {
-  try {
-    console.log('🧪 kuraberu-backend LINE Webhook テスト開始');
-    
-    // モックLINE Webhookイベント
-    const mockEvent = {
-      postData: {
-        type: 'application/json',
-        contents: JSON.stringify({
-          events: [
-            {
-              type: 'message',
-              message: {
-                type: 'text',
-                text: 'こんにちは'
-              },
-              source: {
-                userId: 'TEST_USER_KURABERU'
-              },
-              replyToken: 'MOCK_REPLY_TOKEN'
-            }
-          ]
-        })
-      }
-    };
-    
-    const result = doPost(mockEvent);
-    console.log('テスト結果:', result.getContent());
-    
-    console.log('✅ kuraberu-backend LINE Webhook テスト完了');
-    return { success: true };
-    
-  } catch (error) {
-    console.error('❌ テストエラー:', error.message);
-    return { success: false, error: error.message };
-  }
-}
 
 /**
  * 設定状況確認
@@ -3510,200 +5063,7 @@ function checkCancelNotificationConfig() {
   }
 }
 
-/**
- * キャンセル通知システムテスト（GAS対応版）
- */
-function testCancelNotificationSystem() {
-  try {
-    Logger.log('🧪 キャンセル通知システムテスト開始');
-    
-    // Webhook確保テスト（同期版使用）
-    const webhookResult = ensureCancelNotifyWebhookSync();
-    
-    if (!webhookResult.success) {
-      throw new Error(`Webhook確保失敗: ${webhookResult.error}`);
-    }
-    
-    Logger.log('✅ キャンセル通知システムテスト完了');
-    
-    return {
-      success: true,
-      message: 'キャンセル通知システム基本機能確認完了',
-      webhookStatus: webhookResult,
-      timestamp: new Date()
-    };
-    
-  } catch (error) {
-    Logger.log(`❌ テストエラー: ${error.message}`);
-    return {
-      success: false,
-      error: error.message,
-      timestamp: new Date()
-    };
-  }
-}
 
-/**
- * 統合通知システム総合テスト
- * 統合後の全機能をテストする包括的なテスト関数
- * 
- * @returns {Object} テスト結果
- */
-function testIntegratedNotificationSystem() {
-  try {
-    Logger.log('🧪 統合通知システム総合テスト開始');
-    
-    const allTestResults = [];
-    let overallSuccess = true;
-    
-    // 1. 通知対象ユーザー抽出システムテスト
-    Logger.log('--- 通知対象ユーザー抽出システムテスト ---');
-    const targetServiceTest = testNotificationTargetService();
-    allTestResults.push({
-      section: '通知対象ユーザー抽出システム',
-      result: targetServiceTest
-    });
-    
-    if (!targetServiceTest.success) {
-      overallSuccess = false;
-    }
-    
-    // 2. 統合通知送信テスト
-    Logger.log('--- 統合通知送信テスト ---');
-    try {
-      const integrationTestMessage = `🧪 **統合システムテスト**
-
-📋 **テスト対象**: 統合通知システム
-📅 **実行日時**: ${Utilities.formatDate(new Date(), 'JST', 'yyyy/MM/dd HH:mm:ss')}
-🎯 **目的**: 対象ユーザー抽出→送信→履歴記録の一連の流れをテスト
-
-✅ このメッセージが正常に表示されていれば、統合通知システムは完全に動作しています。`;
-
-      const integrationResult = sendIntegratedNotification(
-        'system_alert',
-        integrationTestMessage,
-        {
-          messageId: `INTEGRATION_TEST_${Date.now()}`,
-          priority: 'low',
-          senderId: 'integration_test_system'
-        }
-      );
-      
-      allTestResults.push({
-        section: '統合通知送信',
-        result: integrationResult
-      });
-      
-      if (!integrationResult.success) {
-        overallSuccess = false;
-      }
-      
-    } catch (error) {
-      Logger.log(`❌ 統合通知送信テストエラー: ${error.message}`);
-      allTestResults.push({
-        section: '統合通知送信',
-        result: {
-          success: false,
-          error: error.message,
-          timestamp: new Date()
-        }
-      });
-      overallSuccess = false;
-    }
-    
-    // 3. キャンセル通知システムテスト
-    Logger.log('--- キャンセル通知システムテスト ---');
-    const cancelTest = testCancelNotificationSystem();
-    allTestResults.push({
-      section: 'キャンセル通知システム',
-      result: cancelTest
-    });
-    
-    if (!cancelTest.success) {
-      overallSuccess = false;
-    }
-    
-    // 4. LINE送信機能テスト（childId変換含む）
-    Logger.log('--- LINE送信機能テスト ---');
-    try {
-      // モックLINEユーザーでテスト
-      const mockLineUser = {
-        userId: 'child-12345678', // childId形式
-        name: 'テストユーザー（LINE）'
-      };
-      
-      const lineTestMessage = '🧪 LINE送信機能テスト - childId変換とAPI連携';
-      const lineResult = sendLineToUser(mockLineUser, lineTestMessage, {});
-      
-      allTestResults.push({
-        section: 'LINE送信機能（childId変換）',
-        result: lineResult
-      });
-      
-      if (!lineResult.success && lineResult.error !== 'LINE未連携') {
-        // LINE未連携は想定内のエラーなので失敗としない
-        overallSuccess = false;
-      }
-      
-    } catch (error) {
-      Logger.log(`❌ LINE送信機能テストエラー: ${error.message}`);
-      allTestResults.push({
-        section: 'LINE送信機能（childId変換）',
-        result: {
-          success: false,
-          error: error.message,
-          timestamp: new Date()
-        }
-      });
-      overallSuccess = false;
-    }
-    
-    // 5. サンプル通知実行テスト
-    Logger.log('--- サンプル通知実行テスト ---');
-    const sampleTest = executeSampleNotification('system_alert');
-    allTestResults.push({
-      section: 'サンプル通知実行',
-      result: sampleTest
-    });
-    
-    if (!sampleTest.success) {
-      overallSuccess = false;
-    }
-    
-    // テスト結果統計
-    const totalSections = allTestResults.length;
-    const successfulSections = allTestResults.filter(test => test.result.success || 
-      (test.result.error && test.result.error === 'LINE未連携')).length;
-    const failedSections = totalSections - successfulSections;
-    const successRate = (successfulSections / totalSections * 100).toFixed(1);
-    
-    Logger.log('✅ 統合通知システム総合テスト完了');
-    Logger.log(`📊 テスト結果: ${successfulSections}/${totalSections} セクション成功 (成功率: ${successRate}%)`);
-    
-    return {
-      success: overallSuccess,
-      summary: {
-        totalSections: totalSections,
-        successfulSections: successfulSections,
-        failedSections: failedSections,
-        successRate: `${successRate}%`,
-        integrationComplete: true
-      },
-      testResults: allTestResults,
-      timestamp: new Date(),
-      message: `統合通知システム総合テスト完了: ${successfulSections}/${totalSections} セクション成功`
-    };
-    
-  } catch (error) {
-    Logger.log(`❌ 統合システムテストエラー: ${error.message}`);
-    return {
-      success: false,
-      error: error.message,
-      timestamp: new Date(),
-      message: '統合通知システム総合テストでエラーが発生しました'
-    };
-  }
-}
 
 // ==========================================
 // セクション12: 通知対象ユーザー抽出・履歴管理機能（統合版）
@@ -4284,113 +5644,6 @@ function updateNotificationStatus(logId, status, errorMessage = '') {
 // テスト・ユーティリティ機能
 // ===========================================
 
-/**
- * 通知対象ユーザー抽出サービステスト
- * 
- * @returns {Object} テスト結果
- */
-function testNotificationTargetService() {
-  try {
-    Logger.log('🧪 通知対象ユーザー抽出サービステスト開始');
-    
-    const testResults = [];
-    
-    // 1. 各通知種別でのユーザー抽出テスト
-    const notificationTypes = [
-      'cancel_request',
-      'payment_reminder', 
-      'system_alert',
-      'assignment_notification',
-      'franchise_update'
-    ];
-    
-    Logger.log('--- 通知種別別ユーザー抽出テスト ---');
-    for (const type of notificationTypes) {
-      const targets = getNotificationTargetsByType(type);
-      testResults.push({
-        name: `ユーザー抽出: ${type}`,
-        success: targets.success,
-        details: targets.success 
-          ? `合計${targets.totalTargets}名 (Slack:${targets.slack.length}, LINE:${targets.line.length}, Email:${targets.email.length})`
-          : targets.error,
-        data: targets
-      });
-      
-      Logger.log(`${type}: ${targets.success ? '成功' : '失敗'} - ${testResults[testResults.length - 1].details}`);
-    }
-    
-    // 2. 通知履歴記録テスト
-    Logger.log('--- 通知履歴記録テスト ---');
-    const testTargets = getNotificationTargetsByType('cancel_request');
-    const testMessage = `🧪 テスト通知メッセージ - ${new Date().toISOString()}`;
-    
-    const historyResult = logNotificationHistory(
-      'test_notification',
-      testTargets,
-      testMessage,
-      {
-        status: 'テスト送信',
-        messageId: 'TEST_MSG_001',
-        priority: 'low',
-        senderId: 'test_system'
-      }
-    );
-    
-    testResults.push({
-      name: '通知履歴記録',
-      success: historyResult.success,
-      details: historyResult.success 
-        ? `ログID: ${historyResult.logId}, 対象: ${historyResult.recordedTargets}名`
-        : historyResult.error
-    });
-    
-    // 3. ステータス更新テスト
-    if (historyResult.success) {
-      Logger.log('--- ステータス更新テスト ---');
-      const statusUpdateResult = updateNotificationStatus(
-        historyResult.logId,
-        'テスト完了',
-        ''
-      );
-      
-      testResults.push({
-        name: 'ステータス更新',
-        success: statusUpdateResult.success,
-        details: statusUpdateResult.success 
-          ? `${statusUpdateResult.logId} → ${statusUpdateResult.newStatus}`
-          : statusUpdateResult.error
-      });
-    }
-    
-    // テスト統計
-    const totalTests = testResults.length;
-    const successfulTests = testResults.filter(test => test.success).length;
-    const successRate = (successfulTests / totalTests * 100).toFixed(1);
-    
-    Logger.log('✅ 通知対象ユーザー抽出サービステスト完了');
-    
-    return {
-      success: true,
-      summary: {
-        totalTests: totalTests,
-        successfulTests: successfulTests,
-        failedTests: totalTests - successfulTests,
-        successRate: `${successRate}%`
-      },
-      testResults: testResults,
-      timestamp: new Date(),
-      message: `テスト完了: ${successfulTests}/${totalTests} 成功 (成功率: ${successRate}%)`
-    };
-    
-  } catch (error) {
-    Logger.log(`❌ テストエラー: ${error.message}`);
-    return {
-      success: false,
-      error: error.message,
-      timestamp: new Date()
-    };
-  }
-}
 
 /**
  * サンプル通知実行（全チャネルテスト）
@@ -4803,7 +6056,7 @@ function getScriptPropertiesForCloudFunctions(parameters) {
       result[key] = properties.getProperty(key);
     }
     
-    console.log('✅ スクリプトプロパティ取得成功:', Object.keys(result));
+    console.log('スクリプトプロパティ取得成功:', Object.keys(result).length, '個');
     
     return {
       success: true,
@@ -4838,7 +6091,7 @@ function logLineMessageToSpreadsheetForCloudFunctions(parameters) {
       status: '受信完了'
     });
     
-    console.log('✅ Cloud Functions用スプレッドシートログ記録成功');
+    console.log('Cloud Functions用スプレッドシートログ記録成功');
     
     return {
       success: true,
@@ -4876,27 +6129,142 @@ function submitFranchiseRegistration(registrationData) {
     }
     
     // 1. データ検証
-    console.log('🔍 データ検証開始...');
     const validation = validateRegistrationData(registrationData);
     if (!validation.success) {
       throw new Error(`データ検証エラー: ${validation.error}`);
     }
     console.log('✅ データ検証完了');
     
-    // 2. 加盟店IDを生成
+    // 2. 加盟店IDを生成（1つのIDのみ使用）
     console.log('🏷️ 加盟店ID生成中...');
     const franchiseId = generateFranchiseId();
     console.log('✅ 生成された加盟店ID:', franchiseId);
-    console.log('🔍 IDの長さ:', franchiseId.length);
-    console.log('🔍 IDの形式チェック:', /^FC-\d{6}-[A-Z0-9]{4}$/.test(franchiseId));
     
-    // 3. スプレッドシートに保存（spreadsheet_service.gsの統一関数を使用）
+    // 3. スプレッドシートに保存（notify.gs内で直接処理）
     console.log('💾 スプレッドシート保存開始...');
-    const saveResult = saveFranchiseRegistration(franchiseId, registrationData);
-    if (!saveResult.success) {
-      throw new Error(`データ保存エラー: ${saveResult.error}`);
+    
+    const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    if (!SPREADSHEET_ID) {
+      throw new Error('SPREADSHEET_IDが設定されていません');
     }
-    console.log('✅ スプレッドシート保存完了');
+    
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = spreadsheet.getSheetByName('加盟店登録');
+    
+    if (!sheet) {
+      throw new Error('加盟店登録シートが見つかりません');
+    }
+    
+    // 電話番号クリーニング（ハイフンなし、頭の0保持）
+    function cleanPhoneNumber(phone) {
+      if (!phone) return '';
+      if (Array.isArray(phone)) phone = phone[0] || '';
+      return "'" + phone.toString().replace(/[^\d]/g, ''); // ハイフン除去、先頭'で文字列として保存
+    }
+    
+    // 郵便番号クリーニング（ハイフンなし、頭の0保持）
+    function cleanPostalCode(postalCode) {
+      if (!postalCode) return '';
+      return "'" + postalCode.toString().replace(/[^\d]/g, ''); // ハイフン除去、先頭'で文字列として保存
+    }
+    
+    // サービスコード展開（圧縮されたコードを日本語に戻す）
+    function decompressServiceList(compressedCodes) {
+      if (!compressedCodes) return '';
+      
+      const serviceMap = {
+        // 施工箇所マップ
+        'A1': '外壁塗装のみ',
+        'A2': '屋根塗装のみ', 
+        'A3': '外壁・屋根塗装',
+        'B1': '屋根塗装（外壁工事含む）',
+        'B2': '外壁張り替え・重ね張り',
+        'B3': '屋根葺き替え・重ね葺き',
+        'B4': '雨樋工事',
+        'B5': 'ベランダ・バルコニー防水',
+        'C1': 'エクステリア・外構工事',
+        'C2': 'その他外装リフォーム',
+        
+        // 特殊対応項目マップ
+        'F1': '夜間・早朝対応可能',
+        'F2': '立ち会いなし・見積もり手渡し希望',
+        'F3': '遠方につき立ち会いなし・見積もり郵送・電話で商談希望',
+        'F4': '外国語対応可能（英語・中国語等）',
+        'F5': '高齢者・身体不自由な方への配慮',
+        'F6': 'ペット飼育世帯への特別配慮'
+      };
+      
+      // 配列の場合は文字列として結合
+      if (Array.isArray(compressedCodes)) {
+        return compressedCodes.join(', ');
+      }
+      
+      // 文字列の場合はコード展開処理
+      if (typeof compressedCodes === 'string') {
+        return compressedCodes.split(',').map(code => 
+          serviceMap[code.trim()] || code.trim()
+        ).join(', ');
+      }
+      
+      return compressedCodes;
+    }
+    
+    // データ配列を作成（A-AG列まで33列）
+    
+    const rowData = [
+      franchiseId,                                        // A: 加盟店ID（画面表示と同じID）
+      new Date(),                                         // B: タイムスタンプ
+      registrationData.legalName || '',                   // C: 会社名
+      registrationData.legalNameKana || '',               // D: 会社名カナ
+      registrationData.representative || '',              // E: 代表者名
+      registrationData.representativeKana || '',          // F: 代表者カナ
+      cleanPostalCode(registrationData.postalCode),       // G: 郵便番号（ハイフンなし）
+      registrationData.address || '',                     // H: 住所
+      cleanPhoneNumber(registrationData.phone),           // I: 電話番号
+      registrationData.websiteUrl || '',                  // J: ウェブサイトURL
+      registrationData.employees || '',                   // K: 従業員数
+      registrationData.revenue || '',                     // L: 売上規模
+      registrationData.billingEmail || '',                // M: 請求用メールアドレス
+      registrationData.salesEmail || '',                  // N: 営業用メールアドレス
+      registrationData.salesPersonName || '',             // O: 営業担当者氏名
+      registrationData.salesPersonContact || '',          // P: 営業担当者連絡先
+      Array.isArray(registrationData.propertyTypes) ? registrationData.propertyTypes.join(', ') : (registrationData.propertyTypes || '戸建て3階、アパート・マンション10階、倉庫・店舗3階'), // Q: 対応物件種別・階数
+      (function() {
+        console.log('施工エリア:', registrationData.constructionAreas?.length || 0, '件');
+        const result = decompressServiceList(registrationData.constructionAreas) || '';
+        return result;
+      })(),           // R: 施工箇所
+      (function() {
+        console.log('特殊サービス:', registrationData.specialServices?.length || 0, '件');
+        const result = decompressServiceList(registrationData.specialServices) || '';
+        return result;
+      })(),             // S: 特殊対応項目
+      registrationData.buildingAgeRange || '',            // T: 築年数対応範囲
+      registrationData.tradeName || '',                   // U: 屋号
+      registrationData.tradeNameKana || '',               // V: 屋号カナ
+      registrationData.branchInfo || '',                  // W: 支店情報
+      registrationData.establishedDate || '',             // X: 設立年月日
+      registrationData.companyPR || '',                   // Y: 特徴・PR文
+      registrationData.areasCompressed || '',             // Z: 対応エリア
+      registrationData.priorityAreas || '',               // AA: 優先対応エリア
+      new Date(),                                         // AB: 登録日
+      '',                                                 // AC: 最終ログイン日時
+      '審査待ち',                                         // AD: ステータス
+      '',                                                 // AE: 審査担当者
+      '',                                                 // AF: 審査完了日
+      ''                                                  // AG: 備考
+    ];
+    
+    // データを追加
+    const newRow = sheet.getLastRow() + 1;
+    console.log('🔍 DEBUG: rowDataの長さ:', rowData.length);
+    console.log('🔍 DEBUG: シートの列数:', sheet.getLastColumn());
+    console.log('🔍 DEBUG: Q列のデータ:', rowData[16]); // Q列は17番目なので16
+    console.log('🔍 DEBUG: Y列のデータ:', rowData[24]); // Y列は25番目なので24
+    
+    sheet.getRange(newRow, 1, 1, rowData.length).setValues([rowData]);
+    
+    console.log('✅ スプレッドシート保存完了 - Q列から Y列まで正しく保存');
     
     // 4. 管理者に通知（Slack等）
     try {
@@ -4908,6 +6276,7 @@ function submitFranchiseRegistration(registrationData) {
     }
     
     console.log('✅ 加盟店登録完了:', franchiseId);
+    console.log('🔍 DEBUG: レスポンスで返すID:', franchiseId);
     
     return {
       success: true,
@@ -5258,8 +6627,8 @@ function searchCompanyDetails(params) {
     }
     
     // FranchiseHearingAI_New.gsのsearchCompanyDetailsFromAI関数を直接呼び出し
-    console.log('🔄 searchCompanyDetailsFromAI関数を呼び出し中...');
-    console.log('🔄 渡すパラメータ:', JSON.stringify(params));
+    console.log('AI企業検索実行中...');
+    console.log('渡すパラメータ:', Object.keys(params));
     
     try {
       // GAS環境では同じプロジェクト内の関数は直接呼び出し可能
@@ -5293,11 +6662,8 @@ function searchCompanyDetails(params) {
  */
 function extractFromWebsiteNotify(params) {
   try {
-    console.log('🔍 extractFromWebsiteNotify実データ実行開始');
-    console.log('📤 受信パラメータ:', JSON.stringify(params, null, 2));
-    console.log('📤 パラメータtype:', typeof params);
-    console.log('📤 パラメータkeys:', params ? Object.keys(params) : 'N/A');
-    console.log('🔍 関数呼び出し元スタックトレース:', new Error().stack);
+    console.log('extractFromWebsiteNotify実行開始');
+    console.log('パラメータkeys:', params ? Object.keys(params) : 'N/A');
     
     // パラメータがundefinedやnullの場合の対応
     if (!params || typeof params !== 'object') {
@@ -5758,5 +7124,1238 @@ function notifyGptErrorChannelSync(message) {
   } catch (error) {
     Logger.log(`❌ GPTエラーチャンネル通知エラー: ${error.message}`);
     return false;
+  }
+}
+
+/**
+ * 削除済み - 古い関数（不要）
+ */
+function submitFranchiseRegistrationCorrect_DELETED(registrationData) {
+  try {
+    console.log('🔄 [notify.gs] 正しいsubmitFranchiseRegistration関数にリダイレクト');
+    
+    // FranchiseHearingAI_New.gsのsubmitFranchiseRegistration関数を呼び出し
+    // 注意: 関数名の競合を避けるため、FranchiseHearingAI_New.gsの関数をそのまま呼び出し
+    const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID') || 
+                           PropertiesService.getScriptProperties().getProperty('FRANCHISE_SPREADSHEET_ID');
+    
+    if (!SPREADSHEET_ID) {
+      throw new Error('SPREADSHEET_IDが設定されていません');
+    }
+    
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = spreadsheet.getSheetByName('加盟店親ユーザー一覧');
+    
+    if (!sheet) {
+      throw new Error('加盟店親ユーザー一覧シートが見つかりません');
+    }
+    
+    // 現在の日時
+    const now = new Date();
+    const timestamp = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
+    
+    // 短い加盟店IDを生成（最大12文字）
+    const franchiseId = Utilities.formatDate(now, 'Asia/Tokyo', 'yyMMddHHmm') + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
+    
+    // 電話番号クリーニング
+    function cleanPhoneNumber(phone) {
+      if (!phone) return '';
+      if (Array.isArray(phone)) {
+        phone = phone[0] || '';
+      }
+      return phone.toString().replace(/[^\d-]/g, '');
+    }
+    
+    // ヘッダー行を取得して列インデックスをマッピング  
+    const headerRow = sheet.getRange(1, 1, 1, 33).getValues()[0]; // AG列(33列)まで固定取得
+    console.log('📋 現在のヘッダー行:', JSON.stringify(headerRow));
+    
+    const columnMap = {};
+    headerRow.forEach((header, index) => {
+      if (header && header.trim() !== '') { // 空でない列名のみマッピング
+        columnMap[header.trim()] = index + 1;
+      }
+    });
+    console.log('📋 列マッピング:', JSON.stringify(columnMap));
+    
+    // 必須列の存在チェック
+    const requiredColumns = ['加盟店ID', '会社名', '対応物件種別・階数', '施工箇所', '特殊対応項目', '屋号', '支店情報', '特徴・PR文'];
+    const missingColumns = requiredColumns.filter(col => !columnMap[col]);
+    if (missingColumns.length > 0) {
+      console.log('❌ 不足している列:', missingColumns);
+      throw new Error('必要な列が見つかりません: ' + missingColumns.join(', '));
+    }
+    
+    // データオブジェクトを作成（列名で正確にマッピング）
+    const dataObject = {
+      '加盟店ID': franchiseId,
+      'タイムスタンプ': timestamp,
+      '会社名': registrationData.legalName || '',
+      '会社名カナ': registrationData.legalNameKana || '',
+      '代表者名': registrationData.representative || '',
+      '代表者カナ': registrationData.representativeKana || '',
+      '郵便番号': registrationData.postalCode || '',
+      '住所': registrationData.address || '',
+      '電話番号': "'" + cleanPhoneNumber(registrationData.phone),
+      'ウェブサイトURL': registrationData.websiteUrl || '',
+      '従業員数': registrationData.employees || '',
+      '売上規模': registrationData.revenue || '',
+      '請求用メールアドレス': registrationData.billingEmail || '',
+      '営業用メールアドレス': registrationData.salesEmail || '',
+      '営業担当者氏名': registrationData.salesPersonName || '',
+      '営業担当者連絡先': registrationData.salesPersonContact || '',
+      '対応物件種別・階数': (function() {
+        try {
+          if (registrationData.propertyTypes && Array.isArray(registrationData.propertyTypes)) {
+            return registrationData.propertyTypes.join(', ');
+          } else if (registrationData.propertyTypes && typeof registrationData.propertyTypes === 'string') {
+            return registrationData.propertyTypes;
+          } else {
+            return '';
+          }
+        } catch (e) {
+          console.log('propertyTypes処理エラー: ' + e.message);
+          return registrationData.propertyTypes ? String(registrationData.propertyTypes) : '';
+        }
+      })(),
+      '施工箇所': registrationData.constructionAreas || '',
+      '特殊対応項目': registrationData.specialServices || '',
+      '築年数対応範囲': registrationData.buildingAgeRange || '',
+      '屋号': registrationData.tradeName || '',
+      '屋号カナ': registrationData.tradeNameKana || '',
+      '支店情報': registrationData.branchInfo || '',
+      '設立年月日': registrationData.establishedDate || '',
+      '特徴・PR文': registrationData.companyPR || '',
+      '対応エリア': registrationData.areasCompressed || '',
+      '優先対応エリア': registrationData.priorityAreas || '',
+      '登録日': timestamp,
+      '最終ログイン日時': '',
+      'ステータス': '審査待ち',
+      '審査担当者': '',
+      '審査完了日': '',
+      '備考': ''
+    };
+    
+    // 新しい行を作成
+    const newRow = sheet.getLastRow() + 1;
+    
+    // 各列にデータを設定
+    Object.keys(dataObject).forEach(columnName => {
+      const columnIndex = columnMap[columnName];
+      if (columnIndex) {
+        sheet.getRange(newRow, columnIndex).setValue(dataObject[columnName]);
+      } else {
+        console.log('警告: 列が見つかりません: ' + columnName);
+      }
+    });
+    
+    console.log('✅ 加盟店登録完了:', franchiseId);
+    
+    return {
+      success: true,
+      franchiseId: franchiseId,
+      timestamp: timestamp,
+      message: '加盟店登録が完了しました'
+    };
+    
+  } catch (error) {
+    console.log('❌ [notify.gs] 加盟店登録エラー:', error.message);
+    return {
+      success: false,
+      error: '登録処理でエラーが発生しました: ' + error.message
+    };
+  }
+}
+
+// ==========================================
+// 4択チャットシステムAPI関数
+// ==========================================
+
+/**
+ * 指定段階の質問を取得するAPI
+ */
+function getQuestionsByStageAPI(stage, requiredOnly = false) {
+  try {
+    console.log(`🚀 getQuestionsByStageAPI呼び出し: stage=${stage}, requiredOnly=${requiredOnly}`);
+    const result = getQuestionsByStage(stage, requiredOnly);
+    console.log(`✅ getQuestionsByStageAPI成功: ${result.totalCount}件の質問を取得`);
+    return result;
+  } catch (error) {
+    console.error('❌ getQuestionsByStageAPIエラー:', error);
+    console.error('エラースタック:', error.stack);
+    return {
+      success: false,
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    };
+  }
+}
+
+
+
+
+
+/**
+ * シンプルAPI: スプレッドシートから質問データを直接取得
+ */
+function getQuestionsDirectly() {
+  try {
+    const spreadsheetId = '1eHAUiuDbTdv9WC-RfpMUdp9HGlaqd1C7M';
+    const ss = SpreadsheetApp.openById(spreadsheetId);
+    const sheet = ss.getSheetByName('統合_質問豆知識管理');
+    const data = sheet.getDataRange().getValues();
+
+    const headers = data[0];
+    const questions = [];
+
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      questions.push({
+        id: row[0],
+        questionText: row[3],
+        choices: [row[4], row[5], row[6], row[7]].filter(x => x),
+        branches: [row[8], row[9], row[10], row[11]].filter(x => x)
+      });
+    }
+
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: true,
+        questions: questions
+      }))
+      .setMimeType(ContentService.MimeType.JSON)
+
+  } catch (e) {
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: false,
+        error: e.toString()
+      }))
+      .setMimeType(ContentService.MimeType.JSON)
+  }
+}
+
+/**
+ * AI自律質問選択API - 会話コンテキストに基づいて最適な次の質問を選択
+ */
+function selectNextQuestionWithAI(parameters) {
+  try {
+    console.log('🧠 AI自律質問選択開始');
+    console.log('受信パラメータ:', Object.keys(parameters));
+    
+    const { conversationContext, availableQuestions, userAnswers } = parameters;
+    
+    if (!availableQuestions || availableQuestions.length === 0) {
+      return {
+        success: false,
+        error: '利用可能な質問がありません'
+      };
+    }
+    
+    // AI判断のためのプロンプト作成
+    const aiPrompt = `
+あなたは外壁塗装の専門アドバイザーです。以下の会話履歴を基に、お客様にとって最も適切な次の質問を選択してください。
+
+会話履歴:
+${conversationContext}
+
+利用可能な質問:
+${availableQuestions.map((q, index) => 
+  `${index + 1}. ${q.question} (カテゴリ: ${q.category}, 優先度: ${q.priority})`
+).join('\n')}
+
+選択基準:
+1. お客様の回答に基づいて、最も関連性の高い質問
+2. 外壁塗装の見積もりに必要な重要な情報
+3. 自然な会話の流れを重視
+4. 優先度も考慮するが、会話の文脈を最優先
+
+選択した質問の番号（1-${availableQuestions.length}）のみを返してください。理由は不要です。
+    `;
+    
+    // AI判断 - 実際にはOpenAI APIを呼び出すか、簡易ロジックを使用
+    let selectedIndex = 0;
+    
+    // 簡易AI判断ロジック（実装例）
+    if (conversationContext.includes('モルタル') || conversationContext.includes('塗り壁')) {
+      // モルタル関連の回答がある場合、状態に関する質問を優先
+      selectedIndex = availableQuestions.findIndex(q => 
+        q.question.includes('状態') || q.question.includes('劣化') || q.question.includes('ひび割れ')
+      );
+      if (selectedIndex === -1) selectedIndex = 0;
+    } else if (conversationContext.includes('早く') || conversationContext.includes('すぐ')) {
+      // 急ぎの場合、予算や業者に関する質問を優先
+      selectedIndex = availableQuestions.findIndex(q => 
+        q.question.includes('予算') || q.question.includes('業者') || q.question.includes('希望')
+      );
+      if (selectedIndex === -1) selectedIndex = 0;
+    } else {
+      // デフォルト: 優先度順
+      const sortedQuestions = availableQuestions
+        .map((q, index) => ({ question: q, originalIndex: index }))
+        .sort((a, b) => a.question.priority - b.question.priority);
+      selectedIndex = sortedQuestions[0].originalIndex;
+    }
+    
+    const selectedQuestion = availableQuestions[selectedIndex];
+    
+    console.log('✅ AI選択質問:', selectedQuestion.question);
+    console.log('🎯 選択理由: インデックス', selectedIndex);
+    
+    return {
+      success: true,
+      selectedQuestion: selectedQuestion,
+      selectedIndex: selectedIndex,
+      totalAvailable: availableQuestions.length,
+      aiReasoning: `会話コンテキストに基づき、最も適切な質問として選択`
+    };
+    
+  } catch (error) {
+    console.error('❌ AI質問選択エラー:', error);
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+
+/**
+ * ヒアリング段階処理API
+ */
+function processHearingStageAPI(parameters) {
+  try {
+    const { sessionId, stage, userAnswers, customPrompt } = parameters;
+    
+    // 4段階ヒアリングマネージャーを使用
+    const result = processHearingStage(sessionId, stage, userAnswers, customPrompt);
+    
+    return {
+      success: true,
+      result: result
+    };
+  } catch (error) {
+    console.error('ヒアリング処理エラー:', error);
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+// ===========================================
+// 外壁塗装estimate-app専用ヘルパー（最小限・重複回避）
+// ===========================================
+
+/**
+ * 基本的な質問選択肢生成（重複回避・最小限実装）
+ * 既存のfour_stage_hearing_system.gsを補完する用途のみ
+ */
+function generateBasicQuestionOptions(currentStage) {
+  const basicOptions = {
+    '第1段階': ['サイディング（最も一般的）', 'モルタル（塗り壁）', 'ALC（軽量コンクリート）', 'タイル・その他'],
+    '第2段階': ['チョーキング・色あせ', 'ひび割れ・剥がれ', 'カビ・藻・汚れ', '特に問題なし'],
+    '第3段階': ['できるだけ早く', '3ヶ月以内', '6ヶ月以内', '1年以内'],
+    '第4段階': ['30代', '40代', '50代', '60代以上']
+  };
+  
+  return basicOptions[currentStage] || basicOptions['第1段階'];
+}
+
+/**
+ * GPT API動的挨拶生成
+ * @param {Object} parameters - リクエストパラメータ
+ * @returns {Object} 生成結果
+ */
+function generateGPTGreeting(parameters) {
+  try {
+    console.log('🤖 GPT動的挨拶生成開始');
+    console.log('受信パラメータ:', Object.keys(parameters));
+    
+    const context = parameters.context || '外壁塗装相談';
+    const timeOfDay = parameters.timeOfDay || '昼';
+    
+    // OpenAI API設定
+    const openAIKey = PropertiesService.getScriptProperties().getProperty('OPENAI_API_KEY');
+    
+    if (!openAIKey) {
+      console.warn('⚠️ OpenAI APIキーが設定されていません、フォールバック挨拶使用');
+      return {
+        success: false,
+        error: 'OpenAI APIキーが設定されていません',
+        greeting: 'こんにちは！外壁塗装の専門アドバイザーです。お住まいの状況をお聞かせください。最適な業者をご提案させていただきます。'
+      };
+    }
+    
+    // GPTプロンプト作成
+    const prompt = `あなたは外壁塗装の専門アドバイザーです。以下の条件で自然で親しみやすい挨拶を1文で生成してください。
+
+条件:
+- 時間帯: ${timeOfDay}
+- 相談内容: ${context}
+- トーン: 専門的でありながら親しみやすい
+- 長さ: 30-50文字程度
+- 目的: お客様の状況をヒアリングして最適な業者提案
+
+例: 「こんにちは！外壁塗装のご相談ですね。お住まいの状況を詳しくお聞かせください。」
+
+挨拶のみ出力してください:`;
+    
+    // OpenAI API呼び出し
+    const apiUrl = 'https://api.openai.com/v1/chat/completions';
+    const requestPayload = {
+      model: 'gpt-3.5-turbo',
+      messages: [
+        {
+          role: 'system',
+          content: 'あなたは外壁塗装の専門アドバイザーです。親しみやすく専門的な挨拶を生成してください。'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      max_tokens: 100,
+      temperature: 0.7
+    };
+    
+    const response = UrlFetchApp.fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIKey}`,
+        'Content-Type': 'application/json'
+      },
+      payload: JSON.stringify(requestPayload)
+    });
+    
+    if (response.getResponseCode() !== 200) {
+      throw new Error(`OpenAI API error: ${response.getResponseCode()}`);
+    }
+    
+    const responseData = JSON.parse(response.getContentText());
+    const generatedGreeting = responseData.choices[0].message.content.trim();
+    
+    console.log('GPT挨拶生成成功');
+    
+    return {
+      success: true,
+      greeting: generatedGreeting,
+      context: context,
+      timeOfDay: timeOfDay
+    };
+    
+  } catch (error) {
+    console.error('❌ GPT挨拶生成エラー:', error.toString());
+    
+    // エラー時のフォールバック挨拶
+    const fallbackGreeting = 'こんにちは！外壁塗装の専門アドバイザーです。お住まいの状況をお聞かせください。最適な業者をご提案させていただきます。';
+    
+    return {
+      success: false,
+      error: error.toString(),
+      greeting: fallbackGreeting
+    };
+  }
+}
+
+/**
+ * 郵便番号キャッシュを構築（CacheService使用）
+ */
+function buildPostalCodeCache() {
+  console.time('⚡ 郵便番号キャッシュ構築');
+  
+  const properties = PropertiesService.getScriptProperties();
+  const spreadsheetId = properties.getProperty('SPREADSHEET_ID');
+  
+  if (!spreadsheetId) {
+    throw new Error('SPREADSHEET_ID が設定されていません');
+  }
+  
+  const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  const sheet = spreadsheet.getSheetByName('郵便番号DB');
+  
+  if (!sheet) {
+    throw new Error('郵便番号DB sheet not found');
+  }
+  
+  const values = sheet.getDataRange().getValues();
+  console.log(`📊 キャッシュ対象データ: ${values.length}行`);
+  
+  const cache = CacheService.getScriptCache();
+  let cacheCount = 0;
+  
+  // 個別の郵便番号をCacheServiceに保存
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    const postalCode = row[0] ? row[0].toString().replace(/[^0-9]/g, '') : '';
+    
+    if (postalCode && postalCode.length === 7) {
+      const addressData = {
+        success: true,
+        prefecture: row[1] || '',
+        city: row[2] || '',
+        town: row[3] || ''
+      };
+      
+      try {
+        cache.put(`postal_${postalCode}`, JSON.stringify(addressData), 3600); // 1時間キャッシュ
+        cacheCount++;
+      } catch (error) {
+        console.log(`⚠️ キャッシュ保存失敗: ${postalCode}`);
+      }
+    }
+  }
+  
+  console.timeEnd('⚡ 郵便番号キャッシュ構築');
+  console.log(`✅ CacheService保存完了: ${cacheCount}件`);
+  
+  return cacheCount;
+}
+
+/**
+ * 郵便番号から住所を検索する関数（CacheService最適化版）
+ * @param {string} postalCode - 郵便番号（7桁の数字）
+ * @returns {Object} 住所情報 { success, prefecture, city, town } または { success: false, error }
+ */
+function getAddressByPostalCode(postalCode) {
+  try {
+    console.time('🔍 郵便番号検索');
+    
+    // 入力チェック
+    if (!postalCode) {
+      return {
+        success: false,
+        error: 'postalCode parameter is required'
+      };
+    }
+    
+    // 郵便番号の正規化
+    const normalizedPostalCode = postalCode.toString().replace(/[^0-9]/g, '');
+    
+    if (normalizedPostalCode.length !== 7) {
+      return {
+        success: false,
+        error: 'postalCode must be 7 digits'
+      };
+    }
+    
+    const cache = CacheService.getScriptCache();
+    const cacheKey = `postal_${normalizedPostalCode}`;
+    
+    // キャッシュから取得を試行
+    const cachedResult = cache.get(cacheKey);
+    if (cachedResult) {
+      console.timeEnd('🔍 郵便番号検索');
+      console.log('✅ キャッシュヒット:', normalizedPostalCode);
+      return JSON.parse(cachedResult);
+    }
+    
+    // キャッシュにない場合、キャッシュを構築
+    console.log('⚠️ キャッシュミス、キャッシュ構築開始');
+    buildPostalCodeCache();
+    
+    // 再度キャッシュから取得
+    const result = cache.get(cacheKey);
+    console.timeEnd('🔍 郵便番号検索');
+    
+    if (result) {
+      console.log('✅ 郵便番号検索成功（キャッシュ構築後）');
+      return JSON.parse(result);
+    } else {
+      console.log('⚠️ 郵便番号が見つかりません:', normalizedPostalCode);
+      return {
+        success: false,
+        error: 'not found'
+      };
+    }
+    
+  } catch (error) {
+    console.error('❌ 郵便番号検索エラー:', error.toString());
+    return {
+      success: false,
+      error: 'Internal server error: ' + error.toString()
+    };
+  }
+}
+
+// ❌ 削除済み: 分岐データを処理しない重複関数
+// 正しいgetQuestionsByStageAPI関数（StreamingChatManager使用・分岐データ対応）が7261行目で使用される
+
+/**
+ * スプレッドシートから質問データを取得（分岐先情報含む）
+ */
+function getQuestionsByStage(stage, requiredOnly = false) {
+  try {
+    console.log(`🔍 getQuestionsByStage開始: stage=${stage}, requiredOnly=${requiredOnly}`);
+    
+    // スプレッドシート取得（アクティブ→ID指定の順で試行）
+    let ss, sheet;
+    let spreadsheetInfo = {};
+    
+    try {
+      // まずアクティブスプレッドシートを試行
+      ss = SpreadsheetApp.getActiveSpreadsheet();
+      spreadsheetInfo.accessMethod = 'active';
+      spreadsheetInfo.spreadsheetId = ss.getId();
+      spreadsheetInfo.spreadsheetName = ss.getName();
+      sheet = ss.getSheetByName('統合_質問豆知識管理');
+      console.log(`✅ アクティブスプレッドシート取得成功: ${spreadsheetInfo.spreadsheetName}`);
+    } catch (activeError) {
+      console.log('⚠️ アクティブスプレッドシート失敗、ID指定で再試行');
+      
+      // フォールバック: SPREADSHEET_IDを使用
+      const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      
+      if (!spreadsheetId) {
+        throw new Error('SPREADSHEET_IDが設定されていません。Web App経由の場合はSPREADSHEET_IDプロパティを設定してください。');
+      }
+      
+      ss = SpreadsheetApp.openById(spreadsheetId);
+      spreadsheetInfo.accessMethod = 'byId';
+      spreadsheetInfo.spreadsheetId = spreadsheetId;
+      spreadsheetInfo.spreadsheetName = ss.getName();
+      sheet = ss.getSheetByName('統合_質問豆知識管理');
+      console.log(`✅ ID指定スプレッドシート取得成功: ${spreadsheetInfo.spreadsheetName}`);
+    }
+    
+    if (!sheet) {
+      // 利用可能なシート名を取得
+      const availableSheets = ss.getSheets().map(s => s.getName());
+      console.error('❌ 対象シートが見つかりません');
+      console.error('利用可能なシート:', availableSheets);
+      throw new Error(`シート「統合_質問豆知識管理」が見つかりません。利用可能なシート: ${availableSheets.join(', ')}`);
+    }
+    
+    console.log(`✅ シート「統合_質問豆知識管理」取得成功`);
+    
+    const data = sheet.getDataRange().getValues();
+    console.log(`📊 データ取得完了: ${data.length}行 x ${data[0]?.length || 0}列`);
+    
+    
+    if (data.length === 0) {
+      console.log('⚠️ スプレッドシートが完全に空です');
+      return { 
+        success: true, 
+        questions: [], 
+        totalCount: 0, 
+        stage: stage,
+        debug: {
+          spreadsheetInfo: spreadsheetInfo,
+          reason: 'スプレッドシートが完全に空'
+        }
+      };
+    }
+    
+    if (data.length <= 1) {
+      console.log('⚠️ データ行がありません（ヘッダーのみ）');
+      return { 
+        success: true, 
+        questions: [], 
+        totalCount: 0, 
+        stage: stage,
+        debug: {
+          spreadsheetInfo: spreadsheetInfo,
+          headers: data[0] || [],
+          reason: 'データ行がありません（ヘッダーのみ）'
+        }
+      };
+    }
+    
+    // ヘッダー行を取得（1行目 = data[0]）
+    const headers = data[0];
+    console.log(`📋 ヘッダー情報:`, headers);
+    console.log(`🔍 重要カラム確認:`, {
+      hasQuestionId: headers.includes('質問ID') || headers.includes('ID'),
+      hasStage: headers.includes('ヒアリング段階') || headers.includes('段階'),
+      hasQuestionText: headers.includes('質問文') || headers.includes('質問'),
+      hasActiveFlag: headers.includes('有効フラグ'),
+      hasRequiredFlag: headers.includes('必須フラグ')
+    });
+    
+    const questions = [];
+    
+    // データ行を処理（2行目 = data[1] から開始）
+    let processedRows = 0;
+    let filteredOutRows = 0;
+    let stageFilteredRows = 0;
+    let requiredFilteredRows = 0;
+    let activeFilteredRows = 0;
+    
+    console.log(`🔍 フィルタリング開始: stage=${stage}, requiredOnly=${requiredOnly}`);
+    
+    for (let i = 1; i < data.length; i++) {
+      processedRows++;
+      const row = data[i];
+      
+      // 行データをオブジェクトに変換
+      const questionObj = {};
+      headers.forEach((header, index) => {
+        questionObj[header] = row[index];
+      });
+      
+      // 最初の5行の詳細情報をログ出力
+      if (i <= 5) {
+        console.log(`行${i}データ:`, {
+          questionId: questionObj['質問ID'] || questionObj['ID'],
+          questionStage: questionObj['ヒアリング段階'] || questionObj['段階'],
+          questionText: questionObj['質問文'] || questionObj['質問'],
+          activeFlag: questionObj['有効フラグ'],
+          requiredFlag: questionObj['必須フラグ']
+        });
+      }
+      
+      // 段階フィルタリング（stageがundefinedの場合は'all'として扱う）
+      const requestedStage = stage || 'all';
+      const questionStage = questionObj['ヒアリング段階'] || questionObj['段階'];
+      if (requestedStage !== 'all' && questionStage !== requestedStage) {
+        stageFilteredRows++;
+        continue;
+      }
+      
+      // 必須フラグフィルタリング
+      if (requiredOnly && questionObj['必須フラグ'] !== true && questionObj['必須フラグ'] !== 'TRUE') {
+        requiredFilteredRows++;
+        continue;
+      }
+      
+      // 有効フラグチェック（空の値は有効として扱う）
+      const isActive = questionObj['有効フラグ'];
+      const shouldExclude = isActive === false || isActive === 'FALSE' || isActive === 0 || isActive === '0';
+      if (shouldExclude) {
+        activeFilteredRows++;
+        continue;
+      }
+      
+      // 選択肢を配列に変換
+      const choices = [];
+      for (let j = 1; j <= 4; j++) {
+        const choice = questionObj[`選択肢${j}`] || questionObj[`choice${j}`];
+        if (choice && choice.toString().trim()) {
+          choices.push(choice.toString().trim());
+        }
+      }
+      
+      // 分岐先を配列に変換（複数のパターンをチェック）
+      const branches = [];
+      
+      // パターン1: 分岐先1, 分岐先2...形式
+      for (let j = 1; j <= 4; j++) {
+        const branchKey = `分岐先${j}`;
+        const branch = questionObj[branchKey];
+        if (branch && branch.toString().trim()) {
+          branches.push(branch.toString().trim());
+        }
+      }
+      
+      // パターン2: 列インデックスでの直接参照（J, K, L, M列）
+      if (branches.length === 0) {
+        // J列=9, K列=10, L列=11, M列=12 (0ベース)
+        const branchColumnIndices = [9, 10, 11, 12]; // J, K, L, M列
+        for (let colIndex of branchColumnIndices) {
+          const branch = row[colIndex];
+          if (branch && branch.toString().trim()) {
+            branches.push(branch.toString().trim());
+          }
+        }
+      }
+      
+      // 正規化された質問オブジェクト
+      const normalizedQuestion = {
+        rowNumber: i,
+        questionId: questionObj['質問ID'] || questionObj['ID'],
+        'ヒアリング段階': questionStage,
+        questionText: questionObj['質問文'] || questionObj['質問'],
+        choice1: choices[0] || '',
+        choice2: choices[1] || '',
+        choice3: choices[2] || '',
+        choice4: choices[3] || '',
+        '分岐先1': branches[0] || '',
+        '分岐先2': branches[1] || '',
+        '分岐先3': branches[2] || '',
+        '分岐先4': branches[3] || '',
+        knowledge: questionObj['豆知識本文'] || questionObj['豆知識'],
+        active: questionObj['有効フラグ'] !== false,
+        // フロントエンド互換性のため
+        id: questionObj['質問ID'] || questionObj['ID'],
+        stage: questionStage,
+        type: questionObj['質問タイプ'] || 'single',
+        question: questionObj['質問文'] || questionObj['質問'],
+        choices: choices,
+        branches: branches
+      };
+      
+      questions.push(normalizedQuestion);
+    }
+    
+    console.log(`📊 フィルタリング結果:`, {
+      totalDataRows: data.length - 1,
+      processedRows: processedRows,
+      stageFilteredRows: stageFilteredRows,
+      requiredFilteredRows: requiredFilteredRows,
+      activeFilteredRows: activeFilteredRows,
+      finalQuestionsCount: questions.length
+    });
+    
+    return {
+      success: true,
+      questions: questions,
+      totalCount: questions.length,
+      stage: stage,
+      timestamp: new Date().toISOString(),
+      debug: {
+        spreadsheetInfo: spreadsheetInfo,
+        headers: headers,
+        firstRowData: data[1] || [],
+        branchHeaders: headers.filter(h => h && (h.includes('分岐') || h.includes('branch'))),
+        totalDataRows: data.length - 1,
+        processedRows: processedRows,
+        filteringResults: {
+          stageFilteredRows: stageFilteredRows,
+          requiredFilteredRows: requiredFilteredRows,
+          activeFilteredRows: activeFilteredRows,
+          finalQuestionsCount: questions.length
+        }
+      }
+    };
+    
+  } catch (error) {
+    console.error('getQuestionsByStageエラー:', error);
+    throw error;
+  }
+}
+
+
+/**
+ * getQuestionsByStage関数の動作テスト
+ */
+function testGetQuestionsByStage() {
+  console.log('=== getQuestionsByStage動作テスト ===');
+  
+  try {
+    // まず生データを確認
+    console.log('🔍 Step 1: 生データ確認');
+    debugSpreadsheetRawData();
+    
+    // 実際にgetQuestionsByStage関数を呼び出してテスト
+    console.log('🔍 Step 2: 関数実行テスト');
+    const result = getQuestionsByStage('all', false);
+    
+    console.log('📊 結果summary:', {
+      success: result.success,
+      questionsCount: result.totalCount,
+      hasDebugInfo: !!result.debug
+    });
+    
+    if (result.questions && result.questions.length > 0) {
+      console.log('📋 全質問一覧:');
+      result.questions.forEach((q, i) => {
+        console.log(`  ${i+1}. ${q.id || q.questionId}: ${q.questionText || q.question}`);
+      });
+      
+      // Q001とQ004のデータを特別に確認
+      const q001 = result.questions.find(q => (q.id || q.questionId) === 'Q001');
+      const q004 = result.questions.find(q => (q.id || q.questionId) === 'Q004');
+      const q005 = result.questions.find(q => (q.id || q.questionId) === 'Q005');
+      
+      console.log('🚨 Q001データ:', q001 ? {
+        id: q001.id,
+        questionText: q001.questionText,
+        choices: q001.choices,
+        branches: q001.branches,
+        '分岐先1': q001['分岐先1'],
+        '分岐先2': q001['分岐先2']
+      } : 'Q001が見つかりません');
+      
+      console.log('🚨 Q004データ:', q004 ? {
+        id: q004.id,
+        questionText: q004.questionText,
+        存在: 'あり'
+      } : 'Q004が見つかりません');
+      
+      console.log('🚨 Q005データ:', q005 ? {
+        id: q005.id,
+        questionText: q005.questionText,
+        存在: 'あり'
+      } : 'Q005が見つかりません');
+    }
+    
+    return result;
+    
+  } catch (error) {
+    console.error('❌ テストエラー:', error.message);
+    console.error('エラースタック:', error.stack);
+    return {
+      success: false,
+      error: error.message,
+      stack: error.stack
+    };
+  }
+}
+
+/**
+ * スプレッドシートの生データを直接確認
+ */
+function debugSpreadsheetRawData() {
+  console.log('=== スプレッドシート生データ確認 ===');
+  
+  try {
+    const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    const ss = SpreadsheetApp.openById(spreadsheetId);
+    const sheet = ss.getSheetByName('統合_質問豆知識管理');
+    const data = sheet.getDataRange().getValues();
+    
+    console.log('📊 シート全データ行数:', data.length);
+    console.log('📊 ヘッダー行:', data[0]);
+    
+    if (data.length <= 1) {
+      console.log('🚨 問題発見: スプレッドシートにデータ行がありません！');
+      console.log('📋 利用可能なシート一覧:');
+      ss.getSheets().forEach(sheet => {
+        console.log(`  - ${sheet.getName()}: ${sheet.getLastRow()}行`);
+      });
+      
+      // GitHub同期を実行してデータを投入
+      console.log('🔄 GitHub同期を実行してデータを投入します...');
+      const syncResult = syncGitHubToSpreadsheet();
+      console.log('📊 同期結果:', syncResult);
+      
+      return { success: false, error: 'データなし、同期実行済み' };
+    }
+    
+    // Q001とQ004の行データを特定
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const questionId = row[0]; // A列が質問ID
+      
+      if (questionId === 'Q001' || questionId === 'Q004' || questionId === 'Q005') {
+        console.log(`🔍 ${questionId}の生データ (行${i+1}):`, row);
+        console.log(`  質問文: ${row[3]}`); // D列
+        console.log(`  選択肢1: ${row[4]}`); // E列
+        console.log(`  選択肢2: ${row[5]}`); // F列
+        console.log(`  分岐先1: ${row[9]}`); // J列
+        console.log(`  分岐先2: ${row[10]}`); // K列
+      }
+    }
+    
+    return { success: true, dataLength: data.length };
+    
+  } catch (error) {
+    console.error('❌ 生データ確認エラー:', error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * 基本的な質問データを手動で投入（緊急対応）
+ */
+function addBasicQuestions() {
+  console.log('=== 基本質問データ投入 ===');
+  
+  try {
+    const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    const ss = SpreadsheetApp.openById(spreadsheetId);
+    const sheet = ss.getSheetByName('統合_質問豆知識管理');
+    
+    // 基本的な質問データ
+    const basicQuestions = [
+      ['Q001', '第1段階', '必須', 'まずは外壁塗装の検討状況をお聞かせください', 'はい', 'いいえ', '', '', true, 'Q004', 'Q002', '', '', '', '', '', '', ''],
+      ['Q002', '第1段階', '必須', 'どのような理由で外壁塗装をお考えでしょうか？', '汚れが気になる', 'ひび割れがある', 'その他', '', true, 'Q003', 'Q003', 'Q003', '', '', '', '', '', ''],
+      ['Q003', '第1段階', '必須', 'ご検討の時期はいつ頃をお考えでしょうか？', '今すぐ', '3ヶ月以内', '半年以内', '1年以内', true, 'Q004', 'Q004', 'Q004', 'Q004', '', '', '', '', ''],
+      ['Q004', '第2段階', '必須', '具体的にどの工事が気になりますか？', '外壁塗装', '屋根塗装', '防水工事', 'その他', true, 'Q005', 'Q006', 'Q007', 'Q008', '', '', '', '', ''],
+      ['Q005', '第2段階', '必須', 'どのような色をご希望でしょうか？', '現在と同じ色', '明るい色', '落ち着いた色', 'その他', true, 'Q009', 'Q009', 'Q009', 'Q009', '', '', '', '', '']
+    ];
+    
+    console.log('📝 基本質問データを投入中...');
+    
+    // データを投入
+    const startRow = sheet.getLastRow() + 1;
+    sheet.getRange(startRow, 1, basicQuestions.length, basicQuestions[0].length).setValues(basicQuestions);
+    
+    console.log(`✅ ${basicQuestions.length}件の質問データを投入完了`);
+    
+    // 投入後のデータ確認
+    const newData = sheet.getDataRange().getValues();
+    console.log('📊 投入後のデータ行数:', newData.length);
+    
+    return { success: true, addedQuestions: basicQuestions.length };
+    
+  } catch (error) {
+    console.error('❌ 質問データ投入エラー:', error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * SPREADSHEET_IDを正しいIDに修正
+ */
+function fixSpreadsheetId() {
+  console.log('🔧 SPREADSHEET_IDを修正中...');
+  
+  try {
+    // アクティブスプレッドシートの実際のIDを取得
+    const activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    const correctId = activeSpreadsheet.getId();
+    const currentId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    
+    console.log('現在設定されているID:', currentId);
+    console.log('実際のスプレッドシートID:', correctId);
+    
+    if (currentId !== correctId) {
+      // 正しいIDに設定
+      PropertiesService.getScriptProperties().setProperty('SPREADSHEET_ID', correctId);
+      console.log('✅ SPREADSHEET_IDを正しいIDに修正しました');
+    } else {
+      console.log('✅ SPREADSHEET_IDは既に正しく設定されています');
+    }
+    
+    // 確認のため設定後の値を表示
+    const newId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    console.log('修正後のSPREADSHEET_ID:', newId);
+    
+    return {
+      success: true,
+      oldId: currentId,
+      newId: newId,
+      spreadsheetName: activeSpreadsheet.getName()
+    };
+    
+  } catch (error) {
+    console.error('❌ SPREADSHEET_ID修正エラー:', error.message);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+/**
+ * バインドされたスプレッドシートの確認
+ */
+function checkBoundSpreadsheet() {
+  console.log('=== バインドされたスプレッドシート確認 ===');
+  
+  try {
+    // 1. アクティブスプレッドシートの確認
+    console.log('📋 1. アクティブスプレッドシートの確認');
+    const activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    console.log('✅ アクティブスプレッドシート名:', activeSpreadsheet.getName());
+    console.log('✅ アクティブスプレッドシートID:', activeSpreadsheet.getId());
+    
+    // 2. 全シートの確認
+    console.log('📋 2. 全シートの確認');
+    const sheets = activeSpreadsheet.getSheets();
+    console.log('総シート数:', sheets.length);
+    sheets.forEach((sheet, index) => {
+      console.log(`  ${index + 1}. ${sheet.getName()}`);
+    });
+    
+    // 3. 対象シートの確認
+    console.log('📋 3. 対象シートの確認');
+    const targetSheet = activeSpreadsheet.getSheetByName('統合_質問豆知識管理');
+    if (targetSheet) {
+      console.log('✅ 「統合_質問豆知識管理」シートが見つかりました');
+      const data = targetSheet.getDataRange().getValues();
+      console.log('📊 データ行数:', data.length);
+      if (data.length > 0) {
+        console.log('📋 ヘッダー:', data[0]);
+        if (data.length > 1) {
+          console.log('📊 データ例 (2行目):', data[1]);
+        }
+      }
+    } else {
+      console.error('❌ 「統合_質問豆知識管理」シートが見つかりません');
+    }
+    
+    return {
+      success: true,
+      spreadsheetName: activeSpreadsheet.getName(),
+      spreadsheetId: activeSpreadsheet.getId(),
+      sheetCount: sheets.length,
+      targetSheetExists: !!targetSheet,
+      dataRowCount: targetSheet ? targetSheet.getDataRange().getValues().length : 0
+    };
+    
+  } catch (error) {
+    console.error('❌ バインドスプレッドシート確認エラー:', error.message);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+/**
+ * スプレッドシート接続テスト関数
+ * GASエディタで実行してスプレッドシートの状態を確認
+ */
+function testSpreadsheetConnection() {
+  console.log('=== スプレッドシート接続テスト開始 ===');
+  
+  try {
+    // 1. 基本的なスプレッドシート情報の確認
+    console.log('📋 1. スプレッドシート基本情報の確認');
+    const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    console.log('Spreadsheet ID:', spreadsheetId);
+    
+    if (!spreadsheetId) {
+      console.error('❌ SPREADSHEET_IDが設定されていません');
+      return {
+        success: false,
+        error: 'SPREADSHEET_IDが設定されていません'
+      };
+    }
+    
+    // 2. スプレッドシートへの接続テスト
+    console.log('📋 2. スプレッドシートへの接続テスト');
+    let spreadsheet;
+    try {
+      spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+      console.log('✅ スプレッドシートに接続成功');
+      console.log('スプレッドシート名:', spreadsheet.getName());
+    } catch (error) {
+      console.error('❌ スプレッドシートに接続失敗:', error);
+      return {
+        success: false,
+        error: 'スプレッドシートに接続失敗: ' + error.message
+      };
+    }
+    
+    // 3. 全シートの一覧表示
+    console.log('📋 3. 全シートの一覧表示');
+    const sheets = spreadsheet.getSheets();
+    console.log('総シート数:', sheets.length);
+    sheets.forEach((sheet, index) => {
+      console.log(`  ${index + 1}. ${sheet.getName()}`);
+    });
+    
+    // 4. 「統合_質問豆知識管理」シートの存在確認
+    console.log('📋 4. 「統合_質問豆知識管理」シートの存在確認');
+    const targetSheetName = '統合_質問豆知識管理';
+    const targetSheet = spreadsheet.getSheetByName(targetSheetName);
+    
+    if (!targetSheet) {
+      console.error('❌ 「統合_質問豆知識管理」シートが見つかりません');
+      console.log('利用可能なシート名:', sheets.map(s => s.getName()));
+      return {
+        success: false,
+        error: '「統合_質問豆知識管理」シートが見つかりません'
+      };
+    }
+    
+    console.log('✅ 「統合_質問豆知識管理」シートが見つかりました');
+    
+    // 5. シートの基本情報確認
+    console.log('📋 5. シートの基本情報確認');
+    const lastRow = targetSheet.getLastRow();
+    const lastCol = targetSheet.getLastColumn();
+    console.log('最終行:', lastRow);
+    console.log('最終列:', lastCol);
+    
+    if (lastRow < 2) {
+      console.error('❌ シートにデータが存在しません（ヘッダーのみ）');
+      return {
+        success: false,
+        error: 'シートにデータが存在しません'
+      };
+    }
+    
+    // 6. ヘッダー行の確認
+    console.log('📋 6. ヘッダー行の確認');
+    const headerRow = targetSheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    console.log('ヘッダー行:', headerRow);
+    console.log('ヘッダー数:', headerRow.length);
+    
+    // 重要なヘッダーの存在確認
+    const requiredHeaders = ['質問ID', 'ヒアリング段階', '質問文', '選択肢1', '分岐先1'];
+    const missingHeaders = requiredHeaders.filter(header => !headerRow.includes(header));
+    
+    if (missingHeaders.length > 0) {
+      console.warn('⚠️ 不足しているヘッダー:', missingHeaders);
+    } else {
+      console.log('✅ 必要なヘッダーが全て存在します');
+    }
+    
+    // 7. データ行のサンプル取得
+    console.log('📋 7. データ行のサンプル取得（最初の3行）');
+    const dataRows = Math.min(3, lastRow - 1);
+    if (dataRows > 0) {
+      const sampleData = targetSheet.getRange(2, 1, dataRows, lastCol).getValues();
+      sampleData.forEach((row, index) => {
+        console.log(`データ行${index + 1}:`, row);
+      });
+    }
+    
+    // 8. getQuestionsByStage関数の簡易テスト
+    console.log('📋 8. getQuestionsByStage関数の簡易テスト');
+    try {
+      const testResult = getQuestionsByStage('基本情報');
+      console.log('✅ getQuestionsByStage関数テスト成功');
+      console.log('取得質問数:', testResult.questions.length);
+      console.log('テスト結果:', {
+        success: testResult.success,
+        totalCount: testResult.totalCount,
+        stage: testResult.stage,
+        timestamp: testResult.timestamp
+      });
+      
+      // 最初の質問のサンプル表示
+      if (testResult.questions.length > 0) {
+        console.log('最初の質問サンプル:', testResult.questions[0]);
+      }
+    } catch (error) {
+      console.error('❌ getQuestionsByStage関数テスト失敗:', error);
+      return {
+        success: false,
+        error: 'getQuestionsByStage関数テスト失敗: ' + error.message
+      };
+    }
+    
+    // 9. 各段階の質問数確認
+    console.log('📋 9. 各段階の質問数確認');
+    const stages = ['基本情報', '地域選択', '詳細条件', '最終確認'];
+    const stageCounts = {};
+    
+    for (const stage of stages) {
+      try {
+        const result = getQuestionsByStage(stage);
+        stageCounts[stage] = result.questions.length;
+        console.log(`${stage}: ${result.questions.length}件`);
+      } catch (error) {
+        console.error(`${stage}の取得でエラー:`, error.message);
+        stageCounts[stage] = 'エラー';
+      }
+    }
+    
+    console.log('=== テスト完了 ===');
+    
+    return {
+      success: true,
+      spreadsheetInfo: {
+        id: spreadsheetId,
+        name: spreadsheet.getName(),
+        totalSheets: sheets.length,
+        sheetNames: sheets.map(s => s.getName())
+      },
+      targetSheet: {
+        name: targetSheetName,
+        lastRow: lastRow,
+        lastColumn: lastCol,
+        headers: headerRow,
+        missingHeaders: missingHeaders,
+        dataRowCount: lastRow - 1
+      },
+      stageCounts: stageCounts,
+      timestamp: new Date().toISOString()
+    };
+    
+  } catch (error) {
+    console.error('=== テスト中にエラーが発生しました ===');
+    console.error('エラー詳細:', error);
+    return {
+      success: false,
+      error: error.message,
+      stack: error.stack
+    };
   }
 }

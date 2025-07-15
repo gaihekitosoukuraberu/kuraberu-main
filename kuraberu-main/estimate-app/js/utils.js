@@ -72,7 +72,7 @@ async function searchByPostalCode() {
       const addressData = await getAddressFromPostalCode(postalValue);
       
       if (addressData && addressData.success) {
-        const areaText = `${addressData.prefecture}${addressData.city}${addressData.town}の相場`;
+        const areaText = `${addressData.prefecture}${addressData.city}の相場`;
         console.log('取得した住所:', areaText);
         showAreaPriceWithData(areaText);
       } else {
@@ -151,6 +151,15 @@ function showAreaPriceWithData(areaText = '東京都杉並区の相場') {
     const priceRevealAnimation = document.getElementById('priceRevealAnimation');
     if (priceRevealAnimation) {
       priceRevealAnimation.style.display = 'none';
+    }
+    
+    // areaNameも更新
+    const areaName = document.getElementById('areaName');
+    if (areaName) {
+      areaName.textContent = areaText;
+      console.log('✅ areaName更新:', areaText);
+    } else {
+      console.log('❌ areaName要素が見つかりません');
     }
     
     // 結果セクションを表示
@@ -271,18 +280,13 @@ function getAreaFromPostalCode(postalCode) {
 // 郵便番号DBスプレッドシートから住所を取得
 async function getAddressFromPostalCode(postalCode) {
   try {
-    // GASエンドポイントのURL
-    const gasUrl = 'https://script.google.com/macros/s/AKfycby93xgNsu4UzkdVemTRNvUDanNF9s0HOMLvVTE7--LGYoyVGrTxUrFUom8I2cnM-T9T/exec';
+    // 統一されたGASエンドポイントのURL（既存のSPREADSHEET_GAS_URLを使用）
+    const gasUrl = 'https://script.google.com/macros/s/AKfycbz9BA4rQd3YDveOslmbO2deM5n_LySrVxxhrocvWUvAq3sb8wQQ-vfab5HHs3J0sqk1Hw/exec';
     
-    const requestParams = {
-      action: 'getAddressByPostalCode',
-      postalCode: postalCode
-    };
+    console.log('🔍 郵便番号検索:', postalCode);
     
-    console.log('郵便番号API呼び出し:', requestParams);
-    
-    // 直接fetch APIでGETリクエスト（CORS対応）
-    const url = `${gasUrl}?${new URLSearchParams(requestParams)}`;
+    // notify.jsのdoGetに合わせたパラメータ形式（actionを使用）
+    const url = `${gasUrl}?action=getAddressByPostalCode&postalCode=${encodeURIComponent(postalCode)}`;
     
     const response = await fetch(url, {
       method: 'GET',
@@ -297,7 +301,7 @@ async function getAddressFromPostalCode(postalCode) {
     }
     
     const result = await response.json();
-    console.log('郵便番号APIレスポンス:', result);
+    console.log('✅ 郵便番号APIレスポンス:', result);
     
     return result;
     
