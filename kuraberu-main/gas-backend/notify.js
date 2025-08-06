@@ -2175,6 +2175,7 @@ function doGet(e) {
       console.log('🔍 postData.registrationData存在:', !!postData.registrationData);
       console.log('🔍 postData:', JSON.stringify(postData, null, 2));
       
+      // registrationDataがある場合はそれを使用、ない場合はpostDataから直接取得
       var parameters = postData.registrationData || postData;
       var result;
       
@@ -2340,8 +2341,19 @@ function doGet(e) {
                 };
                 console.log('🔥 データ展開完了');
               } else {
-                // 通常データまたはregistrationData
-                var baseData = parameters.registrationData || parameters;
+                // 通常データの場合（actionが含まれている場合、それを除外）
+                var baseData = {};
+                if (parameters.action) {
+                  // actionフィールドを除外して実際のデータを取得
+                  for (var key in parameters) {
+                    if (key !== 'action') {
+                      baseData[key] = parameters[key];
+                    }
+                  }
+                  console.log('🔧 actionフィールドを除外:', parameters.action);
+                } else {
+                  baseData = parameters;
+                }
                 
                 // URL長制限による圧縮データの場合の検出と処理
                 console.log('🔧 データ検証:', Object.keys(baseData).length, 'フィールド');
@@ -11845,11 +11857,12 @@ function saveFranchiseData(data) {
     var randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
     var franchiseId = 'FC-' + dateStr + '-' + randomStr;
     
-    // 郵便番号と電話番号のクリーニング
-    var cleanPostal = (data.postalCode || '').replace(/-/g, '');
-    var cleanPhone = (data.phone || '').replace(/-/g, '');
+    // 郵便番号と電話番号のクリーニング（先頭の単引用符も除去）
+    var cleanPostal = (data.postalCode || '').replace(/-/g, '').replace(/^'/, '');
+    var cleanPhone = (data.phone || '').replace(/-/g, '').replace(/^'/, '');
+    var cleanSalesContact = (data.salesPersonContact || '').replace(/-/g, '').replace(/^'/, '');
     console.log('🚨 CRITICAL DEBUG: saveFranchiseData内 - cleanPhone:', cleanPhone);
-    console.log('🚨 CRITICAL DEBUG: saveFranchiseData内 - data.salesPersonContact:', data.salesPersonContact);
+    console.log('🚨 CRITICAL DEBUG: saveFranchiseData内 - cleanSalesContact:', cleanSalesContact);
     
     // データ行追加（insertDemoFranchiseData.jsと同じ列構成）
     var newRow = [
@@ -11861,14 +11874,14 @@ function saveFranchiseData(data) {
       data.representativeKana || '',         // F列: 代表者名カナ
       cleanPostal,                           // G列: 郵便番号（ハイフンなし、先頭0保持）
       data.address || '',                    // H列: 住所
-      cleanPhone,                            // I列: 電話番号（ハイフンなし、先頭0保持、'なし）
+      cleanPhone,                            // I列: 電話番号（ハイフンなし、先頭0保持）
       data.websiteUrl || '',                 // J列: ウェブサイトURL
       data.employees || '',                  // K列: 従業員数
       data.revenue || '',                    // L列: 売上規模
       data.billingEmail || '',               // M列: 請求用メールアドレス
       data.salesEmail || '',                 // N列: 営業用メールアドレス
       data.salesPersonName || '',            // O列: 営業担当者氏名
-      (data.salesPersonContact || '').replace(/-/g, ''), // P列: 営業担当者連絡先（'なし）
+      cleanSalesContact,                     // P列: 営業担当者連絡先（ハイフンなし、先頭0保持）
       data.propertyTypes || '',              // Q列: 対応物件種別・階数
       data.constructionServices || '',       // R列: 施工箇所
       data.specialServices || '',            // S列: 特殊対応項目
@@ -11913,6 +11926,17 @@ function saveFranchiseData(data) {
     console.log('🚨 CRITICAL DEBUG: 挿入する行データ (I列:電話番号):', newRow[8]);
     console.log('🚨 CRITICAL DEBUG: 挿入する行データ (P列:営業担当者連絡先):', newRow[15]);
     sheet.getRange(targetRow, 1, 1, newRow.length).setValues([newRow]);
+    
+    // タイムスタンプ列の書式を明示的に設定（日時表示を保証）
+    try {
+      // B列（タイムスタンプ）の書式設定
+      sheet.getRange(targetRow, 2).setNumberFormat('yyyy/MM/dd HH:mm:ss');
+      // BB列（登録日）の書式設定
+      sheet.getRange(targetRow, 28).setNumberFormat('yyyy/MM/dd HH:mm:ss');
+      console.log('✅ タイムスタンプ列の書式設定完了');
+    } catch (formatError) {
+      console.warn('⚠️ 書式設定エラー:', formatError.message);
+    }
     
     console.log('🔍 CRITICAL: データ終了後の挿入先行:', targetRow);
     console.log('🔍 CRITICAL: 挿入データ列数:', newRow.length);
