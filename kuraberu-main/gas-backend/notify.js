@@ -225,9 +225,14 @@ function rejectFranchiseSimple(franchiseId) {
  */
 function setGasWebappUrl(url) {
   try {
-    // 新しいデプロイメントURLを設定
-    var newUrl = 'https://script.google.com/macros/s/AKfycbx7bZ1IoDOrukUTj9sOYKDzo0oHtu2kgPj1FKWko46kFwfRCnNpboCFS6Fc4s1f4ndp/exec';
-    PropertiesService.getScriptProperties().setProperty('GAS_WEBAPP_URL', newUrl);
+    // WebApp URLはプロパティから取得するよう変更
+    var newUrl = PropertiesService.getScriptProperties().getProperty('GAS_WEBAPP_URL');
+    if (!newUrl) {
+      console.log('⚠️ GAS_WEBAPP_URLが設定されていません');
+      // デフォルトURLを使用（本番環境では必ずプロパティを設定すること）
+      newUrl = ScriptApp.getService().getUrl();
+      PropertiesService.getScriptProperties().setProperty('GAS_WEBAPP_URL', newUrl);
+    }
     console.log("✅ GAS WebApp URL設定完了: " + newUrl);
     return {
       success: true,
@@ -352,7 +357,12 @@ function syncGitHubToSpreadsheet() {
     console.log('📥 GitHub→スプレッドシート同期開始（3ファイル統合版）');
     
     // GitHubからMDファイルを取得
-    var token = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN') || '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';
+    // セキュリティ上の理由からGitHubトークンはプロパティからのみ取得
+    var token = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
+    if (!token) {
+      Logger.log('⚠️ GITHUB_TOKENが設定されていません');
+      return { success: false, error: 'GITHUB_TOKENが設定されていません' };
+    }
     
     // 1. 質問フローを取得
     var questionFlowUrl = 'https://raw.githubusercontent.com/gaihekitosoukuraberu/kuraberu-mainchatbot/main/01_question_flow.md';
@@ -1713,7 +1723,7 @@ function doPost(e) {
           // 実際にデータがある行の直後に挿入
           var targetRow = 2; // デフォルトはヘッダーの次
           for (var i = 2; i <= 100; i++) {
-            var cellValue = historySheet.getRange(i, 1).getValue();
+            var cellValue = sheet.getRange(i, 1).getValue();
             if (cellValue && cellValue !== '') {
               targetRow = i + 1;
             } else {
@@ -1794,7 +1804,7 @@ function doPost(e) {
           // 実際にデータがある行の直後に挿入
           var targetRow = 2; // デフォルトはヘッダーの次
           for (var i = 2; i <= 100; i++) {
-            var cellValue = historySheet.getRange(i, 1).getValue();
+            var cellValue = sheet.getRange(i, 1).getValue();
             if (cellValue && cellValue !== '') {
               targetRow = i + 1;
             } else {
@@ -1873,7 +1883,7 @@ function doPost(e) {
           // 実際にデータがある行の直後に挿入
           var targetRow = 2; // デフォルトはヘッダーの次
           for (var i = 2; i <= 100; i++) {
-            var cellValue = historySheet.getRange(i, 1).getValue();
+            var cellValue = sheet.getRange(i, 1).getValue();
             if (cellValue && cellValue !== '') {
               targetRow = i + 1;
             } else {
@@ -3614,7 +3624,7 @@ function testNotify_All() {
         missingSettings.push(setting);
         Logger.log("❌ 未設定: " + setting);
       } else {
-        Logger.log("✅ 設定済み: ' + setting + ' = " + setting.includes('TOKEN') || setting.includes('KEY') ? '***' : value.substring(0, 20) + "...");
+        Logger.log("✅ 設定済み: " + setting + " = " + (setting.includes('TOKEN') || setting.includes('KEY') ? '***' : value.substring(0, 20) + "..."));
       }
     }
     
@@ -3733,7 +3743,7 @@ function testNotify_All() {
     Logger.log("✅ 全通知テスト完了");
     
   } catch (error) {
-    var errorMessage = "❌ testNotify_All総合エラー: ' + error.message + '\nスタック: " + error.stack;
+    var errorMessage = "❌ testNotify_All総合エラー: " + error.message + "\nスタック: " + error.stack;
     Logger.log(errorMessage);
     
     // エラーもSlackに送信
@@ -5271,7 +5281,7 @@ function recordNotificationHistory(userId, templateType, style, variables, resul
     // 実際にデータがある行の直後に挿入
     var targetRow = 2; // デフォルトはヘッダーの次
     for (var i = 2; i <= 100; i++) {
-      var cellValue = historySheet.getRange(i, 1).getValue();
+      var cellValue = sheet.getRange(i, 1).getValue();
       if (cellValue && cellValue !== '') {
         targetRow = i + 1;
       } else {
@@ -5706,7 +5716,8 @@ function registerCaseToSystem(cvCaseId, franchiseId, caseData, status) {
     console.log('🔍 CRITICAL: 現在の最終行:', lastRow);
     
     // 重複コードをヘルパー関数に統合
-    insertRowAtSecondPosition(caseSheet, '案件登録');
+    // NOTE: insertRowAtSecondPosition関数が未定義のためコメントアウト
+    // insertRowAtSecondPosition(caseSheet, '案件登録');
     
     // 必ず2行目に挿入
     var targetRow = 2;
@@ -6510,7 +6521,7 @@ function logNotificationHistory(type, targets, message, options = {}) {
     // 実際にデータがある行の直後に挿入
     var targetRow = 2; // デフォルトはヘッダーの次
     for (var i = 2; i <= 100; i++) {
-      var cellValue = historySheet.getRange(i, 1).getValue();
+      var cellValue = sheet.getRange(i, 1).getValue();
       if (cellValue && cellValue !== '') {
         targetRow = i + 1;
       } else {
@@ -6806,6 +6817,8 @@ function executeSampleNotification(notificationType = 'system_alert') {
  * @returns {Object} 送信結果
  */
 function sendIntegratedNotification(notificationType, message, options = {}) {
+  var logId; // スコープ外でも使用するため先頭で定義
+  
   try {
     Logger.log("📬 統合通知送信開始: " + notificationType);
     
@@ -6838,7 +6851,7 @@ function sendIntegratedNotification(notificationType, message, options = {}) {
       }
     );
     
-    var logId = historyResult.logId;
+    logId = historyResult.logId;
     var sendResults = {
       slack: { success: 0, failed: 0, results: [] },
       line: { success: 0, failed: 0, results: [] },
@@ -6850,6 +6863,7 @@ function sendIntegratedNotification(notificationType, message, options = {}) {
       Logger.log("📱 Slack送信開始: " + targets.slack.length + "件");
       for (var i = 0; i < targets.slack.length; i++) {
         try {
+          var slackUser = targets.slack[i];
           var slackResult = sendSlackToUser(slackUser, message, options);
           if (slackResult.success) {
             sendResults.slack.success++;
@@ -6876,6 +6890,7 @@ function sendIntegratedNotification(notificationType, message, options = {}) {
       Logger.log("📱 LINE送信開始: " + targets.line.length + "件");
       for (var i = 0; i < targets.line.length; i++) {
         try {
+          var lineUser = targets.line[i];
           var lineResult = sendLineToUser(lineUser, message, options);
           if (lineResult.success) {
             sendResults.line.success++;
@@ -6902,6 +6917,7 @@ function sendIntegratedNotification(notificationType, message, options = {}) {
       Logger.log("📧 Email送信開始: " + targets.email.length + "件");
       for (var i = 0; i < targets.email.length; i++) {
         try {
+          var emailUser = targets.email[i];
           var emailResult = sendEmailToUser(emailUser, message, options);
           if (emailResult.success) {
             sendResults.email.success++;
@@ -7580,7 +7596,7 @@ function saveFranchiseRegistrationDirect(franchiseId, data) {
     // 実際にデータがある行の直後に挿入
     targetRow = 2; // デフォルトはヘッダーの次
     for (var i = 2; i <= 100; i++) {
-      var cellValue = historySheet.getRange(i, 1).getValue();
+      var cellValue = sheet.getRange(i, 1).getValue();
       if (cellValue && cellValue !== '') {
         targetRow = i + 1;
       } else {
@@ -8017,7 +8033,7 @@ function processFranchiseApproval(payload, actionValue, actionId) {
           text: {
             type: 'mrkdwn',
             text: "*" + franchiseName + "* の審査が完了しました。\n\n" +
-                  "**ステータス:** " + isApproval ? '承認済み' : '却下' + "\n" +
+                  "**ステータス:** " + (isApproval ? '承認済み' : '却下') + "\n" +
                   "**操作者:** " + userName + "\n" +
                   "**処理日時:** " + Utilities.formatDate(new Date(), 'JST', 'yyyy/MM/dd HH:mm:ss')
           }
@@ -10940,7 +10956,7 @@ function selectCandidate(params) {
       return createErrorResponse('選択された候補が見つかりません');
     }
     
-    Logger.log('✅ 候補選択: ' + selectedCandidate.legalName + ' (' + selectedCandidate.differentiationReason || 'N/A' + ')');
+    Logger.log('✅ 候補選択: ' + selectedCandidate.legalName + ' (' + (selectedCandidate.differentiationReason || 'N/A') + ')');
     
     // 全データを確認済みとして扱う（マルチ候補版では詳細確認をスキップ）
     var confirmedData = {};
@@ -12913,9 +12929,9 @@ function testMultiCandidateSystem() {
         console.log('✅ 候補生成成功: ' + candidates.length + '件');
         console.log('候補一覧:');
         candidates.forEach((candidate, index) => {
-          console.log('  ' + index + 1 + '. ' + candidate.legalName + ' - ' + candidate.differentiationReason || 'N/A' + '');
+          console.log('  ' + (index + 1) + '. ' + candidate.legalName + ' - ' + (candidate.differentiationReason || 'N/A'));
           console.log('     住所: ' + candidate.address || '未取得' + '');
-          console.log('     電話: ' + Array.isArray(candidate.phone) ? candidate.phone.join(', ') : candidate.phone || '未取得' + '');
+          console.log('     電話: ' + (Array.isArray(candidate.phone) ? candidate.phone.join(', ') : (candidate.phone || '未取得')));
         });
         
         // 最初の候補を選択してテスト
@@ -12952,10 +12968,10 @@ function testMultiCandidateSystem() {
       if (result.success) {
         console.log('✅ ' + company + ': ' + result.candidateCount + '候補');
         result.candidates.forEach((candidate, index) => {
-          console.log('   ' + index + 1 + '. ' + candidate.name + ' (' + candidate.differentiation || 'N/A' + ')');
+          console.log('   ' + (index + 1) + '. ' + candidate.name + ' (' + (candidate.differentiation || 'N/A') + ')');
         });
       } else {
-        console.log('❌ ' + company + ': エラー - ' + result.error + '');
+        console.log('❌ ' + company + ': エラー - ' + result.error);
       }
     });
     
@@ -12993,9 +13009,159 @@ function testDirectDeepSeek() {
   return result;
 }
 
+/**
+ * デプロイメント後の確認関数
+ * GASエディタで実行して必要な設定を確認
+ */
+function checkDeploymentStatus() {
+  console.log('🔍 === デプロイメントステータス確認 ===');
+  
+  var props = PropertiesService.getScriptProperties();
+  var results = {
+    webappUrl: false,
+    spreadsheetId: false,
+    openRouterKey: false,
+    googleSearchKey: false,
+    slackWebhook: false
+  };
+  
+  // WebApp URL
+  var webappUrl = props.getProperty('GAS_WEBAPP_URL') || ScriptApp.getService().getUrl();
+  if (webappUrl) {
+    results.webappUrl = true;
+    console.log('✅ WebApp URL:', webappUrl);
+  } else {
+    console.log('❌ WebApp URL未設定');
+  }
+  
+  // スプレッドシートID
+  var spreadsheetId = props.getProperty('SPREADSHEET_ID');
+  if (spreadsheetId) {
+    results.spreadsheetId = true;
+    console.log('✅ スプレッドシートID:', spreadsheetId);
+    
+    // アクセス可能か確認
+    try {
+      var ss = SpreadsheetApp.openById(spreadsheetId);
+      console.log('  📊 スプレッドシート名:', ss.getName());
+      var sheet = ss.getSheetByName('加盟店登録');
+      if (sheet) {
+        console.log('  ✅ 加盟店登録シート存在');
+      } else {
+        console.log('  ⚠️ 加盟店登録シートが存在しません');
+      }
+    } catch (e) {
+      console.log('  ❌ スプレッドシートアクセスエラー:', e.message);
+    }
+  } else {
+    console.log('❌ SPREADSHEET_ID未設定');
+    console.log('  設定方法: PropertiesService.getScriptProperties().setProperty("SPREADSHEET_ID", "YOUR_SPREADSHEET_ID");');
+  }
+  
+  // OpenRouter APIキー
+  var openRouterKey = props.getProperty('OPENROUTER_API_KEY');
+  if (openRouterKey) {
+    results.openRouterKey = true;
+    console.log('✅ OpenRouter APIキー設定済み');
+  } else {
+    console.log('⚠️ OPENROUTER_API_KEY未設定（AI機能使用不可）');
+  }
+  
+  // Google Search APIキー
+  var googleSearchKey = props.getProperty('GOOGLE_SEARCH_API_KEY');
+  var googleSearchEngine = props.getProperty('GOOGLE_SEARCH_ENGINE_ID');
+  if (googleSearchKey && googleSearchEngine) {
+    results.googleSearchKey = true;
+    console.log('✅ Google Search API設定済み');
+  } else {
+    console.log('⚠️ Google Search API未設定（詳細検索機能制限）');
+  }
+  
+  // Slack Webhook
+  var slackWebhook = props.getProperty('SLACK_WEBHOOK_URL');
+  if (slackWebhook) {
+    results.slackWebhook = true;
+    console.log('✅ Slack Webhook設定済み');
+  } else {
+    console.log('⚠️ SLACK_WEBHOOK_URL未設定（通知機能制限）');
+  }
+  
+  // 総合判定
+  var criticalOk = results.webappUrl && results.spreadsheetId;
+  var allOk = Object.values(results).every(v => v);
+  
+  console.log('\n📊 === 設定サマリー ===');
+  console.log('必須項目:', criticalOk ? '✅ OK' : '❌ NG');
+  console.log('全機能:', allOk ? '✅ 完全動作可能' : '⚠️ 一部機能制限');
+  
+  if (!criticalOk) {
+    console.log('\n🚨 必須設定が不足しています。最低限以下を設定してください：');
+    if (!results.webappUrl) console.log('  - WebApp URLの取得と設定');
+    if (!results.spreadsheetId) console.log('  - SPREADSHEET_IDの設定');
+  }
+  
+  return {
+    success: criticalOk,
+    results: results,
+    message: criticalOk ? '基本動作可能' : '必須設定不足'
+  };
+}
+
 // 重複削除: searchCompanyDetails関数はnotify.gsに移動済み
 
 // テストデータ関数は削除 - 実DeepSeek APIのみ使用
+
+// ===========================================
+// 🔧 システム設定関数
+// ===========================================
+
+/**
+ * 重要：システム初期設定関数
+ * プロジェクト初回セットアップ時に必ず実行すること
+ */
+function setupSystemProperties() {
+  try {
+    console.log('🔧 システムプロパティ初期設定開始');
+    
+    var props = PropertiesService.getScriptProperties();
+    var currentUrl = ScriptApp.getService().getUrl();
+    
+    // GAS WebApp URLを設定
+    if (!props.getProperty('GAS_WEBAPP_URL')) {
+      props.setProperty('GAS_WEBAPP_URL', currentUrl);
+      console.log('✅ GAS_WEBAPP_URL設定完了:', currentUrl);
+    }
+    
+    // スプレッドシートIDを確認
+    var spreadsheetId = props.getProperty('SPREADSHEET_ID');
+    if (!spreadsheetId) {
+      console.log('⚠️ SPREADSHEET_IDが設定されていません。手動で設定してください');
+      console.log('📄 設定方法: PropertiesService.getScriptProperties().setProperty("SPREADSHEET_ID", "スプレッドシートID");');
+    } else {
+      console.log('✅ SPREADSHEET_ID確認済み:', spreadsheetId);
+    }
+    
+    // OpenRouter APIキーを確認
+    var openRouterKey = props.getProperty('OPENROUTER_API_KEY');
+    if (!openRouterKey) {
+      console.log('⚠️ OPENROUTER_API_KEYが設定されていません。AI機能を使用する場合は設定してください');
+    } else {
+      console.log('✅ OPENROUTER_API_KEY確認済み');
+    }
+    
+    console.log('✅ システムプロパティ初期設定完了');
+    return { 
+      success: true, 
+      webappUrl: currentUrl, 
+      spreadsheetId: spreadsheetId,
+      hasOpenRouterKey: !!openRouterKey 
+    };
+    
+  } catch (error) {
+    console.error('❌ システムプロパティ初期設定エラー:', error);
+    return { success: false, error: error.message };
+  }
+}
 
 // ===========================================
 // 🌐 API ルーティング用関数（notify.gsから呼び出される）
@@ -13302,7 +13468,7 @@ function cleanupDataValidations(sheet) {
     // 実際にデータがある最終行を検出
     var actualLastRow = 1;
     for (var i = 2; i <= 100; i++) {
-      var cellValue = historySheet.getRange(i, 1).getValue();
+      var cellValue = sheet.getRange(i, 1).getValue();
       if (cellValue && cellValue !== '' && cellValue !== null) {
         actualLastRow = i;
       }
