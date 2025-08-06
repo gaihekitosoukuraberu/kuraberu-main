@@ -7,58 +7,45 @@
         加盟店管理
       </h1>
       <p class="page-description">
-        加盟店の管理、サポート、および加盟店視点での画面確認を行います
+        加盟店の管理、審査、サポートを行います
       </p>
     </div>
 
-    <!-- 統計カード -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon">👥</div>
-        <div class="stat-content">
-          <h3 class="stat-value">{{ franchiseStats.total }}</h3>
-          <p class="stat-label">総加盟店数</p>
+    <!-- コンパクト統計カード -->
+    <div class="stats-compact">
+      <div class="stat-card-compact">
+        <div class="stat-icon-compact">👥</div>
+        <div class="stat-content-compact">
+          <span class="stat-value-compact">{{ franchiseStats.total }}</span>
+          <span class="stat-label-compact">総加盟店数</span>
         </div>
       </div>
-      <div class="stat-card active">
-        <div class="stat-icon">✅</div>
-        <div class="stat-content">
-          <h3 class="stat-value">{{ franchiseStats.active }}</h3>
-          <p class="stat-label">アクティブ</p>
+      <div class="stat-card-compact active">
+        <div class="stat-icon-compact">✅</div>
+        <div class="stat-content-compact">
+          <span class="stat-value-compact">{{ franchiseStats.active }}</span>
+          <span class="stat-label-compact">アクティブ</span>
         </div>
       </div>
-      <div class="stat-card inactive">
-        <div class="stat-icon">⏸️</div>
-        <div class="stat-content">
-          <h3 class="stat-value">{{ franchiseStats.inactive }}</h3>
-          <p class="stat-label">非アクティブ</p>
+      <div class="stat-card-compact inactive">
+        <div class="stat-icon-compact">⏸️</div>
+        <div class="stat-content-compact">
+          <span class="stat-value-compact">{{ franchiseStats.inactive }}</span>
+          <span class="stat-label-compact">非アクティブ</span>
         </div>
       </div>
-      <div class="stat-card support">
-        <div class="stat-icon">🛠️</div>
-        <div class="stat-content">
-          <h3 class="stat-value">{{ franchiseStats.needsSupport }}</h3>
-          <p class="stat-label">サポート要請中</p>
+      <div class="stat-card-compact support">
+        <div class="stat-icon-compact">🛠️</div>
+        <div class="stat-content-compact">
+          <span class="stat-value-compact">{{ franchiseStats.needsSupport }}</span>
+          <span class="stat-label-compact">サポート要請中</span>
         </div>
       </div>
-    </div>
-
-    <!-- 管理者用クイックアクション -->
-    <div class="quick-actions">
-      <div class="section-header">
-        <h2 class="section-title">🚀 クイックアクション</h2>
-      </div>
-      <div class="action-cards">
-        <div class="action-card secondary" @click="generateAdminToken">
-          <div class="action-icon">🔑</div>
-          <div class="action-content">
-            <h3 class="action-title">管理者トークン生成</h3>
-            <p class="action-description">一時的な管理者アクセス用トークンを発行</p>
-          </div>
-          <div class="action-button">
-            <span class="button-text">トークン生成</span>
-            <span class="button-icon">⚡</span>
-          </div>
+      <div class="stat-card-compact pending">
+        <div class="stat-icon-compact">⏳</div>
+        <div class="stat-content-compact">
+          <span class="stat-value-compact">{{ franchiseStats.pendingReview }}</span>
+          <span class="stat-label-compact">審査待ち</span>
         </div>
       </div>
     </div>
@@ -83,6 +70,7 @@
           <option value="active">アクティブ</option>
           <option value="inactive">非アクティブ</option>
           <option value="support">サポート要請中</option>
+          <option value="pending_review">審査待ち</option>
         </select>
         <input 
           v-model="searchQuery" 
@@ -92,143 +80,127 @@
         >
       </div>
 
-      <!-- 加盟店テーブル -->
-      <div class="table-container">
-        <table class="franchise-table">
-          <thead>
-            <tr>
-              <th>ステータス</th>
-              <th>加盟店名</th>
-              <th>加盟店ID</th>
-              <th>最終ログイン</th>
-              <th>案件数</th>
-              <th>アクション</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="franchise in filteredFranchises" :key="franchise.id" class="franchise-row">
-              <td>
-                <span :class="['status-badge', franchise.status]">
-                  {{ getStatusLabel(franchise.status) }}
-                </span>
-              </td>
-              <td class="franchise-name">
-                <div class="name-cell">
-                  <strong>{{ franchise.name }}</strong>
-                  <span class="franchise-location">{{ franchise.location }}</span>
+      <!-- 加盟店カード表示（全デバイス対応） -->
+      <div class="franchise-cards">
+        <div v-for="franchise in filteredFranchises" :key="franchise.id" class="franchise-card">
+          <div class="card-content">
+            <div class="franchise-main">
+              <div class="franchise-info">
+                <h3 class="franchise-name">{{ franchise.name }}</h3>
+                <div class="franchise-meta">
+                  <span class="franchise-id">{{ franchise.id }}</span>
+                  <span class="separator">•</span>
+                  <span class="last-login">{{ formatDate(franchise.lastLogin) }}</span>
+                  <span class="separator">•</span>
+                  <span class="case-count">{{ franchise.activeCases }}件</span>
                 </div>
-              </td>
-              <td class="franchise-id">{{ franchise.id }}</td>
-              <td class="last-login">
-                <time :datetime="franchise.lastLogin">
-                  {{ formatDate(franchise.lastLogin) }}
-                </time>
-              </td>
-              <td class="case-count">
-                <span class="count-badge">{{ franchise.activeCases }}</span>
-              </td>
-              <td class="actions">
+              </div>
+              <span :class="['status-badge', franchise.status]">
+                {{ getStatusLabel(franchise.status) }}
+              </span>
+            </div>
+            
+            <div class="card-actions">
+              <!-- 審査待ちの場合 -->
+              <div v-if="franchise.status === 'pending_review'" class="action-group">
                 <button 
-                  @click="showFranchiseDetails(franchise)"
-                  class="btn btn-outline btn-sm"
-                  title="詳細情報を表示"
+                  @click="changeStatus(franchise, 'active')"
+                  class="btn btn-success btn-compact"
+                  :disabled="processingAction[franchise.id] === 'active'"
                 >
-                  <span class="btn-icon">ℹ️</span>
-                  詳細
+                  <span v-if="processingAction[franchise.id] === 'active'">⏳</span>
+                  <span v-else>✅</span>
+                  承認
                 </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <button 
+                  @click="changeStatus(franchise, 'inactive')"
+                  class="btn btn-danger btn-compact"
+                  :disabled="processingAction[franchise.id] === 'inactive'"
+                >
+                  <span v-if="processingAction[franchise.id] === 'inactive'">⏳</span>
+                  <span v-else>❌</span>
+                  却下
+                </button>
+              </div>
+              <!-- アクティブの場合 -->
+              <div v-else-if="franchise.status === 'active'" class="action-group">
+                <button 
+                  @click="changeStatus(franchise, 'inactive')"
+                  class="btn btn-warning btn-compact"
+                  :disabled="processingAction[franchise.id] === 'inactive'"
+                >
+                  <span v-if="processingAction[franchise.id] === 'inactive'">⏳</span>
+                  <span v-else>⏸️</span>
+                  停止
+                </button>
+              </div>
+              <!-- 非アクティブの場合 -->
+              <div v-else-if="franchise.status === 'inactive'" class="action-group">
+                <button 
+                  @click="changeStatus(franchise, 'active')"
+                  class="btn btn-success btn-compact"
+                  :disabled="processingAction[franchise.id] === 'active'"
+                >
+                  <span v-if="processingAction[franchise.id] === 'active'">⏳</span>
+                  <span v-else>🔄</span>
+                  再承認
+                </button>
+              </div>
+              <!-- 詳細ボタン -->
+              <button 
+                @click="showFranchiseDetails(franchise)"
+                class="btn btn-outline btn-compact"
+              >
+                ℹ️ 詳細
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- 管理者トークン表示モーダル -->
-    <div v-if="showTokenModal" class="modal-overlay" @click="closeTokenModal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3 class="modal-title">🔑 管理者トークン</h3>
-          <button @click="closeTokenModal" class="modal-close">&times;</button>
-        </div>
-        <div class="modal-body">
-          <p class="token-info">
-            このトークンは1時間有効です。加盟店画面へのアクセスに使用されます。
-          </p>
-          <div class="token-display">
-            <code class="token-code">{{ generatedToken }}</code>
-            <button @click="copyToken" class="btn btn-outline btn-sm">
-              📋 コピー
-            </button>
-          </div>
-          <div class="token-usage">
-            <h4>使用方法:</h4>
-            <p>加盟店画面のURLに <code>?admin_token={{ generatedToken }}</code> を付加</p>
-          </div>
-        </div>
-      </div>
-    </div>
+
 
     <!-- ローディング表示 -->
     <div v-if="isLoading" class="loading-overlay">
       <div class="loading-spinner">🔄</div>
       <p class="loading-text">データを読み込んでいます...</p>
     </div>
+    
+    <!-- トースト通知 -->
+    <transition name="toast">
+      <div v-if="showToast" :class="['toast-notification', toastType]">
+        {{ toastMessage }}
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { apiService } from '@/services/api'
 
 // リアクティブデータ
 const isLoading = ref(false)
 const statusFilter = ref('')
 const searchQuery = ref('')
-const showTokenModal = ref(false)
-const generatedToken = ref('')
+const processingAction = ref({}) // 処理中のアクション { franchiseId: action }
+const toastMessage = ref('')
+const showToast = ref(false)
+const toastType = ref('success')
+
 
 // 統計データ
 const franchiseStats = ref({
-  total: 12,
-  active: 8,
-  inactive: 3,
-  needsSupport: 1
+  total: 0,
+  active: 0,
+  inactive: 0,
+  needsSupport: 0,
+  pendingReview: 0
 })
 
-// 加盟店データ（モック）
-const franchises = ref([
-  {
-    id: 'FRANCHISE_001',
-    name: '東京外壁塗装',
-    location: '東京都渋谷区',
-    status: 'active',
-    lastLogin: '2024-06-05T10:30:00Z',
-    activeCases: 5
-  },
-  {
-    id: 'FRANCHISE_002', 
-    name: '関西リフォーム',
-    location: '大阪府大阪市',
-    status: 'active',
-    lastLogin: '2024-06-05T09:15:00Z',
-    activeCases: 3
-  },
-  {
-    id: 'FRANCHISE_003',
-    name: '神奈川塗装工業',
-    location: '神奈川県横浜市', 
-    status: 'support',
-    lastLogin: '2024-06-04T16:45:00Z',
-    activeCases: 7
-  },
-  {
-    id: 'FRANCHISE_004',
-    name: '埼玉ホームペイント',
-    location: '埼玉県さいたま市',
-    status: 'inactive',
-    lastLogin: '2024-06-01T14:20:00Z',
-    activeCases: 0
-  }
-])
+// 加盟店データ（実データ）
+const franchises = ref([])
 
 // 計算プロパティ
 const filteredFranchises = computed(() => {
@@ -254,64 +226,109 @@ const filteredFranchises = computed(() => {
 
 // メソッド
 
-const generateAdminToken = () => {
-  generatedToken.value = generateTokenString()
-  showTokenModal.value = true
-}
-
-const generateTokenString = () => {
-  const timestamp = Date.now()
-  const random = Math.random().toString(36).substring(2, 15)
-  return `admin_${timestamp}_${random}`
-}
-
-const copyToken = async () => {
-  try {
-    await navigator.clipboard.writeText(generatedToken.value)
-    alert('トークンをクリップボードにコピーしました！')
-  } catch (err) {
-    console.error('クリップボードへのコピーに失敗:', err)
-    // フォールバック: テキスト選択
-    const textArea = document.createElement('textarea')
-    textArea.value = generatedToken.value
-    document.body.appendChild(textArea)
-    textArea.select()
-    document.execCommand('copy')
-    document.body.removeChild(textArea)
-    alert('トークンをクリップボードにコピーしました！')
-  }
-}
-
-const closeTokenModal = () => {
-  showTokenModal.value = false
-  generatedToken.value = ''
-}
 
 const refreshFranchiseList = async () => {
   isLoading.value = true
   try {
-    // API呼び出し（モック）
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    console.log('📊 加盟店リストを更新しました')
+    // 加盟店一覧取得
+    const response = await apiService.post('', {
+      action: 'getFranchiseList'
+    })
+    
+    if (response.success) {
+      franchises.value = response.data.map(franchise => {
+        // スプレッドシートのステータス列（AD列）を直接使用
+        let status = 'pending_review' // デフォルト
+        
+        // ステータス列の値を確認（大文字小文字を考慮）
+        const statusValue = String(franchise.status || '').toLowerCase()
+        
+        if (statusValue === '承認済み' || statusValue === '承認' || statusValue === 'active') {
+          status = 'active'
+        } else if (statusValue === '却下' || statusValue === '却下済み' || statusValue === 'inactive') {
+          status = 'inactive'
+        } else if (statusValue === 'サポート要請中' || statusValue === 'support') {
+          status = 'support'
+        } else if (statusValue === '審査待ち' || statusValue === 'pending' || statusValue === 'pending_review' || statusValue === '') {
+          status = 'pending_review'
+        }
+        
+        console.log(`📋 ${franchise.name}: ${franchise.status} → ${status}`)
+        
+        return {
+          id: franchise.id,
+          name: franchise.name,
+          location: franchise.address,
+          status: status,
+          lastLogin: franchise.lastLogin || '-',
+          activeCases: 0, // 後で案件数APIから取得
+          registrationDate: franchise.timestamp,
+          representative: franchise.representative,
+          phone: franchise.phone,
+          email: franchise.billingEmail,
+          depositFlag: franchise.depositFlag,
+          handicaps: {
+            cheap: franchise.handicapCheap || 0,
+            review: franchise.handicapReview || 0,
+            recommend: franchise.handicapRecommend || 0,
+            quality: franchise.handicapQuality || 0
+          }
+        }
+      })
+      
+      // 統計情報も更新
+      await updateStats()
+      
+      console.log('📊 加盟店リストを更新しました:', franchises.value.length)
+    } else {
+      throw new Error(response.error || '加盟店一覧の取得に失敗しました')
+    }
+  } catch (error) {
+    console.error('❌ 加盟店リスト更新エラー:', error)
+    showToastMessage('加盟店一覧の取得に失敗しました: ' + error.message, 'error')
   } finally {
     isLoading.value = false
   }
 }
 
 const showFranchiseDetails = (franchise) => {
-  alert(`${franchise.name}の詳細情報\n\nID: ${franchise.id}\n場所: ${franchise.location}\nステータス: ${getStatusLabel(franchise.status)}\nアクティブ案件: ${franchise.activeCases}件`)
+  showToastMessage(`${franchise.name}の詳細: ID: ${franchise.id}, ステータス: ${getStatusLabel(franchise.status)}, 案件: ${franchise.activeCases}件`)
 }
 
 const getStatusLabel = (status) => {
   const labels = {
     active: 'アクティブ',
     inactive: '非アクティブ', 
-    support: 'サポート要請中'
+    support: 'サポート要請中',
+    pending_review: '審査待ち',
+    '審査待ち': '審査待ち',
+    rejected: '却下済み'
   }
   return labels[status] || status
 }
 
+// 統計情報更新
+const updateStats = () => {
+  // 現在の加盟店データから統計を計算
+  const total = franchises.value.length
+  const active = franchises.value.filter(f => f.status === 'active').length
+  const inactive = franchises.value.filter(f => f.status === 'inactive').length
+  const needsSupport = franchises.value.filter(f => f.status === 'support').length
+  const pendingReview = franchises.value.filter(f => f.status === 'pending_review').length
+  
+  franchiseStats.value = {
+    total,
+    active,
+    inactive,
+    needsSupport,
+    pendingReview
+  }
+  
+  console.log('📊 統計データ更新:', franchiseStats.value)
+}
+
 const formatDate = (dateString) => {
+  if (!dateString) return '-'
   const date = new Date(dateString)
   return date.toLocaleDateString('ja-JP', {
     year: 'numeric',
@@ -320,6 +337,49 @@ const formatDate = (dateString) => {
     hour: '2-digit',
     minute: '2-digit'
   })
+}
+
+
+// ステータス変更関数
+const changeStatus = async (franchise, newStatus) => {
+  console.log('🔄 ステータス変更開始:', franchise.id, newStatus)
+  processingAction.value[franchise.id] = newStatus // 処理開始
+  console.log('📍 processingAction設定:', processingAction.value)
+  
+  try {
+    const response = await apiService.post('', {
+      action: 'updateFranchiseStatus',
+      franchiseId: franchise.id,
+      status: newStatus,
+      reviewer: '管理者',
+      comment: `ステータスを${getStatusLabel(newStatus)}に変更`
+    })
+    
+    if (response.success) {
+      franchise.status = newStatus
+      updateStats()
+      showToastMessage(`${franchise.name}のステータスを${getStatusLabel(newStatus)}に変更しました`)
+    } else {
+      throw new Error(response.error || 'ステータス変更に失敗しました')
+    }
+  } catch (error) {
+    console.error('❌ ステータス変更エラー:', error)
+    showToastMessage('ステータス変更に失敗しました: ' + error.message, 'error')
+  } finally {
+    delete processingAction.value[franchise.id] // 処理終了
+  }
+}
+
+// トースト通知表示
+const showToastMessage = (message, type = 'success') => {
+  toastMessage.value = message
+  toastType.value = type
+  showToast.value = true
+  
+  // 5秒後に自動で消す
+  setTimeout(() => {
+    showToast.value = false
+  }, 5000)
 }
 
 // ライフサイクル
@@ -363,12 +423,76 @@ onMounted(() => {
   margin: 0;
 }
 
-.stats-grid {
+/* コンパクト統計カードのスタイル */
+.stats-compact {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
   margin-bottom: 32px;
 }
+
+.stat-card-compact {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-left: 3px solid #e5e7eb;
+}
+
+.stat-card-compact:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card-compact.active {
+  border-left-color: #10b981;
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+}
+
+.stat-card-compact.inactive {
+  border-left-color: #ef4444;
+  background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+}
+
+.stat-card-compact.support {
+  border-left-color: #f59e0b;
+  background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
+}
+
+.stat-card-compact.pending {
+  border-left-color: #8b5cf6;
+  background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
+}
+
+.stat-icon-compact {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.stat-content-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-value-compact {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1;
+}
+
+.stat-label-compact {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* 削除：不要なスタイル */
 
 .stat-card {
   background: white;
@@ -565,6 +689,11 @@ onMounted(() => {
   color: #92400e;
 }
 
+.status-badge.pending_review {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
 .name-cell {
   display: flex;
   flex-direction: column;
@@ -588,6 +717,59 @@ onMounted(() => {
 .actions {
   display: flex;
   gap: 8px;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.approval-actions,
+.status-actions {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  font-size: 12px;
+  min-width: 60px;
+}
+
+.btn-success {
+  background-color: #a7f3d0;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+.btn-success:hover {
+  background-color: #6ee7b7;
+  border-color: #34d399;
+}
+
+.btn-danger {
+  background-color: #fecaca;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+.btn-danger:hover {
+  background-color: #fca5a5;
+  border-color: #f87171;
+}
+
+.btn-warning {
+  background-color: #f59e0b;
+  color: white;
+  border: 1px solid #f59e0b;
+}
+
+.btn-warning:hover {
+  background-color: #d97706;
+  border-color: #d97706;
 }
 
 .btn {
@@ -636,6 +818,29 @@ onMounted(() => {
 
 .btn-icon {
   font-size: 14px;
+}
+
+.btn-success {
+  background: #10b981;
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #059669;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.approval-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .modal-overlay {
@@ -742,17 +947,14 @@ onMounted(() => {
   to { transform: rotate(360deg); }
 }
 
+
 @media (max-width: 768px) {
   .franchise-management {
     padding: 16px;
   }
   
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .action-cards {
-    grid-template-columns: 1fr;
+  .stats-compact {
+    grid-template-columns: repeat(2, 1fr);
   }
   
   .filters {
@@ -769,6 +971,208 @@ onMounted(() => {
   
   .actions {
     flex-direction: column;
+  }
+  
+
+  .stat-card-compact {
+    padding: 12px;
+  }
+  
+  .stat-value-compact {
+    font-size: 18px;
+  }
+}
+
+/* トースト通知のスタイル */
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #10b981;
+  color: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  max-width: 400px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.toast-notification.error {
+  background-color: #ef4444;
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s ease;
+}
+
+.toast-enter-from {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+/* 全デバイス対応カードスタイル */
+.franchise-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .franchise-cards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+.franchise-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  transition: box-shadow 0.2s ease;
+}
+
+.franchise-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-content {
+  padding: 16px;
+}
+
+.franchise-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.franchise-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.franchise-name {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.3;
+}
+
+.franchise-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.separator {
+  color: #d1d5db;
+  margin: 0 2px;
+}
+
+.franchise-id {
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.action-group {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+
+.btn-compact {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-compact:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* コンパクトボタンカラー */
+.btn-success.btn-compact {
+  background-color: #a7f3d0;
+  color: #065f46;
+}
+
+.btn-success.btn-compact:hover:not(:disabled) {
+  background-color: #6ee7b7;
+}
+
+.btn-danger.btn-compact {
+  background-color: #fecaca;
+  color: #991b1b;
+}
+
+.btn-danger.btn-compact:hover:not(:disabled) {
+  background-color: #fca5a5;
+}
+
+.btn-warning.btn-compact {
+  background-color: #fed7aa;
+  color: #9a3412;
+}
+
+.btn-warning.btn-compact:hover:not(:disabled) {
+  background-color: #fdba74;
+}
+
+.btn-outline.btn-compact {
+  background-color: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-outline.btn-compact:hover {
+  background-color: #f1f5f9;
+}
+
+@media (max-width: 480px) {
+  .franchise-main {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .franchise-meta {
+    font-size: 11px;
+  }
+  
+  .card-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .action-group {
+    justify-content: center;
   }
 }
 </style>

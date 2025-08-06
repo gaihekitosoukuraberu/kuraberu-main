@@ -2145,6 +2145,122 @@ function initializeFranchiseDataSheet(ss) {
 }
 
 /**
+ * フランチャイズヒアリング開始
+ */
+function startFranchiseHearing(userId, replyToken) {
+  try {
+    console.log(`🆕 フランチャイズヒアリング開始: ${userId}`);
+    
+    // ヒアリングシステム初期化
+    initializeFranchiseHearingBot();
+    
+    // 最初の質問を送信
+    const welcomeMessage = {
+      type: 'text',
+      text: `🏢 フランチャイズ加盟店ヒアリングを開始します！\n\n26項目の質問にお答えいただき、加盟店情報を登録いたします。\n\nまず最初の質問です：\n\n【ステップ1/26】\n会社名を入力してください\n\n正式な会社名をご入力ください。`
+    };
+    
+    // セッション開始
+    const sessionId = `session_${userId}_${Date.now()}`;
+    saveHearingSession(userId, {
+      sessionId: sessionId,
+      currentStep: 'step1',
+      startTime: new Date().toISOString(),
+      responses: {}
+    });
+    
+    // LINE応答送信
+    return sendLineReplyMessage(replyToken, [welcomeMessage]);
+    
+  } catch (error) {
+    console.error('❌ フランチャイズヒアリング開始エラー:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+/**
+ * ヒアリングセッション保存
+ */
+function saveHearingSession(userId, sessionData) {
+  try {
+    const properties = PropertiesService.getScriptProperties();
+    const sessionKey = `hearing_${userId}`;
+    properties.setProperty(sessionKey, JSON.stringify(sessionData));
+    
+    console.log(`💾 ヒアリングセッション保存: ${userId}`);
+    return { success: true };
+    
+  } catch (error) {
+    console.error('❌ セッション保存エラー:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * ヒアリングセッション取得
+ */
+function getHearingSession(userId) {
+  try {
+    const properties = PropertiesService.getScriptProperties();
+    const sessionKey = `hearing_${userId}`;
+    const sessionJson = properties.getProperty(sessionKey);
+    
+    return sessionJson ? JSON.parse(sessionJson) : null;
+    
+  } catch (error) {
+    console.error('❌ セッション取得エラー:', error);
+    return null;
+  }
+}
+
+/**
+ * LINE応答メッセージ送信
+ */
+function sendLineReplyMessage(replyToken, messages) {
+  try {
+    const accessToken = PropertiesService.getScriptProperties().getProperty('LINE_ACCESS_TOKEN');
+    if (!accessToken) {
+      return {
+        success: false,
+        error: 'LINEアクセストークンが設定されていません'
+      };
+    }
+    
+    const requestBody = {
+      replyToken: replyToken,
+      messages: messages
+    };
+    
+    const options = {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      payload: JSON.stringify(requestBody)
+    };
+    
+    const response = UrlFetchApp.fetch('https://api.line.me/v2/bot/message/reply', options);
+    
+    return {
+      success: response.getResponseCode() === 200,
+      responseCode: response.getResponseCode(),
+      responseText: response.getContentText()
+    };
+    
+  } catch (error) {
+    console.error('❌ LINE応答送信エラー:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+/**
  * テスト用：ヒアリングBOT動作確認
  */
 function testFranchiseHearingBot() {

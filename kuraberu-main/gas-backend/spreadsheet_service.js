@@ -16,7 +16,16 @@ function initializeAllSpreadsheetSheets() {
     if (!spreadsheetId) {
       throw new Error('SPREADSHEET_ID が設定されていません');
     }
-    const ss = SpreadsheetApp.openById(spreadsheetId);
+    let ss;
+    try {
+      // まずアクティブスプレッドシートを試行
+      ss = SpreadsheetApp.getActiveSpreadsheet();
+      Logger.log('✅ アクティブスプレッドシート取得成功:', ss.getName());
+    } catch (activeError) {
+      Logger.log('⚠️ アクティブスプレッドシート取得失敗、ID指定で再試行');
+      ss = SpreadsheetApp.openById(spreadsheetId);
+      Logger.log('✅ SpreadsheetApp.openById成功');
+    }
     Logger.log('🚀 全シート統合初期化開始（既存コード整合性確保）');
 
     const results = {
@@ -224,7 +233,31 @@ function initializeAllSpreadsheetSheets() {
       results.errors.push(`加盟店フラグ管理: ${e.message}`);
     }
 
-    Logger.log('✅ 全シート統合初期化完了（ランキング・フラグ管理機能追加）');
+    // 案件管理シート初期化
+    try {
+      Logger.log('--- 案件管理シート初期化 ---');
+      const caseManagementResult = initializeCaseManagementSheet(ss);
+      results.sheetsInitialized.push('案件管理');
+      if (caseManagementResult.samplesCreated) {
+        results.samplesCreated.push(...caseManagementResult.samplesCreated);
+      }
+    } catch (e) {
+      results.errors.push(`案件管理: ${e.message}`);
+    }
+
+    // ステータス定義シート初期化
+    try {
+      Logger.log('--- ステータス定義シート初期化 ---');
+      const statusDefinitionResult = initializeStatusDefinitionSheet(ss);
+      results.sheetsInitialized.push('ステータス定義');
+      if (statusDefinitionResult.samplesCreated) {
+        results.samplesCreated.push(...statusDefinitionResult.samplesCreated);
+      }
+    } catch (e) {
+      results.errors.push(`ステータス定義: ${e.message}`);
+    }
+
+    Logger.log('✅ 全シート統合初期化完了（案件進捗管理機能追加）');
     
     // Slack通知（利用可能な場合）
     try {
@@ -883,92 +916,25 @@ function ensureBackwardCompatibility() {
  * 統合初期化システムのテスト関数
  * 全システムの動作確認を実施
  */
-function testSpreadsheetInitializationSystem() {
+
+/**
+ * 共通シート初期化ヘルパー関数
+ * @param {Spreadsheet} ss - スプレッドシートオブジェクト
+ * @param {string} sheetName - シート名
+ * @param {Array} headers - ヘッダー配列
+ * @returns {Object} 初期化結果
+ */
+function initializeSimpleSheet(ss, sheetName, headers) {
   try {
-    Logger.log('🧪 統合初期化システムテスト開始');
-    
-    // 1. 統合初期化テスト
-    Logger.log('--- 統合初期化テスト ---');
-    const initResult = initializeAllSpreadsheetSheets();
-    Logger.log('統合初期化結果:', initResult);
-    
-    // 2. 整合性確認テスト
-    Logger.log('--- 整合性確認テスト ---');
-    const compatibilityResult = ensureBackwardCompatibility();
-    Logger.log('整合性確認結果:', compatibilityResult);
-    
-    // 3. 既存システム動作確認
-    Logger.log('--- 既存システム動作確認 ---');
-    const systemTests = {
-      rankingSystem: false,
-      cancelSystem: false,
-      assignmentSystem: false
-    };
-    
-    // ランキングシステムテスト
-    try {
-      if (typeof testRankingDisplaySystem === 'function') {
-        const rankingTest = testRankingDisplaySystem();
-        systemTests.rankingSystem = rankingTest.success;
-        Logger.log('ランキングシステム: OK');
-      }
-    } catch (e) {
-      Logger.log('ランキングシステム: スキップ -', e.message);
+    let sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      sheet = ss.insertSheet(sheetName);
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
     }
-    
-    // キャンセルシステムテスト
-    try {
-      if (typeof testCancelRequestSystem === 'function') {
-        const cancelTest = testCancelRequestSystem();
-        systemTests.cancelSystem = cancelTest.success;
-        Logger.log('キャンセルシステム: OK');
-      }
-    } catch (e) {
-      Logger.log('キャンセルシステム: スキップ -', e.message);
-    }
-    
-    // 案件振り分けシステムテスト
-    try {
-      if (typeof testCaseAssignmentSystem === 'function') {
-        const assignmentTest = testCaseAssignmentSystem();
-        systemTests.assignmentSystem = assignmentTest.success;
-        Logger.log('案件振り分けシステム: OK');
-      }
-    } catch (e) {
-      Logger.log('案件振り分けシステム: スキップ -', e.message);
-    }
-    
-    // 4. テスト統計
-    const stats = {
-      initializationSuccess: initResult.success,
-      compatibilitySuccess: compatibilityResult.success,
-      systemTestsPassRate: Object.values(systemTests).filter(Boolean).length / Object.keys(systemTests).length * 100,
-      overallSuccess: initResult.success && compatibilityResult.success
-    };
-    
-    Logger.log('📊 テスト統計:', stats);
-    Logger.log('✅ 統合初期化システムテスト完了');
-    
-    return {
-      success: stats.overallSuccess,
-      testResults: {
-        initialization: initResult,
-        compatibility: compatibilityResult,
-        systemTests: systemTests,
-        statistics: stats
-      }
-    };
-    
+    return { success: true, samplesCreated: false };
   } catch (error) {
-    Logger.log('❌ 統合初期化システムテストエラー:', error);
-    
-    return {
-      success: false,
-      error: {
-        type: 'integration_test_failed',
-        message: error.message
-      }
-    };
+    throw new Error(`${sheetName}シート初期化エラー: ${error.message}`);
   }
 }
 
@@ -976,144 +942,64 @@ function testSpreadsheetInitializationSystem() {
  * ユーザー情報シート初期化
  */
 function initializeUserInfoSheet(ss) {
-  try {
-    let sheet = ss.getSheetByName('ユーザー情報');
-    if (!sheet) {
-      sheet = ss.insertSheet('ユーザー情報');
-      const headers = ['ユーザーID', '氏名', '電話番号', 'メールアドレス', '郵便番号', '都道府県', '市区町村', '番地以下', '建物名・部屋番号', '問い合わせ日時', '最終更新日時', 'LINEユーザーID', 'SlackチャンネルID', 'チャットボットステータス', '備考'];
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-    }
-    return { success: true, samplesCreated: false };
-  } catch (error) {
-    throw new Error(`ユーザー情報シート初期化エラー: ${error.message}`);
-  }
+  const headers = ['ユーザーID', '氏名', '電話番号', 'メールアドレス', '郵便番号', '都道府県', '市区町村', '番地以下', '建物名・部屋番号', '問い合わせ日時', '最終更新日時', 'LINEユーザーID', 'SlackチャンネルID', 'チャットボットステータス', '備考'];
+  return initializeSimpleSheet(ss, 'ユーザー情報', headers);
 }
 
 /**
  * 問い合わせ履歴シート初期化
  */
 function initializeInquiryHistorySheet(ss) {
-  try {
-    let sheet = ss.getSheetByName('問い合わせ履歴');
-    if (!sheet) {
-      sheet = ss.insertSheet('問い合わせ履歴');
-      const headers = ['履歴ID', 'ユーザーID', '問い合わせ内容カテゴリ', '希望工事内容', '現在の状況', '希望時期', '予算感', '対応状況', 'チャット履歴JSON', '最終対応日時', '担当者ID', 'マッチング業者ID', 'メモ'];
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-    }
-    return { success: true, samplesCreated: false };
-  } catch (error) {
-    throw new Error(`問い合わせ履歴シート初期化エラー: ${error.message}`);
-  }
+  const headers = ['履歴ID', 'ユーザーID', '問い合わせ内容カテゴリ', '希望工事内容', '現在の状況', '希望時期', '予算感', '対応状況', 'チャット履歴JSON', '最終対応日時', '担当者ID', 'マッチング業者ID', 'メモ'];
+  return initializeSimpleSheet(ss, '問い合わせ履歴', headers);
 }
 
 /**
  * 加盟店情報シート初期化
  */
 function initializePartnerInfoSheet(ss) {
-  try {
-    let sheet = ss.getSheetByName('加盟店情報');
-    if (!sheet) {
-      sheet = ss.insertSheet('加盟店情報');
-      const headers = ['加盟店ID', '会社名', '代表者名', '所在地郵便番号', '所在地都道府県', '所在地市区町村', '所在地番地以下', '電話番号', 'メールアドレス', '担当者名', '担当者連絡先', '対応可能エリア', '得意工事', '年間施工件数', '登録日', '契約プラン', 'アカウントステータス', '評価平均', '備考'];
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-    }
-    return { success: true, samplesCreated: false };
-  } catch (error) {
-    throw new Error(`加盟店情報シート初期化エラー: ${error.message}`);
-  }
+  const headers = ['加盟店ID', '会社名', '代表者名', '所在地郵便番号', '所在地都道府県', '所在地市区町村', '所在地番地以下', '電話番号', 'メールアドレス', '担当者名', '担当者連絡先', '対応可能エリア', '得意工事', '年間施工件数', '登録日', '契約プラン', 'アカウントステータス', '評価平均', '備考'];
+  return initializeSimpleSheet(ss, '加盟店情報', headers);
 }
 
 /**
  * マッチング履歴シート初期化
  */
 function initializeMatchingHistorySheet(ss) {
-  try {
-    let sheet = ss.getSheetByName('マッチング履歴');
-    if (!sheet) {
-      sheet = ss.insertSheet('マッチング履歴');
-      const headers = ['マッチングID', '問い合わせID', '加盟店ID', 'マッチング日時', 'マッチング理由', 'マッチング結果', '成約状況', '成約日時', '成約金額', 'ユーザー評価', '加盟店評価', '備考'];
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-    }
-    return { success: true, samplesCreated: false };
-  } catch (error) {
-    throw new Error(`マッチング履歴シート初期化エラー: ${error.message}`);
-  }
+  const headers = ['マッチングID', '問い合わせID', '加盟店ID', 'マッチング日時', 'マッチング理由', 'マッチング結果', '成約状況', '成約日時', '成約金額', 'ユーザー評価', '加盟店評価', '備考'];
+  return initializeSimpleSheet(ss, 'マッチング履歴', headers);
 }
 
 /**
  * 管理者情報シート初期化
  */
 function initializeAdminInfoSheet(ss) {
-  try {
-    let sheet = ss.getSheetByName('管理者情報');
-    if (!sheet) {
-      sheet = ss.insertSheet('管理者情報');
-      const headers = ['管理者ID', '氏名', 'メールアドレス', 'パスワードハッシュ', '役割', '最終ログイン日時', 'アカウントステータス', '備考'];
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-    }
-    return { success: true, samplesCreated: false };
-  } catch (error) {
-    throw new Error(`管理者情報シート初期化エラー: ${error.message}`);
-  }
+  const headers = ['管理者ID', '氏名', 'メールアドレス', 'パスワードハッシュ', '役割', '最終ログイン日時', 'アカウントステータス', '備考'];
+  return initializeSimpleSheet(ss, '管理者情報', headers);
 }
 
 /**
  * 設定マスタシート初期化
  */
 function initializeSettingsMasterSheet(ss) {
-  try {
-    let sheet = ss.getSheetByName('設定マスタ');
-    if (!sheet) {
-      sheet = ss.insertSheet('設定マスタ');
-      const headers = ['設定キー', '設定値', 'データ型', '説明', '最終更新日時', '更新者'];
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-    }
-    return { success: true, samplesCreated: false };
-  } catch (error) {
-    throw new Error(`設定マスタシート初期化エラー: ${error.message}`);
-  }
+  const headers = ['設定キー', '設定値', 'データ型', '説明', '最終更新日時', '更新者'];
+  return initializeSimpleSheet(ss, '設定マスタ', headers);
 }
 
 /**
  * GASトリガー設定シート初期化
  */
 function initializeGasTriggerSheet(ss) {
-  try {
-    let sheet = ss.getSheetByName('GASトリガー設定');
-    if (!sheet) {
-      sheet = ss.insertSheet('GASトリガー設定');
-      const headers = ['トリガー名', '関数名', 'トリガータイプ', '実行間隔/条件', 'ステータス', '最終実行日時', '最終実行結果', '備考'];
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-    }
-    return { success: true, samplesCreated: false };
-  } catch (error) {
-    throw new Error(`GASトリガー設定シート初期化エラー: ${error.message}`);
-  }
+  const headers = ['トリガー名', '関数名', 'トリガータイプ', '実行間隔/条件', 'ステータス', '最終実行日時', '最終実行結果', '備考'];
+  return initializeSimpleSheet(ss, 'GASトリガー設定', headers);
 }
 
 /**
  * ユーザー評価シート初期化
  */
 function initializeUserEvaluationSheet(ss) {
-  try {
-    let sheet = ss.getSheetByName('ユーザー評価');
-    if (!sheet) {
-      sheet = ss.insertSheet('ユーザー評価');
-      const headers = ['評価ID', 'マッチングID', 'ユーザーID', '加盟店ID', '評価点', 'コメント', '評価日時', '公開設定', '管理メモ'];
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-    }
-    return { success: true, samplesCreated: false };
-  } catch (error) {
-    throw new Error(`ユーザー評価シート初期化エラー: ${error.message}`);
-  }
+  const headers = ['評価ID', 'マッチングID', 'ユーザーID', '加盟店ID', '評価点', 'コメント', '評価日時', '公開設定', '管理メモ'];
+  return initializeSimpleSheet(ss, 'ユーザー評価', headers);
 }
 
 /**
@@ -1488,278 +1374,7 @@ function initializeChatAnswerLogSheet(ss) {
   }
 }
 
-/**
- * テスト用子アカウント自動追加
- * claude_assignmentTest() 実行前に呼び出してテスト環境を整備
- * 
- * @return {Object} 追加結果
- */
-function insertTestChildAccountForAssignment() {
-  try {
-    Logger.log('🧪 テスト用子アカウント追加開始');
-    
-    const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
-    if (!spreadsheetId) {
-      throw new Error('SPREADSHEET_ID が設定されていません');
-    }
-    
-    const ss = SpreadsheetApp.openById(spreadsheetId);
-    const sheet = ss.getSheetByName('加盟店子ユーザー一覧');
-    
-    if (!sheet) {
-      throw new Error('加盟店子ユーザー一覧シートが見つかりません');
-    }
-    
-    const dataRange = sheet.getDataRange();
-    if (dataRange.getNumRows() === 0) {
-      throw new Error('加盟店子ユーザー一覧シートにヘッダーがありません');
-    }
-    
-    const headers = dataRange.getValues()[0];
-    const rows = dataRange.getValues().slice(1);
-    
-    // 既存データをチェック（重複防止）
-    const testChildId = 'CHILD-TEST-001';
-    const existingRow = rows.find(row => {
-      const childIdIndex = headers.indexOf('子ユーザーID');
-      return childIdIndex !== -1 && row[childIdIndex] === testChildId;
-    });
-    
-    if (existingRow) {
-      Logger.log('✅ テスト用子アカウントは既に存在します');
-      return {
-        success: true,
-        message: 'テスト用子アカウントは既に存在します',
-        skipped: true
-      };
-    }
-    
-    // 今日の日付
-    const today = new Date().toLocaleString('ja-JP');
-    
-    // テストデータ作成
-    const testData = [];
-    for (let i = 0; i < headers.length; i++) {
-      testData.push('');
-    }
-    
-    // 各カラムに値を設定
-    const columnMapping = {
-      '子ユーザーID': 'CHILD-TEST-001',
-      '親加盟店ID': 'PARENT-TEST-001',
-      '氏名（表示用）': 'テスト子ユーザー',
-      'メールアドレス': 'test-child@example.com',
-      'パスワードハッシュ': 'test_hash_placeholder',
-      '役割': '営業担当',
-      '権限レベル': '一般',
-      '対応エリア（市区町村）': '東京都港区',
-      '担当案件タイプ': '外壁塗装',
-      'ステータス': 'アクティブ',
-      '最終ログイン日時': today,
-      '登録日': today,
-      '作成者ID': 'SYSTEM-TEST',
-      '作成日': today,
-      '更新日': today,
-      '備考': 'claude_assignmentTest用テストデータ'
-    };
-    
-    // データをマッピング
-    Object.entries(columnMapping).forEach(([columnName, value]) => {
-      const index = headers.indexOf(columnName);
-      if (index !== -1) {
-        testData[index] = value;
-      }
-    });
-    
-    // シートに追加
-    sheet.appendRow(testData);
-    
-    Logger.log('✅ テスト用子アカウント追加完了');
-    Logger.log(`追加データ: ${testChildId} (${columnMapping['氏名（表示用）']})`);
-    
-    return {
-      success: true,
-      message: 'テスト用子アカウントを追加しました',
-      childId: testChildId,
-      parentId: 'PARENT-TEST-001',
-      name: 'テスト子ユーザー'
-    };
-    
-  } catch (error) {
-    Logger.log('❌ テスト用子アカウント追加エラー:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
 
-/**
- * テスト用案件データ自動追加（エリア情報付き）
- * claude_assignmentTest() 実行前に呼び出してテスト環境を整備
- * 
- * @return {Object} 追加結果
- */
-function insertTestInquiryRowWithArea() {
-  try {
-    Logger.log('🧪 テスト用案件データ追加開始');
-    
-    const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
-    if (!spreadsheetId) {
-      throw new Error('SPREADSHEET_ID が設定されていません');
-    }
-    
-    const ss = SpreadsheetApp.openById(spreadsheetId);
-    
-    // ユーザー案件シートを確認
-    let sheet = ss.getSheetByName('ユーザー案件');
-    if (!sheet) {
-      // シートが存在しない場合は作成
-      Logger.log('ユーザー案件シートが存在しないため作成します');
-      const result = initializeUserCasesSheet(ss);
-      if (!result.success) {
-        throw new Error('ユーザー案件シートの作成に失敗しました');
-      }
-      sheet = ss.getSheetByName('ユーザー案件');
-    }
-    
-    const dataRange = sheet.getDataRange();
-    if (dataRange.getNumRows() === 0) {
-      throw new Error('ユーザー案件シートにヘッダーがありません');
-    }
-    
-    const headers = dataRange.getValues()[0];
-    const rows = dataRange.getValues().slice(1);
-    
-    // 既存データをチェック（重複防止）
-    const testInquiryId = 'INQ-TEST-002';
-    const existingRow = rows.find(row => {
-      const inquiryIdIndex = headers.indexOf('案件ID');
-      return inquiryIdIndex !== -1 && row[inquiryIdIndex] === testInquiryId;
-    });
-    
-    if (existingRow) {
-      Logger.log('✅ テスト用案件データは既に存在します');
-      return {
-        success: true,
-        message: 'テスト用案件データは既に存在します',
-        skipped: true
-      };
-    }
-    
-    // 今日の日付
-    const today = new Date().toLocaleString('ja-JP');
-    
-    // テストデータ作成
-    const testData = [];
-    for (let i = 0; i < headers.length; i++) {
-      testData.push('');
-    }
-    
-    // 各カラムに値を設定
-    const columnMapping = {
-      '案件ID': 'INQ-TEST-002',
-      'ユーザーID': 'TEST_USER',
-      '氏名': 'テストユーザー',
-      '電話番号': '090-0000-0000',
-      'メールアドレス': 'test-user@example.com',
-      '都道府県': '東京都',
-      '市区町村': '港区',
-      '住所': '東京都港区テスト1-2-3',
-      '工事種別': 'テスト塗装',
-      '外装部位': '屋根',
-      '希望工事内容': 'テスト塗装',
-      '希望時期': '3ヶ月以内',
-      '予算': '100-200万円',
-      '面積': '100㎡',
-      '進行ステップ': 'STEP_TEST',
-      'ステータス': '新規',
-      '対応状況': '未対応',
-      '担当者ID': '',
-      'マッチング業者ID': '',
-      '作成日': today,
-      '更新日': today,
-      '備考': 'claude_assignmentTest用テストデータ（エリア情報付き）'
-    };
-    
-    // データをマッピング（存在する列のみ）
-    Object.entries(columnMapping).forEach(([columnName, value]) => {
-      const index = headers.indexOf(columnName);
-      if (index !== -1) {
-        testData[index] = value;
-      }
-    });
-    
-    // シートに追加
-    sheet.appendRow(testData);
-    
-    Logger.log('✅ テスト用案件データ追加完了');
-    Logger.log(`追加データ: ${testInquiryId} (${columnMapping['都道府県']}${columnMapping['市区町村']})`);
-    
-    // 問い合わせ履歴シートにも対応するデータを追加（存在する場合）
-    try {
-      const inquirySheet = ss.getSheetByName('問い合わせ履歴');
-      if (inquirySheet) {
-        const inquiryDataRange = inquirySheet.getDataRange();
-        if (inquiryDataRange.getNumRows() > 0) {
-          const inquiryHeaders = inquiryDataRange.getValues()[0];
-          const inquiryRows = inquiryDataRange.getValues().slice(1);
-          
-          // 既存チェック
-          const existingInquiry = inquiryRows.find(row => {
-            const idIndex = inquiryHeaders.indexOf('履歴ID');
-            return idIndex !== -1 && row[idIndex] === testInquiryId;
-          });
-          
-          if (!existingInquiry) {
-            const inquiryData = [];
-            for (let i = 0; i < inquiryHeaders.length; i++) {
-              inquiryData.push('');
-            }
-            
-            const inquiryMapping = {
-              '履歴ID': testInquiryId,
-              'ユーザーID': 'TEST_USER',
-              '都道府県': '東京都',
-              '市区町村': '港区',
-              '問い合わせ内容カテゴリ': 'テスト塗装',
-              '希望工事内容': 'テスト塗装',
-              '対応状況': '未対応',
-              '最終対応日時': today
-            };
-            
-            Object.entries(inquiryMapping).forEach(([columnName, value]) => {
-              const index = inquiryHeaders.indexOf(columnName);
-              if (index !== -1) {
-                inquiryData[index] = value;
-              }
-            });
-            
-            inquirySheet.appendRow(inquiryData);
-            Logger.log('✅ 問い合わせ履歴にも対応データを追加');
-          }
-        }
-      }
-    } catch (inquiryError) {
-      Logger.log('⚠️ 問い合わせ履歴への追加はスキップ:', inquiryError.message);
-    }
-    
-    return {
-      success: true,
-      message: 'テスト用案件データを追加しました',
-      inquiryId: testInquiryId,
-      area: '東京都港区',
-      status: '新規'
-    };
-    
-  } catch (error) {
-    Logger.log('❌ テスト用案件データ追加エラー:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
 
 /**
  * 案件振り分けテスト用シート構造修正
@@ -1973,108 +1588,6 @@ function removeAreaColumnsFromUserCases_(ss) {
   }
 }
 
-/**
- * 問い合わせ履歴シートのINQ-TEST-002テストデータ補完
- * @param {GoogleAppsScript.Spreadsheet.Spreadsheet} ss スプレッドシート
- * @return {boolean} 処理成功可否
- */
-function supplementTestDataInInquiryHistory_(ss) {
-  try {
-    Logger.log('🧪 問い合わせ履歴テストデータ補完開始');
-    
-    const sheet = ss.getSheetByName('問い合わせ履歴');
-    if (!sheet) {
-      throw new Error('問い合わせ履歴シートが見つかりません');
-    }
-    
-    const dataRange = sheet.getDataRange();
-    if (dataRange.getNumRows() === 0) {
-      throw new Error('問い合わせ履歴シートにヘッダーがありません');
-    }
-    
-    const allData = dataRange.getValues();
-    const headers = allData[0];
-    const rows = allData.slice(1);
-    
-    // 既存テストデータをチェック
-    const testInquiryId = 'INQ-TEST-002';
-    const existingRowIndex = rows.findIndex(row => {
-      const idIndex = headers.indexOf('履歴ID');
-      return idIndex !== -1 && row[idIndex] === testInquiryId;
-    });
-    
-    // テストデータの定義
-    const testData = {
-      '履歴ID': 'INQ-TEST-002',
-      'ユーザーID': 'USR-TEST-001',
-      '問い合わせ内容カテゴリ': '外壁塗装',
-      '希望工事内容': '外壁と屋根の塗装',
-      '現在の状況': '現地調査前',
-      '希望時期': '2ヶ月以内',
-      '予算感': '100万円前後',
-      '対応状況': '未対応',
-      'チャット履歴JSON': '{}',
-      '最終対応日時': '2025/05/31 12:00:00',
-      '担当者ID': '',
-      'マッチング業者ID': '',
-      'メモ': 'テスト用データ',
-      '都道府県': '東京都',
-      '市区町村': '港区'
-    };
-    
-    if (existingRowIndex !== -1) {
-      // 既存データの更新（空欄のみ）
-      Logger.log('既存テストデータを発見 - 不足項目のみ補完');
-      
-      const existingRow = rows[existingRowIndex];
-      let updated = false;
-      
-      Object.entries(testData).forEach(([columnName, value]) => {
-        const columnIndex = headers.indexOf(columnName);
-        if (columnIndex !== -1) {
-          const currentValue = existingRow[columnIndex];
-          if (!currentValue || currentValue.toString().trim() === '') {
-            existingRow[columnIndex] = value;
-            updated = true;
-            Logger.log(`✅ ${columnName}: "${value}" を補完`);
-          }
-        }
-      });
-      
-      if (updated) {
-        sheet.getRange(existingRowIndex + 2, 1, 1, existingRow.length).setValues([existingRow]);
-        Logger.log('✅ 既存テストデータを更新');
-      } else {
-        Logger.log('✅ 既存テストデータは完全');
-      }
-      
-    } else {
-      // 新規データの追加
-      Logger.log('新規テストデータを追加');
-      
-      const newRow = [];
-      for (let i = 0; i < headers.length; i++) {
-        newRow.push('');
-      }
-      
-      Object.entries(testData).forEach(([columnName, value]) => {
-        const columnIndex = headers.indexOf(columnName);
-        if (columnIndex !== -1) {
-          newRow[columnIndex] = value;
-        }
-      });
-      
-      sheet.appendRow(newRow);
-      Logger.log('✅ 新規テストデータを追加');
-    }
-    
-    return true;
-    
-  } catch (error) {
-    Logger.log('❌ テストデータ補完エラー:', error);
-    throw error;
-  }
-}
 
 // ==========================================
 // 請求書発行時の3チャネル通知機能
@@ -2621,75 +2134,6 @@ function updateBillingNotificationStatus(billingId, notificationSuccess) {
   }
 }
 
-/**
- * 請求書発行システムのテスト関数
- */
-function testBillingSystem() {
-  try {
-    Logger.log('🧪 請求書発行システムテスト開始');
-    
-    // テスト用の請求データ
-    const testBillingData = {
-      billingId: `BILL_TEST_${Date.now()}`,
-      franchiseeId: 'PARENT-TEST-001',
-      billingMonth: '2025年1月',
-      caseCount: 5,
-      commissionTotal: 150000,
-      referralFeeTotal: 50000,
-      totalAmount: 200000,
-      paymentType: '引き落とし',
-      billingDate: new Date(),
-      dueDate: '2025年2月末日',
-      remarks: 'テスト請求'
-    };
-    
-    // 請求書発行処理をテスト
-    const result = issueBillingWithNotification(testBillingData);
-    
-    Logger.log('✅ 請求書発行システムテスト結果:', result);
-    
-    return result;
-    
-  } catch (error) {
-    Logger.log('❌ 請求書発行システムテストエラー:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
-
-/**
- * 通知システム単体テスト関数
- */
-function testNotificationSystem() {
-  try {
-    Logger.log('🧪 通知システム単体テスト開始');
-    
-    const testFranchiseeId = 'PARENT-TEST-001';
-    const testBillingData = {
-      billingId: `NOTIFY_TEST_${Date.now()}`,
-      billingMonth: '2025年1月',
-      caseCount: 3,
-      totalAmount: 100000,
-      dueDate: '2025年2月末日'
-    };
-    
-    // 通知送信をテスト
-    const result = sendBillingNotifications(testFranchiseeId, testBillingData);
-    
-    Logger.log('✅ 通知システムテスト結果:', result);
-    
-    return result;
-    
-  } catch (error) {
-    Logger.log('❌ 通知システムテストエラー:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
 
 // ==========================================
 // 請求処理バッチシステム
@@ -3776,17 +3220,15 @@ function createApiResponse(data, statusCode = 200) {
   const response = ContentService.createTextOutput(JSON.stringify(data));
   response.setMimeType(ContentService.MimeType.JSON);
   
-  // CORS対応
-  try {
-    response.setHeaders({
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Cache-Control': 'no-cache'
-    });
-  } catch (headerError) {
-    Logger.log(`⚠️ レスポンスヘッダー設定失敗: ${headerError.message}`);
-  }
+  // GASではsetHeadersは使用不可 - コメントアウト
+  // response.setHeaders({
+  //   'Access-Control-Allow-Origin': '*',
+  //   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  //   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+  //   'Access-Control-Max-Age': '86400'
+  // });
+  
+  Logger.log(`📡 API応答作成: ステータス ${statusCode}`);
   
   return response;
 }
@@ -3797,12 +3239,21 @@ function createApiResponse(data, statusCode = 200) {
  * @param {Object} e - doGet()イベントオブジェクト
  * @returns {GoogleAppsScript.Content.TextOutput} レスポンス
  */
-function doGet(e) {
+function doGetDisabled_spreadsheet(e) {
   try {
-    const pathInfo = e.pathInfo || '';
-    const parameter = e.parameter || {};
+    // イベントオブジェクトの安全な取得
+    if (!e) {
+      Logger.log(`⚠️ イベントオブジェクトが未定義です`);
+      return createApiResponse({
+        success: false,
+        error: 'イベントオブジェクトが未定義です'
+      }, 400);
+    }
     
-    Logger.log(`🌐 API リクエスト受信: ${pathInfo}`);
+    const pathInfo = (e && e.pathInfo) ? e.pathInfo : '';
+    const parameter = (e && e.parameter) ? e.parameter : {};
+    
+    Logger.log(`🌐 API リクエスト受信: パス="${pathInfo}"`);
     
     // API ルーティング
     if (pathInfo === 'api/getBillingHistory') {
@@ -4010,136 +3461,8 @@ function logMonthlyBillingResults(targetMonth, results) {
 // テスト・デバッグ関数
 // ==========================================
 
-/**
- * 月次請求処理システムのテスト関数
- */
-function testMonthlyBillingSystem() {
-  try {
-    Logger.log('🧪 月次請求処理システムテスト開始');
-    
-    // テスト用の日付（前月を対象とするため）
-    const testDate = new Date(); // 現在の月の請求処理をテスト
-    
-    // 1. 営業日判定テスト
-    Logger.log('--- 営業日判定テスト ---');
-    const today = new Date();
-    const isBusinessToday = isBusinessDay(today);
-    const nextBusiness = getNextBusinessDay(today);
-    Logger.log(`今日は営業日: ${isBusinessToday}`);
-    Logger.log(`次の営業日: ${nextBusiness.toLocaleDateString('ja-JP')}`);
-    
-    // 2. 対象月取得テスト
-    Logger.log('--- 対象月取得テスト ---');
-    const targetMonth = getTargetMonth(testDate);
-    Logger.log(`対象月: ${targetMonth.year}年${targetMonth.month}月`);
-    
-    // 3. 成約案件取得テスト
-    Logger.log('--- 成約案件取得テスト ---');
-    const contractedCases = getContractedCasesForMonth(targetMonth);
-    Logger.log(`成約案件数: ${contractedCases.length}件`);
-    
-    if (contractedCases.length > 0) {
-      Logger.log('最初の案件:', contractedCases[0]);
-    }
-    
-    // 4. 加盟店グループ化テスト
-    Logger.log('--- 加盟店グループ化テスト ---');
-    const franchiseGroups = groupCasesByFranchise(contractedCases);
-    Logger.log(`加盟店数: ${Object.keys(franchiseGroups).length}社`);
-    
-    // 5. 個別加盟店請求テスト（最初の加盟店のみ）
-    const firstFranchiseId = Object.keys(franchiseGroups)[0];
-    if (firstFranchiseId) {
-      Logger.log(`--- ${firstFranchiseId} 個別請求テスト ---`);
-      const billingResult = generateBillingForFranchise(firstFranchiseId, targetMonth, franchiseGroups[firstFranchiseId]);
-      Logger.log('個別請求結果:', billingResult.success ? '成功' : '失敗');
-      if (billingResult.success) {
-        Logger.log(`請求金額: ${billingResult.billingData.totalAmount.toLocaleString()}円`);
-      }
-    }
-    
-    // 6. 祝祭日判定テスト
-    Logger.log('--- 祝祭日判定テスト ---');
-    const newYear = new Date(2025, 0, 1); // 2025年1月1日
-    const isHoliday = isJapaneseHoliday(newYear);
-    Logger.log(`2025年1月1日は祝日: ${isHoliday}`);
-    
-    Logger.log('✅ 月次請求処理システムテスト完了');
-    
-    return {
-      success: true,
-      targetMonth: targetMonth,
-      contractedCasesCount: contractedCases.length,
-      franchiseCount: Object.keys(franchiseGroups).length,
-      testResults: {
-        businessDay: isBusinessToday,
-        holidayTest: isHoliday,
-        caseRetrieval: contractedCases.length > 0,
-        grouping: Object.keys(franchiseGroups).length > 0
-      }
-    };
-    
-  } catch (error) {
-    Logger.log('❌ 月次請求処理システムテストエラー:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
 
-/**
- * 請求処理バッチの手動実行テスト
- */
-function testGenerateMonthlyBilling() {
-  try {
-    Logger.log('🧪 月次請求処理手動実行テスト開始');
-    
-    // 前月の最終日を基準として実行
-    const testDate = new Date();
-    testDate.setDate(0); // 前月の最終日
-    
-    const result = generateMonthlyBilling(testDate);
-    
-    Logger.log('✅ 月次請求処理手動実行テスト完了');
-    Logger.log('実行結果:', result);
-    
-    return result;
-    
-  } catch (error) {
-    Logger.log('❌ 月次請求処理手動実行テストエラー:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
 
-/**
- * 特定加盟店の請求処理テスト
- * 
- * @param {string} franchiseId テスト対象の加盟店ID
- */
-function testFranchiseBilling(franchiseId = 'PARENT-TEST-001') {
-  try {
-    Logger.log(`🧪 加盟店 ${franchiseId} 請求処理テスト開始`);
-    
-    const targetMonth = getTargetMonth(new Date());
-    const result = generateBillingForFranchise(franchiseId, targetMonth);
-    
-    Logger.log('✅ 加盟店請求処理テスト完了');
-    Logger.log('実行結果:', result);
-    
-    return result;
-    
-  } catch (error) {
-    Logger.log('❌ 加盟店請求処理テストエラー:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
 
 /**
  * テストデータ作成 - 請求管理シートに2-3件の請求履歴を追加
@@ -6176,9 +5499,104 @@ function initializeFranchiseRegistrationSheet(spreadsheet) {
  * @param {Object} data 登録データ
  * @returns {Object} 保存結果
  */
+/**
+ * 加盟店登録シートを強制初期化（テスト用）
+ */
+function forceInitializeFranchiseRegistrationSheet() {
+  try {
+    const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+    if (!SPREADSHEET_ID) {
+      throw new Error("SPREADSHEET_ID が設定されていません");
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    console.log("🔄 加盟店登録シート強制初期化開始");
+    
+    // 既存シートを削除
+    try {
+      const existingSheet = ss.getSheetByName("加盟店登録");
+      if (existingSheet) {
+        ss.deleteSheet(existingSheet);
+        console.log("🗑️ 既存「加盟店登録」シートを削除");
+      }
+    } catch (e) {
+      console.log("⚠️ 既存シート削除エラー（無視）:", e.message);
+    }
+    
+    // 新しいシートを作成
+    const newSheet = ss.insertSheet("加盟店登録");
+    console.log("✅ 新しい「加盟店登録」シートを作成");
+    
+    // 正しいヘッダーを設定
+    const headers = [
+      "加盟店ID",
+      "タイムスタンプ",
+      "会社名",
+      "会社名カナ",
+      "代表者名",
+      "代表者カナ",
+      "郵便番号",
+      "住所",
+      "電話番号",
+      "ウェブサイトURL",
+      "従業員数",
+      "売上規模",
+      "請求用メールアドレス",
+      "営業用メールアドレス",
+      "営業担当者氏名",
+      "営業担当者連絡先",
+      "対応物件種別・階数",
+      "施工箇所",
+      "特殊対応項目",
+      "築年数対応範囲",
+      "屋号",
+      "屋号カナ",
+      "支店情報",
+      "設立年月日",
+      "特徴・PR文",
+      "対応エリア",
+      "優先対応エリア",
+      "登録日",
+      "最終ログイン日時",
+      "ステータス",
+      "審査担当者",
+      "審査完了日",
+      "備考"
+    ];
+    
+    // ヘッダー行を設定
+    newSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    
+    // ヘッダー行のスタイル設定
+    const headerRange = newSheet.getRange(1, 1, 1, headers.length);
+    headerRange.setBackground("#4CAF50")
+               .setFontColor("#FFFFFF")
+               .setFontWeight("bold")
+               .setHorizontalAlignment("center");
+    
+    console.log("✅ 加盟店登録シート強制初期化完了");
+    console.log("📋 Q列:", headers[16]);  // Q列 = 対応物件種別・階数
+    console.log("📋 Y列:", headers[24]);  // Y列 = 特徴・PR文
+    
+    return {
+      success: true,
+      sheetName: "加盟店登録",
+      headers: headers,
+      message: "加盟店登録シートを正しい構造で再作成しました"
+    };
+    
+  } catch (error) {
+    console.error("❌ 加盟店登録シート強制初期化エラー:", error.message);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
 function saveFranchiseRegistration(franchiseId, data) {
   try {
-    console.log("💾 [spreadsheet_service.gs] スプレッドシート保存開始:", franchiseId);
+    console.log("💾 [spreadsheet_service.gs] 正しい列マッピング版保存開始:", franchiseId);
     console.log("📋 保存データ:", JSON.stringify(data, null, 2));
     
     const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
@@ -6204,8 +5622,8 @@ function saveFranchiseRegistration(franchiseId, data) {
       } else {
         phoneNumber = data.phone;
       }
-      // 文字列として保持（先頭の0を保持） - 先頭にアポストロフィを追加
-      phoneNumber = "'" + phoneNumber.toString();
+      // 文字列として保持（先頭の0を保持） - アポストロフィなし
+      phoneNumber = phoneNumber.toString();
     }
     
     // 物件種別のフォーマット
@@ -6225,9 +5643,9 @@ function saveFranchiseRegistration(franchiseId, data) {
     let salesPersonContact = "";
     if (data.salesPersonContact || data.salesPersonPhone) {
       const contactValue = data.salesPersonContact || data.salesPersonPhone || "";
-      // 電話番号のパターン（数字とハイフンのみ）の場合は先頭にアポストロフィを追加
+      // 電話番号のパターン（数字とハイフンのみ）の場合もアポストロフィなし
       if (/^[0-9-]+$/.test(contactValue.toString())) {
-        salesPersonContact = "'" + contactValue.toString();
+        salesPersonContact = contactValue.toString();
       } else {
         salesPersonContact = contactValue.toString();
       }
@@ -6268,7 +5686,7 @@ function saveFranchiseRegistration(franchiseId, data) {
     
     const dataToSave = {
       "加盟店ID": finalFranchiseId,
-      "タイムスタンプ": new Date(),
+      "タイムスタンプ": Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy/MM/dd HH:mm:ss'),
       "会社名": data.legalName || "",
       "会社名カナ": data.legalNameKana || "",
       "代表者名": data.representative || "",
@@ -6283,16 +5701,22 @@ function saveFranchiseRegistration(franchiseId, data) {
       "営業用メールアドレス": data.salesEmail || "",
       "営業担当者氏名": data.salesPersonName || "",
       "営業担当者連絡先": salesPersonContact,
-      "屋号・商号": data.tradeName || "",
-      "屋号・商号カナ": data.tradeNameKana || "",
+      "対応物件種別・階数": formatPropertyTypes(data.propertyTypes),
+      "施工箇所": data.constructionAreas || "",
+      "特殊対応項目": data.specialServices || "",
+      "築年数対応範囲": data.buildingAgeRange || "",
+      "屋号": data.tradeName || "",
+      "屋号カナ": data.tradeNameKana || "",
+      "支店情報": data.branchInfo || "",
       "設立年月日": data.establishedDate || "",
-      "会社PR": data.companyPR || "",
-      "物件種別": formatPropertyTypes(data.propertyTypes),
-      "優先対応エリア": data.priorityAreas || "",
+      "特徴・PR文": data.companyPR || "",
       "対応エリア": data.areasCompressed || "",
-      "登録日": new Date(),
+      "優先対応エリア": data.priorityAreas || "",
+      "登録日": Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy/MM/dd HH:mm:ss'),
       "最終ログイン日時": "",
       "ステータス": "審査待ち",
+      "審査担当者": "",
+      "審査完了日": "",
       "備考": ""
     };
     
@@ -6351,9 +5775,7 @@ function saveFranchiseRegistration(franchiseId, data) {
       }
     }
     
-    registrationRow.push(priorityAreasText);  // AC: 優先エリア
-    registrationRow.push(totalAreasText);     // AD: 対応エリア
-    registrationRow.push(totalAreasCount);    // AE: 総エリア数
+    // 余分なデータ追加を削除（列ずれの原因）
     
     // 🔧 IDが長い形式の場合は短い形式に変換
     const idColumnIndex = fieldMapping["加盟店ID"];
@@ -6373,9 +5795,30 @@ function saveFranchiseRegistration(franchiseId, data) {
         console.log('✅ 短いIDに変換完了:', registrationRow[idColumnIndex - 1]);
     }
     
-    // データを追加
-    console.log("📝 スプレッドシートにデータ追加中...", registrationRow.length, "列");
-    sheet.appendRow(registrationRow);
+    // 【CRITICAL FIX】2行目から順番に空き行を探して挿入
+    console.log("📝 スプレッドシートに空き行検索でデータ追加中...", registrationRow.length, "列");
+    
+    const lastRow = sheet.getLastRow();
+    console.log('🔍 CRITICAL: 現在の最終行:', lastRow);
+    
+    // 既存データの一番下に追加
+    // ヘッダー行の次の空き行を確実に取得
+    let dataStartRow = 2;
+    // 実際にデータがある行の直後に挿入
+    let targetRow = 2; // デフォルトはヘッダーの次
+    for (let i = 2; i <= 100; i++) {
+      let cellValue = sheet.getRange(i, 1).getValue();
+      if (cellValue && cellValue !== '') {
+        targetRow = i + 1;
+      } else {
+        break;
+      }
+    }
+    
+    console.log('🔍 CRITICAL: 最終書き込み先行番号:', targetRow);
+    const range = sheet.getRange(targetRow, 1, 1, registrationRow.length);
+    console.log('🔍 CRITICAL: 書き込み範囲:', range.getA1Notation());
+    range.setValues([registrationRow]);
     
     console.log("✅ スプレッドシートに登録データ保存完了");
     
@@ -6389,5 +5832,202 @@ function saveFranchiseRegistration(franchiseId, data) {
       error: error.message,
       stack: error.stack
     };
+  }
+}
+
+/**
+ * 案件管理シートの初期化
+ * 
+ * @param {GoogleAppsScript.Spreadsheet.Spreadsheet} ss スプレッドシート
+ * @returns {Object} 初期化結果
+ */
+function initializeCaseManagementSheet(ss) {
+  try {
+    Logger.log('📋 案件管理シート初期化開始');
+    
+    let sheet = ss.getSheetByName('案件管理');
+    if (sheet) {
+      Logger.log('⚠️ 案件管理シートは既に存在します - データをクリア');
+      sheet.clear();
+    } else {
+      Logger.log('📝 案件管理シートを新規作成');
+      sheet = ss.insertSheet('案件管理');
+    }
+    
+    // ヘッダー設定
+    const headers = [
+      '案件ID',
+      '顧客名',
+      'エリア',
+      '電話番号',
+      '担当子アカウントID',
+      'ステータス',
+      '最終通話日時',
+      '次回予定日時',
+      'メモ',
+      '進捗履歴'
+    ];
+    
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    
+    // ヘッダーのフォーマット
+    const headerRange = sheet.getRange(1, 1, 1, headers.length);
+    headerRange.setBackground('#E8F0FE');
+    headerRange.setFontWeight('bold');
+    headerRange.setHorizontalAlignment('center');
+    
+    // 列幅調整
+    sheet.setColumnWidth(1, 120); // 案件ID
+    sheet.setColumnWidth(2, 150); // 顧客名
+    sheet.setColumnWidth(3, 100); // エリア
+    sheet.setColumnWidth(4, 120); // 電話番号
+    sheet.setColumnWidth(5, 150); // 担当子アカウントID
+    sheet.setColumnWidth(6, 100); // ステータス
+    sheet.setColumnWidth(7, 140); // 最終通話日時
+    sheet.setColumnWidth(8, 140); // 次回予定日時
+    sheet.setColumnWidth(9, 200); // メモ
+    sheet.setColumnWidth(10, 250); // 進捗履歴
+    
+    // データ入力規則設定（ステータス列）
+    const statusValidation = SpreadsheetApp.newDataValidation()
+      .requireValueInList([
+        '未対応',
+        '架電済／未アポ',
+        'アポ済',
+        '現調済',
+        '現調前キャンセル',
+        '見積提出済',
+        '成約',
+        '入金予定',
+        '入金済み',
+        'クレーム or 失注'
+      ])
+      .setAllowInvalid(false)
+      .build();
+    
+    sheet.getRange(2, 6, 1000, 1).setDataValidation(statusValidation);
+    
+    // サンプルデータ作成
+    const sampleData = [
+      [
+        'CASE-001',
+        '山田太郎',
+        '東京都渋谷区',
+        '03-1234-5678',
+        'SUB-001',
+        '未対応',
+        '',
+        '',
+        '新規問い合わせ',
+        '2025-06-19 21:45:00: 案件作成'
+      ],
+      [
+        'CASE-002',
+        '佐藤花子',
+        '大阪府大阪市',
+        '06-9876-5432',
+        'SUB-002',
+        '架電済／未アポ',
+        '2025-06-19 15:30:00',
+        '2025-06-20 14:00:00',
+        '外壁塗装希望、見積り依頼',
+        '2025-06-19 21:45:00: 案件作成\\n2025-06-19 15:30:00: 初回架電完了'
+      ]
+    ];
+    
+    sheet.getRange(2, 1, sampleData.length, sampleData[0].length).setValues(sampleData);
+    
+    Logger.log('✅ 案件管理シート初期化完了');
+    return {
+      success: true,
+      message: '案件管理シート初期化完了',
+      samplesCreated: ['案件管理サンプル2件']
+    };
+    
+  } catch (error) {
+    Logger.log('❌ 案件管理シート初期化エラー:', error);
+    throw new Error(`案件管理シート初期化失敗: ${error.message}`);
+  }
+}
+
+/**
+ * ステータス定義シートの初期化
+ * 
+ * @param {GoogleAppsScript.Spreadsheet.Spreadsheet} ss スプレッドシート
+ * @returns {Object} 初期化結果
+ */
+function initializeStatusDefinitionSheet(ss) {
+  try {
+    Logger.log('🎨 ステータス定義シート初期化開始');
+    
+    let sheet = ss.getSheetByName('ステータス定義');
+    if (sheet) {
+      Logger.log('⚠️ ステータス定義シートは既に存在します - データをクリア');
+      sheet.clear();
+    } else {
+      Logger.log('📝 ステータス定義シートを新規作成');
+      sheet = ss.insertSheet('ステータス定義');
+    }
+    
+    // ヘッダー設定
+    const headers = [
+      'ステータスID',
+      '名称',
+      '表示色'
+    ];
+    
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    
+    // ヘッダーのフォーマット
+    const headerRange = sheet.getRange(1, 1, 1, headers.length);
+    headerRange.setBackground('#E8F0FE');
+    headerRange.setFontWeight('bold');
+    headerRange.setHorizontalAlignment('center');
+    
+    // 列幅調整
+    sheet.setColumnWidth(1, 100); // ステータスID
+    sheet.setColumnWidth(2, 150); // 名称
+    sheet.setColumnWidth(3, 120); // 表示色
+    
+    // ステータス定義データ（初期値）
+    const statusData = [
+      [1, '未対応', '#FFFFFF'],           // 白
+      [2, '架電済／未アポ', '#9C27B0'],   // 紫
+      [3, 'アポ済', '#2196F3'],           // 青
+      [4, '現調済', '#00BCD4'],           // 水色
+      [5, '現調前キャンセル', '#424242'], // 濃いグレー
+      [6, '見積提出済', '#8BC34A'],       // 黄緑
+      [7, '成約', '#FFEB3B'],             // 黄色
+      [8, '入金予定', '#FF9800'],         // オレンジ
+      [9, '入金済み', '#F44336'],         // 赤
+      [10, 'クレーム or 失注', '#000000'] // 黒
+    ];
+    
+    sheet.getRange(2, 1, statusData.length, statusData[0].length).setValues(statusData);
+    
+    // 表示色列の背景色を実際の色に設定
+    for (let i = 0; i < statusData.length; i++) {
+      const colorHex = statusData[i][2];
+      const cellRange = sheet.getRange(i + 2, 3);
+      cellRange.setBackground(colorHex);
+      
+      // 文字色を自動調整（黒背景の場合は白文字）
+      if (colorHex === '#000000' || colorHex === '#424242') {
+        cellRange.setFontColor('#FFFFFF');
+      } else {
+        cellRange.setFontColor('#000000');
+      }
+    }
+    
+    Logger.log('✅ ステータス定義シート初期化完了');
+    return {
+      success: true,
+      message: 'ステータス定義シート初期化完了',
+      samplesCreated: ['ステータス定義10件']
+    };
+    
+  } catch (error) {
+    Logger.log('❌ ステータス定義シート初期化エラー:', error);
+    throw new Error(`ステータス定義シート初期化失敗: ${error.message}`);
   }
 }

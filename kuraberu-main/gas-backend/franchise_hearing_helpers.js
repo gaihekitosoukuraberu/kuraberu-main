@@ -30,6 +30,17 @@
 const FRANCHISE_BOT_VERSION = '1.0.0';
 const FRANCHISE_BOT_NAME = 'FranchiseHearingBot';
 
+/**
+ * 対象スプレッドシート取得
+ */
+function getTargetSpreadsheet() {
+  const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  if (!spreadsheetId) {
+    throw new Error('FRANCHISE_HEARING_SPREADSHEET_IDが設定されていません');
+  }
+  return SpreadsheetApp.openById(spreadsheetId);
+}
+
 // ===========================================
 // 統合シート専用CRUD操作
 // ===========================================
@@ -42,7 +53,7 @@ const FRANCHISE_BOT_NAME = 'FranchiseHearingBot';
  */
 function findQuestionsByCriteria(criteria = {}) {
   try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = getTargetSpreadsheet();
     const sheet = ss.getSheetByName(FRANCHISE_HEARING_SHEETS.QUESTIONS);
     
     if (!sheet) {
@@ -90,7 +101,7 @@ function findQuestionsByCriteria(criteria = {}) {
  */
 function getUserAnswerHistory(userId) {
   try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = getTargetSpreadsheet();
     const sheet = ss.getSheetByName(FRANCHISE_HEARING_SHEETS.ANSWERS);
     
     if (!sheet) {
@@ -141,7 +152,7 @@ function getUserAnswerHistory(userId) {
  */
 function updateUserStateAdvanced(userId, updateData, options = {}) {
   try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = getTargetSpreadsheet();
     const sheet = ss.getSheetByName(FRANCHISE_HEARING_SHEETS.USER_STATE);
     
     if (!sheet) {
@@ -224,7 +235,7 @@ function updateUserStateAdvanced(userId, updateData, options = {}) {
  */
 function getDeliveryControlStatus(userId) {
   try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = getTargetSpreadsheet();
     const sheet = ss.getSheetByName(FRANCHISE_HEARING_SHEETS.DELIVERY_CONTROL);
     
     if (!sheet) {
@@ -358,7 +369,7 @@ function getBulkUserProgress(userIds) {
 function logAIExampleGeneration(userId, generationData) {
   try {
     // 回答記録シートのAI例文カラムを更新
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = getTargetSpreadsheet();
     const sheet = ss.getSheetByName(FRANCHISE_HEARING_SHEETS.ANSWERS);
     
     if (!sheet) {
@@ -402,7 +413,7 @@ function logAIExampleGeneration(userId, generationData) {
  */
 function logAddressSelection(userId, originalInput, candidates, selectedAddress) {
   try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = getTargetSpreadsheet();
     const sheet = ss.getSheetByName(FRANCHISE_HEARING_SHEETS.AREA_MANAGEMENT);
     
     if (!sheet) {
@@ -455,7 +466,215 @@ function logAddressSelection(userId, originalInput, candidates, selectedAddress)
 }
 
 /**
- * AIテンプレートの動的生成
+ * 3層プロンプトを使用したGPT連携処理
+ * 
+ * @param {Object} context コンテキスト情報
+ * @returns {Object} GPT応答結果
+ */
+function processGPTWithPromptLayers(context) {
+  try {
+    const { currentStage, questionId, userMessage, collectedData, userHistory } = context;
+    
+    // 3層プロンプト組み立て
+    const completePrompt = buildCompletePrompt(currentStage, questionId, collectedData);
+    
+    // ユーザーメッセージの構築
+    const userPrompt = buildUserMessage(userMessage, userHistory);
+    
+    // GPT API呼び出し
+    const gptResponse = callOpenAIAPI(completePrompt, userPrompt);
+    
+    if (!gptResponse.success) {
+      return {
+        success: false,
+        error: gptResponse.error,
+        fallbackResponse: generateFallbackResponse(currentStage, questionId)
+      };
+    }
+    
+    // レスポンス解析とバリデーション
+    const parsedResponse = parseGPTResponse(gptResponse.response);
+    
+    return {
+      success: true,
+      response: parsedResponse.response,
+      hasQuestion: parsedResponse.hasQuestion,
+      questionOptions: parsedResponse.questionOptions,
+      nextStage: parsedResponse.nextStage,
+      dataToCollect: parsedResponse.dataToCollect,
+      usedPromptLayers: {
+        stage: currentStage,
+        questionId: questionId,
+        promptLength: completePrompt.length
+      }
+    };
+    
+  } catch (error) {
+    Logger.log(`❌ 3層プロンプトGPT処理エラー: ${error.message}`);
+    return {
+      success: false,
+      error: error.message,
+      fallbackResponse: generateFallbackResponse(context.currentStage, context.questionId)
+    };
+  }
+}
+
+/**
+ * ユーザーメッセージ構築
+ */
+function buildUserMessage(userMessage, userHistory = []) {
+  let message = `ユーザーの回答: ${userMessage}`;
+  
+  if (userHistory && userHistory.length > 0) {
+    const recentHistory = userHistory.slice(-3);
+    message += `\n\n最近の回答履歴:\n`;
+    recentHistory.forEach((history, index) => {
+      message += `${index + 1}. ${history.question}: ${history.answer}\n`;
+    });
+  }
+  
+  return message;
+}
+
+/**
+ * OpenAI API呼び出し
+ */
+function callOpenAIAPI(systemPrompt, userPrompt) {
+  try {
+    const apiKey = PropertiesService.getScriptProperties().getProperty('OPENAI_API_KEY');
+    
+    if (!apiKey) {
+      throw new Error('OpenAI APIキーが設定されていません');
+    }
+    
+    const url = 'https://api.openai.com/v1/chat/completions';
+    
+    const payload = {
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'system',
+          content: systemPrompt
+        },
+        {
+          role: 'user', 
+          content: userPrompt
+        }
+      ],
+      max_tokens: 1000,
+      temperature: 0.7
+    };
+    
+    const options = {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      payload: JSON.stringify(payload)
+    };
+    
+    Logger.log('🤖 OpenAI API呼び出し開始');
+    
+    const response = UrlFetchApp.fetch(url, options);
+    const responseData = JSON.parse(response.getContentText());
+    
+    if (response.getResponseCode() !== 200) {
+      throw new Error(`OpenAI API エラー: ${responseData.error?.message || 'Unknown error'}`);
+    }
+    
+    const gptResponse = responseData.choices[0].message.content;
+    
+    Logger.log('✅ OpenAI API呼び出し成功');
+    
+    return {
+      success: true,
+      response: gptResponse
+    };
+    
+  } catch (error) {
+    Logger.log(`❌ OpenAI API呼び出しエラー: ${error.message}`);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+/**
+ * GPTレスポンス解析
+ */
+function parseGPTResponse(gptResponse) {
+  try {
+    // JSON形式の場合
+    if (gptResponse.trim().startsWith('{')) {
+      const parsed = JSON.parse(gptResponse);
+      return {
+        response: parsed.response || gptResponse,
+        hasQuestion: parsed.hasQuestion || false,
+        questionOptions: parsed.questionOptions || [],
+        nextStage: parsed.nextStage || null,
+        dataToCollect: parsed.dataToCollect || null
+      };
+    }
+    
+    // プレーンテキストの場合のフォールバック
+    return {
+      response: gptResponse,
+      hasQuestion: true,
+      questionOptions: generateDefaultOptions(),
+      nextStage: null,
+      dataToCollect: null
+    };
+    
+  } catch (error) {
+    Logger.log(`⚠️ GPTレスポンス解析エラー: ${error.message}`);
+    
+    // 解析失敗時のフォールバック
+    return {
+      response: gptResponse,
+      hasQuestion: true,
+      questionOptions: generateDefaultOptions(),
+      nextStage: null,
+      dataToCollect: null
+    };
+  }
+}
+
+/**
+ * フォールバック応答生成
+ */
+function generateFallbackResponse(currentStage, questionId) {
+  const fallbackResponses = {
+    '第1段階': 'お住まいの基本情報を教えてください。材質、面積、築年数から最適な提案をいたします。',
+    '第2段階': '現在の外壁の状態を確認させてください。劣化状況に応じて最適な工事をご提案いたします。',
+    '第3段階': 'ご希望の工事時期と予算について教えてください。最適なプランをご提案いたします。',
+    '第4段階': 'お客様の情報を教えてください。より詳細で最適なご提案をいたします。'
+  };
+  
+  return {
+    response: fallbackResponses[currentStage] || '外壁塗装について詳しくお聞かせください。',
+    hasQuestion: true,
+    questionOptions: generateDefaultOptions(),
+    nextStage: currentStage,
+    dataToCollect: null
+  };
+}
+
+/**
+ * デフォルト選択肢生成
+ */
+function generateDefaultOptions() {
+  return [
+    'はい、教えてください',
+    'もう少し詳しく',
+    '他の選択肢は？',
+    '後で決めます'
+  ];
+}
+
+/**
+ * AIテンプレートの動的生成（互換性のため残存）
  * 
  * @param {Object} context コンテキスト情報
  * @returns {Object} 生成されたプロンプト
@@ -464,34 +683,16 @@ function generateDynamicAIPrompt(context) {
   try {
     const { stepNumber, questionId, userAnswer, userHistory } = context;
     
-    // ベーステンプレート取得
-    const template = getAITemplate(stepNumber, questionId);
-    if (!template) {
-      return { success: false, error: 'テンプレートなし' };
-    }
-    
-    // 動的要素の生成
-    let systemPrompt = template['システムプロンプト'];
-    let userPrompt = template['ユーザープロンプトテンプレート'];
-    
-    // ユーザー履歴を考慮したパーソナライゼーション
-    if (userHistory && userHistory.length > 0) {
-      const recentAnswers = userHistory.slice(-3).map(h => h['回答内容']).join('、');
-      systemPrompt += `\n\nユーザーの最近の回答傾向: ${recentAnswers}`;
-    }
-    
-    // 変数置換
-    userPrompt = userPrompt
-      .replace('{answer}', userAnswer)
-      .replace('{questionId}', questionId)
-      .replace('{stepNumber}', stepNumber);
-    
-    return {
-      success: true,
-      systemPrompt: systemPrompt,
-      userPrompt: userPrompt,
-      templateId: template['テンプレートID']
+    // 新しい3層プロンプトシステムに移行
+    const newContext = {
+      currentStage: `第${stepNumber}段階`,
+      questionId: questionId,
+      userMessage: userAnswer,
+      collectedData: {},
+      userHistory: userHistory
     };
+    
+    return processGPTWithPromptLayers(newContext);
     
   } catch (error) {
     Logger.log(`❌ 動的プロンプト生成エラー: ${error.message}`);
@@ -510,7 +711,7 @@ function generateDynamicAIPrompt(context) {
  */
 function getHearingCompletionStats() {
   try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = getTargetSpreadsheet();
     const sheet = ss.getSheetByName(FRANCHISE_HEARING_SHEETS.USER_STATE);
     
     if (!sheet) {

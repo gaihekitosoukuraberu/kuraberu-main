@@ -18,213 +18,11 @@ const CORS_HEADERS = {
   'Access-Control-Max-Age': '86400'
 };
 
-/**
- * GETリクエストハンドラー（無効化済み - notify_fixed.gs で統合処理）
- * @param {GoogleAppsScript.Events.DoGet} e
- * @returns {GoogleAppsScript.Content.TextOutput}
- */
-function doGetDisabled(e) {
-  try {
-    // API認証チェック
-    const authResult = validateApiKey(e);
-    if (!authResult.success) {
-      return createCorsResponse(JSON.stringify({
-        success: false,
-        error: 'Unauthorized',
-        message: authResult.error
-      }), 403);
-    }
-    
-    console.log('🌐 GAS WebApp GET受信:', e.parameter);
-    
-    // CORS Preflight対応
-    if (e.parameter.method === 'OPTIONS') {
-      return createCorsResponse('', 200);
-    }
+// doPost関数はnotify.jsで統一管理されています
 
-    // 新しいパスベースAPIルーティング（Vue3アプリ用）
-    const path = e.parameter.path || '/';
-    const params = e.parameter;
-    
-    if (path.startsWith('/api/')) {
-      return handlePathBasedAPI(path, params, 'GET');
-    }
-    
-    // レガシー関数ベースAPI（既存システム用）
-    var functionName = e.parameter.function || '';
-    var callback = e.parameter.callback;
-    
-    // GETパラメータをrouteFunctionに適した形式に変換
-    var parameters = {};
-    for (var key in e.parameter) {
-      if (key !== 'function' && key !== 'callback') {
-        // JSON文字列パラメータをパース
-        try {
-          parameters[key] = JSON.parse(e.parameter[key]);
-        } catch (parseError) {
-          // JSON解析に失敗した場合は文字列のまま
-          parameters[key] = e.parameter[key];
-        }
-      }
-    }
-    
-    var result = routeFunction(functionName, parameters);
-    
-    console.log('✅ GET 関数実行結果:', result);
-    return createResponse(result, callback);
-    
-  } catch (error) {
-    console.error('❌ doGet全体エラー:', error);
-    return createCorsResponse(JSON.stringify({
-      success: false,
-      error: error.message || 'Internal server error',
-      timestamp: new Date().toISOString()
-    }), 500);
-  }
-}
+// doGet関数はnotify.jsで統一管理されています
 
-/**
- * POSTリクエストハンドラー（無効化済み - notify_fixed.gs で統合処理）
- * @param {GoogleAppsScript.Events.DoPost} e
- * @returns {GoogleAppsScript.Content.TextOutput}
- */
-function doPostDisabled(e) {
-  try {
-    // API認証チェック
-    const authResult = validateApiKey(e);
-    if (!authResult.success) {
-      return createCorsResponse(JSON.stringify({
-        success: false,
-        error: 'Unauthorized',
-        message: authResult.error
-      }), 403);
-    }
-    
-    console.log('🔗 GAS WebApp POST受信');
-    console.log('  postData.type:', e.postData ? e.postData.type : 'undefined');
-    console.log('  postData.contents:', e.postData ? e.postData.contents : 'undefined');
-    
-    // ===== LINE Webhook検証対応 =====
-    if (e.postData && e.postData.contents) {
-      try {
-        const contents = e.postData.contents;
-        const parsed = JSON.parse(contents);
-        
-        // LINE Webhookの特徴的な構造をチェック
-        if (parsed.events !== undefined || 
-            parsed.destination !== undefined ||
-            (Array.isArray(parsed.events))) {
-          
-          console.log('📞 LINE Webhook検証リクエストを検出');
-          
-          // LINE Webhook用のOKレスポンスを返す（HTTP 200必須）
-          return ContentService
-            .createTextOutput("OK")
-            .setMimeType(ContentService.MimeType.TEXT);
-        }
-      } catch (lineParseError) {
-        // JSONパースエラーは通常のPOST処理に継続
-        console.log('  LINE Webhook形式ではない、通常POST処理に移行');
-      }
-    }
-    
-    // CORS Preflight対応
-    if (e.parameter && e.parameter.method === 'OPTIONS') {
-      return createCorsResponse('', 200);
-    }
-    
-    var requestData;
-    var functionName;
-    var parameters;
-    var path;
-    
-    // Content-Type別の処理
-    switch (e.postData.type) {
-      case 'application/json':
-        // 通常のJSON形式（プリフライトあり）
-        console.log('📄 JSON形式で受信');
-        requestData = JSON.parse(e.postData.contents);
-        functionName = requestData.function;
-        path = requestData.path;
-        // pathベースAPI用にパラメータを調整
-        parameters = requestData.parameters || requestData;
-        // pathやfunctionを除く他のプロパティもparametersに含める
-        if (path) {
-          Object.keys(requestData).forEach(key => {
-            if (key !== 'path' && key !== 'function' && key !== 'parameters') {
-              parameters[key] = requestData[key];
-            }
-          });
-        }
-        break;
-        
-      case 'application/x-www-form-urlencoded':
-        // URLエンコード形式（プリフライトなし）
-        console.log('📝 URLエンコード形式で受信');
-        var params = parseUrlEncoded(e.postData.contents);
-        functionName = params.function;
-        path = params.path;
-        parameters = params.parameters ? JSON.parse(params.parameters) : {};
-        break;
-        
-      case 'text/plain':
-        // プレーンテキスト形式（プリフライト完全回避）
-        console.log('📋 プレーンテキスト形式で受信');
-        requestData = JSON.parse(e.postData.contents);
-        functionName = requestData.function;
-        path = requestData.path;
-        // pathベースAPI用にパラメータを調整
-        parameters = requestData.parameters || requestData;
-        // pathやfunctionを除く他のプロパティもparametersに含める
-        if (path) {
-          Object.keys(requestData).forEach(key => {
-            if (key !== 'path' && key !== 'function' && key !== 'parameters') {
-              parameters[key] = requestData[key];
-            }
-          });
-        }
-        break;
-        
-      default:
-        // その他の形式もJSONとして処理を試行
-        console.log('❓ 不明な形式、JSON解析を試行');
-        try {
-          requestData = JSON.parse(e.postData.contents);
-          functionName = requestData.function;
-          path = requestData.path;
-          parameters = requestData.parameters || {};
-        } catch (parseError) {
-          throw new Error('Unsupported Content-Type: ' + e.postData.type);
-        }
-    }
-    
-    // 新しいパスベースAPI（Vue3アプリ用）
-    if (path && path.startsWith('/api/')) {
-      return handlePathBasedAPI(path, parameters, 'POST');
-    }
-    
-    // レガシー関数ベースAPI（既存システム用）
-    if (!functionName) {
-      throw new Error('function name is required');
-    }
-    
-    console.log('🎯 実行関数:', functionName);
-    console.log('📦 パラメータ:', parameters);
-    
-    var result = routeFunction(functionName, parameters);
-    
-    console.log('✅ POST 関数実行結果:', result);
-    return createCorsResponse(JSON.stringify(result), 200);
-    
-  } catch (error) {
-    console.error('❌ doPost全体エラー:', error);
-    
-    // エラーが発生してもLINE Webhook検証のためHTTP 200でOKを返す
-    return ContentService
-      .createTextOutput("OK")
-      .setMimeType(ContentService.MimeType.TEXT);
-  }
-}
+
 
 /**
  * パスベースAPIハンドラー（Vue3アプリ用）
@@ -257,6 +55,17 @@ function handlePathBasedAPI(path, params, method) {
         break;
       case '/api/updateFranchiseeFlag':
         response = handleUpdateFranchiseeFlag(params);
+        break;
+        
+      // 加盟店管理API
+      case '/api/franchise/list':
+        response = handleFranchiseAPI(params);
+        break;
+      case '/api/franchise/updateStatus':
+        response = handleFranchiseAPI(params);
+        break;
+      case '/api/franchise/stats':
+        response = handleFranchiseAPI(params);
         break;
       case '/api/bulkUpdateFranchiseeFlags':
         response = handleBulkUpdateFranchiseeFlags(params);
@@ -768,9 +577,17 @@ function parseUrlEncoded(data) {
  * @returns {GoogleAppsScript.Content.TextOutput}
  */
 function createCorsResponse(content, httpStatus = 200) {
-  // GAS WebAppではsetHeaderが使えないため、シンプルなJSONレスポンスとして返す
+  // Add CORS headers to fix CORS error
   const output = ContentService.createTextOutput(content)
     .setMimeType(ContentService.MimeType.JSON);
+  
+  // GASではsetHeadersは使用不可 - コメントアウト
+  // output.setHeaders({
+  //   'Access-Control-Allow-Origin': '*',
+  //   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  //   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+  //   'Access-Control-Max-Age': '86400'
+  // });
   
   // HTTPステータスコードのログ出力のみ
   if (httpStatus && httpStatus !== 200) {

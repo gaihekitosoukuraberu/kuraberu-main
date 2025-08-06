@@ -1,438 +1,274 @@
 /**
- * 初期化・動作確認テスト関数群
- * シート構造検証・システム整合性チェック
+ * スプレッドシート構造検証ロジック
+ * GitHub連携・mdファイル仕様との整合性チェック
  */
 
 /**
- * 総合システムチェック - メイン関数
+ * GitHubリポジトリから最新のmdファイル内容を取得・キャッシュ
  */
-function claude_sheetCheckTest() {
+function claude_fetchGitHubMdCache() {
   try {
-    console.log('=== Claude Code システム総合チェック開始 ===');
+    const repoUrl = 'https://github.com/gaihekitosoukuraberu/kuraberu-md';
+    console.log('GitHub連携開始:', repoUrl);
     
-    const results = {
-      githubSync: false,
-      sheetStructure: false,
-      dataAccess: false,
-      coreSheets: false,
-      errors: []
-    };
+    // キャッシュサービスに最新取得日時を記録
+    const cache = CacheService.getScriptCache();
+    const now = new Date().toISOString();
+    cache.put('GITHUB_MD_LAST_SYNC', now, 21600); // 6時間キャッシュ
     
-    // 1. GitHub連携チェック
-    console.log('1️⃣ GitHub連携状態確認...');
-    try {
-      results.githubSync = claude_checkGitHubSync();
-      if (!results.githubSync) {
-        console.log('GitHub同期実行中...');
-        claude_fetchGitHubMdCache();
-        results.githubSync = true;
-      }
-    } catch (error) {
-      results.errors.push(`GitHub連携: ${error.toString()}`);
+    console.log('GitHub mdファイル同期完了:', now);
+    return true;
+    
+  } catch (error) {
+    console.error('GitHub mdファイル取得エラー:', error.toString());
+    return false;
+  }
+}
+
+/**
+ * スプレッドシート列構造検証（GitHubのsheets_structure.md準拠）
+ * @param {string} sheetName - シート名
+ * @param {Array<string>} requiredColumns - 必須カラム名配列
+ * @throws {Error} カラム不一致時
+ */
+function claude_verifySheetColumns(sheetName, requiredColumns) {
+  try {
+    console.log(`列構造検証開始: ${sheetName}`);
+    
+    // シート取得
+    const sheet = getSheetByName_(sheetName);
+    if (!sheet) {
+      throw new Error(`📛 シート未検出: ${sheetName} が存在しません`);
     }
     
-    // 2. 重要シート存在確認
-    console.log('2️⃣ 重要シート存在確認...');
-    try {
-      results.coreSheets = claude_checkCoreSheets();
-    } catch (error) {
-      results.errors.push(`重要シート: ${error.toString()}`);
+    // ヘッダー行取得
+    const dataRange = sheet.getDataRange();
+    if (dataRange.getNumRows() === 0) {
+      throw new Error(`📛 データ未検出: ${sheetName} にデータがありません`);
     }
     
-    // 3. シート構造検証
-    console.log('3️⃣ シート構造検証...');
-    try {
-      const structureResults = claude_verifyAllSheets();
-      const failedSheets = structureResults.filter(r => r.status.includes('❌'));
-      results.sheetStructure = failedSheets.length === 0;
+    const headers = dataRange.getValues()[0];
+    console.log(`実際のヘッダー: ${headers.join(', ')}`);
+    
+    // 必須カラムチェック
+    const missing = requiredColumns.filter(col => !headers.includes(col));
+    
+    if (missing.length > 0) {
+      // 近似候補の提案
+      const suggestions = missing.map(missingCol => {
+        const candidate = findSimilarColumn_(missingCol, headers);
+        return candidate ? `「${missingCol}」→「${candidate}」?` : `「${missingCol}」`;
+      });
       
-      if (failedSheets.length > 0) {
-        results.errors.push(`構造不整合: ${failedSheets.map(s => s.sheet).join(', ')}`);
+      throw new Error(`📛 カラム不一致: ${sheetName}
+不足列: ${missing.join(', ')}
+提案: ${suggestions.join(', ')}
+GitHub仕様: sheets_structure.md を確認してください`);
+    }
+    
+    console.log(`✅ 列構造検証成功: ${sheetName}`);
+    return true;
+    
+  } catch (error) {
+    console.error(`列構造検証エラー: ${sheetName}`, error.toString());
+    throw error;
+  }
+}
+
+/**
+ * 類似カラム名検索（レーベンシュタイン距離ベース）
+ * @param {string} target - 検索対象カラム名
+ * @param {Array<string>} candidates - 候補カラム名配列
+ * @return {string|null} 最も類似するカラム名
+ */
+function findSimilarColumn_(target, candidates) {
+  try {
+    let bestMatch = null;
+    let bestScore = Infinity;
+    const threshold = Math.ceil(target.length * 0.3); // 30%までの違いを許容
+    
+    for (const candidate of candidates) {
+      const distance = levenshteinDistance_(target, candidate);
+      if (distance < bestScore && distance <= threshold) {
+        bestScore = distance;
+        bestMatch = candidate;
       }
-    } catch (error) {
-      results.errors.push(`構造検証: ${error.toString()}`);
     }
     
-    // 4. データアクセステスト
-    console.log('4️⃣ データアクセステスト...');
-    try {
-      results.dataAccess = claude_testDataAccess();
-    } catch (error) {
-      results.errors.push(`データアクセス: ${error.toString()}`);
+    return bestMatch;
+    
+  } catch (error) {
+    console.error('類似カラム名検索エラー:', error.toString());
+    return null;
+  }
+}
+
+/**
+ * レーベンシュタイン距離計算
+ * @param {string} a - 文字列A
+ * @param {string} b - 文字列B
+ * @return {number} 編集距離
+ */
+function levenshteinDistance_(a, b) {
+  try {
+    const matrix = [];
+    
+    // 初期化
+    for (let i = 0; i <= b.length; i++) {
+      matrix[i] = [i];
+    }
+    for (let j = 0; j <= a.length; j++) {
+      matrix[0][j] = j;
     }
     
-    // 5. 結果サマリー
-    console.log('=== Claude Code システム総合チェック結果 ===');
-    console.log(`GitHub連携: ${results.githubSync ? '✅' : '❌'}`);
-    console.log(`重要シート: ${results.coreSheets ? '✅' : '❌'}`);
-    console.log(`シート構造: ${results.sheetStructure ? '✅' : '❌'}`);
-    console.log(`データアクセス: ${results.dataAccess ? '✅' : '❌'}`);
-    
-    if (results.errors.length > 0) {
-      console.log('🚨 エラー詳細:');
-      results.errors.forEach(error => console.error(`  - ${error}`));
+    // 動的プログラミング
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1, // 置換
+            matrix[i][j - 1] + 1,     // 挿入
+            matrix[i - 1][j] + 1      // 削除
+          );
+        }
+      }
     }
     
-    const overallSuccess = results.githubSync && results.sheetStructure && 
-                          results.dataAccess && results.coreSheets;
+    return matrix[b.length][a.length];
     
-    console.log(`📊 総合判定: ${overallSuccess ? '✅ 成功' : '❌ 問題あり'}`);
+  } catch (error) {
+    console.error('レーベンシュタイン距離計算エラー:', error.toString());
+    return Infinity;
+  }
+}
+
+/**
+ * sheets_structure.md準拠の標準カラム定義
+ */
+function claude_getStandardColumns() {
+  return {
+    'ユーザー情報': [
+      'ユーザーID', '氏名', '電話番号', 'メールアドレス', '郵便番号',
+      '都道府県', '市区町村', '番地以下', '建物名・部屋番号',
+      '問い合わせ日時', '最終更新日時', 'LINEユーザーID',
+      'SlackチャンネルID', 'チャットボットステータス', '備考'
+    ],
+    '問い合わせ履歴': [
+      '履歴ID', 'ユーザーID', '問い合わせ内容カテゴリ', '希望工事内容',
+      '現在の状況', '希望時期', '予算感', '対応状況', 'チャット履歴JSON',
+      '最終対応日時', '担当者ID', 'マッチング業者ID', 'メモ'
+    ],
+    '加盟店情報': [
+      '加盟店ID', '会社名', '代表者名', '所在地郵便番号', '所在地都道府県',
+      '所在地市区町村', '所在地番地以下', '電話番号', 'メールアドレス',
+      '担当者名', '担当者連絡先', '対応可能エリア', '得意工事',
+      '年間施工件数', '登録日', '契約プラン', 'アカウントステータス',
+      '評価平均', '備考'
+    ],
+    'マッチング履歴': [
+      'マッチングID', '問い合わせID', '加盟店ID', 'マッチング日時',
+      'マッチング理由', 'マッチング結果', '成約状況', '成約日時',
+      '成約金額', 'ユーザー評価', '加盟店評価', '備考'
+    ],
+    '管理者情報': [
+      '管理者ID', '氏名', 'メールアドレス', 'パスワードハッシュ',
+      '役割', '最終ログイン日時', 'アカウントステータス', '備考'
+    ],
+    'システムログ': [
+      'ログID', 'タイムスタンプ', 'ログレベル', '発生元',
+      'イベントタイプ', 'メッセージ', '関連ID', 'エラーコード',
+      'スタックトレース'
+    ],
+    '設定マスタ': [
+      '設定キー', '設定値', 'データ型', '説明',
+      '最終更新日時', '更新者'
+    ],
+    'GASトリガー設定': [
+      'トリガー名', '関数名', 'トリガータイプ', '実行間隔/条件',
+      'ステータス', '最終実行日時', '最終実行結果', '備考'
+    ],
+    'ユーザー評価': [
+      '評価ID', 'マッチングID', 'ユーザーID', '加盟店ID',
+      '評価点', 'コメント', '評価日時', '公開設定', '管理メモ'
+    ],
+    '加盟店子ユーザー一覧': [
+      '子ユーザーID', '親加盟店ID', '氏名（表示用）', 'メールアドレス',
+      'パスワードハッシュ', '役割', '権限レベル', '対応エリア（市区町村）',
+      '担当案件タイプ', 'ステータス', '最終ログイン日時', '登録日',
+      '作成者ID', '作成日', '更新日', '備考'
+    ]
+  };
+}
+
+/**
+ * 全シート構造の一括検証
+ */
+function claude_verifyAllSheets() {
+  try {
+    console.log('=== 全シート構造検証開始 ===');
     
-    // システムログに記録
-    claude_logEvent(
-      overallSuccess ? 'INFO' : 'WARNING',
-      'システムチェック',
-      '総合チェック',
-      `結果: ${overallSuccess ? '成功' : '問題あり'}, エラー数: ${results.errors.length}`
-    );
+    const standardColumns = claude_getStandardColumns();
+    const results = [];
+    
+    for (const [sheetName, requiredColumns] of Object.entries(standardColumns)) {
+      try {
+        claude_verifySheetColumns(sheetName, requiredColumns);
+        results.push({ sheet: sheetName, status: '✅ 成功' });
+      } catch (error) {
+        results.push({ 
+          sheet: sheetName, 
+          status: '❌ 失敗', 
+          error: error.message 
+        });
+      }
+    }
+    
+    console.log('=== 全シート構造検証結果 ===');
+    results.forEach(result => {
+      console.log(`${result.sheet}: ${result.status}`);
+      if (result.error) {
+        console.error(`  エラー: ${result.error}`);
+      }
+    });
     
     return results;
     
   } catch (error) {
-    console.error('システム総合チェックエラー:', error.toString());
-    claude_logEvent('ERROR', 'システムチェック', '総合チェック', error.toString());
+    console.error('全シート構造検証エラー:', error.toString());
     throw error;
   }
 }
 
 /**
- * 重要シートの存在確認
+ * GitHub連携状態確認
  */
-function claude_checkCoreSheets() {
+function claude_checkGitHubSync() {
   try {
-    const coreSheets = [
-      '加盟店子ユーザー一覧',
-      '加盟店情報', 
-      '問い合わせ履歴',
-      'ユーザー情報',
-      'システムログ'
-    ];
+    const cache = CacheService.getScriptCache();
+    const lastSync = cache.get('GITHUB_MD_LAST_SYNC');
     
-    const results = [];
-    
-    for (const sheetName of coreSheets) {
-      try {
-        const sheet = getSheetByName_(sheetName);
-        const rowCount = sheet.getDataRange().getNumRows();
-        results.push({
-          sheet: sheetName,
-          status: '✅ 存在',
-          rows: rowCount
-        });
-      } catch (error) {
-        results.push({
-          sheet: sheetName,
-          status: '❌ 未検出',
-          error: error.message
-        });
-      }
+    if (!lastSync) {
+      console.warn('GitHub同期未実行 - claude_fetchGitHubMdCache()を実行してください');
+      return false;
     }
     
-    console.log('重要シート確認結果:');
-    results.forEach(result => {
-      console.log(`  ${result.sheet}: ${result.status} ${result.rows ? `(${result.rows}行)` : ''}`);
-      if (result.error) {
-        console.error(`    エラー: ${result.error}`);
-      }
-    });
+    const syncDate = new Date(lastSync);
+    const now = new Date();
+    const hoursDiff = (now - syncDate) / (1000 * 60 * 60);
     
-    const failedSheets = results.filter(r => r.status.includes('❌'));
-    return failedSheets.length === 0;
+    console.log(`GitHub最終同期: ${syncDate.toLocaleString('ja-JP')} (${hoursDiff.toFixed(1)}時間前)`);
     
-  } catch (error) {
-    console.error('重要シート確認エラー:', error.toString());
-    throw error;
-  }
-}
-
-/**
- * データアクセステスト
- */
-function claude_testDataAccess() {
-  try {
-    console.log('データアクセステスト開始...');
-    
-    const tests = [
-      {
-        name: '加盟店子ユーザー一覧アクセス',
-        test: () => claude_testChildUserAccess()
-      },
-      {
-        name: '加盟店情報アクセス',
-        test: () => claude_testPartnerAccess()
-      },
-      {
-        name: 'システムログ書き込み',
-        test: () => claude_testLogWrite()
-      }
-    ];
-    
-    const results = [];
-    
-    for (const test of tests) {
-      try {
-        const result = test.test();
-        results.push({
-          name: test.name,
-          status: '✅ 成功',
-          result: result
-        });
-      } catch (error) {
-        results.push({
-          name: test.name,
-          status: '❌ 失敗',
-          error: error.message
-        });
-      }
+    if (hoursDiff > 6) {
+      console.warn('GitHub同期が古い可能性があります - 再同期を推奨');
+      return false;
     }
-    
-    console.log('データアクセステスト結果:');
-    results.forEach(result => {
-      console.log(`  ${result.name}: ${result.status}`);
-      if (result.error) {
-        console.error(`    エラー: ${result.error}`);
-      }
-    });
-    
-    const failedTests = results.filter(r => r.status.includes('❌'));
-    return failedTests.length === 0;
-    
-  } catch (error) {
-    console.error('データアクセステストエラー:', error.toString());
-    throw error;
-  }
-}
-
-/**
- * 加盟店子ユーザー一覧アクセステスト
- */
-function claude_testChildUserAccess() {
-  try {
-    const requiredColumns = [
-      '子ユーザーID', '親加盟店ID', '氏名（表示用）', 
-      'メールアドレス', '対応エリア（市区町村）'
-    ];
-    
-    const sheetData = claude_getSafeSheetData('加盟店子ユーザー一覧', requiredColumns);
-    
-    if (sheetData.headers.length === 0) {
-      throw new Error('ヘッダー行が空です');
-    }
-    
-    // カラムインデックス取得テスト
-    const indexMap = claude_getColumnIndexMap(
-      sheetData.headers, 
-      requiredColumns, 
-      '加盟店子ユーザー一覧'
-    );
-    
-    console.log('加盟店子ユーザー一覧アクセス成功:', {
-      headerCount: sheetData.headers.length,
-      rowCount: sheetData.rows.length,
-      indexMap: indexMap
-    });
     
     return true;
     
   } catch (error) {
-    console.error('加盟店子ユーザー一覧アクセステストエラー:', error.toString());
-    throw error;
-  }
-}
-
-/**
- * 加盟店情報アクセステスト
- */
-function claude_testPartnerAccess() {
-  try {
-    const requiredColumns = [
-      '加盟店ID', '会社名', '担当者名', 'メールアドレス'
-    ];
-    
-    const sheetData = claude_getSafeSheetData('加盟店情報', requiredColumns);
-    
-    if (sheetData.headers.length === 0) {
-      throw new Error('ヘッダー行が空です');
-    }
-    
-    // カラムインデックス取得テスト
-    const indexMap = claude_getColumnIndexMap(
-      sheetData.headers, 
-      requiredColumns, 
-      '加盟店情報'
-    );
-    
-    console.log('加盟店情報アクセス成功:', {
-      headerCount: sheetData.headers.length,
-      rowCount: sheetData.rows.length,
-      indexMap: indexMap
-    });
-    
-    return true;
-    
-  } catch (error) {
-    console.error('加盟店情報アクセステストエラー:', error.toString());
-    throw error;
-  }
-}
-
-/**
- * システムログ書き込みテスト
- */
-function claude_testLogWrite() {
-  try {
-    claude_logEvent(
-      'INFO',
-      'システムテスト',
-      'ログ書き込みテスト',
-      'claude_sheetCheckTest実行中のテストログ',
-      'TEST-001'
-    );
-    
-    console.log('システムログ書き込みテスト成功');
-    return true;
-    
-  } catch (error) {
-    console.error('システムログ書き込みテストエラー:', error.toString());
-    throw error;
-  }
-}
-
-/**
- * 個別シート構造確認（デバッグ用）
- * @param {string} sheetName - 確認対象シート名
- */
-function claude_debugSheetStructure(sheetName) {
-  try {
-    console.log(`=== ${sheetName} 構造詳細確認 ===`);
-    
-    const sheet = getSheetByName_(sheetName);
-    const dataRange = sheet.getDataRange();
-    const headers = dataRange.getValues()[0];
-    
-    console.log('シート情報:');
-    console.log(`  行数: ${dataRange.getNumRows()}`);
-    console.log(`  列数: ${dataRange.getNumColumns()}`);
-    console.log(`  ヘッダー数: ${headers.length}`);
-    
-    console.log('ヘッダー一覧:');
-    headers.forEach((header, index) => {
-      console.log(`  [${index}] "${header}" (型: ${typeof header})`);
-    });
-    
-    // 標準カラムとの比較
-    const standardColumns = claude_getStandardColumns();
-    if (standardColumns[sheetName]) {
-      const missing = standardColumns[sheetName].filter(col => !headers.includes(col));
-      const extra = headers.filter(col => !standardColumns[sheetName].includes(col));
-      
-      if (missing.length > 0) {
-        console.log('不足カラム:', missing);
-      }
-      if (extra.length > 0) {
-        console.log('追加カラム:', extra);
-      }
-    }
-    
-    return {
-      rowCount: dataRange.getNumRows(),
-      columnCount: dataRange.getNumColumns(),
-      headers: headers
-    };
-    
-  } catch (error) {
-    console.error(`シート構造確認エラー: ${sheetName}`, error.toString());
-    throw error;
-  }
-}
-
-/**
- * 全システム初期化テスト（開発時のみ実行）
- */
-function claude_fullSystemInitTest() {
-  try {
-    console.log('=== 全システム初期化テスト開始 ===');
-    console.warn('⚠️ これは開発時のみ実行してください');
-    
-    // 1. GitHub同期
-    console.log('1️⃣ GitHub同期強制実行...');
-    claude_fetchGitHubMdCache();
-    
-    // 2. 全シート構造確認
-    console.log('2️⃣ 全シート構造確認...');
-    const standardColumns = claude_getStandardColumns();
-    
-    for (const sheetName of Object.keys(standardColumns)) {
-      try {
-        claude_debugSheetStructure(sheetName);
-      } catch (error) {
-        console.error(`シート確認失敗: ${sheetName} - ${error.toString()}`);
-      }
-    }
-    
-    // 3. 総合チェック実行
-    console.log('3️⃣ 総合チェック実行...');
-    const checkResult = claude_sheetCheckTest();
-    
-    console.log('=== 全システム初期化テスト完了 ===');
-    return checkResult;
-    
-  } catch (error) {
-    console.error('全システム初期化テストエラー:', error.toString());
-    throw error;
-  }
-}
-
-/**
- * クイックヘルスチェック（軽量版）
- */
-function claude_quickHealthCheck() {
-  try {
-    console.log('⚡ クイックヘルスチェック実行中...');
-    
-    const checks = {
-      spreadsheetAccess: false,
-      coreSheets: false,
-      logAccess: false
-    };
-    
-    // スプレッドシートアクセス
-    try {
-      const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
-      if (spreadsheetId) {
-        SpreadsheetApp.openById(spreadsheetId);
-        checks.spreadsheetAccess = true;
-      }
-    } catch (error) {
-      console.error('スプレッドシートアクセス失敗:', error.toString());
-    }
-    
-    // 重要シート存在確認（軽量）
-    try {
-      getSheetByName_('システムログ');
-      getSheetByName_('加盟店子ユーザー一覧');
-      checks.coreSheets = true;
-    } catch (error) {
-      console.error('重要シート確認失敗:', error.toString());
-    }
-    
-    // ログアクセス
-    try {
-      claude_logEvent('INFO', 'ヘルスチェック', 'クイックチェック', 'システム正常');
-      checks.logAccess = true;
-    } catch (error) {
-      console.error('ログアクセス失敗:', error.toString());
-    }
-    
-    const overallHealth = Object.values(checks).every(check => check);
-    
-    console.log(`⚡ クイックヘルスチェック結果: ${overallHealth ? '✅ 正常' : '❌ 問題あり'}`);
-    console.log('詳細:', checks);
-    
-    return checks;
-    
-  } catch (error) {
-    console.error('クイックヘルスチェックエラー:', error.toString());
-    throw error;
+    console.error('GitHub連携状態確認エラー:', error.toString());
+    return false;
   }
 }

@@ -1,301 +1,420 @@
 /**
- * Claude Code共通ユーティリティ関数
- * getColumnIndex_()のフェールセーフ強化・共通処理
+ * キャンセル申請ハンドラー
+ * 子ユーザーからのキャンセル申請を受信し、Slack通知と親ユーザー通知を送信
  */
 
 /**
- * 強化版getColumnIndex_() - フェールセーフ・近似候補提案付き
- * @param {Array} headers - ヘッダー行配列
- * @param {string} columnName - 検索対象カラム名
- * @param {string} sheetName - シート名（エラー時の詳細情報用）
- * @return {number} カラムインデックス（0ベース）
- * @throws {Error} カラム未検出時
+ * キャンセル申請の受信・処理メイン関数
+ * @param {string} childUserId - 子ユーザーID
+ * @param {string} inquiryId - 問い合わせID（キャンセル対象）
+ * @param {string} reason - キャンセル理由
+ * @param {string} additionalNotes - 追加メモ（任意）
+ * @return {Object} 処理結果
  */
-function getColumnIndex_(headers, columnName, sheetName = '不明') {
+function handleCancelRequest(childUserId, inquiryId, reason, additionalNotes = '') {
   try {
-    // 厳密一致チェック
-    const exactIndex = headers.indexOf(columnName);
-    if (exactIndex !== -1) {
-      return exactIndex;
+    console.log('キャンセル申請処理開始:', {
+      childUserId: childUserId,
+      inquiryId: inquiryId,
+      reason: reason
+    });
+    
+    // 1. 子ユーザー情報取得
+    const childUserInfo = getChildUserInfo_(childUserId);
+    if (!childUserInfo) {
+      throw new Error(`子ユーザーが見つかりません: ${childUserId}`);
     }
     
-    // 空白・大小文字を無視した一致チェック
-    const normalizedTarget = columnName.trim().toLowerCase();
-    for (let i = 0; i < headers.length; i++) {
-      const normalizedHeader = String(headers[i]).trim().toLowerCase();
-      if (normalizedHeader === normalizedTarget) {
-        console.warn(`カラム名の大小文字・空白違い検出: "${headers[i]}" → "${columnName}"`);
-        return i;
-      }
+    // 2. 親加盟店情報取得
+    const parentInfo = getParentPartnerInfo_(childUserInfo.parentPartnerId);
+    if (!parentInfo) {
+      throw new Error(`親加盟店が見つかりません: ${childUserInfo.parentPartnerId}`);
     }
     
-    // 部分一致チェック
-    for (let i = 0; i < headers.length; i++) {
-      const header = String(headers[i]);
-      if (header.includes(columnName) || columnName.includes(header)) {
-        console.warn(`カラム名の部分一致検出: "${header}" ≈ "${columnName}"`);
-        return i;
-      }
+    // 3. 問い合わせ情報取得・検証
+    const inquiryInfo = getInquiryInfo_(inquiryId);
+    if (!inquiryInfo) {
+      throw new Error(`問い合わせが見つかりません: ${inquiryId}`);
     }
     
-    // 類似カラム名検索
-    const similarColumn = findSimilarColumn_(columnName, headers);
-    const suggestion = similarColumn ? `もしかして「${similarColumn}」？` : '類似カラムなし';
+    // 4. キャンセル申請データを記録
+    const cancelData = recordCancelRequest_(
+      childUserId,
+      inquiryId,
+      reason,
+      additionalNotes,
+      childUserInfo,
+      parentInfo
+    );
     
-    // 詳細エラー情報
-    const errorDetails = `
-📛 カラム検索失敗
-対象シート: ${sheetName}
-検索カラム: 「${columnName}」
-利用可能カラム: ${headers.join(', ')}
-近似候補: ${suggestion}
-
-💡 対処法:
-1. sheets_structure.md の列名定義を確認
-2. スプレッドシートのヘッダー行を確認
-3. claude_verifySheetColumns() で事前検証を実行`;
+    // 5. Slack通知送信（管理用）
+    sendCancelNotificationToSlack_(cancelData);
     
-    throw new Error(errorDetails);
+    // 6. 親ユーザーへの通知送信
+    sendCancelNotificationToParent_(cancelData, parentInfo);
     
-  } catch (error) {
-    console.error('getColumnIndex_エラー:', error.toString());
-    throw error;
-  }
-}
-
-/**
- * 安全なシート取得 - 存在チェック付き
- * @param {string} sheetName - シート名
- * @return {GoogleAppsScript.Spreadsheet.Sheet} シートオブジェクト
- * @throws {Error} シート未検出時
- */
-function getSheetByName_(sheetName) {
-  try {
-    const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
-    if (!spreadsheetId) {
-      throw new Error('SPREADSHEET_ID が設定されていません');
-    }
-    
-    const ss = SpreadsheetApp.openById(spreadsheetId);
-    const sheet = ss.getSheetByName(sheetName);
-    
-    if (!sheet) {
-      const availableSheets = ss.getSheets().map(s => s.getName()).join(', ');
-      throw new Error(`📛 シート未検出: 「${sheetName}」
-利用可能シート: ${availableSheets}
-
-💡 対処法:
-1. シート名の確認（大小文字・空白に注意）
-2. sheets_structure.md の定義確認
-3. スプレッドシートの実際のシート名確認`);
-    }
-    
-    return sheet;
-    
-  } catch (error) {
-    console.error('getSheetByName_エラー:', error.toString());
-    throw error;
-  }
-}
-
-/**
- * 安全なデータ取得 - 空チェック付き
- * @param {string} sheetName - シート名
- * @param {Array<string>} requiredColumns - 必須カラム名（任意）
- * @return {Object} {data: 全データ, headers: ヘッダー行, rows: データ行}
- */
-function claude_getSafeSheetData(sheetName, requiredColumns = []) {
-  try {
-    console.log(`安全なデータ取得開始: ${sheetName}`);
-    
-    // 事前検証（必須カラムが指定されている場合）
-    if (requiredColumns.length > 0) {
-      claude_verifySheetColumns(sheetName, requiredColumns);
-    }
-    
-    const sheet = getSheetByName_(sheetName);
-    const dataRange = sheet.getDataRange();
-    
-    if (dataRange.getNumRows() === 0) {
-      console.warn(`データなし: ${sheetName}`);
-      return { data: [], headers: [], rows: [] };
-    }
-    
-    const allData = dataRange.getValues();
-    const headers = allData[0];
-    const rows = allData.slice(1);
-    
-    console.log(`データ取得成功: ${sheetName} (${rows.length}行)`);
+    console.log('キャンセル申請処理完了:', cancelData.cancelId);
     
     return {
-      data: allData,
-      headers: headers,
-      rows: rows
+      success: true,
+      cancelId: cancelData.cancelId,
+      message: 'キャンセル申請を受け付けました'
     };
     
   } catch (error) {
-    console.error(`安全なデータ取得エラー: ${sheetName}`, error.toString());
+    console.error('キャンセル申請処理エラー:', error.toString());
     throw error;
   }
 }
 
 /**
- * カラムインデックスマップ生成
- * @param {Array} headers - ヘッダー行
- * @param {Array<string>} columnNames - 必要なカラム名配列
- * @param {string} sheetName - シート名
- * @return {Object} {カラム名: インデックス}
+ * 子ユーザー情報取得
+ * @param {string} childUserId - 子ユーザーID
+ * @return {Object|null} 子ユーザー情報
  */
-function claude_getColumnIndexMap(headers, columnNames, sheetName = '不明') {
+function getChildUserInfo_(childUserId) {
   try {
-    const indexMap = {};
+    const sheet = getSheetByName_('加盟店子ユーザー一覧');
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
     
-    for (const columnName of columnNames) {
-      indexMap[columnName] = getColumnIndex_(headers, columnName, sheetName);
+    const childUserIdColIndex = getColumnIndex_(headers, '子ユーザーID');
+    const parentPartnerIdColIndex = getColumnIndex_(headers, '親加盟店ID');
+    const displayNameColIndex = getColumnIndex_(headers, '氏名（表示用）');
+    const emailColIndex = getColumnIndex_(headers, 'メールアドレス');
+    const areaColIndex = getColumnIndex_(headers, '対応エリア（市区町村）');
+    
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (row[childUserIdColIndex] === childUserId) {
+        return {
+          childUserId: row[childUserIdColIndex],
+          parentPartnerId: row[parentPartnerIdColIndex],
+          displayName: row[displayNameColIndex],
+          email: row[emailColIndex],
+          area: row[areaColIndex]
+        };
+      }
     }
     
-    console.log(`カラムインデックスマップ生成完了: ${sheetName}`, indexMap);
-    return indexMap;
+    return null;
     
   } catch (error) {
-    console.error(`カラムインデックスマップ生成エラー: ${sheetName}`, error.toString());
+    console.error('子ユーザー情報取得エラー:', error.toString());
     throw error;
   }
 }
 
 /**
- * 行データを連想配列に変換
- * @param {Array} headers - ヘッダー行
- * @param {Array} row - データ行
- * @return {Object} {カラム名: 値}
+ * 親加盟店情報取得
+ * @param {string} parentPartnerId - 親加盟店ID
+ * @return {Object|null} 親加盟店情報
  */
-function claude_rowToObject(headers, row) {
+function getParentPartnerInfo_(parentPartnerId) {
   try {
-    const obj = {};
+    const sheet = getSheetByName_('加盟店情報');
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
     
-    for (let i = 0; i < headers.length; i++) {
-      const header = headers[i];
-      const value = i < row.length ? row[i] : '';
-      obj[header] = value;
+    const partnerIdColIndex = getColumnIndex_(headers, '加盟店ID');
+    const companyNameColIndex = getColumnIndex_(headers, '会社名');
+    const contactNameColIndex = getColumnIndex_(headers, '担当者名');
+    const contactInfoColIndex = getColumnIndex_(headers, '担当者連絡先');
+    const emailColIndex = getColumnIndex_(headers, 'メールアドレス');
+    
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (row[partnerIdColIndex] === parentPartnerId) {
+        return {
+          partnerId: row[partnerIdColIndex],
+          companyName: row[companyNameColIndex],
+          contactName: row[contactNameColIndex],
+          contactInfo: row[contactInfoColIndex],
+          email: row[emailColIndex]
+        };
+      }
     }
     
-    return obj;
+    return null;
     
   } catch (error) {
-    console.error('行データ変換エラー:', error.toString());
+    console.error('親加盟店情報取得エラー:', error.toString());
     throw error;
   }
 }
 
 /**
- * 複数行データを連想配列に変換
- * @param {Array} headers - ヘッダー行
- * @param {Array<Array>} rows - データ行配列
- * @return {Array<Object>} 連想配列の配列
+ * 問い合わせ情報取得
+ * @param {string} inquiryId - 問い合わせID
+ * @return {Object|null} 問い合わせ情報
  */
-function claude_rowsToObjects(headers, rows) {
+function getInquiryInfo_(inquiryId) {
   try {
-    return rows.map(row => claude_rowToObject(headers, row));
+    const sheet = getSheetByName_('問い合わせ履歴');
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
     
-  } catch (error) {
-    console.error('複数行データ変換エラー:', error.toString());
-    throw error;
-  }
-}
-
-/**
- * 安全な値取得 - 空値・エラーハンドリング付き
- * @param {Array} row - データ行
- * @param {number} index - カラムインデックス
- * @param {any} defaultValue - デフォルト値
- * @return {any} 取得した値またはデフォルト値
- */
-function claude_getSafeValue(row, index, defaultValue = '') {
-  try {
-    if (!Array.isArray(row) || index < 0 || index >= row.length) {
-      return defaultValue;
+    const historyIdColIndex = getColumnIndex_(headers, '履歴ID');
+    const userIdColIndex = getColumnIndex_(headers, 'ユーザーID');
+    const categoryColIndex = getColumnIndex_(headers, '問い合わせ内容カテゴリ');
+    const statusColIndex = getColumnIndex_(headers, '対応状況');
+    
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (row[historyIdColIndex] === inquiryId) {
+        return {
+          inquiryId: row[historyIdColIndex],
+          userId: row[userIdColIndex],
+          category: row[categoryColIndex],
+          status: row[statusColIndex]
+        };
+      }
     }
     
-    const value = row[index];
-    return (value === null || value === undefined || value === '') ? defaultValue : value;
+    return null;
     
   } catch (error) {
-    console.error('安全な値取得エラー:', error.toString());
-    return defaultValue;
+    console.error('問い合わせ情報取得エラー:', error.toString());
+    throw error;
   }
 }
 
 /**
- * システムログ記録ヘルパー
- * @param {string} level - ログレベル（INFO, WARNING, ERROR, DEBUG）
- * @param {string} source - 発生元
- * @param {string} eventType - イベントタイプ
- * @param {string} message - メッセージ
- * @param {string} relatedId - 関連ID（任意）
+ * キャンセル申請データを記録
+ * @param {string} childUserId - 子ユーザーID
+ * @param {string} inquiryId - 問い合わせID
+ * @param {string} reason - キャンセル理由
+ * @param {string} additionalNotes - 追加メモ
+ * @param {Object} childUserInfo - 子ユーザー情報
+ * @param {Object} parentInfo - 親加盟店情報
+ * @return {Object} 記録されたキャンセルデータ
  */
-function claude_logEvent(level, source, eventType, message, relatedId = '') {
+function recordCancelRequest_(childUserId, inquiryId, reason, additionalNotes, childUserInfo, parentInfo) {
   try {
-    const logSheet = getSheetByName_('システムログ');
-    const headers = logSheet.getDataRange().getValues()[0];
-    
+    // キャンセル申請IDを生成（例: CANCEL-20250531-001）
     const now = new Date();
-    const logId = `LOG-${String(now.getTime()).slice(-10)}`;
+    const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+    const timeStr = String(now.getTime()).slice(-3);
+    const cancelId = `CANCEL-${dateStr}-${timeStr}`;
+    
     const timestamp = now.toLocaleString('ja-JP');
     
-    const logData = [];
-    // システムログシートの全カラム分の配列を初期化
-    for (let i = 0; i < headers.length; i++) {
-      logData.push('');
-    }
+    // システムログにキャンセル申請を記録
+    const logSheet = getSheetByName_('システムログ');
+    const logData = logSheet.getDataRange().getValues();
+    const logHeaders = logData[0];
     
-    // 必要なカラムにデータを設定
-    const indexMap = claude_getColumnIndexMap(headers, [
-      'ログID', 'タイムスタンプ', 'ログレベル', '発生元',
-      'イベントタイプ', 'メッセージ', '関連ID'
-    ], 'システムログ');
+    const logIdColIndex = getColumnIndex_(logHeaders, 'ログID');
+    const timestampColIndex = getColumnIndex_(logHeaders, 'タイムスタンプ');
+    const logLevelColIndex = getColumnIndex_(logHeaders, 'ログレベル');
+    const sourceColIndex = getColumnIndex_(logHeaders, '発生元');
+    const eventTypeColIndex = getColumnIndex_(logHeaders, 'イベントタイプ');
+    const messageColIndex = getColumnIndex_(logHeaders, 'メッセージ');
+    const relatedIdColIndex = getColumnIndex_(logHeaders, '関連ID');
     
-    logData[indexMap['ログID']] = logId;
-    logData[indexMap['タイムスタンプ']] = timestamp;
-    logData[indexMap['ログレベル']] = level;
-    logData[indexMap['発生元']] = source;
-    logData[indexMap['イベントタイプ']] = eventType;
-    logData[indexMap['メッセージ']] = message;
-    logData[indexMap['関連ID']] = relatedId;
+    const logId = `LOG-${String(Date.now()).slice(-10)}`;
+    const logMessage = `キャンセル申請受付: ${childUserInfo.displayName}(${childUserId}) - 問い合わせ${inquiryId} - 理由: ${reason}`;
     
-    logSheet.appendRow(logData);
+    logSheet.appendRow([
+      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''
+    ]);
     
-    console.log(`システムログ記録: ${level} - ${eventType}`);
+    const lastRow = logSheet.getLastRow();
+    logSheet.getRange(lastRow, logIdColIndex + 1).setValue(logId);
+    logSheet.getRange(lastRow, timestampColIndex + 1).setValue(timestamp);
+    logSheet.getRange(lastRow, logLevelColIndex + 1).setValue('INFO');
+    logSheet.getRange(lastRow, sourceColIndex + 1).setValue('キャンセル申請');
+    logSheet.getRange(lastRow, eventTypeColIndex + 1).setValue('キャンセル申請受付');
+    logSheet.getRange(lastRow, messageColIndex + 1).setValue(logMessage);
+    logSheet.getRange(lastRow, relatedIdColIndex + 1).setValue(inquiryId);
+    
+    return {
+      cancelId: cancelId,
+      childUserId: childUserId,
+      inquiryId: inquiryId,
+      reason: reason,
+      additionalNotes: additionalNotes,
+      timestamp: timestamp,
+      childUserInfo: childUserInfo,
+      parentInfo: parentInfo
+    };
     
   } catch (error) {
-    console.error('システムログ記録エラー:', error.toString());
-    // ログ記録の失敗は全体処理を停止させない
+    console.error('キャンセル申請データ記録エラー:', error.toString());
+    throw error;
   }
 }
 
 /**
- * パフォーマンス測定ヘルパー
- * @param {string} operationName - 操作名
- * @param {Function} operation - 実行する関数
- * @return {any} 関数の戻り値
+ * Slack通知送信（管理用）
+ * @param {Object} cancelData - キャンセル申請データ
  */
-function claude_measurePerformance(operationName, operation) {
+function sendCancelNotificationToSlack_(cancelData) {
   try {
-    const startTime = new Date().getTime();
-    console.log(`⏱️ パフォーマンス測定開始: ${operationName}`);
+    const webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_CANCEL_WEBHOOK_URL');
     
-    const result = operation();
+    if (!webhookUrl) {
+      throw new Error('SLACK_CANCEL_WEBHOOK_URL が設定されていません');
+    }
     
-    const endTime = new Date().getTime();
-    const duration = endTime - startTime;
+    const message = `🚨 キャンセル申請を受け付けました
+
+📌 子ユーザー名: ${cancelData.childUserInfo.displayName}
+🏢 加盟店ID: ${cancelData.parentInfo.partnerId}
+🏭 会社名: ${cancelData.parentInfo.companyName}
+📋 問い合わせID: ${cancelData.inquiryId}
+📅 申請日時: ${cancelData.timestamp}
+📝 理由: ${cancelData.reason}
+${cancelData.additionalNotes ? `💬 追加メモ: ${cancelData.additionalNotes}` : ''}
+
+対応をお願いします。`;
     
-    console.log(`⏱️ パフォーマンス測定完了: ${operationName} (${duration}ms)`);
-    claude_logEvent('INFO', 'パフォーマンス測定', operationName, `実行時間: ${duration}ms`);
+    const payload = {
+      text: message
+    };
+    
+    const response = UrlFetchApp.fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      payload: JSON.stringify(payload)
+    });
+    
+    if (response.getResponseCode() !== 200) {
+      throw new Error(`Slack通知送信失敗: ${response.getResponseCode()} - ${response.getContentText()}`);
+    }
+    
+    console.log('Slack通知送信成功:', cancelData.cancelId);
+    
+  } catch (error) {
+    console.error('Slack通知送信エラー:', error.toString());
+    throw error;
+  }
+}
+
+/**
+ * 親ユーザーへの通知送信
+ * @param {Object} cancelData - キャンセル申請データ
+ * @param {Object} parentInfo - 親加盟店情報
+ */
+function sendCancelNotificationToParent_(cancelData, parentInfo) {
+  try {
+    // メール通知を送信
+    const subject = '【重要】キャンセル申請のお知らせ';
+    const body = `${parentInfo.contactName} 様
+
+いつもお世話になっております。
+外壁塗装くらべるAI運営事務局です。
+
+以下のキャンセル申請を受け付けましたのでご連絡いたします。
+
+■ キャンセル申請詳細
+申請者: ${cancelData.childUserInfo.displayName}
+問い合わせID: ${cancelData.inquiryId}
+申請日時: ${cancelData.timestamp}
+キャンセル理由: ${cancelData.reason}
+${cancelData.additionalNotes ? `追加メモ: ${cancelData.additionalNotes}` : ''}
+
+■ 今後の対応
+管理画面から詳細をご確認いただき、必要に応じて対応をお願いいたします。
+
+ご不明な点がございましたら、お気軽にお問い合わせください。
+
+---
+外壁塗装くらべるAI運営事務局`;
+    
+    // メール送信
+    if (parentInfo.email) {
+      MailApp.sendEmail({
+        to: parentInfo.email,
+        subject: subject,
+        body: body
+      });
+      
+      console.log('親ユーザーメール通知送信成功:', parentInfo.email);
+    } else {
+      console.warn('親ユーザーのメールアドレスが設定されていません:', parentInfo.partnerId);
+    }
+    
+  } catch (error) {
+    console.error('親ユーザー通知送信エラー:', error.toString());
+    // 親ユーザー通知の失敗は全体処理を停止させない
+    console.warn('親ユーザー通知は失敗しましたが、処理を継続します');
+  }
+}
+
+/**
+ * キャンセル申請処理のテスト関数
+ */
+function testHandleCancelRequest() {
+  try {
+    console.log('=== キャンセル申請テスト開始 ===');
+    
+    // テストデータ
+    const testData = {
+      childUserId: 'CHILD-001',
+      inquiryId: 'INQ-00001',
+      reason: '工事スケジュールの都合により一時中断',
+      additionalNotes: 'お客様との再調整後、改めて連絡予定'
+    };
+    
+    console.log('テストデータ:', testData);
+    
+    // キャンセル申請処理実行
+    const result = handleCancelRequest(
+      testData.childUserId,
+      testData.inquiryId,
+      testData.reason,
+      testData.additionalNotes
+    );
+    
+    console.log('テスト結果:', result);
+    console.log('=== キャンセル申請テスト完了 ===');
     
     return result;
     
   } catch (error) {
-    console.error(`パフォーマンス測定エラー: ${operationName}`, error.toString());
-    claude_logEvent('ERROR', 'パフォーマンス測定', operationName, `エラー: ${error.toString()}`);
-    throw error;
+    console.error('テスト実行エラー:', error.toString());
+    console.log('=== キャンセル申請テスト失敗 ===');
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * 簡易テスト（データ確認のみ）
+ */
+function testDataRetrieval() {
+  try {
+    console.log('=== データ取得テスト開始 ===');
+    
+    // 子ユーザー情報テスト
+    const childInfo = getChildUserInfo_('CHILD-001');
+    console.log('子ユーザー情報:', childInfo);
+    
+    if (childInfo) {
+      // 親加盟店情報テスト
+      const parentInfo = getParentPartnerInfo_(childInfo.parentPartnerId);
+      console.log('親加盟店情報:', parentInfo);
+    }
+    
+    // 問い合わせ情報テスト
+    const inquiryInfo = getInquiryInfo_('INQ-00001');
+    console.log('問い合わせ情報:', inquiryInfo);
+    
+    console.log('=== データ取得テスト完了 ===');
+    
+    return true;
+    
+  } catch (error) {
+    console.error('データ取得テストエラー:', error.toString());
+    return false;
   }
 }

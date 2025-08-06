@@ -2,13 +2,53 @@ import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import { mockApiService } from './mockApi'
 
-// GAS WebApp API のベースURL（環境変数から取得）
-const BASE_URL = process.env.VUE_APP_GAS_WEBAPP_URL || 'https://script.google.com/macros/s/AKfycbwuWND8p7hVxcy5tl5ga-NsDhP_TVKNumNX_-ZTO9wtTa_mwSsDEVoQX0oT_XEJwJn6/exec'
+// GAS WebApp URL動的取得
 const MOCK_MODE = false // 本番環境モード
 
-// Axiosインスタンスを作成
+// GAS URL取得関数
+async function getGasUrl() {
+  // キャッシュから取得（5分間有効）
+  const cacheKey = 'gasUrl';
+  const cacheTimeKey = 'gasUrlTime';
+  const cacheTime = localStorage.getItem(cacheTimeKey);
+  const cachedUrl = localStorage.getItem(cacheKey);
+  
+  if (cachedUrl && cacheTime && (Date.now() - parseInt(cacheTime)) < 300000) {
+    return cachedUrl;
+  }
+  
+  // フォールバックURL（初回接続用）
+  const fallbackUrls = [
+    'https://script.google.com/macros/s/AKfycbziBoGkAHAvEtXJQ79JBxjdmti52E6NKE5b0W0CK6rrWu92rw9yBw_f5d7_lF81jGLwRQ/exec',
+    process.env.VUE_APP_GAS_WEBAPP_URL || 'https://script.google.com/macros/s/AKfycby_EmjmvHqCpqUm4EbH5fYGUFh49q7ls4z03B4XFWJIiZBFf-qUSE60fkeK1JqpllPbXw/exec'
+  ];
+  
+  for (const fallbackUrl of fallbackUrls) {
+    try {
+      const response = await fetch(`${fallbackUrl}?action=getConfig`);
+      const result = await response.json();
+      
+      if (result.success && result.data && result.data.gasUrl) {
+        const url = result.data.gasUrl;
+        localStorage.setItem(cacheKey, url);
+        localStorage.setItem(cacheTimeKey, Date.now().toString());
+        return url;
+      }
+    } catch (error) {
+      console.warn('GAS URL取得失敗:', error.message);
+      continue;
+    }
+  }
+  
+  // フォールバック
+  const url = fallbackUrls[0];
+  localStorage.setItem(cacheKey, url);
+  localStorage.setItem(cacheTimeKey, Date.now().toString());
+  return url;
+}
+
+// Axiosインスタンスを作成（動的ベースURL）
 const apiClient = axios.create({
-  baseURL: BASE_URL,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -20,7 +60,11 @@ const apiClient = axios.create({
 
 // リクエストインターセプター
 apiClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    // 動的にベースURLを設定
+    const gasUrl = await getGasUrl();
+    config.baseURL = gasUrl;
+    
     // 管理者トークンを認証ヘッダーに追加
     const authStore = useAuthStore()
     const token = authStore.token || localStorage.getItem('admin_token')
@@ -29,14 +73,57 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
     
-    // GAS向けにデータを包装
+    // GAS向けにデータを包装（POSTの場合）
     if (config.method === 'post' && config.data) {
-      const path = config.url.startsWith('/api/') ? config.url : `/api${config.url}`
-      config.data = JSON.stringify({
-        path: path,
-        role: 'admin',
-        ...config.data
+      // POSTリクエストをJSONPに変換してCORSを回避
+      const timestamp = Date.now()
+      const random = Math.floor(Math.random() * 10000)
+      const callbackName = `jsonp_callback_${timestamp}_${random}`
+      const params = new URLSearchParams()
+      params.append('action', config.data.action || 'getFranchiseList')
+      params.append('role', 'admin')
+      params.append('callback', callbackName)
+      
+      // その他のパラメータを追加
+      Object.keys(config.data).forEach(key => {
+        if (key !== 'action' && config.data[key] !== undefined) {
+          params.append(key, config.data[key])
+        }
       })
+      
+      // JSONP用のPromiseを作成
+      config.adapter = () => {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+          const timeout = setTimeout(() => {
+            reject(new Error('Request timeout'))
+          }, 30000)
+          
+          window[callbackName] = (data) => {
+            clearTimeout(timeout)
+            document.head.removeChild(script)
+            delete window[callbackName]
+            resolve({
+              data: data,
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              config: config
+            })
+          }
+          
+          script.src = `${config.baseURL}?${params.toString()}`
+          script.onerror = () => {
+            clearTimeout(timeout)
+            reject(new Error('Script load error'))
+          }
+          
+          document.head.appendChild(script)
+        })
+      }
+      
+      config.method = 'get'
+      config.data = null
     }
     
     if (process.env.NODE_ENV === 'development') {
@@ -262,31 +349,64 @@ export const apiService = {
       return await mockApiService.login(credentials)
     }
     
-    // GAS WebApp GET方式で呼び出し（JSONPを避ける）
+    // GAS WebApp JSONP方式で呼び出し（CORS回避）
     try {
       const params = new URLSearchParams({
         action: 'auth/login',
         role: 'admin',
         email: credentials.email,
-        password: credentials.password
+        password: credentials.password,
+        callback: 'jsonp_callback_' + Date.now()
       })
       
-      const response = await fetch(`${BASE_URL}?${params}`, {
-        method: 'GET',
-        mode: 'cors'
+      // JSONP用のコールバック関数を作成
+      const callbackName = 'jsonp_callback_' + Date.now()
+      
+      const response = await new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        const timeout = setTimeout(() => {
+          reject(new Error('Request timeout'))
+        }, 10000)
+        
+        window[callbackName] = (data) => {
+          clearTimeout(timeout)
+          document.head.removeChild(script)
+          delete window[callbackName]
+          resolve({
+            ok: true,
+            data: data,
+            text: () => Promise.resolve(JSON.stringify(data)),
+            json: () => Promise.resolve(data)
+          })
+        }
+        
+        script.src = `${BASE_URL}?${params}&callback=${callbackName}`
+        script.onerror = () => {
+          clearTimeout(timeout)
+          reject(new Error('Script load error'))
+        }
+        
+        document.head.appendChild(script)
       })
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
       }
       
-      const text = await response.text()
-      console.log('🔍 Raw GAS Response:', text)
+      // JSONPの場合は直接dataプロパティからレスポンスを取得
+      let responseData = response.data || response
+      console.log('🔍 Raw GAS Response:', responseData)
       
-      // GASの文字列レスポンスをJSONに変換
+      // GASレスポンスの処理
       let result
       try {
-        result = JSON.parse(text)
+        // 既にオブジェクトの場合はそのまま使用
+        if (typeof responseData === 'object') {
+          result = responseData
+        } else {
+          // 文字列の場合はJSONパース
+          result = JSON.parse(responseData)
+        }
         
         // GAS WebAppが稼働中の場合、ログイン成功として扱う
         if (result.success && result.message && result.message.includes('WebApp')) {
@@ -310,8 +430,9 @@ export const apiService = {
           }
         }
       } catch (parseError) {
-        // JSONパースエラーの場合、テキストレスポンスをチェック
-        if (text.includes('success') || text.includes('true')) {
+        // JSONパースエラーの場合、レスポンス内容をチェック
+        const responseStr = String(responseData)
+        if (responseStr.includes('success') || responseStr.includes('true')) {
           result = { success: true, data: { token: 'gas-token-' + Date.now(), user: { email: credentials.email, role: 'admin' } } }
         } else {
           result = { success: false, message: 'GAS APIレスポンス形式エラー' }

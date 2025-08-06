@@ -81,27 +81,16 @@
     </div>
 
 
+    <!-- 未認証ユーザー用のコンテンツ -->
+    <div v-if="!isAuthenticated" class="auth-content">
+      <router-view />
+    </div>
+
     <!-- エラーバウンダリ -->
     <div v-if="appError" class="error-boundary">
       <h3>❌ アプリケーションエラー</h3>
       <p>{{ appError }}</p>
       <button @click="reloadApp" class="btn-reload">再読み込み</button>
-    </div>
-
-    <!-- メインコンテンツ -->
-    <div class="main-content">
-
-      <!-- Router表示 -->
-      <div class="router-container">
-        <Suspense>
-          <template #default>
-            <router-view />
-          </template>
-          <template #fallback>
-            <div class="loading">🔄 読み込み中...</div>
-          </template>
-        </Suspense>
-      </div>
     </div>
   </div>
 </template>
@@ -390,6 +379,14 @@ export default {
 .router-container {
   max-width: 1200px;
   margin: 0 auto;
+}
+
+/* 未認証ユーザー用スタイル */
+.auth-content {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* オーバーレイ */

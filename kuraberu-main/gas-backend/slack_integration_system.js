@@ -10,10 +10,11 @@
 /**
  * Slack通知送信（共通処理）
  * 
- * @param {string} message 送信メッセージ
+ * @param {string|Object} message 送信メッセージまたはBlocks
+ * @param {Object} options 送信オプション
  * @returns {Object} 送信結果
  */
-function sendSlackNotification(message) {
+function sendSlackNotification(message, options = {}) {
   try {
     Logger.log('📢 Slack通知送信開始');
     
@@ -33,30 +34,41 @@ function sendSlackNotification(message) {
       };
     }
     
-    // メッセージの検証
-    if (!message || typeof message !== 'string') {
-      const errorMsg = '無効なメッセージ形式です';
-      Logger.log(`❌ ${errorMsg}`);
-      fallbackSlackLog(`[Slack通知失敗] ${errorMsg}`);
+    let payload;
+    
+    // Block Kit形式かシンプルテキスト形式かを判定
+    if (typeof message === 'object' && message.blocks) {
+      // Block Kit形式
+      payload = {
+        ...message,
+        username: options.username || '外壁塗装くらべるAI',
+        icon_emoji: options.icon_emoji || ':robot_face:'
+      };
+    } else {
+      // シンプルテキスト形式（従来通り）
+      if (!message || typeof message !== 'string') {
+        const errorMsg = '無効なメッセージ形式です';
+        Logger.log(`❌ ${errorMsg}`);
+        fallbackSlackLog(`[Slack通知失敗] ${errorMsg}`);
+        
+        return {
+          success: false,
+          error: 'INVALID_MESSAGE',
+          message: errorMsg,
+          timestamp: new Date()
+        };
+      }
       
-      return {
-        success: false,
-        error: 'INVALID_MESSAGE',
-        message: errorMsg,
-        timestamp: new Date()
+      payload = {
+        text: message,
+        mrkdwn: true,
+        username: options.username || '外壁塗装くらべるAI',
+        icon_emoji: options.icon_emoji || ':robot_face:'
       };
     }
     
-    // Slackペイロード作成
-    const payload = {
-      text: message,
-      mrkdwn: true,
-      username: '外壁塗装くらべるAI',
-      icon_emoji: ':robot_face:'
-    };
-    
     // HTTP送信オプション
-    const options = {
+    const httpOptions = {
       method: 'POST',
       contentType: 'application/json',
       payload: JSON.stringify(payload),
@@ -64,7 +76,7 @@ function sendSlackNotification(message) {
     };
     
     // Slack API呼び出し
-    const response = UrlFetchApp.fetch(webhookUrl, options);
+    const response = UrlFetchApp.fetch(webhookUrl, httpOptions);
     const responseCode = response.getResponseCode();
     const responseText = response.getContentText();
     
@@ -76,7 +88,7 @@ function sendSlackNotification(message) {
         success: true,
         responseCode: responseCode,
         responseText: responseText,
-        messageLength: message.length,
+        messageLength: typeof message === 'string' ? message.length : JSON.stringify(message).length,
         timestamp: new Date()
       };
     } else {
@@ -119,7 +131,12 @@ function fallbackSlackLog(message) {
   try {
     Logger.log(`📝 Slackフォールバックログ: ${message}`);
     
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    if (!SPREADSHEET_ID) {
+      Logger.log('⚠️ SPREADSHEET_ID未設定 - Slackフォールバックログをスキップ');
+      return { success: false, message: 'SPREADSHEET_ID未設定' };
+    }
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     let logSheet = ss.getSheetByName('システムログ');
     
     // システムログシートが存在しない場合は作成
@@ -321,4 +338,17 @@ function testSlackIntegrationSystem() {
       }
     };
   }
+}
+
+/**
+ * この関数は notify.js の notifyNewFranchiseRegistration に統合されました
+ * 重複通知を防ぐため無効化
+ */
+function sendFranchiseApprovalNotification(franchiseData) {
+  console.log('⚠️ この関数は無効化されました。notify.js の notifyNewFranchiseRegistration を使用してください。');
+  return {
+    success: false,
+    error: 'FUNCTION_DISABLED',
+    message: 'この関数は無効化されました。notify.js を使用してください。'
+  };
 }

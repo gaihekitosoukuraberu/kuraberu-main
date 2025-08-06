@@ -3,6 +3,51 @@
  * estimate-app専用
  */
 
+// GAS URL動的取得（キャッシュ付き）
+let cachedGasUrl = null;
+let cacheTimestamp = null;
+const CACHE_DURATION = 5 * 60 * 1000; // 5分間キャッシュ
+
+async function getGasUrl() {
+  // キャッシュが有効な場合は使用
+  if (cachedGasUrl && cacheTimestamp && (Date.now() - cacheTimestamp) < CACHE_DURATION) {
+    return cachedGasUrl;
+  }
+  
+  // フォールバックURL（初回接続用）
+  const fallbackUrls = [
+    'https://script.google.com/macros/s/AKfycbziBoGkAHAvEtXJQ79JBxjdmti52E6NKE5b0W0CK6rrWu92rw9yBw_f5d7_lF81jGLwRQ/exec',
+    'https://script.google.com/macros/s/AKfycbyC7utt6PUGGMLEq1XkbXuKfWls53Q9uANPEKs7vYUNSQh4OItyKSdcqrJyRIvkPcxZ9Q/exec'
+  ];
+  
+  for (const fallbackUrl of fallbackUrls) {
+    try {
+      const response = await fetch(`${fallbackUrl}?action=getConfig`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        mode: 'cors'
+      });
+      
+      if (!response.ok) continue;
+      
+      const result = await response.json();
+      if (result.success && result.data && result.data.gasUrl) {
+        cachedGasUrl = result.data.gasUrl;
+        cacheTimestamp = Date.now();
+        return cachedGasUrl;
+      }
+    } catch (error) {
+      console.warn('GAS URL取得失敗:', error.message);
+      continue;
+    }
+  }
+  
+  // フォールバック
+  cachedGasUrl = fallbackUrls[0];
+  cacheTimestamp = Date.now();
+  return cachedGasUrl;
+}
+
 // チャットセッション関連
 function initializeChatSession() {
   const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
@@ -280,8 +325,8 @@ function getAreaFromPostalCode(postalCode) {
 // 郵便番号DBスプレッドシートから住所を取得
 async function getAddressFromPostalCode(postalCode) {
   try {
-    // 統一されたGASエンドポイントのURL（既存のSPREADSHEET_GAS_URLを使用）
-    const gasUrl = 'https://script.google.com/macros/s/AKfycbz9BA4rQd3YDveOslmbO2deM5n_LySrVxxhrocvWUvAq3sb8wQQ-vfab5HHs3J0sqk1Hw/exec';
+    // 動的GAS URL取得
+    const gasUrl = await getGasUrl();
     
     console.log('🔍 郵便番号検索:', postalCode);
     

@@ -303,7 +303,7 @@ export function useGasApi() {
   // 環境変数からGAS WebApp URLを取得
   const gasApiService = new GasApiService(
     process.env.VUE_APP_GAS_WEBAPP_URL || 
-    'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec'
+    'https://script.google.com/macros/s/AKfycby_EmjmvHqCpqUm4EbH5fYGUFh49q7ls4z03B4XFWJIiZBFf-qUSE60fkeK1JqpllPbXw/exec'
   );
 
   const isLoading = ref(false);

@@ -311,7 +311,17 @@ function generateReferralBillingRecords() {
     
     if (newRecords.length > 0) {
       const lastRow = billingSheet.getLastRow();
-      billingSheet.getRange(lastRow + 1, 1, newRecords.length, newRecords[0].length).setValues(newRecords);
+      // 実際にデータがある行の直後に挿入
+      let targetRow = 2; // デフォルトはヘッダーの次
+      for (let i = 2; i <= 100; i++) {
+        let cellValue = billingSheet.getRange(i, 1).getValue();
+        if (cellValue && cellValue !== '') {
+          targetRow = i + 1;
+        } else {
+          break;
+        }
+      }
+      billingSheet.getRange(targetRow, 1, newRecords.length, newRecords[0].length).setValues(newRecords);
     }
     
     Logger.log(`✅ 紹介料請求データ生成完了 (${recordCount}件)`);
@@ -441,7 +451,17 @@ function generateSuccessFeeBillingRecords() {
     // 新規レコードをシートに追加
     if (newRecords.length > 0) {
       const lastRow = billingSheet.getLastRow();
-      billingSheet.getRange(lastRow + 1, 1, newRecords.length, newRecords[0].length).setValues(newRecords);
+      // 実際にデータがある行の直後に挿入
+      let targetRow = 2; // デフォルトはヘッダーの次
+      for (let i = 2; i <= 100; i++) {
+        let cellValue = billingSheet.getRange(i, 1).getValue();
+        if (cellValue && cellValue !== '') {
+          targetRow = i + 1;
+        } else {
+          break;
+        }
+      }
+      billingSheet.getRange(targetRow, 1, newRecords.length, newRecords[0].length).setValues(newRecords);
     }
     
     Logger.log(`✅ 成約手数料請求データ生成完了 (${recordCount}件)`);

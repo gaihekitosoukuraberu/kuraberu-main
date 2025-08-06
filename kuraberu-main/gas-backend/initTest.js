@@ -1,46 +1,4 @@
 /**
-   * スプレッドシート直接接続テスト
-   */
-  function testDirectSpreadsheetConnection() {
-    try {
-      Logger.log('🔍 スプレッドシート直接接続テスト開始');
-
-      const spreadsheetId =
-  PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
-      Logger.log('📋 スプレッドシートID: ' + spreadsheetId);
-
-      if (!spreadsheetId) {
-        throw new Error('SPREADSHEET_IDプロパティが設定されていません');
-      }
-
-      const ss = SpreadsheetApp.openById(spreadsheetId);
-      Logger.log('📊 スプレッドシート名: ' + ss.getName());
-
-      // シート一覧を確認
-      const sheets = ss.getSheets();
-      Logger.log('📄 シート数: ' + sheets.length + '個');
-
-      for (let i = 0; i < Math.min(sheets.length, 5); i++) {
-        Logger.log('  - ' + sheets[i].getName());
-      }
-
-      Logger.log('✅ スプレッドシート接続成功');
-      return {
-        success: true,
-        spreadsheetName: ss.getName(),
-        sheetCount: sheets.length,
-        spreadsheetId: spreadsheetId
-      };
-
-    } catch (error) {
-      Logger.log('❌ スプレッドシート接続エラー: ' + error.message);
-      return {
-        success: false,
-        error: error.message
-      };
-    }
-  }
-/**
  * 初期化・動作確認テスト関数群
  * シート構造検証・システム整合性チェック
  */
