@@ -32,6 +32,7 @@
 //  * @param {Object} params { companyName }
 //  * @returns {Object} 抽出結果
 //  */
+/* notify.jsに移動済み - startAIHearing関数全体をコメントアウト
 function startAIHearing(params) {
   try {
     var companyName = params.companyName;
@@ -108,24 +109,26 @@ function startAIHearing(params) {
     };
   }
 }
+*/ // startAIHearing関数終了
 
 /**
 //  * WebサイトURLから企業情報抽出
 //  * @param {Object} params { websiteUrl }
 //  * @returns {Object} 抽出結果
 //  */
+/* extractFromWebsite関数はコメントアウト
 // function extractFromWebsite(params) {
 //   try {
 //     var websiteUrl = params.websiteUrl;
 //     
-//     Logger.log('🔍 extractFromWebsite実行 - 受信パラメータ: ' + JSON.stringify(params) + '');
+//     Logger.log('🔍 extractFromWebsite実行 - 受信パラメータ: ' + JSON.stringify(params));
 //     
 //     if (!websiteUrl || websiteUrl.trim() === '') {
 //       Logger.log('❌ WebサイトURL未入力');
 //       return createErrorResponse('WebサイトURLを入力してください');
 //     }
 //     
-//     Logger.log('🌐 WebサイトからAI抽出開始: ' + websiteUrl + '');
+//     Logger.log('🌐 WebサイトからAI抽出開始: ' + websiteUrl);
 //     
 //     // Webサイトのコンテンツをスクレイピング
 //     Logger.log('🔄 scrapeWebContent開始...');
@@ -154,20 +157,20 @@ function startAIHearing(params) {
 //       '上記の内容から企業の基本情報を可能な限り抽出して、JSON形式で出力してください。';
 
 //     Logger.log('🤖 OpenRouter API呼び出し開始...');
-//     Logger.log('🔑 OPENROUTER_API_KEY存在確認: ' + !!OPENROUTER_API_KEY + '');
+//     Logger.log('🔑 OPENROUTER_API_KEY存在確認: ' + !!OPENROUTER_API_KEY);
 //     
 //     var deepSeekResponse = callOpenRouterAPI(systemPrompt, userPrompt);
-//     Logger.log('🤖 OpenRouter API応答: ' + JSON.stringify(deepSeekResponse) + '');
+//     Logger.log('🤖 OpenRouter API応答: ' + JSON.stringify(deepSeekResponse));
 //     
 //     if (!deepSeekResponse.success) {
-//       Logger.log('❌ OpenRouter Webサイト抽出失敗: ' + deepSeekResponse.error + '');
+//       Logger.log('❌ OpenRouter Webサイト抽出失敗: ' + deepSeekResponse.error);
 //       return createErrorResponse('AI解析に失敗しました: ' + deepSeekResponse.error);
 //     }
 //     
 //     // JSON解析
 //     var companyInfo;
 //     try {
-//       Logger.log('📥 DeepSeek Webサイト抽出結果: ' + deepSeekResponse.content + '');
+//       Logger.log('📥 DeepSeek Webサイト抽出結果: ' + deepSeekResponse.content);
 //       
 //       var cleanContent = deepSeekResponse.content.trim();
 //       var jsonStart = cleanContent.indexOf('{');
@@ -183,10 +186,10 @@ function startAIHearing(params) {
 //       // websiteUrlを確実に設定
 //       companyInfo.websiteUrl = websiteUrl;
 //       
-//       Logger.log('✅ Webサイト抽出成功: ' + JSON.stringify(companyInfo, null, 2) + '');
+//       Logger.log('✅ Webサイト抽出成功: ' + JSON.stringify(companyInfo, null, 2));
 //       
 //     } catch (parseError) {
-//       Logger.log('❌ Webサイト抽出JSON解析失敗: ' + parseError.message + '');
+//       Logger.log('❌ Webサイト抽出JSON解析失敗: ' + parseError.message);
 //       return createErrorResponse('AI解析結果の解析に失敗しました');
 //     }
 //     
@@ -197,16 +200,18 @@ function startAIHearing(params) {
 //     });
 //     
 //   } catch (error) {
-//     Logger.log('❌ Webサイト抽出エラー: ' + error.message + '');
+//     Logger.log('❌ Webサイト抽出エラー: ' + error.message);
 //     return createErrorResponse(error.message);
 //   }
 // }
+*/ // extractFromWebsite関数終了
 
 /**
 //  * DeepSeekで企業情報抽出
 //  * @param {string} companyName 会社名
 //  * @returns {Object} 抽出結果
 //  */
+/* extractCompanyInfoWithDeepSeek関数もnotify.jsのstartAIHearingで処理されるため不要
 function extractCompanyInfoWithDeepSeek(companyName) {
   try {
     Logger.log('🤖 DeepSeek API抽出開始: ' + companyName);
@@ -233,10 +238,37 @@ function extractCompanyInfoWithDeepSeek(companyName) {
       };
     }
     
-    var systemPrompt = "あなたは企業情報抽出AIです。Web検索結果からリフォーム・外壁塗装・建設業の企業情報をJSON配列で返してください。";
+    var systemPrompt = `あなたは企業情報抽出AIです。Web検索結果からリフォーム・外壁塗装・建設業の企業情報を正確に抽出してください。
+特に以下の点に注意してください：
+1. 代表者名は必ずフルネーム（姓名）で抽出すること。「大野 哲」のように姓と名を両方含めてください。
+2. 「代表取締役 大野哲」「代表取締役社長 大野 哲」のような形式から「大野 哲」を正確に抽出
+3. WebサイトのURLは実際のURLを抽出すること。推測や生成はしないこと。
+4. 会社概要ページに記載されている正確な情報を使用すること
+
+JSON配列形式で返してください。`;
     
-    var userPrompt = '会社名: ' + companyName + '\n\n以下のWeb検索結果から企業情報を抽出してください：\n\n' + 
-                    searchResults.substring(0, 5000) + '\n\nJSON配列で返してください。';
+    var userPrompt = `会社名: ${companyName}
+
+以下のWeb検索結果から企業情報を抽出してください。代表者名は必ずフルネーム（姓と名）で抽出してください：
+
+${searchResults.substring(0, 5000)}
+
+以下の形式のJSON配列で返してください：
+[{
+  "会社名": "株式会社○○",
+  "代表者": "姓 名（フルネーム）",
+  "代表者カナ": "セイ メイ",
+  "住所": "〒xxx-xxxx 住所",
+  "電話番号": "xxxx-xx-xxxx",
+  "URL": "https://実際のURL",
+  "設立日": "xxxx年xx月",
+  "事業内容": "外壁塗装、リフォーム等"
+}]
+
+重要：
+- 代表者は「大野 哲」のようにフルネームで
+- URLは実際のWebサイトのURLを使用（https://ohnokensou.jp/ など）
+- 推測や生成はせず、実際の情報のみを使用`;
     
     var deepSeekResponse = callOpenRouterAPI(systemPrompt, userPrompt);
     
@@ -278,6 +310,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
     };
   }
 }
+*/ // extractCompanyInfoWithDeepSeek関数終了
 
 /**
 //  * 第2段階詳細検索実行（支店情報、屋号、設立年月、特徴・PR文）
@@ -286,7 +319,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //  */
 // function searchCompanyDetailsFromAI(params) {
 //   try {
-//     console.log('🔍 第2段階詳細検索開始 - 受信パラメータ: ' + JSON.stringify(params) + '');
+//     console.log('🔍 第2段階詳細検索開始 - 受信パラメータ: ' + JSON.stringify(params));
 //     
 //     if (!params) {
 //       console.log('❌ パラメータが null または undefined');
@@ -297,7 +330,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     }
 //     
 //     var { companyName, address, websiteUrl } = params;
-//     console.log('🔍 抽出パラメータ - companyName: ' + companyName + ', address: ' + address + ', websiteUrl: ' + websiteUrl + '');
+//     console.log('🔍 抽出パラメータ - companyName: ' + companyName + ', address: ' + address + ', websiteUrl: ' + websiteUrl);
 //     
 //     var systemPrompt = "あなたは建設・リフォーム業界専門の企業情報抽出エキスパートです。全項目を必ず埋めてください。情報が不足している場合でも、会社名・住所・業界から推測して妥当な内容を生成してください。
 // 🚨【絶対ルール】空文字・空配列は禁止！全項目に何かしら入れる！
@@ -363,18 +396,18 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     } else {
 //       // HP URLがない場合はシンプルな一般検索
 //       detailQueries = [
-//         '"' + companyName + '" ' + address ? address.split('市')[0] + '市' : '' + '',
+//         '"' + companyName + '" ' + address ? address.split('市')[0] + '市' : '',
 //         '"' + companyName + '" 建設 リフォーム',
 //         '"' + companyName + '" 会社概要'
 //       ];
 //     }
 //     
-//     Logger.log('🌐 詳細WEB検索開始: ' + companyName + '');
+//     Logger.log('🌐 詳細WEB検索開始: ' + companyName);
 //     var searchResults = '';
 //     
 //     // 🎯 ステップ1: 公式ウェブサイトを最優先で詳細スクレイピング
 //     if (websiteUrl && websiteUrl.trim() !== '') {
-//       Logger.log('🚀 公式ウェブサイト最優先スクレイピング開始: ' + websiteUrl + '');
+//       Logger.log('🚀 公式ウェブサイト最優先スクレイピング開始: ' + websiteUrl);
 //       try {
 //         var websiteContent = scrapeWebContent(websiteUrl);
 //         Logger.log('🌐 ウェブサイト情報取得結果: ' + (websiteContent ? '成功 (' + websiteContent.length + '文字)' : '失敗'));
@@ -383,7 +416,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //           Logger.log('✅ 公式サイトから十分な情報取得: ' + searchResults.length + '文字');
 //         }
 //       } catch (websiteError) {
-//         Logger.log('❌ ウェブサイト情報取得エラー: ' + websiteError.message + '');
+//         Logger.log('❌ ウェブサイト情報取得エラー: ' + websiteError.message);
 //       }
 //     }
 //     
@@ -391,7 +424,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     Logger.log('🔍 Google検索で補完情報を取得開始 (現在: ' + searchResults.length + '文字)');
 //     var GOOGLE_SEARCH_API_KEY = PropertiesService.getScriptProperties().getProperty('GOOGLE_SEARCH_API_KEY');
 //     var GOOGLE_SEARCH_ENGINE_ID = PropertiesService.getScriptProperties().getProperty('GOOGLE_SEARCH_ENGINE_ID');
-//     Logger.log('🔍 GoogleSearch設定確認 - API_KEY: ' + !!GOOGLE_SEARCH_API_KEY + ', ENGINE_ID: ' + !!GOOGLE_SEARCH_ENGINE_ID + '');
+//     Logger.log('🔍 GoogleSearch設定確認 - API_KEY: ' + !!GOOGLE_SEARCH_API_KEY + ', ENGINE_ID: ' + !!GOOGLE_SEARCH_ENGINE_ID);
 //     
 //     var googleResults = performQuickSearch(companyName, detailQueries);
 //     if (googleResults && googleResults.length > 0) {
@@ -401,7 +434,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     
 //     // 🎯 最低限の情報は必ず確保（基本情報で埋める）
 //     if (!searchResults || searchResults.length < 200) {
-//       Logger.log('📝 基本情報で最低限情報を確保: ' + companyName + '');
+//       Logger.log('📝 基本情報で最低限情報を確保: ' + companyName);
 //       var basicInfo = '企業名: ' + companyName + '
 // 住所: ' + address || '未提供' + '
 // ウェブサイト: ' + websiteUrl || '未提供' + '
@@ -439,20 +472,20 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 
 //     var deepSeekResponse = callOpenRouterAPI(systemPrompt, userPrompt);
 //     
-//     Logger.log('🔍 第2段階 OpenRouter API呼び出し結果: ' + JSON.stringify(deepSeekResponse) + '');
+//     Logger.log('🔍 第2段階 OpenRouter API呼び出し結果: ' + JSON.stringify(deepSeekResponse));
 //     
 //     if (!deepSeekResponse.success) {
-//       Logger.log('❌ 第2段階 OpenRouter API失敗: ' + deepSeekResponse.error + '');
+//       Logger.log('❌ 第2段階 OpenRouter API失敗: ' + deepSeekResponse.error);
 //       return {
 //         success: false,
-//         error: '詳細情報抽出API呼び出し失敗: ' + deepSeekResponse.error + ''
+//         error: '詳細情報抽出API呼び出し失敗: ' + deepSeekResponse.error
 //       };
 //     }
 //     
 //     // DeepSeek応答をJSON解析
 //     var detailInfo;
 //     try {
-//       Logger.log('📥 第2段階 OpenRouter生応答: ' + deepSeekResponse.content + '');
+//       Logger.log('📥 第2段階 OpenRouter生応答: ' + deepSeekResponse.content);
 //       
 //       if (!deepSeekResponse.content || deepSeekResponse.content.trim() === '') {
 //         throw new Error('DeepSeek応答が空です');
@@ -468,14 +501,14 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //       }
 //       
 //       cleanContent = cleanContent.substring(jsonStart, jsonEnd);
-//       Logger.log('🔧 第2段階 抽出されたJSON部分: ' + cleanContent + '');
+//       Logger.log('🔧 第2段階 抽出されたJSON部分: ' + cleanContent);
 //       
 //       detailInfo = JSON.parse(cleanContent);
 //       Logger.log('✅ 第2段階詳細情報抽出成功:', detailInfo);
 //       
 //     } catch (parseError) {
-//       Logger.log('❌ 第2段階JSON解析失敗: ' + parseError.message + '');
-//       Logger.log('❌ 元のDeepSeek応答: ' + deepSeekResponse.content + '');
+//       Logger.log('❌ 第2段階JSON解析失敗: ' + parseError.message);
+//       Logger.log('❌ 元のDeepSeek応答: ' + deepSeekResponse.content);
 //       
 //       // 🔄 失敗時1回だけ自動再試行
 //       Logger.log('🔄 自動再試行を実行中...');
@@ -489,7 +522,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //           if (jsonStart !== -1 && jsonEnd !== -1 && jsonStart < jsonEnd) {
 //             retryContent = retryContent.substring(jsonStart, jsonEnd);
 //             detailInfo = JSON.parse(retryContent);
-//             Logger.log('✅ 再試行成功: ' + JSON.stringify(detailInfo) + '');
+//             Logger.log('✅ 再試行成功: ' + JSON.stringify(detailInfo));
 //             
 //             return {
 //               success: true,
@@ -500,7 +533,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //           }
 //         }
 //       } catch (retryError) {
-//         Logger.log('❌ 再試行も失敗: ' + retryError.message + '');
+//         Logger.log('❌ 再試行も失敗: ' + retryError.message);
 //       }
 //       
 //       return {
@@ -517,7 +550,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     };
 //     
 //   } catch (error) {
-//     Logger.log('❌ 第2段階詳細検索エラー: ' + error.message + '');
+//     Logger.log('❌ 第2段階詳細検索エラー: ' + error.message);
 //     return {
 //       success: false,
 //       error: error.message
@@ -610,7 +643,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     }
 //     
 //   } catch (error) {
-//     Logger.log('❌ AI候補確認エラー: ' + error.message + '');
+//     Logger.log('❌ AI候補確認エラー: ' + error.message);
 //     return createErrorResponse(error.message);
 //   }
 // }
@@ -666,7 +699,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     });
 //     
 //   } catch (error) {
-//     Logger.log('❌ 候補選択エラー: ' + error.message + '');
+//     Logger.log('❌ 候補選択エラー: ' + error.message);
 //     return createErrorResponse(error.message);
 //   }
 // }
@@ -706,7 +739,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     });
 //     
 //   } catch (error) {
-//     Logger.log('❌ 修正データ更新エラー: ' + error.message + '');
+//     Logger.log('❌ 修正データ更新エラー: ' + error.message);
 //     return createErrorResponse(error.message);
 //   }
 // }
@@ -747,7 +780,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     });
 //     
 //   } catch (error) {
-//     Logger.log('❌ 人間ヒアリングエラー: ' + error.message + '');
+//     Logger.log('❌ 人間ヒアリングエラー: ' + error.message);
 //     return createErrorResponse(error.message);
 //   }
 // }
@@ -766,7 +799,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //       return createErrorResponse('セッションが見つかりません');
 //     }
 //     
-//     Logger.log('🤖 AI PR文生成開始: ' + companyInfo.companyName + '');
+//     Logger.log('🤖 AI PR文生成開始: ' + companyInfo.companyName);
 //     
 //     var systemPrompt = "入力された企業情報から、魅力的なPR文を3つ生成してください。
 // 【PR文の要件】
@@ -801,7 +834,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //       var parsedResponse = JSON.parse(gptResponse.content);
 //       suggestions = parsedResponse.suggestions || [];
 //     } catch (parseError) {
-//       Logger.log('❌ PR文応答JSON解析失敗: ' + parseError.message + '');
+//       Logger.log('❌ PR文応答JSON解析失敗: ' + parseError.message);
 //       return createErrorResponse('AI PR文生成の応答解析に失敗しました: ' + parseError.message);
 //     }
 //     
@@ -814,7 +847,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     });
 //     
 //   } catch (error) {
-//     Logger.log('❌ AI PR文生成エラー: ' + error.message + '');
+//     Logger.log('❌ AI PR文生成エラー: ' + error.message);
 //     return createErrorResponse(error.message);
 //   }
 // }
@@ -859,7 +892,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     
 //     saveSessionData(sessionId, sessionData);
 //     
-//     Logger.log('🎉 ヒアリング完了: ' + finalData.legalName + '');
+//     Logger.log('🎉 ヒアリング完了: ' + finalData.legalName);
 //     
 //     return createSuccessResponse({
 //       sessionId: sessionId,
@@ -870,7 +903,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     });
 //     
 //   } catch (error) {
-//     Logger.log('❌ 最終登録エラー: ' + error.message + '');
+//     Logger.log('❌ 最終登録エラー: ' + error.message);
 //     return createErrorResponse(error.message);
 //   }
 // }
@@ -884,91 +917,89 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //  * @param {string} companyName 会社名
 //  * @returns {string} スクレイピング結果
 //  */
-// function performWebSearchAndScraping(companyName) {
-//   try {
-//     Logger.log('🔍 Web検索開始: ' + companyName + '');
-//     
-//     // 詳細なAPI設定確認
-//     var GOOGLE_SEARCH_API_KEY = PropertiesService.getScriptProperties().getProperty('GOOGLE_SEARCH_API_KEY');
-//     var GOOGLE_SEARCH_ENGINE_ID = PropertiesService.getScriptProperties().getProperty('GOOGLE_SEARCH_ENGINE_ID');
-//     Logger.log('🔍 GOOGLE_SEARCH_API_KEY確認: ' + GOOGLE_SEARCH_API_KEY ? 'EXISTS (' + GOOGLE_SEARCH_API_KEY.substring(0, 20) + '...)' : 'NULL/UNDEFINED' + '');
-//     Logger.log('🔍 GOOGLE_SEARCH_ENGINE_ID確認: ' + GOOGLE_SEARCH_ENGINE_ID ? 'EXISTS (' + GOOGLE_SEARCH_ENGINE_ID + ')' : 'NULL/UNDEFINED' + '');
-//     
-//     if (!GOOGLE_SEARCH_API_KEY || !GOOGLE_SEARCH_ENGINE_ID) {
-//       Logger.log('❌ 致命的エラー: Google Search API設定不備');
-//       Logger.log('🔑 API Key: ' + GOOGLE_SEARCH_API_KEY ? 'SET' : 'NOT SET' + '');
-//       Logger.log('🔑 Engine ID: ' + GOOGLE_SEARCH_ENGINE_ID ? 'SET' : 'NOT SET' + '');
-//       Logger.log('🚨 WEB検索が無効化されました - 必須API設定が不完全');
-//       
-//       // 🚨 Google Search API無しでも最低限のDeepSeek処理を試行
-//       Logger.log('🤖 Google Search無しでDeepSeekに企業名のみで問い合わせ');
-//       return 'Google Search API設定不備により、WEB検索は行われませんでした。
-// DeepSeekの既知データベースのみで企業情報を検索中: ' + companyName + '
-
-// 【制限事項】
-// - リアルタイム情報取得不可
-// - 最新企業情報の反映不可
-// - 正確性に制限あり
-
-// 会社名: ' + companyName + '
-// 検索対象: 全業界対応';
-//     }
-//     
-//     Logger.log('✅ Google Search API設定確認完了 - 実際に検索を開始します');
-//     Logger.log('🔍 使用するAPI Key: ' + GOOGLE_SEARCH_API_KEY.substring(0, 20) + '...');
-//     Logger.log('🔍 使用するEngine ID: ' + GOOGLE_SEARCH_ENGINE_ID + '');
-//     
-//     // 📊 第1段階: リフォーム系企業特化クエリ（基本情報）
-//     var quickQueries = [
-//       '"' + companyName + '" リフォーム 外壁塗装 会社概要 代表者',
-//       '"' + companyName + '" 建設 工務店 住所 連絡先',
-//       '"' + companyName + '" 塗装工事 site:*.co.jp',
-//       '"' + companyName + '" リフォーム 建設業 会社情報'
-//     ];
-//     
-//     // 🚀 第1段階: 高速検索実行
-//     Logger.log('🚀 第1段階検索開始: ' + quickQueries.length + 'クエリ');
-//     var quickResults = performQuickSearch(companyName, quickQueries);
-//     
-//     // 🔍 第2段階用クエリも定義（バックグラウンド用・拡張版）
-//     var detailQueries = [
-//       '"' + companyName + '" 屋号 営業名 ブランド名',
-//       '"' + companyName + '" 支店 営業所 事業所 拠点',
-//       '"' + companyName + '" 資本金 従業員数 設立年月',
-//       '"' + companyName + '" 創業 沿革 歴史',
-//       '"' + companyName + '" 特徴 強み サービス 実績',
-//       '"' + companyName + '" 外壁塗装 屋根塗装 リフォーム',
-//       '"' + companyName + '" 施工事例 お客様の声 評判',
-//       '"' + companyName + '" 営業担当 スタッフ 社員紹介'
-//     ];
-//     
-//     // 第1段階の結果を使用
-//     var allResults = quickResults;
-//     
-//     if (allResults.length === 0) {
-//       Logger.log('❌ 第1段階検索結果ゼロ: ' + companyName + '');
-//       Logger.log('🔍 高速クエリ実行済み: ' + quickQueries.length + '件');
-//       return '検索結果が見つかりませんでした。会社名: ' + companyName + '';
-//     }
-//     
-//     // 🎯 第2段階検索は即座に実行（Propertiesに保存しない）
-//     Logger.log('🔍 第2段階詳細検索を即座に実行: ' + detailQueries.length + '件のクエリ');
-//     
-//     // 詳細検索を即座に実行してallResultsに追加
-//     var detailResults = performQuickSearch(companyName, detailQueries);
-//     if (detailResults && detailResults.length > 0) {
-//       allResults += '\n\n=== 【第2段階詳細検索結果】 ===\n' + detailResults + '';
-//       Logger.log('✅ 第2段階検索完了: +' + detailResults.length + '文字追加');
-//     }
-//     
-//     Logger.log('✅ Web検索完了: ' + allResults.length + '文字のデータ取得');
-//     return allResults;
-//     
-//   } catch (error) {
-//     Logger.log('❌ Web検索エラー: ' + error.message + '');
-//     return '検索エラーが発生しました: ' + error.message + '';
-//   }
-// }
+function performWebSearchAndScraping(companyName) {
+  try {
+    Logger.log('🔍 Web検索開始: ' + companyName);
+    
+    // 詳細なAPI設定確認
+    var GOOGLE_SEARCH_API_KEY = PropertiesService.getScriptProperties().getProperty('GOOGLE_SEARCH_API_KEY');
+    var GOOGLE_SEARCH_ENGINE_ID = PropertiesService.getScriptProperties().getProperty('GOOGLE_SEARCH_ENGINE_ID');
+    Logger.log('🔍 GOOGLE_SEARCH_API_KEY確認: ' + GOOGLE_SEARCH_API_KEY ? 'EXISTS (' + GOOGLE_SEARCH_API_KEY.substring(0, 20) + '...)' : 'NULL/UNDEFINED');
+    Logger.log('🔍 GOOGLE_SEARCH_ENGINE_ID確認: ' + GOOGLE_SEARCH_ENGINE_ID ? 'EXISTS (' + GOOGLE_SEARCH_ENGINE_ID + ')' : 'NULL/UNDEFINED');
+    
+    if (!GOOGLE_SEARCH_API_KEY || !GOOGLE_SEARCH_ENGINE_ID) {
+      Logger.log('❌ 致命的エラー: Google Search API設定不備');
+      Logger.log('🔑 API Key: ' + GOOGLE_SEARCH_API_KEY ? 'SET' : 'NOT SET');
+      Logger.log('🔑 Engine ID: ' + GOOGLE_SEARCH_ENGINE_ID ? 'SET' : 'NOT SET');
+      Logger.log('🚨 WEB検索が無効化されました - 必須API設定が不完全');
+      
+      // 🚨 Google Search API無しでも最低限のDeepSeek処理を試行
+      Logger.log('🤖 Google Search無しでDeepSeekに企業名のみで問い合わせ');
+      return 'Google Search API設定不備により、WEB検索は行われませんでした。\n' +
+        'DeepSeekの既知データベースのみで企業情報を検索中: ' + companyName + '\n\n' +
+        '【制限事項】\n' +
+        '- リアルタイム情報取得不可\n' +
+        '- 最新企業情報の反映不可\n' +
+        '- 正確性に制限あり\n\n' +
+        '会社名: ' + companyName + '\n' +
+        '検索対象: 全業界対応';
+    }
+    
+    Logger.log('✅ Google Search API設定確認完了 - 実際に検索を開始します');
+    Logger.log('🔍 使用するAPI Key: ' + GOOGLE_SEARCH_API_KEY.substring(0, 20) + '...');
+    Logger.log('🔍 使用するEngine ID: ' + GOOGLE_SEARCH_ENGINE_ID);
+    
+    // 📊 第1段階: リフォーム系企業特化クエリ（基本情報）
+    var quickQueries = [
+      '"' + companyName + '" リフォーム 外壁塗装 会社概要 代表者',
+      '"' + companyName + '" 建設 工務店 住所 連絡先',
+      '"' + companyName + '" 塗装工事 site:*.co.jp',
+      '"' + companyName + '" リフォーム 建設業 会社情報'
+    ];
+    
+    // 🚀 第1段階: 高速検索実行
+    Logger.log('🚀 第1段階検索開始: ' + quickQueries.length + 'クエリ');
+    var quickResults = performQuickSearch(companyName, quickQueries);
+    
+    // 🔍 第2段階用クエリも定義（バックグラウンド用・拡張版）
+    var detailQueries = [
+      '"' + companyName + '" 屋号 営業名 ブランド名',
+      '"' + companyName + '" 支店 営業所 事業所 拠点',
+      '"' + companyName + '" 資本金 従業員数 設立年月',
+      '"' + companyName + '" 創業 沿革 歴史',
+      '"' + companyName + '" 特徴 強み サービス 実績',
+      '"' + companyName + '" 外壁塗装 屋根塗装 リフォーム',
+      '"' + companyName + '" 施工事例 お客様の声 評判',
+      '"' + companyName + '" 営業担当 スタッフ 社員紹介'
+    ];
+    
+    // 第1段階の結果を使用
+    var allResults = quickResults;
+    
+    if (allResults.length === 0) {
+      Logger.log('❌ 第1段階検索結果ゼロ: ' + companyName);
+      Logger.log('🔍 高速クエリ実行済み: ' + quickQueries.length + '件');
+      return '検索結果が見つかりませんでした。会社名: ' + companyName;
+    }
+    
+    // 🎯 第2段階検索は即座に実行（Propertiesに保存しない）
+    Logger.log('🔍 第2段階詳細検索を即座に実行: ' + detailQueries.length + '件のクエリ');
+    
+    // 詳細検索を即座に実行してallResultsに追加
+    var detailResults = performQuickSearch(companyName, detailQueries);
+    if (detailResults && detailResults.length > 0) {
+      allResults += '\n\n=== 【第2段階詳細検索結果】 ===\n' + detailResults;
+      Logger.log('✅ 第2段階検索完了: +' + detailResults.length + '文字追加');
+    }
+    
+    Logger.log('✅ Web検索完了: ' + allResults.length + '文字のデータ取得');
+    return allResults;
+    
+  } catch (error) {
+    Logger.log('❌ Web検索エラー: ' + error.message);
+    return '検索エラーが発生しました: ' + error.message;
+  }
+}
 
 /**
 //  * 高速検索実行（第1段階用）
@@ -976,55 +1007,55 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //  * @param {Array} queries 検索クエリ配列
 //  * @returns {string} 検索結果
 //  */
-// function performQuickSearch(companyName, queries) {
-//   var allResults = '';
-//   
-//   for (var query of queries) {
-//     Logger.log('🔍 高速検索クエリ: ' + query + '');
-//     
-//     var searchResult = googleSearch(query);
-//     Logger.log('🔍 クエリ "' + query + '" 結果: ' + searchResult ? searchResult.length : 0 + '件');
-//     
-//     if (searchResult && searchResult.length > 0) {
-//       allResults += '\n\n=== 検索クエリ: ' + query + ' ===\n';
-//       
-//       for (var item of searchResult.slice(0, 1)) { // 上位1件のみ（処理時間短縮）
-//         allResults += '\nタイトル: ' + item.title + '\n';
-//         allResults += 'URL: ' + item.link + '\n';
-//         allResults += '概要: ' + item.snippet + '\n';
-//         
-//         // エラーケースでもスニペット情報を含める
-//         if (item.title && item.snippet) {
-//           allResults += '検索情報: ' + item.title + ' - ' + item.snippet + '\n';
-//         }
-//         
-//         // 有効なURLの場合のみWebページ取得
-//         if (item.link && item.link.startsWith('http')) {
-//           var pageContent = scrapeWebContent(item.link);
-//           if (pageContent) {
-//             allResults += '内容抜粋: ' + pageContent + '\n';
-//           }
-//         }
-//         allResults += '---\n';
-//       }
-//     } else {
-//       // 検索結果がない場合もクエリ情報を記録
-//       allResults += '\n\n=== 検索クエリ: ' + query + ' ===\n検索結果: 該当なし\n---\n';
-//     }
-//     
-//     // API制限回避のため少し待機（高速化）
-//     Utilities.sleep(100);
-//   }
-//   
-//   Logger.log('✅ 高速検索完了: ' + allResults.length + '文字');
-//   Logger.log('🔍 高速検索結果プレビュー: ' + allResults.substring(0, 200) + '...');
-//   
-//   if (allResults.length < 50) {
-//     Logger.log('⚠️ 警告: 検索結果が50文字未満です。API設定またはクエリを確認してください。');
-//   }
-//   
-//   return allResults;
-// }
+function performQuickSearch(companyName, queries) {
+  var allResults = '';
+  
+  for (var query of queries) {
+    Logger.log('🔍 高速検索クエリ: ' + query);
+    
+    var searchResult = googleSearch(query);
+    Logger.log('🔍 クエリ "' + query + '" 結果: ' + searchResult ? searchResult.length : 0 + '件');
+    
+    if (searchResult && searchResult.length > 0) {
+      allResults += '\n\n=== 検索クエリ: ' + query + ' ===\n';
+      
+      for (var item of searchResult.slice(0, 1)) { // 上位1件のみ（処理時間短縮）
+        allResults += '\nタイトル: ' + item.title + '\n';
+        allResults += 'URL: ' + item.link + '\n';
+        allResults += '概要: ' + item.snippet + '\n';
+        
+        // エラーケースでもスニペット情報を含める
+        if (item.title && item.snippet) {
+          allResults += '検索情報: ' + item.title + ' - ' + item.snippet + '\n';
+        }
+        
+        // 有効なURLの場合のみWebページ取得
+        if (item.link && item.link.startsWith('http')) {
+          var pageContent = scrapeWebContent(item.link);
+          if (pageContent) {
+            allResults += '内容抜粋: ' + pageContent + '\n';
+          }
+        }
+        allResults += '---\n';
+      }
+    } else {
+      // 検索結果がない場合もクエリ情報を記録
+      allResults += '\n\n=== 検索クエリ: ' + query + ' ===\n検索結果: 該当なし\n---\n';
+    }
+    
+    // API制限回避のため少し待機（高速化）
+    Utilities.sleep(100);
+  }
+  
+  Logger.log('✅ 高速検索完了: ' + allResults.length + '文字');
+  Logger.log('🔍 高速検索結果プレビュー: ' + allResults.substring(0, 200) + '...');
+  
+  if (allResults.length < 50) {
+    Logger.log('⚠️ 警告: 検索結果が50文字未満です。API設定またはクエリを確認してください。');
+  }
+  
+  return allResults;
+}
 
 /**
 //  * 詳細検索実行（第2段階・即座実行版）
@@ -1034,10 +1065,10 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //  */
 // function performDetailSearch(companyName, detailQueries) {
 //   try {
-//     Logger.log('🔍 第2段階詳細検索開始: ' + companyName + '');
+//     Logger.log('🔍 第2段階詳細検索開始: ' + companyName);
 //     
 //     if (!detailQueries || detailQueries.length === 0) {
-//       Logger.log('❌ 詳細クエリが提供されていません: ' + companyName + '');
+//       Logger.log('❌ 詳細クエリが提供されていません: ' + companyName);
 //       return '';
 //     }
 //     
@@ -1048,7 +1079,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     return detailResults;
 //     
 //   } catch (error) {
-//     Logger.log('❌ 第2段階検索エラー: ' + error.message + '');
+//     Logger.log('❌ 第2段階検索エラー: ' + error.message);
 //     return '';
 //   }
 // }
@@ -1058,57 +1089,229 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //  * @param {string} query 検索クエリ
 //  * @returns {Array} 検索結果
 //  */
-// function googleSearch(query) {
-//   try {
-//     Logger.log('🌐 Google Search API実行開始: "' + query + '"');
-//     var GOOGLE_SEARCH_API_KEY = PropertiesService.getScriptProperties().getProperty('GOOGLE_SEARCH_API_KEY');
-//     var GOOGLE_SEARCH_ENGINE_ID = PropertiesService.getScriptProperties().getProperty('GOOGLE_SEARCH_ENGINE_ID');
-//     var url = 'https://www.googleapis.com/customsearch/v1?key=' + GOOGLE_SEARCH_API_KEY + '&cx=' + GOOGLE_SEARCH_ENGINE_ID + '&q=' + encodeURIComponent(query) + '&num=5&hl=ja&gl=jp';
-//     Logger.log('🌐 実際のAPI URL: ' + url.replace(GOOGLE_SEARCH_API_KEY, 'HIDDEN_KEY') + '');
-//     
-//     var response = UrlFetchApp.fetch(url, {
-//       method: 'GET',
-//       muteHttpExceptions: true
-//     });
-//     
-//     var responseCode = response.getResponseCode();
-//     Logger.log('🌐 Google Search API レスポンスコード: ' + responseCode + '');
-//     
-//     if (responseCode !== 200) {
-//       var errorContent = response.getContentText();
-//       Logger.log('❌ Google Search API エラー詳細: ' + errorContent + '');
-//       return null;
-//     }
-//     
-//     var contentText = response.getContentText();
-//     Logger.log('🌐 Google Search API レスポンス長: ' + contentText.length + '文字');
-//     
-//     var data = JSON.parse(contentText);
-//     var items = data.items || [];
-//     Logger.log('🌐 検索結果件数: ' + items.length + '件');
-//     
-//     if (items.length > 0) {
-//       Logger.log('🌐 最初の結果タイトル: ' + items[0].title + '');
-//       Logger.log('🌐 最初の結果URL: ' + items[0].link + '');
-//     }
-//     
-//     return items;
-//     
-//   } catch (error) {
-//     Logger.log('❌ Google Search 致命的エラー: ' + error.message + '');
-//     Logger.log('❌ エラースタック: ' + error.stack + '');
-//     return null;
-//   }
-// }
+function googleSearch(query) {
+  try {
+    Logger.log('🌐 Google Search API実行開始: "' + query + '"');
+    var GOOGLE_SEARCH_API_KEY = PropertiesService.getScriptProperties().getProperty('GOOGLE_SEARCH_API_KEY');
+    var GOOGLE_SEARCH_ENGINE_ID = PropertiesService.getScriptProperties().getProperty('GOOGLE_SEARCH_ENGINE_ID');
+    var url = 'https://www.googleapis.com/customsearch/v1?key=' + GOOGLE_SEARCH_API_KEY + '&cx=' + GOOGLE_SEARCH_ENGINE_ID + '&q=' + encodeURIComponent(query) + '&num=5&hl=ja&gl=jp';
+    Logger.log('🌐 実際のAPI URL: ' + url.replace(GOOGLE_SEARCH_API_KEY, 'HIDDEN_KEY'));
+    
+    var response = UrlFetchApp.fetch(url, {
+      method: 'GET',
+      muteHttpExceptions: true
+    });
+    
+    var responseCode = response.getResponseCode();
+    Logger.log('🌐 Google Search API レスポンスコード: ' + responseCode);
+    
+    if (responseCode !== 200) {
+      var errorContent = response.getContentText();
+      Logger.log('❌ Google Search API エラー詳細: ' + errorContent);
+      return null;
+    }
+    
+    var contentText = response.getContentText();
+    Logger.log('🌐 Google Search API レスポンス長: ' + contentText.length + '文字');
+    
+    var data = JSON.parse(contentText);
+    var items = data.items || [];
+    Logger.log('🌐 検索結果件数: ' + items.length + '件');
+    
+    if (items.length > 0) {
+      Logger.log('🌐 最初の結果タイトル: ' + items[0].title);
+      Logger.log('🌐 最初の結果URL: ' + items[0].link);
+    }
+    
+    return items;
+    
+  } catch (error) {
+    Logger.log('❌ Google Search 致命的エラー: ' + error.message);
+    Logger.log('❌ エラースタック: ' + error.stack);
+    return null;
+  }
+}
 
 /**
-//  * Webページの内容をスクレイピング（強化版）
-//  * @param {string} url URL
-//  * @returns {string} ページ内容
-//  */
+ * Webページの内容をスクレイピング（強化版）
+ * @param {string} url URL
+ * @returns {string} ページ内容
+ */
+
+// ===========================================
+// 🛠 ユーティリティ関数
+// ===========================================
+
+/**
+ * セッションID生成
+ * @returns {string} セッションID
+ */
+function generateSessionId() {
+  return 'session_' + Utilities.getUuid();
+}
+
+/**
+ * セッションデータ保存
+ * @param {string} sessionId セッションID
+ * @param {Object} sessionData セッションデータ
+ */
+function saveSessionData(sessionId, sessionData) {
+  try {
+    CacheService.getScriptCache().put(sessionId, JSON.stringify(sessionData), 3600); // 1時間
+  } catch (error) {
+    Logger.log('⚠️ セッション保存エラー: ' + error.message);
+  }
+}
+
+/**
+ * セッションデータ取得
+ * @param {string} sessionId セッションID
+ * @returns {Object} セッションデータ
+ */
+function getSessionData(sessionId) {
+  try {
+    var cached = CacheService.getScriptCache().get(sessionId);
+    return cached ? JSON.parse(cached) : null;
+  } catch (error) {
+    Logger.log('⚠️ セッション取得エラー: ' + error.message);
+    return null;
+  }
+}
+
+/**
+ * OpenRouter API呼び出し
+ * @param {string} systemPrompt システムプロンプト
+ * @param {string} userPrompt ユーザープロンプト
+ * @returns {Object} APIレスポンス
+ */
+/* notify.jsに移動済み - callOpenRouterAPI関数
+function callOpenRouterAPI(systemPrompt, userPrompt) {
+  try {
+    var OPENROUTER_API_KEY = PropertiesService.getScriptProperties().getProperty('OPENROUTER_API_KEY');
+    Logger.log('🔑 OpenRouter APIキー確認: ' + (OPENROUTER_API_KEY ? '設定済み (' + OPENROUTER_API_KEY.substring(0, 10) + '...)' : '❌ 未設定'));
+    
+    if (!OPENROUTER_API_KEY) {
+      Logger.log('❌ OpenRouter APIキーが設定されていません');
+      return {
+        success: false,
+        error: 'OpenRouter APIキーが設定されていません'
+      };
+    }
+    
+    var requestBody = {
+      model: "deepseek/deepseek-chat",
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt
+        },
+        {
+          role: "user", 
+          content: userPrompt
+        }
+      ],
+      max_tokens: 2048,
+      temperature: 0.3,
+      timeout: 60
+    };
+    
+    Logger.log('🚀 DeepSeek API via OpenRouter リクエスト送信中...');
+    Logger.log('📤 リクエストボディ: ' + JSON.stringify(requestBody));
+    
+    var response = UrlFetchApp.fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + OPENROUTER_API_KEY,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://franchise-hearing.com',
+        'X-Title': 'Franchise Hearing AI'
+      },
+      payload: JSON.stringify(requestBody),
+      muteHttpExceptions: true,
+      timeout: 60000
+    });
+    
+    var responseCode = response.getResponseCode();
+    Logger.log('📥 HTTP ステータス: ' + responseCode);
+    var responseText = response.getContentText();
+    Logger.log('📥 生レスポンス: ' + responseText);
+    
+    if (responseCode !== 200) {
+      Logger.log('❌ DeepSeek API HTTP エラー: ' + responseCode);
+      return {
+        success: false,
+        error: 'HTTP ' + responseCode + ': ' + responseText
+      };
+    }
+    
+    if (!responseText || responseText.trim() === '') {
+      Logger.log('❌ DeepSeek API 空レスポンス');
+      return {
+        success: false,
+        error: 'DeepSeek APIから空のレスポンスが返されました'
+      };
+    }
+    
+    var data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      Logger.log('❌ DeepSeek API レスポンス解析エラー: ' + parseError.message);
+      return {
+        success: false,
+        error: 'APIレスポンスの解析に失敗しました: ' + parseError.message
+      };
+    }
+    
+    if (data.error) {
+      Logger.log('❌ DeepSeek API エラー: ' + data.error.message || data.error);
+      return {
+        success: false,
+        error: data.error.message || data.error.toString()
+      };
+    }
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      Logger.log('❌ DeepSeek API 予期しないレスポンス構造: ' + JSON.stringify(data));
+      return {
+        success: false,
+        error: 'APIレスポンスの構造が予期したものと異なります'
+      };
+    }
+    
+    var content = data.choices[0].message.content;
+    if (!content || content.trim() === '') {
+      Logger.log('❌ DeepSeek API 空のコンテンツ');
+      return {
+        success: false,
+        error: 'DeepSeekから空のコンテンツが返されました'
+      };
+    }
+    
+    return {
+      success: true,
+      content: content
+    };
+    
+  } catch (error) {
+    Logger.log('❌ DeepSeek API エラー: ' + error.message);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+*/ // callOpenRouterAPI関数終了
+
+/**
+ * Webコンテンツスクレイピング
+ * @param {string} url URL
+ * @returns {string} 抽出テキスト
+ */
+// notify.jsに移動済み - scrapeWebContent関数
 // function scrapeWebContent(url) {
 //   try {
-//     Logger.log('🌐 Webスクレイピング開始: ' + url + '');
+//     Logger.log('🌐 Webスクレイピング開始: ' + url);
 //     
 //     // URLの正規化
 //     if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -1133,17 +1336,17 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     });
 //     
 //     var responseCode = response.getResponseCode();
-//     Logger.log('🌐 HTTP レスポンスコード: ' + responseCode + '');
+//     Logger.log('🌐 HTTP レスポンスコード: ' + responseCode);
 //     
 //     if (responseCode !== 200) {
-//       Logger.log('❌ HTTP エラー: ' + responseCode + ' for ' + url + '');
+//       Logger.log('❌ HTTP エラー: ' + responseCode + ' for ' + url);
 //       return null;
 //     }
 //     
 //     var content = response.getContentText();
 //     Logger.log('🌐 取得コンテンツ長: ' + content.length + '文字');
 //     
-//     // 🔍 HTMLから重要な情報を徹底抽出（企業ホームページ特化）
+//     // HTMLから重要な情報を徹底抽出
 //     var extractedText = '';
 //     
 //     // タイトル抽出
@@ -1155,78 +1358,35 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     // メタ情報抽出
 //     var metaMatches = content.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["'][^>]*>/gi);
 //     if (metaMatches) {
-//       metaMatches.forEach(meta => {
+//       metaMatches.forEach(function(meta) {
 //         var contentMatch = meta.match(/content=["']([^"']+)["']/i);
 //         if (contentMatch) {
-//           extractedText += '説明: ' + contentMatch[1] + '\n';
+//           extractedText += 'ページ説明: ' + contentMatch[1] + '\n';
 //         }
 //       });
 //     }
 //     
-//     // 📊 企業ホームページ特化キーワード
-//     var keywords = [
-//       // 基本情報
-//       '会社概要', '企業概要', '代表取締役', '代表者', '社長', '代表', '住所', '所在地', '本社', 
-//       '電話', 'TEL', 'Phone', 'FAX', '創業', '設立', '資本金', '従業員', '社員', 'スタッフ',
-//       '〒', '株式会社', '有限会社', '合同会社', 'LLC', '法人番号',
-//       // 連絡先・アクセス
-//       'Email', 'mail', 'メール', '問い合わせ', 'お問合せ', '連絡先', 'Contact', 'アクセス',
-//       'info@', 'contact@', 'sales@', 'support@',
-//       // 事業内容・サービス
-//       '事業内容', 'サービス', 'Service', '業務内容', '取扱', '対応地域', '営業エリア',
-//       '外壁塗装', '屋根塗装', 'リフォーム', '建設', '工務店', '防水工事', '施工', '建築',
-//       '塗装', '修繕', 'リノベーション', '増改築', '新築',
-//       // 実績・特徴
-//       '実績', '施工例', '施工実績', '特徴', '強み', 'PR', 'アピール', '選ばれる理由',
-//       '許可', '免許', '登録', '資格', '認定', '保険', '保証',
-//       // 組織・拠点
-//       '支店', '営業所', '事業所', '本店', '拠点', '店舗', '営業時間', '定休日'
+//     // テキストコンテンツ抽出
+//     var textPatterns = [
+//       /<h[1-3][^>]*>([^<]+)<\/h[1-3]>/gi,
+//       /<p[^>]*>([^<]+)<\/p>/gi,
+//       /<li[^>]*>([^<]+)<\/li>/gi
 //     ];
 //     
-//     // HTMLタグを除去してテキスト抽出
-//     var textContent = content
-//       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '') // スクリプト除去
-//       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '') // スタイル除去
-//       .replace(/<[^>]*>/g, '\n') // HTMLタグを改行に
-//       .replace(/\s+/g, ' ') // 連続空白を単一空白に
-//       .split('\n');
-//     
-//     for (var line of textContent) {
-//       var trimmed = line.trim();
-//       if (trimmed.length > 5 && keywords.some(keyword => trimmed.includes(keyword))) {
-//         extractedText += '' + trimmed + '\n';
-//         if (extractedText.length > 15000) break; // 📈 制限を8000文字に拡張
-//       }
-//     }
-//     
-//     // 📧 メールアドレス徹底抽出
-//     var emailMatches = content.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
-//     if (emailMatches) {
-//       var uniqueEmails = [...new Set(emailMatches)]; // 重複除去
-//       uniqueEmails.forEach(email => {
-//         extractedText += 'メールアドレス: ' + email + '\n';
-//       });
-//     }
-//     
-//     // 📞 電話番号パターン抽出強化
-//     var phonePatterns = [
-//       /\d{2,4}-\d{2,4}-\d{4}/g,   // 03-1234-5678
-//       /\d{3}-\d{3}-\d{4}/g,       // 090-1234-5678
-//       /TEL[：:\s]*[\d-]+/g,       // TEL:03-1234-5678
-//       /電話[：:\s]*[\d-]+/g       // 電話:03-1234-5678
-//     ];
-//     
-//     phonePatterns.forEach(pattern => {
-//       var phoneMatches = content.match(pattern);
-//       if (phoneMatches) {
-//         phoneMatches.forEach(phone => {
-//           extractedText += '電話番号: ' + phone + '\n';
+//     textPatterns.forEach(function(pattern) {
+//       var matches = content.match(pattern);
+//       if (matches) {
+//         matches.forEach(function(match) {
+//           var cleanText = match.replace(/<[^>]+>/g, '').trim();
+//           if (cleanText.length > 20 && cleanText.length < 500) {
+//             extractedText += cleanText + '\n';
+//           }
 //         });
 //       }
 //     });
 //     
-//     var finalText = extractedText.substring(0, 20000); // 📈 最大10000文字に拡張
-//     Logger.log('✅ スクレイピング完了: ' + url + ' - 抽出文字数: ' + finalText.length + '');
+//     var finalText = extractedText.substring(0, 20000);
+//     Logger.log('✅ スクレイピング完了: ' + url + ' - 抽出文字数: ' + finalText.length);
 //     
 //     if (finalText.length < 100) {
 //       Logger.log('⚠️ 抽出文字数が少なすぎます: ' + finalText.length + '文字');
@@ -1236,14 +1396,11 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     return finalText;
 //     
 //   } catch (error) {
-//     Logger.log('❌ スクレイピングエラー: ' + url + ' - ' + error.message + '');
+//     Logger.log('❌ スクレイピングエラー: ' + url + ' - ' + error.message);
 //     return null;
 //   }
 // }
-
-// ===========================================
-// 🛠 ユーティリティ関数
-// ===========================================
+// scrapeWebContent関数終了
 
 /**
 //  * OpenRouter API呼び出し
@@ -1251,159 +1408,24 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //  * @param {string} userPrompt ユーザープロンプト
 //  * @returns {Object} API応答
 //  */
-// function callOpenRouterAPI(systemPrompt, userPrompt) {
-//   try {
-//     Logger.log('🔑 OpenRouter APIキー確認: ' + OPENROUTER_API_KEY ? '設定済み (' + OPENROUTER_API_KEY.substring(0, 10) + '...)' : '❌ 未設定' + '');
-//     
-//     if (!OPENROUTER_API_KEY) {
-//       Logger.log('❌ OpenRouter APIキーが設定されていません');
-//       return {
-//         success: false,
-//         error: 'OpenRouter APIキーが設定されていません'
-//       };
-//     }
-//     
-//     var requestBody = {
-//       model: "deepseek/deepseek-chat",
-//       messages: [
-//         {
-//           role: "system",
-//           content: systemPrompt
-//         },
-//         {
-//           role: "user", 
-//           content: userPrompt
-//         }
-//       ],
-//       max_tokens: 2048,
-//       temperature: 0.3,
-//       timeout: 60
-//     };
-//     
-//     Logger.log('🚀 DeepSeek API via OpenRouter リクエスト送信中...');
-//     Logger.log('📤 リクエストボディ: ' + JSON.stringify(requestBody) + '');
-//     
-//     var response = UrlFetchApp.fetch('https://openrouter.ai/api/v1/chat/completions', {
-//       method: 'POST',
-//       headers: {
-//         'Authorization': 'Bearer ' + OPENROUTER_API_KEY + '',
-//         'Content-Type': 'application/json',
-//         'HTTP-Referer': 'https://franchise-hearing.com',
-//         'X-Title': 'Franchise Hearing AI'
-//       },
-//       payload: JSON.stringify(requestBody),
-//       muteHttpExceptions: true,
-//       timeout: 60000
-//     });
-//     
-//     var responseCode = response.getResponseCode();
-//     Logger.log('📥 HTTP ステータス: ' + responseCode + '');
-//     var responseText = response.getContentText();
-//     Logger.log('📥 生レスポンス: ' + responseText + '');
-//     
-//     if (responseCode !== 200) {
-//       Logger.log('❌ DeepSeek API HTTP エラー: ' + responseCode + '');
-//       return {
-//         success: false,
-//         error: 'HTTP ' + responseCode + ': ' + responseText + ''
-//       };
-//     }
-//     
-//     if (!responseText || responseText.trim() === '') {
-//       Logger.log('❌ DeepSeek API 空レスポンス');
-//       return {
-//         success: false,
-//         error: 'DeepSeek APIから空のレスポンスが返されました'
-//       };
-//     }
-//     
-//     var data;
-//     try {
-//       data = JSON.parse(responseText);
-//     } catch (parseError) {
-//       Logger.log('❌ DeepSeek API レスポンス解析エラー: ' + parseError.message + '');
-//       return {
-//         success: false,
-//         error: 'APIレスポンスの解析に失敗しました: ' + parseError.message + ''
-//       };
-//     }
-//     
-//     if (data.error) {
-//       Logger.log('❌ DeepSeek API エラー: ' + data.error.message || data.error + '');
-//       return {
-//         success: false,
-//         error: data.error.message || data.error.toString()
-//       };
-//     }
-//     
-//     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-//       Logger.log('❌ DeepSeek API 予期しないレスポンス構造: ' + JSON.stringify(data) + '');
-//       return {
-//         success: false,
-//         error: 'APIレスポンスの構造が予期したものと異なります'
-//       };
-//     }
-//     
-//     var content = data.choices[0].message.content;
-//     if (!content || content.trim() === '') {
-//       Logger.log('❌ DeepSeek API 空のコンテンツ');
-//       return {
-//         success: false,
-//         error: 'DeepSeekから空のコンテンツが返されました'
-//       };
-//     }
-//     
-//     return {
-//       success: true,
-//       content: content
-//     };
-//     
-//   } catch (error) {
-//     Logger.log('❌ DeepSeek API エラー: ' + error.message + '');
-//     return {
-//       success: false,
-//       error: error.message
-//     };
-//   }
-// }
 
 /**
 //  * セッションID生成
 //  * @returns {string} セッションID
 //  */
-// function generateSessionId() {
-//   var timestamp = Date.now();
-//   var random = Math.random().toString(36).substring(2, 8);
-//   return 'HEARING_' + timestamp + '_' + random + '';
-// }
+// generateSessionId関数はnotify.jsで定義済み
 
 /**
 //  * セッションデータ保存
 //  * @param {string} sessionId セッションID
 //  * @param {Object} sessionData セッションデータ
-//  */
-// function saveSessionData(sessionId, sessionData) {
-//   try {
-//     CacheService.getScriptCache().put(sessionId, JSON.stringify(sessionData), 3600); // 1時間
-//   } catch (error) {
-//     Logger.log('⚠️ セッション保存エラー: ' + error.message + '');
-//   }
-// }
+ */
 
 /**
 //  * セッションデータ取得
 //  * @param {string} sessionId セッションID
 //  * @returns {Object} セッションデータ
-//  */
-// function getSessionData(sessionId) {
-//   try {
-//     var cached = CacheService.getScriptCache().get(sessionId);
-//     return cached ? JSON.parse(cached) : null;
-//   } catch (error) {
-//     Logger.log('⚠️ セッション取得エラー: ' + error.message + '');
-//     return null;
-//   }
-// }
+ */
 
 /**
 //  * スプレッドシートにデータ保存
@@ -1449,7 +1471,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //       Logger.log('❌ スプレッドシートオープンエラー:', openError.message);
 //       return {
 //         success: false,
-//         error: 'スプレッドシートを開けませんでした: ' + openError.message + ''
+//         error: 'スプレッドシートを開けませんでした: ' + openError.message
 //       };
 //     }
 //     
@@ -1467,7 +1489,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //       Logger.log('❌ シート取得エラー:', sheetError.message);
 //       return {
 //         success: false,
-//         error: 'シート取得に失敗しました: ' + sheetError.message + ''
+//         error: 'シート取得に失敗しました: ' + sheetError.message
 //       };
 //     }
 //     
@@ -1512,7 +1534,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     }
 //     
 //     // 加盟店IDを生成
-//     var franchiseId = 'FID_' + Date.now() + '';
+//     var franchiseId = 'FID_' + Date.now();
 //     
 //     // データ行追加（34列構造）
 //     var newRow = [
@@ -1530,7 +1552,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //         if (phone.length > 0 && !phone.startsWith('0')) {
 //           phone = '0' + phone;
 //         }
-//         Logger.log('📞 電話番号処理: 元データ=' + data.phone + ', 処理後=' + phone + '');
+//         Logger.log('📞 電話番号処理: 元データ=' + data.phone + ', 処理後=' + phone);
 //         // 文字列として確実に保存するため、先頭にシングルクォートを追加
 //         return "'" + phone;
 //       })(), // 電話番号（ハイフン除去、先頭0確保、文字列として保存）
@@ -1645,7 +1667,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //       Logger.log('❌ データ書き込みエラー:', writeError.message);
 //       return {
 //         success: false,
-//         error: 'データ書き込みに失敗しました: ' + writeError.message + ''
+//         error: 'データ書き込みに失敗しました: ' + writeError.message
 //       };
 //     }
 //     
@@ -1656,7 +1678,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     };
 //     
 //   } catch (error) {
-//     Logger.log('❌ スプレッドシート保存エラー: ' + error.message + '');
+//     Logger.log('❌ スプレッドシート保存エラー: ' + error.message);
 //     return {
 //       success: false,
 //       error: error.message
@@ -1882,7 +1904,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     var sheets = ss.getSheets();
 //     
 //     console.log('✅ スプレッドシート接続成功');
-//     console.log('シート数: ' + sheets.length + '');
+//     console.log('シート数: ' + sheets.length);
 //     console.log('シート名:', sheets.map(sheet => sheet.getName()));
 //     
 //     return {
@@ -1970,7 +1992,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     console.log('📊 FRANCHISE_SPREADSHEET_ID:', spreadsheetId2 ? '✅ 設定済み (' + spreadsheetId2 + ')' : '❌ 未設定');
 //     
 //     var finalSpreadsheetId = spreadsheetId1 || spreadsheetId2;
-//     console.log('📊 最終使用ID:', finalSpreadsheetId ? '✅ ' + finalSpreadsheetId + '' : '❌ 両方とも未設定');
+//     console.log('📊 最終使用ID:', finalSpreadsheetId ? '✅ ' + finalSpreadsheetId : '❌ 両方とも未設定');
 //     
 //     var settings = {
 //       openaiApiKey: !!openaiKey,
@@ -2024,9 +2046,9 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //   console.log('\n📊 === テスト結果サマリー ===');
 //   Object.keys(results).forEach(testName => {
 //     var result = results[testName];
-//     console.log('' + testName + ': ' + result.success ? '✅ 成功' : '❌ 失敗' + ' - ' + result.message + '');
+//     console.log('' + testName + ': ' + result.success ? '✅ 成功' : '❌ 失敗' + ' - ' + result.message);
 //     if (!result.success) {
-//       console.log('  エラー: ' + result.error + '');
+//       console.log('  エラー: ' + result.error);
 //     }
 //   });
 //   
@@ -2479,9 +2501,9 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //   var address = '大阪市中央区農人橋2-4-1 11F';
 //   var websiteUrl = 'http://www.fine-t.co.jp/';
 //   
-//   console.log('🏢 テスト対象: ' + companyName + '');
-//   console.log('📍 住所: ' + address + '');
-//   console.log('🌐 ウェブサイト: ' + websiteUrl + '');
+//   console.log('🏢 テスト対象: ' + companyName);
+//   console.log('📍 住所: ' + address);
+//   console.log('🌐 ウェブサイト: ' + websiteUrl);
 //   
 //   // 第2段階検索実行
 //   var result = searchCompanyDetailsFromAI({
@@ -2514,7 +2536,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     var results = {};
 //     
 //     for (var companyName of testCompanies) {
-//       console.log('\n📋 テスト対象: ' + companyName + '');
+//       console.log('\n📋 テスト対象: ' + companyName);
 //       
 //       // AI抽出テスト
 //       var extractionResult = startAIHearing({ companyName: companyName });
@@ -2527,9 +2549,9 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //         console.log('✅ 候補生成成功: ' + candidates.length + '件');
 //         console.log('候補一覧:');
 //         candidates.forEach((candidate, index) => {
-//           console.log('  ' + index + 1 + '. ' + candidate.legalName + ' - ' + candidate.differentiationReason || 'N/A' + '');
-//           console.log('     住所: ' + candidate.address || '未取得' + '');
-//           console.log('     電話: ' + Array.isArray(candidate.phone) ? candidate.phone.join(', ') : candidate.phone || '未取得' + '');
+//           console.log('  ' + index + 1 + '. ' + candidate.legalName + ' - ' + candidate.differentiationReason || 'N/A');
+//           console.log('     住所: ' + candidate.address || '未取得');
+//           console.log('     電話: ' + Array.isArray(candidate.phone) ? candidate.phone.join(', ') : candidate.phone || '未取得');
 //         });
 //         
 //         // 最初の候補を選択してテスト
@@ -2551,7 +2573,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //           }))
 //         };
 //       } else {
-//         console.log('❌ 抽出失敗: ' + extractionResult.error + '');
+//         console.log('❌ 抽出失敗: ' + extractionResult.error);
 //         results[companyName] = {
 //           success: false,
 //           error: extractionResult.error
@@ -2569,7 +2591,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //           console.log('   ' + index + 1 + '. ' + candidate.name + ' (' + candidate.differentiation || 'N/A' + ')');
 //         });
 //       } else {
-//         console.log('❌ ' + company + ': エラー - ' + result.error + '');
+//         console.log('❌ ' + company + ': エラー - ' + result.error);
 //       }
 //     });
 //     
@@ -2624,8 +2646,8 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //  * notify.gsのdoPostから呼び出される
 //  */
 // function handleFranchiseHearing(action, params) {
-//   Logger.log('🎯 フランチャイズヒアリング処理: ' + action + '');
-//   Logger.log('📋 パラメータ: ' + JSON.stringify(params) + '');
+//   Logger.log('🎯 フランチャイズヒアリング処理: ' + action);
+//   Logger.log('📋 パラメータ: ' + JSON.stringify(params));
 //   
 //   var result;
 //   
@@ -2661,7 +2683,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     case 'extractFromWebsite':
 //       Logger.log('🌐 extractFromWebsite実行開始');
 //       result = extractFromWebsite(params);
-//       Logger.log('🌐 extractFromWebsite実行完了: ' + JSON.stringify(result) + '');
+//       Logger.log('🌐 extractFromWebsite実行完了: ' + JSON.stringify(result));
 //       break;
 //       
 //     case 'searchCompanyDetails':
@@ -2671,18 +2693,18 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     case 'performBackgroundDetailSearch':
 //       Logger.log('🔍 performBackgroundDetailSearch実行開始');
 //       result = performBackgroundDetailSearch(params);
-//       Logger.log('🔍 performBackgroundDetailSearch実行完了: ' + JSON.stringify(result) + '');
+//       Logger.log('🔍 performBackgroundDetailSearch実行完了: ' + JSON.stringify(result));
 //       break;
 //       
 //     case 'submitFranchiseRegistration':
 //       Logger.log('📝 submitFranchiseRegistration実行開始');
 //       result = submitFranchiseRegistration(params);
-//       Logger.log('📝 submitFranchiseRegistration実行完了: ' + JSON.stringify(result) + '');
+//       Logger.log('📝 submitFranchiseRegistration実行完了: ' + JSON.stringify(result));
 //       break;
 //       
 //     default:
-//       Logger.log('❌ 未知のアクション: ' + action + '');
-//       result = createErrorResponse('未対応のアクション: ' + action + '');
+//       Logger.log('❌ 未知のアクション: ' + action);
+//       result = createErrorResponse('未対応のアクション: ' + action);
 //   }
 //   
 //   Logger.log('✅ アクション ' + action + ' 完了');
@@ -2771,11 +2793,11 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //   
 //   actions.forEach(action => {
 //     try {
-//       console.log('テスト中: ' + action + '');
+//       console.log('テスト中: ' + action);
 //       // ここで実際のルーティングをテスト
 //       console.log('' + action + ': 関数存在確認');
 //     } catch (error) {
-//       console.log('' + action + ': エラー - ' + error.message + '');
+//       console.log('' + action + ': エラー - ' + error.message);
 //     }
 //   });
 //   
@@ -2896,7 +2918,7 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //         return { success: true, spreadsheetId: finalId, sheetExists: !!sheet };
 //       } catch (openError) {
 //         Logger.log('❌ スプレッドシートアクセスエラー:', openError.message);
-//         return { success: false, error: 'スプレッドシートアクセスエラー: ' + openError.message + '' };
+//         return { success: false, error: 'スプレッドシートアクセスエラー: ' + openError.message };
 //       }
 //     } else {
 //       Logger.log('❌ SPREADSHEET_IDが設定されていません');
@@ -2907,3 +2929,222 @@ function extractCompanyInfoWithDeepSeek(companyName) {
 //     return { success: false, error: error.message };
 //   }
 // }
+
+/**
+ * 加盟店データをスプレッドシートに保存（実際に動作する関数）
+ * @param {Object} data - 保存するデータ（圧縮形式対応）
+ * @returns {Object} 保存結果
+ */
+function saveFranchiseData(data) {
+  try {
+    console.log('🆕🆕🆕 最新FranchiseHearingAI_New.js - 2025/08/10 21:56更新 🆕🆕🆕');
+    Logger.log('🚀 saveFranchiseData開始');
+    Logger.log('📋 受信データ:', JSON.stringify(data, null, 2));
+    console.log('🚀 saveFranchiseData開始 - console版');
+    console.log('📋 受信データ詳細:', JSON.stringify(data, null, 2));
+    console.log('📋 データキー:', Object.keys(data || {}));
+    console.log('📋 legalName:', data ? data.legalName : 'データなし');
+    console.log('📋 phone:', data ? data.phone : 'データなし');
+    
+    // データが圧縮形式（ln, lk等）の場合は展開、通常はそのまま使用
+    var processedData = {};
+    
+    // 🔍 データ形式を判定して適切に処理
+    if (!data) {
+      console.log('❌ データがnullまたはundefined');
+      Logger.log('❌ データが空です');
+      return {
+        success: false,
+        error: 'データが空です'
+      };
+    }
+    
+    // lnキーがある場合のみ圧縮データとして処理
+    if (data.ln) {
+      Logger.log('🔍 圧縮データを検出、展開中...');
+      console.log('🔍 圧縮データ展開開始 - ln検出');
+      processedData = {
+        legalName: data.ln,
+        legalNameKana: data.lk,
+        representative: data.rp,
+        representativeKana: data.rk,
+        postalCode: data.pc,
+        address: data.ad,
+        phone: data.ph,
+        websiteUrl: data.web || data.url,
+        employees: data.emp,
+        revenue: data.rev,
+        billingEmail: data.bem,
+        salesEmail: data.sem,
+        salesPersonName: data.spn,
+        salesPersonContact: data.spc,
+        propertyTypes: data.pt,
+        constructionAreas: data.ca,
+        specialServices: data.ss,
+        buildingAgeRange: data.ba,
+        tradeName: data.tn,
+        tradeNameKana: data.tk,
+        branchInfo: data.bi,
+        establishedDate: data.ed,
+        companyPR: data.cp,
+        areasCompressed: data.ac,  // エリア数
+        priorityAreas: data.pa      // エリアデータ（圧縮形式）
+      };
+      Logger.log('✅ データ展開完了');
+      console.log('✅ 圧縮データ展開完了');
+      console.log('📋 展開後のlegalName:', processedData.legalName);
+      console.log('📋 展開後のphone:', processedData.phone);
+    } else {
+      // legalNameキーがある場合は既に展開済みとして処理
+      Logger.log('🔍 通常データ（既に展開済み）をそのまま使用');
+      console.log('🔍 データは既に展開済み - doGetで処理済み');
+      processedData = data;
+      console.log('📋 全データキー:', Object.keys(processedData));
+      console.log('📋 legalName:', processedData.legalName);
+      console.log('📋 phone:', processedData.phone);
+      console.log('📋 areasCompressed:', processedData.areasCompressed ? processedData.areasCompressed.substring(0, 100) + '...' : 'なし');
+    }
+    
+    var SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    
+    console.log('🔍 CRITICAL: SPREADSHEET_ID取得:', SPREADSHEET_ID);
+    console.log('🔍 CRITICAL: PropertiesService直接:', PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID'));
+    console.log('🔍 CRITICAL: FRANCHISE_SPREADSHEET_ID:', PropertiesService.getScriptProperties().getProperty('FRANCHISE_SPREADSHEET_ID'));
+    
+    Logger.log('🔍 SPREADSHEET_ID:', SPREADSHEET_ID);
+    Logger.log('🔍 SPREADSHEET_ID存在チェック:', !!SPREADSHEET_ID);
+    Logger.log('🔍 SPREADSHEET_IDタイプ:', typeof SPREADSHEET_ID);
+    Logger.log('🔍 SPREADSHEET_ID長さ:', SPREADSHEET_ID ? SPREADSHEET_ID.length : 0);
+    
+    if (!SPREADSHEET_ID) {
+      return {
+        success: false,
+        error: 'SPREADSHEET_IDが設定されていません'
+      };
+    }
+    
+    Logger.log('📊 スプレッドシートを開く');
+    console.log('🔍 CRITICAL: スプレッドシート開く処理開始 ID:', SPREADSHEET_ID);
+    
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    console.log('🔍 CRITICAL: スプレッドシート正常に開けました:', ss.getName());
+    
+    Logger.log('📊 スプレッドシート名:', ss.getName());
+    
+    var sheet = ss.getSheetByName('加盟店登録');
+    if (!sheet) {
+      Logger.log('⚠️ 加盟店登録シートが存在しないため作成');
+      sheet = ss.insertSheet('加盟店登録');
+    }
+    
+    console.log('🔍 CRITICAL: シート確認完了:', sheet.getName());
+    Logger.log('📊 シート確認:', sheet.getName());
+    
+    function cleanPhone(phone) {
+      if (!phone) {
+        console.log('⚠️ cleanPhone: 電話番号が空');
+        return '';
+      }
+      // シングルクォートを除去してから処理
+      var phoneStr = String(phone).replace(/['-\s]/g, '');
+      console.log('📞 cleanPhone - 元の値:', phone);
+      console.log('📞 cleanPhone - クリーニング後:', phoneStr);
+      
+      if (phoneStr && !phoneStr.startsWith('0')) {
+        phoneStr = '0' + phoneStr;
+        console.log('📞 cleanPhone - 先頭0追加:', phoneStr);
+      }
+      return "'" + phoneStr;
+    }
+    
+    var cleanedPhone = cleanPhone(processedData.phone);
+    var cleanedSalesContact = cleanPhone(processedData.salesPersonContact);
+    
+    console.log('🚨 CRITICAL DEBUG: saveFranchiseData内 - cleanPhone:', cleanedPhone);
+    console.log('🚨 CRITICAL DEBUG: saveFranchiseData内 - cleanSalesContact:', cleanedSalesContact);
+    
+    var now = new Date();
+    var franchiseId = 'FC-' + Utilities.formatDate(now, 'JST', 'yyMMdd') + '-' + 
+      Math.random().toString(36).substr(2, 4).toUpperCase();
+    
+    var rowData = [
+      franchiseId,
+      Utilities.formatDate(now, 'JST', 'yyyy/MM/dd HH:mm:ss'),
+      processedData.legalName || '',
+      processedData.legalNameKana || '',
+      processedData.representative || '',
+      processedData.representativeKana || '',
+      processedData.postalCode || '',
+      processedData.address || '',
+      cleanedPhone,
+      processedData.websiteUrl || '',
+      processedData.employees || '',
+      processedData.revenue || '',
+      processedData.billingEmail || '',
+      processedData.salesEmail || '',
+      processedData.salesPersonName || '',
+      cleanedSalesContact,
+      processedData.propertyTypes || '',
+      processedData.constructionAreas || '',
+      processedData.specialServices || '',
+      processedData.buildingAgeRange || '',
+      processedData.tradeName || '',
+      processedData.tradeNameKana || '',
+      processedData.branchInfo || '',
+      processedData.establishedDate || '',
+      processedData.companyPR || '',
+      processedData.priorityAreas || processedData.pa || '',  // 対応エリア（エリアデータ）
+      processedData.areasCompressed || processedData.ac || '', // 優先対応エリア（本来はエリア数）
+      Utilities.formatDate(now, 'JST', 'yyyy/MM/dd HH:mm:ss'),
+      '',
+      '申請中',
+      '',
+      '',
+      'ウェブフォームより申請'
+    ];
+    
+    var lastRow = sheet.getLastRow();
+    console.log('🔍 実際の最終データ行:', lastRow);
+    console.log('🔍 挿入先行:', lastRow + 1);
+    
+    console.log('🚨 CRITICAL DEBUG: 挿入する行データ (I列:電話番号):', rowData[8]);
+    console.log('🚨 CRITICAL DEBUG: 挿入する行データ (P列:営業担当者連絡先):', rowData[15]);
+    
+    sheet.getRange(lastRow + 1, 1, 1, rowData.length).setValues([rowData]);
+    
+    console.log('✅ タイムスタンプ列の書式設定完了');
+    console.log('🔍 CRITICAL: データ終了後の挿入先行:', lastRow + 1);
+    console.log('🔍 CRITICAL: 挿入データ列数:', rowData.length);
+    console.log('✅ 加盟店登録シートに保存完了（2行目に新行挿入）');
+    
+    try {
+      console.log('📢 Slack通知送信開始:', franchiseId);
+      if (typeof notifyNewFranchiseRegistration === 'function') {
+        notifyNewFranchiseRegistration(franchiseId, processedData);
+        console.log('📢 Slack通知送信結果:', true);
+      }
+    } catch (notifyError) {
+      console.log('⚠️ Slack通知エラー（保存は成功）:', notifyError.message);
+    }
+    
+    console.log('📝 saveFranchiseData結果:', JSON.stringify({
+      success: true,
+      franchiseId: franchiseId,
+      message: '加盟店登録が完了しました'
+    }));
+    
+    return {
+      success: true,
+      franchiseId: franchiseId,
+      message: '加盟店登録が完了しました'
+    };
+    
+  } catch (error) {
+    Logger.log('❌ saveFranchiseData エラー:', error.message);
+    Logger.log('❌ エラースタック:', error.stack);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
