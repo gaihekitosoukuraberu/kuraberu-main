@@ -2371,9 +2371,10 @@ function performWebSearchAndScraping(companyName) {
     // リフォーム系企業特化クエリ
     var quickQueries = [
       '"' + companyName + '" リフォーム 外壁塗装 会社概要 代表者',
-      '"' + companyName + '" 建設 工務店 住所 連絡先',
-      '"' + companyName + '" 塗装工事 site:*.co.jp',
-      '"' + companyName + '" リフォーム 建設業 会社情報'
+      '"' + companyName + '" 建設 工務店 住所 連絡先 郵便番号',
+      '"' + companyName + '" 塗装工事 電話番号 TEL site:*.co.jp',
+      '"' + companyName + '" リフォーム 建設業 会社情報 連絡先',
+      '"' + companyName + '" 会社概要 郵便番号 〒 電話 FAX'
     ];
     
     Logger.log('🚀 検索開始: ' + quickQueries.length + 'クエリ');
@@ -4228,7 +4229,7 @@ function doGet(e) {
             <html>
               <head>
                 <meta charset="UTF-8">
-                <title>' + (result.success ? '承認完了' : 'エラー') + '</title>
+                <title>${result.success ? '承認完了' : 'エラー'}</title>
                 <style>
                   body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
                   .success { color: #28a745; }
@@ -4253,11 +4254,11 @@ function doGet(e) {
                 </style>
               </head>
               <body>
-                <h1 class="' + (result.success ? 'success' : 'error') + '">
-                  ' + (result.success ? '✅ 承認完了' : '❌ エラー') + '
+                <h1 class="${result.success ? 'success' : 'error'}">
+                  ${result.success ? '✅ 承認完了' : '❌ エラー'}
                 </h1>
-                <p>' + result.message + '</p>
-                ' + ((!result.success && result.error) ? '<p style="color:#666;">詳細: ' + result.error + '</p>' : '') + '
+                <p>${result.message}</p>
+                ${!result.success && result.error ? `<p style="color:#666;">詳細: ${result.error}</p>` : ''}
                 
                 ${result.success && unapprovedList.length > 0 ? `
                   <div class="franchise-list">
@@ -4341,7 +4342,7 @@ function doGet(e) {
                   ${result.success ? '🔴 却下完了' : '❌ エラー'}
                 </h1>
                 <p>${result.message}</p>
-                ${!result.success && result.error ? '<p style="color:#666;">詳細: ' + result.error + '</p>' : ''}
+                ${!result.success && result.error ? `<p style="color:#666;">詳細: ${result.error}</p>` : ''}
                 
                 ${result.success && unapprovedList.length > 0 ? `
                   <div class="franchise-list">
@@ -4371,6 +4372,30 @@ function doGet(e) {
           `);
           break;
         
+        // 🔥🔥🔥 加盟店登録（超重要！）
+        case 'submitFranchiseRegistration':
+          console.log('🔥🔥🔥 submitFranchiseRegistration実行 - 最終switch 🔥🔥🔥');
+          console.log('📋 受信パラメータ:', JSON.stringify(parameters));
+          
+          try {
+            // saveFranchiseData関数を直接呼び出す
+            result = saveFranchiseData(parameters);
+            console.log('✅ saveFranchiseData成功:', JSON.stringify(result));
+            
+            if (!result || !result.success) {
+              throw new Error(result ? result.error : '登録処理が失敗しました');
+            }
+            
+          } catch (error) {
+            console.error('❌ saveFranchiseData エラー:', error);
+            console.error('❌ エラースタック:', error.stack);
+            result = {
+              success: false,
+              error: error.message || '登録処理でエラーが発生しました'
+            };
+          }
+          break;
+        
         default:
           console.log('❌❌❌ 未対応のアクション検出 ❌❌❌');
           console.log('❌ 受信したaction値: "' + action + '"');
@@ -4390,7 +4415,7 @@ function doGet(e) {
             message: "未対応のアクション: " + action,
             error: 'UNSUPPORTED_ACTION',
             receivedAction: action,
-            expectedActions: ['submitFranchiseBasic', 'addFranchiseAreas', 'completeFranchiseRegistration']
+            expectedActions: ['submitFranchiseRegistration', 'submitFranchiseBasic', 'addFranchiseAreas', 'completeFranchiseRegistration']
           };
       }
       
@@ -9571,7 +9596,7 @@ function sendFranchiseApprovalNotification(franchiseData) {
               type: 'button',
               text: {
                 type: 'plain_text',
-                text: '🟢 NEW承認'
+                text: '🟢 承認'
               },
               style: 'primary',
               url: "${getGasWebappUrl()}?action=approveFranchise&franchiseId=" + franchiseData.id
@@ -9580,7 +9605,7 @@ function sendFranchiseApprovalNotification(franchiseData) {
               type: 'button',
               text: {
                 type: 'plain_text',
-                text: '🔴 NEW却下'
+                text: '🔴 却下'
               },
               style: 'danger',
               url: "${getGasWebappUrl()}?action=rejectFranchise&franchiseId=" + franchiseData.id
@@ -9692,7 +9717,7 @@ function notifyNewFranchiseRegistration(franchiseId, data) {
               type: 'button',
               text: {
                 type: 'plain_text',
-                text: '🟢 NEW承認'
+                text: '🟢 承認'
               },
               style: 'primary',
               url: getGasWebappUrl() + "?action=approveFranchise&franchiseId=" + franchiseId
@@ -9701,7 +9726,7 @@ function notifyNewFranchiseRegistration(franchiseId, data) {
               type: 'button',
               text: {
                 type: 'plain_text',
-                text: '🔴 NEW却下'
+                text: '🔴 却下'
               },
               style: 'danger',
               url: getGasWebappUrl() + "?action=rejectFranchise&franchiseId=" + franchiseId
@@ -11881,3 +11906,490 @@ function requestPasswordReset(params) {
 // 🔥🔥🔥 マーカー追加で確実に更新版と分かるように
 // saveFranchiseData呼び出し前後の詳細ログ追加
 // ✅ GAS側のsaveFranchiseDataは正常動作確認済み
+
+// ========== Slackテスト関数 ==========
+/**
+ * Slack通知のテスト関数
+ * GASエディタから実行してSlack通知が動作するか確認
+ */
+function testSlackNotification() {
+  console.log('📢 Slack通知テスト開始（自己完結型）');
+  
+  // Webhook URLを直接取得
+  var webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
+  
+  if (!webhookUrl) {
+    console.log('❌ SLACK_WEBHOOK_URLが設定されていません');
+    return { success: false, error: 'WEBHOOK_URL_NOT_SET' };
+  }
+  
+  var franchiseId = 'TEST-' + Date.now();
+  var testData = {
+    legalName: 'テスト株式会社',
+    representative: 'テスト 太郎',
+    address: '東京都千代田区テスト1-2-3',  
+    phone: '03-1234-5678',
+    billingEmail: 'test@example.com'
+  };
+  
+  // Slackメッセージを作成（実際の通知と同じ形式）
+  var blockMessage = {
+    text: "新しい加盟店登録: " + testData.legalName,
+    blocks: [
+      {
+        type: 'header',
+        text: {
+          type: 'plain_text',
+          text: '🏢 新規加盟店登録申請（テスト）'
+        }
+      },
+      {
+        type: 'section',
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: "*加盟店ID:*\n" + franchiseId
+          },
+          {
+            type: 'mrkdwn',
+            text: "*会社名:*\n" + testData.legalName
+          },
+          {
+            type: 'mrkdwn',
+            text: "*代表者:*\n" + testData.representative
+          },
+          {
+            type: 'mrkdwn',
+            text: "*住所:*\n" + testData.address
+          },
+          {
+            type: 'mrkdwn',
+            text: "*電話番号:*\n" + testData.phone
+          },
+          {
+            type: 'mrkdwn',
+            text: "*請求メール:*\n" + testData.billingEmail
+          }
+        ]
+      },
+      {
+        type: 'divider'
+      },
+      {
+        type: 'context',
+        elements: [
+          {
+            type: 'mrkdwn',
+            text: "🔧 これはテストメッセージです | " + new Date().toLocaleString('ja-JP')
+          }
+        ]
+      }
+    ]
+  };
+  
+  // 直接Webhookに送信
+  try {
+    var options = {
+      method: 'POST',
+      contentType: 'application/json',
+      payload: JSON.stringify(blockMessage),
+      muteHttpExceptions: true
+    };
+    
+    var response = UrlFetchApp.fetch(webhookUrl, options);
+    var responseCode = response.getResponseCode();
+    
+    if (responseCode === 200) {
+      console.log('✅ Slack通知送信成功！');
+      console.log('📌 加盟店ID:', franchiseId);
+      console.log('📌 このメッセージがSlackに届いているはずです');
+      return { success: true, franchiseId: franchiseId };
+    } else {
+      console.log('❌ 送信失敗:', responseCode);
+      console.log('📌 レスポンス:', response.getContentText());
+      return { success: false, error: 'HTTP ' + responseCode };
+    }
+  } catch (error) {
+    console.error('❌ エラー:', error);
+    return { success: false, error: error.toString() };
+  }
+}
+
+/**
+ * Webhook URLの確認関数
+ */
+function checkSlackWebhookUrl() {
+  var webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
+  
+  if (!webhookUrl) {
+    console.log('❌ SLACK_WEBHOOK_URLが設定されていません');
+    return false;
+  }
+  
+  console.log('✅ SLACK_WEBHOOK_URLが設定されています');
+  console.log('📌 URL長:', webhookUrl.length, '文字');
+  console.log('📌 先頭30文字:', webhookUrl.substring(0, 30) + '...');
+  
+  // URLの形式チェック
+  if (!webhookUrl.startsWith('https://hooks.slack.com/services/')) {
+    console.log('⚠️ URLの形式が正しくない可能性があります');
+    return false;
+  }
+  
+  console.log('✅ URL形式は正しいです');
+  
+  // 実際に送信テスト
+  try {
+    var testPayload = {
+      text: '🔧 Webhook接続テスト - ' + new Date().toLocaleString('ja-JP')
+    };
+    
+    var options = {
+      method: 'POST',
+      contentType: 'application/json',
+      payload: JSON.stringify(testPayload),
+      muteHttpExceptions: true
+    };
+    
+    var response = UrlFetchApp.fetch(webhookUrl, options);
+    var responseCode = response.getResponseCode();
+    
+    if (responseCode === 200) {
+      console.log('✅ Webhookへの送信成功！');
+      return true;
+    } else {
+      console.log('❌ Webhook送信失敗:', responseCode);
+      console.log('📌 レスポンス:', response.getContentText());
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ 送信エラー:', error);
+    return false;
+  }
+}
+
+// ========================================================================================
+// 加盟店ログインメール送信システム（admin_management_system.jsから移行）
+// ========================================================================================
+
+/**
+ * 管理者情報シートの初期化（既存データを保護）
+ */
+function initializeAdminInfoSheetSafe() {
+  try {
+    Logger.log('🔐 管理者情報シート安全初期化開始');
+    
+    const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    if (!spreadsheetId) {
+      throw new Error('SPREADSHEET_ID が設定されていません');
+    }
+    
+    const ss = SpreadsheetApp.openById(spreadsheetId);
+    let sheet = ss.getSheetByName('管理者情報');
+    
+    const requiredHeaders = [
+      '管理者ID',
+      '氏名',
+      'メールアドレス',
+      'パスワードハッシュ',
+      '役割',
+      '所属加盟店ID',
+      '初回ログイントークン',
+      'トークン有効期限',
+      'アカウントステータス',
+      '最終ログイン日時'
+    ];
+    
+    if (!sheet) {
+      // シートが存在しない場合のみ新規作成
+      sheet = ss.insertSheet('管理者情報');
+      Logger.log('✅ 管理者情報シート新規作成');
+      
+      // ヘッダー設定
+      sheet.getRange(1, 1, 1, requiredHeaders.length).setValues([requiredHeaders]);
+      sheet.getRange(1, 1, 1, requiredHeaders.length).setFontWeight('bold');
+      sheet.setFrozenRows(1);
+      
+      // 列幅調整
+      sheet.setColumnWidth(1, 120); // 管理者ID
+      sheet.setColumnWidth(2, 150); // 氏名
+      sheet.setColumnWidth(3, 200); // メールアドレス
+      sheet.setColumnWidth(4, 300); // パスワードハッシュ
+      sheet.setColumnWidth(5, 120); // 役割
+      sheet.setColumnWidth(6, 120); // 所属加盟店ID
+      sheet.setColumnWidth(7, 200); // 初回ログイントークン
+      sheet.setColumnWidth(8, 150); // トークン有効期限
+      sheet.setColumnWidth(9, 120); // アカウントステータス
+      sheet.setColumnWidth(10, 150); // 最終ログイン日時
+      
+    } else {
+      // 既存シートがある場合は列の追加のみ行う
+      Logger.log('⚠️ 管理者情報シートは既に存在します - 必要な列のみ追加');
+      
+      const existingHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      const lastCol = sheet.getLastColumn();
+      
+      // 不足している列を追加
+      requiredHeaders.forEach((header, index) => {
+        if (!existingHeaders.includes(header)) {
+          const newCol = lastCol + 1;
+          sheet.getRange(1, newCol).setValue(header);
+          sheet.getRange(1, newCol).setFontWeight('bold');
+          Logger.log(`✅ 新規列追加: ${header}`);
+        }
+      });
+    }
+    
+    return {
+      success: true,
+      sheet: sheet,
+      message: '管理者情報シートの初期化が完了しました'
+    };
+    
+  } catch (error) {
+    Logger.log('❌ 管理者情報シート初期化エラー:', error);
+    throw error;
+  }
+}
+
+/**
+ * 管理者IDの採番
+ */
+function generateAdminId() {
+  const sheet = SpreadsheetApp.openById(
+    PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID')
+  ).getSheetByName('管理者情報');
+  
+  if (!sheet || sheet.getLastRow() < 2) {
+    return 'ADM-00001';
+  }
+  
+  const lastRow = sheet.getLastRow();
+  const lastId = sheet.getRange(lastRow, 1).getValue();
+  
+  if (!lastId || !lastId.toString().startsWith('ADM-')) {
+    // 既存IDがない場合は1から開始
+    return 'ADM-00001';
+  }
+  
+  const numPart = parseInt(lastId.toString().replace('ADM-', ''), 10);
+  const newNum = (numPart + 1).toString().padStart(5, '0');
+  return `ADM-${newNum}`;
+}
+
+/**
+ * 初回ログイントークンの生成
+ */
+function generateLoginToken() {
+  return Utilities.getUuid();
+}
+
+/**
+ * 加盟店データ取得ヘルパー関数
+ */
+function getPartnerData(sheet, partnerId) {
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  
+  // 列インデックスを動的に取得
+  const idCol = headers.indexOf('加盟店ID');
+  const companyCol = headers.indexOf('法人名') !== -1 ? headers.indexOf('法人名') : headers.indexOf('会社名');
+  const repCol = headers.indexOf('代表者名');
+  const billingEmailCol = headers.indexOf('請求用メールアドレス');
+  const salesEmailCol = headers.indexOf('営業用メールアドレス');
+  const contactCol = headers.indexOf('担当者名');
+  
+  // デバッグ用ログ
+  console.log('🔍 列インデックス確認:', {
+    加盟店ID: idCol,
+    会社名: companyCol,
+    代表者名: repCol,
+    請求用メール: billingEmailCol,
+    営業用メール: salesEmailCol,
+    担当者名: contactCol
+  });
+  
+  // データ検索
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][idCol] === partnerId) {
+      const partnerData = {
+        partnerId: partnerId,
+        companyName: data[i][companyCol] || '',
+        representative: data[i][repCol] || '',
+        contactPerson: data[i][contactCol] || '',
+        billingEmail: billingEmailCol >= 0 ? data[i][billingEmailCol] || '' : '',
+        salesEmail: salesEmailCol >= 0 ? data[i][salesEmailCol] || '' : ''
+      };
+      
+      console.log('✅ 加盟店データ取得:', partnerData);
+      return partnerData;
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Gmail SMTPでメール送信（info@gaihekikuraberu.com から送信）
+ */
+function sendLoginEmailViaGmail(partnerData, loginToken) {
+  try {
+    console.log('📧 Gmail SMTP メール送信開始');
+    
+    // 送信先メールアドレスのリスト作成
+    const recipients = [];
+    
+    if (partnerData.billingEmail) {
+      recipients.push(partnerData.billingEmail);
+      console.log('📧 請求用メールアドレス追加:', partnerData.billingEmail);
+    }
+    
+    if (partnerData.salesEmail && partnerData.salesEmail !== partnerData.billingEmail) {
+      recipients.push(partnerData.salesEmail);
+      console.log('📧 営業用メールアドレス追加:', partnerData.salesEmail);
+    }
+    
+    console.log('📮 送信先一覧:', recipients);
+    
+    if (recipients.length === 0) {
+      throw new Error('送信先メールアドレスが見つかりません');
+    }
+    
+    // メール本文
+    const subject = '【外壁塗装くらべるAI】加盟店ログイン情報のご案内';
+    const emailBody = `
+${partnerData.companyName} 様
+
+外壁塗装くらべるAIへのご登録ありがとうございます。
+以下のリンクより、加盟店専用の管理画面にログインいただけます。
+
+▼ログイン画面：
+https://gaihekikuraberu.com/franchise-parent
+
+※初めてログインされる方は、以下のURLよりパスワードの設定をお願いいたします（24時間以内有効）：
+https://gaihekikuraberu.com/franchise-parent/reset?mode=init&token=${loginToken}
+
+迷惑メールフォルダに入る場合がございますので、併せてご確認ください。
+
+ご不明点は本部までお問い合わせください。
+
+外壁塗装くらべるAI 運営事務局
+    `.trim();
+    
+    console.log('📝 メール内容作成完了');
+    
+    // Gmail APIを使用してメール送信（info@gaihekikuraberu.com から送信）
+    for (const recipient of recipients) {
+      try {
+        GmailApp.sendEmail(
+          recipient,
+          subject,
+          emailBody,
+          {
+            from: 'info@gaihekikuraberu.com',
+            name: '外壁塗装くらべるAI'
+          }
+        );
+        console.log('✅ メール送信成功:', recipient);
+      } catch (sendError) {
+        console.error('❌ メール送信失敗:', recipient, sendError);
+        throw sendError;
+      }
+    }
+    
+    console.log('✅ 全メール送信完了');
+    return { success: true };
+    
+  } catch (error) {
+    console.error('❌ Gmail SMTP送信エラー:', error);
+    return { success: false, error: error.toString() };
+  }
+}
+
+/**
+ * 加盟店ログインメール送信関数（メイン関数）
+ */
+function sendPartnerLoginEmail(partnerId) {
+  try {
+    Logger.log('📧 加盟店ログインメール送信開始:', partnerId);
+    
+    // 1. 管理者情報シートの初期化確認
+    initializeAdminInfoSheetSafe();
+    
+    // 2. 加盟店情報の取得
+    const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    const ss = SpreadsheetApp.openById(spreadsheetId);
+    
+    // 加盟店登録シートから情報取得
+    const partnerSheet = ss.getSheetByName('加盟店登録') || ss.getSheetByName('加盟店情報');
+    if (!partnerSheet) {
+      throw new Error('加盟店情報シートが見つかりません');
+    }
+    
+    const partnerData = getPartnerData(partnerSheet, partnerId);
+    if (!partnerData) {
+      throw new Error(`加盟店ID: ${partnerId} の情報が見つかりません`);
+    }
+    
+    // 3. 管理者アカウントの作成
+    const adminSheet = ss.getSheetByName('管理者情報');
+    const adminId = generateAdminId();
+    const loginToken = generateLoginToken();
+    const tokenExpiry = new Date();
+    tokenExpiry.setHours(tokenExpiry.getHours() + 24); // 24時間後
+    
+    // 管理者レコード追加（代表的なメールアドレスを設定）
+    const primaryEmail = partnerData.billingEmail || partnerData.salesEmail || '';
+    const adminRecord = [
+      adminId,
+      partnerData.representative || partnerData.contactPerson || '担当者',
+      primaryEmail,
+      '', // パスワードハッシュ（初回は空）
+      '加盟店親',
+      partnerId,
+      loginToken,
+      tokenExpiry,
+      '仮アクティブ',
+      '' // 最終ログイン日時（初回は空）
+    ];
+    
+    console.log('📝 管理者レコード作成:', {
+      管理者ID: adminId,
+      氏名: partnerData.representative || partnerData.contactPerson || '担当者',
+      メール: primaryEmail,
+      加盟店ID: partnerId
+    });
+    
+    adminSheet.appendRow(adminRecord);
+    Logger.log('✅ 管理者アカウント作成完了:', adminId);
+    
+    // 4. メール送信（Gmail SMTP使用）
+    const sendResult = sendLoginEmailViaGmail(partnerData, loginToken);
+    
+    // 5. 結果ログ
+    if (sendResult.success) {
+      Logger.log('✅ ログインメール送信成功');
+      // Slack通知（オプション）
+      if (typeof sendSlackNotification === 'function') {
+        sendSlackNotification(`
+🎉 加盟店ログインメール送信完了
+加盟店ID: ${partnerId}
+会社名: ${partnerData.companyName}
+送信先: ${partnerData.billingEmail || partnerData.salesEmail}
+管理者ID: ${adminId}
+        `);
+      }
+    }
+    
+    return {
+      success: true,
+      adminId: adminId,
+      partnerId: partnerId,
+      message: 'ログインメール送信完了'
+    };
+    
+  } catch (error) {
+    Logger.log('❌ ログインメール送信エラー:', error);
+    throw error;
+  }
+}
