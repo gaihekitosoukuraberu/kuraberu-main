@@ -11,6 +11,14 @@
  * @returns {Object} 登録結果
  */
 function submitFranchiseRegistration(registrationData) {
+  console.log('❌❌❌ ERROR: notify.jsのsubmitFranchiseRegistration関数が呼び出されました - これは想定外です！');
+  console.log('❌ この関数は無効化されています。FranchiseHearingAI_New.jsの関数を使用してください。');
+  return {
+    success: false,
+    error: 'DEPRECATED_FUNCTION_CALLED',
+    message: 'この関数は無効化されています。FranchiseHearingAI_New.jsのsaveFranchiseData関数を使用してください。'
+  };
+  
   try {
     console.log('🚨🚨🚨 [notify.gs] 加盟店登録処理開始 - 最新修正版コード実行中 🚨🚨🚨');
     console.log('🚨 この行が表示されていれば修正版コードが実行されています');
@@ -3883,31 +3891,26 @@ function doGet(e) {
           住所: expandedParams.address
         });
         
-        // 🧪 CRITICAL: 関数の存在を確認してから実行
+        // 🧪 CRITICAL: saveFranchiseData関数を直接呼び出し
         var result;
-        console.log('🧪 関数呼び出し前チェック - typeof submitFranchiseRegistration:', typeof submitFranchiseRegistration);
+        console.log('🧪 関数呼び出し前チェック - typeof saveFranchiseData:', typeof saveFranchiseData);
         
-        if (typeof submitFranchiseRegistration === 'function') {
-          console.log('✅ submitFranchiseRegistration関数が見つかりました、実行します');
-          result = submitFranchiseRegistration(expandedParams);
-          console.log('🔥 submitFranchiseRegistration実行成功（最優先）:', JSON.stringify(result));
+        if (typeof saveFranchiseData === 'function') {
+          console.log('✅ saveFranchiseData関数が見つかりました、実行します');
+          result = saveFranchiseData(expandedParams);
+          console.log('🔥 saveFranchiseData実行成功（最優先）:', JSON.stringify(result));
         } else {
-          console.error('❌ CRITICAL: submitFranchiseRegistration関数が見つかりません！');
+          console.error('❌ CRITICAL: saveFranchiseData関数が見つかりません！');
           console.log('🔧 代替手段を試行します...');
           
           // 代替手段1: globalThisから直接取得
-          if (typeof globalThis.submitFranchiseRegistration === 'function') {
-            console.log('🔧 globalThisから関数を取得しました');
-            result = globalThis.submitFranchiseRegistration(expandedParams);
+          if (typeof globalThis.saveFranchiseData === 'function') {
+            console.log('🔧 globalThisからsaveFranchiseData関数を取得しました');
+            result = globalThis.saveFranchiseData(expandedParams);
           }
-          // 代替手段2: thisから取得
-          else if (typeof this.submitFranchiseRegistration === 'function') {
-            console.log('🔧 thisから関数を取得しました');
-            result = this.submitFranchiseRegistration(expandedParams);
-          }
-          // 代替手段3: 最小限の登録処理を直接実装
+          // 代替手段2: 最小限の登録処理を直接実装
           else {
-            console.log('🔧 代替関数を直接実行します');
+            console.log('🔧 最小限の代替処理を実行します');
             result = {
               success: false,
               error: 'submitFranchiseRegistration関数が見つかりません',
