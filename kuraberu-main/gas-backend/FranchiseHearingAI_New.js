@@ -2602,3 +2602,202 @@ function saveFranchiseData(data) {
     };
   }
 }
+
+/**
+ * GAS WebApp URLの一元管理
+ * @returns {string} 現在のGAS WebApp URL
+ */
+function getGasWebappUrl() {
+  try {
+    var properties = PropertiesService.getScriptProperties();
+    var url = properties.getProperty('GAS_WEBAPP_URL');
+    
+    console.log('🔍 GAS_WEBAPP_URL プロパティ確認:', url);
+    console.log('🔍 全プロパティ一覧:', JSON.stringify(properties.getProperties()));
+    
+    if (!url) {
+      console.log('⚠️ GAS_WEBAPP_URL未設定 - フォールバック使用');
+      // フォールバック: 現在のWebApp URLを自動取得
+      var currentUrl = ScriptApp.getService().getUrl();
+      console.log('🔄 自動取得URL:', currentUrl);
+      return currentUrl;
+    }
+    console.log('✅ 設定済みURL使用:', url);
+    return url;
+  } catch (error) {
+    console.error('❌ getGasWebappUrl エラー:', error);
+    // 緊急フォールバック
+    return 'https://script.google.com/macros/s/AKfycbw1v1mKcq6oR4ckXpndJIzFykqltC-1DYYBXNlgxFT8Wh7wEdVuANwFoTaV9IeT47OWRQ/exec';
+  }
+}
+
+/**
+ * 新規加盟店登録の管理者通知
+ */
+function notifyNewFranchiseRegistration(franchiseId, data) {
+  try {
+    console.log('📢 加盟店登録通知送信開始:', franchiseId);
+    
+    // 加盟店データを準備
+    var franchiseData = {
+      id: franchiseId,
+      name: data.companyName || data.legalName,
+      representative: data.representative || '未記載',
+      address: data.address || '未記載',
+      phone: data.phone || '未記載',
+      billingEmail: data.billingEmail || '未記載',
+      timestamp: data.timestamp || new Date()
+    };
+    
+    console.log('🔄 インタラクティブSlack通知送信中...');
+    
+    // 直接HTTP POSTでSlack Webhookに送信（承認ボタン付き）
+    var webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
+    
+    if (!webhookUrl) {
+      console.log('❌ SLACK_WEBHOOK_URL未設定');
+      return { success: false, error: 'WEBHOOK_URL_NOT_SET' };
+    }
+
+    var blockMessage = {
+      text: "新しい加盟店登録: " + franchiseData.name,
+      blocks: [
+        {
+          type: 'header',
+          text: {
+            type: 'plain_text',
+            text: '🏢 新規加盟店登録申請'
+          }
+        },
+        {
+          type: 'section',
+          fields: [
+            {
+              type: 'mrkdwn',
+              text: "*加盟店ID:*\n" + franchiseId
+            },
+            {
+              type: 'mrkdwn',
+              text: "*会社名:*\n" + franchiseData.name
+            },
+            {
+              type: 'mrkdwn',
+              text: "*代表者:*\n" + franchiseData.representative || '未記載'
+            },
+            {
+              type: 'mrkdwn',
+              text: "*電話番号:*\n" + franchiseData.phone || '未記載'
+            },
+            {
+              type: 'mrkdwn',
+              text: "*メール:*\n" + franchiseData.billingEmail || '未記載'
+            },
+            {
+              type: 'mrkdwn',
+              text: "*対応エリア:*\n" + data.priorityAreas || data.areasCompressed || '0地域'
+            },
+            {
+              type: 'mrkdwn',
+              text: "*登録日時:*\n" + new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })
+            }
+          ]
+        },
+        {
+          type: 'divider'
+        },
+        {
+          type: 'actions',
+          elements: [
+            {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: '🟢 承認'
+              },
+              style: 'primary',
+              url: getGasWebappUrl() + "?action=approveFranchise&franchiseId=" + franchiseId
+            },
+            {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: '🔴 却下'
+              },
+              style: 'danger',
+              url: getGasWebappUrl() + "?action=rejectFranchise&franchiseId=" + franchiseId
+            }
+          ]
+        },
+        {
+          type: 'context',
+          elements: [
+            {
+              type: 'mrkdwn',
+              text: "💡 ボタンをクリックして加盟店の承認・却下を行えます"
+            }
+          ]
+        }
+      ]
+    };
+    
+    // slack_integration_system.jsのsendSlackNotification関数を直接呼び出し
+    try {
+      console.log('📢 Slack通知処理開始');
+      var webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
+      console.log('🔍 SLACK_WEBHOOK_URL取得:', !!webhookUrl);
+      console.log('🔍 WebhookURL長:', webhookUrl ? webhookUrl.length : 0);
+      
+      if (!webhookUrl) {
+        throw new Error('SLACK_WEBHOOK_URLが設定されていません');
+      }
+      
+      var httpOptions = {
+        method: 'POST',
+        contentType: 'application/json',
+        payload: JSON.stringify(blockMessage),
+        muteHttpExceptions: true
+      };
+      
+      console.log('📤 Slack API呼び出し開始');
+      console.log('📦 送信データサイズ:', JSON.stringify(blockMessage).length, '文字');
+      
+      var response = UrlFetchApp.fetch(webhookUrl, httpOptions);
+      var responseCode = response.getResponseCode();
+      var responseText = response.getContentText();
+      
+      console.log('📥 Slack API応答:', responseCode);
+      console.log('📥 応答内容:', responseText);
+      
+      var result = {
+        success: responseCode === 200,
+        responseCode: responseCode,
+        responseText: responseText
+      };
+      
+      console.log('✅ Slack送信結果:', result);
+      
+      if (result.success) {
+        console.log('🎉 Slack通知送信成功！');
+      } else {
+        console.log('❌ Slack通知送信失敗:', result.responseCode, result.responseText);
+      }
+      
+    } catch (slackError) {
+      console.error('❌ Slack送信エラー:', slackError.message);
+      console.error('❌ エラースタック:', slackError.stack);
+      var result = { success: false, error: slackError.message };
+    }
+    
+    // Block Kitメッセージの送信結果を確認
+    if (result && result.success) {
+      console.log('✅ Block Kitメッセージ送信成功');
+    } else {
+      console.log('❌ Block Kitメッセージ送信失敗:', result);
+    }
+    
+    console.log('✅ 管理者通知送信完了');
+    
+  } catch (error) {
+    console.warn('⚠️ 管理者通知エラー:', error.message);
+  }
+}
