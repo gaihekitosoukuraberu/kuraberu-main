@@ -769,10 +769,20 @@
                     document.head.removeChild(script);
                     delete window[callbackName];
                     
-                    // 結果がない場合でも成功として扱う
+                    // 結果がない場合はエラーとして扱う
                     if (!result) {
-                        result = {success: true};
+                        console.error('❌ GASから無効なレスポンス');
+                        reject(new Error('GASから無効なレスポンスが返されました'));
+                        return;
                     }
+                    
+                    // successフィールドのチェック
+                    if (result.success === false) {
+                        console.error('❌ GASからエラーレスポンス:', result.error);
+                        reject(new Error(result.error || 'GAS処理でエラーが発生しました'));
+                        return;
+                    }
+                    
                     resolve(result);
                 };
                 
@@ -789,6 +799,9 @@
                 script.src = `${url}?${params}`;
                 
                 console.log('📏 URL長:', script.src.length, '文字');
+                console.log('🔗 完全なリクエストURL:', script.src);
+                console.log('🎯 アクション確認:', data.action);
+                console.log('📋 送信データ確認:', data);
                 
                 // 長すぎる場合は警告
                 if (script.src.length > 8000) {
@@ -796,10 +809,11 @@
                 }
                 
                 script.onerror = (error) => {
-                    console.error('❌ スクリプトエラー:', error);
+                    console.error('❌ スクリプト読み込みエラー:', error);
+                    console.error('❌ 失敗したURL:', script.src);
                     document.head.removeChild(script);
                     delete window[callbackName];
-                    reject(new Error('通信エラー'));
+                    reject(new Error('GAS通信エラー - スクリプト読み込み失敗'));
                 };
                 
                 document.head.appendChild(script);
@@ -807,10 +821,11 @@
                 // タイムアウト設定（15秒に延長）
                 setTimeout(() => {
                     if (window[callbackName]) {
-                        console.warn('⏱️ リクエストタイムアウト');
+                        console.error('⏱️ リクエストタイムアウト - GAS応答なし');
+                        console.error('⏱️ タイムアウトしたURL:', script.src);
                         document.head.removeChild(script);
                         delete window[callbackName];
-                        reject(new Error('タイムアウト'));
+                        reject(new Error('GAS通信タイムアウト - 15秒以内に応答がありませんでした'));
                     }
                 }, 15000); // 15秒
             });

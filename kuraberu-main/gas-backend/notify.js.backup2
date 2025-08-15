@@ -5,447 +5,6 @@
  * 最終更新: 2025-01-08 10:17 - generateSessionId修正完了
  */
 
-/**
- * 🚨 CRITICAL: 加盟店登録処理（最重要関数 - ファイル先頭に配置）
- * @param {Object} registrationData - 登録フォームデータ
- * @returns {Object} 登録結果
- */
-function submitFranchiseRegistration(registrationData) {
-  console.log('❌❌❌ ERROR: notify.jsのsubmitFranchiseRegistration関数が呼び出されました - これは想定外です！');
-  console.log('❌ この関数は無効化されています。FranchiseHearingAI_New.jsの関数を使用してください。');
-  return {
-    success: false,
-    error: 'DEPRECATED_FUNCTION_CALLED',
-    message: 'この関数は無効化されています。FranchiseHearingAI_New.jsのsaveFranchiseData関数を使用してください。'
-  };
-  
-  try {
-    console.log('🚨🚨🚨 [notify.gs] 加盟店登録処理開始 - 最新修正版コード実行中 🚨🚨🚨');
-    console.log('🚨 この行が表示されていれば修正版コードが実行されています');
-    console.log('📋 受信データの型:', typeof registrationData);
-    console.log('📋 受信データの値:', registrationData);
-    console.log('📋 受信データのキー:', Object.keys(registrationData || {}));
-    console.log('📋 圧縮データフラグ:', (registrationData && registrationData.isCompressed) ? registrationData.isCompressed : false);
-    console.log('📋 legalName:', (registrationData && registrationData.legalName) ? registrationData.legalName : 'undefined');
-    console.log('📋 companyName:', (registrationData && registrationData.companyName) ? registrationData.companyName : 'undefined');
-    console.log('🚨 重要: 最新修正版コードが実行されています (行番号6140付近)');
-    console.log('🚨 現在時刻:', new Date().toISOString());
-    
-    // 🔍 スタックトレースで呼び出し元を確認
-    console.log('🔍 STACK TRACE:');
-    try {
-      throw new Error('Stack trace');
-    } catch (e) {
-      console.log('🔍 スタック情報:', e.stack);
-    }
-    
-    // 🔍 環境情報をログ出力
-    console.log('🔍 GAS環境チェック:');
-    console.log('  - Session.getActiveUser():', Session.getActiveUser()?.getEmail() || 'N/A');
-    console.log('  - Session.getTemporaryActiveUserKey():', Session.getTemporaryActiveUserKey() || 'N/A');
-    console.log('  - ScriptApp.getOAuthToken() 存在:', !!ScriptApp.getOAuthToken());
-    console.log('  - PropertiesService利用可能:', !!PropertiesService);
-    console.log('  - SpreadsheetApp利用可能:', !!SpreadsheetApp);
-    console.log('  - DriveApp利用可能:', !!DriveApp);
-    
-    // 🔍 プロパティ設定をチェック
-    console.log('🔍 プロパティ設定チェック:');
-    var props = PropertiesService.getScriptProperties();
-    var spreadsheetId = props.getProperty('SPREADSHEET_ID');
-    var franchiseSpreadsheetId = props.getProperty('FRANCHISE_SPREADSHEET_ID');
-    console.log('  - SPREADSHEET_ID:', spreadsheetId ? '設定済み' : '未設定');
-    console.log('  - FRANCHISE_SPREADSHEET_ID:', franchiseSpreadsheetId ? '設定済み' : '未設定');
-    console.log('  - SPREADSHEET_ID値:', spreadsheetId);
-    console.log('  - FRANCHISE_SPREADSHEET_ID値:', franchiseSpreadsheetId);
-    
-    if (!registrationData) {
-      throw new Error('登録データが空です');
-    }
-    
-    // 1. データ処理（doGetで既に展開済みの場合はそのまま使用）
-    var processedData = { ...registrationData };
-    console.log('📋 データ処理開始 - isCompressed:', registrationData.isCompressed);
-    
-    // doGetから来た場合、既に展開済みなのでそのまま使用
-    // isCompressedフラグは通常設定されないので、スキップされる
-    if (registrationData.isCompressed === true) {
-      console.log('🗜️ 圧縮データ展開処理開始');
-      processedData = decompressRegistrationData(registrationData);
-      console.log('✅ 圧縮データ展開完了');
-    } else {
-      console.log('📋 データはすでに展開済み（doGetで処理済み）');
-    }
-    
-    // 登録日時を追加
-    processedData.registrationDate = new Date();
-    
-    // 2. データ検証
-    var validation = validateRegistrationData(processedData);
-    if (!validation.success) {
-      throw new Error("データ検証エラー: " + validation.error);
-    }
-    console.log('✅ データ検証完了');
-    
-    // 3. 加盟店IDを生成（1つのIDのみ使用）
-    console.log('🏷️ 加盟店ID生成中...');
-    var franchiseId = generateFranchiseId();
-    console.log('✅ 生成された加盟店ID:', franchiseId);
-    
-    // 4. スプレッドシートに保存（notify.gs内で直接処理）
-    console.log('💾 スプレッドシート保存開始...');
-    
-    var SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID') ||
-                          PropertiesService.getScriptProperties().getProperty('FRANCHISE_SPREADSHEET_ID');
-    console.log('🔍 デバッグ: SPREADSHEET_ID =', SPREADSHEET_ID);
-    if (!SPREADSHEET_ID) {
-      throw new Error('SPREADSHEET_IDが設定されていません');
-    }
-    
-    var spreadsheet, sheet;
-    try {
-      console.log('🔍 スプレッドシートアクセス開始（修正版）');
-      console.log('🔍 使用するSPREADSHEET_ID:', SPREADSHEET_ID);
-      
-      // 🚨 新しいアプローチ: 複数の方法でアクセス試行
-      var accessSuccess = false;
-      var lastError = null;
-      
-      // 方法1: DriveApp経由でアクセス権限チェック
-      console.log('🔍 【方法1】DriveApp経由でアクセス権限チェック');
-      try {
-        var file = DriveApp.getFileById(SPREADSHEET_ID);
-        console.log('✅ DriveApp.getFileById成功:', file.getName());
-        console.log('✅ ファイル所有者:', file.getOwner().getEmail());
-        
-        // DriveApp成功後にSpreadsheetApp.openById
-        spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
-        console.log('✅ DriveApp経由でSpreadsheetApp.openById成功');
-        accessSuccess = true;
-      } catch (driveError) {
-        console.log('❌ DriveApp経由失敗:', driveError.message);
-        lastError = driveError;
-      }
-      
-      // 方法2: 直接SpreadsheetApp.openById
-      if (!accessSuccess) {
-        console.log('🔍 【方法2】直接SpreadsheetApp.openById試行');
-        try {
-          spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
-          console.log('✅ 直接SpreadsheetApp.openById成功');
-          accessSuccess = true;
-        } catch (directError) {
-          console.log('❌ 直接SpreadsheetApp.openById失敗:', directError.message);
-          lastError = directError;
-        }
-      }
-      
-      // 方法3: getActiveSpreadsheet（最後の手段）
-      if (!accessSuccess) {
-        console.log('🔍 【方法3】getActiveSpreadsheet試行');
-        try {
-          spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-          console.log('✅ getActiveSpreadsheet成功:', spreadsheet.getName());
-          console.log('✅ アクティブスプレッドシートID:', spreadsheet.getId());
-          
-          // IDが一致するかチェック
-          if (spreadsheet.getId() === SPREADSHEET_ID) {
-            console.log('✅ アクティブスプレッドシートIDが一致');
-            accessSuccess = true;
-          } else {
-            console.log('⚠️ アクティブスプレッドシートIDが不一致');
-            console.log('期待:', SPREADSHEET_ID);
-            console.log('実際:', spreadsheet.getId());
-          }
-        } catch (activeError) {
-          console.log('❌ getActiveSpreadsheet失敗:', activeError.message);
-          lastError = activeError;
-        }
-      }
-      
-      // 方法4: 緊急時代替 - プロパティから別のIDを試す
-      if (!accessSuccess) {
-        console.log('🔍 【方法4】代替IDでアクセス試行');
-        var altIds = [
-          PropertiesService.getScriptProperties().getProperty('FRANCHISE_SPREADSHEET_ID'),
-          PropertiesService.getScriptProperties().getProperty('MAIN_SPREADSHEET_ID'),
-          PropertiesService.getScriptProperties().getProperty('BACKUP_SPREADSHEET_ID')
-        ].filter(id => id && id !== SPREADSHEET_ID);
-        
-        for (var i = 0; i < altIds.length; i++) {
-          var altId = altIds[i];
-          try {
-            console.log('🔍 代替ID試行:', altId);
-            spreadsheet = SpreadsheetApp.openById(altId);
-            console.log('✅ 代替IDでアクセス成功:', altId);
-            accessSuccess = true;
-            break;
-          } catch (altError) {
-            console.log('❌ 代替IDでアクセス失敗:', altError.message);
-          }
-        }
-      }
-      
-      if (!accessSuccess) {
-        throw new Error('全ての方法でスプレッドシートアクセス失敗: ' + (lastError ? lastError.message : '不明'));
-      }
-      
-      console.log('🔍 getSheetByName呼び出し開始');
-      sheet = spreadsheet.getSheetByName('加盟店登録');
-      
-      if (!sheet) {
-        console.log('⚠️ 加盟店登録シートが見つからない、作成します');
-        sheet = createFranchiseRegistrationSheet(spreadsheet);
-      }
-      console.log('✅ シート取得成功');
-    } catch (spreadsheetError) {
-      console.error('❌ スプレッドシートアクセスエラー:', spreadsheetError.message);
-      console.error('❌ エラー詳細:', spreadsheetError.toString());
-      console.error('❌ エラースタック:', spreadsheetError.stack);
-      
-      throw new Error('スプレッドシートアクセスエラー: ' + spreadsheetError.message);
-    }
-    
-    if (!sheet) {
-      throw new Error('加盟店登録シートが見つかりません');
-    }
-    
-    // 共通クリーニング関数（数字のみ抽出、先頭'で文字列として保存）
-    function cleanNumericField(value) {
-      if (!value) return '';
-      if (Array.isArray(value)) value = value[0] || '';
-      var cleaned = value.toString().replace(/[^\d]/g, ''); // 数字以外を除去
-      // 電話番号の場合、先頭に0がない場合は追加
-      if (cleaned && cleaned.length >= 9 && !cleaned.startsWith('0')) {
-        cleaned = '0' + cleaned;
-      }
-      return "'" + cleaned; // 先頭'で文字列として保存
-    }
-    
-    // 後方互換性のためのエイリアス
-    function cleanPhoneNumber(phone) {
-      return cleanNumericField(phone);
-    }
-    
-    function cleanPostalCode(postalCode) {
-      return cleanNumericField(postalCode);
-    }
-    
-    // サービスコード展開（圧縮されたコードを日本語に戻す）
-    function decompressServiceList(compressedCodes) {
-      if (!compressedCodes) return '';
-      
-      var serviceMap = {
-        // 施工箇所マップ
-        'A1': '外壁塗装のみ',
-        'A2': '屋根塗装のみ', 
-        'A3': '外壁・屋根塗装',
-        'B1': '屋根塗装（外壁工事含む）',
-        'B2': '外壁張り替え・重ね張り',
-        'B3': '屋根葺き替え・重ね葺き',
-        'B4': '雨樋工事',
-        'B5': 'ベランダ・バルコニー防水',
-        'C1': 'エクステリア・外構工事',
-        'C2': 'その他外装リフォーム',
-        
-        // 特殊対応項目マップ
-        'F1': '夜間・早朝対応可能',
-        'F2': '立ち会いなし・見積もり手渡し希望',
-        'F3': '遠方につき立ち会いなし・見積もり郵送・電話で商談希望',
-        'F4': '外国語対応可能（英語・中国語等）',
-        'F5': '高齢者・身体不自由な方への配慮',
-        'F6': 'ペット飼育世帯への特別配慮'
-      };
-      
-      // 配列の場合は文字列として結合
-      if (Array.isArray(compressedCodes)) {
-        return compressedCodes.join(', ');
-      }
-      
-      // 文字列の場合はコード展開処理
-      if (typeof compressedCodes === 'string') {
-        return compressedCodes.split(',').map(code => 
-          serviceMap[code.trim()] || code.trim()
-        ).join(', ');
-      }
-      
-      return compressedCodes;
-    }
-    
-    // データ配列を作成（A-AG列まで33列）
-    console.log('📊 スプレッドシート保存データ準備中...');
-    console.log('📋 受信データ詳細:', {
-      legalName: processedData.legalName,
-      areasCompressed: processedData.areasCompressed ? processedData.areasCompressed.length + '文字' : 'なし',
-      serviceAreas: processedData.serviceAreas ? processedData.serviceAreas.length + '文字' : 'なし',
-      branches: processedData.branches || processedData.branchInfo
-    });
-    
-    var now = new Date();
-    var rowData = [
-      franchiseId,                                        // A: 加盟店ID（画面表示と同じID）
-      Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyy/MM/dd HH:mm:ss'), // B: タイムスタンプ
-      processedData.legalName || '',                   // C: 会社名
-      processedData.legalNameKana || '',               // D: 会社名カナ
-      processedData.representative || '',              // E: 代表者名
-      processedData.representativeKana || '',          // F: 代表者カナ
-      cleanPostalCode(processedData.postalCode),       // G: 郵便番号（ハイフンなし）
-      processedData.address || '',                     // H: 住所
-      cleanPhoneNumber(processedData.phone),           // I: 電話番号
-      processedData.websiteUrl || '',                  // J: ウェブサイトURL
-      processedData.employees || '',                   // K: 従業員数
-      processedData.revenue || '',                     // L: 売上規模
-      processedData.billingEmail || '',                // M: 請求用メールアドレス
-      processedData.salesEmail || '',                  // N: 営業用メールアドレス
-      processedData.salesPersonName || '',             // O: 営業担当者氏名
-      processedData.salesPersonContact || processedData.salesPersonPhone || '',          // P: 営業担当者連絡先
-      Array.isArray(processedData.propertyTypes) ? processedData.propertyTypes.join(', ') : (processedData.propertyTypes || '戸建て3階、アパート・マンション10階、倉庫・店舗3階'), // Q: 対応物件種別・階数
-      (function() {
-        console.log('施工エリア:', processedData.constructionAreas?.length || 0, '件');
-        var result = decompressServiceList(processedData.constructionAreas) || '';
-        return result;
-      })(),           // R: 施工箇所
-      (function() {
-        console.log('特殊サービス:', processedData.specialServices?.length || 0, '件');
-        var result = decompressServiceList(processedData.specialServices) || '';
-        return result;
-      })(),             // S: 特殊対応項目
-      processedData.buildingAgeRange || '',            // T: 築年数対応範囲
-      processedData.tradeName || '',                   // U: 屋号
-      processedData.tradeNameKana || '',               // V: 屋号カナ
-      processedData.branchInfo || '',                  // W: 支店情報
-      processedData.establishedDate || '',             // X: 設立年月日
-      processedData.companyPR || '',                   // Y: 特徴・PR文
-      (function() {
-        // 対応エリアを圧縮形式で保存（文字数制限対応）
-        var areas = processedData.areasCompressed || processedData.areas || '';
-        if (typeof areas === 'string' && areas.length > 5000) {
-          // 5000文字を超える場合は主要都市のみに短縮
-          console.log('⚠️ 対応エリアが長すぎるため短縮:', areas.length, '文字');
-          return areas.substring(0, 5000) + '...';
-        }
-        return areas;
-      })(),                                             // Z: 対応エリア（圧縮・制限付き）
-      (function() {
-        // 優先対応エリアも文字数制限
-        var priority = processedData.priorityAreas || '';
-        if (typeof priority === 'string' && priority.length > 1000) {
-          console.log('⚠️ 優先エリアが長すぎるため短縮:', priority.length, '文字');
-          return priority.substring(0, 1000) + '...';
-        }
-        return priority;
-      })(),                                             // AA: 優先対応エリア（制限付き）
-      Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyy/MM/dd HH:mm:ss'), // AB: 登録日
-      '',                                                 // AC: 最終ログイン日時
-      '審査待ち',                                         // AD: ステータス
-      '',                                                 // AE: 審査担当者
-      '',                                                 // AF: 審査完了日
-      ''                                                  // AG: 備考
-    ];
-    
-    // 【CRITICAL FIX】2行目から順番に空き行を探して挿入
-    console.log('🔍 DEBUG: rowDataの長さ:', rowData.length);
-    console.log('🔍 DEBUG: スプレッドシート名:', spreadsheet.getName());
-    console.log('🔍 DEBUG: シート名:', sheet.getName());
-    
-    // 2行目から順番に空き行を探す
-    var lastRow = sheet.getLastRow();
-    console.log('🔍 CRITICAL: 現在の最終行:', lastRow);
-    
-    var targetRow = lastRow + 1; // デフォルトは最後に追加
-    
-    // 2行目から順番にチェックして空き行を探す
-    for (var row = 2; row <= lastRow; row++) {
-      var cellValue = sheet.getRange(row, 1).getValue();
-      if (!cellValue || cellValue === '') {
-        targetRow = row;
-        console.log('🔍 CRITICAL: 空き行発見 - 行番号:', targetRow);
-        break;
-      }
-    }
-    
-    console.log('🔍 CRITICAL: 最終書き込み先行番号:', targetRow);
-    
-    // スプレッドシート書き込み実行
-    try {
-      console.log('📝 スプレッドシート書き込み開始...');
-      sheet.getRange(targetRow, 1, 1, rowData.length).setValues([rowData]);
-      console.log('✅ スプレッドシート書き込み成功');
-      
-      // 書き込み確認
-      var writtenData = sheet.getRange(targetRow, 1, 1, 3).getValues()[0];
-      console.log('🔍 書き込み確認 - A列:', writtenData[0], 'B列:', writtenData[1], 'C列:', writtenData[2]);
-      
-    } catch (writeError) {
-      console.error('❌ スプレッドシート書き込みエラー:', writeError.message);
-      console.error('❌ 書き込みエラー詳細:', writeError.toString());
-      console.error('❌ 書き込みエラースタック:', writeError.stack);
-      throw new Error('スプレッドシート書き込み失敗: ' + writeError.message);
-    }
-    
-    console.log('✅ スプレッドシート保存完了 - Q列から Y列まで正しく保存');
-    
-    // 5. 管理者に通知（Slack等）
-    try {
-      console.log('📢 管理者通知送信中...');
-      console.log('🔍 通知対象加盟店ID:', franchiseId);
-      console.log('🔍 通知データ:', JSON.stringify(processedData, null, 2));
-      
-      // 重複通知を防ぐため、プロパティを設定
-      PropertiesService.getScriptProperties().setProperty('LAST_FRANCHISE_NOTIFIED', franchiseId);
-      
-      console.log('📤 notifyNewFranchiseRegistration関数呼び出し開始');
-      notifyNewFranchiseRegistration(franchiseId, processedData);
-      console.log('✅ 管理者通知完了');
-      
-    } catch (notifyError) {
-      console.error('❌ 管理者通知エラー（登録は継続）:', notifyError.message);
-      console.error('❌ 通知エラー詳細:', notifyError.toString());
-      console.error('❌ 通知エラースタック:', notifyError.stack);
-      
-      // エラー詳細をプロパティに保存
-      try {
-        PropertiesService.getScriptProperties().setProperty('LAST_NOTIFICATION_ERROR', notifyError.message);
-        PropertiesService.getScriptProperties().setProperty('LAST_NOTIFICATION_ERROR_TIME', new Date().toISOString());
-      } catch (e) {
-        console.error('❌ エラー保存失敗:', e.message);
-      }
-    }
-    
-    console.log('✅ 加盟店登録完了:', franchiseId);
-    console.log('🔍 DEBUG: レスポンスで返すID:', franchiseId);
-    
-    return {
-      success: true,
-      franchiseId: franchiseId,
-      message: '加盟店登録が正常に完了しました',
-      timestamp: new Date().toISOString(),
-      compressed: registrationData?.isCompressed || false
-    };
-    
-  } catch (error) {
-    console.error('❌ 加盟店登録エラー:', error.message);
-    console.error('❌ エラースタック:', error.stack);
-    
-    // エラーをプロパティに保存（デバッグ用）
-    try {
-      PropertiesService.getScriptProperties().setProperty('LAST_ERROR', error.message);
-      PropertiesService.getScriptProperties().setProperty('LAST_ERROR_STACK', error.stack || 'スタックなし');
-      PropertiesService.getScriptProperties().setProperty('LAST_ERROR_TIME', new Date().toISOString());
-      console.log('🔍 エラープロパティ保存完了');
-    } catch (propError) {
-      console.error('❌ プロパティ保存エラー:', propError.message);
-    }
-    
-    return {
-      success: false,
-      error: error.message,
-      stack: error.stack,
-      timestamp: new Date().toISOString(),
-      debugInfo: 'submitFranchiseRegistration関数内エラー'
-    };
-  }
-}
-
 // ===================
 // GAS WebApp API統合 & URL一元管理
 // ===================
@@ -459,172 +18,6 @@ function generateSessionId() {
   var random = Math.random().toString(36).substring(2, 8);
   return "HEARING_" + timestamp + "_" + random;
 }
-
-/**
- * 🔧 CRITICAL: 必要な依存関数群（submitFranchiseRegistration用）
- */
-
-/**
- * 登録データの検証（簡易版）
- */
-function validateRegistrationData(data) {
-  try {
-    console.log('🔍 バリデーション開始 - 受信データ:', JSON.stringify(data, null, 2));
-    
-    // テスト用に必須フィールドを最小限に制限
-    var requiredFields = [
-      'legalName', 'representative', 'address', 'phone'
-    ];
-    
-    console.log('🔍 必須フィールド:', requiredFields);
-    
-    var missingFields = [];
-    
-    for (var i = 0; i < requiredFields.length; i++) {
-      var field = requiredFields[i];
-      var hasValue = false;
-      
-      if (field === 'legalName') {
-        // legalNameまたはcompanyNameがあればOK
-        hasValue = !!(data.legalName || data.companyName);
-      } else if (field === 'phone') {
-        // 電話番号は配列の場合もある
-        hasValue = !!(Array.isArray(data[field]) ? data[field][0] : data[field]);
-      } else if (field === 'salesPersonContact') {
-        // salesPersonContactの代替フィールドをチェック
-        hasValue = !!(data[field] || data.salesPersonPhone || data.salesPersonContact);
-      } else {
-        hasValue = !!(data[field] && (typeof data[field] !== 'string' || data[field].trim() !== ''));
-      }
-      
-      if (!hasValue) {
-        missingFields.push(field);
-      }
-    }
-    
-    if (missingFields.length > 0) {
-      return {
-        success: false,
-        error: "必須項目が不足: " + missingFields.join(', ')
-      };
-    }
-    
-    // メールアドレス形式チェック
-    var emailFields = ['billingEmail', 'salesEmail'];
-    for (var i = 0; i < emailFields.length; i++) {
-      var field = emailFields[i];
-      if (data[field] && !isValidEmail(data[field])) {
-        return {
-          success: false,
-          error: "メールアドレス形式が不正: " + field
-        };
-      }
-    }
-    
-    return { success: true };
-    
-  } catch (error) {
-    return {
-      success: false,
-      error: "検証処理エラー: " + error.message
-    };
-  }
-}
-
-/**
- * メールアドレス形式チェック
- */
-function isValidEmail(email) {
-  var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
-/**
- * 加盟店ID生成
- */
-function generateFranchiseId() {
-  var timestamp = new Date().getTime();
-  var random = Math.floor(Math.random() * 1000);
-  return 'FR' + timestamp + '_' + random;
-}
-
-/**
- * 加盟店登録シート作成（簡易版）
- */
-function createFranchiseRegistrationSheet(spreadsheet) {
-  try {
-    console.log('📄 加盟店登録シート作成開始');
-    var sheet = spreadsheet.insertSheet('加盟店登録');
-    
-    // ヘッダー行を設定
-    var headers = [
-      '加盟店ID', 'タイムスタンプ', '法人名', '法人名カナ', '代表者名', '代表者カナ',
-      '郵便番号', '住所', '電話番号', 'ウェブサイトURL', '従業員数', '売上規模',
-      '請求用メール', '営業用メール', '営業担当者氏名', '営業担当者連絡先',
-      '対応物件種別', '施工箇所', '特殊対応項目', '築年数対応範囲',
-      '屋号', '屋号カナ', '支店情報', '設立年月日', '特徴・PR文',
-      '対応エリア', '優先対応エリア', '登録日', '最終ログイン日時',
-      'ステータス', '審査担当者', '審査完了日', '備考'
-    ];
-    
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    console.log('✅ ヘッダー行設定完了');
-    
-    return sheet;
-  } catch (error) {
-    console.error('❌ シート作成エラー:', error);
-    throw error;
-  }
-}
-
-/**
- * 新規加盟店登録通知（簡易版）
- */
-function notifyNewFranchiseRegistration(franchiseId, data) {
-  try {
-    console.log('📢 加盟店登録通知開始 - ID:', franchiseId);
-    
-    // Slack通知のみ実装（簡易版）
-    var message = '🎉 新規加盟店登録\n';
-    message += '加盟店ID: ' + franchiseId + '\n';
-    message += '会社名: ' + (data.legalName || data.companyName || '不明') + '\n';
-    message += '代表者: ' + (data.representative || '不明') + '\n';
-    message += '住所: ' + (data.address || '不明') + '\n';
-    message += '登録日時: ' + new Date().toLocaleString('ja-JP');
-    
-    try {
-      sendSlackNotification(message);
-      console.log('✅ Slack通知送信完了');
-    } catch (slackError) {
-      console.warn('⚠️ Slack通知失敗:', slackError.message);
-    }
-    
-    return { success: true, message: '通知送信完了' };
-  } catch (error) {
-    console.error('❌ 通知送信エラー:', error);
-    return { success: false, error: error.message };
-  }
-}
-
-/**
- * 圧縮データ展開（簡易版）
- */
-function decompressRegistrationData(compressedData) {
-  try {
-    console.log('🗜️ 圧縮データ展開開始（簡易版）:', compressedData);
-    
-    // 基本データをそのまま返す（展開処理は省略）
-    var decompressedData = { ...compressedData };
-    
-    console.log('✅ 圧縮データ展開完了（簡易版）');
-    return decompressedData;
-    
-  } catch (error) {
-    console.error('❌ 圧縮データ展開エラー:', error);
-    return compressedData; // 展開に失敗した場合は元データを返す
-  }
-}
-
 
 /**
  * GAS WebApp URLの一元管理
@@ -2067,6 +1460,32 @@ function doPost(e) {
         }
         break;
       
+      // 🎯 加盟店登録システム（新規追加）
+      case 'submitFranchiseRegistration':
+        console.log('🔥 CRITICAL: submitFranchiseRegistration ケースに到達しました!');
+        console.log('🔥 受信パラメータ:', JSON.stringify(parameters, null, 2));
+        
+        try {
+          // saveFranchiseData関数を直接呼び出す
+          result = saveFranchiseData(parameters);
+          console.log('✅ saveFranchiseData成功:', JSON.stringify(result, null, 2));
+          
+          if (!result || !result.success) {
+            throw new Error(result.error || '登録処理が失敗しました');
+          }
+          
+        } catch (error) {
+          console.error('❌ saveFranchiseData エラー:', error);
+          console.error('❌ エラースタック:', error.stack);
+          result = {
+            success: false,
+            error: error.message || '登録処理でエラーが発生しました'
+          };
+        }
+        
+        console.log('🔥 submitFranchiseRegistration処理完了');
+        console.log('📝 加盟店登録API結果:', JSON.stringify(result, null, 2));
+        break;
       
       // GAS URL取得（プロパティから）
       case 'getGasUrl':
@@ -3335,16 +2754,12 @@ function startAIHearing(params) {
     
     var searchResults;
     try {
-      
-      // performWebSearchAndScrapingの存在確認と実行
-      console.log('🔍 performWebSearchAndScraping関数の型:', typeof performWebSearchAndScraping);
+      // performWebSearchAndScrapingの存在確認
       if (typeof performWebSearchAndScraping !== 'function') {
-        console.error('❌ performWebSearchAndScraping関数が見つかりません');
         throw new Error('performWebSearchAndScraping関数が定義されていません');
       }
       
       searchResults = performWebSearchAndScraping(companyName);
-      Logger.log("✅ Web検索完了: " + (searchResults ? searchResults.length + '文字のデータ取得' : 'データなし'));
       console.log("✅ Web検索結果:", searchResults ? searchResults.length + '文字' : 'null');
       
       if (!searchResults) {
@@ -3619,6 +3034,452 @@ function convertToKatakana(text) {
 /**
  * GETリクエストハンドラー
  */
+// =============================================================================
+// 🎯 加盟店登録システム（新規実装）
+// =============================================================================
+
+/**
+ * 加盟店登録メイン処理
+ * @param {Object} registrationData - 登録フォームデータ
+ * @returns {Object} 登録結果
+ */
+function submitFranchiseRegistration(registrationData) {
+  try {
+    console.log('🚨🚨🚨 [notify.gs] 加盟店登録処理開始 - 最新修正版コード実行中 🚨🚨🚨');
+    console.log('🚨 この行が表示されていれば修正版コードが実行されています');
+    console.log('📋 受信データの型:', typeof registrationData);
+    console.log('📋 受信データの値:', registrationData);
+    console.log('📋 受信データのキー:', Object.keys(registrationData || {}));
+    console.log('📋 圧縮データフラグ:', (registrationData && registrationData.isCompressed) ? registrationData.isCompressed : false);
+    console.log('📋 legalName:', (registrationData && registrationData.legalName) ? registrationData.legalName : 'undefined');
+    console.log('📋 companyName:', (registrationData && registrationData.companyName) ? registrationData.companyName : 'undefined');
+    console.log('🚨 重要: 最新修正版コードが実行されています (行番号6140付近)');
+    console.log('🚨 現在時刻:', new Date().toISOString());
+    
+    // 🔍 スタックトレースで呼び出し元を確認
+    console.log('🔍 STACK TRACE:');
+    try {
+      throw new Error('Stack trace');
+    } catch (e) {
+      console.log('🔍 スタック情報:', e.stack);
+    }
+    
+    // 🔍 環境情報をログ出力
+    console.log('🔍 GAS環境チェック:');
+    console.log('  - Session.getActiveUser():', Session.getActiveUser()?.getEmail() || 'N/A');
+    console.log('  - Session.getTemporaryActiveUserKey():', Session.getTemporaryActiveUserKey() || 'N/A');
+    console.log('  - ScriptApp.getOAuthToken() 存在:', !!ScriptApp.getOAuthToken());
+    console.log('  - PropertiesService利用可能:', !!PropertiesService);
+    console.log('  - SpreadsheetApp利用可能:', !!SpreadsheetApp);
+    console.log('  - DriveApp利用可能:', !!DriveApp);
+    
+    // 🔍 プロパティ設定をチェック
+    console.log('🔍 プロパティ設定チェック:');
+    var props = PropertiesService.getScriptProperties();
+    var spreadsheetId = props.getProperty('SPREADSHEET_ID');
+    var franchiseSpreadsheetId = props.getProperty('FRANCHISE_SPREADSHEET_ID');
+    console.log('  - SPREADSHEET_ID:', spreadsheetId ? '設定済み' : '未設定');
+    console.log('  - FRANCHISE_SPREADSHEET_ID:', franchiseSpreadsheetId ? '設定済み' : '未設定');
+    console.log('  - SPREADSHEET_ID値:', spreadsheetId);
+    console.log('  - FRANCHISE_SPREADSHEET_ID値:', franchiseSpreadsheetId);
+    
+    if (!registrationData) {
+      throw new Error('登録データが空です');
+    }
+    
+    // 1. データ処理（doGetで既に展開済みの場合はそのまま使用）
+    var processedData = { ...registrationData };
+    console.log('📋 データ処理開始 - isCompressed:', registrationData.isCompressed);
+    
+    // doGetから来た場合、既に展開済みなのでそのまま使用
+    // isCompressedフラグは通常設定されないので、スキップされる
+    if (registrationData.isCompressed === true) {
+      console.log('🗜️ 圧縮データ展開処理開始');
+      processedData = decompressRegistrationData(registrationData);
+      console.log('✅ 圧縮データ展開完了');
+    } else {
+      console.log('📋 データはすでに展開済み（doGetで処理済み）');
+    }
+    
+    // 登録日時を追加
+    processedData.registrationDate = new Date();
+    
+    // 2. データ検証
+    var validation = validateRegistrationData(processedData);
+    if (!validation.success) {
+      throw new Error("データ検証エラー: " + validation.error);
+    }
+    console.log('✅ データ検証完了');
+    
+    // 3. 加盟店IDを生成（1つのIDのみ使用）
+    console.log('🏷️ 加盟店ID生成中...');
+    var franchiseId = generateFranchiseId();
+    console.log('✅ 生成された加盟店ID:', franchiseId);
+    
+    // 4. スプレッドシートに保存（notify.gs内で直接処理）
+    console.log('💾 スプレッドシート保存開始...');
+    
+    var SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID') ||
+                          PropertiesService.getScriptProperties().getProperty('FRANCHISE_SPREADSHEET_ID');
+    console.log('🔍 デバッグ: SPREADSHEET_ID =', SPREADSHEET_ID);
+    if (!SPREADSHEET_ID) {
+      throw new Error('SPREADSHEET_IDが設定されていません');
+    }
+    
+    var spreadsheet, sheet;
+    try {
+      console.log('🔍 スプレッドシートアクセス開始（修正版）');
+      console.log('🔍 使用するSPREADSHEET_ID:', SPREADSHEET_ID);
+      
+      // 🚨 新しいアプローチ: 複数の方法でアクセス試行
+      var accessSuccess = false;
+      var lastError = null;
+      
+      // 方法1: DriveApp経由でアクセス権限チェック
+      console.log('🔍 【方法1】DriveApp経由でアクセス権限チェック');
+      try {
+        var file = DriveApp.getFileById(SPREADSHEET_ID);
+        console.log('✅ DriveApp.getFileById成功:', file.getName());
+        console.log('✅ ファイル所有者:', file.getOwner().getEmail());
+        
+        // DriveApp成功後にSpreadsheetApp.openById
+        spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+        console.log('✅ DriveApp経由でSpreadsheetApp.openById成功');
+        accessSuccess = true;
+      } catch (driveError) {
+        console.log('❌ DriveApp経由失敗:', driveError.message);
+        lastError = driveError;
+      }
+      
+      // 方法2: 直接SpreadsheetApp.openById
+      if (!accessSuccess) {
+        console.log('🔍 【方法2】直接SpreadsheetApp.openById試行');
+        try {
+          spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+          console.log('✅ 直接SpreadsheetApp.openById成功');
+          accessSuccess = true;
+        } catch (directError) {
+          console.log('❌ 直接SpreadsheetApp.openById失敗:', directError.message);
+          lastError = directError;
+        }
+      }
+      
+      // 方法3: getActiveSpreadsheet（最後の手段）
+      if (!accessSuccess) {
+        console.log('🔍 【方法3】getActiveSpreadsheet試行');
+        try {
+          spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+          console.log('✅ getActiveSpreadsheet成功:', spreadsheet.getName());
+          console.log('✅ アクティブスプレッドシートID:', spreadsheet.getId());
+          
+          // IDが一致するかチェック
+          if (spreadsheet.getId() === SPREADSHEET_ID) {
+            console.log('✅ アクティブスプレッドシートIDが一致');
+            accessSuccess = true;
+          } else {
+            console.log('⚠️ アクティブスプレッドシートIDが不一致');
+            console.log('期待:', SPREADSHEET_ID);
+            console.log('実際:', spreadsheet.getId());
+          }
+        } catch (activeError) {
+          console.log('❌ getActiveSpreadsheet失敗:', activeError.message);
+          lastError = activeError;
+        }
+      }
+      
+      // 方法4: 緊急時代替 - プロパティから別のIDを試す
+      if (!accessSuccess) {
+        console.log('🔍 【方法4】代替IDでアクセス試行');
+        var altIds = [
+          PropertiesService.getScriptProperties().getProperty('FRANCHISE_SPREADSHEET_ID'),
+          PropertiesService.getScriptProperties().getProperty('MAIN_SPREADSHEET_ID'),
+          PropertiesService.getScriptProperties().getProperty('BACKUP_SPREADSHEET_ID')
+        ].filter(id => id && id !== SPREADSHEET_ID);
+        
+        for (var i = 0; i < altIds.length; i++) {
+          var altId = altIds[i];
+          try {
+            console.log('🔍 代替ID試行:', altId);
+            spreadsheet = SpreadsheetApp.openById(altId);
+            console.log('✅ 代替IDでアクセス成功:', altId);
+            accessSuccess = true;
+            break;
+          } catch (altError) {
+            console.log('❌ 代替IDでアクセス失敗:', altError.message);
+          }
+        }
+      }
+      
+      if (!accessSuccess) {
+        throw new Error('全ての方法でスプレッドシートアクセス失敗: ' + (lastError ? lastError.message : '不明'));
+      }
+      
+      console.log('🔍 getSheetByName呼び出し開始');
+      sheet = spreadsheet.getSheetByName('加盟店登録');
+      
+      if (!sheet) {
+        console.log('⚠️ 加盟店登録シートが見つからない、作成します');
+        sheet = createFranchiseRegistrationSheet(spreadsheet);
+      }
+      console.log('✅ シート取得成功');
+    } catch (spreadsheetError) {
+      console.error('❌ スプレッドシートアクセスエラー:', spreadsheetError.message);
+      console.error('❌ エラー詳細:', spreadsheetError.toString());
+      console.error('❌ エラースタック:', spreadsheetError.stack);
+      
+      throw new Error('スプレッドシートアクセスエラー: ' + spreadsheetError.message);
+    }
+    
+    if (!sheet) {
+      throw new Error('加盟店登録シートが見つかりません');
+    }
+    
+    // 共通クリーニング関数（数字のみ抽出、先頭'で文字列として保存）
+    function cleanNumericField(value) {
+      if (!value) return '';
+      if (Array.isArray(value)) value = value[0] || '';
+      var cleaned = value.toString().replace(/[^\d]/g, ''); // 数字以外を除去
+      // 電話番号の場合、先頭に0がない場合は追加
+      if (cleaned && cleaned.length >= 9 && !cleaned.startsWith('0')) {
+        cleaned = '0' + cleaned;
+      }
+      return "'" + cleaned; // 先頭'で文字列として保存
+    }
+    
+    // 後方互換性のためのエイリアス
+    function cleanPhoneNumber(phone) {
+      return cleanNumericField(phone);
+    }
+    
+    function cleanPostalCode(postalCode) {
+      return cleanNumericField(postalCode);
+    }
+    
+    // サービスコード展開（圧縮されたコードを日本語に戻す）
+    function decompressServiceList(compressedCodes) {
+      if (!compressedCodes) return '';
+      
+      var serviceMap = {
+        // 施工箇所マップ
+        'A1': '外壁塗装のみ',
+        'A2': '屋根塗装のみ', 
+        'A3': '外壁・屋根塗装',
+        'B1': '屋根塗装（外壁工事含む）',
+        'B2': '外壁張り替え・重ね張り',
+        'B3': '屋根葺き替え・重ね葺き',
+        'B4': '雨樋工事',
+        'B5': 'ベランダ・バルコニー防水',
+        'C1': 'エクステリア・外構工事',
+        'C2': 'その他外装リフォーム',
+        
+        // 特殊対応項目マップ
+        'F1': '夜間・早朝対応可能',
+        'F2': '立ち会いなし・見積もり手渡し希望',
+        'F3': '遠方につき立ち会いなし・見積もり郵送・電話で商談希望',
+        'F4': '外国語対応可能（英語・中国語等）',
+        'F5': '高齢者・身体不自由な方への配慮',
+        'F6': 'ペット飼育世帯への特別配慮'
+      };
+      
+      // 配列の場合は文字列として結合
+      if (Array.isArray(compressedCodes)) {
+        return compressedCodes.join(', ');
+      }
+      
+      // 文字列の場合はコード展開処理
+      if (typeof compressedCodes === 'string') {
+        return compressedCodes.split(',').map(code => 
+          serviceMap[code.trim()] || code.trim()
+        ).join(', ');
+      }
+      
+      return compressedCodes;
+    }
+    
+    // データ配列を作成（A-AG列まで33列）
+    console.log('📊 スプレッドシート保存データ準備中...');
+    console.log('📋 受信データ詳細:', {
+      legalName: processedData.legalName,
+      areasCompressed: processedData.areasCompressed ? processedData.areasCompressed.length + '文字' : 'なし',
+      serviceAreas: processedData.serviceAreas ? processedData.serviceAreas.length + '文字' : 'なし',
+      branches: processedData.branches || processedData.branchInfo
+    });
+    
+    var now = new Date();
+    var rowData = [
+      franchiseId,                                        // A: 加盟店ID（画面表示と同じID）
+      Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyy/MM/dd HH:mm:ss'), // B: タイムスタンプ
+      processedData.legalName || '',                   // C: 会社名
+      processedData.legalNameKana || '',               // D: 会社名カナ
+      processedData.representative || '',              // E: 代表者名
+      processedData.representativeKana || '',          // F: 代表者カナ
+      cleanPostalCode(processedData.postalCode),       // G: 郵便番号（ハイフンなし）
+      processedData.address || '',                     // H: 住所
+      cleanPhoneNumber(processedData.phone),           // I: 電話番号
+      processedData.websiteUrl || '',                  // J: ウェブサイトURL
+      processedData.employees || '',                   // K: 従業員数
+      processedData.revenue || '',                     // L: 売上規模
+      processedData.billingEmail || '',                // M: 請求用メールアドレス
+      processedData.salesEmail || '',                  // N: 営業用メールアドレス
+      processedData.salesPersonName || '',             // O: 営業担当者氏名
+      processedData.salesPersonContact || processedData.salesPersonPhone || '',          // P: 営業担当者連絡先
+      Array.isArray(processedData.propertyTypes) ? processedData.propertyTypes.join(', ') : (processedData.propertyTypes || '戸建て3階、アパート・マンション10階、倉庫・店舗3階'), // Q: 対応物件種別・階数
+      (function() {
+        console.log('施工エリア:', processedData.constructionAreas?.length || 0, '件');
+        var result = decompressServiceList(processedData.constructionAreas) || '';
+        return result;
+      })(),           // R: 施工箇所
+      (function() {
+        console.log('特殊サービス:', processedData.specialServices?.length || 0, '件');
+        var result = decompressServiceList(processedData.specialServices) || '';
+        return result;
+      })(),             // S: 特殊対応項目
+      processedData.buildingAgeRange || '',            // T: 築年数対応範囲
+      processedData.tradeName || '',                   // U: 屋号
+      processedData.tradeNameKana || '',               // V: 屋号カナ
+      processedData.branchInfo || '',                  // W: 支店情報
+      processedData.establishedDate || '',             // X: 設立年月日
+      processedData.companyPR || '',                   // Y: 特徴・PR文
+      (function() {
+        // 対応エリアを圧縮形式で保存（文字数制限対応）
+        var areas = processedData.areasCompressed || processedData.areas || '';
+        if (typeof areas === 'string' && areas.length > 5000) {
+          // 5000文字を超える場合は主要都市のみに短縮
+          console.log('⚠️ 対応エリアが長すぎるため短縮:', areas.length, '文字');
+          return areas.substring(0, 5000) + '...';
+        }
+        return areas;
+      })(),                                             // Z: 対応エリア（圧縮・制限付き）
+      (function() {
+        // 優先対応エリアも文字数制限
+        var priority = processedData.priorityAreas || '';
+        if (typeof priority === 'string' && priority.length > 1000) {
+          console.log('⚠️ 優先エリアが長すぎるため短縮:', priority.length, '文字');
+          return priority.substring(0, 1000) + '...';
+        }
+        return priority;
+      })(),                                             // AA: 優先対応エリア（制限付き）
+      Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyy/MM/dd HH:mm:ss'), // AB: 登録日
+      '',                                                 // AC: 最終ログイン日時
+      '審査待ち',                                         // AD: ステータス
+      '',                                                 // AE: 審査担当者
+      '',                                                 // AF: 審査完了日
+      ''                                                  // AG: 備考
+    ];
+    
+    // 【CRITICAL FIX】2行目から順番に空き行を探して挿入
+    console.log('🔍 DEBUG: rowDataの長さ:', rowData.length);
+    console.log('🔍 DEBUG: スプレッドシート名:', spreadsheet.getName());
+    console.log('🔍 DEBUG: シート名:', sheet.getName());
+    
+    // 2行目から順番に空き行を探す
+    var lastRow = sheet.getLastRow();
+    console.log('🔍 CRITICAL: 現在の最終行:', lastRow);
+    
+    var targetRow = lastRow + 1; // デフォルトは最後に追加
+    
+    // 2行目から順番にチェックして空き行を探す
+    for (var row = 2; row <= lastRow; row++) {
+      var cellValue = sheet.getRange(row, 1).getValue();
+      if (!cellValue || cellValue === '') {
+        targetRow = row;
+        console.log('🔍 CRITICAL: 空き行発見 - 行番号:', targetRow);
+        break;
+      }
+    }
+    
+    console.log('🔍 CRITICAL: 最終書き込み先行番号:', targetRow);
+    
+    // スプレッドシート書き込み実行
+    try {
+      console.log('📝 スプレッドシート書き込み開始...');
+      console.log('🔍 書き込み先: 行', targetRow, '列1-', rowData.length);
+      console.log('🔍 加盟店ID (A列):', rowData[0]);
+      console.log('🔍 タイムスタンプ (B列):', rowData[1]);
+      console.log('🔍 会社名 (C列):', rowData[2]);
+      
+      sheet.getRange(targetRow, 1, 1, rowData.length).setValues([rowData]);
+      console.log('✅ スプレッドシート書き込み成功');
+      
+      // 書き込み確認
+      var writtenData = sheet.getRange(targetRow, 1, 1, 5).getValues()[0];
+      console.log('🔍 書き込み確認 - A列:', writtenData[0], 'B列:', writtenData[1], 'C列:', writtenData[2], 'D列:', writtenData[3], 'E列:', writtenData[4]);
+      
+    } catch (writeError) {
+      console.error('❌ スプレッドシート書き込みエラー:', writeError.message);
+      console.error('❌ 書き込みエラー詳細:', writeError.toString());
+      console.error('❌ 書き込みエラースタック:', writeError.stack);
+      throw new Error('スプレッドシート書き込み失敗: ' + writeError.message);
+    }
+    
+    console.log('✅ スプレッドシート保存完了 - Q列から Y列まで正しく保存');
+    
+    // 5. 管理者に通知（Slack等）
+    try {
+      console.log('📢 管理者通知送信中...');
+      console.log('🔍 通知対象加盟店ID:', franchiseId);
+      console.log('🔍 通知データ:', JSON.stringify(processedData, null, 2));
+      
+      // 重複通知を防ぐため、プロパティを設定
+      PropertiesService.getScriptProperties().setProperty('LAST_FRANCHISE_NOTIFIED', franchiseId);
+      
+      console.log('📤 notifyNewFranchiseRegistration関数呼び出し開始');
+      notifyNewFranchiseRegistration(franchiseId, processedData);
+      console.log('✅ 管理者通知完了');
+      
+    } catch (notifyError) {
+      console.error('❌ 管理者通知エラー（登録は継続）:', notifyError.message);
+      console.error('❌ 通知エラー詳細:', notifyError.toString());
+      console.error('❌ 通知エラースタック:', notifyError.stack);
+      
+      // エラー詳細をプロパティに保存
+      try {
+        PropertiesService.getScriptProperties().setProperty('LAST_NOTIFICATION_ERROR', notifyError.message);
+        PropertiesService.getScriptProperties().setProperty('LAST_NOTIFICATION_ERROR_TIME', new Date().toISOString());
+      } catch (e) {
+        console.error('❌ エラー保存失敗:', e.message);
+      }
+    }
+    
+    console.log('✅ 加盟店登録完了:', franchiseId);
+    console.log('🔍 DEBUG: レスポンスで返すID:', franchiseId);
+    
+    var responseData = {
+      success: true,
+      franchiseId: franchiseId,
+      message: '加盟店登録が正常に完了しました',
+      timestamp: new Date().toISOString(),
+      compressed: registrationData?.isCompressed || false,
+      spreadsheetSaved: true,
+      targetRow: targetRow
+    };
+    
+    console.log('🔍 DEBUG: 最終レスポンス:', JSON.stringify(responseData));
+    return responseData;
+    
+  } catch (error) {
+    console.error('❌ 加盟店登録エラー:', error.message);
+    console.error('❌ エラースタック:', error.stack);
+    
+    // エラーをプロパティに保存（デバッグ用）
+    try {
+      PropertiesService.getScriptProperties().setProperty('LAST_ERROR', error.message);
+      PropertiesService.getScriptProperties().setProperty('LAST_ERROR_STACK', error.stack || 'スタックなし');
+      PropertiesService.getScriptProperties().setProperty('LAST_ERROR_TIME', new Date().toISOString());
+      console.log('🔍 エラープロパティ保存完了');
+    } catch (propError) {
+      console.error('❌ プロパティ保存エラー:', propError.message);
+    }
+    
+    return {
+      success: false,
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString(),
+      debugInfo: 'submitFranchiseRegistration関数内エラー'
+    };
+  }
+}
 function doGet(e) {
   try {
     // 🔍 デバッグ: 実行中のコードバージョン確認
@@ -3633,54 +3494,6 @@ function doGet(e) {
     };
     
     var action = (e.parameter && e.parameter.action) ? e.parameter.action : null;
-    
-    // 🌐 getConfig最優先処理（プロパティ取得）
-    if (action === 'getConfig') {
-      console.log('🌐 getConfig最優先処理開始');
-      try {
-        var properties = PropertiesService.getScriptProperties();
-        var gasUrl = properties.getProperty('GAS_WEBAPP_URL');
-        var openrouterKey = properties.getProperty('OPENROUTER_API_KEY');
-        
-        console.log('🔍 GAS_WEBAPP_URL:', gasUrl ? 'あり' : 'なし');
-        console.log('🔍 OPENROUTER_API_KEY:', openrouterKey ? 'あり' : 'なし');
-        
-        var configResult = {
-          success: true,
-          gasUrl: gasUrl || '',
-          hasOpenRouterKey: !!openrouterKey,
-          timestamp: new Date().toISOString(),
-          deployed: true
-        };
-        
-        console.log('✅ getConfig成功:', JSON.stringify(configResult));
-        
-        var callback = e.parameter.callback;
-        if (callback) {
-          return ContentService.createTextOutput(`${callback}(${JSON.stringify(configResult)});`)
-            .setMimeType(ContentService.MimeType.JAVASCRIPT);
-        } else {
-          return ContentService.createTextOutput(JSON.stringify(configResult))
-            .setMimeType(ContentService.MimeType.JSON);
-        }
-      } catch (configError) {
-        console.error('❌ getConfig処理エラー:', configError.message);
-        var errorResult = {
-          success: false,
-          error: configError.message,
-          timestamp: new Date().toISOString()
-        };
-        
-        var callback = e.parameter.callback;
-        if (callback) {
-          return ContentService.createTextOutput(`${callback}(${JSON.stringify(errorResult)});`)
-            .setMimeType(ContentService.MimeType.JAVASCRIPT);
-        } else {
-          return ContentService.createTextOutput(JSON.stringify(errorResult))
-            .setMimeType(ContentService.MimeType.JSON);
-        }
-      }
-    }
     
     // 超短縮パラメータの処理（a = action）
     if (!action && e.parameter && e.parameter.a) {
@@ -3791,28 +3604,6 @@ function doGet(e) {
       console.log('🔥 action:', action);
       console.log('🔥 e.parameter:', JSON.stringify(e.parameter));
       
-      // 🧪 CRITICAL DEBUG: 関数存在確認
-      console.log('🧪🧪🧪 DEBUG: 関数存在確認開始 🧪🧪🧪');
-      console.log('🧪 typeof submitFranchiseRegistration:', typeof submitFranchiseRegistration);
-      console.log('🧪 this.submitFranchiseRegistration:', typeof this.submitFranchiseRegistration);
-      console.log('🧪 globalThis.submitFranchiseRegistration:', typeof globalThis.submitFranchiseRegistration);
-      
-      // グローバルスコープの関数一覧を確認
-      console.log('🧪 利用可能な関数一覧:');
-      try {
-        var globalNames = Object.getOwnPropertyNames(globalThis);
-        var functions = globalNames.filter(name => {
-          try {
-            return typeof globalThis[name] === 'function' && name.includes('submitFranchise');
-          } catch (e) {
-            return false;
-          }
-        });
-        console.log('🧪 submitFranchise関連関数:', functions);
-      } catch (scopeError) {
-        console.log('🧪 グローバルスコープ確認エラー:', scopeError.message);
-      }
-      
       var callback = e.parameter.callback;
       var parameters = e.parameter;
       
@@ -3828,7 +3619,9 @@ function doGet(e) {
       }
       
       try {
-        // 圧縮フィールド名を展開（フロントエンドからの圧縮データ対応）
+        console.log('🚨 緊急修正: 既存のsubmitFranchiseRegistration関数を呼び出し');
+        
+        // 圧縮フィールド名を展開（フロントエンドから送信される圧縮データ対応）
         var expandedParams = {
           legalName: parameters.ln || parameters.legalName || '',
           legalNameKana: parameters.lk || parameters.legalNameKana || '',
@@ -3860,43 +3653,21 @@ function doGet(e) {
         };
         
         console.log('🔍 圧縮フィールド展開完了:', {
-          会社名: expandedParams.legalName,
-          代表者: expandedParams.representative,
-          住所: expandedParams.address
+          ln: parameters.ln, '→ legalName': expandedParams.legalName,
+          lk: parameters.lk, '→ legalNameKana': expandedParams.legalNameKana,
+          rp: parameters.rp, '→ representative': expandedParams.representative
         });
         
-        // 🧪 CRITICAL: saveFranchiseData関数を直接呼び出し
-        var result;
-        console.log('🧪 関数呼び出し前チェック - typeof saveFranchiseData:', typeof saveFranchiseData);
-        
-        if (typeof saveFranchiseData === 'function') {
-          console.log('✅ saveFranchiseData関数が見つかりました、実行します');
-          result = saveFranchiseData(expandedParams);
-          console.log('🔥 saveFranchiseData実行成功（最優先）:', JSON.stringify(result));
-        } else {
-          console.error('❌ CRITICAL: saveFranchiseData関数が見つかりません！');
-          console.log('🔧 代替手段を試行します...');
-          
-          // 代替手段1: globalThisから直接取得
-          if (typeof globalThis.saveFranchiseData === 'function') {
-            console.log('🔧 globalThisからsaveFranchiseData関数を取得しました');
-            result = globalThis.saveFranchiseData(expandedParams);
-          }
-          // 代替手段2: 最小限の登録処理を直接実装
-          else {
-            console.log('🔧 最小限の代替処理を実行します');
-            result = {
-              success: false,
-              error: 'submitFranchiseRegistration関数が見つかりません',
-              debug: {
-                typeof_direct: typeof submitFranchiseRegistration,
-                typeof_global: typeof globalThis.submitFranchiseRegistration,
-                typeof_this: typeof this.submitFranchiseRegistration,
-                receivedData: expandedParams
-              }
-            };
-          }
+        // 既存のsubmitFranchiseRegistration関数を呼び出し
+        // 関数の存在を確認
+        if (typeof submitFranchiseRegistration !== 'function') {
+          console.error('🚨 CRITICAL: submitFranchiseRegistration関数が見つかりません！');
+          throw new Error('submitFranchiseRegistration関数が定義されていません');
         }
+        
+        console.log('✅ submitFranchiseRegistration関数が見つかりました');
+        var result = submitFranchiseRegistration(expandedParams);
+        console.log('🔥 submitFranchiseRegistration実行成功（最優先）:', JSON.stringify(result));
         
         if (callback) {
           return createJsonpCorsResponse(result, callback);
@@ -4043,61 +3814,6 @@ function doGet(e) {
       }
     }
     
-    // 🎯 加盟店登録処理（submitFranchiseRegistration）
-    if (e.parameter.action === 'submitFranchiseRegistration') {
-      console.log('🔥 CRITICAL: submitFranchiseRegistration処理開始!');
-      console.log('🔥 受信パラメータ:', JSON.stringify(e.parameter, null, 2));
-      console.log('🔥 DEBUG: saveFranchiseData関数チェック:', typeof saveFranchiseData);
-      console.log('🔥 DEBUG: globalThis.saveFranchiseData:', typeof globalThis.saveFranchiseData);
-      
-      var callback = e.parameter.callback;
-      
-      try {
-        // saveFranchiseData関数を直接呼び出す
-        if (typeof saveFranchiseData === 'function') {
-          console.log('✅ saveFranchiseData関数が見つかりました');
-          var result = saveFranchiseData(e.parameter);
-          console.log('✅ saveFranchiseData成功:', JSON.stringify(result, null, 2));
-          
-          if (!result || !result.success) {
-            throw new Error(result.error || '登録処理が失敗しました');
-          }
-          
-          if (callback) {
-            return createJsonpCorsResponse(result, callback);
-          } else {
-            return createCorsResponse(JSON.stringify(result), 200);
-          }
-        } else {
-          console.error('❌ saveFranchiseData関数が見つかりません');
-          var errorResult = {
-            success: false,
-            error: 'saveFranchiseData関数が定義されていません'
-          };
-          
-          if (callback) {
-            return createJsonpCorsResponse(errorResult, callback);
-          } else {
-            return createCorsResponse(JSON.stringify(errorResult), 500);
-          }
-        }
-        
-      } catch (error) {
-        console.error('❌ submitFranchiseRegistration エラー:', error);
-        console.error('❌ エラースタック:', error.stack);
-        var errorResult = {
-          success: false,
-          error: error.message || '登録処理でエラーが発生しました'
-        };
-        
-        if (callback) {
-          return createJsonpCorsResponse(errorResult, callback);
-        } else {
-          return createCorsResponse(JSON.stringify(errorResult), 500);
-        }
-      }
-    }
-    
     // 直接的なURLパラメータでのgetAddressByPostalCodeリクエスト処理
     if (e.parameter.action === 'getAddressByPostalCode') {
       console.log('📮 直接URLパラメータでgetAddressByPostalCode受信');
@@ -4120,6 +3836,37 @@ function doGet(e) {
     console.log('🔍🔍🔍 3242行目到達チェック - action:', e.parameter ? e.parameter.action : 'null');
     console.log('🔍🔍🔍 startAIHearing条件チェック:', e.parameter && e.parameter.action === 'startAIHearing');
     
+    // 🎯 startAIHearing用の直接処理
+    if (e.parameter.action === 'startAIHearing') {
+      console.log('🎯🎯🎯 startAIHearing直接処理開始！🎯🎯🎯');
+      var callback = e.parameter.callback;
+      
+      try {
+        var result = startAIHearing(e.parameter);
+        console.log('🎯 startAIHearing実行成功:', JSON.stringify(result));
+        
+        if (callback) {
+          // JSONP形式で返す
+          return createJsonpCorsResponse(result, callback);
+        } else {
+          // 通常のJSON形式で返す
+          return createCorsResponse(JSON.stringify(result), 200);
+        }
+      } catch (error) {
+        console.error('🎯 startAIHearingエラー:', error);
+        var errorResult = {
+          success: false,
+          error: 'AI_HEARING_ERROR',
+          message: error.message
+        };
+        
+        if (callback) {
+          return createJsonpCorsResponse(errorResult, callback);
+        } else {
+          return createCorsResponse(JSON.stringify(errorResult), 500);
+        }
+      }
+    }
     
     // データパラメータがある場合の処理（JSONP対応含む）
     if (e.parameter.data) {
@@ -5009,6 +4756,22 @@ function doGet(e) {
           break;
         
         // 🎯 加盟店AIヒアリングBOT関連（SWITCH文A - データパラメータ処理用）
+        case 'startAIHearing':
+          console.log('🎯🎯🎯 SWITCH文A - startAIHearing処理開始！🎯🎯🎯');
+          console.log('🎯 データパラメータ経由でstartAIHearing実行');
+          console.log('🎯 parameters:', JSON.stringify(parameters));
+          try {
+            result = startAIHearing(parameters);
+            console.log('🎯 startAIHearing実行成功（SWITCH文A）:', JSON.stringify(result));
+          } catch (error) {
+            console.error('🎯 startAIHearingエラー（SWITCH文A）:', error);
+            result = {
+              success: false,
+              error: 'AI_HEARING_ERROR',
+              message: error.message
+            };
+          }
+          break;
         
         // 📊 質問データ取得API（doGet用）
         case 'getQuestionsByStage':
@@ -5072,8 +4835,23 @@ function doGet(e) {
       
       console.log('🔍 処理対象action:', action);
       
-      // アクション処理
-      if (action === 'submitFranchiseRegistration') {
+      // 🎯 startAIHearing処理（最優先）
+      if (action === 'startAIHearing') {
+        console.log('🎯🎯🎯 startAIHearing処理開始！🎯🎯🎯');
+        try {
+          result = startAIHearing(parameters);
+          console.log('🎯 startAIHearing実行成功:', JSON.stringify(result));
+        } catch (error) {
+          console.error('🎯 startAIHearingエラー:', error);
+          result = {
+            success: false,
+            error: 'AI_HEARING_ERROR',
+            message: error.message
+          };
+        }
+      }
+      // その他のアクション処理
+      else if (action === 'submitFranchiseRegistration') {
           console.log('🔥🔥🔥 submitFranchiseRegistration実行 - 4076行目switch 🔥🔥🔥');
           console.log('📋 受信パラメータ:', JSON.stringify(parameters));
           
@@ -5191,6 +4969,15 @@ function createJsonpCorsResponse(content, callback) {
  */
 function debugStartAIHearingIssue() {
   console.log('🔍🔍🔍 startAIHearing診断開始 🔍🔍🔍');
+  
+  // まず直接関数テスト
+  console.log('⚡ 直接startAIHearing関数テスト');
+  try {
+    var directResult = startAIHearing({companyName: '大野建装'});
+    console.log('⚡ 直接テスト成功:', JSON.stringify(directResult));
+  } catch (directError) {
+    console.error('⚡ 直接テストエラー:', directError);
+  }
   
   // 1. startAIHearing関数の存在確認
   console.log('1️⃣ startAIHearing関数存在確認:', typeof startAIHearing);
@@ -9573,6 +9360,72 @@ function decompressServiceData(compressedServices) {
   }
 }
 
+/**
+ * 登録データの検証
+ */
+function validateRegistrationData(data) {
+  try {
+    console.log('🔍 バリデーション開始 - 受信データ:', JSON.stringify(data, null, 2));
+    
+    var requiredFields = [
+      'legalName', 'representative', 'address', 'phone',
+      'billingEmail', 'salesEmail', 'salesPersonName'
+    ];
+    
+    console.log('🔍 必須フィールド:', requiredFields);
+    
+    var missingFields = [];
+    
+    for (var i = 0; i < requiredFields.length; i++) {
+      var field = requiredFields[i];
+      var hasValue = false;
+      
+      if (field === 'legalName') {
+        // legalNameまたはcompanyNameがあればOK
+        hasValue = !!(data.legalName || data.companyName);
+      } else if (field === 'phone') {
+        // 電話番号は配列の場合もある
+        hasValue = !!(Array.isArray(data[field]) ? data[field][0] : data[field]);
+      } else if (field === 'salesPersonContact') {
+        // salesPersonContactの代替フィールドをチェック
+        hasValue = !!(data[field] || data.salesPersonPhone || data.salesPersonContact);
+      } else {
+        hasValue = !!(data[field] && (typeof data[field] !== 'string' || data[field].trim() !== ''));
+      }
+      
+      if (!hasValue) {
+        missingFields.push(field);
+      }
+    }
+    
+    if (missingFields.length > 0) {
+      return {
+        success: false,
+        error: "必須項目が不足: " + missingFields.join(', ')
+      };
+    }
+    
+    // メールアドレス形式チェック
+    var emailFields = ['billingEmail', 'salesEmail'];
+    for (var i = 0; i < emailFields.length; i++) {
+      var field = emailFields[i];
+      if (data[field] && !isValidEmail(data[field])) {
+        return {
+          success: false,
+          error: "メールアドレス形式が不正: " + field
+        };
+      }
+    }
+    
+    return { success: true };
+    
+  } catch (error) {
+    return {
+      success: false,
+      error: "検証処理エラー: " + error.message
+    };
+  }
+}
 
 /**
  * メールアドレス形式チェック
@@ -12599,211 +12452,5 @@ function sendPartnerLoginEmail(partnerId) {
   } catch (error) {
     Logger.log('❌ ログインメール送信エラー:', error);
     throw error;
-  }
-}
-
-/**
- * 加盟店データをスプレッドシートに保存
- * @param {Object} data 保存するデータ
- * @returns {Object} 保存結果
- */
-function saveFranchiseData(data) {
-  try {
-    console.log('🆕🆕🆕 notify.js - saveFranchiseData開始 🆕🆕🆕');
-    console.log('🚀 saveFranchiseData開始 - console版');
-    console.log('📋 受信データ詳細:', JSON.stringify(data, null, 2));
-    console.log('📋 データキー:', Object.keys(data || {}));
-    console.log('📋 legalName:', data ? data.legalName : 'データなし');
-    console.log('📋 phone:', data ? data.phone : 'データなし');
-    
-    // データが圧縮形式（ln, lk等）の場合は展開、通常はそのまま使用
-    var processedData = {};
-    
-    // 🔍 データ形式を判定して適切に処理
-    if (!data) {
-      console.log('❌ データがnullまたはundefined');
-      return {
-        success: false,
-        error: 'データが空です'
-      };
-    }
-    
-    // lnキーがある場合のみ圧縮データとして処理
-    if (data.ln) {
-      console.log('🔍 圧縮データ展開開始 - ln検出');
-      processedData = {
-        legalName: data.ln,
-        legalNameKana: data.lk,
-        representative: data.rp,
-        representativeKana: data.rk,
-        postalCode: data.pc,
-        address: data.ad,
-        phone: data.ph,
-        websiteUrl: data.web || data.url,
-        employees: data.emp,
-        revenue: data.rev,
-        billingEmail: data.bem,
-        salesEmail: data.sem,
-        salesPersonName: data.spn,
-        salesPersonContact: data.spc,
-        propertyTypes: data.pt,
-        constructionAreas: data.ca,
-        specialServices: data.ss,
-        buildingAgeRange: data.ba,
-        tradeName: data.tn,
-        tradeNameKana: data.tk,
-        branchInfo: data.bi,
-        establishedDate: data.ed,
-        companyPR: data.cp,
-        areasCompressed: data.ac,  // エリア数
-        priorityAreas: data.pa      // エリアデータ（圧縮形式）
-      };
-      console.log('✅ 圧縮データ展開完了');
-      console.log('📋 展開後のlegalName:', processedData.legalName);
-      console.log('📋 展開後のphone:', processedData.phone);
-    } else {
-      // legalNameキーがある場合は既に展開済みとして処理
-      console.log('🔍 データは既に展開済み - doGetで処理済み');
-      processedData = data;
-      console.log('📋 全データキー:', Object.keys(processedData));
-      console.log('📋 legalName:', processedData.legalName);
-      console.log('📋 phone:', processedData.phone);
-      console.log('📋 areasCompressed:', processedData.areasCompressed ? processedData.areasCompressed.substring(0, 100) + '...' : 'なし');
-    }
-    
-    var SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
-    
-    console.log('🔍 CRITICAL: SPREADSHEET_ID取得:', SPREADSHEET_ID);
-    console.log('🔍 CRITICAL: PropertiesService直接:', PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID'));
-    console.log('🔍 CRITICAL: FRANCHISE_SPREADSHEET_ID:', PropertiesService.getScriptProperties().getProperty('FRANCHISE_SPREADSHEET_ID'));
-    
-    if (!SPREADSHEET_ID) {
-      return {
-        success: false,
-        error: 'SPREADSHEET_IDが設定されていません'
-      };
-    }
-    
-    console.log('🔍 CRITICAL: スプレッドシート開く処理開始 ID:', SPREADSHEET_ID);
-    
-    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    console.log('🔍 CRITICAL: スプレッドシート正常に開けました:', ss.getName());
-    
-    var sheet = ss.getSheetByName('加盟店登録');
-    if (!sheet) {
-      console.log('⚠️ 加盟店登録シートが存在しないため作成');
-      sheet = ss.insertSheet('加盟店登録');
-    }
-    
-    console.log('🔍 CRITICAL: シート確認完了:', sheet.getName());
-    
-    function cleanPhone(phone) {
-      if (!phone) {
-        console.log('⚠️ cleanPhone: 電話番号が空');
-        return '';
-      }
-      // シングルクォートを除去してから処理
-      var phoneStr = String(phone).replace(/['-\s]/g, '');
-      console.log('📞 cleanPhone - 元の値:', phone);
-      console.log('📞 cleanPhone - クリーニング後:', phoneStr);
-      
-      if (phoneStr && !phoneStr.startsWith('0')) {
-        phoneStr = '0' + phoneStr;
-        console.log('📞 cleanPhone - 先頭0追加:', phoneStr);
-      }
-      return "'" + phoneStr;
-    }
-    
-    var cleanedPhone = cleanPhone(processedData.phone);
-    var cleanedSalesContact = cleanPhone(processedData.salesPersonContact);
-    
-    console.log('🚨 CRITICAL DEBUG: saveFranchiseData内 - cleanPhone:', cleanedPhone);
-    console.log('🚨 CRITICAL DEBUG: saveFranchiseData内 - cleanSalesContact:', cleanedSalesContact);
-    
-    var now = new Date();
-    var franchiseId = 'FC-' + Utilities.formatDate(now, 'JST', 'yyMMdd') + '-' + 
-      Math.random().toString(36).substr(2, 4).toUpperCase();
-    
-    var rowData = [
-      franchiseId,
-      Utilities.formatDate(now, 'JST', 'yyyy/MM/dd HH:mm:ss'),
-      processedData.legalName || '',
-      processedData.legalNameKana || '',
-      processedData.representative || '',
-      processedData.representativeKana || '',
-      processedData.postalCode || '',
-      processedData.address || '',
-      cleanedPhone,
-      processedData.websiteUrl || '',
-      processedData.employees || '',
-      processedData.revenue || '',
-      processedData.billingEmail || '',
-      processedData.salesEmail || '',
-      processedData.salesPersonName || '',
-      cleanedSalesContact,
-      processedData.propertyTypes || '',
-      processedData.constructionAreas || '',
-      processedData.specialServices || '',
-      processedData.buildingAgeRange || '',
-      processedData.tradeName || '',
-      processedData.tradeNameKana || '',
-      processedData.branchInfo || '',
-      processedData.establishedDate || '',
-      processedData.companyPR || '',
-      processedData.priorityAreas || processedData.pa || '',  // 対応エリア（エリアデータ）
-      processedData.areasCompressed || processedData.ac || '', // 優先対応エリア（本来はエリア数）
-      Utilities.formatDate(now, 'JST', 'yyyy/MM/dd HH:mm:ss'),
-      '',
-      '申請中',
-      '',
-      '',
-      'ウェブフォームより申請'
-    ];
-    
-    var lastRow = sheet.getLastRow();
-    console.log('🔍 実際の最終データ行:', lastRow);
-    console.log('🔍 挿入先行:', lastRow + 1);
-    
-    console.log('🚨 CRITICAL DEBUG: 挿入する行データ (I列:電話番号):', rowData[8]);
-    console.log('🚨 CRITICAL DEBUG: 挿入する行データ (P列:営業担当者連絡先):', rowData[15]);
-    
-    sheet.getRange(lastRow + 1, 1, 1, rowData.length).setValues([rowData]);
-    
-    console.log('✅ タイムスタンプ列の書式設定完了');
-    console.log('🔍 CRITICAL: データ終了後の挿入先行:', lastRow + 1);
-    console.log('🔍 CRITICAL: 挿入データ列数:', rowData.length);
-    console.log('✅ 加盟店登録シートに保存完了（2行目に新行挿入）');
-    
-    try {
-      console.log('📢 Slack通知送信開始:', franchiseId);
-      if (typeof notifyNewFranchiseRegistration === 'function') {
-        notifyNewFranchiseRegistration(franchiseId, processedData);
-        console.log('📢 Slack通知送信結果:', true);
-      } else {
-        console.log('⚠️ notifyNewFranchiseRegistration関数が見つかりません（保存は成功）');
-      }
-    } catch (notifyError) {
-      console.log('⚠️ Slack通知エラー（保存は成功）:', notifyError.message);
-    }
-    
-    console.log('📝 saveFranchiseData結果:', JSON.stringify({
-      success: true,
-      franchiseId: franchiseId,
-      message: '加盟店登録が完了しました'
-    }));
-    
-    return {
-      success: true,
-      franchiseId: franchiseId,
-      message: '加盟店登録が完了しました'
-    };
-    
-  } catch (error) {
-    console.log('❌ saveFranchiseData エラー:', error.message);
-    console.log('❌ エラースタック:', error.stack);
-    return {
-      success: false,
-      error: error.message
-    };
   }
 }
