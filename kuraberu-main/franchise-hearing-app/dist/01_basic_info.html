@@ -2118,31 +2118,10 @@
                 'https://script.google.com/macros/s/AKfycbzxr40CSC6oAQGH4CHBMRslTxYu2J6MtbbpJZFjZEE/exec' // 最新HEAD デプロイURL
             ];
             
-            for (const fallbackUrl of fallbackUrls) {
-                try {
-                    const response = await fetch(`${fallbackUrl}?action=getConfig`, {
-                        method: 'GET',
-                        headers: { 'Accept': 'application/json' },
-                        mode: 'cors'
-                    });
-                    
-                    if (!response.ok) continue;
-                    
-                    const result = await response.json();
-                    if (result.success && result.data && result.data.gasUrl) {
-                        cachedGasUrl = result.data.gasUrl;
-                        cacheTimestamp = Date.now();
-                        return cachedGasUrl;
-                    }
-                } catch (error) {
-                    console.warn('GAS URL取得失敗:', error.message);
-                    continue;
-                }
-            }
-            
-            // フォールバック
+            // フォールバックURLを直接使用（CORSエラー回避）
             cachedGasUrl = fallbackUrls[0];
             cacheTimestamp = Date.now();
+            console.log('✅ フォールバックGAS URL使用:', cachedGasUrl);
             return cachedGasUrl;
         }
         
