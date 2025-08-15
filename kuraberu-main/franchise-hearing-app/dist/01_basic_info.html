@@ -2115,7 +2115,7 @@
             
             // プロパティのGAS_WEBAPP_URLを取得するためのフォールバックURL（最新デプロイ）
             const fallbackUrls = [
-                'https://script.google.com/macros/s/AKfycbxcoZ-RuKshpWdOrANi6AzdsaYd0mQMVbVRP2PVnnP90HwsMdrHF8oFzd8wh-Z7lZxdMw/exec' // プロパティに設定されたGAS_WEBAPP_URL
+                'https://script.google.com/macros/s/AKfycbzxr40CSC6oAQGH4CHBMRslTxYu2J6MtbbpJZFjZEE/exec' // 最新HEAD デプロイURL
             ];
             
             for (const fallbackUrl of fallbackUrls) {
@@ -7525,12 +7525,14 @@
          */
         async function callGASAPI(action, params) {
             try {
+                console.log('📡 GAS API呼び出し:', action, params);
+                
                 const requestData = {
                     action: action,
                     ...params
                 };
                 
-                console.log('📡 GAS API呼び出し:', action, params);
+                console.log('📡 リクエストデータ:', requestData);
                 
                 // GAS URLを先に取得
                 const gasUrl = await getGasUrl();
