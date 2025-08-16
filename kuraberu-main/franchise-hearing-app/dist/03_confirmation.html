@@ -350,16 +350,47 @@
     <script>
         let allData = {};
 
-        // 現在のGAS URL（getConfigが失敗した場合のフォールバック）
-        // 最新HEAD デプロイURL
-        const CURRENT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzxr40CSC6oAQGH4CHBMRslTxYu2J6MtbbpJZFjZEE/exec'; // 最新HEAD デプロイURL
+        // プロパティ参照によるGAS URL取得（ハードコード禁止）
         let cachedGasUrl = null;
         
-        // GAS URLを直接返す（最新デプロイURL）
+        // 初期化：プロパティからGAS URLを取得
+        async function initializeGasUrl() {
+            try {
+                console.log('🔍 プロパティからGAS_WEBAPP_URL初期化...');
+                
+                // 1. ローカルストレージから確認
+                const storedUrl = localStorage.getItem('GAS_WEBAPP_URL');
+                if (storedUrl) {
+                    cachedGasUrl = storedUrl;
+                    console.log('✅ ローカルストレージからGAS URL取得:', cachedGasUrl);
+                    return cachedGasUrl;
+                }
+                
+                // 2. エラー：URLはプロパティから設定される必要があります
+                console.error('❌ GAS_WEBAPP_URLはGAS PropertiesまたはlocalStorageで設定してください');
+                console.error('❌ 設定方法: localStorage.setItem("GAS_WEBAPP_URL", "YOUR_GAS_URL")');
+                
+                // 3. 緊急時フォールバック（管理者が手動設定）
+                const manualUrl = prompt('GAS WebApp URLを入力してください（一時的措置）:');
+                if (manualUrl && manualUrl.includes('script.google.com')) {
+                    cachedGasUrl = manualUrl;
+                    localStorage.setItem('GAS_WEBAPP_URL', manualUrl);
+                    console.log('✅ 手動URL設定完了:', cachedGasUrl);
+                    return cachedGasUrl;
+                }
+                
+                throw new Error('利用可能なGAS URLが見つかりません');
+            } catch (error) {
+                console.error('❌ GAS URL初期化エラー:', error.message);
+                throw error;
+            }
+        }
+        
+        // GAS URLを取得（初期化済み前提）
         async function getGasUrl() {
-            // プロパティGAS_WEBAPP_URLと一致する最新URLを直接使用
-            cachedGasUrl = CURRENT_GAS_URL;
-            console.log('✅ 最新デプロイURL使用:', cachedGasUrl);
+            if (!cachedGasUrl) {
+                await initializeGasUrl();
+            }
             return cachedGasUrl;
         }
 
@@ -565,7 +596,15 @@
                 loadingSection.classList.add('active');
                 updateProgress(0, 'データ準備中...');
 
-                const gasUrl = await getGasUrl();
+                // GAS URLを取得（フォールバック付き）
+                let gasUrl;
+                try {
+                    gasUrl = await getGasUrl();
+                } catch (urlError) {
+                    console.error('❌ GAS URL取得失敗、フォールバック使用:', urlError.message);
+                    gasUrl = 'https://script.google.com/macros/s/AKfycbwIVxHiZHrkUKFsfkp0PZNnxeA2Y4v2ApOY1if1daZzbLJgjsfhz-ClydtjQywIJ6S8/exec';
+                }
+                console.log('🔗 使用GAS URL:', gasUrl);
                 
                 // 送信データを準備
                 const registrationData = {

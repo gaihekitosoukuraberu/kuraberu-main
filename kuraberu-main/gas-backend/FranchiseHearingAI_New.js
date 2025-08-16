@@ -2480,8 +2480,18 @@ function saveFranchiseData(data) {
     Logger.log('📊 スプレッドシートを開く');
     console.log('🔍 CRITICAL: スプレッドシート開く処理開始 ID:', SPREADSHEET_ID);
     
-    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    console.log('🔍 CRITICAL: スプレッドシート正常に開けました:', ss.getName());
+    var ss;
+    try {
+      ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      console.log('✅ スプレッドシート正常に開けました:', ss.getName());
+    } catch (spreadsheetError) {
+      console.error('❌ SpreadsheetApp.openByIdエラー:', spreadsheetError.message);
+      console.error('❌ 使用SPREADSHEET_ID:', SPREADSHEET_ID);
+      return {
+        success: false,
+        error: 'スプレッドシートアクセスに失敗: ' + spreadsheetError.message + ' (ID: ' + SPREADSHEET_ID + ')'
+      };
+    }
     
     Logger.log('📊 スプレッドシート名:', ss.getName());
     
