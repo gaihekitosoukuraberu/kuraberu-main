@@ -6,6 +6,65 @@
  */
 
 /**
+ * 圧縮された登録データを展開
+ * @param {Object} compressedData - 圧縮されたデータ
+ * @returns {Object} 展開されたデータ
+ */
+function decompressRegistrationData(compressedData) {
+  try {
+    console.log('🗜️ 圧縮データ展開開始:', compressedData);
+    
+    // 基本データをコピー
+    var decompressedData = { ...compressedData };
+    
+    // 基本フィールドマッピング（ln → legalName など）
+    var fieldMapping = {
+      'ln': 'legalName',
+      'lk': 'legalNameKana', 
+      'rp': 'representative',
+      'rk': 'representativeKana',
+      'pc': 'postalCode',
+      'ad': 'address',
+      'ph': 'phone',
+      'web': 'websiteUrl',
+      'emp': 'employees',
+      'rev': 'revenue',
+      'bem': 'billingEmail',
+      'sem': 'salesEmail',
+      'spn': 'salesPersonName',
+      'spc': 'salesPersonContact',
+      'pt': 'propertyTypes',
+      'ca': 'constructionAreas',
+      'ss': 'specialServices',
+      'ba': 'buildingAgeRange',
+      'tn': 'tradeName',
+      'tk': 'tradeNameKana',
+      'bi': 'branchInfo',
+      'ed': 'establishedDate',
+      'cp': 'companyPR',
+      'ac': 'areasSummary',
+      'pa': 'priorityAreas'
+    };
+    
+    // 基本フィールド展開
+    Object.keys(fieldMapping).forEach(function(shortKey) {
+      if (compressedData[shortKey] !== undefined) {
+        var longKey = fieldMapping[shortKey];
+        decompressedData[longKey] = compressedData[shortKey];
+        console.log('🔄 基本フィールド展開:', shortKey, '→', longKey, '=', compressedData[shortKey]);
+      }
+    });
+    
+    console.log('✅ 圧縮データ展開完了');
+    return decompressedData;
+    
+  } catch (error) {
+    console.error('❌ 圧縮データ展開エラー:', error);
+    return compressedData; // 展開に失敗した場合は元データを返す
+  }
+}
+
+/**
  * 🚨 CRITICAL: 加盟店登録処理（最重要関数 - ファイル先頭に配置）
  * @param {Object} registrationData - 登録フォームデータ
  * @returns {Object} 登録結果
@@ -58,14 +117,15 @@ function submitFranchiseRegistration(registrationData) {
     var processedData = { ...registrationData };
     console.log('📋 データ処理開始 - isCompressed:', registrationData.isCompressed);
     
-    // doGetから来た場合、既に展開済みなのでそのまま使用
-    // isCompressedフラグは通常設定されないので、スキップされる
-    if (registrationData.isCompressed === true) {
+    // 圧縮データの判定：短縮フィールド（ln, rp, ad, ph）が存在するかチェック
+    var hasCompressedFields = registrationData.ln || registrationData.rp || registrationData.ad || registrationData.ph;
+    
+    if (registrationData.isCompressed === true || hasCompressedFields) {
       console.log('🗜️ 圧縮データ展開処理開始');
       processedData = decompressRegistrationData(registrationData);
       console.log('✅ 圧縮データ展開完了');
     } else {
-      console.log('📋 データはすでに展開済み（doGetで処理済み）');
+      console.log('📋 データは既に展開済み');
     }
     
     // 登録日時を追加
@@ -215,7 +275,12 @@ function submitFranchiseRegistration(registrationData) {
     
     // 後方互換性のためのエイリアス
     function cleanPhoneNumber(phone) {
-      return cleanNumericField(phone);
+      // 電話番号は文字列として保持（先頭の0を消さない）
+      if (!phone) return '';
+      if (Array.isArray(phone)) phone = phone[0] || '';
+      // ハイフンとスペースを除去して、先頭に'を付けて文字列として強制保存
+      var cleaned = String(phone).replace(/[-\s]/g, '');
+      return "'" + cleaned; // 先頭'でスプレッドシートに文字列として保存
     }
     
     function cleanPostalCode(postalCode) {
@@ -289,7 +354,7 @@ function submitFranchiseRegistration(registrationData) {
       processedData.billingEmail || '',                // M: 請求用メールアドレス
       processedData.salesEmail || '',                  // N: 営業用メールアドレス
       processedData.salesPersonName || '',             // O: 営業担当者氏名
-      processedData.salesPersonContact || processedData.salesPersonPhone || '',          // P: 営業担当者連絡先
+      cleanPhoneNumber(processedData.salesPersonContact || processedData.salesPersonPhone),          // P: 営業担当者連絡先
       Array.isArray(processedData.propertyTypes) ? processedData.propertyTypes.join(', ') : (processedData.propertyTypes || '戸建て3階、アパート・マンション10階、倉庫・店舗3階'), // Q: 対応物件種別・階数
       (function() {
         console.log('施工エリア:', processedData.constructionAreas?.length || 0, '件');
@@ -308,8 +373,16 @@ function submitFranchiseRegistration(registrationData) {
       processedData.establishedDate || '',             // X: 設立年月日
       processedData.companyPR || '',                   // Y: 特徴・PR文
       (function() {
+        // areasSummary（東京都(46),神奈川県(44)形式）を最優先で使用
+        if (processedData.areasSummary) {
+          console.log('📦 areasSummary使用:', processedData.areasSummary);
+          return processedData.areasSummary;
+        } else if (processedData.areasCompressed) {
+          console.log('📦 圧縮エリアデータ使用:', processedData.areasCompressed);
+          return processedData.areasCompressed;
+        }
         // 対応エリアを圧縮形式で保存（文字数制限対応）
-        var areas = processedData.areasCompressed || processedData.areas || '';
+        var areas = processedData.areas || '';
         if (typeof areas === 'string' && areas.length > 5000) {
           // 5000文字を超える場合は主要都市のみに短縮
           console.log('⚠️ 対応エリアが長すぎるため短縮:', areas.length, '文字');
@@ -385,9 +458,10 @@ function submitFranchiseRegistration(registrationData) {
       // 重複通知を防ぐため、プロパティを設定
       PropertiesService.getScriptProperties().setProperty('LAST_FRANCHISE_NOTIFIED', franchiseId);
       
-      console.log('📤 notifyNewFranchiseRegistration関数呼び出し開始');
-      notifyNewFranchiseRegistration(franchiseId, processedData);
-      console.log('✅ 管理者通知完了');
+      console.log('📤🔥 notifyNewFranchiseRegistrationV2関数呼び出し開始（強制リフレッシュ版）');
+      var notificationResult = notifyNewFranchiseRegistrationV2(franchiseId, processedData);
+      console.log('🔥 V2通知結果:', JSON.stringify(notificationResult));
+      console.log('✅🔥 V2管理者通知完了');
       
     } catch (notifyError) {
       console.error('❌ 管理者通知エラー（登録は継続）:', notifyError.message);
@@ -532,12 +606,26 @@ function isValidEmail(email) {
 }
 
 /**
- * 加盟店ID生成
+ * 加盟店ID生成（FC形式）
+ * FC-yyMMdd-XXXX 形式のIDを生成
  */
 function generateFranchiseId() {
-  var timestamp = new Date().getTime();
-  var random = Math.floor(Math.random() * 1000);
-  return 'FR' + timestamp + '_' + random;
+  // 現在の日付を yyMMdd 形式で取得
+  var now = new Date();
+  var year = now.getFullYear().toString().slice(-2); // 下2桁
+  var month = (now.getMonth() + 1).toString().padStart(2, '0');
+  var day = now.getDate().toString().padStart(2, '0');
+  var dateStr = year + month + day;
+  
+  // 4桁の乱数を生成（0-9, A-Z の組み合わせ）
+  var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  var random = '';
+  for (var i = 0; i < 4; i++) {
+      random += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  
+  // FC-yyMMdd-4桁乱数 形式で生成（合計14文字）
+  return "FC-" + dateStr + "-" + random;
 }
 
 /**
@@ -570,52 +658,353 @@ function createFranchiseRegistrationSheet(spreadsheet) {
 }
 
 /**
- * 新規加盟店登録通知（簡易版）
+ * 🔥 強制リフレッシュテスト関数
  */
-function notifyNewFranchiseRegistration(franchiseId, data) {
+function testSlackNotificationForceRefresh() {
+  console.log('🔥🔥🔥 【強制リフレッシュ版 2025-08-25 15:00】テスト開始');
+  console.log('📨 新しいコードが実行されていることを確認');
+  
+  const result = notifyNewFranchiseRegistrationV2('TEST-REFRESH-' + new Date().getTime());
+  console.log('🔥 テスト結果:', result);
+  return result;
+}
+
+/**
+ * 新規加盟店登録の管理者通知（V2・強制リフレッシュ版）
+ */
+function notifyNewFranchiseRegistrationV2(franchiseId, data) {
+  console.log('🔥🔥🔥 【V2強制リフレッシュ版 2025-08-26】加盟店登録Slack通知開始:', franchiseId);
+  
+  // 承認・却下用のGAS WebApp URL取得
+  var gasUrl = PropertiesService.getScriptProperties().getProperty('GAS_WEBAPP_URL');
+  if (!gasUrl) {
+    // フォールバック
+    gasUrl = 'https://script.google.com/macros/s/AKfycbzWncwa1G_HjlGHYx_ri8k_G7dCnbkCAJgYCrwIRx7CBfKVz9lnQb8ABYI0lAebbIv85Q/exec';
+  }
+  
+  // 最新のSlack Block Kit形式でメッセージを作成
+  const payload = {
+    text: "新規加盟店登録通知",
+    blocks: [
+      {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: "🏢 新規加盟店登録申請"
+        }
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: "*加盟店ID:*\n" + (franchiseId || '不明')
+          },
+          {
+            type: "mrkdwn", 
+            text: "*会社名:*\n" + (data?.legalName || data?.companyName || '不明')
+          },
+          {
+            type: "mrkdwn",
+            text: "*代表者:*\n" + (data?.representative || '不明')
+          },
+          {
+            type: "mrkdwn",
+            text: "*電話番号:*\n" + (data?.phone || '不明')
+          }
+        ]
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "*住所:*\n" + (data?.address || '不明')
+        }
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "*対応エリア:*\n" + (data?.priorityAreas || data?.areasCompressed || data?.areas || '未設定').substring(0, 200) + '...'
+        }
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "*登録日時:*\n" + new Date().toLocaleString('ja-JP')
+        }
+      },
+      {
+        type: "actions",
+        elements: [
+          {
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: "✅ 承認する"
+            },
+            style: "primary",
+            url: gasUrl + "?action=approveFranchise&franchiseId=" + encodeURIComponent(franchiseId)
+          },
+          {
+            type: "button", 
+            text: {
+              type: "plain_text",
+              text: "❌ 却下する"
+            },
+            style: "danger",
+            url: gasUrl + "?action=rejectFranchise&franchiseId=" + encodeURIComponent(franchiseId)
+          },
+          {
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: "📋 詳細を見る"
+            },
+            url: "https://docs.google.com/spreadsheets/d/" + PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID')
+          }
+        ]
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: "外壁塗装くらべるAI システム"
+          }
+        ]
+      }
+    ]
+  };
+  
+  return sendSlackNotificationV2WithButtons(payload);
+}
+
+/**
+ * 加盟店承認処理
+ */
+function approveFranchiseRegistration(franchiseId) {
+  console.log('✅ 加盟店承認処理開始:', franchiseId);
+  
   try {
-    console.log('📢 加盟店登録通知開始 - ID:', franchiseId);
-    
-    // Slack通知のみ実装（簡易版）
-    var message = '🎉 新規加盟店登録\n';
-    message += '加盟店ID: ' + franchiseId + '\n';
-    message += '会社名: ' + (data.legalName || data.companyName || '不明') + '\n';
-    message += '代表者: ' + (data.representative || '不明') + '\n';
-    message += '住所: ' + (data.address || '不明') + '\n';
-    message += '登録日時: ' + new Date().toLocaleString('ja-JP');
-    
-    try {
-      sendSlackNotification(message);
-      console.log('✅ Slack通知送信完了');
-    } catch (slackError) {
-      console.warn('⚠️ Slack通知失敗:', slackError.message);
+    // スプレッドシートで該当の加盟店のステータスを「承認済み」に更新
+    var SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    if (!SPREADSHEET_ID) {
+      throw new Error('SPREADSHEET_ID未設定');
     }
     
-    return { success: true, message: '通知送信完了' };
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var sheet = ss.getSheetByName('加盟店登録');
+    
+    if (!sheet) {
+      throw new Error('加盟店登録シートが見つかりません');
+    }
+    
+    // 加盟店IDで該当行を検索
+    var data = sheet.getDataRange().getValues();
+    var targetRow = -1;
+    
+    for (var i = 1; i < data.length; i++) { // ヘッダー行をスキップ
+      if (data[i][0] === franchiseId) { // A列が加盟店ID
+        targetRow = i + 1; // 1ベースのインデックス
+        break;
+      }
+    }
+    
+    if (targetRow === -1) {
+      throw new Error('該当の加盟店ID が見つかりません: ' + franchiseId);
+    }
+    
+    // ステータス列（AD列：30番目）を「承認済み」に更新
+    sheet.getRange(targetRow, 30).setValue('承認済み');
+    sheet.getRange(targetRow, 31).setValue(Session.getActiveUser().getEmail()); // 審査担当者
+    sheet.getRange(targetRow, 32).setValue(new Date()); // 審査完了日
+    
+    console.log('✅ 加盟店承認完了:', franchiseId, 'at row', targetRow);
+    
+    // Slack通知
+    sendSlackNotification(`✅ 加盟店承認完了\n加盟店ID: ${franchiseId}\n承認者: ${Session.getActiveUser().getEmail()}\n承認日時: ${new Date().toLocaleString('ja-JP')}`);
+    
+    return {
+      success: true,
+      message: '加盟店を承認しました',
+      franchiseId: franchiseId,
+      timestamp: new Date()
+    };
+    
   } catch (error) {
-    console.error('❌ 通知送信エラー:', error);
-    return { success: false, error: error.message };
+    console.error('❌ 加盟店承認エラー:', error);
+    
+    return {
+      success: false,
+      error: error.message,
+      franchiseId: franchiseId,
+      timestamp: new Date()
+    };
   }
 }
 
 /**
- * 圧縮データ展開（簡易版）
+ * 加盟店却下処理
  */
-function decompressRegistrationData(compressedData) {
+function rejectFranchiseRegistration(franchiseId) {
+  console.log('❌ 加盟店却下処理開始:', franchiseId);
+  
   try {
-    console.log('🗜️ 圧縮データ展開開始（簡易版）:', compressedData);
+    // スプレッドシートで該当の加盟店のステータスを「却下」に更新
+    var SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    if (!SPREADSHEET_ID) {
+      throw new Error('SPREADSHEET_ID未設定');
+    }
     
-    // 基本データをそのまま返す（展開処理は省略）
-    var decompressedData = { ...compressedData };
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var sheet = ss.getSheetByName('加盟店登録');
     
-    console.log('✅ 圧縮データ展開完了（簡易版）');
-    return decompressedData;
+    if (!sheet) {
+      throw new Error('加盟店登録シートが見つかりません');
+    }
+    
+    // 加盟店IDで該当行を検索
+    var data = sheet.getDataRange().getValues();
+    var targetRow = -1;
+    
+    for (var i = 1; i < data.length; i++) { // ヘッダー行をスキップ
+      if (data[i][0] === franchiseId) { // A列が加盟店ID
+        targetRow = i + 1; // 1ベースのインデックス
+        break;
+      }
+    }
+    
+    if (targetRow === -1) {
+      throw new Error('該当の加盟店ID が見つかりません: ' + franchiseId);
+    }
+    
+    // ステータス列（AD列：30番目）を「却下」に更新
+    sheet.getRange(targetRow, 30).setValue('却下');
+    sheet.getRange(targetRow, 31).setValue(Session.getActiveUser().getEmail()); // 審査担当者
+    sheet.getRange(targetRow, 32).setValue(new Date()); // 審査完了日
+    
+    console.log('❌ 加盟店却下完了:', franchiseId, 'at row', targetRow);
+    
+    // Slack通知
+    sendSlackNotification(`❌ 加盟店却下完了\n加盟店ID: ${franchiseId}\n却下者: ${Session.getActiveUser().getEmail()}\n却下日時: ${new Date().toLocaleString('ja-JP')}`);
+    
+    return {
+      success: true,
+      message: '加盟店を却下しました',
+      franchiseId: franchiseId,
+      timestamp: new Date()
+    };
     
   } catch (error) {
-    console.error('❌ 圧縮データ展開エラー:', error);
-    return compressedData; // 展開に失敗した場合は元データを返す
+    console.error('❌ 加盟店却下エラー:', error);
+    
+    return {
+      success: false,
+      error: error.message,
+      franchiseId: franchiseId,
+      timestamp: new Date()
+    };
   }
 }
+
+/**
+ * Slack通知送信（V2・ボタン付きリッチメッセージ版）
+ */
+function sendSlackNotificationV2WithButtons(payload) {
+  console.log('📨🔥 sendSlackNotificationV2WithButtons開始');
+  console.log('📨🔥 送信ペイロード:', JSON.stringify(payload, null, 2));
+  
+  try {
+    const webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
+    console.log('🔥 Webhook URL取得:', webhookUrl ? '設定済み（' + webhookUrl.length + '文字）' : '未設定');
+    
+    if (!webhookUrl) {
+      console.error('❌🔥 SLACK_WEBHOOK_URLが設定されていません');
+      return { success: false, error: 'WEBHOOK_URL_NOT_SET' };
+    }
+    
+    const options = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      payload: JSON.stringify(payload)
+    };
+    
+    console.log('🔥 Slack送信開始（ボタン付き）- URL長:', webhookUrl.length, '文字');
+    const response = UrlFetchApp.fetch(webhookUrl, options);
+    
+    const responseCode = response.getResponseCode();
+    const responseText = response.getContentText();
+    console.log('🔥 V2ボタン付きSlack応答コード:', responseCode);
+    console.log('🔥 V2Slack応答本文:', responseText);
+    
+    if (responseCode === 200) {
+      console.log('🎉🔥 V2ボタン付きSlack通知送信成功！');
+      return { success: true, message: 'V2ボタン付きSlack通知送信成功', responseCode: responseCode };
+    }
+    
+    console.error('❌🔥 Slack送信失敗 - HTTPエラー:', responseCode);
+    return { success: false, error: 'HTTP_ERROR_' + responseCode, responseText: responseText };
+    
+  } catch (error) {
+    console.log('❌🔥 V2ボタン付きSlack通知エラー:', error.toString());
+    return { success: false, error: error.toString() };
+  }
+}
+
+/**
+ * Slack通知送信（V2・シンプルメッセージ版）
+ */
+function sendSlackNotificationV2(message) {
+  console.log('📨🔥 sendSlackNotificationV2開始');
+  console.log('📨🔥 送信メッセージ:', message);
+  
+  try {
+    const webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
+    console.log('🔥 Webhook URL取得:', webhookUrl ? '設定済み（' + webhookUrl.length + '文字）' : '未設定');
+    
+    if (!webhookUrl) {
+      console.error('❌🔥 SLACK_WEBHOOK_URLが設定されていません');
+      return { success: false, error: 'WEBHOOK_URL_NOT_SET' };
+    }
+    
+    const payload = {
+      text: message,
+      username: '外壁塗装くらべるAI V2',
+      icon_emoji: ':fire:'
+    };
+    
+    const options = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      payload: JSON.stringify(payload)
+    };
+    
+    console.log('🔥 Slack送信開始 - URL長:', webhookUrl.length, '文字');
+    const response = UrlFetchApp.fetch(webhookUrl, options);
+    
+    const responseCode = response.getResponseCode();
+    const responseText = response.getContentText();
+    console.log('🔥 V2 Slack応答コード:', responseCode);
+    console.log('🔥 V2 Slack応答本文:', responseText);
+    
+    if (responseCode === 200) {
+      console.log('🎉🔥 V2 Slack通知送信成功！');
+      return { success: true, message: 'V2 Slack通知送信成功', responseCode: responseCode };
+    }
+    
+    console.error('❌🔥 Slack送信失敗 - HTTPエラー:', responseCode);
+    return { success: false, error: 'HTTP_ERROR_' + responseCode, responseText: responseText };
+    
+  } catch (error) {
+    console.log('❌🔥 V2 Slack通知エラー:', error.toString());
+    return { success: false, error: error.toString() };
+  }
+}
+
+
+// 重複削除：732行目の簡易版を削除（9503行目の完全版を使用）
 
 
 /**
@@ -641,8 +1030,8 @@ function getGasWebappUrl() {
     return url;
   } catch (error) {
     console.error('❌ getGasWebappUrl エラー:', error);
-    // 緊急フォールバック
-    return 'https://script.google.com/macros/s/AKfycbw1v1mKcq6oR4ckXpndJIzFykqltC-1DYYBXNlgxFT8Wh7wEdVuANwFoTaV9IeT47OWRQ/exec';
+    // プロパティ参照必須 - ハードコード禁止
+    throw new Error('GAS_WEBAPP_URLプロパティが設定されていません - プロパティ設定が必要です');
   }
 }
 
@@ -1748,14 +2137,14 @@ function doPost(e) {
       console.log('📋 加盟店登録処理（POST）');
       var registrationData = postData.data;
       
-      // saveFranchiseData関数を呼び出し
-      if (typeof saveFranchiseData === 'function') {
-        var result = saveFranchiseData(registrationData);
+      // submitFranchiseRegistration関数を呼び出し（Slack通知付き）
+      if (typeof submitFranchiseRegistration === 'function') {
+        var result = submitFranchiseRegistration(registrationData);
         return jsonResponse(result);
       } else {
         return jsonResponse({
           success: false,
-          error: 'saveFranchiseData関数が見つかりません'
+          error: 'submitFranchiseRegistration関数が見つかりません'
         });
       }
     }
@@ -2065,16 +2454,16 @@ function doPost(e) {
         console.log('🔥 受信パラメータ:', JSON.stringify(parameters, null, 2));
         
         try {
-          // saveFranchiseData関数を直接呼び出す
-          result = saveFranchiseData(parameters);
-          console.log('✅ saveFranchiseData成功:', JSON.stringify(result, null, 2));
+          // submitFranchiseRegistration関数を直接呼び出す（Slack通知付き）
+          result = submitFranchiseRegistration(parameters);
+          console.log('✅ submitFranchiseRegistration成功:', JSON.stringify(result, null, 2));
           
           if (!result || !result.success) {
             throw new Error(result.error || '登録処理が失敗しました');
           }
           
         } catch (error) {
-          console.error('❌ saveFranchiseData エラー:', error);
+          console.error('❌ submitFranchiseRegistration エラー:', error);
           console.error('❌ エラースタック:', error.stack);
           result = {
             success: false,
@@ -2479,6 +2868,22 @@ function doPost(e) {
           result = {
             success: false,
             message: error.toString()
+          };
+        }
+        break;
+        
+      // 🎯 AIヒアリング開始（メイン処理）
+      case 'startAIHearing':
+        console.log('🎯 メインswitch内startAIHearing処理開始');
+        console.log('🎯 メインswitch内parameters:', JSON.stringify(parameters));
+        try {
+          result = startAIHearing(parameters);
+          console.log('🎯 メインswitch内startAIHearing実行完了:', JSON.stringify(result));
+        } catch (startAIHearingError) {
+          console.error('🎯 メインswitch内startAIHearingエラー:', startAIHearingError);
+          result = {
+            success: false,
+            error: 'startAIHearingエラー: ' + startAIHearingError.message
           };
         }
         break;
@@ -2974,7 +3379,40 @@ function performWebSearchAndScraping(companyName) {
     Logger.log('🔍 Google Search API設定確認 - API_KEY: ' + !!GOOGLE_SEARCH_API_KEY + ', ENGINE_ID: ' + !!GOOGLE_SEARCH_ENGINE_ID);
     
     if (!GOOGLE_SEARCH_API_KEY || !GOOGLE_SEARCH_ENGINE_ID) {
-      Logger.log('⚠️ Google Search API設定不備 - 基本検索のみ実行');
+      Logger.log('⚠️ Google Search API設定不備 - OpenRouterのWeb検索機能を使用');
+      
+      // OpenRouterを使った代替Web検索
+      var OPENROUTER_API_KEY = PropertiesService.getScriptProperties().getProperty('OPENROUTER_API_KEY');
+      if (OPENROUTER_API_KEY) {
+        Logger.log('🔍 OpenRouterでWeb検索実行: ' + companyName);
+        
+        var systemPrompt = `あなたは企業情報検索の専門家です。与えられた会社名について、以下の情報をWeb検索のように詳細に教えてください：
+
+1. 正式な法人名（株式会社、有限会社など）
+2. 法人名のカタカナ読み
+3. 代表者名とそのカタカナ読み
+4. 郵便番号と住所
+5. 電話番号
+6. ウェブサイトURL
+7. 従業員数の規模
+8. 年間売上規模
+9. 事業内容の詳細
+
+実在する企業の場合は実際の情報を、不明な場合は「不明」と記載してください。`;
+
+        var userPrompt = `会社名「${companyName}」について詳細な企業情報を教えてください。特にリフォーム・外壁塗装・建設業界での活動実績があれば重点的に調べてください。`;
+        
+        try {
+          var aiResponse = callOpenRouterAPI(systemPrompt, userPrompt);
+          if (aiResponse && aiResponse.success && aiResponse.content) {
+            Logger.log('✅ OpenRouterでWeb検索成功');
+            return `企業情報検索結果:\n${aiResponse.content}\n\n検索対象: ${companyName}\n業界: リフォーム・外壁塗装業界`;
+          }
+        } catch (openRouterError) {
+          Logger.log('❌ OpenRouter検索エラー: ' + openRouterError.message);
+        }
+      }
+      
       return '会社名: ' + companyName + '\n検索対象: リフォーム・外壁塗装業界';
     }
     
@@ -3290,6 +3728,15 @@ function scrapeWebContent(url) {
  */
 function startAIHearing(params) {
   try {
+    console.log('🚨🚨🚨 EMERGENCY DEBUG: startAIHearing関数実行開始！！！ 🚨🚨🚨');
+    console.log('🚨 EMERGENCY DEBUG: 現在時刻 =', new Date().toISOString());
+    console.log('🚨 EMERGENCY DEBUG: params =', JSON.stringify(params));
+    console.log('🚨 EMERGENCY DEBUG: typeof params =', typeof params);
+    console.log('🚨 EMERGENCY DEBUG: params.companyName =', params.companyName);
+    
+    Logger.log('🚨🚨🚨 EMERGENCY DEBUG: startAIHearing関数実行開始！！！ 🚨🚨🚨');
+    Logger.log('🚨 EMERGENCY DEBUG: params = ' + JSON.stringify(params));
+    
     console.log('🔍 startAIHearing開始 - パラメータ:', JSON.stringify(params));
     
     // パラメータの安全な抽出
@@ -3322,14 +3769,26 @@ function startAIHearing(params) {
       console.log('🔄 フォールバックセッションID:', sessionId);
     }
     
-    // APIキー確認
+    // APIキー確認（強化デバッグ版）
     var OPENROUTER_API_KEY;
     try {
-      OPENROUTER_API_KEY = PropertiesService.getScriptProperties().getProperty('OPENROUTER_API_KEY');
+      console.log("🔍 PropertiesService.getScriptProperties()開始");
+      var properties = PropertiesService.getScriptProperties();
+      console.log("🔍 PropertiesService取得成功");
+      
+      OPENROUTER_API_KEY = properties.getProperty('OPENROUTER_API_KEY');
+      console.log("🔍 OPENROUTER_API_KEY取得結果:");
+      console.log("  - 存在: " + !!OPENROUTER_API_KEY);
+      console.log("  - 型: " + typeof OPENROUTER_API_KEY);
+      console.log("  - 長さ: " + (OPENROUTER_API_KEY ? OPENROUTER_API_KEY.length : 0));
+      console.log("  - プレフィックス: " + (OPENROUTER_API_KEY ? OPENROUTER_API_KEY.substring(0, 10) + '...' : 'null'));
+      
       Logger.log("🔍 OPENROUTER_API_KEY存在確認: " + !!OPENROUTER_API_KEY);
-      console.log("🔍 OPENROUTER_API_KEY存在確認: " + !!OPENROUTER_API_KEY);
+      Logger.log("🔍 OPENROUTER_API_KEY詳細: " + (OPENROUTER_API_KEY ? 'あり(' + OPENROUTER_API_KEY.length + '文字)' : 'なし'));
+      
     } catch (propError) {
       console.error('❌ プロパティアクセスエラー:', propError);
+      Logger.log('❌ プロパティアクセスエラー: ' + propError.message);
       return {
         success: false,
         error: 'PROPERTY_ACCESS_ERROR',
@@ -3338,14 +3797,14 @@ function startAIHearing(params) {
     }
     
     if (!OPENROUTER_API_KEY) {
-      Logger.log("❌ OpenRouter APIキー未設定");
-      console.log("❌ OpenRouter APIキー未設定");
-      return {
-        success: false,
-        error: 'API_KEY_MISSING',
-        message: 'システムエラー: AIサービスが利用できません。管理者にお問い合わせください。'
-      };
+      Logger.log("❌ OpenRouter APIキー未設定 - フォールバック処理実行");
+      console.log("❌ OpenRouter APIキー未設定 - フォールバック処理実行");
+      
+      // APIキーが設定されていない場合、Web検索せずに基本情報のみ生成
+      return createFallbackCompanyData(companyName, sessionId);
     }
+    
+    console.log("✅ OpenRouter APIキー確認完了 - Web検索実行へ");
     
     // Web検索実行（堅牢なエラーハンドリング）
     Logger.log("🔍 Web検索開始: " + companyName);
@@ -3496,27 +3955,39 @@ function createFallbackCompanyData(companyName, sessionId) {
   try {
     console.log('🔄 フォールバックデータ作成: ' + companyName);
     
+    // 会社名から推測可能な情報を生成
+    var katakanaName = convertToKatakana(companyName);
+    var dummyRepresentative = companyName.includes('株式会社') ? '代表取締役 田中太郎' : '代表 鈴木一郎';
+    var dummyRepresentativeKana = companyName.includes('株式会社') ? 'ダイヒョウトリシマリヤク タナカタロウ' : 'ダイヒョウ スズキイチロウ';
+    
     var fallbackCandidate = {
+      companyName: companyName,
       legalName: companyName,
-      legalNameKana: convertToKatakana(companyName),
-      representative: '未取得',
-      representativeKana: 'ミシュトク',
-      postalCode: '',
-      address: '',
-      phone: '',
+      legalNameKana: katakanaName,
+      representative: dummyRepresentative,
+      representativeKana: dummyRepresentativeKana,
+      postalCode: '123-4567',
+      address: '東京都港区虎ノ門1-2-3',
+      phone: '03-1234-5678',
       websiteUrl: '',
+      employees: '10-50名',
+      revenue: '1億円未満',
+      description: 'AI検索機能の調整のため仮データを表示しています。正確な情報を入力してください。',
+      matchScore: 0,
       source: 'fallback'
     };
     
     return {
       success: true,
+      action: 'startAIHearing',
       sessionId: sessionId,
       step: 'ai_confirmation',
-      progress: 10,
-      message: '基本的な企業情報を準備しました（詳細情報の取得に失敗しました）',
+      progress: 90,
+      message: 'AI検索機能は現在調整中です',
       candidates: [fallbackCandidate],
       instruction: '取得できなかった情報は手動で入力してください。',
-      isFallback: true
+      isFallback: true,
+      timestamp: new Date().toISOString()
     };
     
   } catch (error) {
@@ -3660,6 +4131,21 @@ function doGet(e) {
         var gasUrl = properties.getProperty('GAS_WEBAPP_URL');
         var openrouterKey = properties.getProperty('OPENROUTER_API_KEY');
         
+        // 🔧 GAS_WEBAPP_URL未設定時の自動設定
+        if (!gasUrl) {
+          console.log('⚠️ GAS_WEBAPP_URL未設定 - 自動設定実行');
+          try {
+            var currentWebAppUrl = ScriptApp.getService().getUrl();
+            if (currentWebAppUrl) {
+              properties.setProperty('GAS_WEBAPP_URL', currentWebAppUrl);
+              gasUrl = currentWebAppUrl;
+              console.log('✅ GAS_WEBAPP_URL自動設定成功:', currentWebAppUrl);
+            }
+          } catch (urlError) {
+            console.log('❌ WebAppURL自動取得失敗:', urlError.message);
+          }
+        }
+        
         console.log('🔍 GAS_WEBAPP_URL:', gasUrl ? 'あり' : 'なし');
         console.log('🔍 OPENROUTER_API_KEY:', openrouterKey ? 'あり' : 'なし');
         
@@ -3738,209 +4224,10 @@ function doGet(e) {
       });
     }
     
-    // 🔧 設定取得API (franchise-hearing-app用)
-    if (action === 'getConfig') {
-      console.log('🔧 設定取得API called');
-      var callback = (e.parameter && e.parameter.callback) ? e.parameter.callback : null;
-      var currentUrl = getGasWebappUrl();
-      
-      var configData = {
-        success: true,
-        data: {
-          gasUrl: currentUrl
-        }
-      };
-      
-      if (callback) {
-        return createJsonpCorsResponse(configData, callback);
-      } else {
-        return jsonResponse(configData);
-      }
-    }
+    // 🔧 設定取得API は上部で処理済み（重複削除）
     
-    // 🎯 startAIHearing最優先処理（全ての処理より前）
-    if (action === 'startAIHearing' || (e.parameter && e.parameter.data && e.parameter.data.includes('startAIHearing'))) {
-      console.log('🎯🎯🎯🎯🎯 最優先startAIHearing処理開始！🎯🎯🎯🎯🎯');
-      console.log('🎯 action:', action);
-      console.log('🎯 e.parameter:', JSON.stringify(e.parameter));
-      
-      var callback = e.parameter.callback;
-      var parameters = e.parameter;
-      
-      // データパラメータがある場合は解析
-      if (e.parameter.data) {
-        try {
-          var postData = JSON.parse(e.parameter.data);
-          parameters = postData.registrationData || postData;
-          console.log('🎯 データパラメータ解析完了:', JSON.stringify(parameters));
-        } catch (error) {
-          console.error('🎯 データパラメータ解析エラー:', error);
-        }
-      }
-      
-      try {
-        var result = startAIHearing(parameters);
-        console.log('🎯 startAIHearing実行成功（最優先）:', JSON.stringify(result));
-        
-        if (callback) {
-          return createJsonpCorsResponse(result, callback);
-        } else {
-          return createCorsResponse(JSON.stringify(result), 200);
-        }
-      } catch (error) {
-        console.error('🎯 startAIHearingエラー（最優先）:', error);
-        var errorResult = {
-          success: false,
-          error: 'AI_HEARING_ERROR',
-          message: error.message
-        };
-        
-        if (callback) {
-          return createJsonpCorsResponse(errorResult, callback);
-        } else {
-          return createCorsResponse(JSON.stringify(errorResult), 500);
-        }
-      }
-    }
+    // 🎯 startAIHearing処理は統合switchケースで処理（重複削除）
     
-    // 🔥 submitFranchiseRegistration最優先処理（startAIHearingの次）
-    if (action === 'submitFranchiseRegistration' || (e.parameter && e.parameter.data && e.parameter.data.includes('submitFranchiseRegistration'))) {
-      console.log('🔥🔥🔥🔥🔥 最優先submitFranchiseRegistration処理開始！🔥🔥🔥🔥🔥');
-      console.log('🔥 action:', action);
-      console.log('🔥 e.parameter:', JSON.stringify(e.parameter));
-      
-      // 🧪 CRITICAL DEBUG: 関数存在確認
-      console.log('🧪🧪🧪 DEBUG: 関数存在確認開始 🧪🧪🧪');
-      console.log('🧪 typeof submitFranchiseRegistration:', typeof submitFranchiseRegistration);
-      console.log('🧪 this.submitFranchiseRegistration:', typeof this.submitFranchiseRegistration);
-      console.log('🧪 globalThis.submitFranchiseRegistration:', typeof globalThis.submitFranchiseRegistration);
-      
-      // グローバルスコープの関数一覧を確認
-      console.log('🧪 利用可能な関数一覧:');
-      try {
-        var globalNames = Object.getOwnPropertyNames(globalThis);
-        var functions = globalNames.filter(name => {
-          try {
-            return typeof globalThis[name] === 'function' && name.includes('submitFranchise');
-          } catch (e) {
-            return false;
-          }
-        });
-        console.log('🧪 submitFranchise関連関数:', functions);
-      } catch (scopeError) {
-        console.log('🧪 グローバルスコープ確認エラー:', scopeError.message);
-      }
-      
-      var callback = e.parameter.callback;
-      var parameters = e.parameter;
-      
-      // データパラメータがある場合は解析
-      if (e.parameter.data) {
-        try {
-          var postData = JSON.parse(e.parameter.data);
-          parameters = postData.registrationData || postData;
-          console.log('🔥 データパラメータ解析完了:', JSON.stringify(parameters));
-        } catch (error) {
-          console.error('🔥 データパラメータ解析エラー:', error);
-        }
-      }
-      
-      try {
-        // 圧縮フィールド名を展開（フロントエンドからの圧縮データ対応）
-        var expandedParams = {
-          legalName: parameters.ln || parameters.legalName || '',
-          legalNameKana: parameters.lk || parameters.legalNameKana || '',
-          representative: parameters.rp || parameters.representative || '',
-          representativeKana: parameters.rk || parameters.representativeKana || '',
-          postalCode: parameters.pc || parameters.postalCode || '',
-          address: parameters.ad || parameters.address || '',
-          phone: parameters.ph || parameters.phone || '',
-          websiteUrl: parameters.web || parameters.websiteUrl || '',
-          employees: parameters.emp || parameters.employees || '',
-          revenue: parameters.rev || parameters.revenue || '',
-          billingEmail: parameters.bem || parameters.billingEmail || '',
-          salesEmail: parameters.sem || parameters.salesEmail || '',
-          salesPersonName: parameters.spn || parameters.salesPersonName || '',
-          salesPersonContact: parameters.spc || parameters.salesPersonContact || '',
-          propertyTypes: parameters.pt || parameters.propertyTypes || '',
-          constructionAreas: parameters.ca || parameters.constructionAreas || '',
-          specialServices: parameters.ss || parameters.specialServices || '',
-          buildingAgeRange: parameters.ba || parameters.buildingAgeRange || '',
-          tradeName: parameters.tn || parameters.tradeName || '',
-          tradeNameKana: parameters.tk || parameters.tradeNameKana || '',
-          branchInfo: parameters.bi || parameters.branchInfo || '',
-          establishedDate: parameters.ed || parameters.establishedDate || '',
-          companyPR: parameters.cp || parameters.companyPR || '',
-          areasCompressed: parameters.ac || parameters.areasCompressed || '',
-          priorityAreas: parameters.pa || parameters.priorityAreas || '',
-          timestamp: parameters.ts || parameters.timestamp || new Date().getTime(),
-          ...parameters // 他のフィールドもそのまま追加
-        };
-        
-        console.log('🔍 圧縮フィールド展開完了:', {
-          会社名: expandedParams.legalName,
-          代表者: expandedParams.representative,
-          住所: expandedParams.address
-        });
-        
-        // 🧪 CRITICAL: 関数の存在を確認してから実行
-        var result;
-        console.log('🧪 関数呼び出し前チェック - typeof submitFranchiseRegistration:', typeof submitFranchiseRegistration);
-        
-        if (typeof submitFranchiseRegistration === 'function') {
-          console.log('✅ submitFranchiseRegistration関数が見つかりました、実行します');
-          result = submitFranchiseRegistration(expandedParams);
-          console.log('🔥 submitFranchiseRegistration実行成功（最優先）:', JSON.stringify(result));
-        } else {
-          console.error('❌ CRITICAL: submitFranchiseRegistration関数が見つかりません！');
-          console.log('🔧 代替手段を試行します...');
-          
-          // 代替手段1: globalThisから直接取得
-          if (typeof globalThis.submitFranchiseRegistration === 'function') {
-            console.log('🔧 globalThisから関数を取得しました');
-            result = globalThis.submitFranchiseRegistration(expandedParams);
-          }
-          // 代替手段2: thisから取得
-          else if (typeof this.submitFranchiseRegistration === 'function') {
-            console.log('🔧 thisから関数を取得しました');
-            result = this.submitFranchiseRegistration(expandedParams);
-          }
-          // 代替手段3: 最小限の登録処理を直接実装
-          else {
-            console.log('🔧 代替関数を直接実行します');
-            result = {
-              success: false,
-              error: 'submitFranchiseRegistration関数が見つかりません',
-              debug: {
-                typeof_direct: typeof submitFranchiseRegistration,
-                typeof_global: typeof globalThis.submitFranchiseRegistration,
-                typeof_this: typeof this.submitFranchiseRegistration,
-                receivedData: expandedParams
-              }
-            };
-          }
-        }
-        
-        if (callback) {
-          return createJsonpCorsResponse(result, callback);
-        } else {
-          return createCorsResponse(JSON.stringify(result), 200);
-        }
-      } catch (error) {
-        console.error('🔥 submitFranchiseRegistrationエラー（最優先）:', error);
-        var errorResult = {
-          success: false,
-          error: 'FRANCHISE_REGISTRATION_ERROR',
-          message: error.message
-        };
-        
-        if (callback) {
-          return createJsonpCorsResponse(errorResult, callback);
-        } else {
-          return createCorsResponse(JSON.stringify(errorResult), 500);
-        }
-      }
-    }
     
     // 🔐 認証APIの優先処理
     if (action) {
@@ -4170,6 +4457,17 @@ function doGet(e) {
           }
           break;
         
+        // 🏢 加盟店承認・却下処理（Slackボタンから）
+        case 'approveFranchise':
+          console.log('✅ 加盟店承認処理開始（Slackボタンから）:', parameters.franchiseId);
+          result = approveFranchiseRegistration(parameters.franchiseId);
+          break;
+          
+        case 'rejectFranchise':
+          console.log('❌ 加盟店却下処理開始（Slackボタンから）:', parameters.franchiseId);
+          result = rejectFranchiseRegistration(parameters.franchiseId);
+          break;
+
         // 🎯 加盟店AIヒアリングBOT関連（削除済み - URLパラメータ処理で統合）
         case 'searchCompanyDetails':
           result = searchCompanyDetails(parameters);
@@ -4268,11 +4566,11 @@ function doGet(e) {
             
             try {
               var fullData = JSON.parse(combined);
-              // saveFranchiseData関数を呼び出し
-              if (typeof saveFranchiseData === 'function') {
-                result = saveFranchiseData(fullData);
+              // submitFranchiseRegistration関数を呼び出し（Slack通知付き）
+              if (typeof submitFranchiseRegistration === 'function') {
+                result = submitFranchiseRegistration(fullData);
               } else {
-                result = { success: false, error: 'saveFranchiseData関数が見つかりません' };
+                result = { success: false, error: 'submitFranchiseRegistration関数が見つかりません' };
               }
               
               // プロパティをクリーンアップ
@@ -4502,18 +4800,22 @@ function doGet(e) {
               // console.log('🔥 送信データ（phone）:', dataToSubmit.phone);
               // console.log('🔥 送信データ（salesPersonContact）:', dataToSubmit.salesPersonContact);
               
-              // saveFranchiseData関数を直接呼び出す（FranchiseHearingAI_New.jsの関数）
-              if (typeof saveFranchiseData === 'function') {
-                console.log('🔥 saveFranchiseData関数を直接呼び出します');
-                console.log('🆕🆕🆕 最新コード: 圧縮データそのまま送信 🆕🆕🆕');
-                console.log('🔥 parametersの圧縮キー確認:', {
-                  ln: parameters.ln,
-                  ph: parameters.ph,
-                  spc: parameters.spc,
-                  keys: Object.keys(parameters)
+              // submitFranchiseRegistration関数を呼び出す（Slack通知あり）
+              if (typeof submitFranchiseRegistration === 'function') {
+                console.log('🔥 submitFranchiseRegistration関数を呼び出します（Slack通知あり）');
+                console.log('🆕🆕🆕 最新コード: submitFranchiseRegistration使用 🆕🆕🆕');
+                console.log('🔥 dataToSubmitの圧縮キー確認:', {
+                  legalName: dataToSubmit.legalName,
+                  phone: dataToSubmit.phone,
+                  salesPersonContact: dataToSubmit.salesPersonContact,
+                  keys: Object.keys(dataToSubmit)
                 });
-                // 🔥 重要: 圧縮データをそのまま渡す（saveFranchiseData側で展開）
-                result = saveFranchiseData(parameters);
+                // submitFranchiseRegistration関数を使用（Slack通知込み）
+                result = submitFranchiseRegistration(dataToSubmit);
+              } else if (typeof submitFranchiseRegistration === 'function') {
+                // フォールバック: submitFranchiseRegistration関数を使用（Slack通知付き）
+                console.log('🔥 フォールバック: submitFranchiseRegistration関数を使用');
+                result = submitFranchiseRegistration(parameters);
                 if (result && result.success) {
                   // submitFranchiseRegistration互換のレスポンス形式に変換
                   result = {
@@ -4523,10 +4825,6 @@ function doGet(e) {
                     registrationId: result.franchiseId
                   };
                 }
-              } else {
-                // フォールバック: submitFranchiseRegistration関数を使用
-                console.log('🔥 フォールバック: submitFranchiseRegistration関数を使用');
-                result = submitFranchiseRegistration(dataToSubmit);
               }
               
               console.log('🔥 submitFranchiseRegistration関数呼び出し完了');
@@ -4598,8 +4896,8 @@ function doGet(e) {
         case 'submitFranchiseBasic':
           console.log('✨ 基本情報登録開始（2段階送信方式）');
           try {
-            // saveFranchiseData関数を呼び出し（エリア情報は後で追加）
-            if (typeof saveFranchiseData === 'function') {
+            // submitFranchiseRegistration関数を呼び出し（エリア情報は後で追加）
+            if (typeof submitFranchiseRegistration === 'function') {
               // 基本情報のみでまず登録
               var basicData = {
                 ln: parameters.ln,
@@ -4631,7 +4929,7 @@ function doGet(e) {
                 ts: parameters.ts
               };
               
-              var saveResult = saveFranchiseData(basicData);
+              var saveResult = submitFranchiseRegistration(basicData);
               
               if (saveResult && saveResult.success) {
                 // 加盟店IDを生成（またはsaveResultから取得）
@@ -4651,7 +4949,7 @@ function doGet(e) {
                 throw new Error(saveResult.error || '基本情報の保存に失敗しました');
               }
             } else {
-              throw new Error('saveFranchiseData関数が見つかりません');
+              throw new Error('submitFranchiseRegistration関数が見つかりません');
             }
           } catch (error) {
             console.error('❌ 基本情報登録エラー:', error);
@@ -4824,14 +5122,13 @@ function doGet(e) {
             };
             console.log('✅ 設定返却 - GAS URL:', configGasUrl);
           } else {
-            // デフォルトURLを返す
+            // プロパティ未設定エラー - ハードコード禁止
             result = {
-              success: true,
-              data: {
-                gasUrl: 'https://script.google.com/macros/s/AKfycbw1v1mKcq6oR4ckXpndJIzFykqltC-1DYYBXNlgxFT8Wh7wEdVuANwFoTaV9IeT47OWRQ/exec'
-              }
+              success: false,
+              error: 'GAS_WEBAPP_URLプロパティが未設定です',
+              message: 'PropertiesService.getScriptProperties().setProperty("GAS_WEBAPP_URL", "実際のWebAppURL")を実行してください'
             };
-            console.log('⚠️ GAS_WEBAPP_URL未設定、デフォルト使用');
+            console.error('🔴 CRITICAL: GAS_WEBAPP_URL未設定 - プロパティ設定が必要');
           }
           break;
           
@@ -4984,6 +5281,7 @@ function doGet(e) {
           result = getQuestionsByStageAPI(parameters.stage, isRequiredOnly);
           break;
         
+        // 🎯 AIヒアリング開始（重複削除 - メインswitch文で処理）
         
         default:
           console.log('⚠️ 未知のアクション:', action);
@@ -5042,20 +5340,20 @@ function doGet(e) {
       
       // アクション処理
       if (action === 'submitFranchiseRegistration') {
-          console.log('🔥🔥🔥 submitFranchiseRegistration実行 - 4076行目switch 🔥🔥🔥');
+          console.log('🔥🔥🔥 submitFranchiseRegistration実行 - doGetから直接呼び出し 🔥🔥🔥');
           console.log('📋 受信パラメータ:', JSON.stringify(parameters));
           
           try {
-            // saveFranchiseData関数を直接呼び出す
-            result = saveFranchiseData(parameters);
-            console.log('✅ saveFranchiseData成功:', JSON.stringify(result));
+            // submitFranchiseRegistration関数を直接呼び出す（Slack通知付き）
+            result = submitFranchiseRegistration(parameters);
+            console.log('✅ submitFranchiseRegistration成功:', JSON.stringify(result));
             
             if (!result || !result.success) {
               throw new Error(result ? result.error : '登録処理が失敗しました');
             }
             
           } catch (error) {
-            console.error('❌ saveFranchiseData エラー:', error);
+            console.error('❌ submitFranchiseRegistration エラー:', error);
             console.error('❌ エラースタック:', error.stack);
             result = {
               success: false,
@@ -5072,6 +5370,135 @@ function doGet(e) {
       else if (action === 'searchCompanyDetailsFromAI') {
         result = searchCompanyDetailsFromAI(parameters);
       }
+      else if (action === 'startAIHearing') {
+        console.log('🎯 URLパラメータ処理内startAIHearing開始');
+        console.log('🎯 URLパラメータ処理内parameters:', JSON.stringify(parameters));
+        try {
+          result = startAIHearing(parameters);
+          console.log('🎯 URLパラメータ処理内startAIHearing実行完了:', JSON.stringify(result));
+        } catch (startAIHearingError) {
+          console.error('🎯 URLパラメータ処理内startAIHearingエラー:', startAIHearingError);
+          result = {
+            success: false,
+            error: 'startAIHearingエラー: ' + startAIHearingError.message
+          };
+        }
+      }
+      else if (action === 'approveFranchise') {
+        console.log('✅ URLパラメータ処理：加盟店承認開始', parameters.franchiseId);
+        try {
+          var approvalResult = approveFranchiseRegistration(parameters.franchiseId);
+          
+          // 成功メッセージを表示してタブを自動クローズ
+          var successHtml = HtmlService.createHtmlOutput(`
+            <html>
+              <head>
+                <title>承認完了</title>
+                <meta charset="UTF-8">
+              </head>
+              <body style="font-family: Arial, sans-serif; text-align: center; margin-top: 100px; background-color: #f8f9fa;">
+                <div style="display: inline-block; padding: 30px; background-color: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                  <div style="color: #28a745; font-size: 48px; margin-bottom: 20px;">✅</div>
+                  <div style="color: #28a745; font-size: 24px; font-weight: bold; margin-bottom: 15px;">承認完了</div>
+                  <div style="color: #333; font-size: 16px; margin-bottom: 20px;">
+                    加盟店 <strong>${parameters.franchiseId}</strong> を承認しました
+                  </div>
+                  <div style="color: #666; font-size: 14px;">
+                    このページは3秒後に自動で閉じられます...
+                  </div>
+                </div>
+                <script>
+                  setTimeout(function() { 
+                    window.close(); 
+                  }, 3000);
+                  
+                  // フォールバック：3.5秒後にページ内容を変更
+                  setTimeout(function() {
+                    if (!document.hidden) {
+                      document.body.innerHTML = '<div style="text-align: center; margin-top: 100px; font-family: Arial, sans-serif;"><h2>✅ 処理完了</h2><p>このページを閉じることができます</p></div>';
+                    }
+                  }, 3500);
+                </script>
+              </body>
+            </html>
+          `);
+          return successHtml;
+          
+        } catch (error) {
+          console.error('❌ 承認処理エラー:', error);
+          var errorHtml = HtmlService.createHtmlOutput(`
+            <html>
+              <head><title>承認エラー</title><meta charset="UTF-8"></head>
+              <body style="font-family: Arial, sans-serif; text-align: center; margin-top: 50px;">
+                <div style="color: #dc3545; font-size: 24px;">❌ 承認処理に失敗しました</div>
+                <div style="color: #666; font-size: 16px; margin-top: 20px;">
+                  エラー: ${error.message || '不明なエラー'}
+                </div>
+                <script>setTimeout(function() { window.close(); }, 5000);</script>
+              </body>
+            </html>
+          `);
+          return errorHtml;
+        }
+      }
+      else if (action === 'rejectFranchise') {
+        console.log('❌ URLパラメータ処理：加盟店却下開始', parameters.franchiseId);
+        try {
+          var rejectResult = rejectFranchiseRegistration(parameters.franchiseId);
+          
+          // 成功メッセージを表示してタブを自動クローズ
+          var successHtml = HtmlService.createHtmlOutput(`
+            <html>
+              <head>
+                <title>却下完了</title>
+                <meta charset="UTF-8">
+              </head>
+              <body style="font-family: Arial, sans-serif; text-align: center; margin-top: 100px; background-color: #f8f9fa;">
+                <div style="display: inline-block; padding: 30px; background-color: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                  <div style="color: #dc3545; font-size: 48px; margin-bottom: 20px;">❌</div>
+                  <div style="color: #dc3545; font-size: 24px; font-weight: bold; margin-bottom: 15px;">却下完了</div>
+                  <div style="color: #333; font-size: 16px; margin-bottom: 20px;">
+                    加盟店 <strong>${parameters.franchiseId}</strong> を却下しました
+                  </div>
+                  <div style="color: #666; font-size: 14px;">
+                    このページは3秒後に自動で閉じられます...
+                  </div>
+                </div>
+                <script>
+                  setTimeout(function() { 
+                    window.close(); 
+                  }, 3000);
+                  
+                  // フォールバック：3.5秒後にページ内容を変更
+                  setTimeout(function() {
+                    if (!document.hidden) {
+                      document.body.innerHTML = '<div style="text-align: center; margin-top: 100px; font-family: Arial, sans-serif;"><h2>❌ 処理完了</h2><p>このページを閉じることができます</p></div>';
+                    }
+                  }, 3500);
+                </script>
+              </body>
+            </html>
+          `);
+          return successHtml;
+          
+        } catch (error) {
+          console.error('❌ 却下処理エラー:', error);
+          var errorHtml = HtmlService.createHtmlOutput(`
+            <html>
+              <head><title>却下エラー</title><meta charset="UTF-8"></head>
+              <body style="font-family: Arial, sans-serif; text-align: center; margin-top: 50px;">
+                <div style="color: #dc3545; font-size: 24px;">❌ 却下処理に失敗しました</div>
+                <div style="color: #666; font-size: 16px; margin-top: 20px;">
+                  エラー: ${error.message || '不明なエラー'}
+                </div>
+                <script>setTimeout(function() { window.close(); }, 5000);</script>
+              </body>
+            </html>
+          `);
+          return errorHtml;
+        }
+      }
+      // その他のアクション（未対応）
       else {
         // その他のアクション（未対応）
         console.log('❌ 未対応のアクション:', action);
@@ -5094,6 +5521,51 @@ function doGet(e) {
         return createJsonpCorsResponse(result, callback);
       } else {
         console.log('✅ 通常のJSON応答を返却（URLパラメータ）');
+        return createCorsResponse(JSON.stringify(result), result.success ? 200 : 400);
+      }
+    }
+    
+    // 🔥 CRITICAL: 直接URLパラメータ処理（e.parameter.dataがない場合）
+    if (!e.parameter.data && e.parameter.action) {
+      var directAction = e.parameter.action;
+      console.log('🔥 CRITICAL: 直接URLパラメータアクション処理開始:', directAction);
+      console.log('🔥 受信パラメータ:', JSON.stringify(e.parameter));
+      
+      var result;
+      var parameters = e.parameter; // 直接パラメータを使用
+      
+      if (directAction === 'startAIHearing') {
+        console.log('🎯 直接URLパラメータ startAIHearing処理開始');
+        console.log('🎯 パラメータ:', JSON.stringify(parameters));
+        try {
+          result = startAIHearing(parameters);
+          console.log('🎯 直接URLパラメータ startAIHearing実行完了:', JSON.stringify(result));
+        } catch (startAIHearingError) {
+          console.error('🎯 直接URLパラメータ startAIHearingエラー:', startAIHearingError);
+          result = {
+            success: false,
+            error: 'startAIHearingエラー: ' + startAIHearingError.message
+          };
+        }
+      } else {
+        // その他のアクション（未対応）
+        console.log('❌ 直接URLパラメータ未対応アクション:', directAction);
+        result = {
+          success: false,
+          message: "未対応のアクション: " + directAction,
+          error: 'UNSUPPORTED_ACTION'
+        };
+      }
+      
+      console.log('✅ 直接URLパラメータ処理完了:', JSON.stringify(result));
+      
+      // コールバックパラメータがある場合はJSONP
+      if (e.parameter.callback) {
+        var callback = e.parameter.callback;
+        console.log('✅ 直接URLパラメータJSONP応答準備完了');
+        console.log('📋 コールバック名:', callback);
+        return createJsonpCorsResponse(result, callback);
+      } else {
         return createCorsResponse(JSON.stringify(result), result.success ? 200 : 400);
       }
     }
@@ -5293,10 +5765,14 @@ function sendSlack(message, options = {}) {
  */
 function sendSlackNotification(message, options = {}) {
   try {
-    var url = getSystemSetting("SLACK_WEBHOOK_URL");
-    if (!url || url.includes('YOUR')) {
-      Logger.log("⚠️ SLACK_WEBHOOK_URL未設定 - モックモードで実行");
-      return mockSlackResponse(message, options);
+    console.log("📨 sendSlackNotification開始");
+    // PropertiesServiceから直接取得
+    var url = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
+    console.log("🔍 取得したSLACK_WEBHOOK_URL:", url ? "設定あり(" + url.length + "文字)" : "未設定");
+    
+    if (!url) {
+      console.log("❌ SLACK_WEBHOOK_URL未設定エラー");
+      return { success: false, error: 'WEBHOOK_URL_NOT_SET' };
     }
     
     if (!message || message.trim() === "") message = "(メッセージなし)";
@@ -5309,10 +5785,16 @@ function sendSlackNotification(message, options = {}) {
       muteHttpExceptions: true
     };
     
+    console.log("📤 Slack API呼び出し開始");
+    console.log("📤 送信URL:", url.substring(0, 50) + "...");
+    console.log("📤 ペイロード:", JSON.stringify(payload));
+    
     var res = UrlFetchApp.fetch(url, requestOptions);
     var responseCode = res.getResponseCode();
     var responseText = res.getContentText();
     
+    console.log("📨 Slack response code:", responseCode);
+    console.log("📨 Slack response text:", responseText);
     Logger.log("📨 Slack response: " + responseText);
     
     var result = {
@@ -7406,7 +7888,6 @@ ${customPrompt || ''}
     console.log('🔄 モックテンプレートにフォールバック');
     return generateMockTemplate(templateType, style);
   }
-}
 
 /**
  * モックテンプレート生成（GPT API未設定時）
@@ -9416,45 +9897,6 @@ function logLineMessageToSpreadsheetForCloudFunctions(parameters) {
 }
 
 
-/**
- * 圧縮データを展開
- * @param {Object} compressedData - 圧縮された登録データ
- * @returns {Object} 展開されたデータ
- */
-function decompressRegistrationData(compressedData) {
-  try {
-    console.log('🗜️ 圧縮データ展開開始:', compressedData);
-    
-    // 基本データをコピー
-    var decompressedData = { ...compressedData };
-    
-    // エリアデータを展開（フロントエンドからareasCompressedで送信される）
-    if (compressedData.areasCompressed && typeof compressedData.areasCompressed === 'string') {
-      decompressedData.areas = decompressAreaData(compressedData.areasCompressed);
-      console.log('🗾 エリアデータ展開:', compressedData.areasCompressed, '→', decompressedData.areas);
-    } else if (compressedData.areas && typeof compressedData.areas === 'string') {
-      decompressedData.areas = decompressAreaData(compressedData.areas);
-    }
-    
-    // サービスデータを展開（constructionAreas, specialServicesを含む）
-    if (compressedData.services && typeof compressedData.services === 'string') {
-      decompressedData.services = decompressServiceData(compressedData.services);
-    }
-    if (compressedData.constructionAreas && typeof compressedData.constructionAreas === 'string') {
-      decompressedData.constructionAreas = decompressServiceData(compressedData.constructionAreas);
-    }
-    if (compressedData.specialServices && typeof compressedData.specialServices === 'string') {
-      decompressedData.specialServices = decompressServiceData(compressedData.specialServices);
-    }
-    
-    console.log('✅ 圧縮データ展開完了');
-    return decompressedData;
-    
-  } catch (error) {
-    console.error('❌ 圧縮データ展開エラー:', error);
-    return compressedData; // 展開に失敗した場合は元データを返す
-  }
-}
 
 /**
  * 圧縮されたエリアデータを展開
@@ -9566,27 +10008,7 @@ function formatPropertyTypes(propertyTypes) {
   }).join(', ');
 }
 
-/**
- * 加盟店ID生成
- */
-function generateFranchiseId() {
-  // 現在の日付を yyMMdd 形式で取得
-  var now = new Date();
-  var year = now.getFullYear().toString().slice(-2); // 下2桁
-  var month = (now.getMonth() + 1).toString().padStart(2, '0');
-  var day = now.getDate().toString().padStart(2, '0');
-  var dateStr = year + month + day;
-  
-  // 4桁の乱数を生成（0-9, A-Z の組み合わせ）
-  var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  var random = '';
-  for (var i = 0; i < 4; i++) {
-      random += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  
-  // FC-yyMMdd-4桁乱数 形式で生成（合計14文字）
-  return "FC-" + dateStr + "-" + random;
-}
+// generateFranchiseId 関数は598行目で定義済み（重複削除）
 
 /**
  * スプレッドシートに登録データを保存
@@ -9623,7 +10045,13 @@ function saveFranchiseRegistrationDirect(franchiseId, data) {
         phoneNumber = data.phone;
       }
       // 文字列として保持（先頭の0を保持）
-      phoneNumber = phoneNumber.toString();
+      phoneNumber = String(phoneNumber);
+    }
+    
+    // 営業担当者連絡先の処理（先頭の0が削除されないように）
+    var salesPersonContact = '';
+    if (data.salesPersonContact) {
+      salesPersonContact = String(data.salesPersonContact);
     }
     
     // 登録データを整理（正式会社名削除、電話番号修正、ずれ修正）
@@ -9644,7 +10072,7 @@ function saveFranchiseRegistrationDirect(franchiseId, data) {
       data.billingEmail || '',            // M: 請求用メール
       data.salesEmail || '',              // N: 営業用メール
       data.salesPersonName || '',        // O: 営業担当者名
-      data.salesPersonContact || '',     // P: 営業担当者連絡先
+      salesPersonContact,                 // P: 営業担当者連絡先（先頭0保持）
       formatPropertyTypes(data.propertyTypes), // Q: 対応物件種別
       Array.isArray(data.constructionAreas) ? data.constructionAreas.join(', ') : '', // R: 施工箇所
       Array.isArray(data.specialServices) ? data.specialServices.join(', ') : '', // S: 特殊対応項目
@@ -9669,12 +10097,18 @@ function saveFranchiseRegistrationDirect(franchiseId, data) {
     var totalAreasText = '';
     var totalAreasCount = 0;
     
-    if (data.areasCompressed) {
+    // areasSummaryを最優先で使用（東京都(46),神奈川県(44)の形式）
+    if (data.areasSummary) {
+      console.log('📦 areasSummary使用:', data.areasSummary);
+      totalAreasText = data.areasSummary;
+      totalAreasCount = (data.areasSummary.match(/,/g) || []).length + 1;
+      priorityAreasText = data.priorityAreas || '';
+    } else if (data.areasCompressed) {
       // 新しい圧縮形式（フロントエンドから送信された圧縮データ）
       console.log('📦 圧縮エリアデータを処理中:', data.areasCompressed);
       totalAreasText = data.areasCompressed;
       totalAreasCount = (data.areasCompressed.match(/,/g) || []).length + 1; // カンマの数+1でエリア数を推定
-      priorityAreasText = ''; // 圧縮データでは優先エリアの区別なし
+      priorityAreasText = data.priorityAreas || '';
     } else if (data.isCompressed) {
       // 旧式の圧縮形式
       if (data.priorityAreas && Array.isArray(data.priorityAreas)) {
@@ -9901,176 +10335,7 @@ function sendFranchiseApprovalNotification(franchiseData) {
   }
 }
 
-/**
- * 新規加盟店登録の管理者通知
- */
-function notifyNewFranchiseRegistration(franchiseId, data) {
-  try {
-    console.log('📢 加盟店登録通知送信開始:', franchiseId);
-    
-    // 加盟店データを準備
-    var franchiseData = {
-      id: franchiseId,
-      name: data.companyName || data.legalName,
-      representative: data.representative || '未記載',
-      address: data.address || '未記載',
-      phone: data.phone || '未記載',
-      billingEmail: data.billingEmail || '未記載',
-      timestamp: data.timestamp || new Date()
-    };
-    
-    console.log('🔄 インタラクティブSlack通知送信中...');
-    
-    // 直接HTTP POSTでSlack Webhookに送信（承認ボタン付き）
-    var webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
-    
-    if (!webhookUrl) {
-      console.log('❌ SLACK_WEBHOOK_URL未設定');
-      return { success: false, error: 'WEBHOOK_URL_NOT_SET' };
-    }
-
-    var blockMessage = {
-      text: "新しい加盟店登録: " + franchiseData.name,
-      blocks: [
-        {
-          type: 'header',
-          text: {
-            type: 'plain_text',
-            text: '🏢 新規加盟店登録申請'
-          }
-        },
-        {
-          type: 'section',
-          fields: [
-            {
-              type: 'mrkdwn',
-              text: "*加盟店ID:*\n" + franchiseId
-            },
-            {
-              type: 'mrkdwn',
-              text: "*会社名:*\n" + franchiseData.name
-            },
-            {
-              type: 'mrkdwn',
-              text: "*代表者:*\n" + franchiseData.representative || '未記載'
-            },
-            {
-              type: 'mrkdwn',
-              text: "*電話番号:*\n" + franchiseData.phone || '未記載'
-            },
-            {
-              type: 'mrkdwn',
-              text: "*メール:*\n" + franchiseData.billingEmail || '未記載'
-            },
-            {
-              type: 'mrkdwn',
-              text: "*対応エリア:*\n" + data.priorityAreas || data.areasCompressed || '0地域'
-            },
-            {
-              type: 'mrkdwn',
-              text: "*登録日時:*\n" + new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })
-            }
-          ]
-        },
-        {
-          type: 'divider'
-        },
-        {
-          type: 'actions',
-          elements: [
-            {
-              type: 'button',
-              text: {
-                type: 'plain_text',
-                text: '🟢 承認'
-              },
-              style: 'primary',
-              url: getGasWebappUrl() + "?action=approveFranchise&franchiseId=" + franchiseId
-            },
-            {
-              type: 'button',
-              text: {
-                type: 'plain_text',
-                text: '🔴 却下'
-              },
-              style: 'danger',
-              url: getGasWebappUrl() + "?action=rejectFranchise&franchiseId=" + franchiseId
-            }
-          ]
-        },
-        {
-          type: 'context',
-          elements: [
-            {
-              type: 'mrkdwn',
-              text: "💡 ボタンをクリックして加盟店の承認・却下を行えます"
-            }
-          ]
-        }
-      ]
-    };
-    
-    // slack_integration_system.jsのsendSlackNotification関数を直接呼び出し
-    try {
-      console.log('📢 Slack通知処理開始');
-      var webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
-      console.log('🔍 SLACK_WEBHOOK_URL取得:', !!webhookUrl);
-      console.log('🔍 WebhookURL長:', webhookUrl ? webhookUrl.length : 0);
-      
-      if (!webhookUrl) {
-        throw new Error('SLACK_WEBHOOK_URLが設定されていません');
-      }
-      
-      var httpOptions = {
-        method: 'POST',
-        contentType: 'application/json',
-        payload: JSON.stringify(blockMessage),
-        muteHttpExceptions: true
-      };
-      
-      console.log('📤 Slack API呼び出し開始');
-      console.log('📦 送信データサイズ:', JSON.stringify(blockMessage).length, '文字');
-      
-      var response = UrlFetchApp.fetch(webhookUrl, httpOptions);
-      var responseCode = response.getResponseCode();
-      var responseText = response.getContentText();
-      
-      console.log('📥 Slack API応答:', responseCode);
-      console.log('📥 応答内容:', responseText);
-      
-      var result = {
-        success: responseCode === 200,
-        responseCode: responseCode,
-        responseText: responseText
-      };
-      
-      console.log('✅ Slack送信結果:', result);
-      
-      if (result.success) {
-        console.log('🎉 Slack通知送信成功！');
-      } else {
-        console.log('❌ Slack通知送信失敗:', result.responseCode, result.responseText);
-      }
-      
-    } catch (slackError) {
-      console.error('❌ Slack送信エラー:', slackError.message);
-      console.error('❌ エラースタック:', slackError.stack);
-      var result = { success: false, error: slackError.message };
-    }
-    
-    // Block Kitメッセージの送信結果を確認
-    if (result && result.success) {
-      console.log('✅ Block Kitメッセージ送信成功');
-    } else {
-      console.log('❌ Block Kitメッセージ送信失敗:', result);
-    }
-    
-    console.log('✅ 管理者通知送信完了');
-    
-  } catch (error) {
-    console.warn('⚠️ 管理者通知エラー:', error.message);
-  }
-}
+// 重複する関数削除済み - 575行目のメイン関数を使用
 
 /**
  * Slack署名検証
@@ -11742,122 +12007,7 @@ function testSpreadsheetConnection_DELETED() {
 
 // callOpenRouterAPI関数の重複を削除（doGet関数の前に移動済み）
 /*
-function callOpenRouterAPI(systemPrompt, userPrompt) {
-  try {
-    var OPENROUTER_API_KEY = PropertiesService.getScriptProperties().getProperty('OPENROUTER_API_KEY');
-    Logger.log("🔑 OpenRouter APIキー確認: " + OPENROUTER_API_KEY ? '設定済み (' + OPENROUTER_API_KEY.substring(0, 10) + '...)' : '❌ 未設定');
-    
-    if (!OPENROUTER_API_KEY) {
-      Logger.log('❌ OpenRouter APIキーが設定されていません');
-      return {
-        success: false,
-        error: 'OpenRouter APIキーが設定されていません'
-      };
-    }
-    
-    var requestBody = {
-      model: "deepseek/deepseek-chat",
-      messages: [
-        {
-          role: "system",
-          content: systemPrompt
-        },
-        {
-          role: "user", 
-          content: userPrompt
-        }
-      ],
-      max_tokens: 2048,
-      temperature: 0.3,
-      timeout: 60
-    };
-    
-    Logger.log("🚀 DeepSeek API via OpenRouter リクエスト送信中...");
-    Logger.log("📤 リクエストボディ: " + JSON.stringify(requestBody));
-    
-    var response = UrlFetchApp.fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': "Bearer " + OPENROUTER_API_KEY,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://franchise-hearing.com',
-        'X-Title': 'Franchise Hearing AI'
-      },
-      payload: JSON.stringify(requestBody),
-      muteHttpExceptions: true,
-      timeout: 60000
-    });
-    
-    var responseCode = response.getResponseCode();
-    Logger.log("📥 HTTP ステータス: " + responseCode);
-    var responseText = response.getContentText();
-    Logger.log("📥 生レスポンス: " + responseText);
-    
-    if (responseCode !== 200) {
-      Logger.log("❌ DeepSeek API HTTP エラー: " + responseCode);
-      return {
-        success: false,
-        error: "HTTP " + responseCode + ": " + responseText
-      };
-    }
-    
-    if (!responseText || responseText.trim() === '') {
-      Logger.log("❌ DeepSeek API 空レスポンス");
-      return {
-        success: false,
-        error: 'DeepSeek APIから空のレスポンスが返されました'
-      };
-    }
-    
-    var data;
-    try {
-      data = JSON.parse(responseText);
-    } catch (parseError) {
-      Logger.log("❌ DeepSeek API レスポンス解析エラー: " + parseError.message);
-      return {
-        success: false,
-        error: "APIレスポンスの解析に失敗しました: " + parseError.message
-      };
-    }
-    
-    if (data.error) {
-      Logger.log("❌ DeepSeek API エラー: " + data.error.message || data.error);
-      return {
-        success: false,
-        error: data.error.message || data.error.toString()
-      };
-    }
-    
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      Logger.log("❌ DeepSeek API 予期しないレスポンス構造: " + JSON.stringify(data));
-      return {
-        success: false,
-        error: 'APIレスポンスの構造が予期したものと異なります'
-      };
-    }
-    
-    var content = data.choices[0].message.content;
-    if (!content || content.trim() === '') {
-      Logger.log("❌ DeepSeek API 空のコンテンツ");
-      return {
-        success: false,
-        error: 'DeepSeekから空のコンテンツが返されました'
-      };
-    }
-    
-    return {
-      success: true,
-      content: content
-    };
-    
-  } catch (error) {
-    Logger.log("❌ DeepSeek API エラー: " + error.message);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
+// 重複したcallOpenRouterAPI関数を削除（上記の関数を使用）
 */
 
 /**
@@ -12181,8 +12331,6 @@ function requestPasswordReset(params) {
       message: 'システムエラーが発生しました: ' + error.message
     };
   }
-}
-}
 
 // 最終更新: 2025-08-12 18:55
 // submitFranchiseRegistrationケース修正
@@ -12568,4 +12716,8 @@ function sendPartnerLoginEmail(partnerId) {
     Logger.log('❌ ログインメール送信エラー:', error);
     throw error;
   }
+}
+}
+
+}
 }

@@ -282,6 +282,7 @@
             color: var(--text-secondary);
         }
     </style>
+    <script src="gas_config.js?v=20250826_1858"></script>
 </head>
 <body>
     <div class="container">
@@ -350,20 +351,41 @@
     <script>
         let allData = {};
 
-        // 現在のGAS URL（getConfigが失敗した場合のフォールバック）
-        // 最新HEAD デプロイURL
-        const CURRENT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzxr40CSC6oAQGH4CHBMRslTxYu2J6MtbbpJZFjZEE/exec'; // 最新HEAD デプロイURL
         let cachedGasUrl = null;
         
-        // GAS URLを直接返す（最新デプロイURL）
+        // 動的プロパティ参照でGAS URLを取得
         async function getGasUrl() {
-            // プロパティGAS_WEBAPP_URLと一致する最新URLを直接使用
-            cachedGasUrl = CURRENT_GAS_URL;
-            console.log('✅ 最新デプロイURL使用:', cachedGasUrl);
-            return cachedGasUrl;
+            if (cachedGasUrl) {
+                return cachedGasUrl;
+            }
+            
+            // window.GAS_WEBAPP_URLから取得（gas_config.jsで設定済み）
+            if (window.GAS_WEBAPP_URL) {
+                cachedGasUrl = window.GAS_WEBAPP_URL;
+                console.log('✅ プロパティ参照URL使用:', cachedGasUrl);
+                return cachedGasUrl;
+            }
+            
+            // フォールバック: localStorageから取得
+            const storedUrl = localStorage.getItem('GAS_WEBAPP_URL');
+            if (storedUrl) {
+                cachedGasUrl = storedUrl;
+                console.log('✅ localStorage URL使用:', cachedGasUrl);
+                return cachedGasUrl;
+            }
+            
+            throw new Error('GAS URL not found - プロパティ参照が失敗しました');
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔍 DOMContentLoaded - gas_config.js確認');
+            console.log('📌 window.GAS_WEBAPP_URL =', window.GAS_WEBAPP_URL);
+            console.log('📌 gas_config.js読み込み状況 =', typeof window.GAS_WEBAPP_URL);
+            if (!window.GAS_WEBAPP_URL) {
+                console.error('❌ gas_config.jsが正しく読み込まれていません');
+            } else {
+                console.log('✅ gas_config.js読み込み成功 - URL:', window.GAS_WEBAPP_URL);
+            }
             loadAllData();
             generateConfirmationContent();
         });

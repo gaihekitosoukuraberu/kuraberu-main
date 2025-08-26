@@ -2097,6 +2097,8 @@
         </div>
     </main>
 
+    <!-- GAS設定を先に読み込み -->
+    <script src="gas_config.js?v=20250826_1858"></script>
     <script>
         // ===========================================
         // 🌐 グローバル変数・設定
@@ -2113,13 +2115,12 @@
                 return cachedGasUrl;
             }
             
-            // プロパティのGAS_WEBAPP_URLを取得するためのフォールバックURL（最新デプロイ）
-            const fallbackUrls = [
-                'https://script.google.com/macros/s/AKfycbzxr40CSC6oAQGH4CHBMRslTxYu2J6MtbbpJZFjZEE/exec' // 最新HEAD デプロイURL
-            ];
-            
-            // フォールバックURLを直接使用（CORSエラー回避）
-            cachedGasUrl = fallbackUrls[0];
+            // プロパティ参照（gas_config.jsから取得）
+            if (window.GAS_WEBAPP_URL) {
+                cachedGasUrl = window.GAS_WEBAPP_URL;
+            } else {
+                throw new Error('GAS_WEBAPP_URLが設定されていません - gas_config.jsが必要です');
+            }
             cacheTimestamp = Date.now();
             console.log('✅ フォールバックGAS URL使用:', cachedGasUrl);
             return cachedGasUrl;
