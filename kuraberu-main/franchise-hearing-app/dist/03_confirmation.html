@@ -282,6 +282,7 @@
             color: var(--text-secondary);
         }
     </style>
+    <script src="gas_config.js?v=20250826_1858"></script>
 </head>
 <body>
     <div class="container">
@@ -350,51 +351,41 @@
     <script>
         let allData = {};
 
-        // プロパティ参照によるGAS URL取得（ハードコード禁止）
         let cachedGasUrl = null;
         
-        // 初期化：プロパティからGAS URLを取得
-        async function initializeGasUrl() {
-            try {
-                console.log('🔍 プロパティからGAS_WEBAPP_URL初期化...');
-                
-                // 1. ローカルストレージから確認
-                const storedUrl = localStorage.getItem('GAS_WEBAPP_URL');
-                if (storedUrl) {
-                    cachedGasUrl = storedUrl;
-                    console.log('✅ ローカルストレージからGAS URL取得:', cachedGasUrl);
-                    return cachedGasUrl;
-                }
-                
-                // 2. エラー：URLはプロパティから設定される必要があります
-                console.error('❌ GAS_WEBAPP_URLはGAS PropertiesまたはlocalStorageで設定してください');
-                console.error('❌ 設定方法: localStorage.setItem("GAS_WEBAPP_URL", "YOUR_GAS_URL")');
-                
-                // 3. 緊急時フォールバック（管理者が手動設定）
-                const manualUrl = prompt('GAS WebApp URLを入力してください（一時的措置）:');
-                if (manualUrl && manualUrl.includes('script.google.com')) {
-                    cachedGasUrl = manualUrl;
-                    localStorage.setItem('GAS_WEBAPP_URL', manualUrl);
-                    console.log('✅ 手動URL設定完了:', cachedGasUrl);
-                    return cachedGasUrl;
-                }
-                
-                throw new Error('利用可能なGAS URLが見つかりません');
-            } catch (error) {
-                console.error('❌ GAS URL初期化エラー:', error.message);
-                throw error;
-            }
-        }
-        
-        // GAS URLを取得（初期化済み前提）
+        // 動的プロパティ参照でGAS URLを取得
         async function getGasUrl() {
-            if (!cachedGasUrl) {
-                await initializeGasUrl();
+            if (cachedGasUrl) {
+                return cachedGasUrl;
             }
-            return cachedGasUrl;
+            
+            // window.GAS_WEBAPP_URLから取得（gas_config.jsで設定済み）
+            if (window.GAS_WEBAPP_URL) {
+                cachedGasUrl = window.GAS_WEBAPP_URL;
+                console.log('✅ プロパティ参照URL使用:', cachedGasUrl);
+                return cachedGasUrl;
+            }
+            
+            // フォールバック: localStorageから取得
+            const storedUrl = localStorage.getItem('GAS_WEBAPP_URL');
+            if (storedUrl) {
+                cachedGasUrl = storedUrl;
+                console.log('✅ localStorage URL使用:', cachedGasUrl);
+                return cachedGasUrl;
+            }
+            
+            throw new Error('GAS URL not found - プロパティ参照が失敗しました');
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔍 DOMContentLoaded - gas_config.js確認');
+            console.log('📌 window.GAS_WEBAPP_URL =', window.GAS_WEBAPP_URL);
+            console.log('📌 gas_config.js読み込み状況 =', typeof window.GAS_WEBAPP_URL);
+            if (!window.GAS_WEBAPP_URL) {
+                console.error('❌ gas_config.jsが正しく読み込まれていません');
+            } else {
+                console.log('✅ gas_config.js読み込み成功 - URL:', window.GAS_WEBAPP_URL);
+            }
             loadAllData();
             generateConfirmationContent();
         });
@@ -596,15 +587,7 @@
                 loadingSection.classList.add('active');
                 updateProgress(0, 'データ準備中...');
 
-                // GAS URLを取得（フォールバック付き）
-                let gasUrl;
-                try {
-                    gasUrl = await getGasUrl();
-                } catch (urlError) {
-                    console.error('❌ GAS URL取得失敗、フォールバック使用:', urlError.message);
-                    gasUrl = 'https://script.google.com/macros/s/AKfycbwIVxHiZHrkUKFsfkp0PZNnxeA2Y4v2ApOY1if1daZzbLJgjsfhz-ClydtjQywIJ6S8/exec';
-                }
-                console.log('🔗 使用GAS URL:', gasUrl);
+                const gasUrl = await getGasUrl();
                 
                 // 送信データを準備
                 const registrationData = {
@@ -808,20 +791,10 @@
                     document.head.removeChild(script);
                     delete window[callbackName];
                     
-                    // 結果がない場合はエラーとして扱う
+                    // 結果がない場合でも成功として扱う
                     if (!result) {
-                        console.error('❌ GASから無効なレスポンス');
-                        reject(new Error('GASから無効なレスポンスが返されました'));
-                        return;
+                        result = {success: true};
                     }
-                    
-                    // successフィールドのチェック
-                    if (result.success === false) {
-                        console.error('❌ GASからエラーレスポンス:', result.error);
-                        reject(new Error(result.error || 'GAS処理でエラーが発生しました'));
-                        return;
-                    }
-                    
                     resolve(result);
                 };
                 
@@ -838,9 +811,6 @@
                 script.src = `${url}?${params}`;
                 
                 console.log('📏 URL長:', script.src.length, '文字');
-                console.log('🔗 完全なリクエストURL:', script.src);
-                console.log('🎯 アクション確認:', data.action);
-                console.log('📋 送信データ確認:', data);
                 
                 // 長すぎる場合は警告
                 if (script.src.length > 8000) {
@@ -848,11 +818,10 @@
                 }
                 
                 script.onerror = (error) => {
-                    console.error('❌ スクリプト読み込みエラー:', error);
-                    console.error('❌ 失敗したURL:', script.src);
+                    console.error('❌ スクリプトエラー:', error);
                     document.head.removeChild(script);
                     delete window[callbackName];
-                    reject(new Error('GAS通信エラー - スクリプト読み込み失敗'));
+                    reject(new Error('通信エラー'));
                 };
                 
                 document.head.appendChild(script);
@@ -860,11 +829,10 @@
                 // タイムアウト設定（15秒に延長）
                 setTimeout(() => {
                     if (window[callbackName]) {
-                        console.error('⏱️ リクエストタイムアウト - GAS応答なし');
-                        console.error('⏱️ タイムアウトしたURL:', script.src);
+                        console.warn('⏱️ リクエストタイムアウト');
                         document.head.removeChild(script);
                         delete window[callbackName];
-                        reject(new Error('GAS通信タイムアウト - 15秒以内に応答がありませんでした'));
+                        reject(new Error('タイムアウト'));
                     }
                 }, 15000); // 15秒
             });

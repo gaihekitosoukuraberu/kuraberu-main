@@ -2581,14 +2581,16 @@ function saveFranchiseData(data) {
     console.log('🔍 CRITICAL: 挿入データ列数:', rowData.length);
     console.log('✅ 加盟店登録シートに保存完了（2行目に新行挿入）');
     
+    // Slack通知はnotify.js内で既に実行されているため、ここでは呼び出さない
+    console.log('✅ 【FranchiseHearingAI_New.js】データ保存完了 - Slack通知開始');
+    
+    // Slack通知を送信（重複チェック済み - notify.jsの処理パスが実行されていないため必要）
     try {
-      console.log('📢 Slack通知送信開始:', franchiseId);
-      if (typeof notifyNewFranchiseRegistration === 'function') {
-        notifyNewFranchiseRegistration(franchiseId, processedData);
-        console.log('📢 Slack通知送信結果:', true);
-      }
+      console.log('📤 Slack通知送信開始:', franchiseId);
+      var notificationResult = notifyNewFranchiseRegistrationV2(franchiseId, data);
+      console.log('🔥 Slack通知結果:', JSON.stringify(notificationResult));
     } catch (notifyError) {
-      console.log('⚠️ Slack通知エラー（保存は成功）:', notifyError.message);
+      console.error('❌ Slack通知エラー（登録は完了済み）:', notifyError.message);
     }
     
     console.log('📝 saveFranchiseData結果:', JSON.stringify({
@@ -2636,178 +2638,7 @@ function getGasWebappUrl() {
     return url;
   } catch (error) {
     console.error('❌ getGasWebappUrl エラー:', error);
-    // 緊急フォールバック
-    return 'https://script.google.com/macros/s/AKfycbw1v1mKcq6oR4ckXpndJIzFykqltC-1DYYBXNlgxFT8Wh7wEdVuANwFoTaV9IeT47OWRQ/exec';
-  }
-}
-
-/**
- * 新規加盟店登録の管理者通知
- */
-function notifyNewFranchiseRegistration(franchiseId, data) {
-  try {
-    console.log('📢 加盟店登録通知送信開始:', franchiseId);
-    
-    // 加盟店データを準備
-    var franchiseData = {
-      id: franchiseId,
-      name: data.companyName || data.legalName,
-      representative: data.representative || '未記載',
-      address: data.address || '未記載',
-      phone: data.phone || '未記載',
-      billingEmail: data.billingEmail || '未記載',
-      timestamp: data.timestamp || new Date()
-    };
-    
-    console.log('🔄 インタラクティブSlack通知送信中...');
-    
-    // 直接HTTP POSTでSlack Webhookに送信（承認ボタン付き）
-    var webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
-    
-    if (!webhookUrl) {
-      console.log('❌ SLACK_WEBHOOK_URL未設定');
-      return { success: false, error: 'WEBHOOK_URL_NOT_SET' };
-    }
-
-    var blockMessage = {
-      text: "新しい加盟店登録: " + franchiseData.name,
-      blocks: [
-        {
-          type: 'header',
-          text: {
-            type: 'plain_text',
-            text: '🏢 新規加盟店登録申請'
-          }
-        },
-        {
-          type: 'section',
-          fields: [
-            {
-              type: 'mrkdwn',
-              text: "*加盟店ID:*\n" + franchiseId
-            },
-            {
-              type: 'mrkdwn',
-              text: "*会社名:*\n" + franchiseData.name
-            },
-            {
-              type: 'mrkdwn',
-              text: "*代表者:*\n" + franchiseData.representative || '未記載'
-            },
-            {
-              type: 'mrkdwn',
-              text: "*電話番号:*\n" + franchiseData.phone || '未記載'
-            },
-            {
-              type: 'mrkdwn',
-              text: "*メール:*\n" + franchiseData.billingEmail || '未記載'
-            },
-            {
-              type: 'mrkdwn',
-              text: "*対応エリア:*\n" + data.priorityAreas || data.areasCompressed || '0地域'
-            },
-            {
-              type: 'mrkdwn',
-              text: "*登録日時:*\n" + new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })
-            }
-          ]
-        },
-        {
-          type: 'divider'
-        },
-        {
-          type: 'actions',
-          elements: [
-            {
-              type: 'button',
-              text: {
-                type: 'plain_text',
-                text: '🟢 承認'
-              },
-              style: 'primary',
-              url: getGasWebappUrl() + "?action=approveFranchise&franchiseId=" + franchiseId
-            },
-            {
-              type: 'button',
-              text: {
-                type: 'plain_text',
-                text: '🔴 却下'
-              },
-              style: 'danger',
-              url: getGasWebappUrl() + "?action=rejectFranchise&franchiseId=" + franchiseId
-            }
-          ]
-        },
-        {
-          type: 'context',
-          elements: [
-            {
-              type: 'mrkdwn',
-              text: "💡 ボタンをクリックして加盟店の承認・却下を行えます"
-            }
-          ]
-        }
-      ]
-    };
-    
-    // slack_integration_system.jsのsendSlackNotification関数を直接呼び出し
-    try {
-      console.log('📢 Slack通知処理開始');
-      var webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
-      console.log('🔍 SLACK_WEBHOOK_URL取得:', !!webhookUrl);
-      console.log('🔍 WebhookURL長:', webhookUrl ? webhookUrl.length : 0);
-      
-      if (!webhookUrl) {
-        throw new Error('SLACK_WEBHOOK_URLが設定されていません');
-      }
-      
-      var httpOptions = {
-        method: 'POST',
-        contentType: 'application/json',
-        payload: JSON.stringify(blockMessage),
-        muteHttpExceptions: true
-      };
-      
-      console.log('📤 Slack API呼び出し開始');
-      console.log('📦 送信データサイズ:', JSON.stringify(blockMessage).length, '文字');
-      
-      var response = UrlFetchApp.fetch(webhookUrl, httpOptions);
-      var responseCode = response.getResponseCode();
-      var responseText = response.getContentText();
-      
-      console.log('📥 Slack API応答:', responseCode);
-      console.log('📥 応答内容:', responseText);
-      
-      var result = {
-        success: responseCode === 200,
-        responseCode: responseCode,
-        responseText: responseText
-      };
-      
-      console.log('✅ Slack送信結果:', result);
-      
-      if (result.success) {
-        console.log('🎉 Slack通知送信成功！');
-      } else {
-        console.log('❌ Slack通知送信失敗:', result.responseCode, result.responseText);
-      }
-      
-    } catch (slackError) {
-      console.error('❌ Slack送信エラー:', slackError.message);
-      console.error('❌ エラースタック:', slackError.stack);
-      var result = { success: false, error: slackError.message };
-    }
-    
-    // Block Kitメッセージの送信結果を確認
-    if (result && result.success) {
-      console.log('✅ Block Kitメッセージ送信成功');
-    } else {
-      console.log('❌ Block Kitメッセージ送信失敗:', result);
-    }
-    
-    console.log('✅ 管理者通知送信完了');
-    
-  } catch (error) {
-    console.warn('⚠️ 管理者通知エラー:', error.message);
+    // プロパティ参照必須 - ハードコード禁止
+    throw new Error('GAS_WEBAPP_URLプロパティが設定されていません - プロパティ設定が必要です');
   }
 }
