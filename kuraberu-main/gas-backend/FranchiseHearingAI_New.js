@@ -2434,6 +2434,8 @@ function saveFranchiseData(data) {
         salesPersonContact: data.spc,
         propertyTypes: data.pt,
         constructionAreas: data.ca,
+        // エリアデータ（優先地域）を展開処理のため保持
+        priorityAreasRaw: data.pa || data.priorityAreas,
         specialServices: data.ss,
         buildingAgeRange: data.ba,
         tradeName: data.tn,
@@ -2509,16 +2511,34 @@ function saveFranchiseData(data) {
         console.log('⚠️ cleanPhone: 電話番号が空');
         return '';
       }
-      // シングルクォートを除去してから処理
-      var phoneStr = String(phone).replace(/['-\s]/g, '');
+      
+      // 配列の場合は最初の要素を使用
+      if (Array.isArray(phone)) {
+        phone = phone[0] || '';
+        console.log('📞 cleanPhone - 配列から最初の要素を使用:', phone);
+      }
+      
+      // シングルクォートやハイフンを除去
+      var phoneStr = String(phone).replace(/['\-\s]/g, '');
       console.log('📞 cleanPhone - 元の値:', phone);
       console.log('📞 cleanPhone - クリーニング後:', phoneStr);
       
-      if (phoneStr && !phoneStr.startsWith('0')) {
+      // 空文字チェック
+      if (!phoneStr || phoneStr.length === 0) {
+        console.log('📞 cleanPhone - 空の電話番号を返す');
+        return '';
+      }
+      
+      // 先頭0がない場合は追加
+      if (!phoneStr.startsWith('0')) {
         phoneStr = '0' + phoneStr;
         console.log('📞 cleanPhone - 先頭0追加:', phoneStr);
       }
-      return "'" + phoneStr;
+      
+      // シングルクォートを前に付けて文字列として保存
+      var result = "'" + phoneStr;
+      console.log('📞 cleanPhone - 最終結果:', result);
+      return result;
     }
     
     var cleanedPhone = cleanPhone(processedData.phone);
@@ -2526,10 +2546,13 @@ function saveFranchiseData(data) {
     
     console.log('🚨 CRITICAL DEBUG: saveFranchiseData内 - cleanPhone:', cleanedPhone);
     console.log('🚨 CRITICAL DEBUG: saveFranchiseData内 - cleanSalesContact:', cleanedSalesContact);
+    console.log('🚨 CRITICAL DEBUG: priorityAreasRaw:', processedData.priorityAreasRaw);
+    console.log('🚨 CRITICAL DEBUG: constructionAreas:', processedData.constructionAreas);
     
     var now = new Date();
-    var franchiseId = 'FC-' + Utilities.formatDate(now, 'JST', 'yyMMdd') + '-' + 
-      Math.random().toString(36).substr(2, 4).toUpperCase();
+    // フランチャイズID生成（FC-YYMMDD-XX 形式）
+    var franchiseId = 'FC-' + Utilities.formatDate(now, 'JST', 'yyMMdd') + '-' + Math.random().toString(36).substr(2, 2).toUpperCase();
+    console.log('🆔 生成されたフランチャイズID:', franchiseId);
     
     var rowData = [
       franchiseId,
@@ -2549,7 +2572,29 @@ function saveFranchiseData(data) {
       processedData.salesPersonName || '',
       cleanedSalesContact,
       processedData.propertyTypes || '',
-      processedData.constructionAreas || '',
+      // エリア情報を適切に展開（priorityAreasRawからエリア情報を抽出）
+      (function() {
+        // priorityAreasRawがある場合はそれを使用
+        if (processedData.priorityAreasRaw) {
+          try {
+            console.log('🗾 エリア情報展開処理開始:', processedData.priorityAreasRaw);
+            var areasList = typeof processedData.priorityAreasRaw === 'string' 
+              ? processedData.priorityAreasRaw.split(',') 
+              : Array.isArray(processedData.priorityAreasRaw) 
+                ? processedData.priorityAreasRaw 
+                : [processedData.priorityAreasRaw];
+            
+            var expandedAreas = areasList.filter(area => area && area.trim()).join(', ');
+            console.log('🗾 展開済みエリア情報:', expandedAreas);
+            return expandedAreas;
+          } catch (error) {
+            console.log('❌ エリア展開エラー:', error.message);
+            return processedData.constructionAreas || '';
+          }
+        }
+        // fallback to constructionAreas
+        return processedData.constructionAreas || '';
+      })(),
       processedData.specialServices || '',
       processedData.buildingAgeRange || '',
       processedData.tradeName || '',
@@ -2587,7 +2632,7 @@ function saveFranchiseData(data) {
     // Slack通知を送信（重複チェック済み - notify.jsの処理パスが実行されていないため必要）
     try {
       console.log('📤 Slack通知送信開始:', franchiseId);
-      var notificationResult = notifyNewFranchiseRegistrationV2(franchiseId, data);
+      var notificationResult = notifyNewFranchiseRegistration(franchiseId, data);
       console.log('🔥 Slack通知結果:', JSON.stringify(notificationResult));
     } catch (notifyError) {
       console.error('❌ Slack通知エラー（登録は完了済み）:', notifyError.message);

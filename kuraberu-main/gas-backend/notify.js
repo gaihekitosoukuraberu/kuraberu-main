@@ -458,10 +458,10 @@ function submitFranchiseRegistration(registrationData) {
       // 重複通知を防ぐため、プロパティを設定
       PropertiesService.getScriptProperties().setProperty('LAST_FRANCHISE_NOTIFIED', franchiseId);
       
-      console.log('📤🔥 notifyNewFranchiseRegistrationV2関数呼び出し開始（強制リフレッシュ版）');
-      var notificationResult = notifyNewFranchiseRegistrationV2(franchiseId, processedData);
-      console.log('🔥 V2通知結果:', JSON.stringify(notificationResult));
-      console.log('✅🔥 V2管理者通知完了');
+      console.log('📤🔥 notifyNewFranchiseRegistration関数呼び出し開始（V3 Block Kit版）');
+      var notificationResult = notifyNewFranchiseRegistration(franchiseId, processedData);
+      console.log('🔥 V3通知結果:', JSON.stringify(notificationResult));
+      console.log('✅🔥 V3管理者通知完了');
       
     } catch (notifyError) {
       console.error('❌ 管理者通知エラー（登録は継続）:', notifyError.message);
@@ -664,22 +664,42 @@ function testSlackNotificationForceRefresh() {
   console.log('🔥🔥🔥 【強制リフレッシュ版 2025-08-25 15:00】テスト開始');
   console.log('📨 新しいコードが実行されていることを確認');
   
-  const result = notifyNewFranchiseRegistrationV2('TEST-REFRESH-' + new Date().getTime());
-  console.log('🔥 テスト結果:', result);
+  const result = notifyNewFranchiseRegistration('TEST-REFRESH-' + new Date().getTime());
+  console.log('🔥 V3テスト結果:', result);
   return result;
 }
 
+// V2関数は削除済み - V3関数のみ使用
+
 /**
- * 新規加盟店登録の管理者通知（V2・強制リフレッシュ版）
+ * 🏢 新規加盟店登録通知（V3 Block Kit版）
+ * 
+ * @param {string} franchiseId - 加盟店ID
+ * @param {Object} data - 加盟店データ
+ * @returns {Object} 通知送信結果
  */
-function notifyNewFranchiseRegistrationV2(franchiseId, data) {
-  console.log('🔥🔥🔥 【V2強制リフレッシュ版 2025-08-26】加盟店登録Slack通知開始:', franchiseId);
+function notifyNewFranchiseRegistration(franchiseId, data) {
+  console.log('🔥🔥🔥 【V3 Block Kit版 2025-08-29 16:35 FORCE UPDATE】加盟店登録Slack通知開始:', franchiseId);
+  console.log('🚨 CRITICAL DEBUG: V3関数が確実に実行されています - 2025-08-29 16:35');
   
   // 承認・却下用のGAS WebApp URL取得
   var gasUrl = PropertiesService.getScriptProperties().getProperty('GAS_WEBAPP_URL');
+  console.log('🔍 GAS_WEBAPP_URL プロパティ値:', gasUrl);
+  
   if (!gasUrl) {
-    // フォールバック
-    gasUrl = 'https://script.google.com/macros/s/AKfycbzWncwa1G_HjlGHYx_ri8k_G7dCnbkCAJgYCrwIRx7CBfKVz9lnQb8ABYI0lAebbIv85Q/exec';
+    // 最新のWebApp URLにフォールバック
+    gasUrl = 'https://script.google.com/macros/s/AKfycbx3yFLXauux3M7kPhQv78jsZG4-HZP9pEL3ZFbyOjxwhqENdWdMpdFkyVQZNRX5iRDQNQ/exec';
+    console.log('⚠️ GAS_WEBAPP_URL未設定 - フォールバック使用:', gasUrl);
+    
+    // プロパティに自動設定
+    try {
+      PropertiesService.getScriptProperties().setProperty('GAS_WEBAPP_URL', gasUrl);
+      console.log('✅ GAS_WEBAPP_URL自動設定完了');
+    } catch(e) {
+      console.error('❌ プロパティ設定失敗:', e.message);
+    }
+  } else {
+    console.log('✅ GAS_WEBAPP_URL プロパティ使用:', gasUrl);
   }
   
   // 最新のSlack Block Kit形式でメッセージを作成
@@ -778,7 +798,8 @@ function notifyNewFranchiseRegistrationV2(franchiseId, data) {
     ]
   };
   
-  return sendSlackNotificationV2WithButtons(payload);
+  console.log('🚀 V3 Block Kit通知送信中...');
+  return sendSlackNotification(payload);
 }
 
 /**
@@ -4932,8 +4953,8 @@ function doGet(e) {
               var saveResult = submitFranchiseRegistration(basicData);
               
               if (saveResult && saveResult.success) {
-                // 加盟店IDを生成（またはsaveResultから取得）
-                var franchiseId = saveResult.franchiseId || 'FR_' + Date.now();
+                // 加盟店IDを生成（またはsaveResultから取得） - 短い形式に修正
+                var franchiseId = saveResult.franchiseId || generateFranchiseId();
                 
                 // PropertiesServiceに一時保存（エリア追加時に使用）
                 PropertiesService.getScriptProperties().setProperty('temp_franchise_' + franchiseId, JSON.stringify(basicData));

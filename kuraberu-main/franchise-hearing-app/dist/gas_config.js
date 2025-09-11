@@ -7,11 +7,11 @@
     // 🎯 デプロイURL管理（ここだけ変更すればOK）
     // ========================================
     var GAS_CONFIG = {
-        // 最新デプロイURL（2025-08-26 20:35更新 - 承認ボタン動作修正）
-        CURRENT_URL: 'https://script.google.com/macros/s/AKfycbxXbiu-0jyhwTNT43tVMYwvrpDI2aCIVGGkDx2yJHq4xQHesJzCC-CId1Ds9VI-c5NjZQ/exec',
+        // 最新デプロイURL（2025-08-29 06:20更新 - V2関数完全削除・V3対応版）
+        CURRENT_URL: 'https://script.google.com/macros/s/AKfycbxYOqDDnCeuTrLEfH04qssW4nXHvKXfarXICcGvk18x9pkp0b9mfsHLngsSUEEpGIXN8A/exec',
         
         // デプロイ履歴（デバッグ用）
-        DEPLOY_VERSION: 'V9-2025-08-26-2035-APPROVAL-FIX',
+        DEPLOY_VERSION: 'V3-2025-08-29-0200-BLOCK-KIT-FIX',
         SCRIPT_ID: '1VALw14wYqzPq_lBaJZxboFkrG5FTJ_2X2XFaBxisK3lQZ5ppQFYxpHMg',
         
         // 以前のURL（ロールバック時のため）
