@@ -179,6 +179,16 @@
                 </svg>
                 加盟店管理
             </a>
+            <a href="#registration-requests" onclick="showSection('registrationRequests'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100 relative">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                加盟店登録申請
+                <span id="registrationRequestBadge" class="ml-auto bg-green-500 text-white text-xs px-2.5 py-1 rounded-full animate-pulse font-bold shadow-lg">
+                    <span class="inline-block">3</span>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-ping"></span>
+                </span>
+            </a>
             <a href="#cancel-requests" onclick="showSection('cancelRequests'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100 relative">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1603,6 +1613,138 @@
                         </div>
                     </div>
                 `;
+            } else if (sectionName === 'registrationRequests') {
+                // 加盟店登録申請セクション
+                const mainContent = document.querySelector('main');
+                window.location.href = '#registrationRequests';
+                mainContent.innerHTML = `
+                    <div class="pt-20 px-6 max-w-7xl mx-auto">
+                        <div class="mb-8">
+                            <h1 class="text-3xl font-bold text-gray-800 mb-2">加盟店登録申請管理</h1>
+                            <p class="text-gray-600">新規加盟店の登録申請を審査・承認</p>
+                        </div>
+                        
+                        <!-- 統計カード -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                            <div class="bg-white rounded-xl p-6 border border-gray-200">
+                                <div class="text-sm text-gray-500 mb-2">未審査申請</div>
+                                <div class="text-2xl font-bold text-green-600">3件</div>
+                                <div class="text-xs text-red-600 mt-1">至急対応</div>
+                            </div>
+                            <div class="bg-white rounded-xl p-6 border border-gray-200">
+                                <div class="text-sm text-gray-500 mb-2">今月承認</div>
+                                <div class="text-2xl font-bold text-gray-800">12件</div>
+                                <div class="text-xs text-gray-500 mt-1">前月比 +5</div>
+                            </div>
+                            <div class="bg-white rounded-xl p-6 border border-gray-200">
+                                <div class="text-sm text-gray-500 mb-2">保留中</div>
+                                <div class="text-2xl font-bold text-yellow-600">2件</div>
+                                <div class="text-xs text-gray-500 mt-1">追加情報待ち</div>
+                            </div>
+                            <div class="bg-white rounded-xl p-6 border border-gray-200">
+                                <div class="text-sm text-gray-500 mb-2">承認率</div>
+                                <div class="text-2xl font-bold text-gray-800">92%</div>
+                                <div class="text-xs text-green-600 mt-1">高水準</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 未審査申請リスト -->
+                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
+                            <div class="p-4 bg-green-50 border-b">
+                                <h3 class="text-lg font-semibold text-green-800">🆕 未審査の登録申請</h3>
+                            </div>
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">申請日時</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">会社名</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">代表者名</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">エリア</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">電話番号</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">メール</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">アクション</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <tr class="hover:bg-green-50 animate-pulse">
+                                        <td class="px-6 py-4 text-sm text-gray-900">2025-01-12 10:30</td>
+                                        <td class="px-6 py-4 text-sm font-medium text-gray-900">株式会社ペイントプロ</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">中村太郎</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">神奈川県川崎市</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">044-123-4567</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">nakamura@paintpro.jp</td>
+                                        <td class="px-6 py-4">
+                                            <button onclick="showRegistrationDetail('REG-2025-001')" class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">詳細確認</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-green-50">
+                                        <td class="px-6 py-4 text-sm text-gray-900">2025-01-12 14:15</td>
+                                        <td class="px-6 py-4 text-sm font-medium text-gray-900">有限会社カラーワークス</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">伊藤花子</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">千葉県松戸市</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">047-987-6543</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">ito@colorworks.co.jp</td>
+                                        <td class="px-6 py-4">
+                                            <button onclick="showRegistrationDetail('REG-2025-002')" class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">詳細確認</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-green-50">
+                                        <td class="px-6 py-4 text-sm text-gray-900">2025-01-12 16:45</td>
+                                        <td class="px-6 py-4 text-sm font-medium text-gray-900">塗装工房さくら</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">木村一郎</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">東京都杉並区</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">03-5555-1234</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">kimura@sakura-paint.jp</td>
+                                        <td class="px-6 py-4">
+                                            <button onclick="showRegistrationDetail('REG-2025-003')" class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">詳細確認</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 審査済み履歴 -->
+                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <div class="p-4 bg-gray-50 border-b">
+                                <h3 class="text-lg font-semibold text-gray-800">審査済み履歴</h3>
+                            </div>
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">審査日時</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">会社名</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">代表者名</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">結果</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">加盟店ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">審査者</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 text-sm text-gray-900">2025-01-11 15:30</td>
+                                        <td class="px-6 py-4 text-sm font-medium text-gray-900">リフォーム工房みらい</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">斎藤次郎</td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">承認</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">F033</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">管理者A</td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 text-sm text-gray-900">2025-01-11 10:15</td>
+                                        <td class="px-6 py-4 text-sm font-medium text-gray-900">ホームカラーズ</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">山口三郎</td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">保留</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">-</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">管理者B</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
             } else if (sectionName === 'cancelRequests') {
                 // キャンセル申請セクション
                 const mainContent = document.querySelector('main');
@@ -2796,22 +2938,6 @@
                         <p class="text-sm text-gray-700"><strong>申請日時:</strong> 2025-01-12 14:30</p>
                     </div>
                     
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">再振分先を選択</label>
-                        <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                            <option>山田ペイント（マッチ率85%）</option>
-                            <option>佐藤塗装店（マッチ率78%）</option>
-                            <option>鈴木建装（マッチ率72%）</option>
-                            <option>高橋塗装（マッチ率68%）</option>
-                        </select>
-                    </div>
-                    
-                    <div class="bg-yellow-50 p-3 rounded-lg mb-4">
-                        <p class="text-xs text-yellow-800">
-                            ⚠️ キャンセル承認すると、該当加盟店のハンディキャップが-1されます
-                        </p>
-                    </div>
-                    
                     <div class="flex gap-3">
                         <button onclick="processCancelRequest('${caseId}')" class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
                             承認
@@ -2826,88 +2952,171 @@
         }
 
         function processCancelRequest(caseId) {
-            if (confirm('キャンセル申請を承認しますか？\n\n承認すると該当加盟店のハンディキャップが-1されます。')) {
+            if (confirm('キャンセル申請を承認しますか？')) {
+                alert(`案件 ${caseId} のキャンセルを承認しました。`);
                 document.querySelector('.fixed').remove();
-                
-                // 再振分確認
-                setTimeout(() => {
-                    if (confirm('他の加盟店に再振分しますか？')) {
-                        const reassignModal = document.createElement('div');
-                        reassignModal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50';
-                        reassignModal.innerHTML = `
-                            <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
-                                <h3 class="text-lg font-bold text-gray-800 mb-4">再振分先を選択</h3>
-                                <div class="space-y-2 mb-4">
-                                    <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                                        <input type="radio" name="reassign" class="mr-3">
-                                        <div>
-                                            <div class="font-medium">山田ペイント</div>
-                                            <div class="text-xs text-gray-500">マッチ率 85% - 東京都渋谷区</div>
-                                        </div>
-                                    </label>
-                                    <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                                        <input type="radio" name="reassign" class="mr-3">
-                                        <div>
-                                            <div class="font-medium">佐藤塗装店</div>
-                                            <div class="text-xs text-gray-500">マッチ率 78% - 千葉県船橋市</div>
-                                        </div>
-                                    </label>
-                                    <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                                        <input type="radio" name="reassign" class="mr-3">
-                                        <div>
-                                            <div class="font-medium">鈴木建装</div>
-                                            <div class="text-xs text-gray-500">マッチ率 72% - 埼玉県さいたま市</div>
-                                        </div>
-                                    </label>
-                                </div>
-                                <div class="flex gap-3">
-                                    <button onclick="executeReassign('${caseId}')" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                                        振分実行
-                                    </button>
-                                    <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
-                                        キャンセル
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                        document.body.appendChild(reassignModal);
-                    } else {
-                        alert(`案件 ${caseId} のキャンセルを承認しました。\n\n加盟店のハンディキャップを-1しました。`);
-                    }
-                    updateCancelRequestCount(-1);
-                }, 100);
+                updateCancelRequestCount(-1);
             }
         }
 
         function rejectCancelRequest(caseId) {
             if (confirm('キャンセル申請を却下しますか？')) {
+                alert(`案件 ${caseId} のキャンセル申請を却下しました。\n\n加盟店に通知を送信します。`);
                 document.querySelector('.fixed').remove();
-                
-                // 再振分確認
-                setTimeout(() => {
-                    if (confirm('却下しましたが、他の加盟店に再振分しますか？')) {
-                        showCancelRequest(caseId); // 再度モーダル表示
-                    } else {
-                        alert(`案件 ${caseId} のキャンセル申請を却下しました。\n\n加盟店に通知を送信します。`);
-                    }
-                    updateCancelRequestCount(-1);
-                }, 100);
-            }
-        }
-        
-        function executeReassign(caseId) {
-            const selected = document.querySelector('input[name="reassign"]:checked');
-            if (selected) {
-                const franchiseName = selected.closest('label').querySelector('.font-medium').textContent;
-                alert(`案件 ${caseId} を ${franchiseName} に振分しました。`);
-                document.querySelector('.fixed').remove();
-            } else {
-                alert('振分先を選択してください。');
+                updateCancelRequestCount(-1);
             }
         }
         
         function updateCancelRequestCount(change) {
             const badge = document.getElementById('cancelRequestBadge');
+            if (badge) {
+                const currentCount = parseInt(badge.querySelector('span').textContent) || 0;
+                const newCount = Math.max(0, currentCount + change);
+                if (newCount > 0) {
+                    badge.querySelector('span').textContent = newCount;
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+        
+        // 加盟店登録申請詳細モーダル
+        function showRegistrationDetail(registrationId) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">🆕 加盟店登録申請詳細</h3>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="text-sm font-semibold text-gray-700 mb-3">会社情報</h4>
+                            <div class="space-y-2 text-sm">
+                                <p><strong>会社名:</strong> 株式会社ペイントプロ</p>
+                                <p><strong>代表者:</strong> 中村太郎</p>
+                                <p><strong>設立年:</strong> 2015年</p>
+                                <p><strong>資本金:</strong> 500万円</p>
+                                <p><strong>従業員数:</strong> 8名</p>
+                                <p><strong>建設業許可:</strong> 神奈川県知事許可(般-30)第12345号</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="text-sm font-semibold text-gray-700 mb-3">連絡先情報</h4>
+                            <div class="space-y-2 text-sm">
+                                <p><strong>住所:</strong> 神奈川県川崎市幸区堀川町580</p>
+                                <p><strong>電話:</strong> 044-123-4567</p>
+                                <p><strong>メール:</strong> nakamura@paintpro.jp</p>
+                                <p><strong>Web:</strong> https://paintpro.jp</p>
+                                <p><strong>対応エリア:</strong> 川崎市、横浜市鶴見区</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="text-sm font-semibold text-gray-700 mb-3">実績情報</h4>
+                            <div class="space-y-2 text-sm">
+                                <p><strong>年間施工件数:</strong> 120件</p>
+                                <p><strong>主要取引先:</strong> 大和ハウス、積水ハウス</p>
+                                <p><strong>得意分野:</strong> 戸建て外壁塗装、屋根塗装</p>
+                                <p><strong>保証内容:</strong> 10年保証</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-yellow-50 p-4 rounded-lg">
+                            <h4 class="text-sm font-semibold text-gray-700 mb-3">希望条件</h4>
+                            <div class="space-y-2 text-sm">
+                                <p><strong>希望紹介数:</strong> 月間10件程度</p>
+                                <p><strong>対応可能日:</strong> 平日・土曜</p>
+                                <p><strong>特記事項:</strong> 集合住宅対応可能</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-green-50 p-4 rounded-lg mb-6">
+                        <h4 class="text-sm font-semibold text-green-800 mb-2">審査チェックリスト</h4>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <label class="flex items-center">
+                                <input type="checkbox" checked class="mr-2">
+                                <span>建設業許可確認済み</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" checked class="mr-2">
+                                <span>保険加入確認済み</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" checked class="mr-2">
+                                <span>資本金確認済み</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" checked class="mr-2">
+                                <span>実績確認済み</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2">
+                                <span>現地確認済み</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2">
+                                <span>与信調査済み</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">初回デポジット設定</label>
+                        <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                            <option selected>5件（標準）</option>
+                            <option>3件（少なめ）</option>
+                            <option>10件（多め）</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <button onclick="approveRegistration('${registrationId}')" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            承認してメール送信
+                        </button>
+                        <button onclick="holdRegistration('${registrationId}')" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700">
+                            保留
+                        </button>
+                        <button onclick="rejectRegistration('${registrationId}')" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                            却下
+                        </button>
+                        <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                            閉じる
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        function approveRegistration(registrationId) {
+            if (confirm('この申請を承認しますか？\n\n承認後、初回ログイン情報がメール送信されます。')) {
+                alert(`申請 ${registrationId} を承認しました。\n\n加盟店ID: F033\n初回ログイン情報をメール送信しました。`);
+                document.querySelector('.fixed').remove();
+                updateRegistrationRequestCount(-1);
+            }
+        }
+        
+        function holdRegistration(registrationId) {
+            const reason = prompt('保留理由を入力してください：');
+            if (reason) {
+                alert(`申請 ${registrationId} を保留しました。\n\n理由: ${reason}`);
+                document.querySelector('.fixed').remove();
+            }
+        }
+        
+        function rejectRegistration(registrationId) {
+            const reason = prompt('却下理由を入力してください：');
+            if (reason && confirm('本当に却下しますか？')) {
+                alert(`申請 ${registrationId} を却下しました。\n\n理由: ${reason}\n申請者に通知を送信します。`);
+                document.querySelector('.fixed').remove();
+                updateRegistrationRequestCount(-1);
+            }
+        }
+        
+        function updateRegistrationRequestCount(change) {
+            const badge = document.getElementById('registrationRequestBadge');
             if (badge) {
                 const currentCount = parseInt(badge.querySelector('span').textContent) || 0;
                 const newCount = Math.max(0, currentCount + change);
