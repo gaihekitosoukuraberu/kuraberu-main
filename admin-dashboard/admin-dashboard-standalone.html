@@ -1121,37 +1121,166 @@
                 const mainContent = document.querySelector('main');
                 window.location.href = '#dashboard';
                 mainContent.innerHTML = `
-                    <div class="pt-20 px-6">
+                    <div class="pt-20 px-6 max-w-7xl mx-auto">
                         <div class="mb-8">
                             <h1 class="text-4xl font-bold text-gray-800 mb-2">ダッシュボード</h1>
                             <p class="text-gray-600">リアルタイムモニター</p>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                            <div class="bg-white rounded-xl p-6 border border-gray-200">
+                        
+                        <!-- KPIカード -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-500">未承認申請</span>
-                                    <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">緊急</span>
+                                    <span class="text-sm text-gray-500">未振分案件</span>
+                                    <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full animate-pulse">要対応</span>
                                 </div>
-                                <div class="mt-4 text-3xl font-bold text-gray-800">3</div>
+                                <div class="mt-4 text-3xl font-bold text-gray-800">7</div>
+                                <div class="mt-2 text-xs text-gray-500">直近1時間: +3</div>
                             </div>
-                            <div class="bg-white rounded-xl p-6 border border-gray-200">
+                            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-500">新着案件</span>
+                                    <span class="text-sm text-gray-500">本日振分済</span>
                                     <span class="text-xs text-green-600">+12%</span>
                                 </div>
                                 <div class="mt-4 text-3xl font-bold text-gray-800">24</div>
+                                <div class="mt-2 text-xs text-gray-500">目標: 30件</div>
                             </div>
-                            <div class="bg-white rounded-xl p-6 border border-gray-200">
+                            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-500">本日転送数</span>
+                                    <span class="text-sm text-gray-500">進行中案件</span>
+                                    <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">活発</span>
                                 </div>
-                                <div class="mt-4 text-3xl font-bold text-gray-800">18</div>
+                                <div class="mt-4 text-3xl font-bold text-gray-800">42</div>
+                                <div class="mt-2 text-xs text-gray-500">見積提出待ち: 18</div>
                             </div>
-                            <div class="bg-white rounded-xl p-6 border border-gray-200">
+                            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-500">成約通知</span>
+                                    <span class="text-sm text-gray-500">今月成約</span>
+                                    <span class="text-xs text-purple-600">目標85%</span>
                                 </div>
-                                <div class="mt-4 text-3xl font-bold text-gray-800">6</div>
+                                <div class="mt-4 text-3xl font-bold text-gray-800">¥8.5M</div>
+                                <div class="mt-2 text-xs text-gray-500">紹介料: ¥1.28M</div>
+                            </div>
+                        </div>
+                        
+                        <!-- グラフエリア -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                            <div class="bg-white rounded-xl p-6 border border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">案件ステータス分布</h3>
+                                <div class="space-y-3">
+                                    <div class="flex items-center">
+                                        <span class="text-sm text-gray-600 w-24">未振分</span>
+                                        <div class="flex-1 bg-gray-200 rounded-full h-6 relative">
+                                            <div class="bg-red-500 h-6 rounded-full" style="width: 15%"></div>
+                                        </div>
+                                        <span class="text-sm text-gray-800 ml-3 font-semibold">7件</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="text-sm text-gray-600 w-24">振分済</span>
+                                        <div class="flex-1 bg-gray-200 rounded-full h-6 relative">
+                                            <div class="bg-yellow-500 h-6 rounded-full" style="width: 25%"></div>
+                                        </div>
+                                        <span class="text-sm text-gray-800 ml-3 font-semibold">12件</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="text-sm text-gray-600 w-24">進行中</span>
+                                        <div class="flex-1 bg-gray-200 rounded-full h-6 relative">
+                                            <div class="bg-blue-500 h-6 rounded-full" style="width: 45%"></div>
+                                        </div>
+                                        <span class="text-sm text-gray-800 ml-3 font-semibold">42件</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="text-sm text-gray-600 w-24">完了</span>
+                                        <div class="flex-1 bg-gray-200 rounded-full h-6 relative">
+                                            <div class="bg-green-500 h-6 rounded-full" style="width: 35%"></div>
+                                        </div>
+                                        <span class="text-sm text-gray-800 ml-3 font-semibold">28件</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-xl p-6 border border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">加盟店パフォーマンス TOP5</h3>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                                        <div class="flex items-center">
+                                            <span class="text-lg font-bold text-yellow-500 w-8">1</span>
+                                            <span class="text-sm text-gray-800">田中塗装工業</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-semibold text-gray-800">成約率 68%</div>
+                                            <div class="text-xs text-gray-500">今月 12件</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                                        <div class="flex items-center">
+                                            <span class="text-lg font-bold text-gray-400 w-8">2</span>
+                                            <span class="text-sm text-gray-800">山田ペイント</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-semibold text-gray-800">成約率 62%</div>
+                                            <div class="text-xs text-gray-500">今月 10件</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                                        <div class="flex items-center">
+                                            <span class="text-lg font-bold text-orange-600 w-8">3</span>
+                                            <span class="text-sm text-gray-800">佐藤塗装店</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-semibold text-gray-800">成約率 58%</div>
+                                            <div class="text-xs text-gray-500">今月 9件</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                                        <div class="flex items-center">
+                                            <span class="text-lg font-bold text-gray-400 w-8">4</span>
+                                            <span class="text-sm text-gray-800">鈴木建装</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-semibold text-gray-800">成約率 55%</div>
+                                            <div class="text-xs text-gray-500">今月 8件</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                                        <div class="flex items-center">
+                                            <span class="text-lg font-bold text-gray-400 w-8">5</span>
+                                            <span class="text-sm text-gray-800">高橋塗装</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-semibold text-gray-800">成約率 52%</div>
+                                            <div class="text-xs text-gray-500">今月 7件</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- アラートエリア -->
+                        <div class="bg-white rounded-xl p-6 border border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">要対応アラート</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-red-50 border-l-4 border-red-500 rounded">
+                                    <div>
+                                        <div class="text-sm font-semibold text-red-800">案件ID: #2024-0892</div>
+                                        <div class="text-xs text-red-600">30分以上未振分 - 千葉県船橋市の戸建て案件</div>
+                                    </div>
+                                    <button onclick="showSection('assignment')" class="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600">対応する</button>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded">
+                                    <div>
+                                        <div class="text-sm font-semibold text-yellow-800">加盟店: 田中塗装工業</div>
+                                        <div class="text-xs text-yellow-600">見積提出期限まで残り2時間</div>
+                                    </div>
+                                    <button class="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600">確認</button>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-blue-50 border-l-4 border-blue-500 rounded">
+                                    <div>
+                                        <div class="text-sm font-semibold text-blue-800">請求処理</div>
+                                        <div class="text-xs text-blue-600">3件の成約案件の紹介料計算が未完了</div>
+                                    </div>
+                                    <button onclick="showSection('financial')" class="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600">処理する</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1161,9 +1290,154 @@
                 const mainContent = document.querySelector('main');
                 window.location.href = '#franchise';
                 mainContent.innerHTML = `
-                    <div class="pt-20 px-6">
-                        <h1 class="text-3xl font-bold text-gray-800 mb-6">加盟店管理</h1>
-                        <p class="text-gray-600">※ 開発中</p>
+                    <div class="pt-20 px-6 max-w-7xl mx-auto">
+                        <div class="mb-8">
+                            <h1 class="text-3xl font-bold text-gray-800 mb-2">加盟店管理</h1>
+                            <p class="text-gray-600">加盟店の情報管理・パフォーマンス分析</p>
+                        </div>
+                        
+                        <!-- 検索・フィルタエリア -->
+                        <div class="bg-white rounded-xl p-4 mb-6 border border-gray-200">
+                            <div class="flex flex-wrap gap-4">
+                                <input type="text" placeholder="加盟店名で検索..." class="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option>全エリア</option>
+                                    <option>東京都</option>
+                                    <option>神奈川県</option>
+                                    <option>千葉県</option>
+                                    <option>埼玉県</option>
+                                </select>
+                                <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option>全ステータス</option>
+                                    <option>アクティブ</option>
+                                    <option>休止中</option>
+                                    <option>新規</option>
+                                </select>
+                                <button class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">検索</button>
+                                <button class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">+ 新規加盟店</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 加盟店リスト -->
+                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">加盟店名</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">エリア</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">成約率</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">今月実績</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ハンディ</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ステータス</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">アクション</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold mr-3">田</div>
+                                                <div>
+                                                    <div class="text-sm font-medium text-gray-900">田中塗装工業</div>
+                                                    <div class="text-xs text-gray-500">ID: F001</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">東京都世田谷区</td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm font-semibold text-green-600">68%</div>
+                                            <div class="text-xs text-gray-500">前月比 +5%</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm text-gray-900">12件 / ¥3.2M</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">+1</span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">アクティブ</span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">詳細</button>
+                                            <button class="ml-4 text-gray-600 hover:text-gray-800 text-sm font-medium">編集</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-semibold mr-3">山</div>
+                                                <div>
+                                                    <div class="text-sm font-medium text-gray-900">山田ペイント</div>
+                                                    <div class="text-xs text-gray-500">ID: F002</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">神奈川県横浜市</td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm font-semibold text-green-600">62%</div>
+                                            <div class="text-xs text-gray-500">前月比 +2%</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm text-gray-900">10件 / ¥2.8M</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">0</span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">アクティブ</span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">詳細</button>
+                                            <button class="ml-4 text-gray-600 hover:text-gray-800 text-sm font-medium">編集</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-semibold mr-3">佐</div>
+                                                <div>
+                                                    <div class="text-sm font-medium text-gray-900">佐藤塗装店</div>
+                                                    <div class="text-xs text-gray-500">ID: F003</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">千葉県船橋市</td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm font-semibold text-yellow-600">58%</div>
+                                            <div class="text-xs text-gray-500">前月比 -3%</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm text-gray-900">9件 / ¥2.1M</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">-1</span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">アクティブ</span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">詳細</button>
+                                            <button class="ml-4 text-gray-600 hover:text-gray-800 text-sm font-medium">編集</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- ページネーション -->
+                        <div class="mt-6 flex justify-between items-center">
+                            <div class="text-sm text-gray-600">
+                                全32件中 1-10件を表示
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">前へ</button>
+                                <button class="px-3 py-1 bg-blue-600 text-white rounded">1</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">2</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">3</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">4</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">次へ</button>
+                            </div>
+                        </div>
                     </div>
                 `;
             } else if (sectionName === 'financial') {
@@ -1171,9 +1445,119 @@
                 const mainContent = document.querySelector('main');
                 window.location.href = '#financial';
                 mainContent.innerHTML = `
-                    <div class="pt-20 px-6">
-                        <h1 class="text-3xl font-bold text-gray-800 mb-6">請求・財務</h1>
-                        <p class="text-gray-600">※ 開発中</p>
+                    <div class="pt-20 px-6 max-w-7xl mx-auto">
+                        <div class="mb-8">
+                            <h1 class="text-3xl font-bold text-gray-800 mb-2">請求・財務管理</h1>
+                            <p class="text-gray-600">紹介料計算・請求書管理・財務レポート</p>
+                        </div>
+                        
+                        <!-- 概要カード -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                            <div class="bg-white rounded-xl p-6 border border-gray-200">
+                                <div class="text-sm text-gray-500 mb-2">今月請求額</div>
+                                <div class="text-2xl font-bold text-gray-800">¥1,280,000</div>
+                                <div class="text-xs text-green-600 mt-1">前月比 +15%</div>
+                            </div>
+                            <div class="bg-white rounded-xl p-6 border border-gray-200">
+                                <div class="text-sm text-gray-500 mb-2">未処理請求</div>
+                                <div class="text-2xl font-bold text-yellow-600">3件</div>
+                                <div class="text-xs text-gray-500 mt-1">合計 ¥320,000</div>
+                            </div>
+                            <div class="bg-white rounded-xl p-6 border border-gray-200">
+                                <div class="text-sm text-gray-500 mb-2">入金待ち</div>
+                                <div class="text-2xl font-bold text-blue-600">5件</div>
+                                <div class="text-xs text-gray-500 mt-1">合計 ¥850,000</div>
+                            </div>
+                            <div class="bg-white rounded-xl p-6 border border-gray-200">
+                                <div class="text-sm text-gray-500 mb-2">今月入金済</div>
+                                <div class="text-2xl font-bold text-green-600">¥2,150,000</div>
+                                <div class="text-xs text-gray-500 mt-1">12件完了</div>
+                            </div>
+                        </div>
+                        
+                        <!-- タブナビゲーション -->
+                        <div class="bg-white rounded-t-xl border border-gray-200 border-b-0">
+                            <div class="flex border-b">
+                                <button class="px-6 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600">成約案件</button>
+                                <button class="px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-800">請求書一覧</button>
+                                <button class="px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-800">入金管理</button>
+                                <button class="px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-800">月次レポート</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 成約案件リスト -->
+                        <div class="bg-white rounded-b-xl border border-gray-200 border-t-0">
+                            <div class="p-4 border-b bg-gray-50">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="text-lg font-semibold">紹介料計算待ち案件</h3>
+                                    <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">一括計算</button>
+                                </div>
+                            </div>
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">案件ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">加盟店</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">成約日</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">建物種別</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">成約金額</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">紹介料率</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">紹介料</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">アクション</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 text-sm text-gray-900">#2024-0845</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">田中塗装工業</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">2025-01-10</td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">戸建て</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm font-semibold text-gray-900">¥800,000</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">15%</td>
+                                        <td class="px-6 py-4 text-sm font-bold text-green-600">¥120,000</td>
+                                        <td class="px-6 py-4">
+                                            <button class="text-blue-600 hover:text-blue-800 text-sm">請求書作成</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 text-sm text-gray-900">#2024-0847</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">山田ペイント</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">2025-01-11</td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">集合住宅</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm font-semibold text-gray-900">¥1,200,000</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">10%</td>
+                                        <td class="px-6 py-4 text-sm font-bold text-green-600">¥120,000</td>
+                                        <td class="px-6 py-4">
+                                            <button class="text-blue-600 hover:text-blue-800 text-sm">請求書作成</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 text-sm text-gray-900">#2024-0849</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">佐藤塗装店</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">2025-01-11</td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">戸建て</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm font-semibold text-gray-900">¥550,000</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">15%</td>
+                                        <td class="px-6 py-4 text-sm font-bold text-green-600">¥82,500</td>
+                                        <td class="px-6 py-4">
+                                            <button class="text-blue-600 hover:text-blue-800 text-sm">請求書作成</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="p-4 bg-gray-50">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600">合計紹介料: <span class="font-bold text-gray-900">¥322,500</span></span>
+                                    <button class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">一括請求書作成</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 `;
             } else if (sectionName === 'ranking') {
@@ -1181,9 +1565,175 @@
                 const mainContent = document.querySelector('main');
                 window.location.href = '#ranking';
                 mainContent.innerHTML = `
-                    <div class="pt-20 px-6">
-                        <h1 class="text-3xl font-bold text-gray-800 mb-6">ランキング</h1>
-                        <p class="text-gray-600">※ 開発中</p>
+                    <div class="pt-20 px-6 max-w-7xl mx-auto">
+                        <div class="mb-8">
+                            <h1 class="text-3xl font-bold text-gray-800 mb-2">加盟店ランキング</h1>
+                            <p class="text-gray-600">パフォーマンス評価・ハンディキャップ適用</p>
+                        </div>
+                        
+                        <!-- 期間選択 -->
+                        <div class="bg-white rounded-xl p-4 mb-6 border border-gray-200">
+                            <div class="flex items-center gap-4">
+                                <span class="text-sm font-medium text-gray-700">期間:</span>
+                                <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option selected>今月</option>
+                                    <option>先月</option>
+                                    <option>過去3ヶ月</option>
+                                    <option>過去6ヶ月</option>
+                                    <option>今年度</option>
+                                </select>
+                                <span class="text-sm font-medium text-gray-700 ml-4">評価項目:</span>
+                                <label class="flex items-center">
+                                    <input type="checkbox" checked class="mr-2">
+                                    <span class="text-sm">成約率</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" checked class="mr-2">
+                                    <span class="text-sm">対応速度</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" checked class="mr-2">
+                                    <span class="text-sm">顧客満足度</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- ランキング表 -->
+                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <div class="p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 border-b">
+                                <h3 class="text-lg font-semibold text-gray-800">総合ランキング TOP10</h3>
+                            </div>
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">順位</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">加盟店名</th>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">成約率</th>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">対応速度</th>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">満足度</th>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">ハンディ</th>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">総合スコア</th>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">前回</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <tr class="hover:bg-yellow-50">
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="text-2xl font-bold text-yellow-500">🥇</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600 font-semibold mr-3">田</div>
+                                                <div>
+                                                    <div class="text-sm font-medium text-gray-900">田中塗装工業</div>
+                                                    <div class="text-xs text-gray-500">東京都世田谷区</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="text-sm font-semibold text-green-600">68%</div>
+                                            <div class="text-xs text-gray-500">85pt</div>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="text-sm font-semibold text-blue-600">1.2h</div>
+                                            <div class="text-xs text-gray-500">92pt</div>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="text-sm font-semibold text-purple-600">4.8</div>
+                                            <div class="text-xs text-gray-500">96pt</div>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">+1</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="text-lg font-bold text-gray-900">92.3</div>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <span class="text-green-600">↑2</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="text-2xl font-bold text-gray-400">🥈</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 font-semibold mr-3">山</div>
+                                                <div>
+                                                    <div class="text-sm font-medium text-gray-900">山田ペイント</div>
+                                                    <div class="text-xs text-gray-500">神奈川県横浜市</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="text-sm font-semibold text-green-600">62%</div>
+                                            <div class="text-xs text-gray-500">78pt</div>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="text-sm font-semibold text-blue-600">1.5h</div>
+                                            <div class="text-xs text-gray-500">88pt</div>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="text-sm font-semibold text-purple-600">4.7</div>
+                                            <div class="text-xs text-gray-500">94pt</div>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">0</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="text-lg font-bold text-gray-900">86.7</div>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <span class="text-gray-600">→</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-orange-50">
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="text-2xl font-bold text-orange-600">🥉</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-semibold mr-3">鈴</div>
+                                                <div>
+                                                    <div class="text-sm font-medium text-gray-900">鈴木建装</div>
+                                                    <div class="text-xs text-gray-500">埼玉県さいたま市</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="text-sm font-semibold text-green-600">55%</div>
+                                            <div class="text-xs text-gray-500">70pt</div>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="text-sm font-semibold text-blue-600">0.8h</div>
+                                            <div class="text-xs text-gray-500">95pt</div>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="text-sm font-semibold text-purple-600">4.9</div>
+                                            <div class="text-xs text-gray-500">98pt</div>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">+2</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="text-lg font-bold text-gray-900">85.5</div>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <span class="text-green-600">↑5</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- ハンディキャップ説明 -->
+                        <div class="mt-6 bg-blue-50 rounded-xl p-4 border border-blue-200">
+                            <h4 class="text-sm font-semibold text-blue-900 mb-2">ハンディキャップ制度について</h4>
+                            <p class="text-xs text-blue-700">
+                                新規加盟店や小規模事業者に公平な競争機会を提供するため、-3〜+3のハンディキャップを適用しています。
+                                ハンディキャップは毎月の実績に基づいて自動調整されます。
+                            </p>
+                        </div>
                     </div>
                 `;
             }
