@@ -1111,11 +1111,14 @@
             // メニューを閉じる
             document.getElementById('sideMenu').classList.add('-translate-x-full');
             
-            // 現在のコンテンツを非表示
-            const mainContent = document.querySelector('main');
-            
             // セクションに応じたコンテンツを表示
-            if (sectionName === 'dashboard') {
+            if (sectionName === 'assignment') {
+                // 案件管理を表示（ページリロード）
+                window.location.href = window.location.pathname + '#assignment';
+                location.reload();
+            } else if (sectionName === 'dashboard') {
+                // 現在のコンテンツを非表示
+                const mainContent = document.querySelector('main');
                 window.location.href = '#dashboard';
                 mainContent.innerHTML = `
                     <div class="pt-20 px-6">
@@ -1153,9 +1156,36 @@
                         </div>
                     </div>
                 `;
-            } else if (sectionName === 'assignment') {
-                window.location.href = '#assignment';
-                // 現在の案件割り振りコンテンツを維持
+            } else if (sectionName === 'franchise') {
+                // 加盟店管理セクション
+                const mainContent = document.querySelector('main');
+                window.location.href = '#franchise';
+                mainContent.innerHTML = `
+                    <div class="pt-20 px-6">
+                        <h1 class="text-3xl font-bold text-gray-800 mb-6">加盟店管理</h1>
+                        <p class="text-gray-600">※ 開発中</p>
+                    </div>
+                `;
+            } else if (sectionName === 'financial') {
+                // 請求・財務セクション
+                const mainContent = document.querySelector('main');
+                window.location.href = '#financial';
+                mainContent.innerHTML = `
+                    <div class="pt-20 px-6">
+                        <h1 class="text-3xl font-bold text-gray-800 mb-6">請求・財務</h1>
+                        <p class="text-gray-600">※ 開発中</p>
+                    </div>
+                `;
+            } else if (sectionName === 'ranking') {
+                // ランキングセクション
+                const mainContent = document.querySelector('main');
+                window.location.href = '#ranking';
+                mainContent.innerHTML = `
+                    <div class="pt-20 px-6">
+                        <h1 class="text-3xl font-bold text-gray-800 mb-6">ランキング</h1>
+                        <p class="text-gray-600">※ 開発中</p>
+                    </div>
+                `;
             }
             
             // メニューのアクティブ状態を更新
