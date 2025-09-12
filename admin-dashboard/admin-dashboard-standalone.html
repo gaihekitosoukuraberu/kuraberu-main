@@ -119,6 +119,52 @@
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
+    <!-- ログイン画面 -->
+    <div id="loginScreen" class="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 z-[100] flex items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800">本部管理システム</h1>
+                <p class="text-gray-500 mt-2">ログインしてください</p>
+            </div>
+            
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ユーザーID</label>
+                    <input type="text" id="userId" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="ユーザーIDを入力">
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">パスワード</label>
+                    <input type="password" id="password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="パスワードを入力">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="rememberMe" class="rounded text-blue-600 focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-600">ログイン状態を保持する</span>
+                    </label>
+                </div>
+                
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2 px-4 rounded-lg hover:from-blue-600 hover:to-indigo-700 font-medium transition-all transform hover:scale-[1.02]">
+                    ログイン
+                </button>
+                
+                <div id="loginError" class="mt-4 text-red-600 text-sm text-center hidden"></div>
+            </form>
+            
+            <div class="mt-6 text-center">
+                <a href="#" class="text-sm text-blue-600 hover:text-blue-800">パスワードを忘れた方はこちら</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- メインアプリケーション（初期状態は非表示） -->
+    <div id="mainApp" class="hidden">
     <!-- トップバー -->
     <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-gray-900/95 glass border-b border-gray-200">
         <div class="flex items-center justify-between h-full px-6">
@@ -4068,6 +4114,86 @@
                 console.log('=== 初期化完了 ===');
             } catch(e) {
                 console.error('初期化エラー:', e);
+            }
+        });
+    </script>
+    </div> <!-- mainApp終了 -->
+
+    <!-- ログイン処理スクリプト -->
+    <script>
+        // ログイン処理
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const userId = document.getElementById('userId').value;
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            const loginError = document.getElementById('loginError');
+            
+            // デモ用の認証（実際はサーバー側で認証）
+            // ユーザー: admin / パスワード: admin123
+            if (userId === 'admin' && password === 'admin123') {
+                // ログイン成功
+                loginError.classList.add('hidden');
+                
+                // セッションまたはローカルストレージに保存
+                const storage = rememberMe ? localStorage : sessionStorage;
+                storage.setItem('isLoggedIn', 'true');
+                storage.setItem('userId', userId);
+                storage.setItem('loginTime', new Date().toISOString());
+                
+                // ログイン画面を非表示、メインアプリを表示
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainApp').classList.remove('hidden');
+                
+                // 初期化処理を実行
+                if (typeof initializeListView === 'function') {
+                    initializeListView();
+                }
+            } else {
+                // ログイン失敗
+                loginError.textContent = 'ユーザーIDまたはパスワードが正しくありません';
+                loginError.classList.remove('hidden');
+                
+                // パスワードフィールドをクリア
+                document.getElementById('password').value = '';
+            }
+        }
+        
+        // ログアウト処理
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('loginTime');
+            sessionStorage.clear();
+            location.reload();
+        }
+        
+        // ページ読み込み時の認証チェック
+        window.addEventListener('DOMContentLoaded', function() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn');
+            
+            if (isLoggedIn === 'true') {
+                // 既にログイン済み
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainApp').classList.remove('hidden');
+                
+                // 初期化処理を実行
+                if (typeof initializeListView === 'function') {
+                    initializeListView();
+                }
+            }
+        });
+        
+        // 管理者メニューにログアウトボタンを追加
+        document.addEventListener('DOMContentLoaded', function() {
+            const adminSection = document.querySelector('.text-gray-700');
+            if (adminSection && adminSection.textContent === '管理者') {
+                const logoutBtn = document.createElement('button');
+                logoutBtn.textContent = 'ログアウト';
+                logoutBtn.className = 'ml-4 text-sm text-red-600 hover:text-red-800';
+                logoutBtn.onclick = logout;
+                adminSection.parentElement.appendChild(logoutBtn);
             }
         });
     </script>
