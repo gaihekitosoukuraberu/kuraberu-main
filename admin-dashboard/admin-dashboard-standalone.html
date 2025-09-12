@@ -312,7 +312,7 @@
                         </div>
                         <div class="flex items-center gap-4">
                             <!-- 選択件数表示 -->
-                            <div class="text-sm text-gray-600">
+                            <div class="text-sm text-gray-600 hidden" id="selectionCountDisplay">
                                 選択: <span class="font-semibold text-blue-600" id="selectedCount">0</span> / <span class="font-semibold" id="currentPageCount">0</span> 件
                             </div>
                             <!-- 表示件数切り替え -->
@@ -1674,7 +1674,7 @@
                                         <td class="px-6 py-4 text-sm text-gray-900">044-123-4567</td>
                                         <td class="px-6 py-4 text-sm text-gray-900">nakamura@paintpro.jp</td>
                                         <td class="px-6 py-4">
-                                            <button onclick="showRegistrationDetail('REG-2025-001')" class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">詳細確認</button>
+                                            <button onclick="showRegistrationDetail('REG-2025-001')" class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">詳細</button>
                                         </td>
                                     </tr>
                                     <tr class="hover:bg-green-50">
@@ -1685,7 +1685,7 @@
                                         <td class="px-6 py-4 text-sm text-gray-900">047-987-6543</td>
                                         <td class="px-6 py-4 text-sm text-gray-900">ito@colorworks.co.jp</td>
                                         <td class="px-6 py-4">
-                                            <button onclick="showRegistrationDetail('REG-2025-002')" class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">詳細確認</button>
+                                            <button onclick="showRegistrationDetail('REG-2025-002')" class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">詳細</button>
                                         </td>
                                     </tr>
                                     <tr class="hover:bg-green-50">
@@ -1696,7 +1696,7 @@
                                         <td class="px-6 py-4 text-sm text-gray-900">03-5555-1234</td>
                                         <td class="px-6 py-4 text-sm text-gray-900">kimura@sakura-paint.jp</td>
                                         <td class="px-6 py-4">
-                                            <button onclick="showRegistrationDetail('REG-2025-003')" class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">詳細確認</button>
+                                            <button onclick="showRegistrationDetail('REG-2025-003')" class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">詳細</button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -3321,7 +3321,16 @@
         // 選択件数の更新
         function updateSelectedCount() {
             const checkboxes = document.querySelectorAll('#casesListBody input[type="checkbox"]:checked');
-            document.getElementById('selectedCount').textContent = checkboxes.length;
+            const selectedCount = checkboxes.length;
+            document.getElementById('selectedCount').textContent = selectedCount;
+            
+            // 選択件数表示の表示/非表示を制御
+            const selectionDisplay = document.getElementById('selectionCountDisplay');
+            if (selectedCount > 0 && currentView === 'list') {
+                selectionDisplay.classList.remove('hidden');
+            } else {
+                selectionDisplay.classList.add('hidden');
+            }
         }
         
         // 全選択/全解除
@@ -3578,6 +3587,8 @@
                 document.getElementById('crmViewBtn').classList.add('text-gray-600');
                 currentView = 'list';
                 initializeListView();
+                // リスト表示時は選択件数の表示を更新
+                updateSelectedCount();
             } else {
                 document.getElementById('listView').classList.add('hidden');
                 document.getElementById('crmView').classList.remove('hidden');
@@ -3586,6 +3597,8 @@
                 document.getElementById('listViewBtn').classList.remove('bg-white', 'text-gray-900');
                 document.getElementById('listViewBtn').classList.add('text-gray-600');
                 currentView = 'crm';
+                // CRM表示時は選択件数を非表示
+                document.getElementById('selectionCountDisplay').classList.add('hidden');
                 loadCRMContent(currentCaseId);
             }
         }
