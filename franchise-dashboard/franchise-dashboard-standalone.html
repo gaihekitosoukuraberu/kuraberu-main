@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加盟店管理システム - 外壁塗装くらべるAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gray: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            300: '#d1d5db',
+                            400: '#9ca3af',
+                            500: '#6b7280',
+                            600: '#4b5563',
+                            700: '#374151',
+                            800: '#1f2937',
+                            900: '#111827',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .glass { backdrop-filter: blur(12px); }
+        .section {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+            min-height: 200px;
+        }
+        .permission-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        /* トグルスイッチのスタイル */
+        .toggle-switch {
+            position: relative;
+            appearance: none;
+            width: 44px;
+            height: 24px;
+            background: #cbd5e0;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .toggle-switch:checked {
+            background: #3b82f6;
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        .toggle-switch:checked::after {
+            transform: translateX(20px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900">
+    <!-- ログイン画面 -->
+    <div id="loginScreen" class="fixed inset-0 bg-gradient-to-br from-gray-50 to-gray-100 z-[100] flex items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800">加盟店管理システム</h1>
+                <p class="text-gray-500 mt-2">ログインしてください</p>
+            </div>
+            
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ユーザー名</label>
+                    <input type="text" id="username" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="ユーザー名を入力">
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">パスワード</label>
+                    <input type="password" id="password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="パスワードを入力">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="rememberMe" class="rounded text-blue-600 focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-600">ログイン状態を保持する</span>
+                    </label>
+                </div>
+                
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2 px-4 rounded-lg hover:from-blue-600 hover:to-indigo-700 font-medium transition-all">
+                    ログイン
+                </button>
+                
+                <div id="loginError" class="mt-4 text-red-600 text-sm text-center hidden"></div>
+                
+                <div class="mt-6 text-center">
+                    <a href="#" onclick="showForgotPassword()" class="text-sm text-blue-600 hover:text-blue-800">パスワードを忘れた方はこちら</a>
+                </div>
+                
+                <div class="mt-4 text-xs text-gray-500 text-center">
+                    <p>デモ用ログイン情報:</p>
+                    <p>管理者: admin / admin123</p>
+                    <p>営業: sales / sales123</p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- メインアプリケーション -->
+    <div id="mainApp" class="hidden">
+        <!-- トップバー -->
+        <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-gray-900/95 glass border-b border-gray-200">
+            <div class="flex items-center justify-between h-full px-6">
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleMenu()" class="p-2 rounded-lg hover:bg-gray-800 transition-colors">
+                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                    <div class="flex items-center space-x-2">
+                        <div id="companyLogo" class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <span class="text-gray-100 font-bold">加</span>
+                        </div>
+                        <span id="systemTitle" class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                            加盟店管理システム
+                        </span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="requestNotificationPermission()" class="relative p-2 rounded-lg hover:bg-gray-800 transition-colors">
+                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <span id="notificationBadge" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse hidden"></span>
+                    </button>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-500 rounded-full"></div>
+                        <div class="text-right">
+                            <div id="userName" class="text-sm text-gray-300">ユーザー名</div>
+                            <div id="userRole" class="text-xs text-gray-400"></div>
+                        </div>
+                        <button onclick="logout()" class="ml-4 text-xs text-red-400 hover:text-red-300">ログアウト</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- サイドメニュー -->
+        <div id="sideMenu" class="fixed left-0 top-16 bottom-0 w-64 bg-gray-900/95 glass border-r border-gray-200 transform -translate-x-full transition-transform z-40">
+            <nav class="p-4 space-y-2">
+                <a href="#dashboard" onclick="showSection('dashboard'); return false;" class="flex items-center px-4 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 text-gray-100">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    ダッシュボード
+                </a>
+                <a href="#cases" onclick="showSection('cases'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    案件管理
+                </a>
+                <a href="#sales" onclick="showSection('sales'); return false;" class="admin-only flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    営業管理
+                </a>
+                <a href="#calendar" onclick="showSection('calendar'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    カレンダー
+                </a>
+                <a href="#billing" onclick="showSection('billing'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    請求管理
+                </a>
+                <a href="#reports" onclick="showSection('reports'); return false;" class="admin-only flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    レポート
+                </a>
+                <a href="#settings" onclick="showSection('settings'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    設定
+                </a>
+            </nav>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <main class="pt-20 px-6" style="background: #f3f4f6; min-height: 100vh;">
+            <!-- ダッシュボード -->
+            <div id="dashboardSection" class="section" style="display: none;">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">ダッシュボード</h2>
+                
+                <!-- 統計カードとミニカレンダー -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- 統計カード -->
+                    <div class="lg:col-span-2">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-blue-100 rounded-full">
+                                <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">新規案件</p>
+                                <p class="text-2xl font-semibold text-gray-900">24</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-green-100 rounded-full">
+                                <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">成約率</p>
+                                <p class="text-2xl font-semibold text-gray-900">68%</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-yellow-100 rounded-full">
+                                <svg class="h-8 w-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">対応中</p>
+                                <p class="text-2xl font-semibold text-gray-900">15</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-purple-100 rounded-full">
+                                <svg class="h-8 w-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">営業メンバー</p>
+                                <p class="text-2xl font-semibold text-gray-900">8</p>
+                            </div>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ミニカレンダー -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">今月の予定</h3>
+                            <button onclick="showSection('calendar')" class="text-sm text-blue-600 hover:text-blue-800">全て表示</button>
+                        </div>
+                        <div id="miniCalendar" class="text-sm">
+                            <!-- ミニカレンダーがここに表示されます -->
+                        </div>
+                        <div class="mt-4 space-y-2">
+                            <div class="flex items-center p-2 bg-blue-50 rounded">
+                                <div class="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium">田中様 現地調査</div>
+                                    <div class="text-xs text-gray-500">今日 14:00-15:00</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center p-2 bg-green-50 rounded">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium">佐藤様 工事開始</div>
+                                    <div class="text-xs text-gray-500">明日 9:00-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 最近の案件 -->
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-4 py-5 sm:px-6">
+                        <h3 class="text-lg font-medium text-gray-900">最近の案件</h3>
+                    </div>
+                    <div class="border-t border-gray-200">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">案件ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">顧客名</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">担当者</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">更新日</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#2024-001</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">山田太郎</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">成約</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">田中営業</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024/01/15</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#2024-002</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">鈴木花子</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">ヒアリング中</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">佐藤営業</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024/01/14</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div><!-- dashboardSectionの終了 -->
+
+            <!-- 営業管理セクション（管理者のみ） -->
+            <div id="salesSection" class="section" style="display: none;">
+                <div class="mb-6 flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-gray-900">営業管理</h2>
+                    <button onclick="openPermissionModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                        新規営業追加
+                    </button>
+                </div>
+
+                <!-- 営業メンバーリスト -->
+                <div class="bg-white shadow rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名前</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">権限レベル</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">成約数</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">成約率</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">アクション</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">田中太郎</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">リーダー</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">45</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">75%</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <button onclick="editPermissions('田中太郎')" class="text-blue-600 hover:text-blue-900">権限編集</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">佐藤花子</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">一般営業</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">28</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">62%</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <button onclick="editPermissions('佐藤花子')" class="text-blue-600 hover:text-blue-900">権限編集</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">鈴木次郎</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">新人営業</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">5</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">40%</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <button onclick="editPermissions('鈴木次郎')" class="text-blue-600 hover:text-blue-900">権限編集</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div><!-- salesSectionの終了 -->
+
+            <!-- 案件管理セクション -->
+            <div id="casesSection" class="section" style="display: none;">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">案件管理</h2>
+                <div class="bg-white shadow rounded-lg p-6">
+                    <p class="text-gray-600">案件一覧がここに表示されます</p>
+                </div>
+            </div><!-- casesSectionの終了 -->
+
+            <!-- 請求管理セクション -->
+            <div id="billingSection" class="section" style="display: none;">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">請求管理</h2>
+                <div class="bg-white shadow rounded-lg p-6">
+                    <p class="text-gray-600">請求情報がここに表示されます</p>
+                </div>
+            </div><!-- billingSectionの終了 -->
+
+            <!-- レポートセクション -->
+            <div id="reportsSection" class="section" style="display: none;">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">レポート</h2>
+                <div class="bg-white shadow rounded-lg p-6">
+                    <p class="text-gray-600">各種レポートがここに表示されます</p>
+                </div>
+            </div><!-- reportsSectionの終了 -->
+
+            <!-- カレンダーセクション -->
+            <div id="calendarSection" class="section" style="display: none;">
+                <div class="mb-6 flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-gray-900">カレンダー</h2>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="changeCalendarView('month')" class="calendar-view-btn px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 rounded">月</button>
+                        <button onclick="changeCalendarView('week')" class="calendar-view-btn px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded">週</button>
+                        <button onclick="changeCalendarView('day')" class="calendar-view-btn px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded">日</button>
+                        <button onclick="addNewEvent()" class="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            予定を追加
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- カレンダーナビゲーション -->
+                <div class="bg-white rounded-lg shadow mb-4">
+                    <div class="p-4 flex justify-between items-center border-b">
+                        <button onclick="previousMonth()" class="p-2 hover:bg-gray-100 rounded">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <h3 id="currentMonth" class="text-lg font-semibold text-gray-900">2024年1月</h3>
+                        <button onclick="nextMonth()" class="p-2 hover:bg-gray-100 rounded">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- 月表示カレンダー -->
+                    <div id="calendarMonthView" class="p-4">
+                        <div class="grid grid-cols-7 mb-2">
+                            <div class="text-center text-sm font-medium text-gray-700 py-2 border-b">日</div>
+                            <div class="text-center text-sm font-medium text-gray-700 py-2 border-b">月</div>
+                            <div class="text-center text-sm font-medium text-gray-700 py-2 border-b">火</div>
+                            <div class="text-center text-sm font-medium text-gray-700 py-2 border-b">水</div>
+                            <div class="text-center text-sm font-medium text-gray-700 py-2 border-b">木</div>
+                            <div class="text-center text-sm font-medium text-gray-700 py-2 border-b">金</div>
+                            <div class="text-center text-sm font-medium text-gray-700 py-2 border-b">土</div>
+                        </div>
+                        <div id="calendarGrid" style="display: grid; grid-template-columns: repeat(7, 1fr);">
+                            <!-- カレンダーの日付が動的に生成されます -->
+                        </div>
+                    </div>
+                    
+                    <!-- 週表示（初期は非表示） -->
+                    <div id="calendarWeekView" class="p-4 hidden">
+                        <div id="weekGrid" class="grid grid-cols-8 gap-0 border">
+                            <!-- Week view content will be rendered here -->
+                        </div>
+                    </div>
+                    
+                    <!-- 日表示（初期は非表示） -->
+                    <div id="calendarDayView" class="p-4 hidden">
+                        <div class="bg-white rounded-lg shadow">
+                            <div class="p-4 border-b">
+                                <h3 id="dayViewDate" class="text-lg font-semibold">2024年1月15日（月）</h3>
+                            </div>
+                            <div id="dayTimeSlots" class="p-4">
+                                <!-- Day view time slots will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 凡例 -->
+                <div class="bg-white rounded-lg shadow p-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3">凡例</h4>
+                    <div class="flex flex-wrap gap-4 text-sm">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-blue-500 rounded mr-2"></div>
+                            <span>ヒアリング・現地調査</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-green-500 rounded mr-2"></div>
+                            <span>工事</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-yellow-500 rounded mr-2"></div>
+                            <span>見積もり提出</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-purple-500 rounded mr-2"></div>
+                            <span>アフターフォロー</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-red-500 rounded mr-2"></div>
+                            <span>重要</span>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- calendarSectionの終了 -->
+            
+            <!-- 設定セクション -->
+            <div id="settingsSection" class="section" style="display: none;">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">設定</h2>
+                
+                <!-- タブナビゲーション -->
+                <div class="border-b border-gray-200 mb-6">
+                    <nav class="-mb-px flex space-x-8">
+                        <button onclick="switchSettingTab('profile')" class="setting-tab active border-b-2 border-blue-500 py-2 px-1 text-sm font-medium text-blue-600">プロフィール</button>
+                        <button onclick="switchSettingTab('notification')" class="setting-tab border-transparent border-b-2 py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">通知設定</button>
+                        <button onclick="switchSettingTab('display')" class="setting-tab border-transparent border-b-2 py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">表示設定</button>
+                    </nav>
+                </div>
+                
+                <!-- プロフィールタブ -->
+                <div id="profileTab" class="setting-tab-content">
+                    <div class="bg-white shadow rounded-lg p-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">プロフィール情報</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">氏名</label>
+                                <input type="text" id="profileName" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="田中太郎">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">電話番号</label>
+                                <input type="tel" id="profilePhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="090-1234-5678">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
+                                <input type="email" id="profileEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="tanaka@example.com">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">LINE ID</label>
+                                <input type="text" id="profileLineId" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="@tanaka_taro">
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <button onclick="saveProfile()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">保存</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 通知設定タブ -->
+                <div id="notificationTab" class="setting-tab-content hidden">
+                    <div class="bg-white shadow rounded-lg p-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">通知設定</h3>
+                        
+                        <!-- 通知方法 -->
+                        <div class="mb-6">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">通知方法</h4>
+                            <div class="space-y-3">
+                                <label class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-700">メール通知</span>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="notifyEmail" class="toggle-switch" checked>
+                                        <button onclick="testNotification('email')" class="ml-3 text-xs text-blue-600 hover:text-blue-800">テスト送信</button>
+                                    </div>
+                                </label>
+                                <label class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-700">SMS通知</span>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="notifySms" class="toggle-switch">
+                                        <button onclick="testNotification('sms')" class="ml-3 text-xs text-blue-600 hover:text-blue-800">テスト送信</button>
+                                    </div>
+                                </label>
+                                <label class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-700">LINE通知</span>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="notifyLine" class="toggle-switch">
+                                        <button onclick="testNotification('line')" class="ml-3 text-xs text-blue-600 hover:text-blue-800">テスト送信</button>
+                                    </div>
+                                </label>
+                                <label class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-700">ブラウザ通知</span>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="notifyBrowser" class="toggle-switch" checked>
+                                        <button onclick="testNotification('browser')" class="ml-3 text-xs text-blue-600 hover:text-blue-800">テスト送信</button>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- 通知種別 -->
+                        <div class="mb-6">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">通知種別</h4>
+                            <div class="space-y-3">
+                                <label class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-700">新規案件の通知</span>
+                                    <input type="checkbox" class="toggle-switch" checked>
+                                </label>
+                                <label class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-700">ステータス変更の通知</span>
+                                    <input type="checkbox" class="toggle-switch" checked>
+                                </label>
+                                <label class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-700">重要なお知らせ</span>
+                                    <input type="checkbox" class="toggle-switch" checked>
+                                </label>
+                                <label class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-700">日次レポート</span>
+                                    <input type="checkbox" class="toggle-switch">
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- 通知時間設定 -->
+                        <div class="mb-6">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">通知時間設定</h4>
+                            <div class="space-y-3">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="enableQuietHours" onchange="toggleQuietHours()">
+                                    <span class="ml-2 text-sm text-gray-700">通知を制限する時間帯を設定</span>
+                                </label>
+                                <div id="quietHoursSettings" class="hidden ml-6 space-y-2">
+                                    <div class="flex items-center space-x-2">
+                                        <input type="time" id="quietStart" value="22:00" class="px-3 py-2 border border-gray-300 rounded-lg">
+                                        <span class="text-sm text-gray-500">から</span>
+                                        <input type="time" id="quietEnd" value="08:00" class="px-3 py-2 border border-gray-300 rounded-lg">
+                                        <span class="text-sm text-gray-500">まで</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <button onclick="saveNotificationSettings()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">保存</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 表示設定タブ -->
+                <div id="displayTab" class="setting-tab-content hidden">
+                    <div class="bg-white shadow rounded-lg p-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">表示設定</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">1ページあたりの表示件数</label>
+                                <select class="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-lg">
+                                    <option>10件</option>
+                                    <option>25件</option>
+                                    <option>50件</option>
+                                    <option>100件</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">テーマ</label>
+                                <select class="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-lg">
+                                    <option>ライトモード</option>
+                                    <option>ダークモード</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <button onclick="saveDisplaySettings()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">保存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- settingsSectionの終了 -->
+    </main>
+
+    <!-- 権限設定モーダル -->
+    <div id="permissionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+            <div class="mb-4">
+                <h3 class="text-lg font-bold text-gray-900">営業権限設定</h3>
+                <p class="text-sm text-gray-500 mt-1">営業担当者の権限を詳細に設定できます</p>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">権限プリセット</label>
+                <div class="grid grid-cols-4 gap-2">
+                    <button onclick="setPreset('rookie')" class="preset-btn px-4 py-2 border rounded-lg hover:bg-gray-50">新人営業</button>
+                    <button onclick="setPreset('standard')" class="preset-btn px-4 py-2 border rounded-lg hover:bg-gray-50">一般営業</button>
+                    <button onclick="setPreset('leader')" class="preset-btn px-4 py-2 border rounded-lg hover:bg-gray-50">リーダー</button>
+                    <button onclick="setPreset('admin')" class="preset-btn px-4 py-2 border rounded-lg hover:bg-gray-50">副管理者</button>
+                </div>
+            </div>
+
+            <div class="permission-grid mb-6">
+                <!-- 案件関連 -->
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900 mb-3">案件関連</h4>
+                    <div class="space-y-2">
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="case.view">
+                            <span class="ml-2">案件閲覧</span>
+                        </label>
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="case.edit">
+                            <span class="ml-2">案件編集</span>
+                        </label>
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="case.delete">
+                            <span class="ml-2">案件削除</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 会社情報 -->
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900 mb-3">会社情報</h4>
+                    <div class="space-y-2">
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="company.view">
+                            <span class="ml-2">会社情報閲覧</span>
+                        </label>
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="company.edit">
+                            <span class="ml-2">会社情報編集</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 財務情報 -->
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900 mb-3">財務情報</h4>
+                    <div class="space-y-2">
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="finance.view">
+                            <span class="ml-2">売上閲覧</span>
+                        </label>
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="finance.export">
+                            <span class="ml-2">データエクスポート</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 営業管理 -->
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900 mb-3">営業管理</h4>
+                    <div class="space-y-2">
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="sales.manage">
+                            <span class="ml-2">営業管理</span>
+                        </label>
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="sales.report">
+                            <span class="ml-2">レポート作成</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <button onclick="closePermissionModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                    キャンセル
+                </button>
+                <button onclick="savePermissions()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    保存
+                </button>
+            </div>
+        </div>
+    </div>
+    </div><!-- mainApp end -->
+
+    <script>
+        // ユーザー状態管理
+        let currentUser = '管理者';
+        let userRole = 'admin';
+
+        // ログイン処理
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            
+            // ログインIDで権限を自動判定（管理者 or 営業）
+            let loginSuccess = false;
+            
+            if (username === 'admin' && password === 'admin123') {
+                currentUser = '田中太郎'; // 実際の名前
+                userRole = 'admin';
+                loginSuccess = true;
+            } else if (username === 'sales' && password === 'sales123') {
+                currentUser = '佐藤花子'; // 実際の名前
+                userRole = 'sales';
+                loginSuccess = true;
+            }
+            
+            if (loginSuccess) {
+                // ユーザー情報を保存（チェックボックスの状態で保存先を変更）
+                const storage = rememberMe ? localStorage : sessionStorage;
+                storage.setItem('franchiseUser', currentUser);
+                storage.setItem('franchiseRole', userRole);
+                storage.setItem('loginTime', new Date().toISOString());
+                
+                // ログイン状態保持の設定を記憶
+                if (rememberMe) {
+                    localStorage.setItem('rememberLogin', 'true');
+                }
+                
+                // 画面切り替え
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainApp').classList.remove('hidden');
+                
+                // ロール表示を更新
+                updateRoleDisplay();
+                
+                // ダッシュボードを表示
+                showSection('dashboard');
+                
+                // カレンダーを初期化
+                setTimeout(() => {
+                    initCalendar();
+                }, 100);
+                
+                // 通知権限をリクエスト
+                requestNotificationPermission();
+                
+            } else {
+                document.getElementById('loginError').textContent = 'ユーザー名またはパスワードが正しくありません';
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        }
+
+        // ロール表示更新
+        function updateRoleDisplay() {
+            const roleNames = {
+                'admin': '管理者',
+                'sales': '営業'
+            };
+            
+            // ユーザー名とロールを表示
+            document.getElementById('userName').textContent = currentUser;
+            document.getElementById('userRole').textContent = roleNames[userRole] + '権限';
+            
+            // 権限に応じてUIを変更
+            if (userRole === 'admin') {
+                // 管理者: すべて表示、紫系の配色
+                document.getElementById('systemTitle').textContent = '加盟店管理システム';
+                document.getElementById('companyLogo').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                document.getElementById('userRole').className = 'ml-2 text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800';
+            } else {
+                // 営業: 基本機能のみ、青系の配色
+                document.getElementById('systemTitle').textContent = '加盟店管理システム';
+                document.getElementById('companyLogo').style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+                document.getElementById('userRole').className = 'ml-2 text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800';
+            }
+            
+            // 管理者専用メニューの表示制御
+            const adminElements = document.querySelectorAll('.admin-only');
+            adminElements.forEach(el => {
+                el.style.display = userRole === 'admin' ? 'flex' : 'none';
+            });
+            
+            // リーダー専用要素があれば管理者のみ表示
+            const leaderElements = document.querySelectorAll('.leader-only');
+            leaderElements.forEach(el => {
+                el.style.display = userRole === 'admin' ? 'flex' : 'none';
+            });
+        }
+
+        // 通知権限リクエスト
+        window.requestNotificationPermission = function() {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(permission => {
+                    const status = document.getElementById('notificationStatus');
+                    if (permission === 'granted') {
+                        status.textContent = '通知: 有効';
+                        status.classList.add('text-green-600');
+                        
+                        // デモ通知を送信
+                        setTimeout(() => {
+                            showNotification('ようこそ！', '加盟店管理システムへログインしました');
+                        }, 1000);
+                    } else {
+                        status.textContent = '通知: 無効';
+                        status.classList.add('text-red-600');
+                    }
+                });
+            }
+        }
+
+        // 通知表示
+        function showNotification(title, body) {
+            if (Notification.permission === 'granted') {
+                new Notification(title, {
+                    body: body,
+                    icon: '/favicon.ico',
+                    badge: '/favicon.ico'
+                });
+                
+                // バッジ表示
+                document.getElementById('notificationBadge').classList.remove('hidden');
+                setTimeout(() => {
+                    document.getElementById('notificationBadge').classList.add('hidden');
+                }, 5000);
+            }
+        }
+
+        // メニュートグル
+        window.toggleMenu = function() {
+            const sideMenu = document.getElementById('sideMenu');
+            sideMenu.classList.toggle('-translate-x-full');
+        }
+        
+        // アクティブメニューの更新
+        window.updateActiveMenu = function(sectionName) {
+            // すべてのメニューアイテムからアクティブスタイルを削除
+            document.querySelectorAll('#sideMenu a').forEach(link => {
+                link.classList.remove('bg-gradient-to-r', 'from-blue-600', 'to-blue-500', 'text-gray-100');
+                link.classList.add('text-gray-400', 'hover:bg-gray-800', 'hover:text-gray-100');
+            });
+            
+            // 対応するメニューアイテムにアクティブスタイルを追加
+            const activeLink = document.querySelector(`#sideMenu a[onclick*="showSection('${sectionName}')"]`);
+            if (activeLink) {
+                activeLink.classList.remove('text-gray-400', 'hover:bg-gray-800', 'hover:text-gray-100');
+                activeLink.classList.add('bg-gradient-to-r', 'from-blue-600', 'to-blue-500', 'text-gray-100');
+            }
+        }
+        
+        // セクション切り替え
+        window.showSection = function(sectionName) {
+            // すべてのセクションを非表示
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // 選択されたセクションを表示
+            const targetSection = document.getElementById(sectionName + 'Section');
+            if (targetSection) {
+                targetSection.style.display = 'block';
+                
+                // メニューのアクティブ状態を更新
+                updateActiveMenu(sectionName);
+                
+                // カレンダーセクションの場合は初期化
+                if (sectionName === 'calendar') {
+                    setTimeout(() => {
+                        renderCalendar();
+                        renderMiniCalendar();
+                    }, 10);
+                }
+            }
+            
+            // メニューを閉じる
+            document.getElementById('sideMenu').classList.add('-translate-x-full');
+        }
+
+        // 権限モーダル
+        function openPermissionModal() {
+            document.getElementById('permissionModal').classList.remove('hidden');
+        }
+
+        function closePermissionModal() {
+            document.getElementById('permissionModal').classList.add('hidden');
+        }
+
+        function editPermissions(name) {
+            alert(`${name}の権限を編集します`);
+            openPermissionModal();
+        }
+
+        // 権限プリセット設定
+        function setPreset(preset) {
+            const presets = {
+                rookie: ['case.view', 'company.view'],
+                standard: ['case.view', 'case.edit', 'company.view'],
+                leader: ['case.view', 'case.edit', 'case.delete', 'company.view', 'company.edit', 'finance.view', 'sales.report'],
+                admin: ['case.view', 'case.edit', 'case.delete', 'company.view', 'company.edit', 'finance.view', 'finance.export', 'sales.manage', 'sales.report']
+            };
+            
+            // すべてのチェックボックスをクリア
+            document.querySelectorAll('.permission-checkbox').forEach(cb => {
+                cb.checked = false;
+            });
+            
+            // プリセットに基づいてチェック
+            if (presets[preset]) {
+                presets[preset].forEach(permission => {
+                    const checkbox = document.querySelector(`[data-permission="${permission}"]`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+            
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+            });
+            event.target.classList.add('bg-blue-600', 'text-white');
+        }
+
+        function savePermissions() {
+            alert('権限設定を保存しました');
+            closePermissionModal();
+        }
+
+        // ログアウト
+        window.logout = function() {
+            // 両方のストレージをクリア
+            localStorage.removeItem('franchiseUser');
+            localStorage.removeItem('franchiseRole');
+            localStorage.removeItem('loginTime');
+            localStorage.removeItem('rememberLogin');
+            sessionStorage.clear();
+            location.reload();
+        }
+
+        // パスワード忘れ処理
+        function showForgotPassword() {
+            const email = prompt('登録されているメールアドレスを入力してください:');
+            if (email) {
+                alert(`パスワードリセットリンクを ${email} に送信しました。\n（デモ版のため実際には送信されません）`);
+            }
+        }
+        
+        // ページ読み込み時の処理
+        window.addEventListener('DOMContentLoaded', function() {
+            // ローカルストレージまたはセッションストレージから復元
+            let savedUser = localStorage.getItem('franchiseUser') || sessionStorage.getItem('franchiseUser');
+            let savedRole = localStorage.getItem('franchiseRole') || sessionStorage.getItem('franchiseRole');
+            
+            if (savedUser && savedRole) {
+                currentUser = savedUser;
+                userRole = savedRole;
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainApp').classList.remove('hidden');
+                updateRoleDisplay();
+                showSection('dashboard');
+                
+                // カレンダーを初期化
+                setTimeout(() => {
+                    initCalendar();
+                }, 100);
+                
+                // ログイン時間をチェック（24時間で自動ログアウト）
+                const loginTime = localStorage.getItem('loginTime') || sessionStorage.getItem('loginTime');
+                if (loginTime) {
+                    const hoursSinceLogin = (new Date() - new Date(loginTime)) / (1000 * 60 * 60);
+                    if (hoursSinceLogin > 24) {
+                        logout();
+                        alert('セキュリティのため、自動的にログアウトしました。');
+                    }
+                }
+            }
+        });
+
+        // 設定タブ切り替え
+        function switchSettingTab(tabName) {
+            // すべてのタブコンテンツを非表示
+            document.querySelectorAll('.setting-tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // すべてのタブボタンをリセット
+            document.querySelectorAll('.setting-tab').forEach(tab => {
+                tab.classList.remove('border-blue-500', 'text-blue-600');
+                tab.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            // 選択されたタブを表示
+            document.getElementById(tabName + 'Tab').classList.remove('hidden');
+            
+            // アクティブなタブボタンのスタイルを更新
+            event.target.classList.remove('border-transparent', 'text-gray-500');
+            event.target.classList.add('border-blue-500', 'text-blue-600');
+        }
+        
+        // 通知テスト
+        function testNotification(type) {
+            const messages = {
+                'email': 'テストメールを送信しました',
+                'sms': 'テストSMSを送信しました',
+                'line': 'テストLINEメッセージを送信しました',
+                'browser': 'ブラウザ通知のテスト'
+            };
+            
+            if (type === 'browser') {
+                showNotification('通知テスト', messages[type]);
+            } else {
+                alert(messages[type] + '\n（デモ版のため実際には送信されません）');
+            }
+        }
+        
+        // 通知時間設定の表示/非表示
+        function toggleQuietHours() {
+            const enabled = document.getElementById('enableQuietHours').checked;
+            const settings = document.getElementById('quietHoursSettings');
+            settings.classList.toggle('hidden', !enabled);
+        }
+        
+        // プロフィール保存
+        function saveProfile() {
+            const profile = {
+                name: document.getElementById('profileName').value,
+                phone: document.getElementById('profilePhone').value,
+                email: document.getElementById('profileEmail').value,
+                lineId: document.getElementById('profileLineId').value
+            };
+            localStorage.setItem('userProfile', JSON.stringify(profile));
+            alert('プロフィールを保存しました');
+        }
+        
+        // 通知設定保存
+        function saveNotificationSettings() {
+            const settings = {
+                email: document.getElementById('notifyEmail').checked,
+                sms: document.getElementById('notifySms').checked,
+                line: document.getElementById('notifyLine').checked,
+                browser: document.getElementById('notifyBrowser').checked,
+                quietHours: {
+                    enabled: document.getElementById('enableQuietHours').checked,
+                    start: document.getElementById('quietStart').value,
+                    end: document.getElementById('quietEnd').value
+                }
+            };
+            localStorage.setItem('notificationSettings', JSON.stringify(settings));
+            alert('通知設定を保存しました');
+        }
+        
+        // 表示設定保存
+        function saveDisplaySettings() {
+            alert('表示設定を保存しました');
+        }
+        
+        // カレンダー機能
+        let currentDate = new Date();
+        let currentView = 'month';
+        let calendarEvents = [
+            {
+                id: 1,
+                title: '田中様 現地調査',
+                date: '2024-01-15',
+                time: '14:00',
+                type: 'hearing',
+                color: 'blue'
+            },
+            {
+                id: 2,
+                title: '佐藤様 工事開始',
+                date: '2024-01-20',
+                time: '09:00',
+                type: 'construction',
+                color: 'green'
+            },
+            {
+                id: 3,
+                title: '鈴木様 見積もり提出',
+                date: '2024-01-25',
+                time: '16:00',
+                type: 'estimate',
+                color: 'yellow'
+            }
+        ];
+        
+        // カレンダー初期化
+        function initCalendar() {
+            renderCalendar();
+            renderMiniCalendar();
+        }
+        
+        // カレンダー描画
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            // 月表示を更新
+            const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+            const monthElement = document.getElementById('currentMonth');
+            if (monthElement) {
+                monthElement.textContent = `${year}年${monthNames[month]}`;
+            }
+            
+            // カレンダーグリッドを生成
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+            const prevLastDate = new Date(year, month, 0).getDate();
+            
+            let html = '';
+            let date = 1;
+            
+            // 6週間分のグリッドを生成
+            for (let week = 0; week < 6; week++) {
+                let weekHasDate = false;
+                for (let day = 0; day < 7; day++) {
+                    let cellDate = '';
+                    let cellStyle = 'border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;';
+                    let cellContent = '';
+                    
+                    if (week === 0 && day < firstDay) {
+                        // 前月の日付
+                        cellDate = prevLastDate - firstDay + day + 1;
+                        cellStyle += ' color: #9ca3af; background: #f9fafb;';
+                        html += `
+                            <div style="${cellStyle}" data-date="${cellDate}">
+                                <div style="font-weight: 500; font-size: 14px;">${cellDate}</div>
+                            </div>
+                        `;
+                    } else if (date > lastDate) {
+                        // 次月の日付
+                        cellDate = date - lastDate;
+                        cellStyle += ' color: #9ca3af; background: #f9fafb;';
+                        html += `
+                            <div style="${cellStyle}" data-date="${cellDate}">
+                                <div style="font-weight: 500; font-size: 14px;">${cellDate}</div>
+                            </div>
+                        `;
+                        date++;
+                    } else {
+                        weekHasDate = true;
+                        // 当月の日付
+                        cellDate = date;
+                        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+                        
+                        // 今日の日付を強調
+                        const today = new Date();
+                        if (year === today.getFullYear() && month === today.getMonth() && date === today.getDate()) {
+                            cellStyle += ' background: #eff6ff;';
+                        }
+                        
+                        // イベントを表示
+                        const dayEvents = calendarEvents.filter(e => e.date === dateStr);
+                        if (dayEvents.length > 0) {
+                            cellContent = '<div class="mt-1 space-y-1">';
+                            dayEvents.forEach(event => {
+                                const bgColor = {
+                                    'blue': 'bg-blue-500',
+                                    'green': 'bg-green-500',
+                                    'yellow': 'bg-yellow-500',
+                                    'purple': 'bg-purple-500',
+                                    'red': 'bg-red-500'
+                                }[event.color] || 'bg-gray-500';
+                                
+                                cellContent += `
+                                    <div class="text-xs p-1 ${bgColor} text-white rounded truncate cursor-pointer hover:opacity-80 event-item" 
+                                         draggable="true"
+                                         data-event-id="${event.id}"
+                                         onclick="showEventDetail(${event.id})" 
+                                         oncontextmenu="showEventMenu(event, ${event.id})"
+                                         ondragstart="handleDragStart(event, ${event.id})"
+                                         title="${event.title}">
+                                        ${event.time ? event.time + ' ' : ''}${event.title}
+                                    </div>
+                                `;
+                            });
+                            cellContent += '</div>';
+                        }
+                        
+                        // htmlに追加
+                        html += `
+                            <div style="${cellStyle}" 
+                                 data-date="${cellDate}"
+                                 data-full-date="${dateStr}"
+                                 ondrop="handleDrop(event)"
+                                 ondragover="handleDragOver(event)"
+                                 ondragleave="handleDragLeave(event)"
+                                 onclick="handleCellClick(event)"
+                                 onmouseover="this.style.background='#f9fafb'"
+                                 onmouseout="this.style.background='white'">
+                                <div style="font-weight: 500; font-size: 14px;">${cellDate}</div>
+                                ${cellContent}
+                            </div>
+                        `;
+                        
+                        date++;
+                    }
+                }
+                
+                // 週に日付がない場合は終了
+                if (!weekHasDate && date > lastDate) break;
+            }
+            
+            const calendarGrid = document.getElementById('calendarGrid');
+            if (calendarGrid) {
+                calendarGrid.innerHTML = html;
+            }
+        }
+        
+        // ミニカレンダー描画
+        function renderMiniCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const today = new Date();
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+            
+            let html = '<div class="grid grid-cols-7 gap-1 text-xs">';
+            
+            // 曜日ヘッダー
+            const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+            weekDays.forEach(day => {
+                html += `<div class="text-center font-medium text-gray-500 py-1">${day}</div>`;
+            });
+            
+            // 空白セル
+            for (let i = 0; i < firstDay; i++) {
+                html += '<div></div>';
+            }
+            
+            // 日付セル
+            for (let date = 1; date <= lastDate; date++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+                const hasEvent = calendarEvents.some(e => e.date === dateStr);
+                const isToday = year === today.getFullYear() && month === today.getMonth() && date === today.getDate();
+                
+                let cellClass = 'text-center py-1 cursor-pointer hover:bg-gray-100 rounded';
+                if (isToday) cellClass += ' bg-blue-500 text-white hover:bg-blue-600';
+                else if (hasEvent) cellClass += ' font-bold text-blue-600';
+                
+                html += `<div class="${cellClass}" onclick="goToDate('${dateStr}')">${date}</div>`;
+            }
+            
+            html += '</div>';
+            
+            const miniCalendar = document.getElementById('miniCalendar');
+            if (miniCalendar) {
+                miniCalendar.innerHTML = html;
+            }
+        }
+        
+        // カレンダービュー切り替え
+        function changeCalendarView(view) {
+            currentView = view;
+            
+            // ボタンのスタイルを更新
+            document.querySelectorAll('.calendar-view-btn').forEach(btn => {
+                btn.classList.remove('text-blue-600', 'bg-blue-50');
+                btn.classList.add('text-gray-600');
+            });
+            
+            // クリックされたボタンのスタイルを更新
+            if (event && event.target) {
+                event.target.classList.remove('text-gray-600');
+                event.target.classList.add('text-blue-600', 'bg-blue-50');
+            }
+            
+            // ビューを切り替え
+            document.getElementById('calendarMonthView').classList.toggle('hidden', view !== 'month');
+            document.getElementById('calendarWeekView').classList.toggle('hidden', view !== 'week');
+            document.getElementById('calendarDayView').classList.toggle('hidden', view !== 'day');
+            
+            // 対応するビューを描画
+            if (view === 'month') {
+                renderCalendar();
+            } else if (view === 'week') {
+                renderWeekView();
+            } else if (view === 'day') {
+                renderDayView();
+            }
+        }
+
+        // 週表示を描画
+        function renderWeekView() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const date = currentDate.getDate();
+            
+            // 今週の日曜日を計算
+            const today = new Date(year, month, date);
+            const dayOfWeek = today.getDay();
+            const weekStart = new Date(today);
+            weekStart.setDate(date - dayOfWeek);
+            
+            // 週表示のヘッダー
+            let html = '';
+            
+            // 時間軸ヘッダー
+            html += '<div class="border-b border-r p-2 bg-gray-50 font-medium text-center">時間</div>';
+            
+            // 曜日ヘッダー
+            const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+            for (let i = 0; i < 7; i++) {
+                const dayDate = new Date(weekStart);
+                dayDate.setDate(weekStart.getDate() + i);
+                const dayStr = `${dayDate.getMonth() + 1}/${dayDate.getDate()}`;
+                const isToday = dayDate.toDateString() === new Date().toDateString();
+                
+                html += `<div class="border-b border-r p-2 bg-gray-50 text-center ${isToday ? 'bg-blue-50 text-blue-600 font-bold' : ''}">
+                    <div class="text-xs text-gray-500">${weekDays[i]}</div>
+                    <div class="font-medium">${dayStr}</div>
+                </div>`;
+            }
+            
+            // 時間スロット（8:00-20:00）
+            for (let hour = 8; hour <= 20; hour++) {
+                // 時間ラベル
+                html += `<div class="border-b border-r p-2 bg-gray-50 text-xs text-center">${String(hour).padStart(2, '0')}:00</div>`;
+                
+                // 各曜日のセル
+                for (let i = 0; i < 7; i++) {
+                    const dayDate = new Date(weekStart);
+                    dayDate.setDate(weekStart.getDate() + i);
+                    const dateStr = dayDate.toISOString().split('T')[0];
+                    
+                    // その時間帯のイベントを取得
+                    const hourEvents = calendarEvents.filter(e => {
+                        if (e.date !== dateStr || !e.time) return false;
+                        const eventHour = parseInt(e.time.split(':')[0]);
+                        return eventHour === hour;
+                    });
+                    
+                    let cellContent = '';
+                    if (hourEvents.length > 0) {
+                        hourEvents.forEach(event => {
+                            const bgColor = {
+                                'blue': 'bg-blue-500',
+                                'green': 'bg-green-500',
+                                'yellow': 'bg-yellow-500',
+                                'purple': 'bg-purple-500',
+                                'red': 'bg-red-500'
+                            }[event.color] || 'bg-gray-500';
+                            
+                            cellContent += `<div class="text-xs p-1 ${bgColor} text-white rounded mb-1 cursor-pointer hover:opacity-80" 
+                                onclick="showEventDetail(${event.id})" title="${event.title}">
+                                ${event.time} ${event.title}
+                            </div>`;
+                        });
+                    }
+                    
+                    html += `<div class="border-b border-r p-1 h-12 hover:bg-gray-50 cursor-pointer" 
+                        data-date="${dateStr}" data-hour="${hour}" onclick="createEventAtTime('${dateStr}', ${hour})">
+                        ${cellContent}
+                    </div>`;
+                }
+            }
+            
+            document.getElementById('weekGrid').innerHTML = html;
+        }
+
+        // 日表示を描画
+        function renderDayView() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const date = currentDate.getDate();
+            
+            const dayDate = new Date(year, month, date);
+            const dateStr = dayDate.toISOString().split('T')[0];
+            const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+            const dayOfWeek = dayDate.getDay();
+            
+            // 日付表示を更新
+            document.getElementById('dayViewDate').textContent = 
+                `${year}年${month + 1}月${date}日（${weekDays[dayOfWeek]}）`;
+            
+            // 時間スロットを生成
+            let html = '';
+            for (let hour = 6; hour <= 22; hour++) {
+                const hourEvents = calendarEvents.filter(e => {
+                    if (e.date !== dateStr || !e.time) return false;
+                    const eventHour = parseInt(e.time.split(':')[0]);
+                    return eventHour === hour;
+                });
+                
+                let eventContent = '';
+                if (hourEvents.length > 0) {
+                    hourEvents.forEach(event => {
+                        const bgColor = {
+                            'blue': 'bg-blue-500',
+                            'green': 'bg-green-500',
+                            'yellow': 'bg-yellow-500',
+                            'purple': 'bg-purple-500',
+                            'red': 'bg-red-500'
+                        }[event.color] || 'bg-gray-500';
+                        
+                        eventContent += `<div class="p-2 ${bgColor} text-white rounded mb-2 cursor-pointer hover:opacity-80" 
+                            onclick="showEventDetail(${event.id})">
+                            <div class="font-medium">${event.time} ${event.title}</div>
+                            <div class="text-sm opacity-90">${event.type}</div>
+                        </div>`;
+                    });
+                }
+                
+                html += `
+                    <div class="flex border-b hover:bg-gray-50">
+                        <div class="w-20 p-3 bg-gray-50 text-sm font-medium text-center border-r">
+                            ${String(hour).padStart(2, '0')}:00
+                        </div>
+                        <div class="flex-1 p-3 min-h-16 cursor-pointer" 
+                             data-date="${dateStr}" data-hour="${hour}" 
+                             onclick="createEventAtTime('${dateStr}', ${hour})">
+                            ${eventContent}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('dayTimeSlots').innerHTML = html;
+        }
+
+        // 特定の時間に新規イベントを作成
+        function createEventAtTime(date, hour) {
+            const time = `${String(hour).padStart(2, '0')}:00`;
+            showEventModal(null, date, time);
+        }
+        
+        // 前月へ
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        }
+        
+        // 次月へ
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        }
+        
+        // 特定の日付へジャンプ
+        function goToDate(dateStr) {
+            const [year, month, day] = dateStr.split('-').map(Number);
+            currentDate = new Date(year, month - 1, day);
+            showSection('calendar');
+            renderCalendar();
+        }
+        
+        // イベント詳細表示
+        function showEventDetail(eventId) {
+            const event = calendarEvents.find(e => e.id === eventId);
+            if (event) {
+                alert(`${event.title}\n日時: ${event.date} ${event.time || ''}\n種別: ${event.type}`);
+            }
+        }
+        
+        // ドラッグ & ドロップ機能
+        let draggedEventId = null;
+
+        function handleDragStart(e, eventId) {
+            draggedEventId = eventId;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', e.target.outerHTML);
+            e.target.classList.add('opacity-50');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const cell = e.currentTarget;
+            if (cell.dataset.fullDate) {
+                cell.classList.add('bg-blue-100', 'border-2', 'border-blue-400');
+            }
+        }
+
+        function handleDragLeave(e) {
+            const cell = e.currentTarget;
+            cell.classList.remove('bg-blue-100', 'border-2', 'border-blue-400');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const cell = e.currentTarget;
+            cell.classList.remove('bg-blue-100', 'border-2', 'border-blue-400');
+            
+            const newDate = cell.dataset.fullDate;
+            if (newDate && draggedEventId) {
+                // イベントの日付を更新
+                const eventIndex = calendarEvents.findIndex(event => event.id === draggedEventId);
+                if (eventIndex !== -1) {
+                    calendarEvents[eventIndex].date = newDate;
+                    renderCalendar();
+                    renderMiniCalendar();
+                    showNotification('予定移動', `予定を${newDate}に移動しました`);
+                }
+            }
+            draggedEventId = null;
+        }
+
+        // セルクリック（新規イベント作成）
+        function handleCellClick(e) {
+            if (e.target.classList.contains('event-item')) return; // イベントをクリックした場合は無視
+            
+            const cell = e.currentTarget;
+            const date = cell.dataset.fullDate;
+            if (date) {
+                showEventModal(null, date);
+            }
+        }
+
+        // イベント右クリックメニュー
+        function showEventMenu(e, eventId) {
+            e.preventDefault();
+            if (confirm('この予定を編集しますか？')) {
+                const event = calendarEvents.find(ev => ev.id === eventId);
+                if (event) {
+                    showEventModal(event);
+                }
+            }
+        }
+
+        // イベントモーダル表示
+        function showEventModal(event = null, date = null, time = '') {
+            const isEdit = !!event;
+            const modalTitle = isEdit ? '予定を編集' : '新規予定を追加';
+            
+            const title = isEdit ? event.title : '';
+            const eventDate = isEdit ? event.date : (date || new Date().toISOString().split('T')[0]);
+            const eventTime = isEdit ? (event.time || '') : time;
+            const type = isEdit ? event.type : 'custom';
+            const color = isEdit ? event.color : 'blue';
+            
+            const modal = `
+                <div id="eventModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-lg p-6 w-96 max-w-full mx-4">
+                        <h3 class="text-lg font-semibold mb-4">${modalTitle}</h3>
+                        <form id="eventForm" onsubmit="saveEvent(event, ${isEdit ? event.id : 'null'})">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">タイトル</label>
+                                    <input type="text" id="eventTitle" value="${title}" class="w-full px-3 py-2 border rounded-md" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">日付</label>
+                                    <input type="date" id="eventDate" value="${eventDate}" class="w-full px-3 py-2 border rounded-md" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">時間</label>
+                                    <input type="time" id="eventTime" value="${eventTime}" class="w-full px-3 py-2 border rounded-md">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">種別</label>
+                                    <select id="eventType" class="w-full px-3 py-2 border rounded-md">
+                                        <option value="hearing" ${type === 'hearing' ? 'selected' : ''}>現地調査</option>
+                                        <option value="construction" ${type === 'construction' ? 'selected' : ''}>工事</option>
+                                        <option value="estimate" ${type === 'estimate' ? 'selected' : ''}>見積もり</option>
+                                        <option value="meeting" ${type === 'meeting' ? 'selected' : ''}>打ち合わせ</option>
+                                        <option value="custom" ${type === 'custom' ? 'selected' : ''}>その他</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">色</label>
+                                    <div class="flex space-x-2">
+                                        <button type="button" onclick="selectColor('blue')" class="w-8 h-8 rounded-full bg-blue-500 ${color === 'blue' ? 'ring-2 ring-offset-2 ring-blue-400' : ''}"></button>
+                                        <button type="button" onclick="selectColor('green')" class="w-8 h-8 rounded-full bg-green-500 ${color === 'green' ? 'ring-2 ring-offset-2 ring-green-400' : ''}"></button>
+                                        <button type="button" onclick="selectColor('yellow')" class="w-8 h-8 rounded-full bg-yellow-500 ${color === 'yellow' ? 'ring-2 ring-offset-2 ring-yellow-400' : ''}"></button>
+                                        <button type="button" onclick="selectColor('purple')" class="w-8 h-8 rounded-full bg-purple-500 ${color === 'purple' ? 'ring-2 ring-offset-2 ring-purple-400' : ''}"></button>
+                                        <button type="button" onclick="selectColor('red')" class="w-8 h-8 rounded-full bg-red-500 ${color === 'red' ? 'ring-2 ring-offset-2 ring-red-400' : ''}"></button>
+                                    </div>
+                                    <input type="hidden" id="eventColor" value="${color}">
+                                </div>
+                            </div>
+                            <div class="flex justify-end space-x-3 mt-6">
+                                ${isEdit ? '<button type="button" onclick="deleteEvent(' + event.id + ')" class="px-4 py-2 text-red-600 hover:bg-red-50 rounded-md">削除</button>' : ''}
+                                <button type="button" onclick="closeEventModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">キャンセル</button>
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">保存</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modal);
+        }
+
+        // 色選択
+        let selectedColor = 'blue';
+        function selectColor(color) {
+            selectedColor = color;
+            document.getElementById('eventColor').value = color;
+            
+            // ボタンのスタイルを更新
+            document.querySelectorAll('#eventModal button[onclick^="selectColor"]').forEach(btn => {
+                btn.classList.remove('ring-2', 'ring-offset-2');
+            });
+            event.target.classList.add('ring-2', 'ring-offset-2');
+        }
+
+        // イベント保存
+        function saveEvent(e, eventId) {
+            e.preventDefault();
+            
+            const title = document.getElementById('eventTitle').value;
+            const date = document.getElementById('eventDate').value;
+            const time = document.getElementById('eventTime').value;
+            const type = document.getElementById('eventType').value;
+            const color = document.getElementById('eventColor').value;
+            
+            if (eventId) {
+                // 編集
+                const eventIndex = calendarEvents.findIndex(event => event.id === eventId);
+                if (eventIndex !== -1) {
+                    calendarEvents[eventIndex] = {
+                        ...calendarEvents[eventIndex],
+                        title, date, time, type, color
+                    };
+                }
+            } else {
+                // 新規作成
+                const newEvent = {
+                    id: Math.max(...calendarEvents.map(e => e.id), 0) + 1,
+                    title, date, time, type, color
+                };
+                calendarEvents.push(newEvent);
+            }
+            
+            renderCalendar();
+            renderMiniCalendar();
+            closeEventModal();
+            showNotification('予定保存', eventId ? '予定を更新しました' : '新しい予定を追加しました');
+        }
+
+        // イベント削除
+        function deleteEvent(eventId) {
+            if (confirm('この予定を削除しますか？')) {
+                const eventIndex = calendarEvents.findIndex(event => event.id === eventId);
+                if (eventIndex !== -1) {
+                    calendarEvents.splice(eventIndex, 1);
+                    renderCalendar();
+                    renderMiniCalendar();
+                    closeEventModal();
+                    showNotification('予定削除', '予定を削除しました');
+                }
+            }
+        }
+
+        // モーダルを閉じる
+        function closeEventModal() {
+            const modal = document.getElementById('eventModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // 新規イベント追加（ボタンから）
+        function addNewEvent() {
+            const today = new Date().toISOString().split('T')[0];
+            showEventModal(null, today);
+        }
+        
+        // デモ用: 定期的な通知（通知時間を考慮）
+        setInterval(() => {
+            if (currentUser && Math.random() > 0.8) {
+                const settings = JSON.parse(localStorage.getItem('notificationSettings') || '{}');
+                if (settings.quietHours?.enabled) {
+                    const now = new Date();
+                    const currentTime = now.getHours() * 60 + now.getMinutes();
+                    const [startHour, startMin] = settings.quietHours.start.split(':').map(Number);
+                    const [endHour, endMin] = settings.quietHours.end.split(':').map(Number);
+                    const quietStart = startHour * 60 + startMin;
+                    const quietEnd = endHour * 60 + endMin;
+                    
+                    // 通知制限時間内はスキップ
+                    if ((quietStart < quietEnd && currentTime >= quietStart && currentTime < quietEnd) ||
+                        (quietStart > quietEnd && (currentTime >= quietStart || currentTime < quietEnd))) {
+                        return;
+                    }
+                }
+                showNotification('新規案件', '新しい案件が割り当てられました');
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
