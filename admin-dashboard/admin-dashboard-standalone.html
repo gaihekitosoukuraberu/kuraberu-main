@@ -221,20 +221,20 @@
                     <!-- モバイル: 縦並び、PC: すべて横一列 -->
                     <div class="flex flex-wrap items-center gap-2">
                         <!-- 統計ボタン群 -->
-                        <button onclick="filterByStatus('new')" class="flex items-center space-x-1 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow hover:shadow-md transition-all cursor-pointer">
-                            <span class="text-lg font-bold">12</span>
-                            <span class="text-xs">新着</span>
+                        <button onclick="filterByNewStatus()" class="flex items-center space-x-1 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow hover:shadow-md transition-all cursor-pointer">
+                            <span class="text-lg font-bold" id="newCount">0</span>
+                            <span class="text-xs">新規</span>
                         </button>
                         <button onclick="filterByProspect()" class="flex items-center space-x-1 px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg shadow hover:shadow-md transition-all cursor-pointer">
-                            <span class="text-lg font-bold">8</span>
+                            <span class="text-lg font-bold" id="prospectCount">0</span>
                             <span class="text-xs">見込み</span>
                         </button>
-                        <button onclick="filterByProcessing()" class="flex items-center space-x-1 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg shadow hover:shadow-md transition-all cursor-pointer">
-                            <span class="text-lg font-bold">3</span>
+                        <button onclick="filterByAbsent()" class="flex items-center space-x-1 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg shadow hover:shadow-md transition-all cursor-pointer">
+                            <span class="text-lg font-bold" id="absentCount">0</span>
                             <span class="text-xs">対応中</span>
                         </button>
                         <div class="flex items-center space-x-1 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg shadow">
-                            <span class="text-lg font-bold">¥95K</span>
+                            <span class="text-lg font-bold" id="predictedAmount">¥0</span>
                             <span class="text-xs">予測</span>
                         </div>
                         
@@ -318,20 +318,17 @@
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             顧客名
                                         </th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            電話番号
+                                        <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            📞
                                         </th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            エリア
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            メモ
                                         </th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             物件
                                         </th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             紹介料
-                                        </th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            クイックアクション
                                         </th>
                                         <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             詳細
@@ -370,7 +367,37 @@
                         <!-- CRMヘッダー -->
                         <div class="border-b px-6 py-4 bg-gray-50">
                             <div class="flex items-center justify-between">
-                                <h2 class="text-xl font-semibold text-gray-900" id="crmCustomerName">顧客詳細</h2>
+                                <div class="flex items-center gap-4">
+                                    <!-- ステータスドロップダウン -->
+                                    <select id="crmStatus" class="text-lg font-semibold border rounded px-3 py-2" onchange="changeCRMStatus(this.value)">
+                                        <option value="新規">新規</option>
+                                        <option value="不在">不在</option>
+                                        <option value="再架電">再架電</option>
+                                        <option value="見込み">見込み</option>
+                                        <option value="ロスト">ロスト</option>
+                                        <option value="配信中">配信中</option>
+                                        <option value="配信済">配信済</option>
+                                        <option value="他社契約済">他社契約済</option>
+                                        <option value="無効">無効</option>
+                                        <option value="クレーム">クレーム</option>
+                                    </select>
+                                    <!-- 架電履歴ボタン -->
+                                    <div class="relative group inline-block">
+                                        <button onclick="openCallHistoryModal()" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all text-2xl" title="架電履歴">
+                                            📝
+                                        </button>
+                                        <!-- メモ履歴のホバー表示 -->
+                                        <div class="absolute top-full left-0 mt-2 hidden group-hover:block z-50 w-64">
+                                            <div class="bg-gray-900 text-white text-xs rounded-lg py-2 px-3">
+                                                <div class="font-semibold mb-1">メモ履歴:</div>
+                                                <div id="crmMemoPreview">メモはまだありません</div>
+                                                <div class="absolute bottom-full left-4 -mb-1">
+                                                    <div class="border-4 border-transparent border-b-gray-900"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="flex space-x-2">
                                     <button onclick="previousCase()" class="px-4 py-2 bg-white text-gray-700 rounded-lg border hover:bg-gray-50 transition-all">
                                         ← 前の案件
@@ -379,30 +406,6 @@
                                         次の案件 →
                                     </button>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- クイックアクションバー -->
-                        <div class="border-b px-6 py-4">
-                            <div class="flex space-x-3">
-                                <button onclick="quickActionCRM('不在')" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                                    不在
-                                </button>
-                                <button onclick="quickActionCRM('再架電')" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700">
-                                    再架電
-                                </button>
-                                <button onclick="quickActionCRM('アポ済')" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                                    アポ取得
-                                </button>
-                                <button onclick="quickActionCRM('見積提出済')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                                    見積提出
-                                </button>
-                                <button onclick="quickActionCRM('失注')" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                                    失注
-                                </button>
-                                <button onclick="quickActionCRM('完了')" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                                    完了
-                                </button>
                             </div>
                         </div>
 
@@ -426,6 +429,10 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">氏名（カナ）</label>
                         <input type="text" value="タナカタロウ" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">電話番号</label>
+                        <input type="tel" value="090-1234-5678" class="w-full px-3 py-2 border border-gray-300 rounded-md">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">性別</label>
@@ -456,10 +463,6 @@
                             <option>配偶者</option>
                             <option>その他</option>
                         </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">電話番号</label>
-                        <input type="tel" value="090-1234-5678" class="w-full px-3 py-2 border border-gray-300 rounded-md">
                     </div>
                     <div class="col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
@@ -510,13 +513,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">前回施工時期</label>
-                        <div class="flex">
-                            <input type="number" placeholder="数字を入力" class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md">
-                            <select class="px-3 py-2 border border-gray-300 rounded-r-md border-l-0">
-                                <option selected>年前</option>
-                                <option>か月前</option>
-                            </select>
-                        </div>
+                        <input type="text" placeholder="例: 10年前" class="w-full px-3 py-2 border border-gray-300 rounded-md">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">外壁材質</label>
@@ -540,7 +537,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">郵便番号</label>
                         <div class="flex items-center">
                             <input type="text" value="150-0001" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                            <button class="map-button" onclick="generateGoogleMapLink('150-0001')">🏠住所取得</button>
+                            <button class="map-button" onclick="generateGoogleMapLink('150-0001')">〒取得</button>
                         </div>
                     </div>
                     <div class="col-span-2">
@@ -553,8 +550,8 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">物件情報リンク</label>
                         <div class="flex items-center">
                             <input type="text" value="Google Map ストリートビューURL" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                            <button class="bg-green-500 text-white px-4 py-2 rounded-md ml-2" onclick="generateGoogleMapLink()">自動生成</button>
-                            <button class="bg-gray-500 text-white px-4 py-2 rounded-md ml-2" onclick="openMapLink()">📍開く</button>
+                            <button class="bg-green-500 text-white px-4 py-2 rounded-md ml-2" onclick="generateGoogleMapLink()">生成</button>
+                            <button class="bg-gray-500 text-white px-4 py-2 rounded-md ml-2" onclick="openMapLink()">開く</button>
                         </div>
                     </div>
                 </div>
@@ -567,35 +564,42 @@
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 mb-2">見積もり希望箇所</label>
                     <div class="button-group">
-                        <button class="option-button selected">外壁塗装</button>
+                        <button class="option-button">外壁塗装</button>
+                        <button class="option-button">外壁カバー工法</button>
+                        <button class="option-button">外壁張替え</button>
                         <button class="option-button">屋根塗装</button>
-                        <button class="option-button">外壁の替え</button>
-                        <button class="option-button">屋根替え替え</button>
-                        <button class="option-button">外壁パワー工法</button>
-                        <button class="option-button">屋根カバー工法</button>
                         <button class="option-button">屋上防水</button>
+                        <button class="option-button">屋根葺き替え・張り替え（スレート・ガルバリウム等）</button>
+                        <button class="option-button">屋根葺き替え・張り替え（瓦）</button>
+                        <button class="option-button">屋根カバー工法</button>
+                        <button class="option-button">外壁補修</button>
+                        <button class="option-button">屋根補修</button>
                         <button class="option-button">ベランダ防水</button>
-                        <button class="option-button">雨漏り修繕</button>
-                        <button class="option-button">内装</button>
-                        <button class="option-button">その他</button>
+                        <button class="option-button">内装水回り（バス・キッチン・トイレ）</button>
+                        <button class="option-button">内装（フローリングや畳などの床・クロス等）</button>
+                        <button class="option-button">屋根塗装単品</button>
+                        <button class="option-button">屋上防水単品</button>
+                        <button class="option-button">外壁補修単品</button>
+                        <button class="option-button">屋根補修単品</button>
+                        <button class="option-button">ベランダ防水単品</button>
                     </div>
                 </div>
 
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 mb-2">特殊要件・対応条件</label>
                     <div class="button-group">
-                        <button class="option-button selected">光触媒塗料対応</button>
-                        <button class="option-button">無機塗料対応</button>
-                        <button class="option-button">フッ素塗料対応</button>
-                        <button class="option-button">遮熱塗料対応</button>
-                        <button class="option-button">屋根替え予算関</button>
-                        <button class="option-button">定額なし工法</button>
-                        <button class="option-button">夜間作業対応</button>
-                        <button class="option-button">土日作業対応</button>
-                        <button class="option-button selected">ローン対応</button>
-                        <button class="option-button">即日見積対応</button>
-                        <button class="option-button">3D診断対応</button>
-                        <button class="option-button">ドローン点検対応</button>
+                        <button class="option-button">遮熱・断熱塗料提案可能</button>
+                        <button class="option-button">立ち会いなし・見積もり手渡し希望</button>
+                        <button class="option-button">遠方につき立ち会いなし・見積もり郵送・電話で商談可</button>
+                        <button class="option-button">エクステリア（庭・駐車場・外構）</button>
+                        <button class="option-button">太陽光パネル脱着（撤去含む）</button>
+                        <button class="option-button">提携先ローン有り</button>
+                        <button class="option-button">クレジットカード払い可</button>
+                        <button class="option-button">火災保険申請サポート</button>
+                        <button class="option-button">助成金申請サポート</button>
+                        <button class="option-button">建築許可証</button>
+                        <button class="option-button">光触媒塗料提案可</button>
+                        <button class="option-button">分割払いプラン有</button>
                     </div>
                 </div>
 
@@ -603,30 +607,31 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">希望社数</label>
                         <select class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                            <option selected>3社</option>
+                            <option>1社</option>
                             <option>2社</option>
+                            <option selected>3社</option>
                             <option>4社</option>
-                            <option>5社</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">施工時期</label>
                         <select class="w-full px-3 py-2 border border-gray-300 rounded-md">
                             <option>選択してください</option>
-                            <option>すぐにでも</option>
-                            <option>3か月以内</option>
+                            <option>すぐに</option>
+                            <option>そろそろ</option>
+                            <option>3ヶ月以内</option>
                             <option>半年以内</option>
-                            <option>1年以内</option>
+                            <option>未定</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">他社見積もり状況</label>
                         <select class="w-full px-3 py-2 border border-gray-300 rounded-md">
                             <option>選択してください</option>
-                            <option>取っていない</option>
-                            <option>1社</option>
-                            <option>2社</option>
-                            <option>3社以上</option>
+                            <option>取得済み</option>
+                            <option>依頼中</option>
+                            <option>未取得</option>
+                            <option>検討中</option>
                         </select>
                     </div>
                     <div>
@@ -637,6 +642,7 @@
                             <option>1社</option>
                             <option>2社</option>
                             <option>3社以上</option>
+                            <option>未定</option>
                         </select>
                     </div>
                 </div>
@@ -653,6 +659,8 @@
                             <option>可能</option>
                             <option>不可能</option>
                             <option>要相談</option>
+                            <option>立ち会いなし・見積もり手渡し希望</option>
+                            <option>遠方につき立ち会いなし・見積もり郵送・電話で商談可</option>
                         </select>
                     </div>
                     <div>
@@ -851,6 +859,42 @@
             </div><!-- originalFormContent終了 -->
     </main>
 
+    <!-- 架電履歴モーダル -->
+    <div id="callHistoryModal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-black/50" onclick="closeCallHistoryModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">メモ</h3>
+                    <button onclick="closeCallHistoryModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- 新規メモ入力 -->
+                <div class="mb-6">
+                    <textarea id="newCallNote" placeholder="メモを入力..." class="w-full p-3 border rounded-lg resize-none" rows="3"></textarea>
+                    <div class="flex items-center gap-4 mt-3">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">次回架電日</label>
+                            <input type="date" id="nextCallDate" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                        <button onclick="addCallHistory()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            保存
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 履歴リスト -->
+                <div id="callHistoryList" class="space-y-3">
+                    <!-- 動的に生成される履歴 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- ソートモーダル -->
     <div id="sortModal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/50" onclick="closeSortModal()"></div>
@@ -998,6 +1042,18 @@
     </div>
 
     <script>
+        // エラーハンドリング
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript Error:', e.message, 'at', e.filename, ':', e.lineno, ':', e.colno);
+            console.error('Error object:', e.error);
+        });
+        
+        try {
+            console.log('Script initialization starting...');
+        } catch(e) {
+            console.error('Initialization error:', e);
+        }
+        
         function toggleMenu() {
             const menu = document.getElementById('sideMenu');
             menu.classList.toggle('-translate-x-full');
@@ -1086,14 +1142,7 @@
             });
         }
         
-        // ページ読み込み時とハッシュ変更時の処理
-        window.addEventListener('DOMContentLoaded', () => {
-            const hash = window.location.hash.slice(1) || 'assignment';
-            if (hash === 'dashboard') {
-                showSection('dashboard');
-            }
-        });
-        
+        // ハッシュ変更時の処理（DOMContentLoadedは後で設定）
         window.addEventListener('hashchange', () => {
             const hash = window.location.hash.slice(1);
             if (hash === 'dashboard') {
@@ -1128,38 +1177,45 @@
             window.open(googleMapsUrl, '_blank');
         }
 
-        // オプションボタンの選択機能
-        document.querySelectorAll('.option-button').forEach(button => {
-            button.addEventListener('click', function() {
-                this.classList.toggle('selected');
-            });
+        // オプションボタンの選択機能（イベント委任を使用）
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('option-button')) {
+                e.target.classList.toggle('selected');
+            }
         });
 
-        // 時間スロットの選択機能
-        document.querySelectorAll('.time-slot').forEach(slot => {
-            slot.addEventListener('click', function() {
-                this.classList.toggle('selected');
+        // 時間スロットの選択機能（後で初期化）
+        function initializeTimeSlots() {
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.addEventListener('click', function() {
+                    this.classList.toggle('selected');
+                });
             });
-        });
+        }
 
-        // チェックボックスの変更を監視
-        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const franchiseItem = this.closest('.franchise-item');
-                if (franchiseItem) {
-                    if (this.checked) {
-                        franchiseItem.classList.add('selected');
-                    } else {
-                        franchiseItem.classList.remove('selected');
+        // チェックボックスの変更を監視（後で初期化）
+        function initializeCheckboxes() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const franchiseItem = this.closest('.franchise-item');
+                    if (franchiseItem) {
+                        if (this.checked) {
+                            franchiseItem.classList.add('selected');
+                        } else {
+                            franchiseItem.classList.remove('selected');
+                        }
                     }
-                }
+                });
             });
-        });
+        }
 
         // AI全項目添削ボタンのクリックイベント
-        document.querySelector('.ai-button').addEventListener('click', function() {
-            alert('AI添削機能を実行します。');
-        });
+        const aiButton = document.querySelector('.ai-button');
+        if (aiButton) {
+            aiButton.addEventListener('click', function() {
+                alert('AI添削機能を実行します。');
+            });
+        }
 
         // グローバル変数
         let currentPage = 1;
@@ -1168,6 +1224,7 @@
         let currentStatusFilter = '';
 
         // 案件データベース
+        console.log('About to define casesData...');
         const casesData = {
             '001': {
                 name: '田中太郎',
@@ -1190,6 +1247,8 @@
                 workItems: ['外壁塗装', '屋根塗装（外壁工事含む）'],
                 companiesCount: 3,
                 status: '配信済',
+                date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5日前
+                amount: '¥60,000',
                 franchiseStatuses: {
                     'franchise1': { name: 'A工務店', status: 'アポ済' },
                     'franchise2': { name: 'B塗装', status: '現調済' },
@@ -1206,7 +1265,7 @@
                 email: 'suzuki@example.com',
                 propertyType: 'マンション',
                 floors: '5階建て',
-                age: '8年',
+                buildingAge: '8年',
                 area: '85㎡',
                 constructionCount: '2回目',
                 wallMaterial: 'モルタル',
@@ -1217,6 +1276,8 @@
                 workItems: ['外壁塗装', 'ベランダ防水（外壁工事含む）'],
                 companiesCount: 3,
                 status: '配信中',
+                date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2日前
+                amount: '¥45,000',
                 franchiseStatuses: {
                     'franchise1': { name: 'D外装工業', status: '新規配信' },
                     'franchise2': { name: 'E塗装店', status: '配信済' },
@@ -1233,7 +1294,7 @@
                 email: 'sato@example.com',
                 propertyType: '戸建て',
                 floors: '2階建て',
-                age: '25年',
+                buildingAge: '25年',
                 area: '150㎡',
                 constructionCount: '3回目以上',
                 wallMaterial: 'ALC',
@@ -1244,9 +1305,150 @@
                 workItems: ['屋根葺き替え・張り替え（スレート・ガルバリウム等）', '外壁補修（外壁工事含む）'],
                 companiesCount: 3,
                 status: '見込み',
+                date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10日前
+                amount: '¥90,000',
+                franchiseStatuses: {}
+            },
+            '004': {
+                name: '山田次郎',
+                nameKana: 'ヤマダジロウ',
+                gender: '男性',
+                age: '30代',
+                relation: '本人',
+                phone: '090-1111-2222',
+                email: 'yamada@example.com',
+                propertyType: '戸建て',
+                floors: '3階建て',
+                buildingAge: '10年',
+                area: '100㎡',
+                constructionCount: '初回',
+                wallMaterial: 'サイディング',
+                roofMaterial: 'スレート',
+                postalCode: '151-0001',
+                address: '東京都渋谷区代々木1-1-1',
+                searchKeyword: '外壁塗装 渋谷',
+                workItems: ['外壁塗装', '外壁補修（外壁工事含む）'],
+                companiesCount: 2,
+                status: '新規',
+                date: new Date(),
+                amount: '¥80,000',
+                franchiseStatuses: {}
+            },
+            '005': {
+                name: '高橋美咲',
+                nameKana: 'タカハシミサキ',
+                gender: '女性',
+                age: '40代',
+                relation: '本人',
+                phone: '080-3333-4444',
+                email: 'takahashi@example.com',
+                propertyType: 'マンション',
+                floors: '8階建て',
+                buildingAge: '20年',
+                area: '75㎡',
+                constructionCount: '2回目',
+                wallMaterial: 'タイル',
+                roofMaterial: '陸屋根',
+                postalCode: '162-0001',
+                address: '東京都新宿区市谷1-1-1',
+                searchKeyword: 'マンション 防水',
+                workItems: ['屋上防水（外壁工事含む）', 'ベランダ防水（外壁工事含む）'],
+                companiesCount: 3,
+                status: '不在',
+                date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+                amount: '¥60,000',
+                callHistory: [
+                    { date: '2025-01-10 10:30', note: '初回架電、不在。再架電予定。' }
+                ],
+                franchiseStatuses: {}
+            },
+            '006': {
+                name: '伊藤健一',
+                nameKana: 'イトウケンイチ',
+                gender: '男性',
+                age: '50代',
+                relation: '本人',
+                phone: '070-5555-6666',
+                email: 'ito@example.com',
+                propertyType: '店舗',
+                floors: '2階建て',
+                buildingAge: '30年',
+                area: '200㎡',
+                constructionCount: '3回目以上',
+                wallMaterial: 'モルタル',
+                roofMaterial: '瓦',
+                postalCode: '141-0001',
+                address: '東京都品川区北品川1-1-1',
+                searchKeyword: '店舗 外壁',
+                workItems: ['外壁カバー工法', '屋根カバー工法'],
+                companiesCount: 4,
+                status: '再架電',
+                date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+                amount: '¥120,000',
+                callHistory: [
+                    { date: '2025-01-08 14:00', note: '初回架電。見積もり希望。' },
+                    { date: '2025-01-09 11:00', note: '資料送付の確認。次回架電予定。' }
+                ],
+                franchiseStatuses: {}
+            },
+            '007': {
+                name: '渡辺陽子',
+                nameKana: 'ワタナベヨウコ',
+                gender: '女性',
+                age: '60代',
+                relation: '配偶者',
+                phone: '090-7777-8888',
+                email: 'watanabe@example.com',
+                propertyType: '戸建て',
+                floors: '平屋',
+                buildingAge: '35年',
+                area: '90㎡',
+                constructionCount: '初回',
+                wallMaterial: 'ALC',
+                roofMaterial: '瓦',
+                postalCode: '143-0001',
+                address: '東京都大田区東海1-1-1',
+                searchKeyword: '屋根葺き替え',
+                workItems: ['屋根葺き替え・張り替え（瓦）', '雨漏り修繕'],
+                companiesCount: 3,
+                status: '配信済',
+                date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+                amount: '¥100,000',
+                franchiseStatuses: {
+                    'franchise1': { name: 'G屋根工事', status: '見積提出済' },
+                    'franchise2': { name: 'H建築', status: 'アポ済' },
+                    'franchise3': { name: 'I工務店', status: '検討中' }
+                }
+            },
+            '008': {
+                name: '中村太一',
+                nameKana: 'ナカムラタイチ',
+                gender: '男性',
+                age: '40代',
+                relation: '本人',
+                phone: '080-9999-0000',
+                email: 'nakamura@example.com',
+                propertyType: 'アパート',
+                floors: '3階建て',
+                buildingAge: '15年',
+                area: '250㎡',
+                constructionCount: '2回目',
+                wallMaterial: 'サイディング',
+                roofMaterial: 'スレート',
+                postalCode: '144-0001',
+                address: '東京都大田区蒲田1-1-1',
+                searchKeyword: 'アパート 塗装',
+                workItems: ['外壁塗装', '屋根塗装（外壁工事含む）', '鉄部塗装'],
+                companiesCount: 3,
+                status: '新規',
+                date: new Date(),
+                amount: '¥150,000',
                 franchiseStatuses: {}
             }
         };
+        
+        console.log('casesData defined successfully:', Object.keys(casesData).length + ' cases');
+        console.log('Case IDs:', Object.keys(casesData));
 
         // 紹介料計算ロジック
         function calculateIntroductionFee(workItems, propertyType, floors, companiesCount) {
@@ -1349,6 +1551,43 @@
             
             // 流入検索ワード
             document.querySelector('input[value*="外壁塗装 東京"], input[value*="外壁塗装 マンション"], input[value*="屋根替え 外壁工事"]').value = data.searchKeyword;
+            
+            // 見積もり希望箇所と特殊要件のボタンを選択状態にする
+            if (crmContent && data.workItems && Array.isArray(data.workItems)) {
+                // まず全てのボタンの選択を解除
+                crmContent.querySelectorAll('.option-button').forEach(button => {
+                    button.classList.remove('selected');
+                });
+                
+                // データに基づいてボタンを選択
+                data.workItems.forEach(item => {
+                    crmContent.querySelectorAll('.option-button').forEach(button => {
+                        const buttonText = button.textContent.trim();
+                        // 完全一致または部分一致でチェック
+                        if (buttonText === '外壁塗装' && item.includes('外壁塗装')) {
+                            button.classList.add('selected');
+                        } else if (buttonText === '屋根塗装' && item.includes('屋根塗装')) {
+                            button.classList.add('selected');
+                        } else if (buttonText === '屋上防水' && item.includes('屋上防水')) {
+                            button.classList.add('selected');
+                        } else if (buttonText === '屋根葺き替え・張り替え（スレート・ガルバリウム等）' && item.includes('屋根葺き替え')) {
+                            button.classList.add('selected');
+                        } else if (buttonText === '屋根葺き替え・張り替え（瓦）' && item.includes('屋根葺き替え') && item.includes('瓦')) {
+                            button.classList.add('selected');
+                        } else if (buttonText === '屋根カバー工法' && item.includes('屋根カバー')) {
+                            button.classList.add('selected');
+                        } else if (buttonText === '外壁補修' && item.includes('外壁補修')) {
+                            button.classList.add('selected');
+                        } else if (buttonText === '屋根補修' && item.includes('屋根補修')) {
+                            button.classList.add('selected');
+                        } else if (buttonText === 'ベランダ防水' && item.includes('ベランダ防水')) {
+                            button.classList.add('selected');
+                        } else if (buttonText === '内装水回り（バス・キッチン・トイレ）' && item.includes('内装水回り')) {
+                            button.classList.add('selected');
+                        }
+                    });
+                });
+            }
         }
 
 
@@ -1378,29 +1617,35 @@
             const sortSelect = document.getElementById('sortSelect');
             
             // 検索機能
-            searchInput.addEventListener('input', function() {
-                filterCases();
-            });
-            
-            // ステータスフィルター
-            statusFilters.forEach(button => {
-                button.addEventListener('click', function() {
-                    // アクティブ状態の切り替え
-                    statusFilters.forEach(btn => {
-                        btn.classList.remove('active', 'bg-blue-600', 'text-white');
-                        btn.classList.add('bg-gray-200', 'text-gray-700');
-                    });
-                    this.classList.add('active', 'bg-blue-600', 'text-white');
-                    this.classList.remove('bg-gray-200', 'text-gray-700');
-                    
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
                     filterCases();
                 });
-            });
+            }
+            
+            // ステータスフィルター
+            if (statusFilters) {
+                statusFilters.forEach(button => {
+                    button.addEventListener('click', function() {
+                        // アクティブ状態の切り替え
+                        statusFilters.forEach(btn => {
+                            btn.classList.remove('active', 'bg-blue-600', 'text-white');
+                            btn.classList.add('bg-gray-200', 'text-gray-700');
+                        });
+                        this.classList.add('active', 'bg-blue-600', 'text-white');
+                        this.classList.remove('bg-gray-200', 'text-gray-700');
+                        
+                        filterCases();
+                    });
+                });
+            }
             
             // ソート機能
-            sortSelect.addEventListener('change', function() {
-                filterCases();
-            });
+            if (sortSelect) {
+                sortSelect.addEventListener('change', function() {
+                    filterCases();
+                });
+            }
         }
         
         // ステータスでフィルタリング（統計クリック用）
@@ -1410,7 +1655,18 @@
         }
         
         // 対応中優先順でソート（見込み→再架電→不在）
-        // 見込みソート（見込み→再架電の順、次回架電日が当日のもののみ）
+        
+        // 新規ボタンのフィルタリング
+        function filterByNewStatus() {
+            if (currentView !== 'list') {
+                switchView('list');
+            }
+            
+            currentStatusFilter = '新規';
+            initializeListView();
+        }
+        
+        // 見込みソート（見込み→再架電の順）
         function filterByProspect() {
             // リストビューに切り替え
             if (currentView !== 'list') {
@@ -1421,13 +1677,10 @@
             const tbody = document.getElementById('casesListBody');
             tbody.innerHTML = '';
             
-            // 見込みと再架電で次回架電日が当日の案件をフィルタリング
+            // 見込みと再架電の案件をフィルタリング
             const filteredCases = Object.entries(casesData)
                 .filter(([_, caseData]) => {
-                    if (caseData.status !== '見込み' && caseData.status !== '再架電') return false;
-                    // 次回架電日が当日かチェック（実際のデータ構造に応じて調整が必要）
-                    const nextCallDate = new Date(caseData.nextCallDate || caseData.date);
-                    return nextCallDate.toDateString() === today;
+                    return caseData.status === '見込み' || caseData.status === '再架電';
                 })
                 .sort((a, b) => {
                     // 見込み→再架電の順
@@ -1458,27 +1711,50 @@
                             <span class="sm:hidden text-2xl">📞</span>
                         </a>
                     </td>
+                    <td class="px-4 py-4 text-center">
+                        <div class="flex justify-center items-center space-x-1">
+                            <button onclick="event.stopPropagation(); quickActionList('不在', '${caseId}')" class="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600">
+                                不在
+                            </button>
+                            <div class="relative group inline-block">
+                                <button onclick="event.stopPropagation(); openCallHistoryModal('${caseId}')" class="text-gray-400 hover:text-blue-600 text-lg" title="メモ">
+                                    📝
+                                </button>
+                                <!-- メモ履歴のホバー表示 -->
+                                <div class="absolute bottom-full right-0 mb-2 hidden group-hover:block z-50 w-64">
+                                    <div class="bg-gray-900 text-white text-xs rounded-lg py-2 px-3">
+                                        <div class="font-semibold mb-1">メモ履歴:</div>
+                                        ${getMemoPreview(caseId)}
+                                        <div class="absolute top-full right-4 -mt-1">
+                                            <div class="border-4 border-transparent border-t-gray-900"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
                     <td class="px-4 py-4 whitespace-nowrap text-gray-600">
                         ${caseData.area}
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-gray-600">
-                        ${getPropertyIcon(caseData.propertyType)} ${getFloorDisplay(caseData.propertyType, caseData.floors)}
+                        <div class="relative group">
+                            <div class="cursor-pointer" onclick="event.stopPropagation(); toggleWorkDetails('${caseId}')">
+                                ${getPropertyIcon(caseData.propertyType)} ${getFloorDisplay(caseData.propertyType, caseData.floors)} ${getWorkMarks(caseData.workItems)}
+                            </div>
+                            <!-- 施工内容の詳細表示 -->
+                            <div id="work-details-${caseId}" class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50">
+                                <div class="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 max-w-xs">
+                                    <div class="font-semibold mb-1">施工内容:</div>
+                                    ${caseData.workItems ? caseData.workItems.map(item => `<div>• ${item}</div>`).join('') : '未設定'}
+                                    <div class="absolute top-full left-4 -mt-1">
+                                        <div class="border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-gray-900 font-medium">
                         ${caseData.amount.replace('¥', '¥').replace(',000', 'K')}
-                    </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-center">
-                        <div class="flex justify-center space-x-1">
-                            <button onclick="event.stopPropagation(); quickActionList('不在', '${caseId}')" class="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600">
-                                不在
-                            </button>
-                            <button onclick="event.stopPropagation(); quickActionList('対応中', '${caseId}')" class="px-2 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600">
-                                対応中
-                            </button>
-                            <button onclick="event.stopPropagation(); quickActionList('完了', '${caseId}')" class="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600">
-                                完了
-                            </button>
-                        </div>
                     </td>
                     <td class="px-3 py-4 whitespace-nowrap text-center">
                         <button onclick="event.stopPropagation(); openCRM('${caseId}')" class="text-blue-600 hover:text-blue-800">
@@ -1493,7 +1769,7 @@
         }
 
         // 対応中ソート（1ヶ月以内の不在を新しい順）
-        function filterByProcessing() {
+        function filterByAbsent() {
             // リストビューに切り替え
             if (currentView !== 'list') {
                 switchView('list');
@@ -1508,12 +1784,12 @@
             const filteredCases = Object.entries(casesData)
                 .filter(([_, caseData]) => {
                     if (caseData.status !== '不在') return false;
-                    const caseDate = new Date(caseData.date);
+                    const caseDate = new Date(caseData.date || Date.now());
                     return caseDate >= oneMonthAgo;
                 })
                 .sort((a, b) => {
                     // 新しい順に並べる
-                    return new Date(b[1].date) - new Date(a[1].date);
+                    return new Date(b[1].date || Date.now()) - new Date(a[1].date || Date.now());
                 });
             
             // フィルタリングした案件を表示
@@ -1539,27 +1815,50 @@
                             <span class="sm:hidden text-2xl">📞</span>
                         </a>
                     </td>
+                    <td class="px-4 py-4 text-center">
+                        <div class="flex justify-center items-center space-x-1">
+                            <button onclick="event.stopPropagation(); quickActionList('不在', '${caseId}')" class="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600">
+                                不在
+                            </button>
+                            <div class="relative group inline-block">
+                                <button onclick="event.stopPropagation(); openCallHistoryModal('${caseId}')" class="text-gray-400 hover:text-blue-600 text-lg" title="メモ">
+                                    📝
+                                </button>
+                                <!-- メモ履歴のホバー表示 -->
+                                <div class="absolute bottom-full right-0 mb-2 hidden group-hover:block z-50 w-64">
+                                    <div class="bg-gray-900 text-white text-xs rounded-lg py-2 px-3">
+                                        <div class="font-semibold mb-1">メモ履歴:</div>
+                                        ${getMemoPreview(caseId)}
+                                        <div class="absolute top-full right-4 -mt-1">
+                                            <div class="border-4 border-transparent border-t-gray-900"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
                     <td class="px-4 py-4 whitespace-nowrap text-gray-600">
                         ${caseData.area}
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-gray-600">
-                        ${getPropertyIcon(caseData.propertyType)} ${getFloorDisplay(caseData.propertyType, caseData.floors)}
+                        <div class="relative group">
+                            <div class="cursor-pointer" onclick="event.stopPropagation(); toggleWorkDetails('${caseId}')">
+                                ${getPropertyIcon(caseData.propertyType)} ${getFloorDisplay(caseData.propertyType, caseData.floors)} ${getWorkMarks(caseData.workItems)}
+                            </div>
+                            <!-- 施工内容の詳細表示 -->
+                            <div id="work-details-${caseId}" class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50">
+                                <div class="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 max-w-xs">
+                                    <div class="font-semibold mb-1">施工内容:</div>
+                                    ${caseData.workItems ? caseData.workItems.map(item => `<div>• ${item}</div>`).join('') : '未設定'}
+                                    <div class="absolute top-full left-4 -mt-1">
+                                        <div class="border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-gray-900 font-medium">
                         ${caseData.amount.replace('¥', '¥').replace(',000', 'K')}
-                    </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-center">
-                        <div class="flex justify-center space-x-1">
-                            <button onclick="event.stopPropagation(); quickActionList('不在', '${caseId}')" class="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600">
-                                不在
-                            </button>
-                            <button onclick="event.stopPropagation(); quickActionList('対応中', '${caseId}')" class="px-2 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600">
-                                対応中
-                            </button>
-                            <button onclick="event.stopPropagation(); quickActionList('完了', '${caseId}')" class="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600">
-                                完了
-                            </button>
-                        </div>
                     </td>
                     <td class="px-3 py-4 whitespace-nowrap text-center">
                         <button onclick="event.stopPropagation(); openCRM('${caseId}')" class="text-blue-600 hover:text-blue-800">
@@ -1674,13 +1973,61 @@
             return colorMap[status] || 'bg-gray-100 text-gray-700';
         }
 
+        // 統計カウントを更新
+        function updateStatsCounts() {
+            // 新規件数
+            const newCount = Object.values(casesData).filter(c => c.status === '新規').length;
+            document.getElementById('newCount').textContent = newCount;
+            
+            // 見込み＋再架電件数
+            const prospectCount = Object.values(casesData).filter(c => c.status === '見込み' || c.status === '再架電').length;
+            document.getElementById('prospectCount').textContent = prospectCount;
+            
+            // 直近1ヶ月の不在件数
+            const oneMonthAgo = new Date();
+            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+            const absentCount = Object.values(casesData).filter(c => {
+                if (c.status !== '不在') return false;
+                const caseDate = new Date(c.date || Date.now());
+                return caseDate >= oneMonthAgo;
+            }).length;
+            document.getElementById('absentCount').textContent = absentCount;
+            
+            // 予測金額（現在表示されている案件の合計）
+            let totalAmount = 0;
+            const visibleRows = document.querySelectorAll('#casesListBody tr:not([style*="display: none"])');
+            visibleRows.forEach(row => {
+                const amountCell = row.querySelector('td:nth-last-child(3)');
+                if (amountCell) {
+                    const amountText = amountCell.textContent.replace('¥', '').replace('K', '000');
+                    totalAmount += parseInt(amountText) || 0;
+                }
+            });
+            document.getElementById('predictedAmount').textContent = '¥' + Math.round(totalAmount / 1000) + 'K';
+        }
+        
         // リストビューの初期化
         function initializeListView() {
+            console.log('initializeListView called');
+            console.log('casesData:', casesData);
+            console.log('casesData keys:', Object.keys(casesData));
+            
             const tbody = document.getElementById('casesListBody');
+            if (!tbody) {
+                console.error('casesListBody element not found!');
+                return;
+            }
             tbody.innerHTML = '';
             
+            // フィルタリング
+            let allCases = Object.entries(casesData);
+            console.log('Total cases:', allCases.length);
+            if (currentStatusFilter) {
+                allCases = allCases.filter(([_, caseData]) => caseData.status === currentStatusFilter);
+            }
+            
             // 全データを取得
-            const allCases = Object.entries(casesData);
+            // const allCases = Object.entries(casesData);
             const totalItems = allCases.length;
             
             // ページネーション計算
@@ -1690,6 +2037,9 @@
             
             // ページネーション情報を更新
             updatePaginationInfo(totalItems, startIndex, endIndex);
+            
+            // 統計カウントを更新
+            updateStatsCounts();
             
             // 現在のページのデータを表示
             pageCases.forEach(([caseId, caseData]) => {
@@ -1724,34 +2074,68 @@
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900">${caseData.name}</div>
+                        <div class="relative group">
+                            <div class="text-xs text-gray-500 cursor-pointer hover:text-blue-600" 
+                                 onclick="event.stopPropagation(); toggleAddressTooltip('${caseId}')">
+                                📍 ${caseData.postalCode}
+                            </div>
+                            <!-- ホバー時(PC)またはタップ時(スマホ)の住所表示 -->
+                            <div id="tooltip-${caseId}" class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50">
+                                <div class="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 whitespace-nowrap">
+                                    ${caseData.address || '住所未設定'}
+                                    <div class="absolute top-full left-4 -mt-1">
+                                        <div class="border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-center sm:text-left">
-                        <a href="tel:${caseData.phone}" class="text-blue-600 hover:text-blue-800" onclick="event.stopPropagation()">
-                            <span class="hidden sm:inline text-sm text-gray-600">${caseData.phone}</span>
-                            <span class="sm:hidden text-xl">📞</span>
+                    <td class="px-2 py-4 whitespace-nowrap text-center">
+                        <a href="tel:${caseData.phone}" class="text-blue-600 hover:text-blue-800 text-xl" onclick="event.stopPropagation()" title="${caseData.phone}">
+                            📞
                         </a>
                     </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${caseData.postalCode}
-                    </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${getPropertyIcon(caseData.propertyType)} ${getFloorDisplay(caseData.propertyType, caseData.floors)}
-                    </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-emerald-600">
-                        ¥${Math.round(fee / 1000)}K
-                    </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-center">
-                        <div class="flex justify-center space-x-1">
+                    <td class="px-4 py-4 text-center">
+                        <div class="flex justify-center items-center space-x-1">
                             <button onclick="event.stopPropagation(); quickActionList('不在', '${caseId}')" class="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600">
                                 不在
                             </button>
-                            <button onclick="event.stopPropagation(); quickActionList('対応中', '${caseId}')" class="px-2 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600">
-                                対応中
-                            </button>
-                            <button onclick="event.stopPropagation(); quickActionList('完了', '${caseId}')" class="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600">
-                                完了
-                            </button>
+                            <div class="relative group inline-block">
+                                <button onclick="event.stopPropagation(); openCallHistoryModal('${caseId}')" class="text-gray-400 hover:text-blue-600 text-lg" title="メモ">
+                                    📝
+                                </button>
+                                <!-- メモ履歴のホバー表示 -->
+                                <div class="absolute bottom-full right-0 mb-2 hidden group-hover:block z-50 w-64">
+                                    <div class="bg-gray-900 text-white text-xs rounded-lg py-2 px-3">
+                                        <div class="font-semibold mb-1">メモ履歴:</div>
+                                        ${getMemoPreview(caseId)}
+                                        <div class="absolute top-full right-4 -mt-1">
+                                            <div class="border-4 border-transparent border-t-gray-900"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div class="relative group">
+                            <div class="cursor-pointer" onclick="event.stopPropagation(); toggleWorkDetails('${caseId}')">
+                                ${getPropertyIcon(caseData.propertyType)} ${getFloorDisplay(caseData.propertyType, caseData.floors)} ${getWorkMarks(caseData.workItems)}
+                            </div>
+                            <!-- 施工内容の詳細表示 -->
+                            <div id="work-details-${caseId}" class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50">
+                                <div class="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 max-w-xs">
+                                    <div class="font-semibold mb-1">施工内容:</div>
+                                    ${caseData.workItems ? caseData.workItems.map(item => `<div>• ${item}</div>`).join('') : '未設定'}
+                                    <div class="absolute top-full left-4 -mt-1">
+                                        <div class="border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-emerald-600">
+                        ¥${Math.round(fee / 1000)}K
                     </td>
                     <td class="px-3 py-4 whitespace-nowrap text-center">
                         <button onclick="event.stopPropagation(); openCRM('${caseId}')" class="text-blue-600 hover:text-blue-800">
@@ -1855,6 +2239,135 @@
             console.log(`案件 ${caseId} のステータスを ${newStatus} に変更`);
         }
         
+        // CRMステータス変更
+        function changeCRMStatus(newStatus) {
+            if (!currentCaseId) return;
+            casesData[currentCaseId].status = newStatus;
+            console.log(`案件 ${currentCaseId} のステータスを ${newStatus} に変更`);
+        }
+        
+        // 架電履歴モーダルを開く（リストからもCRMからも使える）
+        function openCallHistoryModal(caseId) {
+            // リストから開いた場合はcaseIdを設定
+            if (caseId) {
+                currentCaseId = caseId;
+            }
+            document.getElementById('callHistoryModal').classList.remove('hidden');
+            loadCallHistory();
+        }
+        
+        // 架電履歴モーダルを閉じる
+        function closeCallHistoryModal() {
+            document.getElementById('callHistoryModal').classList.add('hidden');
+            document.getElementById('newCallNote').value = '';
+            document.getElementById('nextCallDate').value = '';
+        }
+        
+        // 架電履歴を追加
+        function addCallHistory() {
+            const note = document.getElementById('newCallNote').value;
+            if (!note.trim()) return;
+            
+            if (!casesData[currentCaseId].callHistory) {
+                casesData[currentCaseId].callHistory = [];
+            }
+            
+            const timestamp = new Date().toLocaleString('ja-JP');
+            const nextCallDate = document.getElementById('nextCallDate').value;
+            
+            casesData[currentCaseId].callHistory.unshift({
+                timestamp: timestamp,
+                note: note,
+                nextCallDate: nextCallDate
+            });
+            
+            // 次回架電日を保存
+            if (nextCallDate) {
+                casesData[currentCaseId].nextCallDate = nextCallDate;
+            }
+            
+            // UIリセット
+            document.getElementById('newCallNote').value = '';
+            document.getElementById('nextCallDate').value = '';
+            
+            // 履歴を再表示
+            loadCallHistory();
+            
+            // リスト表示も更新（メモの同期）
+            if (currentView === 'list') {
+                initializeListView();
+            }
+        }
+        
+        // 住所を表示（ツールチップまたはアラート）
+        // 住所ツールチップのトグル（スマホ用）
+        function toggleAddressTooltip(caseId) {
+            const tooltip = document.getElementById(`tooltip-${caseId}`);
+            if (tooltip) {
+                tooltip.classList.toggle('hidden');
+                // 3秒後に自動で閉じる
+                if (!tooltip.classList.contains('hidden')) {
+                    setTimeout(() => {
+                        tooltip.classList.add('hidden');
+                    }, 3000);
+                }
+            }
+        }
+        
+        // 施工内容詳細のトグル（スマホ用）
+        function toggleWorkDetails(caseId) {
+            const details = document.getElementById(`work-details-${caseId}`);
+            if (details) {
+                details.classList.toggle('hidden');
+                // 3秒後に自動で閉じる
+                if (!details.classList.contains('hidden')) {
+                    setTimeout(() => {
+                        details.classList.add('hidden');
+                    }, 3000);
+                }
+            }
+        }
+        
+        // メモ履歴のプレビューを取得
+        function getMemoPreview(caseId) {
+            const caseData = casesData[caseId];
+            if (!caseData || !caseData.callHistory || caseData.callHistory.length === 0) {
+                return '<div class="text-gray-400">メモはまだありません</div>';
+            }
+            
+            // 最新3件のメモを表示
+            const recentMemos = caseData.callHistory.slice(-3).reverse();
+            return recentMemos.map(memo => 
+                `<div class="mb-1 pb-1 border-b border-gray-700 last:border-0">
+                    <div class="text-gray-400">${memo.date}</div>
+                    <div>${memo.note.substring(0, 50)}${memo.note.length > 50 ? '...' : ''}</div>
+                </div>`
+            ).join('');
+        }
+        
+        // 架電履歴を読み込み
+        function loadCallHistory() {
+            const historyList = document.getElementById('callHistoryList');
+            const history = casesData[currentCaseId]?.callHistory || [];
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<p class="text-gray-500 text-center">履歴がありません</p>';
+                return;
+            }
+            
+            historyList.innerHTML = history.map(item => `
+                <div class="border-l-4 border-blue-500 pl-4 py-2">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-600">${item.timestamp}</p>
+                            <p class="mt-1">${item.note}</p>
+                            ${item.nextCallDate ? `<p class="text-sm text-blue-600 mt-1">次回架電: ${item.nextCallDate}</p>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
         // データを保存
         function saveAllData() {
             // ローカルストレージに保存（実際はサーバーに送信）
@@ -1901,6 +2414,31 @@
             return icons[propertyType] || '🏠';
         }
         
+        // 施工内容のマークを取得
+        function getWorkMarks(workItems) {
+            if (!workItems || !Array.isArray(workItems)) return '';
+            
+            const marks = [];
+            workItems.forEach(item => {
+                if (item.includes('屋根塗装') || item.includes('屋上防水')) {
+                    marks.push('△');
+                } else if (item.includes('外壁塗装')) {
+                    marks.push('□');
+                } else if (item.includes('屋根葺き替え') || item.includes('屋根カバー')) {
+                    marks.push('▲');
+                } else if (item.includes('外壁張替え') || item.includes('外壁カバー')) {
+                    marks.push('■');
+                } else if (item.includes('雨漏り')) {
+                    marks.push('💧');
+                } else if (item.includes('外壁補修') || item.includes('屋根補修') || item.includes('ベランダ防水') || item.includes('内装水回り')) {
+                    marks.push('?');
+                }
+            });
+            
+            // 重複を削除して返す
+            return [...new Set(marks)].join('');
+        }
+        
         // 階数表示を取得
         function getFloorDisplay(propertyType, floors) {
             if (!floors) return '';
@@ -1928,6 +2466,7 @@
         let currentCaseId = '001';
         
         function switchView(view) {
+            console.log('switchView called with view:', view);
             if (view === 'list') {
                 document.getElementById('listView').classList.remove('hidden');
                 document.getElementById('crmView').classList.add('hidden');
@@ -1951,6 +2490,7 @@
 
         // CRM詳細を開く
         function openCRM(caseId) {
+            console.log('openCRM called with caseId:', caseId);
             currentCaseId = caseId;
             switchView('crm');
         }
@@ -1960,19 +2500,20 @@
             const caseData = casesData[caseId];
             if (!caseData) return;
             
-            document.getElementById('crmCustomerName').textContent = `${caseData.name} - CRM詳細`;
+            // ステータスを設定
+            document.getElementById('crmStatus').value = caseData.status;
+            
+            // CRMビューのメモプレビューを更新
+            const crmMemoPreview = document.getElementById('crmMemoPreview');
+            if (crmMemoPreview) {
+                crmMemoPreview.innerHTML = getMemoPreview(caseId).replace('text-gray-400', 'text-gray-300');
+            }
             
             // 元のフォームコンテンツを取得してCRMエリアに挿入
             const originalContentElement = document.getElementById('originalFormContent');
             if (originalContentElement) {
-                // display:noneの内部のHTMLを取得
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = originalContentElement.innerHTML;
-                // 最初の実際のフォーム要素を取得
-                const formContent = tempDiv.querySelector('.form-section');
-                if (formContent) {
-                    document.getElementById('crmContent').innerHTML = formContent.outerHTML;
-                }
+                // すべてのフォームセクションを取得してCRMエリアに挿入
+                document.getElementById('crmContent').innerHTML = originalContentElement.innerHTML;
             }
             
             // フォームに案件データを反映（エラーハンドリング付き）
@@ -2042,11 +2583,64 @@
             document.getElementById('completedToday').textContent = completed;
         }
 
-        // 初期状態で最初の案件を選択
+        // 初期化処理
         document.addEventListener('DOMContentLoaded', function() {
-            initializeListView(); // リストビューを初期化
-            initializeSearchAndFilter();
-            updateStatistics();
+            console.log('=== DOMContentLoaded - 初期化開始 ===');
+            console.log('casesData:', casesData);
+            console.log('Total cases:', Object.keys(casesData).length);
+            
+            // ハッシュ処理
+            const hash = window.location.hash.slice(1) || 'assignment';
+            if (hash === 'dashboard') {
+                showSection('dashboard');
+            }
+            
+            // 関数の初期化
+            try {
+                // リストビューを初期化
+                if (typeof initializeListView === 'function') {
+                    initializeListView();
+                    console.log('✓ initializeListView 実行完了');
+                } else {
+                    console.error('✗ initializeListView is not defined');
+                }
+                
+                // 検索とフィルターを初期化
+                if (typeof initializeSearchAndFilter === 'function') {
+                    initializeSearchAndFilter();
+                    console.log('✓ initializeSearchAndFilter 実行完了');
+                } else {
+                    console.error('✗ initializeSearchAndFilter is not defined');
+                }
+                
+                // 統計カウントを更新
+                if (typeof updateStatsCounts === 'function') {
+                    updateStatsCounts();
+                    console.log('✓ updateStatsCounts 実行完了');
+                } else {
+                    console.error('✗ updateStatsCounts is not defined');
+                }
+                
+                // 統計を更新
+                if (typeof updateStatistics === 'function') {
+                    updateStatistics();
+                    console.log('✓ updateStatistics 実行完了');
+                } else {
+                    console.error('✗ updateStatistics is not defined');
+                }
+                
+                // タイムスロットとチェックボックスの初期化
+                if (typeof initializeTimeSlots === 'function') {
+                    initializeTimeSlots();
+                }
+                if (typeof initializeCheckboxes === 'function') {
+                    initializeCheckboxes();
+                }
+                
+                console.log('=== 初期化完了 ===');
+            } catch(e) {
+                console.error('初期化エラー:', e);
+            }
         });
     </script>
 </body>
