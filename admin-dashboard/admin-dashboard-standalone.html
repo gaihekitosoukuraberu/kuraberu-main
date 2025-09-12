@@ -1507,43 +1507,92 @@
                         
                         <!-- タブナビゲーション -->
                         <div class="bg-white rounded-t-xl border border-gray-200 border-b-0">
-                            <div class="flex border-b">
-                                <button class="px-6 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600">成約案件</button>
-                                <button class="px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-800">請求書一覧</button>
-                                <button class="px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-800">入金管理</button>
-                                <button class="px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-800">月次レポート</button>
+                            <div class="flex border-b" id="financialTabs">
+                                <button onclick="switchFinancialTab('referral')" class="px-6 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600 tab-btn" data-tab="referral">紹介料請求</button>
+                                <button onclick="switchFinancialTab('success')" class="px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-800 tab-btn" data-tab="success">成約手数料</button>
+                                <button onclick="switchFinancialTab('invoices')" class="px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-800 tab-btn" data-tab="invoices">請求書一覧</button>
+                                <button onclick="switchFinancialTab('payment')" class="px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-800 tab-btn" data-tab="payment">支払予定</button>
                             </div>
                         </div>
                         
-                        <!-- 成約案件リスト -->
-                        <div class="bg-white rounded-b-xl border border-gray-200 border-t-0">
-                            <div class="p-4 border-b bg-gray-50">
-                                <div class="flex justify-between items-center">
-                                    <h3 class="text-lg font-semibold">請求処理待ち案件</h3>
-                                    <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">一括計算</button>
-                                </div>
-                            </div>
-                            <table class="w-full">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">案件ID</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">加盟店</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">工事内容</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">建物</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">紹介料</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">成約金額</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">成約手数料(10%)</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">請求合計</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">アクション</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200">
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 text-sm text-gray-900">#2024-0845</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900">田中塗装工業</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900">外壁塗装</td>
-                                        <td class="px-6 py-4">
-                                            <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">戸建て2階</span>
+                        <!-- 紹介料タブ -->
+                        <div id="referralTab" class="financial-tab-content">
+                            <div class="bg-white rounded-b-xl border border-gray-200 border-t-0">
+                                <div class="p-6">
+                                    <div class="grid grid-cols-4 gap-4 mb-6">
+                                        <div class="bg-blue-50 p-4 rounded-lg">
+                                            <div class="text-sm text-gray-600">今月請求予定</div>
+                                            <div class="text-2xl font-bold text-blue-600">¥385,000</div>
+                                            <div class="text-xs text-gray-500">税込（35件）</div>
+                                        </div>
+                                        <div class="bg-green-50 p-4 rounded-lg">
+                                            <div class="text-sm text-gray-600">入金済み</div>
+                                            <div class="text-2xl font-bold text-green-600">¥2,750,000</div>
+                                            <div class="text-xs text-gray-500">今月分</div>
+                                        </div>
+                                        <div class="bg-yellow-50 p-4 rounded-lg">
+                                            <div class="text-sm text-gray-600">未入金</div>
+                                            <div class="text-2xl font-bold text-yellow-600">¥110,000</div>
+                                            <div class="text-xs text-gray-500">遅延1件</div>
+                                        </div>
+                                        <div class="bg-purple-50 p-4 rounded-lg">
+                                            <div class="text-sm text-gray-600">今月紹介数</div>
+                                            <div class="text-2xl font-bold text-purple-600">42件</div>
+                                            <div class="text-xs text-gray-500">前月比 +8</div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-4 flex justify-between items-center">
+                                        <div class="flex gap-2">
+                                            <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                                <i class="fas fa-file-invoice mr-2"></i>請求書一括発行
+                                            </button>
+                                            <button class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                                <i class="fas fa-download mr-2"></i>CSVエクスポート
+                                            </button>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <select class="px-3 py-2 border rounded-lg">
+                                                <option>全期間</option>
+                                                <option>今月</option>
+                                                <option>先月</option>
+                                                <option>過去3ヶ月</option>
+                                            </select>
+                                            <select class="px-3 py-2 border rounded-lg">
+                                                <option>全ステータス</option>
+                                                <option>未請求</option>
+                                                <option>請求済み</option>
+                                                <option>入金済み</option>
+                                                <option>遅延</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <table class="w-full">
+                                        <thead>
+                                            <tr class="border-b bg-gray-50">
+                                                <th class="text-left py-3 px-4">
+                                                    <input type="checkbox" class="rounded">
+                                                </th>
+                                                <th class="text-left py-3 px-4">加盟店名</th>
+                                                <th class="text-left py-3 px-4">案件ID</th>
+                                                <th class="text-left py-3 px-4">顧客名</th>
+                                                <th class="text-left py-3 px-4">建物種別</th>
+                                                <th class="text-right py-3 px-4">紹介料<br><span class="text-xs text-gray-500">(税抜)</span></th>
+                                                <th class="text-right py-3 px-4">消費税<br><span class="text-xs text-gray-500">(10%)</span></th>
+                                                <th class="text-right py-3 px-4">請求額<br><span class="text-xs text-gray-500">(税込)</span></th>
+                                                <th class="text-left py-3 px-4">支払日</th>
+                                                <th class="text-center py-3 px-4">ステータス</th>
+                                                <th class="text-center py-3 px-4">操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="border-b hover:bg-gray-50">
+                                                <td class="py-3 px-4">
+                                                    <input type="checkbox" class="rounded">
+                                                </td>
+                                                <td class="py-3 px-4 font-medium">田中ホームテック</td>
+                                                <td class="py-3 px-4">C-2025-0142</td>
+                                                <td class="py-3 px-4">山田太郎</td>
+                                                <td class="py-3 px-4"><span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">戸建て</span>
                                         </td>
                                         <td class="px-6 py-4 text-sm font-semibold text-blue-600">¥20,000</td>
                                         <td class="px-6 py-4 text-sm font-semibold text-gray-900">¥800,000</td>
@@ -3822,6 +3871,33 @@
             
             document.getElementById('totalToday').textContent = total;
             document.getElementById('completedToday').textContent = completed;
+        }
+        
+        // 財務タブ切り替え
+        function switchFinancialTab(tabName) {
+            // すべてのタブコンテンツを非表示
+            document.querySelectorAll('.financial-tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            // すべてのタブボタンのスタイルをリセット
+            document.querySelectorAll('#financialTabs .tab-btn').forEach(btn => {
+                btn.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                btn.classList.add('text-gray-600', 'hover:text-gray-800');
+            });
+            
+            // 選択されたタブを表示
+            const selectedTab = document.getElementById(tabName + 'Tab');
+            if (selectedTab) {
+                selectedTab.style.display = 'block';
+            }
+            
+            // 選択されたタブボタンをアクティブに
+            const activeBtn = document.querySelector(`button[data-tab="${tabName}"]`);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-600', 'hover:text-gray-800');
+                activeBtn.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+            }
         }
         
         // スワイプ機能の実装
