@@ -179,6 +179,16 @@
                 </svg>
                 加盟店管理
             </a>
+            <a href="#cancel-requests" onclick="showSection('cancelRequests'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100 relative ml-4">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                キャンセル申請
+                <span id="cancelRequestBadge" class="ml-auto bg-purple-500 text-white text-xs px-2.5 py-1 rounded-full animate-pulse font-bold shadow-lg">
+                    <span class="inline-block">2</span>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-purple-400 rounded-full animate-ping"></span>
+                </span>
+            </a>
             <a href="#financial" onclick="showSection('financial'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -191,18 +201,6 @@
                 </svg>
                 ランキング
             </a>
-            <div class="mt-4 pt-4 border-t border-gray-700">
-                <a href="#cancel-requests" onclick="showSection('cancelRequests'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100 relative">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    キャンセル申請
-                    <span id="cancelRequestBadge" class="ml-auto bg-purple-500 text-white text-xs px-2.5 py-1 rounded-full animate-pulse font-bold shadow-lg">
-                        <span class="inline-block">2</span>
-                        <span class="absolute -top-1 -right-1 w-3 h-3 bg-purple-400 rounded-full animate-ping"></span>
-                    </span>
-                </a>
-            </div>
         </nav>
     </div>
 
