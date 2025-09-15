@@ -28,6 +28,8 @@
         }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: 'Inter', system-ui, sans-serif; }
         .glass { backdrop-filter: blur(12px); }
@@ -154,7 +156,7 @@
                     </button>
                     <div class="flex items-center space-x-3">
                         <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-500 rounded-full"></div>
-                        <div class="text-right">
+                        <div class="text-center">
                             <div id="userName" class="text-sm text-gray-300">ユーザー名</div>
                             <div id="userRole" class="text-xs text-gray-400"></div>
                         </div>
@@ -173,11 +175,12 @@
                     </svg>
                     ダッシュボード
                 </a>
-                <a href="#cases" onclick="showSection('cases'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
+                <a href="#cases" onclick="showSection('cases'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100 relative">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
                     案件管理
+                    <span id="unassignedBadge" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5 min-w-[20px] text-center hidden">0</span>
                 </a>
                 <a href="#sales" onclick="showSection('sales'); return false;" class="admin-only flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -381,7 +384,8 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">45</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">75%</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                    <button onclick="editPermissions('田中太郎')" class="text-blue-600 hover:text-blue-900">権限編集</button>
+                                    <button onclick="editPermissions('田中太郎')" class="text-blue-600 hover:text-blue-900 mr-3">権限編集</button>
+                                    <button onclick="confirmDeleteSales('田中太郎')" class="text-red-600 hover:text-red-900">削除</button>
                                 </td>
                             </tr>
                             <tr>
@@ -392,18 +396,20 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">28</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">62%</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                    <button onclick="editPermissions('佐藤花子')" class="text-blue-600 hover:text-blue-900">権限編集</button>
+                                    <button onclick="editPermissions('佐藤花子')" class="text-blue-600 hover:text-blue-900 mr-3">権限編集</button>
+                                    <button onclick="confirmDeleteSales('佐藤花子')" class="text-red-600 hover:text-red-900">削除</button>
                                 </td>
                             </tr>
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">鈴木次郎</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">新人営業</span>
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">一般事務</span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">5</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">40%</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                    <button onclick="editPermissions('鈴木次郎')" class="text-blue-600 hover:text-blue-900">権限編集</button>
+                                    <button onclick="editPermissions('鈴木次郎')" class="text-blue-600 hover:text-blue-900 mr-3">権限編集</button>
+                                    <button onclick="confirmDeleteSales('鈴木次郎')" class="text-red-600 hover:text-red-900">削除</button>
                                 </td>
                             </tr>
                         </tbody>
@@ -413,25 +419,922 @@
 
             <!-- 案件管理セクション -->
             <div id="casesSection" class="section" style="display: none;">
-                <h2 class="text-2xl font-bold text-gray-900 mb-6">案件管理</h2>
-                <div class="bg-white shadow rounded-lg p-6">
-                    <p class="text-gray-600">案件一覧がここに表示されます</p>
+                <!-- 未振り分け案件セクション -->
+                <div id="unassignedCasesSection" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            未振り分け案件
+                        </h3>
+                        <button onclick="openAssignmentModal()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center text-sm">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            案件を振り分ける
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="unassignedCasesList">
+                        <!-- 未振り分け案件がここに表示される -->
+                    </div>
+                </div>
+
+                <div class="mb-6 flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-gray-900">案件管理</h2>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="toggleCaseView()" class="p-2 text-gray-500 hover:text-gray-700 bg-white rounded-lg shadow">
+                            <svg id="viewIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- フィルター・統計バー -->
+                <div class="bg-white rounded-lg p-4 mb-4 shadow">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- ステータス別統計 -->
+                        <button onclick="filterCases('all')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+                            <span class="text-lg font-bold" id="count-all">0</span>
+                            <span class="text-xs">全件</span>
+                        </button>
+                        <button onclick="filterCases('未対応')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition">
+                            <span class="text-lg font-bold" id="count-未対応">0</span>
+                            <span class="text-xs">未対応</span>
+                        </button>
+                        <button onclick="filterCases('アポ済')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition">
+                            <span class="text-lg font-bold" id="count-アポ済">0</span>
+                            <span class="text-xs">アポ済</span>
+                        </button>
+                        <button onclick="filterCases('見積提出済')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition">
+                            <span class="text-lg font-bold" id="count-見積提出済">0</span>
+                            <span class="text-xs">見積提出済</span>
+                        </button>
+                        <button onclick="filterCases('成約')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition">
+                            <span class="text-lg font-bold" id="count-成約">0</span>
+                            <span class="text-xs">成約</span>
+                        </button>
+
+                        <div class="flex-1"></div>
+
+                        <!-- 検索・ソート -->
+                        <input type="text" id="caseSearchInput" placeholder="顧客名・住所で検索..."
+                               class="px-3 py-2 border rounded-lg text-sm w-48" onkeyup="searchCases()">
+                        <select id="caseSortSelect" onchange="sortCases()" class="px-3 py-2 border rounded-lg text-sm">
+                            <option value="date_desc">登録日順（新しい順）</option>
+                            <option value="date_asc">登録日順（古い順）</option>
+                            <option value="status">ステータス順</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- カードビュー -->
+                <div id="caseCardView" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- 案件カードは動的に生成されます -->
+                </div>
+
+                <!-- リストビュー（初期非表示） -->
+                <div id="caseListView" class="bg-white rounded-lg shadow overflow-hidden" style="display: none;">
+                    <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">ステータス</th>
+                                <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">顧客名</th>
+                                <th class="hidden md:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">住所</th>
+                                <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">電話番号</th>
+                                <th class="hidden lg:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">最終連絡</th>
+                                <th class="hidden md:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">次回アクション</th>
+                                <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">アクション</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                    <span class="px-1 sm:px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">未対応</span>
+                                </td>
+                                <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">山田太郎</td>
+                                <td class="hidden md:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">東京都世田谷区</td>
+                                <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">03-1234-5678</td>
+                                <td class="hidden lg:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">1/15 問合せ</td>
+                                <td class="hidden md:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">1/18 14:00 電話</td>
+                                <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm font-medium">
+                                    <button onclick="callCustomer('03-1234-5678')" class="text-green-600 hover:text-green-900 mr-2">📞</button>
+                                    <button onclick="showCaseDetail(1)" class="text-blue-600 hover:text-blue-900">詳細</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                    <span class="px-1 sm:px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">アポ済</span>
+                                </td>
+                                <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">鈴木花子</td>
+                                <td class="hidden md:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">神奈川県横浜市</td>
+                                <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">045-9876-5432</td>
+                                <td class="hidden lg:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">1/16 アポ取得</td>
+                                <td class="hidden md:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">1/20 14:00 現調</td>
+                                <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm font-medium">
+                                    <button onclick="callCustomer('045-9876-5432')" class="text-green-600 hover:text-green-900 mr-2">📞</button>
+                                    <button onclick="showCaseDetail(2)" class="text-blue-600 hover:text-blue-900">詳細</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
                 </div>
             </div><!-- casesSectionの終了 -->
 
             <!-- 請求管理セクション -->
             <div id="billingSection" class="section" style="display: none;">
-                <h2 class="text-2xl font-bold text-gray-900 mb-6">請求管理</h2>
-                <div class="bg-white shadow rounded-lg p-6">
-                    <p class="text-gray-600">請求情報がここに表示されます</p>
+                <div class="mb-6 flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-gray-900">請求管理</h2>
+                    <div class="flex space-x-2">
+                        <button onclick="generateMonthlyInvoices()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            月次請求書一括発行
+                        </button>
+                        <button onclick="exportInvoices()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            CSV出力
+                        </button>
+                    </div>
+                </div>
+
+                <!-- サマリーカード -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">今月請求額</p>
+                                <p class="text-2xl font-bold text-gray-900">¥2,450,000</p>
+                                <p class="text-xs text-gray-500">税込</p>
+                            </div>
+                            <div class="p-3 bg-blue-100 rounded-full">
+                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">入金済み</p>
+                                <p class="text-2xl font-bold text-green-600">¥1,800,000</p>
+                                <p class="text-xs text-gray-500">73.5%</p>
+                            </div>
+                            <div class="p-3 bg-green-100 rounded-full">
+                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">入金待ち</p>
+                                <p class="text-2xl font-bold text-yellow-600">¥650,000</p>
+                                <p class="text-xs text-gray-500">6件</p>
+                            </div>
+                            <div class="p-3 bg-yellow-100 rounded-full">
+                                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">期限超過</p>
+                                <p class="text-2xl font-bold text-red-600">¥120,000</p>
+                                <p class="text-xs text-gray-500">2件 ⚠️</p>
+                            </div>
+                            <div class="p-3 bg-red-100 rounded-full">
+                                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- タブナビゲーション -->
+                <div class="bg-white rounded-lg shadow mb-6">
+                    <div class="border-b border-gray-200">
+                        <nav class="flex -mb-px">
+                            <button onclick="showBillingTab('referral')" class="billing-tab billing-tab-active px-6 py-3 border-b-2 font-medium text-sm" data-tab="referral">
+                                紹介料請求
+                            </button>
+                            <button onclick="showBillingTab('success')" class="billing-tab px-6 py-3 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="success">
+                                成約手数料
+                            </button>
+                            <button onclick="showBillingTab('invoices')" class="billing-tab px-6 py-3 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="invoices">
+                                請求書一覧
+                            </button>
+                            <button onclick="showBillingTab('schedule')" class="billing-tab px-6 py-3 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="schedule">
+                                支払予定表
+                            </button>
+                        </nav>
+                    </div>
+
+                    <!-- 紹介料請求タブ -->
+                    <div id="referralTab" class="billing-tab-content p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">月次紹介料請求（2024年1月分）</h3>
+                            <button onclick="generateReferralInvoices()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                                選択した請求書を発行
+                            </button>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                            <input type="checkbox" onclick="selectAllInvoices(this)" class="rounded">
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">加盟店</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">案件数</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">紹介料(税抜)</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">消費税</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">請求額(税込)</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払方法</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払予定日</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ステータス</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">アクション</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-3 py-4">
+                                            <input type="checkbox" class="invoice-checkbox rounded" value="R001">
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">田中塗装工業</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">3件</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥60,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">¥6,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥66,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">銀行振込</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2/15(木)</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">未発行</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            <button onclick="issueInvoice('R001')" class="text-blue-600 hover:text-blue-900 mr-2">発行</button>
+                                            <button onclick="showInvoiceDetail('R001')" class="text-gray-600 hover:text-gray-900">詳細</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-3 py-4">
+                                            <input type="checkbox" class="invoice-checkbox rounded" value="R002">
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">山田ペイント</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2件</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥50,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">¥5,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥55,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">口座振替</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2/27(火)</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">発行済</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            <button onclick="downloadPDF('R002')" class="text-blue-600 hover:text-blue-900 mr-2">PDF</button>
+                                            <button onclick="showInvoiceDetail('R002')" class="text-gray-600 hover:text-gray-900">詳細</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 成約手数料タブ -->
+                    <div id="successTab" class="billing-tab-content p-6" style="display: none;">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">成約手数料請求待ち</h3>
+                            <div class="text-sm text-gray-500">
+                                自動発行トリガー: <span class="font-medium">有効</span>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">案件ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">加盟店</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">成約金額</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">手数料率</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">手数料(税抜)</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">税込金額</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">入金状況</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">トリガー</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">アクション</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr class="hover:bg-gray-50 bg-green-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#2024-0845</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">田中塗装工業</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥800,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">10%</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥80,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥88,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">入金完了</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">加盟店更新</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            <button onclick="issueSuccessFee('S001')" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">請求書発行</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 bg-blue-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#2024-0847</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">山田ペイント</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥1,200,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">10%</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥120,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥132,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">入金確認</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">銀行API</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            <button onclick="issueSuccessFee('S002')" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">請求書発行</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#2024-0849</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">佐藤塗装店</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥550,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">10%</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥55,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥60,500</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">未入金</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            <button onclick="manualIssueSuccessFee('S003')" class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-700">手動発行</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 請求書一覧タブ -->
+                    <div id="invoicesTab" class="billing-tab-content p-6" style="display: none;">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">請求書一覧</h3>
+                            <div class="flex space-x-2">
+                                <select class="border rounded px-3 py-1 text-sm">
+                                    <option>全て</option>
+                                    <option>未発行</option>
+                                    <option>発行済</option>
+                                    <option>入金済</option>
+                                    <option>期限超過</option>
+                                </select>
+                                <input type="month" value="2024-01" class="border rounded px-3 py-1 text-sm">
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">請求書番号</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">種別</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">加盟店</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">請求額(税込)</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">発行日</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払期限</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ステータス</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">アクション</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">INV-2024-0156</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">紹介料</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">田中塗装工業</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥66,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024/01/31</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024/02/15</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">入金済</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            <button onclick="viewInvoice('INV-2024-0156')" class="text-blue-600 hover:text-blue-900 mr-2">詳細</button>
+                                            <button onclick="downloadInvoicePDF('INV-2024-0156')" class="text-gray-600 hover:text-gray-900">PDF</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 支払予定表タブ -->
+                    <div id="scheduleTab" class="billing-tab-content p-6" style="display: none;">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">支払予定表</h3>
+                            <div class="text-sm text-gray-500">
+                                2024年2月の支払予定
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="bg-white border rounded-lg p-4">
+                                <div class="font-medium text-gray-900 mb-2">2/15(木) 支払予定</div>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">田中塗装工業</span>
+                                        <span class="font-medium">¥66,000</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">鈴木工務店</span>
+                                        <span class="font-medium">¥44,000</span>
+                                    </div>
+                                </div>
+                                <div class="mt-3 pt-3 border-t flex justify-between">
+                                    <span class="text-sm font-medium">小計</span>
+                                    <span class="font-bold">¥110,000</span>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white border rounded-lg p-4">
+                                <div class="font-medium text-gray-900 mb-2">2/27(火) 支払予定</div>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">山田ペイント</span>
+                                        <span class="font-medium">¥55,000</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">佐藤塗装店</span>
+                                        <span class="font-medium">¥88,000</span>
+                                    </div>
+                                </div>
+                                <div class="mt-3 pt-3 border-t flex justify-between">
+                                    <span class="text-sm font-medium">小計</span>
+                                    <span class="font-bold">¥143,000</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div><!-- billingSectionの終了 -->
 
             <!-- レポートセクション -->
             <div id="reportsSection" class="section" style="display: none;">
-                <h2 class="text-2xl font-bold text-gray-900 mb-6">レポート</h2>
-                <div class="bg-white shadow rounded-lg p-6">
-                    <p class="text-gray-600">各種レポートがここに表示されます</p>
+                <div class="mb-6 flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-gray-900">レポート</h2>
+                    <div class="flex space-x-2">
+                        <select id="reportPeriod" onchange="updateReports()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                            <option value="month">今月</option>
+                            <option value="quarter">今四半期</option>
+                            <option value="year">今年度</option>
+                            <option value="custom">期間指定</option>
+                        </select>
+                        <button onclick="exportReport()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            レポート出力
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPIサマリー -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">総売上</p>
+                                <p class="text-2xl font-bold text-gray-900">¥8,450,000</p>
+                                <p class="text-xs text-green-600 flex items-center mt-1">
+                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    12% 前月比
+                                </p>
+                            </div>
+                            <div class="p-3 bg-blue-100 rounded-full">
+                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">成約率</p>
+                                <p class="text-2xl font-bold text-gray-900">68.5%</p>
+                                <p class="text-xs text-green-600 flex items-center mt-1">
+                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    5.2% 改善
+                                </p>
+                            </div>
+                            <div class="p-3 bg-green-100 rounded-full">
+                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">平均単価</p>
+                                <p class="text-2xl font-bold text-gray-900">¥952,000</p>
+                                <p class="text-xs text-red-600 flex items-center mt-1">
+                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M14.707 12.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    3% 前月比
+                                </p>
+                            </div>
+                            <div class="p-3 bg-yellow-100 rounded-full">
+                                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">新規案件</p>
+                                <p class="text-2xl font-bold text-gray-900">42件</p>
+                                <p class="text-xs text-green-600 flex items-center mt-1">
+                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    8件 増加
+                                </p>
+                            </div>
+                            <div class="p-3 bg-purple-100 rounded-full">
+                                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- グラフエリア -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- 売上推移グラフ -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">売上推移</h3>
+                            <select class="text-sm border rounded px-2 py-1">
+                                <option>月別</option>
+                                <option>週別</option>
+                                <option>日別</option>
+                            </select>
+                        </div>
+                        <div style="height: 200px;">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 成約率推移グラフ -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">成約率推移</h3>
+                            <select class="text-sm border rounded px-2 py-1">
+                                <option>月別</option>
+                                <option>週別</option>
+                            </select>
+                        </div>
+                        <div style="height: 200px;">
+                            <canvas id="conversionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 詳細テーブル -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- 営業別成績 -->
+                    <div class="bg-white rounded-lg shadow">
+                        <div class="px-6 py-4 border-b">
+                            <h3 class="text-lg font-semibold text-gray-900">営業別成績</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">営業名</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">成約数</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">成約率</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">売上</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">田中太郎</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">12</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <span class="text-sm text-gray-900">75%</span>
+                                                <div class="ml-2 w-16 bg-gray-200 rounded-full h-2">
+                                                    <div class="bg-green-500 h-2 rounded-full" style="width: 75%"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥3,200,000</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">佐藤花子</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">8</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <span class="text-sm text-gray-900">62%</span>
+                                                <div class="ml-2 w-16 bg-gray-200 rounded-full h-2">
+                                                    <div class="bg-yellow-500 h-2 rounded-full" style="width: 62%"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥2,100,000</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">鈴木次郎</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">5</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <span class="text-sm text-gray-900">45%</span>
+                                                <div class="ml-2 w-16 bg-gray-200 rounded-full h-2">
+                                                    <div class="bg-red-500 h-2 rounded-full" style="width: 45%"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥1,450,000</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- エリア別成績 -->
+                    <div class="bg-white rounded-lg shadow">
+                        <div class="px-6 py-4 border-b">
+                            <h3 class="text-lg font-semibold text-gray-900">エリア別成績</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">エリア</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">案件数</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">成約率</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">売上</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">東京都</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">18</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">72%</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥4,200,000</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">神奈川県</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">12</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">65%</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥2,800,000</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">埼玉県</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">8</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">58%</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥1,450,000</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- リードタイム分析セクション -->
+                <div class="mt-8">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold text-gray-900">リードタイム分析</h3>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-500">平均値表示</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="showMedian" class="sr-only peer" onchange="updateLeadTimeDisplay()">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                                <span class="text-sm text-gray-500">中央値表示</span>
+                            </div>
+                        </div>
+
+                        <!-- KPIカード -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-blue-600 font-medium">問合せ → 現地調査</p>
+                                        <p class="text-2xl font-bold text-blue-900" id="leadTime1">3.2日</p>
+                                        <p class="text-xs text-blue-600 flex items-center mt-1">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            0.5日 短縮
+                                        </p>
+                                    </div>
+                                    <div class="p-3 bg-blue-200 rounded-full">
+                                        <svg class="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-green-600 font-medium">現地調査 → 見積提出</p>
+                                        <p class="text-2xl font-bold text-green-900" id="leadTime2">2.8日</p>
+                                        <p class="text-xs text-green-600 flex items-center mt-1">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            0.2日 短縮
+                                        </p>
+                                    </div>
+                                    <div class="p-3 bg-green-200 rounded-full">
+                                        <svg class="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-purple-600 font-medium">見積提出 → 成約</p>
+                                        <p class="text-2xl font-bold text-purple-900" id="leadTime3">5.5日</p>
+                                        <p class="text-xs text-red-600 flex items-center mt-1">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M14.707 12.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            1.2日 延長
+                                        </p>
+                                    </div>
+                                    <div class="p-3 bg-purple-200 rounded-full">
+                                        <svg class="w-6 h-6 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- リードタイムチャート -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                            <!-- 月別推移グラフ -->
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="text-sm font-semibold text-gray-700 mb-3">月別リードタイム推移</h4>
+                                <div style="height: 250px;">
+                                    <canvas id="leadTimeChart"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- ファネル分析 -->
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="text-sm font-semibold text-gray-700 mb-3">営業ファネル分析</h4>
+                                <div class="space-y-3">
+                                    <div class="relative">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-sm font-medium text-gray-700">問合せ</span>
+                                            <span class="text-sm text-gray-500">142件</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-8">
+                                            <div class="bg-blue-500 h-8 rounded-full flex items-center justify-center text-white text-xs" style="width: 100%">
+                                                100%
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="relative">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-sm font-medium text-gray-700">現地調査</span>
+                                            <span class="text-sm text-gray-500">98件</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-8">
+                                            <div class="bg-green-500 h-8 rounded-full flex items-center justify-center text-white text-xs" style="width: 69%">
+                                                69% (平均3.2日)
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="relative">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-sm font-medium text-gray-700">見積提出</span>
+                                            <span class="text-sm text-gray-500">85件</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-8">
+                                            <div class="bg-yellow-500 h-8 rounded-full flex items-center justify-center text-white text-xs" style="width: 60%">
+                                                60% (平均2.8日)
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="relative">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-sm font-medium text-gray-700">成約</span>
+                                            <span class="text-sm text-gray-500">42件</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-8">
+                                            <div class="bg-purple-500 h-8 rounded-full flex items-center justify-center text-white text-xs" style="width: 30%">
+                                                30% (平均5.5日)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 pt-4 border-t border-gray-200">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">トータル平均日数:</span>
+                                        <span class="font-bold text-gray-900">11.5日</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 営業別リードタイム比較 -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="text-sm font-semibold text-gray-700 mb-4">営業別リードタイム比較</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full">
+                                    <thead>
+                                        <tr class="text-xs text-gray-500 uppercase">
+                                            <th class="text-left py-2">営業担当</th>
+                                            <th class="text-center py-2">問合せ→調査</th>
+                                            <th class="text-center py-2">調査→見積</th>
+                                            <th class="text-center py-2">見積→成約</th>
+                                            <th class="text-center py-2">合計日数</th>
+                                            <th class="text-center py-2">成約率</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-sm">
+                                        <tr class="border-t border-gray-200">
+                                            <td class="py-3 font-medium text-gray-900">田中太郎</td>
+                                            <td class="text-center text-green-600 font-medium">2.5日</td>
+                                            <td class="text-center text-green-600 font-medium">2.0日</td>
+                                            <td class="text-center text-green-600 font-medium">4.5日</td>
+                                            <td class="text-center font-bold text-gray-900">9.0日</td>
+                                            <td class="text-center">
+                                                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">75%</span>
+                                            </td>
+                                        </tr>
+                                        <tr class="border-t border-gray-200">
+                                            <td class="py-3 font-medium text-gray-900">佐藤花子</td>
+                                            <td class="text-center text-yellow-600 font-medium">3.0日</td>
+                                            <td class="text-center text-yellow-600 font-medium">3.2日</td>
+                                            <td class="text-center text-yellow-600 font-medium">5.8日</td>
+                                            <td class="text-center font-bold text-gray-900">12.0日</td>
+                                            <td class="text-center">
+                                                <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">62%</span>
+                                            </td>
+                                        </tr>
+                                        <tr class="border-t border-gray-200">
+                                            <td class="py-3 font-medium text-gray-900">鈴木次郎</td>
+                                            <td class="text-center text-red-600 font-medium">4.5日</td>
+                                            <td class="text-center text-red-600 font-medium">3.8日</td>
+                                            <td class="text-center text-red-600 font-medium">7.2日</td>
+                                            <td class="text-center font-bold text-gray-900">15.5日</td>
+                                            <td class="text-center">
+                                                <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">45%</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+                                <p class="text-xs text-blue-800">
+                                    <strong>💡 改善ポイント:</strong> 見積提出から成約までの期間が長い傾向があります。フォローアップの頻度を上げることで成約率向上が期待できます。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div><!-- reportsSectionの終了 -->
 
@@ -696,14 +1599,40 @@
     <div id="permissionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
         <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
             <div class="mb-4">
-                <h3 class="text-lg font-bold text-gray-900">営業権限設定</h3>
+                <h3 class="text-lg font-bold text-gray-900" id="modalTitle">営業権限設定</h3>
                 <p class="text-sm text-gray-500 mt-1">営業担当者の権限を詳細に設定できます</p>
+            </div>
+            <!-- 新規追加時の入力フィールド -->
+            <div id="newSalesFields" class="mb-6 hidden">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">氏名 <span class="text-red-500">*</span></label>
+                        <input type="text" id="newSalesName" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例：山田太郎">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">メールアドレス <span class="text-red-500">*</span></label>
+                        <input type="email" id="newSalesEmail" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="example@company.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">電話番号</label>
+                        <input type="tel" id="newSalesPhone" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="090-1234-5678">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">役職</label>
+                        <select id="newSalesRole" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="一般営業">一般営業</option>
+                            <option value="リーダー">リーダー</option>
+                            <option value="一般事務">一般事務</option>
+                            <option value="現場監督">現場監督</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-2">権限プリセット</label>
                 <div class="grid grid-cols-4 gap-2">
-                    <button onclick="setPreset('rookie')" class="preset-btn px-4 py-2 border rounded-lg hover:bg-gray-50">新人営業</button>
+                    <button onclick="setPreset('office')" class="preset-btn px-4 py-2 border rounded-lg hover:bg-gray-50">一般事務</button>
                     <button onclick="setPreset('standard')" class="preset-btn px-4 py-2 border rounded-lg hover:bg-gray-50">一般営業</button>
                     <button onclick="setPreset('leader')" class="preset-btn px-4 py-2 border rounded-lg hover:bg-gray-50">リーダー</button>
                     <button onclick="setPreset('admin')" class="preset-btn px-4 py-2 border rounded-lg hover:bg-gray-50">副管理者</button>
@@ -724,23 +1653,31 @@
                             <span class="ml-2">案件編集</span>
                         </label>
                         <label class="flex items-center text-sm">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="case.hide">
+                            <span class="ml-2">案件非表示</span>
+                        </label>
+                        <label class="flex items-center text-sm">
                             <input type="checkbox" class="permission-checkbox rounded" data-permission="case.delete">
-                            <span class="ml-2">案件削除</span>
+                            <span class="ml-2">誤入力削除（24時間以内）</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- 会社情報 -->
+                <!-- 自動配信設定 -->
                 <div class="border rounded-lg p-4">
-                    <h4 class="font-medium text-gray-900 mb-3">会社情報</h4>
+                    <h4 class="font-medium text-gray-900 mb-3">自動配信設定</h4>
                     <div class="space-y-2">
                         <label class="flex items-center text-sm">
-                            <input type="checkbox" class="permission-checkbox rounded" data-permission="company.view">
-                            <span class="ml-2">会社情報閲覧</span>
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="automail.view">
+                            <span class="ml-2">配信条件閲覧</span>
                         </label>
                         <label class="flex items-center text-sm">
-                            <input type="checkbox" class="permission-checkbox rounded" data-permission="company.edit">
-                            <span class="ml-2">会社情報編集</span>
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="automail.edit">
+                            <span class="ml-2">配信条件編集</span>
+                        </label>
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="automail.test">
+                            <span class="ml-2">テスト配信実行</span>
                         </label>
                     </div>
                 </div>
@@ -760,17 +1697,25 @@
                     </div>
                 </div>
 
-                <!-- 営業管理 -->
+                <!-- レポート・営業管理 -->
                 <div class="border rounded-lg p-4">
-                    <h4 class="font-medium text-gray-900 mb-3">営業管理</h4>
+                    <h4 class="font-medium text-gray-900 mb-3">レポート・営業管理</h4>
                     <div class="space-y-2">
                         <label class="flex items-center text-sm">
-                            <input type="checkbox" class="permission-checkbox rounded" data-permission="sales.manage">
-                            <span class="ml-2">営業管理</span>
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="report.self">
+                            <span class="ml-2">レポート閲覧（自分の成績のみ）</span>
                         </label>
                         <label class="flex items-center text-sm">
-                            <input type="checkbox" class="permission-checkbox rounded" data-permission="sales.report">
-                            <span class="ml-2">レポート作成</span>
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="report.all">
+                            <span class="ml-2">全体レポート閲覧</span>
+                        </label>
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="report.export">
+                            <span class="ml-2">レポートCSV出力</span>
+                        </label>
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="sales.manage">
+                            <span class="ml-2">営業担当者管理</span>
                         </label>
                     </div>
                 </div>
@@ -835,7 +1780,13 @@
                 
                 // ダッシュボードを表示
                 showSection('dashboard');
-                
+
+                // 案件カードを初期化
+                setTimeout(() => {
+                    renderCaseCards();
+                    updateCaseCounts();
+                }, 50);
+
                 // カレンダーを初期化
                 setTimeout(() => {
                     initCalendar();
@@ -976,8 +1927,31 @@
         }
 
         // 権限モーダル
-        function openPermissionModal() {
-            document.getElementById('permissionModal').classList.remove('hidden');
+        function openPermissionModal(name = null, isNew = true) {
+            const modal = document.getElementById('permissionModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const newSalesFields = document.getElementById('newSalesFields');
+
+            if (isNew) {
+                // 新規追加モード
+                modalTitle.textContent = '新規営業担当者追加';
+                newSalesFields.classList.remove('hidden');
+                // フォームをクリア
+                document.getElementById('newSalesName').value = '';
+                document.getElementById('newSalesEmail').value = '';
+                document.getElementById('newSalesPhone').value = '';
+                document.getElementById('newSalesRole').value = '一般営業';
+                // 全権限チェックボックスをクリア
+                document.querySelectorAll('.permission-checkbox').forEach(cb => cb.checked = false);
+            } else {
+                // 編集モード
+                modalTitle.textContent = `${name}の権限設定`;
+                newSalesFields.classList.add('hidden');
+                // 既存の権限を読み込む（デモ用にランダムに設定）
+                loadExistingPermissions(name);
+            }
+
+            modal.classList.remove('hidden');
         }
 
         function closePermissionModal() {
@@ -985,17 +1959,140 @@
         }
 
         function editPermissions(name) {
-            alert(`${name}の権限を編集します`);
-            openPermissionModal();
+            openPermissionModal(name, false);
+        }
+
+        // 既存の権限を読み込む
+        function loadExistingPermissions(name) {
+            // デモ用：ランダムに権限を設定
+            document.querySelectorAll('.permission-checkbox').forEach(cb => {
+                cb.checked = Math.random() > 0.5;
+            });
+        }
+
+        // 営業担当者削除確認
+        function confirmDeleteSales(name) {
+            // 削除確認モーダルを作成
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.id = 'deleteConfirmModal';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 w-full max-w-md">
+                    <div class="flex items-center mb-4">
+                        <svg class="w-6 h-6 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        <h3 class="text-lg font-bold text-gray-900">営業担当者の削除確認</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">
+                        <span class="font-semibold">${name}</span>さんを削除してもよろしいですか？
+                    </p>
+                    <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-3 mb-4">
+                        <p class="text-sm text-yellow-800">
+                            <strong>注意：</strong>この操作は取り消せません。<br>
+                            削除すると以下の情報が失われます：
+                        </p>
+                        <ul class="mt-2 text-sm text-yellow-700 list-disc list-inside">
+                            <li>営業担当者の基本情報</li>
+                            <li>権限設定</li>
+                            <li>過去の活動履歴</li>
+                            <li>担当案件の割り当て（再割り当てが必要）</li>
+                        </ul>
+                    </div>
+                    <div class="flex items-center mb-4">
+                        <input type="checkbox" id="reassignCases" class="rounded mr-2">
+                        <label for="reassignCases" class="text-sm text-gray-700">
+                            担当案件を他の営業に引き継ぐ
+                        </label>
+                    </div>
+                    <div id="reassignSection" class="hidden mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">引き継ぎ先</label>
+                        <select id="reassignTo" class="w-full px-3 py-2 border rounded-lg">
+                            <option value="">選択してください</option>
+                            <option value="田中太郎">田中太郎（リーダー）</option>
+                            <option value="佐藤花子">佐藤花子（一般営業）</option>
+                            <option value="鈴木次郎">鈴木次郎（新人営業）</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                            キャンセル
+                        </button>
+                        <button onclick="deleteSales('${name}')" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                            削除する
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // 引き継ぎチェックボックスのイベント
+            document.getElementById('reassignCases').addEventListener('change', function(e) {
+                const reassignSection = document.getElementById('reassignSection');
+                if (e.target.checked) {
+                    reassignSection.classList.remove('hidden');
+                } else {
+                    reassignSection.classList.add('hidden');
+                }
+            });
+
+            // 削除対象を選択肢から除外
+            const reassignSelect = document.getElementById('reassignTo');
+            Array.from(reassignSelect.options).forEach(option => {
+                if (option.value === name) {
+                    option.remove();
+                }
+            });
+        }
+
+        // 削除モーダルを閉じる
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteConfirmModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // 営業担当者を削除
+        function deleteSales(name) {
+            const reassignCases = document.getElementById('reassignCases').checked;
+            const reassignTo = document.getElementById('reassignTo').value;
+
+            if (reassignCases && !reassignTo) {
+                alert('引き継ぎ先を選択してください');
+                return;
+            }
+
+            // 削除処理（実際にはAPIを呼ぶ）
+            if (reassignCases) {
+                showNotification('削除完了', `${name}さんを削除し、案件を${reassignTo}さんに引き継ぎました`);
+            } else {
+                showNotification('削除完了', `${name}さんを削除しました`);
+            }
+
+            // モーダルを閉じる
+            closeDeleteModal();
+
+            // テーブルから行を削除（デモ用）
+            const rows = document.querySelectorAll('#salesSection tbody tr');
+            rows.forEach(row => {
+                if (row.textContent.includes(name)) {
+                    row.style.transition = 'opacity 0.3s';
+                    row.style.opacity = '0';
+                    setTimeout(() => {
+                        row.remove();
+                    }, 300);
+                }
+            });
         }
 
         // 権限プリセット設定
         function setPreset(preset) {
             const presets = {
-                rookie: ['case.view', 'company.view'],
-                standard: ['case.view', 'case.edit', 'company.view'],
-                leader: ['case.view', 'case.edit', 'case.delete', 'company.view', 'company.edit', 'finance.view', 'sales.report'],
-                admin: ['case.view', 'case.edit', 'case.delete', 'company.view', 'company.edit', 'finance.view', 'finance.export', 'sales.manage', 'sales.report']
+                office: ['case.view', 'case.edit', 'case.hide', 'finance.view', 'finance.edit', 'automail.view', 'report.self'],
+                standard: ['case.view', 'case.edit', 'case.hide', 'automail.view', 'report.self'],
+                leader: ['case.view', 'case.edit', 'case.hide', 'case.delete', 'finance.view', 'automail.view', 'automail.edit', 'report.self', 'report.all', 'report.export'],
+                admin: ['case.view', 'case.edit', 'case.hide', 'case.delete', 'automail.view', 'automail.edit', 'automail.test', 'finance.view', 'finance.edit', 'finance.export', 'report.self', 'report.all', 'report.export', 'sales.manage']
             };
             
             // すべてのチェックボックスをクリア
@@ -1019,8 +2116,69 @@
         }
 
         function savePermissions() {
-            alert('権限設定を保存しました');
+            const modalTitle = document.getElementById('modalTitle').textContent;
+            const isNewSales = modalTitle.includes('新規');
+
+            if (isNewSales) {
+                // 新規追加の場合
+                const name = document.getElementById('newSalesName').value;
+                const email = document.getElementById('newSalesEmail').value;
+                const phone = document.getElementById('newSalesPhone').value;
+                const role = document.getElementById('newSalesRole').value;
+
+                // バリデーション
+                if (!name || !email) {
+                    alert('氏名とメールアドレスは必須項目です');
+                    return;
+                }
+
+                // テーブルに新しい行を追加
+                addSalesPersonToTable(name, role, email, phone);
+
+                showNotification('追加完了', `${name}さんを営業担当者として追加しました`);
+            } else {
+                // 編集の場合
+                showNotification('更新完了', '権限設定を更新しました');
+            }
+
             closePermissionModal();
+        }
+
+        // テーブルに営業担当者を追加
+        function addSalesPersonToTable(name, role, email, phone) {
+            const tbody = document.querySelector('#salesSection tbody');
+            const newRow = document.createElement('tr');
+
+            // ロールに応じた色を設定
+            let roleColor = 'green';
+            let statsDisplay = ['0', '0%'];
+
+            if (role === 'リーダー') {
+                roleColor = 'purple';
+            } else if (role === '一般営業') {
+                roleColor = 'blue';
+            } else if (role === '一般事務') {
+                roleColor = 'green';
+                statsDisplay = ['-', '-'];  // 事務は成約数・成約率なし
+            } else if (role === '現場監督') {
+                roleColor = 'yellow';
+                statsDisplay = ['-', '-'];  // 現場監督も成約数・成約率なし
+            }
+
+            newRow.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${name}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-${roleColor}-100 text-${roleColor}-800">${role}</span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${statsDisplay[0]}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${statsDisplay[1]}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <button onclick="editPermissions('${name}')" class="text-blue-600 hover:text-blue-900 mr-3">権限編集</button>
+                    <button onclick="confirmDeleteSales('${name}')" class="text-red-600 hover:text-red-900">削除</button>
+                </td>
+            `;
+
+            tbody.appendChild(newRow);
         }
 
         // ログアウト
@@ -1055,7 +2213,13 @@
                 document.getElementById('mainApp').classList.remove('hidden');
                 updateRoleDisplay();
                 showSection('dashboard');
-                
+
+                // 案件カードを初期化
+                setTimeout(() => {
+                    renderCaseCards();
+                    updateCaseCounts();
+                }, 50);
+
                 // カレンダーを初期化
                 setTimeout(() => {
                     initCalendar();
@@ -1154,6 +2318,51 @@
         // カレンダー機能
         let currentDate = new Date();
         let currentView = 'month';
+        
+        // 日本の祝日データ（2024年・2025年）
+        const japaneseHolidays = {
+            '2024-01-01': '元日',
+            '2024-01-08': '成人の日',
+            '2024-02-11': '建国記念の日',
+            '2024-02-12': '振替休日',
+            '2024-02-23': '天皇誕生日',
+            '2024-03-20': '春分の日',
+            '2024-04-29': '昭和の日',
+            '2024-05-03': '憲法記念日',
+            '2024-05-04': 'みどりの日',
+            '2024-05-05': 'こどもの日',
+            '2024-05-06': '振替休日',
+            '2024-07-15': '海の日',
+            '2024-08-11': '山の日',
+            '2024-08-12': '振替休日',
+            '2024-09-16': '敬老の日',
+            '2024-09-22': '秋分の日',
+            '2024-09-23': '振替休日',
+            '2024-10-14': 'スポーツの日',
+            '2024-11-03': '文化の日',
+            '2024-11-04': '振替休日',
+            '2024-11-23': '勤労感謝の日',
+            '2025-01-01': '元日',
+            '2025-01-13': '成人の日',
+            '2025-02-11': '建国記念の日',
+            '2025-02-23': '天皇誕生日',
+            '2025-02-24': '振替休日',
+            '2025-03-20': '春分の日',
+            '2025-04-29': '昭和の日',
+            '2025-05-03': '憲法記念日',
+            '2025-05-04': 'みどりの日',
+            '2025-05-05': 'こどもの日',
+            '2025-05-06': '振替休日',
+            '2025-07-21': '海の日',
+            '2025-08-11': '山の日',
+            '2025-09-15': '敬老の日',
+            '2025-09-23': '秋分の日',
+            '2025-10-13': 'スポーツの日',
+            '2025-11-03': '文化の日',
+            '2025-11-23': '勤労感謝の日',
+            '2025-11-24': '振替休日'
+        };
+        
         let calendarEvents = [
             {
                 id: 1,
@@ -1240,10 +2449,22 @@
                         cellDate = date;
                         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
                         
+                        // 週末と祝日の背景色設定
+                        const isHoliday = japaneseHolidays[dateStr];
+                        if (day === 0 || isHoliday) {
+                            // 日曜日または祝日は薄い赤
+                            cellStyle += ' background: #fee2e2;';
+                        } else if (day === 6) {
+                            // 土曜日は薄い水色
+                            cellStyle += ' background: #e0f2fe;';
+                        }
+                        
                         // 今日の日付を強調
                         const today = new Date();
-                        if (year === today.getFullYear() && month === today.getMonth() && date === today.getDate()) {
-                            cellStyle += ' background: #eff6ff;';
+                        const isToday = year === today.getFullYear() && month === today.getMonth() && date === today.getDate();
+                        if (isToday) {
+                            cellStyle = cellStyle.replace(/background:[^;]+;/, 'background: #eff6ff;');
+                            cellStyle += ' border: 2px solid #3b82f6;';
                         }
                         
                         // イベントを表示
@@ -1274,7 +2495,16 @@
                             cellContent += '</div>';
                         }
                         
+                        // 祝日名を追加
+                        let holidayLabel = '';
+                        if (isHoliday) {
+                            holidayLabel = `<div style="font-size: 10px; color: #dc2626; font-weight: 500;">${isHoliday}</div>`;
+                        }
+                        
                         // htmlに追加
+                        const originalBg = isToday ? '#eff6ff' : (day === 0 || isHoliday ? '#fee2e2' : day === 6 ? '#e0f2fe' : 'white');
+                        const hoverBg = isToday ? '#dbeafe' : (day === 0 || isHoliday ? '#fecaca' : day === 6 ? '#bae6fd' : '#f9fafb');
+                        
                         html += `
                             <div style="${cellStyle}" 
                                  data-date="${cellDate}"
@@ -1283,9 +2513,10 @@
                                  ondragover="handleDragOver(event)"
                                  ondragleave="handleDragLeave(event)"
                                  onclick="handleCellClick(event)"
-                                 onmouseover="this.style.background='#f9fafb'"
-                                 onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px;">${cellDate}</div>
+                                 onmouseover="this.style.background='${hoverBg}'"
+                                 onmouseout="this.style.background='${originalBg}'">
+                                <div style="font-weight: 500; font-size: 14px; ${day === 0 || isHoliday ? 'color: #dc2626;' : day === 6 ? 'color: #0284c7;' : ''}">${cellDate}</div>
+                                ${holidayLabel}
                                 ${cellContent}
                             </div>
                         `;
@@ -1753,6 +2984,205 @@
             showEventModal(null, today);
         }
         
+        // ========== 請求管理機能 ==========
+        
+        // 請求管理タブ切り替え
+        function showBillingTab(tabName) {
+            // 全タブコンテンツを非表示
+            document.querySelectorAll('.billing-tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            
+            // 全タブボタンのアクティブ状態を解除
+            document.querySelectorAll('.billing-tab').forEach(tab => {
+                tab.classList.remove('billing-tab-active', 'text-blue-600', 'border-blue-600');
+                tab.classList.add('text-gray-500', 'border-transparent');
+            });
+            
+            // 選択されたタブを表示
+            const selectedContent = document.getElementById(tabName + 'Tab');
+            if (selectedContent) {
+                selectedContent.style.display = 'block';
+            }
+            
+            // 選択されたタブボタンをアクティブに
+            const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
+            if (selectedTab) {
+                selectedTab.classList.remove('text-gray-500', 'border-transparent');
+                selectedTab.classList.add('billing-tab-active', 'text-blue-600', 'border-blue-600');
+            }
+        }
+        
+        // 紹介料計算
+        function calculateReferralFee(projectType, buildingType, floors, competitors) {
+            let baseFee = 0;
+            const TAX_RATE = 0.10;
+            
+            // アパート・マンション3階以上の特別料金
+            if (buildingType === 'apartment' && floors >= 3) {
+                if (projectType.includes('外壁')) {
+                    baseFee = 30000;
+                }
+            }
+            // 単品項目（相見積もり）
+            else if (competitors > 1) {
+                if (projectType === '屋根塗装' || projectType === '屋上防水') {
+                    baseFee = 10000;
+                } else if (projectType === '外壁補修' || projectType === '屋根補修' || projectType === 'ベランダ防水') {
+                    baseFee = 5000;
+                }
+            }
+            // 基本項目
+            else {
+                baseFee = 20000;
+            }
+            
+            const tax = Math.floor(baseFee * TAX_RATE);
+            return {
+                base: baseFee,
+                tax: tax,
+                total: baseFee + tax
+            };
+        }
+        
+        // 成約手数料計算
+        function calculateSuccessFee(contractAmount, rate = 0.10) {
+            const TAX_RATE = 0.10;
+            const baseFee = Math.floor(contractAmount * rate);
+            const tax = Math.floor(baseFee * TAX_RATE);
+            
+            return {
+                base: baseFee,
+                tax: tax,
+                total: baseFee + tax,
+                rate: rate
+            };
+        }
+        
+        // 支払予定日計算（土日祝日の後ろ倒し）
+        function calculatePaymentDate(paymentMethod) {
+            const today = new Date();
+            const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+            let paymentDate;
+            
+            if (paymentMethod === 'BANK_TRANSFER') {
+                // 翌月15日
+                paymentDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), 15);
+            } else {
+                // 翌月27日（口座振替）
+                paymentDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), 27);
+            }
+            
+            // 土日祝日チェック（簡易版）
+            while (paymentDate.getDay() === 0 || paymentDate.getDay() === 6) {
+                paymentDate.setDate(paymentDate.getDate() + 1);
+            }
+            
+            // 祝日チェック
+            const holidayStr = paymentDate.toISOString().split('T')[0];
+            if (japaneseHolidays[holidayStr]) {
+                paymentDate.setDate(paymentDate.getDate() + 1);
+                // 再度土日チェック
+                while (paymentDate.getDay() === 0 || paymentDate.getDay() === 6) {
+                    paymentDate.setDate(paymentDate.getDate() + 1);
+                }
+            }
+            
+            return paymentDate;
+        }
+        
+        // 請求書発行
+        function issueInvoice(invoiceId) {
+            if (confirm('請求書を発行しますか？')) {
+                // ステータスを更新（デモ）
+                const statusCell = document.querySelector(`[value="${invoiceId}"]`).closest('tr').querySelector('.bg-yellow-100');
+                if (statusCell) {
+                    statusCell.classList.remove('bg-yellow-100', 'text-yellow-800');
+                    statusCell.classList.add('bg-green-100', 'text-green-800');
+                    statusCell.textContent = '発行済';
+                }
+                
+                showNotification('請求書発行', `請求書 ${invoiceId} を発行しました`);
+            }
+        }
+        
+        // 成約手数料請求書発行
+        function issueSuccessFee(feeId) {
+            if (confirm('成約手数料の請求書を発行しますか？')) {
+                showNotification('成約手数料請求', `請求書を発行しました（${feeId}）`);
+                
+                // 行を非表示に（デモ）
+                const row = document.querySelector(`button[onclick="issueSuccessFee('${feeId}')"]`).closest('tr');
+                if (row) {
+                    row.style.opacity = '0.5';
+                    setTimeout(() => {
+                        row.style.display = 'none';
+                    }, 500);
+                }
+            }
+        }
+        
+        // 手動発行
+        function manualIssueSuccessFee(feeId) {
+            const reason = prompt('手動発行の理由を入力してください：');
+            if (reason) {
+                issueSuccessFee(feeId);
+                console.log('手動発行理由:', reason);
+            }
+        }
+        
+        // 月次請求書一括発行
+        function generateMonthlyInvoices() {
+            const checkedBoxes = document.querySelectorAll('.invoice-checkbox:checked');
+            if (checkedBoxes.length === 0) {
+                alert('発行する請求書を選択してください');
+                return;
+            }
+            
+            if (confirm(`${checkedBoxes.length}件の請求書を一括発行しますか？`)) {
+                checkedBoxes.forEach(checkbox => {
+                    issueInvoice(checkbox.value);
+                });
+                showNotification('一括発行完了', `${checkedBoxes.length}件の請求書を発行しました`);
+            }
+        }
+        
+        // 全選択
+        function selectAllInvoices(checkbox) {
+            document.querySelectorAll('.invoice-checkbox').forEach(cb => {
+                cb.checked = checkbox.checked;
+            });
+        }
+        
+        // 請求書詳細表示
+        function showInvoiceDetail(invoiceId) {
+            alert(`請求書詳細: ${invoiceId}\n\n実装予定：\n- 明細表示\n- 編集機能\n- メール送信`);
+        }
+        
+        // PDF出力
+        function downloadPDF(invoiceId) {
+            showNotification('PDF出力', `${invoiceId}.pdf をダウンロードしました`);
+        }
+        
+        // CSV出力
+        function exportInvoices() {
+            const data = [
+                ['請求書番号', '加盟店', '種別', '金額(税込)', '発行日', '支払期限', 'ステータス'],
+                ['INV-2024-0156', '田中塗装工業', '紹介料', '66000', '2024-01-31', '2024-02-15', '入金済'],
+                ['INV-2024-0157', '山田ペイント', '成約手数料', '132000', '2024-01-31', '2024-02-27', '発行済']
+            ];
+            
+            const csv = data.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `invoices_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            
+            showNotification('CSV出力', '請求書一覧をCSVで出力しました');
+        }
+        
         // デモ用: 定期的な通知（通知時間を考慮）
         setInterval(() => {
             if (currentUser && Math.random() > 0.8) {
@@ -1774,6 +3204,1738 @@
                 showNotification('新規案件', '新しい案件が割り当てられました');
             }
         }, 30000);
+
+        // レポート用のグラフ初期化
+        let salesChart = null;
+        let conversionChart = null;
+        let leadTimeChart = null;
+
+        // レポート更新関数
+        function updateReports() {
+            const period = document.getElementById('reportPeriod').value;
+            // 期間に応じたデータ取得と更新処理
+            renderCharts();
+        }
+
+        // グラフ描画関数
+        function renderCharts() {
+            // 売上推移グラフ
+            const salesCtx = document.getElementById('salesChart');
+            if (salesCtx) {
+                if (salesChart) {
+                    salesChart.destroy();
+                }
+                salesChart = new Chart(salesCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                        datasets: [{
+                            label: '売上（千円）',
+                            data: [6200, 7500, 6800, 8450, 7900, 8450],
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '¥' + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 成約率推移グラフ
+            const conversionCtx = document.getElementById('conversionChart');
+            if (conversionCtx) {
+                if (conversionChart) {
+                    conversionChart.destroy();
+                }
+                conversionChart = new Chart(conversionCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                        datasets: [{
+                            label: '成約率（%）',
+                            data: [65, 62, 68, 70, 67, 68.5],
+                            backgroundColor: [
+                                'rgba(34, 197, 94, 0.8)',
+                                'rgba(34, 197, 94, 0.8)',
+                                'rgba(34, 197, 94, 0.8)',
+                                'rgba(34, 197, 94, 0.8)',
+                                'rgba(34, 197, 94, 0.8)',
+                                'rgba(34, 197, 94, 0.8)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // リードタイムチャート
+            const leadTimeCtx = document.getElementById('leadTimeChart');
+            if (leadTimeCtx) {
+                if (leadTimeChart) {
+                    leadTimeChart.destroy();
+                }
+                leadTimeChart = new Chart(leadTimeCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                        datasets: [
+                            {
+                                label: '問合せ→調査',
+                                data: [3.5, 3.8, 3.2, 3.0, 3.1, 3.2],
+                                borderColor: 'rgb(59, 130, 246)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.3
+                            },
+                            {
+                                label: '調査→見積',
+                                data: [3.0, 2.9, 3.1, 2.7, 2.8, 2.8],
+                                borderColor: 'rgb(34, 197, 94)',
+                                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                tension: 0.3
+                            },
+                            {
+                                label: '見積→成約',
+                                data: [6.0, 5.8, 5.5, 5.2, 5.3, 5.5],
+                                borderColor: 'rgb(168, 85, 247)',
+                                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                                tension: 0.3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    font: {
+                                        size: 10
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.parsed.y + '日';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '日';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // リードタイム表示切替（平均/中央値）
+        function updateLeadTimeDisplay() {
+            const showMedian = document.getElementById('showMedian').checked;
+
+            if (showMedian) {
+                document.getElementById('leadTime1').textContent = '3.0日';
+                document.getElementById('leadTime2').textContent = '2.5日';
+                document.getElementById('leadTime3').textContent = '5.0日';
+            } else {
+                document.getElementById('leadTime1').textContent = '3.2日';
+                document.getElementById('leadTime2').textContent = '2.8日';
+                document.getElementById('leadTime3').textContent = '5.5日';
+            }
+        }
+
+        // レポートエクスポート関数
+        function exportReport() {
+            const period = document.getElementById('reportPeriod').value;
+            const periodText = document.getElementById('reportPeriod').options[document.getElementById('reportPeriod').selectedIndex].text;
+
+            // CSV形式でデータを生成
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "加盟店管理システム レポート - " + periodText + "\n\n";
+
+            // KPIサマリー
+            csvContent += "KPIサマリー\n";
+            csvContent += "項目,数値,前月比\n";
+            csvContent += "総売上,¥8450000,+12%\n";
+            csvContent += "成約率,68.5%,+5.2%\n";
+            csvContent += "平均単価,¥952000,-3%\n";
+            csvContent += "新規案件,42件,+8件\n\n";
+
+            // 営業別成績
+            csvContent += "営業別成績\n";
+            csvContent += "営業名,成約数,成約率,売上\n";
+            csvContent += "田中太郎,12,75%,¥3200000\n";
+            csvContent += "佐藤花子,8,62%,¥2100000\n";
+            csvContent += "鈴木次郎,5,45%,¥1450000\n\n";
+
+            // エリア別成績
+            csvContent += "エリア別成績\n";
+            csvContent += "エリア,案件数,成約率,売上\n";
+            csvContent += "東京都,18,72%,¥4200000\n";
+            csvContent += "神奈川県,12,65%,¥2800000\n";
+            csvContent += "埼玉県,8,58%,¥1450000\n";
+
+            // ダウンロード実行
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "report_" + new Date().toISOString().split('T')[0] + ".csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showNotification('レポート出力', 'CSVファイルをダウンロードしました');
+        }
+
+        // セクション表示時にグラフを初期化
+        const originalShowSection = showSection;
+        showSection = function(section) {
+            originalShowSection(section);
+            if (section === 'reports') {
+                setTimeout(() => {
+                    renderCharts();
+                }, 100);
+            }
+        }
+
+        // 案件管理機能
+        let currentCaseView = 'card'; // 'card' or 'list'
+
+        // 案件データ（サンプル）
+        const casesData = [
+            { id: 1, name: '山田太郎', location: '東京都世田谷区', propertyType: '戸建て・築15年', phone: '03-1234-5678', status: '未対応', assignee: '田中太郎', area: '東京都世田谷区', temperature: 4, lastContact: '2024/01/15 初回問い合わせ', nextAction: '2024/01/18 14:00 電話フォロー', age: 15 },
+            { id: 2, name: '鈴木花子', location: '神奈川県横浜市', propertyType: '戸建て・築10年', phone: '045-9876-5432', status: 'アポ済', assignee: '佐藤花子', area: '神奈川県横浜市', temperature: 3, lastContact: '2024/01/16 電話でアポ取得', nextAction: '2024/01/20 14:00 現地調査', age: 10 },
+            { id: 3, name: '佐藤一郎', location: '埼玉県さいたま市', propertyType: 'アパート・築20年', phone: '048-1111-2222', status: '見積提出済', assignee: '田中太郎', area: '埼玉県さいたま市', temperature: 5, lastContact: '2024/01/14 見積書メール送付', nextAction: '2024/01/22 10:00 見積説明訪問', age: 20 },
+            { id: 4, name: '田中美咲', location: '千葉県千葉市', propertyType: '戸建て・築25年', phone: '043-3333-4444', status: '現調済', assignee: '佐藤花子', area: '千葉県千葉市', temperature: 2, lastContact: '2024/01/10 現地調査実施', nextAction: '見積作成中', age: 25 },
+            { id: 5, name: '高橋健太', location: '東京都新宿区', propertyType: 'マンション・築8年', phone: '03-5555-6666', status: '成約', assignee: '田中太郎', area: '東京都新宿区', temperature: 5, lastContact: '2024/01/17 契約締結', nextAction: '2024/01/25 工事開始', age: 8 },
+            // 未振り分け案件
+            { id: 101, name: '新規顧客A', location: '東京都渋谷区', propertyType: '戸建て・築12年', phone: '03-0000-0000', status: '未対応', assignee: null, area: '東京都渋谷区', temperature: 4, source: 'くらべる', registeredDate: '2025-01-15 10:30' },
+            { id: 102, name: '新規顧客B', location: '神奈川県川崎市', propertyType: 'マンション・築5年', phone: '044-0000-0000', status: '未対応', assignee: null, area: '神奈川県川崎市', temperature: 3, source: 'くらべる', registeredDate: '2025-01-15 11:45' },
+            { id: 103, name: '新規顧客C', location: '埼玉県越谷市', propertyType: '戸建て・築20年', phone: '048-0000-0000', status: '未対応', assignee: null, area: '埼玉県越谷市', temperature: 5, source: 'くらべる', registeredDate: '2025-01-15 14:00' }
+        ];
+
+        // 案件カードを動的に生成
+        function renderCaseCards() {
+            const cardView = document.getElementById('caseCardView');
+            if (!cardView) return;
+
+            // 既存のカードをクリア
+            cardView.innerHTML = '';
+
+            // casesDataから案件カードを生成
+            const filteredCases = casesData.filter(c => c.assignee); // 振り分け済みの案件のみ
+
+            filteredCases.forEach(caseItem => {
+                const card = createCaseCard(caseItem);
+                cardView.innerHTML += card;
+            });
+        }
+
+        // 個別の案件カードHTML生成
+        function createCaseCard(caseItem) {
+            const statusColor = getStatusColor(caseItem.status);
+
+            return `
+                <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer" onclick="showCaseDetail(${caseItem.id})" data-case-id="${caseItem.id}">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColor}">${caseItem.status}</span>
+                        <div class="flex gap-1">
+                            <button onclick="event.stopPropagation(); showMemo(${caseItem.id})" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="メモ">
+                                <span class="text-lg">📝</span>
+                            </button>
+                            <button onclick="event.stopPropagation(); scheduleCase(${caseItem.id})" class="p-1.5 rounded-lg hover:bg-yellow-100 transition-colors" title="スケジュール">
+                                <span class="text-lg">📅</span>
+                            </button>
+                            <button onclick="event.stopPropagation(); passCase(${caseItem.id})" class="p-1.5 rounded-lg hover:bg-blue-100 transition-colors" title="担当パス">
+                                <span class="text-lg">🔄</span>
+                            </button>
+                        </div>
+                    </div>
+                    <h3 class="font-bold text-lg mb-1">${caseItem.name}</h3>
+                    <div class="mb-2">
+                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">👤 担当: ${caseItem.assignee}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2">${caseItem.location || caseItem.area}</p>
+                    <p class="text-sm text-gray-600 mb-3">${caseItem.propertyType}</p>
+                    <div class="flex justify-between items-center text-xs text-gray-500 mb-3">
+                        <span>最終連絡: ${caseItem.lastContact || '未連絡'}</span>
+                        <span>次回予定: ${caseItem.nextAction || '未定'}</span>
+                    </div>
+                    <div class="flex gap-1">
+                        <button onclick="event.stopPropagation(); callCustomer('${caseItem.phone}')" class="flex-1 px-2 py-2 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors">
+                            📞
+                        </button>
+                        <button onclick="event.stopPropagation(); sendSMS('${caseItem.phone}')" class="flex-1 px-2 py-2 bg-yellow-100 text-yellow-700 rounded text-sm hover:bg-yellow-200 transition-colors">
+                            📩
+                        </button>
+                        <button onclick="event.stopPropagation(); quickStatusChange(${caseItem.id})" class="flex-1 px-2 py-2 bg-orange-100 text-orange-700 rounded text-sm hover:bg-orange-200 transition-colors">
+                            ステータス
+                        </button>
+                        <button onclick="event.stopPropagation(); showCaseDetail(${caseItem.id})" class="flex-1 px-2 py-2 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
+                            詳細
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 表示切替
+        function toggleCaseView() {
+            currentCaseView = currentCaseView === 'card' ? 'list' : 'card';
+            const cardView = document.getElementById('caseCardView');
+            const listView = document.getElementById('caseListView');
+            const viewIcon = document.getElementById('viewIcon');
+
+            if (currentCaseView === 'card') {
+                cardView.style.display = 'grid';
+                listView.style.display = 'none';
+                viewIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>';
+            } else {
+                cardView.style.display = 'none';
+                listView.style.display = 'block';
+                viewIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>';
+            }
+        }
+
+        // 現在のフィルター状態
+        let currentFilter = 'all';
+        let currentSearchTerm = '';
+        let currentSort = 'date_desc';
+
+        // 案件カウントを更新
+        function updateCaseCounts() {
+            const counts = {
+                'all': casesData.filter(c => c.assignee).length,
+                '未対応': casesData.filter(c => c.assignee && c.status === '未対応').length,
+                'アポ済': casesData.filter(c => c.assignee && c.status === 'アポ済').length,
+                '見積提出済': casesData.filter(c => c.assignee && c.status === '見積提出済').length,
+                '成約': casesData.filter(c => c.assignee && c.status === '成約').length
+            };
+
+            // IDを使用してカウントを更新
+            Object.keys(counts).forEach(key => {
+                const el = document.getElementById(`count-${key}`);
+                if (el) {
+                    el.textContent = counts[key];
+                }
+            });
+        }
+
+        // フィルター機能
+        function filterCases(status) {
+            currentFilter = status;
+
+            // フィルターボタンのアクティブ状態を更新
+            document.querySelectorAll('.filter-stat-btn').forEach(btn => {
+                btn.classList.remove('ring-2', 'ring-blue-500');
+            });
+            event.target.closest('.filter-stat-btn').classList.add('ring-2', 'ring-blue-500');
+
+            // カードを再描画
+            renderFilteredAndSortedCards();
+        }
+
+        // 検索機能
+        function searchCases() {
+            currentSearchTerm = document.getElementById('caseSearchInput').value.toLowerCase();
+            renderFilteredAndSortedCards();
+        }
+
+        // ソート機能
+        function sortCases() {
+            currentSort = document.getElementById('caseSortSelect').value;
+            renderFilteredAndSortedCards();
+        }
+
+        // フィルター、検索、ソートを適用してカードを再描画
+        function renderFilteredAndSortedCards() {
+            const cardView = document.getElementById('caseCardView');
+            if (!cardView) return;
+
+            // フィルタリング
+            let filteredCases = casesData.filter(c => c.assignee);
+
+            // ステータスフィルター
+            if (currentFilter !== 'all') {
+                filteredCases = filteredCases.filter(c => c.status === currentFilter);
+            }
+
+            // 検索フィルター
+            if (currentSearchTerm) {
+                filteredCases = filteredCases.filter(c =>
+                    c.name.toLowerCase().includes(currentSearchTerm) ||
+                    c.location.toLowerCase().includes(currentSearchTerm)
+                );
+            }
+
+            // ソート
+            filteredCases.sort((a, b) => {
+                switch(currentSort) {
+                    case 'date_desc':
+                        return (b.id || 0) - (a.id || 0); // IDを日付の代わりに使用
+                    case 'date_asc':
+                        return (a.id || 0) - (b.id || 0);
+                    case 'status':
+                        const statusOrder = ['未対応', '架電済/未アポ', 'アポ済', '現調済', '見積提出済', '成約'];
+                        return statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
+                    default:
+                        return 0;
+                }
+            });
+
+            // カードをクリアして再描画
+            cardView.innerHTML = '';
+            filteredCases.forEach(caseItem => {
+                const card = createCaseCard(caseItem);
+                cardView.innerHTML += card;
+            });
+        }
+
+        // 案件ステータスに応じた色を取得
+        function getStatusColor(status) {
+            const statusColors = {
+                '未対応': 'bg-red-100 text-red-800',
+                '架電済/未アポ': 'bg-orange-100 text-orange-800',
+                'アポ済': 'bg-blue-100 text-blue-800',
+                '現調済': 'bg-indigo-100 text-indigo-800',
+                '現調前キャンセル': 'bg-gray-100 text-gray-800',
+                '現調後失注': 'bg-gray-100 text-gray-800',
+                '見積提出済': 'bg-yellow-100 text-yellow-800',
+                '成約': 'bg-green-100 text-green-800',
+                '他社契約済': 'bg-gray-100 text-gray-800',
+                '別加盟店契約済': 'bg-purple-100 text-purple-800',
+                '入金予定': 'bg-cyan-100 text-cyan-800',
+                '入金済': 'bg-emerald-100 text-emerald-800',
+                'クレーム or 失注': 'bg-red-100 text-red-800'
+            };
+            return statusColors[status] || 'bg-gray-100 text-gray-800';
+        }
+
+        // 案件振り分けモーダル
+        function openAssignmentModal() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.id = 'assignmentModal';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-4 sm:p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-4">
+                    <div class="flex justify-between items-center mb-4 sm:mb-6">
+                        <h3 class="text-lg sm:text-xl font-bold">案件振り分け</h3>
+                        <button onclick="closeAssignmentModal()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- 振り分け設定 -->
+                    <div class="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+                        <h4 class="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">振り分け方法</h4>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="radio" name="assignMethod" value="area" class="mr-1 sm:mr-2" onchange="updateAssignmentSuggestion()">
+                                    <span class="text-xs sm:text-sm">エリア優先</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="radio" name="assignMethod" value="workload" class="mr-1 sm:mr-2" onchange="updateAssignmentSuggestion()">
+                                    <span class="text-xs sm:text-sm">案件数優先</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="radio" name="assignMethod" value="performance" class="mr-1 sm:mr-2" onchange="updateAssignmentSuggestion()">
+                                    <span class="text-xs sm:text-sm">成約率優先</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="radio" name="assignMethod" value="auto" class="mr-1 sm:mr-2" checked onchange="updateAssignmentSuggestion()">
+                                    <span class="text-xs sm:text-sm">総合判定</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 sm:gap-4 lg:gap-6">
+                        <!-- 左側：営業担当者（ドラッグ元） -->
+                        <div>
+                            <h4 class="font-semibold mb-2 sm:mb-3 text-xs sm:text-sm lg:text-base">営業担当者</h4>
+                            <div class="space-y-2 sm:space-y-3">
+                                <!-- 田中太郎 -->
+                                <div class="assignee-card bg-white border rounded-lg p-2 sm:p-3 cursor-move hover:shadow-md transition-shadow" draggable="true" data-assignee-id="tanaka" data-assignee-name="田中太郎">
+                                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-1 sm:mb-2">
+                                        <div>
+                                            <span class="font-medium text-xs sm:text-sm">👤 田中太郎</span>
+                                            <span class="hidden sm:inline text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded ml-2">リーダー</span>
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            <span class="font-bold">3件</span>
+                                        </div>
+                                    </div>
+                                    <div class="hidden sm:block text-xs text-gray-600">
+                                        世田谷区 | 75%
+                                    </div>
+                                </div>
+                                <!-- 佐藤花子 -->
+                                <div class="assignee-card bg-white border rounded-lg p-2 sm:p-3 cursor-move hover:shadow-md transition-shadow" draggable="true" data-assignee-id="sato" data-assignee-name="佐藤花子">
+                                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-1 sm:mb-2">
+                                        <div>
+                                            <span class="font-medium text-xs sm:text-sm">👤 佐藤花子</span>
+                                            <span class="hidden sm:inline text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded ml-2">一般営業</span>
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            <span class="font-bold">5件</span>
+                                        </div>
+                                    </div>
+                                    <div class="hidden sm:block text-xs text-gray-600">
+                                        横浜市 | 62%
+                                    </div>
+                                </div>
+                                <!-- 山田次郎 -->
+                                <div class="assignee-card bg-white border rounded-lg p-2 sm:p-3 cursor-move hover:shadow-md transition-shadow" draggable="true" data-assignee-id="yamada" data-assignee-name="山田次郎">
+                                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-1 sm:mb-2">
+                                        <div>
+                                            <span class="font-medium text-xs sm:text-sm">👤 山田次郎</span>
+                                            <span class="hidden sm:inline text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded ml-2">新人</span>
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            <span class="font-bold">2件</span>
+                                        </div>
+                                    </div>
+                                    <div class="hidden sm:block text-xs text-gray-600">
+                                        千葉市 | 40%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 右側：未割当案件（ドロップ先） -->
+                        <div>
+                            <h4 class="font-semibold mb-2 sm:mb-3 text-xs sm:text-sm lg:text-base">未割当案件</h4>
+                            <div class="bg-gray-50 border rounded-lg p-2 sm:p-3 space-y-2 sm:space-y-3 min-h-[400px] overflow-y-auto" id="unassignedCases">
+                                <!-- 未割当案件カード -->
+                                <div class="case-drop-zone bg-yellow-50 border-2 border-yellow-200 rounded-lg p-2 sm:p-3 hover:bg-yellow-100 transition-colors" data-case-id="101">
+                                    <div class="flex justify-between items-start mb-1 sm:mb-2">
+                                        <span class="text-xs sm:text-sm font-semibold">高橋様</span>
+                                        <span class="text-xs bg-yellow-100 text-yellow-800 px-1 sm:px-2 py-0.5 sm:py-1 rounded">新規</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600 mb-0.5 sm:mb-1">📍 世田谷区</p>
+                                    <p class="text-xs text-gray-600 mb-0.5 sm:mb-1 hidden sm:block">🏠 戸建て・築12年</p>
+                                    <p class="text-xs text-gray-600 mb-1 sm:mb-2 hidden sm:block">📞 090-1234-5678</p>
+                                    <!-- 担当者ドロップエリア -->
+                                    <div class="assignee-drop-area bg-white border-2 border-dashed border-gray-300 rounded-lg p-1 sm:p-2 min-h-[30px] sm:min-h-[40px]">
+                                        <p class="text-xs text-gray-400 text-center">ドロップ</p>
+                                    </div>
+                                    <div class="mt-1 sm:mt-2 pt-1 sm:pt-2 border-t hidden sm:block">
+                                        <p class="text-xs text-blue-600 font-medium">
+                                            推奨: 田中太郎
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="case-drop-zone bg-yellow-50 border-2 border-yellow-200 rounded-lg p-2 sm:p-3 hover:bg-yellow-100 transition-colors" data-case-id="102">
+                                    <div class="flex justify-between items-start mb-1 sm:mb-2">
+                                        <span class="text-xs sm:text-sm font-semibold">斎藤様</span>
+                                        <span class="text-xs bg-yellow-100 text-yellow-800 px-1 sm:px-2 py-0.5 sm:py-1 rounded">新規</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600 mb-0.5 sm:mb-1">📍 横浜市</p>
+                                    <p class="text-xs text-gray-600 mb-0.5 sm:mb-1 hidden sm:block">🏢 アパート・築18年</p>
+                                    <p class="text-xs text-gray-600 mb-1 sm:mb-2 hidden sm:block">📞 045-9876-5432</p>
+                                    <!-- 担当者ドロップエリア -->
+                                    <div class="assignee-drop-area bg-white border-2 border-dashed border-gray-300 rounded-lg p-1 sm:p-2 min-h-[30px] sm:min-h-[40px]">
+                                        <p class="text-xs text-gray-400 text-center">ドロップ</p>
+                                    </div>
+                                    <div class="mt-1 sm:mt-2 pt-1 sm:pt-2 border-t hidden sm:block">
+                                        <p class="text-xs text-blue-600 font-medium">
+                                            推奨: 佐藤花子
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="case-drop-zone bg-yellow-50 border-2 border-yellow-200 rounded-lg p-2 sm:p-3 hover:bg-yellow-100 transition-colors" data-case-id="103">
+                                    <div class="flex justify-between items-start mb-1 sm:mb-2">
+                                        <span class="text-xs sm:text-sm font-semibold">渡辺様</span>
+                                        <span class="text-xs bg-yellow-100 text-yellow-800 px-1 sm:px-2 py-0.5 sm:py-1 rounded">新規</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600 mb-0.5 sm:mb-1">📍 さいたま市</p>
+                                    <p class="text-xs text-gray-600 mb-0.5 sm:mb-1 hidden sm:block">🏠 戸建て・築20年</p>
+                                    <p class="text-xs text-gray-600 mb-1 sm:mb-2 hidden sm:block">📞 048-5555-6666</p>
+                                    <!-- 担当者ドロップエリア -->
+                                    <div class="assignee-drop-area bg-white border-2 border-dashed border-gray-300 rounded-lg p-1 sm:p-2 min-h-[30px] sm:min-h-[40px]">
+                                        <p class="text-xs text-gray-400 text-center">ドロップ</p>
+                                    </div>
+                                    <div class="mt-1 sm:mt-2 pt-1 sm:pt-2 border-t hidden sm:block">
+                                        <p class="text-xs text-orange-600 font-medium">
+                                            推奨: 複数担当
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- アクションボタン -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center mt-4 sm:mt-6 pt-4 sm:pt-6 border-t gap-3">
+                        <button onclick="autoAssignAll()" class="w-full sm:w-auto px-3 sm:px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm sm:text-base">
+                            一括自動振り分け
+                        </button>
+                        <div class="flex w-full sm:w-auto space-x-2 sm:space-x-3">
+                            <button onclick="closeAssignmentModal()" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-sm sm:text-base">
+                                キャンセル
+                            </button>
+                            <button onclick="confirmAssignment()" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm sm:text-base">
+                                振り分けを確定
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            initDragAndDrop();
+        }
+
+        // モーダルを閉じる
+        function closeAssignmentModal() {
+            const modal = document.getElementById('assignmentModal');
+            if (modal) modal.remove();
+        }
+
+        // ドラッグ&ドロップ初期化
+        function initDragAndDrop() {
+            let draggedElement = null;
+
+            // 担当者カードのドラッグ開始
+            document.querySelectorAll('.assignee-card').forEach(card => {
+                card.addEventListener('dragstart', (e) => {
+                    draggedElement = e.target.closest('.assignee-card');
+                    e.target.style.opacity = '0.5';
+                    e.dataTransfer.effectAllowed = 'copy';
+                });
+
+                card.addEventListener('dragend', (e) => {
+                    e.target.style.opacity = '';
+                });
+            });
+
+            // 案件カード全体をドロップエリアに設定
+            document.querySelectorAll('.case-drop-zone').forEach(caseCard => {
+                const dropArea = caseCard.querySelector('.assignee-drop-area');
+                caseCard.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'copy';
+                    caseCard.classList.add('bg-blue-50', 'border-blue-400');
+                });
+
+                caseCard.addEventListener('dragleave', (e) => {
+                    // 子要素への移動は無視
+                    if (!caseCard.contains(e.relatedTarget)) {
+                        caseCard.classList.remove('bg-blue-50', 'border-blue-400');
+                    }
+                });
+
+                caseCard.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    caseCard.classList.remove('bg-blue-50', 'border-blue-400');
+
+                    if (draggedElement) {
+                        const assigneeId = draggedElement.dataset.assigneeId;
+                        const assigneeName = draggedElement.dataset.assigneeName;
+                        const caseId = caseCard.dataset.caseId;
+
+                        // 通常の担当者を追加（複数可）
+                        const newTag = document.createElement('div');
+                        newTag.className = 'assignee-tag bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium flex items-center justify-between mb-1';
+                        newTag.innerHTML = `
+                            <span>👤 ${assigneeName}</span>
+                            <button onclick="removeAssignee(this)" class="ml-2 text-blue-600 hover:text-blue-800">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        `;
+
+                        // プレースホルダーテキストがあれば削除
+                        const placeholder = dropArea.querySelector('.text-gray-400');
+                        if (placeholder) {
+                            placeholder.remove();
+                        }
+
+                        // 同じ担当者が既に割り当てられていないかチェック
+                        const existingAssignees = Array.from(dropArea.querySelectorAll('.assignee-tag')).map(tag =>
+                            tag.querySelector('span').textContent.replace('👤 ', '')
+                        );
+
+                        if (!existingAssignees.includes(assigneeName)) {
+                            dropArea.appendChild(newTag);
+                            caseCard.classList.add('border-blue-400');
+                        } else {
+                            showNotification('既に割り当て済み', `${assigneeName}は既にこの案件に割り当てられています`);
+                        }
+                    }
+                });
+            });
+        }
+
+        // 担当者を削除
+        function removeAssignee(button) {
+            const tag = button.closest('.assignee-tag');
+            const dropArea = tag.closest('.assignee-drop-area');
+            tag.remove();
+
+            // 担当者がいなくなったらプレースホルダーを表示
+            if (dropArea.querySelectorAll('.assignee-tag').length === 0) {
+                dropArea.innerHTML = '<p class="text-xs text-gray-400 text-center">担当者をここにドロップ</p>';
+                const caseCard = dropArea.closest('.case-drop-zone');
+                caseCard.classList.remove('border-blue-400');
+            }
+        }
+
+        // 振り分け方法変更時の推奨更新
+        function updateAssignmentSuggestion() {
+            const method = document.querySelector('input[name="assignMethod"]:checked').value;
+            const caseCards = document.querySelectorAll('.case-card');
+
+            caseCards.forEach(card => {
+                const suggestionEl = card.querySelector('.text-blue-600, .text-orange-600');
+                if (suggestionEl) {
+                    switch(method) {
+                        case 'area':
+                            suggestionEl.textContent = '推奨: エリアマッチする担当者';
+                            break;
+                        case 'workload':
+                            suggestionEl.textContent = '推奨: 案件数が少ない担当者';
+                            break;
+                        case 'performance':
+                            suggestionEl.textContent = '推奨: 成約率が高い担当者';
+                            break;
+                        case 'auto':
+                            // 元の推奨に戻す
+                            break;
+                    }
+                }
+            });
+        }
+
+        // 一括自動振り分け
+        function autoAssignAll() {
+            const method = document.querySelector('input[name="assignMethod"]:checked').value;
+            const caseCards = document.querySelectorAll('.case-drop-zone');
+
+            caseCards.forEach(caseCard => {
+                const caseId = caseCard.dataset.caseId;
+                const dropArea = caseCard.querySelector('.assignee-drop-area');
+
+                // 既に担当者が割り当てられている場合はスキップ
+                if (dropArea.querySelector('.assignee-tag')) {
+                    return;
+                }
+
+                // 簡易的な自動振り分けロジック（デモ用）
+                let assigneeName = '';
+                let assigneeType = 'normal';
+
+                if (caseId === '101') {
+                    assigneeName = '田中太郎';
+                } else if (caseId === '102') {
+                    assigneeName = '佐藤花子';
+                } else if (caseId === '103') {
+                    // 3番目の案件も通常の担当者を割り当て
+                    assigneeName = '山田次郎';
+                }
+
+                // 担当者タグを追加
+                if (assigneeName) {
+                    dropArea.innerHTML = `
+                        <div class="assignee-tag bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium flex items-center justify-between">
+                            <span>👤 ${assigneeName}</span>
+                            <button onclick="removeAssignee(this)" class="ml-2 text-blue-600 hover:text-blue-800">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                    caseCard.classList.add('border-blue-400');
+                }
+            });
+
+            showNotification('自動振り分け完了', '推奨担当者に案件を振り分けました');
+        }
+
+        // 振り分け確定
+        function confirmAssignment() {
+            const assignments = [];
+            const caseCards = document.querySelectorAll('.case-drop-zone');
+
+            caseCards.forEach(caseCard => {
+                const caseId = caseCard.dataset.caseId;
+                const dropArea = caseCard.querySelector('.assignee-drop-area');
+                const assigneeTags = dropArea.querySelectorAll('.assignee-tag');
+
+                if (assigneeTags.length > 0) {
+                    const customerName = caseCard.querySelector('.font-semibold').textContent;
+                    const assignees = Array.from(assigneeTags).map(tag =>
+                        tag.querySelector('span').textContent.replace('👤 ', '')
+                    );
+
+                    assignments.push({
+                        caseId: caseId,
+                        customerName: customerName,
+                        assignees: assignees
+                    });
+                }
+            });
+
+            if (assignments.length > 0) {
+                let message = '以下の振り分けを確定しました:\n';
+                assignments.forEach(a => {
+                    message += `${a.customerName} → ${a.assignees.join(', ')}\n`;
+                });
+
+                showNotification('振り分け完了', message);
+
+                // 未振り分け案件から削除
+                assignments.forEach(a => {
+                    const index = unassignedCases.findIndex(c => c.id == a.caseId);
+                    if (index !== -1) {
+                        unassignedCases.splice(index, 1);
+                    }
+                });
+                displayUnassignedCases();
+                closeAssignmentModal();
+            } else {
+                alert('振り分ける案件を選択してください');
+            }
+        }
+
+        // 案件詳細表示
+        function showCaseDetail(caseId) {
+            const caseData = casesData.find(c => c.id === caseId);
+            if (!caseData) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-2xl font-bold">${caseData.name}様</h2>
+                        <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- ステータス変更 -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">ステータス</label>
+                        <select id="caseStatus" onchange="updateCaseStatus(${caseId}, this.value)" class="w-full md:w-auto px-4 py-2 border rounded-lg">
+                            <option value="未対応" ${caseData.status === '未対応' ? 'selected' : ''}>未対応</option>
+                            <option value="架電済/未アポ" ${caseData.status === '架電済/未アポ' ? 'selected' : ''}>架電済/未アポ</option>
+                            <option value="アポ済" ${caseData.status === 'アポ済' ? 'selected' : ''}>アポ済</option>
+                            <option value="現調済" ${caseData.status === '現調済' ? 'selected' : ''}>現調済</option>
+                            <option value="現調前キャンセル" ${caseData.status === '現調前キャンセル' ? 'selected' : ''}>現調前キャンセル</option>
+                            <option value="現調後失注" ${caseData.status === '現調後失注' ? 'selected' : ''}>現調後失注</option>
+                            <option value="見積提出済" ${caseData.status === '見積提出済' ? 'selected' : ''}>見積提出済</option>
+                            <option value="成約" ${caseData.status === '成約' ? 'selected' : ''}>成約</option>
+                            <option value="他社契約済" ${caseData.status === '他社契約済' ? 'selected' : ''}>他社契約済</option>
+                            <option value="別加盟店契約済" ${caseData.status === '別加盟店契約済' ? 'selected' : ''}>別加盟店契約済</option>
+                            <option value="入金予定" ${caseData.status === '入金予定' ? 'selected' : ''}>入金予定</option>
+                            <option value="入金済" ${caseData.status === '入金済' ? 'selected' : ''}>入金済</option>
+                            <option value="クレーム or 失注" ${caseData.status === 'クレーム or 失注' ? 'selected' : ''}>クレーム or 失注</option>
+                        </select>
+                    </div>
+
+                    <!-- 基本情報 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <p class="text-sm text-gray-600">住所</p>
+                            <p class="font-medium">${caseData.location}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">物件種別</p>
+                            <p class="font-medium">${caseData.propertyType}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">電話番号</p>
+                            <p class="font-medium">${caseData.phone}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">担当者</p>
+                            <p class="font-medium">${caseData.assignee || '未割当'}</p>
+                        </div>
+                    </div>
+
+                    <!-- アクションボタン -->
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <button onclick="callCustomer('${caseData.phone}')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                            📞 電話
+                        </button>
+                        <button onclick="sendSMS('${caseData.phone}')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            📩 SMS
+                        </button>
+                        <button onclick="showMemo(${caseId})" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">
+                            📝 メモ
+                        </button>
+                        <button onclick="passCase(${caseId})" class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600">
+                            🔄 引き継ぎ
+                        </button>
+                    </div>
+
+                    <!-- 活動履歴 -->
+                    <div class="border-t pt-4">
+                        <h3 class="font-bold mb-3">活動履歴</h3>
+                        <div class="space-y-2 max-h-48 overflow-y-auto">
+                            ${getActivityHistory(caseId)}
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // ステータス更新
+        function updateCaseStatus(caseId, newStatus) {
+            const currentUser = getCurrentUser();
+            const timestamp = new Date().toLocaleString('ja-JP', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).replace(/\//g, '/');
+
+            // ステータス変更履歴を記録（実際のシステムではAPIに送信）
+            const statusChangeEntry = {
+                timestamp: timestamp,
+                type: 'status_change',
+                user: currentUser.name,
+                oldStatus: casesData.find(c => c.id === caseId)?.status,
+                newStatus: newStatus,
+                caseId: caseId
+            };
+
+            // ここでAPIに送信
+            console.log('Recording status change:', statusChangeEntry);
+
+            // ローカルデータを更新
+            const caseData = casesData.find(c => c.id === caseId);
+            if (caseData) {
+                caseData.status = newStatus;
+            }
+
+            // UIを更新
+            updateCaseCard(caseId);
+
+            showNotification('ステータス更新', `ステータスを「${newStatus}」に変更しました`);
+        }
+
+        // 活動履歴取得
+        function getActivityHistory(caseId) {
+            // サンプルデータ（実際はAPIから取得）
+            const histories = {
+                1: `
+                    <div class="text-sm border-l-2 border-gray-300 pl-3">
+                        <div class="text-xs text-gray-500">2024/03/16 14:00</div>
+                        <div>【ステータス変更】未対応 → アポ済（田中太郎）</div>
+                    </div>
+                    <div class="text-sm border-l-2 border-gray-300 pl-3">
+                        <div class="text-xs text-gray-500">2024/03/16 13:30</div>
+                        <div>【架電】03-1234-5678（田中太郎）</div>
+                    </div>
+                    <div class="text-sm border-l-2 border-gray-300 pl-3">
+                        <div class="text-xs text-gray-500">2024/03/15 16:00</div>
+                        <div>【メモ追加】予算感確認済み（田中太郎）</div>
+                    </div>
+                `
+            };
+
+            return histories[caseId] || '<div class="text-gray-400 text-sm">履歴なし</div>';
+        }
+
+        // 案件カードUI更新
+        function updateCaseCard(caseId) {
+            const caseData = casesData.find(c => c.id === caseId);
+            if (!caseData) return;
+
+            const cards = document.querySelectorAll(`[onclick="showCaseDetail(${caseId})"]`);
+            cards.forEach(card => {
+                // ステータスバッジを更新
+                const statusBadge = card.querySelector('span[class*="rounded-full"]');
+                if (statusBadge) {
+                    const statusColors = {
+                        '未対応': 'bg-red-100 text-red-800',
+                        '架電済/未アポ': 'bg-orange-100 text-orange-800',
+                        'アポ済': 'bg-blue-100 text-blue-800',
+                        '現調済': 'bg-indigo-100 text-indigo-800',
+                        '現調前キャンセル': 'bg-gray-100 text-gray-800',
+                        '現調後失注': 'bg-gray-100 text-gray-800',
+                        '見積提出済': 'bg-yellow-100 text-yellow-800',
+                        '成約': 'bg-green-100 text-green-800',
+                        '他社契約済': 'bg-gray-100 text-gray-800',
+                        '別加盟店契約済': 'bg-purple-100 text-purple-800',
+                        '入金予定': 'bg-cyan-100 text-cyan-800',
+                        '入金済': 'bg-emerald-100 text-emerald-800',
+                        'クレーム or 失注': 'bg-red-100 text-red-800'
+                    };
+
+                    statusBadge.className = `px-2 py-1 text-xs font-semibold rounded-full ${statusColors[caseData.status] || 'bg-gray-100 text-gray-800'}`;
+                    statusBadge.textContent = caseData.status;
+                }
+            });
+        }
+
+        // スケジュール設定
+        function scheduleCase(caseId) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                    <h3 class="text-lg font-bold mb-4">📅 スケジュール設定</h3>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">日付</label>
+                        <input type="date" id="scheduleDate" class="w-full p-2 border rounded-lg" value="${new Date().toISOString().split('T')[0]}">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">時間</label>
+                        <input type="time" id="scheduleTime" class="w-full p-2 border rounded-lg" value="14:00">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">予定内容</label>
+                        <select id="scheduleType" class="w-full p-2 border rounded-lg">
+                            <option value="架電">架電</option>
+                            <option value="訪問">訪問</option>
+                            <option value="現地調査">現地調査</option>
+                            <option value="見積提出">見積提出</option>
+                            <option value="契約">契約</option>
+                            <option value="工事">工事</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">メモ</label>
+                        <textarea id="scheduleMemo" class="w-full p-2 border rounded-lg" rows="2" placeholder="備考..."></textarea>
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                            キャンセル
+                        </button>
+                        <button onclick="saveSchedule(${caseId})" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            保存
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // スケジュール保存
+        function saveSchedule(caseId) {
+            const date = document.getElementById('scheduleDate').value;
+            const time = document.getElementById('scheduleTime').value;
+            const type = document.getElementById('scheduleType').value;
+            const memo = document.getElementById('scheduleMemo').value;
+
+            // スケジュールを保存（実際のシステムではAPIに送信）
+            console.log('Saving schedule:', { caseId, date, time, type, memo });
+
+            showNotification('スケジュール登録', `${date} ${time} に${type}を予定しました`);
+            document.querySelector('.fixed').remove();
+        }
+
+        // クイックステータス変更
+        function quickStatusChange(caseId) {
+            const caseData = casesData.find(c => c.id === caseId);
+            if (!caseData) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                    <h3 class="text-lg font-bold mb-4">ステータス変更</h3>
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-600 mb-2">現在: <span class="font-medium">${caseData.status}</span></p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mb-4 max-h-96 overflow-y-auto">
+                        <button onclick="updateStatusAndClose(${caseId}, '未対応')" class="px-3 py-2 bg-red-100 text-red-800 rounded-lg hover:bg-red-200 text-sm">
+                            未対応
+                        </button>
+                        <button onclick="updateStatusAndClose(${caseId}, '架電済/未アポ')" class="px-3 py-2 bg-orange-100 text-orange-800 rounded-lg hover:bg-orange-200 text-sm">
+                            架電済/未アポ
+                        </button>
+                        <button onclick="updateStatusAndClose(${caseId}, 'アポ済')" class="px-3 py-2 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 text-sm">
+                            アポ済
+                        </button>
+                        <button onclick="updateStatusAndClose(${caseId}, '現調済')" class="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-lg hover:bg-indigo-200 text-sm">
+                            現調済
+                        </button>
+                        <button onclick="updateStatusAndClose(${caseId}, '現調前キャンセル')" class="px-3 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 text-sm">
+                            現調前キャンセル
+                        </button>
+                        <button onclick="updateStatusAndClose(${caseId}, '現調後失注')" class="px-3 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 text-sm">
+                            現調後失注
+                        </button>
+                        <button onclick="updateStatusAndClose(${caseId}, '見積提出済')" class="px-3 py-2 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 text-sm">
+                            見積提出済
+                        </button>
+                        <button onclick="updateStatusAndClose(${caseId}, '成約')" class="px-3 py-2 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 text-sm">
+                            成約
+                        </button>
+                        <button onclick="updateStatusAndClose(${caseId}, '他社契約済')" class="px-3 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 text-sm">
+                            他社契約済
+                        </button>
+                        <button onclick="updateStatusAndClose(${caseId}, '別加盟店契約済')" class="px-3 py-2 bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 text-sm">
+                            別加盟店契約済
+                        </button>
+                        <button onclick="updateStatusAndClose(${caseId}, '入金予定')" class="px-3 py-2 bg-cyan-100 text-cyan-800 rounded-lg hover:bg-cyan-200 text-sm">
+                            入金予定
+                        </button>
+                        <button onclick="updateStatusAndClose(${caseId}, '入金済')" class="px-3 py-2 bg-emerald-100 text-emerald-800 rounded-lg hover:bg-emerald-200 text-sm">
+                            入金済
+                        </button>
+                        <button onclick="updateStatusAndClose(${caseId}, 'クレーム or 失注')" class="col-span-2 px-3 py-2 bg-red-100 text-red-800 rounded-lg hover:bg-red-200 text-sm">
+                            クレーム or 失注
+                        </button>
+                    </div>
+                    <div class="flex justify-end">
+                        <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                            キャンセル
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // ステータス更新して閉じる
+        function updateStatusAndClose(caseId, newStatus) {
+            updateCaseStatus(caseId, newStatus);
+            document.querySelector('.fixed').remove();
+        }
+
+        // 電話発信
+        function callCustomer(phone) {
+            if (confirm(`${phone} に電話をかけますか？`)) {
+                window.location.href = `tel:${phone}`;
+                // 架電履歴を記録
+                showNotification('架電', `${phone} への架電を記録しました`);
+            }
+        }
+
+        // SMS送信
+        function sendSMS(phone) {
+            const templates = [
+                'お世話になっております。外壁塗装の件でご連絡いたしました。',
+                '現地調査の日程確認のご連絡です。',
+                'お見積書の準備ができました。ご確認をお願いいたします。'
+            ];
+
+            const message = prompt('SMSメッセージを選択してください:\n\n' +
+                templates.map((t, i) => `${i+1}. ${t}`).join('\n') +
+                '\n\nまたは直接入力してください:', templates[0]);
+
+            if (message) {
+                window.location.href = `sms:${phone}?body=${encodeURIComponent(message)}`;
+                showNotification('SMS送信', `${phone} へSMSを送信しました`);
+            }
+        }
+
+        // メモ表示・編集
+        function showMemo(caseId) {
+            // 既存のメモを取得（実際のシステムではAPIから取得）
+            const existingMemo = getCaseMemo(caseId);
+
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto">
+                    <h3 class="text-lg font-bold mb-4">📝 案件メモ</h3>
+
+                    <!-- 履歴表示 -->
+                    <div class="mb-4 max-h-48 overflow-y-auto bg-gray-50 rounded-lg p-3">
+                        <div class="text-sm font-medium text-gray-600 mb-2">履歴:</div>
+                        <div id="memoHistory" class="space-y-2 text-sm">
+                            ${existingMemo.history || '<div class="text-gray-400">履歴なし</div>'}
+                        </div>
+                    </div>
+
+                    <!-- 新規メモ入力 -->
+                    <div class="mb-2">
+                        <label class="text-sm font-medium text-gray-700">新しいメモを追加:</label>
+                    </div>
+                    <textarea id="caseMemo" class="w-full p-3 border rounded-lg" rows="4" placeholder="申し送り事項や注意点を記入..."></textarea>
+
+                    <div class="flex justify-end gap-2 mt-4">
+                        <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                            キャンセル
+                        </button>
+                        <button onclick="saveMemo(${caseId})" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            保存
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // メモ取得（実際のシステムではAPIから取得）
+        function getCaseMemo(caseId) {
+            // サンプルデータ
+            const memoData = {
+                1: {
+                    history: `
+                        <div class="border-l-2 border-blue-400 pl-3 mb-2">
+                            <div class="text-xs text-gray-500">2024/03/15 14:30 - 田中太郎</div>
+                            <div class="text-gray-700">予算感：200万円前後</div>
+                        </div>
+                        <div class="border-l-2 border-green-400 pl-3 mb-2">
+                            <div class="text-xs text-gray-500">2024/03/15 16:45 - 佐藤花子</div>
+                            <div class="text-gray-700">競合他社も検討中、奥様が決定権者</div>
+                        </div>
+                        <div class="border-l-2 border-yellow-400 pl-3 mb-2">
+                            <div class="text-xs text-gray-500">2024/03/16 10:00 - システム</div>
+                            <div class="text-gray-700">【引き継ぎ】田中太郎 → 佐藤花子</div>
+                        </div>
+                    `
+                },
+                4: {
+                    history: `
+                        <div class="border-l-2 border-blue-400 pl-3 mb-2">
+                            <div class="text-xs text-gray-500">2024/03/14 09:00 - 山田次郎</div>
+                            <div class="text-gray-700">初回訪問済み、見積もり待ち</div>
+                        </div>
+                    `
+                }
+            };
+
+            return memoData[caseId] || { history: '' };
+        }
+
+        // メモ保存
+        function saveMemo(caseId) {
+            const memoText = document.getElementById('caseMemo').value;
+
+            if (!memoText.trim()) {
+                showNotification('エラー', 'メモを入力してください', 'error');
+                return;
+            }
+
+            // 現在のユーザー情報（実際のシステムではセッションから取得）
+            const currentUser = getCurrentUser();
+            const timestamp = new Date().toLocaleString('ja-JP', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).replace(/\//g, '/');
+
+            // メモを保存（実際のシステムではAPIに送信）
+            const newMemoEntry = {
+                timestamp: timestamp,
+                user: currentUser.name,
+                text: memoText,
+                caseId: caseId
+            };
+
+            // ここでAPIに送信
+            console.log('Saving memo:', newMemoEntry);
+
+            showNotification('メモ保存', 'メモを保存しました');
+            document.querySelector('.fixed').remove();
+
+            // UIを更新してメモアイコンを黄色にする
+            updateMemoIcon(caseId, true);
+        }
+
+        // メモアイコンの更新
+        function updateMemoIcon(caseId, hasMemo) {
+            const caseElements = document.querySelectorAll(`[data-case-id="${caseId}"]`);
+            caseElements.forEach(element => {
+                const memoButton = element.querySelector('button[onclick*="showMemo"]');
+                if (memoButton) {
+                    const memoIcon = memoButton.querySelector('span');
+                    if (memoIcon) {
+                        if (hasMemo) {
+                            memoIcon.classList.remove('text-gray-400');
+                            memoIcon.classList.add('text-yellow-500');
+                        } else {
+                            memoIcon.classList.remove('text-yellow-500');
+                            memoIcon.classList.add('text-gray-400');
+                        }
+                    }
+                }
+            });
+        }
+
+        // 担当パス（引き継ぎ）
+        function passCase(caseId) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                    <h3 class="text-lg font-bold mb-4">🔄 担当者を変更</h3>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">引き継ぎ先</label>
+                        <select id="passToSelect" class="w-full p-2 border rounded-lg">
+                            <option value="">選択してください</option>
+                            <option value="田中太郎">田中太郎</option>
+                            <option value="佐藤花子">佐藤花子</option>
+                            <option value="山田次郎">山田次郎</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">引き継ぎメモ（任意）</label>
+                        <textarea id="passMemo" class="w-full p-2 border rounded-lg" rows="3" placeholder="申し送り事項があれば記入..."></textarea>
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                            キャンセル
+                        </button>
+                        <button onclick="confirmPass(${caseId})" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            引き継ぎリクエスト
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // 引き継ぎ確定
+        function confirmPass(caseId) {
+            const passTo = document.getElementById('passToSelect').value;
+            const passMemo = document.getElementById('passMemo').value;
+
+            if (!passTo) {
+                alert('引き継ぎ先を選択してください');
+                return;
+            }
+
+            // 引き継ぎリクエストを送信
+            showNotification('引き継ぎリクエスト送信', `${passTo}へ承認依頼を送信しました`);
+
+            // カードに承認待ちバッジを追加
+            const card = document.querySelector(`[onclick="showCaseDetail(${caseId})"]`);
+            if (card) {
+                const titleElement = card.querySelector('h3');
+                if (titleElement && !titleElement.querySelector('.pending-badge')) {
+                    const badge = document.createElement('span');
+                    badge.className = 'pending-badge text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded ml-2';
+                    badge.textContent = '⏳ 承認待ち';
+                    titleElement.appendChild(badge);
+                }
+            }
+
+            document.querySelector('.fixed').remove();
+
+            // 通知を表示（実際の実装では相手の画面に通知）
+            setTimeout(() => {
+                showPassNotification(passTo, caseId, passMemo);
+            }, 1000);
+        }
+
+        // 引き継ぎ通知を表示
+        function showPassNotification(assignee, caseId, memo) {
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-white rounded-lg shadow-lg p-4 max-w-sm z-50 border-l-4 border-blue-500';
+
+            const memoHtml = memo ? `
+                <div class="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-600">
+                    <p class="font-medium">引き継ぎメモ:</p>
+                    <p>${memo}</p>
+                </div>
+            ` : '';
+
+            notification.innerHTML = `
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <span class="text-2xl">🔔</span>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <p class="text-sm font-medium text-gray-900">
+                            案件引き継ぎリクエスト
+                        </p>
+                        <p class="mt-1 text-sm text-gray-500">
+                            田中太郎から案件が引き継がれました
+                        </p>
+                        ${memoHtml}
+                        <div class="mt-3 flex gap-2">
+                            <button onclick="acceptPass(${caseId}, this)" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                                承認
+                            </button>
+                            <button onclick="rejectPass(${caseId}, this)" class="px-3 py-1 bg-gray-200 text-gray-800 text-sm rounded hover:bg-gray-300">
+                                拒否
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(notification);
+
+            // 5秒後に自動で消える
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 10000);
+        }
+
+        // 引き継ぎ承認
+        function acceptPass(caseId, button) {
+            // モーダルからメモを取得
+            const modal = button.closest('.fixed');
+            const passMemo = modal.querySelector('p:last-of-type')?.textContent.replace('メモ: ', '') || '';
+
+            // 現在のユーザー情報（実際のシステムではセッションから取得）
+            const currentUser = getCurrentUser();
+            const timestamp = new Date().toLocaleString('ja-JP', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).replace(/\//g, '/');
+
+            // 引き継ぎ履歴をメモに自動追加（実際のシステムではAPIに送信）
+            const handoverEntry = {
+                timestamp: timestamp,
+                type: 'handover',
+                from: '田中太郎', // 実際は前の担当者を取得
+                to: currentUser.name,
+                memo: passMemo,
+                caseId: caseId
+            };
+
+            // ここでAPIに送信して履歴を保存
+            console.log('Recording handover:', handoverEntry);
+
+            showNotification('承認完了', '案件を引き継ぎました');
+
+            // 承認待ちバッジを削除
+            const pendingBadge = document.querySelector('.pending-badge');
+            if (pendingBadge) {
+                pendingBadge.remove();
+            }
+
+            // 担当者名を更新
+            const card = document.querySelector(`[onclick="showCaseDetail(${caseId})"]`);
+            if (card) {
+                const assigneeSpan = card.querySelector('.text-blue-700');
+                if (assigneeSpan) {
+                    assigneeSpan.textContent = `👤 担当: ${currentUser.name}`;
+                }
+            }
+
+            // メモアイコンを黄色にする（引き継ぎ履歴があるため）
+            updateMemoIcon(caseId, true);
+
+            modal.remove();
+        }
+
+        // 引き継ぎ拒否
+        function rejectPass(caseId, button) {
+            showNotification('引き継ぎ拒否', '引き継ぎを拒否しました');
+
+            // 承認待ちバッジを削除
+            const pendingBadge = document.querySelector('.pending-badge');
+            if (pendingBadge) {
+                pendingBadge.remove();
+            }
+
+            button.closest('.fixed').remove();
+        }
+
+        // 案件詳細表示
+        function openCaseDetail(caseId) {
+            const caseData = casesData.find(c => c.id == caseId);
+            if (!caseData) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[80vh] overflow-y-auto">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-bold">案件詳細 #${caseData.id}</h3>
+                        <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <!-- 顧客情報 -->
+                        <div class="border rounded-lg p-4">
+                            <h4 class="font-semibold mb-2">顧客情報</h4>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <div><span class="text-gray-500">氏名:</span> ${caseData.name} 様</div>
+                                <div><span class="text-gray-500">電話:</span> ${caseData.phone}</div>
+                                <div><span class="text-gray-500">住所:</span> ${caseData.area}</div>
+                                <div><span class="text-gray-500">物件:</span> ${caseData.propertyType}・築${caseData.age}年</div>
+                            </div>
+                        </div>
+
+                        <!-- ステータス情報 -->
+                        <div class="border rounded-lg p-4">
+                            <h4 class="font-semibold mb-2">ステータス</h4>
+                            <select class="w-full p-2 border rounded">
+                                <option ${caseData.status === '未対応' ? 'selected' : ''}>未対応</option>
+                                <option ${caseData.status === '架電済/未アポ' ? 'selected' : ''}>架電済/未アポ</option>
+                                <option ${caseData.status === 'アポ済' ? 'selected' : ''}>アポ済</option>
+                                <option ${caseData.status === '現調済' ? 'selected' : ''}>現調済</option>
+                                <option ${caseData.status === '見積提出済' ? 'selected' : ''}>見積提出済</option>
+                                <option ${caseData.status === '成約' ? 'selected' : ''}>成約</option>
+                                <option ${caseData.status === '他社契約済' ? 'selected' : ''}>他社契約済</option>
+                                <option ${caseData.status === '失注' ? 'selected' : ''}>失注</option>
+                            </select>
+                        </div>
+
+                        <!-- 活動履歴 -->
+                        <div class="border rounded-lg p-4">
+                            <h4 class="font-semibold mb-2">活動履歴</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex items-center text-gray-600">
+                                    <span class="text-xs text-gray-400 w-20">2024/01/15</span>
+                                    <span>初回架電 - 不在</span>
+                                </div>
+                                <div class="flex items-center text-gray-600">
+                                    <span class="text-xs text-gray-400 w-20">2024/01/16</span>
+                                    <span>2回目架電 - アポ取得成功</span>
+                                </div>
+                                <div class="flex items-center text-gray-600">
+                                    <span class="text-xs text-gray-400 w-20">2024/01/18</span>
+                                    <span>現地調査実施</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- メモ -->
+                        <div class="border rounded-lg p-4">
+                            <h4 class="font-semibold mb-2">メモ</h4>
+                            <textarea class="w-full p-2 border rounded h-24" placeholder="メモを入力..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-2 mt-6">
+                        <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+                            閉じる
+                        </button>
+                        <button onclick="saveCaseDetail(${caseData.id})" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            保存
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // 新規案件モーダル
+        function openNewCaseModal() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
+                    <h3 class="text-xl font-bold mb-4">新規案件登録</h3>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">顧客名</label>
+                            <input type="text" class="w-full p-2 border rounded" placeholder="例: 山田太郎">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">電話番号</label>
+                            <input type="tel" class="w-full p-2 border rounded" placeholder="例: 03-1234-5678">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">住所</label>
+                            <input type="text" class="w-full p-2 border rounded" placeholder="例: 東京都世田谷区">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">物件種別</label>
+                                <select class="w-full p-2 border rounded">
+                                    <option>戸建て</option>
+                                    <option>アパート</option>
+                                    <option>マンション</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">築年数</label>
+                                <input type="number" class="w-full p-2 border rounded" placeholder="例: 15">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-2 mt-6">
+                        <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+                            キャンセル
+                        </button>
+                        <button onclick="saveNewCase()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            登録
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // 保存処理
+        function saveCaseDetail(caseId) {
+            showNotification('保存', `案件 #${caseId} を保存しました`);
+            document.querySelector('.fixed').remove();
+        }
+
+        function saveNewCase() {
+            showNotification('登録', '新規案件を登録しました');
+            document.querySelector('.fixed').remove();
+        }
+
+        // 未振り分け案件のダミーデータ
+        const unassignedCases = [
+            {
+                id: 101,
+                name: '新規顧客A',
+                address: '東京都渋谷区',
+                type: '戸建て・築12年',
+                temperature: 4,
+                source: 'くらべる',
+                registeredDate: '2025-01-15 10:30'
+            },
+            {
+                id: 102,
+                name: '新規顧客B',
+                address: '神奈川県川崎市',
+                type: 'マンション・築5年',
+                temperature: 3,
+                source: 'くらべる',
+                registeredDate: '2025-01-15 11:45'
+            },
+            {
+                id: 103,
+                name: '新規顧客C',
+                address: '埼玉県越谷市',
+                type: '戸建て・築20年',
+                temperature: 5,
+                source: 'くらべる',
+                registeredDate: '2025-01-15 14:00'
+            }
+        ];
+
+        // 未振り分け案件を表示
+        function displayUnassignedCases() {
+            const unassignedSection = document.getElementById('unassignedCasesSection');
+            const unassignedList = document.getElementById('unassignedCasesList');
+            const badge = document.getElementById('unassignedBadge');
+
+            if (unassignedCases.length > 0) {
+                // バッジを表示
+                badge.textContent = unassignedCases.length;
+                badge.classList.remove('hidden');
+
+                // 未振り分けセクションを表示
+                unassignedSection.classList.remove('hidden');
+
+                // 案件カードを生成
+                unassignedList.innerHTML = unassignedCases.map(caseItem => {
+                    return `
+                        <div class="bg-white rounded-lg border border-yellow-300 p-3 hover:shadow-md transition-shadow">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">未対応</span>
+                                <div class="flex gap-1">
+                                    <button onclick="event.stopPropagation(); showMemo(${caseItem.id})" class="p-1 rounded-lg hover:bg-gray-100 transition-colors" title="メモ">
+                                        <span class="text-sm">📝</span>
+                                    </button>
+                                    <button onclick="event.stopPropagation(); scheduleCase(${caseItem.id})" class="p-1 rounded-lg hover:bg-yellow-100 transition-colors" title="スケジュール">
+                                        <span class="text-sm">📅</span>
+                                    </button>
+                                    <button onclick="event.stopPropagation(); passCase(${caseItem.id})" class="p-1 rounded-lg hover:bg-blue-100 transition-colors" title="担当パス">
+                                        <span class="text-sm">🔄</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <h4 class="font-bold text-sm mb-1">${caseItem.name}</h4>
+                            <p class="text-xs text-gray-600">${caseItem.address}</p>
+                            <p class="text-xs text-gray-600 mb-2">${caseItem.type}</p>
+                            <div class="flex justify-between items-center text-xs text-gray-500">
+                                <span>登録: ${caseItem.registeredDate}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                // バッジを非表示
+                badge.classList.add('hidden');
+
+                // 未振り分けセクションを非表示
+                unassignedSection.classList.add('hidden');
+            }
+        }
+
+
+        // ページ読み込み時に未振り分け案件を表示
+        document.addEventListener('DOMContentLoaded', function() {
+            displayUnassignedCases();
+
+            // showSection関数をオーバーライド（既存のoriginalShowSectionを使用）
+            const prevShowSection = window.showSection;
+            window.showSection = function(sectionName) {
+                prevShowSection(sectionName);
+
+                // 案件管理セクションを表示した場合、未振り分け案件を更新
+                if (sectionName === 'cases') {
+                    displayUnassignedCases();
+                    renderCaseCards(); // 動的に案件カードを生成
+                    updateCaseCounts(); // 件数を更新
+                }
+            };
+        });
     </script>
 </body>
 </html>
