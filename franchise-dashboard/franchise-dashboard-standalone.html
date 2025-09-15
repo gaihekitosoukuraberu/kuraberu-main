@@ -206,6 +206,18 @@
                     </svg>
                     レポート
                 </a>
+                <a href="#autodelivery" onclick="showSection('autodelivery'); return false;" class="admin-only flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    自動配信設定
+                </a>
+                <a href="#company" onclick="showSection('company'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    会社情報
+                </a>
                 <a href="#settings" onclick="showSection('settings'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -1435,6 +1447,948 @@
                 </div>
             </div><!-- calendarSectionの終了 -->
             
+            <!-- 自動配信設定セクション -->
+            <div id="autodeliverySection" class="section" style="display: none;">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">自動配信設定</h2>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <!-- 対応工事種別 -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">対応工事種別</h3>
+
+                        <!-- ¥20,000項目 -->
+                        <div class="mb-6">
+                            <p class="text-sm text-gray-600 mb-3">標準項目（¥20,000）</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="外壁塗装" class="mr-3">
+                                    <span class="flex-1">外壁塗装</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="外壁カバー工法" class="mr-3">
+                                    <span class="flex-1">外壁カバー工法</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="外壁張替え" class="mr-3">
+                                    <span class="flex-1">外壁張替え</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋根塗装（外壁工事含む）" class="mr-3">
+                                    <span class="flex-1">屋根塗装（外壁工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋上防水（外壁工事含む）" class="mr-3">
+                                    <span class="flex-1">屋上防水（外壁工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋根葺き替え・張り替え※スレート・ガルバリウム等" class="mr-3">
+                                    <span class="flex-1 text-sm">屋根葺き替え・張り替え※スレート・ガルバリウム等</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋根葺き替え・張り替え※瓦" class="mr-3">
+                                    <span class="flex-1">屋根葺き替え・張り替え※瓦</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋根カバー工法" class="mr-3">
+                                    <span class="flex-1">屋根カバー工法</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="外壁補修（外壁工事含む）" class="mr-3">
+                                    <span class="flex-1">外壁補修（外壁工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋根補修（外壁工事含む）" class="mr-3">
+                                    <span class="flex-1">屋根補修（外壁工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="ベランダ防水（外壁工事含む）" class="mr-3">
+                                    <span class="flex-1">ベランダ防水（外壁工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="内装水回り（バス・キッチン・トイレ）（外壁工事含む）" class="mr-3">
+                                    <span class="flex-1 text-sm">内装水回り（バス・キッチン・トイレ）（外壁工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="内装（フローリングや畳などの床・クロス等）（外壁工事含む）" class="mr-3">
+                                    <span class="flex-1 text-sm">内装（フローリングや畳などの床・クロス等）（外壁工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- ¥10,000項目 -->
+                        <div class="mb-6">
+                            <p class="text-sm text-gray-600 mb-3">※単品項目（但し1社紹介時は定価）</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋根塗装単品（但し1社紹介時は定価）" class="mr-3">
+                                    <span class="flex-1">屋根塗装単品</span>
+                                    <span class="text-sm font-semibold text-orange-600">¥10,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋上防水単品（但し1社紹介時は定価）" class="mr-3">
+                                    <span class="flex-1">屋上防水単品</span>
+                                    <span class="text-sm font-semibold text-orange-600">¥10,000</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- ¥5,000項目 -->
+                        <div class="mb-6">
+                            <p class="text-sm text-gray-600 mb-3">※補修単品項目（但し1社紹介時は定価）</p>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="外壁補修単品（但し1社紹介時は定価）" class="mr-3">
+                                    <span class="flex-1">外壁補修単品</span>
+                                    <span class="text-sm font-semibold text-green-600">¥5,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋根補修単品（但し1社紹介時は定価）" class="mr-3">
+                                    <span class="flex-1">屋根補修単品</span>
+                                    <span class="text-sm font-semibold text-green-600">¥5,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="ベランダ防水単品（但し1社紹介時は定価）" class="mr-3">
+                                    <span class="flex-1">ベランダ防水単品</span>
+                                    <span class="text-sm font-semibold text-green-600">¥5,000</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 対応可能物件種別 -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">対応可能物件種別</h3>
+                        <div class="space-y-4">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                対応可能物件<span class="text-red-500">*</span>（最大対応階数）
+                            </label>
+                            <div class="space-y-3">
+                                <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-gray-300">
+                                    <input type="checkbox" class="mr-3" value="house" name="propertyType">
+                                    <div class="flex-1 flex items-center">
+                                        <span class="font-medium">🏠 戸建て住宅</span>
+                                        <select class="ml-auto text-sm border rounded px-2 py-1">
+                                            <option value="1">1階</option>
+                                            <option value="2">2階</option>
+                                            <option value="3" selected>3階</option>
+                                            <option value="4">4階以上</option>
+                                        </select>
+                                        <span class="ml-1 text-sm text-gray-600">まで</span>
+                                    </div>
+                                </label>
+                                <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-gray-300">
+                                    <input type="checkbox" class="mr-3" value="apartment" name="propertyType">
+                                    <div class="flex-1 flex items-center">
+                                        <span class="font-medium">🏢 アパート・マンション</span>
+                                        <select class="ml-auto text-sm border rounded px-2 py-1">
+                                            <option value="1">1階</option>
+                                            <option value="2">2階</option>
+                                            <option value="3" selected>3階</option>
+                                            <option value="4">4階</option>
+                                            <option value="5">5階</option>
+                                            <option value="6">6階</option>
+                                            <option value="7">7階</option>
+                                            <option value="8">8階</option>
+                                            <option value="9">9階</option>
+                                            <option value="unlimited">10階以上</option>
+                                        </select>
+                                        <span class="ml-1 text-sm text-gray-600">まで</span>
+                                    </div>
+                                </label>
+                                <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-gray-300">
+                                    <input type="checkbox" class="mr-3" value="commercial" name="propertyType">
+                                    <div class="flex-1 flex items-center">
+                                        <span class="font-medium">🏪 店舗・事務所</span>
+                                        <select class="ml-auto text-sm border rounded px-2 py-1">
+                                            <option value="1">1階</option>
+                                            <option value="2">2階</option>
+                                            <option value="3" selected>3階</option>
+                                            <option value="4">4階以上</option>
+                                        </select>
+                                        <span class="ml-1 text-sm text-gray-600">まで</span>
+                                    </div>
+                                </label>
+                                <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-gray-300">
+                                    <input type="checkbox" class="mr-3" value="factory" name="propertyType">
+                                    <div class="flex-1 flex items-center">
+                                        <span class="font-medium">🏭 工場・倉庫</span>
+                                        <select class="ml-auto text-sm border rounded px-2 py-1">
+                                            <option value="1">1階</option>
+                                            <option value="2">2階</option>
+                                            <option value="3" selected>3階</option>
+                                            <option value="4">4階以上</option>
+                                        </select>
+                                        <span class="ml-1 text-sm text-gray-600">まで</span>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- 築年数対応範囲 -->
+                            <div class="mt-6">
+                                <label class="block mb-2 text-sm font-semibold text-gray-700">築年数対応範囲 <span class="text-red-500">*</span></label>
+                                <div class="bg-white border rounded-lg p-4">
+                                    <div class="mb-2">
+                                        <p class="text-center text-lg font-medium text-gray-800">
+                                            築<span id="ageRangeMinAuto">0</span>年〜<span id="ageRangeMaxAuto">50</span>年まで対応
+                                        </p>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="text-sm text-gray-600">築年数下限</label>
+                                            <input type="range" min="0" max="50" value="0" class="w-full" oninput="updateAgeRangeAuto()">
+                                            <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                                <span>0年</span>
+                                                <span>10年</span>
+                                                <span>20年</span>
+                                                <span>30年</span>
+                                                <span>40年</span>
+                                                <span>50年</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="text-sm text-gray-600">築年数上限</label>
+                                            <input type="range" min="0" max="100" value="50" class="w-full" oninput="updateAgeRangeAuto()">
+                                            <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                                <span>0年</span>
+                                                <span>20年</span>
+                                                <span>40年</span>
+                                                <span>60年</span>
+                                                <span>80年</span>
+                                                <span>100年</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 特殊対応項目 -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">特殊対応項目</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="遮熱・断熱塗料提案可能" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">遮熱・断熱塗料提案可能</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="立ち会いなし・見積もり手渡し希望" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">立ち会いなし・見積もり手渡し希望</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="遠方につき立ち会いなし・見積もり郵送・電話で商談可" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-xs">遠方につき立ち会いなし・見積もり郵送・電話で商談可</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="エクステリア（庭・駐車場・外構）" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">エクステリア（庭・駐車場・外構）</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="太陽光パネル脱着（撤去含む）" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">太陽光パネル脱着（撤去含む）</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="提携先ローン有り" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">提携先ローン有り</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="クレジットカード払い可" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">クレジットカード払い可</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="火災保険申請サポート" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">火災保険申請サポート</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="助成金申請サポート" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">助成金申請サポート</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="建築許可証" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">建築許可証</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="光触媒塗料提案可" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">光触媒塗料提案可</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="分割払いプラン有" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">分割払いプラン有</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 対応エリア選択 -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">対応エリア選択</h3>
+                        <p class="text-sm text-gray-600 mb-4">サービス提供可能なエリアを選択してください（最大5つまで）</p>
+
+                        <!-- 都道府県選択 -->
+                        <div class="mb-6">
+                            <h4 class="text-md font-medium mb-3">都道府県選択（最大5つまで）</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                                <!-- 関東 -->
+                                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                    <input type="checkbox" name="prefecture" value="埼玉県" class="mr-2" onchange="updateSelectedAreas()">
+                                    <span class="text-sm">埼玉県</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                    <input type="checkbox" name="prefecture" value="千葉県" class="mr-2" onchange="updateSelectedAreas()">
+                                    <span class="text-sm">千葉県</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                    <input type="checkbox" name="prefecture" value="東京都" class="mr-2" onchange="updateSelectedAreas()">
+                                    <span class="text-sm">東京都</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                    <input type="checkbox" name="prefecture" value="神奈川県" class="mr-2" onchange="updateSelectedAreas()">
+                                    <span class="text-sm">神奈川県</span>
+                                </label>
+                                <!-- その他の県 -->
+                                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                    <input type="checkbox" name="prefecture" value="大阪府" class="mr-2" onchange="updateSelectedAreas()">
+                                    <span class="text-sm">大阪府</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                    <input type="checkbox" name="prefecture" value="兵庫県" class="mr-2" onchange="updateSelectedAreas()">
+                                    <span class="text-sm">兵庫県</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                    <input type="checkbox" name="prefecture" value="愛知県" class="mr-2" onchange="updateSelectedAreas()">
+                                    <span class="text-sm">愛知県</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                    <input type="checkbox" name="prefecture" value="福岡県" class="mr-2" onchange="updateSelectedAreas()">
+                                    <span class="text-sm">福岡県</span>
+                                </label>
+                            </div>
+                            <button onclick="showAllPrefectures()" class="mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                すべて選択
+                            </button>
+                        </div>
+
+                        <!-- 選択された都道府県の表示 -->
+                        <div id="selectedPrefectures" class="mb-6 hidden">
+                            <h4 class="text-md font-medium mb-3">選択された都道府県</h4>
+                            <div id="selectedPrefecturesList" class="flex flex-wrap gap-2">
+                                <!-- 選択された都道府県がここに表示される -->
+                            </div>
+                        </div>
+
+                        <!-- 市区町村選択 -->
+                        <div id="citySelection" class="mb-6 hidden">
+                            <h4 class="text-md font-medium mb-3">⭐ 優先対応エリア選択（最大3つまで）</h4>
+                            <p class="text-sm text-gray-600 mb-3">選択した市区町村から、特に優先的に対応したいエリアを3つまで選択できます。</p>
+                            <div class="mb-3">
+                                <input type="text" placeholder="市区町村を検索..." class="w-full px-3 py-2 border rounded-lg" onkeyup="searchCities(this.value)">
+                            </div>
+                            <div id="cityList" class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 max-h-64 overflow-y-auto">
+                                <!-- 市区町村リストが動的に生成される -->
+                            </div>
+                            <div id="priorityAreas" class="mt-4">
+                                <p class="text-sm font-medium text-gray-700 mb-2">優先エリア選択済み: <span id="priorityCount">0</span>/3</p>
+                                <div id="priorityAreasList" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <!-- 優先エリアが表示される -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button onclick="saveAutoDeliverySettings()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                            設定を保存
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 会社情報セクション -->
+            <div id="companySection" class="section" style="display: none;">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">会社情報</h2>
+                        <p class="text-sm text-gray-600 mt-1">実際にお客様に表示される詳細情報になります</p>
+                    </div>
+                    <button onclick="previewCompanyInfo()" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        プレビュー
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <!-- 会社基本情報 -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">基本情報</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">会社名 <span class="text-red-500">*</span></label>
+                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="カタカナで入力" value="大野建装">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">会社名カナ <span class="text-red-500">*</span></label>
+                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="カタカナで入力" value="">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">屋号</label>
+                                <input type="text" class="w-full px-3 py-2 border rounded-lg" value="">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">屋号カナ</label>
+                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="カタカナで入力" value="">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">代表者名 <span class="text-red-500">*</span></label>
+                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="代表者名を入力" value="">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">代表者名カナ <span class="text-red-500">*</span></label>
+                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="カタカナで入力" value="">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">郵便番号 <span class="text-red-500">*</span></label>
+                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="123-4567" value="123-4567">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">住所 <span class="text-red-500">*</span></label>
+                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="東京都港区青山1-1-1" value="東京都港区青山1-1-1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">電話番号 <span class="text-red-500">*</span></label>
+                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="03-1234-5678" value="03-1234-5678">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">ウェブサイトURL</label>
+                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="https://example.com" value="">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">設立年月</label>
+                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="2010年4月" value="2010年4月">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">特徴・PR文 <span class="text-red-500">*</span></label>
+                                <textarea class="w-full px-3 py-2 border rounded-lg" rows="4" placeholder="会社の特徴やPR文を入力してください"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 支店情報 -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">支店情報</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">支店名</label>
+                                <input type="text" id="branchName" class="w-full px-3 py-2 border rounded-lg" placeholder="例: 渋谷支店" value="" onchange="updateBranchDisplay()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">支店住所</label>
+                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="例: 東京都渋谷区○○" value="">
+                            </div>
+                        </div>
+
+                        <!-- 支店表示オプション -->
+                        <div class="mt-4 p-4 bg-gray-50 rounded-lg" id="branchDisplayOptions" style="display: none;">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">会社名の表示方法</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="branchDisplay" value="branch" class="mr-2" onchange="updateCompanyNameDisplay()">
+                                    <span class="text-sm">支店名を優先表示（例: 大野建装 渋谷支店）</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="branchDisplay" value="company" class="mr-2" checked onchange="updateCompanyNameDisplay()">
+                                    <span class="text-sm">社名のみ表示（例: 大野建装）</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="branchDisplay" value="both" class="mr-2" onchange="updateCompanyNameDisplay()">
+                                    <span class="text-sm">両方表示（例: 株式会社大野建装 渋谷支店）</span>
+                                </label>
+                            </div>
+                        </div>
+                        <button class="mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium">+ 支店を追加</button>
+                    </div>
+
+                    <!-- 連絡先情報 -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">連絡先情報</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">請求用メールアドレス <span class="text-red-500">*</span></label>
+                                <input type="email" class="w-full px-3 py-2 border rounded-lg" placeholder="billing@example.com" value="billing@example.com">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">営業用メールアドレス <span class="text-red-500">*</span></label>
+                                <input type="email" class="w-full px-3 py-2 border rounded-lg" placeholder="sales@company.co.jp" value="sales@company.co.jp">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">営業担当者氏名 <span class="text-red-500">*</span></label>
+                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="営業担当者の氏名を入力" value="営業担当者の氏名を入力">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">営業担当者カナ <span class="text-red-500">*</span></label>
+                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="ヤマダ タロウ" value="ヤマダ タロウ">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 事業詳細 -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">事業詳細</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">従業員数 <span class="text-red-500">*</span></label>
+                                <select class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">選択してください</option>
+                                    <option value="1-2">1〜2名</option>
+                                    <option value="3-5">3〜5名</option>
+                                    <option value="6-10">6〜10名</option>
+                                    <option value="11+">11名以上</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">売上規模 <span class="text-red-500">*</span></label>
+                                <select class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">選択してください</option>
+                                    <option value="under-10m">1,000万円未満</option>
+                                    <option value="10m-30m">1,000万円〜3,000万円</option>
+                                    <option value="30m-50m">3,000万円〜5,000万円</option>
+                                    <option value="50m-100m">5,000万円〜1億円</option>
+                                    <option value="100m-300m">1億円〜3億円</option>
+                                    <option value="over-300m">3億円以上</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- 対応エリア -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">対応エリア</h3>
+                        <div class="mb-4">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="syncAreaSettings" checked onchange="toggleAreaSync()" class="mr-2">
+                                <span class="text-sm text-gray-700">自動配信設定から自動反映する</span>
+                            </label>
+                        </div>
+
+                        <!-- 自動反映時の表示 -->
+                        <div id="companyAreaAuto" class="bg-gray-50 p-4 rounded-lg">
+                            <div id="companyAreaDisplay" class="space-y-3">
+                                <!-- 都道府県 -->
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700 mb-2">対応都道府県</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">埼玉県</span>
+                                        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">東京都</span>
+                                    </div>
+                                </div>
+                                <!-- 優先エリア -->
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700 mb-2">⭐ 優先対応エリア</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">⭐ さいたま市見沼区</span>
+                                        <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">⭐ さいたま市中央区</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 独自設定時の入力欄 -->
+                        <div id="companyAreaManual" class="hidden">
+                            <div class="border rounded-lg p-4">
+                                <h4 class="text-md font-medium mb-3">都道府県選択</h4>
+                                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 mb-4">
+                                    <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                        <input type="checkbox" name="company-prefecture" value="埼玉県" class="mr-2">
+                                        <span class="text-sm">埼玉県</span>
+                                    </label>
+                                    <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                        <input type="checkbox" name="company-prefecture" value="千葉県" class="mr-2">
+                                        <span class="text-sm">千葉県</span>
+                                    </label>
+                                    <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                        <input type="checkbox" name="company-prefecture" value="東京都" class="mr-2">
+                                        <span class="text-sm">東京都</span>
+                                    </label>
+                                    <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                        <input type="checkbox" name="company-prefecture" value="神奈川県" class="mr-2">
+                                        <span class="text-sm">神奈川県</span>
+                                    </label>
+                                </div>
+                                <button onclick="showAllCompanyPrefectures()" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                    すべて表示
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 対応工事内容 -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">対応工事内容</h3>
+                        <div class="mb-4">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="syncConstructionSettings" checked onchange="toggleConstructionSync()" class="mr-2">
+                                <span class="text-sm text-gray-700">自動配信設定から自動反映する</span>
+                            </label>
+                        </div>
+
+                        <!-- 自動反映時の表示 -->
+                        <div id="companyConstructionAuto" class="bg-gray-50 p-4 rounded-lg">
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <!-- 自動配信設定で選択された項目がここに表示される -->
+                                <div class="flex items-center">
+                                    <span class="text-lg mr-2">🎨</span>
+                                    <span class="text-sm">外壁塗装</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-lg mr-2">🏠</span>
+                                    <span class="text-sm">屋根塗装</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-lg mr-2">🔧</span>
+                                    <span class="text-sm">外壁補修</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-lg mr-2">🛠️</span>
+                                    <span class="text-sm">屋根補修</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-lg mr-2">💧</span>
+                                    <span class="text-sm">防水工事</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 独自設定時の入力欄 -->
+                        <div id="companyConstructionManual" class="hidden">
+                            <div class="border rounded-lg p-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                        <input type="checkbox" name="company-construction" value="外壁塗装" class="mr-3">
+                                        <span class="flex-1">外壁塗装</span>
+                                    </label>
+                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                        <input type="checkbox" name="company-construction" value="外壁カバー工法" class="mr-3">
+                                        <span class="flex-1">外壁カバー工法</span>
+                                    </label>
+                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                        <input type="checkbox" name="company-construction" value="外壁張替え" class="mr-3">
+                                        <span class="flex-1">外壁張替え</span>
+                                    </label>
+                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                        <input type="checkbox" name="company-construction" value="屋根塗装" class="mr-3">
+                                        <span class="flex-1">屋根塗装</span>
+                                    </label>
+                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                        <input type="checkbox" name="company-construction" value="屋上防水" class="mr-3">
+                                        <span class="flex-1">屋上防水</span>
+                                    </label>
+                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                        <input type="checkbox" name="company-construction" value="屋根葺き替え" class="mr-3">
+                                        <span class="flex-1">屋根葺き替え</span>
+                                    </label>
+                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                        <input type="checkbox" name="company-construction" value="屋根カバー工法" class="mr-3">
+                                        <span class="flex-1">屋根カバー工法</span>
+                                    </label>
+                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                        <input type="checkbox" name="company-construction" value="外壁補修" class="mr-3">
+                                        <span class="flex-1">外壁補修</span>
+                                    </label>
+                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                        <input type="checkbox" name="company-construction" value="屋根補修" class="mr-3">
+                                        <span class="flex-1">屋根補修</span>
+                                    </label>
+                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                        <input type="checkbox" name="company-construction" value="ベランダ防水" class="mr-3">
+                                        <span class="flex-1">ベランダ防水</span>
+                                    </label>
+                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                        <input type="checkbox" name="company-construction" value="内装水回り" class="mr-3">
+                                        <span class="flex-1">内装水回り（バス・キッチン・トイレ）</span>
+                                    </label>
+                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                        <input type="checkbox" name="company-construction" value="内装" class="mr-3">
+                                        <span class="flex-1">内装（フローリング・クロス等）</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- メインビジュアル設定 -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">メインビジュアル</h3>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center relative" id="mainVisualUploadArea">
+                            <input type="file" id="mainVisualInput" class="hidden" accept="image/*" onchange="handleMainVisualUpload(event)">
+                            <div id="mainVisualPreview" class="hidden">
+                                <img id="mainVisualImage" src="" alt="メインビジュアル" class="max-w-full h-48 mx-auto object-cover rounded">
+                                <button onclick="removeMainVisual()" class="mt-2 px-4 py-2 text-red-600 hover:text-red-800 border border-red-300 rounded">削除</button>
+                            </div>
+                            <div id="mainVisualPlaceholder">
+                                <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <p class="text-sm text-gray-600 mb-2">メインビジュアル画像をアップロード</p>
+                                <button onclick="document.getElementById('mainVisualInput').click()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                                    画像を選択
+                                </button>
+                                <p class="text-xs text-gray-500 mt-2">推奨: 1920x600px 以上</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 写真ギャラリー -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">写真ギャラリー</h3>
+                        <div id="photoGalleryList" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-blue-500" onclick="document.getElementById('galleryUpload').click()">
+                                <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                <span class="text-sm text-gray-500">画像を追加</span>
+                            </div>
+                            <!-- ギャラリー画像が動的に追加される -->
+                        </div>
+                        <input type="file" id="galleryUpload" accept="image/*" multiple style="display: none;" onchange="handleGalleryUpload(event)">
+                    </div>
+
+                    <!-- 施工事例 -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">施工事例</h3>
+                        <button onclick="addConstructionExample()" class="mb-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
+                            施工事例を追加
+                        </button>
+                        <div id="constructionExamplesList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- 施工事例が動的に追加される -->
+                        </div>
+                    </div>
+
+                    <!-- アピールポイント（自動配信設定から自動反映） -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">アピールポイント</h3>
+                        <p class="text-sm text-gray-600 mb-4">※自動配信設定の特殊対応項目から自動的に反映されます</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- 非表示可能なアピールポイント -->
+                            <div class="flex items-center justify-between p-3 bg-white border rounded-lg">
+                                <div class="flex items-center">
+                                    <span class="text-2xl mr-3">🌡️</span>
+                                    <span class="text-sm">遮熱・断熱塗料提案可能</span>
+                                </div>
+                                <button onclick="toggleVisibility(this)" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-white border rounded-lg">
+                                <div class="flex items-center">
+                                    <span class="text-2xl mr-3">💳</span>
+                                    <span class="text-sm">クレジットカード払い可</span>
+                                </div>
+                                <button onclick="toggleVisibility(this)" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-white border rounded-lg">
+                                <div class="flex items-center">
+                                    <span class="text-2xl mr-3">🏦</span>
+                                    <span class="text-sm">提携先ローン有り</span>
+                                </div>
+                                <button onclick="toggleVisibility(this)" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-white border rounded-lg">
+                                <div class="flex items-center">
+                                    <span class="text-2xl mr-3">🔥</span>
+                                    <span class="text-sm">火災保険申請サポート</span>
+                                </div>
+                                <button onclick="toggleVisibility(this)" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 保有資格 -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">保有資格</h3>
+                        <p class="text-sm text-gray-600 mb-4">該当する資格をすべて選択してください（複数選択可）</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="qualifications" value="一級塗装技能士" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">一級塗装技能士</span>
+                            </label>
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="qualifications" value="二級塗装技能士" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">二級塗装技能士</span>
+                            </label>
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="qualifications" value="足場組立作業主任者" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">足場組立作業主任者</span>
+                            </label>
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="qualifications" value="石綿作業主任者" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">石綿（アスベスト）作業主任者</span>
+                            </label>
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="qualifications" value="外壁診断士" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">外壁診断士</span>
+                            </label>
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="qualifications" value="外壁劣化診断士" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">外壁劣化診断士</span>
+                            </label>
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="qualifications" value="外壁アドバイザー" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">外壁アドバイザー</span>
+                            </label>
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="qualifications" value="屋根診断士" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">屋根診断士</span>
+                            </label>
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="qualifications" value="雨漏り診断士" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">雨漏り診断士</span>
+                            </label>
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="qualifications" value="増改築相談員" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">増改築相談員</span>
+                            </label>
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="qualifications" value="第二種電気工事士" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">第二種電気工事士</span>
+                            </label>
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="qualifications" value="有機溶剤作業主任者" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">有機溶剤作業主任者</span>
+                            </label>
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="qualifications" value="一級防水施工技能士" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">一級防水施工技能士</span>
+                            </label>
+                        </div>
+                        <!-- その他の資格を追加 -->
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">その他の資格</label>
+                            <div class="flex gap-2" id="customQualifications">
+                                <input type="text" id="customQualificationInput" class="flex-1 px-3 py-2 border rounded-lg" placeholder="その他の資格を入力">
+                                <button onclick="addCustomQualification()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                                    追加
+                                </button>
+                            </div>
+                            <div id="customQualificationsList" class="mt-3 flex flex-wrap gap-2">
+                                <!-- カスタム資格が動的に追加される -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 加入保険 -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">加入保険</h3>
+                        <p class="text-sm text-gray-600 mb-4">加入している保険をすべて選択してください（複数選択可）</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="insurance" value="工事保険" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">工事保険</span>
+                            </label>
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="insurance" value="賠償責任保険" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">賠償責任保険</span>
+                            </label>
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="insurance" value="リフォーム瑕疵保険" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">リフォーム瑕疵保険</span>
+                            </label>
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="insurance" value="建設工事保険" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">建設工事保険</span>
+                            </label>
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="insurance" value="請負業者賠償責任保険" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">請負業者賠償責任保険</span>
+                            </label>
+                            <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                <input type="checkbox" name="insurance" value="生産物賠償責任保険" class="mr-3" onchange="autoSave()">
+                                <span class="text-sm">生産物賠償責任保険（PL保険）</span>
+                            </label>
+                        </div>
+                        <!-- その他の保険を追加 -->
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">その他の保険</label>
+                            <div class="flex gap-2" id="customInsurance">
+                                <input type="text" id="customInsuranceInput" class="flex-1 px-3 py-2 border rounded-lg" placeholder="その他の保険を入力">
+                                <button onclick="addCustomInsurance()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                                    追加
+                                </button>
+                            </div>
+                            <div id="customInsuranceList" class="mt-3 flex flex-wrap gap-2">
+                                <!-- カスタム保険が動的に追加される -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 自動保存インジケーター -->
+                    <div class="flex justify-end mt-8">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>自動保存されています</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 設定セクション -->
             <div id="settingsSection" class="section" style="display: none;">
                 <h2 class="text-2xl font-bold text-gray-900 mb-6">設定</h2>
@@ -1733,6 +2687,515 @@
     </div>
     </div><!-- mainApp end -->
 
+    <!-- 会社情報プレビューモーダル -->
+    <div id="companyPreviewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
+        <div class="relative min-h-screen py-12 px-4">
+            <div class="relative bg-white rounded-2xl max-w-6xl mx-auto shadow-2xl">
+                <!-- モーダルヘッダー -->
+                <div class="sticky top-0 bg-white rounded-t-2xl border-b z-10">
+                    <div class="flex justify-between items-center p-6">
+                        <h2 class="text-2xl font-bold text-gray-900">会社情報プレビュー</h2>
+                        <div class="flex items-center gap-4">
+                            <button onclick="togglePreviewSettings()" class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                            </button>
+                            <button onclick="closePreviewModal()" class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 表示設定パネル -->
+                    <div id="previewSettings" class="hidden border-t bg-gray-50 p-4">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-3">表示項目の設定</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2" checked onchange="togglePreviewSection('gallery')">
+                                <span class="text-sm">ギャラリー</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2" checked onchange="togglePreviewSection('prText')">
+                                <span class="text-sm">会社の特徴・強み</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2" checked onchange="togglePreviewSection('basicInfo')">
+                                <span class="text-sm">会社概要</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2" checked onchange="togglePreviewSection('contact')">
+                                <span class="text-sm">お問い合わせ</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2" checked onchange="togglePreviewSection('services')">
+                                <span class="text-sm">対応可能な工事</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2" checked onchange="togglePreviewSection('features')">
+                                <span class="text-sm">特殊対応</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2" checked onchange="togglePreviewSection('qualifications')">
+                                <span class="text-sm">保有資格</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2" checked onchange="togglePreviewSection('insurance')">
+                                <span class="text-sm">加入保険</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2" checked onchange="togglePreviewSection('gallery')">
+                                <span class="text-sm">写真ギャラリー</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2" checked onchange="togglePreviewSection('examples')">
+                                <span class="text-sm">施工事例</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2" checked onchange="togglePreviewSection('reviews')">
+                                <span class="text-sm">クチコミ</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2" checked onchange="togglePreviewSection('areas')">
+                                <span class="text-sm">対応エリア</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- プレビューコンテンツ -->
+                <div>
+                    <!-- メインビジュアルセクション -->
+                    <div id="mainVisualSection" class="relative mb-8 overflow-hidden" style="display: none;">
+                        <div class="relative" style="height: 500px; overflow: hidden; cursor: move;" id="mainVisualContainer">
+                            <img id="previewMainVisual" src="" alt="" class="w-full h-full object-cover" style="object-position: center;" draggable="false">
+                            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" style="pointer-events: none;"></div>
+
+                            <!-- 会社名と情報をオーバーレイ -->
+                            <div class="absolute bottom-0 left-0 right-0 p-8 text-white">
+                                <h1 id="previewCompanyNameOverlay" class="text-5xl font-bold mb-2 drop-shadow-lg">大野建装</h1>
+                                <p id="previewTaglineOverlay" class="text-xl mb-4 drop-shadow-md">信頼と実績の外壁塗装専門店</p>
+                                <div class="flex flex-wrap gap-4">
+                                    <div class="flex items-center bg-white/20 backdrop-blur px-4 py-2 rounded-full">
+                                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm6 6H7v2h6v-2z"></path>
+                                        </svg>
+                                        <span id="previewEstablishedOverlay">創業15年</span>
+                                    </div>
+                                    <div class="flex items-center bg-white/20 backdrop-blur px-4 py-2 rounded-full">
+                                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        <span>実績1000件以上</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 調整コントロールトグルボタン -->
+                        <button onclick="toggleImageControls()" class="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-2 hover:bg-gray-50 transition" title="画像調整">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                            </svg>
+                        </button>
+
+                        <!-- 調整コントロールパネル -->
+                        <div id="visualControls" class="absolute top-14 right-4 bg-white rounded-lg shadow-lg p-3 hidden">
+                            <div class="text-sm font-medium text-gray-700 mb-2">画像調整</div>
+                            <div class="space-y-2">
+                                <div>
+                                    <label class="text-xs text-gray-600">位置調整</label>
+                                    <div class="text-xs text-gray-500 mb-1">ドラッグで移動</div>
+                                    <div class="flex gap-1">
+                                        <button onclick="adjustImagePosition('top')" class="p-1 hover:bg-gray-100 rounded" title="上寄せ">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                        </button>
+                                        <button onclick="adjustImagePosition('center')" class="p-1 hover:bg-gray-100 rounded" title="中央にリセット">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke-width="2"></circle></svg>
+                                        </button>
+                                        <button onclick="adjustImagePosition('bottom')" class="p-1 hover:bg-gray-100 rounded" title="下寄せ">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-600">ズーム</label>
+                                    <input type="range" id="imageZoom" min="100" max="150" value="100" class="w-full" onchange="adjustImageZoom(this.value)">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-600">明るさ</label>
+                                    <input type="range" id="imageOpacity" min="20" max="100" value="70" class="w-full" onchange="adjustImageOpacity(this.value)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ヒーローセクション（メインビジュアルがない場合） -->
+                    <div id="heroSection" class="relative bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 mb-8 text-white overflow-hidden">
+                        <div class="absolute inset-0 bg-black opacity-10"></div>
+                        <div class="relative z-10">
+                            <h1 id="previewCompanyNameHero" class="text-4xl font-bold mb-2">大野建装</h1>
+                            <p id="previewTaglineHero" class="text-lg opacity-90">信頼と実績の外壁塗装専門店</p>
+                            <div class="flex flex-wrap gap-4 mt-6">
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm6 6H7v2h6v-2z"></path>
+                                    </svg>
+                                    <span id="previewEstablishedHero">創業15年</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>実績1000件以上</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-8">
+                    <!-- 会社の特徴・強み -->
+                    <div id="preview-prText" class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                            <span class="w-1 h-6 bg-yellow-600 mr-3 rounded"></span>
+                            会社の特徴・強み
+                        </h3>
+                        <div class="bg-gray-50 rounded-xl p-6">
+                            <p id="previewPRText" class="text-gray-700 leading-relaxed">地域密着で15年以上、確かな技術と丁寧な仕事で皆様の大切な住まいを守ります。見積もりから施工まで自社一貫体制で、中間マージンなしの適正価格をご提供。アフターフォローも万全です。</p>
+                        </div>
+                    </div>
+
+                    <!-- 基本情報セクション -->
+                    <div id="preview-basicInfo" class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                            <span class="w-1 h-6 bg-blue-600 mr-3 rounded"></span>
+                            会社概要
+                        </h3>
+                        <div class="bg-gray-50 rounded-xl p-6">
+                            <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-600">会社名</dt>
+                                    <dd id="previewCompanyNameFull" class="mt-1 text-lg text-gray-900">大野建装</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-600">代表者</dt>
+                                    <dd id="previewRepresentative" class="mt-1 text-lg text-gray-900">-</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-600">所在地</dt>
+                                    <dd id="previewAddress" class="mt-1 text-lg text-gray-900">-</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-600">設立</dt>
+                                    <dd id="previewEstablishedDate" class="mt-1 text-lg text-gray-900">2010年4月</dd>
+                                </div>
+                            </dl>
+                        </div>
+                        <!-- Googleマップ埋め込み -->
+                        <div class="mt-4">
+                            <h4 class="text-sm font-medium text-gray-600 mb-2">アクセス</h4>
+                            <div id="googleMapContainer" class="w-full h-64 bg-gray-200 rounded-lg overflow-hidden">
+                                <!-- マップがロードされるまでのプレースホルダー -->
+                                <div class="w-full h-full flex items-center justify-center text-gray-500">
+                                    <div class="text-center">
+                                        <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                        <p class="text-sm">マップを読み込み中...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- クチコミセクション -->
+                    <div id="preview-reviews" class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                            <span class="w-1 h-6 bg-yellow-500 mr-3 rounded"></span>
+                            お客様の声
+                        </h3>
+
+                        <!-- カルーセルコンテナ -->
+                        <div class="relative">
+                            <!-- 左矢印 -->
+                            <button onclick="scrollReviews('left')" class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition">
+                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </button>
+
+                            <!-- クチコミカルーセル -->
+                            <div id="reviewCarousel" class="overflow-hidden">
+                                <div id="previewReviewsList" class="flex gap-4 transition-transform duration-300">
+                                    <!-- クチコミカードがここに表示される -->
+                                </div>
+                            </div>
+
+                            <!-- 右矢印 -->
+                            <button onclick="scrollReviews('right')" class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition">
+                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- インジケーター -->
+                        <div id="reviewIndicators" class="flex justify-center gap-1 mt-4">
+                            <!-- ドットインジケーターがここに表示される -->
+                        </div>
+
+                        <div class="mt-4 text-xs text-gray-500 border-t pt-3">
+                            ※掲載のクチコミは各ポータルサイトより引用したものも含めた総合クチコミです
+                        </div>
+                    </div>
+
+                    <!-- お問い合わせセクション (弊社連絡先) -->
+                    <div id="preview-contact" class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                            <span class="w-1 h-6 bg-purple-600 mr-3 rounded"></span>
+                            お問い合わせ
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-white border rounded-xl p-4 hover:shadow-lg transition">
+                                <div class="flex items-center mb-2">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-600">お電話でのお問い合わせ</p>
+                                        <p class="text-lg font-semibold text-gray-900">0120-XXX-XXX</p>
+                                        <p class="text-xs text-gray-500">受付時間: 9:00-18:00（年中無休）</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-white border rounded-xl p-4 hover:shadow-lg transition">
+                                <div class="flex items-center mb-2">
+                                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-600">メールでのお問い合わせ</p>
+                                        <p class="text-lg font-semibold text-gray-900">info@kuraberu-ai.jp</p>
+                                        <p class="text-xs text-gray-500">24時間受付中</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <button class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-lg hover:shadow-lg transition">
+                                無料見積もりを依頼する
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 対応工事セクション -->
+                    <div id="preview-services" class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                            <span class="w-1 h-6 bg-green-600 mr-3 rounded"></span>
+                            対応可能な工事
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            <div class="bg-white border rounded-lg p-3 flex items-center">
+                                <span class="text-2xl mr-2">🎨</span>
+                                <span class="text-sm font-medium">外壁塗装</span>
+                            </div>
+                            <div class="bg-white border rounded-lg p-3 flex items-center">
+                                <span class="text-2xl mr-2">🏠</span>
+                                <span class="text-sm font-medium">屋根塗装</span>
+                            </div>
+                            <div class="bg-white border rounded-lg p-3 flex items-center">
+                                <span class="text-2xl mr-2">🔧</span>
+                                <span class="text-sm font-medium">外壁補修</span>
+                            </div>
+                            <div class="bg-white border rounded-lg p-3 flex items-center">
+                                <span class="text-2xl mr-2">🛠️</span>
+                                <span class="text-sm font-medium">屋根補修</span>
+                            </div>
+                            <div class="bg-white border rounded-lg p-3 flex items-center">
+                                <span class="text-2xl mr-2">💧</span>
+                                <span class="text-sm font-medium">防水工事</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 保有資格セクション -->
+                    <div id="preview-qualifications" class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                            <span class="w-1 h-6 bg-purple-600 mr-3 rounded"></span>
+                            保有資格
+                        </h3>
+                        <div id="qualificationsList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            <!-- 資格が動的に表示される -->
+                        </div>
+                    </div>
+
+                    <!-- 加入保険セクション -->
+                    <div id="preview-insurance" class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                            <span class="w-1 h-6 bg-indigo-600 mr-3 rounded"></span>
+                            加入保険
+                        </h3>
+                        <div id="insuranceList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            <!-- 保険が動的に表示される -->
+                        </div>
+                    </div>
+
+                    <!-- 特徴セクション -->
+                    <div id="preview-features" class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                            <span class="w-1 h-6 bg-orange-600 mr-3 rounded"></span>
+                            当社の強み
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
+                                <div class="text-3xl mb-2">🌡️</div>
+                                <h4 class="font-semibold text-gray-900 mb-1">遮熱・断熱塗料</h4>
+                                <p class="text-sm text-gray-600">最新の遮熱・断熱塗料で快適な住環境を実現</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
+                                <div class="text-3xl mb-2">💳</div>
+                                <h4 class="font-semibold text-gray-900 mb-1">カード決済対応</h4>
+                                <p class="text-sm text-gray-600">各種クレジットカードでのお支払いが可能</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4">
+                                <div class="text-3xl mb-2">🏦</div>
+                                <h4 class="font-semibold text-gray-900 mb-1">提携ローン</h4>
+                                <p class="text-sm text-gray-600">無理のない支払いプランをご提案</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 写真ギャラリーセクション -->
+                    <div id="preview-gallery" class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                            <span class="w-1 h-6 bg-indigo-600 mr-3 rounded"></span>
+                            写真ギャラリー
+                        </h3>
+
+                        <!-- カルーセルコンテナ -->
+                        <div class="relative">
+                            <!-- 左矢印 -->
+                            <button onclick="scrollGallery('left')" class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition">
+                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </button>
+
+                            <!-- ギャラリーカルーセル -->
+                            <div id="galleryCarousel" class="overflow-hidden">
+                                <div id="previewGalleryList" class="flex gap-4 transition-transform duration-300">
+                                    <!-- ギャラリー画像がここに表示される -->
+                                </div>
+                            </div>
+
+                            <!-- 右矢印 -->
+                            <button onclick="scrollGallery('right')" class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition">
+                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- インジケーター -->
+                        <div id="galleryIndicators" class="flex justify-center gap-1 mt-4">
+                            <!-- ドットインジケーターがここに表示される -->
+                        </div>
+                    </div>
+
+                    <!-- 施工事例セクション -->
+                    <div id="preview-examples" class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                            <span class="w-1 h-6 bg-pink-600 mr-3 rounded"></span>
+                            施工事例
+                        </h3>
+
+                        <!-- カルーセルコンテナ -->
+                        <div class="relative">
+                            <!-- 左矢印 -->
+                            <button onclick="scrollExamples('left')" class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition">
+                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </button>
+
+                            <!-- 施工事例カルーセル -->
+                            <div id="examplesCarousel" class="overflow-hidden">
+                                <div id="previewExamplesList" class="flex gap-4 transition-transform duration-300">
+                                    <!-- 施工事例がここに表示される -->
+                                </div>
+                            </div>
+
+                            <!-- 右矢印 -->
+                            <button onclick="scrollExamples('right')" class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition">
+                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- インジケーター -->
+                        <div id="examplesIndicators" class="flex justify-center gap-1 mt-4">
+                            <!-- ドットインジケーターがここに表示される -->
+                        </div>
+                    </div>
+
+                    <!-- 対応エリアセクション -->
+                    <div id="preview-areas" class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                            <span class="w-1 h-6 bg-orange-600 mr-3 rounded"></span>
+                            対応エリア
+                        </h3>
+                        <div class="bg-gray-50 rounded-xl p-6">
+                            <div class="mb-4">
+                                <h4 class="text-sm font-semibold text-gray-700 mb-2">対応都道府県</h4>
+                                <div id="previewPrefectures" class="flex flex-wrap gap-2">
+                                    <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">東京都</span>
+                                    <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">神奈川県</span>
+                                    <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">埼玉県</span>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-semibold text-gray-700 mb-2">優先対応地域</h4>
+                                <div id="previewPriorityAreas" class="flex flex-wrap gap-2">
+                                    <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full">
+                                        <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                        </svg>
+                                        港区
+                                    </span>
+                                    <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full">
+                                        <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                        </svg>
+                                        横浜市
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 最下部CTA -->
+                    <div class="text-center py-8 border-t">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">今すぐ無料見積もりを依頼</h3>
+                        <p class="text-gray-600 mb-6">お気軽にお問い合わせください</p>
+                        <button class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-4 rounded-lg hover:shadow-xl transition text-lg font-semibold">
+                            無料見積もりを依頼する
+                        </button>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ユーザー状態管理
         let currentUser = '管理者';
@@ -1856,6 +3319,1473 @@
                         status.classList.add('text-red-600');
                     }
                 });
+            }
+        }
+
+        // 自動配信設定の保存
+        function saveAutoDeliverySettings() {
+            showNotification('保存完了', '自動配信設定を保存しました');
+        }
+
+        // 支店表示オプションの表示/非表示
+        function updateBranchDisplay() {
+            const branchName = document.getElementById('branchName').value;
+            const branchOptions = document.getElementById('branchDisplayOptions');
+
+            if (branchName && branchName.trim() !== '') {
+                branchOptions.style.display = 'block';
+            } else {
+                branchOptions.style.display = 'none';
+            }
+
+            // 自動保存をトリガー
+            autoSave();
+        }
+
+        // 会社名表示を更新
+        function updateCompanyNameDisplay() {
+            // 自動保存をトリガー
+            autoSave();
+        }
+
+        // 自動保存
+        function autoSave() {
+            // 保存インジケーターを表示
+            const saveIndicator = document.querySelector('#companySection .text-green-500');
+            if (saveIndicator) {
+                saveIndicator.parentElement.parentElement.style.opacity = '0.5';
+                setTimeout(() => {
+                    saveIndicator.parentElement.parentElement.style.opacity = '1';
+                }, 500);
+            }
+
+            // 実際の保存処理（API呼び出しなど）はここに実装
+            console.log('自動保存しました');
+        }
+
+        // 会社情報の保存（廃止予定）
+        function saveCompanyInfo() {
+            autoSave();
+            showNotification('保存完了', '会社情報を保存しました');
+        }
+
+        // カスタム資格を追加
+        function addCustomQualification() {
+            const input = document.getElementById('customQualificationInput');
+            const value = input.value.trim();
+
+            if (value) {
+                const list = document.getElementById('customQualificationsList');
+                const tag = document.createElement('div');
+                tag.className = 'inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm';
+                tag.innerHTML = `
+                    <span>${value}</span>
+                    <button onclick="this.parentElement.remove(); autoSave()" class="ml-2 text-blue-600 hover:text-blue-800">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                `;
+                list.appendChild(tag);
+                input.value = '';
+                autoSave();
+            }
+        }
+
+        // カスタム保険を追加
+        function addCustomInsurance() {
+            const input = document.getElementById('customInsuranceInput');
+            const value = input.value.trim();
+
+            if (value) {
+                const list = document.getElementById('customInsuranceList');
+                const tag = document.createElement('div');
+                tag.className = 'inline-flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm';
+                tag.innerHTML = `
+                    <span>${value}</span>
+                    <button onclick="this.parentElement.remove(); autoSave()" class="ml-2 text-green-600 hover:text-green-800">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                `;
+                list.appendChild(tag);
+                input.value = '';
+                autoSave();
+            }
+        }
+
+        // 会社情報のプレビュー
+        function previewCompanyInfo() {
+            // 入力値を取得
+            const companySection = document.getElementById('companySection');
+            const companyName = companySection.querySelector('input[placeholder="カタカナで入力"]').value || '大野建装';
+            const branchName = document.getElementById('branchName').value;
+            const displayOption = document.querySelector('input[name="branchDisplay"]:checked')?.value || 'company';
+            const representative = companySection.querySelector('input[placeholder="代表者名を入力"]')?.value || '-';
+            const zipCode = companySection.querySelector('input[placeholder="123-4567"]')?.value || '';
+            const address = companySection.querySelector('input[placeholder="東京都港区青山1-1-1"]')?.value ||
+                           companySection.querySelector('label:has-text("住所") + input')?.value ||
+                           companySection.querySelector('label:has-text("所在地") + input')?.value || '-';
+            const established = companySection.querySelector('input[placeholder="2010年4月"]')?.value || '2010年4月';
+            const prText = companySection.querySelector('textarea[placeholder*="PR文"]')?.value ||
+                          companySection.querySelector('textarea[rows="4"]')?.value ||
+                          '地域密着で15年以上、確かな技術と丁寧な仕事で皆様の大切な住まいを守ります。見積もりから施工まで自社一貫体制で、中間マージンなしの適正価格をご提供。アフターフォローも万全です。';
+
+            // 会社名の表示を決定
+            let displayName = companyName;
+            if (branchName && branchName.trim() !== '') {
+                switch(displayOption) {
+                    case 'branch':
+                        displayName = `${companyName} ${branchName}`;
+                        break;
+                    case 'both':
+                        displayName = `株式会社${companyName} ${branchName}`;
+                        break;
+                    case 'company':
+                    default:
+                        displayName = companyName;
+                        break;
+                }
+            }
+
+            // プレビューに反映
+            const setElementText = (id, text) => {
+                const element = document.getElementById(id);
+                if (element) element.textContent = text;
+            };
+
+            setElementText('previewCompanyName', displayName);
+            setElementText('previewCompanyNameHero', displayName);
+            setElementText('previewCompanyNameOverlay', displayName);
+            setElementText('previewCompanyNameFull', displayName);
+            setElementText('previewRepresentative', representative);
+
+            // 所在地を表示（郵便番号も含める）
+            const fullAddress = zipCode ? `〒${zipCode} ${address}` : address;
+            setElementText('previewAddress', fullAddress);
+
+            setElementText('previewEstablishedDate', established);
+
+            // PR文を表示
+            setElementText('previewPRText', prText);
+
+            // キャッチフレーズをPR文の最初の一文から抽出
+            const firstSentence = prText.split('。')[0];
+            const tagline = firstSentence.length > 40 ? firstSentence.substring(0, 40) + '...' : firstSentence;
+            setElementText('previewTagline', tagline || '信頼と実績の外壁塗装専門店');
+            setElementText('previewTaglineHero', tagline || '信頼と実績の外壁塗装専門店');
+            setElementText('previewTaglineOverlay', tagline || '信頼と実績の外壁塗装専門店');
+
+            setElementText('previewEstablishedHero', established);
+            setElementText('previewEstablishedOverlay', established);
+
+            // メインビジュアルがアップロードされている場合は表示
+            if (mainVisualData) {
+                document.getElementById('previewMainVisual').src = mainVisualData;
+                document.getElementById('mainVisualSection').style.display = 'block';
+                document.getElementById('heroSection').style.display = 'none';
+            } else {
+                document.getElementById('mainVisualSection').style.display = 'none';
+                document.getElementById('heroSection').style.display = 'block';
+            }
+
+            // 資格を表示
+            const qualificationsList = document.getElementById('qualificationsList');
+            if (qualificationsList) {
+                qualificationsList.innerHTML = '';
+                // チェックされた資格を取得
+                const checkedQualifications = companySection.querySelectorAll('input[name="qualifications"]:checked');
+                checkedQualifications.forEach(qual => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-purple-50 border border-purple-200 rounded-lg p-3 flex items-center';
+                    div.innerHTML = `
+                        <span class="text-2xl mr-2">🎖️</span>
+                        <span class="text-sm font-medium">${qual.value}</span>
+                    `;
+                    qualificationsList.appendChild(div);
+                });
+                // カスタム資格を追加
+                const customQuals = document.querySelectorAll('#customQualificationsList > div');
+                customQuals.forEach(qual => {
+                    const qualText = qual.querySelector('span').textContent;
+                    const div = document.createElement('div');
+                    div.className = 'bg-purple-50 border border-purple-200 rounded-lg p-3 flex items-center';
+                    div.innerHTML = `
+                        <span class="text-2xl mr-2">🎖️</span>
+                        <span class="text-sm font-medium">${qualText}</span>
+                    `;
+                    qualificationsList.appendChild(div);
+                });
+                // 資格がある場合のみセクションを表示
+                const qualSection = document.getElementById('preview-qualifications');
+                if (qualSection) {
+                    qualSection.style.display = qualificationsList.children.length > 0 ? 'block' : 'none';
+                }
+            }
+
+            // 保険を表示
+            const insuranceList = document.getElementById('insuranceList');
+            if (insuranceList) {
+                insuranceList.innerHTML = '';
+                // チェックされた保険を取得
+                const checkedInsurance = companySection.querySelectorAll('input[name="insurance"]:checked');
+                checkedInsurance.forEach(ins => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-indigo-50 border border-indigo-200 rounded-lg p-3 flex items-center';
+                    div.innerHTML = `
+                        <span class="text-2xl mr-2">🛡️</span>
+                        <span class="text-sm font-medium">${ins.value}</span>
+                    `;
+                    insuranceList.appendChild(div);
+                });
+                // カスタム保険を追加
+                const customInsurance = document.querySelectorAll('#customInsuranceList > div');
+                customInsurance.forEach(ins => {
+                    const insText = ins.querySelector('span').textContent;
+                    const div = document.createElement('div');
+                    div.className = 'bg-indigo-50 border border-indigo-200 rounded-lg p-3 flex items-center';
+                    div.innerHTML = `
+                        <span class="text-2xl mr-2">🛡️</span>
+                        <span class="text-sm font-medium">${insText}</span>
+                    `;
+                    insuranceList.appendChild(div);
+                });
+                // 保険がある場合のみセクションを表示
+                const insSection = document.getElementById('preview-insurance');
+                if (insSection) {
+                    insSection.style.display = insuranceList.children.length > 0 ? 'block' : 'none';
+                }
+            }
+
+            // モーダルを表示
+            document.getElementById('companyPreviewModal').classList.remove('hidden');
+
+            // ドラッグ機能を初期化
+            setTimeout(initImageDrag, 100);
+
+            // Googleマップを読み込み
+            setTimeout(loadGoogleMap, 200);
+        }
+
+        // プレビューモーダルを閉じる
+        function closePreviewModal() {
+            document.getElementById('companyPreviewModal').classList.add('hidden');
+        }
+
+        // プレビュー設定パネルの表示切り替え
+        function togglePreviewSettings() {
+            const settings = document.getElementById('previewSettings');
+            settings.classList.toggle('hidden');
+        }
+
+        // プレビューセクションの表示切り替え
+        function togglePreviewSection(sectionName) {
+            const section = document.getElementById('preview-' + sectionName);
+            if (section) {
+                section.classList.toggle('hidden');
+            }
+        }
+
+        // 築年数範囲の更新（会社情報用）
+        function updateAgeRange() {
+            const minSlider = document.querySelector('#companySection input[type="range"][min="0"][max="50"]');
+            const maxSlider = document.querySelector('#companySection input[type="range"][min="0"][max="100"]');
+            if (minSlider && maxSlider) {
+                const minElement = document.getElementById('ageRangeMin');
+                const maxElement = document.getElementById('ageRangeMax');
+                if (minElement) minElement.textContent = minSlider.value;
+                if (maxElement) maxElement.textContent = maxSlider.value;
+            }
+        }
+
+        // 築年数範囲の更新（自動配信設定用）
+        function updateAgeRangeAuto() {
+            const minSlider = document.querySelector('#autodeliverySection input[type="range"][min="0"][max="50"]');
+            const maxSlider = document.querySelector('#autodeliverySection input[type="range"][min="0"][max="100"]');
+            if (minSlider && maxSlider) {
+                const minElement = document.getElementById('ageRangeMinAuto');
+                const maxElement = document.getElementById('ageRangeMaxAuto');
+                if (minElement) minElement.textContent = minSlider.value;
+                if (maxElement) maxElement.textContent = maxSlider.value;
+            }
+        }
+
+        // サービスカードの切り替え
+        function toggleServiceCard(element) {
+            const checkbox = element.querySelector('input[type="checkbox"]');
+            const card = element.querySelector('div');
+
+            if (checkbox.checked) {
+                checkbox.checked = false;
+                card.classList.remove('border-blue-500', 'bg-blue-50');
+            } else {
+                checkbox.checked = true;
+                card.classList.add('border-blue-500', 'bg-blue-50');
+            }
+        }
+
+        // 戻るボタン
+        function goBack() {
+            showSection('dashboard');
+        }
+
+        // 表示・非表示の切り替え
+        function toggleVisibility(button) {
+            const icon = button.querySelector('svg');
+            const parent = button.closest('.border');
+
+            if (parent.classList.contains('opacity-50')) {
+                parent.classList.remove('opacity-50');
+                icon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                `;
+            } else {
+                parent.classList.add('opacity-50');
+                icon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                `;
+            }
+        }
+
+        // メインビジュアルアップロード処理
+        let mainVisualData = null;
+        function handleMainVisualUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    mainVisualData = e.target.result;
+                    // プレビュー表示
+                    document.getElementById('mainVisualImage').src = mainVisualData;
+                    document.getElementById('mainVisualPreview').classList.remove('hidden');
+                    document.getElementById('mainVisualPlaceholder').classList.add('hidden');
+
+                    showNotification('アップロード完了', 'メインビジュアルをアップロードしました');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // メインビジュアル削除
+        function removeMainVisual() {
+            mainVisualData = null;
+            document.getElementById('mainVisualPreview').classList.add('hidden');
+            document.getElementById('mainVisualPlaceholder').classList.remove('hidden');
+            document.getElementById('mainVisualInput').value = '';
+        }
+
+        // 画像位置調整
+        let imagePositionX = 50;
+        let imagePositionY = 50;
+        let currentZoom = 100;
+
+        function adjustImagePosition(position) {
+            const image = document.getElementById('previewMainVisual');
+            if (image) {
+                switch(position) {
+                    case 'top':
+                        imagePositionY = 0;
+                        break;
+                    case 'center':
+                        imagePositionX = 50;
+                        imagePositionY = 50;
+                        break;
+                    case 'bottom':
+                        imagePositionY = 100;
+                        break;
+                }
+                updateImagePosition();
+            }
+        }
+
+        function updateImagePosition() {
+            const image = document.getElementById('previewMainVisual');
+            if (image) {
+                image.style.objectPosition = `${imagePositionX}% ${imagePositionY}%`;
+            }
+        }
+
+        // ドラッグで画像位置を調整
+        let isDragging = false;
+        let startX, startY;
+        let startPosX, startPosY;
+
+        function initImageDrag() {
+            const container = document.getElementById('mainVisualContainer');
+            const image = document.getElementById('previewMainVisual');
+
+            if (!container || !image) return;
+
+            // 既存のイベントリスナーを削除
+            const newContainer = container.cloneNode(true);
+            container.parentNode.replaceChild(newContainer, container);
+
+            newContainer.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startPosX = imagePositionX;
+                startPosY = imagePositionY;
+                newContainer.style.cursor = 'grabbing';
+                e.preventDefault();
+            });
+
+            // mousemoveとmouseupイベントは一度だけ追加
+            if (!window.imageDragListenersAdded) {
+                window.imageDragListenersAdded = true;
+
+                document.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+
+                    const containerRect = document.getElementById('mainVisualContainer')?.getBoundingClientRect();
+                    if (!containerRect) return;
+
+                    // マウスの移動量を計算
+                    const deltaX = (e.clientX - startX) / containerRect.width * 100;
+                    const deltaY = (e.clientY - startY) / containerRect.height * 100;
+
+                    // 横方向の移動（感度を調整して移動しやすくする）
+                    const sensitivityX = 1.0;
+                    imagePositionX = Math.max(0, Math.min(100, startPosX - deltaX * sensitivityX));
+
+                    // 縦方向の移動
+                    const sensitivityY = 1.0;
+                    imagePositionY = Math.max(0, Math.min(100, startPosY - deltaY * sensitivityY));
+
+                    updateImagePosition();
+                });
+
+                document.addEventListener('mouseup', () => {
+                    if (isDragging) {
+                        isDragging = false;
+                        const newContainer = document.getElementById('mainVisualContainer');
+                        if (newContainer) newContainer.style.cursor = 'move';
+                    }
+                });
+            }
+        }
+
+        // 画像ズーム調整
+        function adjustImageZoom(value) {
+            const image = document.getElementById('previewMainVisual');
+            if (image) {
+                currentZoom = parseInt(value);
+                const scale = currentZoom / 100;
+                image.style.transform = `scale(${scale})`;
+                // ズーム変更後も位置は維持
+            }
+        }
+
+        // 画像明度調整
+        function adjustImageOpacity(value) {
+            const overlay = document.querySelector('#mainVisualSection .absolute.inset-0');
+            if (overlay) {
+                const opacity = (100 - value) / 100;
+                overlay.style.background = `linear-gradient(to bottom, transparent, transparent, rgba(0,0,0,${opacity * 0.5}))`;
+            }
+        }
+
+        // 画像調整パネルの表示切り替え
+        function toggleImageControls() {
+            const controls = document.getElementById('visualControls');
+            if (controls) {
+                controls.classList.toggle('hidden');
+            }
+        }
+
+        // ギャラリー画像配列
+        let galleryImages = [];
+
+        // ギャラリー画像アップロード処理
+        function handleGalleryUpload(event) {
+            const files = event.target.files;
+            const galleryList = document.getElementById('photoGalleryList');
+
+            Array.from(files).forEach(file => {
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imageId = 'gallery_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                        galleryImages.push({
+                            id: imageId,
+                            src: e.target.result,
+                            name: file.name
+                        });
+
+                        // 画像要素を作成
+                        const imageDiv = document.createElement('div');
+                        imageDiv.className = 'relative group';
+                        imageDiv.id = imageId;
+                        imageDiv.innerHTML = `
+                            <img src="${e.target.result}" class="w-full h-24 object-cover rounded-lg" alt="${file.name}">
+                            <button onclick="removeGalleryImage('${imageId}')" class="absolute top-1 right-1 bg-red-500 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        `;
+
+                        // 追加ボタンの前に挿入
+                        const addButton = galleryList.querySelector('.border-dashed');
+                        galleryList.insertBefore(imageDiv, addButton);
+
+                        showNotification('アップロード完了', 'ギャラリー画像を追加しました');
+                        updateGalleryPreview();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // ファイル入力をリセット
+            event.target.value = '';
+        }
+
+        // ギャラリー画像を削除
+        function removeGalleryImage(imageId) {
+            const element = document.getElementById(imageId);
+            if (element) {
+                element.remove();
+                galleryImages = galleryImages.filter(img => img.id !== imageId);
+                showNotification('削除完了', 'ギャラリー画像を削除しました');
+                updateGalleryPreview();
+            }
+        }
+
+        // カルーセル管理変数
+        let currentGalleryIndex = 0;
+        let currentExampleIndex = 0;
+
+        // プレビューのギャラリーを更新（カルーセル式）
+        function updateGalleryPreview() {
+            const previewGalleryList = document.getElementById('previewGalleryList');
+            const indicators = document.getElementById('galleryIndicators');
+
+            if (previewGalleryList && galleryImages.length > 0) {
+                // 無限ループ用に複製を作成
+                const extendedImages = [...galleryImages, ...galleryImages, ...galleryImages];
+
+                previewGalleryList.innerHTML = extendedImages.map(img => `
+                    <div class="flex-shrink-0 w-72 aspect-square overflow-hidden rounded-lg">
+                        <img src="${img.src}" alt="${img.name}" class="w-full h-full object-cover hover:scale-110 transition-transform duration-300">
+                    </div>
+                `).join('');
+
+                // インジケーター生成
+                if (indicators) {
+                    indicators.innerHTML = galleryImages.map((_, index) => `
+                        <button onclick="goToGalleryImage(${index})" class="w-2 h-2 rounded-full transition ${index === currentGalleryIndex % galleryImages.length ? 'bg-blue-600' : 'bg-gray-300'}"></button>
+                    `).join('');
+                }
+
+                document.getElementById('preview-gallery').style.display = 'block';
+                currentGalleryIndex = galleryImages.length; // 無限ループの中央から開始
+                updateGalleryCarouselPosition();
+            } else {
+                document.getElementById('preview-gallery').style.display = 'none';
+            }
+        }
+
+        // ギャラリーカルーセルスクロール
+        function scrollGallery(direction) {
+            if (galleryImages.length === 0) return;
+
+            if (direction === 'left') {
+                currentGalleryIndex--;
+            } else {
+                currentGalleryIndex++;
+            }
+
+            updateGalleryCarouselPosition();
+        }
+
+        // 特定のギャラリー画像へ移動
+        function goToGalleryImage(index) {
+            currentGalleryIndex = index + galleryImages.length;
+            updateGalleryCarouselPosition();
+        }
+
+        // ギャラリーカルーセル位置更新
+        function updateGalleryCarouselPosition() {
+            const carousel = document.getElementById('previewGalleryList');
+            const indicators = document.getElementById('galleryIndicators');
+
+            if (carousel && galleryImages.length > 0) {
+                const cardWidth = 288 + 16; // w-72 (18rem) + gap-4 (1rem)
+                const offset = galleryImages.length * cardWidth;
+
+                // 無限ループのための位置調整
+                const position = -currentGalleryIndex * cardWidth - offset;
+                carousel.style.transform = `translateX(${position}px)`;
+
+                // スムーズな無限ループ
+                if (currentGalleryIndex < 0) {
+                    setTimeout(() => {
+                        carousel.style.transition = 'none';
+                        currentGalleryIndex = galleryImages.length - 1;
+                        const newPosition = -currentGalleryIndex * cardWidth - offset;
+                        carousel.style.transform = `translateX(${newPosition}px)`;
+                        setTimeout(() => {
+                            carousel.style.transition = 'transform 300ms';
+                        }, 50);
+                    }, 300);
+                } else if (currentGalleryIndex >= galleryImages.length * 2) {
+                    setTimeout(() => {
+                        carousel.style.transition = 'none';
+                        currentGalleryIndex = galleryImages.length;
+                        const newPosition = -currentGalleryIndex * cardWidth - offset;
+                        carousel.style.transform = `translateX(${newPosition}px)`;
+                        setTimeout(() => {
+                            carousel.style.transition = 'transform 300ms';
+                        }, 50);
+                    }, 300);
+                }
+
+                // インジケーター更新
+                if (indicators) {
+                    const actualIndex = ((currentGalleryIndex % galleryImages.length) + galleryImages.length) % galleryImages.length;
+                    indicators.querySelectorAll('button').forEach((btn, index) => {
+                        btn.className = `w-2 h-2 rounded-full transition ${index === actualIndex ? 'bg-blue-600' : 'bg-gray-300'}`;
+                    });
+                }
+            }
+        }
+
+        // 施工事例配列
+        let constructionExamples = [];
+        let exampleIdCounter = 0;
+
+        // 施工事例を追加
+        function addConstructionExample() {
+            const exampleId = 'example_' + (++exampleIdCounter);
+            const examplesList = document.getElementById('constructionExamplesList');
+
+            const newExample = {
+                id: exampleId,
+                title: '',
+                content: '',
+                beforeImage: null,
+                afterImage: null
+            };
+            constructionExamples.push(newExample);
+
+            const exampleDiv = document.createElement('div');
+            exampleDiv.className = 'border rounded-lg p-4';
+            exampleDiv.id = exampleId;
+            exampleDiv.innerHTML = `
+                <input type="text" class="w-full px-3 py-2 border rounded mb-2" placeholder="施工タイトル（例：築15年戸建て外壁塗装）" onchange="updateConstructionExample('${exampleId}', 'title', this.value)">
+                <textarea class="w-full px-3 py-2 border rounded mb-2" rows="2" placeholder="施工内容（例：シリコン塗料による3回塗り、色褪せと汚れを解消）" onchange="updateConstructionExample('${exampleId}', 'content', this.value)"></textarea>
+
+                <!-- ビフォーアフター画像 -->
+                <div class="grid grid-cols-2 gap-4 mb-2">
+                    <div>
+                        <label class="text-xs font-semibold text-gray-600 mb-1 block">施工前（Before）</label>
+                        <input type="file" id="beforeImage_${exampleId}" accept="image/*" style="display: none;" onchange="handleExampleImage('${exampleId}', 'before', event)">
+                        <div id="beforePreview_${exampleId}" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-blue-500" onclick="document.getElementById('beforeImage_${exampleId}').click()">
+                            <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span class="text-xs text-gray-500">クリックして画像を選択</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-600 mb-1 block">施工後（After）</label>
+                        <input type="file" id="afterImage_${exampleId}" accept="image/*" style="display: none;" onchange="handleExampleImage('${exampleId}', 'after', event)">
+                        <div id="afterPreview_${exampleId}" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-blue-500" onclick="document.getElementById('afterImage_${exampleId}').click()">
+                            <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span class="text-xs text-gray-500">クリックして画像を選択</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <button onclick="removeConstructionExample('${exampleId}')" class="text-red-600 hover:text-red-800 text-sm">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        この事例を削除
+                    </button>
+                </div>
+            `;
+
+            examplesList.appendChild(exampleDiv);
+            showNotification('追加完了', '施工事例を追加しました');
+        }
+
+        // 施工事例を更新
+        function updateConstructionExample(exampleId, field, value) {
+            const example = constructionExamples.find(e => e.id === exampleId);
+            if (example) {
+                example[field] = value;
+                updateExamplesPreview();
+            }
+        }
+
+        // 施工事例の画像を処理
+        function handleExampleImage(exampleId, type, event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const example = constructionExamples.find(ex => ex.id === exampleId);
+                    if (example) {
+                        if (type === 'before') {
+                            example.beforeImage = e.target.result;
+                            // プレビューを画像に置き換え
+                            const preview = document.getElementById(`beforePreview_${exampleId}`);
+                            if (preview) {
+                                preview.innerHTML = `<img src="${e.target.result}" class="w-full h-32 object-cover rounded" alt="施工前">`;
+                            }
+                        } else {
+                            example.afterImage = e.target.result;
+                            // プレビューを画像に置き換え
+                            const preview = document.getElementById(`afterPreview_${exampleId}`);
+                            if (preview) {
+                                preview.innerHTML = `<img src="${e.target.result}" class="w-full h-32 object-cover rounded" alt="施工後">`;
+                            }
+                        }
+                        updateExamplesPreview();
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 施工事例を削除
+        function removeConstructionExample(exampleId) {
+            const element = document.getElementById(exampleId);
+            if (element) {
+                element.remove();
+                constructionExamples = constructionExamples.filter(e => e.id !== exampleId);
+                showNotification('削除完了', '施工事例を削除しました');
+                updateExamplesPreview();
+            }
+        }
+
+        // プレビューの施工事例を更新（カルーセル式）
+        function updateExamplesPreview() {
+            const previewExamplesList = document.getElementById('previewExamplesList');
+            const indicators = document.getElementById('examplesIndicators');
+
+            if (previewExamplesList) {
+                const validExamples = constructionExamples.filter(e => (e.title || e.content) && (e.beforeImage || e.afterImage));
+
+                if (validExamples.length > 0) {
+                    // 無限ループ用に複製を作成
+                    const extendedExamples = [...validExamples, ...validExamples, ...validExamples];
+
+                    previewExamplesList.innerHTML = extendedExamples.map(example => `
+                        <div class="flex-shrink-0 w-full md:w-96 bg-white rounded-lg shadow-lg border overflow-hidden">
+                            <div class="relative">
+                                ${(example.beforeImage && example.afterImage) ? `
+                                    <!-- ビフォーアフター比較 -->
+                                    <div class="grid grid-cols-2 relative">
+                                        <div class="relative">
+                                            <img src="${example.beforeImage}" alt="施工前" class="w-full h-48 object-cover">
+                                            <div class="absolute top-2 left-2 bg-black bg-opacity-60 text-white px-2 py-1 text-xs rounded">
+                                                BEFORE
+                                            </div>
+                                        </div>
+                                        <div class="relative">
+                                            <img src="${example.afterImage}" alt="施工後" class="w-full h-48 object-cover">
+                                            <div class="absolute top-2 left-2 bg-blue-600 bg-opacity-90 text-white px-2 py-1 text-xs rounded">
+                                                AFTER
+                                            </div>
+                                        </div>
+                                    </div>
+                                ` : (example.beforeImage || example.afterImage) ? `
+                                    <!-- 片方のみの画像 -->
+                                    <img src="${example.beforeImage || example.afterImage}" alt="${example.beforeImage ? '施工前' : '施工後'}" class="w-full h-48 object-cover">
+                                ` : ''}
+                            </div>
+                            <div class="p-4">
+                                <h4 class="font-semibold text-gray-900 mb-2">${example.title || '施工事例'}</h4>
+                                <p class="text-sm text-gray-600">${example.content || '詳細情報'}</p>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    // インジケーター生成
+                    if (indicators) {
+                        indicators.innerHTML = validExamples.map((_, index) => `
+                            <button onclick="goToExample(${index})" class="w-2 h-2 rounded-full transition ${index === currentExampleIndex % validExamples.length ? 'bg-blue-600' : 'bg-gray-300'}"></button>
+                        `).join('');
+                    }
+
+                    document.getElementById('preview-examples').style.display = 'block';
+                    currentExampleIndex = validExamples.length;
+                    updateExamplesCarouselPosition();
+                } else {
+                    document.getElementById('preview-examples').style.display = 'none';
+                }
+            }
+        }
+
+        // 施工事例カルーセルスクロール
+        function scrollExamples(direction) {
+            const validExamples = constructionExamples.filter(e => (e.title || e.content) && (e.beforeImage || e.afterImage));
+            if (validExamples.length === 0) return;
+
+            if (direction === 'left') {
+                currentExampleIndex--;
+            } else {
+                currentExampleIndex++;
+            }
+
+            updateExamplesCarouselPosition();
+        }
+
+        // 特定の施工事例へ移動
+        function goToExample(index) {
+            const validExamples = constructionExamples.filter(e => (e.title || e.content) && (e.beforeImage || e.afterImage));
+            currentExampleIndex = index + validExamples.length;
+            updateExamplesCarouselPosition();
+        }
+
+        // 施工事例カルーセル位置更新
+        function updateExamplesCarouselPosition() {
+            const carousel = document.getElementById('previewExamplesList');
+            const indicators = document.getElementById('examplesIndicators');
+            const validExamples = constructionExamples.filter(e => (e.title || e.content) && (e.beforeImage || e.afterImage));
+
+            if (carousel && validExamples.length > 0) {
+                const cardWidth = carousel.firstElementChild ? carousel.firstElementChild.offsetWidth + 16 : 400;
+                const offset = validExamples.length * cardWidth;
+
+                // 無限ループのための位置調整
+                const position = -currentExampleIndex * cardWidth - offset;
+                carousel.style.transform = `translateX(${position}px)`;
+
+                // スムーズな無限ループ
+                if (currentExampleIndex < 0) {
+                    setTimeout(() => {
+                        carousel.style.transition = 'none';
+                        currentExampleIndex = validExamples.length - 1;
+                        const newPosition = -currentExampleIndex * cardWidth - offset;
+                        carousel.style.transform = `translateX(${newPosition}px)`;
+                        setTimeout(() => {
+                            carousel.style.transition = 'transform 300ms';
+                        }, 50);
+                    }, 300);
+                } else if (currentExampleIndex >= validExamples.length * 2) {
+                    setTimeout(() => {
+                        carousel.style.transition = 'none';
+                        currentExampleIndex = validExamples.length;
+                        const newPosition = -currentExampleIndex * cardWidth - offset;
+                        carousel.style.transform = `translateX(${newPosition}px)`;
+                        setTimeout(() => {
+                            carousel.style.transition = 'transform 300ms';
+                        }, 50);
+                    }, 300);
+                }
+
+                // インジケーター更新
+                if (indicators) {
+                    const actualIndex = ((currentExampleIndex % validExamples.length) + validExamples.length) % validExamples.length;
+                    indicators.querySelectorAll('button').forEach((btn, index) => {
+                        btn.className = `w-2 h-2 rounded-full transition ${index === actualIndex ? 'bg-blue-600' : 'bg-gray-300'}`;
+                    });
+                }
+            }
+        }
+
+        // エリア選択関連関数
+        let selectedPrefectures = [];
+        let priorityAreas = [];
+        const maxPrefectures = 5;
+        const maxPriorityAreas = 3;
+
+        // 都道府県リスト
+        const allPrefectures = [
+            '北海道', '青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県',
+            '茨城県', '栃木県', '群馬県', '埼玉県', '千葉県', '東京都', '神奈川県',
+            '新潟県', '富山県', '石川県', '福井県', '山梨県', '長野県', '岐阜県',
+            '静岡県', '愛知県', '三重県', '滋賀県', '京都府', '大阪府', '兵庫県',
+            '奈良県', '和歌山県', '鳥取県', '島根県', '岡山県', '広島県', '山口県',
+            '徳島県', '香川県', '愛媛県', '高知県', '福岡県', '佐賀県', '長崎県',
+            '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県'
+        ];
+
+        // 市区町村データ（サンプル）
+        const cityData = {
+            '埼玉県': ['さいたま市西区', 'さいたま市北区', 'さいたま市大宮区', 'さいたま市見沼区', 'さいたま市中央区', 'さいたま市桜区', 'さいたま市浦和区', 'さいたま市南区', 'さいたま市緑区', 'さいたま市岩槻区', '川越市', '川口市', '行田市', '秩父市', '所沢市', '飯能市', '加須市', '本庄市', '東松山市', '春日部市'],
+            '千葉県': ['千葉市中央区', '千葉市花見川区', '千葉市稲毛区', '千葉市若葉区', '千葉市緑区', '千葉市美浜区', '銃橋市', '市川市', '松戸市', '野田市', '柏市'],
+            '東京都': ['千代田区', '中央区', '港区', '新宿区', '文京区', '台東区', '墨田区', '江東区', '品川区', '目黒区', '大田区', '世田谷区', '渋谷区', '中野区', '杉並区', '豊島区', '北区', '荒川区', '板橋区', '練馬区', '足立区', '葛飾区', '江戸川区'],
+            '神奈川県': ['横浜市鶴見区', '横浜市神奈川区', '横浜市西区', '横浜市中区', '横浜市南区', '川崎市川崎区', '川崎市幸区', '川崎市中原区', '相模原市', '横須賀市']
+        };
+
+        // 選択されたエリアを更新
+        function updateSelectedAreas() {
+            const checkboxes = document.querySelectorAll('input[name="prefecture"]:checked');
+
+            // 上限チェック
+            if (checkboxes.length > maxPrefectures) {
+                checkboxes[checkboxes.length - 1].checked = false;
+                showNotification('上限を超えました', `都道府県は最大${maxPrefectures}つまで選択可能です`);
+                return;
+            }
+
+            selectedPrefectures = Array.from(checkboxes).map(cb => cb.value);
+
+            // 選択された都道府県を表示
+            if (selectedPrefectures.length > 0) {
+                document.getElementById('selectedPrefectures').classList.remove('hidden');
+                const listElement = document.getElementById('selectedPrefecturesList');
+                listElement.innerHTML = selectedPrefectures.map(pref =>
+                    `<span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">${pref}</span>`
+                ).join('');
+
+                // 市区町村選択を表示
+                document.getElementById('citySelection').classList.remove('hidden');
+                updateCityList();
+            } else {
+                document.getElementById('selectedPrefectures').classList.add('hidden');
+                document.getElementById('citySelection').classList.add('hidden');
+            }
+
+            // 会社情報に反映
+            updateCompanyAreaDisplay();
+        }
+
+        // 市区町村リストを更新
+        function updateCityList() {
+            const cityListElement = document.getElementById('cityList');
+            let html = '';
+
+            selectedPrefectures.forEach(pref => {
+                if (cityData[pref]) {
+                    cityData[pref].forEach(city => {
+                        const isPriority = priorityAreas.some(area => area.city === city);
+                        html += `
+                            <button onclick="togglePriorityArea('${pref}', '${city}')"
+                                    class="p-2 text-sm border rounded ${isPriority ? 'bg-yellow-100 border-yellow-500' : 'bg-white hover:bg-gray-50'}">
+                                ${isPriority ? '⭐ ' : ''}${city}
+                            </button>
+                        `;
+                    });
+                }
+            });
+
+            cityListElement.innerHTML = html;
+        }
+
+        // 優先エリアの切り替え
+        function togglePriorityArea(prefecture, city) {
+            const index = priorityAreas.findIndex(area => area.city === city);
+
+            if (index > -1) {
+                // 既に選択されている場合は削除
+                priorityAreas.splice(index, 1);
+            } else {
+                // 新規追加
+                if (priorityAreas.length >= maxPriorityAreas) {
+                    showNotification('上限を超えました', `優先エリアは最大${maxPriorityAreas}つまで選択可能です`);
+                    return;
+                }
+                priorityAreas.push({ prefecture, city });
+            }
+
+            updateCityList();
+            updatePriorityAreasDisplay();
+            updateCompanyAreaDisplay();
+        }
+
+        // 優先エリア表示を更新
+        function updatePriorityAreasDisplay() {
+            document.getElementById('priorityCount').textContent = priorityAreas.length;
+            const listElement = document.getElementById('priorityAreasList');
+
+            if (priorityAreas.length > 0) {
+                listElement.innerHTML = priorityAreas.map((area, index) => `
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-2xl">⭐</span>
+                                <span class="font-medium text-gray-900">${area.city}</span>
+                                <span class="text-sm text-gray-600">(埼玉県)</span>
+                            </div>
+                            <button onclick="togglePriorityArea('${area.prefecture}', '${area.city}')"
+                                    class="text-red-600 hover:text-red-800">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                listElement.innerHTML = '<p class="text-gray-500 text-center py-4">優先エリアが選択されていません</p>';
+            }
+        }
+
+        // 全都道府県を表示
+        function showAllPrefectures() {
+            const container = event.target.parentElement.querySelector('.grid');
+            container.innerHTML = allPrefectures.map(pref => `
+                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                    <input type="checkbox" name="prefecture" value="${pref}" class="mr-2" onchange="updateSelectedAreas()"
+                           ${selectedPrefectures.includes(pref) ? 'checked' : ''}>
+                    <span class="text-sm">${pref}</span>
+                </label>
+            `).join('');
+            event.target.textContent = '閉じる';
+            event.target.onclick = () => location.reload();
+        }
+
+        // 市区町村検索
+        function searchCities(query) {
+            const cityListElement = document.getElementById('cityList');
+            const allButtons = cityListElement.querySelectorAll('button');
+
+            allButtons.forEach(button => {
+                const cityName = button.textContent.replace('⭐ ', '');
+                if (cityName.toLowerCase().includes(query.toLowerCase())) {
+                    button.style.display = '';
+                } else {
+                    button.style.display = 'none';
+                }
+            });
+        }
+
+        // 会社情報のエリア表示を更新
+        function updateCompanyAreaDisplay() {
+            const displayElement = document.getElementById('companyAreaDisplay');
+            if (!displayElement) return;
+
+            let html = '';
+
+            // 都道府県
+            if (selectedPrefectures.length > 0) {
+                html += `
+                    <div>
+                        <p class="text-sm font-medium text-gray-700 mb-2">対応都道府県</p>
+                        <div class="flex flex-wrap gap-2">
+                            ${selectedPrefectures.map(pref =>
+                                `<span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">${pref}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 優先エリア
+            if (priorityAreas.length > 0) {
+                html += `
+                    <div>
+                        <p class="text-sm font-medium text-gray-700 mb-2">⭐ 優先対応エリア</p>
+                        <div class="flex flex-wrap gap-2">
+                            ${priorityAreas.map(area =>
+                                `<span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">⭐ ${area.city}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            displayElement.innerHTML = html || '<p class="text-gray-500">エリアが選択されていません</p>';
+        }
+
+        // 自動配信設定を保存
+        function saveAutoDeliverySettings() {
+            showNotification('保存完了', '自動配信設定を保存しました');
+        }
+
+        // エリア設定の同期切り替え
+        function toggleAreaSync() {
+            const isSync = document.getElementById('syncAreaSettings').checked;
+            const autoDiv = document.getElementById('companyAreaAuto');
+            const manualDiv = document.getElementById('companyAreaManual');
+
+            if (isSync) {
+                autoDiv.classList.remove('hidden');
+                manualDiv.classList.add('hidden');
+            } else {
+                autoDiv.classList.add('hidden');
+                manualDiv.classList.remove('hidden');
+            }
+        }
+
+        // 工事内容設定の同期切り替え
+        function toggleConstructionSync() {
+            const isSync = document.getElementById('syncConstructionSettings').checked;
+            const autoDiv = document.getElementById('companyConstructionAuto');
+            const manualDiv = document.getElementById('companyConstructionManual');
+
+            if (isSync) {
+                autoDiv.classList.remove('hidden');
+                manualDiv.classList.add('hidden');
+            } else {
+                autoDiv.classList.add('hidden');
+                manualDiv.classList.remove('hidden');
+            }
+        }
+
+        // 会社情報用の全都道府県表示
+        function showAllCompanyPrefectures() {
+            const container = event.target.parentElement.querySelector('.grid');
+            container.innerHTML = allPrefectures.map(pref => `
+                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                    <input type="checkbox" name="company-prefecture" value="${pref}" class="mr-2">
+                    <span class="text-sm">${pref}</span>
+                </label>
+            `).join('');
+            event.target.textContent = '閉じる';
+            event.target.onclick = () => location.reload();
+        }
+
+
+        // クチコミ管理関数
+        let collectedReviews = [
+            {
+                id: 1,
+                rating: 5,
+                source: 'ヌリカエ',
+                content: '丁寧な対応で安心してお任せできました。見積もりも明確で、追加料金なく予定通りに完成しました。',
+                customer: '東京都 Y様',
+                date: '2024年1月',
+                collectedDate: '2024/01/15',
+                visible: true,
+                image: null
+            },
+            {
+                id: 2,
+                rating: 4,
+                source: '外壁塗装の窓口',
+                content: '職人さんの技術が高く、仕上がりに満足しています。近隣への配慮もしっかりしていました。',
+                customer: '神奈川県 T様',
+                date: '2024年2月',
+                collectedDate: '2024/02/01',
+                visible: true,
+                image: 'https://via.placeholder.com/150x100'
+            },
+            {
+                id: 3,
+                rating: 5,
+                source: '自社',
+                content: '15年前に建てた家の外壁が色褪せてきたので依頼しました。複数社から見積もりを取りましたが、説明が一番丁寧で安心感がありました。',
+                customer: '千葉県 M様',
+                date: '2024年2月',
+                collectedDate: '2024/02/10',
+                visible: true,
+                image: null
+            },
+            {
+                id: 4,
+                rating: 5,
+                source: 'リショップナビ',
+                content: '職人さんの挨拶から始まり、毎日の作業報告、近隣への配慮など、すべてにおいて満足でした。',
+                customer: '埼玉県 K様',
+                date: '2024年3月',
+                collectedDate: '2024/03/05',
+                visible: true,
+                image: null
+            },
+            {
+                id: 5,
+                rating: 4,
+                source: 'ホームプロ',
+                content: '見積もりが明確で、追加料金もなく予定通りに終わりました。仕上がりも期待以上です。',
+                customer: '東京都 S様',
+                date: '2024年3月',
+                collectedDate: '2024/03/10',
+                visible: true,
+                image: null
+            },
+            {
+                id: 6,
+                rating: 5,
+                source: '自社',
+                content: '屋根と外壁の同時施工をお願いしました。工期も短縮でき、仕上がりも大変満足しています。',
+                customer: '神奈川県 A様',
+                date: '2024年3月',
+                collectedDate: '2024/03/15',
+                visible: false,
+                image: null
+            }
+        ];
+
+        // カルーセル管理
+        let currentReviewIndex = 0;
+
+        // クチコミリストを更新
+        function updateReviewsList() {
+            const reviewsList = document.getElementById('reviewsList');
+            if (reviewsList) {
+                reviewsList.innerHTML = collectedReviews.map(review => `
+                    <div class="border rounded-lg p-4 bg-white" data-review-id="${review.id}">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex items-center">
+                                <div class="flex text-yellow-400 mr-2">
+                                    ${Array(5).fill(0).map((_, i) => `
+                                        <svg class="w-4 h-4 ${i < review.rating ? 'fill-current' : 'text-gray-300'}" viewBox="0 0 20 20">
+                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                        </svg>
+                                    `).join('')}
+                                </div>
+                                <span class="text-sm text-gray-600">${review.rating}.0</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs bg-gray-100 px-2 py-1 rounded">${review.source === '自社' ? '自社' : review.source + '参照'}</span>
+                                <label class="flex items-center">
+                                    <input type="checkbox" ${review.visible ? 'checked' : ''} onchange="toggleReviewVisibility(${review.id})" class="mr-1">
+                                    <span class="text-xs text-gray-600">表示</span>
+                                </label>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-800 mb-2">${review.content}</p>
+                        ${review.image ? `
+                            <div class="mb-2">
+                                <img src="${review.image}" class="h-20 rounded object-cover" alt="施工写真">
+                            </div>
+                        ` : ''}
+                        <div class="flex justify-between items-center text-xs text-gray-500">
+                            <span>${review.customer} / ${review.date}</span>
+                            <span>収集日: ${review.collectedDate}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                // 表示件数を更新
+                const visibleCount = collectedReviews.filter(r => r.visible).length;
+                const countElement = document.getElementById('visibleReviewCount');
+                if (countElement) countElement.textContent = visibleCount;
+            }
+            updatePreviewReviews();
+        }
+
+        // クチコミの表示/非表示切り替え
+        function toggleReviewVisibility(reviewId) {
+            const review = collectedReviews.find(r => r.id === reviewId);
+            if (review) {
+                review.visible = !review.visible;
+                updateReviewsList();
+            }
+        }
+
+        // プレビューのクチコミを更新（カルーセル形式）
+        function updatePreviewReviews() {
+            const previewReviewsList = document.getElementById('previewReviewsList');
+            const indicators = document.getElementById('reviewIndicators');
+
+            if (previewReviewsList) {
+                const visibleReviews = collectedReviews.filter(r => r.visible);
+
+                if (visibleReviews.length > 0) {
+                    // 無限ループ用に複製を作成
+                    const extendedReviews = [...visibleReviews, ...visibleReviews, ...visibleReviews];
+
+                    // カルーセルカードを生成
+                    previewReviewsList.innerHTML = extendedReviews.map((review, index) => `
+                        <div class="flex-shrink-0 w-full md:w-96 bg-white rounded-lg shadow-lg border p-6">
+                            <div class="flex items-center mb-3">
+                                <div class="flex text-yellow-400 mr-2">
+                                    ${Array(5).fill(0).map((_, i) => `
+                                        <svg class="w-5 h-5 ${i < review.rating ? 'fill-current' : 'text-gray-300'}" viewBox="0 0 20 20">
+                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                        </svg>
+                                    `).join('')}
+                                </div>
+                                <span class="text-sm text-gray-600 font-semibold">${review.rating}.0</span>
+                            </div>
+
+                            <p class="text-gray-700 mb-4 line-clamp-3">${review.content}</p>
+
+                            ${review.image ? `
+                                <img src="${review.image}" class="h-24 w-full object-cover rounded mb-3" alt="施工写真">
+                            ` : ''}
+
+                            <div class="border-t pt-3">
+                                <div class="flex justify-between items-center">
+                                    <div class="text-sm text-gray-600">
+                                        <div class="font-medium">${review.customer}</div>
+                                        <div class="text-xs text-gray-500">${review.date}</div>
+                                    </div>
+                                    <span class="text-xs bg-gray-100 px-2 py-1 rounded">
+                                        ${review.source === '自社' ? '直接いただいた声' : review.source + 'より'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    // インジケーターを生成
+                    if (indicators) {
+                        indicators.innerHTML = visibleReviews.map((_, index) => `
+                            <button onclick="goToReview(${index})" class="w-2 h-2 rounded-full transition ${index === currentReviewIndex ? 'bg-blue-600' : 'bg-gray-300'}"></button>
+                        `).join('');
+                    }
+
+                    document.getElementById('preview-reviews').style.display = 'block';
+                    currentReviewIndex = visibleReviews.length; // 無限ループの中央から開始
+                    updateCarouselPosition();
+                } else {
+                    document.getElementById('preview-reviews').style.display = 'none';
+                }
+            }
+        }
+
+        // カルーセルスクロール（無限ループ）
+        function scrollReviews(direction) {
+            const visibleReviews = collectedReviews.filter(r => r.visible);
+            if (visibleReviews.length === 0) return;
+
+            if (direction === 'left') {
+                currentReviewIndex--;
+            } else {
+                currentReviewIndex++;
+            }
+
+            updateCarouselPosition();
+        }
+
+        // 特定のクチコミへ移動
+        function goToReview(index) {
+            const visibleReviews = collectedReviews.filter(r => r.visible);
+            currentReviewIndex = index + visibleReviews.length;
+            updateCarouselPosition();
+        }
+
+        // カルーセル位置を更新（無限ループ対応）
+        function updateCarouselPosition() {
+            const carousel = document.getElementById('previewReviewsList');
+            const indicators = document.getElementById('reviewIndicators');
+            const visibleReviews = collectedReviews.filter(r => r.visible);
+
+            if (carousel && visibleReviews.length > 0) {
+                const cardWidth = carousel.firstElementChild ? carousel.firstElementChild.offsetWidth + 16 : 400;
+                const offset = visibleReviews.length * cardWidth;
+
+                // 無限ループのための位置調整
+                const position = -currentReviewIndex * cardWidth - offset;
+                carousel.style.transform = `translateX(${position}px)`;
+
+                // スムーズな無限ループ
+                if (currentReviewIndex < 0) {
+                    setTimeout(() => {
+                        carousel.style.transition = 'none';
+                        currentReviewIndex = visibleReviews.length - 1;
+                        const newPosition = -currentReviewIndex * cardWidth - offset;
+                        carousel.style.transform = `translateX(${newPosition}px)`;
+                        setTimeout(() => {
+                            carousel.style.transition = 'transform 300ms';
+                        }, 50);
+                    }, 300);
+                } else if (currentReviewIndex >= visibleReviews.length * 2) {
+                    setTimeout(() => {
+                        carousel.style.transition = 'none';
+                        currentReviewIndex = visibleReviews.length;
+                        const newPosition = -currentReviewIndex * cardWidth - offset;
+                        carousel.style.transform = `translateX(${newPosition}px)`;
+                        setTimeout(() => {
+                            carousel.style.transition = 'transform 300ms';
+                        }, 50);
+                    }, 300);
+                }
+
+                // インジケーター更新
+                if (indicators) {
+                    const actualIndex = ((currentReviewIndex % visibleReviews.length) + visibleReviews.length) % visibleReviews.length;
+                    indicators.querySelectorAll('button').forEach((btn, index) => {
+                        btn.className = `w-2 h-2 rounded-full transition ${index === actualIndex ? 'bg-blue-600' : 'bg-gray-300'}`;
+                    });
+                }
+            }
+        }
+
+        // 初期化時にクチコミリストを表示
+        setTimeout(() => {
+            updateReviewsList();
+        }, 100);
+
+        // 会社情報の入力フィールドに変更監視を追加
+        document.addEventListener('DOMContentLoaded', () => {
+            const companySection = document.getElementById('companySection');
+            if (companySection) {
+                // すべての入力要素に変更監視を追加
+                companySection.querySelectorAll('input, textarea, select').forEach(element => {
+                    element.addEventListener('change', autoSave);
+                    element.addEventListener('input', () => {
+                        clearTimeout(window.autoSaveTimer);
+                        window.autoSaveTimer = setTimeout(autoSave, 1000); // 1秒後に自動保存
+                    });
+                });
+
+                // カスタム資格入力のEnterキー対応
+                const customQualInput = document.getElementById('customQualificationInput');
+                if (customQualInput) {
+                    customQualInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addCustomQualification();
+                        }
+                    });
+                }
+
+                // カスタム保険入力のEnterキー対応
+                const customInsInput = document.getElementById('customInsuranceInput');
+                if (customInsInput) {
+                    customInsInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addCustomInsurance();
+                        }
+                    });
+                }
+            }
+        });
+
+        // サービスカードのトグル機能
+        function toggleServiceCard(element) {
+            const checkbox = element.querySelector('input[type="checkbox"]');
+            const card = element.querySelector('div');
+
+            checkbox.checked = !checkbox.checked;
+
+            if (checkbox.checked) {
+                card.classList.add('bg-blue-50', 'border-blue-500');
+                card.classList.remove('bg-white');
+            } else {
+                card.classList.remove('bg-blue-50', 'border-blue-500');
+                card.classList.add('bg-white');
+            }
+        }
+
+        // Googleマップを埋め込み
+        function loadGoogleMap() {
+            const mapContainer = document.getElementById('googleMapContainer');
+            const address = document.getElementById('previewAddress')?.textContent || '';
+
+            if (!mapContainer) return;
+
+            if (address && address !== '-') {
+                const encodedAddress = encodeURIComponent(address);
+                // Google Maps Embed APIを使用（通常はAPIキーが必要ですが、シンプルなiframe埋め込みを使用）
+                const mapHtml = `
+                    <iframe
+                        width="100%"
+                        height="100%"
+                        frameborder="0"
+                        style="border:0"
+                        src="https://www.google.com/maps?q=${encodedAddress}&output=embed"
+                        allowfullscreen>
+                    </iframe>
+                `;
+                mapContainer.innerHTML = mapHtml;
+            } else {
+                mapContainer.innerHTML = `
+                    <div class="w-full h-full flex items-center justify-center text-gray-500 bg-gray-100">
+                        <div class="text-center">
+                            <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <p class="text-sm">所在地情報が設定されていません</p>
+                        </div>
+                    </div>
+                `;
             }
         }
 
