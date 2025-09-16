@@ -218,6 +218,18 @@
                     </svg>
                     会社情報
                 </a>
+                <a href="#cancel" onclick="showSection('cancel'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                    </svg>
+                    キャンセル申請
+                </a>
+                <a href="#contract" onclick="showSection('contract'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    成約報告
+                </a>
                 <a href="#settings" onclick="showSection('settings'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -2405,6 +2417,381 @@
                 </div>
             </div>
 
+            <!-- キャンセル申請セクション -->
+            <div id="cancelSection" class="section" style="display: none;">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">キャンセル申請</h2>
+                        <p class="text-sm text-gray-600 mt-1">案件のキャンセル理由を選択して申請してください</p>
+                    </div>
+                </div>
+
+                <!-- 検索バー -->
+                <div class="bg-white rounded-lg shadow p-4 mb-6">
+                    <!-- 基本検索 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                        <div class="lg:col-span-2">
+                            <input type="text" id="cancelSearchInput" placeholder="顧客名・電話番号・住所で検索（部分一致）"
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                                   onkeyup="searchCancelCases()">
+                        </div>
+                        <div>
+                            <select id="cancelAssigneeFilter" class="w-full px-4 py-2 border rounded-lg" onchange="searchCancelCases()">
+                                <option value="">担当者で検索</option>
+                                <option value="self">自分の案件</option>
+                                <option value="田中太郎">田中太郎</option>
+                                <option value="佐藤花子">佐藤花子</option>
+                                <option value="鈴木一郎">鈴木一郎</option>
+                                <option value="高橋みゆき">高橋みゆき</option>
+                                <option value="伊藤健">伊藤健</option>
+                                <option value="未割当">未割当</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 期間検索 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs text-gray-600">流入期間</label>
+                            <input type="date" id="cancelStartDate" class="px-3 py-2 border rounded-lg" onchange="searchCancelCases()">
+                            <span class="text-xs text-gray-600">〜</span>
+                            <input type="date" id="cancelEndDate" class="px-3 py-2 border rounded-lg" onchange="searchCancelCases()">
+                        </div>
+                        <div class="flex items-center justify-end">
+                            <button onclick="searchCancelCases()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                                検索
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 案件一覧 -->
+                <div id="cancelCasesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+                    <!-- 案件カードが動的に表示される -->
+                </div>
+
+                <!-- キャンセル申請フォーム（モーダル） -->
+                <div id="cancelModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-4">キャンセル理由の選択</h3>
+                            <div id="cancelQuestionContainer">
+                                <!-- 質問が動的に表示される -->
+                            </div>
+                            <div id="cancelAIResponse" class="hidden mt-6 p-4 bg-blue-50 rounded-lg">
+                                <h4 class="font-semibold text-gray-800 mb-2">AI生成の申請文</h4>
+                                <div id="cancelAIText" class="text-gray-700 whitespace-pre-wrap"></div>
+                                <div class="mt-4 flex gap-3">
+                                    <button onclick="submitCancelRequest()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                                        この内容で申請
+                                    </button>
+                                    <button onclick="regenerateCancelText()" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+                                        再生成
+                                    </button>
+                                </div>
+                            </div>
+                            <button onclick="closeCancelModal()" class="mt-4 text-gray-500 hover:text-gray-700">
+                                キャンセル
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 成約報告セクション -->
+            <div id="contractSection" class="section" style="display: none;">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">成約報告</h2>
+                        <p class="text-sm text-gray-600 mt-1">成約した案件の詳細を報告してください</p>
+                    </div>
+                </div>
+
+                <!-- 検索バー -->
+                <div class="bg-white rounded-lg shadow p-4 mb-6">
+                    <!-- 基本検索 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                        <div class="lg:col-span-2">
+                            <input type="text" id="contractSearchInput" placeholder="顧客名・電話番号・住所で検索（部分一致）"
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                                   onkeyup="searchContractCases()">
+                        </div>
+                        <div>
+                            <select id="contractAssigneeFilter" class="w-full px-4 py-2 border rounded-lg" onchange="searchContractCases()">
+                                <option value="">担当者で検索</option>
+                                <option value="self">自分の案件</option>
+                                <option value="田中太郎">田中太郎</option>
+                                <option value="佐藤花子">佐藤花子</option>
+                                <option value="鈴木一郎">鈴木一郎</option>
+                                <option value="高橋みゆき">高橋みゆき</option>
+                                <option value="伊藤健">伊藤健</option>
+                                <option value="未割当">未割当</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 期間検索 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs text-gray-600">流入期間</label>
+                            <input type="date" id="contractStartDate" class="px-3 py-2 border rounded-lg" onchange="searchContractCases()">
+                            <span class="text-xs text-gray-600">〜</span>
+                            <input type="date" id="contractEndDate" class="px-3 py-2 border rounded-lg" onchange="searchContractCases()">
+                        </div>
+                        <div class="flex items-center justify-end">
+                            <button onclick="searchContractCases()" class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                                検索
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 案件一覧 -->
+                <div id="contractCasesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+                    <!-- 案件カードが動的に表示される -->
+                </div>
+
+                <!-- 成約報告モーダル -->
+                <div id="contractModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto relative">
+                        <!-- 閉じるボタン（右上） -->
+                        <button onclick="closeContractModal()" class="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 transition-colors z-10">
+                            <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-4">成約報告</h3>
+
+                            <!-- 顧客情報表示 -->
+                            <div id="contractCustomerInfo" class="hidden mb-4 p-4 bg-blue-50 rounded-lg">
+                                <div class="text-lg font-semibold" id="contractCustomerName"></div>
+                                <div class="text-gray-600" id="contractCustomerAddress"></div>
+                            </div>
+
+                            <!-- 質問フェーズ -->
+                            <div id="contractQuestionContainer">
+                                <!-- 質問が動的に表示される -->
+                            </div>
+
+                            <!-- フォームフェーズ -->
+                            <div id="contractFormPhase" class="hidden">
+                                <form id="contractReportForm">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <!-- 契約金額 -->
+                                        <div class="md:col-span-2">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">契約金額（税込）</label>
+                                            <div class="flex items-center">
+                                                <span class="mr-2">¥</span>
+                                                <input type="number" id="contractAmount" class="flex-1 px-3 py-2 border rounded-lg"
+                                                       placeholder="1234567" min="0" step="1" required>
+                                                <span class="ml-2">円</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- 完工日 -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2" id="completionDateLabel">完工予定日</label>
+                                            <input type="date" id="completionDate" class="w-full px-3 py-2 border rounded-lg" required>
+                                        </div>
+
+                                        <!-- 着金日 -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2" id="paymentDateLabel">着金予定日</label>
+                                            <input type="date" id="paymentDate" class="w-full px-3 py-2 border rounded-lg" required>
+                                        </div>
+
+                                        <!-- 対象物件種別 -->
+                                        <div class="md:col-span-2">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">対象物件種別</label>
+
+                                            <!-- 物件タイプ（複数選択可） -->
+                                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="propertyType" value="戸建て" class="mr-2">
+                                                    <span>戸建て</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="propertyType" value="アパート" class="mr-2">
+                                                    <span>アパート</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="propertyType" value="マンション" class="mr-2">
+                                                    <span>マンション</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="propertyType" value="店舗" class="mr-2">
+                                                    <span>店舗</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="propertyType" value="事務所" class="mr-2">
+                                                    <span>事務所</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="propertyType" value="工場" class="mr-2">
+                                                    <span>工場</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="propertyType" value="倉庫" class="mr-2">
+                                                    <span>倉庫</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="propertyType" value="その他" class="mr-2" onchange="toggleOtherPropertyDetails()">
+                                                    <span>その他</span>
+                                                </label>
+                                            </div>
+                                            <input type="text" id="otherPropertyDetails" class="w-full px-3 py-2 border rounded-lg hidden"
+                                                   placeholder="その他の物件種別を入力">
+
+                                            <!-- 階数選択 -->
+                                            <div class="mt-3">
+                                                <label class="block text-xs text-gray-600 mb-1">階数</label>
+                                                <select id="buildingFloors" class="w-full px-3 py-2 border rounded-lg">
+                                                    <option value="">選択してください</option>
+                                                    <option value="1F">1F</option>
+                                                    <option value="2F">2F</option>
+                                                    <option value="3F">3F</option>
+                                                    <option value="4F">4F</option>
+                                                    <option value="5F">5F</option>
+                                                    <option value="6F">6F</option>
+                                                    <option value="7F">7F</option>
+                                                    <option value="8F">8F</option>
+                                                    <option value="9F">9F</option>
+                                                    <option value="10F以上">10F以上</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- 施工内容 -->
+                                        <div class="md:col-span-2">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">施工内容（複数選択可）</label>
+                                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="workType" value="外壁塗装" class="mr-2">
+                                                    <span>外壁塗装</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="workType" value="外壁カバー工法" class="mr-2">
+                                                    <span>外壁カバー工法</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="workType" value="外壁張替え" class="mr-2">
+                                                    <span>外壁張替え</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="workType" value="屋根塗装" class="mr-2">
+                                                    <span>屋根塗装</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="workType" value="屋上防水" class="mr-2">
+                                                    <span>屋上防水</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="workType" value="屋根葺き替え（スレート・ガルバ）" class="mr-2">
+                                                    <span>屋根葺き替え（スレート・ガルバ）</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="workType" value="屋根葺き替え（瓦）" class="mr-2">
+                                                    <span>屋根葺き替え（瓦）</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="workType" value="屋根カバー工法" class="mr-2">
+                                                    <span>屋根カバー工法</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="workType" value="外壁補修" class="mr-2">
+                                                    <span>外壁補修</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="workType" value="屋根補修" class="mr-2">
+                                                    <span>屋根補修</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="workType" value="ベランダ防水" class="mr-2">
+                                                    <span>ベランダ防水</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="workType" value="雨漏り修繕" class="mr-2">
+                                                    <span>雨漏り修繕</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="workType" value="内装水回り（バス・キッチン・トイレ）" class="mr-2">
+                                                    <span>内装水回り</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="workType" value="内装（床・クロス等）" class="mr-2">
+                                                    <span>内装（床・クロス等）</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="workType" value="その他" class="mr-2" onchange="toggleOtherWorkDetails()">
+                                                    <span>その他</span>
+                                                </label>
+                                            </div>
+                                            <textarea id="workDetails" class="w-full px-3 py-2 border rounded-lg hidden"
+                                                      rows="3" placeholder="その他の施工内容を入力"></textarea>
+                                        </div>
+
+                                        <!-- 見積書アップロード -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">見積書</label>
+                                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                                                <input type="file" id="estimateFile" accept="image/*,application/pdf" class="hidden"
+                                                       onchange="handleFileUpload(event, 'estimate')">
+                                                <div id="estimatePreview" class="mb-2">
+                                                    <svg class="w-12 h-12 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                              d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                </div>
+                                                <button type="button" onclick="document.getElementById('estimateFile').click()"
+                                                        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                                                    ファイルを選択
+                                                </button>
+                                                <p class="text-xs text-gray-500 mt-2">画像またはPDF</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- 領収書アップロード -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">領収書</label>
+                                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                                                <input type="file" id="receiptFile" accept="image/*,application/pdf" class="hidden"
+                                                       onchange="handleFileUpload(event, 'receipt')">
+                                                <div id="receiptPreview" class="mb-2">
+                                                    <svg class="w-12 h-12 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                              d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                </div>
+                                                <button type="button" onclick="document.getElementById('receiptFile').click()"
+                                                        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                                                    ファイルを選択
+                                                </button>
+                                                <p class="text-xs text-gray-500 mt-2">画像またはPDF</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- 備考 -->
+                                        <div class="md:col-span-2">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">備考</label>
+                                            <textarea id="contractNotes" class="w-full px-3 py-2 border rounded-lg"
+                                                      rows="3" placeholder="特記事項があれば入力"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-6 flex justify-center">
+                                        <button type="submit" class="px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium">
+                                            成約報告を送信
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 設定セクション -->
             <div id="settingsSection" class="section" style="display: none;">
                 <h2 class="text-2xl font-bold text-gray-900 mb-6">設定</h2>
@@ -2609,26 +2996,53 @@
                 </div>
             </div>
 
+            <h3 class="text-sm font-medium text-gray-700 mb-3">カスタム設定</h3>
             <div class="permission-grid mb-6">
                 <!-- 案件関連 -->
                 <div class="border rounded-lg p-4">
                     <h4 class="font-medium text-gray-900 mb-3">案件関連</h4>
                     <div class="space-y-2">
-                        <label class="flex items-center text-sm">
-                            <input type="checkbox" class="permission-checkbox rounded" data-permission="case.view">
-                            <span class="ml-2">案件閲覧</span>
+                        <label class="flex items-center text-sm group relative">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="case.view.all">
+                            <span class="ml-2">他担当者の案件閲覧</span>
+                            <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                他の担当者の案件も閲覧できる権限
+                            </span>
                         </label>
-                        <label class="flex items-center text-sm">
+                        <label class="flex items-center text-sm group relative">
                             <input type="checkbox" class="permission-checkbox rounded" data-permission="case.edit">
-                            <span class="ml-2">案件編集</span>
+                            <span class="ml-2">他担当者の案件編集</span>
+                            <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                他の担当者の案件も編集できる権限
+                            </span>
                         </label>
-                        <label class="flex items-center text-sm">
+                        <label class="flex items-center text-sm group relative">
                             <input type="checkbox" class="permission-checkbox rounded" data-permission="case.hide">
-                            <span class="ml-2">案件非表示</span>
+                            <span class="ml-2">案件非表示化</span>
+                            <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                任意の案件を一時的に非表示にできる権限
+                            </span>
                         </label>
-                        <label class="flex items-center text-sm">
+                        <label class="flex items-center text-sm group relative">
                             <input type="checkbox" class="permission-checkbox rounded" data-permission="case.delete">
-                            <span class="ml-2">誤入力削除（24時間以内）</span>
+                            <span class="ml-2">案件削除（24時間以内）</span>
+                            <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                誤入力した案件を24時間以内に限り削除できる権限
+                            </span>
+                        </label>
+                        <label class="flex items-center text-sm group relative">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="case.cancel">
+                            <span class="ml-2">キャンセル申請</span>
+                            <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                自分が担当する案件のキャンセル申請を行える権限
+                            </span>
+                        </label>
+                        <label class="flex items-center text-sm group relative">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="case.contract">
+                            <span class="ml-2">成約報告</span>
+                            <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                自分が担当する案件の成約報告を登録できる権限
+                            </span>
                         </label>
                     </div>
                 </div>
@@ -2637,17 +3051,19 @@
                 <div class="border rounded-lg p-4">
                     <h4 class="font-medium text-gray-900 mb-3">自動配信設定</h4>
                     <div class="space-y-2">
-                        <label class="flex items-center text-sm">
+                        <label class="flex items-center text-sm group relative">
                             <input type="checkbox" class="permission-checkbox rounded" data-permission="automail.view">
                             <span class="ml-2">配信条件閲覧</span>
+                            <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                自動配信の設定を閲覧できる権限
+                            </span>
                         </label>
-                        <label class="flex items-center text-sm">
+                        <label class="flex items-center text-sm group relative">
                             <input type="checkbox" class="permission-checkbox rounded" data-permission="automail.edit">
                             <span class="ml-2">配信条件編集</span>
-                        </label>
-                        <label class="flex items-center text-sm">
-                            <input type="checkbox" class="permission-checkbox rounded" data-permission="automail.test">
-                            <span class="ml-2">テスト配信実行</span>
+                            <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                自動配信の条件を編集できる権限
+                            </span>
                         </label>
                     </div>
                 </div>
@@ -2656,13 +3072,19 @@
                 <div class="border rounded-lg p-4">
                     <h4 class="font-medium text-gray-900 mb-3">財務情報</h4>
                     <div class="space-y-2">
-                        <label class="flex items-center text-sm">
+                        <label class="flex items-center text-sm group relative">
                             <input type="checkbox" class="permission-checkbox rounded" data-permission="finance.view">
                             <span class="ml-2">売上閲覧</span>
+                            <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                売上・財務情報を閲覧できる権限
+                            </span>
                         </label>
-                        <label class="flex items-center text-sm">
+                        <label class="flex items-center text-sm group relative">
                             <input type="checkbox" class="permission-checkbox rounded" data-permission="finance.export">
                             <span class="ml-2">データエクスポート</span>
+                            <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                財務データをCSV出力できる権限
+                            </span>
                         </label>
                     </div>
                 </div>
@@ -2671,21 +3093,54 @@
                 <div class="border rounded-lg p-4">
                     <h4 class="font-medium text-gray-900 mb-3">レポート・営業管理</h4>
                     <div class="space-y-2">
-                        <label class="flex items-center text-sm">
+                        <label class="flex items-center text-sm group relative">
                             <input type="checkbox" class="permission-checkbox rounded" data-permission="report.self">
                             <span class="ml-2">レポート閲覧（自分の成績のみ）</span>
+                            <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                自分の成績レポートを閲覧できる権限
+                            </span>
                         </label>
-                        <label class="flex items-center text-sm">
+                        <label class="flex items-center text-sm group relative">
                             <input type="checkbox" class="permission-checkbox rounded" data-permission="report.all">
                             <span class="ml-2">全体レポート閲覧</span>
+                            <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                全営業担当者の成績を閲覧できる権限
+                            </span>
                         </label>
-                        <label class="flex items-center text-sm">
+                        <label class="flex items-center text-sm group relative">
                             <input type="checkbox" class="permission-checkbox rounded" data-permission="report.export">
                             <span class="ml-2">レポートCSV出力</span>
+                            <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                レポートデータをCSV出力できる権限
+                            </span>
                         </label>
-                        <label class="flex items-center text-sm">
+                        <label class="flex items-center text-sm group relative">
                             <input type="checkbox" class="permission-checkbox rounded" data-permission="sales.manage">
                             <span class="ml-2">営業担当者管理</span>
+                            <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                営業担当者を追加・削除できる権限
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 会社情報 -->
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900 mb-3">会社情報</h4>
+                    <div class="space-y-2">
+                        <label class="flex items-center text-sm group relative">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="company.view">
+                            <span class="ml-2">会社情報閲覧</span>
+                            <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                会社情報を閲覧できる権限
+                            </span>
+                        </label>
+                        <label class="flex items-center text-sm group relative">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="company.edit">
+                            <span class="ml-2">会社情報修正</span>
+                            <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                会社情報を編集できる権限
+                            </span>
                         </label>
                     </div>
                 </div>
@@ -5524,10 +5979,10 @@
         // 権限プリセット設定
         function setPreset(preset) {
             const presets = {
-                office: ['case.view', 'case.edit', 'case.hide', 'finance.view', 'finance.edit', 'automail.view', 'report.self'],
-                standard: ['case.view', 'case.edit', 'case.hide', 'automail.view', 'report.self'],
-                leader: ['case.view', 'case.edit', 'case.hide', 'case.delete', 'finance.view', 'automail.view', 'automail.edit', 'report.self', 'report.all', 'report.export'],
-                admin: ['case.view', 'case.edit', 'case.hide', 'case.delete', 'automail.view', 'automail.edit', 'automail.test', 'finance.view', 'finance.edit', 'finance.export', 'report.self', 'report.all', 'report.export', 'sales.manage']
+                office: ['case.cancel', 'case.contract', 'automail.view', 'report.self', 'company.view'],
+                standard: ['case.cancel', 'case.contract', 'automail.view', 'report.self', 'company.view'],
+                leader: ['case.view.all', 'case.edit', 'case.hide', 'case.delete', 'case.cancel', 'case.contract', 'finance.view', 'automail.view', 'automail.edit', 'report.self', 'report.all', 'report.export', 'company.view'],
+                admin: ['case.view.all', 'case.edit', 'case.hide', 'case.delete', 'case.cancel', 'case.contract', 'automail.view', 'automail.edit', 'finance.view', 'finance.export', 'report.self', 'report.all', 'report.export', 'sales.manage', 'company.view', 'company.edit']
             };
             
             // すべてのチェックボックスをクリア
@@ -6928,6 +7383,9 @@
                             </button>
                             <button onclick="event.stopPropagation(); passCase(${caseItem.id})" class="p-1.5 rounded-lg hover:bg-blue-100 transition-colors" title="担当パス">
                                 <span class="text-lg">🔄</span>
+                            </button>
+                            <button onclick="event.stopPropagation(); openCancelRequest(${caseItem.id})" class="p-1.5 rounded-lg hover:bg-red-100 transition-colors" title="キャンセル申請">
+                                <span class="text-lg">❌</span>
                             </button>
                         </div>
                     </div>
@@ -8333,6 +8791,9 @@
                                     <button onclick="event.stopPropagation(); passCase(${caseItem.id})" class="p-1 rounded-lg hover:bg-blue-100 transition-colors" title="担当パス">
                                         <span class="text-sm">🔄</span>
                                     </button>
+                                    <button onclick="event.stopPropagation(); openCancelRequest(${caseItem.id})" class="p-1 rounded-lg hover:bg-red-100 transition-colors" title="キャンセル申請">
+                                        <span class="text-sm">❌</span>
+                                    </button>
                                 </div>
                             </div>
                             <h4 class="font-bold text-sm mb-1">${caseItem.name}</h4>
@@ -8409,6 +8870,754 @@
             if (e.key === 'Escape') {
                 closeImageModal();
             }
+        });
+
+        // キャンセル申請機能
+        let selectedCancelCase = null;
+        let cancelQuestions = [
+            {
+                question: 'キャンセルの主な理由をお選びください',
+                options: ['価格が合わない', '他社で契約した', 'すでに他社で検討中', '工事の必要がなくなった', '連絡が繋がらない', 'その他']
+            }
+        ];
+        let cancelAnswers = [];
+
+        // キャンセル申請画面を開く
+        function openCancelRequest(caseId) {
+            selectedCancelCase = casesData.find(c => c.id === caseId);
+            if (selectedCancelCase) {
+                showSection('cancel');
+                setTimeout(() => {
+                    displayCancelCases();
+                    // 選択された案件をハイライト
+                    const caseCard = document.querySelector(`[data-cancel-case-id="${caseId}"]`);
+                    if (caseCard) {
+                        caseCard.classList.add('ring-2', 'ring-blue-500');
+                        caseCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 100);
+            }
+        }
+
+        // キャンセル申請用の案件カード作成
+        function createCancelCaseCard(caseItem) {
+            const statusColor = getStatusColor(caseItem.status);
+            return `
+                <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                     onclick="selectCancelCase(${caseItem.id})"
+                     data-cancel-case-id="${caseItem.id}">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColor}">${caseItem.status}</span>
+                        <button onclick="event.stopPropagation(); selectCancelCase(${caseItem.id})"
+                                class="p-1.5 rounded-lg bg-red-100 hover:bg-red-200 transition-colors" title="選択">
+                            <span class="text-lg">✅</span>
+                        </button>
+                    </div>
+                    <h3 class="font-bold text-lg mb-1">${caseItem.name}</h3>
+                    <div class="mb-2">
+                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">👤 担当: ${caseItem.assignee || '未割当'}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2">${caseItem.location || caseItem.area || ''}</p>
+                    <p class="text-sm text-gray-600 mb-3">${caseItem.propertyType || ''}</p>
+                    <p class="text-sm text-gray-600 mb-3">📞 ${caseItem.phone || ''}</p>
+                    <div class="flex justify-between items-center text-xs text-gray-500">
+                        <span>最終連絡: ${caseItem.lastContact || '未連絡'}</span>
+                        <span>次回予定: ${caseItem.nextAction || '未定'}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 成約報告用の案件カード作成
+        function createContractCaseCard(caseItem) {
+            const statusColor = getStatusColor(caseItem.status);
+            return `
+                <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                     onclick="selectContractCase(${caseItem.id})"
+                     data-contract-case-id="${caseItem.id}">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColor}">${caseItem.status}</span>
+                        <button onclick="event.stopPropagation(); selectContractCase(${caseItem.id})"
+                                class="p-1.5 rounded-lg bg-green-100 hover:bg-green-200 transition-colors" title="選択">
+                            <span class="text-lg">✅</span>
+                        </button>
+                    </div>
+                    <h3 class="font-bold text-lg mb-1">${caseItem.name}</h3>
+                    <div class="mb-2">
+                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">👤 担当: ${caseItem.assignee || '未割当'}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2">${caseItem.location || caseItem.area || ''}</p>
+                    <p class="text-sm text-gray-600 mb-3">${caseItem.propertyType || ''}</p>
+                    <p class="text-sm text-gray-600 mb-3">📞 ${caseItem.phone || ''}</p>
+                    <div class="flex justify-between items-center text-xs text-gray-500">
+                        <span>最終連絡: ${caseItem.lastContact || '未連絡'}</span>
+                        <span>次回予定: ${caseItem.nextAction || '未定'}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 日付範囲設定（キャンセル申請用）
+        function setCancelDateRange(range) {
+            const today = new Date();
+            const startInput = document.getElementById('cancelStartDate');
+            const endInput = document.getElementById('cancelEndDate');
+
+            switch(range) {
+                case 'today':
+                    startInput.valueAsDate = today;
+                    endInput.valueAsDate = today;
+                    break;
+                case 'week':
+                    const weekStart = new Date(today);
+                    weekStart.setDate(today.getDate() - today.getDay());
+                    startInput.valueAsDate = weekStart;
+                    endInput.valueAsDate = today;
+                    break;
+                case 'month':
+                    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                    startInput.valueAsDate = monthStart;
+                    endInput.valueAsDate = today;
+                    break;
+            }
+            searchCancelCases();
+        }
+
+        // 日付範囲設定（成約報告用）
+        function setContractDateRange(range) {
+            const today = new Date();
+            const startInput = document.getElementById('contractStartDate');
+            const endInput = document.getElementById('contractEndDate');
+
+            switch(range) {
+                case 'today':
+                    startInput.valueAsDate = today;
+                    endInput.valueAsDate = today;
+                    break;
+                case 'week':
+                    const weekStart = new Date(today);
+                    weekStart.setDate(today.getDate() - today.getDay());
+                    startInput.valueAsDate = weekStart;
+                    endInput.valueAsDate = today;
+                    break;
+                case 'month':
+                    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                    startInput.valueAsDate = monthStart;
+                    endInput.valueAsDate = today;
+                    break;
+            }
+            searchContractCases();
+        }
+
+        // キャンセル申請の案件検索
+        function searchCancelCases() {
+            const searchTerm = document.getElementById('cancelSearchInput').value.toLowerCase().trim();
+            const assigneeFilter = document.getElementById('cancelAssigneeFilter').value;
+            const startDate = document.getElementById('cancelStartDate').value;
+            const endDate = document.getElementById('cancelEndDate').value;
+            const cancelList = document.getElementById('cancelCasesList');
+
+            let filteredCases = casesData;
+
+            // テキスト検索
+            if (searchTerm) {
+                filteredCases = filteredCases.filter(c => {
+                    return (c.name && c.name.toLowerCase().includes(searchTerm)) ||
+                           (c.phone && c.phone.toLowerCase().includes(searchTerm)) ||
+                           (c.location && c.location.toLowerCase().includes(searchTerm)) ||
+                           (c.area && c.area.toLowerCase().includes(searchTerm)) ||
+                           (c.address && c.address.toLowerCase().includes(searchTerm));
+                });
+            }
+
+
+            // 担当者フィルター
+            if (assigneeFilter) {
+                if (assigneeFilter === 'self') {
+                    // 自分の案件（ログインユーザーを田中太郎と仮定）
+                    filteredCases = filteredCases.filter(c => c.assignee === '田中太郎');
+                } else if (assigneeFilter === '未割当') {
+                    filteredCases = filteredCases.filter(c => !c.assignee);
+                } else {
+                    filteredCases = filteredCases.filter(c => c.assignee === assigneeFilter);
+                }
+            }
+
+            // 期間フィルター（ダミーデータとしてIDを使用）
+            if (startDate || endDate) {
+                const start = startDate ? new Date(startDate) : new Date('2000-01-01');
+                const end = endDate ? new Date(endDate + 'T23:59:59') : new Date();
+
+                // ダミー実装：IDを日付の代わりに使用
+                filteredCases = filteredCases.filter(c => {
+                    // 実際の実装ではc.registeredDateをDateオブジェクトに変換して比較
+                    return true; // 今は全て表示
+                });
+            }
+
+            // 新しい順にソート（IDが大きい順）
+            filteredCases.sort((a, b) => b.id - a.id);
+
+            // カード表示
+            if (filteredCases.length > 0) {
+                cancelList.innerHTML = filteredCases.map(c => createCancelCaseCard(c)).join('');
+            } else {
+                cancelList.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">該当する案件が見つかりません</div>';
+            }
+        }
+
+        // 成約報告の案件検索
+        function searchContractCases() {
+            const searchTerm = document.getElementById('contractSearchInput').value.toLowerCase().trim();
+            const assigneeFilter = document.getElementById('contractAssigneeFilter').value;
+            const startDate = document.getElementById('contractStartDate').value;
+            const endDate = document.getElementById('contractEndDate').value;
+            const contractList = document.getElementById('contractCasesList');
+
+            let filteredCases = casesData;
+
+            // テキスト検索
+            if (searchTerm) {
+                filteredCases = filteredCases.filter(c => {
+                    return (c.name && c.name.toLowerCase().includes(searchTerm)) ||
+                           (c.phone && c.phone.toLowerCase().includes(searchTerm)) ||
+                           (c.location && c.location.toLowerCase().includes(searchTerm)) ||
+                           (c.area && c.area.toLowerCase().includes(searchTerm)) ||
+                           (c.address && c.address.toLowerCase().includes(searchTerm));
+                });
+            }
+
+
+            // 担当者フィルター
+            if (assigneeFilter) {
+                if (assigneeFilter === 'self') {
+                    // 自分の案件（ログインユーザーを田中太郎と仮定）
+                    filteredCases = filteredCases.filter(c => c.assignee === '田中太郎');
+                } else if (assigneeFilter === '未割当') {
+                    filteredCases = filteredCases.filter(c => !c.assignee);
+                } else {
+                    filteredCases = filteredCases.filter(c => c.assignee === assigneeFilter);
+                }
+            }
+
+            // 期間フィルター（ダミーデータとしてIDを使用）
+            if (startDate || endDate) {
+                const start = startDate ? new Date(startDate) : new Date('2000-01-01');
+                const end = endDate ? new Date(endDate + 'T23:59:59') : new Date();
+
+                // ダミー実装：IDを日付の代わりに使用
+                filteredCases = filteredCases.filter(c => {
+                    // 実際の実装ではc.registeredDateをDateオブジェクトに変換して比較
+                    return true; // 今は全て表示
+                });
+            }
+
+            // 新しい順にソート（IDが大きい順）
+            filteredCases.sort((a, b) => b.id - a.id);
+
+            // カード表示
+            if (filteredCases.length > 0) {
+                contractList.innerHTML = filteredCases.map(c => createContractCaseCard(c)).join('');
+            } else {
+                contractList.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">該当する案件が見つかりません</div>';
+            }
+        }
+
+        // 初期表示用
+        function displayCancelCases() {
+            searchCancelCases();
+        }
+
+        function displayContractCases() {
+            searchContractCases();
+        }
+
+        // キャンセル案件選択
+        function selectCancelCase(caseId) {
+            selectedCancelCase = casesData.find(c => c.id === caseId);
+            if (selectedCancelCase) {
+                cancelAnswers = [];
+                showCancelQuestions();
+                document.getElementById('cancelModal').classList.remove('hidden');
+            }
+        }
+
+        // 成約報告の質問定義
+        let contractQuestions = [
+            {
+                question: '報告種別を選択してください',
+                options: ['成約報告', '追加工事報告']
+            },
+            {
+                question: '現在の状況を選択してください',
+                options: ['契約前・口頭確約済', '契約後・工事前', '工事中', '工事完了後']
+            }
+        ];
+        let contractAnswers = [];
+        let selectedContractCase = null;
+
+        // 成約案件選択
+        function selectContractCase(caseId) {
+            selectedContractCase = casesData.find(c => c.id === caseId);
+            if (selectedContractCase) {
+                // 顧客情報を表示
+                document.getElementById('contractCustomerInfo').classList.remove('hidden');
+                document.getElementById('contractCustomerName').textContent = selectedContractCase.name || '';
+                document.getElementById('contractCustomerAddress').textContent =
+                    selectedContractCase.address || selectedContractCase.location || selectedContractCase.area || '';
+
+                contractAnswers = [];
+                showContractQuestions();
+                document.getElementById('contractModal').classList.remove('hidden');
+            }
+        }
+
+        // 成約報告質問表示
+        function showContractQuestions() {
+            const container = document.getElementById('contractQuestionContainer');
+            const currentQuestion = contractQuestions[contractAnswers.length];
+
+            if (currentQuestion) {
+                container.innerHTML = `
+                    <div class="mb-4">
+                        <h4 class="text-lg font-medium mb-3">${currentQuestion.question}</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            ${currentQuestion.options.map(option => `
+                                <button onclick="answerContractQuestion('${option}')"
+                                        class="p-3 text-left border rounded-lg hover:bg-green-50 hover:border-green-500 transition-colors">
+                                    ${option}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // 成約質問回答
+        function answerContractQuestion(answer) {
+            contractAnswers.push(answer);
+
+            if (contractAnswers.length < contractQuestions.length) {
+                showContractQuestions();
+            } else {
+                // フォームフェーズに移行
+                document.getElementById('contractQuestionContainer').classList.add('hidden');
+                document.getElementById('contractFormPhase').classList.remove('hidden');
+
+                // 契約状況に応じて日付ラベルを変更
+                updateDateLabels(contractAnswers[1]);
+            }
+        }
+
+        // 契約状況に応じて日付ラベルを更新
+        function updateDateLabels(status) {
+            const completionLabel = document.getElementById('completionDateLabel');
+            const paymentLabel = document.getElementById('paymentDateLabel');
+
+            switch(status) {
+                case '契約前・口頭確約済':
+                case '契約後・工事前':
+                    completionLabel.textContent = '完工予定日';
+                    paymentLabel.textContent = '着金予定日';
+                    break;
+                case '工事中':
+                    completionLabel.textContent = '完工予定日';
+                    paymentLabel.textContent = '着金日';
+                    break;
+                case '工事完了後':
+                    completionLabel.textContent = '完工日';
+                    paymentLabel.textContent = '着金日';
+                    break;
+                default:
+                    completionLabel.textContent = '完工予定日';
+                    paymentLabel.textContent = '着金予定日';
+            }
+        }
+
+        // その他チェック時の詳細入力欄表示
+        function toggleOtherWorkDetails() {
+            const otherCheckbox = document.querySelector('input[name="workType"][value="その他"]');
+            const detailsTextarea = document.getElementById('workDetails');
+
+            if (otherCheckbox && otherCheckbox.checked) {
+                detailsTextarea.classList.remove('hidden');
+            } else {
+                detailsTextarea.classList.add('hidden');
+                detailsTextarea.value = '';
+            }
+        }
+
+        // その他物件タイプの詳細入力欄表示
+        function toggleOtherPropertyDetails() {
+            const otherCheckbox = document.querySelector('input[name="propertyType"][value="その他"]');
+            const detailsInput = document.getElementById('otherPropertyDetails');
+
+            if (otherCheckbox && otherCheckbox.checked) {
+                detailsInput.classList.remove('hidden');
+            } else {
+                detailsInput.classList.add('hidden');
+                detailsInput.value = '';
+            }
+        }
+
+        // 成約モーダルを閉じる
+        function closeContractModal() {
+            document.getElementById('contractModal').classList.add('hidden');
+            document.getElementById('contractQuestionContainer').classList.remove('hidden');
+            document.getElementById('contractFormPhase').classList.add('hidden');
+            document.getElementById('contractCustomerInfo').classList.add('hidden');
+            selectedContractCase = null;
+            contractAnswers = [];
+            resetContractForm();
+        }
+
+        // キャンセル質問表示
+        function showCancelQuestions() {
+            const container = document.getElementById('cancelQuestionContainer');
+            const currentQuestion = cancelQuestions[cancelAnswers.length];
+
+            if (currentQuestion) {
+                container.innerHTML = `
+                    <div class="mb-4">
+                        <h4 class="text-lg font-medium mb-3">${currentQuestion.question}</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            ${currentQuestion.options.map(option => `
+                                <button onclick="answerCancelQuestion('${option}')"
+                                        class="p-3 text-left border rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-colors">
+                                    ${option}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // その他の理由を送信
+        function submitOtherReason() {
+            const reasonInput = document.getElementById('otherReasonInput');
+            if (reasonInput && reasonInput.value.trim()) {
+                cancelAnswers.otherReason = reasonInput.value.trim();
+                showAdditionalInfoInput();
+            } else {
+                alert('理由を入力してください');
+            }
+        }
+
+        // 追加情報入力画面を表示
+        function showAdditionalInfoInput() {
+            const container = document.getElementById('cancelQuestionContainer');
+            container.innerHTML = `
+                <div class="mb-4">
+                    <h4 class="text-lg font-medium mb-3">追加情報があればご記入ください（任意）</h4>
+                    <textarea id="additionalInfoInput" class="w-full px-3 py-2 border rounded-lg" rows="4"
+                              placeholder="例：お客様の詳しい状況、今後の対応予定、その他補足事項など"></textarea>
+                    <div class="flex gap-3 mt-3">
+                        <button onclick="skipAdditionalInfo()" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                            スキップ
+                        </button>
+                        <button onclick="submitAdditionalInfo()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            完了
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 追加情報をスキップ
+        function skipAdditionalInfo() {
+            cancelAnswers.additionalInfo = '';
+            generateCancelText();
+        }
+
+        // 追加情報を送信
+        function submitAdditionalInfo() {
+            const infoInput = document.getElementById('additionalInfoInput');
+            cancelAnswers.additionalInfo = infoInput ? infoInput.value.trim() : '';
+            generateCancelText();
+        }
+
+        // キャンセル質問回答
+        function answerCancelQuestion(answer) {
+            const container = document.getElementById('cancelQuestionContainer');
+
+            // 最初の回答を保存
+            if (cancelAnswers.length === 0) {
+                cancelAnswers.push(answer);
+
+                // 選択に応じた追加質問を表示
+                if (answer === '連絡が繋がらない') {
+                    container.innerHTML = `
+                        <div class="mb-4">
+                            <h4 class="text-lg font-medium mb-3">連絡の状況を選択してください</h4>
+                            <div class="grid grid-cols-1 gap-2">
+                                <button onclick="submitContactStatus('一度も繋がらない')" class="p-3 text-left border rounded-lg hover:bg-blue-50 hover:border-blue-500">一度も繋がらない</button>
+                                <button onclick="submitContactStatus('繋がったがアポが取れない')" class="p-3 text-left border rounded-lg hover:bg-blue-50 hover:border-blue-500">繋がったがアポが取れない</button>
+                                <button onclick="submitContactStatus('現調前キャンセル')" class="p-3 text-left border rounded-lg hover:bg-blue-50 hover:border-blue-500">現調前キャンセル</button>
+                                <button onclick="submitContactStatus('現調後見積もりお渡し前キャンセル')" class="p-3 text-left border rounded-lg hover:bg-blue-50 hover:border-blue-500">現調後見積もりお渡し前キャンセル</button>
+                                <button onclick="submitContactStatus('見積もりお渡し後キャンセル')" class="p-3 text-left border rounded-lg hover:bg-blue-50 hover:border-blue-500">見積もりお渡し後キャンセル</button>
+                            </div>
+                        </div>
+                    `;
+                } else if (answer === '他社で契約した' || answer === 'すでに他社で検討中') {
+                    container.innerHTML = `
+                        <div class="mb-4">
+                            <h4 class="text-lg font-medium mb-3">${answer === '他社で契約した' ? 'どちらで契約されましたか？' : 'どちらで検討されていますか？'}</h4>
+                            <div class="grid grid-cols-1 gap-2">
+                                <button onclick="submitCompetitor('くらべる加盟店')" class="p-3 text-left border rounded-lg hover:bg-blue-50 hover:border-blue-500">くらべる加盟店</button>
+                                <button onclick="submitCompetitor('不明')" class="p-3 text-left border rounded-lg hover:bg-blue-50 hover:border-blue-500">不明</button>
+                                <button onclick="showCompetitorInput()" class="p-3 text-left border rounded-lg hover:bg-blue-50 hover:border-blue-500">その他（会社名を入力）</button>
+                            </div>
+                        </div>
+                    `;
+                } else if (answer === 'その他') {
+                    container.innerHTML = `
+                        <div class="mb-4">
+                            <h4 class="text-lg font-medium mb-3">その他の理由を具体的に入力してください</h4>
+                            <textarea id="otherReasonInput" class="w-full px-3 py-2 border rounded-lg" rows="3" placeholder="キャンセル理由を入力"></textarea>
+                            <button onclick="submitOtherReason()" class="mt-3 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                                次へ
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    // その他の理由の場合は追加情報入力画面へ
+                    showAdditionalInfoInput();
+                }
+            }
+        }
+
+        // 連絡状況を送信
+        function submitContactStatus(status) {
+            cancelAnswers.contactStatus = status;
+            showAdditionalInfoInput();
+        }
+
+        // 競合他社を送信
+        function submitCompetitor(competitor) {
+            cancelAnswers.competitor = competitor;
+            showAdditionalInfoInput();
+        }
+
+        // 競合他社名入力欄を表示
+        function showCompetitorInput() {
+            const container = document.getElementById('cancelQuestionContainer');
+            container.innerHTML = `
+                <div class="mb-4">
+                    <h4 class="text-lg font-medium mb-3">契約先の会社名を入力してください</h4>
+                    <input type="text" id="competitorNameInput" class="w-full px-3 py-2 border rounded-lg" placeholder="会社名を入力">
+                    <button onclick="submitCompetitorName()" class="mt-3 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                        次へ
+                    </button>
+                </div>
+            `;
+        }
+
+        // 競合他社名を送信
+        function submitCompetitorName() {
+            const nameInput = document.getElementById('competitorNameInput');
+            if (nameInput && nameInput.value.trim()) {
+                cancelAnswers.competitor = nameInput.value.trim();
+                showAdditionalInfoInput();
+            } else {
+                alert('会社名を入力してください');
+            }
+        }
+
+        // キャンセル申請文生成
+        function generateCancelText() {
+            const aiResponse = document.getElementById('cancelAIResponse');
+            const aiText = document.getElementById('cancelAIText');
+
+            // メイン理由の取得
+            let mainReason = cancelAnswers[0];
+            let detailText = '';
+
+            if (cancelAnswers[0] === 'その他' && cancelAnswers.otherReason) {
+                mainReason = cancelAnswers.otherReason;
+            } else if (cancelAnswers[0] === '連絡が繋がらない' && cancelAnswers.contactStatus) {
+                detailText = `\n連絡状況: ${cancelAnswers.contactStatus}`;
+            } else if ((cancelAnswers[0] === '他社で契約した' || cancelAnswers[0] === 'すでに他社で検討中') && cancelAnswers.competitor) {
+                const label = cancelAnswers[0] === '他社で契約した' ? '契約先' : '検討先';
+                detailText = `\n${label}: ${cancelAnswers.competitor}`;
+            }
+
+            // 追加情報があれば含める
+            let additionalSection = '';
+            if (cancelAnswers.additionalInfo) {
+                additionalSection = `\n\n【追加情報】\n${cancelAnswers.additionalInfo}`;
+            }
+
+            // 理由に応じた詳細文を生成
+            let detailDescription = '';
+
+            if (cancelAnswers[0] === '連絡が繋がらない') {
+                if (cancelAnswers.contactStatus === '一度も繋がらない') {
+                    detailDescription = `お客様にご連絡を試みましたが、残念ながら一度もお電話が繋がらない状況です。`;
+                } else if (cancelAnswers.contactStatus === '繋がったがアポが取れない') {
+                    detailDescription = `お客様とお電話は繋がりましたが、現地調査のアポイントメントが取れない状況です。`;
+                } else if (cancelAnswers.contactStatus === '現調前キャンセル') {
+                    detailDescription = `現地調査前の段階で、お客様からキャンセルのお申し出がありました。`;
+                } else if (cancelAnswers.contactStatus === '現調後見積もりお渡し前キャンセル') {
+                    detailDescription = `現地調査は完了しましたが、お見積もりをお渡しする前にキャンセルとなりました。`;
+                } else if (cancelAnswers.contactStatus === '見積もりお渡し後キャンセル') {
+                    detailDescription = `お見積もりをお渡しした後、お客様のご都合によりキャンセルとなりました。`;
+                }
+            } else if (cancelAnswers[0] === '価格が合わない') {
+                detailDescription = `お見積もりをご検討いただきましたが、ご予算との兼ね合いで今回は見送りとなりました。`;
+            } else if (cancelAnswers[0] === '他社で契約した') {
+                detailDescription = `お客様は他社での契約を選択されました。`;
+            } else if (cancelAnswers[0] === 'すでに他社で検討中') {
+                detailDescription = `お客様は既に他社で検討を進めており、そちらで決定される予定です。`;
+            } else if (cancelAnswers[0] === '工事の必要がなくなった') {
+                detailDescription = `お客様のご事情により、工事自体が不要となりました。`;
+            } else if (cancelAnswers[0] === 'その他' && cancelAnswers.otherReason) {
+                detailDescription = `${cancelAnswers.otherReason}`;
+            } else {
+                detailDescription = `お客様のご都合により、案件をキャンセルさせていただくことになりました。`;
+            }
+
+            // テキスト生成
+            const cancelText = `【キャンセル申請】\n\n` +
+                `案件名: ${selectedCancelCase.name}\n` +
+                `物件: ${selectedCancelCase.propertyType || '未設定'}\n` +
+                `エリア: ${selectedCancelCase.location || selectedCancelCase.area || '未設定'}\n\n` +
+                `【キャンセル理由】\n` +
+                `${mainReason}${detailText}\n\n` +
+                `【詳細】\n` +
+                `${detailDescription}\n\n` +
+                `今後も良好な関係を維持できるよう、適切なフォローアップを心がけます。` +
+                additionalSection;
+
+            aiText.textContent = cancelText;
+            aiResponse.classList.remove('hidden');
+            document.getElementById('cancelQuestionContainer').innerHTML = '';
+        }
+
+        // キャンセル申請文再生成
+        function regenerateCancelText() {
+            // 再度質問から開始
+            cancelAnswers = [];
+            document.getElementById('cancelAIResponse').classList.add('hidden');
+            showCancelQuestions();
+        }
+
+        // キャンセル申請送信
+        function submitCancelRequest() {
+            alert('キャンセル申請が送信されました');
+            closeCancelModal();
+            // 実際の処理をここに追加
+        }
+
+        // キャンセルモーダルを閉じる
+        function closeCancelModal() {
+            document.getElementById('cancelModal').classList.add('hidden');
+            selectedCancelCase = null;
+            cancelAnswers = [];
+        }
+
+        // ファイルアップロード処理
+        function handleFileUpload(event, type) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewId = type === 'estimate' ? 'estimatePreview' : 'receiptPreview';
+                    const preview = document.getElementById(previewId);
+
+                    if (file.type.includes('image')) {
+                        preview.innerHTML = `<img src="${e.target.result}" class="w-full h-32 object-cover rounded">`;
+                    } else {
+                        preview.innerHTML = `
+                            <div class="flex items-center justify-center">
+                                <svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span class="ml-2 text-sm">${file.name}</span>
+                            </div>
+                        `;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 成約報告フォームリセット
+        function resetContractForm() {
+            const form = document.getElementById('contractReportForm');
+            if (form) {
+                form.reset();
+            }
+            document.getElementById('workDetails').classList.add('hidden');
+            document.getElementById('otherPropertyDetails').classList.add('hidden');
+            document.getElementById('estimatePreview').innerHTML = `
+                <svg class="w-12 h-12 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            `;
+            document.getElementById('receiptPreview').innerHTML = `
+                <svg class="w-12 h-12 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            `;
+        }
+
+        // 成約報告フォーム送信
+        document.addEventListener('DOMContentLoaded', function() {
+            const contractForm = document.getElementById('contractReportForm');
+            if (contractForm) {
+                contractForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    // 選択された施工内容を取得
+                    const selectedWorkTypes = [];
+                    document.querySelectorAll('input[name="workType"]:checked').forEach(checkbox => {
+                        selectedWorkTypes.push(checkbox.value);
+                    });
+
+                    // 選択された物件タイプを取得
+                    const selectedPropertyTypes = [];
+                    document.querySelectorAll('input[name="propertyType"]:checked').forEach(checkbox => {
+                        selectedPropertyTypes.push(checkbox.value);
+                    });
+
+                    // フォームデータを収集
+                    const formData = {
+                        reportType: contractAnswers[0],
+                        status: contractAnswers[1],
+                        caseName: selectedContractCase ? selectedContractCase.name : '',
+                        caseAddress: selectedContractCase ? (selectedContractCase.address || selectedContractCase.location || selectedContractCase.area) : '',
+                        amount: document.getElementById('contractAmount').value,
+                        paymentDate: document.getElementById('paymentDate').value,
+                        completionDate: document.getElementById('completionDate').value,
+                        buildingFloors: document.getElementById('buildingFloors').value,
+                        propertyTypes: selectedPropertyTypes,
+                        otherPropertyDetails: document.getElementById('otherPropertyDetails').value,
+                        workTypes: selectedWorkTypes,
+                        workDetails: document.getElementById('workDetails').value,
+                        notes: document.getElementById('contractNotes').value
+                    };
+
+                    console.log('成約報告データ:', formData);
+                    alert(`${contractAnswers[0]}が送信されました`);
+                    closeContractModal();
+                });
+            }
+
+            // セクション表示時に案件を読み込む
+            const originalShowSection = window.showSection;
+            window.showSection = function(sectionName) {
+                if (typeof originalShowSection === 'function') {
+                    originalShowSection(sectionName);
+                }
+
+                if (sectionName === 'cancel') {
+                    displayCancelCases();
+                } else if (sectionName === 'contract') {
+                    displayContractCases();
+                }
+            };
         });
     </script>
 </body>
