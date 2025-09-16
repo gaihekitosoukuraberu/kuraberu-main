@@ -148,11 +148,12 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <button onclick="requestNotificationPermission()" class="relative p-2 rounded-lg hover:bg-gray-800 transition-colors">
-                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <!-- アラート・リマインダー統合ボタン -->
+                    <button onclick="toggleAlertPanel()" class="relative p-2 rounded-lg hover:bg-gray-800 transition-colors group">
+                        <svg class="w-6 h-6 text-gray-400 group-hover:text-yellow-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
-                        <span id="notificationBadge" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse hidden"></span>
+                        <span id="alertCount" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
                     </button>
                     <div class="flex items-center space-x-3">
                         <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-500 rounded-full"></div>
@@ -196,9 +197,15 @@
                 </a>
                 <a href="#billing" onclick="showSection('billing'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    請求管理
+                    財務管理
+                </a>
+                <a href="#deposit" onclick="showSection('deposit'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    デポジット
                 </a>
                 <a href="#reports" onclick="showSection('reports'); return false;" class="admin-only flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -568,18 +575,12 @@
                 </div>
             </div><!-- casesSectionの終了 -->
 
-            <!-- 請求管理セクション -->
+            <!-- 財務管理セクション -->
             <div id="billingSection" class="section" style="display: none;">
                 <div class="mb-6 flex justify-between items-center">
-                    <h2 class="text-2xl font-bold text-gray-900">請求管理</h2>
+                    <h2 class="text-2xl font-bold text-gray-900">財務管理</h2>
                     <div class="flex space-x-2">
-                        <button onclick="generateMonthlyInvoices()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            月次請求書一括発行
-                        </button>
-                        <button onclick="exportInvoices()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                        <button onclick="exportFinancialReport()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
                             <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
@@ -593,9 +594,9 @@
                     <div class="bg-white p-4 rounded-lg shadow">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-500">今月請求額</p>
-                                <p class="text-2xl font-bold text-gray-900">¥2,450,000</p>
-                                <p class="text-xs text-gray-500">税込</p>
+                                <p class="text-sm text-gray-500" id="referralFeeMonth">1月紹介料</p>
+                                <p class="text-2xl font-bold text-gray-900" id="referralFeeAmount">¥132,000</p>
+                                <p class="text-xs text-gray-500" id="referralFeeCases">案件6件分</p>
                             </div>
                             <div class="p-3 bg-blue-100 rounded-full">
                                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -608,9 +609,9 @@
                     <div class="bg-white p-4 rounded-lg shadow">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-500">入金済み</p>
-                                <p class="text-2xl font-bold text-green-600">¥1,800,000</p>
-                                <p class="text-xs text-gray-500">73.5%</p>
+                                <p class="text-sm text-gray-500" id="commissionMonth">1月成約手数料</p>
+                                <p class="text-2xl font-bold text-green-600" id="commissionAmount">¥180,000</p>
+                                <p class="text-xs text-gray-500" id="commissionCases">成約2件分</p>
                             </div>
                             <div class="p-3 bg-green-100 rounded-full">
                                 <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -623,9 +624,9 @@
                     <div class="bg-white p-4 rounded-lg shadow">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-500">入金待ち</p>
-                                <p class="text-2xl font-bold text-yellow-600">¥650,000</p>
-                                <p class="text-xs text-gray-500">6件</p>
+                                <p class="text-sm text-gray-500" id="profitLabel">累計利益</p>
+                                <p class="text-2xl font-bold text-yellow-600" id="profitAmount">¥650,000</p>
+                                <p class="text-xs text-gray-500" id="profitPeriod">2025年度</p>
                             </div>
                             <div class="p-3 bg-yellow-100 rounded-full">
                                 <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -638,9 +639,9 @@
                     <div class="bg-white p-4 rounded-lg shadow">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-500">期限超過</p>
-                                <p class="text-2xl font-bold text-red-600">¥120,000</p>
-                                <p class="text-xs text-gray-500">2件 ⚠️</p>
+                                <p class="text-sm text-gray-500" id="roiLabel">1月ROI</p>
+                                <p class="text-2xl font-bold text-blue-600" id="roiValue">3265%</p>
+                                <p class="text-xs text-gray-500" id="roiPrevious">前月: 2850%</p>
                             </div>
                             <div class="p-3 bg-red-100 rounded-full">
                                 <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -655,85 +656,118 @@
                 <div class="bg-white rounded-lg shadow mb-6">
                     <div class="border-b border-gray-200">
                         <nav class="flex -mb-px">
-                            <button onclick="showBillingTab('referral')" class="billing-tab billing-tab-active px-6 py-3 border-b-2 font-medium text-sm" data-tab="referral">
-                                紹介料請求
+                            <button onclick="showBillingTab('purchase')" class="billing-tab billing-tab-active px-6 py-3 border-b-2 font-medium text-sm" data-tab="purchase">
+                                紹介料履歴
                             </button>
-                            <button onclick="showBillingTab('success')" class="billing-tab px-6 py-3 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="success">
+                            <button onclick="showBillingTab('commission')" class="billing-tab px-6 py-3 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="commission">
                                 成約手数料
                             </button>
-                            <button onclick="showBillingTab('invoices')" class="billing-tab px-6 py-3 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="invoices">
-                                請求書一覧
+                            <button onclick="showBillingTab('payment')" class="billing-tab px-6 py-3 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="payment">
+                                支払履歴
                             </button>
-                            <button onclick="showBillingTab('schedule')" class="billing-tab px-6 py-3 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="schedule">
-                                支払予定表
+                            <button onclick="showBillingTab('analysis')" class="billing-tab px-6 py-3 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="analysis">
+                                収支分析
                             </button>
                         </nav>
                     </div>
 
-                    <!-- 紹介料請求タブ -->
-                    <div id="referralTab" class="billing-tab-content p-6">
+                    <!-- 紹介料履歴タブ -->
+                    <div id="purchaseTab" class="billing-tab-content p-6">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold">月次紹介料請求（2024年1月分）</h3>
-                            <button onclick="generateReferralInvoices()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
-                                選択した請求書を発行
-                            </button>
+                            <h3 class="text-lg font-semibold">紹介料支払履歴</h3>
+                            <div class="flex items-center space-x-4">
+                                <div class="text-sm bg-blue-50 px-3 py-1 rounded">
+                                    <span class="text-gray-600">デポジット残高:</span>
+                                    <span class="font-bold text-blue-600">¥440,000</span>
+                                    <span class="text-gray-500">(20件分)</span>
+                                </div>
+                                <input type="month" value="2025-01" onchange="updateFinancialData(this.value)" class="border rounded px-3 py-1 text-sm">
+                            </div>
                         </div>
-                        
+
+                        <!-- 支払いスケジュール情報 -->
+                        <div class="bg-blue-50 p-3 rounded-lg mb-4 text-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="font-medium text-blue-800">支払条件:</span>
+                                    <span class="text-blue-700 ml-2">月末締め</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-blue-700">振込: 翌月15日 / 口座引落: 翌月27日</span>
+                                    <span class="text-gray-600 text-xs ml-2">(土日祝は翌営業日)</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                            <input type="checkbox" onclick="selectAllInvoices(this)" class="rounded">
-                                        </th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">加盟店</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">案件数</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">紹介料(税抜)</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">消費税</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">請求額(税込)</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払方法</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">紹介日</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">案件ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">顧客名</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">物件種別</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">工事内容</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">紹介料</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払予定日</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ステータス</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">アクション</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払状況</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">成約額/ROI</th>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">詳細</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <tr class="hover:bg-gray-50">
-                                        <td class="px-3 py-4">
-                                            <input type="checkbox" class="invoice-checkbox rounded" value="R001">
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">田中塗装工業</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">3件</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥60,000</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">¥6,000</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥66,000</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">銀行振込</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2/15(木)</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/15</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#C2025-001</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">田中様</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">戸建て</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">外壁塗装・屋根塗装</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥22,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2/15(土)→17(月)</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">未発行</span>
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">請求待ち</span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            <button onclick="issueInvoice('R001')" class="text-blue-600 hover:text-blue-900 mr-2">発行</button>
-                                            <button onclick="showInvoiceDetail('R001')" class="text-gray-600 hover:text-gray-900">詳細</button>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">交渉中</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                            <button onclick="showCaseDetail(1)" class="text-blue-600 hover:text-blue-900">詳細</button>
                                         </td>
                                     </tr>
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-3 py-4">
-                                            <input type="checkbox" class="invoice-checkbox rounded" value="R002">
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">山田ペイント</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2件</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥50,000</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">¥5,000</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥55,000</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">口座振替</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2/27(火)</td>
+                                    <tr class="hover:bg-gray-50 bg-green-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/10</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#C2025-002</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">佐藤様</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">一戸建て</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">外壁塗装</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥22,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2/15(土)→17(月)</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">発行済</span>
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">支払済</span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            <button onclick="downloadPDF('R002')" class="text-blue-600 hover:text-blue-900 mr-2">PDF</button>
-                                            <button onclick="showInvoiceDetail('R002')" class="text-gray-600 hover:text-gray-900">詳細</button>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <div class="text-xs">¥1.2M</div>
+                                            <div class="text-green-600 font-bold text-xs">3636%</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                            <button onclick="showCaseDetail(2)" class="text-blue-600 hover:text-blue-900">詳細</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 bg-green-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/08</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#C2025-003</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">鈴木様</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">戸建て</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">屋根葺き替え（瓦）</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥22,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2/27(木)</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">支払済</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <div class="text-xs">¥800K</div>
+                                            <div class="text-green-600 font-bold text-xs">3636%</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                            <button onclick="showCaseDetail(3)" class="text-blue-600 hover:text-blue-900">詳細</button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -742,73 +776,99 @@
                     </div>
 
                     <!-- 成約手数料タブ -->
-                    <div id="successTab" class="billing-tab-content p-6" style="display: none;">
+                    <div id="commissionTab" class="billing-tab-content p-6" style="display: none;">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold">成約手数料請求待ち</h3>
-                            <div class="text-sm text-gray-500">
-                                自動発行トリガー: <span class="font-medium">有効</span>
+                            <h3 class="text-lg font-semibold">成約手数料支払履歴</h3>
+                            <div class="flex space-x-2">
+                                <select class="border rounded px-3 py-1 text-sm">
+                                    <option>全て</option>
+                                    <option>支払済</option>
+                                    <option>未払い</option>
+                                </select>
+                                <input type="month" value="2025-01" class="border rounded px-3 py-1 text-sm">
                             </div>
                         </div>
-                        
+
+                        <!-- 支払いスケジュール情報 -->
+                        <div class="bg-yellow-50 p-3 rounded-lg mb-4 text-sm">
+                            <span class="font-medium text-yellow-800">支払条件:</span>
+                            <span class="text-yellow-700">請求書発行から3営業日以内</span>
+                        </div>
+
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">成約日</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">案件ID</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">加盟店</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">顧客名</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">成約金額</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">手数料率</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">手数料(税抜)</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">税込金額</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">入金状況</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">トリガー</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">アクション</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">手数料額(税込)</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払期日</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払状況</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">請求書</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <tr class="hover:bg-gray-50 bg-green-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#2024-0845</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">田中塗装工業</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥800,000</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">10%</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥80,000</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥88,000</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">入金完了</span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">加盟店更新</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            <button onclick="issueSuccessFee('S001')" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">請求書発行</button>
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50 bg-blue-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#2024-0847</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">山田ペイント</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/10</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#C2025-002</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">佐藤様</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥1,200,000</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">10%</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥120,000</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥132,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/31</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">入金確認</span>
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">支払済</span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">銀行API</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            <button onclick="issueSuccessFee('S002')" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">請求書発行</button>
+                                            <button onclick="downloadInvoicePDF('INV-2025-0102')" class="text-blue-600 hover:text-blue-900">ダウンロード</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 bg-green-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/08</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#C2025-003</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">鈴木様</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥800,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">10%</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥88,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/31</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">支払済</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            <button onclick="downloadInvoicePDF('INV-2025-0103')" class="text-blue-600 hover:text-blue-900">ダウンロード</button>
                                         </td>
                                     </tr>
                                     <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#2024-0849</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">佐藤塗装店</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/05</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#C2024-845</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">高橋様</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥550,000</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">10%</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥55,000</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥60,500</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-red-600">¥60,500</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/25</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">未入金</span>
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">請求待ち</span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            <button onclick="manualIssueSuccessFee('S003')" class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-700">手動発行</button>
+                                            <button onclick="viewInvoice('INV-2025-0104')" class="text-blue-600 hover:text-blue-900">確認</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024/12/28</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#C2024-810</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">山田様</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥950,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">10%</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥104,500</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/15</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">支払済</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            <button onclick="downloadInvoicePDF('INV-2024-1228')" class="text-blue-600 hover:text-blue-900">ダウンロード</button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -816,50 +876,104 @@
                         </div>
                     </div>
 
-                    <!-- 請求書一覧タブ -->
-                    <div id="invoicesTab" class="billing-tab-content p-6" style="display: none;">
+                    <!-- 支払履歴タブ -->
+                    <div id="paymentTab" class="billing-tab-content p-6" style="display: none;">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold">請求書一覧</h3>
+                            <h3 class="text-lg font-semibold">支払履歴</h3>
                             <div class="flex space-x-2">
                                 <select class="border rounded px-3 py-1 text-sm">
                                     <option>全て</option>
-                                    <option>未発行</option>
-                                    <option>発行済</option>
-                                    <option>入金済</option>
-                                    <option>期限超過</option>
+                                    <option>紹介料</option>
+                                    <option>成約手数料</option>
+                                    <option>その他</option>
                                 </select>
-                                <input type="month" value="2024-01" class="border rounded px-3 py-1 text-sm">
+                                <input type="month" value="2025-01" class="border rounded px-3 py-1 text-sm">
                             </div>
                         </div>
-                        
+
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払日</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">請求書番号</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">種別</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">加盟店</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">請求額(税込)</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">発行日</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払期限</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">内容</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払額(税込)</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払方法</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ステータス</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">アクション</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">領収書</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">INV-2024-0156</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/15</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">INV-2025-0156</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">紹介料</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">田中塗装工業</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥66,000</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024/01/31</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024/02/15</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">案件#C2025-001 田中様（外壁塗装）</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥22,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">銀行振込</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">入金済</span>
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">完了</span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            <button onclick="viewInvoice('INV-2024-0156')" class="text-blue-600 hover:text-blue-900 mr-2">詳細</button>
-                                            <button onclick="downloadInvoicePDF('INV-2024-0156')" class="text-gray-600 hover:text-gray-900">PDF</button>
+                                            <button onclick="downloadReceipt('RCP-2025-0156')" class="text-blue-600 hover:text-blue-900">ダウンロード</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/10</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">INV-2025-0145</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">紹介料</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">案件#C2025-002 佐藤様（外壁塗装）</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥22,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">銀行振込</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">完了</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            <button onclick="downloadReceipt('RCP-2025-0145')" class="text-blue-600 hover:text-blue-900">ダウンロード</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/10</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">INV-2025-0102</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">成約手数料</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">佐藤様案件 成約手数料</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥132,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">銀行振込</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">完了</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            <button onclick="downloadReceipt('RCP-2025-0102')" class="text-blue-600 hover:text-blue-900">ダウンロード</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/08</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">INV-2025-0103</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">成約手数料</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">鈴木様案件 成約手数料</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥88,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">銀行振込</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">完了</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            <button onclick="downloadReceipt('RCP-2025-0103')" class="text-blue-600 hover:text-blue-900">ダウンロード</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/05</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">INV-2025-0133</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">紹介料</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">案件#C2024-098 村田様（モルタル外壁）</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥22,000</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">銀行振込</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">完了</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            <button onclick="downloadReceipt('RCP-2025-0133')" class="text-blue-600 hover:text-blue-900">ダウンロード</button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -867,55 +981,425 @@
                         </div>
                     </div>
 
-                    <!-- 支払予定表タブ -->
-                    <div id="scheduleTab" class="billing-tab-content p-6" style="display: none;">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold">支払予定表</h3>
-                            <div class="text-sm text-gray-500">
-                                2024年2月の支払予定
+                    <!-- 収支分析タブ -->
+                    <div id="analysisTab" class="billing-tab-content p-6" style="display: none;">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-semibold">収支分析</h3>
+                            <select class="border rounded px-3 py-1 text-sm">
+                                <option>2025年1月</option>
+                                <option>2024年12月</option>
+                                <option>2024年11月</option>
+                            </select>
+                        </div>
+
+                        <!-- 月間サマリー -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                            <div class="bg-white border rounded-lg p-4">
+                                <div class="text-sm text-gray-500 mb-1">売上高</div>
+                                <div class="text-2xl font-bold text-gray-900">¥3,550,000</div>
+                                <div class="text-xs text-green-600 mt-1">+12% 前月比</div>
+                            </div>
+                            <div class="bg-white border rounded-lg p-4">
+                                <div class="text-sm text-gray-500 mb-1">支出合計</div>
+                                <div class="text-2xl font-bold text-gray-900">¥625,000</div>
+                                <div class="text-xs text-red-600 mt-1">+8% 前月比</div>
+                            </div>
+                            <div class="bg-white border rounded-lg p-4">
+                                <div class="text-sm text-gray-500 mb-1">粗利益</div>
+                                <div class="text-2xl font-bold text-green-600">¥2,925,000</div>
+                                <div class="text-xs text-green-600 mt-1">+14% 前月比</div>
+                            </div>
+                            <div class="bg-white border rounded-lg p-4">
+                                <div class="text-sm text-gray-500 mb-1">ROI</div>
+                                <div class="text-2xl font-bold text-blue-600">468%</div>
+                                <div class="text-xs text-green-600 mt-1">優良</div>
                             </div>
                         </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                        <!-- 収支内訳 -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <!-- 収入内訳 -->
                             <div class="bg-white border rounded-lg p-4">
-                                <div class="font-medium text-gray-900 mb-2">2/15(木) 支払予定</div>
-                                <div class="space-y-2">
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-gray-600">田中塗装工業</span>
-                                        <span class="font-medium">¥66,000</span>
+                                <h4 class="font-semibold text-gray-900 mb-3">収入内訳</h4>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center">
+                                            <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                            <span class="text-sm text-gray-700">工事売上</span>
+                                        </div>
+                                        <span class="text-sm font-semibold">¥3,350,000</span>
                                     </div>
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-gray-600">鈴木工務店</span>
-                                        <span class="font-medium">¥44,000</span>
+                                    <div class="pt-3 mt-3 border-t flex justify-between">
+                                        <span class="text-sm font-semibold text-gray-700">合計</span>
+                                        <span class="text-sm font-bold text-green-600">¥3,350,000</span>
                                     </div>
-                                </div>
-                                <div class="mt-3 pt-3 border-t flex justify-between">
-                                    <span class="text-sm font-medium">小計</span>
-                                    <span class="font-bold">¥110,000</span>
                                 </div>
                             </div>
-                            
+
+                            <!-- 支出内訳 -->
                             <div class="bg-white border rounded-lg p-4">
-                                <div class="font-medium text-gray-900 mb-2">2/27(火) 支払予定</div>
-                                <div class="space-y-2">
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-gray-600">山田ペイント</span>
-                                        <span class="font-medium">¥55,000</span>
+                                <h4 class="font-semibold text-gray-900 mb-3">支出内訳</h4>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center">
+                                            <div class="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                                            <span class="text-sm text-gray-700">紹介料</span>
+                                        </div>
+                                        <span class="text-sm font-semibold">¥176,000</span>
                                     </div>
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-gray-600">佐藤塗装店</span>
-                                        <span class="font-medium">¥88,000</span>
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center">
+                                            <div class="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                                            <span class="text-sm text-gray-700">成約手数料</span>
+                                        </div>
+                                        <span class="text-sm font-semibold">¥325,000</span>
+                                    </div>
+                                    <div class="pt-3 mt-3 border-t flex justify-between">
+                                        <span class="text-sm font-semibold text-gray-700">合計</span>
+                                        <span class="text-sm font-bold text-red-600">¥501,000</span>
                                     </div>
                                 </div>
-                                <div class="mt-3 pt-3 border-t flex justify-between">
-                                    <span class="text-sm font-medium">小計</span>
-                                    <span class="font-bold">¥143,000</span>
+                            </div>
+                        </div>
+
+                        <!-- 案件別収支 -->
+                        <div class="bg-white border rounded-lg p-4">
+                            <h4 class="font-semibold text-gray-900 mb-3">案件別収支TOP5</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full">
+                                    <thead class="border-b">
+                                        <tr>
+                                            <th class="text-left text-xs font-medium text-gray-500 uppercase pb-2">案件</th>
+                                            <th class="text-right text-xs font-medium text-gray-500 uppercase pb-2">紹介料</th>
+                                            <th class="text-right text-xs font-medium text-gray-500 uppercase pb-2">売上</th>
+                                            <th class="text-right text-xs font-medium text-gray-500 uppercase pb-2">手数料</th>
+                                            <th class="text-right text-xs font-medium text-gray-500 uppercase pb-2">利益</th>
+                                            <th class="text-right text-xs font-medium text-gray-500 uppercase pb-2">ROI</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        <tr>
+                                            <td class="py-2 text-sm text-gray-900">佐藤様案件</td>
+                                            <td class="py-2 text-sm text-right">¥22,000</td>
+                                            <td class="py-2 text-sm text-right">¥1,200,000</td>
+                                            <td class="py-2 text-sm text-right">¥132,000</td>
+                                            <td class="py-2 text-sm text-right font-semibold text-green-600">¥1,046,000</td>
+                                            <td class="py-2 text-sm text-right font-bold text-blue-600">4755%</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 text-sm text-gray-900">鈴木様案件</td>
+                                            <td class="py-2 text-sm text-right">¥22,000</td>
+                                            <td class="py-2 text-sm text-right">¥800,000</td>
+                                            <td class="py-2 text-sm text-right">¥88,000</td>
+                                            <td class="py-2 text-sm text-right font-semibold text-green-600">¥690,000</td>
+                                            <td class="py-2 text-sm text-right font-bold text-blue-600">800%</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 text-sm text-gray-900">山田様案件</td>
+                                            <td class="py-2 text-sm text-right">¥85,000</td>
+                                            <td class="py-2 text-sm text-right">¥950,000</td>
+                                            <td class="py-2 text-sm text-right">¥95,000</td>
+                                            <td class="py-2 text-sm text-right font-semibold text-green-600">¥770,000</td>
+                                            <td class="py-2 text-sm text-right font-bold text-blue-600">906%</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 text-sm text-gray-900">高橋様案件</td>
+                                            <td class="py-2 text-sm text-right">¥75,000</td>
+                                            <td class="py-2 text-sm text-right">¥600,000</td>
+                                            <td class="py-2 text-sm text-right">¥60,000</td>
+                                            <td class="py-2 text-sm text-right font-semibold text-green-600">¥465,000</td>
+                                            <td class="py-2 text-sm text-right font-bold text-blue-600">620%</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div><!-- billingSectionの終了 -->
+
+            <!-- デポジットセクション -->
+            <div id="depositSection" class="section" style="display: none;">
+                <div class="mb-6 flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-gray-900">デポジット管理</h2>
+                    <div class="flex space-x-2">
+                        <button onclick="showDepositModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            デポジット追加
+                        </button>
+                    </div>
+                </div>
+
+                <!-- デポジット状況サマリー -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white border-2 border-blue-200 rounded-lg shadow p-4">
+                        <div class="text-sm text-gray-600 mb-1">デポジット残高</div>
+                        <div class="text-3xl font-bold text-blue-600">20/25件</div>
+                        <div class="text-sm text-gray-500 mt-1">¥440,000 残高</div>
+                    </div>
+                    <div class="bg-white border rounded-lg shadow p-4">
+                        <div class="text-sm text-gray-600 mb-1">有効期限</div>
+                        <div class="text-2xl font-bold text-gray-900">2025/03/31</div>
+                        <div class="text-sm text-orange-600 mt-1">残り45日</div>
+                    </div>
+                    <div class="bg-white border rounded-lg shadow p-4">
+                        <div class="text-sm text-gray-600 mb-1">現在の設定</div>
+                        <div class="text-2xl font-bold text-green-600">繰越</div>
+                        <div class="text-sm text-gray-500 mt-1">最終更新: 2025/01/17</div>
+                    </div>
+                    <div class="bg-white border rounded-lg shadow p-4">
+                        <div class="text-sm text-gray-600 mb-1">表示ランク</div>
+                        <div class="text-2xl font-bold text-purple-600">優先+1</div>
+                        <div class="text-sm text-gray-500 mt-1">デポジット特典適用中</div>
+                    </div>
+                </div>
+
+                <!-- ランキング特典説明 -->
+                <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg shadow mb-6 p-6">
+                    <div class="flex items-start">
+                        <svg class="w-8 h-8 text-purple-600 mr-3 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">デポジット購入特典</h3>
+                            <p class="text-sm text-gray-700 mb-3">
+                                デポジットを購入すると、ユーザーへ表示されるランキングが<span class="font-bold text-purple-600">全てUP</span>され、
+                                より良い条件で案件が供給されやすくなります。
+                            </p>
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+                                <div class="flex items-start">
+                                    <svg class="w-5 h-5 text-yellow-600 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <div class="text-sm text-yellow-800">
+                                        <p class="font-medium">デポジット適用対象</p>
+                                        <p class="text-xs mt-1">デポジットは基本紹介料¥22,000の案件のみに適用されます。アパート・マンション（¥33,000）や部分施工（¥11,000以下）には適用されません。</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div class="bg-white rounded-lg p-3 border border-purple-200">
+                                    <div class="flex items-center mb-1">
+                                        <svg class="w-4 h-4 text-purple-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <span class="text-xs font-medium text-gray-700">優先表示</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600">検索結果の上位に表示</p>
+                                </div>
+                                <div class="bg-white rounded-lg p-3 border border-purple-200">
+                                    <div class="flex items-center mb-1">
+                                        <svg class="w-4 h-4 text-purple-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <span class="text-xs font-medium text-gray-700">信頼度UP</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600">前払いで信頼感向上</p>
+                                </div>
+                                <div class="bg-white rounded-lg p-3 border border-purple-200">
+                                    <div class="flex items-center mb-1">
+                                        <svg class="w-4 h-4 text-purple-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <span class="text-xs font-medium text-gray-700">案件獲得率UP</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600">競合他社より優位</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div><!-- billingSectionの終了 -->
+
+                <!-- デポジット購入申請履歴 -->
+                <div class="bg-white rounded-lg shadow mb-6">
+                    <div class="px-6 py-4 border-b">
+                        <h3 class="text-lg font-semibold text-gray-900">デポジット購入申請履歴</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">申請日</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">請求書番号</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">件数</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">金額</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払期限</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">状態</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">入金日</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/17</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">INV-20250117</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">10件</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">¥220,000</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/24</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">入金待ち</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <button onclick="downloadInvoice('INV-20250117')" class="text-blue-600 hover:text-blue-800">請求書DL</button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/01</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">INV-20250101</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">25件</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">¥550,000</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/08</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">入金済</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/05</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <button onclick="downloadInvoice('INV-20250101')" class="text-blue-600 hover:text-blue-800">請求書DL</button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024/12/10</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">INV-20241210</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">15件</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">¥330,000</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024/12/17</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">入金済</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024/12/14</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <button onclick="downloadInvoice('INV-20241210')" class="text-blue-600 hover:text-blue-800">請求書DL</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- 繰越/返金設定 -->
+                <div class="bg-white rounded-lg shadow mb-6 p-6">
+                    <h3 class="text-lg font-semibold mb-4">繰越・返金設定</h3>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-yellow-600 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                            <div class="text-sm text-yellow-800">
+                                <p class="font-medium mb-1">重要なお知らせ</p>
+                                <ul class="list-disc list-inside space-y-1 text-xs">
+                                    <li>デポジットの有効期限は入金の翌々月末までです</li>
+                                    <li>返金時の振込手数料はお客様負担となります</li>
+                                    <li>繰越を選択すると無期限に継続利用可能です</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-700 mb-2">期限切れ時の処理方法</p>
+                            <div class="flex space-x-4">
+                                <label class="flex items-center">
+                                    <input type="radio" name="depositHandling" value="rollover" checked class="mr-2">
+                                    <span class="text-sm">繰越（推奨）</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="depositHandling" value="refund" class="mr-2">
+                                    <span class="text-sm">返金</span>
+                                </label>
+                            </div>
+                        </div>
+                        <button onclick="updateDepositSetting()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            設定を保存
+                        </button>
+                    </div>
+                </div>
+
+                <!-- デポジット利用履歴 -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">デポジット適用案件履歴</h3>
+                        <div class="flex space-x-2">
+                            <select class="border rounded px-3 py-1 text-sm">
+                                <option>全て</option>
+                                <option>利用済</option>
+                                <option>購入</option>
+                                <option>返金</option>
+                            </select>
+                            <input type="month" value="2025-01" class="border rounded px-3 py-1 text-sm">
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">日付</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">種別</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">件数</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">金額</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">案件/備考</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">残件数</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">有効期限</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/15</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">利用</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">-1</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">-¥22,000</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                                        <a href="#" onclick="showCaseDetail('C2025-001'); return false;" class="hover:underline">#C2025-001 田中様 (外壁塗装)</a>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">20/25</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/03/31</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/10</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">利用</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">-1</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">-¥22,000</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                                        <a href="#" onclick="showCaseDetail('C2025-002'); return false;" class="hover:underline">#C2025-002 佐藤様 (外壁塗装)</a>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">21/25</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/03/31</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/05</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">反映</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">+25</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">+¥550,000</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">デポジット入金確認（INV-20250101）</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">25/25</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/03/31</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024/12/15</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">返金</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">-3</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">¥65,450</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">期限切れ返金(手数料550円差引)</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">0/10</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024/11/30</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div><!-- depositSectionの終了 -->
 
             <!-- レポートセクション -->
             <div id="reportsSection" class="section" style="display: none;">
@@ -2797,16 +3281,10 @@
                 <h2 class="text-2xl font-bold text-gray-900 mb-6">設定</h2>
                 
                 <!-- タブナビゲーション -->
-                <div class="border-b border-gray-200 mb-6">
-                    <nav class="-mb-px flex space-x-8">
-                        <button onclick="switchSettingTab('profile')" class="setting-tab active border-b-2 border-blue-500 py-2 px-1 text-sm font-medium text-blue-600">プロフィール</button>
-                        <button onclick="switchSettingTab('notification')" class="setting-tab border-transparent border-b-2 py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">通知設定</button>
-                        <button onclick="switchSettingTab('display')" class="setting-tab border-transparent border-b-2 py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">表示設定</button>
-                    </nav>
-                </div>
+                <!-- タブを削除して1ページ統合 -->
                 
-                <!-- プロフィールタブ -->
-                <div id="profileTab" class="setting-tab-content">
+                <!-- プロフィール情報 -->
+                <div id="profileSection">
                     <div class="bg-white shadow rounded-lg p-6">
                         <h3 class="text-lg font-medium text-gray-900 mb-4">プロフィール情報</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2827,16 +3305,13 @@
                                 <input type="text" id="profileLineId" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="@tanaka_taro">
                             </div>
                         </div>
-                        <div class="mt-6">
-                            <button onclick="saveProfile()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">保存</button>
-                        </div>
                     </div>
                 </div>
-                
-                <!-- 通知設定タブ -->
-                <div id="notificationTab" class="setting-tab-content hidden">
+
+                <!-- 通知・アラート設定 -->
+                <div id="notificationSection" class="mt-6">
                     <div class="bg-white shadow rounded-lg p-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">通知設定</h3>
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">通知・アラート設定</h3>
                         
                         <!-- 通知方法 -->
                         <div class="mb-6">
@@ -2877,75 +3352,145 @@
                         <div class="mb-6">
                             <h4 class="text-sm font-medium text-gray-700 mb-3">通知種別</h4>
                             <div class="space-y-3">
-                                <label class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-700">新規案件の通知</span>
-                                    <input type="checkbox" class="toggle-switch" checked>
-                                </label>
-                                <label class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-700">ステータス変更の通知</span>
-                                    <input type="checkbox" class="toggle-switch" checked>
-                                </label>
-                                <label class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-700">重要なお知らせ</span>
-                                    <input type="checkbox" class="toggle-switch" checked>
-                                </label>
-                                <label class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-700">日次レポート</span>
-                                    <input type="checkbox" class="toggle-switch">
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <!-- 通知時間設定 -->
-                        <div class="mb-6">
-                            <h4 class="text-sm font-medium text-gray-700 mb-3">通知時間設定</h4>
-                            <div class="space-y-3">
-                                <label class="flex items-center">
-                                    <input type="checkbox" id="enableQuietHours" onchange="toggleQuietHours()">
-                                    <span class="ml-2 text-sm text-gray-700">通知を制限する時間帯を設定</span>
-                                </label>
-                                <div id="quietHoursSettings" class="hidden ml-6 space-y-2">
-                                    <div class="flex items-center space-x-2">
-                                        <input type="time" id="quietStart" value="22:00" class="px-3 py-2 border border-gray-300 rounded-lg">
-                                        <span class="text-sm text-gray-500">から</span>
-                                        <input type="time" id="quietEnd" value="08:00" class="px-3 py-2 border border-gray-300 rounded-lg">
-                                        <span class="text-sm text-gray-500">まで</span>
+                                <!-- アポイントリマインダー -->
+                                <div class="border rounded-lg p-3 bg-gray-50 group relative">
+                                    <label class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <span class="text-lg mr-2">📋</span>
+                                            <span class="text-sm font-medium text-gray-700">現調前日リマインダー</span>
+                                            <span class="ml-1 text-gray-400 cursor-help">ⓘ</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <input type="time" id="appointmentAlertTime" value="18:00" class="px-2 py-1 border rounded text-sm">
+                                            <input type="checkbox" id="appointmentReminder" class="toggle-switch" checked onchange="updateAlertSetting('appointment_reminder', this.checked)">
+                                        </div>
+                                    </label>
+                                    <div class="absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 z-10 whitespace-nowrap">
+                                        現地調査の前日に通知します
+                                    </div>
+                                </div>
+
+                                <!-- 架電リマインダー -->
+                                <div class="border rounded-lg p-3 bg-gray-50 group relative">
+                                    <label class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <span class="text-lg mr-2">📞</span>
+                                            <span class="text-sm font-medium text-gray-700">架電リマインダー</span>
+                                            <span class="ml-1 text-gray-400 cursor-help">ⓘ</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <input type="time" id="callAlertTime" value="10:00" class="px-2 py-1 border rounded text-sm">
+                                            <input type="checkbox" id="callReminder" class="toggle-switch" checked onchange="updateAlertSetting('call_reminder', this.checked)">
+                                        </div>
+                                    </label>
+                                    <div class="absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 z-10 whitespace-nowrap">
+                                        未対応案件の翌日に通知します
+                                    </div>
+                                </div>
+
+                                <!-- 見積フォロー -->
+                                <div class="border rounded-lg p-3 bg-gray-50 group relative">
+                                    <label class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <span class="text-lg mr-2">📝</span>
+                                            <span class="text-sm font-medium text-gray-700">見積フォローアップ</span>
+                                            <span class="ml-1 text-gray-400 cursor-help">ⓘ</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <input type="number" id="followupDays" value="7" min="1" max="30" class="w-16 px-2 py-1 border rounded text-sm">
+                                            <span class="text-sm text-gray-600">日後</span>
+                                            <input type="checkbox" id="estimateFollowup" class="toggle-switch" checked onchange="updateAlertSetting('estimate_followup', this.checked)">
+                                        </div>
+                                    </label>
+                                    <div class="absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 z-10 whitespace-nowrap">
+                                        見積提出後に自動でフォロー通知します
+                                    </div>
+                                </div>
+
+                                <!-- 入金確認 -->
+                                <div class="border rounded-lg p-3 bg-gray-50 group relative">
+                                    <label class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <span class="text-lg mr-2">💰</span>
+                                            <span class="text-sm font-medium text-gray-700">入金確認アラート</span>
+                                            <span class="ml-1 text-gray-400 cursor-help">ⓘ</span>
+                                        </div>
+                                        <input type="checkbox" id="paymentAlert" class="toggle-switch" checked onchange="updateAlertSetting('payment_alert', this.checked)">
+                                    </label>
+                                    <div class="absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 z-10 whitespace-nowrap">
+                                        入金予定日に自動で通知します
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="mt-6">
-                            <button onclick="saveNotificationSettings()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">保存</button>
+                        <!-- 通知時間・休日設定 -->
+                        <div class="mb-6">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">通知時間・休日設定</h4>
+                            <div class="space-y-4">
+                                <!-- 休日設定 -->
+                                <div class="border rounded-lg p-4 bg-gray-50">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="enableHolidays" onchange="toggleHolidaySettings()" checked>
+                                        <span class="ml-2 text-sm font-medium text-gray-700">📅 休日設定（チェックした曜日は通知されません）</span>
+                                    </label>
+                                    <div id="holidaySettings" class="mt-3 flex flex-wrap gap-3">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="holidayMon" class="mr-2">
+                                            <span class="text-sm">月</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="holidayTue" class="mr-2">
+                                            <span class="text-sm">火</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="holidayWed" class="mr-2">
+                                            <span class="text-sm">水</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="holidayThu" class="mr-2">
+                                            <span class="text-sm">木</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="holidayFri" class="mr-2">
+                                            <span class="text-sm">金</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="holidaySat" class="mr-2" checked>
+                                            <span class="text-sm font-medium text-blue-600">土</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="holidaySun" class="mr-2" checked>
+                                            <span class="text-sm font-medium text-red-600">日</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- 通知制限時間 -->
+                                <div class="border rounded-lg p-4 bg-gray-50">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="enableQuietHours" onchange="toggleQuietHours()" checked>
+                                        <span class="ml-2 text-sm font-medium text-gray-700">🔕 通知を制限する時間帯</span>
+                                    </label>
+                                    <div id="quietHoursSettings" class="mt-3 space-y-2">
+                                        <div class="flex items-center space-x-2">
+                                            <input type="time" id="quietStart" value="22:00" class="px-3 py-2 border border-gray-300 rounded-lg">
+                                            <span class="text-sm text-gray-500">から</span>
+                                            <input type="time" id="quietEnd" value="08:00" class="px-3 py-2 border border-gray-300 rounded-lg">
+                                            <span class="text-sm text-gray-500">まで</span>
+                                        </div>
+                                        <p class="text-xs text-gray-500">この時間帯は通知を送信しません</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- 表示設定タブ -->
-                <div id="displayTab" class="setting-tab-content hidden">
-                    <div class="bg-white shadow rounded-lg p-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">表示設定</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">1ページあたりの表示件数</label>
-                                <select class="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-lg">
-                                    <option>10件</option>
-                                    <option>25件</option>
-                                    <option>50件</option>
-                                    <option>100件</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">テーマ</label>
-                                <select class="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-lg">
-                                    <option>ライトモード</option>
-                                    <option>ダークモード</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mt-6">
-                            <button onclick="saveDisplaySettings()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">保存</button>
-                        </div>
+
+                    <!-- 統合保存ボタン -->
+                    <div class="mt-6 flex justify-end">
+                        <button onclick="saveAllSettings()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+                            設定を保存
+                        </button>
                     </div>
                 </div>
             </div>
@@ -3157,6 +3702,74 @@
         </div>
     </div>
     </div><!-- mainApp end -->
+
+    <!-- アラート通知パネル -->
+    <div id="alertPanel" class="fixed top-20 right-4 w-96 max-h-[600px] bg-white rounded-lg shadow-2xl hidden z-50 overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4">
+            <div class="flex items-center justify-between">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                    </svg>
+                    アラート・リマインダー
+                </h3>
+                <button onclick="toggleAlertPanel()" class="hover:bg-white hover:bg-opacity-20 rounded-lg p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="overflow-y-auto max-h-[500px]">
+            <!-- 今日のタスク -->
+            <div class="border-b">
+                <div class="p-4">
+                    <h4 class="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                        今日のタスク
+                    </h4>
+                    <div id="todayTasks" class="space-y-2">
+                        <!-- 動的に生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 明日の予定 -->
+            <div class="border-b">
+                <div class="p-4">
+                    <h4 class="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                        明日の予定
+                    </h4>
+                    <div id="tomorrowTasks" class="space-y-2">
+                        <!-- 動的に生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 自動アラート -->
+            <div class="border-b">
+                <div class="p-4">
+                    <h4 class="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                        自動リマインダー
+                    </h4>
+                    <div id="autoAlerts" class="space-y-2">
+                        <!-- 動的に生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- アクションボタン -->
+            <div class="p-4 bg-gray-50">
+                <button onclick="showSection('settings'); setTimeout(() => { document.getElementById('notificationSection').scrollIntoView({ behavior: 'smooth' }); }, 100)" class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                    アラート設定を開く
+                </button>
+            </div>
+        </div>
+    </div>
+
 
     <!-- 会社情報プレビューモーダル -->
     <div id="companyPreviewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
@@ -4189,23 +4802,38 @@
         }
 
         // 通知権限リクエスト
+        // 通知許可リクエストをアラートパネル内に統合
         window.requestNotificationPermission = function() {
-            if ('Notification' in window) {
+            if ('Notification' in window && Notification.permission !== 'granted') {
                 Notification.requestPermission().then(permission => {
-                    const status = document.getElementById('notificationStatus');
                     if (permission === 'granted') {
-                        status.textContent = '通知: 有効';
-                        status.classList.add('text-green-600');
-                        
-                        // デモ通知を送信
-                        setTimeout(() => {
-                            showNotification('ようこそ！', '加盟店管理システムへログインしました');
-                        }, 1000);
+                        showNotification('通知設定', 'ブラウザ通知を有効にしました', 'success');
                     } else {
-                        status.textContent = '通知: 無効';
-                        status.classList.add('text-red-600');
+                        showInAppNotification('通知設定', 'ブラウザ通知は無効です', 'warning');
                     }
                 });
+            }
+        }
+
+        // アラートパネルを開く時に通知許可を確認
+        function checkNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                const alertPanel = document.getElementById('alertPanel');
+                if (alertPanel && !alertPanel.classList.contains('hidden')) {
+                    // 通知許可バナーを表示
+                    const banner = document.createElement('div');
+                    banner.className = 'bg-yellow-100 border-l-4 border-yellow-500 p-3 m-3';
+                    banner.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">🔔 ブラウザ通知を有効にしますか？</span>
+                            <button onclick="requestNotificationPermission(); this.parentElement.parentElement.remove()"
+                                    class="text-sm bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
+                                有効にする
+                            </button>
+                        </div>
+                    `;
+                    alertPanel.insertBefore(banner, alertPanel.firstChild.nextSibling);
+                }
             }
         }
 
@@ -5742,19 +6370,295 @@
         }
 
         // 通知表示
-        function showNotification(title, body) {
+        function showNotification(title, body, type = 'info') {
+            // ブラウザ通知
             if (Notification.permission === 'granted') {
                 new Notification(title, {
                     body: body,
                     icon: '/favicon.ico',
                     badge: '/favicon.ico'
                 });
-                
-                // バッジ表示
-                document.getElementById('notificationBadge').classList.remove('hidden');
+            }
+
+            // インアプリ通知も表示
+            showInAppNotification(title, body, type);
+        }
+
+        // インアプリ通知
+        function showInAppNotification(title, body, type = 'info') {
+            const colors = {
+                'info': 'bg-blue-500',
+                'success': 'bg-green-500',
+                'warning': 'bg-yellow-500',
+                'error': 'bg-red-500'
+            };
+
+            const notification = document.createElement('div');
+            notification.className = `fixed top-20 right-4 ${colors[type]} text-white px-6 py-4 rounded-lg shadow-lg z-[60] animate-slide-in`;
+            notification.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <div class="flex-1">
+                        <div class="font-semibold">${title}</div>
+                        <div class="text-sm opacity-90">${body}</div>
+                    </div>
+                    <button onclick="this.closest('div').remove()" class="hover:opacity-70">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(notification);
+
+            // 5秒後に自動で消去
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.classList.add('animate-slide-out');
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 5000);
+        }
+
+        // アラートパネルの表示/非表示
+        function toggleAlertPanel() {
+            const panel = document.getElementById('alertPanel');
+            if (panel.classList.contains('hidden')) {
+                panel.classList.remove('hidden');
+                loadAlerts();
+                updateTotalBadgeCount();
+            } else {
+                panel.classList.add('hidden');
+            }
+        }
+
+        // バッジカウントを統合更新
+        function updateTotalBadgeCount() {
+            // 未割当案件数を取得
+            const unassignedBadge = document.getElementById('unassignedBadge');
+            const unassignedCount = unassignedBadge && !unassignedBadge.classList.contains('hidden')
+                ? parseInt(unassignedBadge.textContent) || 0
+                : 0;
+
+            // アラート数を取得
+            const alertItems = document.querySelectorAll('#todayAlerts .alert-item').length || 0;
+
+            // 合計をベルマークに表示
+            const totalCount = unassignedCount + alertItems;
+            const alertCountBadge = document.getElementById('alertCount');
+
+            if (totalCount > 0) {
+                alertCountBadge.textContent = totalCount;
+                alertCountBadge.classList.remove('hidden');
+            } else {
+                alertCountBadge.classList.add('hidden');
+            }
+        }
+
+        // アラート読み込み
+        function loadAlerts() {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            // 今日のタスク
+            const todayTasks = [
+                { time: '10:00', text: '田中様へ架電', type: 'call', caseId: 1 },
+                { time: '14:00', text: '佐藤様 現地調査', type: 'appointment', caseId: 2 },
+                { time: '16:00', text: '鈴木様 見積書提出期限', type: 'estimate', caseId: 3 }
+            ];
+
+            const todayTasksHtml = todayTasks.map(task => `
+                <div class="flex items-center justify-between p-2 bg-red-50 rounded-lg hover:bg-red-100 cursor-pointer"
+                     onclick="handleAlertClick(${task.caseId}, '${task.type}')">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-medium text-red-600">${task.time}</span>
+                        <span class="text-sm">${task.text}</span>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+            `).join('');
+            document.getElementById('todayTasks').innerHTML = todayTasksHtml || '<div class="text-sm text-gray-500">タスクなし</div>';
+
+            // 明日の予定
+            const tomorrowTasks = [
+                { time: '11:00', text: '山田様 アポイント', type: 'appointment', caseId: 4 },
+                { time: '15:00', text: '高橋様 フォローアップ', type: 'followup', caseId: 5 }
+            ];
+
+            const tomorrowTasksHtml = tomorrowTasks.map(task => `
+                <div class="flex items-center justify-between p-2 bg-yellow-50 rounded-lg hover:bg-yellow-100 cursor-pointer"
+                     onclick="handleAlertClick(${task.caseId}, '${task.type}')">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-medium text-yellow-600">${task.time}</span>
+                        <span class="text-sm">${task.text}</span>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+            `).join('');
+            document.getElementById('tomorrowTasks').innerHTML = tomorrowTasksHtml || '<div class="text-sm text-gray-500">予定なし</div>';
+
+            // 自動アラート
+            const autoAlerts = [
+                { text: '未対応案件3件あります', type: 'warning' },
+                { text: '見積提出後7日経過: 2件', type: 'info' },
+                { text: '入金予定日: 田中様', type: 'payment' }
+            ];
+
+            const autoAlertsHtml = autoAlerts.map(alert => `
+                <div class="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
+                    <span class="text-sm">${alert.text}</span>
+                    <button onclick="dismissAlert(this)" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            `).join('');
+            document.getElementById('autoAlerts').innerHTML = autoAlertsHtml || '<div class="text-sm text-gray-500">アラートなし</div>';
+        }
+
+        // アラートクリック処理
+        function handleAlertClick(caseId, type) {
+            toggleAlertPanel();
+
+            if (type === 'call') {
+                // 電話発信
+                const caseData = casesData.find(c => c.id === caseId);
+                if (caseData && caseData.phone) {
+                    callCustomer(caseData.phone);
+                }
+            } else if (type === 'appointment' || type === 'estimate') {
+                // 案件詳細を表示
+                showSection('cases');
                 setTimeout(() => {
-                    document.getElementById('notificationBadge').classList.add('hidden');
-                }, 5000);
+                    const caseCard = document.querySelector(`[data-case-id="${caseId}"]`);
+                    if (caseCard) {
+                        caseCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        caseCard.classList.add('ring-2', 'ring-yellow-400');
+                        setTimeout(() => {
+                            caseCard.classList.remove('ring-2', 'ring-yellow-400');
+                        }, 3000);
+                    }
+                }, 100);
+            }
+        }
+
+        // アラート消去
+        function dismissAlert(button) {
+            button.closest('div').remove();
+        }
+
+
+        // アラート設定更新（設定メニューとアラートパネルの同期）
+        function updateAlertSetting(settingName, enabled) {
+            // localStorage に保存
+            let alertSettings = JSON.parse(localStorage.getItem('alertSettings') || '{}');
+            alertSettings[settingName] = enabled;
+            localStorage.setItem('alertSettings', JSON.stringify(alertSettings));
+
+            // 対応する設定メニューのチェックボックスを同期
+            const idMap = {
+                'appointment_reminder': 'appointmentReminder',
+                'call_reminder': 'callReminder',
+                'estimate_followup': 'estimateFollowup',
+                'payment_alert': 'paymentAlert'
+            };
+
+            const checkboxId = idMap[settingName];
+            if (checkboxId) {
+                const checkbox = document.getElementById(checkboxId);
+                if (checkbox && checkbox.checked !== enabled) {
+                    checkbox.checked = enabled;
+                }
+            }
+        }
+
+        // カレンダーの自動同期（案件データから自動的にカレンダーイベントを生成）
+        function autoSyncToCalendar() {
+            // 既存の案件由来イベントをクリア
+            calendarEvents = calendarEvents.filter(event => !event.fromCase);
+
+            // 全案件からネクストステップを取得してカレンダーに追加
+            const allCases = getCasesData();
+
+            allCases.forEach(caseItem => {
+                // ネクストステップがある場合
+                if (caseItem.nextAction) {
+                    const today = new Date();
+                    const eventDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + Math.floor(Math.random() * 7));
+                    const eventTitle = `${caseItem.nextAction}: ${caseItem.customer}様`;
+
+                    // イベントタイプを判定
+                    let eventType = 'todo';
+                    let eventColor = '#6b7280';
+
+                    if (caseItem.nextAction.includes('現調') || caseItem.nextAction.includes('アポ')) {
+                        eventType = 'meeting';
+                        eventColor = '#3b82f6';
+                    } else if (caseItem.nextAction.includes('架電') || caseItem.nextAction.includes('電話')) {
+                        eventType = 'call';
+                        eventColor = '#10b981';
+                    } else if (caseItem.nextAction.includes('見積')) {
+                        eventType = 'estimate';
+                        eventColor = '#f59e0b';
+                    }
+
+                    calendarEvents.push({
+                        id: `case-${caseItem.id}`,
+                        title: eventTitle,
+                        date: eventDate.toISOString().split('T')[0],
+                        time: '10:00',
+                        type: eventType,
+                        color: eventColor,
+                        fromCase: true,  // 案件由来のイベントマーク
+                        caseId: caseItem.id
+                    });
+                }
+            });
+
+            // カレンダーを再描画
+            if (typeof renderCalendar !== 'undefined') {
+                renderCalendar();
+            }
+            if (typeof renderMiniCalendar !== 'undefined') {
+                renderMiniCalendar();
+            }
+        }
+
+        // 案件データ更新時に自動的にカレンダーを同期
+        function onCaseUpdate() {
+            autoSyncToCalendar();
+        }
+
+        // Googleカレンダー同期（将来的に実装）
+        function syncWithGoogleCalendar() {
+            // Google Calendar APIを使用した同期
+            showNotification('機能開発中', 'Googleカレンダー同期は次回アップデートで提供予定', 'info');
+        }
+
+        // ステータス変更時の自動アラート設定
+        function scheduleStatusAlert(caseId, newStatus) {
+            const alertTiming = {
+                'アポ済': { delay: 86400000, message: '明日の現地調査予定' }, // 1日前
+                '現調済': { delay: 3600000, message: '見積書作成を開始' }, // 1時間後
+                '見積提出済': { delay: 604800000, message: 'フォローアップが必要' }, // 7日後
+                '入金予定': { delay: 86400000, message: '入金確認をお願いします' } // 1日後
+            };
+
+            if (alertTiming[newStatus]) {
+                const alert = alertTiming[newStatus];
+                setTimeout(() => {
+                    showNotification('リマインダー', alert.message, 'warning');
+                    // アラートカウントを増やす
+                    const countBadge = document.getElementById('alertCount');
+                    const currentCount = parseInt(countBadge.textContent) || 0;
+                    countBadge.textContent = currentCount + 1;
+                    countBadge.classList.remove('hidden');
+                }, alert.delay);
             }
         }
 
@@ -6127,25 +7031,15 @@
             }
         });
 
-        // 設定タブ切り替え
-        function switchSettingTab(tabName) {
-            // すべてのタブコンテンツを非表示
-            document.querySelectorAll('.setting-tab-content').forEach(content => {
-                content.classList.add('hidden');
-            });
-            
-            // すべてのタブボタンをリセット
-            document.querySelectorAll('.setting-tab').forEach(tab => {
-                tab.classList.remove('border-blue-500', 'text-blue-600');
-                tab.classList.add('border-transparent', 'text-gray-500');
-            });
-            
-            // 選択されたタブを表示
-            document.getElementById(tabName + 'Tab').classList.remove('hidden');
-            
-            // アクティブなタブボタンのスタイルを更新
-            event.target.classList.remove('border-transparent', 'text-gray-500');
-            event.target.classList.add('border-blue-500', 'text-blue-600');
+        // 統合設定保存
+        function saveAllSettings() {
+            // プロフィール保存
+            saveProfile();
+
+            // 通知設定保存
+            saveNotificationSettings();
+
+            showNotification('設定保存', 'すべての設定を保存しました', 'success');
         }
         
         // 通知テスト
@@ -6170,6 +7064,13 @@
             const settings = document.getElementById('quietHoursSettings');
             settings.classList.toggle('hidden', !enabled);
         }
+
+        // 休日設定の表示/非表示切り替え
+        function toggleHolidaySettings() {
+            const enabled = document.getElementById('enableHolidays').checked;
+            const settings = document.getElementById('holidaySettings');
+            settings.classList.toggle('hidden', !enabled);
+        }
         
         // プロフィール保存
         function saveProfile() {
@@ -6190,6 +7091,33 @@
                 sms: document.getElementById('notifySms').checked,
                 line: document.getElementById('notifyLine').checked,
                 browser: document.getElementById('notifyBrowser').checked,
+                alerts: {
+                    appointment_reminder: {
+                        enabled: document.getElementById('appointmentReminder').checked,
+                        time: document.getElementById('appointmentAlertTime').value
+                    },
+                    call_reminder: {
+                        enabled: document.getElementById('callReminder').checked,
+                        time: document.getElementById('callAlertTime').value
+                    },
+                    estimate_followup: {
+                        enabled: document.getElementById('estimateFollowup').checked,
+                        days: document.getElementById('followupDays').value
+                    },
+                    payment_alert: {
+                        enabled: document.getElementById('paymentAlert').checked
+                    }
+                },
+                holidays: {
+                    enabled: document.getElementById('enableHolidays').checked,
+                    mon: document.getElementById('holidayMon').checked,
+                    tue: document.getElementById('holidayTue').checked,
+                    wed: document.getElementById('holidayWed').checked,
+                    thu: document.getElementById('holidayThu').checked,
+                    fri: document.getElementById('holidayFri').checked,
+                    sat: document.getElementById('holidaySat').checked,
+                    sun: document.getElementById('holidaySun').checked
+                },
                 quietHours: {
                     enabled: document.getElementById('enableQuietHours').checked,
                     start: document.getElementById('quietStart').value,
@@ -6197,7 +7125,6 @@
                 }
             };
             localStorage.setItem('notificationSettings', JSON.stringify(settings));
-            alert('通知設定を保存しました');
         }
         
         // 表示設定保存
@@ -6889,8 +7816,22 @@
                 tab.classList.add('text-gray-500', 'border-transparent');
             });
             
+            // タブ名のマッピング（新しいタブ名に対応）
+            const tabMapping = {
+                'purchase': 'purchaseTab',
+                'commission': 'commissionTab',
+                'payment': 'paymentTab',
+                'analysis': 'analysisTab',
+                // 互換性のため古いタブ名も残す
+                'referral': 'purchaseTab',
+                'success': 'commissionTab',
+                'invoices': 'paymentTab',
+                'schedule': 'analysisTab'
+            };
+
             // 選択されたタブを表示
-            const selectedContent = document.getElementById(tabName + 'Tab');
+            const tabId = tabMapping[tabName] || (tabName + 'Tab');
+            const selectedContent = document.getElementById(tabId);
             if (selectedContent) {
                 selectedContent.style.display = 'block';
             }
@@ -6902,7 +7843,116 @@
                 selectedTab.classList.add('billing-tab-active', 'text-blue-600', 'border-blue-600');
             }
         }
-        
+
+        // 財務データ更新関数
+        function updateFinancialData(month) {
+            const date = new Date(month + '-01');
+            const monthNum = date.getMonth() + 1;
+            const year = date.getFullYear();
+
+            // サマリーカードを更新
+            const referralFeeMonth = document.getElementById('referralFeeMonth');
+            if (referralFeeMonth) {
+                referralFeeMonth.textContent = `${monthNum}月紹介料`;
+            }
+            const commissionMonth = document.getElementById('commissionMonth');
+            if (commissionMonth) {
+                commissionMonth.textContent = `${monthNum}月成約手数料`;
+            }
+            const roiLabel = document.getElementById('roiLabel');
+            if (roiLabel) {
+                roiLabel.textContent = `${monthNum}月ROI`;
+            }
+
+            // テーブルデータをフィルタリング（実際にはサーバーから取得）
+            const tbody = document.getElementById('referralFeeTableBody');
+            if (tbody) {
+                const rows = tbody.getElementsByTagName('tr');
+                for (let row of rows) {
+                    const dateCell = row.cells[0];
+                    if (dateCell) {
+                        const rowDate = new Date(dateCell.textContent);
+                        const rowMonth = rowDate.getMonth() + 1;
+                        const rowYear = rowDate.getFullYear();
+                        if (rowMonth === monthNum && rowYear === year) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                }
+            }
+
+            // 各タブのデータも更新
+            updateAllFinancialTabs(month);
+        }
+
+        // デポジット管理関数
+        function showDepositModal() {
+            const quantity = prompt('購入するデポジット数（件数）を入力してください:', '10');
+            if (quantity && !isNaN(quantity) && quantity > 0) {
+                const total = parseInt(quantity) * 22000;
+                const today = new Date();
+                const dueDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
+                const message = `
+デポジット${quantity}件分（¥${total.toLocaleString()}）の請求書を発行します。
+
+【請求内容】
+・デポジット：${quantity}件 × ¥22,000 = ¥${total.toLocaleString()}
+・支払期限：${dueDate.getFullYear()}年${dueDate.getMonth() + 1}月${dueDate.getDate()}日
+・有効期限：入金確認の翌々月末まで
+
+【ご注意事項】
+・入金確認後にデポジットが反映されます
+・反映後、ランキングが1ランクUPします
+・返金時の振込手数料はお客様負担となります
+
+請求書を発行してよろしいでしょうか？`;
+
+                if (confirm(message)) {
+                    // 請求書発行の処理
+                    const invoiceNo = 'INV-' + Date.now().toString().slice(-8);
+                    alert(`請求書を発行しました。\n\n請求書番号：${invoiceNo}\nデポジット数：${quantity}件\n請求金額：¥${total.toLocaleString()}\n\n入金確認後、1営業日以内にデポジットが反映されます。`);
+                    // 購入申請履歴に追加（実際はサーバー側で処理）
+                    location.reload();
+                }
+            }
+        }
+
+        function updateDepositSetting() {
+            const selectedValue = document.querySelector('input[name="depositHandling"]:checked').value;
+            const message = selectedValue === 'rollover'
+                ? '繰越設定に変更しました。期限切れ後も継続して利用できます。'
+                : '返金設定に変更しました。期限切れ時に未使用分が返金されます。';
+            alert(message);
+        }
+
+        // 請求書ダウンロード機能
+        function downloadInvoice(invoiceNo) {
+            alert(`請求書（${invoiceNo}）のダウンロードを開始します。\n\n※実際の実装では、サーバーから請求書PDFを取得してダウンロードします。`);
+            // 実際の実装では以下のような処理を行う
+            // window.location.href = `/api/invoices/${invoiceNo}/download`;
+        }
+
+        // デポジット金額計算
+        document.addEventListener('DOMContentLoaded', function() {
+            const depositInput = document.getElementById('depositAmount');
+            const depositTotal = document.getElementById('depositTotal');
+            if (depositInput && depositTotal) {
+                depositInput.addEventListener('input', function() {
+                    const amount = parseInt(this.value) || 0;
+                    const total = amount * 22000;
+                    depositTotal.textContent = '¥' + total.toLocaleString();
+                });
+            }
+        })
+
+        // 全財務タブのデータ更新
+        function updateAllFinancialTabs(month) {
+            // 成約手数料、支払履歴、収支分析タブも更新
+            console.log('全財務タブを' + month + 'に更新');
+        }
+
         // 紹介料計算
         function calculateReferralFee(projectType, buildingType, floors, competitors) {
             let baseFee = 0;
@@ -7054,12 +8104,13 @@
             showNotification('PDF出力', `${invoiceId}.pdf をダウンロードしました`);
         }
         
-        // CSV出力
-        function exportInvoices() {
+        // 財務レポート CSV出力
+        function exportFinancialReport() {
             const data = [
-                ['請求書番号', '加盟店', '種別', '金額(税込)', '発行日', '支払期限', 'ステータス'],
-                ['INV-2024-0156', '田中塗装工業', '紹介料', '66000', '2024-01-31', '2024-02-15', '入金済'],
-                ['INV-2024-0157', '山田ペイント', '成約手数料', '132000', '2024-01-31', '2024-02-27', '発行済']
+                ['購入日', '案件ID', '顧客名', 'エリア', '購入金額', '成約金額', '手数料', 'ROI'],
+                ['2025-01-15', 'C2025-001', '田中様', '東京都渋谷区', '85000', '', '', ''],
+                ['2025-01-10', 'C2025-002', '佐藤様', '神奈川県川崎市', '22000', '1200000', '132000', '475%'],
+                ['2025-01-08', 'C2025-003', '鈴木様', '埼玉県越谷市', '80000', '800000', '80000', '100%']
             ];
             
             const csv = data.map(row => row.join(',')).join('\n');
@@ -8009,7 +9060,7 @@
                         <button onclick="callCustomer('${caseData.phone}')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
                             📞 電話
                         </button>
-                        <button onclick="sendSMS('${caseData.phone}')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                        <button onclick="sendSMS('${caseData.phone}', ${caseData.id})" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
                             📩 SMS
                         </button>
                         <button onclick="showMemo(${caseId})" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">
@@ -8064,6 +9115,9 @@
 
             // UIを更新
             updateCaseCard(caseId);
+
+            // カレンダーの自動同期
+            autoSyncToCalendar();
 
             showNotification('ステータス更新', `ステータスを「${newStatus}」に変更しました`);
         }
@@ -8259,21 +9313,303 @@
             }
         }
 
-        // SMS送信
-        function sendSMS(phone) {
-            const templates = [
-                'お世話になっております。外壁塗装の件でご連絡いたしました。',
-                '現地調査の日程確認のご連絡です。',
-                'お見積書の準備ができました。ご確認をお願いいたします。'
+        // SMS送信モーダルを開く
+        function sendSMS(phone, caseId) {
+            // 案件情報を取得
+            const caseData = caseId ? casesData.find(c => c.id === caseId) : null;
+
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold">SMSメッセージ作成</h3>
+                        <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- このページの内容 -->
+                    <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                        <div class="text-sm text-gray-600 mb-2">このページの内容</div>
+                        <div class="text-sm font-medium">SMSメッセージを選択してください:</div>
+                    </div>
+
+                    ${caseData ? `
+                    <!-- ステータス情報 -->
+                    <div class="mb-4 p-4 bg-blue-50 rounded-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-blue-900">現在のステータス: ${caseData.status || '未対応'}</span>
+                            <span class="text-sm text-gray-600">お客様: ${caseData.name}</span>
+                        </div>
+                    </div>
+
+                    <!-- 選択肢セクション -->
+                    <div class="mb-4">
+                        <div class="text-sm font-medium mb-2">次のステップを選択:</div>
+                        <div id="nextStepOptions" class="space-y-2">
+                            <!-- ステータスに応じた選択肢を動的に生成 -->
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- AI生成メッセージ表示 -->
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-sm font-medium">${caseData ? 'AI生成メッセージ' : 'メッセージ'}:</label>
+                            ${caseData ? `
+                            <button onclick="regenerateSmsMessage(${caseId})" class="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                再生成
+                            </button>
+                            ` : ''}
+                        </div>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+                            <div class="text-xs text-yellow-800 mb-1">💡 SMSは70文字以内が推奨されます</div>
+                            <div class="text-xs text-gray-600">現在: <span id="charCount">0</span>文字</div>
+                        </div>
+                        <textarea id="smsMessage" class="w-full p-3 border rounded-lg" rows="6"
+                                  placeholder="${caseData ? 'AIがメッセージを生成中...' : 'メッセージを入力...'}"
+                                  onkeyup="updateCharCount()"></textarea>
+
+                        <!-- テンプレートボタン -->
+                        <div class="flex flex-wrap gap-2 mt-2">
+                            <button onclick="loadSmsTemplate('greeting')" class="text-xs px-3 py-1 bg-gray-100 rounded-lg hover:bg-gray-200">
+                                👋 挨拶
+                            </button>
+                            <button onclick="loadSmsTemplate('appointment')" class="text-xs px-3 py-1 bg-green-100 rounded-lg hover:bg-green-200">
+                                📅 アポ確認
+                            </button>
+                            <button onclick="loadSmsTemplate('estimate')" class="text-xs px-3 py-1 bg-blue-100 rounded-lg hover:bg-blue-200">
+                                📝 見積提出
+                            </button>
+                            <button onclick="loadSmsTemplate('followup')" class="text-xs px-3 py-1 bg-yellow-100 rounded-lg hover:bg-yellow-200">
+                                🔔 フォロー
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 直接入力のチェックボックス -->
+                    <div class="flex items-center mb-4">
+                        <input type="checkbox" id="manualInput" class="mr-2" onchange="toggleManualInput(${caseId || 'null'})">
+                        <label for="manualInput" class="text-sm text-gray-700">または直接入力してください</label>
+                    </div>
+
+                    <div class="flex justify-end gap-2">
+                        <button onclick="this.closest('.fixed').remove()" class="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                            キャンセル
+                        </button>
+                        <button onclick="sendSmsMessage('${phone}')" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            OK
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            if (caseData) {
+                // ステータスに応じた選択肢を表示
+                generateNextStepOptions(caseData.status, caseId);
+                // 初回のAIメッセージ生成
+                generateAiSmsMessage(caseId, null);
+            }
+        }
+
+        // 文字数カウント更新
+        function updateCharCount() {
+            const textarea = document.getElementById('smsMessage');
+            const countSpan = document.getElementById('charCount');
+            if (textarea && countSpan) {
+                const count = textarea.value.length;
+                countSpan.textContent = count;
+                countSpan.className = count > 70 ? 'text-red-600 font-bold' : '';
+            }
+        }
+
+        // ステータスに応じた次ステップの選択肢を生成
+        function generateNextStepOptions(currentStatus, caseId) {
+            const optionsContainer = document.getElementById('nextStepOptions');
+            if (!optionsContainer) return;
+
+            let options = [];
+
+            // ステータスに応じた選択肢を定義
+            const statusOptions = {
+                '未対応': [
+                    { label: '初回アポイントのお願い', value: 'initial_appointment' },
+                    { label: 'お問い合わせへのお礼', value: 'thank_inquiry' },
+                    { label: '資料送付のお知らせ', value: 'send_materials' }
+                ],
+                '架電済/未アポ': [
+                    { label: '再度アポイントのお願い', value: 'retry_appointment' },
+                    { label: '資料送付のご案内', value: 'material_guide' },
+                    { label: 'フォローアップのご連絡', value: 'followup_call' }
+                ],
+                'アポ済': [
+                    { label: '現地調査日時の確認', value: 'confirm_survey' },
+                    { label: '現調前日のリマインダー', value: 'survey_reminder' },
+                    { label: '持ち物・準備事項のご連絡', value: 'preparation_info' }
+                ],
+                '現調済': [
+                    { label: '現調のお礼', value: 'thank_survey' },
+                    { label: '見積書作成中のご連絡', value: 'estimate_progress' },
+                    { label: '見積書完成のお知らせ', value: 'estimate_ready' }
+                ],
+                '見積提出済': [
+                    { label: '見積書のご確認お願い', value: 'estimate_check' },
+                    { label: 'ご質問への回答', value: 'answer_questions' },
+                    { label: 'フォローアップ', value: 'estimate_followup' },
+                    { label: '特別キャンペーンのご案内', value: 'special_campaign' }
+                ],
+                '成約': [
+                    { label: 'ご契約のお礼', value: 'contract_thanks' },
+                    { label: '工事日程のご連絡', value: 'construction_schedule' },
+                    { label: '必要書類のご案内', value: 'required_documents' }
+                ],
+                '入金予定': [
+                    { label: '入金確認のお願い', value: 'payment_confirmation' },
+                    { label: '振込先のご案内', value: 'bank_info' },
+                    { label: '工事開始のご案内', value: 'construction_start' }
+                ],
+                '入金済': [
+                    { label: '入金確認のお礼', value: 'payment_thanks' },
+                    { label: '工事開始のご案内', value: 'construction_info' },
+                    { label: '完工後のフォロー', value: 'completion_follow' }
+                ]
+            };
+
+            // デフォルトの選択肢
+            options = statusOptions[currentStatus] || [
+                { label: 'お問い合わせへのお礼', value: 'general_thanks' },
+                { label: 'ご連絡', value: 'general_contact' },
+                { label: 'フォローアップ', value: 'general_followup' }
             ];
 
-            const message = prompt('SMSメッセージを選択してください:\n\n' +
-                templates.map((t, i) => `${i+1}. ${t}`).join('\n') +
-                '\n\nまたは直接入力してください:', templates[0]);
+            // 選択肢をHTMLに変換
+            optionsContainer.innerHTML = options.map((opt, index) => `
+                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                    <input type="radio" name="nextStep" value="${opt.value}"
+                           ${index === 0 ? 'checked' : ''}
+                           onchange="generateAiSmsMessage(${caseId}, '${opt.value}')"
+                           class="mr-3">
+                    <span class="text-sm">${opt.label}</span>
+                </label>
+            `).join('');
+        }
 
+        // AIでSMSメッセージを生成（モック版 - 65文字以内）
+        function generateAiSmsMessage(caseId, messageType) {
+            const caseData = casesData.find(c => c.id === caseId);
+            if (!caseData) return;
+
+            const messageTextarea = document.getElementById('smsMessage');
+            if (!messageTextarea) return;
+
+            // ローディング表示
+            messageTextarea.value = 'AIがメッセージを生成中...';
+            messageTextarea.disabled = true;
+
+            // メッセージタイプを取得（未選択の場合は最初の選択肢）
+            if (!messageType) {
+                const selectedOption = document.querySelector('input[name="nextStep"]:checked');
+                messageType = selectedOption ? selectedOption.value : 'general_contact';
+            }
+
+            // 数秒後にAI生成メッセージを表示（モック - 65文字以内）
+            setTimeout(() => {
+                const customerName = caseData.name ? caseData.name.split(' ')[0] : 'お客'; // 苗字のみ
+                const salesName = '田中'; // 現在のログインユーザー名
+
+                // 65文字以内のテンプレート
+                const templates = {
+                    'initial_appointment': `${customerName}様\n外壁塗装の件でご連絡しました。現地調査のご都合はいかがでしょうか？\n${salesName}`,
+                    'thank_inquiry': `${customerName}様\nお問合せありがとうございます。外壁塗装の詳細をご案内します。\n${salesName}`,
+                    'send_materials': `${customerName}様\n資料をお送りしました。ご確認ください。ご質問はお気軽に。\n${salesName}`,
+                    'retry_appointment': `${customerName}様\n先日は失礼しました。現調日を再調整させていただけますか？\n${salesName}`,
+                    'material_guide': `${customerName}様\n詳しい資料をお送りします。ご不明点があればご連絡ください。\n${salesName}`,
+                    'followup_call': `${customerName}様\n先日の件いかがでしたか？ご都合つく時にご連絡ください。\n${salesName}`,
+                    'confirm_survey': `${customerName}様\n明日○時の現調よろしくお願いします。変更あればご連絡を。\n${salesName}`,
+                    'survey_reminder': `${customerName}様\n明日の現調よろしくお願いします。スタッフが伺います。\n${salesName}`,
+                    'preparation_info': `${customerName}様\n現調当日は特にご準備不要です。お気をつけてお待ち下さい。\n${salesName}`,
+                    'thank_survey': `${customerName}様\n本日はありがとうございました。見積書を作成しご連絡します。\n${salesName}`,
+                    'estimate_progress': `${customerName}様\n見積書作成中です。もう少しお待ちください。\n${salesName}`,
+                    'estimate_ready': `${customerName}様\n見積書が完成しました。ご都合よい時にご説明します。\n${salesName}`,
+                    'estimate_check': `${customerName}様\n見積書はご確認いただけましたか？ご不明点お気軽に。\n${salesName}`,
+                    'answer_questions': `${customerName}様\nご質問ありがとうございます。詳細回答をお送りします。\n${salesName}`,
+                    'estimate_followup': `${customerName}様\n見積書の件いかがでしょうか？ご不明点あればご連絡を。\n${salesName}`,
+                    'special_campaign': `${customerName}様\n今月限定特別価格ご用意しました。この機会にいかがですか？\n${salesName}`,
+                    'contract_thanks': `${customerName}様\nご契約ありがとうございます。丁寧な工事を心がけます。\n${salesName}`,
+                    'construction_schedule': `${customerName}様\n工事日程が○月○日に決まりました。よろしくお願いします。\n${salesName}`,
+                    'required_documents': `${customerName}様\n必要書類をお送りしました。ご確認・ご記入お願いします。\n${salesName}`,
+                    'payment_confirmation': `${customerName}様\n入金確認お願いします。振込予定日をお教えください。\n${salesName}`,
+                    'bank_info': `${customerName}様\n振込先をお送りします。ご確認の上お手続きください。\n${salesName}`,
+                    'construction_start': `${customerName}様\n来週から工事開始です。ご不便おかけしますがよろしく。\n${salesName}`,
+                    'payment_thanks': `${customerName}様\n入金確認しました。ありがとうございます。工事進めます。\n${salesName}`,
+                    'construction_info': `${customerName}様\n工事スケジュールお送りします。ご確認ください。\n${salesName}`,
+                    'completion_follow': `${customerName}様\n工事完了後もサポートします。何かあればご連絡を。\n${salesName}`,
+                    'general_contact': `${customerName}様\n外壁塗装の件でご連絡しました。ご都合よい時にお話しませんか？\n${salesName}`,
+                    'general_thanks': `${customerName}様\nお問合せありがとうございます。詳細ご案内します。\n${salesName}`,
+                    'general_followup': `${customerName}様\n先日の件どうでしたか？お気軽にご連絡ください。\n${salesName}`
+                };
+
+                const message = templates[messageType] || templates['general_contact'];
+                messageTextarea.value = message;
+                messageTextarea.disabled = false;
+                updateCharCount();
+            }, 1000); // 1秒後に生成
+        }
+
+        // SMSメッセージの再生成
+        function regenerateSmsMessage(caseId) {
+            const selectedOption = document.querySelector('input[name="nextStep"]:checked');
+            const messageType = selectedOption ? selectedOption.value : null;
+            generateAiSmsMessage(caseId, messageType);
+        }
+
+        // テンプレートをロード
+        function loadSmsTemplate(templateType) {
+            const messageTextarea = document.getElementById('smsMessage');
+            if (!messageTextarea) return;
+
+            const templates = {
+                'greeting': 'お世話になっております。外壁塗装の件でご連絡しました。田中',
+                'appointment': '明日の現調よろしくお願いします。田中',
+                'estimate': '見積書完成しました。ご確認ください。田中',
+                'followup': '先日の件いかがでしたか？お気軽にご連絡ください。田中'
+            };
+
+            messageTextarea.value = templates[templateType] || '';
+            updateCharCount();
+        }
+
+        // 手動入力の切り替え
+        function toggleManualInput(caseId) {
+            const checkbox = document.getElementById('manualInput');
+            const messageTextarea = document.getElementById('smsMessage');
+            if (checkbox.checked) {
+                messageTextarea.value = '';
+                messageTextarea.placeholder = 'メッセージを入力してください...';
+                messageTextarea.disabled = false;
+                updateCharCount();
+            } else if (caseId) {
+                generateAiSmsMessage(caseId, null);
+            }
+        }
+
+        // SMSメッセージを送信
+        function sendSmsMessage(phone) {
+            const message = document.getElementById('smsMessage').value;
             if (message) {
                 window.location.href = `sms:${phone}?body=${encodeURIComponent(message)}`;
                 showNotification('SMS送信', `${phone} へSMSを送信しました`);
+                // モーダルを閉じる
+                document.querySelector('.fixed').remove();
+            } else {
+                showNotification('エラー', 'メッセージを入力してください', 'error');
             }
         }
 
@@ -8772,6 +10108,9 @@
                 badge.textContent = unassignedCases.length;
                 badge.classList.remove('hidden');
 
+                // トータルバッジカウントを更新
+                updateTotalBadgeCount();
+
                 // 未振り分けセクションを表示
                 unassignedSection.classList.remove('hidden');
 
@@ -8781,20 +10120,6 @@
                         <div class="bg-white rounded-lg border border-yellow-300 p-3 hover:shadow-md transition-shadow">
                             <div class="flex justify-between items-start mb-2">
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">未対応</span>
-                                <div class="flex gap-1">
-                                    <button onclick="event.stopPropagation(); showMemo(${caseItem.id})" class="p-1 rounded-lg hover:bg-gray-100 transition-colors" title="メモ">
-                                        <span class="text-sm">📝</span>
-                                    </button>
-                                    <button onclick="event.stopPropagation(); scheduleCase(${caseItem.id})" class="p-1 rounded-lg hover:bg-yellow-100 transition-colors" title="スケジュール">
-                                        <span class="text-sm">📅</span>
-                                    </button>
-                                    <button onclick="event.stopPropagation(); passCase(${caseItem.id})" class="p-1 rounded-lg hover:bg-blue-100 transition-colors" title="担当パス">
-                                        <span class="text-sm">🔄</span>
-                                    </button>
-                                    <button onclick="event.stopPropagation(); openCancelRequest(${caseItem.id})" class="p-1 rounded-lg hover:bg-red-100 transition-colors" title="キャンセル申請">
-                                        <span class="text-sm">❌</span>
-                                    </button>
-                                </div>
                             </div>
                             <h4 class="font-bold text-sm mb-1">${caseItem.name}</h4>
                             <p class="text-xs text-gray-600">${caseItem.address}</p>
@@ -8818,6 +10143,12 @@
         // ページ読み込み時に未振り分け案件を表示
         document.addEventListener('DOMContentLoaded', function() {
             displayUnassignedCases();
+
+            // 初期バッジカウントを更新
+            setTimeout(updateTotalBadgeCount, 500);
+
+            // カレンダーの自動同期を実行
+            setTimeout(autoSyncToCalendar, 1000);
 
             // showSection関数をオーバーライド（既存のoriginalShowSectionを使用）
             const prevShowSection = window.showSection;
@@ -9620,5 +10951,17 @@
             };
         });
     </script>
+    <style>
+        @keyframes slide-in {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slide-out {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        .animate-slide-in { animation: slide-in 0.3s ease-out; }
+        .animate-slide-out { animation: slide-out 0.3s ease-out; }
+    </style>
 </body>
 </html>
