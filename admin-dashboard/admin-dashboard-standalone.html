@@ -1544,6 +1544,21 @@
         function callFranchise(franchiseId) {
             console.log(`加盟店 ${franchiseId} に電話`);
             // 実際のアプリケーションでは電話番号を取得してダイヤル
+            alert(`加盟店 ${franchiseId} に電話をかけます`);
+        }
+
+        // 加盟店にメール
+        function emailFranchise(franchiseId) {
+            console.log(`加盟店 ${franchiseId} にメール`);
+            // 実際のアプリケーションではメールアドレスを取得してメールクライアントを起動
+            alert(`加盟店 ${franchiseId} にメールを送信します`);
+        }
+
+        // 加盟店に通知
+        function snsFranchise(franchiseId) {
+            console.log(`加盟店 ${franchiseId} に通知`);
+            // 実際のアプリケーションでは通知システムと連携
+            alert(`加盟店 ${franchiseId} に通知を送信します`);
         }
 
         // 加盟店にメモを追加
@@ -1881,12 +1896,10 @@
                                 </select>
                             </td>
                             <td class="px-6 py-4">
-                                <button class="text-gray-600 hover:text-gray-800 text-lg" onclick="callFranchise('${franchise.id}')" title="電話">
-                                    <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                    </svg>
-                                </button>
-                                <button class="ml-3 text-blue-600 hover:text-blue-800 text-sm font-medium" onclick="showFranchiseDetail('${franchise.id}')">詳細</button>
+                                <button class="text-gray-600 hover:text-gray-800 text-lg mr-2" onclick="callFranchise('${franchise.id}')" title="電話">📞</button>
+                                <button class="text-gray-600 hover:text-gray-800 text-lg mr-2" onclick="emailFranchise('${franchise.id}')" title="メール">📤</button>
+                                <button class="text-gray-600 hover:text-gray-800 text-lg mr-3" onclick="snsFranchise('${franchise.id}')" title="通知">🔔</button>
+                                <button class="text-blue-600 hover:text-blue-800 text-sm font-medium" onclick="showFranchiseDetail('${franchise.id}')">詳細</button>
                             </td>
                         </tr>
                     `).join('');
@@ -2009,7 +2022,8 @@
 
                         <!-- 加盟店リスト -->
                         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                            <table class="w-full">
+                            <div class="overflow-x-auto hidden md:block">
+                            <table class="w-full min-w-[900px]">
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">加盟店名</th>
@@ -2025,8 +2039,174 @@
                                     ${generateFranchiseRows(window.franchiseData)}
                                 </tbody>
                             </table>
+                            </div>
+
+                            <!-- モバイル用カード表示 -->
+                            <div class="md:hidden p-4 space-y-4">
+                                <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <div class="flex items-center">
+                                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold mr-3">田</div>
+                                            <div>
+                                                <div class="font-semibold text-gray-900">田中塗装工業</div>
+                                                <div class="text-xs text-gray-500">ID: F001</div>
+                                            </div>
+                                        </div>
+                                        <select class="px-3 py-1 text-xs font-semibold rounded-full border-2 cursor-pointer bg-green-100 text-green-800 border-green-300" onchange="updateFranchiseStatus('F001', this.value)">
+                                            <option value="active" selected>アクティブ</option>
+                                            <option value="inactive">非アクティブ</option>
+                                            <option value="paused">一時停止中</option>
+                                            <option value="silent">サイレント</option>
+                                            <option value="suspended">休止</option>
+                                            <option value="withdrawn">退会</option>
+                                        </select>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 mb-3 text-sm">
+                                        <div>
+                                            <span class="text-gray-500">エリア:</span>
+                                            <span class="ml-1 font-medium">東京都</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">成約率:</span>
+                                            <span class="ml-1 font-semibold text-green-600">68%</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">今月実績:</span>
+                                            <span class="ml-1 font-medium">12件 / ¥3.2M</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">ハンデ:</span>
+                                            <select class="ml-1 px-2 py-0.5 text-xs border rounded">
+                                                <option>+3</option>
+                                                <option>+2</option>
+                                                <option selected>+1</option>
+                                                <option>0</option>
+                                                <option>-1</option>
+                                                <option>-2</option>
+                                                <option>-3</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-3 border-t border-gray-200">
+                                        <div class="flex space-x-3">
+                                            <button onclick="callFranchise('F001')" class="text-gray-600 hover:text-gray-800 text-lg" title="電話">📞</button>
+                                            <button onclick="emailFranchise('F001')" class="text-gray-600 hover:text-gray-800 text-lg" title="メール">📤</button>
+                                            <button onclick="snsFranchise('F001')" class="text-gray-600 hover:text-gray-800 text-lg" title="通知">🔔</button>
+                                        </div>
+                                        <button onclick="showFranchiseDetail('F001')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">詳細</button>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <div class="flex items-center">
+                                            <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-semibold mr-3">山</div>
+                                            <div>
+                                                <div class="font-semibold text-gray-900">山田ペイント</div>
+                                                <div class="text-xs text-gray-500">ID: F002</div>
+                                            </div>
+                                        </div>
+                                        <select class="px-3 py-1 text-xs font-semibold rounded-full border-2 cursor-pointer bg-green-100 text-green-800 border-green-300" onchange="updateFranchiseStatus('F002', this.value)">
+                                            <option value="active" selected>アクティブ</option>
+                                            <option value="inactive">非アクティブ</option>
+                                            <option value="paused">一時停止中</option>
+                                            <option value="silent">サイレント</option>
+                                            <option value="suspended">休止</option>
+                                            <option value="withdrawn">退会</option>
+                                        </select>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 mb-3 text-sm">
+                                        <div>
+                                            <span class="text-gray-500">エリア:</span>
+                                            <span class="ml-1 font-medium">神奈川県</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">成約率:</span>
+                                            <span class="ml-1 font-semibold text-green-600">62%</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">今月実績:</span>
+                                            <span class="ml-1 font-medium">10件 / ¥2.8M</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">ハンデ:</span>
+                                            <select class="ml-1 px-2 py-0.5 text-xs border rounded">
+                                                <option>+3</option>
+                                                <option>+2</option>
+                                                <option>+1</option>
+                                                <option selected>0</option>
+                                                <option>-1</option>
+                                                <option>-2</option>
+                                                <option>-3</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-3 border-t border-gray-200">
+                                        <div class="flex space-x-3">
+                                            <button onclick="callFranchise('F002')" class="text-gray-600 hover:text-gray-800 text-lg" title="電話">📞</button>
+                                            <button onclick="emailFranchise('F002')" class="text-gray-600 hover:text-gray-800 text-lg" title="メール">📤</button>
+                                            <button onclick="snsFranchise('F002')" class="text-gray-600 hover:text-gray-800 text-lg" title="通知">🔔</button>
+                                        </div>
+                                        <button onclick="showFranchiseDetail('F002')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">詳細</button>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <div class="flex items-center">
+                                            <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-semibold mr-3">佐</div>
+                                            <div>
+                                                <div class="font-semibold text-gray-900">佐藤塗装店</div>
+                                                <div class="text-xs text-gray-500">ID: F003</div>
+                                            </div>
+                                        </div>
+                                        <select class="px-3 py-1 text-xs font-semibold rounded-full border-2 cursor-pointer bg-green-100 text-green-800 border-green-300" onchange="updateFranchiseStatus('F003', this.value)">
+                                            <option value="active" selected>アクティブ</option>
+                                            <option value="inactive">非アクティブ</option>
+                                            <option value="paused">一時停止中</option>
+                                            <option value="silent">サイレント</option>
+                                            <option value="suspended">休止</option>
+                                            <option value="withdrawn">退会</option>
+                                        </select>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 mb-3 text-sm">
+                                        <div>
+                                            <span class="text-gray-500">エリア:</span>
+                                            <span class="ml-1 font-medium">千葉県</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">成約率:</span>
+                                            <span class="ml-1 font-semibold text-yellow-600">58%</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">今月実績:</span>
+                                            <span class="ml-1 font-medium">9件 / ¥2.1M</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">ハンデ:</span>
+                                            <select class="ml-1 px-2 py-0.5 text-xs border rounded">
+                                                <option>+3</option>
+                                                <option>+2</option>
+                                                <option>+1</option>
+                                                <option>0</option>
+                                                <option selected>-1</option>
+                                                <option>-2</option>
+                                                <option>-3</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-3 border-t border-gray-200">
+                                        <div class="flex space-x-3">
+                                            <button onclick="callFranchise('F003')" class="text-gray-600 hover:text-gray-800 text-lg" title="電話">📞</button>
+                                            <button onclick="emailFranchise('F003')" class="text-gray-600 hover:text-gray-800 text-lg" title="メール">📤</button>
+                                            <button onclick="snsFranchise('F003')" class="text-gray-600 hover:text-gray-800 text-lg" title="通知">🔔</button>
+                                        </div>
+                                        <button onclick="showFranchiseDetail('F003')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">詳細</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        
+
                         <!-- ページネーション -->
                         <div class="mt-6 flex justify-between items-center">
                             <div class="text-sm text-gray-600">
