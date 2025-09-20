@@ -3,7 +3,7 @@
  */
 
 // GAS API Endpoint
-const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbycpu4D8quqJk5wWT_iqK4DCUFqlJE6BTbd-XxI0qxa60geIr1_sSyIsiNUkAUaZxnL-g/exec';
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyzhaGe_YYy4edX9mj1XBc4kcsz5xwy5-CcxcLu9XuZVXHqtEl5NqnYePPILDOIK69E2A/exec';
 
 /**
  * 加盟店登録申請データを取得
