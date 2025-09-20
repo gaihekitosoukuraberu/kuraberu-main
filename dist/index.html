@@ -3090,7 +3090,7 @@
         // 実データをGASから取得
         async function loadCasesData() {
             try {
-                const response = await fetch('https://script.google.com/macros/s/AKfycby0vcRBoKHiVVu6Z6EcZ6Vh2FBbDiBLv6OXHzxCXjWhpRZmYaxpU9_zZfme9n8QM8dwBg/exec?action=getCases');
+                const response = await fetch('https://script.google.com/macros/s/AKfycbyzhaGe_YYy4edX9mj1XBc4kcsz5xwy5-CcxcLu9XuZVXHqtEl5NqnYePPILDOIK69E2A/exec?action=getCases');
                 const data = await response.json();
 
                 if (data.success && data.cases) {
@@ -3927,49 +3927,67 @@
         }
         
         // 加盟店登録申請を承認
-        function approveRegistration(registrationId) {
+        async function approveRegistration(registrationId) {
             if (confirm(`申請ID: ${registrationId} を承認しますか？`)) {
-                // 承認処理（実際はAPIコール）
-                console.log(`承認処理: ${registrationId}`);
+                try {
+                    // 実際のGAS API呼び出し
+                    const result = await window.dashboardAPI.approveRegistration(registrationId);
 
-                // 成功通知を表示
-                const notification = document.createElement('div');
-                notification.className = 'fixed top-20 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center';
-                notification.innerHTML = `
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    申請を承認しました
-                `;
-                document.body.appendChild(notification);
-                setTimeout(() => notification.remove(), 3000);
+                    if (result.success) {
+                        // 成功通知を表示
+                        const notification = document.createElement('div');
+                        notification.className = 'fixed top-20 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center';
+                        notification.innerHTML = `
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            申請を承認しました
+                        `;
+                        document.body.appendChild(notification);
+                        setTimeout(() => notification.remove(), 3000);
 
-                // 該当行を削除または更新（実際は再読み込み）
-                location.reload();
+                        // ダッシュボードを更新
+                        await window.dashboardAPI.refreshDashboard();
+                    } else {
+                        alert('承認処理に失敗しました: ' + (result.message || ''));
+                    }
+                } catch (error) {
+                    console.error('承認エラー:', error);
+                    alert('承認処理中にエラーが発生しました');
+                }
             }
         }
 
         // 加盟店登録申請を却下
-        function rejectRegistration(registrationId) {
+        async function rejectRegistration(registrationId) {
             const reason = prompt(`申請ID: ${registrationId} を却下する理由を入力してください：`);
             if (reason) {
-                // 却下処理（実際はAPIコール）
-                console.log(`却下処理: ${registrationId}, 理由: ${reason}`);
+                try {
+                    // 実際のGAS API呼び出し
+                    const result = await window.dashboardAPI.rejectRegistration(registrationId, reason);
 
-                // 成功通知を表示
-                const notification = document.createElement('div');
-                notification.className = 'fixed top-20 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center';
-                notification.innerHTML = `
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                    申請を却下しました
-                `;
-                document.body.appendChild(notification);
-                setTimeout(() => notification.remove(), 3000);
+                    if (result.success) {
+                        // 成功通知を表示
+                        const notification = document.createElement('div');
+                        notification.className = 'fixed top-20 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center';
+                        notification.innerHTML = `
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            申請を却下しました
+                        `;
+                        document.body.appendChild(notification);
+                        setTimeout(() => notification.remove(), 3000);
 
-                // 該当行を削除または更新（実際は再読み込み）
-                location.reload();
+                        // ダッシュボードを更新
+                        await window.dashboardAPI.refreshDashboard();
+                    } else {
+                        alert('却下処理に失敗しました: ' + (result.message || ''));
+                    }
+                } catch (error) {
+                    console.error('却下エラー:', error);
+                    alert('却下処理中にエラーが発生しました');
+                }
             }
         }
 
@@ -4092,22 +4110,6 @@
             document.body.appendChild(modal);
         }
         
-        function approveRegistration(registrationId) {
-            if (confirm('この申請を承認しますか？\n\n承認後、初回ログイン情報がメール送信されます。')) {
-                alert(`申請 ${registrationId} を承認しました。\n\n加盟店ID: F033\n初回ログイン情報をメール送信しました。`);
-                document.querySelector('.fixed').remove();
-                updateRegistrationRequestCount(-1);
-            }
-        }
-        
-        function rejectRegistration(registrationId) {
-            const reason = prompt('却下理由を入力してください：');
-            if (reason && confirm('本当に却下しますか？')) {
-                alert(`申請 ${registrationId} を却下しました。\n\n理由: ${reason}\n申請者に通知を送信します。`);
-                document.querySelector('.fixed').remove();
-                updateRegistrationRequestCount(-1);
-            }
-        }
         
         function updateRegistrationRequestCount(change) {
             const badge = document.getElementById('registrationRequestBadge');
@@ -5247,5 +5249,8 @@
             }
         });
     </script>
+
+    <!-- Dashboard API Script -->
+    <script src="js/dashboard-api.js"></script>
 </body>
 </html>
