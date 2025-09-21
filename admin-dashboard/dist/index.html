@@ -230,8 +230,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 </svg>
                 加盟店登録申請
-                <span id="registrationRequestBadge" class="ml-auto bg-green-500 text-white text-xs px-2.5 py-1 rounded-full animate-pulse font-bold shadow-lg">
-                    <span class="inline-block">3</span>
+                <span id="registrationRequestBadge" class="ml-auto bg-green-500 text-white text-xs px-2.5 py-1 rounded-full animate-pulse font-bold shadow-lg" style="display:none;">
+                    <span class="badge-count inline-block">0</span>
                     <span class="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-ping"></span>
                 </span>
             </a>
@@ -380,7 +380,8 @@
                 <!-- リストビュー -->
                 <div id="listView" class="block">
                     <div class="bg-white rounded-lg border border-gray-200">
-                        <div class="overflow-x-auto">
+                        <!-- PC用テーブル表示 -->
+                        <div class="overflow-x-auto hidden md:block">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
@@ -412,8 +413,13 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <!-- モバイル用カード表示 -->
+                        <div id="casesListMobile" class="md:hidden p-4 space-y-4">
+                            <!-- 動的に生成される案件カード -->
+                        </div>
                     </div>
-                    
+
                     <!-- ページネーション -->
                     <div class="flex justify-between items-center mt-4 px-4 py-3 bg-gray-50 border-t">
                         <div class="text-sm text-gray-700">
@@ -2440,21 +2446,27 @@
                             <p class="text-gray-600">新規加盟店の登録申請を審査・承認</p>
                         </div>
 
+                        <!-- ローディング表示 -->
+                        <div id="loading-indicator" class="text-center py-8" style="display:none;">
+                            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                            <p class="mt-2 text-gray-600">データを読み込み中...</p>
+                        </div>
+
                         <!-- 統計カード -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                             <div class="bg-white rounded-xl p-6 border border-gray-200">
                                 <div class="text-sm text-gray-500 mb-2">未審査申請</div>
-                                <div class="text-2xl font-bold text-green-600">3件</div>
+                                <div id="pending-count" class="text-2xl font-bold text-green-600">-</div>
                                 <div class="text-xs text-red-600 mt-1">至急対応</div>
                             </div>
                             <div class="bg-white rounded-xl p-6 border border-gray-200">
                                 <div class="text-sm text-gray-500 mb-2">今月承認</div>
-                                <div class="text-2xl font-bold text-gray-800">12件</div>
+                                <div id="monthly-approved" class="text-2xl font-bold text-gray-800">-</div>
                                 <div class="text-xs text-gray-500 mt-1">前月比 +5</div>
                             </div>
                             <div class="bg-white rounded-xl p-6 border border-gray-200">
                                 <div class="text-sm text-gray-500 mb-2">承認率</div>
-                                <div class="text-2xl font-bold text-gray-800">92%</div>
+                                <div id="approval-rate" class="text-2xl font-bold text-gray-800">-</div>
                                 <div class="text-xs text-green-600 mt-1">高水準</div>
                             </div>
                         </div>
@@ -2465,219 +2477,64 @@
                                 <h3 class="text-lg font-semibold text-green-800">🆕 未審査の登録申請</h3>
                             </div>
                             <div class="overflow-x-auto hidden md:block">
-                            <table class="w-full min-w-[768px]">
+                            <table id="pending-table" class="w-full min-w-[768px]">
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">申請日時</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">会社名</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">エリア</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">代表者名</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">詳細</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">連絡先</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">対応エリア</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ステータス</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">アクション</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">承認</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
-                                    <tr class="hover:bg-green-50">
-                                        <td class="px-6 py-4 text-sm text-gray-900">2025-01-12 10:30</td>
-                                        <td class="px-6 py-4 text-sm font-medium text-gray-900">株式会社ペイントプロ</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900">神奈川県川崎市</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900">中村太郎</td>
-                                        <td class="px-6 py-4">
-                                            <button onclick="showRegistrationDetail('REG-2025-001')" class="text-blue-600 hover:text-blue-800 text-sm underline">詳細</button>
-                                        </td>
-                                        <td class="px-6 py-4 text-center">
-                                            <button onclick="callRegistration('044-123-4567')" title="044-123-4567" class="text-lg hover:scale-110 transition-transform mr-1">📞</button>
-                                            <button onclick="emailRegistration('nakamura@paintpro.jp')" title="nakamura@paintpro.jp" class="text-lg hover:scale-110 transition-transform mr-1">📤</button>
-                                            <button onclick="snsRegistration('REG-2025-001')" title="SNS" class="text-lg hover:scale-110 transition-transform">💬</button>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <button onclick="approveRegistration('REG-2025-001')" class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 mr-2">承認</button>
-                                            <button onclick="rejectRegistration('REG-2025-001')" class="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">却下</button>
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-green-50">
-                                        <td class="px-6 py-4 text-sm text-gray-900">2025-01-12 14:15</td>
-                                        <td class="px-6 py-4 text-sm font-medium text-gray-900">有限会社カラーワークス</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900">千葉県松戸市</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900">伊藤花子</td>
-                                        <td class="px-6 py-4">
-                                            <button onclick="showRegistrationDetail('REG-2025-002')" class="text-blue-600 hover:text-blue-800 text-sm underline">詳細</button>
-                                        </td>
-                                        <td class="px-6 py-4 text-center">
-                                            <button onclick="callRegistration('047-987-6543')" title="047-987-6543" class="text-lg hover:scale-110 transition-transform mr-1">📞</button>
-                                            <button onclick="emailRegistration('ito@colorworks.co.jp')" title="ito@colorworks.co.jp" class="text-lg hover:scale-110 transition-transform mr-1">📤</button>
-                                            <button onclick="snsRegistration('REG-2025-002')" title="SNS" class="text-lg hover:scale-110 transition-transform">💬</button>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <button onclick="approveRegistration('REG-2025-002')" class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 mr-2">承認</button>
-                                            <button onclick="rejectRegistration('REG-2025-002')" class="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">却下</button>
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-green-50">
-                                        <td class="px-6 py-4 text-sm text-gray-900">2025-01-12 16:45</td>
-                                        <td class="px-6 py-4 text-sm font-medium text-gray-900">塗装工房さくら</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900">東京都杉並区</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900">木村一郎</td>
-                                        <td class="px-6 py-4">
-                                            <button onclick="showRegistrationDetail('REG-2025-003')" class="text-blue-600 hover:text-blue-800 text-sm underline">詳細</button>
-                                        </td>
-                                        <td class="px-6 py-4 text-center">
-                                            <button onclick="callRegistration('03-5555-1234')" title="03-5555-1234" class="text-lg hover:scale-110 transition-transform mr-1">📞</button>
-                                            <button onclick="emailRegistration('kimura@sakura-paint.jp')" title="kimura@sakura-paint.jp" class="text-lg hover:scale-110 transition-transform mr-1">📤</button>
-                                            <button onclick="snsRegistration('REG-2025-003')" title="SNS" class="text-lg hover:scale-110 transition-transform">💬</button>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <button onclick="approveRegistration('REG-2025-003')" class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 mr-2">承認</button>
-                                            <button onclick="rejectRegistration('REG-2025-003')" class="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">却下</button>
-                                        </td>
-                                    </tr>
+                                    <!-- 動的にデータが挿入される -->
                                 </tbody>
                             </table>
                             </div>
 
                             <!-- モバイル用カード表示 -->
-                            <div class="md:hidden p-4 space-y-4">
-                                <div class="bg-green-50 rounded-lg p-4 border border-green-200">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <div class="flex-1">
-                                            <div class="text-xs text-gray-500">2025-01-12 10:30</div>
-                                            <div class="font-semibold text-gray-900 mt-1">株式会社ペイントプロ</div>
-                                            <div class="text-sm text-gray-600">神奈川県川崎市</div>
-                                            <div class="text-sm text-gray-700 mt-1">代表者: 中村太郎</div>
-                                        </div>
-                                        <button onclick="showRegistrationDetail('REG-2025-001')" class="text-blue-600 text-sm underline">詳細</button>
-                                    </div>
-                                    <div class="flex justify-between items-center pt-3 border-t border-green-200">
-                                        <div class="flex space-x-2">
-                                            <button onclick="callRegistration('044-123-4567')" title="044-123-4567" class="text-lg">📞</button>
-                                            <button onclick="emailRegistration('nakamura@paintpro.jp')" title="nakamura@paintpro.jp" class="text-lg">📤</button>
-                                            <button onclick="snsRegistration('REG-2025-001')" title="SNS" class="text-lg">💬</button>
-                                        </div>
-                                        <div class="flex space-x-2">
-                                            <button onclick="approveRegistration('REG-2025-001')" class="px-3 py-1 bg-green-600 text-white text-xs rounded">承認</button>
-                                            <button onclick="rejectRegistration('REG-2025-001')" class="px-3 py-1 bg-red-600 text-white text-xs rounded">却下</button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="bg-green-50 rounded-lg p-4 border border-green-200">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <div class="flex-1">
-                                            <div class="text-xs text-gray-500">2025-01-12 14:15</div>
-                                            <div class="font-semibold text-gray-900 mt-1">有限会社カラーワークス</div>
-                                            <div class="text-sm text-gray-600">千葉県松戸市</div>
-                                            <div class="text-sm text-gray-700 mt-1">代表者: 伊藤花子</div>
-                                        </div>
-                                        <button onclick="showRegistrationDetail('REG-2025-002')" class="text-blue-600 text-sm underline">詳細</button>
-                                    </div>
-                                    <div class="flex justify-between items-center pt-3 border-t border-green-200">
-                                        <div class="flex space-x-2">
-                                            <button onclick="callRegistration('047-987-6543')" title="047-987-6543" class="text-lg">📞</button>
-                                            <button onclick="emailRegistration('ito@colorworks.co.jp')" title="ito@colorworks.co.jp" class="text-lg">📤</button>
-                                            <button onclick="snsRegistration('REG-2025-002')" title="SNS" class="text-lg">💬</button>
-                                        </div>
-                                        <div class="flex space-x-2">
-                                            <button onclick="approveRegistration('REG-2025-002')" class="px-3 py-1 bg-green-600 text-white text-xs rounded">承認</button>
-                                            <button onclick="rejectRegistration('REG-2025-002')" class="px-3 py-1 bg-red-600 text-white text-xs rounded">却下</button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="bg-green-50 rounded-lg p-4 border border-green-200">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <div class="flex-1">
-                                            <div class="text-xs text-gray-500">2025-01-12 16:45</div>
-                                            <div class="font-semibold text-gray-900 mt-1">塗装工房さくら</div>
-                                            <div class="text-sm text-gray-600">東京都杉並区</div>
-                                            <div class="text-sm text-gray-700 mt-1">代表者: 木村一郎</div>
-                                        </div>
-                                        <button onclick="showRegistrationDetail('REG-2025-003')" class="text-blue-600 text-sm underline">詳細</button>
-                                    </div>
-                                    <div class="flex justify-between items-center pt-3 border-t border-green-200">
-                                        <div class="flex space-x-2">
-                                            <button onclick="callRegistration('03-5555-1234')" title="03-5555-1234" class="text-lg">📞</button>
-                                            <button onclick="emailRegistration('kimura@sakura-paint.jp')" title="kimura@sakura-paint.jp" class="text-lg">📤</button>
-                                            <button onclick="snsRegistration('REG-2025-003')" title="SNS" class="text-lg">💬</button>
-                                        </div>
-                                        <div class="flex space-x-2">
-                                            <button onclick="approveRegistration('REG-2025-003')" class="px-3 py-1 bg-green-600 text-white text-xs rounded">承認</button>
-                                            <button onclick="rejectRegistration('REG-2025-003')" class="px-3 py-1 bg-red-600 text-white text-xs rounded">却下</button>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div id="pending-mobile" class="md:hidden p-4 space-y-4">
+                                <!-- 動的にデータが挿入される -->
                             </div>
                         </div>
 
                         <!-- 審査済み履歴 -->
                         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                            <div class="p-4 bg-gray-50 border-b">
+                            <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
                                 <h3 class="text-lg font-semibold text-gray-800">審査済み履歴</h3>
+                                <select id="dateRangeSelector" class="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                                    <option value="7">過去1週間</option>
+                                    <option value="30" selected>過去1ヶ月</option>
+                                    <option value="90">過去3ヶ月</option>
+                                    <option value="365">過去1年</option>
+                                    <option value="-1">全期間</option>
+                                </select>
                             </div>
                             <div class="overflow-x-auto hidden md:block">
-                            <table class="w-full min-w-[768px]">
+                            <table id="approved-table" class="w-full min-w-[768px]">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">審査日時</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">申請日時</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">会社名</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">代表者名</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">結果</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">加盟店ID</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">審査者</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">連絡先</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">対応エリア</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ステータス</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">アクション</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 text-sm text-gray-900">2025-01-11 15:30</td>
-                                        <td class="px-6 py-4 text-sm font-medium text-gray-900">リフォーム工房みらい</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900">斎藤次郎</td>
-                                        <td class="px-6 py-4">
-                                            <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">承認</span>
-                                        </td>
-                                        <td class="px-6 py-4 text-sm text-gray-900">F033</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900">管理者A</td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 text-sm text-gray-900">2025-01-11 10:15</td>
-                                        <td class="px-6 py-4 text-sm font-medium text-gray-900">ホームカラーズ</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900">山口三郎</td>
-                                        <td class="px-6 py-4">
-                                            <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">保留</span>
-                                        </td>
-                                        <td class="px-6 py-4 text-sm text-gray-900">-</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900">管理者B</td>
-                                    </tr>
+                                    <!-- 動的にデータが挿入される -->
                                 </tbody>
                             </table>
                             </div>
 
                             <!-- モバイル用カード表示（審査済み） -->
-                            <div class="md:hidden p-4 space-y-4">
-                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                    <div class="flex justify-between items-start">
-                                        <div class="flex-1">
-                                            <div class="text-xs text-gray-500">2025-01-11 15:30</div>
-                                            <div class="font-semibold text-gray-900 mt-1">リフォーム工房みらい</div>
-                                            <div class="text-sm text-gray-700 mt-1">代表者: 斎藤次郎</div>
-                                            <div class="text-sm text-gray-600">加盟店ID: F033</div>
-                                            <div class="text-xs text-gray-500 mt-2">審査者: 管理者A</div>
-                                        </div>
-                                        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">承認</span>
-                                    </div>
-                                </div>
-
-                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                    <div class="flex justify-between items-start">
-                                        <div class="flex-1">
-                                            <div class="text-xs text-gray-500">2025-01-11 10:15</div>
-                                            <div class="font-semibold text-gray-900 mt-1">ホームカラーズ</div>
-                                            <div class="text-sm text-gray-700 mt-1">代表者: 山口三郎</div>
-                                            <div class="text-sm text-gray-600">加盟店ID: -</div>
-                                            <div class="text-xs text-gray-500 mt-2">審査者: 管理者B</div>
-                                        </div>
-                                        <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">保留</span>
-                                    </div>
-                                </div>
+                            <div id="approved-mobile" class="md:hidden p-4 space-y-4">
+                                <!-- 動的にデータが挿入される -->
                             </div>
                         </div>
                     </div>
@@ -4214,6 +4071,70 @@
                 tbody.appendChild(row);
             });
 
+            // モバイル用カード表示も生成
+            const mobileContainer = document.getElementById('casesListMobile');
+            if (mobileContainer) {
+                mobileContainer.innerHTML = '';
+
+                pageCases.forEach(([caseId, caseData]) => {
+                    const statusColor = getStatusColor(caseData.status);
+                    const fee = calculateIntroductionFee(
+                        caseData.workItems,
+                        caseData.propertyType,
+                        caseData.floors,
+                        caseData.companiesCount
+                    );
+
+                    const card = document.createElement('div');
+                    card.className = 'bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-shadow';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <select class="text-xs border rounded px-2 py-1 ${statusColor}" onchange="changeStatus('${caseId}', this.value)">
+                                        <option value="新規" ${caseData.status === '新規' ? 'selected' : ''}>新規</option>
+                                        <option value="不在" ${caseData.status === '不在' ? 'selected' : ''}>不在</option>
+                                        <option value="再架電" ${caseData.status === '再架電' ? 'selected' : ''}>再架電</option>
+                                        <option value="見込み" ${caseData.status === '見込み' ? 'selected' : ''}>見込み</option>
+                                        <option value="ロスト" ${caseData.status === 'ロスト' ? 'selected' : ''}>ロスト</option>
+                                        <option value="配信中" ${caseData.status === '配信中' ? 'selected' : ''}>配信中</option>
+                                        <option value="配信済" ${caseData.status === '配信済' ? 'selected' : ''}>配信済</option>
+                                        <option value="他社契約済" ${caseData.status === '他社契約済' ? 'selected' : ''}>他社契約済</option>
+                                        <option value="無効" ${caseData.status === '無効' ? 'selected' : ''}>無効</option>
+                                        <option value="クレーム" ${caseData.status === 'クレーム' ? 'selected' : ''}>クレーム</option>
+                                    </select>
+                                    <span class="text-xs text-gray-500">#${caseId}</span>
+                                </div>
+                                <div class="font-semibold text-gray-900">${caseData.name}</div>
+                                <div class="text-sm text-gray-600 mt-1">📍 ${caseData.postalCode}</div>
+                                <div class="text-xs text-gray-500 mt-1">${caseData.address || '住所未設定'}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm font-semibold text-emerald-600">¥${Math.round(fee / 1000)}K</div>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    ${getPropertyIcon(caseData.propertyType)} ${getFloorDisplay(caseData.propertyType, caseData.floors)}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pt-3 border-t border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <div class="flex space-x-2">
+                                    <button onclick="window.location.href='tel:${caseData.phone}'" class="text-lg" title="電話">📞</button>
+                                    <button onclick="window.location.href='sms:${caseData.phone}'" class="text-lg" title="SMS">💬</button>
+                                    <button onclick="sendData('${caseId}')" class="text-lg" title="送信">📤</button>
+                                    <button onclick="openCallHistoryModal('${caseId}')" class="text-lg" title="メモ">📝</button>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button onclick="quickActionList('不在', '${caseId}')" class="px-2 py-1 text-xs bg-gray-500 text-white rounded">不在</button>
+                                    <button onclick="openCRM('${caseId}')" class="px-3 py-1 text-xs bg-blue-600 text-white rounded">詳細</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    mobileContainer.appendChild(card);
+                });
+            }
+
             updateStatistics();
             updateSelectedCount();
         }
@@ -4865,9 +4786,16 @@
         function updateStatistics() {
             const total = Object.keys(casesData).length;
             const completed = Object.values(casesData).filter(c => c.status === '完了').length;
-            
-            document.getElementById('totalToday').textContent = total;
-            document.getElementById('completedToday').textContent = completed;
+            // null チェックを追加
+            const totalTodayElement = document.getElementById('totalToday');
+            const completedTodayElement = document.getElementById('completedToday');
+
+            if (totalTodayElement) {
+                totalTodayElement.textContent = total;
+            }
+            if (completedTodayElement) {
+                completedTodayElement.textContent = completed;
+            }
         }
         
         // 財務タブ切り替え
@@ -5067,7 +4995,8 @@
             
             // デモ用の認証（実際はサーバー側で認証）
             // ユーザー: admin / パスワード: admin123
-            if (userId === 'admin' && password === 'admin123') {
+            // ユーザー: admin@example.com / パスワード: admin123 も許可
+            if ((userId === 'admin' || userId === 'admin@example.com') && password === 'admin123') {
                 // ログイン成功
                 loginError.classList.add('hidden');
                 
@@ -5131,6 +5060,53 @@
                 adminSection.parentElement.appendChild(logoutBtn);
             }
         });
+    </script>
+    <!-- 管理ダッシュボード API連携 -->
+    <script src="js/dashboard-api.js?v=20250119_1200"></script>
+    <script>
+        // ページ読み込み完了後にデータを取得
+        document.addEventListener('DOMContentLoaded', function() {
+            // ログイン後のみデータ取得
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn') || localStorage.getItem('isLoggedIn');
+
+            if (isLoggedIn) {
+                // ログインしていれば即座にデータ取得（バッジ更新のため）
+                setTimeout(() => {
+                    if (typeof refreshDashboard === 'function') {
+                        refreshDashboard();
+                    } else if (window.dashboardAPI && typeof window.dashboardAPI.refreshDashboard === 'function') {
+                        window.dashboardAPI.refreshDashboard();
+                    }
+                }, 100); // 100msの遅延で確実に関数が利用可能になるまで待つ
+            }
+
+            // 期間選択セレクタのイベントリスナー
+            const dateRangeSelector = document.getElementById('dateRangeSelector');
+            if (dateRangeSelector) {
+                dateRangeSelector.addEventListener('change', function() {
+                    console.log('期間変更:', dateRangeSelector.value + '日');
+                    if (typeof refreshDashboard === 'function') {
+                        refreshDashboard();
+                    }
+                });
+            }
+        });
+
+        // ハッシュ変更時に即座にデータ取得
+        window.addEventListener('hashchange', function() {
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn') || localStorage.getItem('isLoggedIn');
+
+            // ページ遷移したら即座にデータ更新
+            if (isLoggedIn) {
+                console.log('ページ遷移検知 - データ即時取得');
+                if (typeof refreshDashboard === 'function') {
+                    refreshDashboard();
+                } else if (window.dashboardAPI && typeof window.dashboardAPI.refreshDashboard === 'function') {
+                    window.dashboardAPI.refreshDashboard();
+                }
+            }
+        });
+
     </script>
 </body>
 </html>
