@@ -1941,9 +1941,11 @@
                     <div class="mb-8">
                         <h3 class="text-lg font-semibold mb-4">対応工事種別</h3>
 
-                        <!-- ¥20,000項目 -->
+                        <!-- 施工箇所 -->
                         <div class="mb-6">
-                            <p class="text-sm text-gray-600 mb-3">標準項目（¥20,000）</p>
+                            <p class="text-sm text-gray-600 mb-3">施工箇所 <span class="text-red-500">*</span></p>
+                            <p class="text-xs text-gray-500 mb-3">対応可能な工事内容全てにチェックを入れてください<br>
+                            選択した項目が自動配信の条件に当てはまった場合、記載の料金（※税抜）が適用されます。</p>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
                                     <input type="checkbox" name="constructionTypes" value="外壁塗装" class="mr-3">
@@ -1956,8 +1958,8 @@
                                     <span class="text-sm font-semibold text-blue-600">¥20,000</span>
                                 </label>
                                 <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="外壁張替え" class="mr-3">
-                                    <span class="flex-1">外壁張替え</span>
+                                    <input type="checkbox" name="constructionTypes" value="外壁張り替え" class="mr-3">
+                                    <span class="flex-1">外壁張り替え</span>
                                     <span class="text-sm font-semibold text-blue-600">¥20,000</span>
                                 </label>
                                 <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
@@ -1973,11 +1975,6 @@
                                 <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
                                     <input type="checkbox" name="constructionTypes" value="屋根葺き替え・張り替え※スレート・ガルバリウム等" class="mr-3">
                                     <span class="flex-1 text-sm">屋根葺き替え・張り替え※スレート・ガルバリウム等</span>
-                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="屋根葺き替え・張り替え※瓦" class="mr-3">
-                                    <span class="flex-1">屋根葺き替え・張り替え※瓦</span>
                                     <span class="text-sm font-semibold text-blue-600">¥20,000</span>
                                 </label>
                                 <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
@@ -2010,43 +2007,64 @@
                                     <span class="flex-1 text-sm">内装（フローリングや畳などの床・クロス等）（外壁工事含む）</span>
                                     <span class="text-sm font-semibold text-blue-600">¥20,000</span>
                                 </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="外壁雨漏り修繕（外壁工事含む）" class="mr-3">
+                                    <span class="flex-1">外壁雨漏り修繕（外壁工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋根雨漏り修繕（屋根工事含む）" class="mr-3">
+                                    <span class="flex-1">屋根雨漏り修繕（屋根工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
                             </div>
                         </div>
 
-                        <!-- ¥10,000項目 -->
+                        <!-- 外壁塗装工事を含まない単品工事 -->
                         <div class="mb-6">
-                            <p class="text-sm text-gray-600 mb-3">※単品項目（但し1社紹介時は定価）</p>
+                            <p class="text-sm text-gray-600 mb-3">※外壁塗装工事を含まない単品工事（相見積もり時の料金）</p>
+                            <p class="text-xs text-gray-500 mb-3">※1社紹介時はすべて¥20,000となります</p>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="屋根塗装単品（但し1社紹介時は定価）" class="mr-3">
+                                    <input type="checkbox" name="constructionTypes" value="屋根塗装単品" class="mr-3">
                                     <span class="flex-1">屋根塗装単品</span>
                                     <span class="text-sm font-semibold text-orange-600">¥10,000</span>
                                 </label>
                                 <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="屋上防水単品（但し1社紹介時は定価）" class="mr-3">
+                                    <input type="checkbox" name="constructionTypes" value="屋上防水単品" class="mr-3">
                                     <span class="flex-1">屋上防水単品</span>
                                     <span class="text-sm font-semibold text-orange-600">¥10,000</span>
                                 </label>
                             </div>
                         </div>
 
-                        <!-- ¥5,000項目 -->
+                        <!-- 補修単品項目 -->
                         <div class="mb-6">
                             <p class="text-sm text-gray-600 mb-3">※補修単品項目（但し1社紹介時は定価）</p>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                                 <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="外壁補修単品（但し1社紹介時は定価）" class="mr-3">
+                                    <input type="checkbox" name="constructionTypes" value="外壁補修単品" class="mr-3">
                                     <span class="flex-1">外壁補修単品</span>
                                     <span class="text-sm font-semibold text-green-600">¥5,000</span>
                                 </label>
                                 <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="屋根補修単品（但し1社紹介時は定価）" class="mr-3">
+                                    <input type="checkbox" name="constructionTypes" value="屋根補修単品" class="mr-3">
                                     <span class="flex-1">屋根補修単品</span>
                                     <span class="text-sm font-semibold text-green-600">¥5,000</span>
                                 </label>
                                 <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="ベランダ防水単品（但し1社紹介時は定価）" class="mr-3">
+                                    <input type="checkbox" name="constructionTypes" value="ベランダ防水単品" class="mr-3">
                                     <span class="flex-1">ベランダ防水単品</span>
+                                    <span class="text-sm font-semibold text-green-600">¥5,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="外壁雨漏り修繕単品" class="mr-3">
+                                    <span class="flex-1">外壁雨漏り修繕単品</span>
+                                    <span class="text-sm font-semibold text-green-600">¥5,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋根雨漏り修繕単品" class="mr-3">
+                                    <span class="flex-1">屋根雨漏り修繕単品</span>
                                     <span class="text-sm font-semibold text-green-600">¥5,000</span>
                                 </label>
                             </div>
