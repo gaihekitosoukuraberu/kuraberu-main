@@ -1937,6 +1937,140 @@
                 <h2 class="text-2xl font-bold text-gray-900 mb-6">自動配信設定</h2>
 
                 <div class="bg-white rounded-lg shadow p-6">
+                    <!-- 対応工事種別 -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">対応工事種別</h3>
+
+                        <!-- 施工箇所 -->
+                        <div class="mb-6">
+                            <p class="text-sm text-gray-600 mb-3">施工箇所 <span class="text-red-500">*</span></p>
+                            <p class="text-xs text-gray-500 mb-3">対応可能な工事内容全てにチェックを入れてください<br>
+                            選択した項目が自動配信の条件に当てはまった場合、記載の料金（※税抜）が適用されます。</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="外壁塗装" class="mr-3">
+                                    <span class="flex-1">外壁塗装</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="外壁カバー工法" class="mr-3">
+                                    <span class="flex-1">外壁カバー工法</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="外壁張り替え" class="mr-3">
+                                    <span class="flex-1">外壁張り替え</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋根塗装（外壁工事含む）" class="mr-3">
+                                    <span class="flex-1">屋根塗装（外壁工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋上防水（外壁工事含む）" class="mr-3">
+                                    <span class="flex-1">屋上防水（外壁工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋根葺き替え・張り替え※スレート・ガルバリウム等" class="mr-3">
+                                    <span class="flex-1 text-sm">屋根葺き替え・張り替え※スレート・ガルバリウム等</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋根カバー工法" class="mr-3">
+                                    <span class="flex-1">屋根カバー工法</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="外壁補修（外壁工事含む）" class="mr-3">
+                                    <span class="flex-1">外壁補修（外壁工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋根補修（外壁工事含む）" class="mr-3">
+                                    <span class="flex-1">屋根補修（外壁工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="ベランダ防水（外壁工事含む）" class="mr-3">
+                                    <span class="flex-1">ベランダ防水（外壁工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="内装水回り（バス・キッチン・トイレ）（外壁工事含む）" class="mr-3">
+                                    <span class="flex-1 text-sm">内装水回り（バス・キッチン・トイレ）（外壁工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="内装（フローリングや畳などの床・クロス等）（外壁工事含む）" class="mr-3">
+                                    <span class="flex-1 text-sm">内装（フローリングや畳などの床・クロス等）（外壁工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="外壁雨漏り修繕（外壁工事含む）" class="mr-3">
+                                    <span class="flex-1">外壁雨漏り修繕（外壁工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋根雨漏り修繕（屋根工事含む）" class="mr-3">
+                                    <span class="flex-1">屋根雨漏り修繕（屋根工事含む）</span>
+                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 外壁塗装工事を含まない単品工事 -->
+                        <div class="mb-6">
+                            <p class="text-sm text-gray-600 mb-3">※外壁塗装工事を含まない単品工事（相見積もり時の料金）</p>
+                            <p class="text-xs text-gray-500 mb-3">※1社紹介時はすべて¥20,000となります</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋根塗装単品" class="mr-3">
+                                    <span class="flex-1">屋根塗装単品</span>
+                                    <span class="text-sm font-semibold text-orange-600">¥10,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋上防水単品" class="mr-3">
+                                    <span class="flex-1">屋上防水単品</span>
+                                    <span class="text-sm font-semibold text-orange-600">¥10,000</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 補修単品項目 -->
+                        <div class="mb-6">
+                            <p class="text-sm text-gray-600 mb-3">※補修単品項目（但し1社紹介時は定価）</p>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="外壁補修単品" class="mr-3">
+                                    <span class="flex-1">外壁補修単品</span>
+                                    <span class="text-sm font-semibold text-green-600">¥5,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋根補修単品" class="mr-3">
+                                    <span class="flex-1">屋根補修単品</span>
+                                    <span class="text-sm font-semibold text-green-600">¥5,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="ベランダ防水単品" class="mr-3">
+                                    <span class="flex-1">ベランダ防水単品</span>
+                                    <span class="text-sm font-semibold text-green-600">¥5,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="外壁雨漏り修繕単品" class="mr-3">
+                                    <span class="flex-1">外壁雨漏り修繕単品</span>
+                                    <span class="text-sm font-semibold text-green-600">¥5,000</span>
+                                </label>
+                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input type="checkbox" name="constructionTypes" value="屋根雨漏り修繕単品" class="mr-3">
+                                    <span class="flex-1">屋根雨漏り修繕単品</span>
+                                    <span class="text-sm font-semibold text-green-600">¥5,000</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 対応可能物件種別 -->
                     <div class="mb-8">
                         <h3 class="text-lg font-semibold mb-4">対応可能物件種別</h3>
@@ -1959,10 +2093,10 @@
                                     </div>
                                 </label>
                                 <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-gray-300">
-                                    <input type="checkbox" class="mr-3" value="apartment" name="propertyType" onchange="checkLargeProperty(this)">
+                                    <input type="checkbox" class="mr-3" value="apartment" name="propertyType">
                                     <div class="flex-1 flex items-center">
                                         <span class="font-medium">🏢 アパート・マンション</span>
-                                        <select class="ml-auto text-sm border rounded px-2 py-1" onchange="checkFloorSelection(this)">
+                                        <select class="ml-auto text-sm border rounded px-2 py-1">
                                             <option value="1">1階</option>
                                             <option value="2">2階</option>
                                             <option value="3" selected>3階</option>
@@ -1978,10 +2112,10 @@
                                     </div>
                                 </label>
                                 <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-gray-300">
-                                    <input type="checkbox" class="mr-3" value="commercial" name="propertyType" onchange="checkLargeProperty(this)">
+                                    <input type="checkbox" class="mr-3" value="commercial" name="propertyType">
                                     <div class="flex-1 flex items-center">
                                         <span class="font-medium">🏪 店舗・事務所</span>
-                                        <select class="ml-auto text-sm border rounded px-2 py-1" onchange="checkFloorSelection(this)">
+                                        <select class="ml-auto text-sm border rounded px-2 py-1">
                                             <option value="1">1階</option>
                                             <option value="2">2階</option>
                                             <option value="3" selected>3階</option>
@@ -1991,10 +2125,10 @@
                                     </div>
                                 </label>
                                 <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-gray-300">
-                                    <input type="checkbox" class="mr-3" value="factory" name="propertyType" onchange="checkLargeProperty(this)">
+                                    <input type="checkbox" class="mr-3" value="factory" name="propertyType">
                                     <div class="flex-1 flex items-center">
                                         <span class="font-medium">🏭 工場・倉庫</span>
-                                        <select class="ml-auto text-sm border rounded px-2 py-1" onchange="checkFloorSelection(this)">
+                                        <select class="ml-auto text-sm border rounded px-2 py-1">
                                             <option value="1">1階</option>
                                             <option value="2">2階</option>
                                             <option value="3" selected>3階</option>
@@ -2045,257 +2179,152 @@
                         </div>
                     </div>
 
-                    <!-- 対応工事種別 -->
+                    <!-- 特殊対応項目 -->
                     <div class="mb-8">
-                        <h3 class="text-lg font-semibold mb-2">施工箇所 <span class="text-red-500">*</span></h3>
-                        <p class="text-sm text-gray-600 mb-2">対応可能な工事内容全てにチェックを入れてください</p>
-                        <p class="text-sm text-gray-600 mb-4">選択した項目が自動配信の条件に当てはまった場合、記載の料金（※税抜）が適用されます。</p>
-
-                        <!-- ¥20,000項目 -->
-                        <div class="mb-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="外壁塗装" class="mr-3">
-                                    <span class="flex-1">外壁塗装</span>
-                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="外壁カバー工法" class="mr-3">
-                                    <span class="flex-1">外壁カバー工法</span>
-                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="外壁張替え" class="mr-3">
-                                    <span class="flex-1">外壁張替え</span>
-                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="屋根塗装（外壁工事含む）" class="mr-3">
-                                    <span class="flex-1">屋根塗装（外壁工事含む）</span>
-                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="屋上防水（外壁工事含む）" class="mr-3">
-                                    <span class="flex-1">屋上防水（外壁工事含む）</span>
-                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="屋根葺き替え・張り替え※スレート・ガルバリウム等" class="mr-3">
-                                    <span class="flex-1 text-sm">屋根葺き替え・張り替え※スレート・ガルバリウム等</span>
-                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="屋根葺き替え・張り替え※瓦" class="mr-3">
-                                    <span class="flex-1">屋根葺き替え・張り替え※瓦</span>
-                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="屋根カバー工法" class="mr-3">
-                                    <span class="flex-1">屋根カバー工法</span>
-                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="外壁補修（外壁工事含む）" class="mr-3">
-                                    <span class="flex-1">外壁補修（外壁工事含む）</span>
-                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="屋根補修（外壁工事含む）" class="mr-3">
-                                    <span class="flex-1">屋根補修（外壁工事含む）</span>
-                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="ベランダ防水（外壁工事含む）" class="mr-3">
-                                    <span class="flex-1">ベランダ防水（外壁工事含む）</span>
-                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="内装水回り（バス・キッチン・トイレ）（外壁工事含む）" class="mr-3">
-                                    <span class="flex-1 text-sm">内装水回り（バス・キッチン・トイレ）（外壁工事含む）</span>
-                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="内装（フローリングや畳などの床・クロス等）（外壁工事含む）" class="mr-3">
-                                    <span class="flex-1 text-sm">内装（フローリングや畳などの床・クロス等）（外壁工事含む）</span>
-                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="屋根雨漏り修繕（屋根工事含む）" class="mr-3">
-                                    <span class="flex-1">屋根雨漏り修繕（屋根工事含む）</span>
-                                    <span class="text-sm font-semibold text-blue-600">¥20,000</span>
-                                </label>
+                        <h3 class="text-lg font-semibold mb-4">特殊対応項目</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="遮熱・断熱塗料提案可能" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">遮熱・断熱塗料提案可能</span>
+                                </div>
                             </div>
-                        </div>
-
-                        <!-- ¥10,000項目 -->
-                        <div class="mb-6">
-                            <p class="text-sm text-gray-600 mb-2">以下の単品依頼は相見積もり時の料金を税抜き表示しております。</p>
-                            <p class="text-sm text-gray-600 mb-3">※1社紹介時はすべて¥20,000となります</p>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="屋根塗装単品（但し1社紹介時は定価）" class="mr-3" onchange="checkSingleItemSelection(this)">
-                                    <span class="flex-1">屋根塗装単品</span>
-                                    <span class="text-sm font-semibold text-green-600">¥10,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="屋上防水単品（但し1社紹介時は定価）" class="mr-3" onchange="checkSingleItemSelection(this)">
-                                    <span class="flex-1">屋上防水単品</span>
-                                    <span class="text-sm font-semibold text-green-600">¥10,000</span>
-                                </label>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="立ち会いなし・見積もり手渡し希望" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">立ち会いなし・見積もり手渡し希望</span>
+                                </div>
                             </div>
-                        </div>
-
-                        <!-- ¥5,000項目 -->
-                        <div class="mb-6">
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="外壁補修単品（但し1社紹介時は定価）" class="mr-3" onchange="checkSingleItemSelection(this)">
-                                    <span class="flex-1">外壁補修単品</span>
-                                    <span class="text-sm font-semibold text-red-600">¥5,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="屋根補修単品（但し1社紹介時は定価）" class="mr-3" onchange="checkSingleItemSelection(this)">
-                                    <span class="flex-1">屋根補修単品</span>
-                                    <span class="text-sm font-semibold text-red-600">¥5,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="ベランダ防水単品（但し1社紹介時は定価）" class="mr-3" onchange="checkSingleItemSelection(this)">
-                                    <span class="flex-1">ベランダ防水単品</span>
-                                    <span class="text-sm font-semibold text-red-600">¥5,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="外壁雨漏り修繕単品（但し1社紹介時は定価）" class="mr-3" onchange="checkSingleItemSelection(this)">
-                                    <span class="flex-1">外壁雨漏り修繕単品</span>
-                                    <span class="text-sm font-semibold text-red-600">¥5,000</span>
-                                </label>
-                                <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                    <input type="checkbox" name="constructionTypes" value="屋根雨漏り修繕単品（但し1社紹介時は定価）" class="mr-3" onchange="checkSingleItemSelection(this)">
-                                    <span class="flex-1">屋根雨漏り修繕単品</span>
-                                    <span class="text-sm font-semibold text-red-600">¥5,000</span>
-                                </label>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="遠方につき立ち会いなし・見積もり郵送・電話で商談可" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-xs">遠方につき立ち会いなし・見積もり郵送・電話で商談可</span>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- 特殊対応項目（任意） -->
-                    <div class="mb-8">
-                        <h3 class="text-lg font-semibold mb-4">特殊対応項目（任意）</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <label class="flex items-center space-x-3 p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                                <input type="checkbox" name="specialServices" value="🌡 遮熱・断熱塗料提案可能" onchange="autoSave()">
-                                <span class="text-sm">🌡 遮熱・断熱塗料提案可能</span>
-                            </label>
-                            <label class="flex items-center space-x-3 p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                                <input type="checkbox" name="specialServices" value="👀 立ち会いなし・見積もり手渡し希望" onchange="autoSave()">
-                                <span class="text-sm">👀 立ち会いなし・見積もり手渡し希望</span>
-                            </label>
-                            <label class="flex items-center space-x-3 p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                                <input type="checkbox" name="specialServices" value="📮 遠方につき立ち会いなし・見積もり郵送・電話で商談可" onchange="autoSave()">
-                                <span class="text-sm">📮 遠方につき立ち会いなし・見積もり郵送・電話で商談可</span>
-                            </label>
-                            <label class="flex items-center space-x-3 p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                                <input type="checkbox" name="specialServices" value="🏡 エクステリア（庭・駐車場・外構）" onchange="autoSave()">
-                                <span class="text-sm">🏡 エクステリア（庭・駐車場・外構）</span>
-                            </label>
-                            <label class="flex items-center space-x-3 p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                                <input type="checkbox" name="specialServices" value="☀️ 太陽光パネル脱着（撤去含む）" onchange="autoSave()">
-                                <span class="text-sm">☀️ 太陽光パネル脱着（撤去含む）</span>
-                            </label>
-                            <label class="flex items-center space-x-3 p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                                <input type="checkbox" name="specialServices" value="🏦 提携先ローン有り" onchange="autoSave()">
-                                <span class="text-sm">🏦 提携先ローン有り</span>
-                            </label>
-                            <label class="flex items-center space-x-3 p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                                <input type="checkbox" name="specialServices" value="💳 クレジットカード払い可" onchange="autoSave()">
-                                <span class="text-sm">💳 クレジットカード払い可</span>
-                            </label>
-                            <label class="flex items-center space-x-3 p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                                <input type="checkbox" name="specialServices" value="🔥 火災保険申請サポート" onchange="autoSave()">
-                                <span class="text-sm">🔥 火災保険申請サポート</span>
-                            </label>
-                            <label class="flex items-center space-x-3 p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                                <input type="checkbox" name="specialServices" value="💰 助成金申請サポート" onchange="autoSave()">
-                                <span class="text-sm">💰 助成金申請サポート</span>
-                            </label>
-                            <label class="flex items-center space-x-3 p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                                <input type="checkbox" name="specialServices" value="🏗 建築許可証" onchange="autoSave()">
-                                <span class="text-sm">🏗 建築許可証</span>
-                            </label>
-                            <label class="flex items-center space-x-3 p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                                <input type="checkbox" name="specialServices" value="✨ 光触媒塗料提案可" onchange="autoSave()">
-                                <span class="text-sm">✨ 光触媒塗料提案可</span>
-                            </label>
-                            <label class="flex items-center space-x-3 p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                                <input type="checkbox" name="specialServices" value="💴 分割払いプラン有" onchange="autoSave()">
-                                <span class="text-sm">💴 分割払いプラン有</span>
-                            </label>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="エクステリア（庭・駐車場・外構）" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">エクステリア（庭・駐車場・外構）</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="太陽光パネル脱着（撤去含む）" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">太陽光パネル脱着（撤去含む）</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="提携先ローン有り" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">提携先ローン有り</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="クレジットカード払い可" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">クレジットカード払い可</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="火災保険申請サポート" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">火災保険申請サポート</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="助成金申請サポート" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">助成金申請サポート</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="建築許可証" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">建築許可証</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="光触媒塗料提案可" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">光触媒塗料提案可</span>
+                                </div>
+                            </div>
+                            <div class="service-card" onclick="toggleServiceCard(this)">
+                                <input type="checkbox" name="specialServices" value="分割払いプラン有" class="hidden">
+                                <div class="p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <span class="text-sm">分割払いプラン有</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- 対応エリア選択 -->
                     <div class="mb-8">
-                        <div class="bg-blue-600 text-white px-4 py-2 rounded-t-lg">
-                            <h3 class="text-lg font-semibold">対応エリア選択</h3>
+                        <h3 class="text-lg font-semibold mb-4">対応エリア選択</h3>
+                        <p class="text-sm text-gray-600 mb-4">サービス提供可能なエリアを選択してください（最大5つまで）</p>
+
+                        <!-- 都道府県選択 -->
+                        <div class="mb-6">
+                            <h4 class="text-md font-medium mb-3">都道府県選択（最大5つまで）</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                                <!-- 関東 -->
+                                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                    <input type="checkbox" name="prefecture" value="埼玉県" class="mr-2" onchange="updateSelectedAreas()">
+                                    <span class="text-sm">埼玉県</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                    <input type="checkbox" name="prefecture" value="千葉県" class="mr-2" onchange="updateSelectedAreas()">
+                                    <span class="text-sm">千葉県</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                    <input type="checkbox" name="prefecture" value="東京都" class="mr-2" onchange="updateSelectedAreas()">
+                                    <span class="text-sm">東京都</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                    <input type="checkbox" name="prefecture" value="神奈川県" class="mr-2" onchange="updateSelectedAreas()">
+                                    <span class="text-sm">神奈川県</span>
+                                </label>
+                                <!-- その他の県 -->
+                                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                    <input type="checkbox" name="prefecture" value="大阪府" class="mr-2" onchange="updateSelectedAreas()">
+                                    <span class="text-sm">大阪府</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                    <input type="checkbox" name="prefecture" value="兵庫県" class="mr-2" onchange="updateSelectedAreas()">
+                                    <span class="text-sm">兵庫県</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                    <input type="checkbox" name="prefecture" value="愛知県" class="mr-2" onchange="updateSelectedAreas()">
+                                    <span class="text-sm">愛知県</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
+                                    <input type="checkbox" name="prefecture" value="福岡県" class="mr-2" onchange="updateSelectedAreas()">
+                                    <span class="text-sm">福岡県</span>
+                                </label>
+                            </div>
+                            <button onclick="showAllPrefectures()" class="mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                すべて選択
+                            </button>
                         </div>
-                        <div class="border border-t-0 rounded-b-lg p-4">
-                            <p class="text-sm text-gray-600 mb-4">サービス提供可能なエリアを選択してください（最大5つまで）</p>
 
-                            <!-- 選択状況サマリー -->
-                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                                <div class="flex justify-between items-center">
-                                    <div>
-                                        <span class="text-sm text-gray-600">選択済み都道府県：</span>
-                                        <span id="selectedPrefCount" class="font-bold text-lg ml-2">0</span>
-                                        <span class="text-sm text-gray-600">/ 5</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-sm text-gray-600">選択済み市区町村：</span>
-                                        <span id="selectedCityCount" class="font-bold text-lg ml-2">0</span>
-                                    </div>
-                                </div>
+                        <!-- 選択された都道府県の表示 -->
+                        <div id="selectedPrefectures" class="mb-6 hidden">
+                            <h4 class="text-md font-medium mb-3">選択された都道府県</h4>
+                            <div id="selectedPrefecturesList" class="flex flex-wrap gap-2">
+                                <!-- 選択された都道府県がここに表示される -->
                             </div>
+                        </div>
 
-                            <!-- 都道府県選択 -->
-                            <div class="mb-6">
-                                <h4 class="text-md font-medium mb-3">都道府県選択（最大5つまで）</h4>
-                                <div id="prefectureGrid" class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                    <!-- JavaScript Vide動的生成される -->
-                                </div>
+                        <!-- 市区町村選択 -->
+                        <div id="citySelection" class="mb-6 hidden">
+                            <h4 class="text-md font-medium mb-3">市区町村選択</h4>
+                            <p class="text-sm text-gray-600 mb-3">対応可能な市区町村を選択してください。</p>
+                            <div class="mb-3">
+                                <input type="text" placeholder="市区町村を検索..." class="w-full px-3 py-2 border rounded-lg" onkeyup="searchCities(this.value)">
                             </div>
-
-                            <!-- STEP 1: 都道府県を選択 -->
-                            <div id="step1Area" class="mb-6">
-                                <h4 class="text-md font-medium mb-3">STEP 1: 都道府県を選択（最大5都道府県）</h4>
-                                <div id="allPrefecturesGrid" class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                                    <!-- 都道府県ボタンがJSで動的生成される -->
-                                </div>
+                            <div id="cityList" class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 max-h-64 overflow-y-auto">
+                                <!-- 市区町村リストが動的に生成される -->
                             </div>
-
-                            <!-- STEP 2: 市区町村を選択 -->
-                            <div id="citySelectionArea" class="hidden mb-6">
-                                <h4 class="text-md font-medium mb-3">STEP 2: 市区町村を選択</h4>
-                                <div id="cityListContainer" class="space-y-4">
-                                    <!-- 各都道府県の市区町村リストが縦に表示される -->
-                                </div>
-                            </div>
-
-                            <!-- STEP 3: 優先エリアを設定 -->
-                            <div id="priorityArea" class="hidden mb-6">
-                                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                                    <div class="flex justify-between items-center mb-3">
-                                        <h4 class="font-semibold text-lg">STEP 3: 優先エリアを設定（最大3エリア）</h4>
-                                        <span class="text-orange-500 font-semibold text-lg">
-                                            <span id="selectedPriorityCount">0</span> / 3 選択中
-                                        </span>
-                                    </div>
-                                    <p class="text-sm text-gray-600 mb-4">特に注力したいエリアを最大3つまで選択できます</p>
-                                    <div id="prioritySelectionList" class="space-y-4">
-                                        <!-- 優先エリア選択リストがここに生成される（県ごとにカード形式） -->
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- エリア選択完了ボタンセクション削除 -->
                         </div>
                     </div>
 
@@ -5783,12 +5812,8 @@
         }
 
         // エリア選択関連関数
-        const areaSelectionData = {
-            prefectures: [],
-            cities: {},
-            priorities: [],
-            totalCount: 0
-        };
+        let selectedPrefectures = [];
+        let priorityAreas = [];
         const maxPrefectures = 5;
         const maxPriorityAreas = 3;
 
@@ -5803,330 +5828,45 @@
             '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県'
         ];
 
-        // 市区町村データベース
-        const cityDatabase = {
-            '東京都': ['千代田区', '中央区', '港区', '新宿区', '文京区', '台東区', '墨田区', '江東区', '品川区', '目黒区', '大田区', '世田谷区', '渋谷区', '中野区', '杉並区', '豊島区', '北区', '荒川区', '板橋区', '練馬区', '足立区', '葛飾区', '江戸川区', '八王子市', '立川市', '武蔵野市', '三鷹市', '青梅市', '府中市', '昭島市', '調布市', '町田市', '小金井市', '小平市', '日野市', '東村山市', '国分寺市', '国立市', '福生市', '狛江市', '東大和市', '清瀬市', '東久留米市', '武蔵村山市', '多摩市', '稲城市', '羽村市', 'あきる野市', '西東京市', '瑞穂町', '日の出町', '檜原村', '奥多摩町'],
-            '神奈川県': ['横浜市鶴見区', '横浜市神奈川区', '横浜市西区', '横浜市中区', '横浜市南区', '横浜市保土ケ谷区', '横浜市磯子区', '横浜市金沢区', '横浜市港北区', '横浜市戸塚区', '横浜市港南区', '横浜市旭区', '横浜市緑区', '横浜市瀬谷区', '横浜市栄区', '横浜市泉区', '横浜市青葉区', '横浜市都筑区', '川崎市川崎区', '川崎市幸区', '川崎市中原区', '川崎市高津区', '川崎市多摩区', '川崎市宮前区', '川崎市麻生区', '相模原市緑区', '相模原市中央区', '相模原市南区', '横須賀市', '平塚市', '鎌倉市', '藤沢市', '小田原市', '茅ヶ崎市', '逗子市', '三浦市', '秦野市', '厚木市', '大和市', '伊勢原市', '海老名市', '座間市', '南足柄市', '綾瀬市'],
-            '埼玉県': ['さいたま市西区', 'さいたま市北区', 'さいたま市大宮区', 'さいたま市見沼区', 'さいたま市中央区', 'さいたま市桜区', 'さいたま市浦和区', 'さいたま市南区', 'さいたま市緑区', 'さいたま市岩槻区', '川越市', '熊谷市', '川口市', '行田市', '秩父市', '所沢市', '飯能市', '加須市', '本庄市', '東松山市', '春日部市', '狭山市', '羽生市', '鴻巣市', '深谷市', '上尾市', '草加市', '越谷市', '蕨市', '戸田市', '入間市', '朝霞市', '志木市', '和光市', '新座市', '桶川市', '久喜市', '北本市', '八潮市', '富士見市', '三郷市', '蓮田市', '坂戸市', '幸手市', '鶴ヶ島市', '日高市', '吉川市', 'ふじみ野市', '白岡市'],
-            '千葉県': ['千葉市中央区', '千葉市花見川区', '千葉市稲毛区', '千葉市若葉区', '千葉市緑区', '千葉市美浜区', '銚子市', '市川市', '船橋市', '館山市', '木更津市', '松戸市', '野田市', '茂原市', '成田市', '佐倉市', '東金市', '旭市', '習志野市', '柏市', '勝浦市', '市原市', '流山市', '八千代市', '我孫子市', '鴨川市', '鎌ケ谷市', '君津市', '富津市', '浦安市', '四街道市', '袖ケ浦市', '八街市', '印西市', '白井市', '富里市', '南房総市', '匝瑳市', '香取市', '山武市', 'いすみ市', '大網白里市']
+        // 市区町村データ（サンプル）
+        const cityData = {
+            '埼玉県': ['さいたま市西区', 'さいたま市北区', 'さいたま市大宮区', 'さいたま市見沼区', 'さいたま市中央区', 'さいたま市桜区', 'さいたま市浦和区', 'さいたま市南区', 'さいたま市緑区', 'さいたま市岩槻区', '川越市', '川口市', '行田市', '秩父市', '所沢市', '飯能市', '加須市', '本庄市', '東松山市', '春日部市'],
+            '千葉県': ['千葉市中央区', '千葉市花見川区', '千葉市稲毛区', '千葉市若葉区', '千葉市緑区', '千葉市美浜区', '銃橋市', '市川市', '松戸市', '野田市', '柏市'],
+            '東京都': ['千代田区', '中央区', '港区', '新宿区', '文京区', '台東区', '墨田区', '江東区', '品川区', '目黒区', '大田区', '世田谷区', '渋谷区', '中野区', '杉並区', '豊島区', '北区', '荒川区', '板橋区', '練馬区', '足立区', '葛飾区', '江戸川区'],
+            '神奈川県': ['横浜市鶴見区', '横浜市神奈川区', '横浜市西区', '横浜市中区', '横浜市南区', '川崎市川崎区', '川崎市幸区', '川崎市中原区', '相模原市', '横須賀市']
         };
 
-        // 市区町村の取得
-        function getCitiesForPrefecture(prefecture) {
-            return cityDatabase[prefecture] || ['すべて選択'];
-        }
+        // 選択されたエリアを更新
+        function updateSelectedAreas() {
+            const checkboxes = document.querySelectorAll('input[name="prefecture"]:checked');
 
-        // ページ読み込み時に都道府県ボタンを生成
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeAreaSelection();
-        });
-
-        // エリア選択を初期化
-        function initializeAreaSelection() {
-            const grid = document.getElementById('allPrefecturesGrid');
-            if (!grid) return;
-
-            grid.innerHTML = allPrefectures.map(pref => `
-                <button class="area-item p-2 bg-white border rounded-lg cursor-pointer hover:bg-blue-50 transition-colors text-sm"
-                        data-prefecture="${pref}"
-                        onclick="togglePrefecture('${pref}')">
-                    ${pref}
-                </button>
-            `).join('');
-        }
-
-        // 都道府県選択トグル
-        function togglePrefecture(prefecture) {
-            const button = document.querySelector(`[data-prefecture="${prefecture}"]`);
-            const isSelected = button.classList.contains('selected');
-
-            if (isSelected) {
-                // 選択解除
-                button.classList.remove('selected', 'bg-blue-500', 'text-white');
-                button.classList.add('bg-white');
-                areaSelectionData.prefectures = areaSelectionData.prefectures.filter(p => p !== prefecture);
-                delete areaSelectionData.cities[prefecture];
-                areaSelectionData.priorities = areaSelectionData.priorities.filter(p => !p.startsWith(prefecture));
-            } else {
-                // 選択上限チェック
-                if (areaSelectionData.prefectures.length >= maxPrefectures) {
-                    showNotification('上限を超えました', `都道府県は最大${maxPrefectures}つまで選択可能です`);
-                    return;
-                }
-                // 選択追加
-                button.classList.add('selected', 'bg-blue-500', 'text-white');
-                button.classList.remove('bg-white');
-                areaSelectionData.prefectures.push(prefecture);
-                // デフォルトで全市区町村を選択
-                areaSelectionData.cities[prefecture] = getCitiesForPrefecture(prefecture);
-            }
-
-            updateAreaSelectionUI();
-        }
-
-        // エリア選択UI更新
-        function updateAreaSelectionUI() {
-            // カウント更新
-            const prefCountEl = document.getElementById('selectedPrefCount');
-            const cityCountEl = document.getElementById('selectedCityCount');
-
-            if (prefCountEl) {
-                prefCountEl.textContent = areaSelectionData.prefectures.length;
-            }
-
-            const totalCities = Object.values(areaSelectionData.cities).reduce((sum, cities) => sum + cities.length, 0);
-            if (cityCountEl) {
-                cityCountEl.textContent = totalCities;
-            }
-            areaSelectionData.totalCount = totalCities;
-
-            // 市区町村選択エリアの表示/非表示
-            const cityArea = document.getElementById('citySelectionArea');
-            if (cityArea) {
-                if (areaSelectionData.prefectures.length > 0) {
-                    cityArea.classList.remove('hidden');
-                    updateCitySelectionArea();
-                } else {
-                    cityArea.classList.add('hidden');
-                }
-            }
-
-            // 優先エリア設定の表示/非表示
-            const priorityArea = document.getElementById('priorityArea');
-            if (priorityArea) {
-                if (totalCities > 0) {
-                    priorityArea.classList.remove('hidden');
-                    updatePriorityArea();
-                } else {
-                    priorityArea.classList.add('hidden');
-                }
-            }
-
-            // 確認ボタンの有効/無効
-            const confirmBtn = document.getElementById('areaConfirmBtn');
-            if (confirmBtn) {
-                confirmBtn.disabled = areaSelectionData.prefectures.length === 0;
-            }
-        }
-
-        // 市区町村選択エリア更新
-        function updateCitySelectionArea() {
-            const cityContainer = document.getElementById('cityListContainer');
-            if (!cityContainer) return;
-
-            cityContainer.innerHTML = areaSelectionData.prefectures.map(prefecture => {
-                const allCities = getCitiesForPrefecture(prefecture);
-                const selectedCities = areaSelectionData.cities[prefecture] || [];
-
-                return `
-                    <div class="border rounded-lg p-4">
-                        <div class="mb-3">
-                            <div class="flex justify-between items-center mb-2">
-                                <h5 class="font-medium text-lg">${prefecture}</h5>
-                                <span class="text-sm text-gray-600">
-                                    ${selectedCities.length} / ${allCities.length} 選択中
-                                </span>
-                            </div>
-                            <label class="flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded">
-                                <input type="checkbox"
-                                       ${selectedCities.length === allCities.length ? 'checked' : ''}
-                                       onchange="toggleAllCities('${prefecture}', this.checked)">
-                                <span class="ml-2 text-sm font-medium">すべて選択</span>
-                            </label>
-                        </div>
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                            ${allCities.map(city => `
-                                <label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
-                                    <input type="checkbox"
-                                           value="${city}"
-                                           ${selectedCities.includes(city) ? 'checked' : ''}
-                                           onchange="toggleCity('${prefecture}', '${city}', this.checked)">
-                                    <span class="ml-2 text-sm">${city}</span>
-                                </label>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // 市区町村選択トグル
-        function toggleCity(prefecture, city, checked) {
-            if (!areaSelectionData.cities[prefecture]) {
-                areaSelectionData.cities[prefecture] = [];
-            }
-
-            if (checked) {
-                if (!areaSelectionData.cities[prefecture].includes(city)) {
-                    areaSelectionData.cities[prefecture].push(city);
-                }
-            } else {
-                areaSelectionData.cities[prefecture] = areaSelectionData.cities[prefecture].filter(c => c !== city);
-                // 優先エリアからも削除
-                const priorityKey = `${prefecture}_${city}`;
-                areaSelectionData.priorities = areaSelectionData.priorities.filter(p => p !== priorityKey);
-            }
-
-            updateAreaSelectionUI();
-        }
-
-        // 全市区町村選択切り替え
-        function toggleAllCities(prefecture, checked) {
-            const allCities = getCitiesForPrefecture(prefecture);
-
-            if (checked) {
-                areaSelectionData.cities[prefecture] = [...allCities];
-            } else {
-                areaSelectionData.cities[prefecture] = [];
-                // 優先エリアからも削除
-                areaSelectionData.priorities = areaSelectionData.priorities.filter(
-                    p => !p.startsWith(prefecture + '_')
-                );
-            }
-
-            updateCitySelectionArea();
-            updateAreaSelectionUI();
-        }
-
-        // 優先エリア更新
-        function updatePriorityArea() {
-            const listContainer = document.getElementById('prioritySelectionList');
-            if (!listContainer) return;
-
-            // カウンター更新はtogglePriorityArea内で行うのでここでは不要
-
-            // 都道府県ごとにグループ化
-            const groupedByPref = {};
-            Object.keys(areaSelectionData.cities).forEach(pref => {
-                if (!groupedByPref[pref]) {
-                    groupedByPref[pref] = [];
-                }
-                areaSelectionData.cities[pref].forEach(city => {
-                    groupedByPref[pref].push({
-                        key: `${pref}_${city}`,
-                        city: city
-                    });
-                });
-            });
-
-            if (Object.keys(groupedByPref).length === 0) {
-                listContainer.innerHTML = '<p class="text-gray-500 text-sm">市区町村を選択すると、優先エリアの設定が可能になります</p>';
+            // 上限チェック
+            if (checkboxes.length > maxPrefectures) {
+                checkboxes[checkboxes.length - 1].checked = false;
+                showNotification('上限を超えました', `都道府県は最大${maxPrefectures}つまで選択可能です`);
                 return;
             }
 
-            // 県ごとにカード形式で表示
-            listContainer.innerHTML = `
-                <div class="border border-gray-200 rounded-lg bg-white p-4">
-                    <h5 class="font-semibold mb-3 flex items-center">
-                        <span class="text-red-500 mr-2">📍</span>
-                        選択可能なエリア（全${Object.values(groupedByPref).reduce((sum, cities) => sum + cities.length, 0)}エリア）
-                    </h5>
-                    <div class="space-y-4 max-h-96 overflow-y-auto">
-                        ${Object.entries(groupedByPref).map(([pref, cities]) => `
-                            <div>
-                                <h6 class="font-medium text-sm mb-2 flex items-center">
-                                    <span class="text-red-500 mr-2">📍</span>
-                                    ${pref}
-                                </h6>
-                                <div class="grid grid-cols-2 gap-2 ml-6">
-                                    ${cities.map(city => `
-                                        <label class="flex items-center p-2 bg-white hover:bg-yellow-50 rounded cursor-pointer">
-                                            <input type="checkbox"
-                                                   value="${city.key}"
-                                                   ${areaSelectionData.priorities.includes(city.key) ? 'checked' : ''}
-                                                   onchange="togglePriorityArea('${city.key}', this.checked)">
-                                            <span class="ml-2 text-sm">${city.city}</span>
-                                        </label>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
+            selectedPrefectures = Array.from(checkboxes).map(cb => cb.value);
 
-        // 優先エリアトグル
-        function togglePriorityArea(areaKey, checked) {
-            console.log('togglePriorityArea called:', areaKey, checked, 'current priorities:', areaSelectionData.priorities.length);
+            // 選択された都道府県を表示
+            if (selectedPrefectures.length > 0) {
+                document.getElementById('selectedPrefectures').classList.remove('hidden');
+                const listElement = document.getElementById('selectedPrefecturesList');
+                listElement.innerHTML = selectedPrefectures.map(pref =>
+                    `<span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">${pref}</span>`
+                ).join('');
 
-            if (checked) {
-                // 3つ以上選択されている場合は選択を防ぐ
-                if (areaSelectionData.priorities.length >= 3) {
-                    showNotification('上限を超えました', '優先エリアは最大3つまで選択可能です');
-                    // チェックボックスを元に戻す
-                    setTimeout(() => {
-                        const checkbox = document.querySelector(`input[value="${areaKey}"]`);
-                        if (checkbox) {
-                            checkbox.checked = false;
-                        }
-                    }, 0);
-                    return;
-                }
-                if (!areaSelectionData.priorities.includes(areaKey)) {
-                    areaSelectionData.priorities.push(areaKey);
-                }
+                // 市区町村選択を表示
+                document.getElementById('citySelection').classList.remove('hidden');
+                updateCityList();
             } else {
-                areaSelectionData.priorities = areaSelectionData.priorities.filter(p => p !== areaKey);
+                document.getElementById('selectedPrefectures').classList.add('hidden');
+                document.getElementById('citySelection').classList.add('hidden');
             }
 
-            console.log('After update, priorities:', areaSelectionData.priorities.length, areaSelectionData.priorities);
-
-            // 優先エリアカウンターを更新
-            const selectedCount = document.getElementById('selectedPriorityCount');
-            if (selectedCount) {
-                selectedCount.textContent = areaSelectionData.priorities.length;
-
-                // カウンターの見た目も更新（選択数に応じて色を変更）
-                const countContainer = selectedCount.parentElement;
-                if (countContainer) {
-                    if (areaSelectionData.priorities.length >= 3) {
-                        countContainer.classList.add('text-red-600');
-                        countContainer.classList.remove('text-orange-500');
-                    } else if (areaSelectionData.priorities.length > 0) {
-                        countContainer.classList.add('text-orange-500');
-                        countContainer.classList.remove('text-red-600');
-                    } else {
-                        countContainer.classList.remove('text-red-600', 'text-orange-500');
-                    }
-                }
-            } else {
-                console.error('selectedPriorityCount element not found!');
-            }
-
-            // リストを再描画（チェックボックスの状態を反映）
-            updatePriorityArea();
-        }
-
-        // エリア選択をリセット
-        function resetAreaSelection() {
-            areaSelectionData.prefectures = [];
-            areaSelectionData.cities = {};
-            areaSelectionData.priorities = [];
-            areaSelectionData.totalCount = 0;
-
-            // ボタンの状態をリセット
-            document.querySelectorAll('[data-prefecture]').forEach(button => {
-                button.classList.remove('selected', 'bg-blue-500', 'text-white');
-                button.classList.add('bg-white');
-            });
-
-            // 優先エリアカウンターもリセット
-            const selectedCount = document.getElementById('selectedPriorityCount');
-            if (selectedCount) {
-                selectedCount.textContent = '0';
-                const countContainer = selectedCount.parentElement;
-                if (countContainer) {
-                    countContainer.classList.remove('text-red-600', 'text-orange-500');
-                }
-            }
-
-            updateAreaSelectionUI();
-        }
-
-        // エリア選択を確定
-        function confirmAreaSelection() {
-            showNotification('成功', `${areaSelectionData.prefectures.length}都道府県、${areaSelectionData.totalCount}市区町村を選択しました`);
+            // 会社情報に反映
+            updateCompanyAreaDisplay();
         }
 
         // 市区町村リストを更新
@@ -6151,9 +5891,21 @@
         }
 
         // 優先エリアの切り替え
-        // 古いtogglePriorityArea関数は削除（新しいバージョンを上で定義済み）
+        function togglePriorityArea(prefecture, city) {
+            // 優先エリア機能は削除されました
+            // 通常の市区町村選択として動作
+            const checkbox = document.querySelector(`input[data-city="${city}"]`);
+            if (checkbox) {
+                checkbox.checked = !checkbox.checked;
+                updateCompanyAreaDisplay();
+                autoSave();
+            }
+        }
 
-        // updatePriorityAreasDisplay関数は削除
+        // 優先エリア表示を更新（互換性のため空関数として残す）
+        function updatePriorityAreasDisplay() {
+            // 優先エリア機能は削除されました
+        }
 
         // 全都道府県を表示
         function showAllPrefectures() {
@@ -11245,187 +10997,5 @@
         .animate-slide-in { animation: slide-in 0.3s ease-out; }
         .animate-slide-out { animation: slide-out 0.3s ease-out; }
     </style>
-
-    <!-- 大型物件の紹介料についてのモーダル -->
-    <div id="largePropertyModal" class="fixed inset-0 z-50 hidden">
-        <!-- オーバーレイ -->
-        <div class="absolute inset-0 bg-black bg-opacity-50"></div>
-
-        <!-- モーダル本体 -->
-        <div class="flex items-center justify-center h-full p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full relative">
-                <!-- 閉じるボタン -->
-                <button onclick="closeLargePropertyModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-
-                <!-- ヘッダー -->
-                <div class="bg-white border-b px-8 py-6 rounded-t-xl">
-                    <h3 class="text-xl font-bold text-gray-800 flex items-center">
-                        🔊 大型物件の紹介料について
-                    </h3>
-                </div>
-
-                <!-- コンテンツ -->
-                <div class="px-8 py-6 space-y-4">
-                    <!-- 3階以上を選択した場合 -->
-                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-                        <div class="flex items-start">
-                            <span class="text-yellow-500 mr-2">⚠️</span>
-                            <div>
-                                <h4 class="font-bold text-gray-800 mb-2">3階以上を選択した場合</h4>
-                                <p class="text-gray-700">
-                                    基本紹介料が <span class="line-through text-gray-500">¥20,000</span> から <span class="font-bold text-green-600 text-lg">¥30,000</span> になります
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 3階以上を選択していると -->
-                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
-                        <div class="flex items-start">
-                            <span class="text-yellow-500 mr-2">⚠️</span>
-                            <div>
-                                <h4 class="font-bold text-gray-800 mb-2">3階以上を選択していると</h4>
-                                <p class="text-gray-700">
-                                    2階以下でも大型と判断されれば自動で紹介料が<span class="font-bold text-red-600">¥30,000</span>になります
-                                </p>
-                                <p class="text-sm text-gray-600 mt-2">
-                                    （3階以上でも見積もり希望箇所が小さい場合、自動的に減額されて自動配信される事がありますが、最終的な金額設定は株式会社外壁塗装くらべる運営本部の判断によるものとし、加盟店はこれに同意するものとします）
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 2階以下を選択していれば -->
-                    <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded">
-                        <div class="flex items-start">
-                            <span class="text-yellow-500 mr-2">⚠️</span>
-                            <div>
-                                <h4 class="font-bold text-gray-800 mb-2">2階以下を選択していれば</h4>
-                                <p class="text-gray-700">
-                                    通常の戸建で料金適用となり、<span class="font-bold text-green-600">¥30,000で自動配信されることはありません</span>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- フッター -->
-                <div class="px-8 pb-6">
-                    <button onclick="closeLargePropertyModal()" class="w-full bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors font-semibold text-base">
-                        理解しました
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 単品項目選択時のモーダル -->
-    <div id="singleItemModal" class="fixed inset-0 z-50 hidden">
-        <!-- オーバーレイ -->
-        <div class="absolute inset-0 bg-black bg-opacity-50"></div>
-
-        <!-- モーダル本体 -->
-        <div class="flex items-center justify-center h-full p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full relative">
-                <!-- 閉じるボタン -->
-                <button onclick="closeSingleItemModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-
-                <!-- ヘッダー -->
-                <div class="bg-white border-b px-8 py-6 rounded-t-xl">
-                    <h3 class="text-xl font-bold text-gray-800">
-                        💰 1社紹介時の料金について
-                    </h3>
-                </div>
-
-                <!-- コンテンツ -->
-                <div class="px-8 py-6">
-                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-                        <p class="text-gray-700 text-base">
-                            単品項目は相見積もり時の料金です。
-                        </p>
-                        <p class="text-gray-700 text-base mt-2">
-                            1社紹介時はすべて<span class="font-bold text-black text-lg">¥20,000</span>となります。
-                        </p>
-                    </div>
-                </div>
-
-                <!-- フッター -->
-                <div class="px-8 pb-6">
-                    <button onclick="closeSingleItemModal()" class="w-full bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors font-semibold text-base">
-                        確認しました
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // 単品項目のチェック状態を管理
-
-        function checkSingleItemSelection(checkbox) {
-            // チェックが入った場合のみモーダルを表示
-            if (checkbox.checked) {
-                const singleItems = [
-                    '屋根塗装単品（但し1社紹介時は定価）',
-                    '屋上防水単品（但し1社紹介時は定価）',
-                    '外壁補修単品（但し1社紹介時は定価）',
-                    '屋根補修単品（但し1社紹介時は定価）',
-                    'ベランダ防水単品（但し1社紹介時は定価）',
-                    '外壁雨漏り修繕単品（但し1社紹介時は定価）',
-                    '屋根雨漏り修繕単品（但し1社紹介時は定価）'
-                ];
-
-                if (singleItems.includes(checkbox.value)) {
-                    showSingleItemModal();
-                }
-            }
-        }
-
-        function showSingleItemModal() {
-            const modal = document.getElementById('singleItemModal');
-            modal.classList.remove('hidden');
-        }
-
-        function closeSingleItemModal() {
-            const modal = document.getElementById('singleItemModal');
-            modal.classList.add('hidden');
-        }
-
-        // 大型物件のモーダル表示管理
-        function checkLargeProperty(checkbox) {
-            if (checkbox.checked) {
-                showLargePropertyModal();
-            }
-        }
-
-        function checkFloorSelection(selectElement) {
-            const value = parseInt(selectElement.value);
-            const parentLabel = selectElement.closest('label');
-            const checkbox = parentLabel.querySelector('input[type="checkbox"]');
-
-            // 3階以上が選択された場合、かつチェックボックスがチェックされている場合
-            if ((value >= 3 || selectElement.value === 'unlimited') && checkbox.checked) {
-                showLargePropertyModal();
-            }
-        }
-
-        function showLargePropertyModal() {
-            const modal = document.getElementById('largePropertyModal');
-            modal.classList.remove('hidden');
-        }
-
-        function closeLargePropertyModal() {
-            const modal = document.getElementById('largePropertyModal');
-            modal.classList.add('hidden');
-        }
-    </script>
 </body>
 </html>
