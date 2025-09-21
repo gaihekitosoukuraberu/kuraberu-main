@@ -321,7 +321,7 @@
                             <!-- 検索ボックス -->
                             <div class="flex-1 lg:flex-none lg:w-40">
                                 <div class="relative">
-                                    <input type="text" id="searchInput" placeholder="検索..." onkeyup="searchRegistrations()" class="w-full pl-7 pr-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                                    <input type="text" id="searchInput" placeholder="検索..." class="w-full pl-7 pr-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-transparent">
                                     <div class="absolute left-2 top-1.5">
                                         <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -1208,9 +1208,9 @@
             // ステータスに応じて色を変更
             const statusColors = {
                 'active': 'bg-green-100 text-green-800 border-green-300',
-                'inactive': 'bg-purple-100 text-purple-800 border-purple-300',
+                'inactive': 'bg-gray-100 text-gray-800 border-gray-300',
                 'paused': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-                'silent': 'bg-gray-100 text-gray-800 border-gray-300',
+                'silent': 'bg-purple-100 text-purple-800 border-purple-300',
                 'suspended': 'bg-red-100 text-red-800 border-red-300',
                 'withdrawn': 'bg-black text-white border-gray-800'
             };
@@ -1305,7 +1305,7 @@
                                             ${franchise.name}
                                             <span class="ml-3 px-3 py-1 text-xs font-semibold rounded-full ${
                                                 franchise.status === 'active' ? 'bg-green-400 text-green-900' :
-                                                franchise.status === 'inactive' ? 'bg-purple-400 text-purple-900' :
+                                                franchise.status === 'inactive' ? 'bg-gray-400 text-gray-900' :
                                                 'bg-yellow-400 text-yellow-900'
                                             }">
                                                 ${franchise.status === 'active' ? 'アクティブ' :
@@ -1503,10 +1503,10 @@
         function getModalStatusColorClass(status) {
             const statusColors = {
                 'active': 'bg-green-100 text-green-800 border-green-300',
-                'inactive': 'bg-purple-100 text-purple-800 border-purple-300',
+                'inactive': 'bg-gray-100 text-gray-800 border-gray-300',
                 'paused': 'bg-yellow-100 text-yellow-800 border-yellow-300',
                 'suspended': 'bg-red-100 text-red-800 border-red-300',
-                'silent': 'bg-gray-100 text-gray-800 border-gray-300'
+                'silent': 'bg-purple-100 text-purple-800 border-purple-300'
             };
             return statusColors[status] || statusColors['active'];
         }
@@ -1927,16 +1927,10 @@
                         memos: []
                     }));
 
-                    // テーブルを更新（PC版）
+                    // テーブルを更新
                     const tbody = document.querySelector('#franchise-table tbody');
                     if (tbody) {
                         tbody.innerHTML = generateFranchiseRows(window.franchiseData);
-                    }
-
-                    // モバイル版を更新
-                    const mobileContainer = document.querySelector('#franchise-mobile-container');
-                    if (mobileContainer) {
-                        mobileContainer.innerHTML = generateFranchiseMobileCards(window.franchiseData);
                     }
 
                     // 統計を更新
@@ -2045,60 +2039,33 @@
 
                 // 先に加盟店管理画面のHTMLを設定
                 mainContent.innerHTML = `
-                    <div class="pt-20 px-3 md:px-6 max-w-7xl mx-auto">
-                        <div class="mb-6">
-                            <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">加盟店管理</h1>
-                            <p class="text-sm md:text-base text-gray-600">加盟店の情報管理・パフォーマンス分析</p>
+                    <div class="pt-20 px-6 max-w-7xl mx-auto">
+                        <div class="mb-8">
+                            <h1 class="text-3xl font-bold text-gray-800 mb-2">加盟店管理</h1>
+                            <p class="text-gray-600">加盟店の情報管理・パフォーマンス分析</p>
                         </div>
 
                         <div id="franchise-stats-container"></div>
 
                         <!-- 検索・フィルタエリア -->
-                        <div class="bg-white rounded-xl p-3 md:p-4 mb-4 border border-gray-200">
-                            <div class="flex flex-wrap gap-2 md:gap-4">
-                                <input type="text" id="franchiseSearchInput" placeholder="加盟店名で検索..." onkeyup="searchFranchises()" class="flex-1 min-w-[150px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
-                                <select id="franchiseStatusFilter" onchange="filterFranchisesByStatus()" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
-                                    <option value="all">全ステータス</option>
-                                    <option value="active">アクティブ</option>
-                                    <option value="inactive">非アクティブ</option>
-                                    <option value="paused">一時停止</option>
-                                    <option value="silent">サイレント</option>
-                                    <option value="suspended">休止</option>
-                                    <option value="withdrawn">退会</option>
+                        <div class="bg-white rounded-xl p-4 mb-6 border border-gray-200">
+                            <div class="flex flex-wrap gap-4">
+                                <input type="text" placeholder="加盟店名で検索..." class="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option>全ステータス</option>
+                                    <option>アクティブ</option>
+                                    <option>非アクティブ</option>
+                                    <option>一時停止中</option>
+                                    <option>サイレント</option>
+                                    <option>休止</option>
+                                    <option>退会</option>
                                 </select>
-                            </div>
-                        </div>
-
-                        <!-- ソート機能 -->
-                        <div class="bg-white rounded-xl p-3 md:p-4 mb-4 border border-gray-200">
-                            <div class="flex items-center gap-2 overflow-x-auto">
-                                <span class="text-xs md:text-sm font-medium text-gray-700 whitespace-nowrap">並び替え：</span>
-                                <div class="flex gap-2">
-                                    <button onclick="sortFranchises('sales')" class="px-3 py-1.5 text-xs md:text-sm bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow hover:shadow-md transition-all whitespace-nowrap">
-                                        売上順
-                                    </button>
-                                    <button onclick="sortFranchises('conversion')" class="px-3 py-1.5 text-xs md:text-sm bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg shadow hover:shadow-md transition-all whitespace-nowrap">
-                                        成約率順
-                                    </button>
-                                    <button onclick="sortFranchises('activity')" class="px-3 py-1.5 text-xs md:text-sm bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg shadow hover:shadow-md transition-all whitespace-nowrap">
-                                        最終活動順
-                                    </button>
-                                    <button onclick="sortFranchises('cospa')" class="px-3 py-1.5 text-xs md:text-sm bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg shadow hover:shadow-md transition-all whitespace-nowrap">
-                                        コスパ順
-                                    </button>
-                                    <button onclick="sortFranchises('cases')" class="px-3 py-1.5 text-xs md:text-sm bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-lg shadow hover:shadow-md transition-all whitespace-nowrap">
-                                        案件数順
-                                    </button>
-                                    <button onclick="sortFranchises('newest')" class="px-3 py-1.5 text-xs md:text-sm bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg shadow hover:shadow-md transition-all whitespace-nowrap">
-                                        新着順
-                                    </button>
-                                </div>
+                                <button class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">検索</button>
                             </div>
                         </div>
 
                         <!-- 加盟店リスト -->
                         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                            <!-- PC版テーブル表示 -->
                             <div class="overflow-x-auto hidden md:block">
                                 <table class="w-full min-w-[900px]" id="franchise-table">
                                     <thead class="bg-gray-50">
@@ -2117,11 +2084,6 @@
                                     </tbody>
                                 </table>
                             </div>
-
-                            <!-- スマホ版カード表示 -->
-                            <div class="md:hidden" id="franchise-mobile-container">
-                                <div class="p-4 text-center text-gray-500">データを読み込み中...</div>
-                            </div>
                         </div>
                     </div>
                 `;
@@ -2131,9 +2093,12 @@
                     return franchises.map(franchise => `
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4">
-                                <div>
-                                    <div class="text-sm font-medium text-gray-900">${franchise.name}</div>
-                                    <div class="text-xs text-gray-500">ID: ${franchise.id}</div>
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 ${franchise.avatar.colorClass} rounded-full flex items-center justify-center ${franchise.avatar.textColorClass} font-semibold mr-3">${franchise.avatar.text}</div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">${franchise.name}</div>
+                                        <div class="text-xs text-gray-500">ID: ${franchise.id}</div>
+                                    </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900" title="${franchise.areaDetail}">${franchise.area}</td>
@@ -2171,66 +2136,316 @@
                     `).join('');
                 }
 
-                // スマホ版カード表示を生成する関数
-                function generateFranchiseMobileCards(franchises) {
-                    return franchises.map(franchise => `
-                        <div class="p-4 border-b border-gray-200">
-                            <div class="mb-3">
-                                <div class="font-semibold text-gray-900">${franchise.name}</div>
-                                <div class="text-xs text-gray-500">ID: ${franchise.id}</div>
-                            </div>
-                            <div class="space-y-2 text-sm">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">エリア:</span>
-                                    <span class="font-medium">${franchise.area}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">成約率:</span>
-                                    <span class="font-semibold ${franchise.conversionColorClass}">${franchise.conversionRate}%</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">今月実績:</span>
-                                    <span>${franchise.monthlyPerformance.cases}件</span>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-gray-600">ステータス:</span>
-                                    <select class="status-select px-2 py-1 text-xs font-semibold rounded-full border-2 ${getStatusColorClass(franchise.status)}"
-                                            onchange="updateFranchiseStatus('${franchise.id}', this.value)"
-                                            data-franchise-id="${franchise.id}">
-                                        <option value="active" ${franchise.status === 'active' ? 'selected' : ''}>アクティブ</option>
-                                        <option value="inactive" ${franchise.status === 'inactive' ? 'selected' : ''}>非アクティブ</option>
-                                        <option value="paused" ${franchise.status === 'paused' ? 'selected' : ''}>一時停止</option>
-                                        <option value="silent" ${franchise.status === 'silent' ? 'selected' : ''}>サイレント</option>
-                                        <option value="suspended" ${franchise.status === 'suspended' ? 'selected' : ''}>休止</option>
-                                        <option value="withdrawn" ${franchise.status === 'withdrawn' ? 'selected' : ''}>退会</option>
-                                    </select>
-                                </div>
-                                <div class="flex justify-between items-center pt-2 border-t">
-                                    <div class="flex gap-2">
-                                        <button onclick="callFranchise('${franchise.id}')" class="text-gray-600 text-lg">📞</button>
-                                        <button onclick="emailFranchise('${franchise.id}')" class="text-gray-600 text-lg">📤</button>
-                                        <button onclick="snsFranchise('${franchise.id}')" class="text-gray-600 text-lg">🔔</button>
-                                    </div>
-                                    <button onclick="showFranchiseDetail('${franchise.id}')" class="text-blue-600 text-sm font-medium">詳細</button>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-
                 // ステータスに応じた色クラスを返す関数
                 function getStatusColorClass(status) {
                     const statusColors = {
                         'active': 'bg-green-100 text-green-800 border-green-300',
-                        'inactive': 'bg-purple-100 text-purple-800 border-purple-300',
+                        'inactive': 'bg-gray-100 text-gray-800 border-gray-300',
                         'paused': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-                        'silent': 'bg-gray-100 text-gray-800 border-gray-300',
+                        'silent': 'bg-purple-100 text-purple-800 border-purple-300',
                         'suspended': 'bg-red-100 text-red-800 border-red-300',
                         'withdrawn': 'bg-black text-white border-gray-800'
                     };
                     return statusColors[status] || statusColors['active'];
                 }
 
+                        <div class="bg-white rounded-xl p-4 mb-6 border border-gray-200">
+                            <div class="flex flex-wrap gap-4">
+                                <input type="text" placeholder="加盟店名で検索..." class="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <input list="area-list" placeholder="エリアを選択または入力..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <datalist id="area-list">
+                                    <option value="全エリア"></option>
+                                    <option value="北海道"></option>
+                                    <option value="青森県"></option>
+                                    <option value="岩手県"></option>
+                                    <option value="宮城県"></option>
+                                    <option value="秋田県"></option>
+                                    <option value="山形県"></option>
+                                    <option value="福島県"></option>
+                                    <option value="茨城県"></option>
+                                    <option value="栃木県"></option>
+                                    <option value="群馬県"></option>
+                                    <option value="埼玉県"></option>
+                                    <option value="千葉県"></option>
+                                    <option value="東京都"></option>
+                                    <option value="神奈川県"></option>
+                                    <option value="新潟県"></option>
+                                    <option value="富山県"></option>
+                                    <option value="石川県"></option>
+                                    <option value="福井県"></option>
+                                    <option value="山梨県"></option>
+                                    <option value="長野県"></option>
+                                    <option value="岐阜県"></option>
+                                    <option value="静岡県"></option>
+                                    <option value="愛知県"></option>
+                                    <option value="三重県"></option>
+                                    <option value="滋賀県"></option>
+                                    <option value="京都府"></option>
+                                    <option value="大阪府"></option>
+                                    <option value="兵庫県"></option>
+                                    <option value="奈良県"></option>
+                                    <option value="和歌山県"></option>
+                                    <option value="鳥取県"></option>
+                                    <option value="島根県"></option>
+                                    <option value="岡山県"></option>
+                                    <option value="広島県"></option>
+                                    <option value="山口県"></option>
+                                    <option value="徳島県"></option>
+                                    <option value="香川県"></option>
+                                    <option value="愛媛県"></option>
+                                    <option value="高知県"></option>
+                                    <option value="福岡県"></option>
+                                    <option value="佐賀県"></option>
+                                    <option value="長崎県"></option>
+                                    <option value="熊本県"></option>
+                                    <option value="大分県"></option>
+                                    <option value="宮崎県"></option>
+                                    <option value="鹿児島県"></option>
+                                    <option value="沖縄県"></option>
+                                </datalist>
+                                <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option>全ステータス</option>
+                                    <option>アクティブ</option>
+                                    <option>非アクティブ</option>
+                                    <option>一時停止中</option>
+                                    <option>サイレント</option>
+                                    <option>休止</option>
+                                    <option>退会</option>
+                                </select>
+                                <button class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">検索</button>
+                            </div>
+                        </div>
+
+                        <!-- ソート機能 -->
+                        <div class="bg-white rounded-xl p-4 mb-4 border border-gray-200">
+                            <div class="flex items-center gap-4">
+                                <span class="text-sm font-medium text-gray-700">並び替え：</span>
+                                <div class="flex flex-wrap gap-2">
+                                    <button onclick="sortFranchises('sales')" class="sort-btn px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-colors" data-sort="sales" data-order="desc">
+                                        売上順 <span class="sort-icon">↓</span>
+                                    </button>
+                                    <button onclick="sortFranchises('conversion')" class="sort-btn px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-colors" data-sort="conversion" data-order="desc">
+                                        成約率順 <span class="sort-icon">↓</span>
+                                    </button>
+                                    <button onclick="sortFranchises('activity')" class="sort-btn px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-colors" data-sort="activity" data-order="desc">
+                                        最終活動順 <span class="sort-icon">↓</span>
+                                    </button>
+                                    <button onclick="sortFranchises('cospa')" class="sort-btn px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-colors" data-sort="cospa" data-order="desc">
+                                        コスパ順 <span class="sort-icon">↓</span>
+                                    </button>
+                                    <button onclick="sortFranchises('cases')" class="sort-btn px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-colors" data-sort="cases" data-order="desc">
+                                        案件数順 <span class="sort-icon">↓</span>
+                                    </button>
+                                    <button onclick="sortFranchises('newest')" class="sort-btn px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-colors" data-sort="newest" data-order="desc">
+                                        新着順 <span class="sort-icon">↓</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 加盟店リスト -->
+                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <div class="overflow-x-auto hidden md:block">
+                            <table class="w-full min-w-[900px]" id="franchise-table">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">加盟店名</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">エリア</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">成約率</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">今月実績</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ハンデ</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ステータス</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">アクション</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200" id="franchiseTableBody">
+                                    ${generateFranchiseRows(window.franchiseData)}
+                                </tbody>
+                            </table>
+                            </div>
+
+                            <!-- モバイル用カード表示 -->
+                            <div class="md:hidden p-4 space-y-4">
+                                <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <div class="flex items-center">
+                                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold mr-3">田</div>
+                                            <div>
+                                                <div class="font-semibold text-gray-900">田中塗装工業</div>
+                                                <div class="text-xs text-gray-500">ID: F001</div>
+                                            </div>
+                                        </div>
+                                        <select class="px-3 py-1 text-xs font-semibold rounded-full border-2 cursor-pointer bg-green-100 text-green-800 border-green-300" onchange="updateFranchiseStatus('F001', this.value)">
+                                            <option value="active" selected>アクティブ</option>
+                                            <option value="inactive">非アクティブ</option>
+                                            <option value="paused">一時停止中</option>
+                                            <option value="silent">サイレント</option>
+                                            <option value="suspended">休止</option>
+                                            <option value="withdrawn">退会</option>
+                                        </select>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 mb-3 text-sm">
+                                        <div>
+                                            <span class="text-gray-500">エリア:</span>
+                                            <span class="ml-1 font-medium">東京都</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">成約率:</span>
+                                            <span class="ml-1 font-semibold text-green-600">68%</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">今月実績:</span>
+                                            <span class="ml-1 font-medium">12件 / ¥3.2M</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">ハンデ:</span>
+                                            <select class="ml-1 px-2 py-0.5 text-xs border rounded">
+                                                <option>+3</option>
+                                                <option>+2</option>
+                                                <option selected>+1</option>
+                                                <option>0</option>
+                                                <option>-1</option>
+                                                <option>-2</option>
+                                                <option>-3</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-3 border-t border-gray-200">
+                                        <div class="flex space-x-3">
+                                            <button onclick="callFranchise('F001')" class="text-gray-600 hover:text-gray-800 text-lg" title="電話">📞</button>
+                                            <button onclick="emailFranchise('F001')" class="text-gray-600 hover:text-gray-800 text-lg" title="メール">📤</button>
+                                            <button onclick="snsFranchise('F001')" class="text-gray-600 hover:text-gray-800 text-lg" title="通知">🔔</button>
+                                        </div>
+                                        <button onclick="showFranchiseDetail('F001')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">詳細</button>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <div class="flex items-center">
+                                            <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-semibold mr-3">山</div>
+                                            <div>
+                                                <div class="font-semibold text-gray-900">山田ペイント</div>
+                                                <div class="text-xs text-gray-500">ID: F002</div>
+                                            </div>
+                                        </div>
+                                        <select class="px-3 py-1 text-xs font-semibold rounded-full border-2 cursor-pointer bg-green-100 text-green-800 border-green-300" onchange="updateFranchiseStatus('F002', this.value)">
+                                            <option value="active" selected>アクティブ</option>
+                                            <option value="inactive">非アクティブ</option>
+                                            <option value="paused">一時停止中</option>
+                                            <option value="silent">サイレント</option>
+                                            <option value="suspended">休止</option>
+                                            <option value="withdrawn">退会</option>
+                                        </select>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 mb-3 text-sm">
+                                        <div>
+                                            <span class="text-gray-500">エリア:</span>
+                                            <span class="ml-1 font-medium">神奈川県</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">成約率:</span>
+                                            <span class="ml-1 font-semibold text-green-600">62%</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">今月実績:</span>
+                                            <span class="ml-1 font-medium">10件 / ¥2.8M</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">ハンデ:</span>
+                                            <select class="ml-1 px-2 py-0.5 text-xs border rounded">
+                                                <option>+3</option>
+                                                <option>+2</option>
+                                                <option>+1</option>
+                                                <option selected>0</option>
+                                                <option>-1</option>
+                                                <option>-2</option>
+                                                <option>-3</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-3 border-t border-gray-200">
+                                        <div class="flex space-x-3">
+                                            <button onclick="callFranchise('F002')" class="text-gray-600 hover:text-gray-800 text-lg" title="電話">📞</button>
+                                            <button onclick="emailFranchise('F002')" class="text-gray-600 hover:text-gray-800 text-lg" title="メール">📤</button>
+                                            <button onclick="snsFranchise('F002')" class="text-gray-600 hover:text-gray-800 text-lg" title="通知">🔔</button>
+                                        </div>
+                                        <button onclick="showFranchiseDetail('F002')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">詳細</button>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <div class="flex items-center">
+                                            <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-semibold mr-3">佐</div>
+                                            <div>
+                                                <div class="font-semibold text-gray-900">佐藤塗装店</div>
+                                                <div class="text-xs text-gray-500">ID: F003</div>
+                                            </div>
+                                        </div>
+                                        <select class="px-3 py-1 text-xs font-semibold rounded-full border-2 cursor-pointer bg-green-100 text-green-800 border-green-300" onchange="updateFranchiseStatus('F003', this.value)">
+                                            <option value="active" selected>アクティブ</option>
+                                            <option value="inactive">非アクティブ</option>
+                                            <option value="paused">一時停止中</option>
+                                            <option value="silent">サイレント</option>
+                                            <option value="suspended">休止</option>
+                                            <option value="withdrawn">退会</option>
+                                        </select>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 mb-3 text-sm">
+                                        <div>
+                                            <span class="text-gray-500">エリア:</span>
+                                            <span class="ml-1 font-medium">千葉県</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">成約率:</span>
+                                            <span class="ml-1 font-semibold text-yellow-600">58%</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">今月実績:</span>
+                                            <span class="ml-1 font-medium">9件 / ¥2.1M</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">ハンデ:</span>
+                                            <select class="ml-1 px-2 py-0.5 text-xs border rounded">
+                                                <option>+3</option>
+                                                <option>+2</option>
+                                                <option>+1</option>
+                                                <option>0</option>
+                                                <option selected>-1</option>
+                                                <option>-2</option>
+                                                <option>-3</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-3 border-t border-gray-200">
+                                        <div class="flex space-x-3">
+                                            <button onclick="callFranchise('F003')" class="text-gray-600 hover:text-gray-800 text-lg" title="電話">📞</button>
+                                            <button onclick="emailFranchise('F003')" class="text-gray-600 hover:text-gray-800 text-lg" title="メール">📤</button>
+                                            <button onclick="snsFranchise('F003')" class="text-gray-600 hover:text-gray-800 text-lg" title="通知">🔔</button>
+                                        </div>
+                                        <button onclick="showFranchiseDetail('F003')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">詳細</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ページネーション -->
+                        <div class="mt-6 flex justify-between items-center">
+                            <div class="text-sm text-gray-600">
+                                全32件中 1-10件を表示
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">前へ</button>
+                                <button class="px-3 py-1 bg-blue-600 text-white rounded">1</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">2</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">3</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">4</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">次へ</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
             } else if (sectionName === 'financial') {
                 // 請求・財務セクション
                 const mainContent = document.querySelector('main');
@@ -4996,140 +5211,6 @@
                 console.error('初期化エラー:', e);
             }
         });
-
-        // 加盟店登録申請の検索機能
-        function searchRegistrations() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-
-            // 承認待ちと承認済みの両方のテーブルを検索
-            const pendingRows = document.querySelectorAll('#pending-table tbody tr');
-            const approvedRows = document.querySelectorAll('#approved-table tbody tr');
-            const mobileCards = document.querySelectorAll('#pending-mobile > div, #approved-mobile > div');
-
-            // 承認待ちテーブルのフィルタリング
-            pendingRows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
-
-            // 承認済みテーブルのフィルタリング
-            approvedRows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
-
-            // モバイルカードのフィルタリング
-            mobileCards.forEach(card => {
-                const text = card.textContent.toLowerCase();
-                card.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
-        }
-
-        // 通知表示関数
-        function showNotification(message, type = 'info') {
-            // 既存の通知を削除
-            const existingNotification = document.querySelector('.notification-toast');
-            if (existingNotification) {
-                existingNotification.remove();
-            }
-
-            // 通知要素を作成
-            const notification = document.createElement('div');
-            notification.className = 'notification-toast fixed top-20 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all transform translate-x-full';
-
-            // タイプによって色を変更
-            if (type === 'success') {
-                notification.classList.add('bg-green-600', 'text-white');
-            } else if (type === 'error') {
-                notification.classList.add('bg-red-600', 'text-white');
-            } else {
-                notification.classList.add('bg-blue-600', 'text-white');
-            }
-
-            notification.textContent = message;
-            document.body.appendChild(notification);
-
-            // アニメーションで表示
-            setTimeout(() => {
-                notification.classList.remove('translate-x-full');
-                notification.classList.add('translate-x-0');
-            }, 100);
-
-            // 3秒後に削除
-            setTimeout(() => {
-                notification.classList.add('translate-x-full');
-                setTimeout(() => {
-                    notification.remove();
-                }, 300);
-            }, 3000);
-        }
-
-        // 加盟店管理の検索機能
-        function searchFranchises() {
-            const searchTerm = document.getElementById('franchiseSearchInput')?.value.toLowerCase() || '';
-            const statusFilter = document.getElementById('franchiseStatusFilter')?.value || 'all';
-            const tableRows = document.querySelectorAll('#franchise-table tbody tr');
-            const mobileCards = document.querySelectorAll('#franchise-mobile > div');
-
-            // テーブル行のフィルタリング
-            tableRows.forEach(row => {
-                // 会社名とエリアを取得（1列目に会社名、2列目にエリア）
-                const companyCell = row.querySelector('td:nth-child(1)');
-                const areaCell = row.querySelector('td:nth-child(2)');
-                const statusSelect = row.querySelector('td:nth-child(6) select');
-
-                const companyName = companyCell?.textContent.toLowerCase() || '';
-                const area = areaCell?.textContent.toLowerCase() || '';
-                const currentStatus = statusSelect?.value || '';
-
-                // 検索条件のチェック
-                const matchesSearch = searchTerm === '' || companyName.includes(searchTerm) || area.includes(searchTerm);
-
-                // ステータス条件のチェック
-                const matchesStatus = statusFilter === 'all' || currentStatus === statusFilter;
-
-                // 両方の条件を満たす場合のみ表示
-                row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
-            });
-
-            // モバイルカードのフィルタリング
-            mobileCards.forEach(card => {
-                const text = card.textContent.toLowerCase();
-                const statusBadge = card.querySelector('[class*="bg-"][class*="-100"]');
-
-                // ステータステキストを取得
-                let cardStatus = '';
-                if (statusBadge) {
-                    const statusText = statusBadge.textContent.trim();
-                    // 日本語からvalueへのマッピング
-                    const statusValueMap = {
-                        'アクティブ': 'active',
-                        '非アクティブ': 'inactive',
-                        '一時停止': 'paused',
-                        '一時停止中': 'paused',
-                        'サイレント': 'silent',
-                        '休止': 'suspended',
-                        '退会': 'withdrawn'
-                    };
-                    cardStatus = statusValueMap[statusText] || '';
-                }
-
-                // 検索条件のチェック
-                const matchesSearch = searchTerm === '' || text.includes(searchTerm);
-
-                // ステータス条件のチェック
-                const matchesStatus = statusFilter === 'all' || cardStatus === statusFilter;
-
-                // 両方の条件を満たす場合のみ表示
-                card.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
-            });
-        }
-
-        // ステータスでフィルタリング
-        function filterFranchisesByStatus() {
-            // searchFranchises関数で統合処理するので、そちらを呼び出す
-            searchFranchises();
-        }
     </script>
     </div> <!-- mainApp終了 -->
 
@@ -5213,7 +5294,7 @@
         });
     </script>
     <!-- 管理ダッシュボード API連携 -->
-    <script src="js/dashboard-api.js?v=20250921_1940"></script>
+    <script src="js/dashboard-api.js?v=20250119_1200"></script>
     <script>
         // ページ読み込み完了後にデータを取得
         document.addEventListener('DOMContentLoaded', function() {

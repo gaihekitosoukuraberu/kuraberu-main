@@ -2,20 +2,17 @@
  * Dashboard API Integration
  */
 
-// GAS API Endpoint
-const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyzhaGe_YYy4edX9mj1XBc4kcsz5xwy5-CcxcLu9XuZVXHqtEl5NqnYePPILDOIK69E2A/exec';
+// GAS API Endpoint - franchise-register project (最新版)
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzKTN5sGnT7kFY3SB42fFEaTD6gnawsKkJWbnP6HLAIDZbyricKF50IGKFWZ8gkBPVsKA/exec';
 
 /**
  * 加盟店登録申請データを取得
  * @param {string} status - フィルタするステータス（all/pending/approved/rejected）
  * @returns {Promise<Object>} 申請データ
  */
-let jsonpCounter = 0; // グローバルカウンター
-
-function fetchRegistrationRequests(status = 'all', daysRange = 30, page = 1, limit = 100) {
+async function fetchRegistrationRequests(status = 'all', daysRange = 30) {
     return new Promise((resolve) => {
-        // ユニークなコールバック名を生成（タイムスタンプ＋カウンター＋ランダム）
-        const callbackName = 'jsonpCallback_' + Date.now() + '_' + (++jsonpCounter) + '_' + Math.floor(Math.random() * 10000);
+        const callbackName = 'jsonpCallback_' + Date.now();
         let timeout;
 
         // デフォルトデータ
@@ -34,25 +31,19 @@ function fetchRegistrationRequests(status = 'all', daysRange = 30, page = 1, lim
 
         // グローバルコールバック関数を最初に定義
         window[callbackName] = function(response) {
-            console.log(`✓ JSONP応答受信 [${status}]:`, response);
             clearTimeout(timeout);
-            // 即座にクリーンアップ
-            setTimeout(() => {
-                delete window[callbackName];
-                // スクリプトタグをクリーンアップ
-                const scriptToRemove = document.querySelector(`script[src*="${callbackName}"]`);
-                if (scriptToRemove && scriptToRemove.parentNode) {
-                    scriptToRemove.parentNode.removeChild(scriptToRemove);
-                }
-            }, 0);
+            delete window[callbackName];
+            // スクリプトタグをクリーンアップ
+            const script = document.querySelector(`script[src*="${callbackName}"]`);
+            if (script && script.parentNode) {
+                script.parentNode.removeChild(script);
+            }
             resolve(response);
         };
-        console.log(`JSONP関数登録: ${callbackName} for status=${status}`);
 
-        // スクリプトタグでGASを呼ぶ（ページネーション対応）
+        // スクリプトタグでGASを呼ぶ
         const script = document.createElement('script');
-        script.id = `jsonp_${callbackName}`; // IDを設定
-        script.src = `${GAS_API_URL}?action=getRegistrationRequests&status=${status}&limit=${limit}&page=${page}&daysRange=${daysRange}&callback=${callbackName}`;
+        script.src = `${GAS_API_URL}?action=getRegistrationRequests&status=${status}&limit=100&daysRange=${daysRange}&callback=${callbackName}`;
 
         // タイムアウト設定（5秒に延長）
         timeout = setTimeout(() => {
@@ -66,17 +57,7 @@ function fetchRegistrationRequests(status = 'all', daysRange = 30, page = 1, lim
             }
         }, 5000);
 
-        // エラーハンドリング
-        script.onerror = () => {
-            console.error('Failed to load script:', script.src);
-            clearTimeout(timeout);
-            if (window[callbackName]) {
-                delete window[callbackName];
-            }
-            resolve(defaultData);
-        };
-
-        // スクリプトを即座に追加（コールバック関数は既に設定済み）
+        // スクリプトを追加
         document.body.appendChild(script);
     });
 }
@@ -341,18 +322,6 @@ function updateRegistrationTable(registrations, tableId) {
     const tbody = document.querySelector(`#${tableId} tbody`);
     if (!tbody) return;
 
-    // データが空の場合は既存のデータを保持（0件表示を防ぐ）
-    if (!registrations || registrations.length === 0) {
-        // 既存データがある場合は更新しない
-        if (tbody.children.length > 0 && !tbody.querySelector('.no-data-message')) {
-            console.log(`${tableId}: データなし、既存データを保持`);
-            return;
-        }
-        // 本当にデータがない場合は「データなし」を表示
-        tbody.innerHTML = '<tr class="no-data-message"><td colspan="7" class="text-center py-8 text-gray-500">データがありません</td></tr>';
-        return;
-    }
-
     tbody.innerHTML = '';
 
     registrations.forEach(reg => {
@@ -371,7 +340,7 @@ function updateRegistrationTable(registrations, tableId) {
                     ${reg.email ? `<a href="mailto:${reg.email}" class="text-xl hover:scale-110 transition-transform" title="${reg.email}">📧</a>` : ''}
                 </div>
             </td>
-            <td class="px-6 py-4 text-sm text-gray-900" title="${reg.serviceAreas || reg.prefectures || '-'}">${formatAreaList(reg.serviceAreas || reg.prefectures)}</td>
+            <td class="px-6 py-4 text-sm text-gray-900">${reg.prefectures || '-'}</td>
             <td class="px-6 py-4">
                 ${renderStatusBadge(reg.status)}
             </td>
@@ -417,7 +386,7 @@ function updateMobileCards(registrations, container) {
                     ${reg.phone ? `<a href="tel:${reg.phone}" class="text-xl hover:scale-110 transition-transform" title="${reg.phone}">📞</a>` : ''}
                     ${reg.email ? `<a href="mailto:${reg.email}" class="text-xl hover:scale-110 transition-transform" title="${reg.email}">📧</a>` : ''}
                 </div>
-                <div><span class="text-gray-600">エリア:</span> ${formatAreaList(reg.serviceAreas || reg.prefectures)}</div>
+                <div><span class="text-gray-600">エリア:</span> ${reg.prefectures || '-'}</div>
             </div>
             <div class="mt-4 flex gap-2">
                 ${renderActionButtons(reg)}
@@ -425,28 +394,6 @@ function updateMobileCards(registrations, container) {
         `;
         container.appendChild(card);
     });
-}
-
-/**
- * エリアリストを整形して表示（全件表示）
- * @param {string} areas - カンマ区切りのエリア文字列
- * @returns {string} 整形されたエリア文字列
- */
-function formatAreaList(areas) {
-    if (!areas || areas === '-') return '-';
-    // 全エリアを表示
-    return areas;
-}
-
-/**
- * 施工内容を整形して表示（全件表示）
- * @param {string} specialties - 施工内容文字列
- * @returns {string} 整形された施工内容
- */
-function formatSpecialties(specialties) {
-    if (!specialties || specialties === '-') return '-';
-    // 全施工内容を表示
-    return specialties;
 }
 
 /**
@@ -570,65 +517,27 @@ async function handleReject(registrationId) {
  */
 async function refreshDashboard() {
     try {
+        // 期間選択セレクタから値を取得
         const dateRangeSelector = document.getElementById('dateRangeSelector');
         const daysRange = dateRangeSelector ? parseInt(dateRangeSelector.value) : 30;
 
-        // 1. 統計をまず取得・表示（最速）
-        fetchRegistrationRequests('all', daysRange, 1, 0).then(data => {
-            if (data.stats) {
-                updateDashboardStats(data.stats);
-            }
-        });
+        const data = await fetchRegistrationRequests('all', daysRange);
 
-        // 2. 未審査を次に表示（重要度高）
-        fetchRegistrationRequests('pending', daysRange, 1, 100).then(data => {
-            if (data.registrations) {
-                updateRegistrationTable(data.registrations, 'pending-table');
-            }
-        });
+        if (data.stats) {
+            updateDashboardStats(data.stats);
+        }
 
-        // 3. 審査済みは承認と却下を個別に取得して結合
-        Promise.all([
-            fetchRegistrationRequests('approved', daysRange, 1, 100),
-            fetchRegistrationRequests('rejected', daysRange, 1, 100)
-        ]).then(([approvedData, rejectedData]) => {
-            console.log('=== デバッグ: API応答確認 ===');
-            console.log('承認済みデータ全体:', approvedData);
-            console.log('却下データ全体:', rejectedData);
-            console.log('承認済み.registrations:', approvedData.registrations);
-            console.log('承認済み.approved:', approvedData.approved);
-            console.log('却下.registrations:', rejectedData.registrations);
-            console.log('却下.rejected:', rejectedData.rejected);
+        if (data.pending) {
+            updateRegistrationTable(data.pending, 'pending-table');
+        }
 
-            const historyData = [
-                ...(approvedData.registrations || approvedData.approved || []),
-                ...(rejectedData.registrations || rejectedData.rejected || [])
-            ];
-
-            // タイムスタンプで降順ソート
-            historyData.sort((a, b) => {
-                const dateA = new Date(a.approvalDate || a.rejectedDate || a.timestamp || a.created_at);
-                const dateB = new Date(b.approvalDate || b.rejectedDate || b.timestamp || b.created_at);
-                return dateB - dateA;
-            });
-
-            console.log('結合した履歴データ:', historyData);
-            console.log('履歴データ件数:', historyData.length);
-
-            if (historyData.length === 0) {
-                console.warn('警告: 履歴データが0件です！');
-                // テーブルに「データなし」を表示
-                const tbody = document.querySelector('#approved-table tbody');
-                if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">審査済みデータがありません</td></tr>';
-                }
-            } else {
-                updateRegistrationTable(historyData, 'approved-table');
-            }
-        }).catch(error => {
-            console.error('履歴データ取得エラー:', error);
-            console.error('エラー詳細:', error.message, error.stack);
-        });
+        if (data.approved || data.rejected) {
+            // 承認済みと却下を審査済み履歴として統合表示
+            const historyData = [...(data.approved || []), ...(data.rejected || [])];
+            // 日時でソート（新しい順）
+            historyData.sort((a, b) => new Date(b.approvalDate || b.timestamp) - new Date(a.approvalDate || a.timestamp));
+            updateRegistrationTable(historyData, 'approved-table');
+        }
 
     } catch (error) {
         console.error('Failed to refresh dashboard:', error);
@@ -657,13 +566,10 @@ function hideLoading() {
 
 // 初期化処理
 document.addEventListener('DOMContentLoaded', () => {
-    // ダッシュボードが表示されたら自動的にデータを取得（少し遅延）
-    setTimeout(() => {
-        if (window.location.hash === '#registrationRequests') {
-            console.log('初期データ取得開始...');
-            refreshDashboard();
-        }
-    }, 1000); // 1秒待ってから実行
+    // ダッシュボードが表示されたら自動的にデータを取得
+    if (window.location.hash === '#registrationRequests') {
+        refreshDashboard();
+    }
 
     // 定期的な自動更新（30秒ごと）
     setInterval(() => {
@@ -677,8 +583,8 @@ document.addEventListener('DOMContentLoaded', () => {
  * 登録詳細を表示
  * @param {string} registrationId - 登録ID
  */
-async function showRegistrationDetail(registrationId) {
-    // まず簡易データから基本情報を取得
+function showRegistrationDetail(registrationId) {
+    // 現在のデータから該当する登録情報を探す
     const findRegistration = () => {
         const data = window.lastRegistrationData;
         if (!data) return null;
@@ -692,35 +598,11 @@ async function showRegistrationDetail(registrationId) {
         return allRegistrations.find(reg => reg.registrationId === registrationId);
     };
 
-    const basicData = findRegistration();
-    if (!basicData) {
+    const registration = findRegistration();
+    if (!registration) {
         alert('登録情報が見つかりません');
         return;
     }
-
-    // ローディング表示
-    const loadingHTML = `
-        <div id="registrationDetailModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl max-w-4xl w-full p-6">
-                <div class="flex items-center justify-center">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                    <span class="ml-3 text-gray-600">詳細情報を読み込み中...</span>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', loadingHTML);
-
-    // 詳細データを取得
-    try {
-        const detail = await fetchRegistrationDetail(registrationId);
-
-        // ローディング削除
-        const loadingModal = document.getElementById('registrationDetailModal');
-        if (loadingModal) loadingModal.remove();
-
-        // 詳細データまたは基本データを使用
-        const registration = detail && detail.success && detail.data ? detail.data : basicData;
 
     // モーダルHTMLを作成
     const modalHTML = `
@@ -750,8 +632,16 @@ async function showRegistrationDetail(registrationId) {
                                 <p class="mt-1 text-gray-900">${registration.companyName || '-'}</p>
                             </div>
                             <div>
+                                <label class="text-sm font-medium text-gray-600">会社名（カナ）</label>
+                                <p class="mt-1 text-gray-900">${registration.companyNameKana || '-'}</p>
+                            </div>
+                            <div>
                                 <label class="text-sm font-medium text-gray-600">代表者名</label>
                                 <p class="mt-1 text-gray-900">${registration.representativeName || '-'}</p>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-gray-600">代表者名（カナ）</label>
+                                <p class="mt-1 text-gray-900">${registration.representativeNameKana || '-'}</p>
                             </div>
                             <div>
                                 <label class="text-sm font-medium text-gray-600">電話番号</label>
@@ -804,13 +694,17 @@ async function showRegistrationDetail(registrationId) {
                         </div>
                     </div>
 
-                    <!-- 対応エリア -->
+                    <!-- 対応エリア・条件 -->
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-3">対応エリア</h3>
-                        <div class="grid grid-cols-1 gap-4">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">対応エリア・条件</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="text-sm font-medium text-gray-600">対応都道府県</label>
                                 <p class="mt-1 text-gray-900">${registration.prefectures || '-'}</p>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-gray-600">築年数対応範囲</label>
+                                <p class="mt-1 text-gray-900">${registration.buildingAgeRange || '-'}</p>
                             </div>
                         </div>
                     </div>
@@ -871,53 +765,6 @@ async function showRegistrationDetail(registrationId) {
 
     // モーダルを表示
     document.body.insertAdjacentHTML('beforeend', modalHTML);
-
-    } catch (error) {
-        console.error('詳細取得エラー:', error);
-        // エラー時も基本データで表示
-        const loadingModal = document.getElementById('registrationDetailModal');
-        if (loadingModal) loadingModal.remove();
-
-        // 基本データで表示
-        showRegistrationDetailWithData(basicData);
-    }
-}
-
-/**
- * 登録詳細を取得
- * @param {string} registrationId - 登録ID
- * @returns {Promise<Object>} 詳細データ
- */
-async function fetchRegistrationDetail(registrationId) {
-    return new Promise((resolve) => {
-        const callbackName = 'jsonpCallback_detail_' + Date.now();
-        let timeout;
-
-        window[callbackName] = function(response) {
-            clearTimeout(timeout);
-            delete window[callbackName];
-            const script = document.querySelector(`script[src*="${callbackName}"]`);
-            if (script && script.parentNode) {
-                script.parentNode.removeChild(script);
-            }
-            resolve(response);
-        };
-
-        const script = document.createElement('script');
-        script.src = `${GAS_API_URL}?action=getRegistrationDetail&registrationId=${registrationId}&callback=${callbackName}`;
-
-        timeout = setTimeout(() => {
-            if (window[callbackName]) {
-                delete window[callbackName];
-            }
-            if (script.parentNode) {
-                script.parentNode.removeChild(script);
-            }
-            resolve({ success: false, message: 'タイムアウト' });
-        }, 10000); // 10秒タイムアウト
-
-        document.head.appendChild(script);
-    });
 }
 
 /**
@@ -946,7 +793,22 @@ async function handleRejectFromModal(registrationId) {
     await handleReject(registrationId);
 }
 
-// 重複関数を削除（上部の refreshDashboard 関数を使用）
+// データを保存しておく
+let originalRefreshDashboard = refreshDashboard;
+refreshDashboard = async function() {
+    const data = await fetchRegistrationRequests('all');
+    window.lastRegistrationData = data; // データを保存
+
+    if (data.stats) {
+        updateDashboardStats(data.stats);
+    }
+    if (data.pending) {
+        updateRegistrationTable(data.pending, 'pending-table');
+    }
+    if (data.approved) {
+        updateRegistrationTable(data.approved, 'approved-table');
+    }
+};
 
 // グローバルに公開
 window.dashboardAPI = {
