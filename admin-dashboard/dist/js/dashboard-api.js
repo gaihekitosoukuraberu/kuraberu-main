@@ -3,7 +3,8 @@
  */
 
 // GAS API Endpoint - franchise-register project (最新版)
-const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyRT4ReJDmsJEVitG4hHuyt_wOQobaCY3Om5EY-d1BkyBjjD9YAsBxBvpV5NInuQElOyA/exec';
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbye_awLqu72CYKkQyhbk8P1mEr8Y8pstRDQ8iDI7SS9iAn1qzESzJuExMttK7sQhEVgSA/exec';
+const GAS_URL = GAS_API_URL; // 互換性のためのエイリアス
 
 /**
  * 加盟店登録申請データを取得
@@ -882,3 +883,77 @@ async function testGASConnection() {
 if (typeof window !== 'undefined') {
     window.testGAS = testGASConnection;
 }
+
+/**
+ * 加盟店管理データを取得
+ * @param {string} status - ステータスフィルタ（all, active, inactive等）
+ * @return {Promise} データ取得のPromise
+ */
+async function loadFranchiseManagementData(status = 'all') {
+    const timestamp = new Date().getTime();
+    const callbackName = 'handleFranchiseData_' + timestamp;
+
+    return new Promise((resolve, reject) => {
+        window[callbackName] = function(response) {
+            console.log('加盟店管理データ取得レスポンス:', response);
+            delete window[callbackName];
+
+            if (response.success) {
+                resolve(response);
+            } else {
+                reject(new Error(response.message || '加盟店データ取得に失敗しました'));
+            }
+        };
+
+        const script = document.createElement('script');
+        script.src = `${GAS_URL}?action=getFranchiseManagementData&status=${status}&callback=${callbackName}&_t=${timestamp}`;
+        script.onerror = () => {
+            delete window[callbackName];
+            reject(new Error('通信エラーが発生しました'));
+        };
+
+        document.body.appendChild(script);
+        setTimeout(() => {
+            document.body.removeChild(script);
+        }, 30000);
+    });
+}
+
+/**
+ * 加盟店ステータスを更新
+ * @param {string} franchiseId - 加盟店ID
+ * @param {string} newStatus - 新しいステータス
+ * @return {Promise} 更新結果のPromise
+ */
+async function updateFranchiseStatusAPI(franchiseId, newStatus) {
+    const timestamp = new Date().getTime();
+    const callbackName = 'handleStatusUpdate_' + timestamp;
+
+    return new Promise((resolve, reject) => {
+        window[callbackName] = function(response) {
+            delete window[callbackName];
+
+            if (response.success) {
+                resolve(response);
+            } else {
+                reject(new Error(response.message || 'ステータス更新に失敗しました'));
+            }
+        };
+
+        const script = document.createElement('script');
+        script.src = `${GAS_URL}?action=updateFranchiseManagementStatus&franchiseId=${franchiseId}&status=${newStatus}&updatedBy=管理者&callback=${callbackName}&_t=${timestamp}`;
+        script.onerror = () => {
+            delete window[callbackName];
+            reject(new Error('通信エラーが発生しました'));
+        };
+
+        document.body.appendChild(script);
+        setTimeout(() => {
+            document.body.removeChild(script);
+        }, 30000);
+    });
+}
+
+// Export franchise management functions
+window.loadFranchiseManagementData = loadFranchiseManagementData;
+window.updateFranchiseStatusAPI = updateFranchiseStatusAPI;
