@@ -5,7 +5,7 @@
 
 // ブートストラップURL（プロパティ取得用・これは避けられない）
 // GASを再デプロイした場合はここを更新
-const CONFIG_PROVIDER_URL = 'https://script.google.com/macros/s/AKfycbwC4yGSEdGqR2LFFxBI0WIfhIMIFuvhSN5dSQsDBPZ0anDGQo-AzIj7yf1VoDjrsBTWiA/exec';
+const CONFIG_PROVIDER_URL = 'https://script.google.com/macros/s/AKfycbw685zE-a4CfiQOul1J_37b9GBsQIdrlmTX7ikKJ_OXHh5mdFWpqb-KnNiOPAWg1ah1hg/exec';
 
 // キャッシュ用の変数
 let gasWebAppUrl = null;

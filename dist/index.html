@@ -321,7 +321,7 @@
                             <!-- 検索ボックス -->
                             <div class="flex-1 lg:flex-none lg:w-40">
                                 <div class="relative">
-                                    <input type="text" id="searchInput" placeholder="検索..." onkeyup="searchRegistrations()" class="w-full pl-7 pr-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                                    <input type="search" id="searchInput" placeholder="検索..." oninput="searchRegistrations()" autocomplete="off" class="w-full pl-7 pr-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-transparent touch-manipulation">
                                     <div class="absolute left-2 top-1.5">
                                         <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -2056,7 +2056,7 @@
                         <!-- 検索・フィルタエリア -->
                         <div class="bg-white rounded-xl p-3 md:p-4 mb-4 border border-gray-200">
                             <div class="flex flex-wrap gap-2 md:gap-4">
-                                <input type="text" id="franchiseSearchInput" placeholder="加盟店名で検索..." onkeyup="searchFranchises()" class="flex-1 min-w-[150px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                                <input type="search" id="franchiseSearchInput" placeholder="加盟店名で検索..." oninput="searchFranchises()" autocomplete="off" class="flex-1 min-w-[150px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm touch-manipulation">
                                 <select id="franchiseStatusFilter" onchange="filterFranchisesByStatus()" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
                                     <option value="all">全ステータス</option>
                                     <option value="active">アクティブ</option>
@@ -5068,10 +5068,11 @@
         function searchFranchises() {
             const searchTerm = document.getElementById('franchiseSearchInput')?.value.toLowerCase() || '';
             const statusFilter = document.getElementById('franchiseStatusFilter')?.value || 'all';
-            const tableRows = document.querySelectorAll('#franchise-table tbody tr');
-            const mobileCards = document.querySelectorAll('#franchise-mobile > div');
 
-            // テーブル行のフィルタリング
+            console.log('検索実行:', { searchTerm, statusFilter });
+
+            // PC版テーブル行のフィルタリング
+            const tableRows = document.querySelectorAll('#franchise-table tbody tr');
             tableRows.forEach(row => {
                 // 会社名とエリアを取得（1列目に会社名、2列目にエリア）
                 const companyCell = row.querySelector('td:nth-child(1)');
@@ -5092,37 +5093,54 @@
                 row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
             });
 
-            // モバイルカードのフィルタリング
-            mobileCards.forEach(card => {
-                const text = card.textContent.toLowerCase();
-                const statusBadge = card.querySelector('[class*="bg-"][class*="-100"]');
+            // モバイル版カードのフィルタリング（正しいセレクターを使用）
+            const mobileCards = document.querySelectorAll('#franchise-mobile-container > div');
+            console.log('モバイルカード数:', mobileCards.length);
 
-                // ステータステキストを取得
-                let cardStatus = '';
-                if (statusBadge) {
-                    const statusText = statusBadge.textContent.trim();
-                    // 日本語からvalueへのマッピング
-                    const statusValueMap = {
-                        'アクティブ': 'active',
-                        '非アクティブ': 'inactive',
-                        '一時停止': 'paused',
-                        '一時停止中': 'paused',
-                        'サイレント': 'silent',
-                        '休止': 'suspended',
-                        '退会': 'withdrawn'
-                    };
-                    cardStatus = statusValueMap[statusText] || '';
+            let visibleCount = 0;
+            mobileCards.forEach(card => {
+                // カードがデータ読み込み中のメッセージの場合はスキップ
+                if (card.textContent.includes('データを読み込み中')) {
+                    return;
                 }
 
+                // 会社名を取得（最初の font-semibold 要素）
+                const nameElement = card.querySelector('.font-semibold');
+                const companyName = nameElement?.textContent.toLowerCase() || '';
+
+                // エリアを取得
+                const areaElement = Array.from(card.querySelectorAll('.flex.justify-between')).find(el =>
+                    el.textContent.includes('エリア:')
+                );
+                const area = areaElement?.querySelector('span:last-child')?.textContent.toLowerCase() || '';
+
+                // ステータスセレクトボックスを取得
+                const statusSelect = card.querySelector('select.status-select');
+                const currentStatus = statusSelect?.value || '';
+
                 // 検索条件のチェック
-                const matchesSearch = searchTerm === '' || text.includes(searchTerm);
+                const matchesSearch = searchTerm === '' || companyName.includes(searchTerm) || area.includes(searchTerm);
 
                 // ステータス条件のチェック
-                const matchesStatus = statusFilter === 'all' || cardStatus === statusFilter;
+                const matchesStatus = statusFilter === 'all' || currentStatus === statusFilter;
 
                 // 両方の条件を満たす場合のみ表示
-                card.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+                const shouldShow = matchesSearch && matchesStatus;
+                card.style.display = shouldShow ? '' : 'none';
+
+                if (shouldShow) visibleCount++;
+
+                console.log('カード:', {
+                    companyName,
+                    area,
+                    currentStatus,
+                    matchesSearch,
+                    matchesStatus,
+                    shouldShow
+                });
             });
+
+            console.log('表示中のカード数:', visibleCount);
         }
 
         // ステータスでフィルタリング
@@ -5213,7 +5231,7 @@
         });
     </script>
     <!-- 管理ダッシュボード API連携 -->
-    <script src="js/dashboard-api.js?v=20250921_1940"></script>
+    <script src="js/dashboard-api.js?v=20250924_2345"></script>
     <script>
         // ページ読み込み完了後にデータを取得
         document.addEventListener('DOMContentLoaded', function() {

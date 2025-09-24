@@ -209,7 +209,7 @@
                 </svg>
                 ダッシュボード
             </a>
-            <a href="#assignment" onclick="showSection('assignment'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100 relative">
+            <a href="#assignment" onclick="showSection('assignment'); return false;" class="flex items-center px-4 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 text-gray-100 relative">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
@@ -1221,33 +1221,14 @@
             // 新しいステータスのクラスを追加
             select.className += ' ' + statusColors[status];
 
-            // ステータスラベルのマッピング
+            // APIコールを行う（実際のアプリケーションでの処理）
+            console.log(`加盟店 ${franchiseId} のステータスを ${status} に更新しました`);
+
+            // 成功メッセージを表示
             const statusLabels = {
                 'active': 'アクティブ',
                 'inactive': '非アクティブ',
-                'paused': '一時停止',
-                'silent': 'サイレント',
-                'suspended': '休止',
-                'withdrawn': '退会'
-            };
-
-            // APIコールでスプレッドシートを更新
-            const apiStatus = statusLabels[status];
-            updateFranchiseStatusAPI(franchiseId, apiStatus).then(response => {
-                console.log(`加盟店 ${franchiseId} のステータスを ${apiStatus} に更新しました`, response);
-                showNotification(`ステータスを「${apiStatus}」に更新しました`, 'success');
-            }).catch(error => {
-                console.error('ステータス更新エラー:', error);
-                showNotification('ステータスの更新に失敗しました', 'error');
-                // 元のステータスに戻す
-                location.reload();
-            });
-
-            // 成功メッセージを表示（即座にUI更新）
-            const statusLabelsDisplay = {
-                'active': 'アクティブ',
-                'inactive': '非アクティブ',
-                'paused': '一時停止',
+                'paused': '一時停止中',
                 'silent': 'サイレント',
                 'suspended': '休止',
                 'withdrawn': '退会'
@@ -1605,50 +1586,6 @@
             }
         }
 
-        // メニューのアクティブ状態を更新
-        function updateActiveMenu(activeSection) {
-            // すべてのメニューアイテムのアクティブクラスを削除
-            const menuItems = document.querySelectorAll('#sideMenu a');
-            menuItems.forEach(item => {
-                item.classList.remove('bg-gradient-to-r', 'from-blue-600', 'to-blue-500', 'text-gray-100');
-                item.classList.add('hover:bg-gray-800', 'text-gray-400', 'hover:text-gray-100');
-            });
-
-            // 現在のセクションのメニューをアクティブにする
-            let selector = '';
-            switch(activeSection) {
-                case 'dashboard':
-                    selector = 'a[href="#dashboard"]';
-                    break;
-                case 'assignment':
-                    selector = 'a[href="#assignment"]';
-                    break;
-                case 'franchise':
-                    selector = 'a[href="#franchise"]';
-                    break;
-                case 'registrationRequests':
-                    selector = 'a[href="#registration-requests"]';
-                    break;
-                case 'cancelRequests':
-                    selector = 'a[href="#cancel-requests"]';
-                    break;
-                case 'financial':
-                    selector = 'a[href="#financial"]';
-                    break;
-                case 'ranking':
-                    selector = 'a[href="#ranking"]';
-                    break;
-            }
-
-            if (selector) {
-                const activeItem = document.querySelector('#sideMenu ' + selector);
-                if (activeItem) {
-                    activeItem.classList.remove('hover:bg-gray-800', 'text-gray-400', 'hover:text-gray-100');
-                    activeItem.classList.add('bg-gradient-to-r', 'from-blue-600', 'to-blue-500', 'text-gray-100');
-                }
-            }
-        }
-
         // ソート機能
         function sortFranchises(sortType) {
             const button = event.target.closest('button');
@@ -1693,30 +1630,12 @@
         function showSection(sectionName) {
             // メニューを閉じる
             document.getElementById('sideMenu').classList.add('-translate-x-full');
-
-            // 初期案件管理コンテンツを保存（初回のみ）
-            if (!window.originalAssignmentContent && sectionName !== 'assignment') {
-                window.originalAssignmentContent = document.querySelector('main').innerHTML;
-            }
-
-            // URLハッシュを更新
-            window.location.hash = '#' + sectionName;
-
-            // メニューのアクティブ状態を更新
-            updateActiveMenu(sectionName);
-
-            const mainContent = document.querySelector('main');
-
+            
             // セクションに応じたコンテンツを表示
             if (sectionName === 'assignment') {
-                // 案件管理を表示（保存されていれば復元、なければ現在の内容を保持）
-                if (window.originalAssignmentContent) {
-                    mainContent.innerHTML = window.originalAssignmentContent;
-                }
-                // 案件管理の初期化処理が必要であれば実行
-                if (typeof initializeAssignment === 'function') {
-                    initializeAssignment();
-                }
+                // 案件管理を表示（ページリロード）
+                window.location.href = window.location.pathname + '#assignment';
+                location.reload();
             } else if (sectionName === 'dashboard') {
                 // 現在のコンテンツを非表示
                 const mainContent = document.querySelector('main');
@@ -1896,102 +1815,9 @@
             } else if (sectionName === 'franchise') {
                 // 加盟店管理セクション
                 const mainContent = document.querySelector('main');
+                window.location.href = '#franchise';
 
-                // 先に画面をクリアして加盟店管理の基本構造を表示
-                mainContent.innerHTML = ''; // 一旦クリア
-
-                // 後でスプレッドシートから実データを取得
-                loadFranchiseManagementData('all').then(response => {
-                    console.log('加盟店データ取得成功:', response);
-
-                    // データを画面用に変換
-                    window.franchiseData = response.data.map(f => ({
-                        id: f.id,
-                        name: f.companyName,
-                        avatar: {
-                            text: f.companyName ? f.companyName.substring(0, 1) : '？',
-                            colorClass: 'bg-blue-100',
-                            textColorClass: 'text-blue-600'
-                        },
-                        area: f.area,
-                        areaDetail: f.area,
-                        conversionRate: f.contractRate || 0,
-                        conversionChange: f.performance ? `${f.performance.trend}${f.performance.trendValue}%` : '+0%',
-                        conversionColorClass: f.performance && f.performance.trend === '+' ? 'text-green-600' : 'text-yellow-600',
-                        monthlyPerformance: {
-                            cases: f.deliveryCount ? f.deliveryCount.current : 0,
-                            amount: f.deliveryCount ? f.deliveryCount.unit : '¥0M'
-                        },
-                        handicap: f.handicap || 0,
-                        status: convertStatusForUI(f.status),
-                        memos: []
-                    }));
-
-                    // テーブルを更新
-                    const tbody = document.querySelector('#franchise-table tbody');
-                    if (tbody) {
-                        tbody.innerHTML = generateFranchiseRows(window.franchiseData);
-                    }
-
-                    // 統計を更新
-                    updateFranchiseStats(response.stats);
-                }).catch(error => {
-                    console.error('加盟店データ取得エラー:', error);
-                    showNotification('加盟店データの取得に失敗しました', 'error');
-                });
-
-                // ステータス変換関数
-                function convertStatusForUI(status) {
-                    const statusMap = {
-                        'アクティブ': 'active',
-                        '非アクティブ': 'inactive',
-                        '一時停止': 'paused',
-                        'サイレント': 'silent',
-                        '休止': 'suspended',
-                        '退会': 'withdrawn'
-                    };
-                    return statusMap[status] || 'active';
-                }
-
-                // 統計情報を更新する関数
-                function updateFranchiseStats(stats) {
-                    const statsHTML = `
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-                            <div class="bg-green-50 rounded-lg p-4">
-                                <div class="text-2xl font-bold text-green-600">${stats.active || 0}</div>
-                                <div class="text-xs text-gray-600">アクティブ</div>
-                            </div>
-                            <div class="bg-yellow-50 rounded-lg p-4">
-                                <div class="text-2xl font-bold text-yellow-600">${stats.paused || 0}</div>
-                                <div class="text-xs text-gray-600">一時停止</div>
-                            </div>
-                            <div class="bg-purple-50 rounded-lg p-4">
-                                <div class="text-2xl font-bold text-purple-600">${stats.silent || 0}</div>
-                                <div class="text-xs text-gray-600">サイレント</div>
-                            </div>
-                            <div class="bg-gray-50 rounded-lg p-4">
-                                <div class="text-2xl font-bold text-gray-600">${stats.inactive || 0}</div>
-                                <div class="text-xs text-gray-600">非アクティブ</div>
-                            </div>
-                            <div class="bg-red-50 rounded-lg p-4">
-                                <div class="text-2xl font-bold text-red-600">${stats.suspended || 0}</div>
-                                <div class="text-xs text-gray-600">休止</div>
-                            </div>
-                            <div class="bg-black rounded-lg p-4">
-                                <div class="text-2xl font-bold text-white">${stats.withdrawn || 0}</div>
-                                <div class="text-xs text-gray-300">退会</div>
-                            </div>
-                        </div>
-                    `;
-
-                    // 統計セクションを挿入
-                    const searchArea = document.querySelector('.bg-white.rounded-xl.p-4.mb-6');
-                    if (searchArea) {
-                        searchArea.insertAdjacentHTML('beforebegin', statsHTML);
-                    }
-                }
-
-                // 初期モックデータ（データ取得中の表示用）
+                // モックデータ（本番環境ではAPIから取得）
                 window.franchiseData = [
                     {
                         id: 'F001',
@@ -2036,57 +1862,6 @@
                         memos: []
                     }
                 ];
-
-                // 先に加盟店管理画面のHTMLを設定
-                mainContent.innerHTML = `
-                    <div class="pt-20 px-6 max-w-7xl mx-auto">
-                        <div class="mb-8">
-                            <h1 class="text-3xl font-bold text-gray-800 mb-2">加盟店管理</h1>
-                            <p class="text-gray-600">加盟店の情報管理・パフォーマンス分析</p>
-                        </div>
-
-                        <div id="franchise-stats-container"></div>
-
-                        <!-- 検索・フィルタエリア -->
-                        <div class="bg-white rounded-xl p-4 mb-6 border border-gray-200">
-                            <div class="flex flex-wrap gap-4">
-                                <input type="text" placeholder="加盟店名で検索..." class="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                    <option>全ステータス</option>
-                                    <option>アクティブ</option>
-                                    <option>非アクティブ</option>
-                                    <option>一時停止中</option>
-                                    <option>サイレント</option>
-                                    <option>休止</option>
-                                    <option>退会</option>
-                                </select>
-                                <button class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">検索</button>
-                            </div>
-                        </div>
-
-                        <!-- 加盟店リスト -->
-                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                            <div class="overflow-x-auto hidden md:block">
-                                <table class="w-full min-w-[900px]" id="franchise-table">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">加盟店名</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">エリア</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">成約率</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">今月実績</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ハンデ</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ステータス</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">アクション</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-200" id="franchiseTableBody">
-                                        <tr><td colspan="7" class="text-center py-4 text-gray-500">データを読み込み中...</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                `;
 
                 // テーブル行を生成する関数
                 function generateFranchiseRows(franchises) {
@@ -2149,6 +1924,14 @@
                     return statusColors[status] || statusColors['active'];
                 }
 
+                mainContent.innerHTML = `
+                    <div class="pt-20 px-6 max-w-7xl mx-auto">
+                        <div class="mb-8">
+                            <h1 class="text-3xl font-bold text-gray-800 mb-2">加盟店管理</h1>
+                            <p class="text-gray-600">加盟店の情報管理・パフォーマンス分析</p>
+                        </div>
+                        
+                        <!-- 検索・フィルタエリア -->
                         <div class="bg-white rounded-xl p-4 mb-6 border border-gray-200">
                             <div class="flex flex-wrap gap-4">
                                 <input type="text" placeholder="加盟店名で検索..." class="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -2246,7 +2029,7 @@
                         <!-- 加盟店リスト -->
                         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
                             <div class="overflow-x-auto hidden md:block">
-                            <table class="w-full min-w-[900px]" id="franchise-table">
+                            <table class="w-full min-w-[900px]">
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">加盟店名</th>
@@ -5136,26 +4919,11 @@
             console.log('=== DOMContentLoaded - 初期化開始 ===');
             console.log('casesData:', casesData);
             console.log('Total cases:', Object.keys(casesData).length);
-
-            // 初期の案件管理コンテンツを保存（現在表示されているのが案件管理）
-            window.originalAssignmentContent = document.querySelector('main').innerHTML;
-
+            
             // ハッシュ処理
-            const hash = window.location.hash.slice(1);
-
-            // URLにハッシュがない場合、またはfranchiseの場合は加盟店管理を表示
-            if (!hash || hash === 'franchise') {
-                setTimeout(() => {
-                    showSection('franchise');
-                }, 100);
-            } else if (hash === 'assignment') {
-                // 案件管理の場合は何もしない（既に表示されている）
-                console.log('案件管理を表示中');
-            } else {
-                // その他のセクションを表示
-                setTimeout(() => {
-                    showSection(hash);
-                }, 100);
+            const hash = window.location.hash.slice(1) || 'assignment';
+            if (hash === 'dashboard') {
+                showSection('dashboard');
             }
             
             // 関数の初期化
