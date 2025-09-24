@@ -3,7 +3,7 @@
  */
 
 // GAS API Endpoint - franchise-register project (最新版)
-const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbye_awLqu72CYKkQyhbk8P1mEr8Y8pstRDQ8iDI7SS9iAn1qzESzJuExMttK7sQhEVgSA/exec';
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyzg4ya3UOGalQIFysktGqvnLnyLzmjO662a690cp67kSG9ot7anbJYHtbi0Re5vw5oXg/exec';
 const GAS_URL = GAS_API_URL; // 互換性のためのエイリアス
 
 /**

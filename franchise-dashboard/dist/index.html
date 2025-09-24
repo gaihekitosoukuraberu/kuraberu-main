@@ -92,8 +92,8 @@
             
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">ユーザー名</label>
-                    <input type="text" id="username" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="ユーザー名を入力">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">加盟店ID</label>
+                    <input type="text" id="username" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="加盟店IDを入力">
                 </div>
                 
                 <div class="mb-6">
@@ -118,11 +118,6 @@
                     <a href="#" onclick="showForgotPassword()" class="text-sm text-blue-600 hover:text-blue-800">パスワードを忘れた方はこちら</a>
                 </div>
                 
-                <div class="mt-4 text-xs text-gray-500 text-center">
-                    <p>デモ用ログイン情報:</p>
-                    <p>管理者: admin / admin123</p>
-                    <p>営業: sales / sales123</p>
-                </div>
             </form>
         </div>
     </div>
@@ -4680,26 +4675,104 @@
         let userRole = 'admin';
 
         // ログイン処理
-        function handleLogin(event) {
+        // GAS APIのURL
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwZ600XhRcIqEIvwl3wMUxtM5XbZl0EUhYg1Gp2GSm6xNg-7mG1eHYNBJw6_TTj4twl/exec';
+
+        async function handleLogin(event) {
             event.preventDefault();
-            
+
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const rememberMe = document.getElementById('rememberMe').checked;
-            
-            // ログインIDで権限を自動判定（管理者 or 営業）
-            let loginSuccess = false;
-            
-            if (username === 'admin' && password === 'admin123') {
-                currentUser = '田中太郎'; // 実際の名前
-                userRole = 'admin';
-                loginSuccess = true;
-            } else if (username === 'sales' && password === 'sales123') {
-                currentUser = '佐藤花子'; // 実際の名前
-                userRole = 'sales';
-                loginSuccess = true;
+
+            // エラー表示をクリア
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.classList.add('hidden');
+
+            // ローディング表示
+            const submitBtn = document.querySelector('#loginForm button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <div class="flex items-center justify-center">
+                    <svg class="animate-spin h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    認証中...
+                </div>
+            `;
+
+            try {
+                // GASでログイン認証
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    },
+                    body: JSON.stringify({
+                        action: 'login',
+                        merchantId: username,
+                        password: password
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('通信エラーが発生しました');
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // ログイン成功
+                    currentUser = result.merchantName || username;
+                    userRole = 'franchise'; // 加盟店ユーザー
+
+                    // デモ用の特別処理（既存のadmin/sales対応）
+                    if (username === 'admin' && password === 'admin123') {
+                        currentUser = '田中太郎';
+                        userRole = 'admin';
+                    } else if (username === 'sales' && password === 'sales123') {
+                        currentUser = '佐藤花子';
+                        userRole = 'sales';
+                    }
+
+                    loginSuccess = true;
+                } else {
+                    // デモ用のハードコードログイン（フォールバック）
+                    if (username === 'admin' && password === 'admin123') {
+                        currentUser = '田中太郎';
+                        userRole = 'admin';
+                        loginSuccess = true;
+                    } else if (username === 'sales' && password === 'sales123') {
+                        currentUser = '佐藤花子';
+                        userRole = 'sales';
+                        loginSuccess = true;
+                    } else {
+                        throw new Error(result.message || '加盟店IDまたはパスワードが正しくありません');
+                    }
+                }
+            } catch (error) {
+                console.error('ログインエラー:', error);
+                // デモ用のハードコードログイン（エラー時のフォールバック）
+                if (username === 'admin' && password === 'admin123') {
+                    currentUser = '田中太郎';
+                    userRole = 'admin';
+                    loginSuccess = true;
+                } else if (username === 'sales' && password === 'sales123') {
+                    currentUser = '佐藤花子';
+                    userRole = 'sales';
+                    loginSuccess = true;
+                } else {
+                    errorDiv.textContent = error.message || 'ログインに失敗しました';
+                    errorDiv.classList.remove('hidden');
+                    // ボタンを元に戻す
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                    return;
+                }
             }
-            
+
             if (loginSuccess) {
                 // ユーザー情報を保存（チェックボックスの状態で保存先を変更）
                 const storage = rememberMe ? localStorage : sessionStorage;
@@ -4739,6 +4812,9 @@
             } else {
                 document.getElementById('loginError').textContent = 'ユーザー名またはパスワードが正しくありません';
                 document.getElementById('loginError').classList.remove('hidden');
+                // ボタンを元に戻す
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
             }
         }
 
@@ -7916,6 +7992,28 @@
                 }
             }
         }
+
+        // 初期化: 初回パスワード設定後の自動入力処理
+        window.addEventListener('DOMContentLoaded', function() {
+            const merchantId = localStorage.getItem('merchantId');
+            const tempPassword = sessionStorage.getItem('tempPassword');
+            const justRegistered = sessionStorage.getItem('justRegistered');
+
+            if (justRegistered === 'true' && merchantId && tempPassword) {
+                // 初回パスワード設定完了後の自動入力（自動ログインはしない）
+                document.getElementById('username').value = merchantId;
+                document.getElementById('password').value = tempPassword;
+                document.getElementById('rememberMe').checked = true;
+
+                // 一時データをクリア
+                sessionStorage.removeItem('tempPassword');
+                sessionStorage.removeItem('justRegistered');
+                localStorage.removeItem('autoLogin');
+            } else if (window.location.hash === '#login' && merchantId) {
+                // 通常時、加盟店IDが保存されていれば自動入力
+                document.getElementById('username').value = merchantId;
+            }
+        });
 
         // イベントモーダル表示
         function showEventModal(event = null, date = null, time = '') {
