@@ -4732,12 +4732,14 @@
                     console.log('Full result:', result);
                     console.log('result.data:', result.data);
                     console.log('result.merchantData:', result.merchantData);
+                    console.log('result object keys:', Object.keys(result));
+                    console.log('result stringified:', JSON.stringify(result, null, 2));
 
                     if (result.data && result.data.merchantId) {
                         window.merchantId = result.data.merchantId;
                         window.merchantData = result.data;
                         console.log('Saved to window.merchantData:', result.data);
-                    } else if (result.data) {
+                    } else if (result.data && Object.keys(result.data).length > 0) {
                         // merchantIdがない場合はusernameを使用
                         window.merchantId = username;
                         window.merchantData = result.data;
@@ -4749,11 +4751,23 @@
                         window.merchantId = result.merchantData.merchantId || username;
                         window.merchantData = result.merchantData;
                         console.log('Saved from result.merchantData:', result.merchantData);
-                    } else {
-                        // フォールバック
-                        window.merchantId = username;
+                    } else if (result.companyName || result.company_name || result.merchantId) {
+                        // resultの直下にデータがある場合
+                        window.merchantId = result.merchantId || username;
                         window.merchantData = result;
-                        console.log('Fallback: using username and full result');
+                        console.log('Direct result data: using result object directly');
+                        console.log('Result has companyName:', result.companyName);
+                    } else {
+                        // 最終フォールバック - result全体を使用
+                        window.merchantId = username;
+                        // dataプロパティが空でもresult自体にデータがある可能性
+                        const actualData = {...result};
+                        delete actualData.success;
+                        delete actualData.message;
+                        delete actualData.data; // 空のdataプロパティを削除
+                        window.merchantData = actualData;
+                        console.log('Final fallback: extracting data from result');
+                        console.log('Extracted data:', actualData);
                     }
 
                     // デモ用の特別処理（既存のadmin/sales対応）
