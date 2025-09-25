@@ -4728,6 +4728,13 @@
                     currentUser = result.merchantName || username;
                     userRole = 'franchise'; // 加盟店ユーザー
 
+                    // 加盟店データをグローバル変数に保存
+                    if (result.data && result.data.merchantId) {
+                        window.merchantId = result.data.merchantId;
+                        window.merchantData = result.data;
+                        console.log('Merchant data saved:', result.data);
+                    }
+
                     // デモ用の特別処理（既存のadmin/sales対応）
                     if (username === 'admin' && password === 'admin123') {
                         currentUser = '田中太郎';
