@@ -4728,7 +4728,10 @@
                 if (result.success && result.success.success === true) {
                     // ログイン成功
                     currentUser = result.success.merchantName || username;
-                    userRole = 'franchise'; // 加盟店ユーザー
+
+                    // 加盟店IDでログイン = 管理権限
+                    // 営業担当者は今後別の方法でログイン予定
+                    userRole = 'admin'; // 加盟店管理者権限
 
                     // 加盟店データをグローバル変数に保存
                     console.log('===== GAS RESPONSE STRUCTURE =====');
@@ -4755,7 +4758,7 @@
                 } else if (result.success) {
                     // 旧形式のレスポンスに対応
                     currentUser = result.merchantName || username;
-                    userRole = 'franchise';
+                    userRole = 'admin'; // 加盟店IDログイン = 管理権限
 
                     console.log('Using legacy response format');
                     window.merchantId = username;
@@ -4860,8 +4863,8 @@
         // ロール表示更新
         function updateRoleDisplay() {
             const roleNames = {
-                'admin': '管理者',
-                'sales': '営業'
+                'admin': '管理者',  // 加盟店IDログイン（FR09242320など）
+                'sales': '営業'     // 今後実装予定の営業担当者ログイン
             };
             
             // ユーザー名とロールを表示
