@@ -7045,6 +7045,28 @@
                     }, 10);
                 }
 
+                // 会社情報セクションの場合、加盟店データを読み込み
+                if (sectionName === 'company') {
+                    console.log('==== COMPANY SECTION OPENED ====');
+                    if (window.merchantId) {
+                        console.log('Loading merchant data for:', window.merchantId);
+                        setTimeout(() => loadMerchantData(window.merchantId), 100);
+                    } else {
+                        console.log('No merchantId available for data loading');
+                    }
+                }
+
+                // 自動配信設定セクションの場合、加盟店データを読み込み
+                if (sectionName === 'autodelivery') {
+                    console.log('==== AUTODELIVERY SECTION OPENED ====');
+                    if (window.merchantId) {
+                        console.log('Loading merchant data for autodelivery:', window.merchantId);
+                        setTimeout(() => loadMerchantData(window.merchantId), 100);
+                    } else {
+                        console.log('No merchantId available for autodelivery');
+                    }
+                }
+
                 // 会社情報セクションの場合は支店マップを更新
                 if (sectionName === 'company') {
                     setTimeout(() => {
@@ -8790,6 +8812,130 @@
         // 案件データを取得する関数
         function getCasesData() {
             return casesData;
+        }
+
+        // 加盟店データをフォームに自動入力する関数
+        function loadMerchantData(merchantId, merchantData = null) {
+            console.log('===== loadMerchantData START =====');
+            console.log('merchantId:', merchantId);
+            console.log('merchantData from login:', merchantData || window.merchantData);
+
+            const data = merchantData || window.merchantData;
+            if (!data) {
+                console.log('No merchant data available');
+                return;
+            }
+
+            console.log('=== APPLYING MERCHANT DATA TO FORMS ===');
+            console.log('Data keys:', Object.keys(data));
+            console.log('Full data:', data);
+
+            console.log('==== POPULATING FORM FIELDS ====');
+
+            // 会社情報フォームフィールドのマッピング
+            const fieldMappings = {
+                companyName: ['companyName', 'company_name', '会社名'],
+                companyNameKana: ['companyNameKana', 'company_name_kana', '会社名カナ'],
+                tradeName: ['tradeName', 'trade_name', '屋号'],
+                tradeNameKana: ['tradeNameKana', 'trade_name_kana', '屋号カナ'],
+                representative: ['representative', 'representative_name', '代表者名'],
+                representativeKana: ['representativeKana', 'representative_kana', '代表者名カナ'],
+                zipCode: ['zipCode', 'postal_code', '郵便番号'],
+                address: ['address', '住所'],
+                phone: ['phone', 'tel', '電話番号'],
+                website: ['website', 'url', 'ホームページ'],
+                established: ['established', 'establishment_date', '設立年月日'],
+                prText: ['prText', 'pr_text', 'PR文'],
+                branchName: ['branchName', 'branch_name', '支店名'],
+                branchAddress: ['branchAddress', 'branch_address', '支店住所'],
+                billingEmail: ['billingEmail', 'billing_email', '請求先メール'],
+                salesEmail: ['salesEmail', 'sales_email', '営業メール'],
+                salesPersonName: ['salesPersonName', 'sales_person_name', '営業担当者名'],
+                salesPersonKana: ['salesPersonKana', 'sales_person_kana', '営業担当者名カナ'],
+                employees: ['employees', 'employee_count', '従業員数'],
+                salesScale: ['salesScale', 'sales_scale', '売上規模'],
+                maxFloors: ['maxFloors', 'max_floors', '最大階数'],
+                buildingAge: ['buildingAge', 'building_age', '建物築年数'],
+                specialItems: ['specialItems', 'special_items', '特殊工事'],
+                cities: ['cities', 'service_areas', '対応エリア'],
+                priorityAreas: ['priorityAreas', 'priority_areas', '重点エリア']
+            };
+
+            // フィールドに値を設定
+            Object.keys(fieldMappings).forEach(fieldId => {
+                const possibleKeys = fieldMappings[fieldId];
+                let value = null;
+
+                // データから値を検索
+                for (const key of possibleKeys) {
+                    if (data[key] !== undefined && data[key] !== null && data[key] !== '') {
+                        value = data[key];
+                        break;
+                    }
+                }
+
+                const element = document.getElementById(fieldId) ||
+                               document.querySelector(`input[placeholder*="${fieldId}"]`) ||
+                               document.querySelector(`input[name="${fieldId}"]`);
+
+                if (element && value) {
+                    element.value = value;
+                    console.log(`✓ Set ${fieldId} = ${value}`);
+                } else if (element) {
+                    console.log(`⚪ Empty data for ${fieldId}`);
+                } else {
+                    console.log(`❌ Element not found for ${fieldId}`);
+                }
+            });
+
+            console.log('=== AUTO-POPULATING DELIVERY SETTINGS ===');
+
+            // 自動配信設定のマッピング
+            if (data.deliverySettings || data.delivery_settings) {
+                const deliveryData = data.deliverySettings || data.delivery_settings;
+                console.log('Auto delivery settings:', deliveryData);
+
+                // 年齢範囲
+                if (deliveryData.ageMin !== undefined) {
+                    const ageMinEl = document.getElementById('ageMin');
+                    if (ageMinEl) {
+                        ageMinEl.value = deliveryData.ageMin;
+                        console.log(`✓ Set age range min: ${deliveryData.ageMin}`);
+                    }
+                }
+                if (deliveryData.ageMax !== undefined) {
+                    const ageMaxEl = document.getElementById('ageMax');
+                    if (ageMaxEl) {
+                        ageMaxEl.value = deliveryData.ageMax;
+                        console.log(`✓ Set age range max: ${deliveryData.ageMax}`);
+                    }
+                }
+
+                // その他の自動配信設定...
+            } else {
+                // デフォルト値設定
+                const ageMinEl = document.getElementById('ageMin');
+                const ageMaxEl = document.getElementById('ageMax');
+                if (ageMinEl && !ageMinEl.value) {
+                    ageMinEl.value = '10';
+                    console.log('✓ Set age range min: 10');
+                }
+                if (ageMaxEl && !ageMaxEl.value) {
+                    ageMaxEl.value = '100';
+                    console.log('✓ Set age range max: 100');
+                }
+            }
+
+            console.log('=== UPDATING COMPANY DISPLAYS ===');
+            // 会社名表示の更新
+            if (data.companyName || data.company_name) {
+                const companyDisplays = document.querySelectorAll('.company-name-display');
+                companyDisplays.forEach(el => {
+                    el.textContent = data.companyName || data.company_name;
+                });
+            }
+
+            console.log('===== loadMerchantData COMPLETE =====');
         }
 
         // 案件カードを動的に生成
