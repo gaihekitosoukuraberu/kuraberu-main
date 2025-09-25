@@ -2373,11 +2373,11 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">会社名 <span class="text-red-500">*</span></label>
-                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="例: 株式会社くらべる塗装" value="株式会社くらべる塗装">
+                                <input type="text" id="companyName" class="w-full px-3 py-2 border rounded-lg" placeholder="例: 株式会社くらべる塗装" value="株式会社くらべる塗装">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">会社名カナ <span class="text-red-500">*</span></label>
-                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="カタカナで入力" value="">
+                                <input type="text" id="companyNameKana" class="w-full px-3 py-2 border rounded-lg" placeholder="カタカナで入力" value="">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">屋号</label>
@@ -2441,35 +2441,35 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">屋号カナ</label>
-                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="カタカナで入力" value="">
+                                <input type="text" id="tradeNameKana" class="w-full px-3 py-2 border rounded-lg" placeholder="カタカナで入力" value="">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">代表者名 <span class="text-red-500">*</span></label>
-                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="代表者名を入力" value="">
+                                <input type="text" id="representative" class="w-full px-3 py-2 border rounded-lg" placeholder="代表者名を入力" value="">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">代表者名カナ <span class="text-red-500">*</span></label>
-                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="カタカナで入力" value="">
+                                <input type="text" id="representativeKana" class="w-full px-3 py-2 border rounded-lg" placeholder="カタカナで入力" value="">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">郵便番号 <span class="text-red-500">*</span></label>
-                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="123-4567" value="123-4567">
+                                <input type="text" id="zipCode" class="w-full px-3 py-2 border rounded-lg" placeholder="123-4567" value="123-4567">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">住所 <span class="text-red-500">*</span></label>
-                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="東京都港区青山1-1-1" value="東京都港区青山1-1-1">
+                                <input type="text" id="address" class="w-full px-3 py-2 border rounded-lg" placeholder="東京都港区青山1-1-1" value="東京都港区青山1-1-1">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">電話番号 <span class="text-red-500">*</span></label>
-                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="03-1234-5678" value="03-1234-5678">
+                                <input type="text" id="phone" class="w-full px-3 py-2 border rounded-lg" placeholder="03-1234-5678" value="03-1234-5678">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">ウェブサイトURL</label>
-                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="https://example.com" value="">
+                                <input type="text" id="website" class="w-full px-3 py-2 border rounded-lg" placeholder="https://example.com" value="">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">設立年月</label>
-                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="2010年4月" value="2010年4月">
+                                <input type="text" id="established" class="w-full px-3 py-2 border rounded-lg" placeholder="2010年4月" value="2010年4月">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">特徴・PR文 <span class="text-red-500">*</span></label>
@@ -4676,7 +4676,7 @@
 
         // ログイン処理
         // GAS APIのURL
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwZ600XhRcIqEIvwl3wMUxtM5XbZl0EUhYg1Gp2GSm6xNg-7mG1eHYNBJw6_TTj4twl/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwDo9CzXFB33zMvdApSQN5J23EB3gSOnYaWmBhYyFsDgA5XKHVG6wEKC8LgVEaHIDYYow/exec';
 
         async function handleLogin(event) {
             event.preventDefault();
@@ -4729,10 +4729,31 @@
                     userRole = 'franchise'; // 加盟店ユーザー
 
                     // 加盟店データをグローバル変数に保存
+                    console.log('Full result:', result);
+                    console.log('result.data:', result.data);
+                    console.log('result.merchantData:', result.merchantData);
+
                     if (result.data && result.data.merchantId) {
                         window.merchantId = result.data.merchantId;
                         window.merchantData = result.data;
-                        console.log('Merchant data saved:', result.data);
+                        console.log('Saved to window.merchantData:', result.data);
+                    } else if (result.data) {
+                        // merchantIdがない場合はusernameを使用
+                        window.merchantId = username;
+                        window.merchantData = result.data;
+                        console.log('Saved with username as merchantId:', username);
+                        console.log('Data keys:', Object.keys(result.data));
+                        console.log('Data values sample:', result.data);
+                    } else if (result.merchantData) {
+                        // 別の形式でデータが返される場合
+                        window.merchantId = result.merchantData.merchantId || username;
+                        window.merchantData = result.merchantData;
+                        console.log('Saved from result.merchantData:', result.merchantData);
+                    } else {
+                        // フォールバック
+                        window.merchantId = username;
+                        window.merchantData = result;
+                        console.log('Fallback: using username and full result');
                     }
 
                     // デモ用の特別処理（既存のadmin/sales対応）
@@ -4801,6 +4822,20 @@
                 
                 // ダッシュボードを表示
                 showSection('dashboard');
+
+                // デバッグ: 保存されたmerchantDataを確認
+                console.log('==== BEFORE loadMerchantData CALL ====');
+                console.log('window.merchantId:', window.merchantId);
+                console.log('window.merchantData exists:', !!window.merchantData);
+                if (window.merchantData) {
+                    console.log('window.merchantData keys:', Object.keys(window.merchantData));
+                }
+
+                // 会社情報と自動配信設定を事前にロード（デバッグ用）
+                if (window.merchantId && window.merchantData) {
+                    console.log('==== CALLING loadMerchantData ====');
+                    setTimeout(() => loadMerchantData(window.merchantId, window.merchantData), 500);
+                }
 
                 // 案件カードを初期化
                 setTimeout(() => {
