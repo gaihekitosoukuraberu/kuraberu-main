@@ -2472,8 +2472,24 @@
                                 <input type="text" id="established" class="w-full px-3 py-2 border rounded-lg" placeholder="2010年4月" value="2010年4月">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">特徴・PR文 <span class="text-red-500">*</span></label>
-                                <textarea class="w-full px-3 py-2 border rounded-lg" rows="4" placeholder="会社の特徴やPR文を入力してください"></textarea>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">キャッチフレーズ（M列）</label>
+                                <input type="text" id="catchphrase" class="w-full px-3 py-2 border rounded-lg" placeholder="御社のキャッチフレーズを入力" value="">
+                                <p class="text-xs text-gray-500 mt-1">例：安心・信頼の塗装サービス</p>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">PR文（N列） <span class="text-red-500">*</span></label>
+                                <textarea id="prText"
+                                    class="w-full px-3 py-2 border rounded-lg resize-y"
+                                    rows="8"
+                                    maxlength="2000"
+                                    placeholder="会社の特徴やPR文を入力してください（最大2000文字）"
+                                    style="min-height: 150px;"></textarea>
+                                <div class="flex justify-between items-center mt-1">
+                                    <p class="text-xs text-gray-500">スプレッドシートから完全なPR文を読み込みます。省略されません。</p>
+                                    <p class="text-xs text-gray-500">
+                                        <span id="prTextCharCount">0</span>/2000文字
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2493,19 +2509,19 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">請求用メールアドレス <span class="text-red-500">*</span></label>
-                                <input type="email" class="w-full px-3 py-2 border rounded-lg" placeholder="billing@example.com" value="billing@example.com">
+                                <input type="email" id="billingEmail" class="w-full px-3 py-2 border rounded-lg" placeholder="billing@example.com" value="">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">営業用メールアドレス <span class="text-red-500">*</span></label>
-                                <input type="email" class="w-full px-3 py-2 border rounded-lg" placeholder="sales@company.co.jp" value="sales@company.co.jp">
+                                <input type="email" id="salesEmail" class="w-full px-3 py-2 border rounded-lg" placeholder="sales@company.co.jp" value="">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">営業担当者氏名 <span class="text-red-500">*</span></label>
-                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="営業担当者の氏名を入力" value="営業担当者の氏名を入力">
+                                <input type="text" id="salesPersonName" class="w-full px-3 py-2 border rounded-lg" placeholder="営業担当者の氏名を入力" value="">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">営業担当者カナ <span class="text-red-500">*</span></label>
-                                <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="ヤマダ タロウ" value="ヤマダ タロウ">
+                                <input type="text" id="salesPersonKana" class="w-full px-3 py-2 border rounded-lg" placeholder="ヤマダ タロウ" value="">
                             </div>
                         </div>
                     </div>
@@ -4975,18 +4991,86 @@
         }
 
         // 自動保存
-        function autoSave() {
+        async function autoSave() {
             // 保存インジケーターを表示
             const saveIndicator = document.querySelector('#companySection .text-green-500');
             if (saveIndicator) {
                 saveIndicator.parentElement.parentElement.style.opacity = '0.5';
-                setTimeout(() => {
-                    saveIndicator.parentElement.parentElement.style.opacity = '1';
-                }, 500);
             }
 
-            // 実際の保存処理（API呼び出しなど）はここに実装
-            console.log('自動保存しました');
+            // フォームからデータを収集
+            const formData = {
+                merchantId: window.merchantId,
+                companyName: document.getElementById('companyName')?.value || '',
+                tradeName: document.getElementById('tradeName')?.value || '',
+                postalCode: document.getElementById('postalCode')?.value || '',
+                prefecture: document.getElementById('prefecture')?.value || '',
+                city: document.getElementById('city')?.value || '',
+                address: document.getElementById('address')?.value || '',
+                building: document.getElementById('building')?.value || '',
+                phone: document.getElementById('phone')?.value || '',
+                email: document.getElementById('email')?.value || '',
+                website: document.getElementById('website')?.value || '',
+
+                // M列とN列のフィールド
+                catchphrase: document.getElementById('catchphrase')?.value || '',
+                prText: document.getElementById('prText')?.value || '', // 完全なテキストを送信（切り詰めない）
+
+                // その他のフィールド
+                businessHours: document.getElementById('businessHours')?.value || '',
+                holidays: document.getElementById('holidays')?.value || '',
+                paymentMethods: document.getElementById('paymentMethods')?.value || '',
+
+                // 担当者情報
+                contactPerson: document.getElementById('contactPerson')?.value || '',
+                contactPersonKana: document.getElementById('contactPersonKana')?.value || '',
+                contactPhone: document.getElementById('contactPhone')?.value || '',
+                contactEmail: document.getElementById('contactEmail')?.value || '',
+
+                // メール設定
+                billingEmail: document.getElementById('billingEmail')?.value || '',
+                salesEmail: document.getElementById('salesEmail')?.value || '',
+                salesPersonName: document.getElementById('salesPersonName')?.value || '',
+                salesPersonKana: document.getElementById('salesPersonKana')?.value || ''
+            };
+
+            try {
+                // GASに保存リクエストを送信
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    },
+                    body: JSON.stringify({
+                        action: 'updateMerchantData',
+                        merchantId: window.merchantId,
+                        data: formData
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    console.log('✅ 自動保存完了');
+                    console.log('保存したPRテキスト長さ:', formData.prText.length, '文字');
+
+                    // 保存インジケーターを元に戻す
+                    if (saveIndicator) {
+                        setTimeout(() => {
+                            saveIndicator.parentElement.parentElement.style.opacity = '1';
+                        }, 500);
+                    }
+                } else {
+                    console.error('❌ 保存エラー:', result.error);
+                    showNotification('エラー', '保存に失敗しました', 'error');
+                }
+            } catch (error) {
+                console.error('❌ 通信エラー:', error);
+                // エラー時も見た目を元に戻す
+                if (saveIndicator) {
+                    saveIndicator.parentElement.parentElement.style.opacity = '1';
+                }
+            }
         }
 
         // 会社情報の保存（廃止予定）
@@ -6685,6 +6769,24 @@
                             e.preventDefault();
                             addCustomInsurance();
                         }
+                    });
+                }
+
+                // PR文の文字数カウンター
+                const prTextArea = document.getElementById('prText');
+                const prTextCharCount = document.getElementById('prTextCharCount');
+                if (prTextArea && prTextCharCount) {
+                    // 初期表示
+                    prTextCharCount.textContent = prTextArea.value.length;
+
+                    // 入力時のカウント更新とテキストエリアの高さ自動調整
+                    prTextArea.addEventListener('input', (e) => {
+                        const length = e.target.value.length;
+                        prTextCharCount.textContent = length;
+
+                        // テキストエリアの高さを内容に合わせて自動調整
+                        e.target.style.height = 'auto';
+                        e.target.style.height = Math.max(150, e.target.scrollHeight) + 'px';
                     });
                 }
             }
@@ -8880,6 +8982,7 @@
                 phone: ['phone', 'tel', '電話番号'],
                 website: ['website', 'url', 'ホームページ'],
                 established: ['established', 'establishment_date', '設立年月日'],
+                catchphrase: ['catchphrase', 'catch_phrase', 'キャッチフレーズ'],
                 prText: ['prText', 'pr_text', 'PR文'],
                 branchName: ['branchName', 'branch_name', '支店名'],
                 branchAddress: ['branchAddress', 'branch_address', '支店住所'],
@@ -8915,7 +9018,19 @@
 
                 if (element && value) {
                     element.value = value;
-                    console.log(`✓ Set ${fieldId} = ${value}`);
+
+                    // PR文の特別なログ出力（文字数確認）
+                    if (fieldId === 'prText') {
+                        console.log(`✓ Set ${fieldId} = [${value.length}文字] ${value.substring(0, 50)}...`);
+                        console.log(`  完全なPR文: ${value}`);
+                        // テキストエリアの高さを自動調整
+                        element.style.height = 'auto';
+                        element.style.height = element.scrollHeight + 'px';
+                    } else if (fieldId === 'catchphrase') {
+                        console.log(`✓ Set ${fieldId} = "${value}"`);
+                    } else {
+                        console.log(`✓ Set ${fieldId} = ${value}`);
+                    }
                 } else if (element) {
                     console.log(`⚪ Empty data for ${fieldId}`);
                 } else {
