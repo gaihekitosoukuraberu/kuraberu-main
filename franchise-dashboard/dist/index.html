@@ -2471,25 +2471,18 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">設立年月</label>
                                 <input type="text" id="established" class="w-full px-3 py-2 border rounded-lg" placeholder="2010年4月" value="2010年4月">
                             </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">キャッチフレーズ（M列）</label>
-                                <input type="text" id="catchphrase" class="w-full px-3 py-2 border rounded-lg" placeholder="御社のキャッチフレーズを入力" value="">
-                                <p class="text-xs text-gray-500 mt-1">例：安心・信頼の塗装サービス</p>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">PR文（N列） <span class="text-red-500">*</span></label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">PR文 <span class="text-red-500">*</span></label>
                                 <textarea id="prText"
                                     class="w-full px-3 py-2 border rounded-lg resize-y"
-                                    rows="8"
-                                    maxlength="2000"
-                                    placeholder="会社の特徴やPR文を入力してください（最大2000文字）"
-                                    style="min-height: 150px;"></textarea>
-                                <div class="flex justify-between items-center mt-1">
-                                    <p class="text-xs text-gray-500">スプレッドシートから完全なPR文を読み込みます。省略されません。</p>
-                                    <p class="text-xs text-gray-500">
-                                        <span id="prTextCharCount">0</span>/2000文字
-                                    </p>
-                                </div>
+                                    rows="10"
+                                    placeholder="会社の特徴やPR文を入力してください"
+                                    style="min-height: 200px;"></textarea>
+                                <p class="text-xs text-gray-500 mt-1 text-right">
+                                    <span id="prTextCharCount">0</span>文字
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -5012,9 +5005,8 @@
                 email: document.getElementById('email')?.value || '',
                 website: document.getElementById('website')?.value || '',
 
-                // M列とN列のフィールド
-                catchphrase: document.getElementById('catchphrase')?.value || '',
-                prText: document.getElementById('prText')?.value || '', // 完全なテキストを送信（切り詰めない）
+                // N列のフィールド
+                prText: document.getElementById('prText')?.value || '', // 完全なテキストを送信
 
                 // その他のフィールド
                 businessHours: document.getElementById('businessHours')?.value || '',
@@ -6786,7 +6778,7 @@
 
                         // テキストエリアの高さを内容に合わせて自動調整
                         e.target.style.height = 'auto';
-                        e.target.style.height = Math.max(150, e.target.scrollHeight) + 'px';
+                        e.target.style.height = Math.max(200, e.target.scrollHeight) + 'px';
                     });
                 }
             }
@@ -8982,8 +8974,7 @@
                 phone: ['phone', 'tel', '電話番号'],
                 website: ['website', 'url', 'ホームページ'],
                 established: ['established', 'establishment_date', '設立年月日'],
-                catchphrase: ['catchphrase', 'catch_phrase', 'キャッチフレーズ'],
-                prText: ['prText', 'pr_text', 'PR文'],
+                prText: ['prText', 'pr_text', 'PR文', 'PRテキスト'],
                 branchName: ['branchName', 'branch_name', '支店名'],
                 branchAddress: ['branchAddress', 'branch_address', '支店住所'],
                 billingEmail: ['billingEmail', 'billing_email', '請求先メール'],
@@ -9021,13 +9012,11 @@
 
                     // PR文の特別なログ出力（文字数確認）
                     if (fieldId === 'prText') {
-                        console.log(`✓ Set ${fieldId} = [${value.length}文字] ${value.substring(0, 50)}...`);
+                        console.log(`✓ Set ${fieldId} = [${value.length}文字]`);
                         console.log(`  完全なPR文: ${value}`);
                         // テキストエリアの高さを自動調整
                         element.style.height = 'auto';
-                        element.style.height = element.scrollHeight + 'px';
-                    } else if (fieldId === 'catchphrase') {
-                        console.log(`✓ Set ${fieldId} = "${value}"`);
+                        element.style.height = Math.max(200, element.scrollHeight) + 'px';
                     } else {
                         console.log(`✓ Set ${fieldId} = ${value}`);
                     }
