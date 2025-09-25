@@ -4723,63 +4723,46 @@
 
                 const result = await response.json();
 
-                if (result.success) {
+                // GASレスポンスの異常な構造に対応
+                // 実際のデータは result.success.data に格納されている
+                if (result.success && result.success.success === true) {
                     // ログイン成功
-                    currentUser = result.merchantName || username;
+                    currentUser = result.success.merchantName || username;
                     userRole = 'franchise'; // 加盟店ユーザー
 
                     // 加盟店データをグローバル変数に保存
+                    console.log('===== GAS RESPONSE STRUCTURE =====');
                     console.log('Full result:', result);
-                    console.log('result.data:', result.data);
-                    console.log('result.merchantData:', result.merchantData);
-                    console.log('result object keys:', Object.keys(result));
-                    console.log('result stringified:', JSON.stringify(result, null, 2));
+                    console.log('result.success.data:', result.success.data);
+                    console.log('Data available:', !!result.success.data);
 
-                    if (result.data && result.data.merchantId) {
-                        window.merchantId = result.data.merchantId;
-                        window.merchantData = result.data;
-                        console.log('Saved to window.merchantData:', result.data);
-                    } else if (result.data && Object.keys(result.data).length > 0) {
-                        // merchantIdがない場合はusernameを使用
-                        window.merchantId = username;
-                        window.merchantData = result.data;
-                        console.log('Saved with username as merchantId:', username);
-                        console.log('Data keys:', Object.keys(result.data));
-                        console.log('Data values sample:', result.data);
-                    } else if (result.merchantData) {
-                        // 別の形式でデータが返される場合
-                        window.merchantId = result.merchantData.merchantId || username;
-                        window.merchantData = result.merchantData;
-                        console.log('Saved from result.merchantData:', result.merchantData);
-                    } else if (result.companyName || result.company_name || result.merchantId) {
-                        // resultの直下にデータがある場合
-                        window.merchantId = result.merchantId || username;
-                        window.merchantData = result;
-                        console.log('Direct result data: using result object directly');
-                        console.log('Result has companyName:', result.companyName);
+                    // 正しい場所からデータを取得
+                    if (result.success.data) {
+                        window.merchantId = result.success.data.merchantId || username;
+                        window.merchantData = result.success.data;
+                        console.log('✅ SUCCESS: Merchant data loaded from result.success.data');
+                        console.log('Company Name:', result.success.data.companyName);
+                        console.log('Total fields:', Object.keys(result.success.data).length);
                     } else {
-                        // 最終フォールバック - result全体を使用
+                        // フォールバック
                         window.merchantId = username;
-                        // dataプロパティが空でもresult自体にデータがある可能性
-                        const actualData = {...result};
-                        delete actualData.success;
-                        delete actualData.message;
-                        delete actualData.data; // 空のdataプロパティを削除
-                        window.merchantData = actualData;
-                        console.log('Final fallback: extracting data from result');
-                        console.log('Extracted data:', actualData);
+                        window.merchantData = {};
+                        console.log('❌ ERROR: No data in result.success.data');
                     }
 
-                    // デモ用の特別処理（既存のadmin/sales対応）
-                    if (username === 'admin' && password === 'admin123') {
-                        currentUser = '田中太郎';
-                        userRole = 'admin';
-                    } else if (username === 'sales' && password === 'sales123') {
-                        currentUser = '佐藤花子';
-                        userRole = 'sales';
-                    }
+                    loginSuccess = true; // ログイン成功フラグ
 
-                    loginSuccess = true;
+                } else if (result.success) {
+                    // 旧形式のレスポンスに対応
+                    currentUser = result.merchantName || username;
+                    userRole = 'franchise';
+
+                    console.log('Using legacy response format');
+                    window.merchantId = username;
+                    window.merchantData = result.data || {};
+                    console.log('Legacy data:', result.data);
+
+                    loginSuccess = true; // ログイン成功フラグ
                 } else {
                     // デモ用のハードコードログイン（フォールバック）
                     if (username === 'admin' && password === 'admin123') {
