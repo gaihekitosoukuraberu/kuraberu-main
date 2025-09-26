@@ -1,0 +1,56 @@
+{
+  "timestamp": "2025-09-26T03:23:45.380Z",
+  "gitStatus": {
+    "branch": "main",
+    "hasUncommittedChanges": true,
+    "modifiedFiles": 43,
+    "lastCommit": "a5bef49 🔧 GAS URL復旧レポート作成"
+  },
+  "projects": {
+    "admin-dashboard": {
+      "exists": true,
+      "files": {
+        "package.json": false,
+        ".clasp.json": false,
+        ".env": false,
+        "README.md": false
+      },
+      "hasPackageJson": false,
+      "hasClaspJson": false,
+      "hasEnv": false,
+      "hasDistFiles": true
+    },
+    "franchise-dashboard": {
+      "exists": true,
+      "files": {
+        "package.json": false,
+        ".clasp.json": false,
+        ".env": true,
+        "README.md": true
+      },
+      "hasPackageJson": false,
+      "hasClaspJson": false,
+      "hasEnv": true,
+      "hasDistFiles": true
+    },
+    "franchise-register": {
+      "exists": true,
+      "files": {
+        "package.json": false,
+        ".clasp.json": false,
+        ".env": false,
+        "README.md": false
+      },
+      "hasPackageJson": false,
+      "hasClaspJson": false,
+      "hasEnv": false,
+      "hasDistFiles": true
+    }
+  },
+  "issues": [],
+  "recommendations": [
+    "⚠️  コミットされていない変更があります。作業内容を確認してコミットしてください。",
+    "📝 admin-dashboard: README.mdファイルを作成することを推奨",
+    "📝 franchise-register: README.mdファイルを作成することを推奨"
+  ]
+}

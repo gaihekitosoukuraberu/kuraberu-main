@@ -1,82 +1,149 @@
-# くらべる プロジェクト全体像
-<!-- 最終調査: 2025-09-25 20:45 JST -->
+# PROJECT MAP - くらベる プロジェクト全体構成図
+更新日時: 2025-09-26
 
-## 🚀 完成してる機能（絶対触るな）
-- [x] 加盟店登録フォーム（franchise-register/）
-  - HTMLフォーム実装済み
-  - JS（11ファイル）完全動作
-  - ⚠️ AI企業情報自動入力機能（一時的に動作停止中）
-- [x] Slack承認フロー（GAS内実装）
-- [x] 本番サーバーデプロイ済み
-- [x] GAS API基盤（6,177行 / 11ファイル）
-  - main.gs, router.gs, gas-api.gs
-  - auth-manager.gs, email-sender.gs
-  - config-provider.gs 他
+## 🏢 プロジェクト構成
 
-## 🔧 作成中の機能
-- [ ] 加盟店ダッシュボード（franchise-dashboard/）
-  - フォルダ構造: frontend/, backend/, dist/
-  - merchant-portal/ に初回ログイン機能実装済み
-- [ ] 本部運営管理画面（admin-dashboard/）
-  - フォルダ構造: frontend/, gas/, dist/
-  - dashboard-api.js実装済み
-- [ ] 加盟店データ同期機能
-
-## 📋 これから作る機能
-- [ ] 見積もり保持システム（estimate-keep-system/）
-- [ ] ワードリンクチャットボット（chatbot-word-link/）
-- [ ] 業者ランキング自動生成
-- [ ] 案件配信システム
-- [ ] 売上レポート機能
-- [ ] メール/LINE自動通知
-
-## 🔗 重要URL・情報
-- **本番GAS**: https://script.google.com/macros/s/AKfycbxZTvpnE3Yzold1neDzznWSTUBAjBn73l4lu398Fk0oIP0GoJwznkcMAOfelv38wTZYCQ/exec
-- **スプレッドシート**: 複数シート構成（加盟店データ、案件管理、ランキング等）
-- **GitHubリポジトリ**: https://github.com/gaihekitosoukuraberu/kuraberu-main
-- **技術**: GAS + スプレッドシート + フロントエンド（フレームワークレス）
-
-## 📁 現在のフォルダ構成
+### 1. **admin-dashboard/** - 管理ダッシュボード
 ```
-kuraberu-main/
-├── franchise-register/     # ✅ 完成・本番稼働中
-│   ├── dist/              # 本番用ファイル
-│   ├── js/                # 開発用JSファイル（11ファイル）
-│   ├── gas/               # GASファイル（6,177行）
-│   └── css/               # スタイルシート
-├── admin-dashboard/        # 🔧 作成中
-│   ├── frontend/
-│   ├── gas/
-│   └── dist/
-├── franchise-dashboard/    # 🔧 作成中
-│   ├── frontend/
-│   ├── backend/
-│   ├── merchant-portal/
-│   └── dist/
-└── その他プロジェクト      # 📋 未着手
-    ├── chatbot-word-link/
-    └── kuraberu-ai-system/
+admin-dashboard/
+├── frontend/           # React管理画面
+├── gas/               # Google Apps Script バックエンド
+├── dist/              # ビルド済みファイル
+├── js/                # JavaScript モジュール
+├── contracts/         # 契約管理
+├── scripts/           # ユーティリティスクリプト
+├── templates/         # HTMLテンプレート
+└── memory/            # データストレージ
 ```
 
-## ⚡ 依存関係マップ
+**主要機能:**
+- フランチャイズ管理
+- 加盟店管理
+- 請求・課金管理
+- データ分析ダッシュボード
+
+**技術スタック:**
+- Frontend: React, Material-UI
+- Backend: Google Apps Script
+- Database: Google Sheets
+- Deployment: clasp
+
+### 2. **franchise-dashboard/** - フランチャイズ向けダッシュボード
 ```
-franchise-register → GAS API → スプレッドシート
-admin-dashboard → GAS API → スプレッドシート → Slack通知
-franchise-dashboard → GAS API → スプレッドシート
-estimate-keep-system → GAS API → GPT API
-chatbot-word-link → GPT API → GAS API
+franchise-dashboard/
+├── frontend/          # React フロントエンド
+├── backend/           # Node.js バックエンド
+├── dist/             # ビルド済みファイル
+├── merchant-portal/  # 加盟店ポータル
+├── scripts/          # ユーティリティ
+├── templates/        # HTMLテンプレート
+└── specs/            # 仕様書
 ```
 
-## 🎯 マッチングロジック
-1. 郵便番号でエリア抽出
-2. 配信条件でフィルタリング
-3. 4種類ランキング（安い順・おすすめ順・クチコミ順・高品質順）
-4. GPT営業BOT → 見積もり許諾
-5. 手動配信 → 施工管理 → 評価反映
+**主要機能:**
+- 加盟店一覧・管理
+- 売上分析
+- レポート生成
+- 加盟店とのコミュニケーション
+
+**スタンドアロン版:**
+- `franchise-dashboard-standalone.html` - オフライン対応版
+
+### 3. **franchise-register/** - フランチャイズ登録システム
+```
+franchise-register/
+├── gas/              # Google Apps Script
+│   ├── main.gs      # メインエントリーポイント
+│   ├── router.gs    # ルーティング処理
+│   ├── handlers/    # リクエストハンドラー
+│   └── services/    # ビジネスロジック
+├── js/              # フロントエンド JavaScript
+├── css/             # スタイルシート
+└── dist/            # ビルド済みファイル
+```
+
+**主要機能:**
+- 新規フランチャイズ登録
+- 加盟店情報登録
+- AI検索機能
+- データ検証・保存
+
+### 4. **その他の主要ディレクトリ**
+```
+/
+├── .claude/          # Claude AI設定
+├── .cursor/          # Cursor IDE設定
+├── privacy-policy-site/  # プライバシーポリシーサイト
+└── ARCHIVE_OLD_PROJECTS/  # アーカイブ済みプロジェクト
+```
+
+## 🔗 システム連携図
+
+```
+┌─────────────────────────────────────────┐
+│         Admin Dashboard                  │
+│  (システム全体管理・データ分析)           │
+└──────────────┬──────────────────────────┘
+               │
+               ↓ データ同期
+┌──────────────┴──────────────────────────┐
+│      Google Sheets Database              │
+│  (中央データストレージ)                   │
+└──────────┬───────────────┬──────────────┘
+           │               │
+           ↓               ↓
+┌──────────────────┐ ┌────────────────────┐
+│ Franchise        │ │ Franchise Register │
+│ Dashboard        │ │ (登録フォーム)      │
+│ (FC向け管理画面)  │ │                   │
+└──────────────────┘ └────────────────────┘
+```
 
 ## 📊 データフロー
-```
-ユーザー入力 → LP → ChatBot → 見積もり許諾 →
-スプレッドシート保存 → Slack通知 →
-本部確認 → 加盟店配信 → 施工管理 → 評価更新
-```
+
+1. **登録フロー**
+   - franchise-register → Google Sheets → 管理承認 → 有効化
+
+2. **管理フロー**
+   - admin-dashboard → データ更新 → franchise-dashboard反映
+
+3. **分析フロー**
+   - 各システムからデータ収集 → Google Sheets集約 → ダッシュボード表示
+
+## 🚀 デプロイメント状況
+
+| プロジェクト | デプロイ方法 | ステータス |
+|------------|------------|----------|
+| admin-dashboard | clasp + GAS | ✅ Active |
+| franchise-dashboard | スタンドアロンHTML | ✅ Active |
+| franchise-register | clasp + GAS | ✅ Active |
+
+## 📝 重要ファイル
+
+- `.clasp.json` - Google Apps Scriptデプロイ設定
+- `.env` - 環境変数設定
+- 各プロジェクトの`README.md` - プロジェクト別詳細ドキュメント
+
+## 🔧 開発環境
+
+- Node.js v22.14.0
+- npm/yarn パッケージマネージャー
+- Google Apps Script CLI (clasp)
+- Git バージョン管理
+
+## 📌 注意事項
+
+1. Google Apps Scriptプロジェクトは`clasp push`でデプロイ
+2. 環境変数は`.env`ファイルで管理（gitignore対象）
+3. 本番環境へのデプロイ前に必ずテスト環境で検証
+4. データベース操作は慎重に（Google Sheetsが中央DB）
+
+## 🔄 最近の変更
+
+- 2025-09-26: プロジェクト構成の整理完了
+- 2025-09-25: AI検索機能の修正対応
+- 各種ドキュメントファイルの削除・整理
+
+---
+
+*このドキュメントは定期的に更新されます*
