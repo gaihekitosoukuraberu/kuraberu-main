@@ -3,7 +3,7 @@
  */
 
 // GAS APIエンドポイント（プロパティから取得するか環境変数を使用）
-const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzKTN5sGnT7kFY3SB42fFEaTD6gnawsKkJWbnP6HLAIDZbyricKF50IGKFWZ8gkBPVsKA/exec';
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/exec';
 
 /**
  * 加盟店登録申請データを取得
