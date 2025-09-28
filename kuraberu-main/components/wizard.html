@@ -1,0 +1,54 @@
+<\!-- 
+  外壁塗装くらべる ウィザードコンポーネント
+  このファイルはAIヒアリングウィザードUIを定義します。
+-->
+<div class="wizard" id="wizard-container">
+  <div class="wizard__header">
+    <h3 class="wizard__title">あなたの住宅に最適な見積もりを作成</h3>
+    <p class="wizard__subtitle">以下の質問にお答えいただくことで、より正確な見積もりを提案いたします。</p>
+  </div>
+  
+  <div class="wizard__progress">
+    <div class="wizard__progress-bar" id="wizard-progress" style="width: 0%"></div>
+    <div class="wizard__step active" data-step="1">1</div>
+    <div class="wizard__step" data-step="2">2</div>
+    <div class="wizard__step" data-step="3">3</div>
+    <div class="wizard__step" data-step="4">4</div>
+    <div class="wizard__step" data-step="5">5</div>
+  </div>
+  
+  <div class="wizard__content" id="wizard-content">
+    <div class="wizard__question">
+      <p class="wizard__question-text">Q1. お住まいの種類を教えてください</p>
+    </div>
+    <div class="wizard__options">
+      <div class="wizard__option" data-value="single_family">
+        <div class="wizard__option-radio"></div>
+        <div class="wizard__option-text">
+          <span class="wizard__option-label">一戸建て</span>
+          <span class="wizard__option-description">自分の家（一軒家）</span>
+        </div>
+      </div>
+      <div class="wizard__option" data-value="apartment">
+        <div class="wizard__option-radio"></div>
+        <div class="wizard__option-text">
+          <span class="wizard__option-label">マンション</span>
+          <span class="wizard__option-description">分譲・自己所有のマンション</span>
+        </div>
+      </div>
+      <div class="wizard__option" data-value="tenement">
+        <div class="wizard__option-radio"></div>
+        <div class="wizard__option-text">
+          <span class="wizard__option-label">アパート・テナント</span>
+          <span class="wizard__option-description">賃貸用物件・店舗など</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="wizard__buttons">
+    <button class="wizard__button wizard__button--back" id="wizard-back" disabled>前へ</button>
+    <button class="wizard__button wizard__button--next" id="wizard-next">次へ</button>
+  </div>
+</div>
+EOL < /dev/null

@@ -1,0 +1,417 @@
+/* 
+ * 外壁塗装くらべる グローバルスタイル
+ * 
+ * このファイルはサイト全体の共通スタイルを定義します。
+ */
+
+/* リセット・ベース */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W3", "メイリオ", Meiryo, sans-serif;
+  color: #333;
+  line-height: 1.6;
+  overflow-x: hidden;
+  /* 黄色ストライプ背景 */
+  background: repeating-linear-gradient(
+    135deg,
+    #ffe533 0 12px,
+    #ffdf29 12px 24px
+  );
+}
+
+button, input {
+  font-family: inherit;
+  border: none;
+  background: none;
+  outline: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ユーティリティクラス */
+.hidden {
+  display: none \!important;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ヘッダー */
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 16px;
+  background-color: white;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.site-header__logo {
+  display: flex;
+  align-items: center;
+}
+
+.site-header__ai-badge {
+  display: inline-block;
+  background-color: #0099cc;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 2px 5px;
+  border-radius: 4px;
+  margin-left: 5px;
+}
+
+.site-header__menu-button {
+  width: 24px;
+  height: 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.site-header__menu-button span {
+  display: block;
+  width: 100%;
+  height: 3px;
+  background-color: #333;
+  border-radius: 3px;
+}
+
+/* 結果エリア */
+.result-area {
+  padding: 20px 16px;
+}
+
+/* 相場カード */
+.price-card {
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto 30px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.price-card__location {
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.price-card__zip {
+  font-size: 16px;
+  margin-bottom: 5px;
+  color: #666;
+}
+
+.price-card__area {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.price-card__price-info {
+  background-color: #e1f5fe;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.price-card__title {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.price-card__price-range {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.price-card__price-min,
+.price-card__price-max {
+  font-size: 32px;
+  font-weight: bold;
+  color: #0099cc;
+}
+
+.price-card__price-unit {
+  font-size: 16px;
+  color: #0099cc;
+}
+
+.price-card__price-separator {
+  font-size: 20px;
+  color: #0099cc;
+}
+
+.price-card__average {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.price-card__house-info {
+  font-size: 12px;
+  color: #666;
+}
+
+.price-card__discount {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.price-card__discount-badge {
+  display: inline-block;
+  background-color: #ff6b6b;
+  color: white;
+  font-weight: bold;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.price-card__discount-text {
+  font-size: 14px;
+}
+
+.price-card__wizard-prompt {
+  text-align: center;
+}
+
+.price-card__wizard-title {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.price-card__wizard-text {
+  font-size: 14px;
+  margin-bottom: 15px;
+  color: #666;
+}
+
+.price-card__wizard-button {
+  background-color: #ff6b6b;
+  color: white;
+  font-weight: bold;
+  padding: 15px 30px;
+  border-radius: 8px;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.price-card__wizard-icon {
+  margin-right: 5px;
+}
+
+/* ローディングオーバーレイ */
+.loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loading__content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.loading__title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.loading__progress-container {
+  height: 6px;
+  background-color: #f0f0f0;
+  border-radius: 3px;
+  margin-bottom: 15px;
+  overflow: hidden;
+}
+
+.loading__progress-bar {
+  height: 100%;
+  background-color: #0099cc;
+  width: 0;
+  transition: width 0.3s ease;
+}
+
+.loading__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+
+.loading__step {
+  color: #999;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.loading__step.active {
+  color: #0099cc;
+  font-weight: bold;
+}
+
+.loading__step.complete {
+  color: #10b981;
+}
+
+/* フッターナビゲーション */
+.footer-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: white;
+  padding: 10px 0;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+}
+
+.footer-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 12px;
+  position: relative;
+}
+
+.footer-nav__icon {
+  margin-bottom: 5px;
+}
+
+.footer-nav__badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #ff6b6b;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 固定フッターボタン */
+.fixed-buttons {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  padding: 10px 16px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 10px;
+  z-index: 100;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.fixed-buttons.visible {
+  transform: translateY(0);
+}
+
+.fixed-button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fixed-button--primary {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+.fixed-button--secondary {
+  background-color: #0099cc;
+  color: white;
+}
+
+.fixed-button__icon {
+  margin-right: 5px;
+}
+
+/* アニメーション */
+.wizard__slide-enter {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.wizard__slide-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.wizard__slide-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.wizard__slide-exit-active {
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+EOL < /dev/null

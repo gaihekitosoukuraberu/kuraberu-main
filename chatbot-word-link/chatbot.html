@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>外壁塗装くらべる - AIチャットボット v2.1 統合版</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Styles (既存システムから完全コピー) -->
+    <style>
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+        
+        /* タイピングアニメーション */
+        .typing-animation {
+            border-right: 2px solid #7B9BF0;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { border-color: #7B9BF0; }
+            51%, 100% { border-color: transparent; }
+        }
+        
+        /* AIメッセージ */
+        .ai-message {
+            background: linear-gradient(135deg, #7B9BF0 0%, #9EBDFD 100%);
+            color: white;
+            border-radius: 24px 24px 24px 4px;
+            padding: 16px 20px;
+            margin: 0;
+            margin-left: -4px;
+            max-width: 80%;
+            word-wrap: break-word;
+            font-size: 16px;
+            line-height: 1.6;
+            font-weight: 400;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            position: relative;
+        }
+        
+        .ai-message-container {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin: 20px 0;
+            padding-left: 12px;
+        }
+        
+        .ai-message-container.new-message {
+            animation: fadeIn 1s ease-out;
+        }
+        
+        .ai-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: center center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            z-index: 1;
+        }
+        
+        /* ユーザーメッセージ */
+        .user-message {
+            background: #F5F5F5;
+            color: #2D3748;
+            border-radius: 24px 24px 4px 24px;
+            padding: 16px 20px;
+            margin: 20px 0;
+            max-width: 80%;
+            margin-left: auto;
+            font-size: 16px;
+            line-height: 1.6;
+            font-weight: 400;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            position: relative;
+        }
+        
+        /* フェードインアニメーション */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* タイピングインジケーター */
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 16px 20px;
+        }
+        
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+            30% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        /* 選択肢ボタン */
+        .choice-button {
+            background: white;
+            border: 2px solid #7B9BF0;
+            color: #7B9BF0;
+            border-radius: 24px;
+            padding: 12px 24px;
+            margin: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .choice-button:hover {
+            background: linear-gradient(135deg, #7B9BF0 0%, #9EBDFD 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(123,155,240,0.3);
+        }
+        
+        .choice-button:active {
+            transform: translateY(0);
+        }
+        
+        .choice-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* 郵便番号入力フォーム */
+        .postal-input-container {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            max-width: 400px;
+        }
+        
+        .postal-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #E0E0E0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            text-align: center;
+            letter-spacing: 0.1em;
+        }
+        
+        .postal-input:focus {
+            outline: none;
+            border-color: #7B9BF0;
+            box-shadow: 0 0 0 3px rgba(123,155,240,0.1);
+        }
+        
+        .postal-submit-button {
+            background: linear-gradient(135deg, #7B9BF0 0%, #9EBDFD 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 32px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 12px;
+            width: 100%;
+        }
+        
+        .postal-submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(123,155,240,0.4);
+        }
+        
+        .postal-submit-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* 相場表示カード */
+        .price-card {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(255,165,0,0.3);
+        }
+        
+        .price-amount {
+            font-size: 32px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        
+        /* ランキング */
+        .ranking-container {
+            margin: 20px 0;
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        .company-card {
+            transition: all 0.3s ease;
+        }
+        
+        /* CV2コンテナ */
+        .cv2-container {
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        /* モバイル対応 */
+        @media (max-width: 640px) {
+            .ai-avatar {
+                width: 48px;
+                height: 48px;
+            }
+            
+            .ai-message, .user-message {
+                font-size: 15px;
+                padding: 12px 16px;
+            }
+            
+            .choice-button {
+                font-size: 14px;
+                padding: 10px 20px;
+                margin: 6px;
+            }
+        }
+        
+        /* スクロールバー */
+        .chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #7B9BF0;
+            border-radius: 3px;
+        }
+        
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: #6A8AE0;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- メインコンテナ -->
+    <div class="min-h-screen flex flex-col">
+        <!-- ヘッダー -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-4xl mx-auto px-4 py-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">外壁塗装くらべる</h1>
+                        <p class="text-sm text-gray-600 mt-1">AIチャットボット v2.1 統合版</p>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded">CV1→ランキング→CV2</span>
+                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded">完全統合版</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- チャットコンテナ -->
+        <main class="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <!-- チャットメッセージエリア -->
+                <div id="chatContainer" class="chat-container h-[600px] overflow-y-auto p-6">
+                    <div id="messageContainer">
+                        <!-- メッセージはここに動的に追加される -->
+                    </div>
+                </div>
+                
+                <!-- 入力エリア（選択肢ボタン用） -->
+                <div id="inputArea" class="border-t border-gray-200 p-4 bg-gray-50">
+                    <div id="choicesContainer" class="flex flex-wrap justify-center">
+                        <!-- 選択肢ボタンはここに動的に追加される -->
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- フッター -->
+        <footer class="bg-gray-100 py-4 mt-8">
+            <div class="max-w-4xl mx-auto px-4 text-center text-sm text-gray-600">
+                <p>© 2025 外壁塗装くらべる. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="./chatbot.js"></script>
+</body>
+</html>

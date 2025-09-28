@@ -1,0 +1,177 @@
+<section class="hero bg-kuraberu-yellow relative overflow-hidden pb-0">
+  <div class="hero__stripe-overlay diagonal-stripes"></div>
+  
+  
+  <div class="hero__container">
+    <div class="hero__content">
+      <!-- 左側：スマホ表示エリア -->
+      <div class="hero__left">
+        <!-- No.1表示 (モバイル専用) -->
+        <div class="hero__mobile-headline md:hidden">
+          <div class="hero__headline-intro">外壁塗装くらべるなら</div>
+          <div class="hero__headline-subtext">成約率</div>
+          <div class="hero__headline-number relative inline-block">
+            No.1
+            <div class="hero__headline-gradient"></div>
+          </div>
+          
+          <!-- モバイル: 日本初AIテキスト -->
+          <div class="hero__mobile-ai-text">
+            <div class="hero__mobile-ai-badge">
+              ＼日本初！AI自動マッチング！／
+            </div>
+          </div>
+        </div>
+        
+        <!-- スマホ表示エリア -->
+        <div class="hero__phone-wrapper">
+          <!-- PC表示用のAI自動マッチングテキスト -->
+          <div class="hero__ai-badge">
+            <div class="hero__ai-badge-text">
+              ＼日本初！AI自動マッチング！／
+            </div>
+          </div>
+          
+          <!-- スマホモックアップ -->
+          <div class="hero__phone-mockup">
+            <div class="hero__phone-header">
+              <div class="hero__phone-notch"></div>
+            </div>
+            
+            <!-- スマホ画面内のコンテンツ -->
+            <div class="hero__phone-content">
+              <!-- アプリUI (サイズが小さいので最小限の要素だけ表示) -->
+              <div class="text-[4px] p-1">
+                <div class="text-center mb-1 text-gray-500">東京都杉並区の相場</div>
+                <div class="text-kuraberu-blue font-bold">80〜110万円</div>
+                <div class="text-[3px] text-gray-500">2F建て戸建て築25年</div>
+                <div class="mt-1 p-1 bg-gray-100 rounded-sm relative">
+                  <div class="absolute inset-0 bg-white/50 flex items-center justify-center z-10">
+                    <div class="text-[3px] text-center">
+                      <p class="text-kuraberu-blue">郵便番号を入力</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-1 py-0.5 px-1 bg-kuraberu-blue text-white text-[3px] rounded-sm text-center">
+                  見積もり比較
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 吹き出しは削除しました -->
+        </div>
+      </div>
+      
+      <!-- 右側：No.1表示とフォーム -->
+      <div class="hero__right">
+        <div class="px-3 md:px-6">
+          <!-- No.1表示 (PC表示用) -->
+          <div class="hero__desktop-headline">
+            <div class="hero__desktop-intro">外壁塗装くらべるなら</div>
+            <div class="hero__desktop-subtext">成約率</div>
+            <div class="hero__desktop-number relative inline-block">
+              No.1
+              <div class="hero__desktop-gradient"></div>
+            </div>
+          </div>
+          
+          <div class="hero__value-props">
+            <h1 class="hero__heading">
+              <span class="md:block">最安業者や</span>
+              <span class="md:block">クチコミNO1業者が</span>
+              <span class="hero__heading-highlight md:block">即見つかる！</span>
+            </h1>
+            
+            <div class="hero__badges">
+              <span class="hero__badge">
+                <svg xmlns="http://www.w3.org/2000/svg" class="hero__badge-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                最安保証
+              </span>
+              <span class="hero__badge">
+                <svg xmlns="http://www.w3.org/2000/svg" class="hero__badge-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                営業なし
+              </span>
+              <span class="hero__badge">
+                <svg xmlns="http://www.w3.org/2000/svg" class="hero__badge-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                最短1分
+              </span>
+            </div>
+          </div>
+          
+          <!-- フォーム部分 -->
+          <div class="hero__form">
+            <!-- キャンペーンバッジ -->
+            <div class="hero__form-badge">
+              <div class="hero__form-badge-text">
+                かんたん10秒！
+              </div>
+            </div>
+            
+            <h2 class="hero__form-title">郵便番号で今すぐ相場チェック！</h2>
+            
+            <form id="postalForm" class="mb-0">
+              <div class="hero__form-input-group">
+                <div class="hero__form-input-wrapper">
+                  <input 
+                    type="text" 
+                    id="postalCode" 
+                    class="hero__form-input"
+                    placeholder="例：123-4567" 
+                    maxlength="8"
+                    aria-label="郵便番号"
+                  >
+                </div>
+                <button 
+                  type="button" 
+                  id="searchButton" 
+                  class="hero__form-button"
+                >
+                  <span class="hero__form-button-text">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="hero__form-button-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    無料で相場を見る
+                  </span>
+                </button>
+              </div>
+              <p id="postalError" class="hero__form-error hidden">
+                郵便番号を正しく入力してください
+              </p>
+            </form>
+            
+            <!-- SSL暗号化通信の安全性 -->
+            <div class="hero__form-security">
+              <svg xmlns="http://www.w3.org/2000/svg" class="hero__form-security-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              SSL暗号化通信で個人情報を安全に保護します
+            </div>
+          </div>
+
+          <!-- 信頼と実績のバッジ -->
+          <div class="hero__trust-badges">
+            <div class="hero__trust-badge">
+              <div class="hero__trust-badge-label">お客様満足度</div>
+              <div class="hero__trust-badge-value hero__trust-badge-value--blue">98.2%</div>
+            </div>
+            <div class="hero__trust-badge">
+              <div class="hero__trust-badge-label">安心の実績</div>
+              <div class="hero__trust-badge-value hero__trust-badge-value--green">35,000<span class="hero__trust-badge-unit">件</span></div>
+            </div>
+            <div class="hero__trust-badge">
+              <div class="hero__trust-badge-label">対応スピード</div>
+              <div class="hero__trust-badge-value hero__trust-badge-value--red">最短1分</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

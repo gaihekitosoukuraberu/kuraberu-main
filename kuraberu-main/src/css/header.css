@@ -1,0 +1,101 @@
+/* Header Component Styles */
+
+.header {
+  background-color: #0f172a;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.header__container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+}
+
+.header__logo {
+  display: flex;
+  align-items: center;
+}
+
+.header__logo-text {
+  color: white;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.header__logo-highlight {
+  color: #FFE600;
+}
+
+.header__logo-badge {
+  color: #10b981;
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.header__nav {
+  display: none;
+}
+
+.header__nav-list {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.header__nav-link {
+  color: white;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: color 0.2s;
+}
+
+.header__nav-link:hover {
+  color: #d1d5db;
+}
+
+.header__phone {
+  display: none;
+  align-items: center;
+  color: #FFE600;
+  font-weight: 700;
+}
+
+.header__phone-icon {
+  height: 1.25rem;
+  width: 1.25rem;
+  margin-right: 0.25rem;
+}
+
+.header__mobile-menu {
+  display: block;
+  color: white;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.header__mobile-menu-icon {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .header__nav {
+    display: flex;
+  }
+  
+  .header__phone {
+    display: flex;
+  }
+  
+  .header__mobile-menu {
+    display: none;
+  }
+}

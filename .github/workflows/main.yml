@@ -1,0 +1,37 @@
+name: Deploy to GAS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔍 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: 📥 Install clasp
+        run: npm install -g @google/clasp
+
+      - name: 🔐 Setup authentication
+        run: echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
+
+      - name: 📂 Debug directory structure
+        run: |
+          echo "📁 Current directory: $(pwd)"
+          ls -laR
+
+      - name: 🚀 Deploy to GAS
+        working-directory: kuraberu-main/gas-backend
+        run: |
+          echo '${{ secrets.CLASP_PROD_CONFIG }}' > .clasp.json
+          clasp push --force
+          echo "✅ Deployed without version (limit workaround)"

@@ -1,0 +1,520 @@
+/**
+ * estimate-app カスタムスタイル
+ */
+
+
+/* スライダーのカスタムスタイル */
+.slider {
+  -webkit-appearance: none;
+  background: linear-gradient(to right, #0ea5e9 0%, #0ea5e9 20%, #e5e7eb 20%, #e5e7eb 100%);
+  outline: none;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #0ea5e9;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #0ea5e9;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* ラジオボタンのスタイル */
+input[type="radio"] {
+  accent-color: #0ea5e9;
+}
+
+/* 電話番号入力フォームのエフェクト */
+.phone-input-section {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+  border: 2px solid #e17055;
+}
+
+/* 電話番号入力セクションの下部マージン（チャットボットと重ならないように） */
+#phoneSection {
+  margin-bottom: 200px; /* チャットボットの高さ分のマージンを追加 */
+  padding-bottom: 20px;
+}
+
+.phone-form-pulse {
+  animation: phonePulse 2s ease-in-out infinite;
+}
+
+.phone-text-glow {
+  animation: textGlow 3s ease-in-out infinite;
+}
+
+@keyframes phonePulse {
+  0%, 100% {
+    transform: scale(1);
+    border-color: #fca5a5;
+  }
+  50% {
+    transform: scale(1.02);
+    border-color: #ef4444;
+  }
+}
+
+@keyframes textGlow {
+  0%, 100% {
+    color: #991b1b;
+    text-shadow: 0 0 5px rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    color: #dc2626;
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.6), 0 0 20px rgba(239, 68, 68, 0.4);
+  }
+}
+
+.phone-input-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+}
+
+/* パルスアニメーション */
+.animate-pulse-slow {
+  animation: pulse 3s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* フォントファミリー */
+@font-face {
+  font-family: 'Hiragino Sans';
+  src: local('Hiragino Sans');
+  font-weight: normal;
+}
+
+body {
+  font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+}
+
+/* グラデーション背景 */
+.bg-gradient-main {
+  background: linear-gradient(135deg, #0ea5e9 0%, #10b981 100%);
+}
+
+.diagonal-stripes {
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, 
+                    transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, 
+                    transparent 75%, transparent);
+  background-size: 40px 40px;
+}
+
+/* チャットボットのアニメーション */
+.chatbot-container {
+  transition: transform 0.5s ease-in-out;
+}
+
+/* ランキングカードのホバーエフェクト */
+.ranking-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+}
+
+/* キープボタンのアニメーション */
+.keep-btn {
+  transition: all 0.2s ease;
+}
+
+.keep-btn:hover {
+  transform: scale(1.05);
+}
+
+/* プログレスバーのアニメーション */
+.progress-bar {
+  transition: width 0.3s ease;
+}
+
+/* ローディングアニメーション */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* メッセージプレースホルダーのスタイル */
+.message-placeholder {
+  background: linear-gradient(90deg, #f3f4f6 25%, transparent 37%, #f3f4f6 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 選択肢ボタンのアニメーション（選択された時のみ適用） */
+.choice-btn {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.choice-btn.selected::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.3), transparent);
+  transition: left 0.5s;
+  left: 100%;
+}
+
+/* スライダーコンテナーのスタイル */
+.slider-container {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* 豆知識セクションのスタイル */
+.knowledge-section {
+  background: linear-gradient(135deg, #fef7cd 0%, #fbbf24 100%);
+  border-left: 4px solid #f59e0b;
+}
+
+/* モザイク効果（ピクセル風） */
+.mosaic-blur {
+  filter: blur(3px) !important;
+  opacity: 0.4 !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  position: relative !important;
+  z-index: 1 !important;
+  background: repeating-conic-gradient(
+    from 0deg at 2px 2px, 
+    rgba(160, 160, 160, 0.95) 0deg, 
+    rgba(160, 160, 160, 0.95) 90deg, 
+    rgba(180, 180, 180, 0.95) 90deg, 
+    rgba(180, 180, 180, 0.95) 180deg, 
+    rgba(200, 200, 200, 0.95) 180deg, 
+    rgba(200, 200, 200, 0.95) 270deg, 
+    rgba(160, 160, 160, 0.95) 270deg
+  ) !important;
+  background-size: 4px 4px !important;
+}
+
+/* ランキングセクションにposition: relativeを追加 */
+#rankingSection {
+  position: relative !important;
+}
+
+/* モザイクメッセージはランキングセクション内の上部に配置 */
+.ranking-overlay-message {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%) !important;
+  background: #ffffff;
+  color: #333;
+  padding: 25px 35px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 14px;
+  z-index: 5;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 2px solid #0ea5e9;
+  pointer-events: auto;
+  max-width: 400px;
+}
+
+/* ソートボタンの無効化スタイル */
+.sort-tab-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: not-allowed;
+  background-color: #f3f4f6 !important;
+  color: #9ca3af !important;
+  border-color: #d1d5db !important;
+}
+
+/* ソートボタンの有効化後の背景色を強制適用 */
+#tabCheap.bg-yellow-50 {
+  background-color: #fefce8 !important;
+  border-color: #fef08a !important;
+}
+
+#tabReview.bg-green-50 {
+  background-color: #f0fdf4 !important;
+  border-color: #bbf7d0 !important;
+}
+
+#tabQuality.bg-purple-50 {
+  background-color: #faf5ff !important;
+  border-color: #e9d5ff !important;
+}
+
+#tabRecommend.bg-blue-50 {
+  background-color: #eff6ff !important;
+  border-color: #dbeafe !important;
+}
+
+/* ランキングセクション全体の背景色を強制適用 - より具体的なセレクタで上書き */
+div#rankingSection.bg-yellow-50 {
+  background-color: #fefce8 !important;
+  transition: background-color 0.3s ease !important;
+}
+
+div#rankingSection.bg-green-50 {
+  background-color: #f0fdf4 !important;
+  transition: background-color 0.3s ease !important;
+}
+
+div#rankingSection.bg-purple-50 {
+  background-color: #faf5ff !important;
+  transition: background-color 0.3s ease !important;
+}
+
+div#rankingSection.bg-blue-50 {
+  background-color: #eff6ff !important;
+  transition: background-color 0.3s ease !important;
+}
+
+/* より強い優先度でランキングセクションの背景色を強制 */
+.ranking-section-yellow {
+  background-color: #fefce8 !important;
+}
+
+.ranking-section-green {
+  background-color: #f0fdf4 !important;
+}
+
+.ranking-section-purple {
+  background-color: #faf5ff !important;
+}
+
+.ranking-section-blue {
+  background-color: #eff6ff !important;
+}
+
+/* 派手なモザイク解除エフェクト */
+@keyframes sparkleExplosion {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(3) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes flashReveal {
+  0% {
+    background: rgba(255, 215, 0, 0.9);
+    transform: scale(1);
+  }
+  25% {
+    background: rgba(255, 255, 255, 0.9);
+    transform: scale(1.05);
+  }
+  50% {
+    background: rgba(255, 105, 180, 0.8);
+    transform: scale(1.1);
+  }
+  75% {
+    background: rgba(0, 255, 255, 0.7);
+    transform: scale(1.05);
+  }
+  100% {
+    background: transparent;
+    transform: scale(1);
+  }
+}
+
+@keyframes mosaicFadeOut {
+  0% {
+    opacity: 1;
+    filter: blur(3px);
+    transform: scale(1);
+  }
+  30% {
+    opacity: 0.7;
+    filter: blur(2px);
+    transform: scale(1.02);
+  }
+  70% {
+    opacity: 0.3;
+    filter: blur(1px);
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(0px);
+    transform: scale(1);
+  }
+}
+
+.sparkle-effect {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle, #ffd700, #ffff00, #ff6b6b);
+  border-radius: 50%;
+  animation: sparkleExplosion 1s ease-out forwards;
+  pointer-events: none;
+  z-index: 2000;
+}
+
+.flash-reveal {
+  animation: flashReveal 1.5s ease-out forwards;
+}
+
+.mosaic-removing {
+  animation: mosaicFadeOut 1s ease-out forwards;
+}
+
+/* セクション間の余白を最小化 */
+#areaPrice {
+  padding-bottom: 1rem; /* 相場セクションの下部余白を削減 */
+}
+
+#rankingSection {
+  margin-bottom: 0; /* デフォルトは余白なし */
+  margin-top: 1rem; /* 最小限の上部余白 */
+}
+
+#phoneSection {
+  margin-bottom: 0; /* デフォルトは余白なし */
+  margin-top: 0; /* 上部余白も削除 */
+  padding-top: 1rem; /* 最小限の内部余白 */
+  padding-bottom: 2rem; /* 最小限の下部余白 */
+}
+
+/* チャットボット表示時のみ下部余白を追加 */
+body.chatbot-visible #phoneSection {
+  padding-bottom: 200px; /* チャットボットのための余白 */
+}
+
+body.chatbot-visible #rankingSection {
+  margin-bottom: 20px; /* ランキングとフォーム間の最小限の余白 */
+}
+
+/* レスポンシブ調整 */
+@media (max-width: 768px) {
+  .phone-input-section {
+    margin: 0 10px;
+  }
+  
+  .chatbot-container {
+    margin: 0 5px;
+    border-radius: 15px 15px 0 0;
+  }
+  
+  .ranking-card {
+    margin: 0 5px;
+  }
+  
+  /* モバイルでチャットボット表示時の余白調整 */
+  body.chatbot-visible #phoneSection {
+    padding-bottom: 220px; /* モバイルでは少し多めに */
+  }
+  
+  body.chatbot-visible #rankingSection {
+    margin-bottom: 10px; /* モバイルでは最小限 */
+  }
+  
+  /* スマホ専用：ランキングオーバーレイメッセージの調整 */
+  #rankingOverlayMessage {
+    padding: 15px 20px !important;
+    top: 70px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100% - 40px) !important;
+    max-width: 320px !important;
+    max-height: 200px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
+    z-index: 5 !important;
+  }
+  
+  /* スマホ専用：メッセージ内のテキストサイズ調整 */
+  #rankingOverlayMessage div[style*="font-size: 16px"] {
+    font-size: 14px !important;
+    line-height: 1.3 !important;
+    font-weight: 600 !important;
+  }
+  
+  /* スマホ専用：自動スクロール後のビューポート調整 */
+  .scroll-to-ranking {
+    scroll-margin-top: 20px;
+  }
+  
+  /* スマホ専用：ランキングセクション全体の余白調整 */
+  #rankingSection {
+    padding-top: 30px !important;
+    padding-bottom: 30px !important;
+  }
+  
+  /* スマホ専用：相場セクションの余白調整 */
+  #areaPrice {
+    scroll-margin-top: 80px;
+  }
+}
+
+/* ダークモード対応（将来的な拡張用） */
+@media (prefers-color-scheme: dark) {
+  .slider {
+    background: linear-gradient(to right, #1e40af 0%, #1e40af 20%, #374151 20%, #374151 100%);
+  }
+  
+  .slider::-webkit-slider-thumb {
+    background: #3b82f6;
+  }
+  
+  .slider::-moz-range-thumb {
+    background: #3b82f6;
+  }
+}
+
+/* 印刷時のスタイル調整 */
+@media print {
+  .chatbot-container,
+  .keep-btn,
+  .phone-input-section {
+    display: none !important;
+  }
+  
+  .ranking-card {
+    break-inside: avoid;
+  }
+}
