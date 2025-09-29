@@ -5281,9 +5281,10 @@
       window.ENV = ENV;
     </script>
     <script src="js/api-client.js?v=2.3"></script>
-    <script src="js/dashboard-api-v2.js?v=2.3"></script>
+    <!-- dashboard-api-v2.jsは registration-requests.js と重複するため無効化 -->
+    <!-- <script src="js/dashboard-api-v2.js?v=2.3"></script> -->
     <script src="js/data-formatter.js?v=2.3"></script>
-    <script src="js/registration-requests.js?v=1.0"></script>
+    <script src="js/registration-requests.js?v=1.1"></script>
     <script>
         // ページ読み込み完了後にデータを取得
         document.addEventListener('DOMContentLoaded', function() {
