@@ -294,11 +294,11 @@ function createRegistrationRow(item, type) {
 
     tr.innerHTML = `
         <td class="px-6 py-4 text-sm text-gray-900">${dateStr}</td>
-        <td class="px-6 py-4 text-sm font-medium text-gray-900">${item.companyName || '-'}</td>
+        <td class="px-6 py-4 text-sm font-medium text-gray-900">${item.businessName || item.companyName || '-'}</td>
         <td class="px-6 py-4 text-sm text-gray-900">${item.representativeName || '-'}</td>
         <td class="px-6 py-4 text-sm text-gray-900">
-            ${item.salesPersonPhone || item.phone || '-'}<br>
-            <span class="text-xs text-gray-500">${item.salesPersonEmail || item.email || '-'}</span>
+            ${item.phone || item.salesPersonPhone || '-'}<br>
+            <span class="text-xs text-gray-500">${item.email || item.salesPersonEmail || '-'}</span>
         </td>
         <td class="px-6 py-4 text-sm text-gray-900">${areaDisplay || '-'}</td>
         <td class="px-6 py-4">${statusBadge}</td>
@@ -334,7 +334,7 @@ function createRegistrationCard(item, type) {
     div.innerHTML = `
         <div class="flex justify-between items-start mb-3">
             <div>
-                <h4 class="font-semibold text-gray-900">${item.companyName || '-'}</h4>
+                <h4 class="font-semibold text-gray-900">${item.businessName || item.companyName || '-'}</h4>
                 <p class="text-xs text-gray-500 mt-1">${dateStr}</p>
             </div>
             ${statusBadge}
@@ -346,7 +346,7 @@ function createRegistrationCard(item, type) {
             </div>
             <div class="flex">
                 <span class="text-gray-500 w-20">電話:</span>
-                <span class="text-gray-900">${item.salesPersonPhone || item.phone || '-'}</span>
+                <span class="text-gray-900">${item.phone || item.salesPersonPhone || '-'}</span>
             </div>
             <div class="flex">
                 <span class="text-gray-500 w-20">エリア:</span>
