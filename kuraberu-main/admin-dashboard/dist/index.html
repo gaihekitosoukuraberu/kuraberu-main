@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>本部管理画面 - 案件割り振りシステム</title>
+    <!-- キャッシュ無効化 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -2561,10 +2565,16 @@
 
                 // registrationRequestsセクション表示後にデータを取得
                 setTimeout(() => {
-                    if (typeof refreshDashboard === 'function') {
-                        refreshDashboard();
-                    } else if (window.dashboardAPI && typeof window.dashboardAPI.refreshDashboard === 'function') {
-                        window.dashboardAPI.refreshDashboard();
+                    // 独立モジュールのloadRegistrationRequestsDataを呼び出し
+                    if (typeof loadRegistrationRequestsData === 'function') {
+                        console.log('[Main] Calling loadRegistrationRequestsData...');
+                        loadRegistrationRequestsData();
+                    } else {
+                        console.error('[Main] loadRegistrationRequestsData not found');
+                        // フォールバック：古い関数を試す
+                        if (typeof refreshDashboard === 'function') {
+                            refreshDashboard();
+                        }
                     }
                 }, 100);
 
@@ -5259,13 +5269,22 @@
     </script>
     <!-- 管理ダッシュボード API連携 -->
     <!-- 新アーキテクチャ v2.0 -->
-    <script src="js/env-loader.js?v=2.1"></script>
-    <script src="js/api-client.js?v=2.1"></script>
-    <script src="js/dashboard-api-v2.js?v=2.1"></script>
-    <script src="js/data-formatter.js?v=2.1"></script>
-    <!-- 旧システム（無効化） -->
-    <!-- <script src="js/gas-config.js?v=20250926_1800"></script> -->
-    <!-- <script src="js/dashboard-api.js?v=20250926_1800"></script> -->
+    <script>
+      // 強制URL更新
+      const ENV = {
+        GAS_URL: 'https://script.google.com/macros/s/AKfycbw_XuhptcOn_3MjQUzkrsMZUSMBemL5Hn51u7enSfvAGYGkjnyxPtn61DdrFDNLhUCNXw/exec',
+        DEBUG: false,
+        TIMEOUT: 60000,
+        MAX_RETRIES: 3,
+        RETRY_DELAY: 1000
+      };
+      window.ENV = ENV;
+    </script>
+    <script src="js/api-client.js?v=2.3"></script>
+    <!-- dashboard-api-v2.jsは registration-requests.js と重複するため無効化 -->
+    <!-- <script src="js/dashboard-api-v2.js?v=2.3"></script> -->
+    <script src="js/data-formatter.js?v=2.3"></script>
+    <script src="js/registration-requests.js?v=1.1"></script>
     <script>
         // ページ読み込み完了後にデータを取得
         document.addEventListener('DOMContentLoaded', function() {
