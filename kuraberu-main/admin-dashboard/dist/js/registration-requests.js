@@ -279,9 +279,10 @@ function createRegistrationRow(item, type) {
 
     // アクションボタン
     const actionButtons = type === 'pending'
-        ? `<button onclick="approveRegistration('${item.registrationId}')" class="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 mr-2">承認</button>
+        ? `<button onclick="viewRegistrationDetails('${item.registrationId}')" class="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 mr-2">詳細</button>
+           <button onclick="approveRegistration('${item.registrationId}')" class="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 mr-2">承認</button>
            <button onclick="rejectRegistration('${item.registrationId}')" class="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600">却下</button>`
-        : `<button onclick="viewRegistrationDetails('${item.registrationId}')" class="px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600">詳細</button>`;
+        : `<button onclick="revertRegistration('${item.registrationId}')" class="px-3 py-1 bg-orange-500 text-white text-sm rounded hover:bg-orange-600">差し戻し</button>`;
 
     // デバッグログ
     console.log('[Registration Row] Creating row for:', {
@@ -354,6 +355,9 @@ function createRegistrationCard(item, type) {
         </div>
         ${type === 'pending' ? `
             <div class="flex gap-2 mt-4">
+                <button onclick="viewRegistrationDetails('${item.registrationId}')" class="flex-1 px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600">
+                    詳細
+                </button>
                 <button onclick="approveRegistration('${item.registrationId}')" class="flex-1 px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600">
                     承認
                 </button>
@@ -362,8 +366,8 @@ function createRegistrationCard(item, type) {
                 </button>
             </div>
         ` : `
-            <button onclick="viewRegistrationDetails('${item.registrationId}')" class="w-full mt-4 px-3 py-2 bg-gray-500 text-white text-sm rounded hover:bg-gray-600">
-                詳細を見る
+            <button onclick="revertRegistration('${item.registrationId}')" class="w-full mt-4 px-3 py-2 bg-orange-500 text-white text-sm rounded hover:bg-orange-600">
+                差し戻し
             </button>
         `}
     `;
@@ -452,12 +456,233 @@ async function rejectRegistration(registrationId) {
 }
 
 /**
- * 詳細表示
+ * 詳細表示モーダル
  */
 function viewRegistrationDetails(registrationId) {
     console.log('[RegistrationRequests] 詳細表示:', registrationId);
-    // TODO: 詳細モーダル表示
-    alert('詳細: ' + registrationId);
+
+    // データを検索
+    const allData = [...pendingRequests, ...approvedRequests, ...rejectedRequests];
+    const item = allData.find(r => r.registrationId === registrationId);
+
+    if (!item) {
+        alert('データが見つかりません');
+        return;
+    }
+
+    // モーダル作成
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+
+    // エリア表示
+    const prefecturesDisplay = (item.prefecturesArray || []).join('、') || '-';
+    const citiesDisplay = (item.citiesArray || []).join('、') || '-';
+    const priorityAreasDisplay = item.priorityAreas || '-';
+
+    // 物件種別表示
+    const propertyTypesDisplay = item.propertyTypes || '-';
+    const buildingAgeDisplay = item.buildingAgeRange || '-';
+
+    // 支店情報
+    let branchesHTML = '';
+    if (item.branches && item.branches.length > 0) {
+        branchesHTML = `
+            <div class="border-t pt-4">
+                <h4 class="font-semibold text-gray-700 mb-2">支店情報</h4>
+                ${item.branches.map((branch, idx) => `
+                    <div class="bg-gray-50 p-3 rounded mb-2">
+                        <div class="text-sm">
+                            <div><strong>支店${idx + 1}:</strong> ${branch.name || '-'}</div>
+                            <div><strong>住所:</strong> ${branch.address || '-'}</div>
+                            <div><strong>電話:</strong> ${branch.phone || '-'}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-2xl font-bold">加盟店登録申請詳細</h3>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- 基本情報 -->
+                    <div>
+                        <h4 class="font-semibold text-gray-700 mb-3">基本情報</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-sm text-gray-500">登録ID</label>
+                                <div class="font-medium">${item.registrationId || '-'}</div>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-500">申請日時</label>
+                                <div class="font-medium">${formatDate(item.timestamp)}</div>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-500">会社名（法人名）</label>
+                                <div class="font-medium">${item.companyName || item['会社名（法人名）'] || '-'}</div>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-500">会社名（カナ）</label>
+                                <div class="font-medium">${item.companyNameKana || item['会社名（カナ）'] || '-'}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 代表者情報 -->
+                    <div class="border-t pt-4">
+                        <h4 class="font-semibold text-gray-700 mb-3">代表者情報</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-sm text-gray-500">代表者名</label>
+                                <div class="font-medium">${item.representativeName || item['代表者名'] || '-'}</div>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-500">代表者名（カナ）</label>
+                                <div class="font-medium">${item.representativeNameKana || item['代表者名（カナ）'] || '-'}</div>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-500">電話番号</label>
+                                <div class="font-medium">${item.phone || item['電話番号'] || '-'}</div>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-500">メールアドレス</label>
+                                <div class="font-medium">${item.email || item['メールアドレス'] || '-'}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 営業担当者情報 -->
+                    <div class="border-t pt-4">
+                        <h4 class="font-semibold text-gray-700 mb-3">営業担当者情報</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-sm text-gray-500">営業担当者名</label>
+                                <div class="font-medium">${item.salesPerson || item['営業担当者名'] || '-'}</div>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-500">営業担当者電話</label>
+                                <div class="font-medium">${item.salesPersonPhone || item['営業担当者電話'] || '-'}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 住所情報 -->
+                    <div class="border-t pt-4">
+                        <h4 class="font-semibold text-gray-700 mb-3">住所情報</h4>
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label class="text-sm text-gray-500">住所</label>
+                                <div class="font-medium">${item.address || item['住所'] || '-'}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 対応エリア -->
+                    <div class="border-t pt-4">
+                        <h4 class="font-semibold text-gray-700 mb-3">対応エリア</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="text-sm text-gray-500">対応都道府県</label>
+                                <div class="font-medium">${prefecturesDisplay}</div>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-500">対応市区町村</label>
+                                <div class="font-medium">${citiesDisplay}</div>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-500">優先エリア</label>
+                                <div class="font-medium">${priorityAreasDisplay}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 物件情報 -->
+                    <div class="border-t pt-4">
+                        <h4 class="font-semibold text-gray-700 mb-3">対応物件情報</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-sm text-gray-500">対応物件種別</label>
+                                <div class="font-medium">${propertyTypesDisplay}</div>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-500">対応建物築年数</label>
+                                <div class="font-medium">${buildingAgeDisplay}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${branchesHTML}
+
+                    <!-- ステータス情報 -->
+                    <div class="border-t pt-4">
+                        <h4 class="font-semibold text-gray-700 mb-3">ステータス</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-sm text-gray-500">承認ステータス</label>
+                                <div class="font-medium">${item.approvalStatus || item['承認ステータス'] || '-'}</div>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-500">営業ステータス</label>
+                                <div class="font-medium">${item.businessStatus || item['営業ステータス'] || '-'}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button onclick="closeModal()" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                        閉じる
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+}
+
+/**
+ * 差し戻し処理
+ */
+async function revertRegistration(registrationId) {
+    if (!confirm('この申請を未審査に差し戻しますか？')) return;
+
+    try {
+        const result = await window.apiClient.postRequest('revertRegistration', {
+            registrationId: registrationId,
+            status: '申請中'
+        });
+
+        if (result && result.success) {
+            alert('差し戻しました');
+            loadRegistrationRequestsData(); // データ再読み込み
+        } else {
+            alert('差し戻しに失敗しました: ' + (result?.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('[RegistrationRequests] 差し戻しエラー:', error);
+        alert('エラーが発生しました');
+    }
+}
+
+/**
+ * モーダルを閉じる
+ */
+function closeModal() {
+    const modal = document.querySelector('.fixed.inset-0');
+    if (modal) {
+        modal.remove();
+    }
 }
 
 // グローバル関数として公開
@@ -465,3 +690,5 @@ window.loadRegistrationRequestsData = loadRegistrationRequestsData;
 window.approveRegistration = approveRegistration;
 window.rejectRegistration = rejectRegistration;
 window.viewRegistrationDetails = viewRegistrationDetails;
+window.revertRegistration = revertRegistration;
+window.closeModal = closeModal;
