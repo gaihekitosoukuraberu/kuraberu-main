@@ -71,6 +71,11 @@ async function loadRegistrationRequestsData() {
 
         console.log('[RegistrationRequests] APIレスポンス:', result);
 
+        // データ構造をデバッグ
+        if (result && result.data && result.data.length > 0) {
+            console.log('[DEBUG] サンプルデータ:', result.data[0]);
+        }
+
         if (result && result.success !== false) {
             // データを保存
             currentRegistrationData = result.data || [];
@@ -284,21 +289,16 @@ function createRegistrationRow(item, type) {
            <button onclick="rejectRegistration('${item.registrationId}')" class="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600">却下</button>`
         : `<button onclick="revertRegistration('${item.registrationId}')" class="px-3 py-1 bg-orange-500 text-white text-sm rounded hover:bg-orange-600">差し戻し</button>`;
 
-    // デバッグログ
-    console.log('[Registration Row] Creating row for:', {
-        registrationId: item.registrationId,
-        companyName: item.companyName,
-        type: type,
-        actionButtons: actionButtons.substring(0, 100) + '...'
-    });
+    // デバッグログ - データ構造確認
+    console.log('[Registration Row] Item data:', item);
 
     tr.innerHTML = `
         <td class="px-6 py-4 text-sm text-gray-900">${dateStr}</td>
-        <td class="px-6 py-4 text-sm font-medium text-gray-900">${item.companyName || item['会社名（法人名）'] || '-'}</td>
-        <td class="px-6 py-4 text-sm text-gray-900">${item.representativeName || item['代表者名'] || '-'}</td>
+        <td class="px-6 py-4 text-sm font-medium text-gray-900">${item.companyName || '-'}</td>
+        <td class="px-6 py-4 text-sm text-gray-900">${item.representativeName || '-'}</td>
         <td class="px-6 py-4 text-sm text-gray-900">
-            ${item.salesPersonPhone || item['営業担当者電話'] || item.phone || item['電話番号'] || '-'}<br>
-            <span class="text-xs text-gray-500">${item.salesPersonEmail || item['営業担当者メールアドレス'] || item.email || item['メールアドレス'] || '-'}</span>
+            ${item.salesPersonPhone || item.phone || '-'}<br>
+            <span class="text-xs text-gray-500">${item.salesPersonEmail || item.email || '-'}</span>
         </td>
         <td class="px-6 py-4 text-sm text-gray-900">${areaDisplay || '-'}</td>
         <td class="px-6 py-4">${statusBadge}</td>
@@ -334,7 +334,7 @@ function createRegistrationCard(item, type) {
     div.innerHTML = `
         <div class="flex justify-between items-start mb-3">
             <div>
-                <h4 class="font-semibold text-gray-900">${item.companyName || item['会社名（法人名）'] || '-'}</h4>
+                <h4 class="font-semibold text-gray-900">${item.companyName || '-'}</h4>
                 <p class="text-xs text-gray-500 mt-1">${dateStr}</p>
             </div>
             ${statusBadge}
@@ -342,11 +342,11 @@ function createRegistrationCard(item, type) {
         <div class="space-y-2 text-sm">
             <div class="flex">
                 <span class="text-gray-500 w-20">代表者:</span>
-                <span class="text-gray-900">${item.representativeName || item['代表者名'] || '-'}</span>
+                <span class="text-gray-900">${item.representativeName || '-'}</span>
             </div>
             <div class="flex">
                 <span class="text-gray-500 w-20">電話:</span>
-                <span class="text-gray-900">${item.salesPersonPhone || item['営業担当者電話'] || item.phone || item['電話番号'] || '-'}</span>
+                <span class="text-gray-900">${item.salesPersonPhone || item.phone || '-'}</span>
             </div>
             <div class="flex">
                 <span class="text-gray-500 w-20">エリア:</span>
@@ -529,11 +529,11 @@ function viewRegistrationDetails(registrationId) {
                             </div>
                             <div>
                                 <label class="text-sm text-gray-500">会社名（法人名）</label>
-                                <div class="font-medium">${item.companyName || item['会社名（法人名）'] || '-'}</div>
+                                <div class="font-medium">${item.companyName || '-'}</div>
                             </div>
                             <div>
                                 <label class="text-sm text-gray-500">会社名（カナ）</label>
-                                <div class="font-medium">${item.companyNameKana || item['会社名（カナ）'] || '-'}</div>
+                                <div class="font-medium">${item.companyNameKana || '-'}</div>
                             </div>
                         </div>
                     </div>
@@ -544,19 +544,19 @@ function viewRegistrationDetails(registrationId) {
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="text-sm text-gray-500">代表者名</label>
-                                <div class="font-medium">${item.representativeName || item['代表者名'] || '-'}</div>
+                                <div class="font-medium">${item.representativeName || '-'}</div>
                             </div>
                             <div>
                                 <label class="text-sm text-gray-500">代表者名（カナ）</label>
-                                <div class="font-medium">${item.representativeNameKana || item['代表者名（カナ）'] || '-'}</div>
+                                <div class="font-medium">${item.representativeNameKana || '-'}</div>
                             </div>
                             <div>
                                 <label class="text-sm text-gray-500">電話番号</label>
-                                <div class="font-medium">${item.phone || item['電話番号'] || '-'}</div>
+                                <div class="font-medium">${item.phone || '-'}</div>
                             </div>
                             <div>
                                 <label class="text-sm text-gray-500">メールアドレス</label>
-                                <div class="font-medium">${item.email || item['メールアドレス'] || '-'}</div>
+                                <div class="font-medium">${item.email || '-'}</div>
                             </div>
                         </div>
                     </div>
@@ -567,11 +567,11 @@ function viewRegistrationDetails(registrationId) {
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="text-sm text-gray-500">営業担当者名</label>
-                                <div class="font-medium">${item.salesPerson || item['営業担当者名'] || '-'}</div>
+                                <div class="font-medium">${item.salesPerson || '-'}</div>
                             </div>
                             <div>
                                 <label class="text-sm text-gray-500">営業担当者電話</label>
-                                <div class="font-medium">${item.salesPersonPhone || item['営業担当者電話'] || '-'}</div>
+                                <div class="font-medium">${item.salesPersonPhone || '-'}</div>
                             </div>
                         </div>
                     </div>
@@ -582,7 +582,7 @@ function viewRegistrationDetails(registrationId) {
                         <div class="grid grid-cols-1 gap-4">
                             <div>
                                 <label class="text-sm text-gray-500">住所</label>
-                                <div class="font-medium">${item.address || item['住所'] || '-'}</div>
+                                <div class="font-medium">${item.address || '-'}</div>
                             </div>
                         </div>
                     </div>
@@ -629,11 +629,11 @@ function viewRegistrationDetails(registrationId) {
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="text-sm text-gray-500">承認ステータス</label>
-                                <div class="font-medium">${item.approvalStatus || item['承認ステータス'] || '-'}</div>
+                                <div class="font-medium">${item.approvalStatus || '-'}</div>
                             </div>
                             <div>
                                 <label class="text-sm text-gray-500">営業ステータス</label>
-                                <div class="font-medium">${item.businessStatus || item['営業ステータス'] || '-'}</div>
+                                <div class="font-medium">${item.businessStatus || '-'}</div>
                             </div>
                         </div>
                     </div>
