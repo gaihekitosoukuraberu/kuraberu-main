@@ -45,7 +45,7 @@ function doGet(e) {
       result = FranchiseSystem.handle(e.parameter);
     }
     // 管理ダッシュボード
-    else if (action.startsWith('admin_') || action === 'getRegistrationRequests' || action === 'getFranchiseManagementData') {
+    else if (action.startsWith('admin_') || action === 'getRegistrationRequests' || action === 'getFranchiseManagementData' || action === 'approveRegistration' || action === 'rejectRegistration' || action === 'revertRegistration') {
       result = AdminSystem.handle(e.parameter);
     }
     // AI検索
@@ -53,7 +53,7 @@ function doGet(e) {
       result = AISearchSystem.handle(e.parameter);
     }
     // 加盟店向けシステム
-    else if (action.startsWith('merchant_') || action === 'verifyFirstLoginUrl') {
+    else if (action.startsWith('merchant_') || action === 'verifyFirstLoginUrl' || action === 'verifyFirstLogin' || action === 'setPassword' || action === 'resetPassword' || action === 'verifyLogin') {
       result = MerchantSystem.handle(e.parameter);
     }
     // 不明なアクション
@@ -82,9 +82,9 @@ function doGet(e) {
  */
 function doPost(e) {
   try {
-    console.log('[main.gs] POST request received');
-    console.log('[main.gs] Parameters:', JSON.stringify(e.parameter));
-    console.log('[main.gs] PostData:', e.postData ? e.postData.contents : 'No postData');
+    Logger.log('[main.gs] POST request received');
+    Logger.log('[main.gs] Parameters: ' + JSON.stringify(e.parameter));
+    Logger.log('[main.gs] PostData: ' + (e.postData ? e.postData.contents : 'No postData'));
 
     // Slackインタラクション専用処理（payloadがある場合）
     if (e.parameter.payload) {
@@ -128,7 +128,7 @@ function doPost(e) {
       result = AdminSystem.handlePost(e, postData);
     }
     // 加盟店向けシステム
-    else if (action.startsWith('merchant_') || action === 'setFirstPassword' || action === 'verifyLogin') {
+    else if (action.startsWith('merchant_') || action === 'setFirstPassword' || action === 'verifyLogin' || action === 'verifyFirstLogin' || action === 'setPassword' || action === 'resetPassword') {
       result = MerchantSystem.handlePost(e);
     }
     // 不明なアクション

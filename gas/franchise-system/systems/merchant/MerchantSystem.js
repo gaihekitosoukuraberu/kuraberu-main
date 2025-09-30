@@ -21,7 +21,18 @@ const MerchantSystem = {
           };
 
         case 'verifyFirstLoginUrl':
+        case 'verifyFirstLogin':
           return this.verifyFirstLoginUrl(params);
+
+        case 'setPassword':
+        case 'setFirstPassword':
+          return this.setFirstPassword(params);
+
+        case 'resetPassword':
+          return this.resetPassword(params);
+
+        case 'verifyLogin':
+          return this.verifyLogin(params);
 
         default:
           return {
@@ -44,14 +55,34 @@ const MerchantSystem = {
    */
   handlePost: function(e) {
     try {
-      const action = e.parameter.action;
+      // POSTボディからもパラメータを取得
+      let params = e.parameter;
+      if (e.postData && e.postData.contents) {
+        try {
+          const postData = JSON.parse(e.postData.contents);
+          params = Object.assign({}, params, postData);
+        } catch (err) {
+          console.error('[MerchantSystem] POST data parse error:', err);
+        }
+      }
+
+      const action = params.action;
+      console.log('[MerchantSystem] POST action:', action);
 
       switch (action) {
+        case 'verifyFirstLogin':
+        case 'verifyFirstLoginUrl':
+          return this.verifyFirstLoginUrl(params);
+
         case 'setFirstPassword':
-          return this.setFirstPassword(e.parameter);
+        case 'setPassword':
+          return this.setFirstPassword(params);
+
+        case 'resetPassword':
+          return this.resetPassword(params);
 
         case 'verifyLogin':
-          return this.verifyLogin(e.parameter);
+          return this.verifyLogin(params);
 
         default:
           return {
@@ -161,6 +192,61 @@ const MerchantSystem = {
 
     } catch (error) {
       console.error('[MerchantSystem] setFirstPassword error:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * パスワードリセット（初回ログインと同じ処理）
+   */
+  resetPassword: function(params) {
+    try {
+      const { data, sig, password } = params;
+
+      if (!data || !sig || !password) {
+        return {
+          success: false,
+          error: 'パラメータが不足しています'
+        };
+      }
+
+      // URL検証
+      if (typeof verifySignedUrl !== 'function') {
+        throw new Error('verifySignedUrl関数が見つかりません');
+      }
+
+      const merchantId = verifySignedUrl(data, sig);
+      if (!merchantId) {
+        return {
+          success: false,
+          error: 'URLが無効または期限切れです'
+        };
+      }
+
+      // パスワード保存
+      if (typeof savePassword !== 'function') {
+        throw new Error('savePassword関数が見つかりません');
+      }
+
+      const result = savePassword(merchantId, password);
+
+      if (result.success) {
+        return {
+          success: true,
+          message: 'パスワードがリセットされました'
+        };
+      } else {
+        return {
+          success: false,
+          error: 'パスワードリセットに失敗しました'
+        };
+      }
+
+    } catch (error) {
+      console.error('[MerchantSystem] resetPassword error:', error);
       return {
         success: false,
         error: error.toString()

@@ -14,7 +14,7 @@ function generateFirstLoginUrl(merchantId) {
 
   // 署名作成
   const signature = Utilities.computeDigest(
-    Utilities.DigestAlgorithm.SHA256,
+    Utilities.DigestAlgorithm.SHA_256,
     JSON.stringify(data) + SECRET_KEY
   ).map(b => ('0' + (b & 0xFF).toString(16)).slice(-2)).join('').substring(0, 16);
 
@@ -32,21 +32,42 @@ function generateFirstLoginUrl(merchantId) {
 // URL検証
 function verifySignedUrl(payload, signature) {
   try {
+    console.log('[verifySignedUrl] payload:', payload);
+    console.log('[verifySignedUrl] signature:', signature);
+
     const data = JSON.parse(Utilities.newBlob(
       Utilities.base64DecodeWebSafe(payload)
     ).getDataAsString());
 
+    console.log('[verifySignedUrl] decoded data:', JSON.stringify(data));
+
     // 署名検証
     const expectedSig = Utilities.computeDigest(
-      Utilities.DigestAlgorithm.SHA256,
+      Utilities.DigestAlgorithm.SHA_256,
       JSON.stringify(data) + SECRET_KEY
     ).map(b => ('0' + (b & 0xFF).toString(16)).slice(-2)).join('').substring(0, 16);
 
-    if (signature !== expectedSig) return null;
-    if (Date.now() > data.expires) return null;
+    console.log('[verifySignedUrl] expected sig:', expectedSig);
+    console.log('[verifySignedUrl] received sig:', signature);
+    console.log('[verifySignedUrl] sig match:', signature === expectedSig);
 
+    if (signature !== expectedSig) {
+      console.error('[verifySignedUrl] Signature mismatch');
+      return null;
+    }
+
+    const now = Date.now();
+    console.log('[verifySignedUrl] now:', now, 'expires:', data.expires);
+
+    if (now > data.expires) {
+      console.error('[verifySignedUrl] Token expired');
+      return null;
+    }
+
+    console.log('[verifySignedUrl] Success! merchantId:', data.merchantId);
     return data.merchantId;
   } catch(e) {
+    console.error('[verifySignedUrl] Exception:', e.toString());
     return null;
   }
 }
@@ -77,7 +98,7 @@ function savePassword(merchantId, plainPassword) {
 
   const sheet = initCredentialsSheet();
   const hash = Utilities.computeDigest(
-    Utilities.DigestAlgorithm.SHA256,
+    Utilities.DigestAlgorithm.SHA_256,
     plainPassword + SECRET_KEY + merchantId
   ).map(b => ('0' + (b & 0xFF).toString(16)).slice(-2)).join('');
 
@@ -116,7 +137,7 @@ function verifyLogin(merchantId, inputPassword) {
   if (!merchant) return false;
 
   const inputHash = Utilities.computeDigest(
-    Utilities.DigestAlgorithm.SHA256,
+    Utilities.DigestAlgorithm.SHA_256,
     inputPassword + SECRET_KEY + merchantId
   ).map(b => ('0' + (b & 0xFF).toString(16)).slice(-2)).join('');
 
@@ -152,7 +173,7 @@ function generatePasswordResetUrl(email) {
   };
 
   const signature = Utilities.computeDigest(
-    Utilities.DigestAlgorithm.SHA256,
+    Utilities.DigestAlgorithm.SHA_256,
     JSON.stringify(resetData) + SECRET_KEY
   ).map(b => ('0' + (b & 0xFF).toString(16)).slice(-2)).join('').substring(0, 16);
 
