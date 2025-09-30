@@ -218,7 +218,7 @@ function setupAuthProperties() {
 
   // 初回ログインURLを設定
   if (!scriptProperties.getProperty('FIRST_LOGIN_URL')) {
-    scriptProperties.setProperty('FIRST_LOGIN_URL', 'https://gaihekikuraberu.com/merchant-portal/first-login.html');
+    scriptProperties.setProperty('FIRST_LOGIN_URL', 'https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/first-login.html');
     console.log('✅ FIRST_LOGIN_URLを設定しました');
   }
 

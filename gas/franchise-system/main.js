@@ -45,7 +45,7 @@ function doGet(e) {
       result = FranchiseSystem.handle(e.parameter);
     }
     // 管理ダッシュボード
-    else if (action.startsWith('admin_') || action === 'getRegistrationRequests' || action === 'getFranchiseManagementData' || action === 'approveRegistration' || action === 'rejectRegistration' || action === 'revertRegistration') {
+    else if (action.startsWith('admin_') || action === 'getRegistrationRequests' || action === 'getFranchiseManagementData' || action === 'approveRegistration' || action === 'rejectRegistration' || action === 'revertRegistration' || action === 'updateMerchantStatusFromAdmin') {
       result = AdminSystem.handle(e.parameter);
     }
     // AI検索
@@ -53,7 +53,7 @@ function doGet(e) {
       result = AISearchSystem.handle(e.parameter);
     }
     // 加盟店向けシステム
-    else if (action.startsWith('merchant_') || action === 'verifyFirstLoginUrl' || action === 'verifyFirstLogin' || action === 'setPassword' || action === 'resetPassword' || action === 'verifyLogin') {
+    else if (action.startsWith('merchant_') || action === 'verifyFirstLoginUrl' || action === 'verifyFirstLogin' || action === 'setPassword' || action === 'resetPassword' || action === 'verifyLogin' || action === 'getMerchantData' || action === 'updateSalesPerson' || action === 'updateMerchantStatus' || action === 'getMerchantStatus') {
       result = MerchantSystem.handle(e.parameter);
     }
     // 不明なアクション

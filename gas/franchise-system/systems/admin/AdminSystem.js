@@ -20,6 +20,18 @@ const AdminSystem = {
         case 'getFranchiseManagementData':
           return this.getFranchiseManagementData(params);
 
+        case 'approveRegistration':
+          return this.approveRegistration(params);
+
+        case 'rejectRegistration':
+          return this.rejectRegistration(params);
+
+        case 'revertRegistration':
+          return this.revertRegistration(params);
+
+        case 'updateMerchantStatusFromAdmin':
+          return this.updateMerchantStatusFromAdmin(params);
+
         case 'admin_test':
           return {
             success: true,
@@ -48,18 +60,33 @@ const AdminSystem = {
   /**
    * POSTリクエスト処理
    */
-  handlePost: function(e) {
+  handlePost: function(e, postData) {
     try {
-      const action = e.parameter.action;
+      Logger.log('[AdminSystem] handlePost called');
+      Logger.log('[AdminSystem] e.parameter: ' + JSON.stringify(e.parameter));
+      Logger.log('[AdminSystem] postData: ' + JSON.stringify(postData));
+
+      const action = e.parameter.action || (postData && postData.action);
+      Logger.log('[AdminSystem] action: ' + action);
+
+      if (!action) {
+        return {
+          success: false,
+          error: 'Action not specified'
+        };
+      }
 
       switch (action) {
         case 'approveRegistration':
+          console.log('[AdminSystem] Routing to approveRegistration');
           return this.approveRegistration(e.parameter);
 
         case 'rejectRegistration':
+          console.log('[AdminSystem] Routing to rejectRegistration');
           return this.rejectRegistration(e.parameter);
 
         case 'revertRegistration':
+          console.log('[AdminSystem] Routing to revertRegistration');
           return this.revertRegistration(e.parameter);
 
         default:
@@ -71,6 +98,7 @@ const AdminSystem = {
 
     } catch (error) {
       console.error('[AdminSystem] POST Error:', error);
+      console.error('[AdminSystem] Error stack:', error.stack);
       return {
         success: false,
         error: error.toString()
@@ -110,6 +138,9 @@ const AdminSystem = {
         // 営業担当者の電話番号とメールを直接追加
         obj['営業担当者電話番号'] = obj['営業担当者電話番号'] || obj['営業担当者電話'] || obj['営業担当電話'] || '';
         obj['営業担当者メールアドレス'] = obj['営業担当者メールアドレス'] || obj['営業担当者メール'] || obj['営業担当メール'] || '';
+
+        // AJ列（インデックス35、列番号36）から運用ステータスを取得
+        obj['運用ステータス'] = row[35] || 'アクティブ'; // デフォルトはアクティブ
 
         return obj;
       });
@@ -345,7 +376,7 @@ const AdminSystem = {
       constructionLocation: row['施工箇所'] || '',
       specialHandling: row['特殊対応'] || row['特殊対応フラグ'] || '',
       specialHandlingItems: row['特殊対応項目'] || '',
-      status: row['ステータス'] || '未審査',
+      status: row['運用ステータス'] || 'アクティブ', // AJ列の運用ステータス
       approvalStatus: row['承認ステータス'] || '未審査',
       approvalDate: row['承認日'] || '',
       registrationDate: row['登録日'] || '',
@@ -386,7 +417,8 @@ const AdminSystem = {
         if (data[i][idIndex] === registrationId) {
           // 承認処理
           sheet.getRange(i + 1, approvalStatusIndex + 1).setValue('承認済み');
-          sheet.getRange(i + 1, statusIndex + 1).setValue('一時停止');
+          // ステータス（AJ列）を「休止」に設定
+          sheet.getRange(i + 1, statusIndex + 1).setValue('休止');
 
           // 承認者を記録（名前のみ）
           sheet.getRange(i + 1, approverIndex + 1).setValue('ryutayamauchi');
@@ -413,28 +445,21 @@ const AdminSystem = {
             const companyName = data[i][headers.indexOf('会社名（法人名）')] || data[i][headers.indexOf('会社名')] || '';
             const salesEmail = data[i][headers.indexOf('営業用メールアドレス')] || '';
 
-            console.log('[AdminSystem] メール送信開始 - ID:', registrationId);
-            console.log('[AdminSystem] 会社名:', companyName);
-            console.log('[AdminSystem] 営業用メール:', salesEmail);
-            console.log('[AdminSystem] generateFirstLoginUrl存在:', typeof generateFirstLoginUrl === 'function');
-            console.log('[AdminSystem] sendWelcomeEmail存在:', typeof sendWelcomeEmail === 'function');
-
             if (!salesEmail) {
-              console.log('[AdminSystem] メール送信スキップ - メールアドレスが空');
-            } else if (typeof generateFirstLoginUrl !== 'function') {
-              console.error('[AdminSystem] generateFirstLoginUrl関数が見つかりません');
-            } else if (typeof sendWelcomeEmail !== 'function') {
-              console.error('[AdminSystem] sendWelcomeEmail関数が見つかりません');
+              console.error('[AdminSystem] メール送信スキップ - メールアドレスが空');
+            } else if (!companyName) {
+              console.error('[AdminSystem] メール送信スキップ - 会社名が空');
             } else {
-              const loginUrl = generateFirstLoginUrl(registrationId);
-              console.log('[AdminSystem] ログインURL生成完了:', loginUrl.substring(0, 50) + '...');
-              sendWelcomeEmail(salesEmail, companyName, loginUrl);
+              const loginUrl = this._generateFirstLoginUrl(registrationId);
+              if (!loginUrl) {
+                throw new Error('URL生成失敗');
+              }
+
+              this._sendWelcomeEmail(salesEmail, companyName, loginUrl, registrationId);
               console.log('[AdminSystem] 初回ログインメール送信完了:', salesEmail);
             }
           } catch (emailError) {
-            console.error('[AdminSystem] メール送信エラー:', emailError);
-            console.error('[AdminSystem] エラースタック:', emailError.stack);
-            // メールエラーは無視して処理を続行
+            console.error('[AdminSystem] メール送信エラー:', emailError.toString());
           }
 
           return {
@@ -601,6 +626,194 @@ const AdminSystem = {
 
     } catch (error) {
       console.error('[AdminSystem] revertRegistration error:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * 初回ログインURL生成（AdminSystem専用 - 完全分離）
+   * @private
+   */
+  _generateFirstLoginUrl: function(merchantId) {
+    const SECRET_KEY = PropertiesService.getScriptProperties().getProperty('SECRET_KEY');
+    const data = {
+      merchantId: merchantId,
+      expires: Date.now() + 86400000, // 24時間
+      type: 'first_login'
+    };
+
+    // 署名作成（auth-manager.jsと同じアルゴリズム）
+    const signature = Utilities.computeDigest(
+      Utilities.DigestAlgorithm.SHA_256,
+      JSON.stringify(data) + SECRET_KEY
+    ).map(function(b) { return ('0' + (b & 0xFF).toString(16)).slice(-2); }).join('').substring(0, 16);
+
+    // Base64エンコード
+    const payload = Utilities.base64EncodeWebSafe(JSON.stringify(data));
+
+    // URL生成
+    const baseUrl = PropertiesService.getScriptProperties().getProperty('FIRST_LOGIN_URL');
+    if (!baseUrl) {
+      throw new Error('FIRST_LOGIN_URLが設定されていません');
+    }
+    return `${baseUrl}?data=${payload}&sig=${signature}`;
+  },
+
+  /**
+   * 初回ログインメール送信（AdminSystem専用 - 完全分離）
+   * @private
+   */
+  _sendWelcomeEmail: function(email, companyName, loginUrl, merchantId) {
+    const subject = '【外壁塗装くらべる】加盟店登録完了・初回ログインのご案内';
+
+    const htmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif; line-height: 1.8; color: #333; background: #f7f7f7; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 20px auto; padding: 30px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid #3b82f6; margin-bottom: 30px; }
+    .logo { font-size: 28px; font-weight: bold; color: #3b82f6; }
+    .warning { background: #fef3c7; padding: 15px 20px; border-left: 4px solid #f59e0b; margin: 25px 0; border-radius: 5px; }
+    .info-box { background: #f0f9ff; padding: 20px; border-radius: 10px; margin: 20px 0; border: 1px solid #bae6fd; }
+    .merchant-id { font-size: 24px; font-weight: bold; color: #0284c7; letter-spacing: 1px; }
+    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #6b7280; }
+    .center { text-align: center; }
+    .button-table { width: 100%; margin: 25px 0; }
+    .button-cell { text-align: center; padding: 0; }
+    .button-link { display: inline-block; background: #3b82f6; color: #ffffff !important; padding: 14px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">外壁塗装くらべる</div>
+      <p style="margin: 10px 0 0 0; color: #6b7280; font-size: 14px;">加盟店管理システム</p>
+    </div>
+    <h2 style="color: #1e40af; margin-bottom: 25px;">加盟店登録完了のお知らせ</h2>
+    <p><strong>${companyName}</strong> 様</p>
+    <p>このたびは「外壁塗装くらべる」への加盟店登録をいただき、誠にありがとうございます。</p>
+    <p>審査が完了し、加盟店登録が承認されました。<br>以下の情報をご確認の上、<strong>必ず24時間以内に</strong>初回ログインをお願いいたします。</p>
+    <div class="warning">
+      <div style="font-weight: bold; color: #d97706; margin-bottom: 8px; font-size: 15px;">⚠️ 必ずお読みください</div>
+      <p style="margin: 5px 0; font-size: 14px; line-height: 1.6;">
+        初回ログイン＝即配信開始ではございませんので、ご安心ください。<br>
+        ただし、システムの都合上、<strong>このリンクは24時間で無効</strong>になりますので、<br>
+        お手数ですが初回ログインは必ずすぐに行っていただけますようお願いいたします。
+      </p>
+    </div>
+    <div class="info-box">
+      <div style="font-weight: bold; color: #0369a1; font-size: 14px; margin-bottom: 5px;">あなたの加盟店ID</div>
+      <div class="merchant-id">${merchantId}</div>
+      <p style="margin: 8px 0 0 0; font-size: 13px; color: #64748b;">※この加盟店IDは今後のログイン時に必要となります。大切に保管してください。</p>
+    </div>
+    <table class="button-table" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td class="button-cell">
+          <a href="${loginUrl}" class="button-link">初回ログインを開始する</a>
+        </td>
+      </tr>
+    </table>
+    <div style="background: #f0f9ff; padding: 15px 20px; border-radius: 5px; margin: 25px 0; font-size: 14px;">
+      <div style="font-weight: bold; color: #0369a1; margin-bottom: 8px;">初回ログイン時の設定内容</div>
+      <ul style="margin: 5px 0; padding-left: 20px; line-height: 1.8;">
+        <li>新しいパスワードを設定してください</li>
+        <li>パスワードは8文字以上、英数字を含む必要があります</li>
+        <li>設定後、すぐに加盟店ダッシュボードをご利用いただけます</li>
+      </ul>
+    </div>
+    <div class="footer">
+      <p><strong>ご不明な点がございましたら</strong><br>サポートデスク: info@gaihekikuraberu.com<br>営業時間: 9:00-18:00</p>
+      <p style="margin-top: 15px;">※このメールに心当たりがない場合は、お手数ですが削除してください。</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    try {
+      MailApp.sendEmail({
+        to: email,
+        subject: subject,
+        htmlBody: htmlBody,
+        name: '外壁塗装くらべる運営事務局'
+      });
+      Logger.log('[AdminSystem] メール送信成功: ' + email + ' (' + merchantId + ')');
+    } catch (mailError) {
+      Logger.log('[AdminSystem] メール送信失敗: ' + mailError.toString());
+      throw new Error('メール送信に失敗しました: ' + mailError.toString());
+    }
+  },
+
+  /**
+   * 管理ダッシュボードから加盟店ステータスを更新
+   */
+  updateMerchantStatusFromAdmin: function(params) {
+    try {
+      const { merchantId, status } = params;
+
+      if (!merchantId || !status) {
+        return {
+          success: false,
+          error: 'パラメータが不足しています'
+        };
+      }
+
+      // ステータスの検証
+      const validStatuses = ['アクティブ', '非アクティブ', 'サイレント', '一時停止', '休止', '退会'];
+      if (!validStatuses.includes(status)) {
+        return {
+          success: false,
+          error: '無効なステータスです'
+        };
+      }
+
+      // DataAccessLayerを使用してシート取得
+      if (typeof DataAccessLayer === 'undefined' || !DataAccessLayer.getRegistrationSheet) {
+        throw new Error('DataAccessLayerが見つかりません');
+      }
+
+      const sheet = DataAccessLayer.getRegistrationSheet();
+      const data = sheet.getDataRange().getValues();
+
+      if (data.length <= 1) {
+        return {
+          success: false,
+          error: '加盟店データが見つかりません'
+        };
+      }
+
+      const rows = data.slice(1);
+
+      // B列（インデックス1）で加盟店ID検索
+      const rowIndex = rows.findIndex(row => row[1] === merchantId);
+
+      if (rowIndex === -1) {
+        return {
+          success: false,
+          error: '指定された加盟店IDのデータが見つかりません'
+        };
+      }
+
+      // AJ列（インデックス35、列番号36）を更新
+      const sheetRowIndex = rowIndex + 2;
+      const statusColumnIndex = 36; // AJ列 = 36列目
+
+      sheet.getRange(sheetRowIndex, statusColumnIndex).setValue(status);
+
+      console.log('[AdminSystem] updateMerchantStatusFromAdmin - Updated row:', sheetRowIndex, 'to:', status);
+
+      return {
+        success: true,
+        message: 'ステータスを更新しました'
+      };
+
+    } catch (error) {
+      console.error('[AdminSystem] updateMerchantStatusFromAdmin error:', error);
       return {
         success: false,
         error: error.toString()

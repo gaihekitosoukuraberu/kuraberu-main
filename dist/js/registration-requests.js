@@ -684,22 +684,28 @@ function showNoDataMessage() {
  * 承認処理
  */
 async function approveRegistration(registrationId) {
-    if (!confirm('この申請を承認しますか？')) return;
+    console.log('[approveRegistration] 開始:', registrationId);
+
+    if (!confirm('この申請を承認しますか？\n\n承認後、初回ログインメールが送信されます。')) return;
 
     try {
-        const result = await window.apiClient.postRequest('approveRegistration', {
+        console.log('[approveRegistration] JSONPリクエスト送信中...');
+        // JSONP方式でGETリクエスト（POST権限問題を回避）
+        const result = await window.apiClient.jsonpRequest('approveRegistration', {
             registrationId: registrationId
         });
 
+        console.log('[approveRegistration] Result:', result);
+
         if (result && result.success) {
-            alert('承認しました');
+            alert('承認しました。初回ログインメールを送信しました。');
             loadRegistrationRequestsData(); // データ再読み込み
         } else {
             alert('承認に失敗しました: ' + (result?.error || 'Unknown error'));
         }
     } catch (error) {
         console.error('[RegistrationRequests] 承認エラー:', error);
-        alert('エラーが発生しました');
+        alert('エラーが発生しました: ' + error.message);
     }
 }
 

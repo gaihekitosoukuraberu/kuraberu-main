@@ -6,6 +6,7 @@
     <title>初回ログイン - くらべる加盟店管理システム</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="env-loader.js?v=1044"></script>
     <style>
         body { font-family: 'Inter', system-ui, sans-serif; }
     </style>
@@ -16,7 +17,7 @@
         <div class="text-center mb-8">
             <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4">
                 <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                 </svg>
             </div>
             <h1 class="text-2xl font-bold text-gray-800">外壁塗装くらべる</h1>
@@ -72,10 +73,15 @@
                     <label for="password" class="block text-gray-700 text-sm font-bold mb-2">
                         新しいパスワード
                     </label>
-                    <input type="password" id="password" name="password" required
-                           minlength="8"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                           placeholder="8文字以上、英数字を含む">
+                    <div class="relative">
+                        <input type="password" id="password" name="password" required
+                               minlength="8"
+                               class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="8文字以上、英数字を含む">
+                        <button type="button" onclick="togglePassword('password', 'eyeIcon1')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                            <span id="eyeIcon1" style="font-size: 18px;">○</span>
+                        </button>
+                    </div>
                     <p class="text-xs text-gray-500 mt-1">
                         ※パスワードは8文字以上で、英数字を含む必要があります
                     </p>
@@ -85,10 +91,15 @@
                     <label for="passwordConfirm" class="block text-gray-700 text-sm font-bold mb-2">
                         パスワード（確認）
                     </label>
-                    <input type="password" id="passwordConfirm" name="passwordConfirm" required
-                           minlength="8"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                           placeholder="もう一度パスワードを入力">
+                    <div class="relative">
+                        <input type="password" id="passwordConfirm" name="passwordConfirm" required
+                               minlength="8"
+                               class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="もう一度パスワードを入力">
+                        <button type="button" onclick="togglePassword('passwordConfirm', 'eyeIcon2')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                            <span id="eyeIcon2" style="font-size: 18px;">○</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- パスワード強度インジケーター -->
@@ -121,7 +132,7 @@
                 パスワードの設定が完了しました。<br>
                 ログインページからログインしてください。
             </p>
-            <a href="/franchise-dashboard/"
+            <a href="https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/login.html"
                class="inline-block bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-200">
                 ログインページへ
             </a>
@@ -129,8 +140,14 @@
     </div>
 
     <script>
-        // GAS API URL
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwQF-qM8jqar9SsMekfZk-f_HLd59WZzdLd4ttmCfq5ZDtJtnsFr1T2d1j0_kRq9j4QOQ/exec';
+        // GAS API URL (env-loader.jsから取得)
+        console.log('[first-login] ENV check:', typeof ENV, ENV);
+        if (typeof ENV === 'undefined' || !ENV.GAS_URL) {
+            console.error('[first-login] ENV not loaded!', typeof ENV, window.ENV);
+            alert('システムエラー: 環境設定が読み込めません。ページを再読み込みしてください。');
+        }
+        const GAS_URL = ENV.GAS_URL;
+        console.log('[first-login] Using GAS_URL:', GAS_URL);
 
         let merchantId = null;
 
@@ -153,17 +170,30 @@
             }
 
             try {
-                // URLトークン検証
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'verifyFirstLogin',
-                        data: data,
-                        sig: sig
-                    })
+                // URLトークン検証（JSONP）
+                console.log('[first-login] Sending JSONP request to:', GAS_URL);
+                console.log('[first-login] Request params:', {action: 'verifyFirstLogin', data, sig});
+
+                const result = await new Promise((resolve, reject) => {
+                    const callbackName = 'jsonp_' + Date.now();
+                    window[callbackName] = (data) => {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        resolve(data);
+                    };
+
+                    const script = document.createElement('script');
+                    script.src = `${GAS_URL}?action=verifyFirstLogin&data=${encodeURIComponent(data)}&sig=${encodeURIComponent(sig)}&callback=${callbackName}`;
+                    script.onerror = () => {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        reject(new Error('JSONP request failed'));
+                    };
+                    document.body.appendChild(script);
                 });
 
-                const result = await response.json();
+                console.log('[first-login] JSONP response:', result);
+                console.log('[first-login] Result details:', JSON.stringify(result, null, 2));
 
                 if (result.success && result.merchantId) {
                     merchantId = result.merchantId;
@@ -225,6 +255,20 @@
             bar.className = `h-full transition-all duration-300 ${color}`;
         }
 
+        // パスワード表示/非表示切り替え
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = '●';
+            } else {
+                input.type = 'password';
+                icon.textContent = '○';
+            }
+        }
+
         // パスワード入力イベント
         document.getElementById('password').addEventListener('input', (e) => {
             checkPasswordStrength(e.target.value);
@@ -254,18 +298,30 @@
             submitBtn.textContent = '設定中...';
 
             try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'setPassword',
-                        merchantId: merchantId,
-                        password: password
-                    })
+                // JSONP
+                const result = await new Promise((resolve, reject) => {
+                    const callbackName = 'jsonp_' + Date.now();
+                    window[callbackName] = (data) => {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        resolve(data);
+                    };
+
+                    const script = document.createElement('script');
+                    script.src = `${GAS_URL}?action=setPassword&merchantId=${encodeURIComponent(merchantId)}&password=${encodeURIComponent(password)}&callback=${callbackName}`;
+                    script.onerror = () => {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        reject(new Error('JSONP request failed'));
+                    };
+                    document.body.appendChild(script);
                 });
 
-                const result = await response.json();
-
                 if (result.success) {
+                    // パスワードをセッションストレージに一時保存
+                    sessionStorage.setItem('tempMerchantId', merchantId);
+                    sessionStorage.setItem('tempPassword', password);
+
                     document.getElementById('passwordSection').classList.add('hidden');
                     document.getElementById('successSection').classList.remove('hidden');
                 } else {

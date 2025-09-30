@@ -133,3 +133,29 @@ function testSimpleEmail() {
     return 'メール送信失敗: ' + error.toString();
   }
 }
+
+/**
+ * 関数存在チェック
+ */
+function testFunctionExists() {
+  console.log('=== 関数存在チェック ===');
+  console.log('generateFirstLoginUrl:', typeof generateFirstLoginUrl);
+  console.log('sendWelcomeEmail:', typeof sendWelcomeEmail);
+  console.log('MailApp:', typeof MailApp);
+
+  if (typeof generateFirstLoginUrl === 'function') {
+    console.log('generateFirstLoginUrl is a function');
+    try {
+      const testUrl = generateFirstLoginUrl('TEST123');
+      console.log('Test URL generated:', testUrl);
+    } catch (e) {
+      console.error('generateFirstLoginUrl error:', e);
+    }
+  }
+
+  if (typeof sendWelcomeEmail === 'function') {
+    console.log('sendWelcomeEmail is a function');
+  }
+
+  return 'Check complete';
+}

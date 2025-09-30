@@ -162,8 +162,8 @@ const SlackApprovalSystem = {
 
       // 承認ステータス → "承認済み"
       sheet.getRange(targetRow, approvalStatusIndex + 1).setValue('承認済み');
-      // ステータス → "一時停止"
-      sheet.getRange(targetRow, statusIndex + 1).setValue('一時停止');
+      // ステータス → "休止"
+      sheet.getRange(targetRow, statusIndex + 1).setValue('休止');
       // 承認者 → 実際のSlackユーザー名を使用
       sheet.getRange(targetRow, approverIndex + 1).setValue(approver);
       // 注：登録日時は元の日時を保持（承認日時としては使わない）
@@ -174,6 +174,33 @@ const SlackApprovalSystem = {
 
       // 承認通知を送信
       this.sendApprovalNotification(data[targetRow - 1], registrationId);
+
+      // 初回ログインメール送信
+      try {
+        const rowData = data[targetRow - 1];
+        const companyName = rowData[2] || '';
+        const salesEmail = rowData[22] || '';
+
+        if (!salesEmail) {
+          console.error('[SlackApproval] メール送信スキップ - メールアドレスが空');
+        } else if (!companyName) {
+          console.error('[SlackApproval] メール送信スキップ - 会社名が空');
+        } else {
+          if (typeof generateFirstLoginUrl !== 'function' || typeof sendWelcomeEmail !== 'function') {
+            throw new Error('メール送信関数が見つかりません');
+          }
+
+          const loginUrl = generateFirstLoginUrl(registrationId);
+          if (!loginUrl) {
+            throw new Error('URL生成失敗');
+          }
+
+          sendWelcomeEmail(salesEmail, companyName, loginUrl, registrationId);
+          console.log('[SlackApproval] 初回ログインメール送信完了:', salesEmail);
+        }
+      } catch (emailErr) {
+        console.error('[SlackApproval] メール送信エラー:', emailErr.toString());
+      }
 
       return {
         success: true,

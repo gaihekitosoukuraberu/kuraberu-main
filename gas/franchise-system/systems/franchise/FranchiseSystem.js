@@ -160,11 +160,10 @@ const FranchiseSystem = {
       function compressLongText(text, maxLength = 500) {
         if (!text || text.length <= maxLength) return text;
 
-        // JSON形式で圧縮（後で展開可能）
+        // JSON形式で圧縮（完全なデータを保持、preview不要）
         const compressed = {
           type: 'compressed',
-          full: text,
-          preview: text.substring(0, maxLength) + '...'
+          full: text
         };
         return JSON.stringify(compressed);
       }

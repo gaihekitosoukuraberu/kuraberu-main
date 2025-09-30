@@ -166,98 +166,8 @@ function sendSlackRegistrationNotification(registrationData) {
   }
 }
 
-/**
- * 承認処理の実行
- * @param {string} registrationId - 登録ID
- * @param {string} approver - 承認者（Slackユーザー名）
- * @return {Object} 処理結果
- */
-function approveRegistration(registrationId, approver = 'Slack承認') {
-  try {
-    console.log('承認処理開始:', registrationId);
-
-    // スプレッドシートのステータスと承認者を更新
-    updateRegistrationStatus(registrationId, '承認済み', approver);
-
-    // 承認完了通知をSlackに送信
-    sendApprovalNotification(registrationId, true, approver);
-
-    // 初回ログインURL生成とメール送信
-    // TODO: メール送信機能は後で実装
-    // 現在は承認ステータスの更新とSlack通知のみ実行
-    /*
-    try {
-      const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
-      const sheet = SpreadsheetApp.openById(spreadsheetId).getSheetByName('加盟店登録');
-      const data = sheet.getDataRange().getValues();
-
-      // 登録IDで該当行を検索
-      for (let i = 1; i < data.length; i++) {
-        if (data[i][1] === registrationId) {
-          const email = data[i][22] || data[i][21]; // W列(営業)またはV列(請求)メールアドレス
-          const companyName = data[i][2]; // C列：会社名
-
-          if (email) {
-            // 初回ログインURL生成とメール送信
-            // const loginUrl = generateFirstLoginUrl(registrationId);
-            // sendWelcomeEmail(email, companyName, loginUrl);
-            console.log(`メール送信予定: ${email} (${registrationId})`);
-          } else {
-            console.warn('メールアドレスが登録されていません');
-          }
-          break;
-        }
-      }
-    } catch (emailError) {
-      console.error('メール送信エラー:', emailError);
-      // メール送信に失敗しても承認処理は続行
-    }
-    */
-
-    return {
-      success: true,
-      message: '承認処理が完了しました'
-    };
-
-  } catch (error) {
-    console.error('承認処理エラー:', error);
-    return {
-      success: false,
-      message: error.toString()
-    };
-  }
-}
-
-/**
- * 却下処理の実行
- * @param {string} registrationId - 登録ID
- * @param {string} reason - 却下理由
- * @param {string} rejector - 却下者（Slackユーザー名）
- * @return {Object} 処理結果
- */
-function rejectRegistration(registrationId, reason = '', rejector = 'Slack却下') {
-  try {
-    console.log('却下処理開始:', registrationId);
-
-    // スプレッドシートのステータス、却下者、理由を更新
-    updateRegistrationStatus(registrationId, '却下', rejector, reason);
-
-    // 却下通知をSlackに送信
-    sendApprovalNotification(registrationId, false, rejector, reason);
-
-    return {
-      success: true,
-      message: '却下処理が完了しました'
-    };
-
-  } catch (error) {
-    console.error('却下処理エラー:', error);
-    return {
-      success: false,
-      message: error.toString()
-    };
-  }
-}
+// 注意: approveRegistration, rejectRegistrationは使われていません
+// 実際の承認処理はSlackApprovalSystem.jsで行われます
 
 /**
  * 承認/却下の結果をSlackに通知
@@ -383,36 +293,8 @@ function updateRegistrationStatus(registrationId, status, user = '', reason = ''
           sheet.getRange(row, 40).setValue(reason);
         }
 
-        // 承認時に初回ログインメールを送信
-        if (status === '承認済み') {
-          try {
-            console.log('[SlackNotification] 初回ログインメール送信開始');
-
-            const email = values[i][22]; // W列: 営業用メールアドレス
-            const companyName = values[i][2]; // C列: 会社名
-
-            console.log('[SlackNotification] メール送信先:', email);
-            console.log('[SlackNotification] 会社名:', companyName);
-
-            if (email && companyName) {
-              // 初回ログインURL生成
-              console.log('[SlackNotification] URL生成中...');
-              const loginUrl = generateFirstLoginUrl(registrationId);
-              console.log('[SlackNotification] 生成されたURL:', loginUrl);
-
-              // メール送信
-              console.log('[SlackNotification] メール送信中...');
-              sendWelcomeEmail(email, companyName, loginUrl);
-              console.log('[SlackNotification] 初回ログインメール送信成功:', email, registrationId);
-            } else {
-              console.error('[SlackNotification] メールアドレスまたは会社名が見つかりません');
-              console.error('[SlackNotification] Email:', email, 'CompanyName:', companyName, 'ID:', registrationId);
-            }
-          } catch (emailErr) {
-            console.error('[SlackNotification] 初回ログインメール送信エラー:', emailErr);
-            console.error('[SlackNotification] エラー詳細:', emailErr.stack);
-          }
-        }
+        // 注意: メール送信はSlackApprovalSystem.jsで行われます
+        // このファイルはSlack通知のみを担当
 
         // 更新後に明示的に保存
         SpreadsheetApp.flush();
@@ -447,71 +329,5 @@ function getSpreadsheetUrl() {
 }
 
 
-/**
- * Slack Interactionの処理（main.gsから呼び出される）
- * @param {Object} data - リクエストデータ
- * @return {Object} 処理結果
- */
-function handleSlackInteraction(data) {
-  try {
-    // data.payloadが既にオブジェクトの場合とJSON文字列の場合の両方に対応
-    const payload = typeof data.payload === 'string' ? JSON.parse(data.payload) : data.payload;
-    console.log('[Slack Interaction] 処理開始:', payload.type);
-
-    if (payload.type === 'block_actions') {
-      const action = payload.actions[0];
-      const user = payload.user ? payload.user.name : 'Slackユーザー';
-
-      console.log('[Slack Interaction] Action:', action.action_id);
-
-      if (action.action_id === 'approve_registration') {
-        const registrationId = action.value.replace('approve_', '');
-        console.log('[Slack Interaction] 承認処理:', registrationId);
-
-        // updateRegistrationStatusでステータス更新のみ実行（通知は送らない）
-        updateRegistrationStatus(registrationId, '承認済み', user);
-
-        // 承認完了通知を1回だけ送信
-        sendApprovalNotification(registrationId, true, user);
-
-        // Slackに即座にレスポンスを返す（200 OK）
-        return ContentService
-          .createTextOutput(JSON.stringify({
-            text: `✅ 承認処理を実行しました\nID: ${registrationId}\n処理者: ${user}`
-          }))
-          .setMimeType(ContentService.MimeType.JSON);
-
-      } else if (action.action_id === 'reject_registration') {
-        const registrationId = action.value.replace('reject_', '');
-        console.log('[Slack Interaction] 却下処理:', registrationId);
-
-        // updateRegistrationStatusでステータス更新のみ実行（通知は送らない）
-        updateRegistrationStatus(registrationId, '却下', user, '');
-
-        // 却下通知を1回だけ送信
-        sendApprovalNotification(registrationId, false, user, '');
-
-        // Slackに即座にレスポンスを返す（200 OK）
-        return ContentService
-          .createTextOutput(JSON.stringify({
-            text: `❌ 却下処理を実行しました\nID: ${registrationId}\n処理者: ${user}`
-          }))
-          .setMimeType(ContentService.MimeType.JSON);
-      }
-    }
-
-    // デフォルトレスポンス
-    return ContentService
-      .createTextOutput(JSON.stringify({text: 'OK'}))
-      .setMimeType(ContentService.MimeType.JSON);
-
-  } catch (error) {
-    console.error('Slack Webhook処理エラー:', error);
-    // エラーでも200 OKを返す
-    return ContentService
-      .createTextOutput(JSON.stringify({
-        text: `エラーが発生しました: ${error.toString()}`
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
+// 注意: handleSlackInteractionは使われていません
+// 実際のSlack Interaction処理はSlackApprovalSystem.jsで行われます
