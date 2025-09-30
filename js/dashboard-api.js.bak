@@ -2,8 +2,8 @@
  * 管理ダッシュボード用API連携
  */
 
-// GAS APIエンドポイント（env-loader.jsから取得、なければフォールバック）
-const GAS_API_URL = window.ENV?.GAS_URL || 'https://script.google.com/macros/s/AKfycbwKzw-_jMwF8eknzWECCQ1674n3hOFJ83LkB5sKLgpD9jX3pdh2r-c3oOd8DCzOIHCeMw/exec';
+// GAS APIエンドポイント（プロパティから取得するか環境変数を使用）
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxNi6wKFfO5S1WgGmEMsqVWJQj5VG3PsqLCdxb4gGkJgMlEuBOQAf-hHV2xTdOpXW3x/exec';
 
 /**
  * 加盟店登録申請データを取得

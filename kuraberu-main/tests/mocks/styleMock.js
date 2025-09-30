@@ -1,2 +1,0 @@
-// CSS インポートのモック
-module.exports = {};

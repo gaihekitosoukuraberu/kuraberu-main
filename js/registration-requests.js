@@ -122,9 +122,10 @@ async function loadRegistrationRequestsData() {
             approvedRequests = enhanceData(result.approved) || [];
             rejectedRequests = enhanceData(result.rejected) || [];
 
-            // 統計情報を計算して更新（全データから計算）
-            const stats = calculateRegistrationStats(currentRegistrationData);
-            updateRegistrationStats(stats);
+            // 統計情報を更新
+            if (result.stats) {
+                updateRegistrationStats(result.stats);
+            }
 
             // テーブルを更新
             updatePendingTable(pendingRequests);
@@ -156,93 +157,6 @@ async function loadRegistrationRequestsData() {
 }
 
 /**
- * 統計情報を計算
- */
-function calculateRegistrationStats(allData) {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    // 前月の年月
-    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-    const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-
-    console.log('[Stats] 統計計算開始:', {
-        currentMonth: currentMonth + 1,
-        currentYear: currentYear,
-        allDataTotal: allData.length
-    });
-
-    // 全データから「承認ステータス（AK列）」が「承認済み」のものだけをフィルタ
-    const approvedItems = allData.filter(item => {
-        const status = item['承認ステータス'] || item.approvalStatus || '';
-        const isApproved = status === '承認済み' || status === '承認' || status === 'approved';
-        if (isApproved) {
-            console.log('[Stats] 承認済みアイテム:', {
-                id: item.registrationId,
-                status: status,
-                registrationDate: item['登録日時']
-            });
-        }
-        return isApproved;
-    });
-
-    console.log('[Stats] 承認済み件数（ステータスでフィルタ後）:', approvedItems.length);
-
-    // 今月承認数（タイムスタンプが今月のもの）
-    const monthlyApproved = approvedItems.filter(item => {
-        // タイムスタンプ、登録日時、承認日など複数のフィールドを確認
-        const registrationDate = item['タイムスタンプ'] || item.timestamp || item['登録日時'] || item.registrationDate || item.approvalDate || item['承認日時'];
-        if (!registrationDate) {
-            console.log('[Stats] 日時なし:', item.registrationId, 'キー:', Object.keys(item).filter(k => k.includes('日') || k.includes('時') || k.includes('タイム')));
-            return false;
-        }
-        const date = new Date(registrationDate);
-        const isThisMonth = date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-        console.log('[Stats] 承認済みアイテムの日付チェック:', {
-            id: item.registrationId,
-            date: registrationDate,
-            parsed: date,
-            isThisMonth: isThisMonth
-        });
-        return isThisMonth;
-    }).length;
-
-    // 前月承認数
-    const lastMonthApproved = approvedItems.filter(item => {
-        const registrationDate = item['タイムスタンプ'] || item.timestamp || item['登録日時'] || item.registrationDate || item.approvalDate || item['承認日時'];
-        if (!registrationDate) return false;
-        const date = new Date(registrationDate);
-        return date.getMonth() === lastMonth && date.getFullYear() === lastMonthYear;
-    }).length;
-
-    // 前月比
-    const monthlyChange = monthlyApproved - lastMonthApproved;
-
-    console.log('[Stats] 計算結果:', {
-        monthlyApproved: monthlyApproved,
-        lastMonthApproved: lastMonthApproved,
-        monthlyChange: monthlyChange
-    });
-
-    // 承認率（全体）- 承認済みと却下の合計から計算
-    const totalApproved = approvedItems.length;
-    const totalRejected = allData.filter(item => {
-        const status = item['承認ステータス'] || item.approvalStatus || '';
-        return status === '却下' || status === '却下済み' || status === 'rejected';
-    }).length;
-    const total = totalApproved + totalRejected;
-    const approvalRate = total > 0 ? Math.round((totalApproved / total) * 100) : 0;
-
-    return {
-        pending: pendingRequests.length,
-        monthlyApproved: monthlyApproved,
-        monthlyChange: monthlyChange,
-        approvalRate: approvalRate
-    };
-}
-
-/**
  * 統計情報を更新
  */
 function updateRegistrationStats(stats) {
@@ -258,14 +172,6 @@ function updateRegistrationStats(stats) {
     const monthlyApproved = document.getElementById('monthly-approved');
     if (monthlyApproved) {
         monthlyApproved.textContent = stats.monthlyApproved || 0;
-    }
-
-    // 前月比を更新
-    const monthlyChangeElement = monthlyApproved?.parentElement?.querySelector('.text-xs');
-    if (monthlyChangeElement) {
-        const change = stats.monthlyChange || 0;
-        const changeText = change >= 0 ? `+${change}` : change;
-        monthlyChangeElement.textContent = `前月比 ${changeText}`;
     }
 
     // 承認率
@@ -517,7 +423,10 @@ function createRegistrationRow(item, type) {
             <div class="text-xs text-gray-500 mt-1">ID: ${item.registrationId || '-'}</div>
         </td>
         <td class="px-6 py-4 text-sm text-gray-900">${item.representativeName || item['代表者名'] || item['担当者名'] || '-'}</td>
-        <td class="px-6 py-4 text-sm text-gray-900">${item.phone || item.tel || item['電話番号'] || item.salesPersonPhone || item.contactPhone || '-'}</td>
+        <td class="px-6 py-4 text-sm text-gray-900">
+            <div>${item.phone || item.tel || item['電話番号'] || item.salesPersonPhone || item.contactPhone || '-'}</div>
+            <div class="text-xs text-gray-500 mt-1">${item.email || item.mail || item['メールアドレス'] || item.contactEmail || item.repEmail || item.representativeEmail || '-'}</div>
+        </td>
         <td class="px-6 py-4 text-sm text-gray-900">${areaDisplay || '-'}</td>
         <td class="px-6 py-4">${statusBadge}</td>
         <td class="px-6 py-4 text-sm">
@@ -942,7 +851,7 @@ function viewRegistrationDetails(registrationId) {
 
                         <!-- 営業担当者情報（代表者と別の場合） -->
                         ${(item.salesPerson || item.salesPersonName || item['営業担当者名'] || item['営業担当者'] ||
-                           item['営業用メールアドレス'] || item.salesEmail ||
+                           item.salesPersonPhone || item.salesPersonTel || item['営業担当者電話番号'] ||
                            item.salesPersonEmail || item.salesPersonMail || item['営業担当者メールアドレス']) ? `
                         <div class="mt-6 pt-6 border-t border-indigo-100">
                             <h5 class="text-sm font-bold text-gray-700 mb-3">営業担当者</h5>
@@ -953,8 +862,8 @@ function viewRegistrationDetails(registrationId) {
                                     <div class="text-xs text-gray-500 mt-1">${item.salesPersonKana || item['営業担当者カナ'] || item['営業担当者フリガナ'] || ''}</div>
                                 </div>
                                 <div>
-                                    <label class="text-xs text-gray-500">営業用メールアドレス</label>
-                                    <div class="text-sm font-medium text-gray-900 break-all">${item['営業用メールアドレス'] || item.salesEmail || item.salesPersonEmail || item.salesPersonMail || ''}</div>
+                                    <label class="text-xs text-gray-500">電話</label>
+                                    <div class="text-sm font-medium text-gray-900">${item.salesPersonPhone || item.salesPersonTel || item['営業担当者電話番号'] || ''}</div>
                                 </div>
                             </div>
                         </div>
@@ -1027,7 +936,7 @@ function viewRegistrationDetails(registrationId) {
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">対応物件種別</label>
-                                <div class="mt-1 text-base font-medium text-gray-900">${item['最大対応階数'] || item.maxFloors || propertyTypesDisplay || item['対応可能物件種別'] || item['対応物件種別'] || item.propertyTypes || item.propertyType || item['物件種別'] || ''}</div>
+                                <div class="mt-1 text-base font-medium text-gray-900">${propertyTypesDisplay || item['対応可能物件種別'] || item['対応物件種別'] || item.propertyTypes || item.propertyType || item['物件種別'] || ''}</div>
                             </div>
                             <div>
                                 <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">対応建物築年数</label>

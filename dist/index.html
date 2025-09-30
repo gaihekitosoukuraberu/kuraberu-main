@@ -982,6 +982,19 @@
                 <div class="flex justify-center mt-8">
                     <button class="bg-green-500 text-white px-8 py-3 rounded-lg font-semibold text-lg hover:bg-green-600 transition-all">オーダー転送</button>
                 </div>
+
+                <!-- ページングボタン追加 -->
+                <div class="flex justify-center mt-8 space-x-2">
+                    <button onclick="previousPage()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50" id="prevBtn">
+                        前へ
+                    </button>
+                    <span class="px-4 py-2 text-gray-700">
+                        ページ <span id="currentPage">1</span> / <span id="totalPages">1</span>
+                    </span>
+                    <button onclick="nextPage()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50" id="nextBtn">
+                        次へ
+                    </button>
+                </div>
             </div>
             </div><!-- originalFormContent終了 -->
     </main>
@@ -1922,31 +1935,45 @@
                 mainContent.innerHTML = ''; // 一旦クリア
 
                 // 後でスプレッドシートから実データを取得
-                (window.loadFranchiseManagementData || loadFranchiseManagementData)('all').then(response => {
+                loadFranchiseManagementData('all').then(response => {
                     console.log('加盟店データ取得成功:', response);
 
+                    if (!response.success || !response.data || response.data.length === 0) {
+                        console.log('承認済み加盟店なし');
+                        window.franchiseData = [];
+                        return;
+                    }
+
                     // データを画面用に変換
-                    window.franchiseData = response.data.map(f => ({
-                        id: f.id,
-                        name: f.companyName,
-                        avatar: {
-                            text: f.companyName ? f.companyName.substring(0, 1) : '？',
-                            colorClass: 'bg-blue-100',
-                            textColorClass: 'text-blue-600'
-                        },
-                        area: f.area,
-                        areaDetail: f.area,
-                        conversionRate: f.contractRate || 0,
-                        conversionChange: f.performance ? `${f.performance.trend}${f.performance.trendValue}%` : '+0%',
-                        conversionColorClass: f.performance && f.performance.trend === '+' ? 'text-green-600' : 'text-yellow-600',
-                        monthlyPerformance: {
-                            cases: f.deliveryCount ? f.deliveryCount.current : 0,
-                            amount: f.deliveryCount ? f.deliveryCount.unit : '¥0M'
-                        },
-                        handicap: f.handicap || 0,
-                        status: convertStatusForUI(f.status),
-                        memos: []
-                    }));
+                    window.franchiseData = response.data.map(f => {
+                        const companyName = f['会社名'] || f.companyName || f['会社名（法人名）'] || '';
+                        const prefectures = f['対応都道府県'] || f.prefectures || '';
+                        const areas = prefectures ? prefectures.split(',').slice(0, 2).join(', ') : '';
+                        const moreCount = prefectures ? Math.max(0, prefectures.split(',').length - 2) : 0;
+                        const areaDisplay = moreCount > 0 ? `${areas}他${moreCount}件` : areas || '-';
+
+                        return {
+                            id: f['登録ID'] || f.registrationId || '-',
+                            name: companyName,
+                            area: areaDisplay,
+                            areaDetail: prefectures,
+                            avatar: {
+                                text: companyName ? companyName.substring(0, 1) : '？',
+                                colorClass: 'bg-blue-100',
+                                textColorClass: 'text-blue-600'
+                            },
+                            conversionRate: f.contractRate || 0,
+                            conversionChange: f.performance ? `${f.performance.trend}${f.performance.trendValue}%` : '+0%',
+                            conversionColorClass: f.performance && f.performance.trend === '+' ? 'text-green-600' : 'text-yellow-600',
+                            monthlyPerformance: {
+                                cases: f.deliveryCount ? f.deliveryCount.current : 0,
+                                amount: f.deliveryCount ? f.deliveryCount.unit : '¥0M'
+                            },
+                            handicap: f.handicap || 0,
+                            status: convertStatusForUI(f.status),
+                            memos: []
+                        };
+                    });
 
                     // テーブルを更新（PC版）
                     const tbody = document.querySelector('#franchise-table tbody');
@@ -1961,10 +1988,12 @@
                     }
 
                     // 統計を更新
-                    updateFranchiseStats(response.stats);
+                    if (response.stats) {
+                        updateFranchiseStats(response.stats);
+                    }
                 }).catch(error => {
                     console.error('加盟店データ取得エラー:', error);
-                    showNotification('加盟店データの取得に失敗しました', 'error');
+                    // エラーメッセージは表示しない（データがない場合は正常）
                 });
 
                 // ステータス変換関数
@@ -5269,23 +5298,42 @@
     </script>
     <!-- 管理ダッシュボード API連携 -->
     <!-- 新アーキテクチャ v2.0 -->
-    <script>
-      // 強制URL更新
-      const ENV = {
-        GAS_URL: 'https://script.google.com/macros/s/AKfycbw_XuhptcOn_3MjQUzkrsMZUSMBemL5Hn51u7enSfvAGYGkjnyxPtn61DdrFDNLhUCNXw/exec',
-        DEBUG: false,
-        TIMEOUT: 60000,
-        MAX_RETRIES: 3,
-        RETRY_DELAY: 1000
-      };
-      window.ENV = ENV;
-    </script>
-    <script src="js/api-client.js?v=2.3"></script>
+    <script src="js/env-loader.js?v=3.0"></script>
+    <script src="js/api-client.js?v=2.4"></script>
     <!-- dashboard-api-v2.jsは registration-requests.js と重複するため無効化 -->
     <!-- <script src="js/dashboard-api-v2.js?v=2.3"></script> -->
     <script src="js/data-formatter.js?v=2.3"></script>
-    <script src="js/registration-requests.js?v=1.1"></script>
+    <script src="js/registration-requests.js?v=8.9"></script>
     <script>
+        // 加盟店管理データ取得関数
+        async function loadFranchiseManagementData(filter = 'all') {
+            console.log('[FranchiseManagement] データロード開始');
+            try {
+                if (!window.apiClient) {
+                    window.apiClient = new ApiClient();
+                }
+                const result = await window.apiClient.jsonpRequest('getRegistrationRequests', {
+                    status: 'all',
+                    limit: 100
+                });
+                if (result && result.data) {
+                    // ステータス=一時停止 AND 承認ステータス=承認済み
+                    const approved = result.data.filter(item => {
+                        const st = item['ステータス'] || item.status || '';
+                        const ast = item['承認ステータス'] || item.approvalStatus || '';
+                        return (st === '一時停止') && (ast === '承認済み');
+                    });
+                    console.log('[FranchiseManagement] 承認済み:', approved.length);
+                    return { success: true, data: approved };
+                }
+                return { success: false, data: [] };
+            } catch (error) {
+                console.error('[FranchiseManagement] エラー:', error);
+                return { success: false, data: [] };
+            }
+        }
+        window.loadFranchiseManagementData = loadFranchiseManagementData;
+
         // ページ読み込み完了後にデータを取得
         document.addEventListener('DOMContentLoaded', function() {
             // ログイン後のみデータ取得
