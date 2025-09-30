@@ -413,15 +413,27 @@ const AdminSystem = {
             const companyName = data[i][headers.indexOf('会社名（法人名）')] || data[i][headers.indexOf('会社名')] || '';
             const salesEmail = data[i][headers.indexOf('営業用メールアドレス')] || '';
 
-            if (salesEmail && typeof generateFirstLoginUrl === 'function' && typeof sendWelcomeEmail === 'function') {
+            console.log('[AdminSystem] メール送信開始 - ID:', registrationId);
+            console.log('[AdminSystem] 会社名:', companyName);
+            console.log('[AdminSystem] 営業用メール:', salesEmail);
+            console.log('[AdminSystem] generateFirstLoginUrl存在:', typeof generateFirstLoginUrl === 'function');
+            console.log('[AdminSystem] sendWelcomeEmail存在:', typeof sendWelcomeEmail === 'function');
+
+            if (!salesEmail) {
+              console.log('[AdminSystem] メール送信スキップ - メールアドレスが空');
+            } else if (typeof generateFirstLoginUrl !== 'function') {
+              console.error('[AdminSystem] generateFirstLoginUrl関数が見つかりません');
+            } else if (typeof sendWelcomeEmail !== 'function') {
+              console.error('[AdminSystem] sendWelcomeEmail関数が見つかりません');
+            } else {
               const loginUrl = generateFirstLoginUrl(registrationId);
+              console.log('[AdminSystem] ログインURL生成完了:', loginUrl.substring(0, 50) + '...');
               sendWelcomeEmail(salesEmail, companyName, loginUrl);
               console.log('[AdminSystem] 初回ログインメール送信完了:', salesEmail);
-            } else {
-              console.log('[AdminSystem] メール送信スキップ - Email:', salesEmail);
             }
           } catch (emailError) {
             console.error('[AdminSystem] メール送信エラー:', emailError);
+            console.error('[AdminSystem] エラースタック:', emailError.stack);
             // メールエラーは無視して処理を続行
           }
 

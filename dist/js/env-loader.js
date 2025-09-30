@@ -7,7 +7,7 @@
 
 const ENV = {
   // GAS デプロイメントURL（これ1箇所だけで管理）
-  GAS_URL: 'https://script.google.com/macros/s/AKfycby9RgnRH_F3YfLvHfzyh8RD236Ot2Na_T8NUb68zZ1E8HOdkRlfEhcI2oSV7cUrhq8O9A/exec',
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwQF-qM8jqar9SsMekfZk-f_HLd59WZzdLd4ttmCfq5ZDtJtnsFr1T2d1j0_kRq9j4QOQ/exec',
 
   // デバッグモード
   DEBUG: false,
