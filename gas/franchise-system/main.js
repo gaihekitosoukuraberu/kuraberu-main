@@ -52,6 +52,10 @@ function doGet(e) {
     else if (action.startsWith('ai_') || action === 'searchCompany') {
       result = AISearchSystem.handle(e.parameter);
     }
+    // 加盟店向けシステム
+    else if (action.startsWith('merchant_') || action === 'verifyFirstLoginUrl') {
+      result = MerchantSystem.handle(e.parameter);
+    }
     // 不明なアクション
     else {
       result = {
@@ -122,6 +126,10 @@ function doPost(e) {
     // 管理ダッシュボード
     else if (action.startsWith('admin_') || action === 'approveRegistration' || action === 'rejectRegistration' || action === 'revertRegistration') {
       result = AdminSystem.handlePost(e, postData);
+    }
+    // 加盟店向けシステム
+    else if (action.startsWith('merchant_') || action === 'setFirstPassword' || action === 'verifyLogin') {
+      result = MerchantSystem.handlePost(e);
     }
     // 不明なアクション
     else {

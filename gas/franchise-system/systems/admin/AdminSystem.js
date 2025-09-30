@@ -408,6 +408,23 @@ const AdminSystem = {
             // Slackエラーは無視して処理を続行
           }
 
+          // 初回ログインメール送信
+          try {
+            const companyName = data[i][headers.indexOf('会社名（法人名）')] || data[i][headers.indexOf('会社名')] || '';
+            const salesEmail = data[i][headers.indexOf('営業用メールアドレス')] || '';
+
+            if (salesEmail && typeof generateFirstLoginUrl === 'function' && typeof sendWelcomeEmail === 'function') {
+              const loginUrl = generateFirstLoginUrl(registrationId);
+              sendWelcomeEmail(salesEmail, companyName, loginUrl);
+              console.log('[AdminSystem] 初回ログインメール送信完了:', salesEmail);
+            } else {
+              console.log('[AdminSystem] メール送信スキップ - Email:', salesEmail);
+            }
+          } catch (emailError) {
+            console.error('[AdminSystem] メール送信エラー:', emailError);
+            // メールエラーは無視して処理を続行
+          }
+
           return {
             success: true,
             message: '承認処理が完了しました'
