@@ -77,53 +77,8 @@
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900">
-    <!-- ログイン画面 -->
-    <div id="loginScreen" class="fixed inset-0 bg-gradient-to-br from-gray-50 to-gray-100 z-[100] flex items-center justify-center">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-            <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                </div>
-                <h1 class="text-2xl font-bold text-gray-800">加盟店管理システム</h1>
-                <p class="text-gray-500 mt-2">ログインしてください</p>
-            </div>
-            
-            <form id="loginForm" onsubmit="handleLogin(event)">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">加盟店ID</label>
-                    <input type="text" id="username" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="加盟店IDを入力">
-                </div>
-                
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">パスワード</label>
-                    <input type="password" id="password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="パスワードを入力">
-                </div>
-                
-                <div class="mb-4">
-                    <label class="flex items-center">
-                        <input type="checkbox" id="rememberMe" class="rounded text-blue-600 focus:ring-blue-500">
-                        <span class="ml-2 text-sm text-gray-600">ログイン状態を保持する</span>
-                    </label>
-                </div>
-                
-                <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2 px-4 rounded-lg hover:from-blue-600 hover:to-indigo-700 font-medium transition-all">
-                    ログイン
-                </button>
-                
-                <div id="loginError" class="mt-4 text-red-600 text-sm text-center hidden"></div>
-                
-                <div class="mt-6 text-center">
-                    <a href="#" onclick="showForgotPassword()" class="text-sm text-blue-600 hover:text-blue-800">パスワードを忘れた方はこちら</a>
-                </div>
-                
-            </form>
-        </div>
-    </div>
-
     <!-- メインアプリケーション -->
-    <div id="mainApp" class="hidden">
+    <div id="mainApp">
         <!-- トップバー -->
         <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-gray-900/95 glass border-b border-gray-200">
             <div class="flex items-center justify-between h-full px-6">
@@ -4687,187 +4642,6 @@
         // GAS APIのURL
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbwDo9CzXFB33zMvdApSQN5J23EB3gSOnYaWmBhYyFsDgA5XKHVG6wEKC8LgVEaHIDYYow/exec';
 
-        async function handleLogin(event) {
-            event.preventDefault();
-
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
-
-            // エラー表示をクリア
-            const errorDiv = document.getElementById('loginError');
-            errorDiv.classList.add('hidden');
-
-            // ローディング表示
-            const submitBtn = document.querySelector('#loginForm button[type="submit"]');
-            const originalBtnText = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = `
-                <div class="flex items-center justify-center">
-                    <svg class="animate-spin h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    認証中...
-                </div>
-            `;
-
-            try {
-                // GASでログイン認証
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    },
-                    body: JSON.stringify({
-                        action: 'login',
-                        merchantId: username,
-                        password: password
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('通信エラーが発生しました');
-                }
-
-                const result = await response.json();
-
-                // GASレスポンスの異常な構造に対応
-                // 実際のデータは result.success.data に格納されている
-                if (result.success && result.success.success === true) {
-                    // ログイン成功
-                    currentUser = result.success.merchantName || username;
-
-                    // 加盟店IDでログイン = 管理権限
-                    // 営業担当者は今後別の方法でログイン予定
-                    userRole = 'admin'; // 加盟店管理者権限
-
-                    // 加盟店データをグローバル変数に保存
-                    console.log('===== GAS RESPONSE STRUCTURE =====');
-                    console.log('Full result:', result);
-                    console.log('result.success.data:', result.success.data);
-                    console.log('Data available:', !!result.success.data);
-
-                    // 正しい場所からデータを取得
-                    if (result.success.data) {
-                        window.merchantId = result.success.data.merchantId || username;
-                        window.merchantData = result.success.data;
-                        console.log('✅ SUCCESS: Merchant data loaded from result.success.data');
-                        console.log('Company Name:', result.success.data.companyName);
-                        console.log('Total fields:', Object.keys(result.success.data).length);
-                    } else {
-                        // フォールバック
-                        window.merchantId = username;
-                        window.merchantData = {};
-                        console.log('❌ ERROR: No data in result.success.data');
-                    }
-
-                    loginSuccess = true; // ログイン成功フラグ
-
-                } else if (result.success) {
-                    // 旧形式のレスポンスに対応
-                    currentUser = result.merchantName || username;
-                    userRole = 'admin'; // 加盟店IDログイン = 管理権限
-
-                    console.log('Using legacy response format');
-                    window.merchantId = username;
-                    window.merchantData = result.data || {};
-                    console.log('Legacy data:', result.data);
-
-                    loginSuccess = true; // ログイン成功フラグ
-                } else {
-                    // デモ用のハードコードログイン（フォールバック）
-                    if (username === 'admin' && password === 'admin123') {
-                        currentUser = '田中太郎';
-                        userRole = 'admin';
-                        loginSuccess = true;
-                    } else if (username === 'sales' && password === 'sales123') {
-                        currentUser = '佐藤花子';
-                        userRole = 'sales';
-                        loginSuccess = true;
-                    } else {
-                        throw new Error(result.message || '加盟店IDまたはパスワードが正しくありません');
-                    }
-                }
-            } catch (error) {
-                console.error('ログインエラー:', error);
-                // デモ用のハードコードログイン（エラー時のフォールバック）
-                if (username === 'admin' && password === 'admin123') {
-                    currentUser = '田中太郎';
-                    userRole = 'admin';
-                    loginSuccess = true;
-                } else if (username === 'sales' && password === 'sales123') {
-                    currentUser = '佐藤花子';
-                    userRole = 'sales';
-                    loginSuccess = true;
-                } else {
-                    errorDiv.textContent = error.message || 'ログインに失敗しました';
-                    errorDiv.classList.remove('hidden');
-                    // ボタンを元に戻す
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnText;
-                    return;
-                }
-            }
-
-            if (loginSuccess) {
-                // ユーザー情報を保存（チェックボックスの状態で保存先を変更）
-                const storage = rememberMe ? localStorage : sessionStorage;
-                storage.setItem('franchiseUser', currentUser);
-                storage.setItem('franchiseRole', userRole);
-                storage.setItem('loginTime', new Date().toISOString());
-                
-                // ログイン状態保持の設定を記憶
-                if (rememberMe) {
-                    localStorage.setItem('rememberLogin', 'true');
-                }
-                
-                // 画面切り替え
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('mainApp').classList.remove('hidden');
-                
-                // ロール表示を更新
-                updateRoleDisplay();
-                
-                // ダッシュボードを表示
-                showSection('dashboard');
-
-                // デバッグ: 保存されたmerchantDataを確認
-                console.log('==== BEFORE loadMerchantData CALL ====');
-                console.log('window.merchantId:', window.merchantId);
-                console.log('window.merchantData exists:', !!window.merchantData);
-                if (window.merchantData) {
-                    console.log('window.merchantData keys:', Object.keys(window.merchantData));
-                }
-
-                // 会社情報と自動配信設定を事前にロード（デバッグ用）
-                if (window.merchantId && window.merchantData) {
-                    console.log('==== CALLING loadMerchantData ====');
-                    setTimeout(() => loadMerchantData(window.merchantId, window.merchantData), 500);
-                }
-
-                // 案件カードを初期化
-                setTimeout(() => {
-                    renderCaseCards();
-                    updateCaseCounts();
-                }, 50);
-
-                // カレンダーを初期化
-                setTimeout(() => {
-                    initCalendar();
-                }, 100);
-                
-                // 通知権限をリクエスト
-                requestNotificationPermission();
-                
-            } else {
-                document.getElementById('loginError').textContent = 'ユーザー名またはパスワードが正しくありません';
-                document.getElementById('loginError').classList.remove('hidden');
-                // ボタンを元に戻す
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-            }
-        }
 
         // ロール表示更新
         function updateRoleDisplay() {
@@ -7488,11 +7262,28 @@
             // ローカルストレージまたはセッションストレージから復元
             let savedUser = localStorage.getItem('franchiseUser') || sessionStorage.getItem('franchiseUser');
             let savedRole = localStorage.getItem('franchiseRole') || sessionStorage.getItem('franchiseRole');
-            
+
             if (savedUser && savedRole) {
+                // ログイン時間をチェック（24時間で自動ログアウト）
+                const loginTime = localStorage.getItem('loginTime') || sessionStorage.getItem('loginTime');
+                if (loginTime) {
+                    const hoursSinceLogin = (new Date() - new Date(loginTime)) / (1000 * 60 * 60);
+                    if (hoursSinceLogin > 24) {
+                        // セッション期限切れ - ログインページへ
+                        localStorage.removeItem('franchiseUser');
+                        localStorage.removeItem('franchiseRole');
+                        localStorage.removeItem('loginTime');
+                        sessionStorage.removeItem('franchiseUser');
+                        sessionStorage.removeItem('franchiseRole');
+                        sessionStorage.removeItem('loginTime');
+                        window.location.href = 'merchant-portal/login.html';
+                        return;
+                    }
+                }
+
+                // ログイン状態有効 - ダッシュボード表示
                 currentUser = savedUser;
                 userRole = savedRole;
-                document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('mainApp').classList.remove('hidden');
                 updateRoleDisplay();
                 showSection('dashboard');
@@ -7507,16 +7298,9 @@
                 setTimeout(() => {
                     initCalendar();
                 }, 100);
-                
-                // ログイン時間をチェック（24時間で自動ログアウト）
-                const loginTime = localStorage.getItem('loginTime') || sessionStorage.getItem('loginTime');
-                if (loginTime) {
-                    const hoursSinceLogin = (new Date() - new Date(loginTime)) / (1000 * 60 * 60);
-                    if (hoursSinceLogin > 24) {
-                        logout();
-                        alert('セキュリティのため、自動的にログアウトしました。');
-                    }
-                }
+            } else {
+                // 未ログイン - ログインページへリダイレクト
+                window.location.href = 'merchant-portal/login.html';
             }
         });
 
@@ -8151,27 +7935,6 @@
             }
         }
 
-        // 初期化: 初回パスワード設定後の自動入力処理
-        window.addEventListener('DOMContentLoaded', function() {
-            const merchantId = localStorage.getItem('merchantId');
-            const tempPassword = sessionStorage.getItem('tempPassword');
-            const justRegistered = sessionStorage.getItem('justRegistered');
-
-            if (justRegistered === 'true' && merchantId && tempPassword) {
-                // 初回パスワード設定完了後の自動入力（自動ログインはしない）
-                document.getElementById('username').value = merchantId;
-                document.getElementById('password').value = tempPassword;
-                document.getElementById('rememberMe').checked = true;
-
-                // 一時データをクリア
-                sessionStorage.removeItem('tempPassword');
-                sessionStorage.removeItem('justRegistered');
-                localStorage.removeItem('autoLogin');
-            } else if (window.location.hash === '#login' && merchantId) {
-                // 通常時、加盟店IDが保存されていれば自動入力
-                document.getElementById('username').value = merchantId;
-            }
-        });
 
         // イベントモーダル表示
         function showEventModal(event = null, date = null, time = '') {
