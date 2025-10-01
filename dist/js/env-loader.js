@@ -23,13 +23,11 @@ const ENV = {
 // グローバルに公開（全てのファイルから参照可能）
 window.ENV = ENV;
 
-// デバッグログ
-if (ENV.DEBUG) {
-  console.log('[ENV] 環境変数ロード完了:', {
-    GAS_URL: ENV.GAS_URL,
-    DEBUG: ENV.DEBUG
-  });
-}
+// 常にロードログを表示（重要）
+console.log('[ENV] 環境変数ロード完了:', {
+  GAS_URL: ENV.GAS_URL,
+  DEBUG: ENV.DEBUG
+});
 
 // URLが正しく設定されているかチェック
 if (!ENV.GAS_URL || !ENV.GAS_URL.startsWith('https://')) {

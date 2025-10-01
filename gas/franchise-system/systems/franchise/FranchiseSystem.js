@@ -156,17 +156,49 @@ const FranchiseSystem = {
         }
       }
 
-      // 長いテキストを圧縮する関数
-      function compressLongText(text, maxLength = 500) {
-        if (!text || text.length <= maxLength) return text;
+      // 圧縮関数は完全削除 - 生データのまま保存
 
-        // JSON形式で圧縮（完全なデータを保持、preview不要）
-        const compressed = {
-          type: 'compressed',
-          full: text
-        };
-        return JSON.stringify(compressed);
+      // 施工箇所と特殊対応項目のデータを処理（圧縮しない、生データのまま保存）
+      const extractedConstructionTypes = detailInfo.constructionTypes ?
+        (Array.isArray(detailInfo.constructionTypes) ? detailInfo.constructionTypes.join('、') : detailInfo.constructionTypes)
+        : '';
+
+      const extractedSpecialServices = detailInfo.specialServices ?
+        (Array.isArray(detailInfo.specialServices) ? detailInfo.specialServices.join('、') : detailInfo.specialServices)
+        : '';
+
+      // エリア関連データも生データのまま処理（圧縮しない）
+      // 配列・オブジェクトを文字列に変換
+      let extractedPrefectures = selectedAreas.prefectures || '';
+      let extractedCities = selectedAreas.cities || '';
+      let extractedPriorities = selectedAreas.priorityAreas || '';
+
+      // 配列の場合はカンマ区切り文字列に変換
+      if (Array.isArray(extractedPrefectures)) {
+        extractedPrefectures = extractedPrefectures.join('、');
       }
+
+      if (Array.isArray(extractedPriorities)) {
+        extractedPriorities = extractedPriorities.join('、');
+      }
+
+      // citiesがオブジェクト形式（{都道府県: [市区町村]}）の場合は変換
+      if (typeof extractedCities === 'object' && !Array.isArray(extractedCities)) {
+        const citiesArray = [];
+        Object.keys(extractedCities).forEach(pref => {
+          if (Array.isArray(extractedCities[pref])) {
+            citiesArray.push(...extractedCities[pref]);
+          }
+        });
+        extractedCities = citiesArray.join('、');
+      } else if (Array.isArray(extractedCities)) {
+        extractedCities = extractedCities.join('、');
+      }
+
+      console.log('[FranchiseSystem] エリアデータ変換結果:');
+      console.log('  - Prefectures:', extractedPrefectures, '(type:', typeof extractedPrefectures + ')');
+      console.log('  - Cities:', extractedCities, '(type:', typeof extractedCities + ')');
+      console.log('  - Priorities:', extractedPriorities, '(type:', typeof extractedPriorities + ')');
 
       // データ整形（スプレッドシートの列順に合わせる）
       const rowData = [
@@ -185,7 +217,7 @@ const FranchiseSystem = {
         companyInfo.establishedDate || '', // 設立年月
         companyInfo.prText || '',       // PRテキスト
         branchNames,                    // 支店名
-        compressLongText(branchAddresses, 400), // 支店住所（圧縮）
+        branchAddresses, // 支店住所（生データ）
         params.termsAgreed === 'true' ? 'はい' : 'いいえ', // 利用規約同意
         identityDocument.type || '',    // 本人確認書類種類
         imageUrl1,                      // 本人確認書類URL1
@@ -198,13 +230,13 @@ const FranchiseSystem = {
         detailInfo.employees || detailInfo.employeeCount || '', // 従業員数
         detailInfo.revenue || detailInfo.salesScale || '',    // 売上規模
         detailInfo.propertyTypes ? (Array.isArray(detailInfo.propertyTypes) ? detailInfo.propertyTypes.join('、') : detailInfo.propertyTypes) : '', // 対応可能物件種別
-        compressLongText(detailInfo.propertyFloors || detailInfo.maxFloors || '', 100),     // 最大対応階数（圧縮）
+        detailInfo.propertyFloors || detailInfo.maxFloors || '',     // 最大対応階数（生データ）
         detailInfo.buildingAgeRange || detailInfo.buildingAge || '',   // 築年数対応範囲
-        compressLongText(detailInfo.constructionTypes ? (Array.isArray(detailInfo.constructionTypes) ? detailInfo.constructionTypes.join('、') : detailInfo.constructionTypes) : '', 400), // 施工箇所（圧縮）
-        compressLongText(detailInfo.specialServices ? (Array.isArray(detailInfo.specialServices) ? detailInfo.specialServices.join('、') : detailInfo.specialServices) : '', 400), // 特殊対応項目（圧縮）
-        compressLongText(selectedAreas.prefectures || '', 300), // 対応都道府県（圧縮）
-        compressLongText(selectedAreas.cities || '', 500),     // 対応市区町村（圧縮）
-        compressLongText(selectedAreas.priorityAreas || '', 500), // 優先エリア（圧縮）
+        extractedConstructionTypes, // 施工箇所（生データ）
+        extractedSpecialServices, // 特殊対応項目（生データ）
+        extractedPrefectures, // 対応都道府県（生データ）
+        extractedCities,     // 対応市区町村（生データ）
+        extractedPriorities, // 優先エリア（生データ）
         '新規登録',                     // ステータス
         '申請中',                       // 承認ステータス
         '',                            // 登録日時（承認後に入力）
