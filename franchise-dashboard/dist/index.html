@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>加盟店管理システム - 外壁塗装くらべるAI</title>
+    <script src="merchant-portal/env-loader.js?v=1050"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -88,30 +89,44 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                     </button>
-                    <div class="flex items-center space-x-2">
-                        <div id="companyLogo" class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                            <span class="text-gray-100 font-bold">加</span>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <div id="companyLogo" class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                                <span class="text-gray-100 font-bold">加</span>
+                            </div>
+                            <span id="systemTitle" class="hidden md:inline text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                                加盟店管理システム
+                            </span>
                         </div>
-                        <span id="systemTitle" class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                            加盟店管理システム
-                        </span>
+                        <!-- ステータス表記 -->
+                        <div class="relative">
+                            <label class="block text-xs text-gray-400 mb-1 text-center">ステータス</label>
+                            <select id="merchantStatus" onchange="updateMerchantStatus()" class="px-3 py-1 text-xs font-semibold rounded-full border-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 bg-yellow-100 text-yellow-800 border-yellow-300">
+                                <option value="active" class="bg-white text-gray-900">アクティブ</option>
+                                <option value="paused" class="bg-white text-gray-900" selected>一時停止中</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <!-- アラート・リマインダー統合ボタン -->
-                    <button onclick="toggleAlertPanel()" class="relative p-2 rounded-lg hover:bg-gray-800 transition-colors group">
+                    <!-- 本部からの通知ボタン -->
+                    <button onclick="toggleNotificationPanel()" class="relative p-2 rounded-lg hover:bg-gray-800 transition-colors group">
                         <svg class="w-6 h-6 text-gray-400 group-hover:text-yellow-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
-                        <span id="alertCount" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+                        <span id="notificationCount" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
                     </button>
-                    <div class="flex items-center space-x-3">
-                        <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-500 rounded-full"></div>
-                        <div class="text-center">
-                            <div id="userName" class="text-sm text-gray-300">ユーザー名</div>
-                            <div id="userRole" class="text-xs text-gray-400"></div>
-                        </div>
-                        <button onclick="logout()" class="ml-4 text-xs text-red-400 hover:text-red-300">ログアウト</button>
+                    <!-- アラート・リマインダーボタン -->
+                    <button onclick="toggleAlertPanel()" class="relative p-2 rounded-lg hover:bg-gray-800 transition-colors group">
+                        <svg class="w-6 h-6 text-gray-400 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span id="alertCount" class="absolute -top-1 -right-1 bg-blue-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+                    </button>
+                    <div class="text-center">
+                        <div id="userName" class="text-sm text-gray-300">ユーザー名</div>
+                        <div id="userRole" class="text-xs text-gray-400 cursor-pointer hover:text-gray-200" onclick="editSalesPerson()" title="クリックして編集"></div>
+                        <input id="userRoleInput" class="hidden text-xs text-gray-900 bg-white border border-gray-300 rounded px-2 py-1" style="width: 120px;" onblur="saveSalesPerson()" onkeydown="if(event.key==='Enter') saveSalesPerson()">
                     </div>
                 </div>
             </div>
@@ -193,6 +208,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     設定
+                </a>
+                <a href="#" onclick="logout(); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-red-900/50 text-gray-400 hover:text-red-400 mt-4 border-t border-gray-700 pt-4">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    ログアウト
                 </a>
             </nav>
         </div>
@@ -1887,6 +1908,39 @@
                 <h2 class="text-2xl font-bold text-gray-900 mb-6">自動配信設定</h2>
 
                 <div class="bg-white rounded-lg shadow p-6">
+                    <!-- 一時停止設定 -->
+                    <div class="mb-8 p-6 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">一時停止設定</h3>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="autoPauseToggle" onchange="toggleAutoPause()" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                            </label>
+                        </div>
+                        <div id="pauseSettings" class="space-y-4">
+                            <div class="flex items-center gap-4">
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">一時停止開始日</label>
+                                    <input type="date" id="pauseStartDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                </div>
+                                <div class="flex items-end pb-2 text-2xl font-bold text-gray-400">
+                                    〜
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <label class="block text-sm font-medium text-gray-700">一時停止再開日</label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="checkbox" id="indefinitePause" onchange="toggleIndefinitePause()" class="rounded text-orange-600 focus:ring-orange-500" checked>
+                                            <span class="text-xs text-gray-600">未定</span>
+                                        </label>
+                                    </div>
+                                    <input type="text" id="pauseEndDateDisplay" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed text-gray-500" value="未定" readonly>
+                                    <input type="date" id="pauseEndDate" class="hidden w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 対応可能物件種別 -->
                     <div class="mb-8">
                         <h3 class="text-lg font-semibold mb-4">対応可能物件種別</h3>
@@ -2097,7 +2151,7 @@
 
                         <!-- ¥5,000項目 -->
                         <div class="mb-6">
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
                                     <input type="checkbox" name="constructionTypes" value="外壁補修単品（但し1社紹介時は定価）" class="mr-3" onchange="checkSingleItemSelection(this)">
                                     <span class="flex-1">外壁補修単品</span>
@@ -3641,6 +3695,32 @@
     </div><!-- mainApp end -->
 
     <!-- アラート通知パネル -->
+    <!-- 本部からの通知パネル -->
+    <div id="notificationPanel" class="fixed top-20 right-4 w-96 max-h-[600px] bg-white rounded-lg shadow-2xl hidden z-50 overflow-hidden">
+        <div class="bg-gradient-to-r from-yellow-500 to-orange-600 text-white p-4">
+            <div class="flex items-center justify-between">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                    </svg>
+                    本部からの通知
+                </h3>
+                <button onclick="toggleNotificationPanel()" class="hover:bg-white hover:bg-opacity-20 rounded-lg p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="overflow-y-auto max-h-[500px]">
+            <div id="notificationList" class="p-4">
+                <p class="text-gray-500 text-center py-8">新しい通知はありません</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- アラート・リマインダーパネル -->
     <div id="alertPanel" class="fixed top-20 right-4 w-96 max-h-[600px] bg-white rounded-lg shadow-2xl hidden z-50 overflow-hidden">
         <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4">
             <div class="flex items-center justify-between">
@@ -4639,20 +4719,223 @@
         let userRole = 'admin';
 
         // ログイン処理
-        // GAS APIのURL
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwDo9CzXFB33zMvdApSQN5J23EB3gSOnYaWmBhYyFsDgA5XKHVG6wEKC8LgVEaHIDYYow/exec';
+        // GAS APIのURL（env-loader.jsから取得）
+        const GAS_URL = ENV.GAS_URL;
 
+        // ステータスをスプレッドシートから読み込む関数
+        async function loadMerchantStatus(merchantId) {
+            console.log('[loadMerchantStatus] Loading status for:', merchantId);
+            console.log('[loadMerchantStatus] GAS_URL:', GAS_URL);
+            try {
+                const result = await new Promise((resolve, reject) => {
+                    const callbackName = 'jsonp_status_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    const script = document.createElement('script');
+
+                    console.log('[loadMerchantStatus] Setting up callback:', callbackName);
+                    window[callbackName] = (data) => {
+                        console.log('[loadMerchantStatus] Callback executed:', data);
+                        delete window[callbackName];
+                        if (script.parentNode) {
+                            script.parentNode.removeChild(script);
+                        }
+                        resolve(data);
+                    };
+
+                    const url = `${GAS_URL}?action=getMerchantStatus&merchantId=${encodeURIComponent(merchantId)}&callback=${callbackName}`;
+                    console.log('[loadMerchantStatus] Request URL:', url);
+                    script.src = url;
+                    script.onerror = (error) => {
+                        console.error('[loadMerchantStatus] Script error:', error);
+                        delete window[callbackName];
+                        if (script.parentNode) {
+                            script.parentNode.removeChild(script);
+                        }
+                        reject(new Error('JSONP request failed'));
+                    };
+                    document.body.appendChild(script);
+                    console.log('[loadMerchantStatus] Script appended to body');
+                });
+
+                if (result.success) {
+                    const statusSelect = document.getElementById('merchantStatus');
+                    if (statusSelect) {
+                        statusSelect.value = result.status;
+                        // ステータスに応じた色を設定
+                        const statusColors = {
+                            'active': 'bg-green-100 text-green-800 border-green-300',
+                            'paused': 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                        };
+                        const colorClass = statusColors[result.status] || statusColors['paused'];
+                        statusSelect.className = 'px-3 py-1 text-xs font-semibold rounded-full border-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 ' + colorClass;
+                    }
+                    console.log('[loadMerchantStatus] Status loaded:', result.status, 'Sheet status:', result.sheetStatus);
+                } else {
+                    console.warn('[loadMerchantStatus] Failed to load status:', result.error);
+                }
+            } catch (error) {
+                console.error('[loadMerchantStatus] Error:', error);
+            }
+        }
+
+        // 加盟店データを取得する関数
+        async function fetchMerchantData(merchantId) {
+            console.log('[fetchMerchantData] Fetching data for:', merchantId);
+            try {
+                // JSONP でデータ取得
+                const result = await new Promise((resolve, reject) => {
+                    const callbackName = 'jsonp_data_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    const script = document.createElement('script');
+
+                    window[callbackName] = (data) => {
+                        delete window[callbackName];
+                        if (script.parentNode) {
+                            script.parentNode.removeChild(script);
+                        }
+                        resolve(data);
+                    };
+
+                    script.src = `${GAS_URL}?action=getMerchantData&merchantId=${encodeURIComponent(merchantId)}&callback=${callbackName}`;
+                    script.onerror = () => {
+                        delete window[callbackName];
+                        if (script.parentNode) {
+                            script.parentNode.removeChild(script);
+                        }
+                        reject(new Error('JSONP request failed'));
+                    };
+                    document.body.appendChild(script);
+                });
+
+                console.log('[fetchMerchantData] Response:', result);
+                console.log('[fetchMerchantData] result.success:', result.success);
+                console.log('[fetchMerchantData] result.data:', result.data);
+                console.log('[fetchMerchantData] result.error:', result.error);
+
+                if (result.success && result.data) {
+                    window.merchantData = result.data;
+                    console.log('[fetchMerchantData] Merchant data loaded:', window.merchantData);
+                    console.log('[fetchMerchantData] salesPerson:', window.merchantData.salesPerson);
+                } else {
+                    console.warn('[fetchMerchantData] No data returned - success:', result.success, 'data:', result.data);
+                    window.merchantData = {};
+                }
+            } catch (error) {
+                console.error('[fetchMerchantData] Error:', error);
+                window.merchantData = {};
+            }
+        }
+
+        // 汎用GAS API呼び出し（JSONP）
+        async function callGasApi(action, params = {}) {
+            console.log('[callGasApi] Calling action:', action, 'with params:', params);
+            return new Promise((resolve, reject) => {
+                const callbackName = 'jsonp_' + action + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                const script = document.createElement('script');
+
+                window[callbackName] = (data) => {
+                    delete window[callbackName];
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                    resolve(data);
+                };
+
+                const queryParams = new URLSearchParams({
+                    action: action,
+                    callback: callbackName,
+                    ...params
+                });
+
+                script.src = `${window.ENV.GAS_URL}?${queryParams.toString()}`;
+                script.onerror = () => {
+                    delete window[callbackName];
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                    reject(new Error('Script load error'));
+                };
+
+                document.body.appendChild(script);
+            });
+        }
+
+        // 営業担当者名編集
+        function editSalesPerson() {
+            const userRoleDiv = document.getElementById('userRole');
+            const userRoleInput = document.getElementById('userRoleInput');
+
+            userRoleInput.value = userRoleDiv.textContent;
+            userRoleDiv.classList.add('hidden');
+            userRoleInput.classList.remove('hidden');
+            userRoleInput.focus();
+            userRoleInput.select();
+        }
+
+        // 営業担当者名保存
+        async function saveSalesPerson() {
+            const userRoleDiv = document.getElementById('userRole');
+            const userRoleInput = document.getElementById('userRoleInput');
+            const newSalesPerson = userRoleInput.value.trim();
+
+            if (!newSalesPerson) {
+                alert('営業担当者氏名を入力してください');
+                return;
+            }
+
+            try {
+                // JSONP でデータ保存
+                const result = await new Promise((resolve, reject) => {
+                    const callbackName = 'jsonp_sales_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    const script = document.createElement('script');
+
+                    window[callbackName] = (data) => {
+                        delete window[callbackName];
+                        if (script.parentNode) {
+                            script.parentNode.removeChild(script);
+                        }
+                        resolve(data);
+                    };
+
+                    script.src = `${GAS_URL}?action=updateSalesPerson&merchantId=${encodeURIComponent(currentUser)}&salesPerson=${encodeURIComponent(newSalesPerson)}&callback=${callbackName}`;
+                    script.onerror = () => {
+                        delete window[callbackName];
+                        if (script.parentNode) {
+                            script.parentNode.removeChild(script);
+                        }
+                        reject(new Error('JSONP request failed'));
+                    };
+                    document.body.appendChild(script);
+                });
+
+                if (result.success) {
+                    // 成功 - 表示を更新
+                    userRoleDiv.textContent = newSalesPerson;
+                    if (window.merchantData) {
+                        window.merchantData.salesPerson = newSalesPerson;
+                    }
+                } else {
+                    // 失敗 - 元に戻す
+                    console.error('Save failed:', result.error);
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+            }
+
+            // 入力欄を非表示、テキストを表示
+            userRoleInput.classList.add('hidden');
+            userRoleDiv.classList.remove('hidden');
+        }
 
         // ロール表示更新
         function updateRoleDisplay() {
-            const roleNames = {
-                'admin': '管理者',  // 加盟店IDログイン（FR09242320など）
-                'sales': '営業'     // 今後実装予定の営業担当者ログイン
-            };
-            
             // ユーザー名とロールを表示
             document.getElementById('userName').textContent = currentUser;
-            document.getElementById('userRole').textContent = roleNames[userRole] + '権限';
+
+            // 営業担当者氏名を表示（window.merchantDataのX列から取得）
+            let salesPerson = '営業担当者未設定';
+            if (window.merchantData && window.merchantData.salesPerson) {
+                salesPerson = window.merchantData.salesPerson;
+            }
+            document.getElementById('userRole').textContent = salesPerson;
             
             // 権限に応じてUIを変更
             if (userRole === 'admin') {
@@ -4717,8 +5000,96 @@
         }
 
         // 自動配信設定の保存
-        function saveAutoDeliverySettings() {
-            showNotification('保存完了', '自動配信設定を保存しました');
+        async function saveAutoDeliverySettings() {
+            try {
+                showNotification('保存中...', '自動配信設定を保存しています', 'info');
+
+                // フォームからデータを収集
+                const autoDeliveryData = collectAutoDeliveryData();
+
+                if (!autoDeliveryData) {
+                    showNotification('エラー', '必須項目を入力してください', 'error');
+                    return;
+                }
+
+                // GAS APIを呼び出して保存
+                const response = await callGasApi('updateAutoDeliverySettings', {
+                    merchantId: window.merchantId,
+                    ...autoDeliveryData
+                });
+
+                if (response.success) {
+                    showNotification('保存完了', '自動配信設定を保存しました', 'success');
+                } else {
+                    showNotification('エラー', response.error || '保存に失敗しました', 'error');
+                }
+            } catch (error) {
+                console.error('[saveAutoDeliverySettings] Error:', error);
+                showNotification('エラー', '保存中にエラーが発生しました', 'error');
+            }
+        }
+
+        // 自動配信設定データを収集
+        function collectAutoDeliveryData() {
+            // 物件種別
+            const propertyTypes = Array.from(document.querySelectorAll('input[name="propertyType"]:checked'))
+                .map(cb => {
+                    const typeMap = {
+                        'house': '戸建て住宅',
+                        'apartment': 'アパート・マンション',
+                        'commercial': '店舗・事務所',
+                        'factory': '工場・倉庫'
+                    };
+                    return typeMap[cb.value];
+                });
+
+            // 最大対応階数
+            const selects = document.querySelectorAll('#propertyTypesAutoContainer select');
+            const maxFloorsList = [];
+            const typeNames = ['戸建て住宅', 'アパート・マンション', '店舗・事務所', '工場・倉庫'];
+            selects.forEach((select, idx) => {
+                if (propertyTypes.includes(typeNames[idx])) {
+                    maxFloorsList.push(`${typeNames[idx]}(${select.value}階まで)`);
+                }
+            });
+
+            // 築年数範囲
+            const ageSliders = document.querySelectorAll('#propertyTypesAutoContainer input[type="range"]');
+            const ageMin = ageSliders[0] ? parseInt(ageSliders[0].value) : 0;
+            const ageMax = ageSliders[1] ? parseInt(ageSliders[1].value) : 50;
+
+            // 施工箇所（完全一致で保存）
+            const constructionTypes = Array.from(document.querySelectorAll('input[name="constructionTypes"]:checked'))
+                .map(cb => cb.value);
+
+            // 特殊対応項目（完全一致で保存）
+            const specialServices = Array.from(document.querySelectorAll('input[name="specialServices"]:checked'))
+                .map(cb => cb.value);
+
+            // 対応都道府県・市区町村
+            const prefectures = areaSelectionData.prefectures.join(',');
+
+            // 市区町村を "東京都:渋谷区,新宿区;神奈川県:横浜市,川崎市" 形式に変換
+            const citiesStr = Object.entries(areaSelectionData.cities)
+                .map(([pref, cities]) => `${pref}:${cities.join(',')}`)
+                .join(';');
+
+            // 優先エリア: UIフォーマット（アンダースコア）をスプシフォーマットに変換
+            // 注: スプシがアンダースコア形式で保存している場合はそのまま、スペース形式の場合は変換
+            const priorities = areaSelectionData.priorities
+                .map(p => p.includes('_') ? p.replace(/_/g, ' ') : p)
+                .join(',');
+
+            return {
+                propertyTypes: propertyTypes.join(','),
+                maxFloors: maxFloorsList.join(','),
+                ageRange: `{min=${ageMin}, max=${ageMax}}`,
+                constructionTypes: constructionTypes.join(','),
+                specialServices: specialServices.join(','),
+                prefectures: prefectures,
+                cities: citiesStr,
+                priorities: priorities
+            };
         }
 
         // 屋号表示オプションの表示/非表示
@@ -6192,10 +6563,6 @@
         }
 
         // 自動配信設定を保存
-        function saveAutoDeliverySettings() {
-            showNotification('保存完了', '自動配信設定を保存しました');
-        }
-
         // エリア設定の同期切り替え
         function toggleAreaSync() {
             const isSync = document.getElementById('syncAreaSettings').checked;
@@ -6672,6 +7039,74 @@
             }
         }
 
+        // 本部からの通知パネル切り替え
+        function toggleNotificationPanel() {
+            const panel = document.getElementById('notificationPanel');
+            if (panel.classList.contains('hidden')) {
+                panel.classList.remove('hidden');
+                loadNotifications();
+            } else {
+                panel.classList.add('hidden');
+            }
+        }
+
+        // 本部からの通知を読み込む（今後実装）
+        function loadNotifications() {
+            // TODO: GASから本部通知を取得
+            console.log('Loading notifications from headquarters...');
+        }
+
+        // 加盟店ステータス更新
+        async function updateMerchantStatus() {
+            const statusSelect = document.getElementById('merchantStatus');
+            const status = statusSelect.value;
+
+            // ステータスに応じて色を変更
+            statusSelect.className = 'px-3 py-1 text-xs font-semibold rounded-full border-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500';
+
+            const statusColors = {
+                'active': 'bg-green-100 text-green-800 border-green-300',
+                'paused': 'bg-yellow-100 text-yellow-800 border-yellow-300'
+            };
+
+            const colorClass = statusColors[status] || statusColors['paused'];
+            statusSelect.className += ' ' + colorClass;
+
+            // GASにステータス更新を送信（スプレッドシートAJ列に保存）
+            try {
+                const result = await new Promise((resolve, reject) => {
+                    const callbackName = 'jsonp_update_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    const script = document.createElement('script');
+
+                    window[callbackName] = (data) => {
+                        delete window[callbackName];
+                        if (script.parentNode) {
+                            script.parentNode.removeChild(script);
+                        }
+                        resolve(data);
+                    };
+
+                    script.src = `${GAS_URL}?action=updateMerchantStatus&merchantId=${encodeURIComponent(currentUser)}&status=${encodeURIComponent(status)}&callback=${callbackName}`;
+                    script.onerror = () => {
+                        delete window[callbackName];
+                        if (script.parentNode) {
+                            script.parentNode.removeChild(script);
+                        }
+                        reject(new Error('JSONP request failed'));
+                    };
+                    document.body.appendChild(script);
+                });
+
+                if (result.success) {
+                    console.log('[updateMerchantStatus] Status synced to spreadsheet:', status);
+                } else {
+                    console.error('[updateMerchantStatus] Failed to sync status:', result.error);
+                }
+            } catch (error) {
+                console.error('[updateMerchantStatus] Error:', error);
+            }
+        }
+
         // バッジカウントを統合更新
         function updateTotalBadgeCount() {
             // 未割当案件数を取得
@@ -6906,7 +7341,36 @@
         // メニュートグル
         window.toggleMenu = function() {
             const sideMenu = document.getElementById('sideMenu');
-            sideMenu.classList.toggle('-translate-x-full');
+            const isOpen = !sideMenu.classList.contains('-translate-x-full');
+
+            if (isOpen) {
+                // メニューを閉じる
+                sideMenu.classList.add('-translate-x-full');
+                document.removeEventListener('click', handleOutsideClick);
+            } else {
+                // メニューを開く
+                sideMenu.classList.remove('-translate-x-full');
+                // 次のフレームでイベントリスナーを追加（toggleMenuのクリックを無視するため）
+                setTimeout(() => {
+                    document.addEventListener('click', handleOutsideClick);
+                }, 0);
+            }
+        }
+
+        // メニュー外クリックでメニューを閉じる
+        function handleOutsideClick(event) {
+            const sideMenu = document.getElementById('sideMenu');
+            const menuButton = event.target.closest('button[onclick*="toggleMenu"]');
+
+            // メニューボタンをクリックした場合は無視
+            if (menuButton) return;
+
+            // メニュー内をクリックした場合は無視
+            if (sideMenu.contains(event.target)) return;
+
+            // メニュー外をクリックした場合は閉じる
+            sideMenu.classList.add('-translate-x-full');
+            document.removeEventListener('click', handleOutsideClick);
         }
         
         // アクティブメニューの更新
@@ -7285,8 +7749,25 @@
                 currentUser = savedUser;
                 userRole = savedRole;
                 document.getElementById('mainApp').classList.remove('hidden');
-                updateRoleDisplay();
-                showSection('dashboard');
+
+                // 加盟店データとステータスを取得してから表示を更新
+                Promise.all([
+                    fetchMerchantData(savedUser),
+                    loadMerchantStatus(savedUser)
+                ]).then(() => {
+                    updateRoleDisplay();
+                    showSection('dashboard');
+
+                    // 初回ログイン時の初期設定
+                    initializeFirstLoginSettings();
+                }).catch(error => {
+                    console.error('Failed to fetch merchant data or status:', error);
+                    updateRoleDisplay();
+                    showSection('dashboard');
+
+                    // 初回ログイン時の初期設定
+                    initializeFirstLoginSettings();
+                });
 
                 // 案件カードを初期化
                 setTimeout(() => {
@@ -8774,7 +9255,7 @@
                 salesPersonKana: ['salesPersonKana', 'sales_person_kana', '営業担当者名カナ'],
                 employees: ['employees', 'employee_count', '従業員数'],
                 salesScale: ['salesScale', 'sales_scale', '売上規模'],
-                maxFloors: ['maxFloors', 'max_floors', '最大階数'],
+                maxFloors: ['maxFloors', 'max_floors', '最大対応階数', '最大階数'],
                 buildingAge: ['buildingAge', 'building_age', '建物築年数'],
                 specialItems: ['specialItems', 'special_items', '特殊工事'],
                 cities: ['cities', 'service_areas', '対応エリア'],
@@ -11582,6 +12063,361 @@
     </div>
 
     <script>
+        // 初回ログイン時の初期設定
+        function initializeFirstLoginSettings() {
+            // 初回ログインかどうかをチェック（localStorageに保存）
+            const isInitialized = localStorage.getItem('autodeliveryInitialized');
+
+            if (!isInitialized) {
+                console.log('[初回ログイン] 自動配信設定を初期化します');
+
+                // ステータスを一時停止中に設定（既にHTMLでデフォルト設定済み）
+                const statusSelect = document.getElementById('merchantStatus');
+                if (statusSelect) {
+                    statusSelect.value = 'paused';
+                    updateMerchantStatus();
+                }
+
+                // 初期化完了フラグを保存
+                localStorage.setItem('autodeliveryInitialized', 'true');
+                console.log('[初回ログイン] 初期化完了');
+            }
+
+            // 毎回実行: 一時停止開始日を今日に設定（デフォルト表示）
+            const today = new Date().toISOString().split('T')[0];
+            const startDateInput = document.getElementById('pauseStartDate');
+            if (startDateInput && !startDateInput.value) {
+                startDateInput.value = today;
+            }
+
+            // 自動配信設定をスプレッドシートから読み込み
+            if (window.merchantData) {
+                loadAutodeliverySettings(window.merchantData);
+            }
+        }
+
+        // スプレッドシートから自動配信設定を読み込む
+        function loadAutodeliverySettings(data) {
+            console.log('[loadAutodeliverySettings] Loading settings:', data);
+            console.log('[loadAutodeliverySettings] 最大対応階数 key check:', data['最大対応階数']);
+            console.log('[loadAutodeliverySettings] All keys:', Object.keys(data));
+
+            // 対応可能物件種別
+            if (data['対応可能物件種別']) {
+                const propertyTypes = data['対応可能物件種別'].split(',').map(s => s.trim());
+                const propertyMap = {
+                    '戸建て住宅': 'house',
+                    'アパート・マンション': 'apartment',
+                    '店舗・事務所': 'commercial',
+                    '工場・倉庫': 'factory'
+                };
+                propertyTypes.forEach(type => {
+                    const value = propertyMap[type];
+                    if (value) {
+                        const checkbox = document.querySelector(`input[name="propertyType"][value="${value}"]`);
+                        if (checkbox) checkbox.checked = true;
+                    }
+                });
+            }
+
+            // 最大対応階数（例: "戸建て住宅(3階まで),アパート・マンション(3階まで)"）
+            if (data['最大対応階数']) {
+                const maxFloorsData = data['最大対応階数'];
+                console.log('[loadAutodeliverySettings] Max floors data:', maxFloorsData);
+
+                const propertyTypeMap = {
+                    '戸建て住宅': 'house',
+                    'アパート・マンション': 'apartment',
+                    '店舗・事務所': 'commercial',
+                    '工場・倉庫': 'factory'
+                };
+
+                // "戸建て住宅(3階まで),アパート・マンション(5階まで)" をパース
+                maxFloorsData.split(',').forEach(entry => {
+                    const match = entry.trim().match(/^(.+?)\((\d+)階まで\)$/);
+                    if (match) {
+                        const propertyType = match[1];
+                        const floors = match[2];
+                        const checkboxValue = propertyTypeMap[propertyType];
+
+                        if (checkboxValue) {
+                            // チェックボックスを見つけて、その隣のselectを取得
+                            const checkbox = document.querySelector(`input[name="propertyType"][value="${checkboxValue}"]`);
+                            if (checkbox) {
+                                const label = checkbox.closest('label');
+                                const select = label.querySelector('select');
+                                if (select) {
+                                    select.value = floors;
+                                    console.log('[loadAutodeliverySettings] Set max floors:', propertyType, '=', floors);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 築年数対応範囲（例: "{min=0, max=50}"）
+            if (data['築年数対応範囲']) {
+                try {
+                    const ageRange = data['築年数対応範囲'];
+                    // JSON風の文字列をパース
+                    const minMatch = ageRange.match(/min=(\d+)/);
+                    const maxMatch = ageRange.match(/max=(\d+)/);
+                    if (minMatch && maxMatch) {
+                        const min = parseInt(minMatch[1]);
+                        const max = parseInt(maxMatch[1]);
+                        document.getElementById('ageRangeMinAuto').textContent = min;
+                        document.getElementById('ageRangeMaxAuto').textContent = max;
+
+                        // スライダーの値も設定
+                        const sliders = document.querySelectorAll('#propertyTypesAutoContainer input[type="range"]');
+                        if (sliders.length >= 2) {
+                            sliders[0].value = min; // 下限スライダー
+                            sliders[1].value = max; // 上限スライダー
+                            console.log('[loadAutodeliverySettings] Set age range:', min, '-', max);
+                        }
+                    }
+                } catch (e) {
+                    console.error('築年数パースエラー:', e);
+                }
+            }
+
+            // 施工箇所（スプレッドシートの値 → HTML value のマッピング）
+            if (data['施工箇所']) {
+                let locationsStr = data['施工箇所'];
+                console.log('[loadAutodeliverySettings] Raw construction types data:', locationsStr);
+
+                // compressed形式の場合はfullの値を抽出
+                if (locationsStr.includes('{"type":"compressed","full":"')) {
+                    const match = locationsStr.match(/"full":"([^"]+)"/);
+                    if (match) {
+                        locationsStr = match[1];
+                        console.log('[loadAutodeliverySettings] Extracted full data:', locationsStr);
+                    }
+                }
+
+                const locations = locationsStr.split(',').map(s => s.trim()).filter(l => l);
+                console.log('[loadAutodeliverySettings] Parsed locations:', locations);
+
+                // スプシの施工箇所データ → HTMLチェックボックスvalueへのマッピング
+                // 新システム: スプシには完全な形式で保存されるため、基本的に完全一致
+                // 旧データとの互換性のため、略称マッピングも保持
+                const locationMap = {
+                    // 完全一致（新フォーマット）- スプシの値 = HTMLの値
+                    '外壁塗装': '外壁塗装',
+                    '外壁カバー工法': '外壁カバー工法',
+                    '外壁張替え': '外壁張替え',
+                    '屋根塗装（外壁工事含む）': '屋根塗装（外壁工事含む）',
+                    '屋上防水（外壁工事含む）': '屋上防水（外壁工事含む）',
+                    '屋根葺き替え・張り替え※スレート・ガルバリウム等': '屋根葺き替え・張り替え※スレート・ガルバリウム等',
+                    '屋根葺き替え・張り替え※瓦': '屋根葺き替え・張り替え※瓦',
+                    '屋根カバー工法': '屋根カバー工法',
+                    '外壁補修（外壁工事含む）': '外壁補修（外壁工事含む）',
+                    '屋根補修（外壁工事含む）': '屋根補修（外壁工事含む）',
+                    'ベランダ防水（外壁工事含む）': 'ベランダ防水（外壁工事含む）',
+                    '内装水回り（バス・キッチン・トイレ）（外壁工事含む）': '内装水回り（バス・キッチン・トイレ）（外壁工事含む）',
+                    '内装（フローリングや畳などの床・クロス等）（外壁工事含む）': '内装（フローリングや畳などの床・クロス等）（外壁工事含む）',
+                    '外壁雨漏り修繕（外壁工事含む）': '外壁雨漏り修繕（外壁工事含む）',
+                    '屋根雨漏り修繕（屋根工事含む）': '屋根雨漏り修繕（屋根工事含む）',
+                    '屋根塗装単品': '屋根塗装単品',
+                    '屋上防水単品': '屋上防水単品',
+                    '外壁補修単品': '外壁補修単品',
+                    '屋根補修単品': '屋根補修単品',
+                    'ベランダ防水単品': 'ベランダ防水単品',
+                    '外壁雨漏り修繕単品': '外壁雨漏り修繕単品',
+                    '屋根雨漏り修繕単品': '屋根雨漏り修繕単品',
+
+                    // 旧データとの互換性（略称 → 完全名称）
+                    '屋根塗装': '屋根塗装（外壁工事含む）',
+                    '屋上防水': '屋上防水（外壁工事含む）',
+                    '外壁補修': '外壁補修（外壁工事含む）',
+                    '屋根補修': '屋根補修（外壁工事含む）',
+                    'ベランダ防水': 'ベランダ防水（外壁工事含む）',
+                    '内装水回り': '内装水回り（バス・キッチン・トイレ）（外壁工事含む）',
+                    '内装': '内装（フローリングや畳などの床・クロス等）（外壁工事含む）',
+                    '屋根雨漏り修繕': '屋根雨漏り修繕（屋根工事含む）',
+                    '外壁雨漏り修繕': '外壁雨漏り修繕（外壁工事含む）',
+                    '屋根張り替え・カバー': '屋根カバー工法',
+                    '屋根葺き替え・張り替': '屋根葺き替え・張り替え※スレート・ガルバリウム等',
+                    '屋根葺き替え・張り替え': '屋根葺き替え・張り替え※スレート・ガルバリウム等'
+                };
+                locations.forEach(loc => {
+                    const mappedValue = locationMap[loc] || loc;
+                    const checkbox = document.querySelector(`input[name="constructionTypes"][value="${mappedValue}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                        console.log('[loadAutodeliverySettings] Checked:', mappedValue);
+                    } else {
+                        console.warn('[loadAutodeliverySettings] Not found:', loc, '→', mappedValue);
+                    }
+                });
+            }
+
+            // 特殊対応項目（スプレッドシートの値 → HTML value のマッピング）
+            if (data['特殊対応項目']) {
+                const specialItems = data['特殊対応項目'].split(',').map(s => s.trim());
+                const specialMap = {
+                    // 完全一致（新フォーマット） - スプシの値 = HTMLの値（絵文字付き）
+                    '遮熱・断熱塗料提案可能': '🌡 遮熱・断熱塗料提案可能',
+                    '立ち会いなし・見積もり手渡し希望': '👀 立ち会いなし・見積もり手渡し希望',
+                    '遠方につき立ち会いなし・見積もり郵送・電話で商談可': '📮 遠方につき立ち会いなし・見積もり郵送・電話で商談可',
+                    'エクステリア（庭・駐車場・外構）': '🏡 エクステリア（庭・駐車場・外構）',
+                    '太陽光パネル脱着（撤去含む）': '☀️ 太陽光パネル脱着（撤去含む）',
+                    '提携先ローン有り': '🏦 提携先ローン有り',
+                    'クレジットカード払い可': '💳 クレジットカード払い可',
+                    '火災保険申請サポート': '🔥 火災保険申請サポート',
+                    '助成金申請サポート': '💰 助成金申請サポート',
+                    '建築許可証': '🏗 建築許可証',
+                    '光触媒塗料提案可': '✨ 光触媒塗料提案可',
+                    '分割払いプラン有': '💴 分割払いプラン有',
+
+                    // 旧データとの互換性（括弧なし → 括弧付き）
+                    '立ち会いなし見積もり手渡': '👀 立ち会いなし・見積もり手渡し希望',
+                    '遠方につき立ち会いなし見積もり郵送': '📮 遠方につき立ち会いなし・見積もり郵送・電話で商談可',
+                    'エクステリア': '🏡 エクステリア（庭・駐車場・外構）',
+                    '太陽光パネル脱着': '☀️ 太陽光パネル脱着（撤去含む）'
+                };
+                specialItems.forEach(item => {
+                    const mappedValue = specialMap[item] || item;
+                    const checkbox = document.querySelector(`input[name="specialServices"][value="${mappedValue}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                        console.log('[loadAutodeliverySettings] Special checked:', mappedValue);
+                    } else {
+                        console.warn('[loadAutodeliverySettings] Special not found:', item);
+                    }
+                });
+            }
+
+            // 対応都道府県・市区町村をロード
+            if (data['対応都道府県']) {
+                const prefectures = data['対応都道府県'].split(',').map(s => s.trim());
+                areaSelectionData.prefectures = prefectures;
+
+                // 都道府県ボタンを選択状態にする
+                prefectures.forEach(pref => {
+                    const button = document.querySelector(`button[data-prefecture="${pref}"]`);
+                    if (button) {
+                        button.classList.add('selected', 'bg-blue-500', 'text-white');
+                        button.classList.remove('bg-white');
+                    }
+                });
+
+                console.log('[loadAutodeliverySettings] Loaded prefectures:', prefectures);
+            }
+
+            if (data['対応市区町村']) {
+                try {
+                    const citiesStr = data['対応市区町村'];
+                    console.log('[loadAutodeliverySettings] Raw cities data:', citiesStr);
+
+                    // データ形式チェック: セミコロンがあれば "東京都:渋谷区,新宿区;神奈川県:横浜市,川崎市" 形式
+                    // セミコロンがなければ、単純なカンマ区切りリスト（都道府県情報なし）
+                    if (citiesStr.includes(';') && citiesStr.includes(':')) {
+                        // セミコロン区切りで都道府県ごとに分割
+                        citiesStr.split(';').forEach(prefEntry => {
+                            const parts = prefEntry.split(':');
+                            if (parts.length === 2) {
+                                const pref = parts[0].trim();
+                                const citiesStr = parts[1].trim();
+                                if (pref && citiesStr) {
+                                    const cities = citiesStr.split(',').map(s => s.trim()).filter(c => c);
+                                    if (cities.length > 0) {
+                                        areaSelectionData.cities[pref] = cities;
+                                        console.log(`[loadAutodeliverySettings] ${pref}:`, cities);
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        // 都道府県情報がない場合、選択されている都道府県に全ての市区町村を割り当てる
+                        const allCities = citiesStr.split(',').map(s => s.trim()).filter(c => c);
+                        console.log('[loadAutodeliverySettings] Parsed cities (unstructured):', allCities.length, 'cities');
+                        console.log('[loadAutodeliverySettings] Current prefectures:', areaSelectionData.prefectures);
+
+                        if (allCities.length > 0 && areaSelectionData.prefectures.length > 0) {
+                            console.warn('[loadAutodeliverySettings] 都道府県情報がないため、選択された都道府県に割り当てます');
+                            areaSelectionData.prefectures.forEach(pref => {
+                                areaSelectionData.cities[pref] = allCities;
+                                console.log(`[loadAutodeliverySettings] Assigned ${allCities.length} cities to ${pref}`);
+                            });
+                        } else {
+                            console.error('[loadAutodeliverySettings] Cannot assign cities: allCities.length =', allCities.length, ', prefectures.length =', areaSelectionData.prefectures.length);
+                        }
+                    }
+
+                    console.log('[loadAutodeliverySettings] Loaded cities:', areaSelectionData.cities);
+                } catch (e) {
+                    console.error('市区町村パースエラー:', e);
+                }
+            }
+
+            // 優先エリアをロード
+            if (data['優先エリア']) {
+                try {
+                    const prioritiesStr = data['優先エリア'];
+                    console.log('[loadAutodeliverySettings] Raw priorities data:', prioritiesStr);
+
+                    const priorities = prioritiesStr.split(',').map(s => s.trim()).filter(p => p);
+
+                    // スプシのデータ形式に応じて変換
+                    // "東京都 渋谷区" 形式 → "東京都_渋谷区" に変換
+                    // "東京都_渋谷区" 形式 → そのまま使用
+                    areaSelectionData.priorities = priorities.map(p => {
+                        if (p.includes('_')) {
+                            return p; // すでにアンダースコア形式
+                        } else {
+                            return p.replace(/\s+/, '_'); // スペースをアンダースコアに変換
+                        }
+                    });
+
+                    console.log('[loadAutodeliverySettings] Loaded priorities:', areaSelectionData.priorities);
+                } catch (e) {
+                    console.error('優先エリアパースエラー:', e);
+                }
+            }
+
+            // エリア選択UIを更新
+            if (areaSelectionData.prefectures.length > 0) {
+                updateAreaSelectionUI();
+            }
+
+            console.log('[loadAutodeliverySettings] Final areaSelectionData:', JSON.stringify(areaSelectionData, null, 2));
+
+            console.log('[loadAutodeliverySettings] Settings loaded');
+        }
+
+        // 一時停止設定関数
+        function toggleAutoPause() {
+            const toggle = document.getElementById('autoPauseToggle');
+            const settings = document.getElementById('pauseSettings');
+
+            if (toggle.checked) {
+                settings.classList.remove('hidden');
+                updatePausePreview();
+            } else {
+                settings.classList.add('hidden');
+            }
+        }
+
+        function toggleIndefinitePause() {
+            const indefinite = document.getElementById('indefinitePause');
+            const endDateInput = document.getElementById('pauseEndDate');
+            const endDateDisplay = document.getElementById('pauseEndDateDisplay');
+
+            if (indefinite.checked) {
+                // 無期限停止: 「未定」と表示
+                endDateDisplay.value = '未定';
+                endDateDisplay.classList.remove('hidden');
+                endDateInput.classList.add('hidden');
+            } else {
+                // 期限あり: 日付入力欄を表示
+                endDateDisplay.classList.add('hidden');
+                endDateInput.classList.remove('hidden');
+            }
+        }
+
+
         // 単品項目のチェック状態を管理
 
         function checkSingleItemSelection(checkbox) {
