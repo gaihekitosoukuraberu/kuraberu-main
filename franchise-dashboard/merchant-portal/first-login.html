@@ -6,6 +6,7 @@
     <title>初回ログイン - くらべる加盟店管理システム</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="./env-loader.js?v=1050"></script>
     <style>
         body { font-family: 'Inter', system-ui, sans-serif; }
     </style>
@@ -129,8 +130,14 @@
     </div>
 
     <script>
-        // GAS API URL
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzyLc5acIrCeu-HVOhurHemVGJ6g5qf4Kr1LSnSwU5Rtz1C2CkTkDGoQHma9DxxgUoEnw/exec';
+        // GAS API URL (env-loader.jsから取得)
+        console.log('[first-login] ENV check:', typeof ENV, ENV);
+        if (typeof ENV === 'undefined' || !ENV.GAS_URL) {
+            console.error('[first-login] ENV not loaded!', typeof ENV, window.ENV);
+            alert('システムエラー: 環境設定が読み込めません。ページを再読み込みしてください。');
+        }
+        const GAS_URL = ENV.GAS_URL;
+        console.log('[first-login] Using GAS_URL:', GAS_URL);
 
         let merchantId = null;
 
@@ -153,17 +160,30 @@
             }
 
             try {
-                // URLトークン検証
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'verifyFirstLogin',
-                        data: data,
-                        sig: sig
-                    })
+                // URLトークン検証（JSONP）
+                console.log('[first-login] Sending JSONP request to:', GAS_URL);
+                console.log('[first-login] Request params:', {action: 'verifyFirstLogin', data, sig});
+
+                const result = await new Promise((resolve, reject) => {
+                    const callbackName = 'jsonp_' + Date.now();
+                    window[callbackName] = (data) => {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        resolve(data);
+                    };
+
+                    const script = document.createElement('script');
+                    script.src = `${GAS_URL}?action=verifyFirstLogin&data=${encodeURIComponent(data)}&sig=${encodeURIComponent(sig)}&callback=${callbackName}`;
+                    script.onerror = () => {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        reject(new Error('JSONP request failed'));
+                    };
+                    document.body.appendChild(script);
                 });
 
-                const result = await response.json();
+                console.log('[first-login] JSONP response:', result);
+                console.log('[first-login] Result details:', JSON.stringify(result, null, 2));
 
                 if (result.success && result.merchantId) {
                     merchantId = result.merchantId;
@@ -254,18 +274,30 @@
             submitBtn.textContent = '設定中...';
 
             try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'setPassword',
-                        merchantId: merchantId,
-                        password: password
-                    })
+                // JSONP
+                const result = await new Promise((resolve, reject) => {
+                    const callbackName = 'jsonp_' + Date.now();
+                    window[callbackName] = (data) => {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        resolve(data);
+                    };
+
+                    const script = document.createElement('script');
+                    script.src = `${GAS_URL}?action=setPassword&merchantId=${encodeURIComponent(merchantId)}&password=${encodeURIComponent(password)}&callback=${callbackName}`;
+                    script.onerror = () => {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        reject(new Error('JSONP request failed'));
+                    };
+                    document.body.appendChild(script);
                 });
 
-                const result = await response.json();
-
                 if (result.success) {
+                    // パスワードをセッションストレージに一時保存
+                    sessionStorage.setItem('tempMerchantId', merchantId);
+                    sessionStorage.setItem('tempPassword', password);
+
                     document.getElementById('passwordSection').classList.add('hidden');
                     document.getElementById('successSection').classList.remove('hidden');
                 } else {
