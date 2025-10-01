@@ -53,7 +53,7 @@ function doGet(e) {
       result = AISearchSystem.handle(e.parameter);
     }
     // 加盟店向けシステム
-    else if (action.startsWith('merchant_') || action === 'verifyFirstLoginUrl' || action === 'verifyFirstLogin' || action === 'setPassword' || action === 'resetPassword' || action === 'verifyLogin' || action === 'getMerchantData' || action === 'updateSalesPerson' || action === 'updateMerchantStatus' || action === 'getMerchantStatus') {
+    else if (action.startsWith('merchant_') || action === 'verifyFirstLoginUrl' || action === 'verifyFirstLogin' || action === 'setPassword' || action === 'resetPassword' || action === 'verifyLogin' || action === 'getMerchantData' || action === 'updateSalesPerson' || action === 'updateMerchantStatus' || action === 'getMerchantStatus' || action === 'checkUpdate') {
       result = MerchantSystem.handle(e.parameter);
     }
     // 不明なアクション
@@ -128,7 +128,7 @@ function doPost(e) {
       result = AdminSystem.handlePost(e, postData);
     }
     // 加盟店向けシステム
-    else if (action.startsWith('merchant_') || action === 'setFirstPassword' || action === 'verifyLogin' || action === 'verifyFirstLogin' || action === 'setPassword' || action === 'resetPassword' || action === 'updateAutoDeliverySettings') {
+    else if (action.startsWith('merchant_') || action === 'setFirstPassword' || action === 'verifyLogin' || action === 'verifyFirstLogin' || action === 'setPassword' || action === 'resetPassword' || action === 'updateAutoDeliverySettings' || action === 'updatePauseSettings') {
       result = MerchantSystem.handlePost(e);
     }
     // 不明なアクション

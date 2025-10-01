@@ -429,6 +429,36 @@ const AdminSystem = {
             );
           }
 
+          // 登録日時（AL列）を設定
+          const registrationDateIndex = headers.indexOf('登録日時');
+          if (registrationDateIndex !== -1) {
+            sheet.getRange(i + 1, registrationDateIndex + 1).setValue(
+              Utilities.formatDate(new Date(), 'JST', 'yyyy-MM-dd HH:mm')
+            );
+          }
+
+          // 一時停止関連の初期値を設定（AO/AP/AQ列）
+          const pauseFlagIndex = headers.indexOf('一時停止フラグ');
+          const pauseStartIndex = headers.indexOf('一時停止開始日');
+          const pauseEndIndex = headers.indexOf('一時停止再開予定日');
+
+          // 一時停止フラグをTRUE（承認直後は休止状態）
+          if (pauseFlagIndex !== -1) {
+            sheet.getRange(i + 1, pauseFlagIndex + 1).setValue(true);
+          }
+
+          // 一時停止開始日を今日
+          if (pauseStartIndex !== -1) {
+            sheet.getRange(i + 1, pauseStartIndex + 1).setValue(
+              Utilities.formatDate(new Date(), 'JST', 'yyyy-MM-dd')
+            );
+          }
+
+          // 一時停止再開予定日は空（未定）
+          if (pauseEndIndex !== -1) {
+            sheet.getRange(i + 1, pauseEndIndex + 1).setValue('');
+          }
+
           // Slack通知を送信（既存の関数を使用）
           try {
             if (typeof sendApprovalNotification === 'function') {

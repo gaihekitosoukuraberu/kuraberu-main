@@ -236,3 +236,53 @@ function setupAuthProperties() {
     console.error('認証情報シートの初期化に失敗:', error);
   }
 }
+
+/**
+ * 一時停止自動復帰トリガーを設定（毎日0時に実行）
+ */
+function setupPauseResumeTimeTrigger() {
+  // 既存のトリガーを削除
+  const triggers = ScriptApp.getProjectTriggers();
+  triggers.forEach(trigger => {
+    if (trigger.getHandlerFunction() === 'dailyCheckPausedMerchants') {
+      ScriptApp.deleteTrigger(trigger);
+      console.log('既存のトリガーを削除しました');
+    }
+  });
+
+  // 新しいトリガーを作成（毎日0時〜1時の間に実行）
+  ScriptApp.newTrigger('dailyCheckPausedMerchants')
+    .timeBased()
+    .everyDays(1)
+    .atHour(0)
+    .create();
+
+  console.log('✅ 一時停止自動復帰トリガーを設定しました（毎日0時実行）');
+}
+
+/**
+ * トリガーから呼ばれる関数
+ */
+function dailyCheckPausedMerchants() {
+  console.log('[dailyCheckPausedMerchants] Starting daily check...');
+  const result = MerchantSystem.checkAndResumePausedMerchants();
+  console.log('[dailyCheckPausedMerchants] Result:', result);
+  return result;
+}
+
+/**
+ * 一時停止自動復帰トリガーを削除
+ */
+function removePauseResumeTimeTrigger() {
+  const triggers = ScriptApp.getProjectTriggers();
+  let deletedCount = 0;
+
+  triggers.forEach(trigger => {
+    if (trigger.getHandlerFunction() === 'dailyCheckPausedMerchants') {
+      ScriptApp.deleteTrigger(trigger);
+      deletedCount++;
+    }
+  });
+
+  console.log(`✅ ${deletedCount}個のトリガーを削除しました`);
+}

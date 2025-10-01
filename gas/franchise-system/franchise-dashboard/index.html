@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>加盟店管理システム - 外壁塗装くらべるAI</title>
-    <script src="merchant-portal/env-loader.js?v=6000"></script>
+    <script src="merchant-portal/env-loader.js?v=9000"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -5064,6 +5064,52 @@
             }
         }
 
+        // 一時停止設定のみを即時保存（他の自動配信設定は保存しない）
+        async function savePauseSettingsImmediately() {
+            try {
+                console.log('[savePauseSettingsImmediately] Saving pause settings...');
+
+                // 一時停止設定データのみ収集
+                const autoPauseToggle = document.getElementById('autoPauseToggle');
+                const pauseStartDate = document.getElementById('pauseStartDate');
+                const pauseEndDate = document.getElementById('pauseEndDate');
+                const indefinitePause = document.getElementById('indefinitePause');
+                const statusSelect = document.getElementById('merchantStatus');
+
+                const pauseFlag = autoPauseToggle ? autoPauseToggle.checked : false;
+                const pauseStart = pauseFlag && pauseStartDate ? pauseStartDate.value : '';
+                const pauseEnd = pauseFlag && !indefinitePause.checked && pauseEndDate ? pauseEndDate.value : '';
+                const status = statusSelect ? statusSelect.value : 'active';
+
+                const formData = new URLSearchParams();
+                formData.append('action', 'updatePauseSettings');
+                formData.append('merchantId', window.merchantId);
+                formData.append('pauseFlag', pauseFlag);
+                formData.append('pauseStartDate', pauseStart);
+                formData.append('pauseEndDate', pauseEnd);
+                formData.append('status', status);
+
+                const response = await fetch(window.ENV.GAS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData.toString()
+                });
+
+                const result = await response.json();
+                console.log('[savePauseSettingsImmediately] Result:', result);
+
+                if (result.success) {
+                    console.log('[savePauseSettingsImmediately] 一時停止設定を保存しました');
+                } else {
+                    console.error('[savePauseSettingsImmediately] Error:', result.error);
+                }
+            } catch (error) {
+                console.error('[savePauseSettingsImmediately] Error:', error);
+            }
+        }
+
         // 自動配信設定データを収集
         function collectAutoDeliveryData() {
             // 物件種別
@@ -5118,6 +5164,16 @@
                 .map(p => p.includes('_') ? p.replace(/_/g, ' ') : p)
                 .join(',');
 
+            // 一時停止設定データ
+            const autoPauseToggle = document.getElementById('autoPauseToggle');
+            const pauseStartDate = document.getElementById('pauseStartDate');
+            const pauseEndDate = document.getElementById('pauseEndDate');
+            const indefinitePause = document.getElementById('indefinitePause');
+
+            const pauseFlag = autoPauseToggle ? autoPauseToggle.checked : false;
+            const pauseStart = pauseFlag && pauseStartDate ? pauseStartDate.value : '';
+            const pauseEnd = pauseFlag && !indefinitePause.checked && pauseEndDate ? pauseEndDate.value : '';
+
             return {
                 propertyTypes: propertyTypes.join(','),
                 maxFloors: maxFloorsList.join(','),
@@ -5126,7 +5182,10 @@
                 specialServices: specialServices.join(','),
                 prefectures: prefectures,
                 cities: citiesStr,
-                priorities: priorities
+                priorities: priorities,
+                pauseFlag: pauseFlag,
+                pauseStartDate: pauseStart,
+                pauseEndDate: pauseEnd
             };
         }
 
@@ -7231,6 +7290,33 @@
 
             const colorClass = statusColors[status] || statusColors['paused'];
             statusSelect.className += ' ' + colorClass;
+
+            // 一時停止トグルと連動
+            const autoPauseToggle = document.getElementById('autoPauseToggle');
+            if (autoPauseToggle) {
+                autoPauseToggle.checked = (status === 'paused');
+                toggleAutoPause(); // UI更新
+            }
+
+            // 一時停止に変更した場合、自動配信設定セクションに自動スクロール
+            if (status === 'paused') {
+                showSection('autodelivery');
+                setTimeout(() => {
+                    const pauseSection = document.querySelector('#autodeliverySection .bg-gradient-to-r');
+                    if (pauseSection) {
+                        pauseSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // 再開日入力フィールドを強調
+                        const pauseEndDate = document.getElementById('pauseEndDate');
+                        const indefiniteCheckbox = document.getElementById('indefinitePause');
+                        if (indefiniteCheckbox && indefiniteCheckbox.checked) {
+                            indefiniteCheckbox.click(); // 未定チェックを外して日付入力を表示
+                        }
+                        if (pauseEndDate && !pauseEndDate.classList.contains('hidden')) {
+                            pauseEndDate.focus();
+                        }
+                    }
+                }, 300);
+            }
 
             // GASにステータス更新を送信（スプレッドシートAJ列に保存）
             try {
@@ -12100,6 +12186,16 @@
                 });
             }
 
+            // 一時停止の日付変更時に即時保存
+            const pauseStartDate = document.getElementById('pauseStartDate');
+            const pauseEndDate = document.getElementById('pauseEndDate');
+            if (pauseStartDate) {
+                pauseStartDate.addEventListener('change', savePauseSettingsImmediately);
+            }
+            if (pauseEndDate) {
+                pauseEndDate.addEventListener('change', savePauseSettingsImmediately);
+            }
+
             // セクション表示時に案件を読み込む
             const originalShowSection = window.showSection;
             window.showSection = function(sectionName) {
@@ -12725,20 +12821,40 @@
             });
         }
 
-        // 一時停止設定関数
-        function toggleAutoPause() {
+        // 一時停止設定関数（即時反映）
+        async function toggleAutoPause() {
             const toggle = document.getElementById('autoPauseToggle');
             const settings = document.getElementById('pauseSettings');
+            const statusSelect = document.getElementById('merchantStatus');
 
             if (toggle.checked) {
                 settings.classList.remove('hidden');
-                updatePausePreview();
+                // ヘッダーのステータスも一時停止に変更（API呼び出しは後でまとめて行う）
+                if (statusSelect && statusSelect.value !== 'paused') {
+                    statusSelect.value = 'paused';
+                    const color = document.getElementById('statusColor');
+                    if (color) color.style.backgroundColor = '#fbbf24';
+                }
+                // 開始日を今日にセット
+                const startDate = document.getElementById('pauseStartDate');
+                if (startDate && !startDate.value) {
+                    startDate.value = new Date().toISOString().split('T')[0];
+                }
             } else {
                 settings.classList.add('hidden');
+                // ヘッダーのステータスもアクティブに変更（API呼び出しは後でまとめて行う）
+                if (statusSelect && statusSelect.value !== 'active') {
+                    statusSelect.value = 'active';
+                    const color = document.getElementById('statusColor');
+                    if (color) color.style.backgroundColor = '#10b981';
+                }
             }
+
+            // 一時停止設定を即座にサーバーに保存
+            await savePauseSettingsImmediately();
         }
 
-        function toggleIndefinitePause() {
+        async function toggleIndefinitePause() {
             const indefinite = document.getElementById('indefinitePause');
             const endDateInput = document.getElementById('pauseEndDate');
             const endDateDisplay = document.getElementById('pauseEndDateDisplay');
@@ -12753,6 +12869,9 @@
                 endDateDisplay.classList.add('hidden');
                 endDateInput.classList.remove('hidden');
             }
+
+            // 一時停止設定を即座にサーバーに保存
+            await savePauseSettingsImmediately();
         }
 
 

@@ -166,7 +166,36 @@ const SlackApprovalSystem = {
       sheet.getRange(targetRow, statusIndex + 1).setValue('休止');
       // 承認者 → 実際のSlackユーザー名を使用
       sheet.getRange(targetRow, approverIndex + 1).setValue(approver);
-      // 注：登録日時は元の日時を保持（承認日時としては使わない）
+
+      // 登録日時（AL列）を設定
+      const registrationDateIndex = headers.indexOf('登録日時');
+      if (registrationDateIndex !== -1) {
+        sheet.getRange(targetRow, registrationDateIndex + 1).setValue(
+          Utilities.formatDate(new Date(), 'JST', 'yyyy-MM-dd HH:mm')
+        );
+      }
+
+      // 一時停止関連の初期値を設定（AO/AP/AQ列）
+      const pauseFlagIndex = headers.indexOf('一時停止フラグ');
+      const pauseStartIndex = headers.indexOf('一時停止開始日');
+      const pauseEndIndex = headers.indexOf('一時停止再開予定日');
+
+      // 一時停止フラグをTRUE（承認直後は休止状態）
+      if (pauseFlagIndex !== -1) {
+        sheet.getRange(targetRow, pauseFlagIndex + 1).setValue(true);
+      }
+
+      // 一時停止開始日を今日
+      if (pauseStartIndex !== -1) {
+        sheet.getRange(targetRow, pauseStartIndex + 1).setValue(
+          Utilities.formatDate(new Date(), 'JST', 'yyyy-MM-dd')
+        );
+      }
+
+      // 一時停止再開予定日は空（未定）
+      if (pauseEndIndex !== -1) {
+        sheet.getRange(targetRow, pauseEndIndex + 1).setValue('');
+      }
 
       console.log('[SlackApproval] 承認完了:', registrationId);
       console.log('[SlackApproval] 更新された行:', targetRow);

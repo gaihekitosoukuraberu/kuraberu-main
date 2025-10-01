@@ -7,7 +7,7 @@
 
 const ENV = {
   // GAS デプロイメントURL（これ1箇所だけで管理）
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbyPKenkWKdg5muZgBN4odAWXixmy4Ko7BmdYKAvoc2zy35XcYHPLgauXMJm0YkofewqMA/exec',
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbxydzZQZh0DCIwTwFhjcoGwbBMjmlr5y4Cjv3FZz5lD3TXTjI_Z676uP8FM-2fAinj0Fw/exec',
 
   // デバッグモード
   DEBUG: false,
@@ -23,13 +23,11 @@ const ENV = {
 // グローバルに公開（全てのファイルから参照可能）
 window.ENV = ENV;
 
-// デバッグログ
-if (ENV.DEBUG) {
-  console.log('[ENV] 環境変数ロード完了:', {
-    GAS_URL: ENV.GAS_URL,
-    DEBUG: ENV.DEBUG
-  });
-}
+// 常にロードログを表示（重要）
+console.log('[ENV] 環境変数ロード完了:', {
+  GAS_URL: ENV.GAS_URL,
+  DEBUG: ENV.DEBUG
+});
 
 // URLが正しく設定されているかチェック
 if (!ENV.GAS_URL || !ENV.GAS_URL.startsWith('https://')) {

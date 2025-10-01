@@ -49,6 +49,9 @@ const MerchantSystem = {
         case 'updateAutoDeliverySettings':
           return this.updateAutoDeliverySettings(params);
 
+        case 'checkUpdate':
+          return this.checkUpdate(params);
+
         default:
           return {
             success: false,
@@ -101,6 +104,9 @@ const MerchantSystem = {
 
         case 'updateAutoDeliverySettings':
           return this.updateAutoDeliverySettings(params);
+
+        case 'updatePauseSettings':
+          return this.updatePauseSettings(params);
 
         default:
           return {
@@ -652,7 +658,7 @@ const MerchantSystem = {
    */
   updateAutoDeliverySettings: function(params) {
     try {
-      const { merchantId, propertyTypes, maxFloors, ageRange, constructionTypes, specialServices, prefectures, cities, priorities } = params;
+      const { merchantId, propertyTypes, maxFloors, ageRange, constructionTypes, specialServices, prefectures, cities, priorities, pauseFlag, pauseStartDate, pauseEndDate } = params;
 
       if (!merchantId) {
         return {
@@ -730,6 +736,53 @@ const MerchantSystem = {
         sheet.getRange(sheetRowIndex, prioritiesCol).setValue(priorities);
       }
 
+      // 一時停止データを保存（AO/AP/AQ列）
+      const pauseFlagCol = headers.indexOf('一時停止フラグ') + 1;
+      const pauseStartCol = headers.indexOf('一時停止開始日') + 1;
+      const pauseEndCol = headers.indexOf('一時停止再開予定日') + 1;
+      const statusCol = headers.indexOf('ステータス') + 1;
+
+      // 一時停止フラグの保存（TRUE/FALSE）
+      if (pauseFlagCol > 0 && pauseFlag !== undefined) {
+        const flagValue = (pauseFlag === 'true' || pauseFlag === true);
+        sheet.getRange(sheetRowIndex, pauseFlagCol).setValue(flagValue);
+      }
+
+      // 一時停止開始日の保存
+      if (pauseStartCol > 0 && pauseStartDate !== undefined && pauseStartDate !== '') {
+        sheet.getRange(sheetRowIndex, pauseStartCol).setValue(pauseStartDate);
+      }
+
+      // 一時停止再開予定日の保存
+      if (pauseEndCol > 0) {
+        if (pauseEndDate !== undefined && pauseEndDate !== '') {
+          sheet.getRange(sheetRowIndex, pauseEndCol).setValue(pauseEndDate);
+        } else {
+          // 未定の場合は空白
+          sheet.getRange(sheetRowIndex, pauseEndCol).setValue('');
+        }
+      }
+
+      // ステータス（AJ列）を更新
+      // - アクティブ: pauseFlag = false
+      // - 一時停止: pauseFlag = true + 再開予定日あり
+      // - 休止: pauseFlag = true + 再開予定日なし（未定）
+      if (statusCol > 0) {
+        let statusValue = 'アクティブ';
+        const isPaused = (pauseFlag === 'true' || pauseFlag === true);
+
+        if (isPaused) {
+          if (pauseEndDate && pauseEndDate !== '') {
+            statusValue = '一時停止';
+          } else {
+            statusValue = '休止';
+          }
+        }
+
+        sheet.getRange(sheetRowIndex, statusCol).setValue(statusValue);
+        console.log('[MerchantSystem] Status updated to:', statusValue);
+      }
+
       console.log('[MerchantSystem] updateAutoDeliverySettings - Updated row:', sheetRowIndex);
 
       return {
@@ -741,6 +794,278 @@ const MerchantSystem = {
       console.error('[MerchantSystem] updateAutoDeliverySettings error:', error);
       return {
         success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * 一時停止設定のみ更新（即時反映用）
+   */
+  updatePauseSettings(params) {
+    try {
+      console.log('[MerchantSystem] updatePauseSettings called with params:', params);
+
+      const { merchantId, pauseFlag, pauseStartDate, pauseEndDate, status } = params;
+
+      if (!merchantId) {
+        return {
+          success: false,
+          error: 'merchantIdが指定されていません'
+        };
+      }
+
+      // スプレッドシートを取得
+      const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+      const sheet = ss.getSheetByName(CONFIG.SHEETS.FRANCHISE_MERCHANTS);
+
+      if (!sheet) {
+        throw new Error('加盟店シートが見つかりません');
+      }
+
+      // ヘッダー行を取得
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+      // merchantIdで行を検索
+      const merchantIdCol = headers.indexOf('加盟店ID') + 1;
+      const allData = sheet.getDataRange().getValues();
+      let sheetRowIndex = -1;
+
+      for (let i = 1; i < allData.length; i++) {
+        if (allData[i][merchantIdCol - 1] === merchantId) {
+          sheetRowIndex = i + 1;
+          break;
+        }
+      }
+
+      if (sheetRowIndex === -1) {
+        return {
+          success: false,
+          error: '加盟店が見つかりません'
+        };
+      }
+
+      // 一時停止データを保存（AO/AP/AQ列）
+      const pauseFlagCol = headers.indexOf('一時停止フラグ') + 1;
+      const pauseStartCol = headers.indexOf('一時停止開始日') + 1;
+      const pauseEndCol = headers.indexOf('一時停止再開予定日') + 1;
+      const statusCol = headers.indexOf('ステータス') + 1;
+
+      // 一時停止フラグの保存（TRUE/FALSE）
+      if (pauseFlagCol > 0 && pauseFlag !== undefined) {
+        const flagValue = (pauseFlag === 'true' || pauseFlag === true);
+        sheet.getRange(sheetRowIndex, pauseFlagCol).setValue(flagValue);
+        console.log('[MerchantSystem] Pause flag updated to:', flagValue);
+      }
+
+      // 一時停止開始日の保存
+      if (pauseStartCol > 0 && pauseStartDate !== undefined && pauseStartDate !== '') {
+        sheet.getRange(sheetRowIndex, pauseStartCol).setValue(pauseStartDate);
+        console.log('[MerchantSystem] Pause start date updated to:', pauseStartDate);
+      }
+
+      // 一時停止再開予定日の保存
+      if (pauseEndCol > 0) {
+        if (pauseEndDate !== undefined && pauseEndDate !== '') {
+          sheet.getRange(sheetRowIndex, pauseEndCol).setValue(pauseEndDate);
+          console.log('[MerchantSystem] Pause end date updated to:', pauseEndDate);
+        } else {
+          sheet.getRange(sheetRowIndex, pauseEndCol).setValue('');
+          console.log('[MerchantSystem] Pause end date cleared');
+        }
+      }
+
+      // ステータス（AJ列）を更新
+      // - アクティブ: pauseFlag = false
+      // - 一時停止: pauseFlag = true + 再開予定日あり
+      // - 休止: pauseFlag = true + 再開予定日なし（未定）
+      if (statusCol > 0) {
+        let statusValue = 'アクティブ';
+        const isPaused = (pauseFlag === 'true' || pauseFlag === true);
+
+        if (isPaused) {
+          if (pauseEndDate && pauseEndDate !== '') {
+            statusValue = '一時停止';
+          } else {
+            statusValue = '休止';
+          }
+        }
+
+        sheet.getRange(sheetRowIndex, statusCol).setValue(statusValue);
+        console.log('[MerchantSystem] Status updated to:', statusValue);
+      }
+
+      console.log('[MerchantSystem] updatePauseSettings - Updated row:', sheetRowIndex);
+
+      return {
+        success: true,
+        message: '一時停止設定を更新しました'
+      };
+
+    } catch (error) {
+      console.error('[MerchantSystem] updatePauseSettings error:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * 一時停止自動復帰チェック（日次トリガーで実行）
+   * 再開予定日が今日の加盟店を自動的にアクティブに戻す
+   */
+  checkAndResumePausedMerchants() {
+    try {
+      console.log('[MerchantSystem] checkAndResumePausedMerchants - Start');
+
+      const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+      const sheet = ss.getSheetByName(CONFIG.SHEETS.FRANCHISE_MERCHANTS);
+
+      if (!sheet) {
+        throw new Error('加盟店シートが見つかりません');
+      }
+
+      // ヘッダー行を取得
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      const pauseFlagCol = headers.indexOf('一時停止フラグ') + 1;
+      const pauseEndCol = headers.indexOf('一時停止再開予定日') + 1;
+      const pauseStartCol = headers.indexOf('一時停止開始日') + 1;
+      const statusCol = headers.indexOf('ステータス') + 1;
+
+      if (pauseFlagCol === 0 || pauseEndCol === 0 || statusCol === 0) {
+        console.error('[MerchantSystem] Required columns not found');
+        return {
+          success: false,
+          error: '必要な列が見つかりません'
+        };
+      }
+
+      // 今日の日付（YYYY-MM-DD形式）
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayStr = Utilities.formatDate(today, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+
+      console.log('[MerchantSystem] Today:', todayStr);
+
+      // 全データを取得
+      const allData = sheet.getDataRange().getValues();
+      let resumedCount = 0;
+
+      // 2行目から処理（1行目はヘッダー）
+      for (let i = 1; i < allData.length; i++) {
+        const row = allData[i];
+        const pauseFlag = row[pauseFlagCol - 1];
+        const pauseEndDate = row[pauseEndCol - 1];
+
+        // 一時停止フラグがTRUEで、再開予定日が今日の場合
+        if (pauseFlag === true && pauseEndDate) {
+          let endDateStr = '';
+
+          // 日付型の場合
+          if (pauseEndDate instanceof Date) {
+            endDateStr = Utilities.formatDate(pauseEndDate, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+          }
+          // 文字列の場合
+          else if (typeof pauseEndDate === 'string') {
+            endDateStr = pauseEndDate;
+          }
+
+          console.log('[MerchantSystem] Checking row', i + 1, '- End date:', endDateStr);
+
+          // 再開予定日が今日と一致する場合
+          if (endDateStr === todayStr) {
+            const rowIndex = i + 1;
+
+            // 一時停止フラグをFALSEに
+            sheet.getRange(rowIndex, pauseFlagCol).setValue(false);
+
+            // 一時停止開始日をクリア
+            if (pauseStartCol > 0) {
+              sheet.getRange(rowIndex, pauseStartCol).setValue('');
+            }
+
+            // 一時停止再開予定日をクリア
+            sheet.getRange(rowIndex, pauseEndCol).setValue('');
+
+            // ステータスをアクティブに
+            sheet.getRange(rowIndex, statusCol).setValue('アクティブ');
+
+            resumedCount++;
+            console.log('[MerchantSystem] Resumed merchant at row:', rowIndex);
+          }
+        }
+      }
+
+      console.log('[MerchantSystem] checkAndResumePausedMerchants - Completed. Resumed:', resumedCount);
+
+      return {
+        success: true,
+        message: `${resumedCount}件の加盟店を自動復帰しました`,
+        resumedCount: resumedCount
+      };
+
+    } catch (error) {
+      console.error('[MerchantSystem] checkAndResumePausedMerchants error:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * キャッシュ更新チェック（軽量API）
+   * フロントエンドのキャッシュが古いかどうかを判定
+   */
+  checkUpdate: function(params) {
+    try {
+      const merchantId = params.merchantId;
+      const lastUpdate = parseInt(params.lastUpdate) || 0;
+
+      if (!merchantId) {
+        return {
+          success: false,
+          error: 'merchantId is required'
+        };
+      }
+
+      console.log('[MerchantSystem] checkUpdate - merchantId:', merchantId, 'lastUpdate:', new Date(lastUpdate));
+
+      // スプレッドシート取得
+      const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+      const sheet = ss.getSheetByName(CONFIG.MERCHANT_SHEET_NAME);
+
+      if (!sheet) {
+        return {
+          success: false,
+          error: 'Sheet not found'
+        };
+      }
+
+      // シートの最終更新日時を取得
+      const sheetLastModified = sheet.getLastUpdated().getTime();
+
+      console.log('[MerchantSystem] Sheet last modified:', new Date(sheetLastModified));
+      console.log('[MerchantSystem] Client last update:', new Date(lastUpdate));
+
+      // 更新があるかチェック（5秒のバッファを持たせる）
+      const hasUpdate = sheetLastModified > (lastUpdate + 5000);
+
+      console.log('[MerchantSystem] hasUpdate:', hasUpdate);
+
+      return {
+        success: true,
+        hasUpdate: hasUpdate,
+        lastModified: sheetLastModified
+      };
+
+    } catch (error) {
+      console.error('[MerchantSystem] checkUpdate error:', error);
+      // エラー時は更新なしとして返す（フロントエンドがキャッシュを使い続ける）
+      return {
+        success: true,
+        hasUpdate: false,
         error: error.toString()
       };
     }
