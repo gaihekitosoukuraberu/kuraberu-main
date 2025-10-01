@@ -12262,19 +12262,8 @@
 
             // 最大対応階数（例: "戸建て住宅(3階まで),アパート・マンション(3階まで)"）
             if (data['最大対応階数']) {
-                let maxFloorsData = data['最大対応階数'];
-                console.log('[loadAutodeliverySettings] Raw max floors data:', maxFloorsData);
-
-                // compressed形式の場合はfullの値を抽出
-                if (maxFloorsData.includes('{"type":"compressed","full":"')) {
-                    const match = maxFloorsData.match(/"full":"([^"]+)"/);
-                    if (match) {
-                        maxFloorsData = match[1];
-                        console.log('[loadAutodeliverySettings] Extracted max floors:', maxFloorsData);
-                    }
-                }
-
-                console.log('[loadAutodeliverySettings] Final max floors data:', maxFloorsData);
+                const maxFloorsData = data['最大対応階数'];
+                console.log('[loadAutodeliverySettings] Max floors data:', maxFloorsData);
 
                 const propertyTypeMap = {
                     '戸建て住宅': 'house',
@@ -12403,13 +12392,13 @@
                     '内装（フローリングや畳などの床・クロス等）（外壁工事含む）': '内装（フローリングや畳などの床・クロス等）（外壁工事含む）',
                     '外壁雨漏り修繕（外壁工事含む）': '外壁雨漏り修繕（外壁工事含む）',
                     '屋根雨漏り修繕（屋根工事含む）': '屋根雨漏り修繕（屋根工事含む）',
-                    '屋根塗装単品': '屋根塗装単品（但し1社紹介時は定価）',
-                    '屋上防水単品': '屋上防水単品（但し1社紹介時は定価）',
-                    '外壁補修単品': '外壁補修単品（但し1社紹介時は定価）',
-                    '屋根補修単品': '屋根補修単品（但し1社紹介時は定価）',
-                    'ベランダ防水単品': 'ベランダ防水単品（但し1社紹介時は定価）',
-                    '外壁雨漏り修繕単品': '外壁雨漏り修繕単品（但し1社紹介時は定価）',
-                    '屋根雨漏り修繕単品': '屋根雨漏り修繕単品（但し1社紹介時は定価）',
+                    '屋根塗装単品': '屋根塗装単品',
+                    '屋上防水単品': '屋上防水単品',
+                    '外壁補修単品': '外壁補修単品',
+                    '屋根補修単品': '屋根補修単品',
+                    'ベランダ防水単品': 'ベランダ防水単品',
+                    '外壁雨漏り修繕単品': '外壁雨漏り修繕単品',
+                    '屋根雨漏り修繕単品': '屋根雨漏り修繕単品',
 
                     // 旧データとの互換性（略称 → 完全名称）
                     '屋根塗装': '屋根塗装（外壁工事含む）',

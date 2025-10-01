@@ -315,6 +315,8 @@ const MerchantSystem = {
       // 圧縮される可能性のある列のインデックス（0ベース）
       const compressedColumns = [
         30, // 施工箇所（AE列 = 31列目 = インデックス30）
+        31, // 特殊対応項目（AF列 = 32列目 = インデックス31）
+        32, // 対応都道府県（AG列 = 33列目 = インデックス32）
         33, // 対応市区町村（AH列 = 34列目 = インデックス33）
         34  // 優先エリア（AI列 = 35列目 = インデックス34）
       ];
@@ -687,6 +689,8 @@ const MerchantSystem = {
       // シートの行番号は1ベース + ヘッダー行なので +2
       const sheetRowIndex = rowIndex + 2;
 
+      // 圧縮関数は完全削除 - 生データのまま保存
+
       // ヘッダーから各列のインデックスを取得
       const propertyTypesCol = headers.indexOf('対応可能物件種別') + 1;
       const maxFloorsCol = headers.indexOf('最大対応階数') + 1;
@@ -697,7 +701,7 @@ const MerchantSystem = {
       const citiesCol = headers.indexOf('対応市区町村') + 1;
       const prioritiesCol = headers.indexOf('優先エリア') + 1;
 
-      // 各列を更新
+      // 各列を更新（圧縮データを抽出してから再圧縮）
       if (propertyTypesCol > 0 && propertyTypes !== undefined) {
         sheet.getRange(sheetRowIndex, propertyTypesCol).setValue(propertyTypes);
       }
