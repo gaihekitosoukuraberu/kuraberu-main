@@ -128,7 +128,7 @@ function doPost(e) {
       result = AdminSystem.handlePost(e, postData);
     }
     // 加盟店向けシステム
-    else if (action.startsWith('merchant_') || action === 'setFirstPassword' || action === 'verifyLogin' || action === 'verifyFirstLogin' || action === 'setPassword' || action === 'resetPassword') {
+    else if (action.startsWith('merchant_') || action === 'setFirstPassword' || action === 'verifyLogin' || action === 'verifyFirstLogin' || action === 'setPassword' || action === 'resetPassword' || action === 'updateAutoDeliverySettings') {
       result = MerchantSystem.handlePost(e);
     }
     // 不明なアクション

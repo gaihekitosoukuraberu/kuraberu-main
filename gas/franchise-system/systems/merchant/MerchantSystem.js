@@ -99,6 +99,9 @@ const MerchantSystem = {
         case 'verifyLogin':
           return this.verifyLogin(params);
 
+        case 'updateAutoDeliverySettings':
+          return this.updateAutoDeliverySettings(params);
+
         default:
           return {
             success: false,
