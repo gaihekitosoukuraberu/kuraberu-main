@@ -1,0 +1,39 @@
+
+    
+
+    <!-- 初回ログイン後の自動入力 -->
+    <script>
+        (function() {
+            // DOM読み込み完了を待つ
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', autoFillLogin);
+            } else {
+                autoFillLogin();
+            }
+
+            function autoFillLogin() {
+                const tempMerchantId = sessionStorage.getItem('tempMerchantId');
+                const tempPassword = sessionStorage.getItem('tempPassword');
+
+                if (tempMerchantId && tempPassword) {
+                    const usernameField = document.getElementById('username');
+                    const passwordField = document.getElementById('password');
+                    const rememberCheckbox = document.getElementById('rememberMe');
+
+                    if (usernameField && passwordField && rememberCheckbox) {
+                        usernameField.value = tempMerchantId;
+                        passwordField.value = tempPassword;
+                        rememberCheckbox.checked = true;
+
+                        // セッションストレージをクリア
+                        sessionStorage.removeItem('tempMerchantId');
+                        sessionStorage.removeItem('tempPassword');
+
+                        console.log('[Auto-fill] ログイン情報を自動入力しました');
+                    }
+                }
+            }
+        })();
+    </script>
+</body>
+</html>

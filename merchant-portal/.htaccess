@@ -1,0 +1,13 @@
+# env-loader.js のキャッシュを完全に無効化
+<Files "env-loader.js">
+    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+</Files>
+
+# HTMLファイルもキャッシュ無効化
+<FilesMatch "\.(html)$">
+    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+</FilesMatch>

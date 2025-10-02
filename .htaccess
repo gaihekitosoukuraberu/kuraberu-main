@@ -1,0 +1,23 @@
+# キャッシュ制御
+<IfModule mod_headers.c>
+    # JavaScriptファイルのキャッシュを無効化
+    <FilesMatch "\.(js)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires 0
+    </FilesMatch>
+
+    # env-loader.jsは特に重要なので確実にキャッシュしない
+    <FilesMatch "env-loader.*\.js$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires 0
+    </FilesMatch>
+</IfModule>
+
+# Xアクセラレータのキャッシュ除外
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # env-loader.jsをキャッシュ対象外にする
+    RewriteRule ^merchant-portal/env-loader.*\.js$ - [E=Cache-Control:no-cache]
+</IfModule>

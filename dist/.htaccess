@@ -1,0 +1,17 @@
+# キャッシュ制御
+<IfModule mod_headers.c>
+    # HTMLファイルはキャッシュしない
+    <FilesMatch "\.(html|htm)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires 0
+    </FilesMatch>
+
+    # JSファイルは短時間キャッシュ
+    <FilesMatch "\.(js)$">
+        Header set Cache-Control "max-age=300, must-revalidate"
+    </FilesMatch>
+</IfModule>
+
+# 文字エンコーディング
+AddDefaultCharset UTF-8
