@@ -82,51 +82,55 @@
     <div id="mainApp">
         <!-- トップバー -->
         <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-gray-900/95 glass border-b border-gray-200">
-            <div class="flex items-center justify-between h-full px-6">
-                <div class="flex items-center space-x-4">
-                    <button onclick="toggleMenu()" class="p-2 rounded-lg hover:bg-gray-800 transition-colors">
+            <div class="flex items-center justify-between h-full px-3 sm:px-6">
+                <!-- 左側：メニュー＋ロゴ -->
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <button onclick="toggleMenu()" class="p-2 rounded-lg hover:bg-gray-800 transition-colors flex-shrink-0">
                         <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                     </button>
-                    <div class="flex items-center space-x-4">
-                        <div class="flex items-center space-x-2">
-                            <div id="companyLogo" class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                                <span class="text-gray-100 font-bold">加</span>
-                            </div>
-                            <span id="systemTitle" class="hidden md:inline text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                                加盟店管理システム
-                            </span>
+                    <div class="flex items-center space-x-2">
+                        <div id="companyLogo" class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <span class="text-gray-100 font-bold">加</span>
                         </div>
-                        <!-- ステータス表記 -->
-                        <div class="relative">
-                            <label class="block text-xs text-gray-400 mb-1 text-center">ステータス</label>
-                            <select id="merchantStatus" onchange="updateMerchantStatus()" class="px-3 py-1 text-xs font-semibold rounded-full border-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 bg-yellow-100 text-yellow-800 border-yellow-300">
-                                <option value="active" class="bg-white text-gray-900">アクティブ</option>
-                                <option value="paused" class="bg-white text-gray-900" selected>一時停止中</option>
-                            </select>
-                        </div>
+                        <span id="systemTitle" class="hidden lg:inline text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent whitespace-nowrap">
+                            加盟店管理システム
+                        </span>
                     </div>
                 </div>
-                <div class="flex items-center space-x-4">
+
+                <!-- 中央：ステータス -->
+                <div class="flex-shrink-0">
+                    <div class="relative">
+                        <label class="hidden sm:block text-xs text-gray-400 mb-1 text-center">ステータス</label>
+                        <select id="merchantStatus" onchange="updateMerchantStatus()" class="px-3 py-1 text-xs font-semibold rounded-full border-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 bg-yellow-100 text-yellow-800 border-yellow-300">
+                            <option value="active" class="bg-white text-gray-900">アクティブ</option>
+                            <option value="paused" class="bg-white text-gray-900" selected>一時停止中</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 右側：通知＋ユーザー情報 -->
+                <div class="flex items-center space-x-2 sm:space-x-3">
                     <!-- 本部からの通知ボタン -->
-                    <button onclick="toggleNotificationPanel()" class="relative p-2 rounded-lg hover:bg-gray-800 transition-colors group">
+                    <button onclick="toggleNotificationPanel()" class="relative p-2 rounded-lg hover:bg-gray-800 transition-colors group flex-shrink-0">
                         <svg class="w-6 h-6 text-gray-400 group-hover:text-yellow-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
                         <span id="notificationCount" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
                     </button>
                     <!-- アラート・リマインダーボタン -->
-                    <button onclick="toggleAlertPanel()" class="relative p-2 rounded-lg hover:bg-gray-800 transition-colors group">
+                    <button onclick="toggleAlertPanel()" class="relative p-2 rounded-lg hover:bg-gray-800 transition-colors group flex-shrink-0">
                         <svg class="w-6 h-6 text-gray-400 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         <span id="alertCount" class="absolute -top-1 -right-1 bg-blue-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
                     </button>
-                    <div class="text-center">
-                        <div id="userName" class="text-sm text-gray-300">ユーザー名</div>
-                        <div id="userRole" class="text-xs text-gray-400 cursor-pointer hover:text-gray-200" onclick="editSalesPerson()" title="クリックして編集"></div>
-                        <input id="userRoleInput" class="hidden text-xs text-gray-900 bg-white border border-gray-300 rounded px-2 py-1" style="width: 120px;" onblur="saveSalesPerson()" onkeydown="if(event.key==='Enter') saveSalesPerson()">
+                    <div class="text-center min-w-0">
+                        <div id="userName" class="hidden sm:block text-sm text-gray-300 truncate max-w-[100px] md:max-w-none">ユーザー名</div>
+                        <div id="userRole" class="text-xs text-gray-400 cursor-pointer hover:text-gray-200 truncate max-w-[80px] sm:max-w-[100px] md:max-w-[140px]" onclick="editSalesPerson()" title="クリックして編集"></div>
+                        <input id="userRoleInput" class="hidden text-xs text-gray-900 bg-white border border-gray-300 rounded px-2 py-1 w-[120px]" onblur="saveSalesPerson()" onkeydown="if(event.key==='Enter') saveSalesPerson()">
                     </div>
                 </div>
             </div>
@@ -316,42 +320,53 @@
                 </div>
 
                 <!-- 最近の案件 -->
-                <div class="bg-white shadow rounded-lg">
-                    <div class="px-4 py-5 sm:px-6">
-                        <h3 class="text-lg font-medium text-gray-900">最近の案件</h3>
-                    </div>
-                    <div class="border-t border-gray-200">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">案件ID</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">顧客名</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">担当者</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">更新日</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#2024-001</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">山田太郎</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">成約</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">田中営業</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024/01/15</td>
-                                </tr>
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#2024-002</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">鈴木花子</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">ヒアリング中</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">佐藤営業</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024/01/14</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div class="bg-white shadow rounded-lg p-4 sm:p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">最近の案件</h3>
+                    <!-- スマホ：横スクロール / タブレット以上：グリッド -->
+                    <div class="sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 flex sm:flex-none overflow-x-auto gap-3 pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+                        <!-- 案件カード1 -->
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow min-w-[280px] sm:min-w-0">
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="font-semibold text-gray-900">#2024-001</div>
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">成約</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex items-center text-sm">
+                                    <span class="text-gray-500 w-16">顧客:</span>
+                                    <span class="text-gray-900 font-medium">山田太郎</span>
+                                </div>
+                                <div class="flex items-center text-sm">
+                                    <span class="text-gray-500 w-16">担当:</span>
+                                    <span class="text-gray-700">田中営業</span>
+                                </div>
+                                <div class="flex items-center text-sm">
+                                    <span class="text-gray-500 w-16">更新日:</span>
+                                    <span class="text-gray-700">2024/01/15</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 案件カード2 -->
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow min-w-[280px] sm:min-w-0">
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="font-semibold text-gray-900">#2024-002</div>
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">ヒアリング中</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex items-center text-sm">
+                                    <span class="text-gray-500 w-16">顧客:</span>
+                                    <span class="text-gray-900 font-medium">鈴木花子</span>
+                                </div>
+                                <div class="flex items-center text-sm">
+                                    <span class="text-gray-500 w-16">担当:</span>
+                                    <span class="text-gray-700">佐藤営業</span>
+                                </div>
+                                <div class="flex items-center text-sm">
+                                    <span class="text-gray-500 w-16">更新日:</span>
+                                    <span class="text-gray-700">2024/01/14</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div><!-- dashboardSectionの終了 -->
@@ -2389,7 +2404,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">会社名 <span class="text-red-500">*</span></label>
-                                <input type="text" id="companyName" class="w-full px-3 py-2 border rounded-lg" placeholder="例: 株式会社くらべる塗装" value="株式会社くらべる塗装">
+                                <input type="text" id="companyName" class="w-full px-3 py-2 border rounded-lg" placeholder="例: 株式会社くらべる塗装" value="">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">会社名カナ <span class="text-red-500">*</span></label>
@@ -2469,15 +2484,15 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">郵便番号 <span class="text-red-500">*</span></label>
-                                <input type="text" id="zipCode" class="w-full px-3 py-2 border rounded-lg" placeholder="123-4567" value="123-4567">
+                                <input type="text" id="zipCode" class="w-full px-3 py-2 border rounded-lg" placeholder="123-4567" value="">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">住所 <span class="text-red-500">*</span></label>
-                                <input type="text" id="address" class="w-full px-3 py-2 border rounded-lg" placeholder="東京都港区青山1-1-1" value="東京都港区青山1-1-1">
+                                <input type="text" id="address" class="w-full px-3 py-2 border rounded-lg" placeholder="東京都港区青山1-1-1" value="">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">電話番号 <span class="text-red-500">*</span></label>
-                                <input type="text" id="phone" class="w-full px-3 py-2 border rounded-lg" placeholder="03-1234-5678" value="03-1234-5678">
+                                <input type="text" id="phone" class="w-full px-3 py-2 border rounded-lg" placeholder="03-1234-5678" value="">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">ウェブサイトURL</label>
@@ -2541,7 +2556,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">従業員数 <span class="text-red-500">*</span></label>
-                                <select class="w-full px-3 py-2 border rounded-lg">
+                                <select id="employees" class="w-full px-3 py-2 border rounded-lg">
                                     <option value="">選択してください</option>
                                     <option value="1-2">1〜2名</option>
                                     <option value="3-5">3〜5名</option>
@@ -2551,7 +2566,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">売上規模 <span class="text-red-500">*</span></label>
-                                <select class="w-full px-3 py-2 border rounded-lg">
+                                <select id="salesScale" class="w-full px-3 py-2 border rounded-lg">
                                     <option value="">選択してください</option>
                                     <option value="under-10m">1,000万円未満</option>
                                     <option value="10m-30m">1,000万円〜3,000万円</option>
@@ -2568,52 +2583,43 @@
                     <!-- 対応エリア -->
                     <div class="mb-8">
                         <h3 class="text-lg font-semibold mb-4">対応エリア</h3>
-                        <div class="mb-4">
-                            <label class="flex items-center">
-                                <input type="checkbox" id="syncAreaSettings" checked onchange="toggleAreaSync()" class="mr-2">
-                                <span class="text-sm text-gray-700">自動配信設定から自動反映する</span>
-                            </label>
-                        </div>
+                        <p class="text-sm text-gray-600 mb-3">※ 自動配信設定から自動的に反映されます</p>
 
-                        <!-- 自動反映時の表示 -->
-                        <div id="companyAreaAuto" class="bg-gray-50 p-4 rounded-lg">
-                            <div id="companyAreaDisplay" class="space-y-3">
+                        <!-- 自動反映表示 -->
+                        <div id="companyAreaAuto" class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                            <div id="companyAreaDisplay">
                                 <!-- 都道府県 -->
-                                <div>
-                                    <p class="text-sm font-medium text-gray-700 mb-2">対応都道府県</p>
-                                    <div class="flex flex-wrap gap-2">
-                                        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">埼玉県</span>
-                                        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">東京都</span>
+                                <div class="p-4 border-b border-gray-100">
+                                    <div class="flex items-center mb-3">
+                                        <span class="text-lg mr-2">📍</span>
+                                        <h4 class="text-sm font-semibold text-gray-800">対応都道府県</h4>
+                                    </div>
+                                    <div id="companyPrefecturesDisplay" class="flex flex-wrap gap-2">
+                                        <!-- 自動配信設定から反映 -->
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <!-- 独自設定時の入力欄 -->
-                        <div id="companyAreaManual" class="hidden">
-                            <div class="border rounded-lg p-4">
-                                <h4 class="text-md font-medium mb-3">都道府県選択</h4>
-                                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 mb-4">
-                                    <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
-                                        <input type="checkbox" name="company-prefecture" value="埼玉県" class="mr-2">
-                                        <span class="text-sm">埼玉県</span>
-                                    </label>
-                                    <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
-                                        <input type="checkbox" name="company-prefecture" value="千葉県" class="mr-2">
-                                        <span class="text-sm">千葉県</span>
-                                    </label>
-                                    <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
-                                        <input type="checkbox" name="company-prefecture" value="東京都" class="mr-2">
-                                        <span class="text-sm">東京都</span>
-                                    </label>
-                                    <label class="flex items-center p-2 bg-white border rounded cursor-pointer hover:bg-blue-50">
-                                        <input type="checkbox" name="company-prefecture" value="神奈川県" class="mr-2">
-                                        <span class="text-sm">神奈川県</span>
-                                    </label>
+                                <!-- 市区町村 -->
+                                <div class="p-4 border-b border-gray-100 bg-gray-50">
+                                    <div class="flex items-center mb-3">
+                                        <span class="text-lg mr-2">🏘️</span>
+                                        <h4 class="text-sm font-semibold text-gray-800">対応市区町村</h4>
+                                    </div>
+                                    <div id="companyCitiesDisplay" class="flex flex-wrap gap-1.5 max-h-64 overflow-y-auto p-2 bg-white rounded border border-gray-200">
+                                        <!-- 自動配信設定から反映 -->
+                                    </div>
                                 </div>
-                                <button onclick="showAllCompanyPrefectures()" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                    すべて表示
-                                </button>
+
+                                <!-- 優先エリア -->
+                                <div class="p-4">
+                                    <div class="flex items-center mb-3">
+                                        <span class="text-lg mr-2">⭐</span>
+                                        <h4 class="text-sm font-semibold text-gray-800">優先エリア</h4>
+                                    </div>
+                                    <div id="companyPrioritiesDisplay" class="flex flex-wrap gap-2">
+                                        <!-- 自動配信設定から反映 -->
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2621,93 +2627,12 @@
                     <!-- 対応工事内容 -->
                     <div class="mb-8">
                         <h3 class="text-lg font-semibold mb-4">対応工事内容</h3>
-                        <div class="mb-4">
-                            <label class="flex items-center">
-                                <input type="checkbox" id="syncConstructionSettings" checked onchange="toggleConstructionSync()" class="mr-2">
-                                <span class="text-sm text-gray-700">自動配信設定から自動反映する</span>
-                            </label>
-                        </div>
+                        <p class="text-sm text-gray-600 mb-3">※ 自動配信設定から自動的に反映されます</p>
 
-                        <!-- 自動反映時の表示 -->
-                        <div id="companyConstructionAuto" class="bg-gray-50 p-4 rounded-lg">
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <!-- 自動反映表示 -->
+                        <div id="companyConstructionAuto" class="bg-white border border-gray-200 rounded-lg p-4">
+                            <div id="companyConstructionDisplay" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                                 <!-- 自動配信設定で選択された項目がここに表示される -->
-                                <div class="flex items-center">
-                                    <span class="text-lg mr-2">🎨</span>
-                                    <span class="text-sm">外壁塗装</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <span class="text-lg mr-2">🏠</span>
-                                    <span class="text-sm">屋根塗装</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <span class="text-lg mr-2">🔧</span>
-                                    <span class="text-sm">外壁補修</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <span class="text-lg mr-2">🛠️</span>
-                                    <span class="text-sm">屋根補修</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <span class="text-lg mr-2">💧</span>
-                                    <span class="text-sm">防水工事</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 独自設定時の入力欄 -->
-                        <div id="companyConstructionManual" class="hidden">
-                            <div class="border rounded-lg p-4">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                        <input type="checkbox" name="company-construction" value="外壁塗装" class="mr-3">
-                                        <span class="flex-1">外壁塗装</span>
-                                    </label>
-                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                        <input type="checkbox" name="company-construction" value="外壁カバー工法" class="mr-3">
-                                        <span class="flex-1">外壁カバー工法</span>
-                                    </label>
-                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                        <input type="checkbox" name="company-construction" value="外壁張替え" class="mr-3">
-                                        <span class="flex-1">外壁張替え</span>
-                                    </label>
-                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                        <input type="checkbox" name="company-construction" value="屋根塗装" class="mr-3">
-                                        <span class="flex-1">屋根塗装</span>
-                                    </label>
-                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                        <input type="checkbox" name="company-construction" value="屋上防水" class="mr-3">
-                                        <span class="flex-1">屋上防水</span>
-                                    </label>
-                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                        <input type="checkbox" name="company-construction" value="屋根葺き替え" class="mr-3">
-                                        <span class="flex-1">屋根葺き替え</span>
-                                    </label>
-                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                        <input type="checkbox" name="company-construction" value="屋根カバー工法" class="mr-3">
-                                        <span class="flex-1">屋根カバー工法</span>
-                                    </label>
-                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                        <input type="checkbox" name="company-construction" value="外壁補修" class="mr-3">
-                                        <span class="flex-1">外壁補修</span>
-                                    </label>
-                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                        <input type="checkbox" name="company-construction" value="屋根補修" class="mr-3">
-                                        <span class="flex-1">屋根補修</span>
-                                    </label>
-                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                        <input type="checkbox" name="company-construction" value="ベランダ防水" class="mr-3">
-                                        <span class="flex-1">ベランダ防水</span>
-                                    </label>
-                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                        <input type="checkbox" name="company-construction" value="内装水回り" class="mr-3">
-                                        <span class="flex-1">内装水回り（バス・キッチン・トイレ）</span>
-                                    </label>
-                                    <label class="flex items-center p-3 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer">
-                                        <input type="checkbox" name="company-construction" value="内装" class="mr-3">
-                                        <span class="flex-1">内装（フローリング・クロス等）</span>
-                                    </label>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -2715,56 +2640,12 @@
                     <!-- アピールポイント（自動配信設定から自動反映） -->
                     <div class="mb-8">
                         <h3 class="text-lg font-semibold mb-4">アピールポイント</h3>
-                        <p class="text-sm text-gray-600 mb-4">※自動配信設定の特殊対応項目から自動的に反映されます</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- 非表示可能なアピールポイント -->
-                            <div class="flex items-center justify-between p-3 bg-white border rounded-lg">
-                                <div class="flex items-center">
-                                    <span class="text-2xl mr-3">🌡️</span>
-                                    <span class="text-sm">遮熱・断熱塗料提案可能</span>
-                                </div>
-                                <button onclick="toggleVisibility(this)" class="text-gray-400 hover:text-gray-600">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="flex items-center justify-between p-3 bg-white border rounded-lg">
-                                <div class="flex items-center">
-                                    <span class="text-2xl mr-3">💳</span>
-                                    <span class="text-sm">クレジットカード払い可</span>
-                                </div>
-                                <button onclick="toggleVisibility(this)" class="text-gray-400 hover:text-gray-600">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="flex items-center justify-between p-3 bg-white border rounded-lg">
-                                <div class="flex items-center">
-                                    <span class="text-2xl mr-3">🏦</span>
-                                    <span class="text-sm">提携先ローン有り</span>
-                                </div>
-                                <button onclick="toggleVisibility(this)" class="text-gray-400 hover:text-gray-600">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="flex items-center justify-between p-3 bg-white border rounded-lg">
-                                <div class="flex items-center">
-                                    <span class="text-2xl mr-3">🔥</span>
-                                    <span class="text-sm">火災保険申請サポート</span>
-                                </div>
-                                <button onclick="toggleVisibility(this)" class="text-gray-400 hover:text-gray-600">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                    </svg>
-                                </button>
+                        <p class="text-sm text-gray-600 mb-3">※ 自動配信設定から自動的に反映されます</p>
+
+                        <!-- 自動反映表示 -->
+                        <div id="companyAppealPointsAuto" class="bg-white border border-gray-200 rounded-lg p-4">
+                            <div id="companyAppealPointsDisplay" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                                <!-- 自動配信設定で選択された項目がここに表示される -->
                             </div>
                         </div>
                     </div>
@@ -4774,16 +4655,27 @@
                 if (result.success) {
                     const statusSelect = document.getElementById('merchantStatus');
                     if (statusSelect) {
-                        statusSelect.value = result.status;
-                        // ステータスに応じた色を設定
-                        const statusColors = {
-                            'active': 'bg-green-100 text-green-800 border-green-300',
-                            'paused': 'bg-yellow-100 text-yellow-800 border-yellow-300'
-                        };
-                        const colorClass = statusColors[result.status] || statusColors['paused'];
-                        statusSelect.className = 'px-3 py-1 text-xs font-semibold rounded-full border-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 ' + colorClass;
+                        // スプレッドシートのステータスをselectのvalueに変換
+                        let selectValue = 'paused'; // デフォルト
+                        if (result.status === 'active' || result.status === 'アクティブ' || result.status === '稼働中') {
+                            selectValue = 'active';
+                        } else if (result.status === 'paused' || result.status === '休止' || result.status === '一時停止' || result.status === '一時停止中') {
+                            selectValue = 'paused';
+                        }
+
+                        statusSelect.value = selectValue;
+
+                        // ステータスに応じた色を設定（classListで個別操作）
+                        statusSelect.classList.remove('bg-green-100', 'text-green-800', 'border-green-300');
+                        statusSelect.classList.remove('bg-yellow-100', 'text-yellow-800', 'border-yellow-300');
+
+                        if (selectValue === 'active') {
+                            statusSelect.classList.add('bg-green-100', 'text-green-800', 'border-green-300');
+                        } else {
+                            statusSelect.classList.add('bg-yellow-100', 'text-yellow-800', 'border-yellow-300');
+                        }
                     }
-                    console.log('[loadMerchantStatus] Status loaded:', result.status, 'Sheet status:', result.sheetStatus);
+                    console.log('[loadMerchantStatus] Status loaded:', result.status, 'Mapped to:', selectValue);
                 } else {
                     console.warn('[loadMerchantStatus] Failed to load status:', result.error);
                 }
@@ -4828,6 +4720,14 @@
                 if (result.success && result.data) {
                     window.merchantData = result.data;
                     window.merchantId = merchantId; // merchantIdもセット
+
+                    // 営業担当者氏名を明示的に抽出（X列）
+                    const salesPersonName = result.data['営業担当者氏名'] || result.data.salesPersonName || result.data.sales_person_name || '';
+                    if (salesPersonName) {
+                        window.merchantData.salesPerson = salesPersonName;
+                        console.log('[fetchMerchantData] Sales person extracted:', salesPersonName);
+                    }
+
                     console.log('[fetchMerchantData] Merchant data loaded:', window.merchantData);
                     console.log('[fetchMerchantData] merchantId set to:', window.merchantId);
                     console.log('[fetchMerchantData] salesPerson:', window.merchantData.salesPerson);
@@ -7365,16 +7265,17 @@
             const statusSelect = document.getElementById('merchantStatus');
             const status = statusSelect.value;
 
-            // ステータスに応じて色を変更
-            statusSelect.className = 'px-3 py-1 text-xs font-semibold rounded-full border-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500';
+            // ステータスに応じて色を変更（classListで個別操作）
+            // 既存の色クラスを削除
+            statusSelect.classList.remove('bg-green-100', 'text-green-800', 'border-green-300');
+            statusSelect.classList.remove('bg-yellow-100', 'text-yellow-800', 'border-yellow-300');
 
-            const statusColors = {
-                'active': 'bg-green-100 text-green-800 border-green-300',
-                'paused': 'bg-yellow-100 text-yellow-800 border-yellow-300'
-            };
-
-            const colorClass = statusColors[status] || statusColors['paused'];
-            statusSelect.className += ' ' + colorClass;
+            // 新しい色クラスを追加
+            if (status === 'active') {
+                statusSelect.classList.add('bg-green-100', 'text-green-800', 'border-green-300');
+            } else {
+                statusSelect.classList.add('bg-yellow-100', 'text-yellow-800', 'border-yellow-300');
+            }
 
             // 一時停止トグルと連動
             const autoPauseToggle = document.getElementById('autoPauseToggle');
@@ -9585,21 +9486,21 @@
 
             console.log('==== POPULATING FORM FIELDS ====');
 
-            // M列とN列の直接取得
-            if (data['M']) {
+            // 設立年月とPRテキストの直接取得（スプレッドシートの列名で取得）
+            if (data['設立年月']) {
                 const establishedEl = document.getElementById('established');
                 if (establishedEl) {
-                    establishedEl.value = data['M'];
-                    console.log(`✓ M列から設立年月を設定: ${data['M']}`);
+                    establishedEl.value = data['設立年月'];
+                    console.log(`✓ 設立年月を設定: ${data['設立年月']}`);
                 }
             }
 
-            if (data['N']) {
+            if (data['PRテキスト']) {
                 const prTextEl = document.getElementById('prText');
                 if (prTextEl) {
-                    prTextEl.value = data['N'];
-                    console.log(`✓ N列からPR文を設定: [${data['N'].length}文字]`);
-                    console.log(`  完全なPR文: ${data['N']}`);
+                    prTextEl.value = data['PRテキスト'];
+                    console.log(`✓ PR文を設定: [${data['PRテキスト'].length}文字]`);
+                    console.log(`  完全なPR文: ${data['PRテキスト']}`);
 
                     // テキストエリアの高さを自動調整
                     prTextEl.style.height = 'auto';
@@ -9608,38 +9509,36 @@
                     // 文字数カウンター更新
                     const charCount = document.getElementById('prTextCharCount');
                     if (charCount) {
-                        charCount.textContent = data['N'].length;
+                        charCount.textContent = data['PRテキスト'].length;
                     }
                 }
             }
 
-            // 会社情報フォームフィールドのマッピング
+            // 会社情報フォームフィールドのマッピング（スプレッドシートの列名に完全対応）
             const fieldMappings = {
-                companyName: ['companyName', 'company_name', '会社名'],
-                companyNameKana: ['companyNameKana', 'company_name_kana', '会社名カナ'],
-                tradeName: ['tradeName', 'trade_name', '屋号'],
-                tradeNameKana: ['tradeNameKana', 'trade_name_kana', '屋号カナ'],
-                representative: ['representative', 'representative_name', '代表者名'],
-                representativeKana: ['representativeKana', 'representative_kana', '代表者名カナ'],
-                zipCode: ['zipCode', 'postal_code', '郵便番号'],
-                address: ['address', '住所'],
-                phone: ['phone', 'tel', '電話番号'],
-                website: ['website', 'url', 'ホームページ'],
-                established: ['established', 'establishment_date', '設立年月', 'M'],  // M列から取得
-                prText: ['prText', 'pr_text', 'PRテキスト', 'N'],  // N列から取得
-                branchName: ['branchName', 'branch_name', '支店名'],
-                branchAddress: ['branchAddress', 'branch_address', '支店住所'],
-                billingEmail: ['billingEmail', 'billing_email', '請求先メール'],
-                salesEmail: ['salesEmail', 'sales_email', '営業メール'],
-                salesPersonName: ['salesPersonName', 'sales_person_name', '営業担当者名'],
-                salesPersonKana: ['salesPersonKana', 'sales_person_kana', '営業担当者名カナ'],
-                employees: ['employees', 'employee_count', '従業員数'],
-                salesScale: ['salesScale', 'sales_scale', '売上規模'],
-                maxFloors: ['maxFloors', 'max_floors', '最大対応階数', '最大階数'],
-                buildingAge: ['buildingAge', 'building_age', '建物築年数'],
-                specialItems: ['specialItems', 'special_items', '特殊工事'],
-                cities: ['cities', 'service_areas', '対応エリア'],
-                priorityAreas: ['priorityAreas', 'priority_areas', '重点エリア']
+                companyName: ['会社名', 'companyName', 'company_name'],
+                companyNameKana: ['会社名カナ', 'companyNameKana', 'company_name_kana'],
+                tradeName: ['屋号', 'tradeName', 'trade_name'],
+                tradeNameKana: ['屋号カナ', 'tradeNameKana', 'trade_name_kana'],
+                representative: ['代表者名', 'representative', 'representative_name'],
+                representativeKana: ['代表者名カナ', 'representativeKana', 'representative_kana'],
+                zipCode: ['郵便番号', 'zipCode', 'postal_code'],
+                address: ['住所', 'address'],
+                phone: ['電話番号', 'phone', 'tel'],
+                website: ['ウェブサイトURL', 'website', 'url'],
+                established: ['設立年月', 'established', 'establishment_date'],
+                prText: ['PRテキスト', 'prText', 'pr_text'],
+                billingEmail: ['請求用メールアドレス', 'billingEmail', 'billing_email'],
+                salesEmail: ['営業用メールアドレス', 'salesEmail', 'sales_email'],
+                salesPersonName: ['営業担当者氏名', 'salesPersonName', 'sales_person_name'],
+                salesPersonKana: ['営業担当者カナ', 'salesPersonKana', 'sales_person_kana'],
+                employees: ['従業員数', 'employees', 'employee_count'],
+                salesScale: ['売上規模', 'salesScale', 'sales_scale'],
+                maxFloors: ['最大対応階数', 'maxFloors', 'max_floors'],
+                buildingAge: ['築年数対応範囲', 'buildingAge', 'building_age'],
+                specialItems: ['特殊対応項目', 'specialItems', 'special_items'],
+                cities: ['対応市区町村', 'cities', 'service_areas'],
+                priorityAreas: ['優先エリア', 'priorityAreas', 'priority_areas']
             };
 
             // フィールドに値を設定
@@ -9667,10 +9566,10 @@
 
                         // "..."で終わっている場合、完全なテキストがあるはずなので探す
                         if (value && value.endsWith('...')) {
-                            // N列の完全なデータを取得（data.N または data['N']）
-                            const nColumnData = data['N'] || data.N || data.prText || data.pr_text || data.PRテキスト;
-                            if (nColumnData) {
-                                fullText = nColumnData;
+                            // PRテキスト列の完全なデータを取得
+                            const fullPrText = data['PRテキスト'] || data.prText || data.pr_text;
+                            if (fullPrText) {
+                                fullText = fullPrText;
                                 console.log('✓ PR文の完全版を取得しました');
                             }
                         }
@@ -9689,15 +9588,87 @@
                             charCount.textContent = fullText.length;
                         }
                     } else if (fieldId === 'established') {
-                        // M列から設立年月を取得
-                        const mColumnData = data['M'] || data.M || data.established || data['設立年月'];
-                        if (mColumnData) {
-                            element.value = mColumnData;
-                            console.log(`✓ Set ${fieldId} = ${mColumnData} (M列から取得)`);
+                        // 設立年月を取得
+                        const establishedData = data['設立年月'] || data.established || data['establishment_date'];
+                        if (establishedData) {
+                            // ISO形式の日付をYYYY年M月形式に変換
+                            let formattedDate = establishedData;
+                            if (establishedData.includes('T') || establishedData.includes('Z')) {
+                                // ISO形式の場合（例: 2000-03-31T15:00:00.000Z）
+                                const date = new Date(establishedData);
+                                const year = date.getFullYear();
+                                const month = date.getMonth() + 1; // 0-indexed
+                                formattedDate = `${year}年${month}月`;
+                                console.log(`✓ Converted ISO date to Japanese format: ${establishedData} → ${formattedDate}`);
+                            }
+                            element.value = formattedDate;
+                            console.log(`✓ Set ${fieldId} = ${formattedDate}`);
+                        } else if (value) {
+                            // valueもISO形式の可能性があるのでチェック
+                            let formattedValue = value;
+                            if (value.includes('T') || value.includes('Z')) {
+                                const date = new Date(value);
+                                const year = date.getFullYear();
+                                const month = date.getMonth() + 1;
+                                formattedValue = `${year}年${month}月`;
+                                console.log(`✓ Converted ISO date to Japanese format: ${value} → ${formattedValue}`);
+                            }
+                            element.value = formattedValue;
+                            console.log(`✓ Set ${fieldId} = ${formattedValue}`);
+                        }
+                    } else if (fieldId === 'employees' || fieldId === 'salesScale') {
+                        // select要素の場合は、optionを選択
+                        if (element.tagName === 'SELECT') {
+                            // 値を正規化（前後の空白を削除、全角英数字を半角に変換）
+                            let normalizedValue = String(value).trim();
+
+                            // 従業員数がISO日付形式で来た場合（例: 2025-03-04T15:00:00.000Z → 3-4）
+                            if (fieldId === 'employees' && (normalizedValue.includes('T') || normalizedValue.includes('Z'))) {
+                                const date = new Date(normalizedValue);
+                                const month = date.getMonth() + 1; // 0-indexed
+                                const day = date.getDate();
+                                normalizedValue = `${month}-${day}`;
+                            }
+
+                            // 全角英数字を半角に変換
+                            normalizedValue = normalizedValue.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
+                                return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+                            });
+
+                            // まず正規化した値で直接設定してみる
+                            element.value = normalizedValue;
+
+                            // 直接マッチしなかった場合
+                            if (!element.value && normalizedValue) {
+                                const options = Array.from(element.options);
+
+                                // より柔軟なマッチング
+                                const matchedOption = options.find(opt => {
+                                    // option value と完全一致
+                                    if (opt.value === normalizedValue) return true;
+
+                                    // option value の正規化版と一致
+                                    const normalizedOptValue = opt.value.trim().toLowerCase();
+                                    const normalizedSearchValue = normalizedValue.toLowerCase();
+                                    if (normalizedOptValue === normalizedSearchValue) return true;
+
+                                    // option text に含まれる
+                                    const optText = opt.text.replace(/\s/g, '').toLowerCase();
+                                    const valueText = normalizedValue.replace(/\s/g, '').toLowerCase();
+                                    if (optText.includes(valueText) || valueText.includes(optText)) return true;
+
+                                    return false;
+                                });
+
+                                if (matchedOption) {
+                                    element.value = matchedOption.value;
+                                }
+                            }
                         } else {
-                            console.log(`✓ Set ${fieldId} = ${value}`);
+                            element.value = value;
                         }
                     } else {
+                        element.value = value;
                         console.log(`✓ Set ${fieldId} = ${value}`);
                     }
                 } else if (element) {
@@ -9752,6 +9723,310 @@
                 companyDisplays.forEach(el => {
                     el.textContent = data.companyName || data.company_name;
                 });
+            }
+
+            console.log('=== LOADING BRANCH DATA ===');
+            // スプレッドシートのO列（支店名）とP列（支店住所）から支店情報を取得
+            const branchNameRaw = data['支店名'] || data.branchName || data.branch_name || '';
+            const branchAddressRaw = data['支店住所'] || data.branchAddress || data.branch_address || '';
+
+            console.log('Branch name from spreadsheet:', branchNameRaw);
+            console.log('Branch address from spreadsheet:', branchAddressRaw);
+
+            // 支店名または支店住所が存在する場合
+            if (branchNameRaw || branchAddressRaw) {
+                // 全角カンマ『、』で分割（複数の支店に対応）
+                const branchNames = branchNameRaw ? branchNameRaw.split('、').map(s => s.trim()).filter(s => s) : [];
+                const branchAddresses = branchAddressRaw ? branchAddressRaw.split('、').map(s => s.trim()).filter(s => s) : [];
+
+                console.log('Split branch names:', branchNames);
+                console.log('Split branch addresses:', branchAddresses);
+
+                // 支店の数を決定（名前と住所の多い方を基準にする）
+                const branchCount = Math.max(branchNames.length, branchAddresses.length);
+
+                if (branchCount > 0) {
+                    // 既存の支店をクリア
+                    branches = [];
+                    branchIdCounter = 0;
+                    const branchList = document.getElementById('branchList');
+                    if (branchList) {
+                        branchList.innerHTML = '';
+                    }
+
+                    // 各支店を追加
+                    for (let i = 0; i < branchCount; i++) {
+                        const branchId = ++branchIdCounter;
+                        const branchInfo = {
+                            id: branchId,
+                            name: branchNames[i] || '',
+                            address: branchAddresses[i] || ''
+                        };
+
+                        branches.push(branchInfo);
+
+                        const branchDiv = document.createElement('div');
+                        branchDiv.id = `branch-${branchId}`;
+                        branchDiv.className = 'border rounded-lg p-4 mb-3 bg-gray-50';
+                        branchDiv.innerHTML = `
+                            <div class="flex justify-between items-start mb-3">
+                                <h4 class="font-medium text-gray-700">支店 ${i + 1}</h4>
+                                <button onclick="removeBranch(${branchId})" class="text-red-600 hover:text-red-800">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">支店名</label>
+                                    <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="例: 横浜支店"
+                                           value="${branchInfo.name}"
+                                           onchange="updateBranch(${branchId}, 'name', this.value)">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">支店住所</label>
+                                    <input type="text" class="w-full px-3 py-2 border rounded-lg" placeholder="例: 神奈川県横浜市..."
+                                           value="${branchInfo.address}"
+                                           onchange="updateBranch(${branchId}, 'address', this.value)">
+                                </div>
+                            </div>
+                        `;
+
+                        if (branchList) {
+                            branchList.appendChild(branchDiv);
+                        }
+
+                        console.log(`✓ Loaded branch ${i + 1}: ${branchInfo.name} - ${branchInfo.address}`);
+                    }
+
+                    // 支店マップを更新
+                    setTimeout(() => updateBranchMaps(), 100);
+                } else {
+                    console.log('No valid branch data after splitting');
+                }
+            } else {
+                console.log('No branch data found in spreadsheet');
+            }
+
+            console.log('=== LOADING AREA DATA ===');
+            // 対応都道府県（AG列）、対応市区町村（AH列）、優先エリア（AI列）を取得
+            const prefecturesRaw = data['対応都道府県'] || data.prefectures || '';
+            const citiesRaw = data['対応市区町村'] || data.cities || '';
+            const prioritiesRaw = data['優先エリア'] || data.priorities || data.priority_areas || '';
+
+            console.log('Prefectures from spreadsheet:', prefecturesRaw);
+            console.log('Cities from spreadsheet:', citiesRaw);
+            console.log('Priorities from spreadsheet:', prioritiesRaw);
+
+            // 都道府県を表示
+            const prefecturesDisplay = document.getElementById('companyPrefecturesDisplay');
+            if (prefecturesDisplay) {
+                if (prefecturesRaw) {
+                    const prefectures = prefecturesRaw.split(',').map(s => s.trim()).filter(s => s);
+                    prefecturesDisplay.innerHTML = prefectures.map(pref =>
+                        `<span class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-shadow">
+                            ${pref}
+                        </span>`
+                    ).join('');
+                    console.log(`✓ Loaded ${prefectures.length} prefectures`);
+                } else {
+                    prefecturesDisplay.innerHTML = '<span class="text-sm text-gray-400 italic">未設定</span>';
+                }
+            }
+
+            // 市区町村を表示
+            const citiesDisplay = document.getElementById('companyCitiesDisplay');
+            if (citiesDisplay) {
+                if (citiesRaw) {
+                    // JSON形式の場合とカンマ区切りの場合に対応
+                    let cities = [];
+                    try {
+                        const parsed = JSON.parse(citiesRaw);
+                        if (parsed.type === 'compressed' && parsed.full) {
+                            cities = parsed.full.split(',').map(s => s.trim()).filter(s => s);
+                        } else if (parsed.type === 'compressed' && parsed.preview) {
+                            cities = parsed.preview.split(',').map(s => s.trim()).filter(s => s);
+                        }
+                    } catch (e) {
+                        // JSON形式でない場合、カンマ区切りとして処理
+                        cities = citiesRaw.split(',').map(s => s.trim()).filter(s => s);
+                    }
+
+                    citiesDisplay.innerHTML = cities.map(city =>
+                        `<span class="inline-block px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 rounded text-xs font-medium hover:bg-green-100 transition-colors">
+                            ${city}
+                        </span>`
+                    ).join('');
+                    console.log(`✓ Loaded ${cities.length} cities`);
+                } else {
+                    citiesDisplay.innerHTML = '<span class="text-sm text-gray-400 italic">未設定</span>';
+                }
+            }
+
+            // 優先エリアを表示
+            const prioritiesDisplay = document.getElementById('companyPrioritiesDisplay');
+            if (prioritiesDisplay) {
+                if (prioritiesRaw) {
+                    const priorities = prioritiesRaw.split(',').map(s => s.trim()).filter(s => s);
+                    prioritiesDisplay.innerHTML = priorities.map(priority =>
+                        `<span class="inline-flex items-center gap-1 px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-400 text-amber-900 rounded-lg text-sm font-semibold shadow-sm hover:shadow-md transition-shadow">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            ${priority}
+                        </span>`
+                    ).join('');
+                    console.log(`✓ Loaded ${priorities.length} priority areas`);
+                } else {
+                    prioritiesDisplay.innerHTML = '<span class="text-sm text-gray-400 italic">未設定</span>';
+                }
+            }
+
+            console.log('=== LOADING CONSTRUCTION DATA ===');
+            // 施工箇所データを取得（AE列）
+            const constructionRaw = data['施工箇所'] || data.construction_types || '';
+            console.log('Construction types from spreadsheet:', constructionRaw);
+
+            // 施工箇所アイコンマッピング
+            const constructionIcons = {
+                '外壁塗装': '🎨',
+                '外壁カバー工法': '🏗️',
+                '外壁張替え': '🔨',
+                '屋根塗装（外壁工事含む）': '🏠',
+                '屋上防水（外壁工事含む）': '☔',
+                '屋根葺き替え・張り替え※スレート・ガルバリウム等': '🔧',
+                '屋根葺き替え・張り替え※瓦': '🏯',
+                '屋根カバー工法': '🛠️',
+                '外壁補修（外壁工事含む）': '🔧',
+                '屋根補修（外壁工事含む）': '🛠️',
+                'ベランダ防水（外壁工事含む）': '💧',
+                '内装水回り（バス・キッチン・トイレ）（外壁工事含む）': '🚿',
+                '内装（フローリングや畳などの床・クロス等）（外壁工事含む）': '🏡',
+                '外壁雨漏り修繕（外壁工事含む）': '☔',
+                '屋根雨漏り修繕（屋根工事含む）': '🌧️',
+                '屋根塗装単品': '🏠',
+                '屋上防水単品': '☔',
+                '外壁補修単品': '🔧',
+                '屋根補修単品': '🛠️',
+                'ベランダ防水単品': '💧',
+                '外壁雨漏り修繕単品': '☔',
+                '屋根雨漏り修繕単品': '🌧️'
+            };
+
+            const constructionDisplay = document.getElementById('companyConstructionDisplay');
+            if (constructionDisplay) {
+                if (constructionRaw) {
+                    const constructions = constructionRaw.split(',').map(s => s.trim()).filter(s => s);
+
+                    // 重複を削除するため、正規化後のテキストでユニーク化
+                    const uniqueConstructions = [];
+                    const seenTexts = new Set();
+
+                    constructions.forEach(construction => {
+                        // 簡略表示用に文字列を短縮
+                        let displayText = construction
+                            .replace('（外壁工事含む）', '')
+                            .replace('（屋根工事含む）', '')
+                            .replace('（但し1社紹介時は定価）', '')
+                            .replace('単品', '')
+                            .trim();
+
+                        // まだ見ていないテキストの場合のみ追加
+                        if (!seenTexts.has(displayText)) {
+                            seenTexts.add(displayText);
+                            uniqueConstructions.push({
+                                original: construction,
+                                display: displayText
+                            });
+                        }
+                    });
+
+                    constructionDisplay.innerHTML = uniqueConstructions.map(item => {
+                        const icon = constructionIcons[item.original] || '🔨';
+
+                        return `<div class="flex items-center gap-2 p-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors">
+                            <span class="text-lg">${icon}</span>
+                            <span class="text-sm font-medium text-gray-700">${item.display}</span>
+                        </div>`;
+                    }).join('');
+                    console.log(`✓ Loaded ${uniqueConstructions.length} unique construction types (${constructions.length} total)`);
+                } else {
+                    constructionDisplay.innerHTML = '<span class="text-sm text-gray-400 italic">未設定</span>';
+                }
+            }
+
+            console.log('=== LOADING APPEAL POINTS DATA ===');
+            // 特殊対応項目データを取得（AF列）
+            const appealPointsRaw = data['特殊対応項目'] || data.appeal_points || data.special_services || '';
+            console.log('Appeal points from spreadsheet:', appealPointsRaw);
+
+            // アピールポイントアイコンマッピング
+            const appealPointIcons = {
+                '遮熱・断熱塗料提案可能': '🌡️',
+                'クレジットカード払い可': '💳',
+                '提携先ローン有り': '🏦',
+                '火災保険申請サポート': '🔥',
+                '助成金申請サポート': '💰',
+                '即日見積もり対応': '⚡',
+                '自社職人施工': '👷',
+                '保証期間10年以上': '🛡️',
+                '24時間緊急対応': '🚨',
+                'ドローン調査対応': '🚁',
+                '無料点検サービス': '🔍',
+                'カラーシミュレーション無料': '🎨',
+                '近隣挨拶代行': '🙇',
+                '工事写真報告書提供': '📸',
+                '完工後アフターフォロー': '✅'
+            };
+
+            const appealPointsDisplay = document.getElementById('companyAppealPointsDisplay');
+            if (appealPointsDisplay) {
+                if (appealPointsRaw) {
+                    // 除外するアピールポイント
+                    const excludedPoints = [
+                        '立ち会いなし・見積もり手渡し希望',
+                        '遠方につき立ち会いなし・見積もり郵送・電話で商談可'
+                    ];
+
+                    const appealPoints = appealPointsRaw
+                        .split(',')
+                        .map(s => s.trim())
+                        .filter(s => s && !excludedPoints.includes(s)); // 除外リストに含まれていないもののみ
+
+                    if (appealPoints.length > 0) {
+                        appealPointsDisplay.innerHTML = appealPoints.map(point => {
+                            const icon = appealPointIcons[point] || '⭐';
+
+                            return `<div class="flex items-center gap-2 p-2 bg-gradient-to-r from-amber-50 to-yellow-50 hover:from-amber-100 hover:to-yellow-100 border border-yellow-200 rounded-lg transition-all">
+                                <span class="text-lg">${icon}</span>
+                                <span class="text-sm font-medium text-gray-700">${point}</span>
+                            </div>`;
+                        }).join('');
+                        console.log(`✓ Loaded ${appealPoints.length} appeal points`);
+                    } else {
+                        appealPointsDisplay.innerHTML = '<span class="text-sm text-gray-400 italic">未設定</span>';
+                    }
+                } else {
+                    appealPointsDisplay.innerHTML = '<span class="text-sm text-gray-400 italic">未設定</span>';
+                }
+            }
+
+            // 営業担当者氏名（X列）をwindow.merchantDataに保存
+            const salesPersonName = data['営業担当者氏名'] || data.salesPersonName || data.sales_person_name || '';
+            if (salesPersonName) {
+                if (!window.merchantData) {
+                    window.merchantData = {};
+                }
+                window.merchantData.salesPerson = salesPersonName;
+                console.log(`✓ Sales person name: ${salesPersonName}`);
+
+                // ヘッダーの営業担当者表示を更新
+                const userRoleElement = document.getElementById('userRole');
+                if (userRoleElement) {
+                    userRoleElement.textContent = salesPersonName;
+                    console.log(`✓ Updated header with sales person: ${salesPersonName}`);
+                }
             }
 
             console.log('===== loadMerchantData COMPLETE =====');
@@ -12941,6 +13216,12 @@
 
             // イベントリスナーを追加して変更を検知
             attachAutodeliveryChangeListeners();
+
+            // 読み込み完了後、変更フラグをリセット（読み込み時のイベント発火を無視）
+            // setTimeoutで少し遅延させて、初期化時のイベント発火を確実に無視
+            setTimeout(() => {
+                resetAutodeliveryChanged();
+            }, 100);
         }
 
         // 自動配信設定の全入力要素に変更検知リスナーを追加
