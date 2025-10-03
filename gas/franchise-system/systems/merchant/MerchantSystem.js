@@ -52,6 +52,20 @@ const MerchantSystem = {
         case 'checkUpdate':
           return this.checkUpdate(params);
 
+        // 会社情報管理（CompanyInfoManagerに委譲）
+        case 'companyinfo_uploadMainVisual':
+        case 'companyinfo_deleteMainVisual':
+        case 'companyinfo_addGalleryPhoto':
+        case 'companyinfo_deleteGalleryPhoto':
+        case 'companyinfo_reorderGalleryPhotos':
+        case 'companyinfo_updatePhotoGallery':
+        case 'companyinfo_saveConstructionExample':
+        case 'companyinfo_getConstructionExamples':
+        case 'companyinfo_deleteConstructionExample':
+        case 'companyinfo_saveQualifications':
+        case 'companyinfo_saveInsurances':
+          return CompanyInfoManager.handle(params);
+
         default:
           return {
             success: false,
@@ -107,6 +121,46 @@ const MerchantSystem = {
 
         case 'updatePauseSettings':
           return this.updatePauseSettings(params);
+
+        case 'merchant_updateCompanyInfo':
+          return this.updateCompanyInfo(params);
+
+        // 会社情報画像アップロード系
+        case 'companyinfo_uploadMainVisual':
+          return CompanyInfoManager.uploadMainVisual(params);
+
+        case 'companyinfo_deleteMainVisual':
+          return CompanyInfoManager.deleteMainVisual(params);
+
+        case 'companyinfo_uploadPhotoGallery':
+          return CompanyInfoManager.uploadPhotoGallery(params);
+
+        case 'companyinfo_updatePhotoGallery':
+          return CompanyInfoManager.updatePhotoGallery(params);
+
+        case 'companyinfo_deletePhotoGallery':
+          return CompanyInfoManager.deletePhotoGallery(params);
+
+        case 'companyinfo_saveQualifications':
+          return CompanyInfoManager.saveQualifications(params);
+
+        case 'companyinfo_saveInsurances':
+          return CompanyInfoManager.saveInsurances(params);
+
+        case 'companyinfo_saveConstructionExample':
+          return CompanyInfoManager.saveConstructionExample(params);
+
+        case 'companyinfo_deleteConstructionExample':
+          return CompanyInfoManager.deleteConstructionExample(params);
+
+        case 'updateMerchantData':
+          return this.updateMerchantData(params);
+
+        case 'companyinfo_addGalleryPhoto':
+          return CompanyInfoManager.addGalleryPhoto(params);
+
+        case 'saveGalleryData':
+          return CompanyInfoManager.saveGalleryData(params);
 
         default:
           return {
@@ -364,10 +418,32 @@ const MerchantSystem = {
       const salesPersonIndex = 23;
       merchantData.salesPerson = merchantRow[salesPersonIndex] || '';
 
+      // デバッグ: 行の列数を確認
+      console.log('[MerchantSystem] merchantRow length:', merchantRow.length);
+      console.log('[MerchantSystem] merchantRow[43] (AR列 メインビジュアル):', merchantRow[43]);
+      console.log('[MerchantSystem] merchantRow[44] (AS列 写真ギャラリー):', merchantRow[44]);
+      console.log('[MerchantSystem] merchantRow[45] (AT列 保有資格):', merchantRow[45]);
+      console.log('[MerchantSystem] merchantRow[46] (AU列 加入保険):', merchantRow[46]);
+
+      // 画像関連データを追加
+      // AR列（44列目、インデックス43）= メインビジュアル
+      merchantData.mainVisual = merchantRow[43] || '';
+
+      // AS列（45列目、インデックス44）= 写真ギャラリー
+      merchantData.photoGallery = merchantRow[44] || '';
+
+      // AT列（46列目、インデックス45）= 保有資格
+      merchantData.qualifications = merchantRow[45] || '';
+
+      // AU列（47列目、インデックス46）= 加入保険
+      merchantData.insurances = merchantRow[46] || '';
+
       console.log('[MerchantSystem] getMerchantData - merchantId:', merchantId);
       console.log('[MerchantSystem] getMerchantData - 施工箇所:', merchantData['施工箇所']);
       console.log('[MerchantSystem] getMerchantData - 対応市区町村:', merchantData['対応市区町村']);
       console.log('[MerchantSystem] getMerchantData - 優先エリア:', merchantData['優先エリア']);
+      console.log('[MerchantSystem] getMerchantData - メインビジュアル:', merchantData.mainVisual);
+      console.log('[MerchantSystem] getMerchantData - 写真ギャラリー:', merchantData.photoGallery);
 
       return {
         success: true,
@@ -1066,6 +1142,229 @@ const MerchantSystem = {
       return {
         success: true,
         hasUpdate: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * 会社情報を更新（基本情報のみ、画像は別のAPIで処理）
+   */
+  updateCompanyInfo: function(params) {
+    try {
+      console.log('[MerchantSystem] updateCompanyInfo params:', JSON.stringify(params));
+
+      const merchantId = params.merchantId;
+      const data = params.data;
+
+      if (!merchantId || !data) {
+        console.error('[MerchantSystem] Missing params - merchantId:', merchantId, 'data:', data);
+        return {
+          success: false,
+          error: '必須パラメータが不足しています'
+        };
+      }
+
+      console.log('[MerchantSystem] updateCompanyInfo merchantId:', merchantId);
+
+      const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(spreadsheetId);
+      const sheet = ss.getSheetByName('加盟店登録');
+
+      if (!sheet) {
+        throw new Error('加盟店登録シートが見つかりません');
+      }
+
+      const allData = sheet.getDataRange().getValues();
+      let rowIndex = -1;
+
+      // 加盟店IDで行を検索（B列 = index 1）
+      console.log('[MerchantSystem] Searching for merchantId:', merchantId, 'in', allData.length, 'rows');
+      for (let i = 1; i < allData.length; i++) {
+        if (allData[i][1] === merchantId) { // B列：加盟店ID
+          rowIndex = i;
+          console.log('[MerchantSystem] Found at row:', rowIndex);
+          break;
+        }
+      }
+
+      if (rowIndex === -1) {
+        console.error('[MerchantSystem] Merchant not found:', merchantId);
+        return {
+          success: false,
+          error: '加盟店が見つかりません（ID: ' + merchantId + '）'
+        };
+      }
+
+      // データを更新
+      const row = rowIndex + 1;
+
+      console.log('[MerchantSystem] Data to save:', JSON.stringify(data));
+      console.log('[MerchantSystem] Row to update:', row);
+
+      // 各フィールドを対応する列に保存
+      // 基本情報
+      if (data.companyName !== undefined) {
+        sheet.getRange(row, 3).setValue(data.companyName); // C列：会社名
+      }
+      if (data.companyNameKana !== undefined) {
+        sheet.getRange(row, 4).setValue(data.companyNameKana); // D列：会社名カナ
+      }
+      if (data.tradeName !== undefined) {
+        sheet.getRange(row, 5).setValue(data.tradeName); // E列：屋号
+      }
+      if (data.tradeNameKana !== undefined) {
+        sheet.getRange(row, 6).setValue(data.tradeNameKana); // F列：屋号カナ
+      }
+      if (data.representative !== undefined) {
+        sheet.getRange(row, 7).setValue(data.representative); // G列：代表者名
+      }
+      if (data.representativeKana !== undefined) {
+        sheet.getRange(row, 8).setValue(data.representativeKana); // H列：代表者名カナ
+      }
+
+      // 住所情報
+      if (data.postalCode !== undefined) {
+        sheet.getRange(row, 9).setValue(data.postalCode); // I列：郵便番号
+      }
+      if (data.address !== undefined) {
+        sheet.getRange(row, 10).setValue(data.address); // J列：住所
+      }
+      if (data.phone !== undefined) {
+        sheet.getRange(row, 11).setValue(data.phone); // K列：電話番号
+      }
+      if (data.website !== undefined) {
+        sheet.getRange(row, 12).setValue(data.website); // L列：ウェブサイト
+      }
+
+      // 設立年月とPR文
+      if (data.established !== undefined) {
+        sheet.getRange(row, 13).setValue(data.established); // M列：設立年月
+      }
+      if (data.prText !== undefined) {
+        sheet.getRange(row, 14).setValue(data.prText); // N列：PR文
+      }
+
+      // 支店情報（O列〜P列あたりと仮定、実際の列を確認してください）
+      if (data.branchName !== undefined) {
+        sheet.getRange(row, 15).setValue(data.branchName); // O列：支店名（要確認）
+      }
+      if (data.branchAddress !== undefined) {
+        sheet.getRange(row, 16).setValue(data.branchAddress); // P列：支店住所（要確認）
+      }
+
+      // 事業詳細
+      if (data.employees !== undefined) {
+        sheet.getRange(row, 17).setValue(data.employees); // Q列：従業員数（要確認）
+      }
+      if (data.salesScale !== undefined) {
+        sheet.getRange(row, 18).setValue(data.salesScale); // R列：売上規模（要確認）
+      }
+      if (data.businessHours !== undefined) {
+        sheet.getRange(row, 19).setValue(data.businessHours); // S列：営業時間（要確認）
+      }
+      if (data.holidays !== undefined) {
+        sheet.getRange(row, 20).setValue(data.holidays); // T列：定休日（要確認）
+      }
+      if (data.paymentMethods !== undefined) {
+        sheet.getRange(row, 21).setValue(data.paymentMethods); // U列：支払方法（要確認）
+      }
+
+      // メールアドレス
+      if (data.billingEmail !== undefined) {
+        sheet.getRange(row, 22).setValue(data.billingEmail); // V列：請求用メール
+      }
+      if (data.salesEmail !== undefined) {
+        sheet.getRange(row, 23).setValue(data.salesEmail); // W列：営業用メール
+      }
+
+      // 営業担当者情報
+      if (data.salesPersonName !== undefined) {
+        sheet.getRange(row, 24).setValue(data.salesPersonName); // X列：営業担当者氏名
+      }
+      if (data.salesPersonKana !== undefined) {
+        sheet.getRange(row, 25).setValue(data.salesPersonKana); // Y列：営業担当者カナ
+      }
+
+      // 連絡先情報
+      if (data.contactPerson !== undefined) {
+        sheet.getRange(row, 26).setValue(data.contactPerson); // Z列：担当者名（要確認）
+      }
+      if (data.contactPersonKana !== undefined) {
+        sheet.getRange(row, 27).setValue(data.contactPersonKana); // AA列：担当者名カナ（要確認）
+      }
+      if (data.contactPhone !== undefined) {
+        sheet.getRange(row, 28).setValue(data.contactPhone); // AB列：担当者電話（要確認）
+      }
+      if (data.contactEmail !== undefined) {
+        sheet.getRange(row, 29).setValue(data.contactEmail); // AC列：担当者メール（要確認）
+      }
+
+      console.log('[MerchantSystem] Company info updated for:', merchantId);
+
+      return {
+        success: true,
+        message: '会社情報を更新しました'
+      };
+
+    } catch (error) {
+      console.error('[MerchantSystem] updateCompanyInfo error:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * 加盟店データ更新（会社情報画面から）
+   */
+  updateMerchantData: function(params) {
+    try {
+      const { merchantId, data } = params;
+
+      if (!merchantId) {
+        return {
+          success: false,
+          error: '加盟店IDが必要です'
+        };
+      }
+
+      // DataAccessLayerを使用
+      const sheet = DataAccessLayer.getRegistrationSheet();
+      const allData = sheet.getDataRange().getValues();
+      const headers = allData[0];
+      const rows = allData.slice(1);
+
+      // B列で加盟店IDを検索
+      const rowIndex = rows.findIndex(row => row[1] === merchantId);
+      if (rowIndex === -1) {
+        return {
+          success: false,
+          error: '加盟店が見つかりません'
+        };
+      }
+
+      const row = rowIndex + 2; // ヘッダー行を考慮
+
+      // 更新可能なフィールドのみ更新
+      if (data.companyName) sheet.getRange(row, 3).setValue(data.companyName); // C列
+      if (data.representative) sheet.getRange(row, 5).setValue(data.representative); // E列
+      if (data.phone) sheet.getRange(row, 7).setValue(data.phone); // G列
+      if (data.address) sheet.getRange(row, 9).setValue(data.address); // I列
+      if (data.prText) sheet.getRange(row, 29).setValue(data.prText); // AC列
+
+      // その他のフィールドも必要に応じて追加
+
+      return {
+        success: true,
+        message: 'データを更新しました'
+      };
+
+    } catch (error) {
+      console.error('[updateMerchantData] Error:', error);
+      return {
+        success: false,
         error: error.toString()
       };
     }
