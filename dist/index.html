@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>加盟店管理システム - 外壁塗装くらべるAI</title>
-    <script src="merchant-portal/env-loader.js?v=4003"></script>
+    <script src="merchant-portal/env-loader.js?v=20000"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -8135,14 +8135,17 @@
                     updateRoleDisplay();
                     showSection('dashboard');
 
-                    // 初回ログイン時の初期設定
+                    // 初回ログイン時の初期設定（データ取得後に実行）
+                    console.log('[DOMContentLoaded] merchantData loaded, calling initializeFirstLoginSettings');
+                    console.log('[DOMContentLoaded] window.merchantData:', window.merchantData ? 'exists' : 'null');
                     initializeFirstLoginSettings();
                 }).catch(error => {
                     console.error('Failed to fetch merchant data or status:', error);
                     updateRoleDisplay();
                     showSection('dashboard');
 
-                    // 初回ログイン時の初期設定
+                    // エラー時でも初期設定を実行
+                    console.log('[DOMContentLoaded] Error occurred, calling initializeFirstLoginSettings anyway');
                     initializeFirstLoginSettings();
                 });
 
@@ -12452,6 +12455,9 @@
     <script>
         // 初回ログイン時の初期設定
         function initializeFirstLoginSettings() {
+            console.log('[initializeFirstLoginSettings] 開始');
+            console.log('[initializeFirstLoginSettings] window.merchantData:', window.merchantData ? 'exists' : 'null');
+
             // 初回ログインかどうかをチェック（localStorageに保存）
             const isInitialized = localStorage.getItem('autodeliveryInitialized');
 
@@ -12477,9 +12483,14 @@
                 startDateInput.value = today;
             }
 
-            // 自動配信設定をスプレッドシートから読み込み
+            // 毎回実行: 自動配信設定をスプレッドシートから読み込み
             if (window.merchantData) {
+                console.log('[initializeFirstLoginSettings] window.merchantDataが存在します。loadAutodeliverySettingsを呼び出します。');
                 loadAutodeliverySettings(window.merchantData);
+            } else {
+                console.warn('[initializeFirstLoginSettings] window.merchantDataが存在しません！');
+                // merchantDataがない場合は空データで初期化
+                loadAutodeliverySettings({});
             }
         }
 
@@ -12488,18 +12499,29 @@
             console.log('[fetchMerchantDataForAutodelivery] Fetching data for:', merchantId);
 
             try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    },
-                    body: JSON.stringify({
-                        action: 'getMerchantData',
-                        merchantId: merchantId
-                    })
-                });
+                // JSONP でデータ取得
+                const result = await new Promise((resolve, reject) => {
+                    const callbackName = 'jsonp_autodelivery_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    const script = document.createElement('script');
 
-                const result = await response.json();
+                    window[callbackName] = (data) => {
+                        delete window[callbackName];
+                        if (script.parentNode) {
+                            script.parentNode.removeChild(script);
+                        }
+                        resolve(data);
+                    };
+
+                    script.src = `${GAS_URL}?action=getMerchantData&merchantId=${encodeURIComponent(merchantId)}&callback=${callbackName}`;
+                    script.onerror = () => {
+                        delete window[callbackName];
+                        if (script.parentNode) {
+                            script.parentNode.removeChild(script);
+                        }
+                        reject(new Error('JSONP request failed'));
+                    };
+                    document.body.appendChild(script);
+                });
 
                 if (result.success && result.data) {
                     window.merchantData = result.data;
@@ -12752,9 +12774,11 @@
                     '光触媒塗料提案可': '✨ 光触媒塗料提案可',
                     '分割払いプラン有': '💴 分割払いプラン有',
 
-                    // 旧データとの互換性（括弧なし → 括弧付き）
+                    // 旧データとの互換性（括弧なし → 括弧付き、中点なし → 中点あり）
+                    '遮熱断熱塗料提案可能': '🌡 遮熱・断熱塗料提案可能',
                     '立ち会いなし見積もり手渡': '👀 立ち会いなし・見積もり手渡し希望',
                     '遠方につき立ち会いなし見積もり郵送': '📮 遠方につき立ち会いなし・見積もり郵送・電話で商談可',
+                    '遠方につき立ち会いなし見': '📮 遠方につき立ち会いなし・見積もり郵送・電話で商談可',
                     'エクステリア': '🏡 エクステリア（庭・駐車場・外構）',
                     '太陽光パネル脱着': '☀️ 太陽光パネル脱着（撤去含む）'
                 };

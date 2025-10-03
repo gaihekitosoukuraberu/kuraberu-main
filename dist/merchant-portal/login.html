@@ -6,7 +6,7 @@
     <title>ログイン - 加盟店管理システム</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="./env-loader.js?v=9999"></script>
+    <script src="./env-loader.js?v=10000"></script>
     <style>
         body { font-family: 'Inter', system-ui, sans-serif; }
     </style>
@@ -179,7 +179,7 @@
                     storage.setItem('loginTime', new Date().toISOString());
 
                     // 加盟店ダッシュボードにリダイレクト
-                    window.location.href = 'https://gaihekikuraberu.com/franchise-dashboard/index.html';
+                    window.location.href = '../index.html';
                 } else {
                     showError(result.error || 'ログインに失敗しました');
                     loginBtn.disabled = false;
