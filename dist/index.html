@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>加盟店管理システム - 外壁塗装くらべるAI</title>
-    <script src="merchant-portal/env-loader.js?v=20000"></script>
+    <script src="merchant-portal/env-loader.js?v=1134"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -104,10 +104,9 @@
                 <div class="flex-shrink-0">
                     <div class="relative">
                         <label class="hidden sm:block text-xs text-gray-400 mb-1 text-center">ステータス</label>
-                        <select id="merchantStatus" onchange="updateMerchantStatus()" class="px-3 py-1 text-xs font-semibold rounded-full border-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 bg-yellow-100 text-yellow-800 border-yellow-300">
-                            <option value="active" class="bg-white text-gray-900">アクティブ</option>
-                            <option value="paused" class="bg-white text-gray-900" selected>一時停止中</option>
-                        </select>
+                        <span id="merchantStatus" class="px-3 py-1 text-xs font-semibold rounded-full border-2 bg-gray-100 text-gray-800 border-gray-300">
+                            読み込み中...
+                        </span>
                     </div>
                 </div>
 
@@ -1932,23 +1931,24 @@
                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
                             </label>
                         </div>
-                        <div id="pauseSettings" class="space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">一時停止開始日</label>
-                                    <input type="date" id="pauseStartDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        <div id="pauseSettings" class="space-y-3">
+                            <!-- 一時停止開始日 -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">一時停止開始日</label>
+                                <input type="date" id="pauseStartDate" class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500">
+                            </div>
+
+                            <!-- 一時停止再開日 -->
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="block text-sm font-medium text-gray-700">一時停止再開日</label>
+                                    <label class="flex items-center gap-1.5 cursor-pointer">
+                                        <input type="checkbox" id="indefinitePause" onchange="toggleIndefinitePause()" class="rounded text-orange-600 focus:ring-orange-500" checked>
+                                        <span class="text-xs text-gray-600 whitespace-nowrap">未定</span>
+                                    </label>
                                 </div>
-                                <div>
-                                    <div class="flex items-center justify-between mb-2">
-                                        <label class="block text-sm font-medium text-gray-700">一時停止再開日</label>
-                                        <label class="flex items-center gap-1.5 cursor-pointer">
-                                            <input type="checkbox" id="indefinitePause" onchange="toggleIndefinitePause()" class="rounded text-orange-600 focus:ring-orange-500" checked>
-                                            <span class="text-xs text-gray-600 whitespace-nowrap">未定</span>
-                                        </label>
-                                    </div>
-                                    <input type="text" id="pauseEndDateDisplay" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed text-gray-500" value="未定" readonly>
-                                    <input type="date" id="pauseEndDate" class="hidden w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
-                                </div>
+                                <input type="text" id="pauseEndDateDisplay" class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed text-gray-500" value="未定" readonly>
+                                <input type="date" id="pauseEndDate" class="hidden w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500">
                             </div>
                         </div>
                     </div>
@@ -2325,8 +2325,8 @@
                         </div>
                     </div>
 
-                    <div class="flex justify-end">
-                        <button onclick="saveAutoDeliverySettings()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                    <div class="flex justify-end pb-20 relative z-10">
+                        <button type="button" id="saveAutodeliveryBtn" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 min-h-[48px] cursor-pointer relative z-20 active:bg-blue-800">
                             設定を保存
                         </button>
                     </div>
@@ -4623,16 +4623,12 @@
 
         // ステータスをスプレッドシートから読み込む関数
         async function loadMerchantStatus(merchantId) {
-            console.log('[loadMerchantStatus] Loading status for:', merchantId);
-            console.log('[loadMerchantStatus] GAS_URL:', GAS_URL);
             try {
                 const result = await new Promise((resolve, reject) => {
                     const callbackName = 'jsonp_status_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                     const script = document.createElement('script');
 
-                    console.log('[loadMerchantStatus] Setting up callback:', callbackName);
                     window[callbackName] = (data) => {
-                        console.log('[loadMerchantStatus] Callback executed:', data);
                         delete window[callbackName];
                         if (script.parentNode) {
                             script.parentNode.removeChild(script);
@@ -4640,11 +4636,9 @@
                         resolve(data);
                     };
 
-                    const url = `${GAS_URL}?action=getMerchantStatus&merchantId=${encodeURIComponent(merchantId)}&callback=${callbackName}`;
-                    console.log('[loadMerchantStatus] Request URL:', url);
-                    script.src = url;
+                    script.src = `${GAS_URL}?action=getMerchantStatus&merchantId=${encodeURIComponent(merchantId)}&callback=${callbackName}`;
                     script.onerror = (error) => {
-                        console.error('[loadMerchantStatus] Script error:', error);
+                        console.error('[loadMerchantStatus] Error:', error);
                         delete window[callbackName];
                         if (script.parentNode) {
                             script.parentNode.removeChild(script);
@@ -4652,40 +4646,77 @@
                         reject(new Error('JSONP request failed'));
                     };
                     document.body.appendChild(script);
-                    console.log('[loadMerchantStatus] Script appended to body');
                 });
 
-                let selectValue = 'paused'; // デフォルト値を関数スコープで宣言
-
                 if (result.success) {
-                    const statusSelect = document.getElementById('merchantStatus');
-                    if (statusSelect) {
-                        // スプレッドシートのステータスをselectのvalueに変換
-                        if (result.status === 'active' || result.status === 'アクティブ' || result.status === '稼働中') {
-                            selectValue = 'active';
-                        } else if (result.status === 'paused' || result.status === '休止' || result.status === '一時停止' || result.status === '一時停止中') {
-                            selectValue = 'paused';
+                    const statusSpan = document.getElementById('merchantStatus');
+                    if (statusSpan) {
+                        // スプレッドシートのステータスをそのまま表示（アクティブ、一時停止、休止）
+                        let displayStatus = result.status || '休止';
+
+                        // 正規化（念のため）
+                        if (displayStatus === '稼働中' || displayStatus === 'active') {
+                            displayStatus = 'アクティブ';
+                        } else if (displayStatus === '一時停止中' || displayStatus === 'paused') {
+                            displayStatus = '一時停止';
                         }
 
-                        statusSelect.value = selectValue;
+                        statusSpan.textContent = displayStatus;
 
-                        // ステータスに応じた色を設定（classListで個別操作）
-                        statusSelect.classList.remove('bg-green-100', 'text-green-800', 'border-green-300');
-                        statusSelect.classList.remove('bg-yellow-100', 'text-yellow-800', 'border-yellow-300');
+                        // ステータスに応じた色を設定
+                        statusSpan.classList.remove('bg-green-100', 'text-green-800', 'border-green-300');
+                        statusSpan.classList.remove('bg-yellow-100', 'text-yellow-800', 'border-yellow-300');
+                        statusSpan.classList.remove('bg-gray-100', 'text-gray-800', 'border-gray-300');
+                        statusSpan.classList.remove('bg-red-100', 'text-red-800', 'border-red-300');
 
-                        if (selectValue === 'active') {
-                            statusSelect.classList.add('bg-green-100', 'text-green-800', 'border-green-300');
+                        if (displayStatus === 'アクティブ') {
+                            statusSpan.classList.add('bg-green-100', 'text-green-800', 'border-green-300');
+                        } else if (displayStatus === '一時停止') {
+                            statusSpan.classList.add('bg-yellow-100', 'text-yellow-800', 'border-yellow-300');
+                        } else if (displayStatus === '休止') {
+                            statusSpan.classList.add('bg-red-100', 'text-red-800', 'border-red-300');
                         } else {
-                            statusSelect.classList.add('bg-yellow-100', 'text-yellow-800', 'border-yellow-300');
+                            statusSpan.classList.add('bg-gray-100', 'text-gray-800', 'border-gray-300');
                         }
                     }
-                    console.log('[loadMerchantStatus] Status loaded:', result.status, 'Mapped to:', selectValue);
-                } else {
-                    console.warn('[loadMerchantStatus] Failed to load status:', result.error);
                 }
             } catch (error) {
                 console.error('[loadMerchantStatus] Error:', error);
             }
+        }
+
+        // ヘッダーのステータス表示を更新する関数
+        function updateHeaderStatus(status) {
+            const statusSpan = document.getElementById('merchantStatus');
+            if (!statusSpan) return;
+
+            // 正規化
+            let displayStatus = status;
+            if (displayStatus === '稼働中' || displayStatus === 'active') {
+                displayStatus = 'アクティブ';
+            } else if (displayStatus === '一時停止中' || displayStatus === 'paused') {
+                displayStatus = '一時停止';
+            }
+
+            statusSpan.textContent = displayStatus;
+
+            // ステータスに応じた色を設定
+            statusSpan.classList.remove('bg-green-100', 'text-green-800', 'border-green-300');
+            statusSpan.classList.remove('bg-yellow-100', 'text-yellow-800', 'border-yellow-300');
+            statusSpan.classList.remove('bg-gray-100', 'text-gray-800', 'border-gray-300');
+            statusSpan.classList.remove('bg-red-100', 'text-red-800', 'border-red-300');
+
+            if (displayStatus === 'アクティブ') {
+                statusSpan.classList.add('bg-green-100', 'text-green-800', 'border-green-300');
+            } else if (displayStatus === '一時停止') {
+                statusSpan.classList.add('bg-yellow-100', 'text-yellow-800', 'border-yellow-300');
+            } else if (displayStatus === '休止') {
+                statusSpan.classList.add('bg-red-100', 'text-red-800', 'border-red-300');
+            } else {
+                statusSpan.classList.add('bg-gray-100', 'text-gray-800', 'border-gray-300');
+            }
+
+            console.log('[updateHeaderStatus] Updated status to:', displayStatus);
         }
 
         // 加盟店データを取得する関数
@@ -4922,33 +4953,39 @@
 
         // 自動配信設定の保存
         async function saveAutoDeliverySettings() {
-            try {
-                showNotification('保存中...', '自動配信設定を保存しています', 'info');
+            console.log('[saveAutoDeliverySettings] Function called');
+            const saveBtn = document.getElementById('saveAutodeliveryBtn');
+            const originalText = saveBtn ? saveBtn.innerHTML : '';
 
-                // フォームからデータを収集
+            try {
+                // ボタンをローディング状態に
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = '<svg class="animate-spin inline-block w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>保存中...';
+                }
+
+                console.log('[saveAutoDeliverySettings] Collecting data...');
                 const autoDeliveryData = collectAutoDeliveryData();
+                console.log('[saveAutoDeliverySettings] Data collected:', autoDeliveryData);
 
                 if (!autoDeliveryData) {
-                    showNotification('エラー', '必須項目を入力してください', 'error');
+                    alert('エラー: 必須項目を入力してください');
                     return;
                 }
 
                 console.log('[saveAutoDeliverySettings] Sending data:', autoDeliveryData);
 
-                // POSTリクエストで保存（データが大きいためPOST必須）
-                const formData = new URLSearchParams();
-                formData.append('action', 'updateAutoDeliverySettings');
-                formData.append('merchantId', window.merchantId);
-                Object.keys(autoDeliveryData).forEach(key => {
-                    formData.append(key, autoDeliveryData[key]);
-                });
-
-                const response = await fetch(window.ENV.GAS_URL, {
+                // 会社情報と同じ方式でPOST送信
+                const response = await fetch(GAS_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Content-Type': 'text/plain'
                     },
-                    body: formData.toString()
+                    body: JSON.stringify({
+                        action: 'updateMerchantData',
+                        merchantId: window.merchantId,
+                        data: autoDeliveryData
+                    })
                 });
 
                 console.log('[saveAutoDeliverySettings] Response status:', response.status);
@@ -4956,68 +4993,54 @@
                 console.log('[saveAutoDeliverySettings] Result:', result);
 
                 if (result.success) {
-                    showNotification('保存完了', '自動配信設定を保存しました', 'success');
-                    // 変更フラグをリセット
+                    // 成功時: チェックマークを表示
+                    if (saveBtn) {
+                        saveBtn.innerHTML = '<svg class="inline-block w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>保存完了';
+                    }
+
+                    setTimeout(() => {
+                        alert('保存完了: 自動配信設定を保存しました');
+                    }, 300);
+
                     resetAutodeliveryChanged();
+
+                    // ステータスが変更された場合、ヘッダーの表示を即座に更新
+                    console.log('[saveAutoDeliverySettings] autoDeliveryData.status:', autoDeliveryData.status);
+                    if (autoDeliveryData.status) {
+                        console.log('[saveAutoDeliverySettings] Calling updateHeaderStatus with:', autoDeliveryData.status);
+                        updateHeaderStatus(autoDeliveryData.status);
+                    } else {
+                        console.warn('[saveAutoDeliverySettings] No status in autoDeliveryData');
+                    }
+
+                    // 2秒後にボタンを元に戻す
+                    setTimeout(() => {
+                        if (saveBtn) {
+                            saveBtn.innerHTML = originalText;
+                            saveBtn.disabled = false;
+                        }
+                    }, 2000);
                 } else {
-                    showNotification('エラー', result.error || '保存に失敗しました', 'error');
+                    alert('エラー: ' + (result.error || '保存に失敗しました'));
                 }
             } catch (error) {
                 console.error('[saveAutoDeliverySettings] Error:', error);
-                showNotification('エラー', '保存中にエラーが発生しました: ' + error.message, 'error');
-            }
-        }
-
-        // 一時停止設定のみを即時保存（他の自動配信設定は保存しない）
-        async function savePauseSettingsImmediately() {
-            try {
-                console.log('[savePauseSettingsImmediately] Saving pause settings...');
-
-                // 一時停止設定データのみ収集
-                const autoPauseToggle = document.getElementById('autoPauseToggle');
-                const pauseStartDate = document.getElementById('pauseStartDate');
-                const pauseEndDate = document.getElementById('pauseEndDate');
-                const indefinitePause = document.getElementById('indefinitePause');
-                const statusSelect = document.getElementById('merchantStatus');
-
-                const pauseFlag = autoPauseToggle ? autoPauseToggle.checked : false;
-                const pauseStart = pauseFlag && pauseStartDate ? pauseStartDate.value : '';
-                const pauseEnd = pauseFlag && !indefinitePause.checked && pauseEndDate ? pauseEndDate.value : '';
-                const status = statusSelect ? statusSelect.value : 'active';
-
-                const formData = new URLSearchParams();
-                formData.append('action', 'updatePauseSettings');
-                formData.append('merchantId', window.merchantId);
-                formData.append('pauseFlag', pauseFlag);
-                formData.append('pauseStartDate', pauseStart);
-                formData.append('pauseEndDate', pauseEnd);
-                formData.append('status', status);
-
-                const response = await fetch(window.ENV.GAS_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: formData.toString()
-                });
-
-                const result = await response.json();
-                console.log('[savePauseSettingsImmediately] Result:', result);
-
-                if (result.success) {
-                    console.log('[savePauseSettingsImmediately] 一時停止設定を保存しました');
-                } else {
-                    console.error('[savePauseSettingsImmediately] Error:', result.error);
+                alert('エラー: 保存中にエラーが発生しました: ' + error.message);
+            } finally {
+                // エラー時はすぐに元に戻す
+                if (saveBtn && saveBtn.disabled) {
+                    setTimeout(() => {
+                        saveBtn.innerHTML = originalText;
+                        saveBtn.disabled = false;
+                    }, 500);
                 }
-            } catch (error) {
-                console.error('[savePauseSettingsImmediately] Error:', error);
             }
         }
 
         // 自動配信設定データを収集
         function collectAutoDeliveryData() {
-            // 物件種別
-            const propertyTypes = Array.from(document.querySelectorAll('input[name="propertyType"]:checked'))
+            // 物件種別（autodeliverySectionに限定）
+            const propertyTypes = Array.from(document.querySelectorAll('#autodeliverySection input[name="propertyType"]:checked'))
                 .map(cb => {
                     const typeMap = {
                         'house': '戸建て住宅',
@@ -5027,6 +5050,12 @@
                     };
                     return typeMap[cb.value];
                 });
+
+            // 物件種別が1つも選択されていない場合はエラー
+            if (propertyTypes.length === 0) {
+                alert('エラー: 対応可能物件種別を最低1つ選択してください');
+                return null;
+            }
 
             // 最大対応階数
             const selects = document.querySelectorAll('#autodeliverySection select');
@@ -5046,27 +5075,30 @@
             const ageMin = ageSliders[0] ? parseInt(ageSliders[0].value) : 0;
             const ageMax = ageSliders[1] ? parseInt(ageSliders[1].value) : 50;
 
-            // 施工箇所（完全一致で保存）
-            const constructionTypes = Array.from(document.querySelectorAll('input[name="constructionTypes"]:checked'))
+            // 施工箇所（完全一致で保存）（autodeliverySectionに限定）
+            const constructionTypes = Array.from(document.querySelectorAll('#autodeliverySection input[name="constructionTypes"]:checked'))
                 .map(cb => cb.value);
 
-            // 特殊対応項目（完全一致で保存）
-            const specialServices = Array.from(document.querySelectorAll('input[name="specialServices"]:checked'))
+            // 特殊対応項目（完全一致で保存）（autodeliverySectionに限定）
+            const specialServices = Array.from(document.querySelectorAll('#autodeliverySection input[name="specialServices"]:checked'))
                 .map(cb => cb.value);
 
             // 対応都道府県・市区町村
             const prefectures = areaSelectionData.prefectures.join(',');
 
-            // 市区町村を "東京都:渋谷区,新宿区;神奈川県:横浜市,川崎市" 形式に変換
-            const citiesStr = Object.entries(areaSelectionData.cities)
-                .map(([pref, cities]) => `${pref}:${cities.join(',')}`)
-                .join(';');
+            // 市区町村をJSON圧縮形式で保存（スプシと同じ形式）
+            const allCities = [];
+            Object.entries(areaSelectionData.cities).forEach(([pref, cities]) => {
+                allCities.push(...cities);
+            });
+            const citiesStr = JSON.stringify({
+                type: "compressed",
+                full: allCities.join(','),
+                preview: allCities.slice(0, 100).join(',') + (allCities.length > 100 ? '...' : '')
+            });
 
-            // 優先エリア: UIフォーマット（アンダースコア）をスプシフォーマットに変換
-            // 注: スプシがアンダースコア形式で保存している場合はそのまま、スペース形式の場合は変換
-            const priorities = areaSelectionData.priorities
-                .map(p => p.includes('_') ? p.replace(/_/g, ' ') : p)
-                .join(',');
+            // 優先エリア: アンダースコア形式のまま保存（スプシの形式に合わせる）
+            const priorities = areaSelectionData.priorities.join(',');
 
             // 一時停止設定データ
             const autoPauseToggle = document.getElementById('autoPauseToggle');
@@ -5076,20 +5108,57 @@
 
             const pauseFlag = autoPauseToggle ? autoPauseToggle.checked : false;
             const pauseStart = pauseFlag && pauseStartDate ? pauseStartDate.value : '';
-            const pauseEnd = pauseFlag && !indefinitePause.checked && pauseEndDate ? pauseEndDate.value : '';
+            const pauseEnd = pauseFlag && pauseEndDate && !indefinitePause.checked ? pauseEndDate.value : '';
+            const isIndefinite = pauseFlag && indefinitePause && indefinitePause.checked;
+
+            // 一時停止バリデーション
+            if (pauseFlag) {
+                // 一時停止ONの場合、開始日は必須
+                if (!pauseStart) {
+                    showNotification('エラー', '一時停止開始日を入力してください', 'error');
+                    return null;
+                }
+                // 再開予定日も必須（未定チェックがOFFの場合）
+                if (!isIndefinite && !pauseEnd) {
+                    showNotification('エラー', '一時停止再開予定日を入力するか、「未定」にチェックを入れてください', 'error');
+                    return null;
+                }
+            }
+
+            // ステータスの決定
+            // - 一時停止OFF → アクティブ
+            // - 一時停止ON + 開始日が未来 → アクティブ（スケジュール予約）
+            // - 一時停止ON + 開始日が今日以前 + 再開日未定 → 休止
+            // - 一時停止ON + 開始日が今日以前 + 再開日あり → 一時停止
+            let status = 'アクティブ';
+            if (pauseFlag && pauseStart) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const startDate = new Date(pauseStart);
+                startDate.setHours(0, 0, 0, 0);
+
+                // 開始日が今日または過去の場合のみステータス変更
+                if (startDate <= today) {
+                    status = isIndefinite ? '休止' : '一時停止';
+                }
+                // 開始日が未来の場合はアクティブのまま（予約状態）
+            }
 
             return {
-                propertyTypes: propertyTypes.join(','),
-                maxFloors: maxFloorsList.join(','),
-                ageRange: `{min=${ageMin}, max=${ageMax}}`,
-                constructionTypes: constructionTypes.join(','),
-                specialServices: specialServices.join(','),
-                prefectures: prefectures,
-                cities: citiesStr,
-                priorities: priorities,
-                pauseFlag: pauseFlag,
-                pauseStartDate: pauseStart,
-                pauseEndDate: pauseEnd
+                // GASのupdateMerchantDataで期待するフィールド名に合わせる
+                propertyTypes: propertyTypes.join(','),               // 対応物件種別
+                maxFloors: maxFloorsList.join(','),                    // 最大対応階数
+                buildingAge: `{min=${ageMin}, max=${ageMax}}`,        // 築年数対応範囲
+                constructionTypes: constructionTypes.join(','),        // 対応工事種別（施工箇所列に保存）
+                specialServices: specialServices.join(','),           // 特殊対応項目
+                prefectures: prefectures,                             // 対応都道府県
+                cities: citiesStr,                                    // 対応市区町村
+                priorityAreas: priorities,                            // 優先エリア
+                // 一時停止設定
+                status: status,                                       // ステータス (AJ列)
+                pauseFlag: pauseFlag ? 'TRUE' : 'FALSE',             // 一時停止フラグ (AO列)
+                pauseStartDate: pauseStart || '',                     // 一時停止開始日 (AP列)
+                pauseEndDate: isIndefinite ? '未定' : (pauseEnd || '') // 一時停止再開予定日 (AQ列)
             };
         }
 
@@ -5131,6 +5200,64 @@
                 saveIndicator.parentElement.parentElement.style.opacity = '0.5';
             }
 
+            // 画像アップロード処理（メインビジュアル）
+            if (mainVisualData && mainVisualFileName) {
+                try {
+                    console.log('[autoSave] Uploading main visual...');
+                    const response = await fetch(GAS_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            action: 'companyinfo_uploadImage',
+                            merchantId: window.merchantId,
+                            base64Data: mainVisualData,
+                            fileName: mainVisualFileName,
+                            imageType: 'main-visual'
+                        })
+                    });
+                    const result = await response.json();
+                    console.log('[autoSave] Main visual response:', result);
+                    if (result.success) {
+                        mainVisualUrl = result.url;
+                        console.log('[autoSave] Main visual uploaded:', result.url);
+                    } else {
+                        console.error('[autoSave] Main visual upload failed:', result.error);
+                    }
+                } catch (error) {
+                    console.error('[autoSave] Main visual upload error:', error);
+                }
+            }
+
+            // 画像アップロード処理（写真ギャラリー）
+            const uploadedGalleryUrls = [];
+            if (galleryFilesToUpload.length > 0) {
+                try {
+                    console.log('[autoSave] Uploading gallery images:', galleryFilesToUpload.length);
+                    for (const file of galleryFilesToUpload) {
+                        const response = await fetch(GAS_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain' },
+                            body: JSON.stringify({
+                                action: 'companyinfo_uploadImage',
+                                merchantId: window.merchantId,
+                                base64Data: file.base64Data,
+                                fileName: file.fileName,
+                                imageType: 'gallery'
+                            })
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            console.log('[autoSave] Gallery image uploaded:', result.url);
+                            uploadedGalleryUrls.push(result.url);
+                        }
+                    }
+                    // アップロード完了後、配列をクリア
+                    galleryFilesToUpload = [];
+                } catch (error) {
+                    console.error('[autoSave] Gallery upload error:', error);
+                }
+            }
+
             // フォームからデータを収集
             // ※スプレッドシートの列との対応:
             // C列: 会社名, D列: 会社名カナ, E列: 屋号, F列: 屋号カナ
@@ -5140,6 +5267,7 @@
             // V列: 請求用メールアドレス, W列: 営業用メールアドレス
             // X列: 営業担当者氏名, Y列: 営業担当者カナ
             // Z列: 従業員数, AA列: 売上規模
+            // AR列: メインビジュアル, AS列: 写真ギャラリー
             // AT列: 保有資格, AU列: 加入保険
 
             const formData = {
@@ -5184,6 +5312,39 @@
                     return [...checked, ...custom].filter(v => v).join(',') || '';
                 })()
             };
+
+            // 画像URLを追加（アップロード済みの場合）
+            if (mainVisualUrl) {
+                formData['メインビジュアル'] = mainVisualUrl; // AR列: メインビジュアル
+                console.log('[autoSave] Added main visual to formData:', mainVisualUrl);
+            }
+
+            // ギャラリーURLを追加（既存URLは保存時に最新を取得）
+            if (uploadedGalleryUrls.length > 0) {
+                try {
+                    // スプレッドシートから最新の写真ギャラリーURLを取得
+                    const merchantDataResponse = await fetch(GAS_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            action: 'getMerchantData',
+                            merchantId: window.merchantId
+                        })
+                    });
+                    const merchantDataResult = await merchantDataResponse.json();
+                    const existingGalleryUrls = merchantDataResult.data?.['写真ギャラリー']
+                        ? merchantDataResult.data['写真ギャラリー'].split(',').map(url => url.trim()).filter(url => url)
+                        : [];
+
+                    const allGalleryUrls = [...existingGalleryUrls, ...uploadedGalleryUrls].slice(0, 20);
+                    formData['写真ギャラリー'] = allGalleryUrls.join(','); // AS列: 写真ギャラリー
+                    console.log('[autoSave] Added gallery to formData:', allGalleryUrls.length, 'images (', existingGalleryUrls.length, 'existing +', uploadedGalleryUrls.length, 'new)');
+                } catch (error) {
+                    console.error('[autoSave] Failed to get existing gallery:', error);
+                    // エラー時は新しいURLのみ保存
+                    formData['写真ギャラリー'] = uploadedGalleryUrls.join(',');
+                }
+            }
 
             try {
                 console.log('[保存] 送信データ:', formData);
@@ -5253,7 +5414,7 @@
             try {
                 const result = await autoSave();
                 console.log('[saveCompanyInfo] 保存結果:', result);
-                showNotification('保存完了', '会社情報をスプレッドシートに保存しました');
+                showNotification('保存完了', '会社情報を保存しました');
             } catch (error) {
                 console.error('[saveCompanyInfo] エラー:', error);
                 showNotification('エラー', '保存に失敗しました: ' + error.message, 'error');
@@ -5558,6 +5719,19 @@
             const minSlider = document.querySelector('#autodeliverySection input[type="range"][min="0"][max="50"]');
             const maxSlider = document.querySelector('#autodeliverySection input[type="range"][min="0"][max="100"]');
             if (minSlider && maxSlider) {
+                const minValue = parseInt(minSlider.value);
+                const maxValue = parseInt(maxSlider.value);
+
+                // 下限が上限を超えた場合、上限を下限に合わせる
+                if (minValue > maxValue) {
+                    maxSlider.value = minValue;
+                }
+
+                // 上限が下限を下回った場合、下限を上限に合わせる
+                if (maxValue < minValue) {
+                    minSlider.value = maxValue;
+                }
+
                 const minElement = document.getElementById('ageRangeMinAuto');
                 const maxElement = document.getElementById('ageRangeMaxAuto');
                 if (minElement) minElement.textContent = minSlider.value;
@@ -5603,20 +5777,22 @@
             }
         }
 
-        // メインビジュアルアップロード処理
+        // メインビジュアルアップロード処理（プレビューのみ、保存は後で）
         let mainVisualData = null;
+        let mainVisualFileName = null;
+        let mainVisualUrl = null;
         function handleMainVisualUpload(event) {
             const file = event.target.files[0];
             if (file) {
+                mainVisualFileName = file.name;
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     mainVisualData = e.target.result;
-                    // プレビュー表示
+                    // プレビュー表示のみ
                     document.getElementById('mainVisualImage').src = mainVisualData;
                     document.getElementById('mainVisualPreview').classList.remove('hidden');
                     document.getElementById('mainVisualPlaceholder').classList.add('hidden');
-
-                    showNotification('アップロード完了', 'メインビジュアルをアップロードしました');
+                    console.log('[handleMainVisualUpload] Image ready for upload on save');
                 };
                 reader.readAsDataURL(file);
             }
@@ -5751,111 +5927,98 @@
 
         // ギャラリー画像配列
         let galleryImages = [];
+        let galleryFilesToUpload = []; // 保存ボタン押下時にアップロードするファイル
 
-        // ギャラリー画像アップロード処理（20枚まで）
-        async function handleGalleryUpload(event) {
-            const files = event.target.files;
+        // ドラッグ&ドロップ設定
+        function setupGalleryDragDrop() {
             const galleryList = document.getElementById('photoGalleryList');
+            if (!galleryList) return;
 
-            // 現在の画像数をチェック
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                galleryList.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                galleryList.addEventListener(eventName, () => {
+                    galleryList.classList.add('border-blue-500', 'bg-blue-50');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                galleryList.addEventListener(eventName, () => {
+                    galleryList.classList.remove('border-blue-500', 'bg-blue-50');
+                }, false);
+            });
+
+            galleryList.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleGalleryFiles(files);
+            }, false);
+        }
+
+        // ファイル処理を共通化
+        function handleGalleryFiles(files) {
+            const galleryList = document.getElementById('photoGalleryList');
             const currentImages = galleryList.querySelectorAll('.gallery-item').length;
+
             if (currentImages >= 20) {
-                showNotification('制限', '写真ギャラリーは最大20枚までです', 'warning');
-                event.target.value = '';
+                showNotification('写真ギャラリー上限', '写真ギャラリーは最大20枚までです。これ以上追加できません。', 'error');
                 return;
             }
 
-            // アップロード可能な残り枚数
             const remainingSlots = 20 - currentImages;
-            const filesToUpload = Array.from(files).slice(0, remainingSlots);
+            const filesToAdd = Array.from(files).slice(0, remainingSlots);
 
             if (files.length > remainingSlots) {
-                showNotification('注意', `20枚制限のため、最初の${remainingSlots}枚のみアップロードします`, 'warning');
+                showNotification('写真ギャラリー制限', `残り${remainingSlots}枚まで追加可能です。最初の${remainingSlots}枚のみ追加します。`, 'warning');
             }
 
-            // 各ファイルを処理
-            filesToUpload.forEach(file => {
-                if (file) {
+            filesToAdd.forEach(file => {
+                if (file && file.type.startsWith('image/')) {
                     const imageId = 'gallery_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-
-                    // 一時的にローカルプレビューを表示
                     const localUrl = URL.createObjectURL(file);
+                    const addButton = galleryList.querySelector('.border-dashed');
+
                     const imageDiv = document.createElement('div');
                     imageDiv.className = 'relative group gallery-item';
                     imageDiv.id = imageId;
                     imageDiv.innerHTML = `
-                        <img src="${localUrl}" class="w-full h-24 object-cover rounded-lg opacity-50" alt="${file.name}">
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <svg class="animate-spin h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        <img src="${localUrl}" class="w-full h-24 object-cover rounded-lg" alt="${file.name}">
+                        <button type="button" onclick="removeGalleryImage('${imageId}')" class="absolute top-1 right-1 bg-red-500 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
-                        </div>
+                        </button>
                     `;
 
-                    // 追加ボタンの前に挿入
-                    const addButton = galleryList.querySelector('.border-dashed');
                     galleryList.insertBefore(imageDiv, addButton);
 
-                    // ファイルを読み込んでアップロード
                     const reader = new FileReader();
-                    reader.onload = async function(e) {
-                        try {
-                            // Google Driveにアップロード
-                            const response = await fetch(GAS_URL, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'text/plain'
-                                },
-                                body: JSON.stringify({
-                                    action: 'companyinfo_addGalleryPhoto',
-                                    merchantId: window.merchantId,
-                                    base64Data: e.target.result,
-                                    fileName: file.name
-                                })
-                            });
-
-                            const result = await response.json();
-
-                            if (result.success && result.url) {
-                                // Google Drive URLで画像データを更新
-                                galleryImages.push({
-                                    id: imageId,
-                                    src: result.url,
-                                    name: file.name
-                                });
-
-                                // プレビューを更新
-                                imageDiv.innerHTML = `
-                                    <img src="${result.url}" class="w-full h-24 object-cover rounded-lg" alt="${file.name}">
-                                    <button onclick="removeGalleryImage('${imageId}')" class="absolute top-1 right-1 bg-red-500 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                `;
-
-                                showNotification('完了', `${file.name} をアップロードしました`);
-                                updateGalleryPreview();
-
-                                // 自動保存
-                                saveGalleryData();
-                            } else {
-                                throw new Error(result.error || 'アップロード失敗');
-                            }
-                        } catch (error) {
-                            console.error('アップロードエラー:', error);
-                            imageDiv.remove();
-                            showNotification('エラー', `${file.name} のアップロードに失敗しました`, 'error');
-                        }
+                    reader.onload = function(e) {
+                        galleryFilesToUpload.push({
+                            id: imageId,
+                            base64Data: e.target.result,
+                            fileName: file.name
+                        });
+                        console.log('[handleGalleryFiles] File ready for upload on save:', file.name);
                     };
                     reader.readAsDataURL(file);
                 }
             });
+        }
 
-            // ファイル入力をリセット
+        // ギャラリー画像追加（プレビューのみ、保存は後で）
+        function handleGalleryUpload(event) {
+            handleGalleryFiles(event.target.files);
             event.target.value = '';
         }
+
 
         // ギャラリーデータを保存
         async function saveGalleryData() {
@@ -7312,83 +7475,7 @@
         }
 
         // 加盟店ステータス更新
-        async function updateMerchantStatus() {
-            const statusSelect = document.getElementById('merchantStatus');
-            const status = statusSelect.value;
-
-            // ステータスに応じて色を変更（classListで個別操作）
-            // 既存の色クラスを削除
-            statusSelect.classList.remove('bg-green-100', 'text-green-800', 'border-green-300');
-            statusSelect.classList.remove('bg-yellow-100', 'text-yellow-800', 'border-yellow-300');
-
-            // 新しい色クラスを追加
-            if (status === 'active') {
-                statusSelect.classList.add('bg-green-100', 'text-green-800', 'border-green-300');
-            } else {
-                statusSelect.classList.add('bg-yellow-100', 'text-yellow-800', 'border-yellow-300');
-            }
-
-            // 一時停止トグルと連動
-            const autoPauseToggle = document.getElementById('autoPauseToggle');
-            if (autoPauseToggle) {
-                autoPauseToggle.checked = (status === 'paused');
-                toggleAutoPause(); // UI更新
-            }
-
-            // 一時停止に変更した場合、自動配信設定セクションに自動スクロール
-            if (status === 'paused') {
-                showSection('autodelivery');
-                setTimeout(() => {
-                    const pauseSection = document.querySelector('#autodeliverySection .bg-gradient-to-r');
-                    if (pauseSection) {
-                        pauseSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        // 再開日入力フィールドを強調
-                        const pauseEndDate = document.getElementById('pauseEndDate');
-                        const indefiniteCheckbox = document.getElementById('indefinitePause');
-                        if (indefiniteCheckbox && indefiniteCheckbox.checked) {
-                            indefiniteCheckbox.click(); // 未定チェックを外して日付入力を表示
-                        }
-                        if (pauseEndDate && !pauseEndDate.classList.contains('hidden')) {
-                            pauseEndDate.focus();
-                        }
-                    }
-                }, 300);
-            }
-
-            // GASにステータス更新を送信（スプレッドシートAJ列に保存）
-            try {
-                const result = await new Promise((resolve, reject) => {
-                    const callbackName = 'jsonp_update_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                    const script = document.createElement('script');
-
-                    window[callbackName] = (data) => {
-                        delete window[callbackName];
-                        if (script.parentNode) {
-                            script.parentNode.removeChild(script);
-                        }
-                        resolve(data);
-                    };
-
-                    script.src = `${GAS_URL}?action=updateMerchantStatus&merchantId=${encodeURIComponent(currentUser)}&status=${encodeURIComponent(status)}&callback=${callbackName}`;
-                    script.onerror = () => {
-                        delete window[callbackName];
-                        if (script.parentNode) {
-                            script.parentNode.removeChild(script);
-                        }
-                        reject(new Error('JSONP request failed'));
-                    };
-                    document.body.appendChild(script);
-                });
-
-                if (result.success) {
-                    console.log('[updateMerchantStatus] Status synced to spreadsheet:', status);
-                } else {
-                    console.error('[updateMerchantStatus] Failed to sync status:', result.error);
-                }
-            } catch (error) {
-                console.error('[updateMerchantStatus] Error:', error);
-            }
-        }
+        // updateMerchantStatus関数は削除（ステータスは読み取り専用、スプレッドシートから動的取得）
 
         // バッジカウントを統合更新
         function updateTotalBadgeCount() {
@@ -8111,6 +8198,29 @@
                 setTimeout(() => {
                     initCalendar();
                 }, 100);
+
+                // 自動配信設定の保存ボタンにイベントリスナーを追加（スマホ対応）
+                setTimeout(() => {
+                    const saveBtn = document.getElementById('saveAutodeliveryBtn');
+                    if (saveBtn) {
+                        const handleSave = async function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Save button event triggered');
+                            try {
+                                await saveAutoDeliverySettings();
+                            } catch (error) {
+                                console.error('Error in saveAutoDeliverySettings:', error);
+                                alert('エラー: ' + error.message);
+                            }
+                        };
+                        saveBtn.addEventListener('click', handleSave);
+                        saveBtn.addEventListener('touchend', handleSave);
+                        console.log('Save button event listeners attached');
+                    } else {
+                        console.error('Save button not found!');
+                    }
+                }, 200);
             } else {
                 // 未ログイン - ログインページへリダイレクト
                 window.location.href = 'merchant-portal/login.html';
@@ -9237,28 +9347,6 @@
             
             showNotification('CSV出力', '請求書一覧をCSVで出力しました');
         }
-        
-        // デモ用: 定期的な通知（通知時間を考慮）
-        setInterval(() => {
-            if (currentUser && Math.random() > 0.8) {
-                const settings = JSON.parse(localStorage.getItem('notificationSettings') || '{}');
-                if (settings.quietHours?.enabled) {
-                    const now = new Date();
-                    const currentTime = now.getHours() * 60 + now.getMinutes();
-                    const [startHour, startMin] = settings.quietHours.start.split(':').map(Number);
-                    const [endHour, endMin] = settings.quietHours.end.split(':').map(Number);
-                    const quietStart = startHour * 60 + startMin;
-                    const quietEnd = endHour * 60 + endMin;
-                    
-                    // 通知制限時間内はスキップ
-                    if ((quietStart < quietEnd && currentTime >= quietStart && currentTime < quietEnd) ||
-                        (quietStart > quietEnd && (currentTime >= quietStart || currentTime < quietEnd))) {
-                        return;
-                    }
-                }
-                showNotification('新規案件', '新しい案件が割り当てられました');
-            }
-        }, 30000);
 
         // レポート用のグラフ初期化
         let salesChart = null;
@@ -10172,7 +10260,55 @@
                 }
             }
 
+            // メインビジュアルの読み込み
+            const mainVisualUrlFromSheet = data['メインビジュアル'] || data.mainVisual;
+            if (mainVisualUrlFromSheet) {
+                mainVisualUrl = mainVisualUrlFromSheet;
+                document.getElementById('mainVisualImage').src = mainVisualUrlFromSheet;
+                document.getElementById('mainVisualPreview').classList.remove('hidden');
+                document.getElementById('mainVisualPlaceholder').classList.add('hidden');
+                console.log('✓ Loaded main visual:', mainVisualUrlFromSheet);
+            }
+
+            // 写真ギャラリーの読み込み（遅延読み込み + 軽量サムネイル）
+            const galleryUrlsFromSheet = data['写真ギャラリー'] || data.photoGallery;
+            if (galleryUrlsFromSheet) {
+                // HYPERLINK関数の結果を処理
+                let urls = [];
+                if (typeof galleryUrlsFromSheet === 'string') {
+                    // カンマ区切りのURL文字列を分割
+                    urls = galleryUrlsFromSheet.split(',').map(url => url.trim()).filter(url => url && url.startsWith('http'));
+                }
+
+                const galleryList = document.getElementById('photoGalleryList');
+                const addButton = galleryList.querySelector('.border-dashed');
+
+                urls.forEach((url, index) => {
+                    const imageId = 'gallery_loaded_' + index;
+                    // サムネイル用に軽量化（w1000 → w200）
+                    const thumbnailUrl = url.replace(/sz=w\d+/, 'sz=w200');
+
+                    const imageDiv = document.createElement('div');
+                    imageDiv.className = 'relative group gallery-item';
+                    imageDiv.id = imageId;
+                    imageDiv.innerHTML = `
+                        <img loading="lazy" src="${thumbnailUrl}" class="w-full h-24 object-cover rounded-lg" alt="ギャラリー画像${index + 1}">
+                        <button type="button" onclick="removeGalleryImage('${imageId}')" class="absolute top-1 right-1 bg-red-500 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    `;
+                    galleryList.insertBefore(imageDiv, addButton);
+                });
+
+                console.log('✓ Loaded gallery:', urls.length, 'images (lazy loading enabled)');
+            }
+
             console.log('===== loadMerchantData COMPLETE =====');
+
+            // ドラッグ&ドロップ初期化
+            setupGalleryDragDrop();
         }
 
         // 案件カードを動的に生成
@@ -12712,14 +12848,6 @@
             }
 
             // 一時停止の日付変更時に即時保存
-            const pauseStartDate = document.getElementById('pauseStartDate');
-            const pauseEndDate = document.getElementById('pauseEndDate');
-            if (pauseStartDate) {
-                pauseStartDate.addEventListener('change', savePauseSettingsImmediately);
-            }
-            if (pauseEndDate) {
-                pauseEndDate.addEventListener('change', savePauseSettingsImmediately);
-            }
 
             // セクション表示時に案件を読み込む
             const originalShowSection = window.showSection;
@@ -12967,20 +13095,49 @@
             console.log('[loadAutodeliverySettings] 最大対応階数 key check:', data['最大対応階数']);
             console.log('[loadAutodeliverySettings] All keys:', Object.keys(data));
 
-            // 対応可能物件種別
-            if (data['対応可能物件種別']) {
-                const propertyTypes = data['対応可能物件種別'].split(',').map(s => s.trim());
+            // 対応物件種別（複数の列名に対応）
+            // まず全ての物件種別チェックボックスをリセット
+            const autodeliverySection = document.getElementById('autodeliverySection');
+            if (autodeliverySection) {
+                autodeliverySection.querySelectorAll('input[name="propertyType"]').forEach(cb => {
+                    cb.checked = false;
+                });
+            }
+
+            // AB列のデータを取得（複数の列名パターンに対応）
+            const propertyTypesData = data['対応可能物件種別'] || data['対応物件種別'] || '';
+            console.log('[loadAutodeliverySettings] 対応可能物件種別 data:', propertyTypesData);
+            console.log('[loadAutodeliverySettings] data["対応可能物件種別"]:', data['対応可能物件種別']);
+            console.log('[loadAutodeliverySettings] data["対応物件種別"]:', data['対応物件種別']);
+
+            if (propertyTypesData) {
+                const propertyTypes = propertyTypesData.split(',').map(s => s.trim());
+                console.log('[loadAutodeliverySettings] Property types array:', propertyTypes);
+                console.log('[loadAutodeliverySettings] Property types length:', propertyTypes.length);
+                console.log('[loadAutodeliverySettings] Property types JSON:', JSON.stringify(propertyTypes));
+
                 const propertyMap = {
                     '戸建て住宅': 'house',
                     'アパート・マンション': 'apartment',
                     '店舗・事務所': 'commercial',
-                    '工場・倉庫': 'factory'
+                    '店舗': 'commercial',  // スプレッドシートに保存されている短縮形
+                    '工場・倉庫': 'factory',
+                    '工場': 'factory'  // 短縮形もサポート
                 };
                 propertyTypes.forEach(type => {
                     const value = propertyMap[type];
                     if (value) {
-                        const checkbox = document.querySelector(`input[name="propertyType"][value="${value}"]`);
-                        if (checkbox) checkbox.checked = true;
+                        const checkbox = autodeliverySection ?
+                            autodeliverySection.querySelector(`input[name="propertyType"][value="${value}"]`) :
+                            document.querySelector(`input[name="propertyType"][value="${value}"]`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                            console.log('[loadAutodeliverySettings] Checked property type:', type, '→', value);
+                        } else {
+                            console.warn('[loadAutodeliverySettings] Checkbox not found for:', type, '→', value);
+                        }
+                    } else {
+                        console.warn('[loadAutodeliverySettings] No mapping for:', type);
                     }
                 });
             }
@@ -13355,6 +13512,126 @@
 
             console.log('[loadAutodeliverySettings] Final areaSelectionData:', JSON.stringify(areaSelectionData, null, 2));
 
+            // 一時停止設定を読み込み
+            const autoPauseToggle = document.getElementById('autoPauseToggle');
+            const pauseStartDate = document.getElementById('pauseStartDate');
+            const pauseEndDate = document.getElementById('pauseEndDate');
+            const indefinitePause = document.getElementById('indefinitePause');
+            const pauseSettings = document.getElementById('pauseSettings');
+
+            // 一時停止フラグを読み込み（undefinedの場合はFALSEとして扱う）
+            const pauseFlag = data['一時停止フラグ'] === 'TRUE' || data['一時停止フラグ'] === true;
+            console.log('[loadAutodeliverySettings] Pause flag from sheet:', data['一時停止フラグ'], '→', pauseFlag);
+            console.log('[loadAutodeliverySettings] Pause start date raw:', data['一時停止開始日']);
+            console.log('[loadAutodeliverySettings] Pause end date raw:', data['一時停止再開予定日']);
+
+            if (autoPauseToggle) {
+                autoPauseToggle.checked = pauseFlag;
+            }
+
+            // 一時停止開始日（AP列）- フラグに関わらず常にデータを読み込む
+            if (data['一時停止開始日'] && pauseStartDate) {
+                let startDateValue = data['一時停止開始日'];
+
+                // 様々な日付フォーマットを yyyy-MM-dd に変換（日本時間で処理）
+                if (typeof startDateValue === 'string') {
+                    // ISO 8601形式 (2025-10-03T15:00:00.000Z) の場合、Dateオブジェクトに変換してから日本時間で取得
+                    if (startDateValue.includes('T') || startDateValue.includes('Z')) {
+                        const dateObj = new Date(startDateValue);
+                        const year = dateObj.getFullYear();
+                        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                        const day = String(dateObj.getDate()).padStart(2, '0');
+                        startDateValue = `${year}-${month}-${day}`;
+                    }
+                    // "yyyy-MM-dd HH:mm" 形式を yyyy-MM-dd に変換
+                    else if (startDateValue.includes(' ')) {
+                        startDateValue = startDateValue.split(' ')[0];
+                    }
+                    // "yyyy/MM/dd" 形式を yyyy-MM-dd に変換
+                    else if (startDateValue.includes('/')) {
+                        startDateValue = startDateValue.replace(/\//g, '-');
+                    }
+                } else if (startDateValue instanceof Date) {
+                    // Dateオブジェクトの場合
+                    const year = startDateValue.getFullYear();
+                    const month = String(startDateValue.getMonth() + 1).padStart(2, '0');
+                    const day = String(startDateValue.getDate()).padStart(2, '0');
+                    startDateValue = `${year}-${month}-${day}`;
+                }
+
+                pauseStartDate.value = startDateValue;
+                console.log('[loadAutodeliverySettings] Pause start date set:', startDateValue);
+            } else {
+                console.warn('[loadAutodeliverySettings] Pause start date not found in data or element missing');
+            }
+
+            // 一時停止再開予定日（AQ列）- フラグに関わらず常にデータを読み込む
+            if (data['一時停止再開予定日']) {
+                if (data['一時停止再開予定日'] === '未定') {
+                    if (indefinitePause) {
+                        indefinitePause.checked = true;
+                    }
+                    if (pauseEndDateDisplay) {
+                        pauseEndDateDisplay.value = '未定';
+                        pauseEndDateDisplay.classList.remove('hidden');
+                    }
+                    if (pauseEndDate) {
+                        pauseEndDate.classList.add('hidden');
+                        pauseEndDate.value = '';
+                    }
+                    console.log('[loadAutodeliverySettings] Pause end date: 未定 (from spreadsheet)');
+                } else {
+                    // 日付形式の変換（日本時間で処理）
+                    let endDateValue = data['一時停止再開予定日'];
+
+                    if (typeof endDateValue === 'string') {
+                        // ISO 8601形式 (2025-10-03T15:00:00.000Z) の場合、Dateオブジェクトに変換してから日本時間で取得
+                        if (endDateValue.includes('T') || endDateValue.includes('Z')) {
+                            const dateObj = new Date(endDateValue);
+                            const year = dateObj.getFullYear();
+                            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                            const day = String(dateObj.getDate()).padStart(2, '0');
+                            endDateValue = `${year}-${month}-${day}`;
+                        }
+                        // "yyyy-MM-dd HH:mm" 形式を yyyy-MM-dd に変換
+                        else if (endDateValue.includes(' ')) {
+                            endDateValue = endDateValue.split(' ')[0];
+                        }
+                        // "yyyy/MM/dd" 形式を yyyy-MM-dd に変換
+                        else if (endDateValue.includes('/')) {
+                            endDateValue = endDateValue.replace(/\//g, '-');
+                        }
+                    } else if (endDateValue instanceof Date) {
+                        // Dateオブジェクトの場合
+                        const year = endDateValue.getFullYear();
+                        const month = String(endDateValue.getMonth() + 1).padStart(2, '0');
+                        const day = String(endDateValue.getDate()).padStart(2, '0');
+                        endDateValue = `${year}-${month}-${day}`;
+                    }
+
+                    if (pauseEndDate) {
+                        pauseEndDate.value = endDateValue;
+                        pauseEndDate.classList.remove('hidden');
+                    }
+                    if (pauseEndDateDisplay) {
+                        pauseEndDateDisplay.classList.add('hidden');
+                    }
+                    if (indefinitePause) {
+                        indefinitePause.checked = false;
+                    }
+                    console.log('[loadAutodeliverySettings] Pause end date set:', endDateValue);
+                }
+            } else {
+                console.warn('[loadAutodeliverySettings] Pause end date not found in data');
+            }
+
+            // 一時���止設定セクションの表示/非表示
+            if (pauseFlag && pauseSettings) {
+                pauseSettings.classList.remove('hidden');
+            } else if (pauseSettings) {
+                pauseSettings.classList.add('hidden');
+            }
+
             console.log('[loadAutodeliverySettings] Settings loaded');
 
             // イベントリスナーを追加して変更を検知
@@ -13415,16 +13692,9 @@
         async function toggleAutoPause() {
             const toggle = document.getElementById('autoPauseToggle');
             const settings = document.getElementById('pauseSettings');
-            const statusSelect = document.getElementById('merchantStatus');
 
             if (toggle.checked) {
                 settings.classList.remove('hidden');
-                // ヘッダーのステータスも一時停止に変更（API呼び出しは後でまとめて行う）
-                if (statusSelect && statusSelect.value !== 'paused') {
-                    statusSelect.value = 'paused';
-                    const color = document.getElementById('statusColor');
-                    if (color) color.style.backgroundColor = '#fbbf24';
-                }
                 // 開始日を今日にセット
                 const startDate = document.getElementById('pauseStartDate');
                 if (startDate && !startDate.value) {
@@ -13432,16 +13702,10 @@
                 }
             } else {
                 settings.classList.add('hidden');
-                // ヘッダーのステータスもアクティブに変更（API呼び出しは後でまとめて行う）
-                if (statusSelect && statusSelect.value !== 'active') {
-                    statusSelect.value = 'active';
-                    const color = document.getElementById('statusColor');
-                    if (color) color.style.backgroundColor = '#10b981';
-                }
             }
 
-            // 一時停止設定を即座にサーバーに保存
-            await savePauseSettingsImmediately();
+            // 変更フラグを立てる（保存ボタンクリックで保存される）
+            markAutodeliveryChanged();
         }
 
         async function toggleIndefinitePause() {
@@ -13460,8 +13724,8 @@
                 endDateInput.classList.remove('hidden');
             }
 
-            // 一時停止設定を即座にサーバーに保存
-            await savePauseSettingsImmediately();
+            // 変更フラグを立てる（保存ボタンクリックで保存される）
+            markAutodeliveryChanged();
         }
 
 
@@ -13499,7 +13763,12 @@
         // 大型物件のモーダル表示管理
         function checkLargeProperty(checkbox) {
             if (checkbox.checked) {
+                // チェックボックスにフラグを設定（初回チェック判定用）
+                checkbox.dataset.shownModal = 'true';
                 showLargePropertyModal();
+            } else {
+                // チェックを外したらフラグをリセット
+                delete checkbox.dataset.shownModal;
             }
         }
 
@@ -13508,8 +13777,9 @@
             const parentLabel = selectElement.closest('label');
             const checkbox = parentLabel.querySelector('input[type="checkbox"]');
 
-            // 3階以上が選択された場合、かつチェックボックスがチェックされている場合
-            if ((value >= 3 || selectElement.value === 'unlimited') && checkbox.checked) {
+            // チェックボックスがONで、かつまだモーダルを表示していない場合のみ表示
+            if ((value >= 3 || selectElement.value === 'unlimited') && checkbox.checked && !checkbox.dataset.shownModal) {
+                checkbox.dataset.shownModal = 'true';
                 showLargePropertyModal();
             }
         }
