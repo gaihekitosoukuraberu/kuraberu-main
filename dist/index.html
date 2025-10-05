@@ -6316,13 +6316,12 @@
                                 </div>
                                 <div>
                                     <label class="text-xs text-gray-600 block mb-1">文字色</label>
-                                    <div class="flex gap-2">
-                                        <button id="textColorWhite" onclick="adjustTextColor('white')" class="flex-1 px-3 py-1.5 bg-gray-800 text-white text-xs rounded hover:bg-gray-700 transition border-2 border-gray-800">
-                                            白
-                                        </button>
-                                        <button id="textColorBlack" onclick="adjustTextColor('black')" class="flex-1 px-3 py-1.5 bg-white text-gray-800 text-xs rounded hover:bg-gray-100 transition border-2 border-blue-500">
-                                            黒
-                                        </button>
+                                    <div class="flex gap-2 items-center">
+                                        <input type="color" id="textColorPicker" value="#ffffff" class="w-12 h-8 rounded cursor-pointer" onchange="adjustTextColor(this.value)">
+                                        <div class="flex gap-1">
+                                            <button onclick="document.getElementById('textColorPicker').value='#ffffff'; adjustTextColor('#ffffff')" class="w-6 h-6 rounded border-2 border-gray-300 bg-white" title="白"></button>
+                                            <button onclick="document.getElementById('textColorPicker').value='#000000'; adjustTextColor('#000000')" class="w-6 h-6 rounded border-2 border-gray-300 bg-black" title="黒"></button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -9563,32 +9562,9 @@
             const overlayTexts = document.querySelectorAll('#mainVisualSection .absolute.bottom-0 *');
 
             overlayTexts.forEach(el => {
-                if (color === 'black') {
-                    el.style.color = '#1f2937';
-                    el.classList.remove('text-white');
-                    el.classList.add('text-gray-800');
-                } else {
-                    el.style.color = 'white';
-                    el.classList.remove('text-gray-800');
-                    el.classList.add('text-white');
-                }
+                // どんな色でも直接適用
+                el.style.color = color;
             });
-
-            // ボタンの見た目を更新
-            const whiteBtn = document.getElementById('textColorWhite');
-            const blackBtn = document.getElementById('textColorBlack');
-
-            if (color === 'white') {
-                whiteBtn.classList.add('border-blue-500');
-                whiteBtn.classList.remove('border-gray-800');
-                blackBtn.classList.remove('border-blue-500');
-                blackBtn.classList.add('border-gray-300');
-            } else {
-                blackBtn.classList.add('border-blue-500');
-                blackBtn.classList.remove('border-gray-300');
-                whiteBtn.classList.remove('border-blue-500');
-                whiteBtn.classList.add('border-gray-800');
-            }
         }
 
         // ギャラリー画像配列
