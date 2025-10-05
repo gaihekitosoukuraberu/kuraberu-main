@@ -9423,18 +9423,23 @@
             const image = document.getElementById('previewMainVisual');
             if (image) {
                 const step = 5; // 5%ずつ移動
+                // ズーム率に応じて移動可能範囲を拡大
+                const zoomFactor = currentZoom / 100;
+                const minPos = zoomFactor > 1 ? -100 * (zoomFactor - 1) : -50;
+                const maxPos = zoomFactor > 1 ? 100 + 100 * (zoomFactor - 1) : 150;
+
                 switch(position) {
                     case 'up':
-                        imagePositionY = Math.max(0, imagePositionY - step);
+                        imagePositionY = Math.max(minPos, imagePositionY - step);
                         break;
                     case 'down':
-                        imagePositionY = Math.min(100, imagePositionY + step);
+                        imagePositionY = Math.min(maxPos, imagePositionY + step);
                         break;
                     case 'left':
-                        imagePositionX = Math.max(0, imagePositionX - step);
+                        imagePositionX = Math.max(minPos, imagePositionX - step);
                         break;
                     case 'right':
-                        imagePositionX = Math.min(100, imagePositionX + step);
+                        imagePositionX = Math.min(maxPos, imagePositionX + step);
                         break;
                     case 'center':
                         imagePositionX = 50;
@@ -9491,13 +9496,18 @@
                     const deltaX = (e.clientX - startX) / containerRect.width * 100;
                     const deltaY = (e.clientY - startY) / containerRect.height * 100;
 
+                    // ズーム率に応じて移動可能範囲を拡大
+                    const zoomFactor = currentZoom / 100;
+                    const minPos = zoomFactor > 1 ? -100 * (zoomFactor - 1) : -50;
+                    const maxPos = zoomFactor > 1 ? 100 + 100 * (zoomFactor - 1) : 150;
+
                     // 横方向の移動（感度を調整して移動しやすくする）
                     const sensitivityX = 1.0;
-                    imagePositionX = Math.max(0, Math.min(100, startPosX - deltaX * sensitivityX));
+                    imagePositionX = Math.max(minPos, Math.min(maxPos, startPosX - deltaX * sensitivityX));
 
                     // 縦方向の移動
                     const sensitivityY = 1.0;
-                    imagePositionY = Math.max(0, Math.min(100, startPosY - deltaY * sensitivityY));
+                    imagePositionY = Math.max(minPos, Math.min(maxPos, startPosY - deltaY * sensitivityY));
 
                     updateImagePosition();
                 });
