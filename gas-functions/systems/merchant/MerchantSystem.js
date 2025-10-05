@@ -53,6 +53,7 @@ const MerchantSystem = {
           return this.checkUpdate(params);
 
         // 会社情報管理（CompanyInfoManagerに委譲）
+        case 'companyinfo_uploadImage':
         case 'companyinfo_uploadMainVisual':
         case 'companyinfo_deleteMainVisual':
         case 'companyinfo_addGalleryPhoto':
@@ -126,6 +127,9 @@ const MerchantSystem = {
           return this.updateCompanyInfo(params);
 
         // 会社情報画像アップロード系
+        case 'companyinfo_uploadImage':
+          return CompanyInfoManager.uploadImage(params);
+
         case 'companyinfo_uploadMainVisual':
           return CompanyInfoManager.uploadMainVisual(params);
 
@@ -147,17 +151,25 @@ const MerchantSystem = {
         case 'companyinfo_saveInsurances':
           return CompanyInfoManager.saveInsurances(params);
 
+        case 'saveConstructionExample':
         case 'companyinfo_saveConstructionExample':
           return CompanyInfoManager.saveConstructionExample(params);
 
         case 'companyinfo_deleteConstructionExample':
           return CompanyInfoManager.deleteConstructionExample(params);
 
+        case 'getConstructionExamples':
+        case 'companyinfo_getConstructionExamples':
+          return CompanyInfoManager.getConstructionExamples(params);
+
         case 'updateMerchantData':
           return this.updateMerchantData(params);
 
         case 'companyinfo_addGalleryPhoto':
           return CompanyInfoManager.addGalleryPhoto(params);
+
+        case 'companyinfo_deleteGalleryPhoto':
+          return CompanyInfoManager.deleteGalleryPhoto(params);
 
         case 'saveGalleryData':
           return CompanyInfoManager.saveGalleryData(params);
@@ -457,7 +469,8 @@ const MerchantSystem = {
 
       return {
         success: true,
-        data: merchantData
+        data: merchantData,
+        status: merchantData['ステータス'] || 'アクティブ'
       };
 
     } catch (error) {
@@ -744,7 +757,7 @@ const MerchantSystem = {
    */
   updateAutoDeliverySettings: function(params) {
     try {
-      const { merchantId, propertyTypes, maxFloors, ageRange, constructionTypes, specialServices, prefectures, cities, priorities, pauseFlag, pauseStartDate, pauseEndDate } = params;
+      const { merchantId, propertyTypes, maxFloors, ageRange, constructionTypes, specialServices, prefectures, cities, priorities, pauseFlag, pauseStartDate, pauseEndDate, status } = params;
 
       if (!merchantId) {
         return {
@@ -830,7 +843,7 @@ const MerchantSystem = {
 
       // 一時停止フラグの保存（TRUE/FALSE）
       if (pauseFlagCol > 0 && pauseFlag !== undefined) {
-        const flagValue = (pauseFlag === 'true' || pauseFlag === true);
+        const flagValue = (pauseFlag === 'TRUE' || pauseFlag === 'true' || pauseFlag === true);
         sheet.getRange(sheetRowIndex, pauseFlagCol).setValue(flagValue);
       }
 
@@ -849,24 +862,10 @@ const MerchantSystem = {
         }
       }
 
-      // ステータス（AJ列）を更新
-      // - アクティブ: pauseFlag = false
-      // - 一時停止: pauseFlag = true + 再開予定日あり
-      // - 休止: pauseFlag = true + 再開予定日なし（未定）
-      if (statusCol > 0) {
-        let statusValue = 'アクティブ';
-        const isPaused = (pauseFlag === 'true' || pauseFlag === true);
-
-        if (isPaused) {
-          if (pauseEndDate && pauseEndDate !== '') {
-            statusValue = '一時停止';
-          } else {
-            statusValue = '休止';
-          }
-        }
-
-        sheet.getRange(sheetRowIndex, statusCol).setValue(statusValue);
-        console.log('[MerchantSystem] Status updated to:', statusValue);
+      // ステータス（AJ列）を更新 - フロントエンドから送られたstatusをそのまま使用
+      if (statusCol > 0 && status !== undefined) {
+        sheet.getRange(sheetRowIndex, statusCol).setValue(status);
+        console.log('[MerchantSystem] Status updated to:', status);
       }
 
       console.log('[MerchantSystem] updateAutoDeliverySettings - Updated row:', sheetRowIndex);
@@ -1357,14 +1356,58 @@ const MerchantSystem = {
 
       const row = rowIndex + 2; // ヘッダー行を考慮
 
-      // 更新可能なフィールドのみ更新
-      if (data.companyName) sheet.getRange(row, 3).setValue(data.companyName); // C列
-      if (data.representative) sheet.getRange(row, 5).setValue(data.representative); // E列
-      if (data.phone) sheet.getRange(row, 7).setValue(data.phone); // G列
-      if (data.address) sheet.getRange(row, 9).setValue(data.address); // I列
-      if (data.prText) sheet.getRange(row, 29).setValue(data.prText); // AC列
+      // ヘッダーと列インデックスのマッピング
+      const columnMap = {};
+      headers.forEach((header, index) => {
+        columnMap[header] = index + 1; // 1-based index
+      });
 
-      // その他のフィールドも必要に応じて追加
+      // 全フィールドを更新
+      // 基本情報
+      if (data.companyName !== undefined) sheet.getRange(row, columnMap['会社名'] || 3).setValue(data.companyName);
+      if (data.companyNameKana !== undefined) sheet.getRange(row, columnMap['会社名カナ'] || 4).setValue(data.companyNameKana);
+      if (data.tradeName !== undefined) sheet.getRange(row, columnMap['屋号'] || 5).setValue(data.tradeName);
+      if (data.tradeNameKana !== undefined) sheet.getRange(row, columnMap['屋号カナ'] || 6).setValue(data.tradeNameKana);
+      if (data.representative !== undefined) sheet.getRange(row, columnMap['代表者名'] || 7).setValue(data.representative);
+      if (data.representativeKana !== undefined) sheet.getRange(row, columnMap['代表者名カナ'] || 8).setValue(data.representativeKana);
+      if (data.postalCode !== undefined) sheet.getRange(row, columnMap['郵便番号'] || 9).setValue(data.postalCode);
+      if (data.address !== undefined) sheet.getRange(row, columnMap['住所'] || 10).setValue(data.address);
+      if (data.phone !== undefined) sheet.getRange(row, columnMap['電話番号'] || 11).setValue(data.phone);
+      if (data.website !== undefined) sheet.getRange(row, columnMap['ウェブサイトURL'] || 12).setValue(data.website);
+      if (data.established !== undefined) sheet.getRange(row, columnMap['設立年月'] || 13).setValue(data.established);
+      if (data.prText !== undefined) sheet.getRange(row, columnMap['PRテキスト'] || 14).setValue(data.prText);
+      if (data.branchName !== undefined) sheet.getRange(row, columnMap['支店名'] || 15).setValue(data.branchName);
+      if (data.branchAddress !== undefined) sheet.getRange(row, columnMap['支店住所'] || 16).setValue(data.branchAddress);
+      if (data.billingEmail !== undefined) sheet.getRange(row, columnMap['請求用メールアドレス'] || 22).setValue(data.billingEmail);
+      if (data.salesEmail !== undefined) sheet.getRange(row, columnMap['営業用メールアドレス'] || 23).setValue(data.salesEmail);
+      if (data.salesPersonName !== undefined) sheet.getRange(row, columnMap['営業担当者氏名'] || 24).setValue(data.salesPersonName);
+      if (data.salesPersonKana !== undefined) sheet.getRange(row, columnMap['営業担当者カナ'] || 25).setValue(data.salesPersonKana);
+      if (data.employees !== undefined) sheet.getRange(row, columnMap['従業員数'] || 26).setValue(data.employees);
+      if (data.salesScale !== undefined) sheet.getRange(row, columnMap['売上規模'] || 27).setValue(data.salesScale);
+
+      // 自動配信設定
+      if (data.propertyTypes !== undefined) sheet.getRange(row, columnMap['対応可能物件種別'] || 28).setValue(data.propertyTypes);
+      if (data.maxFloors !== undefined) sheet.getRange(row, columnMap['最大対応階数'] || 29).setValue(data.maxFloors);
+      if (data.buildingAge !== undefined) sheet.getRange(row, columnMap['築年数対応範囲'] || 30).setValue(data.buildingAge);
+      if (data.constructionTypes !== undefined) sheet.getRange(row, columnMap['施工箇所'] || 31).setValue(data.constructionTypes);
+      if (data.specialServices !== undefined) sheet.getRange(row, columnMap['特殊対応項目'] || 32).setValue(data.specialServices);
+      if (data.prefectures !== undefined) sheet.getRange(row, columnMap['対応都道府県'] || 33).setValue(data.prefectures);
+      if (data.cities !== undefined) sheet.getRange(row, columnMap['対応市区町村'] || 34).setValue(data.cities);
+      if (data.priorityAreas !== undefined) sheet.getRange(row, columnMap['優先エリア'] || 35).setValue(data.priorityAreas);
+      if (data.status !== undefined) sheet.getRange(row, columnMap['ステータス'] || 36).setValue(data.status);
+      if (data.pauseFlag !== undefined) sheet.getRange(row, columnMap['一時停止フラグ'] || 41).setValue(data.pauseFlag);
+      if (data.pauseStartDate !== undefined) sheet.getRange(row, columnMap['一時停止開始日'] || 42).setValue(data.pauseStartDate);
+      if (data.pauseEndDate !== undefined) sheet.getRange(row, columnMap['一時停止再開予定日'] || 43).setValue(data.pauseEndDate);
+
+      // メインビジュアル・ギャラリー
+      if (data['メインビジュアル'] !== undefined) sheet.getRange(row, columnMap['メインビジュアル'] || 44).setValue(data['メインビジュアル']);
+      if (data['写真ギャラリー'] !== undefined) sheet.getRange(row, columnMap['写真ギャラリー'] || 45).setValue(data['写真ギャラリー']);
+
+      // 保有資格・加入保険
+      if (data.qualifications !== undefined) sheet.getRange(row, columnMap['保有資格'] || 46).setValue(data.qualifications);
+      if (data.insurance !== undefined) sheet.getRange(row, columnMap['加入保険'] || 47).setValue(data.insurance);
+
+      console.log('[updateMerchantData] Updated row:', row, 'with data:', Object.keys(data));
 
       return {
         success: true,
@@ -1401,16 +1444,17 @@ const MerchantSystem = {
       // シートが存在しない場合は作成
       if (!sheet) {
         sheet = ss.insertSheet('プレビュー');
-        sheet.getRange(1, 1, 1, 7).setValues([[
+        sheet.getRange(1, 1, 1, 8).setValues([[
           '加盟店ID',
           'メインビジュアル位置X',
           'メインビジュアル位置Y',
           'メインビジュアルズーム',
           'メインビジュアル明るさ',
           'メインビジュアル文字色',
+          '会社名表示',
           '更新日時'
         ]]);
-        sheet.getRange(1, 1, 1, 7).setFontWeight('bold');
+        sheet.getRange(1, 1, 1, 8).setFontWeight('bold');
         sheet.setFrozenRows(1);
       }
 
@@ -1436,12 +1480,13 @@ const MerchantSystem = {
         previewSettings.imagePositionX || 50,
         previewSettings.imagePositionY || 50,
         previewSettings.imageZoom || 100,
-        previewSettings.imageBrightness || 100,
-        previewSettings.textColor || 'white',
+        previewSettings.imageBrightness || 70,
+        previewSettings.textColor || '#000000',
+        previewSettings.companyNameDisplay || 'company',
         new Date()
       ];
 
-      sheet.getRange(targetRow, 1, 1, 7).setValues([row]);
+      sheet.getRange(targetRow, 1, 1, 8).setValues([row]);
 
       console.log(`[savePreviewSettings] Saved for merchantId: ${merchantId} at row ${targetRow}`);
 
@@ -1482,8 +1527,9 @@ const MerchantSystem = {
         imagePositionX: 50,
         imagePositionY: 50,
         imageZoom: 100,
-        imageBrightness: 100,
-        textColor: 'white'
+        imageBrightness: 70,
+        textColor: '#000000',
+        companyNameDisplay: 'company'
       };
 
       if (!sheet) {
@@ -1503,8 +1549,9 @@ const MerchantSystem = {
               imagePositionX: data[i][1] || 50,
               imagePositionY: data[i][2] || 50,
               imageZoom: data[i][3] || 100,
-              imageBrightness: data[i][4] || 100,
-              textColor: data[i][5] || 'white'
+              imageBrightness: data[i][4] || 70,
+              textColor: data[i][5] || '#000000',
+              companyNameDisplay: data[i][6] || 'company'
             }
           };
         }

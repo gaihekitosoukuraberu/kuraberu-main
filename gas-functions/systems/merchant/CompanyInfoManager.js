@@ -169,18 +169,28 @@ const CompanyInfoManager = {
         order: gallery.length
       });
 
-      // スプレッドシート更新（AT列）
-      const updateResult = this.updatePhotoGallery(merchantId, gallery);
+      // スプレッドシート更新（AS列に直接保存）
+      const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(spreadsheetId);
+      const sheet = ss.getSheetByName('加盟店登録');
+      const data = sheet.getDataRange().getValues();
 
-      if (updateResult.success) {
-        return {
-          success: true,
-          gallery: gallery,
-          newPhoto: gallery[gallery.length - 1]
-        };
-      } else {
-        return updateResult;
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][1] === merchantId) { // B列：登録ID
+          const jsonStr = JSON.stringify(gallery);
+          sheet.getRange(i + 1, 45).setValue(jsonStr); // AS列 = 45列目
+          console.log('[CompanyInfoManager] addGalleryPhoto - Saved', gallery.length, 'photos');
+
+          return {
+            success: true,
+            url: uploadResult.url,
+            gallery: gallery,
+            newPhoto: gallery[gallery.length - 1]
+          };
+        }
       }
+
+      return { success: false, error: '加盟店が見つかりません' };
 
     } catch (error) {
       console.error('[CompanyInfoManager] addGalleryPhoto error:', error);
@@ -245,7 +255,7 @@ const CompanyInfoManager = {
   deleteGalleryPhoto: function(params) {
     try {
       const merchantId = params.merchantId;
-      const fileId = params.fileId;
+      const fileId = params.fileId || params.driveId;
 
       if (!merchantId || !fileId) {
         return { success: false, error: '必須パラメータが不足しています' };
@@ -257,7 +267,30 @@ const CompanyInfoManager = {
         return { success: true, message: '削除する画像がありません' };
       }
 
-      let gallery = JSON.parse(existingData.photoGallery);
+      let gallery;
+      try {
+        gallery = JSON.parse(existingData.photoGallery);
+      } catch (parseError) {
+        // 古い形式（カンマ区切りURL文字列）の可能性があるので、新形式に変換
+        console.log('[CompanyInfoManager] deleteGalleryPhoto - Converting old format to new format');
+        const urls = existingData.photoGallery.split(',').map(function(url) { return url.trim(); }).filter(function(url) { return url; });
+
+        gallery = urls.map(function(url, index) {
+          // URLからファイルIDを抽出
+          let fileIdMatch = url.match(/\/d\/([^\/\?]+)/);
+          if (!fileIdMatch) {
+            fileIdMatch = url.match(/[?&]id=([^&]+)/);
+          }
+          const extractedFileId = fileIdMatch ? fileIdMatch[1] : null;
+
+          return {
+            url: url,
+            driveId: extractedFileId,
+            uploadDate: new Date().toISOString(),
+            order: index
+          };
+        });
+      }
 
       // 対象画像を削除
       gallery = gallery.filter(function(photo) {
@@ -272,8 +305,22 @@ const CompanyInfoManager = {
       // Drive削除
       ImageUploadUtils.deleteFile(fileId);
 
-      // スプレッドシート更新
-      return this.updatePhotoGallery(merchantId, gallery);
+      // スプレッドシート更新（AS列に直接保存）
+      const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(spreadsheetId);
+      const sheet = ss.getSheetByName('加盟店登録');
+      const data = sheet.getDataRange().getValues();
+
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][1] === merchantId) { // B列：登録ID
+          const jsonStr = JSON.stringify(gallery);
+          sheet.getRange(i + 1, 45).setValue(jsonStr); // AS列 = 45列目
+          console.log('[CompanyInfoManager] deleteGalleryPhoto - Saved', gallery.length, 'photos');
+          return { success: true, gallery: gallery };
+        }
+      }
+
+      return { success: false, error: '加盟店が見つかりません' };
 
     } catch (error) {
       console.error('[CompanyInfoManager] deleteGalleryPhoto error:', error);
@@ -406,7 +453,7 @@ const CompanyInfoManager = {
         // 更新
         const data = sheet.getDataRange().getValues();
         for (let i = 1; i < data.length; i++) {
-          if (data[i][1] === exampleData.exampleId) { // B列：事例ID
+          if (data[i][0] === merchantId && data[i][1] === exampleData.exampleId) { // A列：merchantId, B列：事例ID
             sheet.getRange(i + 1, 3).setValue(exampleData.title || '');
             sheet.getRange(i + 1, 4).setValue(exampleData.age || '');
             sheet.getRange(i + 1, 5).setValue(exampleData.cost || '');
@@ -467,6 +514,9 @@ const CompanyInfoManager = {
         return { success: false, error: 'merchantIdが必要です' };
       }
 
+      console.log('[CompanyInfoManager] ===== 施工事例取得 =====');
+      console.log('[CompanyInfoManager] 対象merchantId:', merchantId);
+
       const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
       const ss = SpreadsheetApp.openById(spreadsheetId);
       const sheet = ss.getSheetByName('施工事例');
@@ -477,21 +527,33 @@ const CompanyInfoManager = {
 
       const data = sheet.getDataRange().getValues();
       const examples = [];
+      let totalRows = 0;
+      let matchedRows = 0;
 
       for (let i = 1; i < data.length; i++) {
-        if (data[i][1] === merchantId) { // B列：加盟店ID
+        totalRows++;
+        const rowMerchantId = data[i][0]; // A列：加盟店ID
+
+        console.log(`[CompanyInfoManager] 行${i+1}: A列のmerchantId="${rowMerchantId}" (型:${typeof rowMerchantId}), 比較対象="${merchantId}" (型:${typeof merchantId}), 一致:${rowMerchantId === merchantId}`);
+
+        if (rowMerchantId === merchantId) {
+          matchedRows++;
           examples.push({
-            exampleId: data[i][0],  // A列：ID
-            title: data[i][2],      // C列：タイトル
-            age: data[i][3],        // D列：築年数
-            cost: data[i][4],       // E列：施工金額
-            description: data[i][5], // F列：説明
-            beforeUrl: data[i][6],  // G列：施工前画像
-            afterUrl: data[i][7],   // H列：施工後画像
-            createdAt: data[i][8]   // I列：作成日時
+            exampleId: data[i][1],   // B列：事例ID
+            title: data[i][2],       // C列：タイトル
+            ageRange: data[i][3],    // D列：築年数
+            price: data[i][4],       // E列：施工金額
+            content: data[i][5],     // F列：説明
+            beforeUrl: data[i][6],   // G列：施工前画像
+            afterUrl: data[i][7],    // H列：施工後画像
+            createdAt: data[i][8]    // I列：作成日時
           });
+          console.log(`[CompanyInfoManager] ✓ 一致: タイトル="${data[i][2]}"`);
         }
       }
+
+      console.log(`[CompanyInfoManager] 合計行数: ${totalRows}, 一致した行数: ${matchedRows}`);
+      console.log('[CompanyInfoManager] ===========================');
 
       return {
         success: true,
@@ -530,7 +592,7 @@ const CompanyInfoManager = {
       const data = sheet.getDataRange().getValues();
 
       for (let i = 1; i < data.length; i++) {
-        if (data[i][1] === exampleId && data[i][1] === merchantId) { // B列：登録ID
+        if (data[i][0] === merchantId && data[i][1] === exampleId) { // A列：merchantId, B列：exampleId
           // 画像削除
           const beforeUrl = data[i][6];
           const afterUrl = data[i][7];
@@ -816,12 +878,43 @@ const CompanyInfoManager = {
   },
 
   /**
+   * 汎用画像アップロード
+   */
+  uploadImage: function(params) {
+    try {
+      const { merchantId, base64Data, imageType } = params;
+
+      if (!merchantId || !base64Data || !imageType) {
+        return { success: false, error: '必須パラメータが不足しています' };
+      }
+
+      if (imageType === 'main-visual') {
+        return this.uploadMainVisual({ merchantId, base64Data });
+      } else if (imageType === 'gallery') {
+        return this.addGalleryPhoto({ merchantId, base64Data });
+      } else {
+        return { success: false, error: '不明なimageType: ' + imageType };
+      }
+    } catch (error) {
+      console.error('[CompanyInfoManager] uploadImage error:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
    * ルーティングハンドラー
    */
   handle: function(params) {
     const action = params.action;
 
     switch (action) {
+      // 汎用画像アップロード
+      case 'companyinfo_uploadImage':
+        return this.uploadImage(params);
+
       // メインビジュアル
       case 'companyinfo_uploadMainVisual':
         return this.uploadMainVisual(params);
