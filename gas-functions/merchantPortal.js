@@ -110,13 +110,14 @@ function savePreviewSettings(merchantId, previewSettings) {
 
   sheet.getRange(targetRow, 1, 1, 7).setValues([row]);
 
-  Logger.log(`[savePreviewSettings] Saved for merchantId: ${merchantId}`);
+  Logger.log(`[savePreviewSettings] Saved for merchantId: ${merchantId} at row ${targetRow}`);
 
-  return {
+  return ContentService.createTextOutput(JSON.stringify({
     success: true,
     merchantId: merchantId,
-    row: targetRow
-  };
+    row: targetRow,
+    message: 'プレビュー設定を保存しました'
+  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 /**

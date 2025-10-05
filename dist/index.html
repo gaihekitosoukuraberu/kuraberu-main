@@ -9215,9 +9215,9 @@
             document.getElementById('companyPreviewModal').classList.add('hidden');
         }
 
-        // プレビューから保存
+        // プレビューから保存（プレビュー設定のみ保存）
         async function saveFromPreview() {
-            console.log('[saveFromPreview] プレビューから保存開始');
+            console.log('[saveFromPreview] プレビュー設定の保存開始');
 
             if (!window.merchantId) {
                 alert('エラー: merchantIdが設定されていません。ログインし直してください。');
@@ -9236,14 +9236,36 @@
             saveButton.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> 保存中...';
 
             try {
-                const result = await autoSave();
-                console.log('[saveFromPreview] 保存結果:', result);
-                showNotification('保存完了', '会社情報を保存しました');
+                // プレビュー設定のみを保存
+                const previewData = {
+                    imagePositionX: imagePositionX,
+                    imagePositionY: imagePositionY,
+                    imageZoom: currentZoom,
+                    imageBrightness: document.getElementById('imageOpacity')?.value || 70,
+                    textColor: currentTextColor
+                };
 
-                // 保存成功後、少し待ってからモーダルを閉じる
-                setTimeout(() => {
-                    closePreviewModal();
-                }, 1000);
+                console.log('[saveFromPreview] プレビュー設定:', previewData);
+
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'savePreviewSettings',
+                        merchantId: window.merchantId,
+                        previewSettings: previewData
+                    })
+                });
+
+                const result = await response.json();
+                console.log('[saveFromPreview] 保存結果:', result);
+
+                if (result.success) {
+                    showNotification('保存完了', 'プレビュー設定を保存しました');
+                    // プレビュー画面はそのまま表示（閉じない）
+                } else {
+                    showNotification('エラー', '保存に失敗しました: ' + (result.error || '不明なエラー'), 'error');
+                }
             } catch (error) {
                 console.error('[saveFromPreview] エラー:', error);
                 showNotification('エラー', '保存に失敗しました: ' + error.message, 'error');
