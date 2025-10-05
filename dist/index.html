@@ -9449,7 +9449,12 @@
         function updateImagePosition() {
             const image = document.getElementById('previewMainVisual');
             if (image) {
-                image.style.objectPosition = `${imagePositionX}% ${imagePositionY}%`;
+                // object-positionとtransformを組み合わせて使用
+                // ズーム率を考慮
+                const scale = currentZoom / 100;
+                const translateX = (imagePositionX - 50) * 2; // -100 〜 100 の範囲に拡大
+                const translateY = (imagePositionY - 50) * 2; // -100 〜 100 の範囲に拡大
+                image.style.transform = `scale(${scale}) translate(${translateX}%, ${translateY}%)`;
             }
         }
 
@@ -9514,13 +9519,9 @@
 
         // 画像ズーム調整
         function adjustImageZoom(value) {
-            const image = document.getElementById('previewMainVisual');
-            if (image) {
-                currentZoom = parseInt(value);
-                const scale = currentZoom / 100;
-                image.style.transform = `scale(${scale})`;
-                // ズーム変更後も位置は維持
-            }
+            currentZoom = parseInt(value);
+            // updateImagePosition()で一括適用されるので、ここでは設定のみ
+            updateImagePosition();
         }
 
         // 画像明度調整
