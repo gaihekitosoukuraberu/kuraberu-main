@@ -9450,10 +9450,10 @@
             const image = document.getElementById('previewMainVisual');
             if (image) {
                 // object-positionとtransformを組み合わせて使用
-                // ズーム率を考慮
+                // ズーム率を考慮（左右上下を逆転）
                 const scale = currentZoom / 100;
-                const translateX = (imagePositionX - 50) * 2; // -100 〜 100 の範囲に拡大
-                const translateY = (imagePositionY - 50) * 2; // -100 〜 100 の範囲に拡大
+                const translateX = (50 - imagePositionX) * 2; // 逆転
+                const translateY = (50 - imagePositionY) * 2; // 逆転
                 image.style.transform = `scale(${scale}) translate(${translateX}%, ${translateY}%)`;
             }
         }
