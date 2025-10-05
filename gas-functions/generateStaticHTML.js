@@ -98,10 +98,11 @@ function createSEOOptimizedHTML(data, displayName, urlSlug) {
   const mainVisualUrl = data.mainVisualUrl || 'https://gaihekikuraberu.com/default-image.jpg';
 
   // メインビジュアルのスタイル
-  const imagePosition = data.previewSettings?.imagePosition || { x: 50, y: 50 };
+  const imagePositionX = data.previewSettings?.imagePositionX || 50;
+  const imagePositionY = data.previewSettings?.imagePositionY || 50;
   const imageZoom = data.previewSettings?.imageZoom || 100;
-  const imageBrightness = data.previewSettings?.imageBrightness || 100;
-  const textColor = data.previewSettings?.textColor || 'white';
+  const imageBrightness = data.previewSettings?.imageBrightness || 70;
+  const textColor = data.previewSettings?.textColor || '#000000';
 
   const html = `<!DOCTYPE html>
 <html lang="ja">
@@ -160,10 +161,29 @@ function createSEOOptimizedHTML(data, displayName, urlSlug) {
 
     <style>
         .main-visual {
-            background-image: url('${mainVisualUrl}');
-            background-size: ${imageZoom}%;
-            background-position: ${imagePosition.x}% ${imagePosition.y}%;
-            filter: brightness(${imageBrightness}%);
+            position: relative;
+            height: 24rem;
+            overflow: hidden;
+        }
+        .main-visual-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scale(${imageZoom / 100}) translate(${(imagePositionX - 50) * 2}%, ${(imagePositionY - 50) * 2}%);
+        }
+        .main-visual-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30%;
+            ${imageBrightness < 50
+              ? `background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, ${((50 - imageBrightness) / 50) * 0.7}));`
+              : imageBrightness === 50
+                ? 'background: linear-gradient(to bottom, transparent, transparent);'
+                : `background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, ${((imageBrightness - 50) / 50) * 0.7}));`
+            }
+            pointer-events: none;
         }
         .text-shadow {
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
@@ -182,14 +202,18 @@ function createSEOOptimizedHTML(data, displayName, urlSlug) {
     </header>
 
     <!-- Main Visual -->
-    <section class="main-visual relative h-96 flex items-center justify-center">
-        <div class="text-center ${textColor === 'white' ? 'text-white' : 'text-gray-900'}">
-            <h1 class="text-5xl md:text-7xl font-bold mb-4 text-shadow">
-                ${displayName}
-            </h1>
-            <p class="text-xl md:text-2xl text-shadow">
-                確かな技術と丁寧な仕事で、皆様の大切な住まいを守ります
-            </p>
+    <section class="main-visual">
+        <img src="${mainVisualUrl}" alt="${displayName}" class="main-visual-image">
+        <div class="main-visual-overlay"></div>
+        <div class="absolute inset-0 flex items-center justify-center" style="color: ${textColor};">
+            <div class="text-center">
+                <h1 class="text-5xl md:text-7xl font-bold mb-4 text-shadow">
+                    ${displayName}
+                </h1>
+                <p class="text-xl md:text-2xl text-shadow">
+                    確かな技術と丁寧な仕事で、皆様の大切な住まいを守ります
+                </p>
+            </div>
         </div>
     </section>
 
