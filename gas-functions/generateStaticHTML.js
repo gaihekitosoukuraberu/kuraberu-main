@@ -1,9 +1,29 @@
 /**
  * 静的HTML生成機能
  * SEO最適化されたHTMLページを生成してサーバーにアップロード
- *
- * ※ doPost/doGetは main.js に集約
  */
+
+function doPost(e) {
+  try {
+    const params = JSON.parse(e.postData.contents);
+    const action = e.parameter.action;
+
+    if (action === 'generateStaticHTML') {
+      return generateStaticHTML(params);
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: 'Unknown action'
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
 
 /**
  * 静的HTML生成メイン関数
