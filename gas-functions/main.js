@@ -18,7 +18,10 @@ function doGet(e) {
     const action = e.parameter.action;
     const callback = e.parameter.callback;
 
-    console.log('[main.gs] GET request:', action);
+    console.log('[main.gs] ========== GET REQUEST START ==========');
+    console.log('[main.gs] action:', action);
+    console.log('[main.gs] callback:', callback);
+    console.log('[main.gs] All parameters:', JSON.stringify(e.parameter));
 
     // アクションが未指定の場合
     if (!action) {
@@ -56,6 +59,12 @@ function doGet(e) {
     else if (action.startsWith('merchant_') || action.startsWith('companyinfo_') || action === 'verifyFirstLoginUrl' || action === 'verifyFirstLogin' || action === 'setPassword' || action === 'resetPassword' || action === 'verifyLogin' || action === 'getMerchantData' || action === 'updateSalesPerson' || action === 'updateMerchantStatus' || action === 'getMerchantStatus' || action === 'checkUpdate' || action === 'getPreviewSettings' || action === 'loadPreviewSettings' || action === 'getConstructionExamples') {
       result = MerchantSystem.handle(e.parameter);
     }
+    // CVデータ管理システム
+    else if (action.startsWith('cv_') || action.startsWith('cv1_') || action.startsWith('cv2_')) {
+      console.log('[main.gs] ✅ Routing to CVSheetSystem');
+      result = CVSheetSystem.handle(e.parameter);
+      console.log('[main.gs] CVSheetSystem result:', JSON.stringify(result));
+    }
     // 不明なアクション
     else {
       result = {
@@ -65,6 +74,8 @@ function doGet(e) {
     }
 
     // JSONP形式で返却
+    console.log('[main.gs] Creating JSONP response with callback:', callback);
+    console.log('[main.gs] Response data:', JSON.stringify(result));
     return createJsonpResponse(result, callback);
 
   } catch (error) {
@@ -130,6 +141,10 @@ function doPost(e) {
     // 加盟店向けシステム
     else if (action.startsWith('merchant_') || action.startsWith('companyinfo_') || action === 'setFirstPassword' || action === 'verifyLogin' || action === 'verifyFirstLogin' || action === 'setPassword' || action === 'resetPassword' || action === 'updateAutoDeliverySettings' || action === 'updatePauseSettings' || action === 'updateMerchantData' || action === 'generateStaticHTML' || action === 'savePreviewSettings' || action === 'getPreviewSettings' || action === 'loadPreviewSettings' || action === 'getConstructionExamples' || action === 'saveConstructionExample') {
       result = MerchantSystem.handlePost(e);
+    }
+    // CVデータ管理システム
+    else if (action.startsWith('cv_') || action.startsWith('cv1_') || action.startsWith('cv2_')) {
+      result = CVSheetSystem.handle(Object.assign({}, e.parameter, postData));
     }
     // 不明なアクション
     else {

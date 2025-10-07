@@ -1,8 +1,11 @@
 /**
  * ====================================
- * 会社情報管理システム
+ * 会社情報管理システム（完全独立版）
  * ====================================
  * 加盟店の会社情報（画像・資格・保険等）を管理
+ *
+ * 依存関係: なし（完全独立）
+ * 内部関数: ImageUploadUtils統合（Drive画像管理）
  *
  * 担当カラム：
  * - AR: メインビジュアル (44列目)
@@ -14,6 +17,163 @@
  */
 
 const CompanyInfoManager = {
+
+  // ========================================
+  // 内部関数（画像アップロード）
+  // ========================================
+
+  /**
+   * 加盟店の画像フォルダを取得または作成（内部関数）
+   */
+  _getOrCreateMerchantImageFolder: function(merchantId) {
+    try {
+      const scriptProperties = PropertiesService.getScriptProperties();
+      let rootFolderId = scriptProperties.getProperty('DRIVE_ROOT_FOLDER_ID');
+
+      if (!rootFolderId) {
+        throw new Error('DRIVE_ROOT_FOLDER_ID が設定されていません');
+      }
+
+      const rootFolder = DriveApp.getFolderById(rootFolderId);
+
+      // /加盟店画像/ フォルダを取得または作成
+      let merchantImagesFolder;
+      const merchantImagesFolders = rootFolder.getFoldersByName('加盟店画像');
+      if (merchantImagesFolders.hasNext()) {
+        merchantImagesFolder = merchantImagesFolders.next();
+      } else {
+        merchantImagesFolder = rootFolder.createFolder('加盟店画像');
+        console.log('[CompanyInfoManager] 加盟店画像フォルダ作成');
+      }
+
+      // /{merchantId}/ フォルダを取得または作成
+      let merchantFolder;
+      const merchantFolders = merchantImagesFolder.getFoldersByName(merchantId);
+      if (merchantFolders.hasNext()) {
+        merchantFolder = merchantFolders.next();
+      } else {
+        merchantFolder = merchantImagesFolder.createFolder(merchantId);
+        console.log('[CompanyInfoManager] 加盟店フォルダ作成:', merchantId);
+      }
+
+      return merchantFolder;
+
+    } catch (error) {
+      console.error('[CompanyInfoManager] _getOrCreateMerchantImageFolder error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * サブフォルダを取得または作成（内部関数）
+   */
+  _getOrCreateSubFolder: function(parentFolder, folderName) {
+    try {
+      const subFolders = parentFolder.getFoldersByName(folderName);
+      if (subFolders.hasNext()) {
+        return subFolders.next();
+      } else {
+        const newFolder = parentFolder.createFolder(folderName);
+        console.log('[CompanyInfoManager] サブフォルダ作成:', folderName);
+        return newFolder;
+      }
+    } catch (error) {
+      console.error('[CompanyInfoManager] _getOrCreateSubFolder error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Base64画像をDriveにアップロード（内部関数）
+   */
+  _uploadBase64Image: function(base64Data, merchantId, category, fileName) {
+    try {
+      const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+      const base64Match = base64Data.match(/^data:([^;]+);base64,(.+)$/);
+      if (!base64Match) {
+        throw new Error('無効なBase64データ形式です');
+      }
+
+      const mimeType = base64Match[1];
+      const base64Content = base64Match[2];
+
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(mimeType)) {
+        throw new Error('対応していない画像形式です: ' + mimeType);
+      }
+
+      const decoded = Utilities.base64Decode(base64Content);
+
+      if (decoded.length > MAX_FILE_SIZE) {
+        throw new Error('ファイルサイズが10MBを超えています');
+      }
+
+      const merchantFolder = this._getOrCreateMerchantImageFolder(merchantId);
+      const categoryFolder = this._getOrCreateSubFolder(merchantFolder, category);
+
+      const timestamp = Utilities.formatDate(new Date(), 'JST', 'yyyyMMdd_HHmmss');
+      const extension = mimeType.split('/')[1].replace('jpeg', 'jpg');
+      const finalFileName = fileName || (category + '_' + timestamp + '.' + extension);
+
+      const blob = Utilities.newBlob(decoded, mimeType, finalFileName);
+      const file = categoryFolder.createFile(blob);
+
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+      const fileId = file.getId();
+      const url = 'https://drive.google.com/uc?export=view&id=' + fileId;
+
+      console.log('[CompanyInfoManager] アップロード成功:', finalFileName, 'DriveID:', fileId);
+
+      return {
+        success: true,
+        fileId: fileId,
+        url: url,
+        fileName: finalFileName,
+        size: decoded.length
+      };
+
+    } catch (error) {
+      console.error('[CompanyInfoManager] _uploadBase64Image error:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * Driveからファイルを削除（内部関数）
+   */
+  _deleteFile: function(fileId) {
+    try {
+      if (!fileId) {
+        throw new Error('fileId が指定されていません');
+      }
+
+      const file = DriveApp.getFileById(fileId);
+      file.setTrashed(true);
+
+      console.log('[CompanyInfoManager] ファイル削除成功:', fileId);
+
+      return {
+        success: true
+      };
+
+    } catch (error) {
+      console.error('[CompanyInfoManager] _deleteFile error:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  // ========================================
+  // 公開API
+  // ========================================
+
 
   /**
    * ====================================
@@ -38,12 +198,12 @@ const CompanyInfoManager = {
       if (existingData && existingData.mainVisual) {
         const oldFileId = this.extractFileIdFromUrl(existingData.mainVisual);
         if (oldFileId) {
-          ImageUploadUtils.deleteFile(oldFileId);
+          this._deleteFile(oldFileId);
         }
       }
 
       // 新規アップロード
-      const uploadResult = ImageUploadUtils.uploadBase64Image(
+      const uploadResult = this._uploadBase64Image(
         base64Data,
         merchantId,
         'main-visual',
@@ -96,7 +256,7 @@ const CompanyInfoManager = {
       // Drive削除
       const fileId = this.extractFileIdFromUrl(existingData.mainVisual);
       if (fileId) {
-        ImageUploadUtils.deleteFile(fileId);
+        this._deleteFile(fileId);
       }
 
       // スプレッドシート更新（AR列をクリア）
@@ -150,7 +310,7 @@ const CompanyInfoManager = {
       }
 
       // アップロード
-      const uploadResult = ImageUploadUtils.uploadBase64Image(
+      const uploadResult = this._uploadBase64Image(
         base64Data,
         merchantId,
         'gallery',
@@ -303,7 +463,7 @@ const CompanyInfoManager = {
       });
 
       // Drive削除
-      ImageUploadUtils.deleteFile(fileId);
+      this._deleteFile(fileId);
 
       // スプレッドシート更新（AS列に直接保存）
       const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
@@ -420,7 +580,7 @@ const CompanyInfoManager = {
       let afterUrl = '';
 
       if (exampleData.beforeImage && exampleData.beforeImage.startsWith('data:')) {
-        const beforeResult = ImageUploadUtils.uploadBase64Image(
+        const beforeResult = this._uploadBase64Image(
           exampleData.beforeImage,
           merchantId,
           'construction-examples',
@@ -434,7 +594,7 @@ const CompanyInfoManager = {
       }
 
       if (exampleData.afterImage && exampleData.afterImage.startsWith('data:')) {
-        const afterResult = ImageUploadUtils.uploadBase64Image(
+        const afterResult = this._uploadBase64Image(
           exampleData.afterImage,
           merchantId,
           'construction-examples',
@@ -600,14 +760,14 @@ const CompanyInfoManager = {
           if (beforeUrl) {
             const beforeFileId = this.extractFileIdFromUrl(beforeUrl);
             if (beforeFileId) {
-              ImageUploadUtils.deleteFile(beforeFileId);
+              this._deleteFile(beforeFileId);
             }
           }
 
           if (afterUrl) {
             const afterFileId = this.extractFileIdFromUrl(afterUrl);
             if (afterFileId) {
-              ImageUploadUtils.deleteFile(afterFileId);
+              this._deleteFile(afterFileId);
             }
           }
 
@@ -815,7 +975,7 @@ const CompanyInfoManager = {
         }
         // base64データの場合はDriveにアップロード
         else if (img.src && img.src.startsWith('data:')) {
-          const uploadResult = ImageUploadUtils.uploadBase64Image(
+          const uploadResult = this._uploadBase64Image(
             img.src,
             merchantId,
             'photo-gallery',
