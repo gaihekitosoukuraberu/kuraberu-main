@@ -1,11 +1,196 @@
 /**
  * ====================================
- * 加盟店登録システム
+ * 加盟店登録システム（完全独立版）
  * ====================================
- * 完全独立モジュール
+ * 完全独立モジュール - 外部依存ゼロ
+ *
+ * 依存関係: なし
+ * 内包関数: _saveIdentityDocument, _sendSlackRegistrationNotification
  */
 
 const FranchiseSystem = {
+  // ========================================
+  // 内部関数: 本人確認書類保存
+  // ========================================
+  _saveIdentityDocument: function(documentData, registrationId, companyName) {
+    try {
+      console.log('[FranchiseSystem._saveIdentityDocument] 保存開始:', registrationId);
+
+      // Base64データをBlobに変換
+      const base64Data = documentData.data.split(',')[1];
+      const decoded = Utilities.base64Decode(base64Data);
+
+      // サイズチェック（10MB）
+      const MAX_FILE_SIZE = 10 * 1024 * 1024;
+      if (decoded.length > MAX_FILE_SIZE) {
+        throw new Error('ファイルサイズが10MBを超えています');
+      }
+
+      // Drive Rootフォルダを取得（なければ作成）
+      const scriptProperties = PropertiesService.getScriptProperties();
+      let rootFolderId = scriptProperties.getProperty('DRIVE_ROOT_FOLDER_ID');
+      if (!rootFolderId) {
+        const rootFolder = DriveApp.createFolder('kuraberu-identity-documents');
+        rootFolderId = rootFolder.getId();
+        scriptProperties.setProperty('DRIVE_ROOT_FOLDER_ID', rootFolderId);
+        console.log('[FranchiseSystem._saveIdentityDocument] ルートフォルダ作成:', rootFolderId);
+      }
+
+      const rootFolder = DriveApp.getFolderById(rootFolderId);
+
+      // 加盟店フォルダを取得（なければ作成）
+      const merchantFolderName = registrationId + '_' + companyName.substring(0, 20);
+      const folders = rootFolder.getFoldersByName(merchantFolderName);
+      let merchantFolder;
+
+      if (folders.hasNext()) {
+        merchantFolder = folders.next();
+      } else {
+        merchantFolder = rootFolder.createFolder(merchantFolderName);
+        console.log('[FranchiseSystem._saveIdentityDocument] 加盟店フォルダ作成:', merchantFolderName);
+      }
+
+      // ファイル名生成
+      const date = Utilities.formatDate(new Date(), 'JST', 'yyyyMMdd');
+      const docTypeMap = {
+        'drivers_license': '運転免許証',
+        'mynumber': 'マイナンバーカード',
+        'passport': 'パスポート',
+        'insurance': '健康保険証'
+      };
+      const docTypeJp = docTypeMap[documentData.type] || documentData.type;
+      const sideJp = documentData.side === 'front' ? '表' : documentData.side === 'back' ? '裏' : documentData.side;
+      const fileName = date + '_' + registrationId + '_' + docTypeJp + '_' + sideJp + '.jpg';
+
+      // MIME type取得
+      let mimeType = 'image/jpeg';
+      if (documentData.data.includes('data:')) {
+        const mimeMatch = documentData.data.match(/data:([^;]+);/);
+        if (mimeMatch) {
+          mimeType = mimeMatch[1];
+        }
+      }
+
+      // Blob作成とファイル保存
+      const blob = Utilities.newBlob(decoded, mimeType, fileName);
+      const file = merchantFolder.createFile(blob);
+
+      // 共有設定（Webで閲覧可能）
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+      const fileInfo = {
+        fileId: file.getId(),
+        fileName: file.getName(),
+        fileUrl: 'https://drive.google.com/uc?export=view&id=' + file.getId(),
+        mimeType: file.getMimeType(),
+        fileSize: file.getSize()
+      };
+
+      console.log('[FranchiseSystem._saveIdentityDocument] 保存成功:', fileName);
+
+      return {
+        success: true,
+        fileInfo: fileInfo
+      };
+
+    } catch (error) {
+      console.error('[FranchiseSystem._saveIdentityDocument] エラー:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  // ========================================
+  // 内部関数: Slack通知送信
+  // ========================================
+  _sendSlackRegistrationNotification: function(registrationData) {
+    try {
+      const webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
+      if (!webhookUrl) {
+        console.log('[FranchiseSystem._sendSlackRegistrationNotification] Slack Webhook URL未設定');
+        return;
+      }
+
+      const registrationId = registrationData.registrationId || 'FR' + Utilities.formatDate(new Date(), 'JST', 'MMddHHmm');
+      const branches = registrationData.companyInfo && registrationData.companyInfo.branches || [];
+      const branchText = branches.length > 0
+        ? branches.map(function(b) { return '• ' + b.name + ': ' + b.address; }).join('\n')
+        : '支店情報なし';
+
+      const message = {
+        text: '@channel 🎉 新規加盟店登録がありました',
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: '*新規加盟店登録*\n会社名: *' + (registrationData.companyInfo && registrationData.companyInfo.legalName || registrationData.companyName) + '*'
+            }
+          },
+          {
+            type: 'section',
+            fields: [
+              { type: 'mrkdwn', value: '*登録ID*\n' + registrationId },
+              { type: 'mrkdwn', value: '*会社名*\n' + (registrationData.companyInfo && registrationData.companyInfo.legalName || registrationData.companyName) },
+              { type: 'mrkdwn', value: '*代表者名*\n' + (registrationData.companyInfo && registrationData.companyInfo.representative || '未入力') },
+              { type: 'mrkdwn', value: '*電話番号*\n' + (registrationData.companyInfo && registrationData.companyInfo.phone || '未入力') },
+              { type: 'mrkdwn', value: '*住所*\n' + (registrationData.companyInfo && registrationData.companyInfo.fullAddress || '未入力') },
+              { type: 'mrkdwn', value: '*対応エリア*\n' + (registrationData.selectedPrefectures ? registrationData.selectedPrefectures.join(', ') : '未選択') },
+              { type: 'mrkdwn', value: '*支店情報*\n' + branchText },
+              { type: 'mrkdwn', value: '*登録日時*\n' + Utilities.formatDate(new Date(), 'JST', 'yyyy/MM/dd HH:mm:ss') },
+              { type: 'mrkdwn', value: '*ステータス*\n承認待ち' }
+            ]
+          },
+          {
+            type: 'actions',
+            elements: [
+              {
+                type: 'button',
+                text: { type: 'plain_text', text: '✅ 承認', emoji: true },
+                style: 'primary',
+                value: 'approve_' + registrationId,
+                action_id: 'approve_registration'
+              },
+              {
+                type: 'button',
+                text: { type: 'plain_text', text: '❌ 却下', emoji: true },
+                style: 'danger',
+                value: 'reject_' + registrationId,
+                action_id: 'reject_registration'
+              }
+            ]
+          }
+        ]
+      };
+
+      const options = {
+        method: 'post',
+        contentType: 'application/json',
+        payload: JSON.stringify(message),
+        muteHttpExceptions: true
+      };
+
+      const response = UrlFetchApp.fetch(webhookUrl, options);
+
+      if (response.getResponseCode() === 200) {
+        console.log('[FranchiseSystem._sendSlackRegistrationNotification] 送信成功:', registrationId);
+        return { success: true, registrationId: registrationId };
+      } else {
+        console.error('[FranchiseSystem._sendSlackRegistrationNotification] 送信失敗:', response.getContentText());
+        return { success: false, message: 'Slack通知の送信に失敗しました' };
+      }
+
+    } catch (error) {
+      console.error('[FranchiseSystem._sendSlackRegistrationNotification] エラー:', error);
+      return { success: false, message: error.toString() };
+    }
+  },
+
+  // ========================================
+  // 公開API
+  // ========================================
   /**
    * GETリクエスト処理
    */
@@ -126,14 +311,14 @@ const FranchiseSystem = {
         branchAddresses = companyInfo.branches.map(b => b.address).join('、');
       }
 
-      // 画像URLを取得（Google Driveに保存）
+      // 画像URLを取得（Google Driveに保存 - 内部関数を使用）
       let imageUrl1 = '';
       let imageUrl2 = '';
       if (identityDocument.images && identityDocument.images.length > 0) {
         // 全ての画像を保存
         for (let i = 0; i < identityDocument.images.length; i++) {
           const image = identityDocument.images[i];
-          const saveResult = saveIdentityDocument(
+          const saveResult = this._saveIdentityDocument(
             {
               data: image.data,
               type: identityDocument.type || 'drivers_license',
@@ -249,9 +434,8 @@ const FranchiseSystem = {
 
       console.log('[FranchiseSystem] 登録完了:', registrationId);
 
-      // Slack通知
+      // Slack通知（内部関数を使用）
       try {
-        // 既存のslackNotificationHandlerを使用
         const registrationData = {
           registrationId: registrationId,
           companyInfo: companyInfo,
@@ -259,12 +443,8 @@ const FranchiseSystem = {
           selectedPrefectures: selectedAreas.prefectures ? selectedAreas.prefectures.split(',') : []
         };
 
-        if (typeof sendSlackRegistrationNotification === 'function') {
-          sendSlackRegistrationNotification(registrationData);
-          console.log('[FranchiseSystem] Slack通知送信完了');
-        } else {
-          console.log('[FranchiseSystem] Slack通知関数が見つかりません');
-        }
+        this._sendSlackRegistrationNotification(registrationData);
+        console.log('[FranchiseSystem] Slack通知送信完了');
       } catch (slackError) {
         console.error('[FranchiseSystem] Slack通知エラー:', slackError);
       }

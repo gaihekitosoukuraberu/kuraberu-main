@@ -1,8 +1,16 @@
 /**
  * ====================================
- * 加盟店向けシステム
+ * 加盟店向けシステム（完全独立版）
  * ====================================
  * 加盟店のログイン・パスワード設定・ダッシュボード用
+ *
+ * 依存関係: なし（完全独立）
+ * 内部関数:
+ *   - _verifySignedUrl: URL署名検証
+ *   - _initCredentialsSheet: 認証情報シート初期化
+ *   - _savePassword: パスワードハッシュ保存
+ *   - _verifyLogin: ログイン検証
+ *   - CompanyInfoManager統合（画像管理・会社情報）
  */
 
 const MerchantSystem = {
@@ -214,12 +222,7 @@ const MerchantSystem = {
         };
       }
 
-      // auth-manager.jsのverifySignedUrlを使用
-      if (typeof verifySignedUrl !== 'function') {
-        throw new Error('verifySignedUrl関数が見つかりません');
-      }
-
-      const merchantId = verifySignedUrl(data, sig);
+      const merchantId = this._verifySignedUrl(data, sig);
 
       if (!merchantId) {
         return {
@@ -258,11 +261,7 @@ const MerchantSystem = {
 
       // URL検証
       if (data && sig) {
-        if (typeof verifySignedUrl !== 'function') {
-          throw new Error('verifySignedUrl関数が見つかりません');
-        }
-
-        const verifiedId = verifySignedUrl(data, sig);
+        const verifiedId = this._verifySignedUrl(data, sig);
         if (!verifiedId || verifiedId !== merchantId) {
           return {
             success: false,
@@ -271,12 +270,7 @@ const MerchantSystem = {
         }
       }
 
-      // パスワード保存（auth-manager.jsを使用）
-      if (typeof savePassword !== 'function') {
-        throw new Error('savePassword関数が見つかりません');
-      }
-
-      const result = savePassword(merchantId, password);
+      const result = this._savePassword(merchantId, password);
 
       if (result.success) {
         return {
@@ -314,11 +308,7 @@ const MerchantSystem = {
       }
 
       // URL検証
-      if (typeof verifySignedUrl !== 'function') {
-        throw new Error('verifySignedUrl関数が見つかりません');
-      }
-
-      const merchantId = verifySignedUrl(data, sig);
+      const merchantId = this._verifySignedUrl(data, sig);
       if (!merchantId) {
         return {
           success: false,
@@ -326,12 +316,7 @@ const MerchantSystem = {
         };
       }
 
-      // パスワード保存
-      if (typeof savePassword !== 'function') {
-        throw new Error('savePassword関数が見つかりません');
-      }
-
-      const result = savePassword(merchantId, password);
+      const result = this._savePassword(merchantId, password);
 
       if (result.success) {
         return {
@@ -718,12 +703,7 @@ const MerchantSystem = {
         }
       }
 
-      // ログイン検証（auth-manager.jsを使用）
-      if (typeof verifyLogin !== 'function') {
-        throw new Error('verifyLogin関数が見つかりません');
-      }
-
-      const isValid = verifyLogin(merchantId, password);
+      const isValid = this._verifyLogin(merchantId, password);
 
       if (isValid) {
         // ログイン成功 - 試行回数リセット
@@ -1570,5 +1550,154 @@ const MerchantSystem = {
         error: error.toString()
       };
     }
+  },
+
+  // ========================================
+  // 内部関数（認証関連）
+  // ========================================
+
+  /**
+   * URL署名検証（内部関数）
+   * @param {string} payload - Base64エンコードされたデータ
+   * @param {string} signature - 署名
+   * @return {string|null} - merchantId or null
+   */
+  _verifySignedUrl: function(payload, signature) {
+    try {
+      const SECRET_KEY = PropertiesService.getScriptProperties().getProperty('SECRET_KEY');
+      console.log('[_verifySignedUrl] payload:', payload);
+      console.log('[_verifySignedUrl] signature:', signature);
+
+      const data = JSON.parse(Utilities.newBlob(
+        Utilities.base64DecodeWebSafe(payload)
+      ).getDataAsString());
+
+      console.log('[_verifySignedUrl] decoded data:', JSON.stringify(data));
+
+      // 署名検証
+      const expectedSig = Utilities.computeDigest(
+        Utilities.DigestAlgorithm.SHA_256,
+        JSON.stringify(data) + SECRET_KEY
+      ).map(function(b) { return ('0' + (b & 0xFF).toString(16)).slice(-2); }).join('').substring(0, 16);
+
+      console.log('[_verifySignedUrl] expected sig:', expectedSig);
+      console.log('[_verifySignedUrl] received sig:', signature);
+      console.log('[_verifySignedUrl] sig match:', signature === expectedSig);
+
+      if (signature !== expectedSig) {
+        console.error('[_verifySignedUrl] Signature mismatch');
+        return null;
+      }
+
+      const now = Date.now();
+      console.log('[_verifySignedUrl] now:', now, 'expires:', data.expires);
+
+      if (now > data.expires) {
+        console.error('[_verifySignedUrl] Token expired');
+        return null;
+      }
+
+      console.log('[_verifySignedUrl] Success! merchantId:', data.merchantId);
+      return data.merchantId;
+    } catch(e) {
+      console.error('[_verifySignedUrl] Exception:', e.toString());
+      return null;
+    }
+  },
+
+  /**
+   * 認証情報シート初期化（内部関数）
+   * @return {Sheet} - 認証情報シート
+   */
+  _initCredentialsSheet: function() {
+    const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    if (!SPREADSHEET_ID) {
+      throw new Error('SPREADSHEET_IDが設定されていません');
+    }
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    let sheet = ss.getSheetByName('認証情報');
+
+    if (!sheet) {
+      sheet = ss.insertSheet('認証情報');
+      sheet.getRange(1, 1, 1, 5).setValues([[
+        '加盟店ID', 'メールアドレス', 'パスワードハッシュ', '最終ログイン', 'パスワード変更日'
+      ]]);
+      sheet.hideSheet(); // シート非表示
+    }
+    return sheet;
+  },
+
+  /**
+   * パスワード保存（内部関数）
+   * @param {string} merchantId - 加盟店ID
+   * @param {string} plainPassword - 平文パスワード
+   * @return {object} - 成功/失敗
+   */
+  _savePassword: function(merchantId, plainPassword) {
+    console.log('[_savePassword] 開始 - ID:', merchantId, 'Pass長:', plainPassword.length);
+    const SECRET_KEY = PropertiesService.getScriptProperties().getProperty('SECRET_KEY');
+    console.log('[_savePassword] SECRET_KEY:', SECRET_KEY);
+
+    const sheet = this._initCredentialsSheet();
+    const hash = Utilities.computeDigest(
+      Utilities.DigestAlgorithm.SHA_256,
+      plainPassword + SECRET_KEY + merchantId
+    ).map(function(b) { return ('0' + (b & 0xFF).toString(16)).slice(-2); }).join('');
+
+    // 既存レコード検索
+    const data = sheet.getDataRange().getValues();
+    const rowIndex = data.findIndex(function(row) { return row[0] === merchantId; });
+
+    if (rowIndex > 0) {
+      sheet.getRange(rowIndex + 1, 3).setValue(hash);
+      sheet.getRange(rowIndex + 1, 5).setValue(new Date());
+    } else {
+      // 新規追加
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const merchantSheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('加盟店登録');
+      const merchantData = merchantSheet.getDataRange().getValues();
+      const merchant = merchantData.find(function(row) { return row[1] === merchantId; }); // B列が登録ID
+      const email = merchant ? merchant[22] : ''; // W列：営業用メールアドレス
+
+      sheet.appendRow([merchantId, email, hash, '', new Date()]);
+    }
+
+    return {success: true};
+  },
+
+  /**
+   * ログイン検証（内部関数）
+   * @param {string} merchantId - 加盟店ID
+   * @param {string} inputPassword - 入力されたパスワード
+   * @return {boolean} - 認証成功/失敗
+   */
+  _verifyLogin: function(merchantId, inputPassword) {
+    console.log('[_verifyLogin] 開始 - ID:', merchantId);
+    const SECRET_KEY = PropertiesService.getScriptProperties().getProperty('SECRET_KEY');
+
+    const sheet = this._initCredentialsSheet();
+    const data = sheet.getDataRange().getValues();
+    const merchant = data.find(function(row) { return row[0] === merchantId; });
+
+    if (!merchant) return false;
+
+    const inputHash = Utilities.computeDigest(
+      Utilities.DigestAlgorithm.SHA_256,
+      inputPassword + SECRET_KEY + merchantId
+    ).map(function(b) { return ('0' + (b & 0xFF).toString(16)).slice(-2); }).join('');
+
+    console.log('[_verifyLogin] 保存ハッシュ:', merchant[2]);
+    console.log('[_verifyLogin] 入力ハッシュ:', inputHash);
+
+    const isValid = merchant[2] === inputHash;
+    console.log('[_verifyLogin] 結果:', isValid);
+
+    if (isValid) {
+      // 最終ログイン更新
+      const rowIndex = data.indexOf(merchant);
+      sheet.getRange(rowIndex + 1, 4).setValue(new Date());
+    }
+
+    return isValid;
   }
 };

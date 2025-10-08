@@ -22,6 +22,112 @@ const CVSheetSystem = {
   },
 
   /**
+   * Q1（物件種別）からV列用の値を抽出
+   * V列の最終選択肢: 戸建て、アパート・マンション、実家・別荘・所有物件、店舗・事務所、工場・倉庫、その他
+   *
+   * 例: 「はい」(Q001の質問が「戸建て2階建てのご自宅ですか？」) → 「戸建て」
+   * 例: 「戸建て2階建て」→「戸建て」
+   * 例: 「アパート・マンション」→「アパート・マンション」
+   * 例: 「2階建て以外の自宅」→「戸建て」
+   */
+  extractPropertyType(q1Value, q1Question) {
+    if (!q1Value) return '';
+
+    // 「はい」の場合は質問文から抽出
+    if (q1Value === 'はい' || q1Value.includes('はい')) {
+      if (q1Question) {
+        if (q1Question.includes('戸建て')) return '戸建て';
+        if (q1Question.includes('マンション')) return 'アパート・マンション';
+        if (q1Question.includes('アパート')) return 'アパート・マンション';
+      }
+      return '';
+    }
+
+    // 「いいえ」の場合は空（次の質問で決まる）
+    if (q1Value === 'いいえ') {
+      return '';
+    }
+
+    // 「2階建て以外の自宅」→「戸建て」
+    if (q1Value.includes('自宅')) {
+      return '戸建て';
+    }
+
+    // 「アパート・マンション」はそのまま
+    if (q1Value.includes('アパート') || q1Value.includes('マンション')) {
+      return 'アパート・マンション';
+    }
+
+    // 「実家・別荘・所有物件」はそのまま
+    if (q1Value.includes('実家') || q1Value.includes('別荘') || q1Value.includes('所有物件')) {
+      return '実家・別荘・所有物件';
+    }
+
+    // 「店舗・事務所」はそのまま
+    if (q1Value.includes('店舗') || q1Value.includes('事務所')) {
+      return '店舗・事務所';
+    }
+
+    // 「工場・倉庫」はそのまま
+    if (q1Value.includes('工場') || q1Value.includes('倉庫')) {
+      return '工場・倉庫';
+    }
+
+    // 「戸建て2階建て」→「戸建て」（階数を除去）
+    let cleaned = q1Value.replace(/\d+階建て?/g, '').trim();
+    if (cleaned.includes('戸建て')) {
+      return '戸建て';
+    }
+
+    // その他
+    return 'その他';
+  },
+
+  /**
+   * Q2（階数）からY列用の値を抽出
+   * 例: 「戸建て2階建て」→「2階建て」
+   * 例: 「2階建て」→「2階建て」
+   * 例: 「3階」→「3階建て」
+   * 例: 「5F」→「5階建て」
+   */
+  extractFloors(q2Value, q1Value, q1Question) {
+    // Q2に値がある場合はそれを優先、なければQ1を使用
+    let source = q2Value || q1Value || '';
+    if (!source) return '';
+
+    // 既に「○階建て」形式の場合はそのまま抽出
+    const floorMatch = source.match(/(\d+)階建て?/);
+    if (floorMatch) {
+      return floorMatch[1] + '階建て';
+    }
+
+    // 「○階」形式の場合（例: 2階 → 2階建て）
+    const floorOnlyMatch = source.match(/(\d+)階/);
+    if (floorOnlyMatch) {
+      return floorOnlyMatch[1] + '階建て';
+    }
+
+    // 「○F」形式の場合（例: 2F → 2階建て）
+    const fMatch = source.match(/(\d+)[Ff]/);
+    if (fMatch) {
+      return fMatch[1] + '階建て';
+    }
+
+    // 「平屋」→「1階建て」
+    if (source.includes('平屋')) {
+      return '1階建て';
+    }
+
+    // 「10階建て以上」のようなパターンはそのまま返す
+    if (source.includes('以上')) {
+      return source;
+    }
+
+    // マッチしない場合は空文字
+    return '';
+  },
+
+  /**
    * 既存スプレッドシートにシート追加
    * ユーザー登録シート + 不正対策ログシート
    */
@@ -245,7 +351,7 @@ const CVSheetSystem = {
         '',                                      // D: フリガナ（空欄）
         '',                                      // E: 性別（空欄）
         '',                                      // F: 年齢（空欄）
-        data.phone || '',                        // G: 電話番号
+        data.phone ? "'" + data.phone : '',      // G: 電話番号（'を先頭に付けて文字列化）
         data.email || '',                        // H: メールアドレス
         '',                                      // I: 続柄（空欄）
 
@@ -254,20 +360,21 @@ const CVSheetSystem = {
         '',                                      // L: 続柄（2人目）
         '',                                      // M: 備考（2人目）
 
-        data.postalCode || '',                   // N: 郵便番号（物件）
+        data.postalCode ? "'" + data.postalCode : '',  // N: 郵便番号（物件）（'を先頭に付けて文字列化）
         data.prefecture || '',                   // O: 都道府県（物件）
         data.city || '',                         // P: 市区町村（物件）
         data.propertyStreet || '',               // Q: 住所詳細（物件）
 
         data.isDifferentHome || 'FALSE',         // R: 自宅住所フラグ
-        data.homeZip || '',                      // S: 郵便番号（自宅）
+        data.homeZip ? "'" + data.homeZip : '',  // S: 郵便番号（自宅）（'を先頭に付けて文字列化）
         data.homePrefecture || '',               // T: 都道府県（自宅）
         data.homeStreet || '',                   // U: 住所詳細（自宅）
 
-        '',                                      // V: 物件種別（空欄）
-        '',                                      // W: 築年数（空欄）
-        '',                                      // X: 建物面積（空欄）
-        '',                                      // Y: 階数（空欄）
+        // V-Y: 物件詳細（BOT回答から自動抽出）
+        this.extractPropertyType(data.q1_propertyType, data.q1_question),  // V: 物件種別
+        data.q3_buildingAge || '',                       // W: 築年数
+        '',                                              // X: 建物面積（空欄）
+        this.extractFloors(data.q2_floors, data.q1_propertyType, data.q1_question), // Y: 階数
 
         // Z-AP: BOT質問回答（Q1〜Q17）
         data.q1_propertyType || '',              // Z: Q1_物件種別
@@ -320,11 +427,26 @@ const CVSheetSystem = {
         // BJ-BL: フォローアップ履歴
         '',                                      // BJ: 架電履歴
         '',                                      // BK: 最終架電日時
-        ''                                       // BL: メモ
+        '',                                      // BL: メモ
+
+        // BM-BS: 管理用フィールド（新規追加）
+        '新規',                                   // BM: 管理ステータス
+        '',                                      // BN: 加盟店別ステータス（JSON）
+        '',                                      // BO: 初回架電日時
+        timestamp,                               // BP: 最終更新日時
+        '',                                      // BQ: 配信予定日時
+        ''                                       // BS: 担当者名
       ];
 
       // 最終行に追加
+      const lastRow = sheet.getLastRow() + 1;
       sheet.appendRow(row);
+
+      // 電話番号と郵便番号を文字列形式に設定（先頭の0が消えないように）
+      sheet.getRange(lastRow, 7).setNumberFormat('@STRING@');  // G: 電話番号
+      sheet.getRange(lastRow, 11).setNumberFormat('@STRING@'); // K: 電話番号（2人目）
+      sheet.getRange(lastRow, 14).setNumberFormat('@STRING@'); // N: 郵便番号（物件）
+      sheet.getRange(lastRow, 19).setNumberFormat('@STRING@'); // S: 郵便番号（自宅）
 
       console.log('[CVSheetSystem] ユーザー登録追加:', cvId);
 
@@ -420,7 +542,7 @@ const CVSheetSystem = {
         '',                                      // D: フリガナ
         '',                                      // E: 性別
         '',                                      // F: 年齢
-        params.phone || '',                      // G: 電話番号
+        params.phone ? "'" + params.phone : '',  // G: 電話番号（'を先頭に付けて文字列化）
         '',                                      // H: メールアドレス（CV2で入力）
         '',                                      // I: 続柄
 
@@ -429,7 +551,7 @@ const CVSheetSystem = {
         '',
         '',
 
-        params.postalCode || '',                 // N: 郵便番号（物件）
+        params.postalCode ? "'" + params.postalCode : '',  // N: 郵便番号（物件）（'を先頭に付けて文字列化）
         '',                                      // O: 都道府県（CV2で入力）
         '',                                      // P: 市区町村（CV2で入力）
         '',                                      // Q: 住所詳細（CV2で入力）
@@ -439,10 +561,11 @@ const CVSheetSystem = {
         '',
         '',
 
-        '',                                      // V-Y: 物件詳細
-        '',
-        '',
-        '',
+        // V-Y: 物件詳細（BOT回答から自動抽出）
+        this.extractPropertyType(params.q1_propertyType, params.q1_question),  // V: 物件種別
+        params.q3_buildingAge || '',                        // W: 築年数
+        '',                                                 // X: 建物面積（空欄）
+        this.extractFloors(params.q2_floors, params.q1_propertyType, params.q1_question), // Y: 階数
 
         // Z-AP: BOT質問回答（Q1〜Q17）
         params.q1_propertyType || '',            // Z
@@ -487,13 +610,28 @@ const CVSheetSystem = {
         timestamp,                               // BH: 最終訪問日時
         'FALSE',                                 // BI: ブロックフラグ
 
-        '',                                      // BJ-BL: フォローアップ
-        '',
-        ''
+        '',                                      // BJ: 架電履歴
+        '',                                      // BK: 最終架電日時
+        '',                                      // BL: メモ
+
+        // BM-BS: 管理用フィールド（新規追加）
+        '新規',                                   // BM: 管理ステータス
+        '',                                      // BN: 加盟店別ステータス（JSON）
+        '',                                      // BO: 初回架電日時
+        timestamp,                               // BP: 最終更新日時
+        '',                                      // BQ: 配信予定日時
+        ''                                       // BS: 担当者名
       ];
 
       // 最終行に追加
+      const lastRow = sheet.getLastRow() + 1;
       sheet.appendRow(row);
+
+      // 電話番号と郵便番号を文字列形式に設定（先頭の0が消えないように）
+      sheet.getRange(lastRow, 7).setNumberFormat('@STRING@');  // G: 電話番号
+      sheet.getRange(lastRow, 11).setNumberFormat('@STRING@'); // K: 電話番号（2人目）
+      sheet.getRange(lastRow, 14).setNumberFormat('@STRING@'); // N: 郵便番号（物件）
+      sheet.getRange(lastRow, 19).setNumberFormat('@STRING@'); // S: 郵便番号（自宅）
 
       console.log('[CVSheetSystem] CV1保存完了:', cvId);
 
@@ -579,7 +717,7 @@ const CVSheetSystem = {
 
       // 自宅住所
       sheet.getRange(targetRow, 18).setValue(params.isDifferentHome ? 'TRUE' : 'FALSE'); // R: 自宅住所フラグ
-      sheet.getRange(targetRow, 19).setValue(params.homeZip || '');                // S: 郵便番号（自宅）
+      sheet.getRange(targetRow, 19).setValue(params.homeZip ? "'" + params.homeZip : '');  // S: 郵便番号（自宅）（'を先頭に付けて文字列化）
       sheet.getRange(targetRow, 20).setValue(params.homePrefecture || '');         // T: 都道府県（自宅）
       sheet.getRange(targetRow, 21).setValue(params.homeStreet || '');             // U: 住所詳細（自宅）
 
@@ -620,6 +758,154 @@ const CVSheetSystem = {
 
     } catch (error) {
       console.error('[CVSheetSystem] CV2更新エラー:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * 全CV取得（アドミンダッシュボード用）
+   */
+  getAllCVs() {
+    try {
+      const ssId = this.getSpreadsheetId();
+      const ss = SpreadsheetApp.openById(ssId);
+      const sheet = ss.getSheetByName('ユーザー登録');
+
+      if (!sheet) {
+        throw new Error('ユーザー登録シートが見つかりません');
+      }
+
+      // 全データ取得（ヘッダー行を除く）
+      const dataRange = sheet.getDataRange();
+      const values = dataRange.getValues();
+      const headers = values[0]; // ヘッダー行
+      const dataRows = values.slice(1); // データ行（2行目以降）
+
+      console.log('[CVSheetSystem] 全CV取得:', dataRows.length, '件');
+
+      // データ行を配列に変換
+      const cvList = dataRows.map((row, index) => {
+        // 空行をスキップ
+        if (!row[0]) return null;
+
+        return {
+          // A-I: 基本個人情報
+          cvId: row[0] || '',                           // A: CV ID
+          registeredAt: row[1] || '',                   // B: 登録日時
+          name: row[2] || '',                           // C: 氏名
+          nameKana: row[3] || '',                       // D: フリガナ
+          gender: row[4] || '',                         // E: 性別
+          age: row[5] || '',                            // F: 年齢
+          phone: row[6] || '',                          // G: 電話番号
+          email: row[7] || '',                          // H: メールアドレス
+          relation: row[8] || '',                       // I: 続柄
+
+          // J-M: 2人目情報
+          secondPerson: {
+            name: row[9] || '',                         // J: 氏名（2人目）
+            phone: row[10] || '',                       // K: 電話番号（2人目）
+            relation: row[11] || '',                    // L: 続柄（2人目）
+            memo: row[12] || ''                         // M: 備考（2人目）
+          },
+
+          // N-Q: 物件住所
+          postalCode: row[13] || '',                    // N: 郵便番号（物件）
+          prefecture: row[14] || '',                    // O: 都道府県（物件）
+          city: row[15] || '',                          // P: 市区町村（物件）
+          propertyStreet: row[16] || '',                // Q: 住所詳細（物件）
+
+          // R-U: 自宅住所
+          isDifferentHome: row[17] === 'TRUE',          // R: 自宅住所フラグ
+          homeAddress: {
+            postalCode: row[18] || '',                  // S: 郵便番号（自宅）
+            prefecture: row[19] || '',                  // T: 都道府県（自宅）
+            street: row[20] || ''                       // U: 住所詳細（自宅）
+          },
+
+          // V-Y: 物件詳細（BOT回答から自動抽出される）
+          propertyType: row[21] || '',                  // V: 物件種別
+          buildingAge: row[22] || '',                   // W: 築年数
+          area: row[23] || '',                          // X: 建物面積
+          floors: row[24] || '',                        // Y: 階数
+
+          // Z-AP: BOT質問回答（Q1〜Q17）
+          botAnswers: {
+            q1_propertyType: row[25] || '',             // Z: Q1_物件種別
+            q2_floors: row[26] || '',                   // AA: Q2_階数
+            q3_buildingAge: row[27] || '',              // AB: Q3_築年数
+            q4_constructionHistory: row[28] || '',      // AC: Q4_工事歴
+            q5_lastConstructionTime: row[29] || '',     // AD: Q5_前回施工時期
+            q6_wallMaterial: row[30] || '',             // AE: Q6_外壁材質
+            q7_roofMaterial: row[31] || '',             // AF: Q7_屋根材質
+            q8_concernedArea: row[32] || '',            // AG: Q8_気になる箇所
+            q9_wallWorkType: row[33] || '',             // AH: Q9_希望工事内容_外壁
+            q10_roofWorkType: row[34] || '',            // AI: Q10_希望工事内容_屋根
+            q11_quoteCount: row[35] || '',              // AJ: Q11_見積もり保有数
+            q12_quoteSource: row[36] || '',             // AK: Q12_見積もり取得先
+            q13_doorSalesVisit: row[37] || '',          // AL: Q13_訪問業者有無
+            q14_comparisonIntention: row[38] || '',     // AM: Q14_比較意向
+            q15_doorSalesCompany: row[39] || '',        // AN: Q15_訪問業者名
+            q16_deteriorationStatus: row[40] || '',     // AO: Q16_現在の劣化状況
+            q17_selectionCriteria: row[41] || ''        // AP: Q17_業者選定条件
+          },
+
+          // AQ-AR: CV2入力項目
+          surveyDatePreference: row[42] || '',          // AQ: 現地調査希望日時
+          keepInfo: row[43] || '',                      // AR: その他ご要望
+
+          // AS-AV: 予備・運用項目
+          budget: row[44] || '',                        // AS: 予算
+          reserve1: row[45] || '',                      // AT: 予備項目1
+          reserve2: row[46] || '',                      // AU: 予備項目2
+          reserve3: row[47] || '',                      // AV: 予備項目3
+
+          // AW-BC: 配信・成約管理
+          deliveryStatus: row[48] || '',                // AW: 配信ステータス
+          companiesCount: row[49] || 0,                 // AX: 配信先加盟店数
+          deliveryDate: row[50] || '',                  // AY: 配信日時
+          contractFlag: row[51] === 'TRUE',             // AZ: 成約フラグ
+          contractDate: row[52] || '',                  // BA: 成約日時
+          contractFranchiseId: row[53] || '',           // BB: 成約加盟店ID
+          contractAmount: row[54] || '',                // BC: 成約金額
+
+          // BD-BF: 流入トラッキング
+          referrer: row[55] || '',                      // BD: 流入元URL
+          searchKeyword: row[56] || '',                 // BE: 検索キーワード
+          utmParams: row[57] || '',                     // BF: UTMパラメータ
+
+          // BG-BI: 不正対策
+          visitCount: row[58] || 0,                     // BG: 訪問回数
+          lastVisitDate: row[59] || '',                 // BH: 最終訪問日時
+          isBlocked: row[60] === 'TRUE',                // BI: ブロックフラグ
+
+          // BJ-BL: フォローアップ履歴
+          callHistory: row[61] || '',                   // BJ: 架電履歴
+          lastCallDate: row[62] || '',                  // BK: 最終架電日時
+          memo: row[63] || '',                          // BL: メモ
+
+          // BM-BS: 管理用フィールド（新規追加）
+          status: row[64] || '新規',                     // BM: 管理ステータス
+          franchiseStatuses: row[65] || '',             // BN: 加盟店別ステータス（JSON）
+          firstCallDate: row[66] || '',                 // BO: 初回架電日時
+          lastUpdateDate: row[67] || '',                // BP: 最終更新日時
+          scheduledDeliveryDate: row[68] || '',         // BQ: 配信予定日時
+          assignedTo: row[69] || ''                     // BS: 担当者名
+        };
+      }).filter(cv => cv !== null); // 空行を除外
+
+      console.log('[CVSheetSystem] CV変換完了:', cvList.length, '件');
+
+      return {
+        success: true,
+        data: cvList,
+        count: cvList.length
+      };
+
+    } catch (error) {
+      console.error('[CVSheetSystem] 全CV取得エラー:', error);
       return {
         success: false,
         error: error.toString()
@@ -676,6 +962,11 @@ const CVSheetSystem = {
           success: false,
           error: 'Not implemented yet'
         };
+      }
+
+      // 全CV取得（アドミンダッシュボード用）
+      if (action === 'getCVList') {
+        return this.getAllCVs();
       }
 
       return {

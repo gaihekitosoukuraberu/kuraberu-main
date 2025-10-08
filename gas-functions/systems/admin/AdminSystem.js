@@ -1,8 +1,11 @@
 /**
  * ====================================
- * 管理ダッシュボードシステム
+ * 管理ダッシュボードシステム（完全独立版）
  * ====================================
- * 完全独立モジュール
+ * 完全独立モジュール - 外部依存ゼロ
+ *
+ * 依存関係: なし
+ * 内包関数: _generateFirstLoginUrl, _sendWelcomeEmail, _sendSlackNotification
  */
 
 const AdminSystem = {
@@ -459,16 +462,8 @@ const AdminSystem = {
             sheet.getRange(i + 1, pauseEndIndex + 1).setValue('');
           }
 
-          // Slack通知を送信（既存の関数を使用）
-          try {
-            if (typeof sendApprovalNotification === 'function') {
-              sendApprovalNotification(registrationId, true, 'ryutayamauchi');
-              console.log('[AdminSystem] Slack承認通知送信完了');
-            }
-          } catch (slackError) {
-            console.error('[AdminSystem] Slack通知エラー:', slackError);
-            // Slackエラーは無視して処理を続行
-          }
+          // Slack通知を送信（内部関数を使用）
+          this._sendSlackNotification(registrationId, true, 'ryutayamauchi');
 
           // 初回ログインメール送信
           try {
@@ -585,16 +580,8 @@ const AdminSystem = {
             sheet.getRange(i + 1, rejectReasonIndex + 1).setValue(reason);
           }
 
-          // Slack通知を送信（既存の関数を使用）
-          try {
-            if (typeof sendApprovalNotification === 'function') {
-              sendApprovalNotification(registrationId, false, 'ryutayamauchi', reason);
-              console.log('[AdminSystem] Slack却下通知送信完了');
-            }
-          } catch (slackError) {
-            console.error('[AdminSystem] Slack通知エラー:', slackError);
-            // Slackエラーは無視して処理を続行
-          }
+          // Slack通知を送信（内部関数を使用）
+          this._sendSlackNotification(registrationId, false, 'ryutayamauchi', reason);
 
           return {
             success: true,
@@ -776,6 +763,61 @@ const AdminSystem = {
     } catch (mailError) {
       Logger.log('[AdminSystem] メール送信失敗: ' + mailError.toString());
       throw new Error('メール送信に失敗しました: ' + mailError.toString());
+    }
+  },
+
+  /**
+   * Slack通知送信（内部関数）
+   * @param {string} registrationId - 登録ID
+   * @param {boolean} isApproved - 承認/却下フラグ
+   * @param {string} user - 処理者名
+   * @param {string} reason - 却下理由（オプション）
+   */
+  _sendSlackNotification: function(registrationId, isApproved, user, reason) {
+    try {
+      const webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
+      if (!webhookUrl) {
+        Logger.log('[AdminSystem] Slack WebhookURLが未設定のため通知をスキップ');
+        return;
+      }
+
+      const message = {
+        text: isApproved
+          ? `@channel ✅ 登録ID: ${registrationId} が承認されました`
+          : `@channel ❌ 登録ID: ${registrationId} が却下されました`,
+        attachments: [{
+          color: isApproved ? 'good' : 'danger',
+          fields: [
+            { title: 'ステータス', value: isApproved ? '承認済み' : '却下', short: true },
+            { title: '処理者', value: user || '管理者', short: true },
+            { title: '処理日時', value: Utilities.formatDate(new Date(), 'JST', 'yyyy/MM/dd HH:mm:ss'), short: true }
+          ]
+        }]
+      };
+
+      // 却下理由を追加
+      if (!isApproved && reason) {
+        message.attachments[0].fields.push({ title: '却下理由', value: reason, short: false });
+      }
+
+      const options = {
+        method: 'post',
+        contentType: 'application/json',
+        payload: JSON.stringify(message),
+        muteHttpExceptions: true
+      };
+
+      const response = UrlFetchApp.fetch(webhookUrl, options);
+      const responseCode = response.getResponseCode();
+
+      if (responseCode === 200) {
+        Logger.log('[AdminSystem] Slack通知送信成功: ' + registrationId);
+      } else {
+        Logger.log('[AdminSystem] Slack通知送信失敗（HTTP ' + responseCode + '）: ' + response.getContentText());
+      }
+    } catch (error) {
+      Logger.log('[AdminSystem] Slack通知エラー: ' + error.toString());
+      // エラーでもシステム処理は継続
     }
   },
 

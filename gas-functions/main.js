@@ -60,7 +60,7 @@ function doGet(e) {
       result = MerchantSystem.handle(e.parameter);
     }
     // CVデータ管理システム
-    else if (action.startsWith('cv_') || action.startsWith('cv1_') || action.startsWith('cv2_')) {
+    else if (action.startsWith('cv_') || action.startsWith('cv1_') || action.startsWith('cv2_') || action === 'getCVList') {
       console.log('[main.gs] ✅ Routing to CVSheetSystem');
       result = CVSheetSystem.handle(e.parameter);
       console.log('[main.gs] CVSheetSystem result:', JSON.stringify(result));
