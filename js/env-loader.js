@@ -7,7 +7,7 @@
 
 const ENV = {
   // GAS デプロイメントURL（これ1箇所だけで管理）
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbwblipWWSiroHMPnFwmu53Klnhb5RPytk3eU4F6VKF_yqHL6vlI-YJ78yaE7MF-nrAAsA/exec',
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbzYC8oyQjjcENCdqKbCtapUKskn7aFpIaxslR-UaW7WgdSqftdq_852R6JgEdRvffjhQA/exec',
 
   // デバッグモード
   DEBUG: false,
@@ -18,6 +18,9 @@ const ENV = {
   // リトライ設定
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
+
+  // キャッシュバスター
+  CACHE_BUSTER: '2025-10-12T16:30:00'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

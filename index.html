@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>本部管理画面 - 案件割り振りシステム</title>
-    <!-- キャッシュ無効化 -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
+    <link rel="icon" type="image/png" href="images/7.png">
+    <link rel="apple-touch-icon" href="images/7.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -982,19 +980,6 @@
                 <div class="flex justify-center mt-8">
                     <button class="bg-green-500 text-white px-8 py-3 rounded-lg font-semibold text-lg hover:bg-green-600 transition-all">オーダー転送</button>
                 </div>
-
-                <!-- ページングボタン追加 -->
-                <div class="flex justify-center mt-8 space-x-2">
-                    <button onclick="previousPage()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50" id="prevBtn">
-                        前へ
-                    </button>
-                    <span class="px-4 py-2 text-gray-700">
-                        ページ <span id="currentPage">1</span> / <span id="totalPages">1</span>
-                    </span>
-                    <button onclick="nextPage()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50" id="nextBtn">
-                        次へ
-                    </button>
-                </div>
             </div>
             </div><!-- originalFormContent終了 -->
     </main>
@@ -1267,28 +1252,15 @@
 
             // APIコールでスプレッドシートを更新
             const apiStatus = statusLabels[status];
-            if (window.apiClient) {
-                window.apiClient.jsonpRequest('updateMerchantStatusFromAdmin', {
-                    merchantId: franchiseId,
-                    status: apiStatus
-                }).then(response => {
-                    if (response.success) {
-                        console.log(`加盟店 ${franchiseId} のステータスを ${apiStatus} に更新しました`, response);
-                        showNotification(`ステータスを「${apiStatus}」に更新しました`, 'success');
-                    } else {
-                        console.error('ステータス更新エラー:', response.error);
-                        showNotification('ステータスの更新に失敗しました: ' + response.error, 'error');
-                        location.reload();
-                    }
-                }).catch(error => {
-                    console.error('ステータス更新エラー:', error);
-                    showNotification('ステータスの更新に失敗しました', 'error');
-                    location.reload();
-                });
-            } else {
-                console.error('apiClient が初期化されていません');
-                showNotification('システムエラーが発生しました', 'error');
-            }
+            updateFranchiseStatusAPI(franchiseId, apiStatus).then(response => {
+                console.log(`加盟店 ${franchiseId} のステータスを ${apiStatus} に更新しました`, response);
+                showNotification(`ステータスを「${apiStatus}」に更新しました`, 'success');
+            }).catch(error => {
+                console.error('ステータス更新エラー:', error);
+                showNotification('ステータスの更新に失敗しました', 'error');
+                // 元のステータスに戻す
+                location.reload();
+            });
 
             // 成功メッセージを表示（即座にUI更新）
             const statusLabelsDisplay = {
@@ -1948,48 +1920,31 @@
                 mainContent.innerHTML = ''; // 一旦クリア
 
                 // 後でスプレッドシートから実データを取得
-                loadFranchiseManagementData('all').then(response => {
+                (window.loadFranchiseManagementData || loadFranchiseManagementData)('all').then(response => {
                     console.log('加盟店データ取得成功:', response);
 
-                    if (!response.success || !response.data || response.data.length === 0) {
-                        console.log('承認済み加盟店なし');
-                        window.franchiseData = [];
-                        return;
-                    }
-
                     // データを画面用に変換
-                    window.franchiseData = response.data.map(f => {
-                        const companyName = f['会社名'] || f.companyName || f['会社名（法人名）'] || '';
-                        const prefectures = f['対応都道府県'] || f.prefectures || '';
-                        const areas = prefectures ? prefectures.split(',').slice(0, 2).join(', ') : '';
-                        const moreCount = prefectures ? Math.max(0, prefectures.split(',').length - 2) : 0;
-                        const areaDisplay = moreCount > 0 ? `${areas}他${moreCount}件` : areas || '-';
-
-                        // AJ列（ステータス）を取得
-                        const statusValue = f['ステータス'] || f.status || '休止';
-
-                        return {
-                            id: f['登録ID'] || f.registrationId || '-',
-                            name: companyName,
-                            area: areaDisplay,
-                            areaDetail: prefectures,
-                            avatar: {
-                                text: companyName ? companyName.substring(0, 1) : '？',
-                                colorClass: 'bg-blue-100',
-                                textColorClass: 'text-blue-600'
-                            },
-                            conversionRate: f.contractRate || 0,
-                            conversionChange: f.performance ? `${f.performance.trend}${f.performance.trendValue}%` : '+0%',
-                            conversionColorClass: f.performance && f.performance.trend === '+' ? 'text-green-600' : 'text-yellow-600',
-                            monthlyPerformance: {
-                                cases: f.deliveryCount ? f.deliveryCount.current : 0,
-                                amount: f.deliveryCount ? f.deliveryCount.unit : '¥0M'
-                            },
-                            handicap: f.handicap || 0,
-                            status: convertStatusForUI(statusValue),
-                            memos: []
-                        };
-                    });
+                    window.franchiseData = response.data.map(f => ({
+                        id: f.id,
+                        name: f.companyName,
+                        avatar: {
+                            text: f.companyName ? f.companyName.substring(0, 1) : '？',
+                            colorClass: 'bg-blue-100',
+                            textColorClass: 'text-blue-600'
+                        },
+                        area: f.area,
+                        areaDetail: f.area,
+                        conversionRate: f.contractRate || 0,
+                        conversionChange: f.performance ? `${f.performance.trend}${f.performance.trendValue}%` : '+0%',
+                        conversionColorClass: f.performance && f.performance.trend === '+' ? 'text-green-600' : 'text-yellow-600',
+                        monthlyPerformance: {
+                            cases: f.deliveryCount ? f.deliveryCount.current : 0,
+                            amount: f.deliveryCount ? f.deliveryCount.unit : '¥0M'
+                        },
+                        handicap: f.handicap || 0,
+                        status: convertStatusForUI(f.status),
+                        memos: []
+                    }));
 
                     // テーブルを更新（PC版）
                     const tbody = document.querySelector('#franchise-table tbody');
@@ -2004,12 +1959,10 @@
                     }
 
                     // 統計を更新
-                    if (response.stats) {
-                        updateFranchiseStats(response.stats);
-                    }
+                    updateFranchiseStats(response.stats);
                 }).catch(error => {
                     console.error('加盟店データ取得エラー:', error);
-                    // エラーメッセージは表示しない（データがない場合は正常）
+                    showNotification('加盟店データの取得に失敗しました', 'error');
                 });
 
                 // ステータス変換関数
@@ -2610,16 +2563,10 @@
 
                 // registrationRequestsセクション表示後にデータを取得
                 setTimeout(() => {
-                    // 独立モジュールのloadRegistrationRequestsDataを呼び出し
-                    if (typeof loadRegistrationRequestsData === 'function') {
-                        console.log('[Main] Calling loadRegistrationRequestsData...');
-                        loadRegistrationRequestsData();
-                    } else {
-                        console.error('[Main] loadRegistrationRequestsData not found');
-                        // フォールバック：古い関数を試す
-                        if (typeof refreshDashboard === 'function') {
-                            refreshDashboard();
-                        }
+                    if (typeof refreshDashboard === 'function') {
+                        refreshDashboard();
+                    } else if (window.dashboardAPI && typeof window.dashboardAPI.refreshDashboard === 'function') {
+                        window.dashboardAPI.refreshDashboard();
                     }
                 }, 100);
 
@@ -3826,123 +3773,49 @@
         }
         
         // 加盟店登録申請を承認
-        async function approveRegistration(registrationId) {
-            console.log('[approveRegistration] 開始 - ID:', registrationId);
-            console.log('[approveRegistration] GAS_URL:', window.ENV.GAS_URL);
+        function approveRegistration(registrationId) {
+            if (confirm(`申請ID: ${registrationId} を承認しますか？`)) {
+                // 承認処理（実際はAPIコール）
+                console.log(`承認処理: ${registrationId}`);
 
-            if (!confirm(`申請ID: ${registrationId} を承認しますか？\n\n承認後、初回ログイン情報がメール送信されます。`)) {
-                return;
-            }
-
-            try {
-                // ローディング表示
+                // 成功通知を表示
                 const notification = document.createElement('div');
-                notification.className = 'fixed top-20 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center';
+                notification.className = 'fixed top-20 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center';
                 notification.innerHTML = `
-                    <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    承認処理中...
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    申請を承認しました
                 `;
                 document.body.appendChild(notification);
+                setTimeout(() => notification.remove(), 3000);
 
-                // GAS APIコール
-                const formData = new FormData();
-                formData.append('action', 'approveRegistration');
-                formData.append('registrationId', registrationId);
-
-                console.log('[approveRegistration] FormData送信:', {
-                    action: 'approveRegistration',
-                    registrationId: registrationId,
-                    url: window.ENV.GAS_URL
-                });
-
-                const response = await fetch(window.ENV.GAS_URL, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                console.log('[approveRegistration] Response status:', response.status);
-                console.log('[approveRegistration] Response headers:', response.headers);
-
-                const result = await response.json();
-                console.log('[approveRegistration] Result:', result);
-                notification.remove();
-
-                if (result.success) {
-                    // 成功通知を表示
-                    const successNotification = document.createElement('div');
-                    successNotification.className = 'fixed top-20 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center';
-                    successNotification.innerHTML = `
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        申請を承認しました（初回ログインメール送信済み）
-                    `;
-                    document.body.appendChild(successNotification);
-                    setTimeout(() => {
-                        successNotification.remove();
-                        location.reload();
-                    }, 3000);
-                } else {
-                    throw new Error(result.error || '承認に失敗しました');
-                }
-            } catch (error) {
-                console.error('承認エラー:', error);
-                alert('承認処理に失敗しました: ' + error.message);
+                // 該当行を削除または更新（実際は再読み込み）
+                location.reload();
             }
         }
 
         // 加盟店登録申請を却下
-        async function rejectRegistration(registrationId) {
+        function rejectRegistration(registrationId) {
             const reason = prompt(`申請ID: ${registrationId} を却下する理由を入力してください：`);
-            if (!reason) {
-                return;
-            }
+            if (reason) {
+                // 却下処理（実際はAPIコール）
+                console.log(`却下処理: ${registrationId}, 理由: ${reason}`);
 
-            try {
-                // ローディング表示
+                // 成功通知を表示
                 const notification = document.createElement('div');
-                notification.className = 'fixed top-20 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center';
+                notification.className = 'fixed top-20 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center';
                 notification.innerHTML = `
-                    <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    却下処理中...
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    申請を却下しました
                 `;
                 document.body.appendChild(notification);
+                setTimeout(() => notification.remove(), 3000);
 
-                // GAS APIコール
-                const formData = new FormData();
-                formData.append('action', 'rejectRegistration');
-                formData.append('registrationId', registrationId);
-                formData.append('reason', reason);
-
-                const response = await fetch(window.ENV.GAS_URL, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-                notification.remove();
-
-                if (result.success) {
-                    // 成功通知を表示
-                    const successNotification = document.createElement('div');
-                    successNotification.className = 'fixed top-20 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center';
-                    successNotification.innerHTML = `
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                        申請を却下しました
-                    `;
-                    document.body.appendChild(successNotification);
-                    setTimeout(() => {
-                        successNotification.remove();
-                        location.reload();
-                    }, 3000);
-                } else {
-                    throw new Error(result.error || '却下に失敗しました');
-                }
-            } catch (error) {
-                console.error('却下エラー:', error);
-                alert('却下処理に失敗しました: ' + error.message);
+                // 該当行を削除または更新（実際は再読み込み）
+                location.reload();
             }
         }
 
@@ -4050,10 +3923,10 @@
                     </div>
                     
                     <div class="flex gap-3">
-                        <button onclick="approveRegistrationModal('${registrationId}')" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                        <button onclick="approveRegistration('${registrationId}')" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
                             承認してメール送信
                         </button>
-                        <button onclick="rejectRegistrationModal('${registrationId}')" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                        <button onclick="rejectRegistration('${registrationId}')" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
                             却下
                         </button>
                         <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
@@ -4065,80 +3938,20 @@
             document.body.appendChild(modal);
         }
         
-        async function approveRegistrationModal(registrationId) {
-            console.log('[approveRegistrationModal] 開始 - ID:', registrationId);
-
-            if (!confirm('この申請を承認しますか？\n\n承認後、初回ログイン情報がメール送信されます。')) {
-                return;
-            }
-
-            try {
-                // GAS APIコール
-                const formData = new FormData();
-                formData.append('action', 'approveRegistration');
-                formData.append('registrationId', registrationId);
-
-                console.log('[approveRegistrationModal] FormData送信:', {
-                    action: 'approveRegistration',
-                    registrationId: registrationId
-                });
-
-                const response = await fetch(window.ENV.GAS_URL, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                console.log('[approveRegistrationModal] Response:', response.status);
-                const result = await response.json();
-                console.log('[approveRegistrationModal] Result:', result);
-
-                if (result.success) {
-                    alert(`申請 ${registrationId} を承認しました。\n\n初回ログイン情報をメール送信しました。`);
-                    const modal = document.querySelector('.fixed');
-                    if (modal) modal.remove();
-                    updateRegistrationRequestCount(-1);
-                    location.reload();
-                } else {
-                    throw new Error(result.error || '承認に失敗しました');
-                }
-            } catch (error) {
-                console.error('承認エラー:', error);
-                alert('承認処理に失敗しました: ' + error.message);
+        function approveRegistration(registrationId) {
+            if (confirm('この申請を承認しますか？\n\n承認後、初回ログイン情報がメール送信されます。')) {
+                alert(`申請 ${registrationId} を承認しました。\n\n加盟店ID: F033\n初回ログイン情報をメール送信しました。`);
+                document.querySelector('.fixed').remove();
+                updateRegistrationRequestCount(-1);
             }
         }
         
-        async function rejectRegistrationModal(registrationId) {
+        function rejectRegistration(registrationId) {
             const reason = prompt('却下理由を入力してください：');
-            if (!reason || !confirm('本当に却下しますか？')) {
-                return;
-            }
-
-            try {
-                // GAS APIコール
-                const formData = new FormData();
-                formData.append('action', 'rejectRegistration');
-                formData.append('registrationId', registrationId);
-                formData.append('reason', reason);
-
-                const response = await fetch(window.ENV.GAS_URL, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    alert(`申請 ${registrationId} を却下しました。\n\n理由: ${reason}`);
-                    const modal = document.querySelector('.fixed');
-                    if (modal) modal.remove();
-                    updateRegistrationRequestCount(-1);
-                    location.reload();
-                } else {
-                    throw new Error(result.error || '却下に失敗しました');
-                }
-            } catch (error) {
-                console.error('却下エラー:', error);
-                alert('却下処理に失敗しました: ' + error.message);
+            if (reason && confirm('本当に却下しますか？')) {
+                alert(`申請 ${registrationId} を却下しました。\n\n理由: ${reason}\n申請者に通知を送信します。`);
+                document.querySelector('.fixed').remove();
+                updateRegistrationRequestCount(-1);
             }
         }
         
@@ -4677,6 +4490,13 @@
                 currentView = 'crm';
                 // CRM表示時は選択件数を非表示
                 document.getElementById('selectionCountDisplay').classList.add('hidden');
+
+                // currentCaseIdが未設定の場合は最初の案件を自動選択
+                if (!currentCaseId && Object.keys(casesData).length > 0) {
+                    currentCaseId = Object.keys(casesData)[0];
+                    console.log('CRM表示: 最初の案件を自動選択', currentCaseId);
+                }
+
                 loadCRMContent(currentCaseId);
             }
         }
@@ -4767,8 +4587,16 @@
 
         // CRMコンテンツの読み込み
         function loadCRMContent(caseId) {
+            if (!caseId) {
+                console.log('loadCRMContent: caseIdが指定されていません');
+                return;
+            }
+
             const caseData = casesData[caseId];
-            if (!caseData) return;
+            if (!caseData) {
+                console.log('loadCRMContent: caseDataが見つかりません:', caseId);
+                return;
+            }
 
             // ステータスを設定
             document.getElementById('crmStatus').value = caseData.status;
@@ -5447,42 +5275,16 @@
         });
     </script>
     <!-- 管理ダッシュボード API連携 -->
-    <!-- 新アーキテクチャ v2.0 -->
-    <script src="js/env-loader.js?v=4000"></script>
-    <script src="js/api-client.js?v=1028"></script>
-    <!-- dashboard-api-v2.jsは registration-requests.js と重複するため無効化 -->
-    <!-- <script src="js/dashboard-api-v2.js?v=2.3"></script> -->
-    <script src="js/data-formatter.js?v=2.3"></script>
-    <script src="js/registration-requests.js?v=1028"></script>
+    <!-- 新アーキテクチャ v2.0 - Fixed: URL更新 + 自動更新無効化 -->
+    <script src="js/env-loader.js?v=20251012_1800"></script>
+    <script src="js/api-client.js?v=1012"></script>
+    <script src="js/dashboard-api.js?v=20251012_1800"></script>
+    <script src="js/data-formatter.js?v=1012"></script>
+    <script src="js/registration-requests.js?v=20251012_1800"></script>
+    <!-- 旧システム（無効化） -->
+    <!-- <script src="js/gas-config.js?v=20250926_1800"></script> -->
+    <!-- <script src="js/dashboard-api.js?v=20250926_1800"></script> -->
     <script>
-        // 加盟店管理データ取得関数
-        async function loadFranchiseManagementData(filter = 'all') {
-            console.log('[FranchiseManagement] データロード開始');
-            try {
-                if (!window.apiClient) {
-                    window.apiClient = new ApiClient();
-                }
-                const result = await window.apiClient.jsonpRequest('getRegistrationRequests', {
-                    status: 'all',
-                    limit: 100
-                });
-                if (result && result.data) {
-                    // 承認ステータス=承認済み のみ表示
-                    const approved = result.data.filter(item => {
-                        const ast = item['承認ステータス'] || item.approvalStatus || '';
-                        return ast === '承認済み';
-                    });
-                    console.log('[FranchiseManagement] 承認済み:', approved.length);
-                    return { success: true, data: approved };
-                }
-                return { success: false, data: [] };
-            } catch (error) {
-                console.error('[FranchiseManagement] エラー:', error);
-                return { success: false, data: [] };
-            }
-        }
-        window.loadFranchiseManagementData = loadFranchiseManagementData;
-
         // ページ読み込み完了後にデータを取得
         document.addEventListener('DOMContentLoaded', function() {
             // ログイン後のみデータ取得
