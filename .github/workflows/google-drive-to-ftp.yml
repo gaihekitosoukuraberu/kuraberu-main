@@ -23,7 +23,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install google-api-python-client google-auth google-auth-oauthlib
-        pip install ftplib
+        pip install requests
 
     - name: Create Google Drive sync script
       run: |
