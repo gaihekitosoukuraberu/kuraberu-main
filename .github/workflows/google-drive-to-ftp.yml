@@ -1,0 +1,131 @@
+name: Google Drive to Xserver FTP Auto Upload
+
+on:
+  schedule:
+    # 毎15分実行(カスタマイズ可能)
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    # 手動実行ボタン
+
+jobs:
+  sync-to-ftp:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install google-api-python-client google-auth google-auth-oauthlib
+        pip install ftplib
+
+    - name: Create Google Drive sync script
+      run: |
+        cat > sync_drive_to_ftp.py << 'EOF'
+        import os
+        import json
+        import ftplib
+        import tempfile
+        import requests
+        from datetime import datetime, timedelta
+
+        def download_file_from_drive(file_id, destination):
+            """Google Driveから直接ダウンロード"""
+            download_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+            response = requests.get(download_url)
+
+            if response.status_code == 200:
+                with open(destination, 'wb') as f:
+                    f.write(response.content)
+                return True
+            return False
+
+        def upload_to_ftp(local_file, remote_file):
+            """Xserver FTPにアップロード"""
+            try:
+                ftp = ftplib.FTP(os.environ['FTP_HOST'])
+                ftp.login(os.environ['FTP_USERNAME'], os.environ['FTP_PASSWORD'])
+
+                # リモートディレクトリに移動
+                ftp.cwd('/gaihekikuraberu.com/public_html')
+
+                # ファイルアップロード
+                with open(local_file, 'rb') as f:
+                    ftp.storbinary(f'STOR {remote_file}', f)
+                
+                ftp.quit()
+                print(f"✅ アップロード成功: {remote_file}")
+                return True
+            except Exception as e:
+                print(f"❌ FTPエラー: {e}")
+                return False
+        
+        def main():
+            """メイン処理"""
+            print("🚀 Google Drive → FTP 同期開始")
+            
+            # Google Driveの共有フォルダから最新ファイルをチェック
+            # TODO: Google Drive API実装(現在は手動ファイルリスト)
+            
+            # テスト用ファイルリスト(実際はGoogle Drive APIで取得)
+            test_files = [
+                {
+                    'name': 'city-company.html',
+                    'id': '1r1Uffzo7DTiK7kmgHkiFkB7cYQ8xDPN3',  # 実際のファイルID
+                    'modified': datetime.now()
+                }
+            ]
+
+            for file_info in test_files:
+                filename = file_info['name']
+                file_id = file_info['id']
+
+                # HTMLファイルのみ処理
+                if not filename.endswith('.html'):
+                    continue
+
+                # META_ファイルは除外
+                if filename.startswith('META_'):
+                    continue
+
+                print(f"📁 処理中: {filename}")
+                
+                # 一時ファイルにダウンロード
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.html') as tmp_file:
+                    if download_file_from_drive(file_id, tmp_file.name):
+                        # FTPアップロード
+                        if upload_to_ftp(tmp_file.name, filename):
+                            print(f"🎉 {filename} 同期完了")
+                        else:
+                            print(f"❌ {filename} アップロード失敗")
+                    else:
+                        print(f"❌ {filename} ダウンロード失敗")
+
+                    # 一時ファイル削除
+                    os.unlink(tmp_file.name)
+
+            print("✅ 同期処理完了")
+
+        if __name__ == "__main__":
+            main()
+        EOF
+
+    - name: Run sync script
+      env:
+        FTP_HOST: ${{ secrets.FTP_HOST }}
+        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+      run: |
+        python sync_drive_to_ftp.py
+
+    - name: Notify completion
+      run: |
+        echo "🎉 Google Drive → Xserver FTP 同期完了"
+        echo "⏰ 実行時刻: $(date)"
