@@ -109,6 +109,9 @@ const MerchantSystem = {
 
       const action = params.action;
       console.log('[MerchantSystem] POST action:', action);
+      console.log('[MerchantSystem] POST params keys:', Object.keys(params));
+      console.log('[MerchantSystem] POST params.action type:', typeof params.action);
+      console.log('[MerchantSystem] POST params.action length:', params.action ? params.action.length : 'null/undefined');
 
       switch (action) {
         case 'verifyFirstLogin':
@@ -136,7 +139,16 @@ const MerchantSystem = {
 
         // 会社情報画像アップロード系（統一アクション）
         case 'companyinfo_uploadImage':
-          return CompanyInfoManager.handle(params);
+          console.log('[MerchantSystem] companyinfo_uploadImage case matched');
+          console.log('[MerchantSystem] CompanyInfoManager available:', typeof CompanyInfoManager);
+          try {
+            const result = CompanyInfoManager.handle(params);
+            console.log('[MerchantSystem] CompanyInfoManager.handle result:', result);
+            return result;
+          } catch (error) {
+            console.error('[MerchantSystem] CompanyInfoManager.handle error:', error);
+            return { success: false, error: 'CompanyInfoManager error: ' + error.toString() };
+          }
 
         case 'companyinfo_uploadMainVisual':
           return CompanyInfoManager.uploadMainVisual(params);
@@ -193,6 +205,11 @@ const MerchantSystem = {
           return this.getPreviewSettings(params);
 
         default:
+          console.error('[MerchantSystem] Unknown POST action reached default case');
+          console.error('[MerchantSystem] Action value:', JSON.stringify(action));
+          console.error('[MerchantSystem] Action type:', typeof action);
+          console.error('[MerchantSystem] Action === "companyinfo_uploadImage":', action === 'companyinfo_uploadImage');
+          console.error('[MerchantSystem] All params:', JSON.stringify(params));
           return {
             success: false,
             error: `Unknown merchant POST action: ${action}`
