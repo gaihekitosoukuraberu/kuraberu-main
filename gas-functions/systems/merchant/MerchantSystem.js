@@ -134,9 +134,9 @@ const MerchantSystem = {
         case 'merchant_updateCompanyInfo':
           return this.updateCompanyInfo(params);
 
-        // 会社情報画像アップロード系
+        // 会社情報画像アップロード系（統一アクション）
         case 'companyinfo_uploadImage':
-          return CompanyInfoManager.uploadImage(params);
+          return CompanyInfoManager.handle(params);
 
         case 'companyinfo_uploadMainVisual':
           return CompanyInfoManager.uploadMainVisual(params);
