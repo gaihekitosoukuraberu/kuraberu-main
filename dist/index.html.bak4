@@ -7698,9 +7698,9 @@
             setElementText('previewEstablishedHero', established);
             setElementText('previewEstablishedOverlay', established);
 
-            // メインビジュアルがアップロードされている場合は表示
-            if (mainVisualData || mainVisualUrl) {
-                document.getElementById('previewMainVisual').src = mainVisualData || mainVisualUrl;
+            // 閲覧モードはスプレッドシートの状態のみを反映（編集モード要素は無視）
+            if (mainVisualUrl && mainVisualUrl !== '' && mainVisualUrl.startsWith('http')) {
+                document.getElementById('previewMainVisual').src = mainVisualUrl;
                 document.getElementById('mainVisualSection').style.display = 'block';
                 document.getElementById('heroSection').style.display = 'none';
             } else {
@@ -10749,7 +10749,7 @@
                     } else {
                         console.error('Save button not found!');
                     }
-                }, 200);
+                }, 1000);
             } else {
                 // 未ログイン - ログインページへリダイレクト
                 window.location.href = 'merchant-portal/login.html';

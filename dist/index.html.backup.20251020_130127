@@ -2,7 +2,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>加盟店管理システム - 外壁塗装くらべるAI</title>
-    <link rel="icon" type="image/png" href="images/5.png">
     <script src="merchant-portal/env-loader.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -192,645 +191,6 @@
             /* 特殊対応項目のグリッドレイアウトをモバイル用に調整 */
             #specialServicesEdit .grid-cols-1.md\\:grid-cols-2 {
                 grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-            }
-
-            /* ===== 追加のスマホ最適化 ===== */
-
-            /* トップバーの改善 */
-            .fixed.top-0 {
-                height: 64px !important; /* モバイルでは少し高く */
-                padding: 0 0.75rem !important;
-            }
-
-            /* サイドメニューの改善 */
-            #sideMenu {
-                width: 280px !important; /* モバイルでは少し幅広く */
-                top: 64px !important;
-            }
-
-            /* メインコンテンツエリアのマージン調整 */
-            #mainContent {
-                margin-top: 64px !important;
-                padding: 1rem 0.75rem !important;
-            }
-
-            /* セクションのパディング調整 */
-            .section {
-                padding: 1rem !important;
-                margin-bottom: 0.75rem !important;
-            }
-
-            /* ボタンのタッチターゲット最適化 */
-            button {
-                min-height: 44px !important;
-                min-width: 44px !important;
-            }
-
-            /* フォーム要素の改善 */
-            input, select, textarea {
-                min-height: 44px !important;
-                font-size: 16px !important; /* iOS Safariのズーム防止 */
-                padding: 0.75rem !important;
-            }
-
-            /* テーブルのスクロール対応 */
-            .table-container {
-                overflow-x: auto !important;
-                -webkit-overflow-scrolling: touch !important;
-            }
-
-            table {
-                min-width: 600px !important;
-            }
-
-            /* モーダルダイアログの改善 */
-            .modal {
-                margin: 1rem !important;
-                max-height: 90vh !important;
-                overflow-y: auto !important;
-            }
-
-            /* ナビゲーションメニューの改善 */
-            nav a {
-                padding: 0.875rem 1rem !important;
-                font-size: 0.875rem !important;
-            }
-
-            /* 通知バッジの改善 */
-            .notification-badge {
-                min-width: 24px !important;
-                height: 24px !important;
-                font-size: 0.75rem !important;
-            }
-
-            /* スピナーローディングの改善 */
-            .loading-spinner {
-                width: 32px !important;
-                height: 32px !important;
-            }
-
-            /* ツールチップ・ドロップダウンの改善 */
-            .dropdown-menu {
-                min-width: 200px !important;
-                max-width: calc(100vw - 2rem) !important;
-            }
-
-            /* 上部ナビゲーションの文字サイズ調整 */
-            #systemTitle {
-                display: none !important; /* モバイルでは完全に非表示 */
-            }
-
-            /* ユーザー情報エリアの調整 */
-            #userName {
-                display: none !important; /* モバイルでは非表示 */
-            }
-
-            #userRole {
-                padding: 0.375rem 0.5rem !important;
-                font-size: 0.75rem !important;
-                margin-left: 0 !important;
-            }
-
-            /* ステータス表示の調整 */
-            #merchantStatus {
-                padding: 0.375rem 0.5rem !important;
-                font-size: 0.75rem !important;
-            }
-
-            /* プレビューボタンの調整 */
-            .preview-button {
-                padding: 0.5rem 0.75rem !important;
-                font-size: 0.875rem !important;
-                white-space: nowrap !important;
-            }
-
-            /* モバイル専用のスタイル */
-            .mobile-only {
-                display: block !important;
-            }
-
-            .desktop-only {
-                display: none !important;
-            }
-
-            /* タブレット向けの調整 */
-            @media (min-width: 481px) and (max-width: 768px) {
-                #sideMenu {
-                    width: 320px !important;
-                }
-
-                .section {
-                    padding: 1.25rem !important;
-                }
-
-                #systemTitle {
-                    display: inline !important;
-                    font-size: 1.125rem !important;
-                }
-            }
-
-            /* 横向きモバイルの調整 */
-            @media (max-width: 768px) and (orientation: landscape) {
-                .fixed.top-0 {
-                    height: 56px !important;
-                }
-
-                #sideMenu {
-                    top: 56px !important;
-                    width: 240px !important;
-                }
-
-                #mainContent {
-                    margin-top: 56px !important;
-                }
-            }
-
-            /* ===== メインコンテンツエリア追加最適化 ===== */
-
-            /* KPIカードの改善 */
-            .grid.grid-cols-1.md\\:grid-cols-2 {
-                grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-                gap: 0.75rem !important;
-            }
-
-            /* KPIカード内部の調整 */
-            .bg-white.p-6.rounded-lg.shadow {
-                padding: 1rem !important;
-            }
-
-            .bg-white.p-6.rounded-lg.shadow .ml-4 {
-                margin-left: 0.75rem !important;
-            }
-
-            .bg-white.p-6.rounded-lg.shadow .text-2xl {
-                font-size: 1.5rem !important;
-                line-height: 2rem !important;
-            }
-
-            /* カレンダーの改善 */
-            #miniCalendar .grid.grid-cols-7 {
-                gap: 0.125rem !important;
-            }
-
-            #miniCalendar .text-center.py-1 {
-                padding: 0.5rem 0.25rem !important;
-                min-height: 36px !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-            }
-
-            /* カレンダーのタッチターゲット */
-            #miniCalendar .cursor-pointer {
-                min-width: 36px !important;
-                min-height: 36px !important;
-                border-radius: 0.375rem !important;
-            }
-
-            /* 案件カードの改善 */
-            .min-w-\\[280px\\] {
-                min-width: 260px !important;
-            }
-
-            .bg-gray-50.rounded-lg.p-4 {
-                padding: 0.875rem !important;
-            }
-
-            /* 案件カード内のテキスト */
-            .bg-gray-50.rounded-lg.p-4 .text-sm {
-                font-size: 0.875rem !important;
-                line-height: 1.25rem !important;
-            }
-
-            /* ステータスバッジの改善 */
-            .px-2.py-1.text-xs {
-                padding: 0.375rem 0.5rem !important;
-                font-size: 0.75rem !important;
-            }
-
-            /* 横スクロールエリアの改善 */
-            .overflow-x-auto {
-                -webkit-overflow-scrolling: touch !important;
-                scrollbar-width: thin !important;
-            }
-
-            .overflow-x-auto::-webkit-scrollbar {
-                height: 4px !important;
-            }
-
-            .overflow-x-auto::-webkit-scrollbar-track {
-                background: #f1f5f9 !important;
-                border-radius: 2px !important;
-            }
-
-            .overflow-x-auto::-webkit-scrollbar-thumb {
-                background: #cbd5e1 !important;
-                border-radius: 2px !important;
-            }
-
-            .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-                background: #94a3b8 !important;
-            }
-
-            /* 通知パネルの改善 */
-            .notification-panel, .alert-panel {
-                max-height: 80vh !important;
-                overflow-y: auto !important;
-                -webkit-overflow-scrolling: touch !important;
-            }
-
-            /* モーダル内のフォーム要素 */
-            .modal input, .modal select, .modal textarea {
-                width: 100% !important;
-                box-sizing: border-box !important;
-            }
-
-            /* セクションヘッダーボタンの改善 */
-            .section-header button {
-                min-height: 40px !important;
-                padding: 0.5rem 0.75rem !important;
-                font-size: 0.875rem !important;
-            }
-
-            /* プレビューボタン特別対応 */
-            .preview-button {
-                white-space: nowrap !important;
-                overflow: hidden !important;
-                text-overflow: ellipsis !important;
-                max-width: 100% !important;
-            }
-
-            /* 会社情報セクションの調整 */
-            .company-info-section {
-                padding: 0.75rem !important;
-            }
-
-            .company-info-section h2 {
-                font-size: 1.25rem !important;
-                margin-bottom: 1rem !important;
-            }
-
-            /* タブ機能の改善 */
-            .tab-buttons {
-                display: flex !important;
-                overflow-x: auto !important;
-                -webkit-overflow-scrolling: touch !important;
-                margin-bottom: 1rem !important;
-                padding-bottom: 0.5rem !important;
-            }
-
-            .tab-button {
-                min-width: 80px !important;
-                padding: 0.5rem 1rem !important;
-                white-space: nowrap !important;
-                flex-shrink: 0 !important;
-            }
-
-            /* 詳細表示/編集ボタンの調整 */
-            .details-toggle, .edit-toggle {
-                width: 100% !important;
-                margin-top: 0.5rem !important;
-                padding: 0.625rem 1rem !important;
-                text-align: center !important;
-            }
-
-            /* パネル類の幅制限 */
-            .side-panel {
-                max-width: calc(100vw - 2rem) !important;
-                margin: 1rem !important;
-            }
-
-            /* 検索・フィルター要素 */
-            .search-filter-area {
-                gap: 0.5rem !important;
-                margin-bottom: 1rem !important;
-            }
-
-            .search-filter-area input, .search-filter-area select {
-                min-width: 120px !important;
-                flex: 1 !important;
-            }
-
-            /* アコーディオン要素の改善 */
-            .accordion-header {
-                padding: 0.75rem !important;
-                font-size: 0.875rem !important;
-            }
-
-            .accordion-content {
-                padding: 0 0.75rem 0.75rem 0.75rem !important;
-            }
-
-            /* グリッド要素全般の調整 */
-            .responsive-grid {
-                display: grid !important;
-                grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-                gap: 0.5rem !important;
-            }
-
-            /* ===== タッチインターフェース追加最適化 ===== */
-
-            /* 全体的なタッチターゲット確保 */
-            a, button, .clickable, .tab-button, .menu-item {
-                min-height: 44px !important;
-                min-width: 44px !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                padding: 0.5rem !important;
-            }
-
-            /* リンクとボタンの間隔確保 */
-            .btn-group button, .btn-group a {
-                margin: 0.25rem !important;
-            }
-
-            /* 通知・アラートボタンの改善 */
-            button[onclick*="toggleNotificationPanel"],
-            button[onclick*="toggleAlertPanel"] {
-                min-width: 48px !important;
-                min-height: 48px !important;
-                border-radius: 0.5rem !important;
-            }
-
-            /* タブレット・モバイル向けハンバーガーメニュー */
-            button[onclick*="toggleMenu"] {
-                min-width: 48px !important;
-                min-height: 48px !important;
-                padding: 0.75rem !important;
-            }
-
-            /* ドロップダウンメニューの改善 */
-            .dropdown-item {
-                min-height: 48px !important;
-                padding: 0.75rem 1rem !important;
-                font-size: 0.875rem !important;
-                border-bottom: 1px solid #f1f5f9 !important;
-            }
-
-            /* スイッチ・トグルボタンの改善 */
-            .toggle-switch {
-                min-width: 52px !important;
-                min-height: 28px !important;
-            }
-
-            /* 編集可能要素の改善 */
-            [contenteditable="true"], .editable {
-                min-height: 44px !important;
-                padding: 0.5rem !important;
-                border: 2px dashed transparent !important;
-                border-radius: 0.25rem !important;
-            }
-
-            [contenteditable="true"]:focus, .editable:focus {
-                border-color: #3b82f6 !important;
-                background-color: #eff6ff !important;
-            }
-
-            /* ===== フォーム・テーブル完全対応 ===== */
-
-            /* フォーム全般の最適化 */
-            form {
-                padding: 1rem !important;
-            }
-
-            .form-group {
-                margin-bottom: 1rem !important;
-            }
-
-            .form-row {
-                display: flex !important;
-                flex-direction: column !important;
-                gap: 0.5rem !important;
-            }
-
-            /* ラベル最適化 */
-            label {
-                font-size: 0.875rem !important;
-                font-weight: 600 !important;
-                margin-bottom: 0.375rem !important;
-                display: block !important;
-            }
-
-            /* 入力フィールド統一デザイン */
-            input[type="text"],
-            input[type="email"],
-            input[type="tel"],
-            input[type="password"],
-            input[type="number"],
-            input[type="url"],
-            input[type="search"],
-            input[type="date"],
-            input[type="time"],
-            input[type="datetime-local"],
-            select,
-            textarea {
-                width: 100% !important;
-                min-height: 48px !important;
-                padding: 0.75rem !important;
-                font-size: 16px !important;
-                border: 2px solid #d1d5db !important;
-                border-radius: 0.5rem !important;
-                background-color: #ffffff !important;
-                transition: border-color 0.2s ease !important;
-                box-sizing: border-box !important;
-            }
-
-            /* フォーカス状態の改善 */
-            input:focus, select:focus, textarea:focus {
-                outline: none !important;
-                border-color: #3b82f6 !important;
-                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
-            }
-
-            /* エラー状態の改善 */
-            input.error, select.error, textarea.error {
-                border-color: #ef4444 !important;
-                background-color: #fef2f2 !important;
-            }
-
-            /* チェックボックス・ラジオボタンの改善 */
-            input[type="checkbox"], input[type="radio"] {
-                width: 20px !important;
-                height: 20px !important;
-                min-width: 20px !important;
-                min-height: 20px !important;
-                margin-right: 0.5rem !important;
-            }
-
-            /* テーブル完全対応 */
-            .table-wrapper {
-                overflow-x: auto !important;
-                -webkit-overflow-scrolling: touch !important;
-                margin: 0 -1rem !important;
-                padding: 0 1rem !important;
-            }
-
-            table {
-                width: 100% !important;
-                min-width: 600px !important;
-                border-collapse: collapse !important;
-                font-size: 0.875rem !important;
-            }
-
-            th, td {
-                padding: 0.75rem 0.5rem !important;
-                text-align: left !important;
-                border-bottom: 1px solid #e5e7eb !important;
-                vertical-align: top !important;
-            }
-
-            th {
-                background-color: #f9fafb !important;
-                font-weight: 600 !important;
-                font-size: 0.75rem !important;
-                text-transform: uppercase !important;
-                letter-spacing: 0.05em !important;
-                color: #6b7280 !important;
-                position: sticky !important;
-                top: 0 !important;
-                z-index: 10 !important;
-            }
-
-            /* テーブル内のボタン */
-            td button, td a {
-                min-width: 36px !important;
-                min-height: 36px !important;
-                padding: 0.375rem !important;
-                font-size: 0.75rem !important;
-                margin: 0.125rem !important;
-            }
-
-            /* テーブル行のホバー効果 */
-            tbody tr:hover {
-                background-color: #f9fafb !important;
-            }
-
-            /* レスポンシブテーブル代替表示 */
-            .table-card {
-                display: none !important;
-                background: white !important;
-                border: 1px solid #e5e7eb !important;
-                border-radius: 0.5rem !important;
-                padding: 1rem !important;
-                margin-bottom: 0.5rem !important;
-            }
-
-            .table-card-row {
-                display: flex !important;
-                justify-content: space-between !important;
-                padding: 0.375rem 0 !important;
-                border-bottom: 1px solid #f3f4f6 !important;
-            }
-
-            .table-card-row:last-child {
-                border-bottom: none !important;
-            }
-
-            .table-card-label {
-                font-weight: 600 !important;
-                color: #6b7280 !important;
-                font-size: 0.75rem !important;
-            }
-
-            .table-card-value {
-                font-size: 0.875rem !important;
-                text-align: right !important;
-            }
-
-            /* 極小画面でテーブルをカード表示に切り替え */
-            @media (max-width: 480px) {
-                .table-wrapper {
-                    display: none !important;
-                }
-
-                .table-card {
-                    display: block !important;
-                }
-            }
-
-            /* フォームボタンの配置改善 */
-            .form-actions {
-                display: flex !important;
-                flex-direction: column !important;
-                gap: 0.5rem !important;
-                margin-top: 1.5rem !important;
-                padding-top: 1rem !important;
-                border-top: 1px solid #e5e7eb !important;
-            }
-
-            .form-actions button {
-                width: 100% !important;
-                min-height: 48px !important;
-                font-size: 1rem !important;
-                font-weight: 600 !important;
-                border-radius: 0.5rem !important;
-                padding: 0.75rem 1.5rem !important;
-            }
-
-            /* プライマリボタン */
-            .btn-primary {
-                background-color: #3b82f6 !important;
-                color: white !important;
-                border: none !important;
-            }
-
-            .btn-primary:hover {
-                background-color: #2563eb !important;
-            }
-
-            /* セカンダリボタン */
-            .btn-secondary {
-                background-color: #6b7280 !important;
-                color: white !important;
-                border: none !important;
-            }
-
-            /* 検索・フィルター最適化 */
-            .search-container {
-                position: relative !important;
-                margin-bottom: 1rem !important;
-            }
-
-            .search-input {
-                padding-left: 2.5rem !important;
-            }
-
-            .search-icon {
-                position: absolute !important;
-                left: 0.75rem !important;
-                top: 50% !important;
-                transform: translateY(-50%) !important;
-                color: #9ca3af !important;
-            }
-
-            /* フィルタータグ */
-            .filter-tags {
-                display: flex !important;
-                flex-wrap: wrap !important;
-                gap: 0.375rem !important;
-                margin-bottom: 1rem !important;
-            }
-
-            .filter-tag {
-                background-color: #dbeafe !important;
-                color: #1e40af !important;
-                padding: 0.25rem 0.5rem !important;
-                border-radius: 9999px !important;
-                font-size: 0.75rem !important;
-                display: flex !important;
-                align-items: center !important;
-                gap: 0.25rem !important;
-            }
-
-            .filter-tag-remove {
-                cursor: pointer !important;
-                color: #6b7280 !important;
-                font-weight: bold !important;
-            }
-
-            .filter-tag-remove:hover {
-                color: #ef4444 !important;
             }
         }
     </style>
@@ -3173,67 +2533,32 @@
                 <h2 class="text-2xl font-bold text-gray-900 mb-6">自動配信設定</h2>
 
                 <!-- 一時停止設定 -->
-                <div id="pauseSection" class="group mb-8 border-2 border-orange-300 rounded-lg p-6 bg-gradient-to-r from-orange-50 to-red-50 transition-all duration-300 hover:bg-orange-100">
-                    <div class="flex justify-between items-center mb-4 section-header">
-                        <h3 class="text-lg font-semibold text-gray-900">一時停止設定</h3>
-                        <div class="flex gap-2">
-                            <!-- 閲覧モード時のボタン -->
-                            <button id="editPauseBtn" onclick="toggleEditMode('pause', true)" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg flex items-center gap-2 font-medium group-hover:bg-orange-600 group-hover:text-white transition-colors duration-300">
-                                🛠️ 編集
-                            </button>
-                            <!-- 編集モード時のボタン（初期は非表示） -->
-                            <button id="savePauseBtn" onclick="saveSection('pause')" class="hidden px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center gap-2 font-medium shadow-md">
-                                💾 保存
-                            </button>
-                            <button id="cancelPauseBtn" onclick="cancelEditMode('pause')" class="hidden px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2 font-medium">
-                                ✗ キャンセル
-                            </button>
-                        </div>
+                <div class="mb-8 p-6 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">一時停止設定</h3>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="autoPauseToggle" onchange="toggleAutoPause()" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                        </label>
                     </div>
-
-                    <!-- 閲覧モード -->
-                    <div id="pauseView">
-                        <div id="pauseDisplay" class="space-y-2">
-                            <div class="flex items-center gap-3">
-                                <span class="text-sm font-medium text-gray-700">一時停止状態:</span>
-                                <span id="pauseStatusDisplay" class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">アクティブ</span>
-                            </div>
-                            <div id="pauseDateDisplay" class="text-sm text-gray-600 hidden">
-                                <div>開始日: <span id="pauseStartDisplay"></span></div>
-                                <div>再開予定日: <span id="pauseEndDisplay"></span></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 編集モード -->
-                    <div id="pauseEdit" class="hidden space-y-4">
-                        <div class="flex items-center justify-between">
-                            <label class="text-sm font-medium text-gray-700">一時停止を有効にする</label>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="autoPauseToggle" onchange="toggleAutoPauseEdit()" class="sr-only peer" data-section="pause">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
-                            </label>
+                    <div id="pauseSettings" class="space-y-3 hidden">
+                        <!-- 一時停止開始日 -->
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">一時停止開始日</label>
+                            <input type="date" id="pauseStartDate" class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500">
                         </div>
 
-                        <div id="pauseSettings" class="space-y-3 hidden">
-                            <!-- 一時停止開始日 -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">一時停止開始日</label>
-                                <input type="date" id="pauseStartDate" data-section="pause" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                        <!-- 一時停止再開日 -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="block text-sm font-medium text-gray-700">一時停止再開日</label>
+                                <label class="flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" id="indefinitePause" onchange="toggleIndefinitePause()" class="rounded text-orange-600 focus:ring-orange-500">
+                                    <span class="text-xs text-gray-600 whitespace-nowrap">未定</span>
+                                </label>
                             </div>
-
-                            <!-- 一時停止再開日 -->
-                            <div>
-                                <div class="flex items-center justify-between mb-2">
-                                    <label class="block text-sm font-medium text-gray-700">一時停止再開日</label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" id="indefinitePause" onchange="toggleIndefinitePause()" data-section="pause" class="rounded text-orange-600 focus:ring-orange-500">
-                                        <span class="text-sm text-gray-600">未定</span>
-                                    </label>
-                                </div>
-                                <input type="text" id="pauseEndDateDisplay" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed text-gray-500 hidden" value="未定" readonly>
-                                <input type="date" id="pauseEndDate" data-section="pause" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-                            </div>
+                            <input type="text" id="pauseEndDateDisplay" class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed text-gray-500 hidden" value="未定" readonly="">
+                            <input type="date" id="pauseEndDate" class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500">
                         </div>
                     </div>
                 </div>
@@ -6700,14 +6025,14 @@
 
                             <!-- 会社名と情報をオーバーレイ -->
                             <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-8 text-white">
-                                <h1 id="previewCompanyNameOverlay" class="text-3xl sm:text-5xl md:text-6xl font-bold mb-2 drop-shadow-lg text-center sm:text-left break-words text-gray-800" style="min-width: 0px; color: rgb(31, 41, 55); line-height: 1.2; word-break: break-word; overflow-wrap: break-word;"></h1>
-                                <p id="previewTaglineOverlay" class="text-lg sm:text-3xl mb-4 drop-shadow-md text-center sm:text-left text-gray-800" style="color: rgb(31, 41, 55);"></p>
+                                <h1 id="previewCompanyNameOverlay" class="text-3xl sm:text-5xl md:text-6xl font-bold mb-2 drop-shadow-lg text-center sm:text-left break-words text-gray-800" style="min-width: 0px; color: rgb(31, 41, 55); line-height: 1.2; word-break: break-word; overflow-wrap: break-word;">株式会社あたる</h1>
+                                <p id="previewTaglineOverlay" class="text-lg sm:text-3xl mb-4 drop-shadow-md text-center sm:text-left text-gray-800" style="color: rgb(31, 41, 55);">ファインテックは、関西一円で外壁・屋根塗装、防水工事、リフォームを手掛ける塗装・リフォーム会社です</p>
                                 <div class="flex flex-wrap gap-4 text-gray-800" style="color: rgb(31, 41, 55);">
                                     <div class="flex items-center bg-white/20 backdrop-blur px-4 py-2 rounded-full text-gray-800" style="color: rgb(31, 41, 55);">
                                         <svg class="w-5 h-5 mr-2 text-gray-800" fill="currentColor" viewBox="0 0 20 20" style="color: rgb(31, 41, 55);">
                                             <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm6 6H7v2h6v-2z" class="text-gray-800" style="color: rgb(31, 41, 55);"></path>
                                         </svg>
-                                        <span id="previewEstablishedOverlay" class="text-gray-800" style="color: rgb(31, 41, 55);"></span>
+                                        <span id="previewEstablishedOverlay" class="text-gray-800" style="color: rgb(31, 41, 55);">2010年4月</span>
                                     </div>
                                 </div>
                             </div>
@@ -7872,24 +7197,6 @@
             }
         }
 
-        // 一時停止設定のステータス表示を更新する関数（ヘッダーと統一）
-        function updatePauseStatus(status) {
-            const pauseStatusDisplay = document.getElementById('pauseStatusDisplay');
-            if (!pauseStatusDisplay) return;
-
-            pauseStatusDisplay.textContent = status;
-
-            if (status === 'アクティブ') {
-                pauseStatusDisplay.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800';
-            } else if (status === '一時停止' || status === '一時停止中') {
-                pauseStatusDisplay.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800';
-            } else if (status === '休止') {
-                pauseStatusDisplay.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800';
-            } else {
-                pauseStatusDisplay.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800';
-            }
-        }
-
         // 加盟店データを取得する関数
         async function fetchMerchantData(merchantId) {
             try {
@@ -7905,7 +7212,7 @@
                         resolve(data);
                     };
 
-                    script.src = `${window.ENV.GAS_URL}?action=getMerchantData&merchantId=${encodeURIComponent(merchantId)}&callback=${callbackName}`;
+                    script.src = `${GAS_URL}?action=getMerchantData&merchantId=${encodeURIComponent(merchantId)}&callback=${callbackName}`;
                     script.onerror = () => {
                         delete window[callbackName];
                         if (script.parentNode) {
@@ -8011,7 +7318,7 @@
                         resolve(data);
                     };
 
-                    script.src = `${window.ENV.GAS_URL}?action=updateSalesPerson&merchantId=${encodeURIComponent(currentUser)}&salesPerson=${encodeURIComponent(newSalesPerson)}&callback=${callbackName}`;
+                    script.src = `${GAS_URL}?action=updateSalesPerson&merchantId=${encodeURIComponent(currentUser)}&salesPerson=${encodeURIComponent(newSalesPerson)}&callback=${callbackName}`;
                     script.onerror = () => {
                         delete window[callbackName];
                         if (script.parentNode) {
@@ -8140,7 +7447,7 @@
                 console.log('[saveAutoDeliverySettings] Sending data:', autoDeliveryData);
 
                 // 自動配信設定を保存
-                const response = await fetch(window.ENV.GAS_URL, {
+                const response = await fetch(GAS_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'text/plain'
@@ -8248,11 +7555,11 @@
                 .map(cb => cb.value);
 
             // 対応都道府県・市区町村
-            const prefectures = window.areaSelectionData.prefectures.join(',');
+            const prefectures = areaSelectionData.prefectures.join(',');
 
             // 市区町村をJSON圧縮形式で保存（スプシと同じ形式）
             const allCities = [];
-            Object.entries(window.areaSelectionData.cities).forEach(([pref, cities]) => {
+            Object.entries(areaSelectionData.cities).forEach(([pref, cities]) => {
                 allCities.push(...cities);
             });
             const citiesStr = JSON.stringify({
@@ -8262,7 +7569,7 @@
             });
 
             // 優先エリア: アンダースコア形式のまま保存（スプシの形式に合わせる）
-            const priorities = window.areaSelectionData.priorities.join(',');
+            const priorities = areaSelectionData.priorities.join(',');
 
             // 一時停止設定データ
             const autoPauseToggle = document.getElementById('autoPauseToggle');
@@ -8320,9 +7627,9 @@
                 priorities: priorities,                               // 優先エリア
                 // 一時停止設定
                 status: status,                                       // ステータス (AJ列)
-                pauseFlag: pauseFlag ? 'true' : 'false',             // 一時停止フラグ (AO列) - GAS側に合わせて小文字
-                pauseStartDate: pauseFlag ? (pauseStart || '') : '',  // 一時停止開始日 (AP列) - OFFの時は空
-                pauseEndDate: pauseFlag ? (isIndefinite ? '未定' : (pauseEnd || '')) : '' // 一時停止再開予定日 (AQ列) - OFFの時は空
+                pauseFlag: pauseFlag ? 'TRUE' : 'FALSE',             // 一時停止フラグ (AO列)
+                pauseStartDate: pauseStart || '',                     // 一時停止開始日 (AP列)
+                pauseEndDate: isIndefinite ? '未定' : (pauseEnd || '') // 一時停止再開予定日 (AQ列)
             };
         }
 
@@ -8966,44 +8273,6 @@
                         </span>
                     </div>
                 `;
-            } else if (sectionName === 'pause') {
-                // 一時停止設定の閲覧モードを更新
-                const pauseStatusDisplay = document.getElementById('pauseStatusDisplay');
-                const pauseDateDisplay = document.getElementById('pauseDateDisplay');
-                const pauseStartDisplay = document.getElementById('pauseStartDisplay');
-                const pauseEndDisplay = document.getElementById('pauseEndDisplay');
-
-                if (!pauseStatusDisplay) return;
-
-                // トグルの状態を確認
-                const autoPauseToggle = document.getElementById('autoPauseToggle');
-                const pauseStartDate = document.getElementById('pauseStartDate');
-                const pauseEndDate = document.getElementById('pauseEndDate');
-                const indefinitePause = document.getElementById('indefinitePause');
-
-                const isPaused = autoPauseToggle?.checked || false;
-
-                if (isPaused) {
-                    // 一時停止中の表示（統一関数使用）
-                    updatePauseStatus('一時停止中');
-
-                    // 日付の表示
-                    if (pauseDateDisplay && pauseStartDisplay && pauseEndDisplay) {
-                        pauseStartDisplay.textContent = pauseStartDate?.value || '-';
-                        pauseEndDisplay.textContent = indefinitePause?.checked ? '未定' : (pauseEndDate?.value || '-');
-                        pauseDateDisplay.classList.remove('hidden');
-                    }
-                } else {
-                    // アクティブ状態の表示（統一関数使用）
-                    updatePauseStatus('アクティブ');
-
-                    // 日付表示を非表示
-                    if (pauseDateDisplay) {
-                        pauseDateDisplay.classList.add('hidden');
-                    }
-                }
-
-                console.log('[updateViewData] Updated pause view:', { isPaused, startDate: pauseStartDate?.value, endDate: pauseEndDate?.value });
             }
         }
 
@@ -9234,11 +8503,6 @@
             } else if (sectionName === 'serviceAreas') {
                 console.log('[saveSection] Calling saveAutoDeliverySection for serviceAreas');
                 await saveAutoDeliverySection('serviceAreas');
-            } else if (sectionName === 'pause') {
-                console.log('[saveSection] Calling savePauseSettings for pause');
-                await savePauseSettings();
-                // 閲覧モードに戻す
-                toggleEditMode('pause', false);
             } else {
                 console.error('[saveSection] Unknown sectionName:', sectionName);
             }
@@ -9663,23 +8927,16 @@
                 // 新しい画像データがある場合は先にGoogle Driveにアップロード
                 if (mainVisualData && mainVisualFileName) {
                     console.log('[saveMainVisual] Uploading new image to Google Drive...');
-
-                    const uploadData = {
-                        action: 'companyinfo_uploadImage',
-                        merchantId: window.merchantId,
-                        base64Data: mainVisualData,
-                        fileName: mainVisualFileName,
-                        imageType: 'main-visual'
-                    };
-
-                    console.log('[saveMainVisual] 送信データ:', uploadData);
-                    console.log('[saveMainVisual] GAS_URL:', GAS_URL);
-                    console.log('[saveMainVisual] window.merchantId:', window.merchantId);
-
                     const uploadResponse = await fetch(GAS_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'text/plain' },
-                        body: JSON.stringify(uploadData)
+                        body: JSON.stringify({
+                            action: 'companyinfo_uploadImage',
+                            merchantId: window.merchantId,
+                            base64Data: mainVisualData,
+                            fileName: mainVisualFileName,
+                            imageType: 'main-visual'
+                        })
                     });
 
                     const uploadResult = await uploadResponse.json();
@@ -10310,22 +9567,6 @@
         async function previewCompanyInfo() {
             console.log('[previewCompanyInfo] プレビュー開始');
 
-            // プレビューセクションを確実に初期化
-            const previewSection = document.getElementById('previewMainVisualSection');
-            const previewImage = document.getElementById('previewMainVisual');
-            if (previewSection) {
-                previewSection.classList.add('hidden');
-                previewSection.classList.remove('block');
-                console.log('[previewCompanyInfo] プレビューセクション初期化: hidden設定');
-            }
-            if (previewImage) {
-                previewImage.src = '';
-                console.log('[previewCompanyInfo] プレビュー画像初期化: src空設定');
-            }
-
-            // プレビューモードは既存のwindow.merchantDataを使用（追加のフェッチは行わない）
-            console.log('[previewCompanyInfo] 既存merchantData使用:', window.merchantData ? 'あり' : 'なし');
-
             // 入力値を取得（IDベースで確実に取得）
             const companyName = document.getElementById('companyName')?.value || '株式会社くらべる塗装';
             const tradeName = document.getElementById('tradeName')?.value || '';
@@ -10429,34 +9670,26 @@
             setElementText('previewEstablishedHero', established);
             setElementText('previewEstablishedOverlay', established);
 
-            // メインビジュアルを取得（編集中の値 or 保存済みの値）
-            let mainVisual = window.mainVisualDisplayUrl || window.mainVisualUrl || '';
-            console.log('[previewCompanyInfo] mainVisual取得:', mainVisual);
-            console.log('[previewCompanyInfo] window.mainVisualDisplayUrl:', window.mainVisualDisplayUrl);
-            console.log('[previewCompanyInfo] window.mainVisualUrl:', window.mainVisualUrl);
-            console.log('[previewCompanyInfo] mainVisual type:', typeof mainVisual);
-            console.log('[previewCompanyInfo] mainVisual length:', mainVisual ? mainVisual.length : 'null/undefined');
+            // メインビジュアルがアップロードされている場合は表示
+            // グローバル変数を優先的に使用（thumbnail形式）
+            let mainVisual = window.mainVisualDisplayUrl || mainVisualDisplayUrl || document.getElementById('mainVisualImage')?.src || '';
 
-            // より厳密な条件チェック
-            const hasValidImage = mainVisual &&
-                                  typeof mainVisual === 'string' &&
-                                  mainVisual.trim() !== '' &&
-                                  !mainVisual.includes('data:,') &&
-                                  mainVisual !== 'undefined' &&
-                                  mainVisual !== 'null';
-
-            console.log('[previewCompanyInfo] hasValidImage:', hasValidImage);
-            console.log('[previewCompanyInfo] window.merchantData:', window.merchantData);
-
-            // プレビューセクションの現在の状態をログ出力
-            const currentSection = document.getElementById('previewMainVisualSection');
-            if (currentSection) {
-                console.log('[previewCompanyInfo] 現在のクラス:', currentSection.className);
-                console.log('[previewCompanyInfo] 現在のstyle.display:', currentSection.style.display);
-                console.log('[previewCompanyInfo] 実際の表示状態:', window.getComputedStyle(currentSection).display);
+            // 追加のフォールバック: 現在表示されているメインビジュアル画像をチェック
+            const currentMainVisual = document.getElementById('mainVisualImage');
+            if ((!mainVisual || mainVisual === '' || mainVisual.includes('data:,')) && currentMainVisual && currentMainVisual.src && !currentMainVisual.src.includes('data:,')) {
+                mainVisual = currentMainVisual.src;
+                console.log('[previewCompanyInfo] Using current mainVisualImage src as fallback:', mainVisual);
             }
 
-            if (hasValidImage) {
+            console.log('[previewCompanyInfo] window.mainVisualDisplayUrl:', window.mainVisualDisplayUrl);
+            console.log('[previewCompanyInfo] mainVisualDisplayUrl (global):', mainVisualDisplayUrl);
+            console.log('[previewCompanyInfo] mainVisualImage element:', document.getElementById('mainVisualImage'));
+            console.log('[previewCompanyInfo] Final mainVisual src:', mainVisual);
+            console.log('[previewCompanyInfo] Condition check - mainVisual exists:', !!mainVisual);
+            console.log('[previewCompanyInfo] Condition check - not empty string:', mainVisual !== '');
+            console.log('[previewCompanyInfo] Condition check - not data URL:', !mainVisual.includes('data:,'));
+            console.log('[previewCompanyInfo] Full condition result:', mainVisual && mainVisual !== '' && !mainVisual.includes('data:,'));
+            if (mainVisual && mainVisual !== '' && !mainVisual.includes('data:,')) {
                 console.log('[previewCompanyInfo] Setting previewMainVisual src to:', mainVisual);
 
                 const previewMainVisualElement = document.getElementById('previewMainVisual');
@@ -10701,21 +9934,7 @@
             document.getElementById('companyPreviewModal').classList.remove('hidden');
 
             // モーダル表示後にメインビジュアルを再設定（タイミング問題を解決）
-            const spreadsheetMainVisual = window.mainVisualDisplayUrl || window.mainVisualUrl || '';
-
-            console.log('[previewCompanyInfo] Modal後 - spreadsheetMainVisual:', spreadsheetMainVisual);
-
-            // より厳密な条件チェック
-            const hasValidImageModal = spreadsheetMainVisual &&
-                                      typeof spreadsheetMainVisual === 'string' &&
-                                      spreadsheetMainVisual.trim() !== '' &&
-                                      !spreadsheetMainVisual.includes('data:,') &&
-                                      spreadsheetMainVisual !== 'undefined' &&
-                                      spreadsheetMainVisual !== 'null';
-
-            console.log('[previewCompanyInfo] Modal後 - hasValidImageModal:', hasValidImageModal);
-
-            if (hasValidImageModal) {
+            if (mainVisual && mainVisual !== '' && !mainVisual.includes('data:,')) {
                 setTimeout(() => {
                     const previewMainVisualElement = document.getElementById('previewMainVisual');
                     const mainVisualSectionElement = document.getElementById('previewMainVisualSection');
@@ -10724,8 +9943,8 @@
                     console.log('[previewCompanyInfo] モーダル表示後のメインビジュアル再設定');
 
                     if (previewMainVisualElement) {
-                        previewMainVisualElement.src = spreadsheetMainVisual;
-                        console.log('[previewCompanyInfo] Modal後 - Image src set to:', spreadsheetMainVisual);
+                        previewMainVisualElement.src = mainVisual;
+                        console.log('[previewCompanyInfo] Modal後 - Image src set to:', mainVisual);
                     }
 
                     if (mainVisualSectionElement) {
@@ -10737,24 +9956,6 @@
 
                     if (heroSectionElement) {
                         heroSectionElement.style.display = 'none';
-                    }
-                }, 50);
-            } else {
-                // スプレッドシートにデータがない場合はメインビジュアルセクションを隠す
-                console.log('[previewCompanyInfo] Modal後 - No spreadsheet data, hiding mainVisualSection');
-                setTimeout(() => {
-                    const mainVisualSectionElement = document.getElementById('previewMainVisualSection');
-                    const heroSectionElement = document.getElementById('heroSection');
-
-                    if (mainVisualSectionElement) {
-                        mainVisualSectionElement.classList.add('hidden');
-                        mainVisualSectionElement.classList.remove('block');
-                        console.log('[previewCompanyInfo] Modal後 - mainVisualSection hidden');
-                    }
-
-                    if (heroSectionElement) {
-                        heroSectionElement.style.display = 'block';
-                        console.log('[previewCompanyInfo] Modal後 - heroSection shown');
                     }
                 }, 50);
             }
@@ -12025,8 +11226,8 @@
             }
         }
 
-        // エリア選択関連関数（グローバル化）
-        window.areaSelectionData = {
+        // エリア選択関連関数
+        const areaSelectionData = {
             prefectures: [],
             cities: {},
             priorities: [],
@@ -12207,21 +11408,21 @@
                 // 選択解除
                 button.classList.remove('selected', 'bg-blue-500', 'text-white');
                 button.classList.add('bg-white');
-                window.areaSelectionData.prefectures = window.areaSelectionData.prefectures.filter(p => p !== prefecture);
-                delete window.areaSelectionData.cities[prefecture];
-                window.areaSelectionData.priorities = window.areaSelectionData.priorities.filter(p => !p.startsWith(prefecture));
+                areaSelectionData.prefectures = areaSelectionData.prefectures.filter(p => p !== prefecture);
+                delete areaSelectionData.cities[prefecture];
+                areaSelectionData.priorities = areaSelectionData.priorities.filter(p => !p.startsWith(prefecture));
             } else {
                 // 選択上限チェック
-                if (window.areaSelectionData.prefectures.length >= maxPrefectures) {
+                if (areaSelectionData.prefectures.length >= maxPrefectures) {
                     showNotification('上限を超えました', `都道府県は最大${maxPrefectures}つまで選択可能です`);
                     return;
                 }
                 // 選択追加
                 button.classList.add('selected', 'bg-blue-500', 'text-white');
                 button.classList.remove('bg-white');
-                window.areaSelectionData.prefectures.push(prefecture);
+                areaSelectionData.prefectures.push(prefecture);
                 // デフォルトで全市区町村を選択
-                window.areaSelectionData.cities[prefecture] = getCitiesForPrefecture(prefecture);
+                areaSelectionData.cities[prefecture] = getCitiesForPrefecture(prefecture);
             }
 
             updateAreaSelectionUI();
@@ -12234,19 +11435,19 @@
             const cityCountEl = document.getElementById('selectedCityCount');
 
             if (prefCountEl) {
-                prefCountEl.textContent = window.areaSelectionData.prefectures.length;
+                prefCountEl.textContent = areaSelectionData.prefectures.length;
             }
 
-            const totalCities = Object.values(window.areaSelectionData.cities).reduce((sum, cities) => sum + cities.length, 0);
+            const totalCities = Object.values(areaSelectionData.cities).reduce((sum, cities) => sum + cities.length, 0);
             if (cityCountEl) {
                 cityCountEl.textContent = totalCities;
             }
-            window.areaSelectionData.totalCount = totalCities;
+            areaSelectionData.totalCount = totalCities;
 
             // 市区町村選択エリアの表示/非表示
             const cityArea = document.getElementById('citySelectionArea');
             if (cityArea) {
-                if (window.areaSelectionData.prefectures.length > 0) {
+                if (areaSelectionData.prefectures.length > 0) {
                     cityArea.classList.remove('hidden');
                     updateCitySelectionArea();
                 } else {
@@ -13164,6 +12365,22 @@
                     }
                 }
 
+                // 自動配信設定セクションの場合、加盟店データを読み込み
+                if (sectionName === 'autodelivery') {
+                    const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+
+                    if (merchantId && window.merchantData) {
+                        loadAutodeliverySettings(window.merchantData);
+                    } else {
+                        console.log('No merchantId available for autodelivery');
+                        console.log('Trying to get from sessionStorage...');
+                        const savedUser = sessionStorage.getItem('currentUser');
+                        if (savedUser) {
+                            window.merchantId = savedUser;
+                            fetchMerchantDataForAutodelivery(savedUser);
+                        }
+                    }
+                }
 
                 // 会社情報セクションの場合は支店マップを更新
                 if (sectionName === 'company') {
@@ -13458,11 +12675,6 @@
             let savedUser = localStorage.getItem('franchiseUser') || sessionStorage.getItem('franchiseUser');
             let savedRole = localStorage.getItem('franchiseRole') || sessionStorage.getItem('franchiseRole');
 
-            console.log('[初期化] localStorage.franchiseUser:', localStorage.getItem('franchiseUser'));
-            console.log('[初期化] sessionStorage.franchiseUser:', sessionStorage.getItem('franchiseUser'));
-            console.log('[初期化] savedUser:', savedUser);
-            console.log('[初期化] savedRole:', savedRole);
-
             if (savedUser && savedRole) {
                 // ログイン時間をチェック（24時間で自動ログアウト）
                 const loginTime = localStorage.getItem('loginTime') || sessionStorage.getItem('loginTime');
@@ -13484,9 +12696,6 @@
                 // ログイン状態有効 - ダッシュボード表示
                 currentUser = savedUser;
                 userRole = savedRole;
-
-                console.log('[初期化] currentUser設定後:', currentUser);
-                console.log('[初期化] userRole設定後:', userRole);
                 document.getElementById('mainApp').classList.remove('hidden');
 
                 // 加盟店データを取得してから表示を更新
@@ -13551,7 +12760,7 @@
                     } else {
                         console.error('Save button not found!');
                     }
-                }, 1000);
+                }, 200);
             } else {
                 // 未ログイン - ログインページへリダイレクト
                 window.location.href = 'merchant-portal/login.html';
@@ -13559,22 +12768,14 @@
         });
 
         // 統合設定保存
-        async function saveAllSettings() {
-            try {
-                // プロフィール保存
-                saveProfile();
+        function saveAllSettings() {
+            // プロフィール保存
+            saveProfile();
 
-                // 通知設定保存
-                saveNotificationSettings();
+            // 通知設定保存
+            saveNotificationSettings();
 
-                // 自動配信設定保存
-                await saveAutoDeliverySettings();
-
-                showNotification('設定保存', 'すべての設定を保存しました', 'success');
-            } catch (error) {
-                console.error('[saveAllSettings] Error:', error);
-                showNotification('保存エラー', '設定の保存中にエラーが発生しました', 'error');
-            }
+            showNotification('設定保存', 'すべての設定を保存しました', 'success');
         }
         
         // 通知テスト
@@ -14918,38 +14119,10 @@
         const originalShowSection = showSection;
         showSection = function(section) {
             originalShowSection(section);
-
             if (section === 'reports') {
                 setTimeout(() => {
                     renderCharts();
                 }, 100);
-            }
-
-            // 案件管理機能
-            if (section === 'cancel') {
-                displayCancelCases();
-            } else if (section === 'contract') {
-                displayContractCases();
-            }
-
-            // 会社情報セクション
-            if (section === 'company') {
-                setTimeout(loadCurrentUrlInfo, 500);
-            }
-
-            // 自動配信設定セクション
-            if (section === 'autodelivery') {
-                const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
-
-                if (merchantId && window.merchantData) {
-                    window.loadAutodeliverySettings(window.merchantData);
-                } else {
-                    const savedUser = sessionStorage.getItem('currentUser');
-                    if (savedUser) {
-                        window.merchantId = savedUser;
-                        fetchMerchantDataForAutodelivery(savedUser);
-                    }
-                }
             }
         }
 
@@ -14983,9 +14156,6 @@
 
             // 画像データを初期化（古いデータをクリア）
             mainVisualUrl = '';
-            mainVisualDisplayUrl = '';
-            window.mainVisualUrl = '';
-            window.mainVisualDisplayUrl = '';
             const mainVisualImage = document.getElementById('mainVisualImage');
             const mainVisualPreview = document.getElementById('mainVisualPreview');
             const mainVisualPlaceholder = document.getElementById('mainVisualPlaceholder');
@@ -15791,11 +14961,11 @@
                     console.log('[loadMerchantData] Added hidden class to mainVisualPlaceholder');
                 }
 
-                // プレビューには反映しない（プレビューモードは独立して制御）
-                // const previewMainVisual = document.getElementById('previewMainVisual');
-                // if (previewMainVisual) {
-                //     previewMainVisual.src = displayUrl;
-                // }
+                // プレビューにも反映（表示用URLを使用）
+                const previewMainVisual = document.getElementById('previewMainVisual');
+                if (previewMainVisual) {
+                    previewMainVisual.src = displayUrl;
+                }
                 const mainVisualSection = document.getElementById('mainVisualSection');
                 const heroSection = document.getElementById('heroSection');
                 if (mainVisualSection) mainVisualSection.style.display = 'block';
@@ -15813,36 +14983,6 @@
                 console.log('✓ Loaded main visual:', mainVisualUrlFromSheet);
             } else {
                 console.log('[loadMerchantData] No main visual URL found in spreadsheet data');
-
-                // スプレッドシートにデータがない場合は完全クリア
-                mainVisualUrl = '';
-                mainVisualDisplayUrl = '';
-                window.mainVisualUrl = '';
-                window.mainVisualDisplayUrl = '';
-
-                // 編集画面をクリア
-                const mainVisualImageElement = document.getElementById('mainVisualImage');
-                if (mainVisualImageElement) {
-                    mainVisualImageElement.src = '';
-                }
-
-                // プレビュー画面をクリア
-                const previewMainVisual = document.getElementById('previewMainVisual');
-                if (previewMainVisual) {
-                    previewMainVisual.src = '';
-                }
-
-                // UI状態をクリア
-                const mainVisualPreview = document.getElementById('mainVisualPreview');
-                const mainVisualPlaceholder = document.getElementById('mainVisualPlaceholder');
-                if (mainVisualPreview) {
-                    mainVisualPreview.classList.add('hidden');
-                }
-                if (mainVisualPlaceholder) {
-                    mainVisualPlaceholder.classList.remove('hidden');
-                }
-
-                console.log('[loadMerchantData] ✅ All main visual data cleared');
             }
 
             // 写真ギャラリーの読み込み（遅延読み込み + 軽量サムネイル）
@@ -18646,6 +17786,20 @@
             }
 
             // 一時停止の日付変更時に即時保存
+
+            // セクション表示時に案件を読み込む
+            const originalShowSection = window.showSection;
+            window.showSection = function(sectionName) {
+                if (typeof originalShowSection === 'function') {
+                    originalShowSection(sectionName);
+                }
+
+                if (sectionName === 'cancel') {
+                    displayCancelCases();
+                } else if (sectionName === 'contract') {
+                    displayContractCases();
+                }
+            };
         });
     </script>
     <style>
@@ -18816,23 +17970,23 @@
             // 毎回実行: 自動配信設定をスプレッドシートから読み込み
             if (window.merchantData) {
                 console.log('[initializeFirstLoginSettings] window.merchantDataが存在します。loadAutodeliverySettingsを呼び出します。');
-                window.loadAutodeliverySettings(window.merchantData);
+                loadAutodeliverySettings(window.merchantData);
             } else {
                 console.warn('[initializeFirstLoginSettings] window.merchantDataが存在しません！');
                 // merchantDataがない場合は空データで初期化
-                window.loadAutodeliverySettings({});
+                loadAutodeliverySettings({});
             }
         }
 
         // 自動配信設定用にデータを取得
         async function fetchMerchantDataForAutodelivery(merchantId) {
-            console.log('[fetchMerchantDataForAutodelivery] 🔍 DEBUG: Called with merchantId:', merchantId);
+            console.log('[fetchMerchantDataForAutodelivery] Fetching data for:', merchantId);
+
             try {
                 // JSONP でデータ取得
                 const result = await new Promise((resolve, reject) => {
                     const callbackName = 'jsonp_autodelivery_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                     const script = document.createElement('script');
-                    const url = `${window.ENV.GAS_URL}?action=getMerchantData&merchantId=${encodeURIComponent(merchantId)}&callback=${callbackName}`;
 
                     window[callbackName] = (data) => {
                         delete window[callbackName];
@@ -18842,7 +17996,7 @@
                         resolve(data);
                     };
 
-                    script.src = url;
+                    script.src = `${GAS_URL}?action=getMerchantData&merchantId=${encodeURIComponent(merchantId)}&callback=${callbackName}`;
                     script.onerror = () => {
                         delete window[callbackName];
                         if (script.parentNode) {
@@ -18853,71 +18007,31 @@
                     document.body.appendChild(script);
                 });
 
-                console.log('[fetchMerchantDataForAutodelivery] 🔍 DEBUG: JSONP result:', result);
-                console.log('[fetchMerchantDataForAutodelivery] 🔍 DEBUG: result.success:', result.success);
-                console.log('[fetchMerchantDataForAutodelivery] 🔍 DEBUG: result.data:', result.data);
-
                 if (result.success && result.data) {
                     window.merchantData = result.data;
                     window.merchantId = merchantId;
+                    console.log('[fetchMerchantDataForAutodelivery] Data loaded successfully');
+                    console.log('[fetchMerchantDataForAutodelivery] Data:', result.data);
 
                     // 自動配信設定を読み込む
-                    window.loadAutodeliverySettings(result.data);
+                    loadAutodeliverySettings(result.data);
                 } else {
-                    console.warn('[fetchMerchantDataForAutodelivery] 🔍 DEBUG: No data or failed - calling with empty object');
+                    console.error('[fetchMerchantDataForAutodelivery] Failed to load data:', result.error);
                     // エラー時もデフォルト設定で初期化
-                    window.loadAutodeliverySettings({});
+                    loadAutodeliverySettings({});
                 }
             } catch (error) {
+                console.error('[fetchMerchantDataForAutodelivery] Error:', error);
                 // エラー時もデフォルト設定で初期化
-                window.loadAutodeliverySettings({});
+                loadAutodeliverySettings({});
             }
         }
 
-        // スプレッドシートから自動配信設定を読み込む（グローバル関数）
-        window.loadAutodeliverySettings = function(data) {
-            console.log('[loadAutodeliverySettings] 🔍 DEBUG: Function called with data:', data);
-            console.log('[loadAutodeliverySettings] 🔍 DEBUG: Data type:', typeof data);
-            console.log('[loadAutodeliverySettings] 🔍 DEBUG: Data is empty object?', Object.keys(data || {}).length === 0);
-            console.log('[loadAutodeliverySettings] 🔍 DEBUG: window.merchantId:', window.merchantId);
-            console.log('[loadAutodeliverySettings] 🔍 DEBUG: sessionStorage currentUser:', sessionStorage.getItem('currentUser'));
-
-            // 🔥 承認待ち/審査中ステータスの場合、自動的に未定チェックを設定（初回登録時のみ）
-            const merchantStatus = data['ステータス'] || '';
-            const isInitialRegistration = !localStorage.getItem('autodeliveryInitialized');
-
-            const shouldSetIndefinite = isInitialRegistration && (
-                merchantStatus === '承認待ち' ||
-                merchantStatus === '審査中' ||
-                merchantStatus === 'pending' ||
-                merchantStatus === 'approval' ||
-                merchantStatus === '未承認' ||
-                merchantStatus === '登録審査中' ||
-                merchantStatus === '' // 空文字でもテスト実行
-            );
-
-            if (shouldSetIndefinite) {
-                // 一時停止設定を有効にし、未定チェックを自動設定
-                const autoPauseToggle = document.getElementById('autoPauseToggle');
-                const indefinitePause = document.getElementById('indefinitePause');
-
-                if (autoPauseToggle && indefinitePause) {
-                    // 一時停止を有効化
-                    autoPauseToggle.checked = true;
-
-                    if (typeof toggleAutoPause === 'function') {
-                        toggleAutoPause(); // 一時停止設定を表示
-                    }
-
-                    // 未定チェックを自動設定
-                    indefinitePause.checked = true;
-
-                    if (typeof toggleIndefinitePause === 'function') {
-                        toggleIndefinitePause(); // 未定表示を更新
-                    }
-
-                }
-            }
+        // スプレッドシートから自動配信設定を読み込む
+        function loadAutodeliverySettings(data) {
+            console.log('[loadAutodeliverySettings] Loading settings:', data);
+            console.log('[loadAutodeliverySettings] 最大対応階数 key check:', data['最大対応階数']);
+            console.log('[loadAutodeliverySettings] All keys:', Object.keys(data));
 
             // 対応物件種別（複数の列名に対応）
             // まず全ての物件種別チェックボックスをリセット
@@ -19493,79 +18607,29 @@
             }
 
             // 一時停止設定を読み込み
-
             const autoPauseToggle = document.getElementById('autoPauseToggle');
             const pauseStartDate = document.getElementById('pauseStartDate');
             const pauseEndDate = document.getElementById('pauseEndDate');
             const indefinitePause = document.getElementById('indefinitePause');
             const pauseSettings = document.getElementById('pauseSettings');
 
-            console.log('[loadAutodeliverySettings] 🔍 DOM要素取得結果:', {
-                autoPauseToggle: !!autoPauseToggle,
-                pauseStartDate: !!pauseStartDate,
-                pauseEndDate: !!pauseEndDate,
-                indefinitePause: !!indefinitePause,
-                pauseSettings: !!pauseSettings
-            });
-
             // 一時停止フラグを読み込み（undefinedの場合はFALSEとして扱う）
-            // 🔥 FIX: ローカルストレージの値を優先（GAS読み込み不整合の対策）
-            let pauseFlag = data['一時停止フラグ'] === 'TRUE' || data['一時停止フラグ'] === 'true' || data['一時停止フラグ'] === true ||
-                            data['pauseFlag'] === 'TRUE' || data['pauseFlag'] === 'true' || data['pauseFlag'] === true;
-
-            // ローカルストレージから保存状態を確認
-            console.log('[loadAutodeliverySettings] 🔍 merchantId check:', window.merchantId);
-            if (window.merchantId) {
-                console.log('[loadAutodeliverySettings] 🔍 Checking localStorage for key:', `pauseSettings_${window.merchantId}`);
-                const savedPauseState = localStorage.getItem(`pauseSettings_${window.merchantId}`);
-                console.log('[loadAutodeliverySettings] 🔍 localStorage result:', savedPauseState);
-                if (savedPauseState) {
-                    try {
-                        const parsedState = JSON.parse(savedPauseState);
-                        console.log('[loadAutodeliverySettings] 🔥 Found localStorage pause state:', parsedState);
-
-                        // ローカルストレージの値を優先（スプレッドシート読み込み不整合の対策）
-                        if (parsedState.pauseFlag !== undefined) {
-                            pauseFlag = parsedState.pauseFlag;
-                            console.log('[loadAutodeliverySettings] 🔥 Using localStorage pauseFlag:', pauseFlag);
-                        }
-                    } catch (e) {
-                        console.warn('[loadAutodeliverySettings] Failed to parse localStorage pause state:', e);
-                    }
-                }
-            }
+            const pauseFlag = data['一時停止フラグ'] === 'TRUE' || data['一時停止フラグ'] === true;
             console.log('[loadAutodeliverySettings] Pause flag from sheet:', data['一時停止フラグ'], '→', pauseFlag);
             console.log('[loadAutodeliverySettings] Pause start date raw:', data['一時停止開始日']);
             console.log('[loadAutodeliverySettings] Pause end date raw:', data['一時停止再開予定日']);
 
             if (autoPauseToggle) {
-                console.log('[loadAutodeliverySettings] 🔍 トグルスイッチ設定前:', {
-                    pauseFlag: pauseFlag,
-                    currentChecked: autoPauseToggle.checked,
-                    elementId: autoPauseToggle.id
-                });
-
                 autoPauseToggle.checked = pauseFlag;
-
-                console.log('[loadAutodeliverySettings] 🔍 トグルスイッチ設定後:', {
-                    pauseFlag: pauseFlag,
-                    newChecked: autoPauseToggle.checked,
-                    success: autoPauseToggle.checked === pauseFlag
-                });
-
                 // トグル状態に応じて設定欄の表示・非表示を制御
                 const pauseSettings = document.getElementById('pauseSettings');
                 if (pauseSettings) {
                     if (pauseFlag) {
                         pauseSettings.classList.remove('hidden');
-                        console.log('[loadAutodeliverySettings] ✅ 一時停止設定を表示');
                     } else {
                         pauseSettings.classList.add('hidden');
-                        console.log('[loadAutodeliverySettings] ❌ 一時停止設定を非表示');
                     }
                 }
-            } else {
-                console.log('[loadAutodeliverySettings] ❌ autoPauseToggle要素が見つかりません');
             }
 
             // 一時停止開始日（AP列）- フラグに関わらず常にデータを読み込む
@@ -19672,13 +18736,6 @@
             }
 
             console.log('[loadAutodeliverySettings] Settings loaded');
-
-            // 閲覧モード表示を更新
-            updateViewData('pause');
-            updateViewData('propertyTypes');
-            updateViewData('constructionAreas');
-            updateViewData('specialServices');
-            updateViewData('serviceAreas');
 
             // イベントリスナーを追加して変更を検知
             attachAutodeliveryChangeListeners();
@@ -19787,134 +18844,6 @@
 
             // 変更フラグを立てる（保存ボタンクリックで保存される）
             markAutodeliveryChanged();
-        }
-
-        // 編集モード専用：一時停止トグル関数
-        function toggleAutoPauseEdit() {
-            const toggle = document.getElementById('autoPauseToggle');
-            const settings = document.getElementById('pauseSettings');
-            const startDate = document.getElementById('pauseStartDate');
-            const endDate = document.getElementById('pauseEndDate');
-            const indefinite = document.getElementById('indefinitePause');
-
-            console.log('[toggleAutoPauseEdit] Toggle changed to:', toggle.checked);
-
-            if (toggle.checked) {
-                settings.classList.remove('hidden');
-                // 開始日を今日にセット（空の場合のみ）
-                if (startDate && !startDate.value) {
-                    startDate.value = new Date().toISOString().split('T')[0];
-                }
-            } else {
-                settings.classList.add('hidden');
-                // トグルOFF時は日付をクリア
-                if (startDate) startDate.value = '';
-                if (endDate) endDate.value = '';
-                if (indefinite) indefinite.checked = false;
-            }
-
-            // 編集モードの変更フラグを立てる
-            markAutodeliveryChanged();
-        }
-
-        // 🔥 一時停止設定専用保存関数
-        async function savePauseSettings() {
-            console.log('[savePauseSettings] 一時停止設定保存開始');
-
-            if (!window.merchantId) {
-                showToast('エラー: merchantIdが設定されていません', 'error');
-                return;
-            }
-
-            const saveBtn = event.target;
-            if (saveBtn) {
-                saveBtn.disabled = true;
-                saveBtn.innerHTML = '💾 保存中...';
-            }
-
-            try {
-                // 🔥 FIX: 一時停止設定も全体保存と同じデータ収集方法を使用
-                console.log('[savePauseSettings] Using collectAutoDeliveryData method...');
-                const fullAutoDeliveryData = collectAutoDeliveryData();
-
-                if (!fullAutoDeliveryData) {
-                    console.error('[savePauseSettings] Failed to collect auto delivery data');
-                    throw new Error('自動配信設定の収集に失敗しました');
-                }
-
-                const requestData = {
-                    action: 'updateAutoDeliverySettings',
-                    merchantId: window.merchantId,
-                    ...fullAutoDeliveryData  // 全体保存と同じデータ構造
-                };
-
-                console.log('[savePauseSettings] Request data keys:', Object.keys(requestData));
-                console.log('[savePauseSettings] 🔍 一時停止設定:', {
-                    status: requestData.status,
-                    pauseFlag: requestData.pauseFlag,
-                    pauseStartDate: requestData.pauseStartDate,
-                    pauseEndDate: requestData.pauseEndDate
-                });
-
-                // GASに送信
-                const response = await fetch(window.ENV.GAS_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify(requestData)
-                });
-
-                console.log('[savePauseSettings] Response status:', response.status);
-                const result = await response.json();
-
-                console.log('[savePauseSettings] Response:', {
-                    success: result.success,
-                    message: result.message,
-                    error: result.error
-                });
-
-                if (result.success) {
-                    showToast('一時停止設定を保存しました', 'success');
-
-                    // 🔥 FIX: 保存成功時に現在の状態をローカルに記憶
-                    console.log('[savePauseSettings] 🔍 Debug - merchantId:', window.merchantId);
-                    const autoPauseToggle = document.getElementById('autoPauseToggle');
-                    console.log('[savePauseSettings] 🔍 Debug - autoPauseToggle found:', !!autoPauseToggle);
-                    if (autoPauseToggle) {
-                        const currentState = {
-                            pauseFlag: autoPauseToggle.checked,
-                            pauseStartDate: requestData.pauseStartDate,
-                            pauseEndDate: requestData.pauseEndDate,
-                            timestamp: new Date().toISOString()
-                        };
-                        localStorage.setItem(`pauseSettings_${window.merchantId}`, JSON.stringify(currentState));
-                        console.log('[savePauseSettings] 🔥 Saved pause state to localStorage:', currentState);
-
-                        // 🔥 保存直後の確認
-                        setTimeout(() => {
-                            const verification = localStorage.getItem(`pauseSettings_${window.merchantId}`);
-                            console.log('[savePauseSettings] 🔍 Verification after 1 second:', verification);
-                        }, 1000);
-                    }
-
-                    // 閲覧データを更新
-                    updateViewData('pause');
-
-                    // 変更フラグをリセット
-                    autodeliverySettingsChanged = false;
-                } else {
-                    throw new Error(result.message || '一時停止設定の保存に失敗しました');
-                }
-
-            } catch (error) {
-                console.error('[savePauseSettings] Error:', error);
-                showToast(`エラー: ${error.message}`, 'error');
-            } finally {
-                // 保存ボタンを元に戻す
-                if (saveBtn) {
-                    saveBtn.disabled = false;
-                    saveBtn.innerHTML = '💾 一時停止設定を保存';
-                }
-            }
         }
 
 
@@ -20040,31 +18969,39 @@
             }
 
             try {
-                console.log(`[saveAutoDeliverySection] GAS_URL:`, window.ENV.GAS_URL);
+                console.log(`[saveAutoDeliverySection] GAS_URL:`, GAS_URL);
 
-                // 🔥 FIX: 全体保存と同じデータ収集方法を使用
-                console.log('[saveAutoDeliverySection] Using collectAutoDeliveryData method...');
-                const fullAutoDeliveryData = collectAutoDeliveryData();
-
-                if (!fullAutoDeliveryData) {
-                    console.error('[saveAutoDeliverySection] Failed to collect auto delivery data');
-                    throw new Error('自動配信設定の収集に失敗しました');
-                }
-
-                // 全体データから必要な部分だけを抽出して送信
+                // 現在の自動配信設定データを取得
                 const requestData = {
-                    action: 'updateAutoDeliverySettings',
+                    action: 'updateMerchantData',
                     merchantId: window.merchantId,
-                    ...fullAutoDeliveryData  // 全体保存と同じデータ構造
+                    data: {}
                 };
 
-                console.log('[saveAutoDeliverySection] Full auto delivery data:', fullAutoDeliveryData);
-                console.log('[saveAutoDeliverySection] Request data keys:', Object.keys(requestData));
+                // 各セクションのデータを収集
+                if (sectionName === 'propertyTypes') {
+                    // 対応可能物件種別の収集
+                    const propertyTypes = Array.from(document.querySelectorAll('input[name="propertyType"]:checked')).map(cb => cb.value);
+                    requestData.data['対応可能物件種別'] = propertyTypes.join(',');
+                } else if (sectionName === 'constructionAreas') {
+                    // 施工箇所の収集
+                    const constructionTypes = Array.from(document.querySelectorAll('input[name="constructionTypes"]:checked')).map(cb => cb.value);
+                    requestData.data['施工箇所'] = constructionTypes.join(',');
+                } else if (sectionName === 'specialServices') {
+                    // 特殊対応項目の収集
+                    const specialServices = Array.from(document.querySelectorAll('input[name="specialServices"]:checked')).map(cb => cb.value);
+                    requestData.data['特殊対応項目'] = specialServices.join(',');
+                } else if (sectionName === 'serviceAreas') {
+                    // 対応エリアの収集（簡易版）
+                    const selectedPrefCount = document.getElementById('selectedPrefCount')?.textContent || '0';
+                    const selectedCityCount = document.getElementById('selectedCityCount')?.textContent || '0';
+                    requestData.data['対応エリア'] = `${selectedPrefCount}都道府県,${selectedCityCount}市区町村`;
+                }
 
                 console.log(`[saveAutoDeliverySection] Request data:`, requestData);
 
                 // GASに送信
-                const response = await fetch(window.ENV.GAS_URL, {
+                const response = await fetch(GAS_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify(requestData)
@@ -20966,7 +19903,16 @@
             }
         }
 
-        // 会社情報セクション表示時にURL情報を読み込み（14128行目のshowSectionオーバーライドに統合済み）
+        // 会社情報セクション表示時にURL情報を読み込み
+        const originalShowSection = showSection;
+        function showSection(sectionName) {
+            originalShowSection(sectionName);
+
+            if (sectionName === 'company') {
+                // 会社情報セクション表示時にURL情報を読み込み
+                setTimeout(loadCurrentUrlInfo, 500);
+            }
+        }
 
     </script>
 
