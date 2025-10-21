@@ -15106,9 +15106,13 @@
                 }
             }
 
-            // メインビジュアルの読み込み
-            const mainVisualUrlFromSheet = data['メインビジュアル'] || data.mainVisual;
-            if (mainVisualUrlFromSheet) {
+            // メインビジュアルの読み込み（スプレッドシートが空なら非表示）
+            const mainVisualUrlFromSheet = data['メインビジュアル'] || '';
+            const mainVisualImageView = document.getElementById('mainVisualImageView');
+            const mainVisualPlaceholderView = document.getElementById('mainVisualPlaceholderView');
+
+            if (mainVisualUrlFromSheet && mainVisualUrlFromSheet.trim() !== '') {
+                // スプレッドシートにデータがある場合のみ表示
                 // Google Drive URLをthumbnail形式に変換（表示用）
                 let displayUrl = mainVisualUrlFromSheet;
                 if (mainVisualUrlFromSheet.includes('drive.google.com')) {
@@ -15126,23 +15130,15 @@
                 const mainVisualImageElement = document.getElementById('mainVisualImage');
                 if (mainVisualImageElement) {
                     mainVisualImageElement.src = displayUrl;
-                    console.log('[loadMerchantData] Set mainVisualImage.src to:', displayUrl);
-                    console.log('[loadMerchantData] Current mainVisualImage.src:', mainVisualImageElement.src);
-                } else {
-                    console.error('[loadMerchantData] mainVisualImage element not found!');
                 }
 
                 const mainVisualPreview = document.getElementById('mainVisualPreview');
                 const mainVisualPlaceholder = document.getElementById('mainVisualPlaceholder');
-                console.log('[loadMerchantData] mainVisualPreview element:', mainVisualPreview);
-                console.log('[loadMerchantData] mainVisualPlaceholder element:', mainVisualPlaceholder);
                 if (mainVisualPreview) {
                     mainVisualPreview.classList.remove('hidden');
-                    console.log('[loadMerchantData] Removed hidden class from mainVisualPreview');
                 }
                 if (mainVisualPlaceholder) {
                     mainVisualPlaceholder.classList.add('hidden');
-                    console.log('[loadMerchantData] Added hidden class to mainVisualPlaceholder');
                 }
 
                 // プレビューにも反映（有効なURLの場合のみ）
@@ -15150,10 +15146,8 @@
                 if (previewMainVisual) {
                     if (displayUrl && displayUrl !== '' && !displayUrl.includes('data:,')) {
                         previewMainVisual.src = displayUrl;
-                        console.log('[loadMerchantData] Set previewMainVisual.src to:', displayUrl);
                     } else {
                         previewMainVisual.src = '';
-                        console.log('[loadMerchantData] Cleared previewMainVisual.src - no valid URL');
                     }
                 }
                 const mainVisualSection = document.getElementById('mainVisualSection');
@@ -15168,7 +15162,6 @@
                         previewMainVisualSection.classList.remove('hidden');
                         previewMainVisualSection.classList.add('block');
                     }
-                    console.log('[loadMerchantData] Showing main visual sections');
                 } else {
                     // 画像URLがない場合
                     if (mainVisualSection) mainVisualSection.style.display = 'none';
@@ -15177,33 +15170,15 @@
                         previewMainVisualSection.classList.add('hidden');
                         previewMainVisualSection.classList.remove('block');
                     }
-                    console.log('[loadMerchantData] Hiding main visual sections - no valid image');
                 }
 
-                // 閲覧モードの即時プレビューも更新
-                const mainVisualImageView = document.getElementById('mainVisualImageView');
-                const mainVisualPlaceholderView = document.getElementById('mainVisualPlaceholderView');
-
-                if (displayUrl && displayUrl !== '' && !displayUrl.includes('data:,')) {
-                    // スプレッドシートに画像データがある場合
-                    if (mainVisualImageView) {
-                        mainVisualImageView.src = displayUrl;
-                        mainVisualImageView.classList.remove('hidden');
-                    }
-                    if (mainVisualPlaceholderView) {
-                        mainVisualPlaceholderView.classList.add('hidden');
-                    }
-                    console.log('[loadMerchantData] Showing mainVisualImageView with:', displayUrl);
-                } else {
-                    // スプレッドシートが空の場合
-                    if (mainVisualImageView) {
-                        mainVisualImageView.src = '';
-                        mainVisualImageView.classList.add('hidden');
-                    }
-                    if (mainVisualPlaceholderView) {
-                        mainVisualPlaceholderView.classList.remove('hidden');
-                    }
-                    console.log('[loadMerchantData] Hiding mainVisualImageView - no spreadsheet data');
+                // 閲覧モードに反映
+                if (mainVisualImageView) {
+                    mainVisualImageView.src = displayUrl;
+                    mainVisualImageView.classList.remove('hidden');
+                }
+                if (mainVisualPlaceholderView) {
+                    mainVisualPlaceholderView.classList.add('hidden');
                 }
 
                 // メインビジュアル上の設立年月日も更新
@@ -15215,14 +15190,8 @@
                     }
                 }
 
-                console.log('✓ Loaded main visual:', mainVisualUrlFromSheet);
             } else {
-                console.log('[loadMerchantData] No main visual URL found in spreadsheet data');
-
-                // メインビジュアルデータがない場合、閲覧モードも非表示に
-                const mainVisualImageView = document.getElementById('mainVisualImageView');
-                const mainVisualPlaceholderView = document.getElementById('mainVisualPlaceholderView');
-
+                // スプレッドシートが空の場合
                 if (mainVisualImageView) {
                     mainVisualImageView.src = '';
                     mainVisualImageView.classList.add('hidden');
@@ -15230,7 +15199,6 @@
                 if (mainVisualPlaceholderView) {
                     mainVisualPlaceholderView.classList.remove('hidden');
                 }
-                console.log('[loadMerchantData] No spreadsheet data - showing placeholder');
             }
 
             // 写真ギャラリーの読み込み（遅延読み込み + 軽量サムネイル）
