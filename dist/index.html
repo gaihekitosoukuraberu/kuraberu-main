@@ -15180,6 +15180,32 @@
                     console.log('[loadMerchantData] Hiding main visual sections - no valid image');
                 }
 
+                // 閲覧モードの即時プレビューも更新
+                const mainVisualImageView = document.getElementById('mainVisualImageView');
+                const mainVisualPlaceholderView = document.getElementById('mainVisualPlaceholderView');
+
+                if (displayUrl && displayUrl !== '' && !displayUrl.includes('data:,')) {
+                    // スプレッドシートに画像データがある場合
+                    if (mainVisualImageView) {
+                        mainVisualImageView.src = displayUrl;
+                        mainVisualImageView.classList.remove('hidden');
+                    }
+                    if (mainVisualPlaceholderView) {
+                        mainVisualPlaceholderView.classList.add('hidden');
+                    }
+                    console.log('[loadMerchantData] Showing mainVisualImageView with:', displayUrl);
+                } else {
+                    // スプレッドシートが空の場合
+                    if (mainVisualImageView) {
+                        mainVisualImageView.src = '';
+                        mainVisualImageView.classList.add('hidden');
+                    }
+                    if (mainVisualPlaceholderView) {
+                        mainVisualPlaceholderView.classList.remove('hidden');
+                    }
+                    console.log('[loadMerchantData] Hiding mainVisualImageView - no spreadsheet data');
+                }
+
                 // メインビジュアル上の設立年月日も更新
                 const establishedDate = data['設立年月'] || data.established || '';
                 if (establishedDate) {
@@ -15192,6 +15218,19 @@
                 console.log('✓ Loaded main visual:', mainVisualUrlFromSheet);
             } else {
                 console.log('[loadMerchantData] No main visual URL found in spreadsheet data');
+
+                // メインビジュアルデータがない場合、閲覧モードも非表示に
+                const mainVisualImageView = document.getElementById('mainVisualImageView');
+                const mainVisualPlaceholderView = document.getElementById('mainVisualPlaceholderView');
+
+                if (mainVisualImageView) {
+                    mainVisualImageView.src = '';
+                    mainVisualImageView.classList.add('hidden');
+                }
+                if (mainVisualPlaceholderView) {
+                    mainVisualPlaceholderView.classList.remove('hidden');
+                }
+                console.log('[loadMerchantData] No spreadsheet data - showing placeholder');
             }
 
             // 写真ギャラリーの読み込み（遅延読み込み + 軽量サムネイル）
