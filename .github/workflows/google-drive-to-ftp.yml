@@ -3,7 +3,7 @@ name: Google Drive → Xserver FTP 同期
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 * * * *"  # 毎時実行（任意で変更可）
+    - cron: "0 * * * *"
 
 jobs:
   sync:
@@ -73,9 +73,9 @@ jobs:
               return files
 
           def parse_filename(filename):
-              """ファイル名解析: 都道府県-会社名-index.html"""
+              """ファイル名解析: 都道府県-会社名-index.html (会社名にハイフン含む可能性あり)"""
               print(f"🔍 デバッグ: 処理ファイル名='{filename}'")
-              m = re.match(r'^([a-z0-9-]+)-([a-z0-9-]+)-index\.html$', filename)
+              m = re.match(r'^([^-]+)-(.+)-index\.html$', filename)
               if not m:
                   print(f"⚠️ ファイル名形式不正: {filename}")
                   return None
@@ -87,7 +87,7 @@ jobs:
                   "companySlug": company,
                   "remotePath": remote_path
               }
-              print(f"✅ ファイル名解析成功: {result}")
+              print(f"✅ ファイル名解析成功: prefecture={prefecture}, company={company}")
               return result
 
           def download_file_from_drive(service, file_id, destination):
@@ -110,7 +110,7 @@ jobs:
                       ftp.mkd(subpath)
                       print(f"📁 ディレクトリ作成: {subpath}")
                   except Exception:
-                      pass  # 既に存在する場合はスルー
+                      pass
 
           def upload_to_ftp(local_file, parsed_info):
               ftp = ftplib.FTP(os.environ['FTP_HOST'])
