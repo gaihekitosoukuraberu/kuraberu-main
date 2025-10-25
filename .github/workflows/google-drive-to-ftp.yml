@@ -103,29 +103,24 @@ jobs:
             """ファイル名解析: citySlug-companySlug-index.html"""
             try:
                 print(f"🔍 デバッグ: 処理ファイル名='{filename}'")
-                
-                # osaka-fine-t-index.html の場合
-                if filename == 'osaka-fine-t-index.html':
+                # 汎用パターン: citySlug-companySlug-index.html
+                pattern = r'^([^-]+)-(.+)-index\.html$'
+                match = re.match(pattern, filename)
+                if match:
+                    city_slug, company_slug = match.groups()
                     result = {
-                        'citySlug': 'osaka',
-                        'companySlug': 'fine-t',
-                        'remotePath': 'osaka/fine-t/index.html'
+                        'citySlug': city_slug,
+                        'companySlug': company_slug,
+                        'remotePath': f"{city_slug}/{company_slug}/index.html"
                     }
-                    print(f"✅ 固定パターン適用: {result}")
+                    print(f"✅ ファイル名解析成功: {filename}")
+                    print(f"  - 市区町村: {city_slug}")
+                    print(f"  - 会社: {company_slug}")
+                    print(f"  - FTPパス: {result['remotePath']}")
                     return result
-                
-                # kanagawa-ohnokensou-index.html の場合  
-                if filename == 'kanagawa-ohnokensou-index.html':
-                    result = {
-                        'citySlug': 'kanagawa',
-                        'companySlug': 'ohnokensou',
-                        'remotePath': 'kanagawa/ohnokensou/index.html'
-                    }
-                    print(f"✅ 固定パターン適用: {result}")
-                    return result
-                
-                print(f"⚠️ 未対応ファイル: {filename}")
-                return None
+                else:
+                    print(f"⚠️ ファイル名形式が不正: {filename}")
+                    return None
             except Exception as e:
                 print(f"❌ ファイル名解析エラー: {e}")
                 return None
