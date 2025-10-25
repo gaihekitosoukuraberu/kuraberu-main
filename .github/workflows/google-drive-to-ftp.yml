@@ -149,14 +149,16 @@ jobs:
                 dirs = path.split('/')
                 current_path = ''
                 for dir_name in dirs:
-                    if dir_name:  # 空文字列をスキップ
-                        current_path += '/' + dir_name
+                    if dir_name:
+                        if current_path:
+                            current_path += '/' + dir_name
+                        else:
+                            current_path = dir_name
                         try:
                             ftp.mkd(current_path)
                             print(f"📁 ディレクトリ作成: {current_path}")
-                        except:
-                            # ディレクトリが既に存在する場合
-                            pass
+                        except Exception as e:
+                            print(f"📁 ディレクトリ既存またはエラー: {current_path} - {e}")
                 return True
             except Exception as e:
                 print(f"❌ ディレクトリ作成エラー: {e}")
