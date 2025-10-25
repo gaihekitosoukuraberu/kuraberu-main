@@ -41,18 +41,14 @@ jobs:
         def get_drive_service():
             """Google Drive APIサービス認証"""
             try:
-                # GitHub SecretsからGoogle認証情報を取得
                 creds_json = os.environ.get('GOOGLE_CREDENTIALS')
                 if not creds_json:
                     raise ValueError("GOOGLE_CREDENTIALS環境変数が設定されていません")
-                # JSON文字列を辞書に変換
                 creds_dict = json.loads(creds_json)
-                # サービスアカウント認証情報作成
                 credentials = service_account.Credentials.from_service_account_info(
                     creds_dict,
                     scopes=['https://www.googleapis.com/auth/drive.readonly']
                 )
-                # Drive APIサービス構築
                 service = build('drive', 'v3', credentials=credentials)
                 print("✅ Google Drive API認証成功")
                 return service
@@ -79,10 +75,8 @@ jobs:
         def get_recent_html_files(service, folder_id, minutes=1440):
             """最近更新されたHTMLファイルを取得"""
             try:
-                # タイムスタンプ作成
                 cutoff_time = datetime.now() - timedelta(minutes=minutes)
                 cutoff_iso = cutoff_time.isoformat() + 'Z'
-                # フォルダ内のHTMLファイルを検索（最近更新されたもの）
                 query = f"'{folder_id}' in parents and name contains '.html' and modifiedTime > '{cutoff_iso}'"
                 results = service.files().list(
                     q=query,
@@ -100,12 +94,9 @@ jobs:
                 return []
 
         def parse_filename(filename):
-            """ファイル名解析: エリア-会社名-index.html (汎用対応)"""
+            """ファイル名解析: エリア-会社名-index.html"""
             try:
                 print(f"🔍 デバッグ: 処理ファイル名='{filename}'")
-                # 汎用パターン: エリア-会社名-index.html
-                # 例: kanagawa-shonan-wincle-index.html → エリア=kanagawa, 会社=shonan-wincle
-                # 例: tokyo-yamamoto-kun-index.html → エリア=tokyo, 会社=yamamoto-kun
                 pattern = r'^([^-]+)-(.+)-index\.html$'
                 match = re.match(pattern, filename)
                 if match:
@@ -145,14 +136,13 @@ jobs:
             """FTPディレクトリを段階的に作成"""
             try:
                 dirs = path.split('/')
-                for i, dir_name in enumerate(dirs):
-                    if dir_name:  # 空文字列をスキップ
+                for dir_name in dirs:
+                    if dir_name:
                         try:
                             ftp.mkd(dir_name)
                             print(f"📁 ディレクトリ作成: {dir_name}")
                         except Exception as e:
                             print(f"📁 ディレクトリ既存: {dir_name}")
-                        # ディレクトリに移動
                         ftp.cwd(dir_name)
                         print(f"📂 移動: {dir_name}")
                 return True
@@ -161,17 +151,14 @@ jobs:
                 return False
 
         def upload_to_ftp(local_file, parsed_info):
-            """Xserver FTPにアップロード（正しいパス構造）"""
+            """Xserver FTPにアップロード"""
             try:
                 ftp = ftplib.FTP(os.environ['FTP_HOST'])
                 ftp.login(os.environ['FTP_USERNAME'], os.environ['FTP_PASSWORD'])
-                # ベースディレクトリに移動
                 ftp.cwd('/gaihekikuraberu.com/public_html')
                 print(f"📂 ベースディレクトリ: /gaihekikuraberu.com/public_html")
-                # ディレクトリを段階的に作成・移動
                 dir_path = f"{parsed_info['citySlug']}/{parsed_info['companySlug']}"
                 create_ftp_directory(ftp, dir_path)
-                # ファイルアップロード
                 with open(local_file, 'rb') as f:
                     ftp.storbinary('STOR index.html', f)
                 ftp.quit()
@@ -186,36 +173,29 @@ jobs:
             """メイン処理"""
             print("🚀 Google Drive → FTP 自動同期開始")
             print(f"⏰ 実行時刻: {datetime.now().isoformat()}")
-            # Google Drive API認証
             service = get_drive_service()
             if not service:
                 print("❌ Google Drive API認証失敗")
                 return
-            # gaihekikuraberu-hp-filesフォルダ検索
             folder_id = find_gaihekikuraberu_folder(service)
             if not folder_id:
                 print("❌ 対象フォルダが見つかりません")
                 return
-            # 最近更新されたHTMLファイル取得
             files = get_recent_html_files(service, folder_id, minutes=1440)
             if not files:
-                print("ℹ️ 処理対象ファイルなし（24時間以内の更新ファイルなし）")
+                print("ℹ️ 処理対象ファイルなし")
                 return
-            # 各ファイルを処理
             success_count = 0
             for file_info in files:
                 filename = file_info['name']
                 file_id = file_info['id']
                 print(f"\n📁 処理開始: {filename}")
-                # ファイル名解析
                 parsed = parse_filename(filename)
                 if not parsed:
                     print(f"⚠️ スキップ: ファイル名形式不正")
                     continue
-                # 一時ファイルにダウンロード
                 with tempfile.NamedTemporaryFile(delete=False, suffix='.html') as tmp_file:
                     if download_file_from_drive(service, file_id, tmp_file.name):
-                        # FTPアップロード
                         if upload_to_ftp(tmp_file.name, parsed):
                             print(f"🎉 {filename} 同期完了")
                             success_count += 1
@@ -223,7 +203,6 @@ jobs:
                             print(f"❌ {filename} アップロード失敗")
                     else:
                         print(f"❌ {filename} ダウンロード失敗")
-                    # 一時ファイル削除
                     os.unlink(tmp_file.name)
             print(f"\n✅ 同期処理完了: {success_count}/{len(files)} ファイル成功")
 
