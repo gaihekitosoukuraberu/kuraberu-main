@@ -1,0 +1,233 @@
+name: Google Drive to Xserver FTP Auto Upload
+
+on:
+  schedule:
+    # 毎15分実行(カスタマイズ可能)
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    # 手動実行ボタン
+
+jobs:
+  sync-to-ftp:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install google-api-python-client google-auth google-auth-oauthlib google-auth-httplib2
+        pip install requests
+    - name: Create Google Drive sync script
+      run: |
+        cat > sync_drive_to_ftp.py << 'EOF'
+        import os
+        import json
+        import ftplib
+        import tempfile
+        import requests
+        import re
+        from datetime import datetime, timedelta
+        from google.oauth2 import service_account
+        from googleapiclient.discovery import build
+        def get_drive_service():
+            """Google Drive APIサービス認証"""
+            try:
+                # GitHub SecretsからGoogle認証情報を取得
+                creds_json = os.environ.get('GOOGLE_CREDENTIALS')
+                if not creds_json:
+                    raise ValueError("GOOGLE_CREDENTIALS環境変数が設定されていません")
+                # JSON文字列を辞書に変換
+                creds_dict = json.loads(creds_json)
+                # サービスアカウント認証情報作成
+                credentials = service_account.Credentials.from_service_account_info(
+                    creds_dict,
+                    scopes=['https://www.googleapis.com/auth/drive.readonly']
+                )
+                # Drive APIサービス構築
+                service = build('drive', 'v3', credentials=credentials)
+                print("✅ Google Drive API認証成功")
+                return service
+            except Exception as e:
+                print(f"❌ Google Drive API認証エラー: {e}")
+                return None
+        def find_gaihekikuraberu_folder(service):
+            """gaihekikuraberu-hp-filesフォルダを検索"""
+            try:
+                query = "name='gaihekikuraberu-hp-files' and mimeType='application/vnd.google-apps.folder'"
+                results = service.files().list(q=query, fields='files(id, name)').execute()
+                folders = results.get('files', [])
+                if not folders:
+                    print("❌ gaihekikuraberu-hp-filesフォルダが見つかりません")
+                    return None
+                folder_id = folders[0]['id']
+                print(f"✅ フォルダ検出: {folders[0]['name']} (ID: {folder_id})")
+                return folder_id
+            except Exception as e:
+                print(f"❌ フォルダ検索エラー: {e}")
+                return None
+        def get_recent_html_files(service, folder_id, minutes=20):
+            """最近20分以内に更新されたHTMLファイルを取得"""
+            try:
+                # 20分前のタイムスタンプ作成
+                cutoff_time = datetime.now() - timedelta(minutes=minutes)
+                cutoff_iso = cutoff_time.isoformat() + 'Z'
+                # フォルダ内のHTMLファイルを検索（最近更新されたもの）
+                query = f"'{folder_id}' in parents and name contains '.html' and modifiedTime > '{cutoff_iso}'"
+                results = service.files().list(
+                    q=query,
+                    fields='files(id, name, modifiedTime, size)',
+                    orderBy='modifiedTime desc'
+                ).execute()
+                files = results.get('files', [])
+                print(f"🔍 検索条件: {minutes}分以内の更新ファイル")
+                print(f"📁 検出ファイル数: {len(files)}")
+                for file in files:
+                    print(f"  - {file['name']} (更新: {file['modifiedTime']}, サイズ: {file.get('size', '不明')})")
+                return files
+            except Exception as e:
+                print(f"❌ ファイル検索エラー: {e}")
+                return []
+        def parse_filename(filename):
+            """ファイル名解析: YYYY-MM-DD_citySlug_companySlug_companyName.html"""
+            try:
+                # パターン: 2025-10-20_osaka_yamada-construction_ヤマダ建設.html
+                pattern = r'^(\d{4}-\d{2}-\d{2})_([^_]+)_([^_]+)_(.+)\.html$'
+                match = re.match(pattern, filename)
+                if match:
+                    date_str, city_slug, company_slug, company_name = match.groups()
+                    result = {
+                        'date': date_str,
+                        'citySlug': city_slug,
+                        'companySlug': company_slug,
+                        'companyName': company_name,
+                        'remotePath': f"{city_slug}/{company_slug}/index.html"
+                    }
+                    print(f"✅ ファイル名解析成功: {filename}")
+                    print(f"  - 市区町村: {city_slug}")
+                    print(f"  - 会社: {company_slug}")
+                    print(f"  - FTPパス: {result['remotePath']}")
+                    return result
+                else:
+                    print(f"⚠️ ファイル名形式が不正: {filename}")
+                    return None
+            except Exception as e:
+                print(f"❌ ファイル名解析エラー: {e}")
+                return None
+        def download_file_from_drive(service, file_id, destination):
+            """Google DriveからAPIでダウンロード"""
+            try:
+                request = service.files().get_media(fileId=file_id)
+                with open(destination, 'wb') as f:
+                    downloader = request.execute()
+                    f.write(downloader)
+                print(f"✅ ダウンロード成功: {os.path.basename(destination)}")
+                return True
+            except Exception as e:
+                print(f"❌ ダウンロードエラー: {e}")
+                return False
+        def create_ftp_directory(ftp, path):
+            """FTPディレクトリを再帰的に作成"""
+            try:
+                dirs = path.split('/')
+                current_path = ''
+                for dir_name in dirs:
+                    if dir_name:  # 空文字列をスキップ
+                        current_path += '/' + dir_name
+                        try:
+                            ftp.mkd(current_path)
+                            print(f"📁 ディレクトリ作成: {current_path}")
+                        except:
+                            # ディレクトリが既に存在する場合
+                            pass
+                return True
+            except Exception as e:
+                print(f"❌ ディレクトリ作成エラー: {e}")
+                return False
+        def upload_to_ftp(local_file, parsed_info):
+            """Xserver FTPにアップロード（正しいパス構造）"""
+            try:
+                ftp = ftplib.FTP(os.environ['FTP_HOST'])
+                ftp.login(os.environ['FTP_USERNAME'], os.environ['FTP_PASSWORD'])
+                # ベースディレクトリに移動
+                ftp.cwd('/gaihekikuraberu.com/public_html')
+                # 必要なディレクトリを作成
+                dir_path = f"{parsed_info['citySlug']}/{parsed_info['companySlug']}"
+                create_ftp_directory(ftp, dir_path)
+                # ターゲットディレクトリに移動
+                ftp.cwd(f"/gaihekikuraberu.com/public_html/{dir_path}")
+                # ファイルアップロード
+                with open(local_file, 'rb') as f:
+                    ftp.storbinary('STOR index.html', f)
+                ftp.quit()
+                final_url = f"https://gaihekikuraberu.com/{parsed_info['remotePath']}"
+                print(f"✅ アップロード成功: {final_url}")
+                return True
+            except Exception as e:
+                print(f"❌ FTPエラー: {e}")
+                return False
+        def main():
+            """メイン処理"""
+            print("🚀 Google Drive → FTP 自動同期開始")
+            print(f"⏰ 実行時刻: {datetime.now().isoformat()}")
+            # Google Drive API認証
+            service = get_drive_service()
+            if not service:
+                print("❌ Google Drive API認証失敗")
+                return
+            # gaihekikuraberu-hp-filesフォルダ検索
+            folder_id = find_gaihekikuraberu_folder(service)
+            if not folder_id:
+                print("❌ 対象フォルダが見つかりません")
+                return
+            # 最近更新されたHTMLファイル取得
+            files = get_recent_html_files(service, folder_id, minutes=20)
+            if not files:
+                print("ℹ️ 処理対象ファイルなし（20分以内の更新ファイルなし）")
+                return
+            # 各ファイルを処理
+            success_count = 0
+            for file_info in files:
+                filename = file_info['name']
+                file_id = file_info['id']
+                print(f"\n📁 処理開始: {filename}")
+                # ファイル名解析
+                parsed = parse_filename(filename)
+                if not parsed:
+                    print(f"⚠️ スキップ: ファイル名形式不正")
+                    continue
+                # 一時ファイルにダウンロード
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.html') as tmp_file:
+                    if download_file_from_drive(service, file_id, tmp_file.name):
+                        # FTPアップロード
+                        if upload_to_ftp(tmp_file.name, parsed):
+                            print(f"🎉 {filename} 同期完了")
+                            success_count += 1
+                        else:
+                            print(f"❌ {filename} アップロード失敗")
+                    else:
+                        print(f"❌ {filename} ダウンロード失敗")
+                    # 一時ファイル削除
+                    os.unlink(tmp_file.name)
+            print(f"\n✅ 同期処理完了: {success_count}/{len(files)} ファイル成功")
+        if __name__ == "__main__":
+            main()
+        EOF
+    - name: Run sync script
+      env:
+        FTP_HOST: ${{ secrets.FTP_HOST }}
+        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+      run: |
+        python sync_drive_to_ftp.py
+    - name: Notify completion
+      run: |
+        echo "🎉 Google Drive → Xserver FTP 同期完了"
+        echo "⏰ 実行時刻: $(date)"
