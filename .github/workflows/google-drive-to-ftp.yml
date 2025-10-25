@@ -100,10 +100,12 @@ jobs:
                 return []
 
         def parse_filename(filename):
-            """ファイル名解析: citySlug-companySlug-index.html"""
+            """ファイル名解析: エリア-会社名-index.html (汎用対応)"""
             try:
                 print(f"🔍 デバッグ: 処理ファイル名='{filename}'")
-                # 汎用パターン: citySlug-companySlug-index.html
+                # 汎用パターン: エリア-会社名-index.html
+                # 例: kanagawa-shonan-wincle-index.html → エリア=kanagawa, 会社=shonan-wincle
+                # 例: tokyo-yamamoto-kun-index.html → エリア=tokyo, 会社=yamamoto-kun
                 pattern = r'^([^-]+)-(.+)-index\.html$'
                 match = re.match(pattern, filename)
                 if match:
@@ -114,12 +116,13 @@ jobs:
                         'remotePath': f"{city_slug}/{company_slug}/index.html"
                     }
                     print(f"✅ ファイル名解析成功: {filename}")
-                    print(f"  - 市区町村: {city_slug}")
+                    print(f"  - エリア: {city_slug}")
                     print(f"  - 会社: {company_slug}")
                     print(f"  - FTPパス: {result['remotePath']}")
                     return result
                 else:
                     print(f"⚠️ ファイル名形式が不正: {filename}")
+                    print(f"🔍 期待形式: エリア-会社名-index.html")
                     return None
             except Exception as e:
                 print(f"❌ ファイル名解析エラー: {e}")
