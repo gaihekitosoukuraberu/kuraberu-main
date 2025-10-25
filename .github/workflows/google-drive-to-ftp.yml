@@ -24,6 +24,7 @@ jobs:
       run: |
         pip install google-api-python-client google-auth google-auth-oauthlib google-auth-httplib2
         pip install requests
+
     - name: Create Google Drive sync script
       run: |
         cat > sync_drive_to_ftp.py << 'EOF'
@@ -36,6 +37,7 @@ jobs:
         from datetime import datetime, timedelta
         from google.oauth2 import service_account
         from googleapiclient.discovery import build
+
         def get_drive_service():
             """Google Drive APIサービス認証"""
             try:
@@ -57,6 +59,7 @@ jobs:
             except Exception as e:
                 print(f"❌ Google Drive API認証エラー: {e}")
                 return None
+
         def find_gaihekikuraberu_folder(service):
             """gaihekikuraberu-hp-filesフォルダを検索"""
             try:
@@ -72,6 +75,7 @@ jobs:
             except Exception as e:
                 print(f"❌ フォルダ検索エラー: {e}")
                 return None
+
         def get_recent_html_files(service, folder_id, minutes=20):
             """最近20分以内に更新されたHTMLファイルを取得"""
             try:
@@ -94,19 +98,19 @@ jobs:
             except Exception as e:
                 print(f"❌ ファイル検索エラー: {e}")
                 return []
+
         def parse_filename(filename):
-            """ファイル名解析: YYYY-MM-DD_citySlug_companySlug_companyName.html"""
+            """ファイル名解析: citySlug-companySlug-index.html"""
             try:
-                # パターン: 2025-10-20_osaka_yamada-construction_ヤマダ建設.html
-                pattern = r'^(\d{4}-\d{2}-\d{2})_([^_]+)_([^_]+)_(.+)\.html$'
+                # 新パターン: citySlug-companySlug-index.html
+                # 例: osaka-fine-t-index.html  -> city_slug=osaka, company_slug=fine-t
+                pattern = r'^([^-]+)-(.+)-index\.html$'
                 match = re.match(pattern, filename)
                 if match:
-                    date_str, city_slug, company_slug, company_name = match.groups()
+                    city_slug, company_slug = match.groups()
                     result = {
-                        'date': date_str,
                         'citySlug': city_slug,
                         'companySlug': company_slug,
-                        'companyName': company_name,
                         'remotePath': f"{city_slug}/{company_slug}/index.html"
                     }
                     print(f"✅ ファイル名解析成功: {filename}")
@@ -120,6 +124,7 @@ jobs:
             except Exception as e:
                 print(f"❌ ファイル名解析エラー: {e}")
                 return None
+
         def download_file_from_drive(service, file_id, destination):
             """Google DriveからAPIでダウンロード"""
             try:
@@ -132,6 +137,7 @@ jobs:
             except Exception as e:
                 print(f"❌ ダウンロードエラー: {e}")
                 return False
+
         def create_ftp_directory(ftp, path):
             """FTPディレクトリを再帰的に作成"""
             try:
@@ -150,6 +156,7 @@ jobs:
             except Exception as e:
                 print(f"❌ ディレクトリ作成エラー: {e}")
                 return False
+
         def upload_to_ftp(local_file, parsed_info):
             """Xserver FTPにアップロード（正しいパス構造）"""
             try:
@@ -172,6 +179,7 @@ jobs:
             except Exception as e:
                 print(f"❌ FTPエラー: {e}")
                 return False
+
         def main():
             """メイン処理"""
             print("🚀 Google Drive → FTP 自動同期開始")
@@ -216,9 +224,11 @@ jobs:
                     # 一時ファイル削除
                     os.unlink(tmp_file.name)
             print(f"\n✅ 同期処理完了: {success_count}/{len(files)} ファイル成功")
+
         if __name__ == "__main__":
             main()
         EOF
+
     - name: Run sync script
       env:
         FTP_HOST: ${{ secrets.FTP_HOST }}
@@ -227,6 +237,7 @@ jobs:
         GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
       run: |
         python sync_drive_to_ftp.py
+
     - name: Notify completion
       run: |
         echo "🎉 Google Drive → Xserver FTP 同期完了"
