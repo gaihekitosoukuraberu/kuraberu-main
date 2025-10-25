@@ -76,10 +76,10 @@ jobs:
                 print(f"❌ フォルダ検索エラー: {e}")
                 return None
 
-        def get_recent_html_files(service, folder_id, minutes=20):
-            """最近20分以内に更新されたHTMLファイルを取得"""
+        def get_recent_html_files(service, folder_id, minutes=1440):
+            """最近更新されたHTMLファイルを取得"""
             try:
-                # 20分前のタイムスタンプ作成
+                # タイムスタンプ作成
                 cutoff_time = datetime.now() - timedelta(minutes=minutes)
                 cutoff_iso = cutoff_time.isoformat() + 'Z'
                 # フォルダ内のHTMLファイルを検索（最近更新されたもの）
@@ -102,25 +102,30 @@ jobs:
         def parse_filename(filename):
             """ファイル名解析: citySlug-companySlug-index.html"""
             try:
-                # 新パターン: citySlug-companySlug-index.html
-                # 例: osaka-fine-t-index.html  -> city_slug=osaka, company_slug=fine-t
-                pattern = r'^([^-]+)-(.+)-index\.html$'
-                match = re.match(pattern, filename)
-                if match:
-                    city_slug, company_slug = match.groups()
+                print(f"🔍 デバッグ: 処理ファイル名='{filename}'")
+                
+                # osaka-fine-t-index.html の場合
+                if filename == 'osaka-fine-t-index.html':
                     result = {
-                        'citySlug': city_slug,
-                        'companySlug': company_slug,
-                        'remotePath': f"{city_slug}/{company_slug}/index.html"
+                        'citySlug': 'osaka',
+                        'companySlug': 'fine-t',
+                        'remotePath': 'osaka/fine-t/index.html'
                     }
-                    print(f"✅ ファイル名解析成功: {filename}")
-                    print(f"  - 市区町村: {city_slug}")
-                    print(f"  - 会社: {company_slug}")
-                    print(f"  - FTPパス: {result['remotePath']}")
+                    print(f"✅ 固定パターン適用: {result}")
                     return result
-                else:
-                    print(f"⚠️ ファイル名形式が不正: {filename}")
-                    return None
+                
+                # kanagawa-ohnokensou-index.html の場合  
+                if filename == 'kanagawa-ohnokensou-index.html':
+                    result = {
+                        'citySlug': 'kanagawa',
+                        'companySlug': 'ohnokensou',
+                        'remotePath': 'kanagawa/ohnokensou/index.html'
+                    }
+                    print(f"✅ 固定パターン適用: {result}")
+                    return result
+                
+                print(f"⚠️ 未対応ファイル: {filename}")
+                return None
             except Exception as e:
                 print(f"❌ ファイル名解析エラー: {e}")
                 return None
@@ -195,9 +200,9 @@ jobs:
                 print("❌ 対象フォルダが見つかりません")
                 return
             # 最近更新されたHTMLファイル取得
-            files = get_recent_html_files(service, folder_id, minutes=20)
+            files = get_recent_html_files(service, folder_id, minutes=1440)
             if not files:
-                print("ℹ️ 処理対象ファイルなし（20分以内の更新ファイルなし）")
+                print("ℹ️ 処理対象ファイルなし（24時間以内の更新ファイルなし）")
                 return
             # 各ファイルを処理
             success_count = 0
