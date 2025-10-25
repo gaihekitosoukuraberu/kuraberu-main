@@ -1,4 +1,4 @@
-name: Google Drive → Xserver FTP 同期
+name: Google Drive to Xserver FTP Sync
 
 on:
   workflow_dispatch:
@@ -10,19 +10,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: ✅ リポジトリをチェックアウト
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🐍 Python環境セットアップ
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
-      - name: 📦 必要ライブラリをインストール
+      - name: Install dependencies
         run: |
           pip install google-api-python-client google-auth google-auth-oauthlib google-auth-httplib2
 
-      - name: 🧠 sync_drive_to_ftp.py を作成
+      - name: Create sync script
         run: |
           cat > sync_drive_to_ftp.py << 'EOF'
           import os
@@ -166,7 +166,7 @@ jobs:
               main()
           EOF
 
-      - name: 🚀 同期スクリプトを実行
+      - name: Run sync
         run: python sync_drive_to_ftp.py
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
@@ -174,5 +174,5 @@ jobs:
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
 
-      - name: 🎉 終了ログ
-        run: echo "🎉 Google Drive → Xserver FTP 同期完了 at $(date)"
+      - name: Complete
+        run: echo "🎉 同期完了 at $(date)"
