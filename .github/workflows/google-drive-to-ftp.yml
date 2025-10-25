@@ -73,22 +73,30 @@ jobs:
               return files
 
           def parse_filename(filename):
-              """ファイル名解析: 都道府県-会社名-index.html (会社名にハイフン含む可能性あり)"""
               print(f"🔍 デバッグ: 処理ファイル名='{filename}'")
-              m = re.match(r'^([^-]+)-(.+)-index\.html$', filename)
-              if not m:
-                  print(f"⚠️ ファイル名形式不正: {filename}")
+              print(f"🔍 ファイル名の長さ: {len(filename)}")
+              print(f"🔍 ファイル名のrepr: {repr(filename)}")
+              
+              pattern = r'^([^-]+)-(.+)-index\.html$'
+              print(f"🔍 使用パターン: {pattern}")
+              
+              m = re.match(pattern, filename)
+              
+              if m:
+                  prefecture = m.group(1)
+                  company = m.group(2)
+                  print(f"✅ マッチ成功! prefecture={prefecture}, company={company}")
+                  result = {
+                      "citySlug": prefecture,
+                      "companySlug": company,
+                      "remotePath": f"{prefecture}/{company}/index.html"
+                  }
+                  return result
+              else:
+                  print(f"❌ 正規表現マッチ失敗")
+                  print(f"🔍 テスト: filename.endswith('-index.html') = {filename.endswith('-index.html')}")
+                  print(f"🔍 テスト: '-' in filename = {'-' in filename}")
                   return None
-              prefecture = m.group(1)
-              company = m.group(2)
-              remote_path = f"{prefecture}/{company}/index.html"
-              result = {
-                  "citySlug": prefecture,
-                  "companySlug": company,
-                  "remotePath": remote_path
-              }
-              print(f"✅ ファイル名解析成功: prefecture={prefecture}, company={company}")
-              return result
 
           def download_file_from_drive(service, file_id, destination):
               from googleapiclient.http import MediaIoBaseDownload
@@ -140,6 +148,7 @@ jobs:
               for file in files:
                   name = file['name']
                   fid = file['id']
+                  print(f"\n📁 処理開始: {name}")
                   parsed = parse_filename(name)
                   if not parsed:
                       print(f"⚠️ スキップ: {name}")
@@ -151,7 +160,7 @@ jobs:
                   os.unlink(tmp.name)
                   print(f"🎉 {name} 同期完了")
                   success_count += 1
-              print(f"✅ 同期処理完了: {success_count}/{len(files)} ファイル成功")
+              print(f"\n✅ 同期処理完了: {success_count}/{len(files)} ファイル成功")
 
           if __name__ == "__main__":
               main()
