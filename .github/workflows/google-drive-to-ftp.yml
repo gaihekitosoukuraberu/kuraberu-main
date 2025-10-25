@@ -144,21 +144,19 @@ jobs:
                 return False
 
         def create_ftp_directory(ftp, path):
-            """FTPディレクトリを再帰的に作成"""
+            """FTPディレクトリを段階的に作成"""
             try:
                 dirs = path.split('/')
-                current_path = ''
-                for dir_name in dirs:
-                    if dir_name:
-                        if current_path:
-                            current_path += '/' + dir_name
-                        else:
-                            current_path = dir_name
+                for i, dir_name in enumerate(dirs):
+                    if dir_name:  # 空文字列をスキップ
                         try:
-                            ftp.mkd(current_path)
-                            print(f"📁 ディレクトリ作成: {current_path}")
+                            ftp.mkd(dir_name)
+                            print(f"📁 ディレクトリ作成: {dir_name}")
                         except Exception as e:
-                            print(f"📁 ディレクトリ既存またはエラー: {current_path} - {e}")
+                            print(f"📁 ディレクトリ既存: {dir_name}")
+                        # ディレクトリに移動
+                        ftp.cwd(dir_name)
+                        print(f"📂 移動: {dir_name}")
                 return True
             except Exception as e:
                 print(f"❌ ディレクトリ作成エラー: {e}")
@@ -171,11 +169,10 @@ jobs:
                 ftp.login(os.environ['FTP_USERNAME'], os.environ['FTP_PASSWORD'])
                 # ベースディレクトリに移動
                 ftp.cwd('/gaihekikuraberu.com/public_html')
-                # 必要なディレクトリを作成
+                print(f"📂 ベースディレクトリ: /gaihekikuraberu.com/public_html")
+                # ディレクトリを段階的に作成・移動
                 dir_path = f"{parsed_info['citySlug']}/{parsed_info['companySlug']}"
                 create_ftp_directory(ftp, dir_path)
-                # ターゲットディレクトリに移動
-                ftp.cwd(f"/gaihekikuraberu.com/public_html/{dir_path}")
                 # ファイルアップロード
                 with open(local_file, 'rb') as f:
                     ftp.storbinary('STOR index.html', f)
