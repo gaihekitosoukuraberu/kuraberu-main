@@ -1,0 +1,107 @@
+@charset "utf-8";
+
+/* ロード・スクロール エフェクト設定
+--------------------------------------------------------------*/
+
+/* 基本 ---------- */
+
+.set_delay_anim {
+  opacity: 0;
+  -webkit-transition: opacity 1.2s ease, transform 1.2s ease;
+  -moz-transition: opacity 1.2s ease, transform 1.2s ease;
+  -o-transition: opacity 1.2s ease, transform 1.2s ease;
+  transition: opacity 1.2s ease, transform 1.2s ease;
+}
+
+.set_delay_anim.show {
+  opacity: 1;
+}
+
+/* 上からフェードイン ---------- */
+
+.fade_upper {
+  -webkit-transform: translateY(-.5rem);
+     -moz-transform: translateY(-.5rem);
+      -ms-transform: translateY(-.5rem);
+       -o-transform: translateY(-.5rem);
+          transform: translateY(-.5rem);
+}
+
+.fade_upper.show {
+  -webkit-transform: translateY(0);
+     -moz-transform: translateY(0);
+      -ms-transform: translateY(0);
+       -o-transform: translateY(0);
+          transform: translateY(0);
+}
+
+/* 下からフェードイン ---------- */
+
+.fade_under {
+  -webkit-transform: translateY(.5rem);
+     -moz-transform: translateY(.5rem);
+      -ms-transform: translateY(.5rem);
+       -o-transform: translateY(.5rem);
+          transform: translateY(.5rem);
+}
+
+.fade_under.show {
+  -webkit-transform: translateY(0);
+     -moz-transform: translateY(0);
+      -ms-transform: translateY(0);
+       -o-transform: translateY(0);
+          transform: translateY(0);
+}
+
+/* 右からフェードイン ---------- */
+
+.fade_right {
+  -webkit-transform: translateX(.5rem);
+     -moz-transform: translateX(.5rem);
+      -ms-transform: translateX(.5rem);
+       -o-transform: translateX(.5rem);
+          transform: translateX(.5rem);
+}
+
+.fade_right.show {
+  -webkit-transform: translateX(0);
+     -moz-transform: translateX(0);
+      -ms-transform: translateX(0);
+       -o-transform: translateX(0);
+          transform: translateX(0);
+}
+
+/* 左からフェードイン ---------- */
+
+.fade_left {
+  -webkit-transform: translateX(-.5rem);
+     -moz-transform: translateX(-.5rem);
+      -ms-transform: translateX(-.5rem);
+       -o-transform: translateX(-.5rem);
+          transform: translateX(-.5rem);
+}
+
+.fade_left.show {
+  -webkit-transform: translateX(0);
+     -moz-transform: translateX(0);
+      -ms-transform: translateX(0);
+       -o-transform: translateX(0);
+          transform: translateX(0);
+}
+
+/* ぼかしからフェードイン ---------- */
+
+.fade_blur {
+  transition: opacity 1.2s ease, filter 1.2s ease;
+  -webkit-filter: blur(.2rem);
+  -moz-filter: blur(.2rem);
+  -ms-filter: blur(.2rem);
+  filter: blur(.2rem);
+}
+
+.fade_blur.show {
+  -webkit-filter: blur(0);
+  -moz-filter: blur(0);
+  -ms-filter: blur(0);
+  filter: blur(0)
+}

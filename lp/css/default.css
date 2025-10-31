@@ -1,0 +1,234 @@
+@charset "utf-8";
+
+/*---------------------------------------------
+  Default
+---------------------------------------------*/
+/* ルートフォントサイズ設定 ---------- */
+/* PC用設定 */
+html {
+  font-size: 100px;
+}
+
+/* タブレット用設定 ※対応が必要な場合のみ有効化 */
+/* max-widthはPCデザインに応じて適宜変更する */
+
+/* @media screen and (min-width: 768px) and (max-width: 1160px) {
+  html {
+    font-size: 8.62vw;
+  }
+} */
+/* SP用設定 */
+@media screen and (max-width: 768px) {
+  html {
+    /* SP基準サイズ384pxの場合 */
+    /* font-size: 26vw; */
+  }
+}
+
+.img_switch {
+  visibility: hidden;
+}
+
+.clearfix::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.clear {
+  clear: both;
+}
+
+/*---------------------------------------------
+  Reset
+---------------------------------------------*/
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+font,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+sub,
+sup,
+tt,
+var,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+figure {
+  border: 0;
+  margin: 0;
+  outline: 0;
+  padding: 0;
+  vertical-align: baseline;
+  background: transparent;
+}
+
+body {
+  font-family: "Noto Sans JP", YuGothic, "Yu Gothic", "游ゴシック体", "游ゴシック", "Hiragino Kaku Gothic ProN", "HiraKakuPro-W3", "メイリオ", Meiryo, Verdana, sans-serif;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  font-weight: 400;
+  -webkit-text-size-adjust: 100%;
+  line-height: 1;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: 100%;
+  font-weight: 500;
+  line-height: 1;
+}
+
+address,
+em {
+  font-style: normal;
+}
+
+li {
+  list-style: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+}
+
+caption,
+th,
+td {
+  font-weight: 500;
+  text-align: left;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  border: 0;
+  vertical-align: bottom;
+}
+
+a {
+  text-decoration: none;
+  transition: all 0.4s ease;
+}
+
+a:hover {
+  text-decoration: none;
+  opacity: 0.7;
+}
+
+*,
+*::before,
+*::after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+input,
+button,
+select,
+textarea {
+  font-family: "Noto Sans JP", sans-serif, YuGothic, "Yu Gothic", "ヒラギノ角ゴ ProN W3", "Hiragino Kaku Gothic ProN", "メイリオ", Meiryo, sans-serif;
+  font-weight: 500;
+  border-radius: 0;
+}
+
+input[type="text"],
+input[type="search"],
+input[type="password"],
+input[type="email"],
+input[type="tel"],
+textarea {
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+}
+
+textarea {
+  resize: vertical;
+}
+
+input[type="submit"],
+input[type="image"],
+button {
+  cursor: pointer;
+  transition: all 0.4s ease;
+}
+
+input[type="submit"]:hover,
+input[type="image"]:hover,
+button:hover {
+  opacity: 0.7;
+}
+
+input[type="submit"],
+input[type="button"] {
+  border-radius: 0;
+  -webkit-box-sizing: content-box;
+  -webkit-appearance: button;
+  appearance: button;
+  border: none;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+input[type="submit"]::-webkit-search-decoration,
+input[type="button"]::-webkit-search-decoration {
+  display: none;
+}
+
+input[type="submit"]:focus,
+input[type="button"]:focus {
+  outline-offset: -2px;
+}
