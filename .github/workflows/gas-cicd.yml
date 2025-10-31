@@ -153,10 +153,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
 
           # env-loader.jsファイルをステージング
-          git add admin-dashboard/dist/js/env-loader.js || true
-          git add franchise-dashboard/dist/merchant-portal/env-loader.js || true
           git add franchise-register/js/env-loader.js || true
-          git add estimate-keep-system/dist/js/env-loader.js || true
 
           # 変更があればコミット
           if git diff --staged --quiet; then

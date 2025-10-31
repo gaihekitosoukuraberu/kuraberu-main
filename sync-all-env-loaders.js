@@ -34,20 +34,8 @@ console.log(`⏰ タイムスタンプ: ${TIMESTAMP}\n`);
 // 全システムのenv-loader.jsパス
 const files = [
   {
-    path: path.join(__dirname, 'admin-dashboard/dist/js/env-loader.js'),
-    name: 'Admin Dashboard'
-  },
-  {
-    path: path.join(__dirname, 'franchise-dashboard/dist/merchant-portal/env-loader.js'),
-    name: 'Franchise Dashboard (Merchant Portal)'
-  },
-  {
     path: path.join(__dirname, 'franchise-register/js/env-loader.js'),
     name: 'Franchise Register'
-  },
-  {
-    path: path.join(__dirname, 'estimate-keep-system/dist/js/env-loader.js'),
-    name: 'Estimate Keep System'
   }
 ];
 
