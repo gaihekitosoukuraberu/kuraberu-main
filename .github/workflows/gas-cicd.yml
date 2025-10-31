@@ -121,6 +121,10 @@ jobs:
       - name: Health check
         run: |
           DEPLOYMENT_ID="${{ steps.deploy.outputs.deployment_id }}"
+          echo "⏳ 新しいデプロイメントが有効になるまで15秒待機..."
+          sleep 15
+
+          echo "🔍 ヘルスチェック実行中..."
           RESPONSE=$(curl -sL "https://script.google.com/macros/s/$DEPLOYMENT_ID/exec?action=health&callback=test")
           echo "Health check response: $RESPONSE"
 
@@ -151,7 +155,7 @@ jobs:
           # env-loader.jsファイルをステージング
           git add admin-dashboard/dist/js/env-loader.js || true
           git add franchise-dashboard/dist/merchant-portal/env-loader.js || true
-          git add franchise-register/dist/js/env-loader.js || true
+          git add franchise-register/js/env-loader.js || true
           git add estimate-keep-system/dist/js/env-loader.js || true
 
           # 変更があればコミット
