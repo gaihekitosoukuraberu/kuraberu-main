@@ -15,6 +15,9 @@ on:
       - 'franchise-register/gas/**'
   workflow_dispatch: # 手動実行も可能
 
+permissions:
+  contents: write
+
 env:
   GAS_DIR: franchise-register/gas
 
