@@ -263,14 +263,16 @@ const AISearchSystem = {
         .replace(/&nbsp;/g, ' ')
         .trim();
 
+      // フッター・ヘッダー・ナビゲーションを完全削除
+      text = text
+        .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, '')
+        .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '')
+        .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, '')
+        .replace(/プライバシーポリシー|利用規約|サイトマップ|Copyright|All Rights Reserved/gi, '');
+
       // 郵便番号をテキストに追加（AIが確実に見つけられるように）
       if (postalCode) {
-        text = '【郵便番号: ' + postalCode + '】\n' + text;
-      }
-
-      // 🔥 フッター支店情報をテキストに追加（AIが確実に見つけられるように）
-      if (footerBranchInfo) {
-        text = '【フッター支店情報: ' + footerBranchInfo + '】\n' + text;
+        text = '【本社郵便番号: ' + postalCode + '】\n' + text;
       }
 
       return returnRawHtml ? { text: text, rawHtml: rawHtml } : text;
@@ -424,15 +426,19 @@ const AISearchSystem = {
     var seenNames = {};
 
     // パターン1: 支店名 + 郵便番号 + 住所
-    var pattern1 = /([^\s\n<>]{2,10}(?:支店|営業所|店舗|ショールーム|事業所|支社))[^\n]*?〒?\s*(\d{3}[-\s]?\d{4})?[^\n]*?([都道府県][^\n<>]{5,100})/g;
+    var pattern1 = /([\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAFa-zA-Z]{2,10}(?:支店|営業所|店舗|ショールーム|事業所|支社))[^\n]*?〒?\s*(\d{3}[-\s]?\d{4})?[^\n]*?([都道府県][^\n<>]{5,100})/g;
     var m;
     while ((m = pattern1.exec(text)) !== null) {
       var name = m[1].replace(/本社|本店/g, '').trim();
-      if (name && !name.match(/本社|本店/) && !seenNames[name]) {
+      // 記号が含まれる支店名は除外（「【フッター支店」などのゴミデータを除外）
+      if (name && !name.match(/本社|本店|【|】|©|®|™|プライバシー|利用規約/) && !seenNames[name]) {
         var postal = m[2] ? m[2].replace(/\s/g, '') : '';
         var address = m[3].replace(/\s+/g, ' ').trim();
-        branches.push({ name: name, address: address, postalCode: postal });
-        seenNames[name] = true;
+        // 住所が曖昧な場合は除外
+        if (address.length >= 10 && !address.match(/エリア|全域|北海道.*沖縄/)) {
+          branches.push({ name: name, address: address, postalCode: postal });
+          seenNames[name] = true;
+        }
       }
     }
 
@@ -440,11 +446,11 @@ const AISearchSystem = {
     var lines = text.split(/\n+/);
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i];
-      if (line.match(/支店|営業所|店舗|ショールーム/) && !line.match(/本社|本店/)) {
-        var nameMatch = line.match(/([^\s<>]{2,10}(?:支店|営業所|店舗|ショールーム|事業所|支社))/);
+      if (line.match(/支店|営業所|店舗|ショールーム/) && !line.match(/本社|本店|プライバシー|利用規約|【|】/)) {
+        var nameMatch = line.match(/([\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAFa-zA-Z]{2,10}(?:支店|営業所|店舗|ショールーム|事業所|支社))/);
         if (nameMatch) {
           var name = nameMatch[1].trim();
-          if (!seenNames[name]) {
+          if (!seenNames[name] && !name.match(/【|】|©|®|™/)) {
             var address = '';
             var postal = '';
 
@@ -471,7 +477,7 @@ const AISearchSystem = {
               if (postal && address) break;
             }
 
-            if (address) {
+            if (address && address.length >= 10 && !address.match(/エリア|全域|北海道.*沖縄/)) {
               branches.push({ name: name, address: address, postalCode: postal });
               seenNames[name] = true;
             }
@@ -481,13 +487,15 @@ const AISearchSystem = {
     }
 
     // パターン3: 都道府県名で始まる住所の直前に支店名がある
-    var pattern3 = /([^\s\n<>]{2,10}(?:支店|営業所|店舗|ショールーム))[^\n]{0,30}?([都道府県][^\n<>]{8,100})/g;
+    var pattern3 = /([\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAFa-zA-Z]{2,10}(?:支店|営業所|店舗|ショールーム))[^\n]{0,30}?([都道府県][^\n<>]{8,100})/g;
     while ((m = pattern3.exec(text)) !== null) {
       var name = m[1].trim();
-      if (!seenNames[name] && !name.match(/本社|本店/)) {
+      if (!seenNames[name] && !name.match(/本社|本店|【|】|©|®|™/)) {
         var address = m[2].replace(/\s+/g, ' ').replace(/TEL.*$/i, '').replace(/電話.*$/,'').trim();
-        branches.push({ name: name, address: address, postalCode: '' });
-        seenNames[name] = true;
+        if (address.length >= 10 && !address.match(/エリア|全域|北海道.*沖縄/)) {
+          branches.push({ name: name, address: address, postalCode: '' });
+          seenNames[name] = true;
+        }
       }
     }
 
@@ -559,24 +567,35 @@ const AISearchSystem = {
       "===== テキスト開始 =====\n" +
       searchResults[0].htmlContent.substring(0, 30000) + "\n" +
       "===== テキスト終了 =====\n\n" +
-      "【抽出ルール】\n" +
-      "1. company_name: 正式名称（株式会社含む）。見つからない場合はタイトルやフッターから推定。\n" +
+      "【抽出ルール（厳守）】\n" +
+      "1. company_name: 正式名称（株式会社含む）。「会社概要」「会社案内」「運営会社」ページを優先確認。\n" +
       "2. company_name_kana: 1をカタカナ変換。\n" +
-      "3. representative: 代表者名（「代表取締役」「社長」などの肩書きの直後）。\n" +
+      "3. representative: 代表者名（人名のみ）\n" +
+      "   - 「代表取締役」「社長」「代表」の後に続く氏名（例:「山田太郎」）\n" +
+      "   - 「代表取締役 山田太郎」「社長 山田太郎」「代表 山田太郎」などから抽出\n" +
+      "   - 肩書きは含めず、氏名のみ（例: ○山田太郎 ×代表取締役山田太郎）\n" +
+      "   - 「会社概要」「代表挨拶」「会社案内」ページを重点的に探索\n" +
       "4. representative_kana: 3をカタカナ変換。\n" +
       "5. established: 設立年月日（西暦または和暦、年月まで）。\n" +
-      "6. postal_code: 郵便番号（住所から自動推定も可）。\n" +
+      "6. postal_code: 郵便番号\n" +
+      "   - 本文中の「〒XXX-XXXX」から抽出\n" +
+      "   - 見つからない場合、addressから推定（必須）\n" +
+      "   - 例: 「東京都多摩市」→「206」で始まる郵便番号を推定\n" +
       "7. address: 本社所在地（都道府県から番地・建物名まで完全に）。\n" +
       "8. phone: 電話番号（代表番号）。\n" +
       "9. website: 今回抽出元の公式サイトURL（" + searchResults[0].link + "）。\n" +
       "10. features: 会社の特徴・強み・施工実績・対応エリアなどを要約（200〜300文字）。\n" +
       "11. branches: 支店・営業所・ショールームの配列（以下ルール厳守）\n" +
-      "　- 形式: [{name:\"支店名\", address:\"都道府県から番地まで\", postalCode:\"郵便番号\"}]\n" +
+      "　- 形式: [{name:\"◯◯支店\", address:\"東京都渋谷区◯◯1-2-3\", postalCode:\"150-0001\"}]\n" +
+      "　- ✅ 正しい例: {name:\"横浜支店\", address:\"神奈川県横浜市西区◯◯1-2-3\", postalCode:\"220-0001\"}\n" +
+      "　- ❌ 間違い例: {name:\"神奈川県・東京都に9支店\", ...} ← 曖昧な表現は絶対禁止\n" +
       "　- 本社・本店は含めない。\n" +
       "　- 支店・営業所・ショールーム・展示場を全て列挙。\n" +
-      "　- 住所は必ず都道府県から始まる完全な住所。\n" +
+      "　- 住所は必ず「都道府県名＋市区町村名＋番地」の形式。\n" +
+      "　- 曖昧な住所（「神奈川県全域」「東京・埼玉エリア」など）は絶対に含めない。\n" +
       "　- 番地・建物名・郵便番号が複数あっても漏らさない。\n" +
-      "　- 1件見つけても終了せず、全て抽出。\n\n" +
+      "　- 1件見つけても終了せず、全て抽出。\n" +
+      "　- 見つからない場合は空配列 []。\n\n" +
       "【出力形式（JSONのみで回答）】\n" +
       "{\n" +
       "  \"company_name\": \"\",\n" +
