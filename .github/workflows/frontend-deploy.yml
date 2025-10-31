@@ -16,7 +16,6 @@ jobs:
   deploy-admin:
     name: Deploy Admin Dashboard
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'admin-dashboard') || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout code
@@ -41,7 +40,6 @@ jobs:
   deploy-franchise-dashboard:
     name: Deploy Franchise Dashboard
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'franchise-dashboard') || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout code
@@ -66,7 +64,6 @@ jobs:
   deploy-register:
     name: Deploy Franchise Register
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'franchise-register') || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout code
@@ -97,7 +94,6 @@ jobs:
   deploy-estimate:
     name: Deploy Estimate System
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'estimate-keep-system') || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout code
@@ -122,7 +118,6 @@ jobs:
   deploy-lp:
     name: Deploy LP
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'lp') || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout code
