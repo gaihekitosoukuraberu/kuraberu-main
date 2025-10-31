@@ -80,6 +80,12 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./franchise-register/
           server-dir: /gaihekikuraberu.com/public_html/franchise-register/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/gas/**
+            **/node_modules/**
+            **/.DS_Store
           dangerous-clean-slate: false
 
       - name: Verify deployment
