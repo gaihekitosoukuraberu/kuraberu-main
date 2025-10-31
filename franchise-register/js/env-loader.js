@@ -22,8 +22,8 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V1544 @1547: 代表者・設立徹底抽出＋PR文400字＋60000字対応（2025-11-01 04:10）
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxl2jSdHGyoWRk7AkG3iTql_VcIcm6YV7C00jnwXC51FWFPIsTjJ-3dliNRYLBlEebpCQ/exec',
+  // プライマリGAS URL（メイン運用）- V1545 @1550: 公式HP優先＋複数ページ徹底クロール＋100000字対応（2025-11-01 04:33）
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwmLTdMl0Z-GUv7GU2XF9h6q9l3s1HAbCwwXBKX-R88ef8GP5vW840zJ3gjgKtan5CY2A/exec',
 
   // フォールバックGAS URL（バックアップ）- V1465: トップヒット2件版
   FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxl2jSdHGyoWRk7AkG3iTql_VcIcm6YV7C00jnwXC51FWFPIsTjJ-3dliNRYLBlEebpCQ/exec',
