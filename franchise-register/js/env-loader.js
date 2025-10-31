@@ -21,8 +21,8 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V1470: 完全修正版 - 新DriveフォルダID適用
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbx-4ciHOeL5XqDIA9OC1qbq7gyh14ZMLQBY0VCIdmaYnnpzkAUzJW4LGtyxPV-OPTYDcA/exec',
+  // プライマリGAS URL（メイン運用）- AI検索システム改善版（2025-10-31）
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbzFOV2q-jJfjd3QuOg1ACV_iMp__3PITwX2bgrZGazBMjUyFenKd-x6VIfTwc2KgPQByg/exec',
 
   // フォールバックGAS URL（バックアップ）- V1465: トップヒット2件版
   FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbwxLM12e3bFE727uK1VwIHFVCikvRUiAId0mwoPxvpY0SpbPXGGoVoTCAFErl5QOHNZ/exec',
