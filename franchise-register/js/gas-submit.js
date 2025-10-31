@@ -297,64 +297,65 @@ function compressDataIfNeeded(data) {
     console.log('=== データサイズ確認 ===');
     console.log('総文字数:', totalChars);
 
-    if (totalChars > 2000) {
-        console.warn('⚠️ データが2000文字を超えています。圧縮を適用します。');
+    // 🔧 圧縮ロジックを無効化：スプレッドシートにはフルテキストで保存
+    // if (totalChars > 2000) {
+    //     console.warn('⚠️ データが2000文字を超えています。圧縮を適用します。');
 
-        // 長いテキストフィールドを圧縮
-        if (data.companyInfo?.prText && data.companyInfo.prText.length > 50) {
-            data.companyInfo.prText = data.companyInfo.prText.substring(0, 47) + '...';
-        }
+    //     // 長いテキストフィールドを圧縮
+    //     if (data.companyInfo?.prText && data.companyInfo.prText.length > 50) {
+    //         data.companyInfo.prText = data.companyInfo.prText.substring(0, 47) + '...';
+    //     }
 
-        // 施工箇所を圧縮（各項目を短縮）
-        if (data.detailInfo?.constructionTypes) {
-            const types = data.detailInfo.constructionTypes.split(',');
-            const shortened = types.map(type => {
-                // 括弧内の補足を削除して短縮
-                return type.replace(/（.*?）/g, '')
-                          .replace(/のみ$/g, '')
-                          .replace(/単品$/g, '')
-                          .substring(0, 10);
-            });
-            data.detailInfo.constructionTypes = shortened.join(',');
-        }
+    //     // 施工箇所を圧縮（各項目を短縮）
+    //     if (data.detailInfo?.constructionTypes) {
+    //         const types = data.detailInfo.constructionTypes.split(',');
+    //         const shortened = types.map(type => {
+    //             // 括弧内の補足を削除して短縮
+    //             return type.replace(/（.*?）/g, '')
+    //                       .replace(/のみ$/g, '')
+    //                       .replace(/単品$/g, '')
+    //                       .substring(0, 10);
+    //         });
+    //         data.detailInfo.constructionTypes = shortened.join(',');
+    //     }
 
-        // 特殊対応項目を圧縮
-        if (data.detailInfo?.specialServices) {
-            const services = data.detailInfo.specialServices.split(',');
-            const shortened = services.map(service => {
-                // 括弧内の補足を削除して短縮
-                return service.replace(/（.*?）/g, '')
-                             .replace(/・/g, '')
-                             .substring(0, 12);
-            });
-            data.detailInfo.specialServices = shortened.join(',');
-        }
+    //     // 特殊対応項目を圧縮
+    //     if (data.detailInfo?.specialServices) {
+    //         const services = data.detailInfo.specialServices.split(',');
+    //         const shortened = services.map(service => {
+    //             // 括弧内の補足を削除して短縮
+    //             return service.replace(/（.*?）/g, '')
+    //                          .replace(/・/g, '')
+    //                          .substring(0, 12);
+    //         });
+    //         data.detailInfo.specialServices = shortened.join(',');
+    //     }
 
-        // エリア情報を圧縮
-        if (data.selectedAreas?.cities && data.selectedAreas.cities.length > 500) {
-            const cities = data.selectedAreas.cities.split(',');
-            // 市区町村数を制限して文字数を削減
-            const limitedCities = cities.slice(0, 20);
-            data.selectedAreas.cities = limitedCities.join(',') + `他${cities.length - 20}`;
-        }
+    //     // エリア情報を圧縮
+    //     if (data.selectedAreas?.cities && data.selectedAreas.cities.length > 500) {
+    //         const cities = data.selectedAreas.cities.split(',');
+    //         // 市区町村数を制限して文字数を削減
+    //         const limitedCities = cities.slice(0, 20);
+    //         data.selectedAreas.cities = limitedCities.join(',') + `他${cities.length - 20}`;
+    //     }
 
-        // 優先エリアを圧縮（都道府県_市区町村の形式を短縮）
-        if (data.selectedAreas?.priorityAreas && data.selectedAreas.priorityAreas.length > 100) {
-            const priorities = data.selectedAreas.priorityAreas.split(',');
-            const shortened = priorities.map(p => {
-                // 都道府県_市区町村 -> 最初の数文字のみ
-                const parts = p.split('_');
-                if (parts.length === 2) {
-                    return parts[0].substring(0, 3) + '_' + parts[1].substring(0, 3);
-                }
-                return p.substring(0, 6);
-            });
-            data.selectedAreas.priorityAreas = shortened.join(',');
-        }
+    //     // 優先エリアを圧縮（都道府県_市区町村の形式を短縮）
+    //     if (data.selectedAreas?.priorityAreas && data.selectedAreas.priorityAreas.length > 100) {
+    //         const priorities = data.selectedAreas.priorityAreas.split(',');
+    //         const shortened = priorities.map(p => {
+    //             // 都道府県_市区町村 -> 最初の数文字のみ
+    //             const parts = p.split('_');
+    //             if (parts.length === 2) {
+    //                 return parts[0].substring(0, 3) + '_' + parts[1].substring(0, 3);
+    //             }
+    //             return p.substring(0, 6);
+    //         });
+    //         data.selectedAreas.priorityAreas = shortened.join(',');
+    //     }
 
-        const compressedJsonStr = JSON.stringify(data);
-        console.log('圧縮後文字数:', compressedJsonStr.length);
-    }
+    //     const compressedJsonStr = JSON.stringify(data);
+    //     console.log('圧縮後文字数:', compressedJsonStr.length);
+    // }
 
     return data;
 }
