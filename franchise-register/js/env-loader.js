@@ -45,10 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（🔥完全動的タイムスタンプ🔥）
-  get CACHE_BUSTER() {
-    return Date.now();
-  }
+  // キャッシュバスター（V1547 - 2025-11-01 05:05）
+  CACHE_BUSTER: '1547_20251101_0505'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
