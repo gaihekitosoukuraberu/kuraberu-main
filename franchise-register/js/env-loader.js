@@ -21,8 +21,8 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V1541: フッター完全削除+正規表現廃止（2025-11-01）
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbz6HQeFQpU1t3RpwwM5bAeuzKAay5bnYgAuvVUmAf17RpSCMXsuj0E6Bu_uXqbDyuZAyg/exec',
+  // プライマリGAS URL（メイン運用）- V1542: ユーザー指定プロンプト完全実装（2025-11-01）
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbz8WkPiCrxsP28I2llpWirhd5ee3XdpYVNl1mJyrZ8jmXTuYxS7RD-rTtvcwdjC8GeNJg/exec',
 
   // フォールバックGAS URL（バックアップ）- V1465: トップヒット2件版
   FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbwxLM12e3bFE727uK1VwIHFVCikvRUiAId0mwoPxvpY0SpbPXGGoVoTCAFErl5QOHNZ/exec',
