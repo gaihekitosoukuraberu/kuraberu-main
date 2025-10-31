@@ -552,64 +552,47 @@ const AISearchSystem = {
     if (searchResults[0] && searchResults[0].htmlContent)
       regexBranches = this.extractBranchesWithRegex(searchResults[0].htmlContent);
 
-    // HTMLコンテンツを30000文字に制限（トークン制限対策）
-    var htmlContent = searchResults[0].htmlContent;
-    if (htmlContent.length > 30000) {
-      htmlContent = htmlContent.substring(0, 30000) + '\n\n[... 以下省略 ...]';
-    }
-
-    var prompt = 'あなたは外壁塗装・リフォーム会社の情報を抽出する専門AIです。以下のルールに100%従ってJSON形式で出力してください。\n\n' +
-'【Webページの内容】\n' +
-htmlContent + '\n\n' +
-'===== 抽出項目と厳守ルール =====\n\n' +
-'1. company_name（必須）\n' +
-'   - 株式会社・有限会社などの法人格を含む完全な正式名称\n' +
-'   - 例: 「株式会社ABC」「有限会社XYZ」\n\n' +
-'2. company_name_kana（必須）\n' +
-'   - Webページに記載がない場合は、company_nameから必ず推測して生成\n' +
-'   - 全角カタカナのみ（例: 「カブシキガイシャエービーシー」）\n\n' +
-'3. representative（必須）\n' +
-'   - 代表取締役・社長の氏名\n' +
-'   - 見つからない場合は空文字\n\n' +
-'4. representative_kana（必須）\n' +
-'   - Webページに記載がない場合は、representativeから必ず推測して生成\n' +
-'   - 全角カタカナのみ\n\n' +
-'5. established（必須）\n' +
-'   - 設立年月または創業年月（例: 「2010年4月」「1995年」）\n\n' +
-'6. postal_code（必須）\n' +
-'   - 郵便番号（例: 「123-4567」）\n' +
-'   - Webページに記載がない場合は、addressから必ず推測して生成\n\n' +
-'7. address（必須）\n' +
-'   - 本社所在地の住所\n' +
-'   - 都道府県から始まり、番地・ビル名まで完全に記載\n' +
-'   - 例: 「東京都渋谷区道玄坂1-2-3 渋谷ビル5F」\n\n' +
-'8. phone（必須）\n' +
-'   - 電話番号（例: 「03-1234-5678」）\n\n' +
-'9. features（必須）\n' +
-'   - この会社の特徴や強みを200-300文字程度で記述\n' +
-'   - Webページの内容から自動生成\n\n' +
-'10. branches（必須・最重要）\n' +
-'    ⚠️ 以下のルールに100%従ってください ⚠️\n\n' +
-'    【branches抽出の絶対ルール】\n' +
-'    ① 本社・本店は絶対に含めない\n' +
-'    ② 支店・営業所・店舗・ショールーム・事業所など本社以外の拠点を全て抽出\n' +
-'    ③ 各支店について必ず以下の3要素を含むJSONオブジェクトで出力：\n' +
-'       {name:"支店名",address:"都道府県から番地まで完全な住所",postalCode:"郵便番号"}\n\n' +
-'    【正しい例】\n' +
-'    {name:"横浜支店",address:"神奈川県横浜市西区みなとみらい2-3-1",postalCode:"220-0012"}\n' +
-'    {name:"大阪営業所",address:"大阪府大阪市北区梅田1-1-1 梅田ビル3F",postalCode:"530-0001"}\n\n' +
-'    【間違った例・絶対禁止】\n' +
-'    ❌ {name:"神奈川県・東京都に9支店",...}  ← nameが具体的な支店名でない\n' +
-'    ❌ {name:"横浜",address:"神奈川県",...}  ← addressが番地まで記載されていない\n' +
-'    ❌ {name:"横浜支店",address:"...",...}  ← addressが省略されている\n\n' +
-'    ④ 住所は必ず「都道府県＋市区町村＋町名＋番地（＋ビル名）」の完全な形式\n' +
-'    ⑤ 番地やビル名を絶対に見落とさない\n' +
-'    ⑥ 郵便番号も可能な限り抽出。記載がない場合は住所から推測して生成\n' +
-'    ⑦ 支店が複数ある場合は、全て漏れなく抽出（1つ見つけても満足せず、Webページ全体から全ての支店情報を探す）\n' +
-'    ⑧ 支店情報が見つからない場合のみ、空配列 [] を返す\n\n' +
-'【出力形式】\n' +
-'JSON形式のみで回答してください。説明文や補足は一切不要です。\n\n' +
-'{"company_name":"","company_name_kana":"","representative":"","representative_kana":"","established":"","postal_code":"","address":"","phone":"","website":"' + searchResults[0].link + '","features":"","branches":[{"name":"","address":"","postalCode":""}]}';
+    var prompt =
+      "あなたは日本の外壁塗装・リフォーム会社の情報を正確に抽出する専門AIです。\n" +
+      "以下は、会社名『" + companyName + "』の公式サイト（トップページ＋関連下層最大10ページ）の本文テキストです。\n" +
+      "この1社のみを対象として、以下の情報をすべて埋めてください。\n" +
+      "他社や比較サイト・求人サイトの情報は一切使用禁止です。\n\n" +
+      "===== テキスト開始 =====\n" +
+      searchResults[0].htmlContent.substring(0, 30000) + "\n" +
+      "===== テキスト終了 =====\n\n" +
+      "【抽出ルール】\n" +
+      "1. company_name: 正式名称（株式会社含む）。見つからない場合はタイトルやフッターから推定。\n" +
+      "2. company_name_kana: 1をカタカナ変換。\n" +
+      "3. representative: 代表者名（「代表取締役」「社長」などの肩書きの直後）。\n" +
+      "4. representative_kana: 3をカタカナ変換。\n" +
+      "5. established: 設立年月日（西暦または和暦、年月まで）。\n" +
+      "6. postal_code: 郵便番号（住所から自動推定も可）。\n" +
+      "7. address: 本社所在地（都道府県から番地・建物名まで完全に）。\n" +
+      "8. phone: 電話番号（代表番号）。\n" +
+      "9. website: 今回抽出元の公式サイトURL（" + searchResults[0].link + "）。\n" +
+      "10. features: 会社の特徴・強み・施工実績・対応エリアなどを要約（200〜300文字）。\n" +
+      "11. branches: 支店・営業所・ショールームの配列（以下ルール厳守）\n" +
+      "　- 形式: [{name:\"支店名\", address:\"都道府県から番地まで\", postalCode:\"郵便番号\"}]\n" +
+      "　- 本社・本店は含めない。\n" +
+      "　- 支店・営業所・ショールーム・展示場を全て列挙。\n" +
+      "　- 住所は必ず都道府県から始まる完全な住所。\n" +
+      "　- 番地・建物名・郵便番号が複数あっても漏らさない。\n" +
+      "　- 1件見つけても終了せず、全て抽出。\n\n" +
+      "【出力形式（JSONのみで回答）】\n" +
+      "{\n" +
+      "  \"company_name\": \"\",\n" +
+      "  \"company_name_kana\": \"\",\n" +
+      "  \"representative\": \"\",\n" +
+      "  \"representative_kana\": \"\",\n" +
+      "  \"established\": \"\",\n" +
+      "  \"postal_code\": \"\",\n" +
+      "  \"address\": \"\",\n" +
+      "  \"phone\": \"\",\n" +
+      "  \"website\": \"" + searchResults[0].link + "\",\n" +
+      "  \"features\": \"\",\n" +
+      "  \"branches\": []\n" +
+      "}\n\n" +
+      "出力は必ず上記のJSON形式1つのみ。説明文やコメントは禁止。";
 
     try {
       var res = UrlFetchApp.fetch('https://openrouter.ai/api/v1/chat/completions', {
