@@ -117,36 +117,54 @@ const AISearchSystem = {
 
       var allContent = topPageData.text;
 
-      // 会社概要ページを探す（複数パターン試行）
+      // 公式HPから複数ページを徹底クロール（代表者・設立年月などの詳細情報を取得）
       var domainMatch = bestMatch.link.match(/^(https?:\/\/[^\/]+)/);
       if (domainMatch) {
-        var companyPaths = ['/company/outline/', '/company/', '/about/', '/company/access/', '/kaisya/', '/gaiyou/', '/profile/', '/corporate/', '/kaisyagaiyou/'];
-        for (var i = 0; i < companyPaths.length; i++) {
-          try {
-            var companyPageText = this.fetchHtmlContent(domainMatch[0] + companyPaths[i]);
-            if (companyPageText && companyPageText.length > 300) {
-              allContent = companyPageText + '\n\n' + allContent;
-              console.log('[DEBUG] 会社概要ページ取得:', companyPaths[i], companyPageText.length + '文字');
-              break;
-            }
-          } catch (e) {}
-        }
-      }
+        var domain = domainMatch[0];
+        var pagesToCrawl = [
+          '/company/outline/', '/company/', '/about/', '/about-us/', '/profile/', '/corporate/',
+          '/kaisya/', '/gaiyou/', '/kaisyagaiyou/', '/company/info/', '/company/profile/',
+          '/company/message/', '/company/greeting/', '/greeting/', '/message/', '/ceo/',
+          '/history/', '/enkaku/', '/rekishi/', '/company/history/', '/ayumi/',
+          '/access/', '/map/', '/office/', '/shop/', '/store/', '/tenpo/', '/branch/', '/shiten/',
+          '/staff/', '/team/', '/member/', '/introduction/', '/recruit/company/'
+        ];
 
-      // 全ページから「支店」「営業所」含むページを抽出
-      console.log('[DEBUG] 支店情報ページ検索中...');
-      for (var j = 0; j < Math.min(allPages.length, 20); j++) {
-        try {
-          var pageText = this.fetchHtmlContent(allPages[j]);
-          if (pageText && (pageText.includes('支店') || pageText.includes('営業所') || pageText.includes('店舗') || pageText.includes('ショールーム'))) {
-            // 具体的な地名があるか確認
-            if (pageText.match(/[都道府県][^\n]{10,}/)) {
-              allContent += '\n\n' + pageText;
-              console.log('[DEBUG] 支店情報ページ発見:', allPages[j], pageText.length + '文字');
-              break;
+        var crawledContent = [];
+        var crawledUrls = [];
+
+        console.log('[AISearchSystem] 公式HP徹底クロール開始:', domain);
+
+        // 各ページをクロール
+        for (var i = 0; i < pagesToCrawl.length && crawledUrls.length < 20; i++) {
+          try {
+            var testUrl = domain + pagesToCrawl[i];
+            if (crawledUrls.indexOf(testUrl) !== -1) continue;
+
+            var pageText = this.fetchHtmlContent(testUrl);
+            if (pageText && pageText.length > 300) {
+              crawledUrls.push(testUrl);
+              console.log('[AISearchSystem] ページ取得成功 (' + crawledUrls.length + '/20):', pagesToCrawl[i], pageText.length + '文字');
+
+              // 代表者名・設立年月・支店情報が含まれていれば優先的に先頭に追加
+              var hasCriticalInfo = pageText.match(/代表|社長|CEO|設立|創業|支店|営業所|ショールーム/);
+              if (hasCriticalInfo) {
+                allContent = pageText + '\n\n===PAGE_BREAK===\n\n' + allContent;
+              } else {
+                allContent = allContent + '\n\n===PAGE_BREAK===\n\n' + pageText;
+              }
             }
+          } catch (e) {
+            // Skip
           }
-        } catch (e) {}
+
+          // レート制限回避
+          if (crawledUrls.length > 0 && crawledUrls.length % 10 === 0) {
+            Utilities.sleep(500);
+          }
+        }
+
+        console.log('[AISearchSystem] クロール完了:', crawledUrls.length + 'ページ、合計' + allContent.length + '文字');
       }
 
       console.log('[DEBUG] 最終テキスト量:', allContent.length + '文字');
@@ -172,9 +190,17 @@ const AISearchSystem = {
   },
 
   performGoogleSearch: function(query, apiKey, engineId) {
-    const blocklist = ['job', 'career', 'indeed', 'recruit', 'ミツモア', 'エキテン', 'goo', 'yahoo', 'マイナビ', 'sponsored'];
-    const q = query + ' 塗装';
-    const url = 'https://www.googleapis.com/customsearch/v1?key=' + apiKey + '&cx=' + engineId + '&q=' + encodeURIComponent(q) + '&num=1&hl=ja';
+    // 比較サイト・紹介サイト・求人サイトを除外
+    const blocklist = [
+      'nuri-kae.jp', 'rehome-navi.com', 'hometech.jp', 'mitsumore.jp',
+      'ekiten.jp', 'reform-guide.jp', 'rehome.jp', 'mitsumori-japan.jp',
+      'job', 'career', 'indeed', 'recruit', 'mynavi', 'rikunabi', 'doda',
+      'ミツモア', 'エキテン', 'goo', 'yahoo', 'マイナビ', 'リクナビ', 'sponsored',
+      'kuraberu', 'hikaku', '比較', 'くらべる', 'ランキング', 'まとめ'
+    ];
+
+    const q = query + ' 塗装 公式';
+    const url = 'https://www.googleapis.com/customsearch/v1?key=' + apiKey + '&cx=' + engineId + '&q=' + encodeURIComponent(q) + '&num=10&hl=ja';
 
     try {
       const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
@@ -183,9 +209,11 @@ const AISearchSystem = {
       const data = JSON.parse(response.getContentText());
       if (!data.items) return [];
 
+      // ブロックリストでフィルタリング
       const results = data.items.filter(function(item) {
+        const link = (item.link || '').toLowerCase();
         return !blocklist.some(function(b) {
-          return (item.link || '').includes(b);
+          return link.includes(b.toLowerCase());
         });
       }).map(function(item) {
         return {
@@ -195,7 +223,35 @@ const AISearchSystem = {
         };
       });
 
-      return results;
+      // 公式HPを優先（.co.jp, 会社名がドメインに含まれるなど）
+      const scored = results.map(function(r) {
+        var score = 0;
+        var link = r.link.toLowerCase();
+        var queryLower = query.toLowerCase().replace(/株式会社|有限会社|合同会社/g, '');
+
+        // 会社名がドメインに含まれる
+        if (link.includes(queryLower)) score += 10;
+
+        // 日本企業ドメイン優先
+        if (link.includes('.co.jp')) score += 5;
+        if (link.includes('.jp')) score += 3;
+
+        // トップページまたは会社概要ページ
+        if (link.match(/\/(company|about|profile|corporate|kaisya)/) || link.split('/').length <= 4) score += 2;
+
+        return { title: r.title, link: r.link, snippet: r.snippet, score: score };
+      });
+
+      scored.sort(function(a, b) { return b.score - a.score; });
+
+      console.log('[AISearchSystem] Google検索結果（公式HP優先）:');
+      scored.slice(0, 3).forEach(function(r, i) {
+        console.log('  ' + (i+1) + '. ' + r.link + ' (score: ' + r.score + ')');
+      });
+
+      return scored.map(function(r) {
+        return { title: r.title, link: r.link, snippet: r.snippet };
+      });
     } catch (error) {
       console.error('[AISearchSystem] Google search error:', error);
       return [];
@@ -573,16 +629,17 @@ const AISearchSystem = {
     var regexBranches = [];
 
     var systemMessage =
-      "あなたは日本の外壁塗装・リフォーム会社の公式サイト本文から、指定した1社の情報を正確に抽出して構造化JSONで返す専門AIです。\n" +
+      "あなたは日本の外壁塗装・リフォーム会社の公式サイト本文（複数ページ）から、指定した1社の情報を正確に抽出して構造化JSONで返す専門AIです。\n" +
       "- 使用可能な情報は「与えられたテキストのみ」。\n" +
       "- 出力は **厳密なJSONのみ**。説明、注釈、追記は禁止。\n" +
-      "- **代表者名と設立年月は最優先で徹底的に探すこと**。会社概要、企業情報、代表挨拶、沿革ページなどから必ず抽出せよ。";
+      "- **代表者名と設立年月は最優先で徹底的に探すこと**。100,000文字のテキスト全体を隅々まで読み、会社概要、企業情報、代表挨拶、沿革、スタッフ紹介、採用情報などから必ず抽出せよ。\n" +
+      "- テキストに「===PAGE_BREAK===」がある場合、これは異なるページの区切りを示す。全ページを読んで情報を探索すること。";
 
     var userMessage =
       "対象会社: 「" + companyName + "」\n" +
-      "公式サイトテキスト（最大60,000文字）：\n" +
+      "公式サイトテキスト（複数ページ、最大100,000文字）：\n" +
       "===== BEGIN TEXT =====\n" +
-      searchResults[0].htmlContent.substring(0, 60000) + "\n" +
+      searchResults[0].htmlContent.substring(0, 100000) + "\n" +
       "===== END TEXT =====\n\n" +
       "(以下のルールを**厳守**してJSONを出力してください)\n\n" +
       "【最重要フィールド（絶対に抽出すること）】\n" +
