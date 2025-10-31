@@ -64,7 +64,7 @@ function initializeDriveSettings() {
  */
 function getOrCreateMerchantFolder(registrationId, companyName) {
   const scriptProperties = PropertiesService.getScriptProperties();
-  const merchantsFolderId = scriptProperties.getProperty('MERCHANTS_FOLDER_ID');
+  let merchantsFolderId = scriptProperties.getProperty('MERCHANTS_FOLDER_ID');
 
   if (!merchantsFolderId) {
     initializeDriveSettings();
