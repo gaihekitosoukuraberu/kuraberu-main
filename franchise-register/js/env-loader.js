@@ -22,8 +22,8 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V1546 @1554: HP内複数ページ徹底クロール＋100000字対応（2025-11-01 04:47）
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxRNm7r60lzqwSds6SwyUGCpX5c_m8khBAcbxJOtV0xDm9gFpGpfXpMBE2s5kOI8n9NjA/exec',
+  // プライマリGAS URL（メイン運用）- V1547 @1556: スポンサーサイト除外＋比較サイトブロック（2025-11-01 05:01）
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbz0D80uW7YVH2zGrwYiuYbFWuAoKdMOOsHwc-Pejiv8oFyuBU4aKTG0Ec4Rx4of6o0b1A/exec',
 
   // フォールバックGAS URL（バックアップ）- V1465: トップヒット2件版
   FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxRNm7r60lzqwSds6SwyUGCpX5c_m8khBAcbxJOtV0xDm9gFpGpfXpMBE2s5kOI8n9NjA/exec',

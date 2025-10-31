@@ -204,9 +204,13 @@ const AISearchSystem = {
       if (!data.items) return [];
 
       const results = data.items.filter(function(item) {
-        return !blocklist.some(function(b) {
+        const isBlocked = blocklist.some(function(b) {
           return (item.link || '').includes(b);
         });
+        if (isBlocked) {
+          console.log('[AISearchSystem] ブロック:', item.link);
+        }
+        return !isBlocked;
       }).map(function(item) {
         return {
           title: item.title || '',
@@ -214,6 +218,11 @@ const AISearchSystem = {
           snippet: item.snippet || ''
         };
       });
+
+      console.log('[AISearchSystem] フィルタ後の結果数:', results.length);
+      if (results.length > 0) {
+        console.log('[AISearchSystem] 採用予定（1位）:', results[0].link);
+      }
 
       return results;
     } catch (error) {
