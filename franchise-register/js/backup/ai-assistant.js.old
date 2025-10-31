@@ -1,0 +1,394 @@
+/**
+ * AI入力補助機能
+ * 会社名から自動的に企業情報を取得して入力
+ */
+
+class AIAssistant {
+  constructor() {
+    this.isEnabled = true;
+    this.isLoading = false;
+    this.lastSearchedName = '';
+    // env-loader.js一元管理（ハードコード禁止）
+    this.gasUrl = window.ENV?.GAS_URL;
+    this.init();
+  }
+
+  /**
+   * 初期化
+   */
+  init() {
+    // 会社名入力フィールドを監視
+    this.setupCompanyNameListener();
+
+    // GAS URLの初期化（動的に更新）
+    this.initializeGasUrl();
+
+    this.searchTimeout = null;
+    this.isSearching = false;
+
+    // AI補助は常に有効
+    this.isEnabled = true;
+  }
+
+  /**
+   * GAS URLを初期化
+   */
+  async initializeGasUrl() {
+    // env-loader.jsから直接取得（シンプルな1箇所管理）
+    if (window.ENV && window.ENV.GAS_URL) {
+      this.gasUrl = window.ENV.GAS_URL;
+      console.log('[AIAssistant] GAS URL初期化完了:', this.gasUrl);
+    } else {
+      console.error('[AIAssistant] ENV.GAS_URLが見つかりません。フォールバック使用');
+      // すでにコンストラクタで設定済みのフォールバックをそのまま使用
+    }
+  }
+
+  /**
+   * 会社名入力フィールドの監視設定
+   */
+  setupCompanyNameListener() {
+    // Step 1の会社名入力フィールド
+    const companyNameField = document.getElementById('companyName');
+    if (!companyNameField) return;
+
+    // エンターキーまたは「次へ進む」ボタンクリック時に検索開始
+    companyNameField.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const companyName = e.target.value.trim();
+        if (companyName) {
+          this.startBackgroundSearch(companyName);
+        }
+      }
+    });
+
+  }
+
+  /**
+   * バックグラウンドで会社情報検索を開始
+   * @param {string} companyName - 会社名
+   */
+  async startBackgroundSearch(companyName) {
+    if (!companyName || this.lastSearchedName === companyName) return;
+
+    // URLが初期化されていない場合は初期化を待つ
+    if (!this.gasUrl || !this.gasUrl.startsWith('https://')) {
+      console.log('[AI検索] GAS URLを初期化中...');
+      await this.initializeGasUrl();
+    }
+
+    // URLの正当性チェック
+    if (!this.gasUrl || !this.gasUrl.startsWith('https://')) {
+      console.warn('[AI検索] GAS URLが無効、ENVから再取得');
+      if (window.ENV && window.ENV.GAS_URL) {
+        this.gasUrl = window.ENV.GAS_URL;
+      } else {
+        console.error('[AI検索] ENV.GAS_URLが見つかりません');
+        return;
+      }
+    }
+
+    this.lastSearchedName = companyName;
+    this.isSearching = true; // 検索中フラグを立てる
+    console.log(`バックグラウンドで会社情報検索開始: ${companyName}`);
+    console.log(`使用URL: ${this.gasUrl}`);
+
+    // バックグラウンドで検索（ローディング表示なし）
+    this.searchCompanyInfo(companyName).then(() => {
+      console.log('バックグラウンド検索完了');
+      this.isSearching = false; // 検索完了
+    }).catch(error => {
+      console.error('バックグラウンド検索エラー:', error);
+      this.isSearching = false; // エラーでも検索終了
+    });
+  }
+
+
+  /**
+   * 会社情報を検索（バックグラウンド実行）
+   * @param {string} companyName - 会社名
+   */
+  async searchCompanyInfo(companyName) {
+    return new Promise((resolve) => {
+      const callbackName = 'aiCallback_' + Date.now();
+
+      // グローバルコールバック関数を定義
+      window[callbackName] = (data) => {
+        // タイムアウトをクリア
+        if (window[callbackName] && window[callbackName].timeoutId) {
+          clearTimeout(window[callbackName].timeoutId);
+        }
+
+        if (data.success && data.data) {
+          this.fillFormData(data.data);
+          // 控えめな通知
+          console.log('会社情報を自動取得しました');
+        } else {
+          console.log('会社情報が見つかりませんでした:', data.message);
+          if (data.error) {
+            console.error('エラー詳細:', data.error);
+          }
+        }
+
+        // クリーンアップ
+        delete window[callbackName];
+        if (script && script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+        resolve(data);
+      };
+
+      // エラーハンドリング
+      const timeoutId = setTimeout(() => {
+        console.log('AI検索タイムアウト');
+        if (window[callbackName]) {
+          delete window[callbackName];
+        }
+        if (script && script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+        resolve(null);
+      }, 60000); // 60秒タイムアウトに延長
+
+      // タイムアウトIDを保存
+      window[callbackName].timeoutId = timeoutId;
+
+      // JSONP リクエスト
+      const script = document.createElement('script');
+      const params = new URLSearchParams({
+        action: 'searchCompany',
+        companyName: companyName,
+        callback: callbackName
+      });
+
+      // URLチェック
+      if (!this.gasUrl || !this.gasUrl.startsWith('http')) {
+        console.error('[AI検索] GAS URLが無効です。CONFIG設定を確認してください:', this.gasUrl);
+        resolve(null);
+        return;
+      }
+
+      // 絶対URLであることを確認
+      if (!this.gasUrl || !this.gasUrl.startsWith('https://')) {
+        console.error('[AI検索] GAS URLが絶対URLではありません:', this.gasUrl);
+        // ENVから再取得
+        if (window.ENV && window.ENV.GAS_URL) {
+          this.gasUrl = window.ENV.GAS_URL;
+        } else {
+          console.error('[AI検索] ENV.GAS_URLが見つかりません');
+          resolve(null);
+          return;
+        }
+      }
+
+      // URLの最終確認
+      if (!this.gasUrl || this.gasUrl === 'null' || this.gasUrl === 'undefined') {
+        console.error('[AI検索] GAS URLが無効です:', this.gasUrl);
+        console.error('[AI検索] env-loader.jsが正しく読み込まれていません');
+        return;
+      }
+
+      const fullUrl = `${this.gasUrl}?${params}`;
+      console.log('[AI検索] リクエストURL:', fullUrl);
+      console.log('[AI検索] GAS URL:', this.gasUrl);
+      console.log('[AI検索] パラメータ:', params.toString());
+
+      script.src = fullUrl;
+      script.onerror = () => {
+        console.error('JSONP読み込みエラー - URL:', script.src);
+        console.error('エラー詳細: スクリプトタグsrc属性:', script.getAttribute('src'));
+        if (window[callbackName] && window[callbackName].timeoutId) {
+          clearTimeout(window[callbackName].timeoutId);
+        }
+        delete window[callbackName];
+        resolve(null);
+      };
+
+      document.body.appendChild(script);
+    });
+  }
+
+
+  /**
+   * フォームにデータを自動入力
+   * @param {Object} data - 会社情報データ
+   */
+  fillFormData(data) {
+    if (!data) return;
+
+    // 屋号が会社名と同じ場合は空に
+    let tradeName = data.trade_name || '';
+    let tradeNameKana = data.trade_name_kana || '';
+    if (tradeName && data.company_name) {
+      const cn = data.company_name.replace(/(株式|有限|合同)会社/g, '');
+      const tn = tradeName.replace(/(株式|有限|合同)会社/g, '');
+      if (cn === tn) {
+        tradeName = '';
+        tradeNameKana = '';
+      }
+    }
+
+    // 支店情報の確認と処理
+    const branches = data.branches || [];
+    console.log('[AIAssistant] 受信した支店情報:', branches);
+    console.log('[AIAssistant] 支店数:', branches.length);
+    if (branches.length > 0) {
+      console.log('[AIAssistant] 支店詳細:', branches);
+    }
+
+    // データマッピング
+    const fieldMappings = {
+      'legalName': data.company_name || '',
+      'legalNameKana': data.company_name_kana || '',
+      'businessName': tradeName,
+      'businessNameKana': tradeNameKana,
+      'representative': data.representative || '',
+      'representativeKana': data.representative_kana || '',
+      'postalCode': data.postal_code || '',
+      'fullAddress': data.address || '',
+      'phone': data.phone || '',
+      'websiteUrl': data.website || '',
+      'establishedDate': data.established || '',
+      'prText': data.features || '',
+      'branches': branches  // 配列として確実に保存
+    };
+
+    // グローバルに保存（Step 4で使用）
+    window.aiData = fieldMappings;
+    console.log('[AIAssistant] window.aiData保存完了:', window.aiData);
+
+    // 通知表示
+    this.showAIAssistIndicator();
+
+
+    // Step 4にいる場合は直接フォームに入力
+    if (window.currentStep === 4) {
+      this.populateStep4Form();
+    }
+  }
+
+  /**
+   * Step 4のフォームに直接データを入力
+   */
+  populateStep4Form() {
+    if (!window.aiData) return;
+
+    const data = window.aiData;
+
+    // 各フィールドに値を設定
+    const setFieldValue = (id, value) => {
+      const field = document.getElementById(id);
+      if (field && value) {
+        field.value = value;
+        // changeイベントを発火（バリデーション等のため）
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    };
+
+    // 基本情報を設定
+    setFieldValue('legalName', data.legalName);
+    setFieldValue('legalNameKana', data.legalNameKana);
+    setFieldValue('businessName', data.businessName);
+    setFieldValue('businessNameKana', data.businessNameKana);
+    setFieldValue('representative', data.representative);
+    setFieldValue('representativeKana', data.representativeKana);
+    setFieldValue('postalCode', data.postalCode);
+    setFieldValue('fullAddress', data.fullAddress);
+    setFieldValue('phone', data.phone);
+    setFieldValue('websiteUrl', data.websiteUrl);
+    setFieldValue('establishedDate', data.establishedDate);
+    setFieldValue('prText', data.prText);
+
+    // PR文のカウンター更新
+    const prTextArea = document.getElementById('prText');
+    const prTextCounter = document.getElementById('prTextCounter');
+    if (prTextArea && prTextCounter) {
+      prTextCounter.textContent = `${prTextArea.value.length} / 500`;
+    }
+
+    // 支店情報を設定
+    if (data.branches && data.branches.length > 0) {
+      data.branches.forEach((branch, index) => {
+        if (index < 10) { // 最大10支店まで
+          setFieldValue(`branchName${index + 1}`, branch.name || '');
+          setFieldValue(`branchAddress${index + 1}`, branch.address || '');
+        }
+      });
+    }
+
+    // 通知表示
+    this.showNotification('AI情報を自動入力しました', 'success');
+  }
+
+
+
+  /**
+   * AI補助インジケーター表示
+   */
+  showAIAssistIndicator() {
+    const indicator = document.createElement('div');
+    indicator.className = 'ai-assist-indicator';
+    indicator.innerHTML = `
+      <div style="position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 10000; animation: slideIn 0.3s ease;">
+        🤖 AI補助で入力されました
+      </div>
+    `;
+
+    document.body.appendChild(indicator);
+
+    // 3秒後に自動削除
+    setTimeout(() => {
+      indicator.remove();
+    }, 3000);
+  }
+
+  /**
+   * 通知表示
+   * @param {string} message - メッセージ
+   * @param {string} type - success/error/info
+   */
+  showNotification(message, type = 'info') {
+    const colors = {
+      success: '#10b981',
+      error: '#ef4444',
+      info: '#3b82f6'
+    };
+
+    const notification = document.createElement('div');
+    notification.innerHTML = `
+      <div style="position: fixed; bottom: 20px; right: 20px; background: ${colors[type]}; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 10000; animation: slideIn 0.3s ease;">
+        ${message}
+      </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // 3秒後に自動削除
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  }
+
+}
+
+// インスタンス作成とグローバル公開
+window.aiAssistant = null;
+
+// DOM読み込み完了後に初期化
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    window.aiAssistant = new AIAssistant();
+    console.log('AIAssistant initialized');
+  });
+} else {
+  window.aiAssistant = new AIAssistant();
+  console.log('AIAssistant initialized');
+}
+
+// グローバル関数として公開
+window.testAIAssist = function(companyName) {
+  if (window.aiAssistant) {
+    window.aiAssistant.startBackgroundSearch(companyName);
+  }
+};

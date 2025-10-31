@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>env-loader.js テスト</title>
+</head>
+<body>
+    <h1>env-loader.js 動作テスト</h1>
+    <div id="results"></div>
+
+    <!-- env-loader.jsを最初に読み込み -->
+    <script src="env-loader.js"></script>
+
+    <script>
+        // テスト結果を表示
+        const results = document.getElementById('results');
+
+        function addResult(text, success = true) {
+            const p = document.createElement('p');
+            p.textContent = text;
+            p.style.color = success ? 'green' : 'red';
+            results.appendChild(p);
+        }
+
+        // env-loader.jsの動作確認
+        console.log('🧪 env-loader.js テスト開始');
+
+        try {
+            if (window.ENV) {
+                addResult('✅ window.ENV が正常に定義されています');
+                console.log('✅ window.ENV:', window.ENV);
+
+                if (window.ENV.GAS_URL) {
+                    addResult(`✅ GAS_URL: ${window.ENV.GAS_URL}`);
+
+                    // URLの形式チェック
+                    if (window.ENV.GAS_URL.startsWith('https://script.google.com/macros/s/AKfyc')) {
+                        addResult('✅ GAS_URL形式が正しいです');
+                    } else {
+                        addResult('❌ GAS_URL形式が不正です', false);
+                    }
+                } else {
+                    addResult('❌ GAS_URLが定義されていません', false);
+                }
+
+                // フォールバックURL確認
+                if (window.ENV.FALLBACK_GAS_URL) {
+                    addResult(`✅ FALLBACK_GAS_URL: ${window.ENV.FALLBACK_GAS_URL}`);
+                } else {
+                    addResult('❌ FALLBACK_GAS_URLが定義されていません', false);
+                }
+
+                // 緊急時URL確認
+                if (window.ENV.EMERGENCY_GAS_URL) {
+                    addResult(`✅ EMERGENCY_GAS_URL: ${window.ENV.EMERGENCY_GAS_URL}`);
+                } else {
+                    addResult('❌ EMERGENCY_GAS_URLが定義されていません', false);
+                }
+
+                if (window.ENV.DEBUG !== undefined) {
+                    addResult(`✅ DEBUG: ${window.ENV.DEBUG}`);
+                } else {
+                    addResult('❌ DEBUGが定義されていません', false);
+                }
+
+                if (window.ENV.CACHE_BUSTER) {
+                    addResult(`✅ CACHE_BUSTER: ${window.ENV.CACHE_BUSTER}`);
+                } else {
+                    addResult('❌ CACHE_BUSTERが定義されていません', false);
+                }
+
+            } else {
+                addResult('❌ window.ENV が定義されていません！', false);
+                console.error('❌ window.ENV が見つかりません');
+            }
+
+            // cv-api.js完全集約設計をシミュレート
+            const simulatedGasUrl = window.ENV?.GAS_URL ||
+                                   window.ENV?.FALLBACK_GAS_URL ||
+                                   window.ENV?.EMERGENCY_GAS_URL ||
+                                   'LAST_RESORT_URL';
+            addResult(`✅ CV-API用完全集約URL取得テスト: ${simulatedGasUrl}`);
+
+            // フォールバック段階表示
+            if (window.ENV?.GAS_URL) {
+                addResult(`🎯 使用URL: PRIMARY (GAS_URL)`);
+            } else if (window.ENV?.FALLBACK_GAS_URL) {
+                addResult(`⚠️ 使用URL: FALLBACK (FALLBACK_GAS_URL)`);
+            } else if (window.ENV?.EMERGENCY_GAS_URL) {
+                addResult(`🚨 使用URL: EMERGENCY (EMERGENCY_GAS_URL)`);
+            } else {
+                addResult(`❌ 使用URL: LAST_RESORT (ハードコード)`);
+            }
+
+            console.log('🎉 env-loader.js テスト完了');
+
+        } catch (error) {
+            addResult(`❌ エラーが発生しました: ${error.message}`, false);
+            console.error('❌ テストエラー:', error);
+        }
+    </script>
+</body>
+</html>

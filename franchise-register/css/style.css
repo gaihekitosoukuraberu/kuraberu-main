@@ -1,0 +1,650 @@
+/* カスタムスタイル */
+:root {
+    --primary-color: #667eea;
+    --secondary-color: #48bb78;
+    --error-color: #f56565;
+    --text-dark: #2d3748;
+    --text-gray: #718096;
+    --border-color: #e2e8f0;
+}
+
+/* レスポンシブテキスト表示 */
+.mobile-text {
+    display: none !important;
+}
+
+.pc-text {
+    display: inline !important;
+}
+
+/* モバイル表示時 */
+@media (max-width: 640px) {
+    .mobile-text {
+        display: inline !important;
+    }
+
+    .pc-text {
+        display: none !important;
+    }
+}
+
+/* ステップインジケーター */
+.step-item {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.step-circle {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background-color: white;
+    border: 2px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #a0aec0;
+    transition: all 0.3s;
+}
+
+.step-item.active .step-circle {
+    background: linear-gradient(135deg, #667eea, #4299e1);
+    color: white;
+    border-color: transparent;
+}
+
+.step-item.completed .step-circle {
+    background-color: #48bb78;
+    color: white;
+    border-color: #48bb78;
+}
+
+.step-label {
+    font-size: 0.75rem;
+    color: #a0aec0;
+    white-space: nowrap;
+}
+
+.step-item.active .step-label {
+    color: #667eea;
+    font-weight: 600;
+}
+
+/* ステップコンテンツ */
+.step-content {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.step-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* フローティングラベル */
+.floating-label-group {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.floating-input {
+    width: 100%;
+    padding: 1rem 0.75rem;
+    font-size: 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 0.5rem;
+    transition: all 0.3s;
+    background-color: white;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    text-align: center;
+}
+
+.floating-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.floating-label {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1rem;
+    color: #a0aec0;
+    transition: all 0.3s;
+    pointer-events: none;
+    background-color: white;
+    padding: 0 0.5rem;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.floating-input:focus + .floating-label,
+.floating-input:not(:placeholder-shown) + .floating-label {
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.75rem;
+    color: #667eea;
+    background-color: white;
+    padding: 0 0.5rem;
+}
+
+.helper-text {
+    display: block;
+    font-size: 0.75rem;
+    color: #718096;
+    margin-top: 0.25rem;
+    text-align: center;
+}
+
+/* ボタン */
+.primary-btn {
+    background: linear-gradient(135deg, #667eea, #4299e1);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+}
+
+.primary-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.primary-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.secondary-btn {
+    background-color: white;
+    color: #4a5568;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.3s;
+    border: 2px solid #e2e8f0;
+    cursor: pointer;
+}
+
+.secondary-btn:hover {
+    background-color: #f7fafc;
+}
+
+/* 同意カード */
+.agreement-card {
+    border: 2px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    transition: all 0.3s;
+}
+
+.agreement-card:hover {
+    border-color: #cbd5e0;
+}
+
+.agreement-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.agreement-preview {
+    font-size: 0.875rem;
+    color: #718096;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+/* チェックボックス */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+.checkbox-container input[type="checkbox"] {
+    opacity: 0;
+    position: absolute;
+}
+
+.checkmark {
+    width: 1.25rem;
+    height: 1.25rem;
+    background-color: white;
+    border: 2px solid #cbd5e0;
+    border-radius: 0.25rem;
+    margin-right: 0.5rem;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.checkbox-container input[type="checkbox"]:checked ~ .checkmark {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+
+.checkbox-container input[type="checkbox"]:checked ~ .checkmark::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-label {
+    font-size: 0.875rem;
+    color: #4a5568;
+}
+
+/* 書類タイプ選択 */
+.document-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.doc-type-card {
+    position: relative;
+    cursor: pointer;
+}
+
+.doc-type-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+}
+
+.doc-type-content {
+    border: 2px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    transition: all 0.3s;
+    background-color: white;
+}
+
+.doc-type-card input[type="radio"]:checked ~ .doc-type-content {
+    border-color: #667eea;
+    background-color: #ebf4ff;
+}
+
+.doc-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.doc-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4a5568;
+    white-space: nowrap;
+}
+
+/* 撮影ボタン */
+.capture-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.capture-btn {
+    flex: 1;
+    padding: 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 0.75rem;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.capture-btn:hover {
+    border-color: #667eea;
+    background-color: #ebf4ff;
+}
+
+.capture-btn.camera {
+    border-color: #4299e1;
+    background-color: #ebf8ff;
+}
+
+.capture-btn.library {
+    border-color: #48bb78;
+    background-color: #f0fff4;
+}
+
+/* アップロードスロット */
+.upload-slot {
+    border: 2px dashed #cbd5e0;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    text-align: center;
+    position: relative;
+    background-color: #f7fafc;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+}
+
+.upload-slot:hover {
+    border-color: #667eea;
+    background-color: #ebf4ff;
+}
+
+.upload-slot.drag-over {
+    border-color: #667eea;
+    background-color: #ebf4ff;
+    transform: scale(1.02);
+}
+
+.upload-slot.has-file {
+    border-style: solid;
+    border-color: #48bb78;
+    background-color: #f0fff4;
+    cursor: default;
+}
+
+.upload-slot.has-file:hover {
+    transform: none;
+}
+
+.upload-preview {
+    width: 100%;
+    max-width: 200px;
+    margin: 0 auto;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.upload-preview img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.remove-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    background-color: #f56565;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+/* AI通知 */
+.ai-notice {
+    background: linear-gradient(135deg, #ebf4ff, #f0fff4);
+    border-left: 4px solid #667eea;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.ai-icon {
+    font-size: 1.5rem;
+}
+
+.ai-notice p {
+    font-size: 0.875rem;
+    color: #4a5568;
+    margin: 0;
+}
+
+/* ローダー */
+.loader {
+    width: 3rem;
+    height: 3rem;
+    border: 4px solid #e2e8f0;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* モーダル */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center !important;
+    justify-content: center !important;
+    animation: fadeIn 0.3s;
+}
+
+.modal.show,
+.modal.flex {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 1rem;
+    position: relative;
+    max-height: 90vh;
+    max-width: 90vw;
+    width: auto;
+    margin: auto;
+    overflow-y: auto;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 2px solid #cbd5e0 !important;
+}
+
+/* Special fee modal content styling */
+#specialFeeModal .modal-content {
+    max-width: 48rem !important; /* max-w-2xl equivalent */
+    width: 90% !important;
+    padding: 0 !important;
+    border-radius: 1rem;
+    overflow: hidden;
+    transform: none;
+    transition: all 0.3s;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+
+@media (min-width: 768px) {
+    #specialFeeModal .modal-content {
+        width: 48rem !important;
+    }
+}
+
+.modal .close {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #718096;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.modal .close:hover {
+    color: #2d3748;
+}
+
+/* フォームフィールド */
+.form-field {
+    margin-bottom: 1.5rem;
+}
+
+.form-field label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: all 0.3s;
+    background-color: white;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.form-field.has-error input,
+.form-field.has-error select,
+.form-field.has-error textarea {
+    border-color: #f56565;
+}
+
+.error-text {
+    color: #f56565;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.required {
+    color: #f56565;
+    margin-left: 0.25rem;
+}
+
+/* エリア選択 */
+.area-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.5rem;
+    margin: 1.5rem 0;
+}
+
+.area-item {
+    padding: 0.5rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 0.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.875rem;
+    background-color: white;
+}
+
+.area-item:hover {
+    border-color: #cbd5e0;
+}
+
+.area-item.selected {
+    background-color: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.area-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #f7fafc;
+}
+
+/* プロパティタイプのチェックボックス修正 */
+input[type="checkbox"][name="propertyType"] {
+    opacity: 1 !important;
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 640px) {
+    .step-label {
+        display: none;
+    }
+    
+    .capture-buttons {
+        flex-direction: column;
+    }
+    
+    .document-selector {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* 成功アイコン */
+.success-icon svg {
+    animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+    }
+    to {
+        transform: scale(1);
+    }
+}

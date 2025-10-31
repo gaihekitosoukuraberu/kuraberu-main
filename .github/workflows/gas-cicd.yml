@@ -1,0 +1,240 @@
+name: GAS CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'franchise-register/gas/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'franchise-register/gas/**'
+  workflow_dispatch: # 手動実行も可能
+
+env:
+  GAS_DIR: franchise-register/gas
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Syntax check for all JS files
+        working-directory: ${{ env.GAS_DIR }}
+        run: |
+          echo "🔍 JavaScript構文チェック開始"
+          find . -name "*.js" -type f | while read file; do
+            echo "Checking: $file"
+            node -c "$file" || exit 1
+          done
+          echo "✅ 全てのJavaScriptファイルの構文チェック完了"
+
+      - name: Check required files exist
+        working-directory: ${{ env.GAS_DIR }}
+        run: |
+          echo "📁 必須ファイルの存在確認"
+          test -f main.js || (echo "❌ main.js が見つかりません" && exit 1)
+          test -f .clasp.json || (echo "❌ .clasp.json が見つかりません" && exit 1)
+          test -d systems || (echo "❌ systems ディレクトリが見つかりません" && exit 1)
+          echo "✅ 必須ファイル確認完了"
+
+  deploy:
+    name: Deploy to GAS
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    outputs:
+      previous_deployment_id: ${{ steps.previous.outputs.deployment_id }}
+      previous_version: ${{ steps.previous.outputs.version }}
+      new_deployment_id: ${{ steps.deploy.outputs.deployment_id }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install clasp
+        run: npm install -g @google/clasp
+
+      - name: Setup clasp credentials
+        working-directory: ${{ env.GAS_DIR }}
+        run: |
+          echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
+          # .clasp.jsonはリポジトリのものを使用（上書きしない）
+
+      - name: Get previous deployment for rollback
+        id: previous
+        working-directory: ${{ env.GAS_DIR }}
+        run: |
+          # 最新のバージョン番号付きデプロイ（@HEADでないもの）を取得
+          # 出力例: - AKfycb... @1524 - V1470: ...
+          PREV_LINE=$(clasp deployments | grep "@[0-9]" | head -1)
+          PREV_DEPLOYMENT=$(echo "$PREV_LINE" | awk '{print $2}')
+          PREV_VERSION=$(echo "$PREV_LINE" | awk '{print $3}' | tr -d '@')
+          echo "前のデプロイ行: $PREV_LINE"
+          echo "前のデプロイID: $PREV_DEPLOYMENT"
+          echo "前のバージョン: @$PREV_VERSION"
+          echo "deployment_id=$PREV_DEPLOYMENT" >> $GITHUB_OUTPUT
+          echo "version=$PREV_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Debug - Check files
+        working-directory: ${{ env.GAS_DIR }}
+        run: |
+          echo "📍 Current directory: $(pwd)"
+          echo "📁 Files in current directory:"
+          ls -la
+          echo "📄 .clasp.json content:"
+          cat .clasp.json
+          echo "🔑 .clasprc.json exists: $(test -f ~/.clasprc.json && echo 'YES' || echo 'NO')"
+
+      - name: Push to GAS
+        working-directory: ${{ env.GAS_DIR }}
+        run: clasp push --force
+
+      - name: Create deployment
+        id: deploy
+        working-directory: ${{ env.GAS_DIR }}
+        run: |
+          VERSION="V$(date +%Y%m%d-%H%M%S)"
+          DEPLOYMENT_OUTPUT=$(clasp deploy -d "$VERSION: Auto-deployment via GitHub Actions")
+          DEPLOYMENT_ID=$(echo "$DEPLOYMENT_OUTPUT" | grep -oP 'AKfycb[a-zA-Z0-9_-]+' | head -1)
+          echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Health check
+        run: |
+          DEPLOYMENT_ID="${{ steps.deploy.outputs.deployment_id }}"
+          RESPONSE=$(curl -sL "https://script.google.com/macros/s/$DEPLOYMENT_ID/exec?action=health&callback=test")
+          echo "Health check response: $RESPONSE"
+
+          if echo "$RESPONSE" | grep -q '"success":true'; then
+            echo "✅ Deployment successful!"
+          else
+            echo "❌ Deployment failed health check"
+            exit 1
+          fi
+
+      - name: Log deployment success
+        run: |
+          echo "✅ デプロイ成功"
+          echo "Version: ${{ steps.deploy.outputs.version }}"
+          echo "Deployment ID: ${{ steps.deploy.outputs.deployment_id }}"
+
+      - name: Sync all env-loader.js files
+        run: |
+          echo "🔄 全env-loader.jsを最新GAS URLに同期中..."
+          DEPLOYMENT_ID="${{ steps.deploy.outputs.deployment_id }}"
+          node sync-all-env-loaders.js "$DEPLOYMENT_ID"
+
+      - name: Commit and push env-loader updates
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # env-loader.jsファイルをステージング
+          git add admin-dashboard/dist/js/env-loader.js || true
+          git add franchise-dashboard/dist/merchant-portal/env-loader.js || true
+          git add franchise-register/dist/js/env-loader.js || true
+          git add estimate-keep-system/dist/js/env-loader.js || true
+
+          # 変更があればコミット
+          if git diff --staged --quiet; then
+            echo "📝 env-loader.jsに変更なし"
+          else
+            git commit -m "auto: env-loader.js同期 - GAS ${{ steps.deploy.outputs.deployment_id }}"
+            git push
+            echo "✅ env-loader.js更新をpushしました"
+          fi
+
+  rollback:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: failure()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install clasp
+        run: npm install -g @google/clasp
+
+      - name: Setup clasp credentials
+        working-directory: ${{ env.GAS_DIR }}
+        run: |
+          echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
+
+      - name: Undeploy failed deployment
+        working-directory: ${{ env.GAS_DIR }}
+        run: |
+          echo "🗑️  失敗したデプロイを削除中..."
+          NEW_DEPLOYMENT="${{ needs.deploy.outputs.new_deployment_id }}"
+          if [ -n "$NEW_DEPLOYMENT" ]; then
+            clasp undeploy "$NEW_DEPLOYMENT" || echo "⚠️  デプロイの削除に失敗（既に削除済みの可能性）"
+          else
+            echo "⚠️  新しいデプロイIDが見つかりません（デプロイ作成前に失敗）"
+          fi
+
+      - name: Verify previous deployment health
+        id: verify
+        working-directory: ${{ env.GAS_DIR }}
+        run: |
+          PREV_DEPLOYMENT="${{ needs.deploy.outputs.previous_deployment_id }}"
+          echo "🔍 前のバージョンのヘルスチェック中..."
+          echo "デプロイID: $PREV_DEPLOYMENT"
+
+          RESPONSE=$(curl -sL "https://script.google.com/macros/s/$PREV_DEPLOYMENT/exec?action=health&callback=test")
+          echo "Response: $RESPONSE"
+
+          if echo "$RESPONSE" | grep -q '"success":true'; then
+            echo "✅ 前のバージョンは正常に動作しています"
+            echo "status=healthy" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️  前のバージョンのヘルスチェックに失敗"
+            echo "status=unhealthy" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Log rollback result
+        working-directory: ${{ env.GAS_DIR }}
+        run: |
+          echo "================================"
+          echo "🔄 ロールバック完了"
+          echo "================================"
+          echo "❌ 失敗したコミット: ${{ github.sha }}"
+          echo "📝 ブランチ: ${{ github.ref }}"
+          echo ""
+          echo "📦 ロールバック先:"
+          echo "  - バージョン: @${{ needs.deploy.outputs.previous_version }}"
+          echo "  - デプロイID: ${{ needs.deploy.outputs.previous_deployment_id }}"
+          echo "  - 状態: ${{ steps.verify.outputs.status }}"
+          echo ""
+          echo "🔗 詳細: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "================================"
+
+          if [ "${{ steps.verify.outputs.status }}" = "unhealthy" ]; then
+            echo "⚠️  警告: 前のバージョンも正常に動作していません"
+            echo "手動での確認が必要です"
+            exit 1
+          fi

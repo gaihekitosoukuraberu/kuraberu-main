@@ -1,0 +1,1424 @@
+/**
+ * =====================================
+ * 🔥 まっさら新規作成版 - 静的HTML生成機能 🔥
+ * =====================================
+ *
+ * プレビューHTML構造を一字一句完全コピー
+ * スプレッドシートデータ動的バインディング対応
+ */
+
+/**
+ * 🔥 Gemini広告テキスト完全除去機能
+ */
+function removeGeminiText(text) {
+  if (!text) return text;
+
+  const geminiPatterns = [
+    /お気に入りのアプリの中から\s*AI\s*を直接お試しください。[^。]*Gemini\s*を使用して[^。]*。*/gi,
+    /\s*Gemini\s*を使用して[^。]*。*/gi,
+    /AI\s*を直接お試しください[^。]*。*/gi,
+    /お気に入りのアプリの中から[^。]*。*/gi
+  ];
+
+  let cleanText = text;
+  geminiPatterns.forEach(function(pattern) {
+    cleanText = cleanText.replace(pattern, '');
+  });
+
+  return cleanText.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * 🔥 メイン関数：静的HTML生成（プレビュー完全一致版）
+ */
+function generateStaticHTML(data) {
+  console.log('[generateStaticHTML] 🔥 プレビュー完全一致版でHTML生成開始');
+  console.log('[generateStaticHTML] データ:', JSON.stringify(data, null, 2));
+
+  try {
+    // データの安全な取得とGeminiテキスト除去
+    const companyName = removeGeminiText(data['会社名'] || '株式会社サンプル');
+    const prText = removeGeminiText(data['PRテキスト'] || '');
+    const establishedYear = data['設立年月'] || '';
+    const representativeName = data['代表者名'] || '';
+    const phone = data['電話番号'] || '';
+    const email = data['メールアドレス'] || '';
+    const address = data['住所'] || '';
+    const businessHours = data['営業時間'] || '';
+    const kuraberuScore = parseFloat(data['くらべるスコア'] || '4.2');
+
+    // レーダーチャート用評価データの処理
+    const ratings = {
+      pricing: parseFloat(data['コストバランス'] || '4.3'),
+      communication: parseFloat(data['人柄・対応力'] || '4.4'),
+      technology: parseFloat(data['技術・品質'] || '4.2'),
+      service: parseFloat(data['アフターサポート'] || '3.2'),
+      schedule: parseFloat(data['対応スピード'] || '4.3'),
+      quality: parseFloat(data['顧客満足度'] || '4.1')
+    };
+
+    // 施工事例データの処理
+    let examplesHtml = '';
+    const examplesData = data['施工事例'] || '';
+    if (examplesData && examplesData !== '') {
+      try {
+        const examples = JSON.parse(examplesData);
+        if (examples && examples.length > 0) {
+          examplesHtml = generateConstructionExamplesHtml(examples);
+        }
+      } catch (e) {
+        console.log('[generateStaticHTML] 施工事例のパースに失敗:', e);
+      }
+    }
+
+    // 対応可能な工事の処理
+    const constructionTypes = data['対応可能な工事'] || '';
+    const servicesHtml = generateServicesHtml(constructionTypes);
+
+    // 🔥 保有資格データの処理（スプレッドシートから動的取得）
+    const qualificationsData = data['保有資格'] || '';
+
+    // 🔥 加入保険データの処理（スプレッドシートから動的取得）
+    const insuranceData = data['加入保険'] || '';
+
+    // 🔥 対応エリアデータの処理（スプレッドシートから動的取得）
+    const areasData = data['対応都道府県'] || '';
+    const citiesData = data['対応市区町村'] || '';
+
+    // 🔥 ギャラリー画像データの処理（スプレッドシートから動的取得）
+    const galleryData = data['ギャラリー画像'] || '';
+
+    // 🔥 支店情報データの処理（スプレッドシートから動的取得）
+    const branchesData = data['支店情報'] || data['店舗情報'] || '';
+
+    // 🔥 特殊対応項目データの処理（自動配信設定の特殊対応項目→当社の強み）
+    const specialServicesData = data['特殊対応項目'] || data['appeal_points'] || data['special_services'] || '';
+
+    // 🔥 prTextの最初の『。』までを自動取得（完全一致処理）
+    const firstSentence = prText.indexOf('。') !== -1 ? prText.substring(0, prText.indexOf('。') + 1) : prText;
+
+    // 🔥 heroSection（プレビュー完全一致版）
+    const heroSectionHtml = generateHeroSectionHtml(companyName, firstSentence, establishedYear);
+
+    // 🔥 くらべるスコア（プレビュー完全一致版）
+    const scoreHtml = generateKuraberuScoreHtml(kuraberuScore, ratings);
+
+    // 🔥 9つの無料特典（プレビュー完全一致版）
+    const nineBenefitsHtml = generateNineBenefitsHtml();
+
+    // 🔥 対応エリアHTML生成（プレビュー完全一致版・動的データ）
+    const areasHtml = generateAreasHtml(areasData, citiesData);
+
+    // 🔥 写真ギャラリーHTML生成（プレビュー完全一致版・動的データ）
+    const galleryHtml = generateGalleryHtml(galleryData);
+
+    // 🔥 保有資格HTML生成（プレビュー完全一致版・動的データ）
+    const qualificationsHtml = generateQualificationsHtml(qualificationsData);
+
+    // 🔥 加入保険HTML生成（プレビュー完全一致版・動的データ）
+    const insuranceHtml = generateInsuranceHtml(insuranceData);
+
+    // 🔥 会社の特徴・強みHTML生成（プレビュー完全一致版）
+    const companyStrengthHtml = generateCompanyStrengthHtml(prText);
+
+    // 🔥 支店マップHTML生成（プレビュー完全一致版・動的データ）
+    const branchMapsHtml = generateBranchMapsHtml(branchesData);
+
+    // 🔥 会社概要HTML生成（プレビュー完全一致版）
+    const basicInfoHtml = generateBasicInfoHtml(companyName, representativeName, address, establishedYear);
+
+    // 完全なHTMLの組み立て
+    const html = '<!DOCTYPE html>' +
+'<html lang="ja">' +
+'<head>' +
+'    <meta charset="UTF-8">' +
+'    <meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+'    <title>' + companyName + ' | 外壁塗装・リフォーム専門店</title>' +
+'    <meta name="description" content="' + companyName + 'は外壁塗装・リフォームの専門店です。' + prText.substring(0, 100) + '">' +
+'    <script src="https://cdn.tailwindcss.com"></script>' +
+'    <style>' +
+'        body { font-family: "Hiragino Sans", "ヒラギノ角ゴシック", "Yu Gothic", "游ゴシック", "Meiryo", "メイリオ", sans-serif; }' +
+'        .fade-in { opacity: 0; animation: fadeIn 0.6s ease-in forwards; }' +
+'        @keyframes fadeIn { to { opacity: 1; } }' +
+'        .hover-scale { transition: transform 0.2s ease; }' +
+'        .hover-scale:hover { transform: scale(1.05); }' +
+'        .gradient-text { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }' +
+'        .shadow-custom { box-shadow: 0 10px 25px rgba(0,0,0,0.1); }' +
+'    </style>' +
+'</head>' +
+'<body class="bg-gray-50">' +
+'    <div class="min-h-screen py-12 px-4">' +
+'        <div class="bg-white rounded-2xl max-w-6xl mx-auto shadow-2xl">' +
+'            <div class="p-8">' +
+
+              // 🔥 heroSection（プレビュー完全一致）
+              heroSectionHtml +
+
+              // 🔥 会社の特徴・強み（プレビュー完全一致）
+              companyStrengthHtml +
+
+              // 🔥 施工事例セクション（プレビュー完全一致）
+              examplesHtml +
+
+              // 🔥 くらべるスコア（プレビュー完全一致）
+              scoreHtml +
+
+              // 🔥 9つの無料特典（プレビュー完全一致）
+              nineBenefitsHtml +
+
+              // 🔥 お問い合わせセクション（プレビュー完全一致）
+'                <div class="mb-12">' +
+'                    <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">' +
+'                        <span class="w-1 h-6 bg-purple-600 mr-3 rounded"></span>' +
+'                        お問い合わせ' +
+'                    </h3>' +
+'                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">' +
+'                        <div class="bg-white border rounded-xl p-4 hover:shadow-lg transition">' +
+'                            <div class="flex items-center">' +
+'                                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">' +
+'                                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+'                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>' +
+'                                    </svg>' +
+'                                </div>' +
+'                                <div>' +
+'                                    <p class="text-sm text-gray-600">お電話でのお問い合わせ</p>' +
+'                                    <a href="tel:' + phone + '" class="text-lg font-semibold text-blue-600 hover:text-blue-800 cursor-pointer transition-colors">' + phone + '</a>' +
+'                                    <p class="text-xs text-gray-500">受付時間: ' + businessHours + '</p>' +
+'                                </div>' +
+'                            </div>' +
+'                        </div>' +
+                        (email ? (
+'                        <div class="bg-white border rounded-xl p-4 hover:shadow-lg transition">' +
+'                            <div class="flex items-center">' +
+'                                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">' +
+'                                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+'                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>' +
+'                                    </svg>' +
+'                                </div>' +
+'                                <div class="overflow-hidden min-w-0">' +
+'                                    <p class="text-sm text-gray-600">メールでのお問い合わせ</p>' +
+'                                    <a href="mailto:' + email + '" class="text-lg font-semibold text-green-600 hover:text-green-800 cursor-pointer transition-colors truncate block">' + email + '</a>' +
+'                                    <p class="text-xs text-gray-500">24時間受付中</p>' +
+'                                </div>' +
+'                            </div>' +
+'                        </div>'
+                        ) : '') +
+'                    </div>' +
+'                </div>' +
+
+              // 🔥 対応エリアセクション（プレビュー完全一致）
+              areasHtml +
+
+              // 🔥 対応可能な工事（プレビュー完全一致）
+              servicesHtml +
+
+              // 🔥 会社概要セクション（プレビュー完全一致）
+              basicInfoHtml +
+
+'            </div>' +
+'        </div>' +
+'    </div>' +
+'</body>' +
+'</html>';
+
+    return html;
+
+  } catch (error) {
+    console.error('[generateStaticHTML] エラー:', error);
+    return generateErrorHTML(error.toString());
+  }
+}
+
+/**
+ * 🔥 heroSection HTML生成（プレビュー完全一致版）
+ */
+function generateHeroSectionHtml(companyName, firstSentence, establishedYear) {
+  const establishedDisplay = establishedYear ? establishedYear : '';
+
+  return '<div id="heroSection" class="relative bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 mb-12 text-white overflow-hidden">' +
+'    <div class="absolute inset-0 bg-black opacity-10"></div>' +
+'    <div class="relative z-10">' +
+'        <h1 id="previewCompanyNameHero" class="text-2xl sm:text-4xl font-bold mb-2 text-center sm:text-left">' + companyName + '</h1>' +
+'        <p id="previewTaglineHero" class="text-base sm:text-lg opacity-90 text-center sm:text-left">' + firstSentence + '</p>' +
+'        <div class="flex flex-wrap gap-4 mt-6">' +
+            (establishedDisplay ? (
+'            <div class="flex items-center">' +
+'                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">' +
+'                    <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm6 6H7v2h6v-2z"></path>' +
+'                </svg>' +
+'                <span id="previewEstablishedHero">' + establishedDisplay + '</span>' +
+'            </div>'
+            ) : '') +
+'        </div>' +
+'    </div>' +
+'</div>';
+}
+
+/**
+ * 🔥 くらべるスコアHTML生成（プレビュー完全一致版）
+ */
+function generateKuraberuScoreHtml(score, ratings) {
+  const scoreValue = parseFloat(score) || 4.2;
+  const finalRatings = ratings || {
+    pricing: 4.3,
+    communication: 4.4,
+    technology: 4.2,
+    service: 3.2,
+    schedule: 4.3,
+    quality: 4.1
+  };
+
+  return '<div id="preview-rating" class="mb-8 sm:mb-12 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 rounded-2xl p-4 sm:p-6 lg:p-8">' +
+'    <div class="mb-4 sm:mb-6">' +
+'        <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-2 inline-flex items-center">' +
+'            <span class="w-1 h-5 sm:h-6 bg-gradient-to-b from-amber-500 to-orange-600 mr-2 sm:mr-3 rounded"></span>' +
+'            くらべるスコア' +
+'        </h3>' +
+'        <p class="text-sm sm:text-base text-gray-600">当社独自の総合評価スコア</p>' +
+'    </div>' +
+'    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">' +
+        // 総合評価
+'        <div class="bg-white rounded-xl shadow-lg border-2 border-amber-100 p-4 sm:p-5 lg:p-6">' +
+'            <div class="text-center mb-4 sm:mb-5">' +
+'                <h4 class="text-base sm:text-lg lg:text-xl font-bold text-gray-800 mb-2 sm:mb-3">総合評価</h4>' +
+'                <div class="flex items-center justify-center mb-2 sm:mb-3">' +
+'                    <span class="text-3xl sm:text-4xl lg:text-5xl font-bold text-amber-600" id="overallRating">' + scoreValue.toFixed(1) + '</span>' +
+'                    <span class="text-base sm:text-lg lg:text-xl text-gray-500 ml-1">/5.0</span>' +
+'                </div>' +
+'                <div class="flex justify-center mb-2 sm:mb-3 gap-1" id="overallStars">' +
+                    generateStarsHtml(scoreValue) +
+'                </div>' +
+'                <p class="text-xs sm:text-sm text-gray-500">当社独自算出スコア</p>' +
+'            </div>' +
+
+            // 項目別評価
+'            <div class="space-y-2 sm:space-y-3">' +
+'                <div class="flex justify-between items-center py-1">' +
+'                    <span class="text-sm sm:text-base font-medium text-gray-700">コストバランス</span>' +
+'                    <div class="flex items-center">' +
+'                        <div class="flex text-amber-400 mr-2 gap-0.5">' +
+                            generateDetailStarsHtml(finalRatings.pricing) +
+'                        </div>' +
+'                        <span class="text-sm sm:text-base font-medium text-gray-800" id="pricingRating">' + finalRatings.pricing.toFixed(1) + '</span>' +
+'                    </div>' +
+'                </div>' +
+'                <div class="flex justify-between items-center py-1">' +
+'                    <span class="text-sm sm:text-base font-medium text-gray-700">人柄・対応力</span>' +
+'                    <div class="flex items-center">' +
+'                        <div class="flex text-amber-400 mr-2">' +
+                            generateDetailStarsHtml(finalRatings.communication) +
+'                        </div>' +
+'                        <span class="text-sm sm:text-base font-medium text-gray-800" id="communicationRating">' + finalRatings.communication.toFixed(1) + '</span>' +
+'                    </div>' +
+'                </div>' +
+'                <div class="flex justify-between items-center py-1">' +
+'                    <span class="text-sm sm:text-base font-medium text-gray-700">技術・品質</span>' +
+'                    <div class="flex items-center">' +
+'                        <div class="flex text-amber-400 mr-2">' +
+                            generateDetailStarsHtml(finalRatings.technology) +
+'                        </div>' +
+'                        <span class="text-sm sm:text-base font-medium text-gray-800" id="technologyRating">' + finalRatings.technology.toFixed(1) + '</span>' +
+'                    </div>' +
+'                </div>' +
+'                <div class="flex justify-between items-center py-1">' +
+'                    <span class="text-sm sm:text-base font-medium text-gray-700">対応スピード</span>' +
+'                    <div class="flex items-center">' +
+'                        <div class="flex text-amber-400 mr-2">' +
+                            generateDetailStarsHtml(finalRatings.schedule) +
+'                        </div>' +
+'                        <span class="text-sm sm:text-base font-medium text-gray-800" id="scheduleRating">' + finalRatings.schedule.toFixed(1) + '</span>' +
+'                    </div>' +
+'                </div>' +
+'                <div class="flex justify-between items-center py-1">' +
+'                    <span class="text-sm sm:text-base font-medium text-gray-700">アフターサポート</span>' +
+'                    <div class="flex items-center">' +
+'                        <div class="flex text-amber-400 mr-2">' +
+                            generateDetailStarsHtml(finalRatings.service) +
+'                        </div>' +
+'                        <span class="text-sm sm:text-base font-medium text-gray-800" id="serviceRating">' + finalRatings.service.toFixed(1) + '</span>' +
+'                    </div>' +
+'                </div>' +
+'                <div class="flex justify-between items-center py-1">' +
+'                    <span class="text-sm sm:text-base font-medium text-gray-700">顧客満足度</span>' +
+'                    <div class="flex items-center">' +
+'                        <div class="flex text-amber-400 mr-2">' +
+                            generateDetailStarsHtml(finalRatings.quality) +
+'                        </div>' +
+'                        <span class="text-sm sm:text-base font-medium text-gray-800" id="qualityRating">' + finalRatings.quality.toFixed(1) + '</span>' +
+'                    </div>' +
+'                </div>' +
+'            </div>' +
+'        </div>' +
+
+        // レーダーチャート（右側）
+        generateRadarChartHTML(finalRatings) +
+'    </div>' +
+'</div>';
+}
+
+/**
+ * 🔥 詳細項目用星評価HTML生成（プレビュー完全一致版）
+ */
+function generateDetailStarsHtml(score) {
+  const fullStars = Math.floor(score);
+  const hasHalfStar = score % 1 >= 0.5;
+  let html = '';
+
+  for (let i = 0; i < 5; i++) {
+    if (i < fullStars) {
+      html += '<svg class="w-4 h-4 sm:w-5 sm:h-5 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>';
+    } else if (i === fullStars && hasHalfStar) {
+      html += '<svg class="w-4 h-4 sm:w-5 sm:h-5 fill-current" viewBox="0 0 20 20"><defs><linearGradient id="half"><stop offset="50%" stop-color="currentColor"/><stop offset="50%" stop-color="#e5e7eb"/></linearGradient></defs><path fill="url(#half)" d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>';
+    } else {
+      html += '<svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>';
+    }
+  }
+
+  return html;
+}
+
+/**
+ * 🔥 星評価HTML生成
+ */
+function generateStarsHtml(score) {
+  const fullStars = Math.floor(score);
+  const hasHalfStar = score % 1 >= 0.5;
+  let html = '';
+
+  for (let i = 0; i < 5; i++) {
+    if (i < fullStars) {
+      html += '<svg class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-amber-400 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>';
+    } else if (i === fullStars && hasHalfStar) {
+      html += '<svg class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-amber-400 fill-current" viewBox="0 0 20 20"><defs><linearGradient id="half"><stop offset="50%" stop-color="currentColor"/><stop offset="50%" stop-color="#e5e7eb"/></linearGradient></defs><path fill="url(#half)" d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>';
+    } else {
+      html += '<svg class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-gray-300 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>';
+    }
+  }
+
+  return html;
+}
+
+/**
+ * 🔥 9つの無料特典HTML生成（プレビュー完全一致版）
+ */
+function generateNineBenefitsHtml() {
+  return '<div class="mb-8 sm:mb-12 bg-gradient-to-br from-orange-50 via-orange-100 to-red-50 rounded-2xl p-4 sm:p-6 lg:p-10">' +
+'    <div class="text-center mb-4 sm:mb-6">' +
+'        <h3 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">🎁 今だけ！9つの無料特典</h3>' +
+'        <p class="text-sm sm:text-base text-gray-600">期間限定キャンペーン実施中！</p>' +
+'    </div>' +
+
+'    <div class="max-w-4xl mx-auto mb-4 sm:mb-6 px-2 sm:px-4">' +
+'        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">' +
+            // 特典1: 無料点検
+'            <div class="bg-white rounded-lg p-3 sm:p-4 lg:p-5 shadow-md border-l-4 border-orange-500 hover:shadow-lg transition">' +
+'                <div class="flex items-start">' +
+'                    <span class="text-2xl sm:text-3xl mr-2 sm:mr-3 flex-shrink-0">🔍</span>' +
+'                    <div class="min-w-0 flex-1">' +
+'                        <h4 class="font-bold text-orange-600 mb-1 sm:mb-2 text-sm sm:text-base lg:text-lg">無料点検</h4>' +
+'                        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">プロの目で外壁・屋根を徹底チェック！お家の状態を詳細に報告</p>' +
+'                    </div>' +
+'                </div>' +
+'            </div>' +
+            // 特典2: エリア最低価格保証
+'            <div class="bg-white rounded-lg p-3 sm:p-4 lg:p-5 shadow-md border-l-4 border-orange-500 hover:shadow-lg transition">' +
+'                <div class="flex items-start">' +
+'                    <span class="text-2xl sm:text-3xl mr-2 sm:mr-3 flex-shrink-0">💰</span>' +
+'                    <div class="min-w-0 flex-1">' +
+'                        <h4 class="font-bold text-orange-600 mb-1 sm:mb-2 text-sm sm:text-base lg:text-lg">エリア最低価格保証</h4>' +
+'                        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">地域最安値をお約束！他社より高ければ値引き対応</p>' +
+'                    </div>' +
+'                </div>' +
+'            </div>' +
+            // 特典3: お値引き交渉代行
+'            <div class="bg-white rounded-lg p-3 sm:p-4 lg:p-5 shadow-md border-l-4 border-orange-500 hover:shadow-lg transition">' +
+'                <div class="flex items-start">' +
+'                    <span class="text-2xl sm:text-3xl mr-2 sm:mr-3 flex-shrink-0">🤝</span>' +
+'                    <div class="min-w-0 flex-1">' +
+'                        <h4 class="font-bold text-orange-600 mb-1 sm:mb-2 text-sm sm:text-base lg:text-lg">お値引き交渉代行</h4>' +
+'                        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">他社見積もりをお持ちなら、代わりに交渉して最安値を実現</p>' +
+'                    </div>' +
+'                </div>' +
+'            </div>' +
+            // 特典4: 助成金申請サポート
+'            <div class="bg-white rounded-lg p-3 sm:p-4 lg:p-5 shadow-md border-l-4 border-orange-500 hover:shadow-lg transition">' +
+'                <div class="flex items-start">' +
+'                    <span class="text-2xl sm:text-3xl mr-2 sm:mr-3 flex-shrink-0">📝</span>' +
+'                    <div class="min-w-0 flex-1">' +
+'                        <h4 class="font-bold text-orange-600 mb-1 sm:mb-2 text-sm sm:text-base lg:text-lg">助成金申請サポート</h4>' +
+'                        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">最大10～70万円！各種助成金の申請手続きを完全サポート</p>' +
+'                    </div>' +
+'                </div>' +
+'            </div>' +
+            // 特典5: 火災保険申請サポート
+'            <div class="bg-white rounded-lg p-3 sm:p-4 lg:p-5 shadow-md border-l-4 border-orange-500 hover:shadow-lg transition">' +
+'                <div class="flex items-start">' +
+'                    <span class="text-2xl sm:text-3xl mr-2 sm:mr-3 flex-shrink-0">🏛️</span>' +
+'                    <div class="min-w-0 flex-1">' +
+'                        <h4 class="font-bold text-orange-600 mb-1 sm:mb-2 text-sm sm:text-base lg:text-lg">火災保険申請サポート</h4>' +
+'                        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">台風・雪害等の損害に火災保険適用可能！無料で調査</p>' +
+'                    </div>' +
+'                </div>' +
+'            </div>' +
+            // 特典6: お断り代行サービス
+'            <div class="bg-white rounded-lg p-3 sm:p-4 lg:p-5 shadow-md border-l-4 border-orange-500 hover:shadow-lg transition">' +
+'                <div class="flex items-start">' +
+'                    <span class="text-2xl sm:text-3xl mr-2 sm:mr-3 flex-shrink-0">🚫</span>' +
+'                    <div class="min-w-0 flex-1">' +
+'                        <h4 class="font-bold text-orange-600 mb-1 sm:mb-2 text-sm sm:text-base lg:text-lg">お断り代行サービス</h4>' +
+'                        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">成約時の他社へのお断りも代行可能！面倒なやり取り不要</p>' +
+'                    </div>' +
+'                </div>' +
+'            </div>' +
+            // 特典7: 無料お電話サポート
+'            <div class="bg-white rounded-lg p-3 sm:p-4 lg:p-5 shadow-md border-l-4 border-orange-500 hover:shadow-lg transition">' +
+'                <div class="flex items-start">' +
+'                    <span class="text-2xl sm:text-3xl mr-2 sm:mr-3 flex-shrink-0">📞</span>' +
+'                    <div class="min-w-0 flex-1">' +
+'                        <h4 class="font-bold text-orange-600 mb-1 sm:mb-2 text-sm sm:text-base lg:text-lg">無料お電話サポート</h4>' +
+'                        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">工事完了後も安心！365日電話サポートでお悩み解決</p>' +
+'                    </div>' +
+'                </div>' +
+'            </div>' +
+            // 特典8: 訪問業者マニュアル進呈
+'            <div class="bg-white rounded-lg p-3 sm:p-4 lg:p-5 shadow-md border-l-4 border-orange-500 hover:shadow-lg transition">' +
+'                <div class="flex items-start">' +
+'                    <span class="text-2xl sm:text-3xl mr-2 sm:mr-3 flex-shrink-0">📖</span>' +
+'                    <div class="min-w-0 flex-1">' +
+'                        <h4 class="font-bold text-orange-600 mb-1 sm:mb-2 text-sm sm:text-base lg:text-lg">訪問業者マニュアル進呈</h4>' +
+'                        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">悪徳業者の手口や対処法を完全解説！安心ガイド</p>' +
+'                    </div>' +
+'                </div>' +
+'            </div>' +
+            // 特典9: お友達紹介キャンペーン
+'            <div class="bg-white rounded-lg p-3 sm:p-4 lg:p-5 shadow-md border-l-4 border-orange-500 hover:shadow-lg transition">' +
+'                <div class="flex items-start">' +
+'                    <span class="text-2xl sm:text-3xl mr-2 sm:mr-3 flex-shrink-0">👥</span>' +
+'                    <div class="min-w-0 flex-1">' +
+'                        <h4 class="font-bold text-orange-600 mb-1 sm:mb-2 text-sm sm:text-base lg:text-lg">お友達紹介キャンペーン</h4>' +
+'                        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">紹介で双方に特典！最大30,000円分のギフトカード</p>' +
+'                    </div>' +
+'                </div>' +
+'            </div>' +
+'        </div>' +
+'    </div>' +
+'    <div class="text-center mt-4 sm:mt-6">' +
+'        <button class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 sm:px-8 lg:px-10 py-3 sm:py-4 rounded-lg hover:shadow-xl transition font-bold text-base sm:text-lg transform hover:scale-105 w-full sm:w-auto max-w-sm sm:max-w-none">' +
+'            <span class="sm:hidden">今すぐ無料見積もりを依頼</span>' +
+'            <span class="hidden sm:inline">今すぐ無料見積もりを依頼する</span>' +
+'        </button>' +
+'        <p class="text-xs sm:text-sm text-gray-500 mt-2">※24時間以内にご連絡いたします</p>' +
+'    </div>' +
+'</div>';
+}
+
+/**
+ * 🔥 対応可能な工事HTML生成（プレビュー完全一致版）
+ */
+function generateServicesHtml(constructionTypes) {
+  if (!constructionTypes || constructionTypes === '') {
+    return '';
+  }
+
+  let services = [];
+  try {
+    if (typeof constructionTypes === 'string') {
+      services = constructionTypes.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s !== ''; });
+    } else if (Array.isArray(constructionTypes)) {
+      services = constructionTypes;
+    }
+  } catch (e) {
+    console.log('[generateServicesHtml] パース失敗:', e);
+  }
+
+  if (services.length === 0) {
+    return '';
+  }
+
+  const serviceIconMap = {
+    '外壁塗装': '🎨',
+    '外壁カバー工法': '🏗️',
+    '外壁張替え': '🔨',
+    '屋根塗装（外壁工事含む）': '🏠',
+    '屋根塗装': '🏠',
+    '屋上防水（外壁工事含む）': '💧',
+    '屋根葺き替え・張り替え※スレート・ガルバリウム等': '🏚️',
+    '屋根葺き替え・張り替え※瓦': '🏯',
+    '屋根カバー工法': '📐',
+    '外壁補修（外壁工事含む）': '🔧',
+    '屋根補修（外壁工事含む）': '🛠️',
+    'ベランダ防水（外壁工事含む）': '🌊',
+    '内装水回り（バス・キッチン・トイレ）（外壁工事含む）': '🚿',
+    '内装（フローリングや畳などの床・クロス等）（外壁工事含む）': '🏡',
+    '雨樋交換・修理': '🌧️',
+    'シーリング工事': '🔧',
+    'ベランダ防水': '🏊',
+    '足場設置': '⚙️',
+    '内装リフォーム': '🪄',
+    'その他': '⭐'
+  };
+
+  let html = '<div id="preview-services" class="mb-12">' +
+'    <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">' +
+'        <span class="w-1 h-6 bg-green-600 mr-3 rounded"></span>' +
+'        対応可能な工事' +
+'    </h3>' +
+'    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">';
+
+  services.forEach(function(service) {
+    const icon = serviceIconMap[service] || '🔧';
+    html += '        <div class="bg-white border border-green-200 rounded-lg p-3 flex items-center hover:shadow-md transition">' +
+'            <span class="text-2xl mr-2">' + icon + '</span>' +
+'            <span class="text-sm font-medium text-gray-800">' + service + '</span>' +
+'        </div>';
+  });
+
+  html += '    </div>' +
+'</div>';
+
+  return html;
+}
+
+/**
+ * 🔥 施工事例HTML生成
+ */
+function generateConstructionExamplesHtml(examples) {
+  if (!examples || examples.length === 0) {
+    return '';
+  }
+
+  let html = '<div class="mb-12">' +
+'    <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">' +
+'        <span class="w-1 h-6 bg-pink-600 mr-3 rounded"></span>' +
+'        施工事例' +
+'    </h3>' +
+'    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">';
+
+  examples.forEach(function(example, index) {
+    html += '        <div class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition">' +
+'            <img src="' + (example.thumbnail || example.image || '') + '" alt="' + (example.title || '施工事例' + (index + 1)) + '" class="w-full h-48 object-cover" onError="this.src=\'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNTBIMTUwVjE1MEgxMDBWNTBaIiBmaWxsPSIjRDFENURLIi8+CjwvdGc+Cjwvc3ZnPg==\'">' +
+'            <div class="p-4">' +
+'                <h4 class="font-semibold text-gray-900 mb-2">' + (example.title || '施工事例' + (index + 1)) + '</h4>' +
+'                <p class="text-sm text-gray-600 mb-3">' + (example.description || '') + '</p>' +
+'                <div class="flex justify-between items-center text-xs text-gray-500">' +
+'                    <span>工期: ' + (example.duration || '-') + '</span>' +
+'                    <span>費用: ' + (example.cost || '-') + '</span>' +
+'                </div>' +
+'            </div>' +
+'        </div>';
+  });
+
+  html += '    </div>' +
+'</div>';
+
+  return html;
+}
+
+/**
+ * 🔥 レーダーチャート生成（6角形SVG）
+ */
+function generateRadarChartHTML(ratings) {
+  // デフォルト評価値（5点満点）
+  const defaultRatings = {
+    pricing: 4.3,          // コストバランス
+    communication: 4.4,    // 人柄・対応力
+    technology: 4.2,       // 技術・品質
+    service: 3.2,         // アフターサポート
+    schedule: 4.3,        // 対応スピード
+    quality: 4.1          // 顧客満足度
+  };
+
+  // ratingsオブジェクトからの値取得（存在しない場合はデフォルト使用）
+  const finalRatings = {
+    pricing: ratings && ratings.pricing ? parseFloat(ratings.pricing) : defaultRatings.pricing,
+    communication: ratings && ratings.communication ? parseFloat(ratings.communication) : defaultRatings.communication,
+    technology: ratings && ratings.technology ? parseFloat(ratings.technology) : defaultRatings.technology,
+    service: ratings && ratings.service ? parseFloat(ratings.service) : defaultRatings.service,
+    schedule: ratings && ratings.schedule ? parseFloat(ratings.schedule) : defaultRatings.schedule,
+    quality: ratings && ratings.quality ? parseFloat(ratings.quality) : defaultRatings.quality
+  };
+
+  // 座標計算（6角形、5点満点で正規化）
+  const center = 200;
+  const maxRadius = 100;
+
+  const points = [
+    { angle: 0, value: finalRatings.pricing / 5 },         // コストバランス（上）
+    { angle: 60, value: finalRatings.communication / 5 },  // 人柄・対応力（右上）
+    { angle: 120, value: finalRatings.technology / 5 },    // 技術・品質（右下）
+    { angle: 180, value: finalRatings.service / 5 },       // アフターサポート（下）
+    { angle: 240, value: finalRatings.schedule / 5 },      // 対応スピード（左下）
+    { angle: 300, value: finalRatings.quality / 5 }        // 顧客満足度（左上）
+  ];
+
+  // SVG座標計算
+  const chartPoints = points.map(function(point) {
+    var radian = (point.angle - 90) * Math.PI / 180;
+    var radius = point.value * maxRadius;
+    return {
+      x: radius * Math.cos(radian),
+      y: radius * Math.sin(radian)
+    };
+  });
+
+  // polygonのpoints属性用文字列生成
+  const polygonPoints = chartPoints.map(function(point) {
+    return point.x + ',' + point.y;
+  }).join(' ');
+
+  return '<!-- 6角形レーダーチャート -->' +
+'<div class="bg-white rounded-xl shadow-lg border-2 border-amber-100 p-4 sm:p-5 lg:p-6">' +
+'    <h4 class="text-base sm:text-lg lg:text-xl font-bold text-gray-800 mb-3 sm:mb-4 text-center">項目別評価チャート</h4>' +
+'    <div class="flex justify-center overflow-hidden">' +
+'        <svg width="100%" height="320" viewBox="0 0 400 400" class="radarChart max-w-xs sm:max-w-sm lg:max-w-md" style="width: min(100%, 320px); height: auto;">' +
+'            <!-- 背景グリッド -->' +
+'            <g id="radarGrid" transform="translate(200,200)">' +
+'                <!-- 5段階のグリッド円 -->' +
+'                <circle cx="0" cy="0" r="20" fill="none" stroke="#f3f4f6" stroke-width="1"/>' +
+'                <circle cx="0" cy="0" r="40" fill="none" stroke="#e5e7eb" stroke-width="1"/>' +
+'                <circle cx="0" cy="0" r="60" fill="none" stroke="#d1d5db" stroke-width="1"/>' +
+'                <circle cx="0" cy="0" r="80" fill="none" stroke="#9ca3af" stroke-width="1"/>' +
+'                <circle cx="0" cy="0" r="100" fill="none" stroke="#6b7280" stroke-width="1"/>' +
+'                <!-- 軸線 -->' +
+'                <line x1="0" y1="-100" x2="0" y2="100" stroke="#e5e7eb" stroke-width="1"/>' +
+'                <line x1="-86.6" y1="-50" x2="86.6" y2="50" stroke="#e5e7eb" stroke-width="1"/>' +
+'                <line x1="-86.6" y1="50" x2="86.6" y2="-50" stroke="#e5e7eb" stroke-width="1"/>' +
+'            </g>' +
+'            <!-- データポリゴン -->' +
+'            <g id="radarData" transform="translate(200,200)">' +
+'                <polygon id="ratingPolygon" class="chart-data"' +
+'                    points="' + polygonPoints + '"' +
+'                    fill="rgba(245, 158, 11, 0.2)"' +
+'                    stroke="#f59e0b"' +
+'                    stroke-width="2"' +
+'                    stroke-linejoin="round"/>' +
+'                <!-- データポイント -->' +
+'                <circle cx="' + chartPoints[0].x + '" cy="' + chartPoints[0].y + '" r="4" fill="#f59e0b" class="data-point-0"/>' +
+'                <circle cx="' + chartPoints[1].x + '" cy="' + chartPoints[1].y + '" r="4" fill="#f59e0b" class="data-point-1"/>' +
+'                <circle cx="' + chartPoints[2].x + '" cy="' + chartPoints[2].y + '" r="4" fill="#f59e0b" class="data-point-2"/>' +
+'                <circle cx="' + chartPoints[3].x + '" cy="' + chartPoints[3].y + '" r="4" fill="#f59e0b" class="data-point-3"/>' +
+'                <circle cx="' + chartPoints[4].x + '" cy="' + chartPoints[4].y + '" r="4" fill="#f59e0b" class="data-point-4"/>' +
+'                <circle cx="' + chartPoints[5].x + '" cy="' + chartPoints[5].y + '" r="4" fill="#f59e0b" class="data-point-5"/>' +
+'            </g>' +
+'            <!-- ラベル -->' +
+'            <g id="radarLabels" transform="translate(200,200)">' +
+'                <text x="0" y="-125" text-anchor="middle" class="text-xs sm:text-sm font-semibold fill-gray-700">コストバランス</text>' +
+'                <text x="115" y="-25" text-anchor="start" class="text-xs sm:text-sm font-semibold fill-gray-700">人柄・対応力</text>' +
+'                <text x="115" y="65" text-anchor="start" class="text-xs sm:text-sm font-semibold fill-gray-700">技術・品質</text>' +
+'                <text x="0" y="145" text-anchor="middle" class="text-xs sm:text-sm font-semibold fill-gray-700">アフターサポート</text>' +
+'                <text x="-115" y="65" text-anchor="end" class="text-xs sm:text-sm font-semibold fill-gray-700">対応スピード</text>' +
+'                <text x="-115" y="-35" text-anchor="end" class="text-xs sm:text-sm font-semibold fill-gray-700">顧客満足度</text>' +
+'            </g>' +
+'        </svg>' +
+'    </div>' +
+'</div>';
+}
+
+/**
+ * 🔥 エラーHTML生成
+ */
+function generateErrorHTML(errorMessage) {
+  return '<!DOCTYPE html>' +
+'<html lang="ja">' +
+'<head>' +
+'    <meta charset="UTF-8">' +
+'    <meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+'    <title>エラー - ページ生成失敗</title>' +
+'    <script src="https://cdn.tailwindcss.com"></script>' +
+'</head>' +
+'<body class="bg-gray-100 flex items-center justify-center min-h-screen">' +
+'    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full">' +
+'        <div class="text-center">' +
+'            <h1 class="text-2xl font-bold text-red-600 mb-4">🚨 エラーが発生しました</h1>' +
+'            <p class="text-gray-600 mb-4">ページの生成中にエラーが発生しました。</p>' +
+'            <div class="bg-red-50 border border-red-200 rounded p-4 mb-4">' +
+'                <p class="text-sm text-red-800 font-mono">' + errorMessage + '</p>' +
+'            </div>' +
+'            <p class="text-sm text-gray-500">管理者にお問い合わせください。</p>' +
+'        </div>' +
+'    </div>' +
+'</body>' +
+'</html>';
+}
+
+/**
+ * 🔥 対応エリアHTML生成（プレビュー完全一致版・動的データ取得）
+ */
+function generateAreasHtml(areasData, citiesData) {
+  if ((!areasData || areasData === '') && (!citiesData || citiesData === '')) {
+    return '';
+  }
+
+  let prefectures = [];
+  let cities = [];
+
+  try {
+    if (areasData && areasData !== '') {
+      if (typeof areasData === 'string') {
+        prefectures = areasData.split(',').map(function(p) { return p.trim(); }).filter(function(p) { return p !== ''; });
+      } else if (Array.isArray(areasData)) {
+        prefectures = areasData;
+      }
+    }
+
+    if (citiesData && citiesData !== '') {
+      if (typeof citiesData === 'string') {
+        cities = citiesData.split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c !== ''; });
+      } else if (Array.isArray(citiesData)) {
+        cities = citiesData;
+      }
+    }
+  } catch (e) {
+    console.log('[generateAreasHtml] パース失敗:', e);
+  }
+
+  if (prefectures.length === 0 && cities.length === 0) {
+    return '';
+  }
+
+  let html = '<div id="preview-areas" class="mb-12" style="display: block;">' +
+'    <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">' +
+'        <span class="w-1 h-6 bg-orange-600 mr-3 rounded"></span>' +
+'        対応エリア' +
+'    </h3>' +
+'    <div class="bg-white rounded-xl p-6 border border-gray-200">';
+
+  // 都道府県表示
+  if (prefectures.length > 0) {
+    html += '        <div class="mb-6">' +
+'            <h4 class="text-lg font-semibold text-gray-800 mb-3">対応都道府県</h4>' +
+'            <div class="flex flex-wrap gap-2">';
+
+    prefectures.forEach(function(prefecture) {
+      html += '                <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-lg text-sm font-medium">' + prefecture + '</span>';
+    });
+
+    html += '            </div>' +
+'        </div>';
+  }
+
+  // 市区町村表示
+  if (cities.length > 0) {
+    html += '        <div id="previewCitiesContainer">' +
+'            <h4 class="text-lg font-semibold text-gray-800 mb-3">対応市区町村</h4>' +
+'            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">';
+
+    cities.forEach(function(city) {
+      html += '                <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center hover:shadow-md transition">' +
+'                    <span class="text-sm font-medium text-gray-700">' + city + '</span>' +
+'                </div>';
+    });
+
+    html += '            </div>' +
+'        </div>';
+  }
+
+  // Google Maps埋め込み（最初の都道府県または市区町村を使用）
+  const mapLocation = prefectures.length > 0 ? prefectures[0] : (cities.length > 0 ? cities[0] : '');
+  if (mapLocation) {
+    html += '        <div class="mt-6">' +
+'            <h4 class="text-lg font-semibold text-gray-800 mb-3">対応エリアマップ</h4>' +
+'            <div class="w-full h-64 bg-gray-200 rounded-lg overflow-hidden">' +
+'                <iframe width="100%" height="100%" frameborder="0" style="border:0" ' +
+'                    src="https://www.google.com/maps?q=' + encodeURIComponent(mapLocation) + '&output=embed" allowfullscreen="">' +
+'                </iframe>' +
+'            </div>' +
+'        </div>';
+  }
+
+  html += '    </div>' +
+'</div>';
+
+  return html;
+}
+
+/**
+ * 🔥 写真ギャラリーHTML生成（プレビュー完全コピペ・動的データ取得）
+ */
+function generateGalleryHtml(galleryData) {
+  if (!galleryData || galleryData === '') {
+    return '';
+  }
+
+  let galleryImages = [];
+  try {
+    if (typeof galleryData === 'string') {
+      // JSON文字列または単純なカンマ区切りURL文字列の場合
+      if (galleryData.startsWith('[') || galleryData.startsWith('{')) {
+        galleryImages = JSON.parse(galleryData);
+      } else {
+        const urls = galleryData.split(',').map(function(url) { return url.trim(); }).filter(function(url) { return url !== ''; });
+        galleryImages = urls.map(function(url, index) {
+          return {
+            url: url,
+            title: 'ギャラリー画像' + (index + 1),
+            description: ''
+          };
+        });
+      }
+    } else if (Array.isArray(galleryData)) {
+      galleryImages = galleryData;
+    }
+  } catch (e) {
+    console.log('[generateGalleryHtml] パース失敗:', e);
+    // エラー時はカンマ区切りとして処理
+    if (typeof galleryData === 'string') {
+      const urls = galleryData.split(',').map(function(url) { return url.trim(); }).filter(function(url) { return url !== ''; });
+      galleryImages = urls.map(function(url, index) {
+        return {
+          url: url,
+          title: 'ギャラリー画像' + (index + 1),
+          description: ''
+        };
+      });
+    }
+  }
+
+  if (galleryImages.length === 0) {
+    return '';
+  }
+
+  let html = '<div id="preview-gallery" class="mb-12" style="display: block;">' +
+'    <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">' +
+'        <span class="w-1 h-6 bg-indigo-600 mr-3 rounded"></span>' +
+'        写真ギャラリー' +
+'    </h3>' +
+'    <div class="relative">';
+
+  // 左ナビボタン
+  if (galleryImages.length > 1) {
+    html += '        <button onclick="scrollGallery(\'left\')" class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition">' +
+'            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+'                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>' +
+'            </svg>' +
+'        </button>';
+  }
+
+  // ギャラリーカルーセル
+  html += '        <div id="galleryCarousel" class="overflow-hidden" style="height: 288px;">' +
+'            <div id="previewGalleryList" class="flex gap-4 transition-transform duration-300">';
+
+  galleryImages.forEach(function(image, index) {
+    const imageUrl = image.url || image.src || image;
+    const imageTitle = image.title || ('ギャラリー画像' + (index + 1));
+    const imageDesc = image.description || image.alt || '';
+
+    html += '                <div class="flex-shrink-0 w-72 h-72 bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition group">' +
+'                    <div class="relative w-full h-48 bg-gray-200 overflow-hidden">' +
+'                        <img src="' + imageUrl + '" alt="' + imageTitle + '" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError="this.src=\'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNTBIMTUwVjE1MEgxMDBWNTBaIiBmaWxsPSIjRDFENURLIi8+CjwvdGc+Cjwvc3ZnPg==\'">' +
+'                    </div>' +
+'                    <div class="p-4">' +
+'                        <h4 class="font-semibold text-gray-900 text-sm mb-1 truncate">' + imageTitle + '</h4>' +
+                        (imageDesc ? (
+'                        <p class="text-xs text-gray-600 line-clamp-2">' + imageDesc + '</p>'
+                        ) : '') +
+'                    </div>' +
+'                </div>';
+  });
+
+  html += '            </div>' +
+'        </div>';
+
+  // 右ナビボタン
+  if (galleryImages.length > 1) {
+    html += '        <button onclick="scrollGallery(\'right\')" class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition">' +
+'            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+'                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>' +
+'            </svg>' +
+'        </button>';
+  }
+
+  html += '    </div>';
+
+  // インジケーター
+  if (galleryImages.length > 1) {
+    html += '    <div id="galleryIndicators" class="flex justify-center gap-1 mt-4">';
+    for (let i = 0; i < Math.min(galleryImages.length, 10); i++) {
+      html += '        <button onclick="goToGallerySlide(' + i + ')" class="w-2 h-2 rounded-full bg-gray-300 hover:bg-indigo-500 transition ' + (i === 0 ? 'bg-indigo-600' : '') + '"></button>';
+    }
+    html += '    </div>';
+  }
+
+  html += '    <script>' +
+'        let currentGallerySlide = 0;' +
+'        const totalGallerySlides = ' + galleryImages.length + ';' +
+'        const slideWidth = 288;' +
+'        function scrollGallery(direction) {' +
+'            const container = document.getElementById("previewGalleryList");' +
+'            if (direction === "left") {' +
+'                currentGallerySlide = Math.max(0, currentGallerySlide - 1);' +
+'            } else {' +
+'                currentGallerySlide = Math.min(totalGallerySlides - 1, currentGallerySlide + 1);' +
+'            }' +
+'            container.style.transform = "translateX(-" + (currentGallerySlide * slideWidth) + "px)";' +
+'            updateGalleryIndicators();' +
+'        }' +
+'        function goToGallerySlide(index) {' +
+'            currentGallerySlide = index;' +
+'            const container = document.getElementById("previewGalleryList");' +
+'            container.style.transform = "translateX(-" + (currentGallerySlide * slideWidth) + "px)";' +
+'            updateGalleryIndicators();' +
+'        }' +
+'        function updateGalleryIndicators() {' +
+'            const indicators = document.querySelectorAll("#galleryIndicators button");' +
+'            indicators.forEach((indicator, index) => {' +
+'                if (index === currentGallerySlide) {' +
+'                    indicator.classList.add("bg-indigo-600");' +
+'                    indicator.classList.remove("bg-gray-300");' +
+'                } else {' +
+'                    indicator.classList.add("bg-gray-300");' +
+'                    indicator.classList.remove("bg-indigo-600");' +
+'                }' +
+'            });' +
+'        }' +
+'    </script>' +
+'</div>';
+
+  return html;
+}
+
+/**
+ * 🔥 会社概要HTML生成（プレビュー完全一致版）
+ */
+function generateBasicInfoHtml(companyName, representativeName, address, establishedYear) {
+  return '<div id="preview-basicInfo" class="mb-12">' +
+'    <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">' +
+'        <span class="w-1 h-6 bg-blue-600 mr-3 rounded"></span>' +
+'        会社概要' +
+'    </h3>' +
+'    <div class="bg-gray-50 rounded-xl p-8">' +
+'        <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">' +
+'            <div id="basicInfo-companyName">' +
+'                <dt class="text-sm font-medium text-gray-600">会社名</dt>' +
+'                <dd id="previewCompanyNameFull" class="mt-1 text-base sm:text-lg text-gray-900 break-words">' + companyName + '</dd>' +
+'            </div>' +
+            (representativeName ? (
+'            <div id="basicInfo-representative">' +
+'                <dt class="text-sm font-medium text-gray-600">代表者</dt>' +
+'                <dd id="previewRepresentative" class="mt-1 text-lg text-gray-900">' + representativeName + '</dd>' +
+'            </div>'
+            ) : '') +
+            (address ? (
+'            <div id="basicInfo-address">' +
+'                <dt class="text-sm font-medium text-gray-600">所在地</dt>' +
+'                <dd id="previewAddress" class="mt-1 text-lg text-gray-900">' + address + '</dd>' +
+'            </div>'
+            ) : '') +
+            (establishedYear ? (
+'            <div id="basicInfo-established">' +
+'                <dt class="text-sm font-medium text-gray-600">設立</dt>' +
+'                <dd id="previewEstablishedDate" class="mt-1 text-lg text-gray-900">' + establishedYear + '</dd>' +
+'            </div>'
+            ) : '') +
+'        </dl>' +
+'    </div>' +
+    (address ? (
+'    <div class="mt-4" id="basicInfo-map">' +
+'        <h4 class="text-sm font-medium text-gray-600 mb-2">アクセス</h4>' +
+'        <div id="googleMapContainer" class="w-full h-64 bg-gray-200 rounded-lg overflow-hidden">' +
+'            <iframe width="100%" height="100%" frameborder="0" style="border:0" src="https://www.google.com/maps?q=' + encodeURIComponent(address) + '&output=embed" allowfullscreen="">' +
+'            </iframe>' +
+'        </div>' +
+'    </div>'
+    ) : '') +
+'</div>';
+}
+
+/**
+ * 🔥 保有資格HTML生成（プレビュー完全一致版・動的データ取得）
+ */
+function generateQualificationsHtml(qualificationsData) {
+  if (!qualificationsData || qualificationsData === '') {
+    return '';
+  }
+
+  let qualifications = [];
+  try {
+    if (typeof qualificationsData === 'string') {
+      qualifications = qualificationsData.split(',').map(function(q) { return q.trim(); }).filter(function(q) { return q !== ''; });
+    } else if (Array.isArray(qualificationsData)) {
+      qualifications = qualificationsData;
+    }
+  } catch (e) {
+    console.log('[generateQualificationsHtml] パース失敗:', e);
+  }
+
+  if (qualifications.length === 0) {
+    return '';
+  }
+
+  const qualificationIconMap = {
+    '建築士': '🏗️',
+    '一級建築士': '🏗️',
+    '二級建築士': '🏗️',
+    '一級建築施工管理技士': '👷',
+    '二級建築施工管理技士': '👷',
+    '一級塗装技能士': '🎨',
+    '二級塗装技能士': '🎨',
+    '外壁診断士': '🔍',
+    '雨漏り診断士': '☔',
+    '屋根外壁塗装技能士': '🏠',
+    '防水施工技能士': '💧',
+    '足場組立作業主任者': '⚙️',
+    'カラーコーディネーター': '🌈',
+    '有機溶剤作業主任者': '🧪',
+    '石綿作業主任者': '⚠️',
+    '職長・安全衛生責任者教育修了': '🛡️',
+    'その他': '📋'
+  };
+
+  let html = '<div id="preview-qualifications-licenses" class="mb-12">' +
+'    <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">' +
+'        <span class="w-1 h-6 bg-purple-600 mr-3 rounded"></span>' +
+'        保有資格' +
+'    </h3>' +
+'    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">';
+
+  qualifications.forEach(function(qualification) {
+    const icon = qualificationIconMap[qualification] || '📋';
+    html += '        <div class="bg-white border border-purple-200 rounded-lg p-4 flex items-center hover:shadow-md transition">' +
+'            <span class="text-2xl mr-3 flex-shrink-0">' + icon + '</span>' +
+'            <span class="text-sm font-medium text-gray-800">' + qualification + '</span>' +
+'        </div>';
+  });
+
+  html += '    </div>' +
+'</div>';
+
+  return html;
+}
+
+/**
+ * 🔥 加入保険HTML生成（プレビュー完全一致版・動的データ取得）
+ */
+function generateInsuranceHtml(insuranceData) {
+  if (!insuranceData || insuranceData === '') {
+    return '';
+  }
+
+  let insuranceList = [];
+  try {
+    if (typeof insuranceData === 'string') {
+      insuranceList = insuranceData.split(',').map(function(i) { return i.trim(); }).filter(function(i) { return i !== ''; });
+    } else if (Array.isArray(insuranceData)) {
+      insuranceList = insuranceData;
+    }
+  } catch (e) {
+    console.log('[generateInsuranceHtml] パース失敗:', e);
+  }
+
+  if (insuranceList.length === 0) {
+    return '';
+  }
+
+  const insuranceIconMap = {
+    '建設工事保険': '🏗️',
+    '請負業者賠償責任保険': '🛡️',
+    '生産物賠償責任保険': '📦',
+    '施設賠償責任保険': '🏢',
+    '火災保険': '🔥',
+    '労災保険': '👷',
+    '雇用保険': '💼',
+    '健康保険': '🏥',
+    '厚生年金保険': '💰',
+    'PL保険': '⚖️',
+    '損害保険': '🛡️',
+    'その他': '📋'
+  };
+
+  let html = '<div id="preview-insurance" class="mb-12">' +
+'    <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">' +
+'        <span class="w-1 h-6 bg-red-600 mr-3 rounded"></span>' +
+'        加入保険' +
+'    </h3>' +
+'    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">';
+
+  insuranceList.forEach(function(insurance) {
+    const icon = insuranceIconMap[insurance] || '📋';
+    html += '        <div class="bg-white border border-red-200 rounded-lg p-4 flex items-center hover:shadow-md transition">' +
+'            <span class="text-2xl mr-3 flex-shrink-0">' + icon + '</span>' +
+'            <span class="text-sm font-medium text-gray-800">' + insurance + '</span>' +
+'        </div>';
+  });
+
+  html += '    </div>' +
+'</div>';
+
+  return html;
+}
+
+/**
+ * 🔥 会社の特徴・強みHTML生成（プレビュー完全一致版・完全動的）
+ */
+function generateCompanyStrengthHtml(prText) {
+  if (!prText) return '';
+
+  return '<div id="preview-company-strength" class="mb-12">' +
+'    <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">' +
+'        <span class="w-1 h-6 bg-yellow-500 mr-3 rounded"></span>' +
+'        会社の特徴・強み' +
+'    </h3>' +
+'    <div class="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-8 border border-yellow-200">' +
+'        <p class="text-gray-700 leading-relaxed">' + prText + '</p>' +
+'    </div>' +
+'</div>';
+}
+
+/**
+ * 🔥 当社の強み9つのカードHTML生成（プレビュー完全一致版）
+ */
+function generateCompanyStrengthsSection() {
+  const strengths = [
+    {
+      icon: '👨‍🔧',
+      title: '技術力・職人の技',
+      description: '長年の経験を積んだ熟練職人による確かな技術で、高品質な施工をお約束します。'
+    },
+    {
+      icon: '💰',
+      title: '適正価格・透明性',
+      description: '明確な見積もりと適正価格で、お客様に安心してご依頼いただける料金体系です。'
+    },
+    {
+      icon: '🏆',
+      title: '実績・信頼',
+      description: '数多くの施工実績と高いお客様満足度で、地域での信頼を積み重ねてきました。'
+    },
+    {
+      icon: '🛡️',
+      title: '保証・アフターサービス',
+      description: '施工後の保証期間とアフターサービスで、長期にわたってお客様をサポートします。'
+    },
+    {
+      icon: '📞',
+      title: '迅速対応・親身な相談',
+      description: 'お客様のご相談には迅速かつ親身に対応し、最適なソリューションをご提案します。'
+    },
+    {
+      icon: '🔍',
+      title: '詳細診断・提案力',
+      description: '専門的な診断技術で建物の状態を正確に把握し、最適な施工プランをご提案します。'
+    },
+    {
+      icon: '🌱',
+      title: '環境配慮・省エネ',
+      description: '環境に配慮した材料選択と省エネ効果の高い施工で、持続可能な住環境を実現します。'
+    },
+    {
+      icon: '⚡',
+      title: '最新技術・材料',
+      description: '業界最新の技術と高品質な材料を使用し、耐久性と美観を兼ね備えた施工を行います。'
+    },
+    {
+      icon: '👥',
+      title: '地域密着・長期関係',
+      description: '地域に根ざした企業として、お客様との長期的な信頼関係を大切にしています。'
+    }
+  ];
+
+  let html = '<div id="preview-company-strengths-cards" class="mb-12">' +
+'    <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">' +
+'        <span class="w-1 h-6 bg-green-600 mr-3 rounded"></span>' +
+'        当社の強み' +
+'    </h3>' +
+'    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">';
+
+  strengths.forEach(function(strength) {
+    html += '        <div class="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition border border-green-100">' +
+'            <div class="flex items-center mb-4">' +
+'                <span class="text-3xl mr-3 flex-shrink-0">' + strength.icon + '</span>' +
+'                <h4 class="font-bold text-gray-900 text-base">' + strength.title + '</h4>' +
+'            </div>' +
+'            <p class="text-sm text-gray-600 leading-relaxed">' + strength.description + '</p>' +
+'        </div>';
+  });
+
+  html += '    </div>' +
+'</div>';
+
+  return html;
+}
+
+/**
+ * 🔥 支店マップHTML生成（プレビュー完全一致版・動的データ取得）
+ */
+function generateBranchMapsHtml(branchesData) {
+  if (!branchesData || branchesData === '') {
+    return '';
+  }
+
+  let branches = [];
+  try {
+    if (typeof branchesData === 'string') {
+      // JSON文字列の場合
+      if (branchesData.startsWith('[') || branchesData.startsWith('{')) {
+        branches = JSON.parse(branchesData);
+      } else {
+        // カンマ区切りの場合は基本的な支店名のみと仮定
+        const branchNames = branchesData.split(',').map(function(b) { return b.trim(); }).filter(function(b) { return b !== ''; });
+        branches = branchNames.map(function(name) {
+          return {
+            name: name,
+            address: name, // 地図検索用
+            phone: '',
+            hours: ''
+          };
+        });
+      }
+    } else if (Array.isArray(branchesData)) {
+      branches = branchesData;
+    }
+  } catch (e) {
+    console.log('[generateBranchMapsHtml] パース失敗:', e);
+  }
+
+  if (branches.length === 0) {
+    return '';
+  }
+
+  let html = '<div id="preview-branch-maps" class="mb-12">' +
+'    <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">' +
+'        <span class="w-1 h-6 bg-teal-600 mr-3 rounded"></span>' +
+'        支店・店舗マップ' +
+'    </h3>' +
+'    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">';
+
+  branches.forEach(function(branch) {
+    const branchName = branch.name || branch.branchName || '';
+    const branchAddress = branch.address || branch.location || branchName;
+    const branchPhone = branch.phone || branch.tel || '';
+    const branchHours = branch.hours || branch.businessHours || '';
+
+    html += '        <div class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition border border-teal-100">' +
+'            <div class="h-48 bg-gray-200 relative overflow-hidden">' +
+'                <iframe width="100%" height="100%" frameborder="0" style="border:0" ' +
+'                    src="https://www.google.com/maps?q=' + encodeURIComponent(branchAddress + ',神奈川県') + '&output=embed&z=15" allowfullscreen="">' +
+'                </iframe>' +
+'            </div>' +
+'            <div class="p-4">' +
+'                <h4 class="font-bold text-gray-900 text-lg mb-2 flex items-center">' +
+'                    <span class="text-teal-600 mr-2">📍</span>' +
+                    branchName +
+'                </h4>' +
+                (branchAddress && branchAddress !== branchName ? (
+'                <p class="text-sm text-gray-600 mb-2">' +
+'                    <span class="text-gray-500">📍</span> ' + branchAddress +
+'                </p>'
+                ) : '') +
+                (branchPhone ? (
+'                <p class="text-sm text-gray-600 mb-2">' +
+'                    <span class="text-gray-500">📞</span> ' + branchPhone +
+'                </p>'
+                ) : '') +
+                (branchHours ? (
+'                <p class="text-sm text-gray-600 mb-3">' +
+'                    <span class="text-gray-500">🕐</span> ' + branchHours +
+'                </p>'
+                ) : '') +
+'                <div class="flex gap-2">' +
+'                    <a href="https://www.google.com/maps?q=' + encodeURIComponent(branchAddress + ',神奈川県') + '" target="_blank" ' +
+'                       class="flex-1 bg-teal-100 hover:bg-teal-200 text-teal-800 text-xs px-3 py-2 rounded-md text-center transition font-medium">' +
+'                        地図を開く' +
+'                    </a>' +
+                    (branchPhone ? (
+'                    <a href="tel:' + branchPhone + '" ' +
+'                       class="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-800 text-xs px-3 py-2 rounded-md text-center transition font-medium">' +
+'                        電話する' +
+'                    </a>'
+                    ) : '') +
+'                </div>' +
+'            </div>' +
+'        </div>';
+  });
+
+  html += '    </div>' +
+'</div>';
+
+  return html;
+}
+
+/**
+ * 🔥 お問い合わせセクションHTML生成（プレビュー完全一致版・コピペ）
+ */
+function generateContactHtml(phone, email) {
+  if (!phone && !email) return '';
+
+  return '<div id="preview-contact" class="mb-12">' +
+'        <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">' +
+'            <span class="w-1 h-6 bg-purple-600 mr-3 rounded"></span>' +
+'            お問い合わせ' +
+'        </h3>' +
+'        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">' +
+(phone ? (
+'            <div class="bg-white border rounded-xl p-4 hover:shadow-lg transition">' +
+'                <div class="flex items-center mb-2">' +
+'                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">' +
+'                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+'                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>' +
+'                        </svg>' +
+'                    </div>' +
+'                    <div>' +
+'                        <p class="text-sm text-gray-600">お電話でのお問い合わせ</p>' +
+'                        <a href="tel:' + phone + '" class="text-lg font-semibold text-blue-600 hover:text-blue-800 cursor-pointer transition-colors">' + phone + '</a>' +
+'                        <p class="text-xs text-gray-500">受付時間: 9:00-18:00（年中無休）</p>' +
+'                    </div>' +
+'                </div>' +
+'            </div>'
+) : '') +
+(email ? (
+'            <div class="bg-white border rounded-xl p-4 hover:shadow-lg transition">' +
+'                <div class="flex items-center mb-2">' +
+'                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">' +
+'                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+'                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>' +
+'                        </svg>' +
+'                    </div>' +
+'                    <div class="overflow-hidden min-w-0">' +
+'                        <p class="text-sm text-gray-600">メールでのお問い合わせ</p>' +
+'                        <a href="mailto:' + email + '" class="text-sm sm:text-base font-semibold text-blue-600 hover:text-blue-800 break-all cursor-pointer transition-colors">' + email + '</a>' +
+'                        <p class="text-xs text-gray-500">24時間受付中</p>' +
+'                    </div>' +
+'                </div>' +
+'            </div>'
+) : '') +
+'        </div>' +
+'    </div>';
+}
+
+/**
+ * 🔥 施工事例セクションHTML生成（プレビュー完全一致版・コピペ）
+ */
+function generateExamplesHtml(examplesData) {
+  // プレビューから完全コピペ（6036-6065行）
+  return '<div id="preview-examples" class="mb-12" style="display: block;">' +
+'        <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">' +
+'            <span class="w-1 h-6 bg-pink-600 mr-3 rounded"></span>' +
+'            施工事例' +
+'        </h3>' +
+'        <!-- カルーセルコンテナ -->' +
+'        <div class="relative">' +
+'            <!-- 左矢印 -->' +
+'            <button onclick="scrollExamples(\'left\')" class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition">' +
+'                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+'                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>' +
+'                </svg>' +
+'            </button>' +
+'            <!-- 施工事例カルーセル -->' +
+'            <div id="examplesCarousel" class="overflow-hidden" style="min-height: 400px;">' +
+'                <div id="previewExamplesList" class="flex gap-4 transition-transform duration-300">' +
+'                    <!-- 施工事例はスプレッドシートから動的にロードされます -->' +
+'                </div>' +
+'            </div>' +
+'            <!-- 右矢印 -->' +
+'            <button onclick="scrollExamples(\'right\')" class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition">' +
+'                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+'                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>' +
+'                </svg>' +
+'            </button>' +
+'        </div>' +
+'        <!-- インジケーター -->' +
+'        <div id="examplesIndicators" class="flex justify-center gap-1 mt-4">' +
+'            <button onclick="goToExample(0)" class="w-2 h-2 rounded-full transition bg-blue-600"></button>' +
+'        </div>' +
+'    </div>';
+}

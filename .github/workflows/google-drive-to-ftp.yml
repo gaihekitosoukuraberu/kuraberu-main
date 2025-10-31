@@ -1,0 +1,178 @@
+name: Google Drive to Xserver FTP Sync
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install google-api-python-client google-auth google-auth-oauthlib google-auth-httplib2 packaging
+
+      - name: Create sync script
+        run: |
+          cat > sync_drive_to_ftp.py << 'EOF'
+          import os
+          import json
+          import ftplib
+          import tempfile
+          import re
+          from datetime import datetime, timedelta
+          from google.oauth2 import service_account
+          from googleapiclient.discovery import build
+
+          def get_drive_service():
+              creds_json = os.environ.get('GOOGLE_CREDENTIALS')
+              creds_dict = json.loads(creds_json)
+              credentials = service_account.Credentials.from_service_account_info(
+                  creds_dict,
+                  scopes=['https://www.googleapis.com/auth/drive.readonly']
+              )
+              service = build('drive', 'v3', credentials=credentials)
+              print("✅ Google Drive API認証成功")
+              return service
+
+          def find_gaihekikuraberu_folder(service):
+              query = "name='gaihekikuraberu-hp-files' and mimeType='application/vnd.google-apps.folder'"
+              results = service.files().list(q=query, fields='files(id, name)').execute()
+              folders = results.get('files', [])
+              if not folders:
+                  print("❌ フォルダが見つかりません")
+                  return None
+              folder_id = folders[0]['id']
+              print(f"✅ フォルダ検出: {folders[0]['name']} (ID: {folder_id})")
+              return folder_id
+
+          def get_recent_html_files(service, folder_id, minutes=1440):
+              cutoff_time = datetime.utcnow() - timedelta(minutes=minutes)
+              cutoff_iso = cutoff_time.isoformat() + 'Z'
+              query = f"'{folder_id}' in parents and name contains '.html' and modifiedTime > '{cutoff_iso}'"
+              results = service.files().list(
+                  q=query,
+                  fields='files(id, name, modifiedTime, size)',
+                  orderBy='modifiedTime desc'
+              ).execute()
+              files = results.get('files', [])
+              print(f"🔍 検索条件: {minutes}分以内の更新ファイル")
+              print(f"📁 検出ファイル数: {len(files)}")
+              for file in files:
+                  print(f"  - {file['name']} (更新: {file['modifiedTime']}, サイズ: {file.get('size', '不明')})")
+              return files
+
+          def parse_filename(filename):
+              print(f"🔍 デバッグ: 処理ファイル名='{filename}'")
+              print(f"🔍 ファイル名の長さ: {len(filename)}")
+              print(f"🔍 ファイル名のrepr: {repr(filename)}")
+              
+              pattern = r'^([^-]+)-(.+)-index\.html$'
+              print(f"🔍 使用パターン: {pattern}")
+              
+              m = re.match(pattern, filename)
+              
+              if m:
+                  prefecture = m.group(1)
+                  company = m.group(2)
+                  print(f"✅ マッチ成功! prefecture={prefecture}, company={company}")
+                  result = {
+                      "citySlug": prefecture,
+                      "companySlug": company,
+                      "remotePath": f"{prefecture}/{company}/index.html"
+                  }
+                  return result
+              else:
+                  print(f"❌ 正規表現マッチ失敗")
+                  print(f"🔍 テスト: filename.endswith('-index.html') = {filename.endswith('-index.html')}")
+                  print(f"🔍 テスト: '-' in filename = {'-' in filename}")
+                  return None
+
+          def download_file_from_drive(service, file_id, destination):
+              from googleapiclient.http import MediaIoBaseDownload
+              import io
+              request = service.files().get_media(fileId=file_id)
+              fh = io.FileIO(destination, 'wb')
+              downloader = MediaIoBaseDownload(fh, request)
+              done = False
+              while not done:
+                  status, done = downloader.next_chunk()
+              print(f"✅ ダウンロード成功: {destination}")
+              return True
+
+          def create_ftp_directory(ftp, path):
+              parts = path.split('/')
+              for i in range(1, len(parts) + 1):
+                  subpath = '/'.join(parts[:i])
+                  try:
+                      ftp.mkd(subpath)
+                      print(f"📁 ディレクトリ作成: {subpath}")
+                  except Exception:
+                      pass
+
+          def upload_to_ftp(local_file, parsed_info):
+              ftp = ftplib.FTP(os.environ['FTP_HOST'])
+              ftp.login(os.environ['FTP_USERNAME'], os.environ['FTP_PASSWORD'])
+              ftp.cwd('/gaihekikuraberu.com/public_html')
+              path = f"{parsed_info['citySlug']}/{parsed_info['companySlug']}"
+              create_ftp_directory(ftp, path)
+              ftp.cwd(f"/gaihekikuraberu.com/public_html/{path}")
+              with open(local_file, 'rb') as f:
+                  ftp.storbinary('STOR index.html', f)
+              ftp.quit()
+              print(f"✅ FTPアップロード成功: {parsed_info['remotePath']}")
+              return True
+
+          def main():
+              print("🚀 Google Drive → FTP 自動同期開始")
+              print(f"⏰ 実行時刻: {datetime.now().isoformat()}")
+              service = get_drive_service()
+              folder_id = find_gaihekikuraberu_folder(service)
+              if not folder_id:
+                  return
+              files = get_recent_html_files(service, folder_id)
+              if not files:
+                  print("ℹ️ 処理対象ファイルなし")
+                  return
+              success_count = 0
+              for file in files:
+                  name = file['name']
+                  fid = file['id']
+                  print(f"\n📁 処理開始: {name}")
+                  parsed = parse_filename(name)
+                  if not parsed:
+                      print(f"⚠️ スキップ: {name}")
+                      continue
+                  tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
+                  tmp.close()
+                  download_file_from_drive(service, fid, tmp.name)
+                  upload_to_ftp(tmp.name, parsed)
+                  os.unlink(tmp.name)
+                  print(f"🎉 {name} 同期完了")
+                  success_count += 1
+              print(f"\n✅ 同期処理完了: {success_count}/{len(files)} ファイル成功")
+
+          if __name__ == "__main__":
+              main()
+          EOF
+
+      - name: Run sync
+        run: python sync_drive_to_ftp.py
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+      - name: Complete
+        run: echo "🎉 同期完了 at $(date)"

@@ -1,0 +1,204 @@
+// auth-manager.gs
+// 加盟店認証管理システム
+
+// SECRET_KEY: プロパティから読み込み（フォールバックなし）
+const SECRET_KEY = PropertiesService.getScriptProperties().getProperty('SECRET_KEY');
+
+// 初回ログインURL生成
+function generateFirstLoginUrl(merchantId) {
+  const data = {
+    merchantId: merchantId,
+    expires: Date.now() + 86400000, // 24時間後
+    type: 'first_login'
+  };
+
+  // 署名作成
+  const signature = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    JSON.stringify(data) + SECRET_KEY
+  ).map(b => ('0' + (b & 0xFF).toString(16)).slice(-2)).join('').substring(0, 16);
+
+  // Base64エンコード
+  const payload = Utilities.base64EncodeWebSafe(JSON.stringify(data));
+
+  // URL生成（プロパティから取得）
+  const baseUrl = PropertiesService.getScriptProperties().getProperty('FIRST_LOGIN_URL');
+  if (!baseUrl) {
+    throw new Error('FIRST_LOGIN_URLが設定されていません');
+  }
+  return `${baseUrl}?data=${payload}&sig=${signature}`;
+}
+
+// URL検証
+function verifySignedUrl(payload, signature) {
+  try {
+    const data = JSON.parse(Utilities.newBlob(
+      Utilities.base64DecodeWebSafe(payload)
+    ).getDataAsString());
+
+    // 署名検証
+    const expectedSig = Utilities.computeDigest(
+      Utilities.DigestAlgorithm.SHA_256,
+      JSON.stringify(data) + SECRET_KEY
+    ).map(b => ('0' + (b & 0xFF).toString(16)).slice(-2)).join('').substring(0, 16);
+
+    if (signature !== expectedSig) return null;
+    if (Date.now() > data.expires) return null;
+
+    return data.merchantId;
+  } catch(e) {
+    return null;
+  }
+}
+
+// 認証情報シート初期化
+function initCredentialsSheet() {
+  const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  if (!SPREADSHEET_ID) {
+    throw new Error('SPREADSHEET_IDが設定されていません');
+  }
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName('認証情報');
+
+  if (!sheet) {
+    sheet = ss.insertSheet('認証情報');
+    sheet.getRange(1, 1, 1, 5).setValues([[
+      '加盟店ID', 'メールアドレス', 'パスワードハッシュ', '最終ログイン', 'パスワード変更日'
+    ]]);
+    sheet.hideSheet(); // シート非表示
+  }
+  return sheet;
+}
+
+// パスワード保存（ハッシュ化）
+function savePassword(merchantId, plainPassword) {
+  const sheet = initCredentialsSheet();
+  const hash = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    plainPassword + SECRET_KEY + merchantId
+  ).map(b => ('0' + (b & 0xFF).toString(16)).slice(-2)).join('');
+
+  // 既存レコード検索
+  const data = sheet.getDataRange().getValues();
+  const rowIndex = data.findIndex(row => row[0] === merchantId);
+
+  if (rowIndex > 0) {
+    sheet.getRange(rowIndex + 1, 3).setValue(hash);
+    sheet.getRange(rowIndex + 1, 5).setValue(new Date());
+  } else {
+    // 新規追加
+    const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    const merchantSheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('加盟店登録');
+    const merchantData = merchantSheet.getDataRange().getValues();
+    const merchant = merchantData.find(row => row[1] === merchantId); // B列が登録ID
+    const email = merchant ? merchant[22] : ''; // W列：営業用メールアドレス
+
+    sheet.appendRow([merchantId, email, hash, '', new Date()]);
+  }
+
+  // ステータスは準備中のまま（手動でアクティブ化するため）
+  // updateMerchantStatus(merchantId, 'アクティブ');
+
+  return {success: true};
+}
+
+// ログイン検証
+function verifyLogin(merchantId, inputPassword) {
+  const sheet = initCredentialsSheet();
+  const data = sheet.getDataRange().getValues();
+  const merchant = data.find(row => row[0] === merchantId);
+
+  if (!merchant) return false;
+
+  const inputHash = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    inputPassword + SECRET_KEY + merchantId
+  ).map(b => ('0' + (b & 0xFF).toString(16)).slice(-2)).join('');
+
+  const isValid = merchant[2] === inputHash;
+
+  if (isValid) {
+    // 最終ログイン更新
+    const rowIndex = data.indexOf(merchant);
+    sheet.getRange(rowIndex + 1, 4).setValue(new Date());
+  }
+
+  return isValid;
+}
+
+// パスワードリセット用URL生成
+function generatePasswordResetUrl(email) {
+  // メールから加盟店ID取得
+  const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  const merchantSheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('加盟店登録');
+  const data = merchantSheet.getDataRange().getValues();
+  const merchant = data.find(row => row[22] === email); // W列：営業用メールアドレス
+
+  if (!merchant) return null;
+
+  const resetData = {
+    merchantId: merchant[1], // B列：登録ID
+    expires: Date.now() + 3600000, // 1時間
+    type: 'password_reset'
+  };
+
+  const signature = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    JSON.stringify(resetData) + SECRET_KEY
+  ).map(b => ('0' + (b & 0xFF).toString(16)).slice(-2)).join('').substring(0, 16);
+
+  const payload = Utilities.base64EncodeWebSafe(JSON.stringify(resetData));
+
+  const PASSWORD_RESET_URL = PropertiesService.getScriptProperties().getProperty('PASSWORD_RESET_URL');
+  if (!PASSWORD_RESET_URL) {
+    throw new Error('PASSWORD_RESET_URLが設定されていません');
+  }
+  return `${PASSWORD_RESET_URL}?data=${payload}&sig=${signature}`;
+}
+
+// 加盟店ステータス更新
+function updateMerchantStatus(merchantId, status) {
+  const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('加盟店登録');
+  const data = sheet.getDataRange().getValues();
+  const rowIndex = data.findIndex(row => row[1] === merchantId); // B列が登録ID
+
+  if (rowIndex > 0) {
+    sheet.getRange(rowIndex + 1, 36).setValue(status); // AJ列：ステータス
+    return true;
+  }
+  return false;
+}
+
+// ログイン試行回数チェック（セッションベース）
+const loginAttempts = {};
+
+function checkLoginAttempts(merchantId) {
+  const now = Date.now();
+
+  // 古いエントリをクリーンアップ
+  for (const id in loginAttempts) {
+    if (loginAttempts[id].expires < now) {
+      delete loginAttempts[id];
+    }
+  }
+
+  if (!loginAttempts[merchantId]) {
+    loginAttempts[merchantId] = {
+      count: 0,
+      expires: now + 900000 // 15分
+    };
+  }
+
+  loginAttempts[merchantId].count++;
+
+  if (loginAttempts[merchantId].count > 5) {
+    return false; // ロックアウト
+  }
+
+  return true;
+}
+
+function resetLoginAttempts(merchantId) {
+  delete loginAttempts[merchantId];
+}

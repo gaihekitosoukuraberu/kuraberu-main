@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>外壁塗装くらべるAI - 加盟店登録システム</title>
+    <link rel="icon" type="image/png" href="image/3.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen">
+    <!-- ヘッダー -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-4xl mx-auto px-4 py-4">
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                外壁塗装くらべるAI
+            </h1>
+            <p class="text-sm text-gray-600 mt-1">加盟店登録システム</p>
+        </div>
+    </header>
+
+    <!-- メインコンテナ -->
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        <div id="mainContainer" class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+            <!-- ステップインジケーター -->
+            <div id="stepIndicator" class="mb-8">
+                <div class="flex items-center justify-between relative">
+                    <div class="absolute left-0 right-0 top-4 h-1 bg-gray-200 -z-10"></div>
+                    <div id="progressBar" class="absolute left-0 top-4 h-1 bg-gradient-to-r from-purple-600 to-blue-600 transition-all duration-500 -z-10" style="width: 0%"></div>
+                    
+                    <!-- ステップ -->
+                    <div class="step-item active" data-step="1">
+                        <div class="step-circle">1</div>
+                        <span class="step-label">会社情報</span>
+                    </div>
+                    <div class="step-item" data-step="2">
+                        <div class="step-circle">2</div>
+                        <span class="step-label">利用規約</span>
+                    </div>
+                    <div class="step-item" data-step="3">
+                        <div class="step-circle">3</div>
+                        <span class="step-label">本人確認</span>
+                    </div>
+                    <div class="step-item" data-step="4">
+                        <div class="step-circle">4</div>
+                        <span class="step-label">情報確認</span>
+                    </div>
+                    <div class="step-item" data-step="5">
+                        <div class="step-circle">5</div>
+                        <span class="step-label">詳細情報</span>
+                    </div>
+                    <div class="step-item" data-step="6">
+                        <div class="step-circle">6</div>
+                        <span class="step-label">エリア選択</span>
+                    </div>
+                    <div class="step-item" data-step="7">
+                        <div class="step-circle">7</div>
+                        <span class="step-label">完了</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- コンテンツエリア -->
+            <div id="contentArea">
+                <!-- Step 1: 会社名入力 -->
+                <div id="step1" class="step-content active">
+                    <div class="text-center mb-8">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">加盟店登録を開始</h2>
+                        <p class="text-gray-600">まずは会社名を教えてください</p>
+                    </div>
+                    
+                    <div class="max-w-md mx-auto">
+                        <div class="floating-label-group">
+                            <input type="text" id="companyName" class="floating-input" placeholder=" " required>
+                            <label for="companyName" class="floating-label">会社名（正式名称）</label>
+                            <span class="helper-text">例: 株式会社くらべる工務店</span>
+                        </div>
+
+                        <!-- AI補助は常に有効（非表示） -->
+                        <input type="checkbox" id="ai-assist-enabled" checked style="display: none;">
+
+                        <!-- AIローディング表示エリア（初期は非表示） -->
+                        <div id="ai-loading" style="display:none;" class="mt-2 text-sm text-blue-600">
+                            🤖 AI情報取得中...
+                        </div>
+
+                        <button onclick="proceedToConsent()" class="primary-btn w-full mt-6">
+                            <span>次へ進む</span>
+                            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                            </svg>
+                        </button>
+
+                    </div>
+                </div>
+
+                <!-- Step 2: 利用規約同意 -->
+                <div id="step2" class="step-content">
+                    <div class="text-center mb-8">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">利用規約への同意</h2>
+                        <p class="text-gray-600">サービス利用規約をご確認ください</p>
+                    </div>
+                    
+                    <div class="space-y-4 mb-6">
+                        <!-- 利用規約のみ -->
+                        <div class="agreement-card" onclick="toggleTermsAgreement(event)" style="cursor: pointer;">
+                            <div class="agreement-header" style="justify-content: center;">
+                                <h3 class="text-lg font-semibold">利用規約</h3>
+                            </div>
+                            <div class="agreement-content" style="max-height: 300px; overflow-y: auto; padding: 1rem; background-color: #f7fafc; border-radius: 0.5rem; margin: 1rem 0; text-align: left; font-size: 0.875rem; line-height: 1.6;">
+                                <div id="termsFullText"></div>
+                            </div>
+                            <div style="text-align: center;">
+                                <label class="checkbox-container" style="display: inline-flex;">
+                                    <input type="checkbox" id="termsAgree" onchange="checkAgreement()">
+                                    <span class="checkmark"></span>
+                                    <span class="checkbox-label">利用規約に同意する</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <button onclick="goToStep(1)" class="secondary-btn flex-1">
+                            戻る
+                        </button>
+                        <button id="agreeBtn" onclick="proceedWithAgreement()" class="primary-btn flex-1" disabled>
+                            同意して次へ
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: 本人確認 -->
+                <div id="step3" class="step-content">
+                    <div class="text-center mb-8">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">本人確認書類のアップロード</h2>
+                        <p class="text-gray-600">以下のいずれかの書類をご用意ください</p>
+                    </div>
+                    
+                    <!-- 書類タイプ選択 -->
+                    <div class="document-selector mb-6">
+                        <label class="doc-type-card">
+                            <input type="radio" name="docType" value="drivers_license" onchange="updateDocumentSlots('drivers_license')">
+                            <div class="doc-type-content">
+                                <span class="doc-icon">🚗</span>
+                                <span class="doc-name">運転免許証</span>
+                            </div>
+                        </label>
+                        <label class="doc-type-card">
+                            <input type="radio" name="docType" value="mynumber" onchange="updateDocumentSlots('mynumber')">
+                            <div class="doc-type-content">
+                                <span class="doc-icon">💳</span>
+                                <div class="doc-name"><span class="pc-text">マイナンバーカード</span><span class="mobile-text">マイナンバー</span></div>
+                            </div>
+                        </label>
+                        <label class="doc-type-card">
+                            <input type="radio" name="docType" value="passport" onchange="updateDocumentSlots('passport')">
+                            <div class="doc-type-content">
+                                <span class="doc-icon">📔</span>
+                                <span class="doc-name">パスポート</span>
+                            </div>
+                        </label>
+                        <label class="doc-type-card">
+                            <input type="radio" name="docType" value="insurance" onchange="updateDocumentSlots('insurance')">
+                            <div class="doc-type-content">
+                                <span class="doc-icon">🏥</span>
+                                <span class="doc-name">健康保険証</span>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- 撮影指示 -->
+                    <div id="captureInstruction" class="hidden bg-blue-50 rounded-lg p-4 mb-6">
+                        <p class="text-sm text-blue-800"></p>
+                    </div>
+                    
+                    <!-- アップロードスロット -->
+                    <div id="uploadSlots" class="space-y-4 mb-6"></div>
+                    
+                    
+                    <!-- 隠しファイル入力 -->
+                    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="processCapture(this)">
+                    <input type="file" id="libraryInput" accept="image/*,application/pdf" style="display: none;" onchange="processCapture(this)">
+                    
+                    <div class="flex gap-4">
+                        <button onclick="goToStep(2)" class="secondary-btn flex-1">
+                            戻る
+                        </button>
+                        <button id="verifyBtn" onclick="submitVerification()" class="primary-btn flex-1" disabled>
+                            次へ
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 4: AI取得情報確認 -->
+                <div id="step4" class="step-content">
+                    <div class="text-center mb-8">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">会社情報確認</h2>
+                        <div class="ai-notice">
+                            <span class="ai-icon">🤖</span>
+                            <p>AIが自動的に企業情報を抽出・推測しました。修正が必要な箇所は編集してください。</p>
+                        </div>
+                    </div>
+                    
+                    <form id="confirmationForm" class="space-y-4">
+                        <!-- フォームフィールドはJSで動的生成 -->
+                    </form>
+                </div>
+
+                <!-- Step 5: 詳細情報 -->
+                <div id="step5" class="step-content">
+                    <div class="text-center mb-8">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">詳細情報入力</h2>
+                        <p class="text-gray-600">事業に関する詳細情報を入力してください</p>
+                    </div>
+                    
+                    <form id="detailsForm" class="space-y-6">
+                        <!-- フォームフィールドはJSで動的生成 -->
+                    </form>
+                </div>
+
+                <!-- Step 6: エリア選択 -->
+                <div id="step6" class="step-content">
+                    <div class="text-center mb-8">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">対応エリア選択</h2>
+                        <p class="text-gray-600">サービス提供可能なエリアを選択してください（最大5都道府県）</p>
+                    </div>
+                    
+                    <!-- エリア選択UI -->
+                    <div id="areaSelectionContainer">
+                        <!-- JSで動的生成 -->
+                    </div>
+                </div>
+
+                <!-- Step 7: 完了 -->
+                <div id="step7" class="step-content">
+                    <div class="text-center">
+                        <div class="success-icon">
+                            <svg class="w-24 h-24 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2 mt-6">登録が完了しました</h2>
+                        <p class="text-gray-600 mb-8">加盟店登録が正常に完了しました。</p>
+                        
+                        <div class="bg-gray-50 rounded-lg p-6 text-left max-w-md mx-auto">
+                            <h3 class="font-semibold mb-3">今後の流れ</h3>
+                            <ol class="space-y-3 text-sm text-gray-600">
+                                <li>
+                                    <div class="font-semibold text-gray-800">1. 審査</div>
+                                    <div class="ml-4">承認審査を行います</div>
+                                </li>
+                                <li>
+                                    <div class="font-semibold text-gray-800">2. メール受信</div>
+                                    <div class="ml-4">承認後、ログイン用URLをメールでお送りします</div>
+                                </li>
+                                <li>
+                                    <div class="font-semibold text-gray-800">3. 初回設定</div>
+                                    <div class="ml-4">メール受信後24時間以内にログインし、パスワード設定をお願いします</div>
+                                </li>
+                                <li>
+                                    <div class="font-semibold text-gray-800">4. サービス開始</div>
+                                    <div class="ml-4">設定完了後、配信開始となります</div>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ローディングオーバーレイ -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-2xl p-8 max-w-sm w-full mx-4">
+            <div class="text-center">
+                <div class="loader mx-auto mb-4"></div>
+                <h3 id="loadingTitle" class="text-lg font-semibold mb-2">処理中...</h3>
+                <p id="loadingText" class="text-sm text-gray-600"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 全文表示モーダル -->
+    <div id="fullTextModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+            <div class="p-6 border-b">
+                <h3 id="modalTitle" class="text-xl font-semibold"></h3>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1">
+                <div id="modalContent" class="prose prose-sm max-w-none"></div>
+            </div>
+            <div class="p-6 border-t">
+                <button onclick="closeModal()" class="secondary-btn w-full">
+                    閉じる
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ENV読み込み（キャッシュバスターのマスター） - 自動タイムスタンプでキャッシュ回避 -->
+    <script>
+        document.write('<script src="js/env-loader.js?' + Date.now() + '"><\/script>');
+    </script>
+
+    <!-- 全スクリプト：ENV.CACHE_BUSTERを動的参照 -->
+    <script>
+        (function() {
+            const v = window.ENV.CACHE_BUSTER;
+            const scripts = [
+                'js/config.js',
+                'js/api-client.js',
+                'js/ai-assistant-v2.js',
+                'js/ai-init.js',
+                'js/validation.js',
+                'js/modules/init.js',
+                'js/modules/step1-company.js',
+                'js/modules/step2-agreement.js',
+                'js/upload-handler.js',
+                'js/confirmation.js',
+                'js/details.js',
+                'js/specialFeeModal.js',
+                'js/area-selection.js',
+                'js/gas-submit.js',
+                'js/main.js'
+            ];
+            scripts.forEach(function(src) {
+                document.write('<script src="' + src + '?v=' + v + '"><\/script>');
+            });
+        })();
+    </script>
+
+    <!-- デバッグ機能は本番では無効化 -->
+</body>
+</html>

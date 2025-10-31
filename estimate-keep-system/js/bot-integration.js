@@ -1,0 +1,290 @@
+/**
+ * ============================================
+ * BOT統合スクリプト
+ * ============================================
+ * estimate-keep-system に zip-word-bot.json ベースのBOTを統合
+ */
+
+// ============================================
+// BOT UI関数
+// ============================================
+
+// AIメッセージ表示
+function showAIMessage(text) {
+    const messages = document.getElementById('messages');
+    const aiMessageContainer = document.createElement('div');
+    aiMessageContainer.className = 'ai-message-container new-message';
+    aiMessageContainer.innerHTML = `
+        <img src="images/avatars/319260ba-0b3d-47d0-b18f-abf530c2793e.png" alt="AI" class="ai-avatar">
+        <div class="ai-message">${text}</div>
+    `;
+    messages.appendChild(aiMessageContainer);
+    scrollToBotBottom();
+}
+
+// ユーザーメッセージ表示
+function showUserMessage(text) {
+    const messages = document.getElementById('messages');
+    const userMessage = document.createElement('div');
+    userMessage.className = 'user-message';
+    userMessage.textContent = text;
+    messages.appendChild(userMessage);
+    scrollToBotBottom();
+}
+
+// 郵便番号エントリ用のBOT初期化
+function initBotForZipEntry() {
+    if (!BotConfig.state.flowData) {
+        console.error('BOTフローデータがロードされていません');
+        return;
+    }
+
+    BotConfig.state.botActive = true;
+
+    // 郵便番号入力フォームを非表示（別ページ風に）
+    const postalCodeSection = document.getElementById('postalCodeSection');
+    if (postalCodeSection) {
+        postalCodeSection.style.display = 'none';
+    }
+
+    const messages = document.getElementById('messages');
+
+    // AIメッセージ：相場は既に表示済みなので、直接質問開始
+    showAIMessage('ありがとうございます。あなたに最適な業者をご紹介するため、いくつか質問させていただきます。');
+
+    // mainQuestions.Q001から開始
+    setTimeout(() => {
+        showQuestion('Q001');
+    }, 1000);
+}
+
+// 質問表示
+function showQuestion(questionId) {
+    const question = BotConfig.state.flowData.mainQuestions[questionId];
+
+    if (!question) {
+        console.error('質問が見つかりません:', questionId);
+        return;
+    }
+
+    BotConfig.state.currentQuestionId = questionId;
+
+    // 特殊な分岐：PHONE
+    if (questionId === 'PHONE' || (question.branches && question.branches[0] === 'PHONE')) {
+        connectToExistingPhoneForm();
+        return;
+    }
+
+    // AIメッセージ表示
+    showAIMessage(question.text);
+
+    // 選択肢表示
+    setTimeout(() => {
+        showChoicesFromQuestion(question);
+    }, 500);
+}
+
+// 選択肢表示
+function showChoicesFromQuestion(question) {
+    const choices = document.getElementById('choices');
+    choices.innerHTML = '';
+
+    question.choices.forEach((choice, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn w-full';
+        btn.textContent = choice;
+        btn.addEventListener('click', function() {
+            handleQuestionAnswer(choice, index, question);
+        });
+        choices.appendChild(btn);
+    });
+
+    scrollToBotBottom();
+}
+
+// 回答処理
+function handleQuestionAnswer(choice, index, question) {
+    // ユーザーメッセージ表示
+    showUserMessage(choice);
+
+    // 回答を保存
+    BotConfig.state.userAnswers[BotConfig.state.currentQuestionId] = {
+        choice: choice,
+        index: index
+    };
+
+    // 選択肢をクリア
+    document.getElementById('choices').innerHTML = '';
+
+    // 進捗更新
+    updateProgressFromStage(question.stage);
+
+    // 次の質問へ
+    const nextQuestionId = question.branches[index];
+
+    setTimeout(() => {
+        if (nextQuestionId === 'PHONE') {
+            connectToExistingPhoneForm();
+        } else {
+            showQuestion(nextQuestionId);
+        }
+    }, 1000);
+}
+
+// 進捗更新
+function updateProgressFromStage(stage) {
+    let percentage = 0;
+    switch(stage) {
+        case 1: percentage = 25; break;
+        case 2: percentage = 50; break;
+        case 3: percentage = 75; break;
+        case 4: percentage = 100; break;
+    }
+    updateProgress(percentage);
+}
+
+// 既存のupdateProgress関数を使用
+function updateProgress(percentage) {
+    // デスクトップ版
+    const progressPercentage = document.getElementById('progressPercentage');
+    const progressBar = document.getElementById('progressBar');
+    if (progressPercentage) {
+        progressPercentage.textContent = percentage + '%';
+    }
+    if (progressBar) {
+        progressBar.style.width = percentage + '%';
+        progressBar.style.background = 'linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%)';
+    }
+
+    // モバイル版
+    const mobileProgressPercentage = document.getElementById('mobileProgressPercentage');
+    const mobileProgressBar = document.getElementById('mobileProgressBarFill');
+    if (mobileProgressPercentage) {
+        mobileProgressPercentage.textContent = percentage + '%';
+    }
+    if (mobileProgressBar) {
+        mobileProgressBar.style.width = percentage + '%';
+        mobileProgressBar.style.background = 'linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%)';
+    }
+}
+
+// ワードリンクエントリ用のBOT初期化
+function initBotForKeywordEntry(keyword) {
+    if (!BotConfig.state.flowData) {
+        console.error('BOTフローデータがロードされていません');
+        return;
+    }
+
+    BotConfig.state.botActive = true;
+    BotConfig.state.currentEntry = 'keyword';
+    BotConfig.state.currentKeyword = keyword;
+
+    const scenario = BotConfig.state.flowData.entryScenarios[keyword];
+
+    if (!scenario) {
+        showAIMessage(`申し訳ございません。「${keyword}」は現在準備中です。`);
+        return;
+    }
+
+    // greeting表示
+    showAIMessage(scenario.greeting);
+
+    // immediatePostalの判定
+    if (scenario.immediatePostal) {
+        // すぐ郵便番号を聞く
+        setTimeout(() => {
+            showAIMessage('まず、お住まいの地域の相場を確認させてください。');
+            setTimeout(() => {
+                showPostalFormInBot();
+            }, 1000);
+        }, 1000);
+    } else {
+        // カスタムフロー
+        setTimeout(() => {
+            showAIMessage('少し詳しく教えてください。');
+            setTimeout(() => {
+                showPostalFormInBot();
+            }, 1000);
+        }, 1000);
+    }
+}
+
+// BOT内で郵便番号を聞く
+function showPostalFormInBot() {
+    const messages = document.getElementById('messages');
+
+    const formContainer = document.createElement('div');
+    formContainer.className = 'bg-white p-4 rounded-lg shadow-md my-4';
+    formContainer.innerHTML = `
+        <div class="text-sm font-medium text-gray-700 mb-3">郵便番号を入力してください</div>
+        <input type="text" id="postalInputBot" class="w-full border-2 border-blue-200 rounded-lg px-4 py-3 text-center text-base focus:outline-none focus:border-blue-500 bg-blue-50"
+               placeholder="例：100-0001"
+               maxlength="8">
+        <button id="postalSubmitBtn" class="w-full mt-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 font-bold">
+            次へ
+        </button>
+    `;
+    messages.appendChild(formContainer);
+    scrollToBotBottom();
+
+    // イベントリスナー
+    document.getElementById('postalSubmitBtn').addEventListener('click', function() {
+        const postal = document.getElementById('postalInputBot').value.trim();
+
+        if (!postal.match(/^\d{3}-?\d{4}$/)) {
+            alert('正しい郵便番号を入力してください（例：100-0001）');
+            return;
+        }
+
+        // 郵便番号を保存
+        BotConfig.state.currentZipcode = postal.replace('-', '');
+
+        // ユーザーメッセージとして表示
+        showUserMessage(postal);
+
+        // フォームを非表示
+        formContainer.style.display = 'none';
+
+        // 相場表示
+        document.getElementById('priceSection').classList.remove('hidden');
+        document.getElementById('areaName').textContent = '東京都千代田区の外壁塗装相場';
+
+        // mainQuestionsへ
+        setTimeout(() => {
+            showQuestion('Q001');
+        }, 1500);
+    });
+
+    // Enterキーで送信
+    document.getElementById('postalInputBot').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('postalSubmitBtn').click();
+        }
+    });
+}
+
+// PHONE分岐：既存システムへの接続
+function connectToExistingPhoneForm() {
+    // BOTを一時停止
+    BotConfig.state.botActive = false;
+
+    // AIメッセージで誘導
+    showAIMessage('ありがとうございました！それでは最適な業者をご紹介するため、最後に電話番号を教えていただけますか？');
+
+    // 選択肢をクリア
+    document.getElementById('choices').innerHTML = '';
+
+    // 既存のphone-form.jsのshowPhoneInputForm()を呼び出す
+    setTimeout(() => {
+        if (typeof window.showPhoneInputForm === 'function') {
+            window.showPhoneInputForm();
+        } else {
+            // フォールバック：直接phoneSection表示
+            const phoneSection = document.getElementById('phoneSection');
+            if (phoneSection) {
+                phoneSection.style.display = 'block';
+                phoneSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    }, 1000);
+}

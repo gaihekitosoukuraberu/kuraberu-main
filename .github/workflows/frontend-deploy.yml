@@ -1,0 +1,130 @@
+name: Frontend Auto-Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'admin-dashboard/**'
+      - 'franchise-dashboard/**'
+      - 'franchise-register/**'
+      - 'estimate-keep-system/**'
+  workflow_dispatch: # 手動実行も可能
+
+jobs:
+  deploy-admin:
+    name: Deploy Admin Dashboard
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.modified, 'admin-dashboard') || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Xserver via FTP
+        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./admin-dashboard/dist/
+          server-dir: /gaihekikuraberu.com/public_html/admin-dashboard/
+          dangerous-clean-slate: false
+
+      - name: Verify deployment
+        run: |
+          sleep 5
+          curl -f https://gaihekikuraberu.com/admin-dashboard/ || exit 1
+          echo "✅ Admin Dashboard deployed successfully"
+
+  deploy-franchise-dashboard:
+    name: Deploy Franchise Dashboard
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.modified, 'franchise-dashboard') || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Xserver via FTP
+        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./franchise-dashboard/dist/
+          server-dir: /gaihekikuraberu.com/public_html/franchise-dashboard/
+          dangerous-clean-slate: false
+
+      - name: Verify deployment
+        run: |
+          sleep 5
+          curl -f https://gaihekikuraberu.com/franchise-dashboard/ || exit 1
+          echo "✅ Franchise Dashboard deployed successfully"
+
+  deploy-register:
+    name: Deploy Franchise Register
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.modified, 'franchise-register') || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Xserver via FTP
+        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./franchise-register/dist/
+          server-dir: /gaihekikuraberu.com/public_html/franchise-register/
+          dangerous-clean-slate: false
+
+      - name: Verify deployment
+        run: |
+          sleep 5
+          curl -f https://gaihekikuraberu.com/franchise-register/ || exit 1
+          echo "✅ Franchise Register deployed successfully"
+
+  deploy-estimate:
+    name: Deploy Estimate System
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.modified, 'estimate-keep-system') || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Xserver via FTP
+        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./estimate-keep-system/dist/
+          server-dir: /gaihekikuraberu.com/public_html/estimate-keep-system/
+          dangerous-clean-slate: false
+
+      - name: Verify deployment
+        run: |
+          sleep 5
+          curl -f https://gaihekikuraberu.com/estimate-keep-system/ || exit 1
+          echo "✅ Estimate System deployed successfully"
+
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: [deploy-admin, deploy-franchise-dashboard, deploy-register, deploy-estimate]
+    if: always()
+
+    steps:
+      - name: Check deployment status
+        run: |
+          echo "🎉 All frontend deployments completed!"
+          echo ""
+          echo "Deployed URLs:"
+          echo "  - Admin: https://gaihekikuraberu.com/admin-dashboard/"
+          echo "  - Franchise Dashboard: https://gaihekikuraberu.com/franchise-dashboard/"
+          echo "  - Register: https://gaihekikuraberu.com/franchise-register/"
+          echo "  - Estimate: https://gaihekikuraberu.com/estimate-keep-system/"

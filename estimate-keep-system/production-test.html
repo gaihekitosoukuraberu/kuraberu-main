@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>外壁塗装くらべる - 本番環境テスト</title>
+
+    <!-- ★★★ 外壁塗装くらべる BOTローダー（本番環境） ★★★ -->
+    <script src="https://gaihekikuraberu.com/estimate-keep-system/gaiheki-bot-loader.js?v=20251007044500"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif;
+            background: #f5f5f5;
+        }
+
+        header {
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+
+        header p {
+            font-size: 24px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .section {
+            background: white;
+            padding: 40px;
+            margin: 40px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .section h2 {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 24px;
+            color: #1F2937;
+        }
+
+        .section p {
+            font-size: 18px;
+            line-height: 1.8;
+            color: #4B5563;
+            margin-bottom: 16px;
+        }
+
+        .keyword-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 32px;
+        }
+
+        .keyword-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .keyword-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .keyword-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+            border-left: 6px solid #F59E0B;
+            padding: 24px;
+            margin: 24px 0;
+            border-radius: 8px;
+        }
+
+        .highlight-box h3 {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #92400E;
+        }
+
+        .highlight-box ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .highlight-box ul li {
+            font-size: 16px;
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            color: #78350F;
+        }
+
+        .highlight-box ul li:before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #F59E0B;
+            font-weight: bold;
+        }
+
+        footer {
+            background: #1F2937;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            color: #0F0;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 10000;
+            max-width: 300px;
+        }
+
+        .debug-info div {
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- デバッグ情報 -->
+    <div class="debug-info">
+        <div><strong>🔍 本番環境テスト</strong></div>
+        <div id="debug-loader">ローダー: 読み込み中...</div>
+        <div id="debug-botcore">BotCore: 未確認</div>
+        <div id="debug-time">時刻: <span id="current-time"></span></div>
+    </div>
+
+    <!-- ヘッダー -->
+    <header>
+        <h1>外壁塗装のことならお任せください</h1>
+        <p>最適な業者を無料でご紹介</p>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <div class="container">
+        <!-- キーワードボタンセクション -->
+        <div class="section">
+            <h2>🔍 条件から業者を探す</h2>
+            <p>以下のボタンをクリックすると、あなたに最適な業者をAIが診断します</p>
+
+            <div class="keyword-buttons">
+                <button class="keyword-btn" onclick="startScenario('塗料')">塗料</button>
+                <button class="keyword-btn" onclick="startScenario('クチコミ')">クチコミ</button>
+                <button class="keyword-btn" onclick="startScenario('おすすめ')">おすすめ</button>
+                <button class="keyword-btn" onclick="startScenario('最低価格')">最低価格</button>
+                <button class="keyword-btn" onclick="startScenario('助成金')">助成金</button>
+                <button class="keyword-btn" onclick="startScenario('外壁塗装')">外壁塗装</button>
+                <button class="keyword-btn" onclick="startScenario('外壁張替え')">外壁張替え</button>
+                <button class="keyword-btn" onclick="startScenario('屋根張り替え')">屋根張り替え</button>
+                <button class="keyword-btn" onclick="startScenario('遮熱・断熱')">遮熱・断熱</button>
+            </div>
+        </div>
+
+        <!-- 外壁塗装の重要性 -->
+        <div class="section">
+            <h2>📝 外壁塗装の重要性</h2>
+            <p>外壁塗装は住宅を守る重要なメンテナンスです。適切なタイミングで施工することで、建物の寿命を延ばし、美観を保つことができます。</p>
+
+            <div class="highlight-box">
+                <h3>こんな症状があったら要注意！</h3>
+                <ul>
+                    <li>外壁のひび割れ</li>
+                    <li>塗装の剥がれ</li>
+                    <li>チョーキング現象（白い粉が付く）</li>
+                    <li>カビ・コケの発生</li>
+                    <li>色あせ・退色</li>
+                </ul>
+            </div>
+
+            <p>これらの症状が見られたら、早めの対処が必要です。放置すると建物の劣化が進み、修繕費用が高額になる可能性があります。</p>
+        </div>
+
+        <!-- 費用相場 -->
+        <div class="section">
+            <h2>💰 費用相場について</h2>
+            <p>一般的な戸建て住宅（延床30坪）の場合、外壁塗装の費用相場は<strong style="color: #3B82F6; font-size: 24px;">60万円〜180万円</strong>程度です。</p>
+
+            <p>使用する塗料のグレードや建物の状態によって大きく変動します。</p>
+
+            <div class="highlight-box">
+                <h3>費用に影響する要素</h3>
+                <ul>
+                    <li>建物の大きさ（塗装面積）</li>
+                    <li>塗料のグレード（シリコン・フッ素・無機など）</li>
+                    <li>建物の劣化状況</li>
+                    <li>足場の設置費用</li>
+                    <li>下地処理の程度</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 業者選びのポイント -->
+        <div class="section">
+            <h2>✨ 業者選びのポイント</h2>
+            <p>信頼できる業者を選ぶことが、満足のいく外壁塗装の第一歩です。</p>
+
+            <div class="highlight-box">
+                <h3>チェックポイント</h3>
+                <ul>
+                    <li>施工実績が豊富</li>
+                    <li>見積もりが詳細で分かりやすい</li>
+                    <li>保証制度が充実</li>
+                    <li>口コミ・評判が良い</li>
+                    <li>担当者の対応が丁寧</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <footer>
+        <p>© 2025 外壁塗装くらべる All Rights Reserved.</p>
+    </footer>
+
+    <!-- ★★★ 外壁塗装くらべる BOTコンテナ ★★★ -->
+    <div id="gaiheki-bot-container"></div>
+
+    <!-- デバッグスクリプト -->
+    <script>
+        // 現在時刻表示
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleTimeString('ja-JP');
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // ローダー確認
+        setTimeout(() => {
+            const loaderStatus = document.getElementById('debug-loader');
+            if (window.startScenario) {
+                loaderStatus.textContent = 'ローダー: ✅ 読み込み成功';
+                loaderStatus.style.color = '#0F0';
+            } else {
+                loaderStatus.textContent = 'ローダー: ❌ 読み込み失敗';
+                loaderStatus.style.color = '#F00';
+            }
+        }, 2000);
+
+        // BotCore確認
+        setTimeout(() => {
+            const botStatus = document.getElementById('debug-botcore');
+            if (window.BotCore) {
+                botStatus.textContent = 'BotCore: ✅ 読み込み成功';
+                botStatus.style.color = '#0F0';
+            } else {
+                botStatus.textContent = 'BotCore: ⏳ 読み込み中...';
+                botStatus.style.color = '#FF0';
+            }
+        }, 5000);
+
+        // コンソールログ
+        console.log('🚀 本番環境テスト開始');
+        console.log('📍 BOTローダーURL:', 'https://gaihekikuraberu.com/estimate-keep-system/gaiheki-bot-loader.js');
+        console.log('⏰ テスト開始時刻:', new Date().toLocaleString('ja-JP'));
+    </script>
+</body>
+</html>
