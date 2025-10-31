@@ -155,10 +155,20 @@ const FranchiseSystem = {
       // 画像URLを取得（Google Driveに保存）
       let imageUrl1 = '';
       let imageUrl2 = '';
+
+      console.log('[FranchiseSystem] 本人確認書類チェック開始');
+      console.log('[FranchiseSystem] identityDocument:', JSON.stringify(identityDocument));
+      console.log('[FranchiseSystem] identityDocument.images 存在:', !!(identityDocument.images));
+      console.log('[FranchiseSystem] identityDocument.images 長さ:', identityDocument.images ? identityDocument.images.length : 0);
+
       if (identityDocument.images && identityDocument.images.length > 0) {
+        console.log('[FranchiseSystem] 画像保存処理開始:', identityDocument.images.length, '個の画像');
+
         // 全ての画像を保存
         for (let i = 0; i < identityDocument.images.length; i++) {
           const image = identityDocument.images[i];
+          console.log('[FranchiseSystem] 画像', i, 'を保存中...');
+
           const saveResult = saveIdentityDocument(
             {
               data: image.data,
@@ -170,17 +180,33 @@ const FranchiseSystem = {
           );
 
           if (saveResult.success) {
+            const fileUrl = saveResult.fileInfo.fileUrl;
+            console.log('[FranchiseSystem] 画像', i, '保存成功');
+            console.log('[FranchiseSystem] ファイル名:', saveResult.fileInfo.fileName);
+            console.log('[FranchiseSystem] URL:', fileUrl);
+
             if (i === 0) {
-              imageUrl1 = saveResult.fileInfo.fileUrl;
+              imageUrl1 = fileUrl;
             } else if (i === 1) {
-              imageUrl2 = saveResult.fileInfo.fileUrl;
+              imageUrl2 = fileUrl;
             }
-            console.log('[FranchiseSystem] 画像保存成功:', saveResult.fileInfo.fileName);
           } else {
-            console.error('[FranchiseSystem] 画像保存失敗:', saveResult.error);
+            console.error('[FranchiseSystem] 画像', i, '保存失敗:', saveResult.error);
+            // エラー時もURLに情報を記録（デバッグ用）
+            const errorMsg = 'ERROR: ' + saveResult.error;
+            if (i === 0) {
+              imageUrl1 = errorMsg;
+            } else if (i === 1) {
+              imageUrl2 = errorMsg;
+            }
           }
         }
+      } else {
+        console.log('[FranchiseSystem] 画像データなし or 空配列');
       }
+
+      console.log('[FranchiseSystem] 最終的な imageUrl1:', imageUrl1);
+      console.log('[FranchiseSystem] 最終的な imageUrl2:', imageUrl2);
 
       // 長いテキストを圧縮する関数
       function compressLongText(text, maxLength = 500) {
