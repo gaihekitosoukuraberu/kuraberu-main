@@ -106,10 +106,9 @@ const AISearchSystem = {
         };
       }
 
-      // 公式サイト優先ロジック
-      const ranked = this.rankSearchResults(searchResults, companyName);
-      const bestMatch = ranked[0];
-      console.log('[AISearchSystem] 採用URL:', bestMatch.link);
+      // Googleの生のトップヒット1件のみ使用（スコアリング・ランキングなし）
+      const bestMatch = searchResults[0];
+      console.log('[AISearchSystem] 採用URL（Google生1位）:', bestMatch.link);
 
       // トップページ取得
       const topPageData = this.fetchHtmlContent(bestMatch.link, true);
@@ -175,7 +174,7 @@ const AISearchSystem = {
   performGoogleSearch: function(query, apiKey, engineId) {
     const blocklist = ['job', 'career', 'indeed', 'recruit', 'ミツモア', 'エキテン', 'goo', 'yahoo', 'マイナビ', 'sponsored'];
     const q = query + ' 塗装';
-    const url = 'https://www.googleapis.com/customsearch/v1?key=' + apiKey + '&cx=' + engineId + '&q=' + encodeURIComponent(q) + '&num=10&hl=ja';
+    const url = 'https://www.googleapis.com/customsearch/v1?key=' + apiKey + '&cx=' + engineId + '&q=' + encodeURIComponent(q) + '&num=1&hl=ja';
 
     try {
       const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
