@@ -173,8 +173,8 @@ const AISearchSystem = {
   },
 
   performGoogleSearch: function(query, apiKey, engineId) {
-    const blocklist = ['job', 'career', 'indeed', 'recruit', 'ミツモア', 'エキテン', 'goo', 'yahoo', 'マイナビ'];
-    const q = query + ' 公式 会社概要 リフォーム 塗装';
+    const blocklist = ['job', 'career', 'indeed', 'recruit', 'ミツモア', 'エキテン', 'goo', 'yahoo', 'マイナビ', 'sponsored'];
+    const q = query + ' 塗装';
     const url = 'https://www.googleapis.com/customsearch/v1?key=' + apiKey + '&cx=' + engineId + '&q=' + encodeURIComponent(q) + '&num=10&hl=ja';
 
     try {
@@ -219,10 +219,12 @@ const AISearchSystem = {
 
   fetchHtmlContent: function(url, returnRawHtml) {
     try {
+      // HTTPサイトにも対応（HTTPS非対応サイト対策）
       const response = UrlFetchApp.fetch(url, {
         muteHttpExceptions: true,
         followRedirects: true,
-        headers: { 'User-Agent': 'Mozilla/5.0' }
+        validateHttpsCertificates: false,
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
       });
       if (response.getResponseCode() !== 200) return returnRawHtml ? { text: '', rawHtml: '' } : '';
 
@@ -550,28 +552,40 @@ const AISearchSystem = {
     if (searchResults[0] && searchResults[0].htmlContent)
       regexBranches = this.extractBranchesWithRegex(searchResults[0].htmlContent);
 
-    var prompt = '以下のテキストから外壁塗装・リフォーム会社「' + companyName + '」の情報を抽出してJSON形式で出力してください。\n\n' +
-searchResults[0].htmlContent + '\n\n' +
-'【抽出ルール】\n' +
-'1. company_name: 正式名称（株式会社含む）\n' +
-'2. company_name_kana: 会社名カタカナ\n' +
-'3. representative: 代表者名\n' +
-'4. representative_kana: 代表者カタカナ\n' +
-'5. established: 設立年\n' +
-'6. postal_code: 郵便番号\n' +
-'7. address: 住所（番地まで完全に）\n' +
-'8. phone: 電話番号\n' +
-'9. features: 会社の特徴（200-300文字）\n' +
-'10. branches: 支店配列\n\n' +
-'🚨【branches抽出の最重要ルール】🚨\n' +
-'- 形式: [{name:"〇〇支店",address:"都道府県から番地まで完全な住所",postalCode:"郵便番号"}]\n' +
-'- 本社・本店は除外\n' +
-'- 支店・営業所・店舗・ショールーム全て\n' +
-'- 住所は必ず都道府県から始まる完全な住所\n' +
-'- 1つ見つけても続行して全て抽出\n' +
-'- 郵便番号も可能な限り抽出\n\n' +
-'JSON形式のみ回答：\n' +
-'{"company_name":"","company_name_kana":"","representative":"","representative_kana":"","established":"","postal_code":"","address":"","phone":"","website":"' + searchResults[0].link + '","features":"","branches":[]}';
+    // HTMLコンテンツを30000文字に制限（トークン制限対策）
+    var htmlContent = searchResults[0].htmlContent;
+    if (htmlContent.length > 30000) {
+      htmlContent = htmlContent.substring(0, 30000) + '\n\n[... 以下省略 ...]';
+    }
+
+    var prompt = 'あなたは外壁塗装・リフォーム会社の情報を抽出する専門AIです。\n\n' +
+'【タスク】\n' +
+'以下のWebページから「' + companyName + '」の会社情報を抽出し、JSON形式で出力してください。\n\n' +
+'【Webページの内容】\n' +
+htmlContent + '\n\n' +
+'【抽出する情報】\n' +
+'1. company_name: 会社の正式名称（株式会社・有限会社などの法人格を含む完全な名称）\n' +
+'2. company_name_kana: 会社名のカタカナ読み（Webページに記載がない場合は、company_nameから推測して生成）\n' +
+'3. representative: 代表者の氏名（代表取締役、社長など）\n' +
+'4. representative_kana: 代表者名のカタカナ読み（Webページに記載がない場合は、representativeから推測して生成）\n' +
+'5. established: 設立年月または創業年月（例: 2010年4月、1995年）\n' +
+'6. postal_code: 郵便番号（例: 123-4567）。Webページに記載がない場合は、addressから推測して生成してください\n' +
+'7. address: 本社所在地の住所（都道府県から始まる完全な住所。番地・ビル名まで含む）\n' +
+'8. phone: 電話番号（例: 03-1234-5678）\n' +
+'9. features: この会社の特徴や強みを200-300文字程度で記述（Webページの内容から自動生成）\n' +
+'10. branches: 支店・営業所・店舗・ショールームの配列\n\n' +
+'【重要】branches（支店情報）の抽出ルール：\n' +
+'- 本社・本店は除外してください\n' +
+'- 支店、営業所、店舗、ショールーム、事業所など、本社以外の拠点を全て抽出\n' +
+'- 各支店について、以下の形式で出力: {name:"支店名",address:"都道府県から番地まで完全な住所",postalCode:"郵便番号"}\n' +
+'- 住所は必ず都道府県から始まる完全な住所を記載\n' +
+'- 番地やビル名を見落とさないように注意\n' +
+'- 支店が複数ある場合は、全て漏れなく抽出してください\n' +
+'- 郵便番号も可能な限り抽出。記載がない場合でも住所から推測して生成してください\n' +
+'- 1つ見つけても満足せず、Webページ全体から全ての支店情報を探してください\n\n' +
+'【出力形式】\n' +
+'必ずJSON形式のみで回答してください。説明文は不要です。\n' +
+'{"company_name":"","company_name_kana":"","representative":"","representative_kana":"","established":"","postal_code":"","address":"","phone":"","website":"' + searchResults[0].link + '","features":"","branches":[{"name":"","address":"","postalCode":""}]}';
 
     try {
       var res = UrlFetchApp.fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -580,8 +594,8 @@ searchResults[0].htmlContent + '\n\n' +
         payload: JSON.stringify({
           model: 'deepseek/deepseek-chat',
           messages: [{ role: 'user', content: prompt }],
-          temperature: 0.2,
-          max_tokens: 2500
+          temperature: 0.1,
+          max_tokens: 4000
         }),
         muteHttpExceptions: true
       });
