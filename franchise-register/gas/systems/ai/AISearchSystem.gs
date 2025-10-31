@@ -430,12 +430,17 @@ const AISearchSystem = {
     var m;
     while ((m = pattern1.exec(text)) !== null) {
       var name = m[1].replace(/本社|本店/g, '').trim();
-      // 記号が含まれる支店名は除外（「【フッター支店」などのゴミデータを除外）
-      if (name && !name.match(/本社|本店|【|】|©|®|™|プライバシー|利用規約/) && !seenNames[name]) {
+      // 正常な支店名のみ許可（日本語+アルファベットのみ、記号や長すぎる名前は除外）
+      var isValidName = name && name.length >= 2 && name.length <= 15 &&
+                       !name.match(/本社|本店/) &&
+                       !name.match(/[^\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAFa-zA-Z0-9]/);
+      if (isValidName && !seenNames[name]) {
         var postal = m[2] ? m[2].replace(/\s/g, '') : '';
         var address = m[3].replace(/\s+/g, ' ').trim();
-        // 住所が曖昧な場合は除外
-        if (address.length >= 10 && !address.match(/エリア|全域|北海道.*沖縄/)) {
+        // 住所が具体的な場合のみ採用（市区町村名を含む）
+        var hasCity = address.match(/[市区町村郡]/);
+        var isNotVague = !address.match(/エリア|全域|一帯|県内|都内|各地|管内/);
+        if (address.length >= 10 && hasCity && isNotVague) {
           branches.push({ name: name, address: address, postalCode: postal });
           seenNames[name] = true;
         }
@@ -446,11 +451,13 @@ const AISearchSystem = {
     var lines = text.split(/\n+/);
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i];
-      if (line.match(/支店|営業所|店舗|ショールーム/) && !line.match(/本社|本店|プライバシー|利用規約|【|】/)) {
+      if (line.match(/支店|営業所|店舗|ショールーム/) && !line.match(/本社|本店/)) {
         var nameMatch = line.match(/([\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAFa-zA-Z]{2,10}(?:支店|営業所|店舗|ショールーム|事業所|支社))/);
         if (nameMatch) {
           var name = nameMatch[1].trim();
-          if (!seenNames[name] && !name.match(/【|】|©|®|™/)) {
+          var isValidName = name.length >= 2 && name.length <= 15 &&
+                           !name.match(/[^\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAFa-zA-Z0-9]/);
+          if (isValidName && !seenNames[name]) {
             var address = '';
             var postal = '';
 
@@ -477,7 +484,9 @@ const AISearchSystem = {
               if (postal && address) break;
             }
 
-            if (address && address.length >= 10 && !address.match(/エリア|全域|北海道.*沖縄/)) {
+            var hasCity = address && address.match(/[市区町村郡]/);
+            var isNotVague = address && !address.match(/エリア|全域|一帯|県内|都内|各地|管内/);
+            if (address && address.length >= 10 && hasCity && isNotVague) {
               branches.push({ name: name, address: address, postalCode: postal });
               seenNames[name] = true;
             }
@@ -490,9 +499,14 @@ const AISearchSystem = {
     var pattern3 = /([\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAFa-zA-Z]{2,10}(?:支店|営業所|店舗|ショールーム))[^\n]{0,30}?([都道府県][^\n<>]{8,100})/g;
     while ((m = pattern3.exec(text)) !== null) {
       var name = m[1].trim();
-      if (!seenNames[name] && !name.match(/本社|本店|【|】|©|®|™/)) {
+      var isValidName = name.length >= 2 && name.length <= 15 &&
+                       !name.match(/本社|本店/) &&
+                       !name.match(/[^\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAFa-zA-Z0-9]/);
+      if (isValidName && !seenNames[name]) {
         var address = m[2].replace(/\s+/g, ' ').replace(/TEL.*$/i, '').replace(/電話.*$/,'').trim();
-        if (address.length >= 10 && !address.match(/エリア|全域|北海道.*沖縄/)) {
+        var hasCity = address.match(/[市区町村郡]/);
+        var isNotVague = !address.match(/エリア|全域|一帯|県内|都内|各地|管内/);
+        if (address.length >= 10 && hasCity && isNotVague) {
           branches.push({ name: name, address: address, postalCode: '' });
           seenNames[name] = true;
         }
@@ -555,9 +569,8 @@ const AISearchSystem = {
   },
 
   analyzeWithAI: function(searchResults, companyName, apiKey) {
+    // 正規表現抽出を削除してAIに完全に任せる
     var regexBranches = [];
-    if (searchResults[0] && searchResults[0].htmlContent)
-      regexBranches = this.extractBranchesWithRegex(searchResults[0].htmlContent);
 
     var prompt =
       "あなたは日本の外壁塗装・リフォーム会社の情報を正確に抽出する専門AIです。\n" +
