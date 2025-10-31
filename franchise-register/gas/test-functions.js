@@ -306,3 +306,136 @@ function diagnoseError() {
     console.error('プロパティ取得エラー:', e);
   }
 }
+
+/**
+ * ========================================
+ * 🧪 [テスト用] 加盟店登録の完全テスト
+ * ========================================
+ *
+ * 📸 画像URL保存テスト含む
+ * 📝 PRテキスト・エリア情報フルテキスト保存テスト含む
+ *
+ * 【使い方】
+ * 1. GASエディタを開く
+ * 2. 関数選択で「testFranchiseRegistrationWithImage」を選択
+ * 3. 実行ボタンをクリック
+ * 4. 実行ログを確認
+ *
+ * 【確認ポイント】
+ * - PRテキストが省略されずにフル保存されているか
+ * - 画像URL1、URL2が正しく保存されているか
+ * - エラーが発生していないか
+ */
+function testFranchiseRegistrationWithImage() {
+  console.log('========== 加盟店登録完全テスト開始 ==========');
+
+  // 1x1ピクセルの小さなダミーPNG画像（Base64）
+  const dummyImageData = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+  // テストデータ作成
+  const testParams = {
+    action: 'registerFranchise',
+    companyInfo: JSON.stringify({
+      companyName: 'テスト株式会社',
+      companyNameKana: 'テストカブシキガイシャ',
+      businessName: 'テスト塗装',
+      businessNameKana: 'テストトソウ',
+      representative: '山田太郎',
+      representativeKana: 'ヤマダタロウ',
+      postalCode: '100-0001',
+      fullAddress: '東京都千代田区千代田1-1-1',
+      phone: '03-1234-5678',
+      websiteUrl: 'https://test-example.com',
+      establishedDate: '2010年4月',
+      prText: 'テスト株式会社は、地域密着型の外壁塗装専門業者として、高品質な施工とお客様への丁寧な対応を心がけております。豊富な実績と確かな技術力で、お客様の大切な住まいを守ります。創業以来20年以上にわたり、東京・神奈川・埼玉エリアで5000件以上の施工実績を誇り、お客様満足度98%を達成しております。当社の強みは、自社職人による直接施工体制により、中間マージンをカットした適正価格でのご提供と、アフターフォロー10年保証による長期的な安心をお届けできる点です。また、最新のドローン診断技術やAIカラーシミュレーションシステムを導入し、お客様により分かりやすく、納得いただけるご提案を実現しています。外壁塗装・屋根塗装だけでなく、防水工事、リフォーム全般まで幅広く対応可能で、一級塗装技能士をはじめとする有資格者が多数在籍しており、確かな技術でお応えいたします。',
+      branches: [
+        { name: 'テスト支店1', address: '神奈川県横浜市テスト1-1-1' },
+        { name: 'テスト支店2', address: '埼玉県さいたま市テスト2-2-2' }
+      ]
+    }),
+    detailInfo: JSON.stringify({
+      billingEmail: 'billing@test-example.com',
+      salesEmail: 'sales@test-example.com',
+      salesPersonName: '佐藤花子',
+      salesPersonKana: 'サトウハナコ',
+      employees: '10〜30名',
+      revenue: '1億円〜5億円',
+      propertyTypes: ['戸建て', 'マンション・アパート'],
+      propertyFloors: '3階建てまで',
+      buildingAgeRange: '築10年〜築30年',
+      constructionTypes: ['外壁塗装', '屋根塗装', '防水工事'],
+      specialServices: ['カラーシミュレーション', 'ドローン調査']
+    }),
+    selectedAreas: JSON.stringify({
+      prefectures: '東京都,神奈川県,埼玉県',
+      cities: '東京都_千代田区,東京都_中央区,神奈川県_横浜市,埼玉県_さいたま市',
+      priorityAreas: '東京都_千代田区,神奈川県_横浜市'
+    }),
+    identityDocument: JSON.stringify({
+      type: 'drivers_license',
+      images: [
+        { data: dummyImageData, side: 'front' },
+        { data: dummyImageData, side: 'back' }
+      ]
+    }),
+    termsAgreed: 'true',
+    informationCheck: 'true'
+  };
+
+  console.log('📝 テストデータ準備完了');
+  console.log('会社名:', JSON.parse(testParams.companyInfo).companyName);
+  console.log('画像データ:', JSON.parse(testParams.identityDocument).images.length, '枚');
+
+  try {
+    // FranchiseSystem.registerFranchiseを直接呼び出し
+    console.log('\n🚀 登録処理開始...');
+    const result = FranchiseSystem.registerFranchise(testParams);
+
+    console.log('\n========== 結果 ==========');
+    if (result.success) {
+      console.log('✅ 登録成功！');
+      console.log('登録ID:', result.registrationId);
+
+      // スプレッドシートを確認
+      console.log('\n📊 スプレッドシート確認中...');
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('加盟店登録');
+      const data = sheet.getDataRange().getValues();
+
+      // 最新の行を取得（一番下の行）
+      const lastRow = data[data.length - 1];
+      console.log('\n最新登録データ:');
+      console.log('- タイムスタンプ:', lastRow[0]);
+      console.log('- 登録ID:', lastRow[1]);
+      console.log('- 会社名:', lastRow[2]);
+      console.log('- PRテキスト:', lastRow[13] ? lastRow[13].substring(0, 50) + '...' : '(空)');
+      console.log('- 本人確認書類種類:', lastRow[17]);
+      console.log('- 本人確認書類URL1:', lastRow[18] || '(空)');
+      console.log('- 本人確認書類URL2:', lastRow[19] || '(空)');
+
+      // 画像URLが保存されているかチェック
+      if (lastRow[18] && lastRow[18].startsWith('https://')) {
+        console.log('\n✅ 画像URL1が正しく保存されました！');
+      } else {
+        console.error('\n❌ 画像URL1が保存されていません:', lastRow[18]);
+      }
+
+      if (lastRow[19] && lastRow[19].startsWith('https://')) {
+        console.log('✅ 画像URL2が正しく保存されました！');
+      } else {
+        console.error('❌ 画像URL2が保存されていません:', lastRow[19]);
+      }
+
+    } else {
+      console.error('❌ 登録失敗:', result.error);
+    }
+
+    console.log('\n========== テスト完了 ==========');
+    return result;
+
+  } catch (error) {
+    console.error('❌ エラー発生:', error.toString());
+    console.error('スタックトレース:', error.stack);
+    return { success: false, error: error.toString() };
+  }
+}
