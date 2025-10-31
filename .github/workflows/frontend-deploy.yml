@@ -28,7 +28,7 @@ jobs:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./admin-dashboard/dist/
+          local-dir: ./admin-dashboard/
           server-dir: /gaihekikuraberu.com/public_html/admin-dashboard/
           dangerous-clean-slate: false
 
@@ -53,7 +53,7 @@ jobs:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./franchise-dashboard/dist/
+          local-dir: ./franchise-dashboard/
           server-dir: /gaihekikuraberu.com/public_html/franchise-dashboard/
           dangerous-clean-slate: false
 
@@ -78,7 +78,7 @@ jobs:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./franchise-register/dist/
+          local-dir: ./franchise-register/
           server-dir: /gaihekikuraberu.com/public_html/franchise-register/
           dangerous-clean-slate: false
 
@@ -103,7 +103,7 @@ jobs:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./estimate-keep-system/dist/
+          local-dir: ./estimate-keep-system/
           server-dir: /gaihekikuraberu.com/public_html/estimate-keep-system/
           dangerous-clean-slate: false
 
