@@ -597,12 +597,24 @@ const AISearchSystem = {
     try {
       var res = UrlFetchApp.fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
+        headers: {
+          'Authorization': 'Bearer ' + apiKey,
+          'Content-Type': 'application/json'
+        },
         payload: JSON.stringify({
           model: 'deepseek/deepseek-chat',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.1,
-          max_tokens: 4000
+          messages: [
+            {
+              role: 'system',
+              content: "あなたは日本の企業情報抽出の専門AIです。公式サイトのHTMLテキストから会社情報を正確に構造化JSONで抽出します。"
+            },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.15,       // より一貫性を上げる
+          max_tokens: 3500,        // 30000文字に耐えられる出力サイズ
+          top_p: 0.9,              // 精度を保ちながら創造性も残す
+          frequency_penalty: 0.2,  // 重複語を抑制
+          presence_penalty: 0.1
         }),
         muteHttpExceptions: true
       });
