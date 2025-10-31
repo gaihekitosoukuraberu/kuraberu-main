@@ -117,36 +117,56 @@ const AISearchSystem = {
 
       var allContent = topPageData.text;
 
-      // 会社概要ページを探す（複数パターン試行）
+      // HP内の重要ページを徹底的にクロール（100,000文字または十分な情報が集まるまで）
       var domainMatch = bestMatch.link.match(/^(https?:\/\/[^\/]+)/);
       if (domainMatch) {
-        var companyPaths = ['/company/outline/', '/company/', '/about/', '/company/access/', '/kaisya/', '/gaiyou/', '/profile/', '/corporate/', '/kaisyagaiyou/'];
-        for (var i = 0; i < companyPaths.length; i++) {
-          try {
-            var companyPageText = this.fetchHtmlContent(domainMatch[0] + companyPaths[i]);
-            if (companyPageText && companyPageText.length > 300) {
-              allContent = companyPageText + '\n\n' + allContent;
-              console.log('[DEBUG] 会社概要ページ取得:', companyPaths[i], companyPageText.length + '文字');
-              break;
-            }
-          } catch (e) {}
-        }
-      }
+        var domain = domainMatch[0];
+        var importantPaths = [
+          '/company/', '/company/outline/', '/company/info/', '/company/profile/',
+          '/about/', '/about-us/', '/profile/', '/corporate/', '/kaisya/', '/gaiyou/',
+          '/company/message/', '/company/greeting/', '/greeting/', '/message/', '/ceo/',
+          '/history/', '/enkaku/', '/rekishi/', '/company/history/', '/ayumi/',
+          '/access/', '/map/', '/company/access/',
+          '/office/', '/shop/', '/store/', '/tenpo/', '/branch/', '/shiten/', '/eigyousyo/',
+          '/staff/', '/team/', '/member/', '/introduction/'
+        ];
 
-      // 全ページから「支店」「営業所」含むページを抽出
-      console.log('[DEBUG] 支店情報ページ検索中...');
-      for (var j = 0; j < Math.min(allPages.length, 20); j++) {
-        try {
-          var pageText = this.fetchHtmlContent(allPages[j]);
-          if (pageText && (pageText.includes('支店') || pageText.includes('営業所') || pageText.includes('店舗') || pageText.includes('ショールーム'))) {
-            // 具体的な地名があるか確認
-            if (pageText.match(/[都道府県][^\n]{10,}/)) {
-              allContent += '\n\n' + pageText;
-              console.log('[DEBUG] 支店情報ページ発見:', allPages[j], pageText.length + '文字');
-              break;
+        var crawledUrls = [];
+        var crawledCount = 0;
+
+        console.log('[AISearchSystem] HP内徹底クロール開始:', domain);
+
+        // 重要ページを順次クロール（100,000文字または15ページまで）
+        for (var i = 0; i < importantPaths.length && allContent.length < 100000 && crawledCount < 15; i++) {
+          try {
+            var testUrl = domain + importantPaths[i];
+            var pageText = this.fetchHtmlContent(testUrl);
+
+            if (pageText && pageText.length > 300) {
+              crawledUrls.push(testUrl);
+              crawledCount++;
+
+              // 代表者名、設立年月、支店情報が含まれていれば優先的に先頭に追加
+              var hasCriticalInfo = pageText.match(/代表|社長|CEO|設立|創業|支店|営業所|ショールーム|店舗/);
+              if (hasCriticalInfo) {
+                allContent = pageText + '\n\n===PAGE_BREAK===\n\n' + allContent;
+                console.log('[AISearchSystem] 重要ページ取得 (' + crawledCount + '):', importantPaths[i], pageText.length + '文字 [優先]');
+              } else {
+                allContent += '\n\n===PAGE_BREAK===\n\n' + pageText;
+                console.log('[AISearchSystem] ページ取得 (' + crawledCount + '):', importantPaths[i], pageText.length + '文字');
+              }
             }
+          } catch (e) {
+            // Skip
           }
-        } catch (e) {}
+
+          // レート制限回避
+          if (crawledCount > 0 && crawledCount % 5 === 0) {
+            Utilities.sleep(300);
+          }
+        }
+
+        console.log('[AISearchSystem] クロール完了:', crawledCount + 'ページ取得、合計' + allContent.length + '文字');
       }
 
       console.log('[DEBUG] 最終テキスト量:', allContent.length + '文字');
@@ -573,16 +593,17 @@ const AISearchSystem = {
     var regexBranches = [];
 
     var systemMessage =
-      "あなたは日本の外壁塗装・リフォーム会社の公式サイト本文から、指定した1社の情報を正確に抽出して構造化JSONで返す専門AIです。\n" +
-      "- 使用可能な情報は「与えられたテキストのみ」。\n" +
+      "あなたは日本の外壁塗装・リフォーム会社の公式サイト（HP内複数ページ）から、指定した1社の情報を正確に抽出して構造化JSONで返す専門AIです。\n" +
+      "- 使用可能な情報は「与えられたテキストのみ」。最大100,000文字。\n" +
       "- 出力は **厳密なJSONのみ**。説明、注釈、追記は禁止。\n" +
-      "- **代表者名と設立年月は最優先で徹底的に探すこと**。会社概要、企業情報、代表挨拶、沿革ページなどから必ず抽出せよ。";
+      "- **代表者名と設立年月は最優先で徹底的に探すこと**。100,000文字のテキスト全体を隅々まで読み、会社概要、企業情報、代表挨拶、沿革、スタッフ紹介などから必ず抽出せよ。\n" +
+      "- テキストに「===PAGE_BREAK===」がある場合、これは異なるページの区切り。全ページを読んで情報を探索すること。";
 
     var userMessage =
       "対象会社: 「" + companyName + "」\n" +
-      "公式サイトテキスト（最大60,000文字）：\n" +
+      "公式サイトテキスト（HP内複数ページ、最大100,000文字）：\n" +
       "===== BEGIN TEXT =====\n" +
-      searchResults[0].htmlContent.substring(0, 60000) + "\n" +
+      searchResults[0].htmlContent.substring(0, 100000) + "\n" +
       "===== END TEXT =====\n\n" +
       "(以下のルールを**厳守**してJSONを出力してください)\n\n" +
       "【最重要フィールド（絶対に抽出すること）】\n" +
