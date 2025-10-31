@@ -117,9 +117,12 @@ files.forEach(file => {
 
 console.log('\n' + '='.repeat(50));
 console.log(`✅ 成功: ${successCount}件`);
-console.log(`❌ 失敗: ${errorCount}件`);
+console.log(`⚠️  警告: ${errorCount}件（存在しないファイル）`);
 console.log('='.repeat(50));
 
-if (errorCount > 0) {
+// 存在しないファイルは警告のみで、エラー終了しない
+// 少なくとも1つ成功していればOK
+if (successCount === 0) {
+  console.error('❌ エラー: 更新可能なファイルが1つもありませんでした');
   process.exit(1);
 }
