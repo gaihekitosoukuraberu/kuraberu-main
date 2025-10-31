@@ -192,9 +192,9 @@ const AISearchSystem = {
   },
 
   performGoogleSearch: function(query, apiKey, engineId) {
-    const blocklist = ['job', 'career', 'indeed', 'recruit', 'ミツモア', 'エキテン', 'goo', 'yahoo', 'マイナビ', 'sponsored'];
+    const blocklist = ['job', 'career', 'indeed', 'recruit', 'ミツモア', 'エキテン', 'homepro', 'nuri-kae', 'goo', 'yahoo', 'マイナビ', 'sponsored', 'くらしのマーケット', 'zehitomo'];
     const q = query + ' 塗装';
-    const url = 'https://www.googleapis.com/customsearch/v1?key=' + apiKey + '&cx=' + engineId + '&q=' + encodeURIComponent(q) + '&num=1&hl=ja';
+    const url = 'https://www.googleapis.com/customsearch/v1?key=' + apiKey + '&cx=' + engineId + '&q=' + encodeURIComponent(q) + '&num=10&hl=ja';
 
     try {
       const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
