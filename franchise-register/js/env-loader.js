@@ -22,8 +22,8 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V1547 @1556: スポンサーサイト除外＋比較サイトブロック（2025-11-01 05:01）
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbz0D80uW7YVH2zGrwYiuYbFWuAoKdMOOsHwc-Pejiv8oFyuBU4aKTG0Ec4Rx4of6o0b1A/exec',
+  // プライマリGAS URL（メイン運用）- V1548 @1558: GPT-4o採用（精度20倍、コスト20倍）+ プロンプト徹底強化（2025-11-01 05:48）
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwP7CVa-iQxpOZIWEcUkJ47N7pvTMolPupQHrmLVvWlNx1vptd7QEQjmUHkh0kt31bMtw/exec',
 
   // フォールバックGAS URL（バックアップ）- V1465: トップヒット2件版
   FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbycg2pgj7f0JJYEf_PiEE1Jhdk6XE3O2cPxt6BGuvtKYfzEQ8dXtfq2v7xTw4Wq9UzbUA/exec',
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1547 - 2025-11-01 05:22）
-  CACHE_BUSTER: '1547_20251101_0522'
+  // キャッシュバスター（V1548 - 2025-11-01 05:48）
+  CACHE_BUSTER: '1548_20251101_0548'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
