@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-01T06:07:00.000Z - Deployment: AKfycbzHAsuTFo2W4qZwzwR3laKGCGPL84iNnBJMmwo3nJsZSteqDnuwpOM-cRm2dewFsSLaDg
+// Auto-synced: 2025-11-01T06:46:00.000Z - Deployment: AKfycbwP0yB9-fYDZ7F-302Efn8vyAVxDYrPcMmSWaJREQLlsfWuuPylGa0ozw6yBblVGjOCUg
 /**
  * 環境変数ローダー（全システム共通）- 🔥マスターファイル🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1550-DOC-URL-FIX-2025-11-01T06:07:00
- * @last-update 2025-11-01T06:07:00
+ * @file-version V1551-FOLDER-FIX-2025-11-01T06:46:00
+ * @last-update 2025-11-01T06:46:00
  */
 
 const ENV = {
@@ -22,8 +22,8 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V1550 @1574: 本人確認書類URL修正＋GPT-4o継続（2025-11-01 06:07）
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbzHAsuTFo2W4qZwzwR3laKGCGPL84iNnBJMmwo3nJsZSteqDnuwpOM-cRm2dewFsSLaDg/exec',
+  // プライマリGAS URL（メイン運用）- V1551 @1577: 本人確認書類フォルダ修正＋GPT-4o継続（2025-11-01 06:46）
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwP0yB9-fYDZ7F-302Efn8vyAVxDYrPcMmSWaJREQLlsfWuuPylGa0ozw6yBblVGjOCUg/exec',
 
   // フォールバックGAS URL（バックアップ）- V1465: トップヒット2件版
   FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzSgrzUZWdEh3zUx1ZY_Cq3F1MHpqRTiTibE_SFuXsAekANw2HiMe3UjzUdXLyzMnhd/exec',
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1550 - 2025-11-01 06:07）
-  CACHE_BUSTER: '1550_20251101_0607'
+  // キャッシュバスター（V1551 - 2025-11-01 06:46）
+  CACHE_BUSTER: '1551_20251101_0646'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
