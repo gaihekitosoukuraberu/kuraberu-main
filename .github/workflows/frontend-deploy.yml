@@ -27,7 +27,7 @@ jobs:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./admin-dashboard/
+          local-dir: ./admin-dashboard/dist/
           server-dir: /gaihekikuraberu.com/public_html/admin-dashboard/
           dangerous-clean-slate: false
 
