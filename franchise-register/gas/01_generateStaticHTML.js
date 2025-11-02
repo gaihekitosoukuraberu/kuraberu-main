@@ -254,8 +254,8 @@ function generateStaticHTML(data) {
     const insuranceHtml = generateInsuranceHtml(insurance);
     const strengthsHtml = generateCompanyStrengthsHtml();
     const galleryHtml = generateGalleryHtml(galleryImages);
-    const basicInfoHtml = generateBasicInfoHtml(companyName, representativeName, address, establishedDisplay);
-    const branchMapsHtml = generateBranchMapsHtml(branchNames, branchAddresses);
+    const basicInfoHtml = generateBasicInfoHtml(companyName, representativeName, address, establishedDisplay, googleMapsApiKey);
+    const branchMapsHtml = generateBranchMapsHtml(branchNames, branchAddresses, googleMapsApiKey);
 
     // 🔥 完全なHTML構造（プレビュー完全一致）
     const fullHtml = `<!DOCTYPE html>
