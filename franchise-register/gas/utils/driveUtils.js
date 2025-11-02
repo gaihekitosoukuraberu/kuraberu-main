@@ -158,11 +158,22 @@ function saveIdentityDocument(documentData, registrationId, companyName) {
     // ファイル保存
     const file = documentsFolder.createFile(blob);
 
+    // ファイルを共有設定（リンクを知っている全員が閲覧可能）
+    try {
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (shareError) {
+      console.warn('[saveIdentityDocument] 共有設定失敗（続行）:', shareError);
+    }
+
+    // ファイルIDから直接URLを構築（file.getUrl()は非推奨＆エラーが出るため）
+    const fileId = file.getId();
+    const fileUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+
     // ファイル情報を記録
     const fileInfo = {
-      fileId: file.getId(),
+      fileId: fileId,
       fileName: file.getName(),
-      fileUrl: file.getUrl(),
+      fileUrl: fileUrl,
       mimeType: file.getMimeType(),
       fileSize: file.getSize(),
       merchantId: registrationId,

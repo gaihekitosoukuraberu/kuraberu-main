@@ -192,13 +192,8 @@ const FranchiseSystem = {
             }
           } else {
             console.error('[FranchiseSystem] 画像', i, '保存失敗:', saveResult.error);
-            // エラー時もURLに情報を記録（デバッグ用）
-            const errorMsg = 'ERROR: ' + saveResult.error;
-            if (i === 0) {
-              imageUrl1 = errorMsg;
-            } else if (i === 1) {
-              imageUrl2 = errorMsg;
-            }
+            // エラー時は空文字列（スプレッドシートにエラーメッセージを入れない）
+            // エラー詳細はGASログで確認可能
           }
         }
       } else {
