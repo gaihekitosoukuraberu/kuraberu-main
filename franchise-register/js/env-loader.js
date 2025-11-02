@@ -26,10 +26,10 @@ const ENV = {
   GAS_URL: 'https://script.google.com/macros/s/AKfycbwP0yB9-fYDZ7F-302Efn8vyAVxDYrPcMmSWaJREQLlsfWuuPylGa0ozw6yBblVGjOCUg/exec',
 
   // フォールバックGAS URL（バックアップ）- V1465: トップヒット2件版
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzSgrzUZWdEh3zUx1ZY_Cq3F1MHpqRTiTibE_SFuXsAekANw2HiMe3UjzUdXLyzMnhd/exec',
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzRqV7gMc7exteuOBwpESCZSm6VggDEwmagDIQxXIhI3QcGxj2DROKQfiKpC8297mmydw/exec',
 
   // 緊急時URL（最終フォールバック）- V1463: 3回検索版（旧安定版）
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbzSgrzUZWdEh3zUx1ZY_Cq3F1MHpqRTiTibE_SFuXsAekANw2HiMe3UjzUdXLyzMnhd/exec',
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbzRqV7gMc7exteuOBwpESCZSm6VggDEwmagDIQxXIhI3QcGxj2DROKQfiKpC8297mmydw/exec',
 
   // ============================================
   // 🔧 システム設定
