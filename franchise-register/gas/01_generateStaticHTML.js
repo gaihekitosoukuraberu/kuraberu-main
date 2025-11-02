@@ -66,6 +66,12 @@ function generateStaticHTML(data) {
   console.log('[generateStaticHTML] データ:', JSON.stringify(data, null, 2));
 
   try {
+    // Google Maps APIキーを取得
+    const googleMapsApiKey = PropertiesService.getScriptProperties().getProperty('GOOGLE_MAPS_API_KEY');
+    if (!googleMapsApiKey) {
+      console.warn('[generateStaticHTML] ⚠️ GOOGLE_MAPS_API_KEYが設定されていません。マップ機能は無効になります。');
+    }
+
     // 基本データの安全な取得とGeminiテキスト除去
     const companyName = removeGeminiText(data['会社名'] || '株式会社サンプル');
     const tradeName = removeGeminiText(data['屋号'] || '');
