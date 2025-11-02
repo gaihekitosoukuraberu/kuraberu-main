@@ -118,9 +118,22 @@ function saveIdentityDocument(documentData, registrationId, companyName) {
       throw new Error('ファイルサイズが10MBを超えています');
     }
 
-    // 加盟店フォルダ取得
-    const merchantFolder = getOrCreateMerchantFolder(registrationId, companyName);
-    const documentsFolder = merchantFolder.getFoldersByName('documents').next();
+    // 「くらべる加盟店システム/本人確認書類」フォルダを取得
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const rootFolderId = scriptProperties.getProperty('DRIVE_ROOT_FOLDER_ID');
+
+    if (!rootFolderId) {
+      throw new Error('DRIVE_ROOT_FOLDER_IDが設定されていません。setupDrive()を実行してください。');
+    }
+
+    const rootFolder = DriveApp.getFolderById(rootFolderId);
+    const documentsFolders = rootFolder.getFoldersByName('本人確認書類');
+
+    if (!documentsFolders.hasNext()) {
+      throw new Error('本人確認書類フォルダが見つかりません。');
+    }
+
+    const documentsFolder = documentsFolders.next();
 
     // ファイル名生成（サニタイズ）
     const date = Utilities.formatDate(new Date(), 'JST', 'yyyyMMdd');
