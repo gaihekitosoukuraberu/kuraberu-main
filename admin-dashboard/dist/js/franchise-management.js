@@ -5,9 +5,18 @@ async function loadFranchiseManagementData(status = 'all') {
   console.log('[FranchiseManagement] データ読み込み開始:', status);
 
   try {
-    const apiClient = window.apiClient || new ApiClient(window.ENV.GAS_URL);
+    // APIクライアントの初期化確認
+    if (!window.apiClient) {
+      console.log('[FranchiseManagement] APIクライアント初期化中...');
+      if (window.ApiClient && window.ENV) {
+        window.apiClient = new ApiClient();
+        console.log('[FranchiseManagement] APIクライアント初期化完了');
+      } else {
+        throw new Error('APIクライアントを初期化できません');
+      }
+    }
 
-    const response = await apiClient.request('getFranchiseMerchants', {
+    const response = await window.apiClient.jsonpRequest('getFranchiseMerchants', {
       status: status
     });
 
