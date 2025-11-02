@@ -1378,7 +1378,7 @@ function generateGalleryHtml(galleryImages) {
 /**
  * 🔥 会社概要生成（プレビュー完全一致）
  */
-function generateBasicInfoHtml(companyName, representativeName, address, established) {
+function generateBasicInfoHtml(companyName, representativeName, address, established, googleMapsApiKey) {
   // 🔥 Google Maps用のエンコード済みアドレス
   const encodedAddress = address ? encodeURIComponent(address) : '';
 
@@ -1414,13 +1414,13 @@ function generateBasicInfoHtml(companyName, representativeName, address, establi
                 ` : ''}
             </div>
         </div>
-        ${address ? `
+        ${address && googleMapsApiKey ? `
         <!-- 🔥 Googleマップ埋め込み（プレビュー完全一致） -->
         <div class="mt-4">
             <h4 class="text-sm font-medium text-gray-600 mb-2">アクセス</h4>
             <div class="w-full h-64 bg-gray-200 rounded-lg overflow-hidden">
                 <iframe width="100%" height="100%" frameborder="0" style="border:0"
-                    src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBmYKIm9XzXR9RmFVL3Xq7K-M4kq_z8xEc&q=${encodedAddress}&zoom=15"
+                    src="https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=${encodedAddress}&zoom=15"
                     allowfullscreen="">
                 </iframe>
             </div>
@@ -1432,7 +1432,7 @@ function generateBasicInfoHtml(companyName, representativeName, address, establi
 /**
  * 🔥 支店・店舗マップ生成（プレビュー完全一致）
  */
-function generateBranchMapsHtml(branchNames, branchAddresses) {
+function generateBranchMapsHtml(branchNames, branchAddresses, googleMapsApiKey) {
   if (!branchNames || branchNames.length === 0 || !branchAddresses || branchAddresses.length === 0) {
     return '';
   }
@@ -1455,12 +1455,14 @@ function generateBranchMapsHtml(branchNames, branchAddresses) {
             </svg>
             ${address}
         </p>
+        ${googleMapsApiKey ? `
         <div class="w-full h-64 bg-gray-200 rounded-lg overflow-hidden">
             <iframe width="100%" height="100%" frameborder="0" style="border:0"
-                src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBmYKIm9XzXR9RmFVL3Xq7K-M4kq_z8xEc&q=${encodedAddress}&zoom=15"
+                src="https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=${encodedAddress}&zoom=15"
                 allowfullscreen="">
             </iframe>
         </div>
+        ` : ''}
     </div>`;
   }).filter(html => html).join('');
 
