@@ -1,8 +1,9 @@
+// Auto-synced: 2025-11-03T00:00:00.000Z - Deployment: AKfycbyYyvnqHXEZNSLu2NbbRSP4cRu46_9qD3QSoXMWF9qnzF3fKoVRHd_zYlXoFXuJgNUULQ
 /**
  * 環境変数ローダー（全システム共通）- 🔥マスターファイル🔥
  * .envファイルの代わりにJavaScriptで定数管理
  *
- * 🔥 重要：このファイルを編集すると全システムに自動反映されます 🔥
+ * 🔥 重要：CACHE_BUSTERを変更するだけで全JSファイルが更新されます 🔥
  * マスター場所：shared/env-loader.js
  *
  * 自動同期先（GitHub Actions）：
@@ -11,6 +12,9 @@
  * - franchise-register/dist/js/env-loader.js
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
+ *
+ * @file-version V1553-MAPS-FIX-2025-11-03T00:00:00
+ * @last-update 2025-11-03T00:00:00
  */
 
 const ENV = {
@@ -18,14 +22,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V1426: Minimum score floor 4.2
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbzPpXczU6vj5o6Q4Y7QqUAVw-9WwV1gkEwFZC5f6ArW877mvgV1CvsmXR2_k7cd2ezEkA/exec',
+  // プライマリGAS URL（メイン運用）- V1553 @1580: Google Maps APIキー修正（2025-11-03 00:00）
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbyYyvnqHXEZNSLu2NbbRSP4cRu46_9qD3QSoXMWF9qnzF3fKoVRHd_zYlXoFXuJgNUULQ/exec',
 
-  // フォールバックGAS URL（バックアップ）
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzPpXczU6vj5o6Q4Y7QqUAVw-9WwV1gkEwFZC5f6ArW877mvgV1CvsmXR2_k7cd2ezEkA/exec',
+  // フォールバックGAS URL（バックアップ）- V1465: トップヒット2件版
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzRqV7gMc7exteuOBwpESCZSm6VggDEwmagDIQxXIhI3QcGxj2DROKQfiKpC8297mmydw/exec',
 
-  // 緊急時URL（最終フォールバック・env-loader.js障害時用）
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbzPpXczU6vj5o6Q4Y7QqUAVw-9WwV1gkEwFZC5f6ArW877mvgV1CvsmXR2_k7cd2ezEkA/exec',
+  // 緊急時URL（最終フォールバック）- V1463: 3回検索版（旧安定版）
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbzRqV7gMc7exteuOBwpESCZSm6VggDEwmagDIQxXIhI3QcGxj2DROKQfiKpC8297mmydw/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -41,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（🔥一箇所管理🔥）
-  CACHE_BUSTER: '2025-10-29T13:16:00-V1426-MIN-42'
+  // キャッシュバスター（V1553 - 2025-11-03 00:00）
+  CACHE_BUSTER: '1553_20251103_0000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
