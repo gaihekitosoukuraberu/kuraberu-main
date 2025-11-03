@@ -430,6 +430,7 @@ const AdminSystem = {
       const statusIndex = headers.indexOf('ステータス');
       const approvalDateIndex = headers.indexOf('承認日');
       const approverIndex = headers.indexOf('承認者');
+      const registrationDateIndex = headers.indexOf('登録日時');
       const pauseFlagIndex = headers.indexOf('一時停止フラグ');
       const pauseStartDateIndex = headers.indexOf('一時停止開始日');
       const pauseEndDateIndex = headers.indexOf('一時停止再開予定日');
@@ -449,6 +450,13 @@ const AdminSystem = {
           if (approvalDateIndex !== -1) {
             sheet.getRange(i + 1, approvalDateIndex + 1).setValue(
               Utilities.formatDate(new Date(), 'JST', 'yyyy-MM-dd HH:mm')
+            );
+          }
+
+          // 登録日時を設定（AL列）
+          if (registrationDateIndex !== -1) {
+            sheet.getRange(i + 1, registrationDateIndex + 1).setValue(
+              Utilities.formatDate(new Date(), 'JST', 'yyyy-MM-dd HH:mm:ss')
             );
           }
 
