@@ -166,6 +166,7 @@ jobs:
             echo "📝 env-loader.jsに変更なし"
           else
             git commit -m "auto: env-loader.js同期 - GAS ${{ steps.deploy.outputs.deployment_id }}"
+            git pull --rebase origin main
             git push
             echo "✅ env-loader.js更新をpushしました"
           fi
