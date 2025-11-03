@@ -16,7 +16,7 @@ async function loadFranchiseManagementData(status = 'all') {
       }
     }
 
-    const response = await window.apiClient.jsonpRequest('getFranchiseMerchants', {
+    const response = await window.apiClient.jsonpRequest('getFranchiseManagementData', {
       status: status
     });
 
