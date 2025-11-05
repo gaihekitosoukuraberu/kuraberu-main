@@ -162,7 +162,16 @@
             document.body.appendChild(botContainer);
         }
 
-        // lp-test.htmlからBOT部分のHTMLを挿入
+        // 既存のDOM構造がある場合は上書きしない（LPで既にTailwind構造が用意されている場合）
+        const existingMessages = document.getElementById('messages');
+        const existingPriceSection = document.getElementById('priceSection');
+        if (existingMessages && existingPriceSection) {
+            console.log('✅ 既存のDOM構造を使用します（Tailwind CSS版）');
+            botContainer.style.display = 'block';
+            return;
+        }
+
+        // lp-test.htmlからBOT部分のHTMLを挿入（インラインスタイル版）
         botContainer.innerHTML = `
             <div style="background: #F9FAFB; min-height: 100vh; padding: 20px 0;">
                 <!-- モバイル用固定プログレスバー -->
