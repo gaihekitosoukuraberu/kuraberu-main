@@ -110,7 +110,18 @@
             <div class="mv__after__img">
               <img src="img/mv/Flipyx1.gif" alt="" />
             </div>
-            <!-- 郵便番号フォームは自動生成されるため削除 -->
+            <!-- 郵便番号入力フォーム -->
+            <div class="mv__after__form" id="manual-zip-form">
+              <div class="mv__after__form__inner">
+                <p class="mv__after__form__inner__badge">かんたん10秒！</p>
+                <h2 class="mv__after__form__inner__tit">郵便番号で今すぐ相場チェック！</h2>
+                <div class="mv__after__form__inner__form">
+                  <input type="text" id="manualPostalCode" placeholder="例：100-0001" maxlength="8" />
+                  <button id="manualSearchButton">🔍 無料で相場を見る</button>
+                  <p class="mv__after__form__inner__form__note">🔒 個人情報保護・SSL暗号化通信で安全</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -863,5 +874,55 @@
     console.log('✅ BOT_FLOW_DATA定義完了:', window.BOT_FLOW_DATA.version);
     </script>
     <script src="https://gaihekikuraberu.com/estimate-keep-system/gaiheki-bot-loader.js"></script>
+    <script>
+    // 自動生成されるフォームを削除
+    window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            const autoForm = document.getElementById('gaiheki-zip-form-container');
+            if (autoForm) {
+                autoForm.remove();
+                console.log('✅ 自動生成フォームを削除しました');
+            }
+        }, 100);
+
+        // 手動フォームのイベント設定
+        const manualButton = document.getElementById('manualSearchButton');
+        const manualInput = document.getElementById('manualPostalCode');
+
+        if (manualButton && manualInput) {
+            function handleManualZipSubmit() {
+                const postalCode = manualInput.value.trim();
+
+                if (!postalCode) {
+                    alert('郵便番号を入力してください');
+                    return;
+                }
+
+                if (!postalCode.match(/^\d{3}-?\d{4}$/)) {
+                    alert('正しい郵便番号を入力してください（例：100-0001）');
+                    return;
+                }
+
+                console.log('🎯 郵便番号から相場検索開始:', postalCode.replace('-', ''));
+
+                // window.startFromZip() を呼び出す
+                if (typeof window.startFromZip === 'function') {
+                    window.startFromZip(postalCode.replace('-', ''));
+                } else {
+                    console.error('❌ window.startFromZip が見つかりません');
+                }
+            }
+
+            manualButton.addEventListener('click', handleManualZipSubmit);
+            manualInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleManualZipSubmit();
+                }
+            });
+
+            console.log('✅ 手動フォームのイベント設定完了');
+        }
+    });
+    </script>
   </body>
 </html>
