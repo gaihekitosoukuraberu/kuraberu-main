@@ -1395,6 +1395,12 @@
                     setTimeout(async function() {
                         if (window.BotCore && typeof window.BotCore.init === 'function') {
                             await window.BotCore.init();
+
+                            // LP内ではURL変更なしでDOM操作のみ行うため、enterFullscreenを無効化
+                            window.BotCore.enterFullscreen = function() {
+                                console.log('✅ LP mode: Skipping history.pushState (no URL change)');
+                            };
+
                             if (typeof window.BotCore.startFromZipEntry === 'function') {
                                 window.BotCore.startFromZipEntry(postalCode.replace('-', ''));
                             }
