@@ -155,7 +155,7 @@ const BotQuestions = {
 
         question.choices.forEach((choice, index) => {
             const btn = document.createElement('button');
-            btn.className = 'choice-btn w-full';
+            btn.className = 'w-full border-2 border-gray-200 bg-white text-gray-700 px-5 py-4 rounded-xl text-base font-medium cursor-pointer my-2 text-left transition-all duration-300 hover:bg-gray-50 hover:border-blue-400 hover:-translate-y-0.5 hover:shadow-md active:bg-blue-50 active:translate-y-0';
             btn.textContent = choice;
             btn.addEventListener('click', () => {
                 this.handleQuestionAnswer(choice, index, question);
