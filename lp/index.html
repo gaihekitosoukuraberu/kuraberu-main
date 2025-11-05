@@ -191,37 +191,8 @@
 }
     </style>
     <script>
-    // BOTシステムの初期化を待つ
-    function waitForBotSystem() {
-      return new Promise((resolve) => {
-        const checkInterval = setInterval(() => {
-          if (window.BotCore && window.BotCore.init) {
-            clearInterval(checkInterval);
-            resolve();
-          }
-        }, 100);
-
-        // 10秒経過してもBOTが読み込まれない場合はタイムアウト
-        setTimeout(() => {
-          clearInterval(checkInterval);
-          resolve();
-        }, 10000);
-      });
-    }
-
-    // BOTコンテナを表示
-    function showBotContainer() {
-      let botContainer = document.getElementById('gaiheki-bot-container');
-      if (!botContainer) {
-        botContainer = document.createElement('div');
-        botContainer.id = 'gaiheki-bot-container';
-        document.body.appendChild(botContainer);
-      }
-      botContainer.style.display = 'block';
-    }
-
     // 手動フォームの送信処理
-    async function handleManualZipSubmit() {
+    function handleManualZipSubmit() {
       const postalCodeInput = document.getElementById('manual-postalCode');
       const postalCode = postalCodeInput.value.trim();
 
@@ -238,44 +209,19 @@
 
       console.log('🎯 郵便番号から相場検索開始:', postalCode);
 
-      // 手動フォームを非表示
-      const manualForm = document.getElementById('manual-zip-form');
-      if (manualForm) {
-        manualForm.style.display = 'none';
-      }
-
-      // BOTシステムの読み込みを待つ
-      await waitForBotSystem();
-
-      // BOTコンテナを表示
-      showBotContainer();
-
       // LPコンテンツを非表示
       const wrapper = document.querySelector('.wrapper');
       if (wrapper) {
         wrapper.style.display = 'none';
       }
 
-      // BOTシステムを初期化して起動
-      if (window.BotCore) {
-        try {
-          await window.BotCore.init();
-
-          // 郵便番号から起動
-          if (typeof window.BotCore.startFromZipEntry === 'function') {
-            console.log('✅ BotCore.startFromZipEntry() を呼び出します');
-            window.BotCore.startFromZipEntry(postalCode);
-          } else {
-            console.error('❌ BotCore.startFromZipEntry() が存在しません');
-            alert('システムエラーが発生しました。ページを再読み込みしてください。');
-          }
-        } catch (error) {
-          console.error('BOT起動エラー:', error);
-          alert('システムエラーが発生しました。ページを再読み込みしてください。');
-        }
+      // gaiheki-bot-loader.jsのstartFromZip()を呼び出し
+      // これが相場表示・AIチャット・ランキングのすべてを処理します
+      if (typeof window.startFromZip === 'function') {
+        window.startFromZip(postalCode);
       } else {
-        console.error('❌ BotCoreが読み込まれていません');
-        alert('システムの準備中です。しばらくお待ちください。');
+        console.error('❌ startFromZip() が読み込まれていません');
+        alert('システムの準備中です。ページを再読み込みしてください。');
       }
     }
 

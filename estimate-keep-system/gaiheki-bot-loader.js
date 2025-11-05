@@ -286,6 +286,27 @@
     };
 
     // ============================================
+    // グローバル関数: 郵便番号からBOT起動
+    // ============================================
+    window.startFromZip = function(postalCode) {
+        console.log('🎯 郵便番号からBOT起動:', postalCode);
+
+        // 郵便番号フォームを非表示
+        const zipFormContainer = document.getElementById('gaiheki-zip-form-container');
+        if (zipFormContainer) {
+            zipFormContainer.style.display = 'none';
+        }
+
+        // 手動フォームも非表示
+        const manualForm = document.getElementById('manual-zip-form');
+        if (manualForm) {
+            manualForm.style.display = 'none';
+        }
+
+        startBotSystem('zip', postalCode);
+    };
+
+    // ============================================
     // BOTスタイル読み込み
     // ============================================
     function loadBotStyles() {
