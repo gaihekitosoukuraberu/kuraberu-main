@@ -27,216 +27,6 @@
     <link rel="stylesheet" href="css/default.css" />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/style_sp.css" />
-
-    <!-- 郵便番号フォームのカスタマイズ -->
-    <style>
-/* 自動生成されるフォームとfixed-areaを完全に非表示 */
-#gaiheki-zip-form-container,
-.fixed-area {
-  display: none !important;
-}
-
-/* 手動配置フォームのスタイル */
-.manual-zip-form {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 21px rgba(39, 59, 90, 0.16);
-  padding: 15px 25px 30px;
-  margin-bottom: 20px;
-}
-
-.manual-zip-form__badge {
-  margin-bottom: 12px;
-}
-
-.manual-zip-form__badge span {
-  background: #22D3EE;
-  color: white;
-  border-radius: 9999px;
-  padding: 4px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  display: inline-block;
-}
-
-.manual-zip-form__title {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 12px;
-  text-align: center;
-  white-space: nowrap;
-  color: #273b5a;
-}
-
-.manual-zip-form__content {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.manual-zip-form__input {
-  width: 100%;
-  border: 2px solid #FBBF24;
-  border-radius: 8px;
-  padding: 12px 16px;
-  text-align: center;
-  font-size: 16px;
-  outline: none;
-  background: #EFF6FF;
-  box-sizing: border-box;
-}
-
-.manual-zip-form__button {
-  width: 100%;
-  background: linear-gradient(135deg, #3B82F6, #2563EB);
-  color: white;
-  padding: 12px;
-  border-radius: 8px;
-  font-weight: bold;
-  font-size: 16px;
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.3s;
-}
-
-.manual-zip-form__button:hover {
-  opacity: 0.9;
-}
-
-.manual-zip-form__note {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  color: #4B5563;
-  gap: 4px;
-}
-
-/* PC版（769px以上） */
-@media (min-width: 769px) {
-  .mv .mv__before {
-    max-width: 5.2rem !important;
-  }
-
-  .mv .mv__after {
-    width: 5.8rem !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
-
-  .manual-zip-form__title {
-    font-size: 25px;
-  }
-
-  .manual-zip-form__input {
-    padding: 17px 16px;
-    font-size: 23px;
-  }
-
-  .manual-zip-form__button {
-    padding: 17px;
-    font-size: 22px;
-  }
-
-  .manual-zip-form__note {
-    font-size: 16px;
-  }
-}
-
-/* スマホ版（768px以下） */
-@media (max-width: 768px) {
-  .mv .mv__after {
-    display: flex !important;
-    flex-direction: column !important;
-  }
-
-  .mv__after__img {
-    order: 1;
-    margin-bottom: 10px;
-  }
-
-  .manual-zip-form {
-    order: 2;
-    padding: 10px 15px 20px;
-    margin-bottom: 10px;
-  }
-
-  .manual-zip-form__badge span {
-    padding: 5px 10px;
-    font-size: 9px;
-  }
-
-  .manual-zip-form__title {
-    font-size: 15px;
-    margin-bottom: 14px;
-  }
-
-  .manual-zip-form__content {
-    gap: 10px;
-  }
-
-  .manual-zip-form__input {
-    padding: 9px 16px;
-    font-size: 14px;
-  }
-
-  .manual-zip-form__button {
-    padding: 10px;
-    font-size: 13px;
-  }
-
-  .manual-zip-form__note {
-    font-size: 10px;
-  }
-}
-    </style>
-    <script>
-    // 手動フォームの送信処理
-    function handleManualZipSubmit() {
-      const postalCodeInput = document.getElementById('manual-postalCode');
-      const postalCode = postalCodeInput.value.trim();
-
-      // バリデーション
-      if (!postalCode) {
-        alert('郵便番号を入力してください');
-        return;
-      }
-
-      if (!postalCode.match(/^\d{3}-?\d{4}$/)) {
-        alert('正しい郵便番号を入力してください（例：100-0001）');
-        return;
-      }
-
-      console.log('🎯 郵便番号から相場検索開始:', postalCode);
-
-      // LPコンテンツを非表示
-      const wrapper = document.querySelector('.wrapper');
-      if (wrapper) {
-        wrapper.style.display = 'none';
-      }
-
-      // gaiheki-bot-loader.jsのstartFromZip()を呼び出し
-      // これが相場表示・AIチャット・ランキングのすべてを処理します
-      if (typeof window.startFromZip === 'function') {
-        window.startFromZip(postalCode);
-      } else {
-        console.error('❌ startFromZip() が読み込まれていません');
-        alert('システムの準備中です。ページを再読み込みしてください。');
-      }
-    }
-
-    // Enterキーでも送信できるようにする
-    document.addEventListener('DOMContentLoaded', function() {
-      const input = document.getElementById('manual-postalCode');
-      if (input) {
-        input.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') {
-            handleManualZipSubmit();
-          }
-        });
-      }
-    });
-    </script>
   </head>
   <body>
     <div class="wrapper">
@@ -317,35 +107,10 @@
             </div>
           </div>
           <div class="mv__after">
-            <!-- 右上：画像 -->
             <div class="mv__after__img">
               <img src="img/mv/Flipyx1.gif" alt="" />
             </div>
-            <!-- 右下：郵便番号フォーム -->
-            <div id="manual-zip-form" class="manual-zip-form">
-              <div class="manual-zip-form__badge">
-                <span>かんたん10秒！</span>
-              </div>
-              <h3 class="manual-zip-form__title">郵便番号で今すぐ相場チェック！</h3>
-              <div class="manual-zip-form__content">
-                <input
-                  type="text"
-                  id="manual-postalCode"
-                  class="manual-zip-form__input"
-                  placeholder="例：100-0001"
-                  maxlength="8"
-                />
-                <button
-                  class="manual-zip-form__button"
-                  onclick="handleManualZipSubmit()"
-                >
-                  🔍 無料で相場を見る
-                </button>
-                <div class="manual-zip-form__note">
-                  🔒 個人情報保護・SSL暗号化通信で安全
-                </div>
-              </div>
-            </div>
+            <!-- 郵便番号フォームは自動生成されるため削除 -->
           </div>
         </div>
       </div>
@@ -1041,304 +806,6 @@
       </div>
       <!-- //fixed-area -->
     </div>
-        <!-- 相場表示 -->
-        <div id="priceSection" class="hidden">
-            <div class="bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-2xl shadow-xl p-1">
-                <div class="bg-white rounded-xl p-4 md:p-6">
-                    <div class="flex items-center justify-between gap-2 mb-4">
-                        <div class="flex items-center gap-2 flex-1 min-w-0">
-                            <svg class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
-                            <h2 class="text-sm md:text-xl font-bold text-gray-800 truncate" id="areaName">検索中...</h2>
-                        </div>
-                        <span class="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0">
-                            AI診断済み
-                        </span>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-xl p-4 md:p-6 border border-blue-100">
-                        <div class="text-center">
-                            <p class="text-xs md:text-sm font-medium text-gray-600 mb-3">
-                                戸建て2階建て（延床30坪・築25年）の場合
-                            </p>
-                            <div class="flex items-center justify-center gap-2 md:gap-3 mb-3 whitespace-nowrap">
-                                <div class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                    60万円
-                                </div>
-                                <span class="text-xl md:text-2xl text-gray-400">〜</span>
-                                <div class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                    180万円
-                                </div>
-                            </div>
-                            <p class="text-xs text-gray-500 flex items-center justify-center gap-1 flex-wrap">
-                                <svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-                                </svg>
-                                <span>建物の状態・使用材料により価格は変動します</span>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- BOT + ランキング -->
-        <div id="mainContentContainer" class="hidden flex flex-col md:flex-row md:gap-6 md:space-y-0 space-y-6 md:h-[800px] relative mb-16">
-
-            <!-- AIチャットボット (右側) -->
-            <div id="chatSection" class="bg-white rounded-xl shadow-lg p-4 md:p-6 min-h-[500px] md:h-full md:w-1/2 order-1 md:order-2 overflow-y-auto">
-                <div id="messages"></div>
-
-                <!-- Choices area -->
-                <div id="choices" class="choices-container space-y-2 mt-4"></div>
-
-                <!-- Typing indicator -->
-                <div id="typingIndicator" class="flex items-center text-gray-500 text-sm mt-4 hidden">
-                    <div class="flex space-x-1 mr-2">
-                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ランキングセクション -->
-            <div id="rankingSection" class="ranking-section bg-blue-50 rounded-xl shadow-lg p-2 md:p-3 relative md:w-1/2 order-2 md:order-1 md:h-full md:flex md:flex-col" data-theme="blue">
-                <h2 id="rankingTitle" class="text-lg font-bold mb-3">おすすめ業者ランキング</h2>
-
-                <!-- モザイク時のメッセージ -->
-                <div id="mosaicMessage" class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                    <div class="bg-white rounded-lg p-8 text-center shadow-lg">
-                        <div class="text-blue-500 mb-4">
-                            <svg class="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <h3 class="text-base font-bold mb-3 text-blue-600 whitespace-nowrap">オリジナル業者ランキング！</h3>
-                        <div class="text-gray-600 mb-4 text-xs space-y-1">
-                            <p class="flex items-start">
-                                <span class="text-green-500 mr-1">✅</span>
-                                <span>AIの質問に答えてあなただけの条件にマッチ！</span>
-                            </p>
-                            <p class="flex items-start">
-                                <span class="text-green-500 mr-1">✅</span>
-                                <span>過去のデータに基づいた実績ランキング！</span>
-                            </p>
-                            <p class="flex items-start">
-                                <span class="text-green-500 mr-1">✅</span>
-                                <span>完全無料で４社まで見積もり依頼可能！</span>
-                            </p>
-                        </div>
-                        <!-- 進捗メーター -->
-                        <div id="progressMeter" class="mb-4 hidden">
-                            <div class="flex justify-end text-xs text-gray-500 mb-1">
-                                <span id="progressPercentage">0%</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div id="progressBar" style="height: 8px; border-radius: 9999px; width: 0%; background: transparent; transition: all 0.5s;"></div>
-                            </div>
-                            <p class="text-xs text-blue-600 mt-2 font-medium">AIチャットの質問に答えて下さい</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ランキング内容（モザイクをかける対象） -->
-                <div id="rankingContent" class="mosaic relative md:flex-1 md:flex md:flex-col overflow-hidden">
-
-                    <!-- 並び替えタブ -->
-                    <div class="bg-white rounded-lg p-3 mb-4">
-                        <h3 class="text-sm font-bold mb-2">並び替え</h3>
-                        <div id="sortingContainer" class="grid grid-cols-4 gap-1">
-                            <button id="tabRecommend" onclick="switchSortTab('tabRecommend')" class="bg-blue-100 text-blue-800 py-2 px-2 rounded-lg text-xs font-medium flex flex-col items-center justify-center gap-1 h-16 min-h-16 border border-blue-300">
-                                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
-                                </svg>
-                                <span class="whitespace-nowrap">おすすめ順</span>
-                            </button>
-                            <button id="tabCheap" onclick="switchSortTab('tabCheap')" class="bg-white border border-gray-200 text-gray-700 py-2 px-2 rounded-lg text-xs font-medium flex flex-col items-center justify-center gap-1 h-16 min-h-16">
-                                <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                <span class="whitespace-nowrap">安い順</span>
-                            </button>
-                            <button id="tabReview" onclick="switchSortTab('tabReview')" class="bg-white border border-gray-200 text-gray-700 py-2 px-2 rounded-lg text-xs font-medium flex flex-col items-center justify-center gap-1 h-16 min-h-16">
-                                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                </svg>
-                                <span class="whitespace-nowrap">口コミ順</span>
-                            </button>
-                            <button id="tabQuality" onclick="switchSortTab('tabQuality')" class="bg-white border border-gray-200 text-gray-700 py-2 px-2 rounded-lg text-xs font-medium flex flex-col items-center justify-center gap-1 h-16 min-h-16">
-                                <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
-                                </svg>
-                                <span class="whitespace-nowrap">高品質順</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- ランキングリスト -->
-                    <div id="rankingList" class="space-y-1.5 pb-4 max-h-[550px] overflow-y-auto">
-                        <!-- 1位 -->
-                        <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
-                            <div class="flex items-start justify-between mb-2">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-blue-600 text-lg font-bold">1</span>
-                                    <h3 class="text-base font-bold">T社</h3>
-                                </div>
-                                <div class="flex items-center gap-1">
-                                    <span class="text-yellow-500 text-sm">⭐⭐⭐⭐⭐</span>
-                                    <span class="font-bold text-sm">4.9</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between mb-1">
-                                <div class="flex gap-1">
-                                    <span class="bg-blue-200 text-blue-800 text-xs px-1.5 py-0.5 rounded">地元密着</span>
-                                    <span class="bg-green-200 text-green-800 text-xs px-1.5 py-0.5 rounded">保証充実</span>
-                                    <span class="bg-red-200 text-red-800 text-xs px-1.5 py-0.5 rounded">即日対応</span>
-                                </div>
-                                <div class="text-gray-600 text-xs">
-                                    施工実績: 1,200件
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <span class="text-xs font-bold text-gray-700">見積もり価格: 78万円～</span>
-                                </div>
-                                <div class="flex gap-1">
-                                    <button class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium flex-1">
-                                        詳細<span class="hidden sm:inline">を見る</span>
-                                    </button>
-                                    <button onclick="keepManager.toggle('F001', 'T社', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium flex-1">
-                                        <span class="keep-text"><span>キープ</span><span class="hidden sm:inline">する</span></span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 2位 -->
-                        <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
-                            <div class="flex items-start justify-between mb-2">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-gray-600 text-lg font-bold">2</span>
-                                    <h3 class="text-base font-bold">S社</h3>
-                                </div>
-                                <div class="flex items-center gap-1">
-                                    <span class="text-yellow-500">⭐⭐⭐⭐</span>
-                                    <span class="font-bold">4.7</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between mb-1">
-                                <div class="flex gap-1">
-                                    <span class="bg-red-200 text-red-800 text-xs px-1.5 py-0.5 rounded">最低価格保証</span>
-                                    <span class="bg-purple-200 text-purple-800 text-xs px-1.5 py-0.5 rounded">職人直営</span>
-                                </div>
-                                <div class="text-gray-600 text-xs">
-                                    施工実績: 980件
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <span class="text-xs font-bold text-gray-700">見積もり価格: 83万円～</span>
-                                </div>
-                                <div class="flex gap-1">
-                                    <button class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium flex-1">
-                                        詳細<span class="hidden sm:inline">を見る</span>
-                                    </button>
-                                    <button onclick="keepManager.toggle('F002', 'S社', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium flex-1">
-                                        <span class="keep-text"><span>キープ</span><span class="hidden sm:inline">する</span></span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 3位 -->
-                        <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
-                            <div class="flex items-start justify-between mb-2">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-orange-600 text-lg font-bold">3</span>
-                                    <h3 class="text-base font-bold">K社</h3>
-                                </div>
-                                <div class="flex items-center gap-1">
-                                    <span class="text-yellow-500">⭐⭐⭐⭐</span>
-                                    <span class="font-bold">4.5</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between mb-1">
-                                <div class="flex gap-1">
-                                    <span class="bg-blue-200 text-blue-800 text-xs px-1.5 py-0.5 rounded">定期点検付</span>
-                                    <span class="bg-green-200 text-green-800 text-xs px-1.5 py-0.5 rounded">環境配慮</span>
-                                </div>
-                                <div class="text-gray-600 text-xs">
-                                    施工実績: 850件
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <span class="text-xs font-bold text-gray-700">見積もり価格: 85万円～</span>
-                                </div>
-                                <div class="flex gap-1">
-                                    <button class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium flex-1">
-                                        詳細<span class="hidden sm:inline">を見る</span>
-                                    </button>
-                                    <button onclick="keepManager.toggle('F003', 'K社', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium flex-1">
-                                        <span class="keep-text"><span>キープ</span><span class="hidden sm:inline">する</span></span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 4位 -->
-                        <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
-                            <div class="flex items-start justify-between mb-2">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-gray-600 text-lg font-bold">4</span>
-                                    <h3 class="text-base font-bold">P社</h3>
-                                </div>
-                                <div class="flex items-center gap-1">
-                                    <span class="text-yellow-500">⭐⭐⭐⭐</span>
-                                    <span class="font-bold">4.3</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between mb-1">
-                                <div class="flex gap-1">
-                                    <span class="bg-red-200 text-red-800 text-xs px-1.5 py-0.5 rounded">10年保証</span>
-                                    <span class="bg-blue-200 text-blue-800 text-xs px-1.5 py-0.5 rounded">高級塗料使用</span>
-                                </div>
-                                <div class="text-gray-600 text-xs">
-                                    施工実績: 760件
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <span class="text-xs font-bold text-gray-700">見積もり価格: 92万円～</span>
-                                </div>
-                                <div class="flex gap-1">
-                                    <button class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium flex-1">
-                                        詳細<span class="hidden sm:inline">を見る</span>
-                                    </button>
-                                    <button onclick="keepManager.toggle('F004', 'P社', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium flex-1">
-                                        <span class="keep-text"><span>キープ</span><span class="hidden sm:inline">する</span></span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- もっと見るリンク -->
-                        <div id="showMoreBtn" class="text-center py-3">
-                            <a href="javascript:void(0)" onclick="showMoreRankings()" class="text-blue-600 hover:text-blue-800 underline font-medium text-sm">
-                                もっと見る
-                            </a>
-                        </div>
-
-                        <!-- 5〜8位（初期非表示） -->
-                        <div id="moreRankings" class="space-y-1.5 hidden">
-                            <!-- 5位 -->
-                            <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
-                                <div class="flex items-start justify-between mb-2">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-gray-600 text-lg font-bold">5</span>
     <!-- // wrapper -->
 
     <!--java script-->
@@ -1349,11 +816,52 @@
     <!--//java script-->
 
     <!-- 外壁塗装くらべる BOTシステム（完全自動） -->
-    <!-- BOTフローデータ（gaiheki-bot-loader.jsより前に読み込む） -->
-    <script src="https://gaihekikuraberu.com/estimate-keep-system/zip-word-bot-data.js"></script>
+    <!-- BOTフローデータ定義 -->
+    <script>
+    window.BOT_FLOW_DATA = {
+        version: "1.0.0",
+        mainQuestions: {
+            "Q001": {
+                "text": "お住まいは戸建て2階建てですか？",
+                "choices": ["はい", "いいえ"],
+                "branches": ["Q003", "Q002"],
+                "stage": 1
+            },
+            "Q002": {
+                "text": "お住まいの建物種別を教えてください",
+                "choices": ["戸建て3階建て", "マンション・アパート", "店舗・事務所"],
+                "branches": ["Q003", "Q004", "Q004"],
+                "stage": 1
+            },
+            "Q003": {
+                "text": "築年数を教えてください",
+                "choices": ["10年未満", "10〜15年", "15〜20年", "20年以上"],
+                "branches": ["Q004", "Q004", "Q004", "Q004"],
+                "stage": 2
+            },
+            "Q004": {
+                "text": "外壁の素材は何ですか？",
+                "choices": ["窯業サイディング", "モルタル", "金属サイディング", "わからない"],
+                "branches": ["Q005", "Q005", "Q005", "Q005"],
+                "stage": 2
+            },
+            "Q005": {
+                "text": "ご希望の工事内容を教えてください",
+                "choices": ["外壁塗装のみ", "外壁+屋根塗装", "屋根塗装のみ", "まだ決めていない"],
+                "branches": ["Q006", "Q006", "Q006", "Q006"],
+                "stage": 3
+            },
+            "Q006": {
+                "text": "見積もりの比較はされていますか？",
+                "choices": ["まだ取っていない", "1社のみ", "2〜3社", "4社以上"],
+                "branches": ["PHONE", "PHONE", "PHONE", "PHONE"],
+                "stage": 4
+            }
+        },
+        entryScenarios: {}
+    };
+    console.log('✅ BOT_FLOW_DATA定義完了:', window.BOT_FLOW_DATA.version);
+    </script>
     <script src="https://gaihekikuraberu.com/estimate-keep-system/gaiheki-bot-loader.js"></script>
-
-    <!-- BOTコンテナ（gaiheki-bot-loader.jsが内容を挿入） -->
-    <div id="gaiheki-bot-container" style="display: none;"></div>
   </body>
 </html>

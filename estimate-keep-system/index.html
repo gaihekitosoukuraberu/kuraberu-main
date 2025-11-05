@@ -1169,22 +1169,57 @@
     <!-- ============================================ -->
     <!-- BOTシステム（ローカル・サーバー共通） -->
     <!-- ============================================ -->
-    <script src="zip-word-bot-data.js?v=20251008_24"></script>
-    <script src="js/bot-config.js?v=20251008_17"></script>
-    <script src="js/bot-ui.js?v=20251008_1"></script>
+    <!-- BOTフローデータ定義 -->
+    <script>
+    window.BOT_FLOW_DATA = {
+        version: "1.0.0",
+        mainQuestions: {
+            "Q001": {
+                "text": "お住まいは戸建て2階建てですか？",
+                "choices": ["はい", "いいえ"],
+                "branches": ["Q003", "Q002"],
+                "stage": 1
+            },
+            "Q002": {
+                "text": "お住まいの建物種別を教えてください",
+                "choices": ["戸建て3階建て", "マンション・アパート", "店舗・事務所"],
+                "branches": ["Q003", "Q004", "Q004"],
+                "stage": 1
+            },
+            "Q003": {
+                "text": "築年数を教えてください",
+                "choices": ["10年未満", "10〜15年", "15〜20年", "20年以上"],
+                "branches": ["Q004", "Q004", "Q004", "Q004"],
+                "stage": 2
+            },
+            "Q004": {
+                "text": "外壁の素材は何ですか？",
+                "choices": ["窯業サイディング", "モルタル", "金属サイディング", "わからない"],
+                "branches": ["Q005", "Q005", "Q005", "Q005"],
+                "stage": 2
+            },
+            "Q005": {
+                "text": "ご希望の工事内容を教えてください",
+                "choices": ["外壁塗装のみ", "外壁+屋根塗装", "屋根塗装のみ", "まだ決めていない"],
+                "branches": ["Q006", "Q006", "Q006", "Q006"],
+                "stage": 3
+            },
+            "Q006": {
+                "text": "見積もりの比較はされていますか？",
+                "choices": ["まだ取っていない", "1社のみ", "2〜3社", "4社以上"],
+                "branches": ["PHONE", "PHONE", "PHONE", "PHONE"],
+                "stage": 4
+            }
+        },
+        entryScenarios: {}
+    };
+    console.log('✅ BOT_FLOW_DATA定義完了:', window.BOT_FLOW_DATA.version);
+    </script>
+    <script src="js/env-loader.js"></script>
+    <script src="js/bot-config.js"></script>
     <script src="js/bot-core.js"></script>
     <script src="js/bot-scenarios.js"></script>
-    <script src="js/bot-questions.js?v=20251008_18"></script>
-    <script src="js/cv-api.js?v=20251008_7"></script>
-    <script src="js/utils.js?v=20251008_34"></script>
-    <script src="js/ranking.js?v=20251008_44"></script>
-    <script>
-        // GAS URL上書き（サーバーキャッシュ対策）
-        if (typeof CVAPI !== 'undefined') {
-            CVAPI.GAS_URL = 'https://script.google.com/macros/s/AKfycbzYC8oyQjjcENCdqKbCtapUKskn7aFpIaxslR-UaW7WgdSqftdq_852R6JgEdRvffjhQA/exec';
-            console.log('✅ GAS URL上書き完了:', CVAPI.GAS_URL);
-        }
-    </script>
+    <script src="js/bot-integration.js"></script>
     <script src="js/phone-form.js"></script>
 
     <script>
