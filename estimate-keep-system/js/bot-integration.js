@@ -6,30 +6,113 @@
  */
 
 // ============================================
-// BOT UI関数
+// BOT UI オブジェクト
 // ============================================
 
-// AIメッセージ表示
-function showAIMessage(text) {
-    const messages = document.getElementById('messages');
-    const aiMessageContainer = document.createElement('div');
-    aiMessageContainer.className = 'ai-message-container new-message';
-    aiMessageContainer.innerHTML = `
-        <img src="images/avatars/319260ba-0b3d-47d0-b18f-abf530c2793e.png" alt="AI" class="ai-avatar">
-        <div class="ai-message">${text}</div>
-    `;
-    messages.appendChild(aiMessageContainer);
-    scrollToBotBottom();
+const BotUI = {
+    elements: {},
+
+    // 初期化
+    init() {
+        this.elements.messages = document.getElementById('messages');
+        this.elements.choices = document.getElementById('choices');
+        console.log('✅ BotUI初期化完了');
+    },
+
+    // AIメッセージ表示
+    showAIMessage(text) {
+        const messages = document.getElementById('messages');
+        if (!messages) {
+            console.error('❌ messagesエレメントが見つかりません');
+            return;
+        }
+        const aiMessageContainer = document.createElement('div');
+        aiMessageContainer.className = 'ai-message-container new-message';
+        aiMessageContainer.innerHTML = `
+            <img src="images/avatars/319260ba-0b3d-47d0-b18f-abf530c2793e.png" alt="AI" class="ai-avatar">
+            <div class="ai-message">${text}</div>
+        `;
+        messages.appendChild(aiMessageContainer);
+        this.scrollToBottom();
+    },
+
+    // ユーザーメッセージ表示
+    showUserMessage(text) {
+        const messages = document.getElementById('messages');
+        if (!messages) {
+            console.error('❌ messagesエレメントが見つかりません');
+            return;
+        }
+        const userMessage = document.createElement('div');
+        userMessage.className = 'user-message';
+        userMessage.textContent = text;
+        messages.appendChild(userMessage);
+        this.scrollToBottom();
+    },
+
+    // 選択肢表示
+    showChoices(choiceArray, callback) {
+        const choices = document.getElementById('choices');
+        if (!choices) {
+            console.error('❌ choicesエレメントが見つかりません');
+            return;
+        }
+        choices.innerHTML = '';
+
+        choiceArray.forEach((choice, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'choice-btn w-full';
+            btn.textContent = choice;
+            btn.addEventListener('click', function() {
+                callback(choice, index);
+            });
+            choices.appendChild(btn);
+        });
+
+        this.scrollToBottom();
+    },
+
+    // メッセージクリア
+    clearMessages() {
+        const messages = document.getElementById('messages');
+        if (messages) {
+            messages.innerHTML = '';
+        }
+    },
+
+    // 選択肢クリア
+    clearChoices() {
+        const choices = document.getElementById('choices');
+        if (choices) {
+            choices.innerHTML = '';
+        }
+    },
+
+    // スクロール
+    scrollToBottom() {
+        if (typeof scrollToBotBottom === 'function') {
+            scrollToBotBottom();
+        } else {
+            const messages = document.getElementById('messages');
+            if (messages) {
+                messages.scrollTop = messages.scrollHeight;
+            }
+        }
+    }
+};
+
+// グローバルに公開
+if (typeof window !== 'undefined') {
+    window.BotUI = BotUI;
 }
 
-// ユーザーメッセージ表示
+// 後方互換性のため、グローバル関数も残す
+function showAIMessage(text) {
+    BotUI.showAIMessage(text);
+}
+
 function showUserMessage(text) {
-    const messages = document.getElementById('messages');
-    const userMessage = document.createElement('div');
-    userMessage.className = 'user-message';
-    userMessage.textContent = text;
-    messages.appendChild(userMessage);
-    scrollToBotBottom();
+    BotUI.showUserMessage(text);
 }
 
 // 郵便番号エントリ用のBOT初期化
