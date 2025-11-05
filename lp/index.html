@@ -840,6 +840,35 @@
         container.appendChild(iframe);
         document.body.appendChild(container);
     }
+
+    // 郵便番号フォーム処理
+    window.addEventListener('DOMContentLoaded', function() {
+        const manualInput = document.getElementById('manual-zip-input');
+        const manualButton = document.getElementById('manual-zip-button');
+
+        if (manualInput && manualButton) {
+            function handleZipSubmit() {
+                const postalCode = manualInput.value.trim();
+                if (!postalCode) {
+                    alert('郵便番号を入力してください');
+                    return;
+                }
+                if (!postalCode.match(/^\d{3}-?\d{4}$/)) {
+                    alert('正しい郵便番号を入力してください（例：100-0001）');
+                    return;
+                }
+                console.log('🔗 郵便番号:', postalCode);
+                startScenario('zip:' + postalCode.replace('-', ''));
+            }
+
+            manualButton.addEventListener('click', handleZipSubmit);
+            manualInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') handleZipSubmit();
+            });
+
+            console.log('✅ 郵便番号フォーム準備完了');
+        }
+    });
     </script>
   </body>
 </html>
