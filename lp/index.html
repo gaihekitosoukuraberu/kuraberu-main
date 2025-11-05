@@ -819,7 +819,7 @@
     </div>
     <!-- // wrapper -->
     <!-- BOT用の相場・チャット・ランキングコンテナ -->
-    <div id="gaiheki-bot-container" style="display:none; margin-top: 2rem;">
+    <div id="gaiheki-bot-container" style="display:none; max-width: 1200px; margin: 0 auto; padding: 20px;">
                 <div id="priceSection" class="hidden">
                     <div class="bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-2xl shadow-xl p-1">
                         <div class="bg-white rounded-xl p-4 md:p-6">
@@ -1356,10 +1356,15 @@
                 const wrapper = document.querySelector('.wrapper');
                 if (wrapper) wrapper.style.display = 'none';
 
+                // bodyのスクロールを有効化
+                document.body.style.overflow = 'auto';
+
                 // BOTコンテナを表示
                 const botContainer = document.getElementById('gaiheki-bot-container');
                 if (botContainer) {
                     botContainer.style.display = 'block';
+                    // ページトップにスクロール
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
 
                     // 相場セクションを表示
                     const priceSection = document.getElementById('priceSection');
