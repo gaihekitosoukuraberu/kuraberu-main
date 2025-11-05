@@ -30,29 +30,42 @@
 
     <!-- 郵便番号フォームのカスタマイズ -->
     <style>
-/* PC版：郵便番号フォームをファーストビュー内に配置 */
+/* MVセクションを相対配置にして、フォームを内部に配置できるようにする */
+.mv {
+  position: relative !important;
+}
+
+.mv .container-max {
+  position: relative !important;
+}
+
+/* PC版：郵便番号フォームをファーストビュー右側に配置 */
 #gaiheki-zip-form-container {
-  position: static !important;
-  top: auto !important;
+  position: absolute !important;
+  top: 150px !important;
+  right: 20px !important;
   bottom: auto !important;
-  right: auto !important;
   left: auto !important;
-  width: 100% !important;
-  max-width: 100% !important;
+  width: 520px !important;
+  max-width: 520px !important;
   margin: 0 !important;
   padding: 15px 25px 30px !important;
   border: none !important;
   box-shadow: 0 4px 21px rgba(39, 59, 90, 0.16) !important;
   border-radius: 12px !important;
   background: white !important;
+  z-index: 10 !important;
 }
 
-/* スマホ版：レスポンシブ対応 */
+/* スマホ版：ファーストビュー下部に配置 */
 @media (max-width: 768px) {
   #gaiheki-zip-form-container {
     position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    width: calc(100% - 32px) !important;
     max-width: 100% !important;
-    margin: 16px !important;
+    margin: 16px auto !important;
     padding: 20px !important;
   }
 }
