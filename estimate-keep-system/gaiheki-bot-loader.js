@@ -76,7 +76,15 @@
             </div>
         `;
 
-        document.body.appendChild(zipFormContainer);
+        // LP埋め込みターゲットがあればそこに、なければbody直下に追加
+        const embedTarget = document.getElementById('gaiheki-zip-form-target');
+        if (embedTarget) {
+            embedTarget.appendChild(zipFormContainer);
+            // LP埋め込み時はインライン表示
+            zipFormContainer.style.cssText = 'width: 100%;';
+        } else {
+            document.body.appendChild(zipFormContainer);
+        }
 
         // イベント設定
         const searchButton = document.getElementById('gaihekiSearchButton');
