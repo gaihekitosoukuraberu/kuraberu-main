@@ -23,14 +23,12 @@
 
     const CONFIG = {
         BOT_SCRIPTS: [
+            'https://gaihekikuraberu.com/estimate-keep-system/js/env-loader.js?v=' + CACHE_BUSTER,
             'https://gaihekikuraberu.com/estimate-keep-system/js/bot-config.js?v=' + CACHE_BUSTER,
-            'https://gaihekikuraberu.com/estimate-keep-system/js/bot-ui.js?v=' + CACHE_BUSTER,
             'https://gaihekikuraberu.com/estimate-keep-system/js/bot-core.js?v=' + CACHE_BUSTER,
             'https://gaihekikuraberu.com/estimate-keep-system/js/bot-scenarios.js?v=' + CACHE_BUSTER,
-            'https://gaihekikuraberu.com/estimate-keep-system/js/bot-questions.js?v=' + CACHE_BUSTER,
-            'https://gaihekikuraberu.com/estimate-keep-system/js/phone-form.js?v=' + CACHE_BUSTER,
-            'https://gaihekikuraberu.com/estimate-keep-system/js/cv-api.js?v=' + CACHE_BUSTER,
-            'https://gaihekikuraberu.com/estimate-keep-system/js/ranking.js?v=' + CACHE_BUSTER
+            'https://gaihekikuraberu.com/estimate-keep-system/js/bot-integration.js?v=' + CACHE_BUSTER,
+            'https://gaihekikuraberu.com/estimate-keep-system/js/phone-form.js?v=' + CACHE_BUSTER
         ]
     };
 
