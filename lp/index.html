@@ -110,38 +110,8 @@
             <div class="mv__after__img">
               <img src="img/mv/Flipyx1.gif" alt="" />
             </div>
-            <!-- 郵便番号入力フォーム（青く光る）- estimate-keep-systemの下のフォーム -->
-            <style>
-                @keyframes glow {
-                    0%, 100% {
-                        box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 0 0 40px rgba(59, 130, 246, 0.1);
-                    }
-                    50% {
-                        box-shadow: 0 0 30px rgba(59, 130, 246, 0.5), 0 0 60px rgba(59, 130, 246, 0.2);
-                    }
-                }
-            </style>
-            <div class="mv__after__form" style="max-width: 400px; margin: 0 auto;">
-                <div style="background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 2px solid #93C5FD; padding: 24px; animation: glow 3s ease-in-out infinite; transition: transform 0.3s;">
-                    <div style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
-                        <span style="background: #22D3EE; color: white; border-radius: 9999px; padding: 4px 12px; font-size: 12px; font-weight: 500;">かんたん10秒！</span>
-                    </div>
-                    <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 12px; text-align: center; white-space: nowrap;">
-                        郵便番号で今すぐ相場チェック！
-                    </h2>
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                        <input type="text" id="gaihekiPostalCode" placeholder="〒100-0001"
-                               style="width: 100%; border: 2px solid #FBBF24; border-radius: 8px; padding: 12px 16px; text-align: center; font-size: 16px; outline: none; background: #EFF6FF;">
-                        <button id="gaihekiSearchButton"
-                                style="width: 100%; background: linear-gradient(to right, #3B82F6, #2563EB); color: white; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 16px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s;">
-                            🔍 無料で相場を見る
-                        </button>
-                        <div style="display: flex; align-items: center; justify-content: center; font-size: 14px; color: #4B5563; gap: 4px;">
-                            🔒 個人情報保護・SSL暗号化通信で安全
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- 郵便番号入力フォーム（gaiheki-bot-loader.jsが自動生成） -->
+            <div id="gaiheki-zip-form-target" style="max-width: 400px; margin: 0 auto;"></div>
           </div>
         </div>
       </div>
@@ -845,63 +815,61 @@
     <script src="js/validate.js"></script>
     <!--//java script-->
 
-    <!-- 外壁塗装くらべる BOTシステム（iframe統合） -->
+    <!-- 外壁塗装くらべる BOTシステム（直接統合） -->
     <script>
-    // ページ読み込み時の処理
-    document.addEventListener('DOMContentLoaded', function() {
-        const postalInput = document.getElementById('gaihekiPostalCode');
-        const searchButton = document.getElementById('gaihekiSearchButton');
-
-        function handleSearch() {
-            const postalCode = postalInput.value.trim();
-
-            if (!postalCode) {
-                alert('郵便番号を入力してください');
-                return;
+    // BOTフローデータ定義
+    window.BOT_FLOW_DATA = {
+        version: "1.0.0",
+        mainQuestions: {
+            "Q001": {
+                "text": "お住まいは戸建て2階建てですか？",
+                "choices": ["はい", "いいえ"],
+                "branches": ["Q003", "Q002"],
+                "stage": 1
+            },
+            "Q002": {
+                "text": "お住まいの建物種別を教えてください",
+                "choices": ["戸建て3階建て", "マンション・アパート", "店舗・事務所"],
+                "branches": ["Q003", "Q004", "Q004"],
+                "stage": 1
+            },
+            "Q003": {
+                "text": "築年数を教えてください",
+                "choices": ["10年未満", "10〜15年", "15〜20年", "20年以上"],
+                "branches": ["Q004", "Q004", "Q004", "Q004"],
+                "stage": 2
+            },
+            "Q004": {
+                "text": "外壁の素材は何ですか？",
+                "choices": ["窯業サイディング", "モルタル", "金属サイディング", "わからない"],
+                "branches": ["Q005", "Q005", "Q005", "Q005"],
+                "stage": 2
+            },
+            "Q005": {
+                "text": "ご希望の工事内容を教えてください",
+                "choices": ["外壁塗装のみ", "外壁+屋根塗装", "屋根塗装のみ", "まだ決めていない"],
+                "branches": ["Q006", "Q006", "Q006", "Q006"],
+                "stage": 3
+            },
+            "Q006": {
+                "text": "見積もりの比較はされていますか？",
+                "choices": ["まだ取っていない", "1社のみ", "2〜3社", "4社以上"],
+                "branches": ["PHONE", "PHONE", "PHONE", "PHONE"],
+                "stage": 4
             }
-
-            if (!postalCode.match(/^\d{3}-?\d{4}$/)) {
-                alert('正しい郵便番号を入力してください（例：100-0001）');
-                return;
-            }
-
-            // 郵便番号からハイフンを除去
-            const zip = postalCode.replace('-', '');
-
-            // iframe全画面でestimate-keep-systemを表示（画面3へ）
-            showEstimateSystem('zip=' + zip);
-        }
-
-        if (searchButton && postalInput) {
-            searchButton.addEventListener('click', handleSearch);
-            postalInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    handleSearch();
-                }
-            });
-        }
-    });
+        },
+        entryScenarios: {}
+    };
 
     // キーワードボタン用の関数
     function startScenario(keyword) {
         console.log('🔗 シナリオ開始:', keyword);
-        showEstimateSystem('keyword=' + encodeURIComponent(keyword));
-    }
-
-    // estimate-keep-systemをiframe全画面表示
-    function showEstimateSystem(params) {
-        const container = document.createElement('div');
-        container.id = 'bot-iframe-container';
-        container.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 9999; overflow: auto;';
-
-        const iframe = document.createElement('iframe');
-        iframe.id = 'bot-iframe';
-        iframe.src = 'https://gaihekikuraberu.com/estimate-keep-system/' + (params ? '?' + params : '');
-        iframe.style.cssText = 'width: 100%; height: 100%; border: none;';
-
-        container.appendChild(iframe);
-        document.body.appendChild(container);
+        // gaiheki-bot-loader.jsが提供する関数を呼び出す
+        if (window.GaihekiBotLoader && typeof window.GaihekiBotLoader.startKeyword === 'function') {
+            window.GaihekiBotLoader.startKeyword(keyword);
+        }
     }
     </script>
+    <script src="https://gaihekikuraberu.com/estimate-keep-system/gaiheki-bot-loader.js"></script>
   </body>
 </html>
