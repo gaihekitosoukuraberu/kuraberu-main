@@ -319,6 +319,14 @@
     // BOTスタイル読み込み
     // ============================================
     function loadBotStyles() {
+        // 既存のDOM構造がある場合はカスタムスタイルを読み込まない（LPが独自のTailwind構造を持っている場合）
+        const existingMessages = document.getElementById('messages');
+        const existingPriceSection = document.getElementById('priceSection');
+        if (existingMessages && existingPriceSection) {
+            console.log('✅ 既存のDOM構造を検出: カスタムスタイルをスキップします');
+            return;
+        }
+
         // Tailwind CSS
         const tailwind = document.createElement('script');
         tailwind.src = 'https://cdn.tailwindcss.com';
