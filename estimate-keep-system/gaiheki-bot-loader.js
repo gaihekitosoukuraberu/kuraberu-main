@@ -319,6 +319,13 @@
     // BOTスタイル読み込み
     // ============================================
     function loadBotStyles() {
+        // Tailwind CSSが既にページに読み込まれているかチェック（LPが独自にTailwindを使用している場合）
+        const existingTailwind = document.querySelector('script[src*="tailwindcss"]');
+        if (existingTailwind) {
+            console.log('✅ Tailwind CSS already loaded by page, skipping all custom styles');
+            return;
+        }
+
         // 既存のDOM構造がある場合はカスタムスタイルを読み込まない（LPが独自のTailwind構造を持っている場合）
         const existingMessages = document.getElementById('messages');
         const existingPriceSection = document.getElementById('priceSection');
