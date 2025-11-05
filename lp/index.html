@@ -30,49 +30,77 @@
 
     <!-- 郵便番号フォームのカスタマイズ -->
     <style>
-/* MVセクションを相対配置にして、フォームを内部に配置できるようにする */
-.mv {
-  position: relative !important;
-}
-
-.mv .container-max {
-  position: relative !important;
-}
-
-/* PC版：郵便番号フォームをファーストビュー右側に配置 */
-#gaiheki-zip-form-container {
-  position: absolute !important;
-  top: 150px !important;
-  right: 20px !important;
-  bottom: auto !important;
-  left: auto !important;
-  width: 520px !important;
-  max-width: 520px !important;
-  margin: 0 !important;
-  padding: 15px 25px 30px !important;
-  border: none !important;
-  box-shadow: 0 4px 21px rgba(39, 59, 90, 0.16) !important;
-  border-radius: 12px !important;
-  background: white !important;
-  z-index: 10 !important;
-}
-
-/* スマホ版：ファーストビュー下部に配置 */
-@media (max-width: 768px) {
-  #gaiheki-zip-form-container {
-    position: relative !important;
-    top: auto !important;
-    right: auto !important;
-    width: calc(100% - 32px) !important;
-    max-width: 100% !important;
-    margin: 16px auto !important;
-    padding: 20px !important;
-  }
-}
-
 /* fixed-areaを非表示にする */
 .fixed-area {
   display: none !important;
+}
+
+/* PC版（769px以上）：郵便番号フォームをファーストビュー内に配置 */
+@media (min-width: 769px) {
+  .mv {
+    position: relative !important;
+  }
+
+  .mv .container-max {
+    position: relative !important;
+  }
+
+  /* 左側のコンテンツを小さくしてスペースを確保 */
+  .mv .mv__before {
+    max-width: 5.2rem !important;
+  }
+
+  /* 右側のフォームエリアを調整 */
+  .mv .mv__after {
+    width: 5.8rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+  }
+
+  /* 郵便番号フォームを右側に配置 */
+  #gaiheki-zip-form-container {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 20px 0 !important;
+    padding: 15px 25px 30px !important;
+    border: none !important;
+    box-shadow: 0 4px 21px rgba(39, 59, 90, 0.16) !important;
+    border-radius: 12px !important;
+    background: white !important;
+    z-index: 10 !important;
+  }
+}
+
+/* スマホ版（768px以下）：ファーストビュー内に配置 */
+@media (max-width: 768px) {
+  /* 郵便番号フォームをmv__after内に配置 */
+  #gaiheki-zip-form-container {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto 0.2rem !important;
+    padding: 10px 15px 20px !important;
+    border: none !important;
+    box-shadow: 0 4px 21px rgba(39, 59, 90, 0.16) !important;
+    border-radius: 12px !important;
+    background: white !important;
+  }
+
+  /* mv__after__imgをフォームの後に配置 */
+  .mv .mv__after {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .mv .mv__after__img {
+    order: 2 !important;
+  }
+
+  #gaiheki-zip-form-container {
+    order: 1 !important;
+  }
 }
     </style>
   </head>
