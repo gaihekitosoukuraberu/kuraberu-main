@@ -23,8 +23,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-    <!-- Tailwind CSS CDN for BOT System - CRITICAL for proper sizing -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <!-- <link rel="stylesheet" href="css/delay_anim.css" /> -->
     <link rel="stylesheet" href="css/default.css" />
     <link rel="stylesheet" href="css/style.css" />
@@ -112,8 +110,10 @@
             <div class="mv__after__img">
               <img src="img/mv/Flipyx1.gif" alt="" />
             </div>
-            <!-- 郵便番号入力フォーム（自動生成） -->
-            <div id="gaiheki-zip-form-target"></div>
+            <!-- BOT起動ボタン -->
+            <div class="mv__after__form">
+              <button id="startBotButton">🔍 無料で相場を見る</button>
+            </div>
           </div>
         </div>
       </div>
@@ -817,60 +817,40 @@
     <script src="js/validate.js"></script>
     <!--//java script-->
 
-    <!-- 外壁塗装くらべる BOTシステム -->
+    <!-- 外壁塗装くらべる BOTシステム（iframe統合） -->
     <script>
-    // BOTフローデータ定義
-    window.BOT_FLOW_DATA = {
-        version: "1.0.0",
-        mainQuestions: {
-            "Q001": {
-                "text": "お住まいは戸建て2階建てですか？",
-                "choices": ["はい", "いいえ"],
-                "branches": ["Q003", "Q002"],
-                "stage": 1
-            },
-            "Q002": {
-                "text": "お住まいの建物種別を教えてください",
-                "choices": ["戸建て3階建て", "マンション・アパート", "店舗・事務所"],
-                "branches": ["Q003", "Q004", "Q004"],
-                "stage": 1
-            },
-            "Q003": {
-                "text": "築年数を教えてください",
-                "choices": ["10年未満", "10〜15年", "15〜20年", "20年以上"],
-                "branches": ["Q004", "Q004", "Q004", "Q004"],
-                "stage": 2
-            },
-            "Q004": {
-                "text": "外壁の素材は何ですか？",
-                "choices": ["窯業サイディング", "モルタル", "金属サイディング", "わからない"],
-                "branches": ["Q005", "Q005", "Q005", "Q005"],
-                "stage": 2
-            },
-            "Q005": {
-                "text": "ご希望の工事内容を教えてください",
-                "choices": ["外壁塗装のみ", "外壁+屋根塗装", "屋根塗装のみ", "まだ決めていない"],
-                "branches": ["Q006", "Q006", "Q006", "Q006"],
-                "stage": 3
-            },
-            "Q006": {
-                "text": "見積もりの比較はされていますか？",
-                "choices": ["まだ取っていない", "1社のみ", "2〜3社", "4社以上"],
-                "branches": ["PHONE", "PHONE", "PHONE", "PHONE"],
-                "stage": 4
-            }
-        },
-        entryScenarios: {}
-    };
+    // ページ読み込み時の処理
+    document.addEventListener('DOMContentLoaded', function() {
+        const startBotButton = document.getElementById('startBotButton');
+
+        if (startBotButton) {
+            startBotButton.addEventListener('click', function() {
+                // iframe全画面でestimate-keep-systemを表示（郵便番号入力からスタート）
+                showEstimateSystem();
+            });
+        }
+    });
 
     // キーワードボタン用の関数
     function startScenario(keyword) {
         console.log('🔗 シナリオ開始:', keyword);
-        if (window.BotCore && typeof window.BotCore.startFromKeywordEntry === 'function') {
-            window.BotCore.startFromKeywordEntry(keyword);
-        }
+        showEstimateSystem('keyword=' + encodeURIComponent(keyword));
+    }
+
+    // estimate-keep-systemをiframe全画面表示
+    function showEstimateSystem(params) {
+        const container = document.createElement('div');
+        container.id = 'bot-iframe-container';
+        container.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 9999; overflow: auto;';
+
+        const iframe = document.createElement('iframe');
+        iframe.id = 'bot-iframe';
+        iframe.src = 'https://gaihekikuraberu.com/estimate-keep-system/' + (params ? '?' + params : '');
+        iframe.style.cssText = 'width: 100%; height: 100%; border: none;';
+
+        container.appendChild(iframe);
+        document.body.appendChild(container);
     }
     </script>
-    <script src="https://gaihekikuraberu.com/estimate-keep-system/gaiheki-bot-loader.js"></script>
   </body>
 </html>
