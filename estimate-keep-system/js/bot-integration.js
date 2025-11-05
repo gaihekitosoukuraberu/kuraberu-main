@@ -27,10 +27,10 @@ const BotUI = {
             return;
         }
         const aiMessageContainer = document.createElement('div');
-        aiMessageContainer.className = 'ai-message-container new-message';
+        aiMessageContainer.className = 'flex items-start gap-2 my-5';
         aiMessageContainer.innerHTML = `
-            <img src="https://gaihekikuraberu.com/estimate-keep-system/images/avatars/319260ba-0b3d-47d0-b18f-abf530c2793e.png" alt="AI" class="ai-avatar">
-            <div class="ai-message">${text}</div>
+            <img src="https://gaihekikuraberu.com/estimate-keep-system/images/avatars/319260ba-0b3d-47d0-b18f-abf530c2793e.png" alt="AI" class="w-12 h-12 rounded-full object-cover flex-shrink-0 shadow-md">
+            <div class="bg-gradient-to-r from-blue-500 to-blue-400 text-white rounded-3xl rounded-tl-sm px-5 py-4 max-w-xs md:max-w-md shadow-sm">${text}</div>
         `;
         messages.appendChild(aiMessageContainer);
         this.scrollToBottom();
@@ -44,7 +44,7 @@ const BotUI = {
             return;
         }
         const userMessage = document.createElement('div');
-        userMessage.className = 'user-message';
+        userMessage.className = 'bg-gray-100 text-gray-800 rounded-3xl rounded-tr-sm px-5 py-4 my-5 ml-auto max-w-xs md:max-w-md shadow-sm';
         userMessage.textContent = text;
         messages.appendChild(userMessage);
         this.scrollToBottom();
@@ -61,7 +61,7 @@ const BotUI = {
 
         choiceArray.forEach((choice, index) => {
             const btn = document.createElement('button');
-            btn.className = 'choice-btn w-full';
+            btn.className = 'w-full border-2 border-gray-200 bg-white text-gray-700 px-5 py-4 rounded-xl text-base font-medium cursor-pointer my-2 text-left transition-all duration-300 hover:bg-gray-50 hover:border-blue-400 hover:-translate-y-0.5 hover:shadow-md active:bg-blue-50 active:translate-y-0';
             btn.textContent = choice;
             btn.addEventListener('click', function() {
                 callback(choice, index);
