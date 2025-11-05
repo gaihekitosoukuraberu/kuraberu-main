@@ -110,9 +110,25 @@
             <div class="mv__after__img">
               <img src="img/mv/Flipyx1.gif" alt="" />
             </div>
-            <!-- BOT起動ボタン -->
-            <div class="mv__after__form">
-              <button id="startBotButton">🔍 無料で相場を見る</button>
+            <!-- 郵便番号入力フォーム（estimate-keep-systemと同じスタイル） -->
+            <div class="mv__after__form" style="background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 2px solid #93C5FD; padding: 16px; max-width: 400px; margin: 0 auto;">
+                <div style="margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                    <span style="background: #22D3EE; color: white; border-radius: 9999px; padding: 4px 12px; font-size: 12px; font-weight: 500;">かんたん10秒！</span>
+                </div>
+                <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 12px; text-align: center; color: #1F2937;">
+                    郵便番号で今すぐ相場チェック！
+                </h2>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <input type="text" id="gaihekiPostalCode" placeholder="例：100-0001" maxlength="8"
+                           style="width: 100%; border: 2px solid #BFDBFE; border-radius: 8px; padding: 8px 16px; text-align: center; font-size: 14px; outline: none; background: #EFF6FF;">
+                    <button id="gaihekiSearchButton"
+                            style="width: 100%; background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; padding: 8px; border-radius: 8px; font-weight: bold; font-size: 14px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        🔍 無料で相場を見る
+                    </button>
+                    <div style="display: flex; align-items: center; justify-content: center; font-size: 12px; color: #4B5563; gap: 4px;">
+                        🔒 個人情報保護・SSL暗号化通信で安全
+                    </div>
+                </div>
             </div>
           </div>
         </div>
@@ -821,12 +837,35 @@
     <script>
     // ページ読み込み時の処理
     document.addEventListener('DOMContentLoaded', function() {
-        const startBotButton = document.getElementById('startBotButton');
+        const postalInput = document.getElementById('gaihekiPostalCode');
+        const searchButton = document.getElementById('gaihekiSearchButton');
 
-        if (startBotButton) {
-            startBotButton.addEventListener('click', function() {
-                // iframe全画面でestimate-keep-systemを表示（郵便番号入力からスタート）
-                showEstimateSystem();
+        function handleSearch() {
+            const postalCode = postalInput.value.trim();
+
+            if (!postalCode) {
+                alert('郵便番号を入力してください');
+                return;
+            }
+
+            if (!postalCode.match(/^\d{3}-?\d{4}$/)) {
+                alert('正しい郵便番号を入力してください（例：100-0001）');
+                return;
+            }
+
+            // 郵便番号からハイフンを除去
+            const zip = postalCode.replace('-', '');
+
+            // iframe全画面でestimate-keep-systemを表示（画面3へ）
+            showEstimateSystem('zip=' + zip);
+        }
+
+        if (searchButton && postalInput) {
+            searchButton.addEventListener('click', handleSearch);
+            postalInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleSearch();
+                }
             });
         }
     });
