@@ -516,10 +516,26 @@
         // BOTスクリプト読み込み
         loadBotScripts();
 
-        // 郵便番号フォーム生成
-        setTimeout(() => {
-            createZipForm();
-        }, 500);
+        // URLパラメータから郵便番号取得
+        const urlParams = new URLSearchParams(window.location.search);
+        const zipcode = urlParams.get('zip');
+
+        if (zipcode) {
+            // 郵便番号が指定されている場合は自動起動
+            console.log('🔗 URLから郵便番号取得:', zipcode);
+            setTimeout(() => {
+                if (window.BotCore && typeof window.BotCore.startFromZipEntry === 'function') {
+                    window.BotCore.startFromZipEntry(zipcode);
+                } else {
+                    console.error('❌ BotCore.startFromZipEntry が見つかりません');
+                }
+            }, 2000);
+        } else {
+            // 通常の郵便番号フォーム生成
+            setTimeout(() => {
+                createZipForm();
+            }, 500);
+        }
 
         console.log('✅ 外壁塗装くらべる BOTローダー初期化完了');
     });
