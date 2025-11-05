@@ -518,26 +518,34 @@
     window.addEventListener('DOMContentLoaded', function() {
         console.log('📋 DOM読み込み完了');
 
+        // URLパラメータから郵便番号とキーワードを取得
+        const urlParams = new URLSearchParams(window.location.search);
+        const zipcode = urlParams.get('zip');
+        const keyword = urlParams.get('keyword');
+
         // スタイル読み込み
         loadBotStyles();
 
         // BOTスクリプト読み込み
         loadBotScripts();
 
-        // URLパラメータから郵便番号取得
-        const urlParams = new URLSearchParams(window.location.search);
-        const zipcode = urlParams.get('zip');
-
         if (zipcode) {
-            // 郵便番号が指定されている場合は自動起動
+            // 郵便番号が指定されている場合は、フォームを表示せず直接BOT起動
             console.log('🔗 URLから郵便番号取得:', zipcode);
-            setTimeout(() => {
-                if (window.BotCore && typeof window.BotCore.startFromZipEntry === 'function') {
-                    window.BotCore.startFromZipEntry(zipcode);
-                } else {
-                    console.error('❌ BotCore.startFromZipEntry が見つかりません');
-                }
-            }, 2000);
+            console.log('⏭️  郵便番号フォームをスキップして直接BOT起動');
+
+            // BOTシステムの読み込みを待つ
+            waitForBotSystem().then(() => {
+                console.log('🚀 BOT自動起動: zip=' + zipcode);
+                startBotSystem('zip', zipcode);
+            });
+        } else if (keyword) {
+            // キーワードが指定されている場合
+            console.log('🔗 URLからキーワード取得:', keyword);
+            waitForBotSystem().then(() => {
+                console.log('🚀 BOT自動起動: keyword=' + keyword);
+                startBotSystem('keyword', keyword);
+            });
         } else {
             // 通常の郵便番号フォーム生成
             setTimeout(() => {
