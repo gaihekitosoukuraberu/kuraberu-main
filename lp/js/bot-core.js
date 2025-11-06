@@ -104,20 +104,6 @@ const BotCore = {
         BotUI.clearMessages();
         BotUI.clearChoices();
 
-        // 相場セクションとメインコンテナを表示
-        const priceSection = document.getElementById('priceSection');
-        if (priceSection) {
-            priceSection.classList.remove('hidden');
-            const areaName = document.getElementById('areaName');
-            if (areaName) {
-                areaName.textContent = '東京都の外壁塗装相場';
-            }
-        }
-        const mainContainer = document.getElementById('mainContentContainer');
-        if (mainContainer) {
-            mainContainer.classList.remove('hidden');
-        }
-
         // 開始メッセージ
         BotUI.showAIMessage(
             'ありがとうございます。あなたに最適な業者をご紹介するため、いくつか質問させていただきます。'
@@ -165,20 +151,6 @@ const BotCore = {
         // メッセージクリア
         BotUI.clearMessages();
         BotUI.clearChoices();
-
-        // 相場セクションとメインコンテナを表示
-        const priceSection = document.getElementById('priceSection');
-        if (priceSection) {
-            priceSection.classList.remove('hidden');
-            const areaName = document.getElementById('areaName');
-            if (areaName) {
-                areaName.textContent = '東京都の外壁塗装相場';
-            }
-        }
-        const mainContainer = document.getElementById('mainContentContainer');
-        if (mainContainer) {
-            mainContainer.classList.remove('hidden');
-        }
 
         // greetingメッセージ
         BotUI.showAIMessage(scenario.greeting);

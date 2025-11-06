@@ -18,17 +18,14 @@
     // ============================================
     // 設定
     // ============================================
-    // タイムスタンプを使って確実にキャッシュを破棄
-    const CACHE_BUSTER = Date.now();
-
     const CONFIG = {
         BOT_SCRIPTS: [
-            'js/env-loader.js?v=' + CACHE_BUSTER,
-            'js/bot-config.js?v=' + CACHE_BUSTER,
-            'js/bot-core.js?v=' + CACHE_BUSTER,
-            'js/bot-scenarios.js?v=' + CACHE_BUSTER,
-            'js/bot-integration.js?v=' + CACHE_BUSTER,
-            'js/phone-form.js?v=' + CACHE_BUSTER
+            'https://gaihekikuraberu.com/estimate-keep-system/js/bot-config.js',
+            'https://gaihekikuraberu.com/estimate-keep-system/js/bot-ui.js',
+            'https://gaihekikuraberu.com/estimate-keep-system/js/bot-core.js',
+            'https://gaihekikuraberu.com/estimate-keep-system/js/bot-scenarios.js',
+            'https://gaihekikuraberu.com/estimate-keep-system/js/bot-questions.js',
+            'https://gaihekikuraberu.com/estimate-keep-system/js/phone-form.js'
         ]
     };
 
@@ -76,15 +73,7 @@
             </div>
         `;
 
-        // LP埋め込みターゲットがあればそこに、なければbody直下に追加
-        const embedTarget = document.getElementById('gaiheki-zip-form-target');
-        if (embedTarget) {
-            embedTarget.appendChild(zipFormContainer);
-            // LP埋め込み時はインライン表示
-            zipFormContainer.style.cssText = 'width: 100%;';
-        } else {
-            document.body.appendChild(zipFormContainer);
-        }
+        document.body.appendChild(zipFormContainer);
 
         // イベント設定
         const searchButton = document.getElementById('gaihekiSearchButton');
@@ -125,11 +114,6 @@
     // ============================================
     async function startBotSystem(type, data) {
         console.log('🎯 BOTシステム起動:', type, data);
-
-        // LP の font-size をリセット（LP は html { font-size: 100px; } なので）
-        document.documentElement.style.fontSize = '16px';
-        document.body.style.fontSize = '16px';
-        console.log('✅ font-size を 16px にリセット');
 
         // BOTシステムの読み込みを待つ
         await waitForBotSystem();
@@ -175,29 +159,7 @@
             document.body.appendChild(botContainer);
         }
 
-        // 既存のDOM構造がある場合は上書きしない（LPで既にTailwind構造が用意されている場合）
-        const existingMessages = document.getElementById('messages');
-        const existingPriceSection = document.getElementById('priceSection');
-        if (existingMessages && existingPriceSection) {
-            console.log('✅ 既存のDOM構造を使用します（Tailwind CSS版）');
-            botContainer.style.display = 'block';
-
-            // 進捗メーターを表示
-            const progressMeter = document.getElementById('progressMeter');
-            if (progressMeter) {
-                progressMeter.classList.remove('hidden');
-                console.log('✅ 進捗メーター表示');
-            }
-
-            // 相場セクションとメインコンテナの hidden クラスを削除
-            if (existingPriceSection) existingPriceSection.classList.remove('hidden');
-            const mainContainer = document.getElementById('mainContentContainer');
-            if (mainContainer) mainContainer.classList.remove('hidden');
-
-            return;
-        }
-
-        // lp-test.htmlからBOT部分のHTMLを挿入（インラインスタイル版）
+        // lp-test.htmlからBOT部分のHTMLを挿入
         botContainer.innerHTML = `
             <div style="background: #F9FAFB; min-height: 100vh; padding: 20px 0;">
                 <!-- モバイル用固定プログレスバー -->
@@ -292,7 +254,7 @@
                 <!-- 見積もりボタン（固定位置） -->
                 <div id="estimateBtnContainer" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); padding: 16px; z-index: 9999;">
                     <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
-                        <button onclick="showKeepModal();" style="background: #f97316; color: white; font-weight: bold; padding: 16px 80px; border-radius: 9999px; font-size: 18px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(249,115,22,0.4); position: relative;" onmouseover="this.style.background='#ea580c'" onmouseout="this.style.background='#f97316'">
+                        <button onclick="showKeepModal();" style="background: #FB923C; color: white; font-weight: bold; padding: 16px 80px; border-radius: 9999px; font-size: 18px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(251,146,60,0.4); position: relative;">
                             無料見積もり
                             <span class="notification-badge" style="position: absolute; top: -12px; right: -12px; background: #EF4444; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold;">0</span>
                         </button>
@@ -321,45 +283,9 @@
     };
 
     // ============================================
-    // グローバル関数: 郵便番号からBOT起動
-    // ============================================
-    window.startFromZip = function(postalCode) {
-        console.log('🎯 郵便番号からBOT起動:', postalCode);
-
-        // 郵便番号フォームを非表示
-        const zipFormContainer = document.getElementById('gaiheki-zip-form-container');
-        if (zipFormContainer) {
-            zipFormContainer.style.display = 'none';
-        }
-
-        // 手動フォームも非表示
-        const manualForm = document.getElementById('manual-zip-form');
-        if (manualForm) {
-            manualForm.style.display = 'none';
-        }
-
-        startBotSystem('zip', postalCode);
-    };
-
-    // ============================================
     // BOTスタイル読み込み
     // ============================================
     function loadBotStyles() {
-        // Tailwind CSSが既にページに読み込まれているかチェック（LPが独自にTailwindを使用している場合）
-        const existingTailwind = document.querySelector('script[src*="tailwindcss"]');
-        if (existingTailwind) {
-            console.log('✅ Tailwind CSS already loaded by page, skipping all custom styles');
-            return;
-        }
-
-        // 既存のDOM構造がある場合はカスタムスタイルを読み込まない（LPが独自のTailwind構造を持っている場合）
-        const existingMessages = document.getElementById('messages');
-        const existingPriceSection = document.getElementById('priceSection');
-        if (existingMessages && existingPriceSection) {
-            console.log('✅ 既存のDOM構造を検出: カスタムスタイルをスキップします');
-            return;
-        }
-
         // Tailwind CSS
         const tailwind = document.createElement('script');
         tailwind.src = 'https://cdn.tailwindcss.com';
@@ -536,77 +462,16 @@
     window.addEventListener('DOMContentLoaded', function() {
         console.log('📋 DOM読み込み完了');
 
-        // URLパラメータから郵便番号とキーワードを取得
-        const urlParams = new URLSearchParams(window.location.search);
-        const zipcode = urlParams.get('zip');
-        const keyword = urlParams.get('keyword');
-
         // スタイル読み込み
         loadBotStyles();
 
         // BOTスクリプト読み込み
         loadBotScripts();
 
-        if (zipcode) {
-            // 郵便番号が指定されている場合は、フォームを表示せず直接BOT起動
-            console.log('🔗 URLから郵便番号取得:', zipcode);
-            console.log('⏭️  郵便番号フォームをスキップして直接BOT起動');
-
-            // BOTシステムの読み込みを待つ
-            waitForBotSystem().then(() => {
-                console.log('🚀 BOT自動起動: zip=' + zipcode);
-                startBotSystem('zip', zipcode);
-            });
-        } else if (keyword) {
-            // キーワードが指定されている場合
-            console.log('🔗 URLからキーワード取得:', keyword);
-            waitForBotSystem().then(() => {
-                console.log('🚀 BOT自動起動: keyword=' + keyword);
-                startBotSystem('keyword', keyword);
-            });
-        }
-
-        // LP の既存郵便番号フォームに対応
-        const lpPostalCode = document.getElementById('postalCode');
-        const lpSearchButton = document.getElementById('searchButton');
-
-        if (lpPostalCode && lpSearchButton) {
-            console.log('📍 LP郵便番号フォーム検出');
-
-            const handleLPSearch = function() {
-                const postal = lpPostalCode.value.trim();
-
-                if (!postal) {
-                    alert('郵便番号を入力してください');
-                    return;
-                }
-
-                if (!postal.match(/^\d{3}-?\d{4}$/)) {
-                    alert('正しい郵便番号を入力してください（例：100-0001）');
-                    return;
-                }
-
-                console.log('🚀 LP郵便番号フォームから起動:', postal);
-
-                // LP コンテンツを非表示
-                const wrapper = document.querySelector('.wrapper');
-                if (wrapper) {
-                    wrapper.style.display = 'none';
-                }
-
-                // BOT起動
-                waitForBotSystem().then(() => {
-                    startBotSystem('zip', postal);
-                });
-            };
-
-            lpSearchButton.addEventListener('click', handleLPSearch);
-            lpPostalCode.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    handleLPSearch();
-                }
-            });
-        }
+        // 郵便番号フォーム生成
+        setTimeout(() => {
+            createZipForm();
+        }, 500);
 
         console.log('✅ 外壁塗装くらべる BOTローダー初期化完了');
     });

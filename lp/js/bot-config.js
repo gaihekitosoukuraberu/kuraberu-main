@@ -30,14 +30,7 @@ const BotConfig = {
     // ============================================
     async loadFlowData() {
         try {
-            // グローバル変数BOT_FLOW_DATAが存在する場合はそれを使用
-            if (typeof BOT_FLOW_DATA !== 'undefined') {
-                this.state.flowData = BOT_FLOW_DATA;
-                console.log('✅ BOTフロー読み込み完了（JSファイル）:', this.state.flowData.version);
-                return true;
-            }
-
-            // フォールバック: JSONファイルをfetchで読み込み
+            // 現在のスクリプトパスから相対的にJSONを読み込む
             const scriptPath = document.currentScript ? document.currentScript.src : window.location.href;
             const basePath = scriptPath.substring(0, scriptPath.lastIndexOf('/'));
             const jsonUrl = basePath.replace('/js', '') + '/zip-word-bot.json';
@@ -45,7 +38,7 @@ const BotConfig = {
             const response = await fetch(jsonUrl);
             if (!response.ok) throw new Error('JSON読み込み失敗');
             this.state.flowData = await response.json();
-            console.log('✅ BOTフロー読み込み完了（JSON fetch）:', this.state.flowData.version);
+            console.log('✅ BOTフロー読み込み完了:', this.state.flowData.version);
             return true;
         } catch (error) {
             console.error('❌ JSONファイルの読み込みエラー:', error);
@@ -67,6 +60,46 @@ const BotConfig = {
         this.state.currentScenario = null;
         this.state.currentFlowStep = null;
         this.state.questionHistory = [];
+
+        // sessionStorageもクリア
+        try {
+            sessionStorage.removeItem('bot_answers');
+            sessionStorage.removeItem('bot_zipcode');
+            sessionStorage.removeItem('bot_keyword');
+        } catch (e) {
+            console.warn('[BotConfig] sessionStorageクリア失敗:', e);
+        }
+    },
+
+    // ============================================
+    // sessionStorageから復元
+    // ============================================
+    loadFromSessionStorage() {
+        try {
+            const savedAnswers = sessionStorage.getItem('bot_answers');
+            const savedZipcode = sessionStorage.getItem('bot_zipcode');
+            const savedKeyword = sessionStorage.getItem('bot_keyword');
+
+            if (savedAnswers) {
+                this.state.userAnswers = JSON.parse(savedAnswers);
+                console.log('[BotConfig] 回答を復元:', Object.keys(this.state.userAnswers).length + '件');
+            }
+
+            if (savedZipcode) {
+                this.state.currentZipcode = savedZipcode;
+                console.log('[BotConfig] 郵便番号を復元:', savedZipcode);
+            }
+
+            if (savedKeyword) {
+                this.state.currentKeyword = savedKeyword;
+                console.log('[BotConfig] キーワードを復元:', savedKeyword);
+            }
+
+            return true;
+        } catch (e) {
+            console.warn('[BotConfig] sessionStorage復元失敗:', e);
+            return false;
+        }
     },
 
     // ============================================
@@ -105,154 +138,27 @@ const BotConfig = {
     },
 
     // ============================================
-    // 回答保存（メモリ + localStorage）
+    // 回答保存
     // ============================================
-    saveAnswer(questionId, choice, index, questionText) {
+    saveAnswer(questionId, choice, index) {
         this.state.userAnswers[questionId] = {
             choice: choice,
             index: index,
-            question: questionText || '',
             timestamp: Date.now()
         };
 
-        // localStorageにも保存（途中離脱対策）
-        this.saveToLocalStorage();
-    },
-
-    // ============================================
-    // localStorage管理
-    // ============================================
-    saveToLocalStorage() {
+        // sessionStorageに永続化
         try {
-            const data = {
-                userAnswers: this.state.userAnswers,
-                currentZipcode: this.state.currentZipcode,
-                currentKeyword: this.state.currentKeyword,
-                currentEntry: this.state.currentEntry,
-                timestamp: Date.now()
-            };
-            localStorage.setItem('bot_session_data', JSON.stringify(data));
-        } catch (error) {
-            console.error('❌ localStorage保存エラー:', error);
-        }
-    },
-
-    loadFromLocalStorage() {
-        try {
-            const data = localStorage.getItem('bot_session_data');
-            if (data) {
-                const parsed = JSON.parse(data);
-                // 24時間以内のデータのみ復元
-                if (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
-                    this.state.userAnswers = parsed.userAnswers || {};
-                    this.state.currentZipcode = parsed.currentZipcode;
-                    this.state.currentKeyword = parsed.currentKeyword;
-                    this.state.currentEntry = parsed.currentEntry;
-                    console.log('✅ セッションデータ復元:', Object.keys(this.state.userAnswers).length, '件');
-                    return true;
-                }
+            sessionStorage.setItem('bot_answers', JSON.stringify(this.state.userAnswers));
+            if (this.state.currentZipcode) {
+                sessionStorage.setItem('bot_zipcode', this.state.currentZipcode);
             }
-            return false;
-        } catch (error) {
-            console.error('❌ localStorage読み込みエラー:', error);
-            return false;
+            if (this.state.currentKeyword) {
+                sessionStorage.setItem('bot_keyword', this.state.currentKeyword);
+            }
+        } catch (e) {
+            console.warn('[BotConfig] sessionStorage保存失敗:', e);
         }
-    },
-
-    clearLocalStorage() {
-        try {
-            localStorage.removeItem('bot_session_data');
-        } catch (error) {
-            console.error('❌ localStorageクリアエラー:', error);
-        }
-    },
-
-    // ============================================
-    // BOT質問回答をスプシ用にマッピング
-    // ============================================
-    mapAnswersToSpreadsheet() {
-        const answers = this.state.userAnswers;
-
-        // Q1_物件種別: Q001 or Q002
-        let q1 = '';
-        let q1_question = '';
-        if (answers['Q001']) {
-            q1 = answers['Q001'].choice === 'はい' ? '戸建て2階建て' : '';
-            q1_question = answers['Q001'].question || '';
-        }
-        if (answers['Q002']) {
-            q1 = answers['Q002'].choice;
-            q1_question = answers['Q002'].question || '';
-        }
-
-        // Q2_階数: Q003系
-        let q2 = answers['Q003']?.choice || answers['Q003A']?.choice || answers['Q003B']?.choice || '';
-
-        // Q3_築年数: Q008
-        let q3 = answers['Q008']?.choice || '';
-
-        // Q4_工事歴: Q009 or Q009_OLD
-        let q4 = answers['Q009']?.choice || answers['Q009_OLD']?.choice || '';
-
-        // Q5_前回施工時期: Q009A or Q009A_OLD
-        let q5 = answers['Q009A']?.choice || answers['Q009A_OLD']?.choice || '';
-
-        // Q6_外壁材質: Q004
-        let q6 = answers['Q004']?.choice || '';
-
-        // Q7_屋根材質: Q004A
-        let q7 = answers['Q004A']?.choice || '';
-
-        // Q8_気になる箇所: Q004B
-        let q8 = answers['Q004B']?.choice || '';
-
-        // Q9_希望工事内容_外壁: Q005 or Q006
-        let q9 = answers['Q005']?.choice || answers['Q006']?.choice || '';
-
-        // Q10_希望工事内容_屋根: Q006A or Q007
-        let q10 = answers['Q006A']?.choice || answers['Q007']?.choice || '';
-
-        // Q11_見積もり保有数: Q009B or Q009B_OLD or Q014
-        let q11 = answers['Q009B']?.choice || answers['Q009B_OLD']?.choice || answers['Q014']?.choice || '';
-
-        // Q12_見積もり取得先: Q009C or Q009C_OLD or Q014B（複数選択）
-        let q12 = answers['Q009C']?.choice || answers['Q009C_OLD']?.choice || answers['Q014B']?.choice || '';
-
-        // Q13_訪問業者有無: Q010
-        let q13 = answers['Q010']?.choice || '';
-
-        // Q14_比較意向: Q011
-        let q14 = answers['Q011']?.choice || '';
-
-        // Q15_訪問業者名: Q009D or Q012
-        let q15 = answers['Q009D']?.choice || answers['Q012']?.choice || '';
-
-        // Q16_現在の劣化状況: Q015
-        let q16 = answers['Q015']?.choice || '';
-
-        // Q17_業者選定条件: Q016（複数選択）
-        let q17 = answers['Q016']?.choice || '';
-
-        return {
-            q1_propertyType: q1,
-            q1_question: q1_question,
-            q2_floors: q2,
-            q3_buildingAge: q3,
-            q4_constructionHistory: q4,
-            q5_lastConstructionTime: q5,
-            q6_wallMaterial: q6,
-            q7_roofMaterial: q7,
-            q8_concernedArea: q8,
-            q9_wallWorkType: q9,
-            q10_roofWorkType: q10,
-            q11_quoteCount: q11,
-            q12_quoteSource: q12,
-            q13_doorSalesVisit: q13,
-            q14_comparisonIntention: q14,
-            q15_doorSalesCompany: q15,
-            q16_deteriorationStatus: q16,
-            q17_selectionCriteria: q17
-        };
     },
 
     // ============================================

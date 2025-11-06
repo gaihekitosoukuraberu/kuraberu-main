@@ -136,22 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       console.log('電話番号検証OK、業者名を表示中...');
-
-      // 🚀 CV1送信（即時スプシ保存）
-      if (typeof CVAPI !== 'undefined') {
-        CVAPI.sendCV1(phoneNumber).then(result => {
-          if (result.success) {
-            console.log('✅ CV1送信成功:', result.cvId);
-          } else {
-            console.error('❌ CV1送信失敗:', result.error);
-          }
-        }).catch(error => {
-          console.error('❌ CV1送信エラー:', error);
-        });
-      } else {
-        console.error('❌ CVAPI が読み込まれていません');
-      }
-
+      
       // 電話番号入力フォームをサンクスメッセージに切り替え
       const phoneSection = document.getElementById('phoneSection');
       if (phoneSection) {

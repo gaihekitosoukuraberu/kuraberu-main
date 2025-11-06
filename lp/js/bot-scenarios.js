@@ -147,7 +147,7 @@ const BotScenarios = {
 
             // 決定ボタン
             const confirmBtn = document.createElement('button');
-            confirmBtn.className = 'w-full border-2 border-gray-200 bg-white text-gray-700 px-5 py-4 rounded-xl text-base font-medium cursor-pointer mt-4 text-center transition-all duration-300 hover:bg-gray-50 hover:border-blue-400 hover:-translate-y-0.5 hover:shadow-md active:bg-blue-50 active:translate-y-0';
+            confirmBtn.className = 'choice-btn w-full mt-4';
             confirmBtn.textContent = '決定';
             confirmBtn.addEventListener('click', () => {
                 if (selectedValues.length === 0) {
