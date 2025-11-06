@@ -548,6 +548,48 @@
             });
         }
 
+        // LP の既存郵便番号フォームに対応
+        const lpPostalCode = document.getElementById('postalCode');
+        const lpSearchButton = document.getElementById('searchButton');
+
+        if (lpPostalCode && lpSearchButton) {
+            console.log('📍 LP郵便番号フォーム検出');
+
+            const handleLPSearch = function() {
+                const postal = lpPostalCode.value.trim();
+
+                if (!postal) {
+                    alert('郵便番号を入力してください');
+                    return;
+                }
+
+                if (!postal.match(/^\d{3}-?\d{4}$/)) {
+                    alert('正しい郵便番号を入力してください（例：100-0001）');
+                    return;
+                }
+
+                console.log('🚀 LP郵便番号フォームから起動:', postal);
+
+                // LP コンテンツを非表示
+                const wrapper = document.querySelector('.wrapper');
+                if (wrapper) {
+                    wrapper.style.display = 'none';
+                }
+
+                // BOT起動
+                waitForBotSystem().then(() => {
+                    startBotSystem('zip', postal);
+                });
+            };
+
+            lpSearchButton.addEventListener('click', handleLPSearch);
+            lpPostalCode.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleLPSearch();
+                }
+            });
+        }
+
         console.log('✅ 外壁塗装くらべる BOTローダー初期化完了');
     });
 
