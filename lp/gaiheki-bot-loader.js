@@ -181,6 +181,19 @@
         if (existingMessages && existingPriceSection) {
             console.log('✅ 既存のDOM構造を使用します（Tailwind CSS版）');
             botContainer.style.display = 'block';
+
+            // 進捗メーターを表示
+            const progressMeter = document.getElementById('progressMeter');
+            if (progressMeter) {
+                progressMeter.classList.remove('hidden');
+                console.log('✅ 進捗メーター表示');
+            }
+
+            // 相場セクションとメインコンテナの hidden クラスを削除
+            if (existingPriceSection) existingPriceSection.classList.remove('hidden');
+            const mainContainer = document.getElementById('mainContentContainer');
+            if (mainContainer) mainContainer.classList.remove('hidden');
+
             return;
         }
 
