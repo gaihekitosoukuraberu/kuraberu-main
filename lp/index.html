@@ -29,90 +29,14 @@
     <link rel="stylesheet" href="css/style_sp.css" />
     <!-- Tailwind CSS (BOTシステム用) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 郵便番号フォームのスタイル -->
+    <!-- 郵便番号フォーム 光るアニメーション -->
     <style>
-      .mv__after__form {
-        margin-top: 20px;
-      }
-      .postal-form-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-        border: 2px solid #93C5FD;
-        padding: 24px;
-        max-width: 400px;
-        margin: 0 auto;
-        transition: transform 0.3s;
-      }
-      .postal-form-card:hover {
-        transform: scale(1.05);
-      }
-      .postal-form-badge {
-        margin-bottom: 12px;
-      }
-      .postal-form-badge span {
-        background: #22D3EE;
-        color: white;
-        border-radius: 9999px;
-        padding: 4px 12px;
-        font-size: 12px;
-        font-weight: 500;
-        display: inline-block;
-      }
-      .postal-form-title {
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 16px;
-        text-align: center;
-        color: #1F2937;
-      }
-      .postal-form-inputs {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-      .postal-form-inputs input {
-        width: 100%;
-        border: 2px solid #FCD34D;
-        border-radius: 8px;
-        padding: 12px 16px;
-        text-align: center;
-        font-size: 16px;
-        outline: none;
-        background: #EFF6FF;
-      }
-      .postal-form-inputs input:focus {
-        border-color: #F59E0B;
-      }
-      .postal-form-inputs button {
-        width: 100%;
-        background: linear-gradient(135deg, #3B82F6, #2563EB);
-        color: white;
-        padding: 12px;
-        border-radius: 8px;
-        font-weight: bold;
-        font-size: 16px;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        transition: all 0.3s;
-      }
-      .postal-form-inputs button:hover {
-        background: linear-gradient(135deg, #2563EB, #1D4ED8);
-      }
-      .postal-form-note {
-        text-align: center;
-        font-size: 12px;
-        color: #4B5563;
-        margin: 0;
-      }
-      @media (max-width: 767px) {
-        .postal-form-card {
-          max-width: 100%;
-          padding: 16px;
+      @keyframes glow {
+        0%, 100% {
+          box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 0 0 40px rgba(59, 130, 246, 0.1);
+        }
+        50% {
+          box-shadow: 0 0 30px rgba(59, 130, 246, 0.5), 0 0 60px rgba(59, 130, 246, 0.2);
         }
       }
 
@@ -374,19 +298,27 @@
             <div class="mv__after__img">
               <img src="img/mv/Flipyx1.gif" alt="" />
             </div>
-            <!-- 郵便番号入力フォーム -->
-            <div id="postalFormSection" class="mv__after__form">
-              <div class="postal-form-card">
-                <div class="postal-form-badge">
-                  <span>かんたん10秒！</span>
+            <!-- 郵便番号入力フォーム（PC:やや右下、モバイル:下部中央固定） -->
+            <div id="postalFormSection" class="fixed bottom-0 left-0 right-0 md:left-1/2 md:right-auto md:bottom-24 md:translate-x-16 pb-4 md:pb-0 z-50">
+                <div class="bg-white rounded-xl shadow-2xl border-2 border-blue-300 p-6 w-96 mx-auto md:mx-0 transition-transform duration-300 hover:scale-105" style="animation: glow 3s ease-in-out infinite;">
+                    <div class="mb-3 flex items-center justify-between">
+                        <span class="bg-cyan-400 text-white rounded-full px-3 py-1 text-xs font-medium">かんたん10秒！</span>
+                    </div>
+                    <h2 class="text-lg font-bold mb-3 text-center whitespace-nowrap">
+                        郵便番号で今すぐ相場チェック！
+                    </h2>
+                    <div class="space-y-3">
+                        <input type="text" id="postalCode" placeholder="〒100-0001"
+                               class="w-full border-2 border-yellow-400 rounded-lg px-4 py-3 text-center text-base focus:outline-none focus:border-yellow-500 bg-blue-50">
+                        <button id="searchButton"
+                                class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 font-bold text-base flex items-center justify-center gap-2 transition-all">
+                            🔍 無料で相場を見る
+                        </button>
+                        <div class="flex items-center justify-center text-sm text-gray-600 gap-1">
+                            🔒 個人情報保護・SSL暗号化通信で安全
+                        </div>
+                    </div>
                 </div>
-                <h3 class="postal-form-title">郵便番号で今すぐ相場チェック！</h3>
-                <div class="postal-form-inputs">
-                  <input type="text" id="postalCode" placeholder="〒100-0001" maxlength="8" />
-                  <button id="searchButton" type="button">🔍 無料で相場を見る</button>
-                  <p class="postal-form-note">🔒 個人情報保護・SSL暗号化通信で安全</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
