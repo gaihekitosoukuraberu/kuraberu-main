@@ -546,19 +546,6 @@
                 console.log('🚀 BOT自動起動: keyword=' + keyword);
                 startBotSystem('keyword', keyword);
             });
-        } else {
-            // 通常の郵便番号フォーム生成
-            // ただし、既にpostalCodeとsearchButtonがある場合はスキップ
-            setTimeout(() => {
-                const existingPostalCode = document.getElementById('postalCode');
-                const existingSearchButton = document.getElementById('searchButton');
-
-                if (existingPostalCode && existingSearchButton) {
-                    console.log('✅ 既存の郵便番号フォームを使用します');
-                } else {
-                    createZipForm();
-                }
-            }, 500);
         }
 
         console.log('✅ 外壁塗装くらべる BOTローダー初期化完了');
