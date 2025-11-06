@@ -123,6 +123,18 @@
         -webkit-transform: scale(1) !important;
         transform: scale(1) !important;
         transform-origin: top left !important;
+        font-size: 16px !important;
+      }
+
+      #gaiheki-bot-container * {
+        font-size: inherit;
+        zoom: 1;
+      }
+
+      #botParentContainer {
+        max-width: 100vw !important;
+        width: 100% !important;
+        margin: 0 !important;
       }
     </style>
   </head>
@@ -922,7 +934,7 @@
     <!-- BOTコンテナ（estimate-keep-system統合） -->
     <div id="gaiheki-bot-container" style="display: none;">
     <!-- メインコンテンツ（BOT + ランキング） -->
-    <div id="botParentContainer" class="max-w-6xl mx-auto px-4 space-y-6 pb-32">
+    <div id="botParentContainer" class="w-full px-4 space-y-6 pb-32" style="max-width: 100vw; margin: 0; font-size: 16px;">
         <!-- 見積もりボタン（固定位置・白背景） -->
         <div id="estimateBtnContainer" class="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 py-4 z-[9999] hidden">
             <div class="max-w-6xl mx-auto px-4 text-center">
@@ -1533,6 +1545,10 @@
         // BOTコンテナを表示
         const botContainer = document.getElementById('gaiheki-bot-container');
         if (botContainer) {
+            // htmlとbodyのフォントサイズをリセット
+            document.documentElement.style.fontSize = '16px';
+            document.body.style.fontSize = '16px';
+
             botContainer.style.display = 'block';
             botContainer.style.position = 'fixed';
             botContainer.style.top = '0';
@@ -1545,6 +1561,7 @@
             botContainer.style.zoom = '1';
             botContainer.style.transform = 'scale(1)';
             botContainer.style.transformOrigin = 'top left';
+            botContainer.style.fontSize = '16px';
         }
 
         // BOTシステムを起動
@@ -1584,6 +1601,10 @@
                 // BOTコンテナを表示
                 const botContainer = document.getElementById('gaiheki-bot-container');
                 if (botContainer) {
+                    // htmlとbodyのフォントサイズをリセット
+                    document.documentElement.style.fontSize = '16px';
+                    document.body.style.fontSize = '16px';
+
                     botContainer.style.display = 'block';
                     botContainer.style.position = 'fixed';
                     botContainer.style.top = '0';
@@ -1596,6 +1617,7 @@
                     botContainer.style.zoom = '1';
                     botContainer.style.transform = 'scale(1)';
                     botContainer.style.transformOrigin = 'top left';
+                    botContainer.style.fontSize = '16px';
                 }
 
                 // BOTシステムを起動
