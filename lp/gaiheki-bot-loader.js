@@ -519,10 +519,10 @@
         // BOTスクリプト読み込み
         loadBotScripts();
 
-        // 郵便番号フォーム生成
-        setTimeout(() => {
-            createZipForm();
-        }, 500);
+        // 郵便番号フォーム生成（LPには既存フォームがあるためコメントアウト）
+        // setTimeout(() => {
+        //     createZipForm();
+        // }, 500);
 
         // LP の既存郵便番号フォームに対応
         const lpPostalCode = document.getElementById('postalCode');

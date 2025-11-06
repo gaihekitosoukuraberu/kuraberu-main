@@ -95,6 +95,24 @@ const BotCore = {
         // 状態設定
         BotConfig.setZipEntry(zipcode);
 
+        // 地域名の更新
+        if (typeof window.getAreaFromPostalCode === 'function') {
+            const areaInfo = window.getAreaFromPostalCode(zipcode);
+            const areaText = `${areaInfo}の相場`;
+            const areaName = document.getElementById('areaName');
+            if (areaName) {
+                areaName.textContent = areaText;
+                console.log('✅ areaName更新:', areaText);
+            }
+            // 相場セクションを表示
+            const priceSection = document.getElementById('priceSection');
+            if (priceSection) {
+                priceSection.style.display = 'block';
+                priceSection.classList.remove('hidden');
+                console.log('✅ 相場セクション表示');
+            }
+        }
+
         // UI初期化を確実に実行（Safari対応）
         if (!BotUI.elements.messages) {
             BotUI.init();

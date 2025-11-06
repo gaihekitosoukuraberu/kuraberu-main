@@ -1647,6 +1647,174 @@
     <script src="js/validate.js"></script>
     <!--//java script-->
 
+    <!-- BOT用ヘルパー関数 -->
+    <script>
+        // スクロール関数
+        function scrollToBotBottom() {
+            const messages = document.getElementById('messages');
+            if (messages) {
+                messages.scrollTop = messages.scrollHeight;
+            }
+        }
+
+        // 電話番号入力ミニフォーム表示
+        function showPhoneMiniForm() {
+            const messages = document.getElementById('messages');
+            if (!messages) return;
+
+            // AIメッセージコンテナを作成
+            const aiMessageContainer = document.createElement('div');
+            aiMessageContainer.className = 'ai-message-container new-message';
+            aiMessageContainer.innerHTML = `
+                <img src="images/avatars/319260ba-0b3d-47d0-b18f-abf530c2793e.png" alt="AI" class="ai-avatar">
+                <div class="ai-message">
+                    現在、いただいた条件にて検索しております。<br>
+                    30秒ほどかかりますので、完了までに送付先の入力をお願いします。
+                </div>
+            `;
+            messages.appendChild(aiMessageContainer);
+            scrollToBotBottom();
+
+            // フォームを作成
+            setTimeout(() => {
+                const formContainer = document.createElement('div');
+                formContainer.className = 'phone-mini-form';
+                formContainer.innerHTML = `
+                    <div class="form-title">
+                        電話番号（ショートメッセージ）
+                    </div>
+                    <div class="phone-input-wrapper">
+                        <input type="tel" id="phoneInput" class="phone-input"
+                               placeholder="08012345678"
+                               maxlength="11"
+                               inputmode="numeric"
+                               pattern="[0-9]*">
+                    </div>
+                    <div class="phone-error" id="phoneError">
+                        正しい電話番号を入力してください
+                    </div>
+                    <button id="phoneSubmitBtn" class="phone-submit-btn" disabled>
+                        結果を受け取る
+                    </button>
+                `;
+                messages.appendChild(formContainer);
+                scrollToBotBottom();
+
+                // イベントリスナー設定
+                setupPhoneFormListeners();
+            }, 500);
+        }
+
+        // 電話番号フォームのイベントリスナー設定
+        function setupPhoneFormListeners() {
+            const phoneInput = document.getElementById('phoneInput');
+            const submitBtn = document.getElementById('phoneSubmitBtn');
+            const phoneError = document.getElementById('phoneError');
+
+            if (!phoneInput || !submitBtn || !phoneError) return;
+
+            // 入力イベント
+            phoneInput.addEventListener('input', function(e) {
+                // 数字のみ許可
+                this.value = this.value.replace(/[^0-9]/g, '');
+
+                // バリデーション
+                if (validatePhone(this.value)) {
+                    submitBtn.disabled = false;
+                    phoneError.classList.remove('show');
+                } else {
+                    submitBtn.disabled = true;
+                    if (this.value.length >= 10) {
+                        phoneError.classList.add('show');
+                    }
+                }
+            });
+
+            // 送信ボタンクリック
+            submitBtn.addEventListener('click', function() {
+                const phone = phoneInput.value;
+                if (validatePhone(phone)) {
+                    submitPhoneNumber(phone);
+                }
+            });
+
+            // Enterキーで送信
+            phoneInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !submitBtn.disabled) {
+                    submitBtn.click();
+                }
+            });
+        }
+
+        // 電話番号バリデーション
+        function validatePhone(phone) {
+            return /^0[0-9]{9,10}$/.test(phone);
+        }
+
+        // 電話番号送信処理
+        function submitPhoneNumber(phone) {
+            // 電話番号を保存
+            localStorage.setItem('userPhone', phone);
+
+            // フォームを非表示
+            const formElements = document.querySelectorAll('.phone-mini-form');
+            formElements.forEach(el => {
+                el.style.opacity = '0.5';
+                const btn = el.querySelector('button');
+                const input = el.querySelector('input');
+                if (btn) btn.disabled = true;
+                if (input) input.disabled = true;
+            });
+
+            // 完了メッセージ表示とランキング解除
+            setTimeout(() => {
+                const messages = document.getElementById('messages');
+
+                // モザイクを解除
+                const rankingContent = document.getElementById('rankingContent');
+                const mosaicMessage = document.getElementById('mosaicMessage');
+                if (rankingContent) rankingContent.classList.remove('mosaic');
+                if (mosaicMessage) mosaicMessage.style.display = 'none';
+
+                // 完了メッセージ
+                const aiMessageContainer = document.createElement('div');
+                aiMessageContainer.className = 'ai-message-container new-message';
+                aiMessageContainer.innerHTML = `
+                    <img src="images/avatars/319260ba-0b3d-47d0-b18f-abf530c2793e.png" alt="AI" class="ai-avatar">
+                    <div class="ai-message">
+                        分析が完了しました！<br>
+                        あなたの条件に最適な業者をランキング形式でご紹介します。
+                    </div>
+                `;
+                messages.appendChild(aiMessageContainer);
+                scrollToBotBottom();
+
+                updateProgress(100);
+            }, 1000);
+        }
+
+        // 進捗更新
+        function updateProgress(percentage) {
+            // デスクトップ版
+            const progressPercentage = document.getElementById('progressPercentage');
+            const progressBar = document.getElementById('progressBar');
+            if (progressPercentage) progressPercentage.textContent = percentage + '%';
+            if (progressBar) {
+                progressBar.style.width = percentage + '%';
+                progressBar.style.background = 'linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%)';
+            }
+
+            // モバイル版
+            const mobileProgressPercentage = document.getElementById('mobileProgressPercentage');
+            const mobileProgressBar = document.getElementById('mobileProgressBarFill');
+            if (mobileProgressPercentage) mobileProgressPercentage.textContent = percentage + '%';
+            if (mobileProgressBar) {
+                mobileProgressBar.style.width = percentage + '%';
+                mobileProgressBar.style.background = 'linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%)';
+            }
+        }
+    </script>
+
     <!-- 外壁塗装くらべる BOTシステム -->
     <script src="gaiheki-bot-loader.js"></script>
   </body>

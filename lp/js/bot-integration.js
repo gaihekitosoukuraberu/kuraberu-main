@@ -263,28 +263,20 @@ function showPostalFormInBot() {
     });
 }
 
-// PHONE分岐：既存システムへの接続
+// PHONE分岐：電話番号フォーム表示
 function connectToExistingPhoneForm() {
     // BOTを一時停止
     BotConfig.state.botActive = false;
 
-    // AIメッセージで誘導
-    showAIMessage('ありがとうございました！それでは最適な業者をご紹介するため、最後に電話番号を教えていただけますか？');
-
     // 選択肢をクリア
     document.getElementById('choices').innerHTML = '';
 
-    // 既存のphone-form.jsのshowPhoneInputForm()を呼び出す
+    // showPhoneMiniForm()を呼び出す（index.htmlで定義）
     setTimeout(() => {
-        if (typeof window.showPhoneInputForm === 'function') {
-            window.showPhoneInputForm();
+        if (typeof window.showPhoneMiniForm === 'function') {
+            window.showPhoneMiniForm();
         } else {
-            // フォールバック：直接phoneSection表示
-            const phoneSection = document.getElementById('phoneSection');
-            if (phoneSection) {
-                phoneSection.style.display = 'block';
-                phoneSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+            console.error('❌ showPhoneMiniForm が見つかりません');
         }
-    }, 1000);
+    }, 500);
 }
