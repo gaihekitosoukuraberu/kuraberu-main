@@ -27,112 +27,94 @@
     <link rel="stylesheet" href="css/default.css" />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/style_sp.css" />
+    <!-- Tailwind CSS (BOTシステム用) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 郵便番号フォームのスタイル -->
     <style>
-        /* BOTシステム用CSS（estimate-keep-systemから） */
-
-        /* 郵便番号フォーム 光るアニメーション */
-        @keyframes glow {
-            0%, 100% {
-                box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 0 0 40px rgba(59, 130, 246, 0.1);
-            }
-            50% {
-                box-shadow: 0 0 30px rgba(59, 130, 246, 0.5), 0 0 60px rgba(59, 130, 246, 0.2);
-            }
+      .mv__after__form {
+        margin-top: 20px;
+      }
+      .postal-form-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        border: 2px solid #93C5FD;
+        padding: 24px;
+        max-width: 400px;
+        margin: 0 auto;
+        transition: transform 0.3s;
+      }
+      .postal-form-card:hover {
+        transform: scale(1.05);
+      }
+      .postal-form-badge {
+        margin-bottom: 12px;
+      }
+      .postal-form-badge span {
+        background: #22D3EE;
+        color: white;
+        border-radius: 9999px;
+        padding: 4px 12px;
+        font-size: 12px;
+        font-weight: 500;
+        display: inline-block;
+      }
+      .postal-form-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 16px;
+        text-align: center;
+        color: #1F2937;
+      }
+      .postal-form-inputs {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .postal-form-inputs input {
+        width: 100%;
+        border: 2px solid #FCD34D;
+        border-radius: 8px;
+        padding: 12px 16px;
+        text-align: center;
+        font-size: 16px;
+        outline: none;
+        background: #EFF6FF;
+      }
+      .postal-form-inputs input:focus {
+        border-color: #F59E0B;
+      }
+      .postal-form-inputs button {
+        width: 100%;
+        background: linear-gradient(135deg, #3B82F6, #2563EB);
+        color: white;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 16px;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.3s;
+      }
+      .postal-form-inputs button:hover {
+        background: linear-gradient(135deg, #2563EB, #1D4ED8);
+      }
+      .postal-form-note {
+        text-align: center;
+        font-size: 12px;
+        color: #4B5563;
+        margin: 0;
+      }
+      @media (max-width: 767px) {
+        .postal-form-card {
+          max-width: 100%;
+          padding: 16px;
         }
-
-        /* AIメッセージ */
-        .ai-message {
-            background: linear-gradient(135deg, #7B9BF0 0%, #9EBDFD 100%);
-            color: white;
-            border-radius: 24px 24px 24px 4px;
-            padding: 16px 20px;
-            margin: 0;
-            margin-left: -4px;
-            max-width: 80%;
-            word-wrap: break-word;
-            font-size: 16px;
-            line-height: 1.6;
-            font-weight: 400;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-            position: relative;
-        }
-
-        .ai-message-container {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            margin: 20px 0;
-            padding-left: 12px;
-        }
-
-        .ai-avatar {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            object-fit: cover;
-            flex-shrink: 0;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-
-        /* モバイル用調整 */
-        @media (max-width: 640px) {
-            .ai-avatar {
-                width: 48px;
-                height: 48px;
-            }
-        }
-
-        /* ユーザーメッセージ */
-        .user-message {
-            background: #F5F5F5;
-            color: #2D3748;
-            border-radius: 24px 24px 4px 24px;
-            padding: 16px 20px;
-            margin: 20px 0;
-            max-width: 80%;
-            margin-left: auto;
-            font-size: 16px;
-            line-height: 1.6;
-            font-weight: 400;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        }
-
-        /* アニメーション */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* モザイク */
-        .mosaic {
-            filter: blur(8px);
-            transition: filter 0.5s ease;
-        }
-
-        /* 通知バッジ */
-        .notification-badge {
-            position: absolute;
-            top: -12px;
-            right: -12px;
-            background: #EF4444;
-            color: white;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            font-weight: bold;
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
-        }
+      }
     </style>
   </head>
   <body>
@@ -216,6 +198,20 @@
           <div class="mv__after">
             <div class="mv__after__img">
               <img src="img/mv/Flipyx1.gif" alt="" />
+            </div>
+            <!-- 郵便番号入力フォーム -->
+            <div id="postalFormSection" class="mv__after__form">
+              <div class="postal-form-card">
+                <div class="postal-form-badge">
+                  <span>かんたん10秒！</span>
+                </div>
+                <h3 class="postal-form-title">郵便番号で今すぐ相場チェック！</h3>
+                <div class="postal-form-inputs">
+                  <input type="text" id="postalCode" placeholder="〒100-0001" maxlength="8" />
+                  <button id="searchButton" type="button">🔍 無料で相場を見る</button>
+                  <p class="postal-form-note">🔒 個人情報保護・SSL暗号化通信で安全</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -914,206 +910,117 @@
     </div>
     <!-- // wrapper -->
 
-    <!-- BOTシステムコンテナ（estimate-keep-systemから、wrapper外に配置） -->
-    <div id="gaiheki-bot-container" class="max-w-6xl mx-auto px-4 space-y-6 pb-32" style="display: none;">
-      <!-- 見積もりボタン（固定位置） -->
-      <div id="estimateBtnContainer" class="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 py-4 z-[9999] hidden">
-        <div class="max-w-6xl mx-auto px-4 text-center">
-          <button onclick="showKeepModal();" class="bg-orange-400 hover:bg-orange-500 text-white font-bold py-4 px-20 rounded-full text-lg transition-all relative inline-flex items-center justify-center shadow-lg">
-            無料見積もり
-            <span class="notification-badge">0</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- 相場表示 -->
-      <div id="priceSection" class="hidden">
-        <div class="bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-2xl shadow-xl p-1">
-          <div class="bg-white rounded-xl p-4 md:p-6">
-            <div class="flex items-center justify-between gap-2 mb-4">
-              <div class="flex items-center gap-2 flex-1 min-w-0">
-                <svg class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-                <h2 class="text-sm md:text-xl font-bold text-gray-800 truncate" id="areaName">検索中...</h2>
-              </div>
-              <span class="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0">AI診断済み</span>
-            </div>
-            <div class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-xl p-4 md:p-6 border border-blue-100">
-              <div class="text-center">
-                <p class="text-xs md:text-sm font-medium text-gray-600 mb-3">戸建て2階建て（延床30坪・築25年）の場合</p>
-                <div class="flex items-center justify-center gap-2 md:gap-3 mb-3 whitespace-nowrap">
-                  <div class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">60万円</div>
-                  <span class="text-xl md:text-2xl text-gray-400">〜</span>
-                  <div class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">180万円</div>
-                </div>
-                <p class="text-xs text-gray-500 flex items-center justify-center gap-1 flex-wrap">
-                  <svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-                  </svg>
-                  <span>建物の状態・使用材料により価格は変動します</span>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- BOT + ランキング -->
-      <div id="mainContentContainer" class="hidden flex flex-col md:flex-row md:gap-6 md:space-y-0 space-y-6 md:h-[800px] relative mb-16">
-        <!-- AIチャットボット -->
-        <div id="chatSection" class="bg-white rounded-xl shadow-lg p-4 md:p-6 min-h-[500px] md:h-full md:w-1/2 order-1 md:order-2 overflow-y-auto">
-          <div id="messages"></div>
-          <div id="choices" class="choices-container space-y-2 mt-4"></div>
-          <div id="typingIndicator" class="flex items-center text-gray-500 text-sm mt-4 hidden">
-            <div class="flex space-x-1 mr-2">
-              <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-              <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-              <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ランキングセクション -->
-        <div id="rankingSection" class="ranking-section bg-blue-50 rounded-xl shadow-lg p-2 md:p-3 relative md:w-1/2 order-2 md:order-1 md:h-full md:flex md:flex-col" data-theme="blue">
-          <h2 id="rankingTitle" class="text-lg font-bold mb-3">おすすめ業者ランキング</h2>
-          <div id="mosaicMessage" class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-            <div class="bg-white rounded-lg p-8 text-center shadow-lg">
-              <div class="text-blue-500 mb-4">
-                <svg class="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
-                </svg>
-              </div>
-              <h3 class="text-base font-bold mb-3 text-blue-600">オリジナル業者ランキング！</h3>
-              <div class="text-gray-600 mb-4 text-xs space-y-1">
-                <p class="flex items-start"><span class="text-green-500 mr-1">✅</span><span>AIの質問に答えてあなただけの条件にマッチ！</span></p>
-                <p class="flex items-start"><span class="text-green-500 mr-1">✅</span><span>過去のデータに基づいた実績ランキング！</span></p>
-                <p class="flex items-start"><span class="text-green-500 mr-1">✅</span><span>完全無料で４社まで見積もり依頼可能！</span></p>
-              </div>
-              <div id="progressMeter" class="mb-4 hidden">
-                <div class="flex justify-end text-xs text-gray-500 mb-1"><span id="progressPercentage">0%</span></div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                  <div id="progressBar" style="height: 8px; border-radius: 9999px; width: 0%; background: transparent; transition: all 0.5s;"></div>
-                </div>
-                <p class="text-xs text-blue-600 mt-2 font-medium">AIチャットの質問に答えて下さい</p>
-              </div>
-            </div>
-          </div>
-          <div id="rankingContent" class="mosaic relative md:flex-1 md:flex md:flex-col overflow-hidden">
-            <p class="text-center text-gray-500 mt-8">ランキングはAI診断後に表示されます</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- BOTコンテナ（estimate-keep-system統合） -->
+    <div id="gaiheki-bot-container" style="display: none;"></div>
 
     <!--java script-->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <!-- <script src="js/delay_anim.js"></script> -->
     <script src="js/function.js"></script>
     <script src="js/validate.js"></script>
     <!--//java script-->
 
-    <!-- 外壁塗装くらべる BOTシステム（直接統合） -->
+    <!-- 外壁塗装くらべる BOTシステム（DOM統合） -->
+    <script src="https://gaihekikuraberu.com/estimate-keep-system/gaiheki-bot-loader.js"></script>
     <script>
-    // BOTフローデータ定義
-    window.BOT_FLOW_DATA = {
-        version: "1.0.0",
-        mainQuestions: {
-            "Q001": {
-                "text": "お住まいは戸建て2階建てですか？",
-                "choices": ["はい", "いいえ"],
-                "branches": ["Q003", "Q002"],
-                "stage": 1
-            },
-            "Q002": {
-                "text": "お住まいの建物種別を教えてください",
-                "choices": ["戸建て3階建て", "マンション・アパート", "店舗・事務所"],
-                "branches": ["Q003", "Q004", "Q004"],
-                "stage": 1
-            },
-            "Q003": {
-                "text": "築年数を教えてください",
-                "choices": ["10年未満", "10〜15年", "15〜20年", "20年以上"],
-                "branches": ["Q004", "Q004", "Q004", "Q004"],
-                "stage": 2
-            },
-            "Q004": {
-                "text": "外壁の素材は何ですか？",
-                "choices": ["窯業サイディング", "モルタル", "金属サイディング", "わからない"],
-                "branches": ["Q005", "Q005", "Q005", "Q005"],
-                "stage": 2
-            },
-            "Q005": {
-                "text": "ご希望の工事内容を教えてください",
-                "choices": ["外壁塗装のみ", "外壁+屋根塗装", "屋根塗装のみ", "まだ決めていない"],
-                "branches": ["Q006", "Q006", "Q006", "Q006"],
-                "stage": 3
-            },
-            "Q006": {
-                "text": "見積もりの比較はされていますか？",
-                "choices": ["まだ取っていない", "1社のみ", "2〜3社", "4社以上"],
-                "branches": ["PHONE", "PHONE", "PHONE", "PHONE"],
-                "stage": 4
-            }
-        },
-        entryScenarios: {}
-    };
+    // BOTシステムの初期化を待つ
+    function waitForBotSystem() {
+        return new Promise((resolve) => {
+            const checkInterval = setInterval(() => {
+                if (window.BotCore && window.BotCore.init) {
+                    clearInterval(checkInterval);
+                    resolve();
+                }
+            }, 100);
+        });
+    }
 
-    // キーワードボタン用の関数
-    function startScenario(keyword) {
+    // ワードリンクからBOT起動
+    async function startScenario(keyword) {
         console.log('🔗 シナリオ開始:', keyword);
-        // gaiheki-bot-loader.jsのstartScenario関数を呼び出す
-        if (typeof window.startScenario === 'function') {
-            window.startScenario(keyword);
+
+        // LPコンテンツを非表示
+        const wrapper = document.querySelector('.wrapper');
+        if (wrapper) wrapper.style.display = 'none';
+
+        // BOTコンテナを表示
+        const botContainer = document.getElementById('gaiheki-bot-container');
+        if (botContainer) {
+            botContainer.style.display = 'block';
+            botContainer.style.position = 'fixed';
+            botContainer.style.top = '0';
+            botContainer.style.left = '0';
+            botContainer.style.width = '100%';
+            botContainer.style.height = '100%';
+            botContainer.style.background = 'white';
+            botContainer.style.zIndex = '9999';
+            botContainer.style.overflow = 'auto';
+        }
+
+        // BOTシステムを起動
+        await waitForBotSystem();
+        if (window.BotCore) {
+            await window.BotCore.init();
+            window.BotCore.startFromKeywordEntry(keyword);
         }
     }
-    </script>
 
-    <!-- BOT_FLOW_DATA定義（estimate-keep-systemから） -->
-    <script>
-    window.BOT_FLOW_DATA = {
-        version: "1.0.0",
-        mainQuestions: {
-            "Q001": {
-                "text": "お住まいは戸建て2階建てですか？",
-                "choices": ["はい", "いいえ"],
-                "branches": ["Q003", "Q002"],
-                "stage": 1
-            },
-            "Q002": {
-                "text": "お住まいの建物種別を教えてください",
-                "choices": ["戸建て3階建て", "マンション・アパート", "店舗・事務所"],
-                "branches": ["Q003", "Q004", "Q004"],
-                "stage": 1
-            },
-            "Q003": {
-                "text": "築年数を教えてください",
-                "choices": ["10年未満", "10〜15年", "15〜20年", "20年以上"],
-                "branches": ["Q004", "Q004", "Q004", "Q004"],
-                "stage": 2
-            },
-            "Q004": {
-                "text": "外壁の素材は何ですか？",
-                "choices": ["窯業サイディング", "モルタル", "金属サイディング", "わからない"],
-                "branches": ["Q005", "Q005", "Q005", "Q005"],
-                "stage": 2
-            },
-            "Q005": {
-                "text": "ご希望の工事内容を教えてください",
-                "choices": ["外壁塗装のみ", "外壁+屋根塗装", "屋根塗装のみ", "まだ決めていない"],
-                "branches": ["Q006", "Q006", "Q006", "Q006"],
-                "stage": 3
-            },
-            "Q006": {
-                "text": "見積もりの比較はされていますか？",
-                "choices": ["まだ取っていない", "1社のみ", "2〜3社", "4社以上"],
-                "branches": ["PHONE", "PHONE", "PHONE", "PHONE"],
-                "stage": 4
-            }
-        },
-        entryScenarios: {}
-    };
-    console.log('✅ BOT_FLOW_DATA定義完了:', window.BOT_FLOW_DATA.version);
+    // 郵便番号入力フォーム
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchButton = document.getElementById('searchButton');
+        const postalCode = document.getElementById('postalCode');
+
+        if (searchButton && postalCode) {
+            // 検索ボタンクリック
+            searchButton.addEventListener('click', async function() {
+                const postal = postalCode.value.trim();
+
+                if (!postal) {
+                    alert('郵便番号を入力してください');
+                    return;
+                }
+
+                if (!postal.match(/^\d{3}-?\d{4}$/)) {
+                    alert('正しい郵便番号を入力してください（例：100-0001）');
+                    return;
+                }
+
+                console.log('📍 郵便番号入力:', postal);
+
+                // LPコンテンツを非表示
+                const wrapper = document.querySelector('.wrapper');
+                if (wrapper) wrapper.style.display = 'none';
+
+                // BOTコンテナを表示
+                const botContainer = document.getElementById('gaiheki-bot-container');
+                if (botContainer) {
+                    botContainer.style.display = 'block';
+                    botContainer.style.position = 'fixed';
+                    botContainer.style.top = '0';
+                    botContainer.style.left = '0';
+                    botContainer.style.width = '100%';
+                    botContainer.style.height = '100%';
+                    botContainer.style.background = 'white';
+                    botContainer.style.zIndex = '9999';
+                    botContainer.style.overflow = 'auto';
+                }
+
+                // BOTシステムを起動
+                await waitForBotSystem();
+                if (window.BotCore) {
+                    await window.BotCore.init();
+                    window.BotCore.startFromZipEntry(postal);
+                }
+            });
+
+            // Enterキー対応
+            postalCode.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchButton.click();
+                }
+            });
+        }
+    });
     </script>
   </body>
 </html>
