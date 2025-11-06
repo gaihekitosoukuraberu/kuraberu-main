@@ -136,6 +136,160 @@
         width: 100% !important;
         margin: 0 !important;
       }
+
+      /* estimate-keep-system BOT CSS */
+      .ai-message {
+        background: linear-gradient(135deg, #7B9BF0 0%, #9EBDFD 100%);
+        color: white;
+        border-radius: 24px 24px 24px 4px;
+        padding: 16px 20px;
+        margin: 0;
+        margin-left: -4px;
+        max-width: 80%;
+        word-wrap: break-word;
+        font-size: 16px;
+        line-height: 1.6;
+        font-weight: 400;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        position: relative;
+      }
+
+      .ai-message-container {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin: 20px 0;
+        padding-left: 12px;
+      }
+
+      .ai-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      }
+
+      .user-message {
+        background: #F5F5F5;
+        color: #2D3748;
+        border-radius: 24px 24px 4px 24px;
+        padding: 16px 20px;
+        margin: 20px 0;
+        max-width: 80%;
+        margin-left: auto;
+        font-size: 16px;
+        line-height: 1.6;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      }
+
+      .choice-btn {
+        border: 2px solid #E2E8F0;
+        background: white;
+        color: #4A5568;
+        padding: 16px 20px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        margin: 4px 0;
+        min-height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        text-align: left;
+      }
+
+      .choice-btn:hover {
+        background: #F7FAFC;
+        border-color: #7B9BF0;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(123, 155, 240, 0.15);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* 重要：モザイク効果 */
+      .mosaic {
+        filter: blur(8px);
+        transition: filter 0.5s ease;
+      }
+
+      /* 電話番号入力フォーム */
+      .phone-mini-form {
+        background: linear-gradient(135deg, #E0F2FE, #BAE6FD);
+        border-radius: 16px;
+        padding: 24px;
+        margin: 20px 0;
+      }
+
+      .phone-input {
+        width: 100%;
+        padding: 12px;
+        font-size: 18px;
+        border: none;
+        outline: none;
+        text-align: center;
+        font-weight: 500;
+      }
+
+      /* キープボタン */
+      .keep-btn {
+        background: #FEF3C7;
+        color: #92400E;
+        transition: all 0.3s;
+      }
+
+      .keep-btn:hover {
+        background: #FDE68A;
+      }
+
+      .keep-btn.active {
+        background: #F59E0B;
+        color: white;
+        font-weight: 600;
+      }
+
+      .keep-btn.active .keep-text::before {
+        content: 'キープ中';
+      }
+
+      .keep-btn.active .keep-text > span {
+        display: none;
+      }
+
+      /* 通知バッジ */
+      .notification-badge {
+        position: absolute;
+        top: -12px;
+        right: -12px;
+        background: #EF4444;
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      /* ランキングテーマ */
+      .ranking-section[data-theme="blue"] {
+        background-color: #EBF8FF;
+      }
     </style>
   </head>
   <body>
