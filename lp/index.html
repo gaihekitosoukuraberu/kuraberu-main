@@ -5,7 +5,7 @@
     <title>【完全無料】外壁塗装くらべる</title>
     <meta name="description" content="日本一簡単で安全な外壁塗装比較サイト。まずは10秒AI診断から" />
     <meta name="keywords" content="外壁塗装, 見積もり比較, 最低価格, 訪問業者, 塗料, アフターフォロー, カラーシミュレーション, 助成金, 補修, カバー工法, 屋根材, 遮熱, 断熱, タイミング, 防音" />
-    <meta name="viewport" content="width=device-width" id="viewport" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" id="viewport" />
     <meta name="format-detection" content="telephone=no" />
     <!-- OGP -->
     <meta property="og:url" content="https://gaihekikuraberu.com/lp/" />
@@ -114,6 +114,15 @@
           max-width: 100%;
           padding: 16px;
         }
+      }
+
+      /* BOTコンテナのズーム制御 */
+      #gaiheki-bot-container {
+        zoom: 1 !important;
+        -moz-transform: scale(1) !important;
+        -webkit-transform: scale(1) !important;
+        transform: scale(1) !important;
+        transform-origin: top left !important;
       }
     </style>
   </head>
@@ -1533,6 +1542,9 @@
             botContainer.style.background = 'white';
             botContainer.style.zIndex = '9999';
             botContainer.style.overflow = 'auto';
+            botContainer.style.zoom = '1';
+            botContainer.style.transform = 'scale(1)';
+            botContainer.style.transformOrigin = 'top left';
         }
 
         // BOTシステムを起動
@@ -1581,6 +1593,9 @@
                     botContainer.style.background = 'white';
                     botContainer.style.zIndex = '9999';
                     botContainer.style.overflow = 'auto';
+                    botContainer.style.zoom = '1';
+                    botContainer.style.transform = 'scale(1)';
+                    botContainer.style.transformOrigin = 'top left';
                 }
 
                 // BOTシステムを起動
