@@ -217,29 +217,9 @@
             <div class="mv__after__img">
               <img src="img/mv/Flipyx1.gif" alt="" />
             </div>
-            <!-- 郵便番号入力フォーム（estimate-keep-systemと同じ） -->
+            <!-- 郵便番号入力フォーム -->
             <div class="mv__after__form">
-                <div id="postalFormSection" class="pb-4 z-50" style="max-width: 400px; margin: 0 auto;">
-                    <div class="bg-white rounded-xl shadow-2xl border-2 border-blue-300 p-6 w-full mx-auto transition-transform duration-300 hover:scale-105" style="animation: glow 3s ease-in-out infinite;">
-                        <div class="mb-3 flex items-center justify-between">
-                            <span class="bg-cyan-400 text-white rounded-full px-3 py-1 text-xs font-medium">かんたん10秒！</span>
-                        </div>
-                        <h2 class="text-lg font-bold mb-3 text-center whitespace-nowrap">
-                            郵便番号で今すぐ相場チェック！
-                        </h2>
-                        <div class="space-y-3">
-                            <input type="text" id="postalCode" placeholder="〒100-0001"
-                                   class="w-full border-2 border-yellow-400 rounded-lg px-4 py-3 text-center text-base focus:outline-none focus:border-yellow-500 bg-blue-50">
-                            <button id="searchButton"
-                                    class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 font-bold text-base flex items-center justify-center gap-2 transition-all">
-                                🔍 無料で相場を見る
-                            </button>
-                            <div class="flex items-center justify-center text-sm text-gray-600 gap-1">
-                                🔒 個人情報保護・SSL暗号化通信で安全
-                            </div>
-                        </div>
-                    </div>
-                </div>
+              <div id="gaiheki-zip-form-target"></div>
             </div>
           </div>
         </div>
@@ -1091,65 +1071,6 @@
             window.startScenario(keyword);
         }
     }
-
-    // 郵便番号検索処理（estimate-keep-systemと同じ）
-    function handlePostalCodeSearch() {
-        const postalCode = document.getElementById('postalCode').value.trim();
-        if (!postalCode) {
-            alert('郵便番号を入力してください');
-            return;
-        }
-        if (!postalCode.match(/^\d{3}-?\d{4}$/)) {
-            alert('正しい郵便番号を入力してください（例：100-0001）');
-            return;
-        }
-
-        // 郵便番号フォームを非表示
-        const postalFormSection = document.getElementById('postalFormSection');
-        if (postalFormSection) {
-            postalFormSection.style.display = 'none';
-        }
-
-        // 進捗メーターを表示
-        const progressMeter = document.getElementById('progressMeter');
-        if (progressMeter) {
-            progressMeter.classList.remove('hidden');
-        }
-
-        // モバイル進捗バーを表示
-        const mobileProgressBar = document.getElementById('mobileProgressBar');
-        if (mobileProgressBar) {
-            mobileProgressBar.classList.remove('hidden');
-        }
-
-        // BOTシステムに接続
-        if (window.BotCore && typeof window.BotCore.startFromZipEntry === 'function') {
-            window.BotCore.startFromZipEntry(postalCode);
-        } else {
-            console.error('❌ BotCoreが読み込まれていません');
-        }
-    }
-
-    // イベントリスナー設定（DOMContentLoadedで実行）
-    document.addEventListener('DOMContentLoaded', function() {
-        // 検索ボタンイベント
-        const searchButton = document.getElementById('searchButton');
-        if (searchButton) {
-            searchButton.addEventListener('click', handlePostalCodeSearch);
-            console.log('✅ 郵便番号検索ボタンのイベントリスナー設定完了');
-        }
-
-        // Enterキー対応
-        const postalCode = document.getElementById('postalCode');
-        if (postalCode) {
-            postalCode.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    handlePostalCodeSearch();
-                }
-            });
-            console.log('✅ 郵便番号入力フォームのEnterキー対応設定完了');
-        }
-    });
     </script>
 
     <!-- BOT_FLOW_DATA定義（estimate-keep-systemから） -->
