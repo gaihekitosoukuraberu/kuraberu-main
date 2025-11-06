@@ -298,19 +298,19 @@
             <div class="mv__after__img">
               <img src="img/mv/Flipyx1.gif" alt="" />
             </div>
-            <!-- 郵便番号入力フォーム（PC:やや右下、モバイル:下部中央固定） -->
-            <div id="postalFormSection" class="fixed bottom-0 left-0 right-0 md:left-1/2 md:right-auto md:bottom-24 md:translate-x-16 pb-4 md:pb-0 z-50">
-                <div class="bg-white rounded-xl shadow-2xl border-2 border-blue-300 p-6 w-96 mx-auto md:mx-0 transition-transform duration-300 hover:scale-105" style="animation: glow 3s ease-in-out infinite;">
-                    <div class="mb-3 flex items-center justify-between">
+            <!-- 郵便番号入力フォーム -->
+            <div id="postalFormSection" class="mt-5">
+                <div class="bg-white rounded-xl shadow-2xl border-2 border-blue-300 p-6 max-w-sm mx-auto transition-transform duration-300 hover:scale-105" style="animation: glow 3s ease-in-out infinite;">
+                    <div class="mb-3">
                         <span class="bg-cyan-400 text-white rounded-full px-3 py-1 text-xs font-medium">かんたん10秒！</span>
                     </div>
-                    <h2 class="text-lg font-bold mb-3 text-center whitespace-nowrap">
+                    <h2 class="text-lg font-bold mb-3 text-center">
                         郵便番号で今すぐ相場チェック！
                     </h2>
                     <div class="space-y-3">
-                        <input type="text" id="postalCode" placeholder="〒100-0001"
+                        <input type="text" id="postalCode" placeholder="〒100-0001" maxlength="8"
                                class="w-full border-2 border-yellow-400 rounded-lg px-4 py-3 text-center text-base focus:outline-none focus:border-yellow-500 bg-blue-50">
-                        <button id="searchButton"
+                        <button id="searchButton" type="button"
                                 class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 font-bold text-base flex items-center justify-center gap-2 transition-all">
                             🔍 無料で相場を見る
                         </button>
