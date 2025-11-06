@@ -217,24 +217,26 @@
             <div class="mv__after__img">
               <img src="img/mv/Flipyx1.gif" alt="" />
             </div>
-            <!-- 郵便番号入力フォーム -->
+            <!-- 郵便番号入力フォーム（estimate-keep-systemと同じ） -->
             <div class="mv__after__form">
-                <div style="background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 2px solid #93C5FD; padding: 24px; max-width: 350px; margin: 0 auto; animation: glow 3s ease-in-out infinite;">
-                    <div style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
-                        <span style="background: #22D3EE; color: white; border-radius: 9999px; padding: 6px 16px; font-size: 13px; font-weight: 500;">かんたん10秒！</span>
-                    </div>
-                    <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 16px; text-align: center; color: #1F2937;">
-                        郵便番号で今すぐ相場チェック！
-                    </h2>
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                        <input type="text" id="gaihekiPostalCode" placeholder="例：100-0001"
-                               style="width: 100%; border: 2px solid #FCD34D; border-radius: 8px; padding: 12px 16px; text-align: center; font-size: 16px; outline: none; background: #EFF6FF;">
-                        <button id="gaihekiSearchButton"
-                                style="width: 100%; background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 16px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                            🔍 無料で相場を見る
-                        </button>
-                        <div style="display: flex; align-items: center; justify-content: center; font-size: 13px; color: #4B5563; gap: 4px;">
-                            🔒 個人情報保護・SSL暗号化通信で安全
+                <div id="postalFormSection" class="pb-4 z-50" style="max-width: 400px; margin: 0 auto;">
+                    <div class="bg-white rounded-xl shadow-2xl border-2 border-blue-300 p-6 w-96 mx-auto transition-transform duration-300 hover:scale-105" style="animation: glow 3s ease-in-out infinite;">
+                        <div class="mb-3 flex items-center justify-between">
+                            <span class="bg-cyan-400 text-white rounded-full px-3 py-1 text-xs font-medium">かんたん10秒！</span>
+                        </div>
+                        <h2 class="text-lg font-bold mb-3 text-center whitespace-nowrap">
+                            郵便番号で今すぐ相場チェック！
+                        </h2>
+                        <div class="space-y-3">
+                            <input type="text" id="postalCode" placeholder="〒100-0001"
+                                   class="w-full border-2 border-yellow-400 rounded-lg px-4 py-3 text-center text-base focus:outline-none focus:border-yellow-500 bg-blue-50">
+                            <button id="searchButton"
+                                    class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 font-bold text-base flex items-center justify-center gap-2 transition-all">
+                                🔍 無料で相場を見る
+                            </button>
+                            <div class="flex items-center justify-center text-sm text-gray-600 gap-1">
+                                🔒 個人情報保護・SSL暗号化通信で安全
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1081,83 +1083,6 @@
         entryScenarios: {}
     };
 
-    // 郵便番号フォーム処理
-    document.addEventListener('DOMContentLoaded', function() {
-        const postalInput = document.getElementById('gaihekiPostalCode');
-        const searchButton = document.getElementById('gaihekiSearchButton');
-
-        if (searchButton && postalInput) {
-            searchButton.addEventListener('click', function() {
-                const postalCode = postalInput.value.trim();
-
-                if (!postalCode) {
-                    alert('郵便番号を入力してください');
-                    return;
-                }
-
-                if (!postalCode.match(/^\d{3}-?\d{4}$/)) {
-                    alert('正しい郵便番号を入力してください（例：100-0001）');
-                    return;
-                }
-
-                // 郵便番号からハイフンを除去
-                const zip = postalCode.replace('-', '');
-                console.log('🎯 郵便番号送信:', zip);
-
-                // gaiheki-bot-loader.jsが生成した右下のフォームを削除
-                const autoGenForm = document.getElementById('gaiheki-zip-form-container');
-                if (autoGenForm) {
-                    autoGenForm.remove();
-                    console.log('✅ 自動生成フォームを削除');
-                }
-
-                // LPコンテンツを非表示
-                const wrapper = document.querySelector('.wrapper');
-                if (wrapper) {
-                    wrapper.style.display = 'none';
-                    console.log('✅ wrapperを非表示');
-                }
-
-                // BOTコンテナを表示
-                const botContainer = document.getElementById('gaiheki-bot-container');
-                if (botContainer) {
-                    botContainer.style.display = 'block';
-                    console.log('✅ gaiheki-bot-containerを表示');
-                }
-
-                // 相場セクションを表示
-                const priceSection = document.getElementById('priceSection');
-                if (priceSection) {
-                    priceSection.classList.remove('hidden');
-                    console.log('✅ priceSectionを表示');
-                }
-
-                // メインコンテンツを表示
-                const mainContent = document.getElementById('mainContentContainer');
-                if (mainContent) {
-                    mainContent.classList.remove('hidden');
-                    console.log('✅ mainContentContainerを表示');
-                }
-
-                // gaiheki-bot-loader.jsのstartFromZip関数を呼び出す
-                if (typeof window.startFromZip === 'function') {
-                    window.startFromZip(zip);
-                    console.log('✅ startFromZip呼び出し完了');
-                } else {
-                    console.error('❌ window.startFromZipが見つかりません');
-                    alert('BOTシステムの読み込みに失敗しました。ページを再読み込みしてください。');
-                }
-            });
-
-            // Enterキーでも送信
-            postalInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    searchButton.click();
-                }
-            });
-        }
-    });
-
     // キーワードボタン用の関数
     function startScenario(keyword) {
         console.log('🔗 シナリオ開始:', keyword);
@@ -1170,9 +1095,6 @@
 
     <!-- BOT_FLOW_DATA定義（estimate-keep-systemから） -->
     <script>
-    // LPモードフラグ（gaiheki-bot-loader.jsに郵便番号フォームを自動生成させない）
-    window.LP_MODE = true;
-
     window.BOT_FLOW_DATA = {
         version: "1.0.0",
         mainQuestions: {
@@ -1219,19 +1141,5 @@
     </script>
 
     <script src="https://gaihekikuraberu.com/estimate-keep-system/gaiheki-bot-loader.js"></script>
-
-    <!-- gaiheki-bot-loader.jsが自動生成するフォームを削除 -->
-    <script>
-    window.addEventListener('load', function() {
-        // 少し待ってから自動生成フォームを削除
-        setTimeout(function() {
-            const autoGenForm = document.getElementById('gaiheki-zip-form-container');
-            if (autoGenForm) {
-                autoGenForm.remove();
-                console.log('✅ 自動生成された右下フォームを削除しました');
-            }
-        }, 100);
-    });
-    </script>
   </body>
 </html>

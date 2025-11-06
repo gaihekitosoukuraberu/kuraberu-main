@@ -548,8 +548,16 @@
             });
         } else {
             // 通常の郵便番号フォーム生成
+            // ただし、既にpostalCodeとsearchButtonがある場合はスキップ
             setTimeout(() => {
-                createZipForm();
+                const existingPostalCode = document.getElementById('postalCode');
+                const existingSearchButton = document.getElementById('searchButton');
+
+                if (existingPostalCode && existingSearchButton) {
+                    console.log('✅ 既存の郵便番号フォームを使用します');
+                } else {
+                    createZipForm();
+                }
             }, 500);
         }
 
