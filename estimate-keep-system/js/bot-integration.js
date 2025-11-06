@@ -98,6 +98,27 @@ const BotUI = {
                 messages.scrollTop = messages.scrollHeight;
             }
         }
+    },
+
+    // カスタムフォーム表示（郵便番号、電話番号など）
+    showCustomForm(config) {
+        if (!this.elements.messages) this.init();
+
+        const formContainer = document.createElement('div');
+        formContainer.className = 'phone-mini-form';
+        formContainer.innerHTML = config.html;
+        this.elements.messages.appendChild(formContainer);
+        this.scrollToBottom();
+
+        // イベントリスナー設定
+        if (config.onSubmit) {
+            const submitBtn = formContainer.querySelector(config.submitSelector);
+            if (submitBtn) {
+                submitBtn.addEventListener('click', config.onSubmit);
+            }
+        }
+
+        return formContainer;
     }
 };
 

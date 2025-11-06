@@ -1171,49 +1171,27 @@
     <!-- ============================================ -->
     <!-- BOTフローデータ定義 -->
     <script>
-    window.BOT_FLOW_DATA = {
-        version: "1.0.0",
-        mainQuestions: {
-            "Q001": {
-                "text": "お住まいは戸建て2階建てですか？",
-                "choices": ["はい", "いいえ"],
-                "branches": ["Q003", "Q002"],
-                "stage": 1
-            },
-            "Q002": {
-                "text": "お住まいの建物種別を教えてください",
-                "choices": ["戸建て3階建て", "マンション・アパート", "店舗・事務所"],
-                "branches": ["Q003", "Q004", "Q004"],
-                "stage": 1
-            },
-            "Q003": {
-                "text": "築年数を教えてください",
-                "choices": ["10年未満", "10〜15年", "15〜20年", "20年以上"],
-                "branches": ["Q004", "Q004", "Q004", "Q004"],
-                "stage": 2
-            },
-            "Q004": {
-                "text": "外壁の素材は何ですか？",
-                "choices": ["窯業サイディング", "モルタル", "金属サイディング", "わからない"],
-                "branches": ["Q005", "Q005", "Q005", "Q005"],
-                "stage": 2
-            },
-            "Q005": {
-                "text": "ご希望の工事内容を教えてください",
-                "choices": ["外壁塗装のみ", "外壁+屋根塗装", "屋根塗装のみ", "まだ決めていない"],
-                "branches": ["Q006", "Q006", "Q006", "Q006"],
-                "stage": 3
-            },
-            "Q006": {
-                "text": "見積もりの比較はされていますか？",
-                "choices": ["まだ取っていない", "1社のみ", "2〜3社", "4社以上"],
-                "branches": ["PHONE", "PHONE", "PHONE", "PHONE"],
-                "stage": 4
+    // BOT_FLOW_DATAをJSONファイルから読み込み
+    (async function() {
+        try {
+            const response = await fetch('zip-word-bot.json?v=' + Date.now());
+            if (!response.ok) {
+                throw new Error('JSON読み込み失敗: ' + response.status);
             }
-        },
-        entryScenarios: {}
-    };
-    console.log('✅ BOT_FLOW_DATA定義完了:', window.BOT_FLOW_DATA.version);
+            window.BOT_FLOW_DATA = await response.json();
+            console.log('✅ BOT_FLOW_DATA読み込み完了:', window.BOT_FLOW_DATA.version);
+            console.log('📊 mainQuestions数:', Object.keys(window.BOT_FLOW_DATA.mainQuestions || {}).length);
+            console.log('📊 entryScenarios数:', Object.keys(window.BOT_FLOW_DATA.entryScenarios || {}).length);
+        } catch (error) {
+            console.error('❌ BOT_FLOW_DATA読み込みエラー:', error);
+            // フォールバック：最小限の定義
+            window.BOT_FLOW_DATA = {
+                version: "0.0.0-fallback",
+                mainQuestions: {},
+                entryScenarios: {}
+            };
+        }
+    })();
     </script>
     <!-- BOTスクリプトはgaiheki-bot-loader.jsが自動ロードします -->
 
