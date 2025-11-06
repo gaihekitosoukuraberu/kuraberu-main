@@ -1901,6 +1901,107 @@
                     break;
             }
         }
+
+        // キープ管理クラス
+        class KeepManager {
+            constructor() {
+                // リロード時は常に空の状態から開始
+                localStorage.removeItem('keeps');
+                this.keeps = [];
+            }
+
+            toggle(id, name, button) {
+                const keepData = { id, name };
+                const index = this.keeps.findIndex(k => k.id === id);
+
+                if (index > -1) {
+                    this.keeps.splice(index, 1);
+                    button.classList.remove('active');
+                } else {
+                    // 4社までの制限
+                    if (this.keeps.length >= 4) {
+                        alert('キープは最大4社までです');
+                        return;
+                    }
+                    this.keeps.push(keepData);
+                    button.classList.add('active');
+                }
+
+                this.save();
+                this.updateBadge();
+            }
+
+            save() {
+                localStorage.setItem('keeps', JSON.stringify(this.keeps));
+            }
+
+            updateBadge() {
+                const badges = document.querySelectorAll('.notification-badge');
+                const estimateBtnContainer = document.getElementById('estimateBtnContainer');
+
+                badges.forEach(badge => {
+                    badge.textContent = this.keeps.length;
+                });
+
+                if (estimateBtnContainer) {
+                    if (this.keeps.length > 0) {
+                        estimateBtnContainer.classList.remove('hidden');
+                    } else {
+                        estimateBtnContainer.classList.add('hidden');
+                    }
+                }
+            }
+
+            updateUI() {
+                this.updateBadge();
+
+                // キープボタンの状態を更新
+                document.querySelectorAll('.keep-btn').forEach(btn => {
+                    const onclickAttr = btn.getAttribute('onclick');
+                    if (onclickAttr) {
+                        const match = onclickAttr.match(/'([^']+)'/);
+                        if (match) {
+                            const btnId = match[1];
+                            const isKept = this.keeps.some(k => k.id === btnId);
+                            if (isKept) {
+                                btn.classList.add('active');
+                            } else {
+                                btn.classList.remove('active');
+                            }
+                        }
+                    }
+                });
+            }
+
+            getList() {
+                return this.keeps;
+            }
+        }
+
+        // キープマネージャーのインスタンス化
+        const keepManager = new KeepManager();
+
+        // モーダル表示
+        function showKeepModal() {
+            const modal = document.getElementById('keepModal');
+            const keepList = document.getElementById('keepList');
+            const keeps = keepManager.getList();
+
+            // キ���プリストを表示
+            keepList.innerHTML = keeps.map(keep => `
+                <div class="p-3 border rounded-lg flex items-center justify-between">
+                    <span class="font-medium">${keep.name}</span>
+                    <span class="text-sm text-gray-500">キープ中</span>
+                </div>
+            `).join('');
+
+            modal.classList.remove('hidden');
+        }
+
+        // モーダルを閉じる
+        function closeKeepModal() {
+            document.getElementById('keepModal').classList.add('hidden');
+        }
     </script>
 
     <!-- 外壁塗装くらべる BOTシステム -->
