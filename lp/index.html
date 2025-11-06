@@ -43,6 +43,9 @@
       /* 郵便番号フォーム: スマホでも同じサイズを保つ */
       #postalFormSectionLP {
         margin-top: 20px !important;
+        display: flex !important;
+        justify-content: center !important;
+        width: 100% !important;
       }
       #postalFormSectionLP > div {
         background: white !important;
@@ -57,10 +60,16 @@
         animation: glow 3s ease-in-out infinite !important;
       }
       @media (max-width: 767px) {
+        #postalFormSectionLP {
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+        }
         #postalFormSectionLP > div {
           width: 384px !important;
           padding: 24px !important;
           max-width: 384px !important;
+          margin: 0 !important;
         }
       }
 
