@@ -200,6 +200,54 @@
         margin: 20px 0;
       }
 
+      .waiting-animation {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        position: relative;
+        height: 120px;
+      }
+
+      .waiting-character {
+        width: 180px;
+        height: auto;
+        position: absolute;
+        opacity: 0;
+        animation: slideshow 3s infinite;
+      }
+
+      .waiting-character:nth-child(1) {
+        animation-delay: 0s;
+      }
+
+      .waiting-character:nth-child(2) {
+        animation-delay: 1s;
+      }
+
+      .waiting-character:nth-child(3) {
+        animation-delay: 2s;
+      }
+
+      @keyframes slideshow {
+        0% {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        10%, 30% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        40% {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+      }
+
       .phone-input {
         width: 100%;
         padding: 12px;
@@ -1680,6 +1728,11 @@
                 const formContainer = document.createElement('div');
                 formContainer.className = 'phone-mini-form';
                 formContainer.innerHTML = `
+                    <div class="waiting-animation">
+                        <img src="images/elderly-1.png" alt="待機中1" class="waiting-character">
+                        <img src="images/elderly-2.png" alt="待機中2" class="waiting-character">
+                        <img src="images/elderly-3.png" alt="待機中3" class="waiting-character">
+                    </div>
                     <div class="form-title">
                         電話番号（ショートメッセージ）
                     </div>
