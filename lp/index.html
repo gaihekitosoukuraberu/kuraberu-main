@@ -911,7 +911,585 @@
     <!-- // wrapper -->
 
     <!-- BOTコンテナ（estimate-keep-system統合） -->
-    <div id="gaiheki-bot-container" style="display: none;"></div>
+    <div id="gaiheki-bot-container" style="display: none;">
+    <!-- メインコンテンツ（BOT + ランキング） -->
+    <div id="botParentContainer" class="max-w-6xl mx-auto px-4 space-y-6 pb-32">
+        <!-- 見積もりボタン（固定位置・白背景） -->
+        <div id="estimateBtnContainer" class="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 py-4 z-[9999] hidden">
+            <div class="max-w-6xl mx-auto px-4 text-center">
+                <button onclick="showKeepModal();" class="bg-orange-400 hover:bg-orange-500 text-white font-bold py-4 px-20 rounded-full text-lg transition-all relative inline-flex items-center justify-center shadow-lg">
+                    無料見積もり
+                    <span class="notification-badge">0</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 相場表示 -->
+        <div id="priceSection" class="hidden">
+            <div class="bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-2xl shadow-xl p-1">
+                <div class="bg-white rounded-xl p-4 md:p-6">
+                    <div class="flex items-center justify-between gap-2 mb-4">
+                        <div class="flex items-center gap-2 flex-1 min-w-0">
+                            <svg class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <h2 class="text-sm md:text-xl font-bold text-gray-800 truncate" id="areaName">検索中...</h2>
+                        </div>
+                        <span class="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0">
+                            AI診断済み
+                        </span>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-xl p-4 md:p-6 border border-blue-100">
+                        <div class="text-center">
+                            <p class="text-xs md:text-sm font-medium text-gray-600 mb-3">
+                                戸建て2階建て（延床30坪・築25年）の場合
+                            </p>
+                            <div class="flex items-center justify-center gap-2 md:gap-3 mb-3 whitespace-nowrap">
+                                <div class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                    60万円
+                                </div>
+                                <span class="text-xl md:text-2xl text-gray-400">〜</span>
+                                <div class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                    180万円
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 flex items-center justify-center gap-1 flex-wrap">
+                                <svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>建物の状態・使用材料により価格は変動します</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOT + ランキング -->
+        <div id="mainContentContainer" class="hidden flex flex-col md:flex-row md:gap-6 md:space-y-0 space-y-6 md:h-[800px] relative mb-16">
+
+            <!-- AIチャットボット (右側) -->
+            <div id="chatSection" class="bg-white rounded-xl shadow-lg p-4 md:p-6 min-h-[500px] md:h-full md:w-1/2 order-1 md:order-2 overflow-y-auto">
+                <div id="messages"></div>
+
+                <!-- Choices area -->
+                <div id="choices" class="choices-container space-y-2 mt-4"></div>
+
+                <!-- Typing indicator -->
+                <div id="typingIndicator" class="flex items-center text-gray-500 text-sm mt-4 hidden">
+                    <div class="flex space-x-1 mr-2">
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ランキングセクション -->
+            <div id="rankingSection" class="ranking-section bg-blue-50 rounded-xl shadow-lg p-2 md:p-3 relative md:w-1/2 order-2 md:order-1 md:h-full md:flex md:flex-col" data-theme="blue">
+                <h2 id="rankingTitle" class="text-lg font-bold mb-3">おすすめ業者ランキング</h2>
+
+                <!-- モザイク時のメッセージ -->
+                <div id="mosaicMessage" class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                    <div class="bg-white rounded-lg p-8 text-center shadow-lg">
+                        <div class="text-blue-500 mb-4">
+                            <svg class="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-base font-bold mb-3 text-blue-600 whitespace-nowrap">オリジナル業者ランキング！</h3>
+                        <div class="text-gray-600 mb-4 text-xs space-y-1">
+                            <p class="flex items-start">
+                                <span class="text-green-500 mr-1">✅</span>
+                                <span>AIの質問に答えてあなただけの条件にマッチ！</span>
+                            </p>
+                            <p class="flex items-start">
+                                <span class="text-green-500 mr-1">✅</span>
+                                <span>過去のデータに基づいた実績ランキング！</span>
+                            </p>
+                            <p class="flex items-start">
+                                <span class="text-green-500 mr-1">✅</span>
+                                <span>完全無料で４社まで見積もり依頼可能！</span>
+                            </p>
+                        </div>
+                        <!-- 進捗メーター -->
+                        <div id="progressMeter" class="mb-4 hidden">
+                            <div class="flex justify-end text-xs text-gray-500 mb-1">
+                                <span id="progressPercentage">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="progressBar" style="height: 8px; border-radius: 9999px; width: 0%; background: transparent; transition: all 0.5s;"></div>
+                            </div>
+                            <p class="text-xs text-blue-600 mt-2 font-medium">AIチャットの質問に答えて下さい</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ランキング内容（モザイクをかける対象） -->
+                <div id="rankingContent" class="mosaic relative md:flex-1 md:flex md:flex-col overflow-hidden">
+
+                    <!-- 並び替えタブ -->
+                    <div class="bg-white rounded-lg p-3 mb-4">
+                        <h3 class="text-sm font-bold mb-2">並び替え</h3>
+                        <div id="sortingContainer" class="grid grid-cols-4 gap-1">
+                            <button id="tabRecommend" onclick="switchSortTab('tabRecommend')" class="bg-blue-100 text-blue-800 py-2 px-2 rounded-lg text-xs font-medium flex flex-col items-center justify-center gap-1 h-16 min-h-16 border border-blue-300">
+                                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                </svg>
+                                <span class="whitespace-nowrap">おすすめ順</span>
+                            </button>
+                            <button id="tabCheap" onclick="switchSortTab('tabCheap')" class="bg-white border border-gray-200 text-gray-700 py-2 px-2 rounded-lg text-xs font-medium flex flex-col items-center justify-center gap-1 h-16 min-h-16">
+                                <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span class="whitespace-nowrap">安い順</span>
+                            </button>
+                            <button id="tabReview" onclick="switchSortTab('tabReview')" class="bg-white border border-gray-200 text-gray-700 py-2 px-2 rounded-lg text-xs font-medium flex flex-col items-center justify-center gap-1 h-16 min-h-16">
+                                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                                <span class="whitespace-nowrap">口コミ順</span>
+                            </button>
+                            <button id="tabQuality" onclick="switchSortTab('tabQuality')" class="bg-white border border-gray-200 text-gray-700 py-2 px-2 rounded-lg text-xs font-medium flex flex-col items-center justify-center gap-1 h-16 min-h-16">
+                                <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                                </svg>
+                                <span class="whitespace-nowrap">高品質順</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ランキングリスト -->
+                    <div id="rankingList" class="space-y-1.5 pb-4 max-h-[550px] overflow-y-auto">
+                        <!-- 1位 -->
+                        <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-blue-600 text-lg font-bold">1</span>
+                                    <h3 class="text-base font-bold">T社</h3>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-yellow-500 text-sm">⭐⭐⭐⭐⭐</span>
+                                    <span class="font-bold text-sm">4.9</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mb-1">
+                                <div class="flex gap-1">
+                                    <span class="bg-blue-200 text-blue-800 text-xs px-1.5 py-0.5 rounded">地元密着</span>
+                                    <span class="bg-green-200 text-green-800 text-xs px-1.5 py-0.5 rounded">保証充実</span>
+                                    <span class="bg-red-200 text-red-800 text-xs px-1.5 py-0.5 rounded">即日対応</span>
+                                </div>
+                                <div class="text-gray-600 text-xs">
+                                    施工実績: 1,200件
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="text-xs font-bold text-gray-700">見積もり価格: 78万円～</span>
+                                </div>
+                                <div class="flex gap-1">
+                                    <button class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium flex-1">
+                                        詳細<span class="hidden sm:inline">を見る</span>
+                                    </button>
+                                    <button onclick="keepManager.toggle('F001', 'T社', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium flex-1">
+                                        <span class="keep-text"><span>キープ</span><span class="hidden sm:inline">する</span></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2位 -->
+                        <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-gray-600 text-lg font-bold">2</span>
+                                    <h3 class="text-base font-bold">S社</h3>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-yellow-500">⭐⭐⭐⭐</span>
+                                    <span class="font-bold">4.7</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mb-1">
+                                <div class="flex gap-1">
+                                    <span class="bg-red-200 text-red-800 text-xs px-1.5 py-0.5 rounded">最低価格保証</span>
+                                    <span class="bg-purple-200 text-purple-800 text-xs px-1.5 py-0.5 rounded">職人直営</span>
+                                </div>
+                                <div class="text-gray-600 text-xs">
+                                    施工実績: 980件
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="text-xs font-bold text-gray-700">見積もり価格: 83万円～</span>
+                                </div>
+                                <div class="flex gap-1">
+                                    <button class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium flex-1">
+                                        詳細<span class="hidden sm:inline">を見る</span>
+                                    </button>
+                                    <button onclick="keepManager.toggle('F002', 'S社', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium flex-1">
+                                        <span class="keep-text"><span>キープ</span><span class="hidden sm:inline">する</span></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3位 -->
+                        <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-orange-600 text-lg font-bold">3</span>
+                                    <h3 class="text-base font-bold">K社</h3>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-yellow-500">⭐⭐⭐⭐</span>
+                                    <span class="font-bold">4.5</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mb-1">
+                                <div class="flex gap-1">
+                                    <span class="bg-blue-200 text-blue-800 text-xs px-1.5 py-0.5 rounded">定期点検付</span>
+                                    <span class="bg-green-200 text-green-800 text-xs px-1.5 py-0.5 rounded">環境配慮</span>
+                                </div>
+                                <div class="text-gray-600 text-xs">
+                                    施工実績: 850件
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="text-xs font-bold text-gray-700">見積もり価格: 85万円～</span>
+                                </div>
+                                <div class="flex gap-1">
+                                    <button class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium flex-1">
+                                        詳細<span class="hidden sm:inline">を見る</span>
+                                    </button>
+                                    <button onclick="keepManager.toggle('F003', 'K社', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium flex-1">
+                                        <span class="keep-text"><span>キープ</span><span class="hidden sm:inline">する</span></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4位 -->
+                        <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-gray-600 text-lg font-bold">4</span>
+                                    <h3 class="text-base font-bold">P社</h3>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-yellow-500">⭐⭐⭐⭐</span>
+                                    <span class="font-bold">4.3</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mb-1">
+                                <div class="flex gap-1">
+                                    <span class="bg-red-200 text-red-800 text-xs px-1.5 py-0.5 rounded">10年保証</span>
+                                    <span class="bg-blue-200 text-blue-800 text-xs px-1.5 py-0.5 rounded">高級塗料使用</span>
+                                </div>
+                                <div class="text-gray-600 text-xs">
+                                    施工実績: 760件
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="text-xs font-bold text-gray-700">見積もり価格: 92万円～</span>
+                                </div>
+                                <div class="flex gap-1">
+                                    <button class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium flex-1">
+                                        詳細<span class="hidden sm:inline">を見る</span>
+                                    </button>
+                                    <button onclick="keepManager.toggle('F004', 'P社', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium flex-1">
+                                        <span class="keep-text"><span>キープ</span><span class="hidden sm:inline">する</span></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- もっと見るリンク -->
+                        <div id="showMoreBtn" class="text-center py-3">
+                            <a href="javascript:void(0)" onclick="showMoreRankings()" class="text-blue-600 hover:text-blue-800 underline font-medium text-sm">
+                                もっと見る
+                            </a>
+                        </div>
+
+                        <!-- 5〜8位（初期非表示） -->
+                        <div id="moreRankings" class="space-y-1.5 hidden">
+                            <!-- 5位 -->
+                            <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
+                                <div class="flex items-start justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-gray-600 text-lg font-bold">5</span>
+                                        <h3 class="text-base font-bold">M社</h3>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-yellow-500">⭐⭐⭐⭐</span>
+                                        <span class="font-bold">4.2</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <div class="flex gap-1">
+                                        <span class="bg-green-200 text-green-800 text-xs px-1.5 py-0.5 rounded">自社施工</span>
+                                        <span class="bg-blue-200 text-blue-800 text-xs px-1.5 py-0.5 rounded">迅速対応</span>
+                                    </div>
+                                    <div class="text-gray-600 text-xs">
+                                        施工実績: 650件
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-700">見積もり価格: 88万円～</span>
+                                    </div>
+                                    <div class="flex gap-1">
+                                        <button class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium flex-1">
+                                            詳細<span class="hidden sm:inline">を見る</span>
+                                        </button>
+                                        <button onclick="keepManager.toggle('F005', 'M社', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium flex-1">
+                                            <span class="keep-text"><span>キープ</span><span class="hidden sm:inline">する</span></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 6位 -->
+                            <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
+                                <div class="flex items-start justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-gray-600 text-lg font-bold">6</span>
+                                        <h3 class="text-base font-bold">H社</h3>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-yellow-500">⭐⭐⭐⭐</span>
+                                        <span class="font-bold">4.1</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <div class="flex gap-1">
+                                        <span class="bg-purple-200 text-purple-800 text-xs px-1.5 py-0.5 rounded">大手企業</span>
+                                        <span class="bg-red-200 text-red-800 text-xs px-1.5 py-0.5 rounded">全国対応</span>
+                                    </div>
+                                    <div class="text-gray-600 text-xs">
+                                        施工実績: 580件
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-700">見積もり価格: 95万円～</span>
+                                    </div>
+                                    <div class="flex gap-1">
+                                        <button class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium flex-1">
+                                            詳細<span class="hidden sm:inline">を見る</span>
+                                        </button>
+                                        <button onclick="keepManager.toggle('F006', 'A社', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium flex-1">
+                                            <span class="keep-text"><span>キープ</span><span class="hidden sm:inline">する</span></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 7位 -->
+                            <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
+                                <div class="flex items-start justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-gray-600 text-lg font-bold">7</span>
+                                        <h3 class="text-base font-bold">N社</h3>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-yellow-500">⭐⭐⭐⭐</span>
+                                        <span class="font-bold">4.0</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <div class="flex gap-1">
+                                        <span class="bg-blue-200 text-blue-800 text-xs px-1.5 py-0.5 rounded">アフター充実</span>
+                                        <span class="bg-green-200 text-green-800 text-xs px-1.5 py-0.5 rounded">長期保証</span>
+                                    </div>
+                                    <div class="text-gray-600 text-xs">
+                                        施工実績: 520件
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-700">見積もり価格: 90万円～</span>
+                                    </div>
+                                    <div class="flex gap-1">
+                                        <button class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium flex-1">
+                                            詳細<span class="hidden sm:inline">を見る</span>
+                                        </button>
+                                        <button onclick="keepManager.toggle('F007', 'B社', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium flex-1">
+                                            <span class="keep-text"><span>キープ</span><span class="hidden sm:inline">する</span></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 8位 -->
+                            <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
+                                <div class="flex items-start justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-gray-600 text-lg font-bold">8</span>
+                                        <h3 class="text-base font-bold">R社</h3>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-yellow-500">⭐⭐⭐⭐</span>
+                                        <span class="font-bold">3.9</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <div class="flex gap-1">
+                                        <span class="bg-orange-200 text-orange-800 text-xs px-1.5 py-0.5 rounded">低価格</span>
+                                        <span class="bg-purple-200 text-purple-800 text-xs px-1.5 py-0.5 rounded">職人多数</span>
+                                    </div>
+                                    <div class="text-gray-600 text-xs">
+                                        施工実績: 480件
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-700">見積もり価格: 75万円～</span>
+                                    </div>
+                                    <div class="flex gap-1">
+                                        <button class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium flex-1">
+                                            詳細<span class="hidden sm:inline">を見る</span>
+                                        </button>
+                                        <button onclick="keepManager.toggle('F008', 'C社', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium flex-1">
+                                            <span class="keep-text"><span>キープ</span><span class="hidden sm:inline">する</span></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- キープ確認モーダル -->
+    <div id="keepModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center p-4">
+        <div id="keepModalInner" class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" style="background-color: white !important; min-height: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+            <div class="p-6">
+                <h2 class="text-xl font-bold mb-4">見積もりの流れ</h2>
+
+                <h3 class="text-lg font-bold mb-3">キープ中の業者</h3>
+                <div id="keepList" class="space-y-2 mb-4">
+                    <!-- キープリストがここに表示 -->
+                </div>
+
+                <div class="flex gap-2" style="position: relative; z-index: 10;">
+                    <button onclick="closeKeepModal()" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold hover:bg-gray-300 cursor-pointer" style="position: relative; z-index: 10;">
+                        閉じる
+                    </button>
+                    <button onclick="startEstimateForm()" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-bold hover:from-blue-600 hover:to-blue-700 cursor-pointer" style="position: relative; z-index: 10;">
+                        この業者の見積もりを見てみる
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 見積もりフォームモーダル -->
+    <div id="estimateFormModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[3000] flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <!-- プログレスバー -->
+            <div class="bg-blue-50 p-4 border-b">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium">ステップ <span id="currentStep">1</span>/2</span>
+                    <span class="text-sm font-medium"><span id="stepPercent">50</span>%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="stepProgress" class="bg-blue-500 h-2 rounded-full transition-all" style="width: 50%"></div>
+                </div>
+            </div>
+
+            <!-- ステップ1: 基本情報 -->
+            <div id="step1" class="p-6">
+                <h2 class="text-xl font-bold mb-4">基本情報の入力</h2>
+
+                <!-- お名前 -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        お名前 <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="userName" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="山田 太郎">
+                </div>
+
+                <!-- 対象物件住所 -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        対象物件住所 <span class="text-red-500">*</span>
+                    </label>
+                    <div class="space-y-2">
+                        <div class="flex gap-2">
+                            <input type="text" id="propertyZip" class="w-32 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="000-0000" readonly>
+                            <input type="text" id="propertyAddress" class="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="市区町村" readonly>
+                        </div>
+                        <input type="text" id="propertyStreet" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="番地・建物名">
+                    </div>
+                </div>
+
+                <!-- 自宅住所（条件付き） -->
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="differentHome" class="mr-2" onchange="toggleHomeAddress()">
+                        <span class="text-sm font-medium text-gray-700">対象物件と自宅が異なる場合はチェック</span>
+                    </label>
+
+                    <div id="homeAddressSection" class="hidden mt-3 space-y-2">
+                        <div class="flex gap-2">
+                            <input type="text" id="homeZip" class="w-32 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="000-0000" onblur="fetchAddress(this.value, 'home')">
+                            <input type="text" id="homeAddress" class="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="市区町村" readonly>
+                        </div>
+                        <input type="text" id="homeStreet" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="番地・建物名">
+                    </div>
+                </div>
+
+                <!-- メールアドレス（任意） -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        メールアドレス <span class="text-gray-400">(任意)</span>
+                    </label>
+                    <input type="email" id="userEmail" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="example@email.com">
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="closeEstimateForm()" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold">
+                        戻る
+                    </button>
+                    <button onclick="nextStep()" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-bold">
+                        次へ
+                    </button>
+                </div>
+            </div>
+
+            <!-- ステップ2: 詳細情報 -->
+            <div id="step2" class="p-4 hidden">
+                <h2 class="text-xl font-bold mb-4">詳細情報の入力</h2>
+
+                <!-- 現地調査希望日時 -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        現地調査希望日時 <span class="text-gray-400">(複数選択可)</span>
+                    </label>
+                    <div class="space-y-2" id="surveyDates">
+                        <!-- 動的に生成 -->
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="prevStep()" id="prevStepBtn" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold">
+                        戻る
+                    </button>
+                    <button onclick="submitForm()" id="submitBtn" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-bold transition-all">
+                        送信する
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
 
     <!--java script-->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>

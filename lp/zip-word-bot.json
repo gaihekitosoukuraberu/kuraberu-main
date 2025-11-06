@@ -1,0 +1,1627 @@
+{
+  "version": "3.0.0",
+  "metadata": {
+    "lastUpdated": "2025-10-06",
+    "totalScenarios": 45,
+    "defaultFlow": "general",
+    "description": "完全統合版：document14の45シナリオ + document12の質問フロー"
+  },
+  "entryScenarios": {
+    "塗料": {
+      "id": "paint",
+      "displayName": "塗料",
+      "lpKeyword": "paint",
+      "icon": "🎨",
+      "greeting": "現在気になる塗料はございますか？",
+      "immediatePostal": false,
+      "flow": {
+        "initial": {
+          "type": "select",
+          "message": "どちらの塗料をお探しですか？",
+          "options": [
+            {
+              "value": "silicon",
+              "label": "シリコン",
+              "response": "シリコンですね。一般的にシリコン塗料は一番人気がありますが、どの業者でも扱えるからこそ業者選びが難しいです。"
+            },
+            {
+              "value": "fluorine",
+              "label": "フッ素",
+              "response": "フッ素ですね。一般的にフッ素塗料は高耐久ですが、施工業者によって耐久年数が大きく変わったりもします。"
+            },
+            {
+              "value": "inorganic",
+              "label": "無機",
+              "response": "無機ですね。一般的に無機塗料は最高級品ですが、取り扱える業者が限られます。"
+            },
+            {
+              "value": "ceramic",
+              "label": "セラミック",
+              "response": "セラミックですね。一般的にセラミック塗料は断熱効果がありますが、取り扱える業者が限られます。"
+            },
+            {
+              "value": "other",
+              "label": "その他",
+              "response": "その他の塗料ですね。詳しくお伺いさせていただきます。"
+            },
+            {
+              "value": "unknown",
+              "label": "よくわからない",
+              "response": "塗料選びは難しいですよね。プロに相談するのが一番です。"
+            }
+          ],
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずはお住まいの地域で対応可能な優良業者を表示しますので、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "errorMessage": "正しい郵便番号を入力してください（例：123-4567）",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "クチコミ": {
+      "id": "review",
+      "displayName": "クチコミ",
+      "lpKeyword": "review",
+      "icon": "⭐",
+      "greeting": "口コミの良い業者をお探しですね！",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "外壁塗装くらべるでは、自社口コミだけでなく他社サイトの声も含めた「総合的な口コミまとめ」をご用意しています。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずはお住まいエリアの口コミランキングをお出ししますので、郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "errorMessage": "正しい郵便番号を入力してください（例：123-4567）",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "おすすめ": {
+      "id": "recommend",
+      "displayName": "おすすめ",
+      "lpKeyword": "recommend",
+      "icon": "👍",
+      "greeting": "「どこがおすすめか知りたい」とお考えですね！",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "おすすめ度は、口コミ・価格・施工実績などを総合的に比較してご案内できます。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずはお住まい地域でおすすめの業者をピックアップいたしますので、郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "errorMessage": "正しい郵便番号を入力してください（例：123-4567）",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "最低価格": {
+      "id": "lowest_price",
+      "displayName": "最低価格",
+      "lpKeyword": "lowest_price",
+      "icon": "💰",
+      "greeting": "「できるだけ安くしたい」というご希望ですね！",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "外壁塗装くらべるでは「最低価格保証」という制度があり、見積もりをお持ちであれば、それと同条件で95％以上今よりお安くできます。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずはお住まいエリアでの最低価格帯の業者をお調べしますので、郵便番号を教えてください。価格だけで選ぶと失敗するケースもあるので、クチコミや実績も一緒にお出しします。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "errorMessage": "正しい郵便番号を入力してください（例：123-4567）",
+          "nextAction": "checkQuote"
+        },
+        "checkQuote": {
+          "type": "conditional",
+          "condition": "hasQuote",
+          "message": "見積もりをアップロードして最低価格保証を利用しますか？",
+          "options": [
+            {
+              "value": "yes",
+              "label": "はい",
+              "action": "uploadQuote"
+            },
+            {
+              "value": "no",
+              "label": "いいえ",
+              "action": "mainFlow"
+            }
+          ],
+          "skipCondition": "mainFlow"
+        }
+      }
+    },
+    "高品質・長持ち": {
+      "id": "high_quality",
+      "displayName": "高品質・長持ち",
+      "lpKeyword": "high_quality",
+      "icon": "✨",
+      "greeting": "「長持ちする施工」を重視されていますね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "高品質な塗料や施工を選ぶことで、先々の修繕コストを抑えることができます。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずはお住まいのエリアで高品質施工の実績が高い業者ランキングをお出ししますので、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "訪問業者": {
+      "id": "door_sales",
+      "displayName": "訪問業者",
+      "lpKeyword": "door_sales",
+      "icon": "🚪",
+      "greeting": "突然の訪問営業に不安になる方は多いです。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "一般的に訪問業者で施工する場合、相場よりも割高な施工をしてしまうケースが多いです。まずは安心できる業者で比較することで適切な価格、適切な施工時期を見極めましょう。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "あなたのエリアで実績の高い業者をすぐに表示しますので、まず郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "アフターフォロー": {
+      "id": "after_follow",
+      "displayName": "アフターフォロー",
+      "lpKeyword": "after_follow",
+      "icon": "🛠️",
+      "greeting": "施工後のアフターフォローを重視されていますね！",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "保証内容や定期点検の有無で業者を選ぶと安心感が違います。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "お住まいの地域でアフターフォローに強い業者をお探ししますので、まずは郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "カラーシミュレーション": {
+      "id": "color_simulation",
+      "displayName": "カラーシミュレーション",
+      "lpKeyword": "color_simulation",
+      "icon": "🎨",
+      "greeting": "「どんな色にするか迷う」方は多いです。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "完成イメージを事前に見られる業者を表示します。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "助成金": {
+      "id": "subsidy",
+      "displayName": "助成金",
+      "lpKeyword": "subsidy",
+      "icon": "💴",
+      "greeting": "外壁塗装に助成金を活用できると嬉しいですよね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "ただし地域や時期によって対象が変わるため、まず調査が必要です。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "お住まいのエリアで助成金が使えるかどうか調べますので、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow",
+          "additionalInfo": "電話番号入力後に助成金情報が確認できます"
+        }
+      }
+    },
+    "補修": {
+      "id": "repair",
+      "displayName": "補修",
+      "lpKeyword": "repair",
+      "icon": "🔧",
+      "greeting": "「ひび割れや剥がれの補修」は大工仕事になるケースが多く、下請けに流されてしまって割高になるケースが多いです。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "補修に強い業者を選ぶことで節約できるだけでなく、責任施工で仕上がりも長持ちします。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずはお住まいの地域で補修が得意な業者を探しますので、郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "カバー工法": {
+      "id": "cover_method",
+      "displayName": "カバー工法",
+      "lpKeyword": "cover_method",
+      "icon": "🏗️",
+      "greeting": "「外壁や屋根を張り替えずに、カバー工法で安く早く直したい」とお考えですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "カバー工法は費用と工期を抑えられる反面、業者の経験値で仕上がりが大きく変わります。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずはお住まい地域でカバー工法に強い業者を探しますので、郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "屋根材": {
+      "id": "roof_material",
+      "displayName": "屋根材",
+      "lpKeyword": "roof_material",
+      "icon": "🏠",
+      "greeting": "屋根材について気になっているのですね。",
+      "immediatePostal": false,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "スレート・瓦・ガルバリウムなど、素材ごとにメリット・デメリットがあります。",
+          "nextAction": "selectMaterial"
+        },
+        "selectMaterial": {
+          "type": "select",
+          "message": "気になる材質はどちらになりますか？",
+          "options": [
+            {
+              "value": "slate",
+              "label": "スレート"
+            },
+            {
+              "value": "tile",
+              "label": "瓦"
+            },
+            {
+              "value": "galvalume",
+              "label": "ガルバリウム"
+            },
+            {
+              "value": "other",
+              "label": "その他"
+            },
+            {
+              "value": "unknown",
+              "label": "わからない"
+            }
+          ],
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "屋根材に合った施工ができる業者を探すために、郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "屋根張り替え": {
+      "id": "roof_replacement",
+      "displayName": "屋根張り替え",
+      "lpKeyword": "roof_replacement",
+      "icon": "🏡",
+      "greeting": "「屋根の張り替え」をご検討中ですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "張り替えは費用が大きい分、業者の提案力や施工品質の差が出やすいです。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "地域で屋根張り替えに強い業者を探すために、まずは郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "遮熱・断熱": {
+      "id": "insulation",
+      "displayName": "遮熱・断熱",
+      "lpKeyword": "insulation",
+      "icon": "🌡️",
+      "greeting": "「夏は涼しく、冬は暖かくならないかな？」とお考えですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "遮熱・断熱塗料や工法を選ぶと、光熱費の節約にもつながります。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "お住まい地域で遮熱・断熱に対応できる業者を探しますので、郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "タイミング": {
+      "id": "timing",
+      "displayName": "タイミング",
+      "lpKeyword": "timing",
+      "icon": "⏰",
+      "greeting": "「今が塗り替え時期なのか気になる」方は多いです。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "築年数や劣化状況に応じて最適なタイミングを診断できます。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "お住まいの地域で無料診断ができる業者も同時に表示しますので、まずは郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "施工時期": {
+      "id": "construction_period",
+      "displayName": "施工時期",
+      "lpKeyword": "construction_period",
+      "icon": "📅",
+      "greeting": "「施工はいつが良いの？」とご不安ですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "基本的には梅雨時期等は避ける方が多い傾向がありますが、閑散期だと値引きされたり安く出来たりもします。雪が降る地域など、施工できない時期が場所によってまちまちです。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずは郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "実績": {
+      "id": "achievements",
+      "displayName": "実績",
+      "lpKeyword": "achievements",
+      "icon": "🏆",
+      "greeting": "「実績のある業者に頼みたい」とお考えですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "施工件数や地域での経験が多い業者は安心感が違うだけでなくアフターフォローが充実していたりと選ばれているには理由があります。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずはお住まいエリアで実績豊富な業者をお探ししますので、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "安い順": {
+      "id": "cheap_order",
+      "displayName": "安い順",
+      "lpKeyword": "cheap_order",
+      "icon": "💵",
+      "greeting": "コストパフォーマンスに優れた業者をお探しですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "お値段はもちろん、クチコミなどもランキング形式で比較が可能です。実際のデータを元にお住いの地域で平均施工金額の安い順に業者をご覧いただけます。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずは郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "リフォーム": {
+      "id": "reform",
+      "displayName": "リフォーム",
+      "lpKeyword": "reform",
+      "icon": "🏗️",
+      "greeting": "リフォームを視野に入れているのですね。",
+      "immediatePostal": false,
+      "flow": {
+        "initial": {
+          "type": "multiselect",
+          "message": "どのような内容でお探しですか？（複数選択可）",
+          "options": [
+            {
+              "value": "exterior",
+              "label": "外装"
+            },
+            {
+              "value": "interior",
+              "label": "内装"
+            },
+            {
+              "value": "garden",
+              "label": "エクステリア（庭・駐車場等）"
+            }
+          ],
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "下請けに投げない業者を選ぶと手間もコストも減らせます。まずはお住まいの地域でリフォーム対応可能な業者をお探ししますので、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "リフォームローン": {
+      "id": "reform_loan",
+      "displayName": "リフォームローン",
+      "lpKeyword": "reform_loan",
+      "icon": "🏦",
+      "greeting": "ローン対応があるかどうかは業者によっても異なります。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "銀行ローンが一番金利が低いのが一般的ですが、提携先金融機関ローンなど各種取り揃えてます。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずはお住まいの地域でローン対応できる業者をピックアップしますので、郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "ガルバリウム": {
+      "id": "galvalume",
+      "displayName": "ガルバリウム",
+      "lpKeyword": "galvalume",
+      "icon": "🔩",
+      "greeting": "屋根もしくは外壁を「ガルバリウム鋼板」で張替え、もしくはカバー工法をご検討中ですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "軽量・耐久性が高く人気の素材ですが、施工経験が必要な素材です。施工する会社によって施工金額の差が大きく、比較無しでは数十万円損をしてしまう場合があるのも特徴です。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずはお住まいの地域でガルバリウムに対応可能な業者をピックアップ可能ですので、郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "張替え": {
+      "id": "replacement",
+      "displayName": "張替え",
+      "lpKeyword": "replacement",
+      "icon": "🔨",
+      "greeting": "張替えをご検討中ですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "張替えは塗装に比べて費用が大きく、業者の技術力で耐久性も大きく変わります。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずはお住まい地域で張替えに定評のある業者をピックアップしますので、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "火災保険": {
+      "id": "fire_insurance",
+      "displayName": "火災保険",
+      "lpKeyword": "fire_insurance",
+      "icon": "🔥",
+      "greeting": "火災保険を使って外壁・屋根の補修ができる場合もあります。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "ただし保険の適用には条件があるため、経験のある業者に相談するのが安心です。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずはお住まい地域で火災保険対応に詳しい業者を無料でお探し出来ますので、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "屋上・ベランダ防水": {
+      "id": "waterproof",
+      "displayName": "屋上・ベランダ防水",
+      "lpKeyword": "waterproof",
+      "icon": "💧",
+      "greeting": "ベランダや屋上の防水が気になるということですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "防水工事は雨漏り予防のためにも早めが安心です。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "地域で屋上・ベランダ防水に強い業者を探すために、郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "ハウスメーカー": {
+      "id": "house_maker",
+      "displayName": "ハウスメーカー",
+      "lpKeyword": "house_maker",
+      "icon": "🏢",
+      "greeting": "「ハウスメーカー施工か、地元業者か迷う」という方は多いです。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "地元業者の方がコストを抑えられる場合が殆どですが、安心も大事ですよね！実際にはハウスメーカーと地元業者を比較すると75％以上のお客様が地元業者を選んでいます。金額差も大きいと2倍以上差が出るケースもございますので、比較した上で決めるのが鉄則です。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "お住まい地域の業者をランキング形式で表示しますので、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "予算50万円以下": {
+      "id": "budget_under_50",
+      "displayName": "予算50万円以下",
+      "lpKeyword": "budget_under_50",
+      "icon": "💰",
+      "greeting": "予算50万円以下でご検討中ですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "補修＋部分塗装など、工夫すれば予算内で対応できるケースもあります。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "地域で予算に合わせた提案ができる業者を探しますので、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "予算50〜100万円": {
+      "id": "budget_50_100",
+      "displayName": "予算50〜100万円",
+      "lpKeyword": "budget_50_100",
+      "icon": "💰",
+      "greeting": "予算「50〜100万円くらい」で考えているのですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "施工内容によって大きく金額も変わってきますし、地域によってもかなりばらつきがあります。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずは地域でこの価格帯で実績のある業者を探すために、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "予算100〜200万円": {
+      "id": "budget_100_200",
+      "displayName": "予算100〜200万円",
+      "lpKeyword": "budget_100_200",
+      "icon": "💰",
+      "greeting": "予算「100〜200万円」くらいのリフォームをお考えですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "外壁＋屋根セットなども可能な一般的なご予算です。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "すぐに相場と、お住まいの地域で選ばれている業者情報を表示しますので、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "予算150万円〜": {
+      "id": "budget_over_150",
+      "displayName": "予算150万円〜",
+      "lpKeyword": "budget_over_150",
+      "icon": "💰",
+      "greeting": "予算150万円以上でお考えですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "まずは適切な相場と、お住まいのエリアで信頼できる業者を探します。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "チョーク": {
+      "id": "chalk",
+      "displayName": "チョーク",
+      "lpKeyword": "chalk",
+      "icon": "✋",
+      "greeting": "外壁を触ると白い粉がつく「チョーキング現象」が出ていますか？",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "これは塗り替えサインの代表例です。外壁塗装は業者によって金額差も大きく、比較は必須といっていいでしょう。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずは適切な相場をお出ししますので郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "ひび割れ": {
+      "id": "crack",
+      "displayName": "ひび割れ",
+      "lpKeyword": "crack",
+      "icon": "💔",
+      "greeting": "外壁に「ひび割れ」が出てきて気になっていますね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "放置すると雨漏りや内部劣化につながる恐れがあります。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "お住まいの地域で無料見積もり対応可能な業者を見つけますので、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "剥がれ": {
+      "id": "peeling",
+      "displayName": "剥がれ",
+      "lpKeyword": "peeling",
+      "icon": "📉",
+      "greeting": "「塗装が剥がれてきた」というお悩みですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "見た目だけでなく防水機能も低下しているサインです。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "お住まいの地域で無料見積もり対応可能な業者を見つけますので、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "汚れ": {
+      "id": "dirt",
+      "displayName": "汚れ",
+      "lpKeyword": "dirt",
+      "icon": "🧹",
+      "greeting": "外壁の「汚れ」が気になってきましたか？",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "藻やカビ汚れも、再塗装でリセットできます。まずは慌てず金額をチェックしていきましょう。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "地域の相場と、洗浄や塗装で評判の良い業者情報もお出ししますので、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "設立年数": {
+      "id": "establishment",
+      "displayName": "設立年数",
+      "lpKeyword": "establishment",
+      "icon": "📅",
+      "greeting": "「長く続いている会社がいい」とお考えですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "設立年数は信頼度のひとつの目安になります。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "地域で実際に選ばれている実績を元にした業者ランキングを表示出来ますので、まずは郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "従業員数": {
+      "id": "employees",
+      "displayName": "従業員数",
+      "lpKeyword": "employees",
+      "icon": "👥",
+      "greeting": "「大きい会社か、小さい会社か」気になりますよね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "従業員数によって対応力や柔軟性が変わります。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "お住まいの地域で条件に合う業者を探すために、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "保有資格": {
+      "id": "qualification",
+      "displayName": "保有資格",
+      "lpKeyword": "qualification",
+      "icon": "📜",
+      "greeting": "「資格を持っている職人さんにお願いしたい」というご希望ですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "有資格者がいる業者は安心感が違います。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "地域で資格保有者のいる業者を探しますので、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "職人直営": {
+      "id": "craftsman_direct",
+      "displayName": "職人直営",
+      "lpKeyword": "craftsman_direct",
+      "icon": "👷",
+      "greeting": "職人直営の会社にご興味がお有りですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "自社施工の会社は中間マージンがなくお安く出来ますし、責任施工で品質が担保されやすいのも魅力です。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "お住まいの地域で自社施工の業者をピックアップしますので、まずは郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "各種保険": {
+      "id": "various_insurance",
+      "displayName": "各種保険",
+      "lpKeyword": "various_insurance",
+      "icon": "🛡️",
+      "greeting": "工事中の保険や不具合が心配ですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "各種保険に加入している業者なら万一の時も安心です。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "地域で保険加入済みの業者を探しますので、郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "外壁＋屋根塗装": {
+      "id": "wall_roof_painting",
+      "displayName": "外壁＋屋根塗装",
+      "lpKeyword": "wall_roof_painting",
+      "icon": "🏠",
+      "greeting": "外壁と屋根をセットで塗装をご検討中ですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "セットで行うことで特に足場だしの費用が抑えられます。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "お住まい地域で外壁＋屋根塗装で選ばれている業者をランキング形式で表示しますので、まずは郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "外壁＋屋根張り替え": {
+      "id": "wall_roof_replacement",
+      "displayName": "外壁＋屋根張り替え",
+      "lpKeyword": "wall_roof_replacement",
+      "icon": "🏗️",
+      "greeting": "外壁も屋根の張り替えをご検討中ですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "大規模工事は業者ごとに金額差も大きいですし、信頼できる業者選びが特に大切です。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "地域で外壁＋屋根張り替え対応が可能な業者を探すために、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "外壁＋屋根補修": {
+      "id": "wall_roof_repair",
+      "displayName": "外壁＋屋根補修",
+      "lpKeyword": "wall_roof_repair",
+      "icon": "🔧",
+      "greeting": "外壁も屋根も同時に補修したいとお考えですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "まとめて依頼すると効率的でコストも抑えられます。補修は外注になると金額が高くなってしまうので、お住まいの地域でコスパよい業者をお探し可能です。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずは相場と、優良業者の情報を表示致しますので、郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "外壁塗装": {
+      "id": "wall_painting",
+      "displayName": "外壁塗装",
+      "lpKeyword": "wall_painting",
+      "icon": "🏠",
+      "greeting": "外壁塗装を検討中ですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "塗料・価格・保証など条件を比較すると失敗しませんし、節約にも繋がります。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "実際のデータを元にお住まい地域で外壁塗装で選ばれている業者を選定できますので、郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "外壁張替え": {
+      "id": "wall_replacement",
+      "displayName": "外壁張替え",
+      "lpKeyword": "wall_replacement",
+      "icon": "🔨",
+      "greeting": "外壁の張り替えをご検討中ですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "張替えは費用が大きい分、長期的な安心が得られる工事ですが、一般的に塗装よりも高くなるので比較が大事です。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "まずは相場と、地域で外壁張替えに強い業者情報を表示しますので、郵便番号を教えていただけますか？",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "外壁補修": {
+      "id": "wall_repair",
+      "displayName": "外壁補修",
+      "lpKeyword": "wall_repair",
+      "icon": "🔧",
+      "greeting": "外壁の部分的な「補修」をお考えですね。",
+      "immediatePostal": true,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "補修は一般的に大工仕事になりますが、なかなか自社施工でできる業者を探すのは容易ではありません。",
+          "nextAction": "requestPostal"
+        },
+        "requestPostal": {
+          "type": "postal",
+          "message": "お住まい地域で外壁補修に対応可能な業者を探しますので、まずは郵便番号を教えてください。",
+          "validation": "^\\d{3}-?\\d{4}$",
+          "nextAction": "mainFlow"
+        }
+      }
+    },
+    "general": {
+      "id": "general",
+      "displayName": "一般",
+      "lpKeyword": "general",
+      "icon": "🏠",
+      "greeting": "外壁・屋根のリフォームをご検討中ですね。",
+      "immediatePostal": false,
+      "flow": {
+        "initial": {
+          "type": "message",
+          "message": "まずはいくつか質問させていただき、最適な業者をご紹介いたします。",
+          "nextAction": "startQuestions"
+        },
+        "startQuestions": {
+          "type": "redirect",
+          "target": "mainQuestions"
+        }
+      }
+    }
+  },
+  "mainQuestions": {
+    "Q001": {
+      "text": "対象物件はお住まいの戸建て2階建てのご自宅ですか？",
+      "choices": ["はい", "いいえ"],
+      "branches": ["Q008", "Q002"],
+      "stage": 1
+    },
+    "Q002": {
+      "text": "どのタイプの建物ですか？",
+      "choices": ["2階建て以外の自宅", "アパート・マンション", "実家・別荘・所有物件", "店舗・事務所・倉庫"],
+      "branches": ["Q003A", "Q003B", "Q003", "Q003B"],
+      "stage": 1
+    },
+    "Q003": {
+      "text": "建物は何階建てですか？",
+      "choices": ["1階建て", "2階建て", "3階建て", "4階建て以上"],
+      "branches": ["Q008", "Q008", "Q008", "Q008"],
+      "stage": 1
+    },
+    "Q003A": {
+      "text": "建物は何階建てですか？",
+      "choices": ["1階建て", "3階建て", "4階建て以上"],
+      "branches": ["Q008", "Q008", "Q008"],
+      "stage": 1
+    },
+    "Q003B": {
+      "text": "建物は何階建てですか？",
+      "choices": ["1階建て", "2階建て", "3階建て", "4階建て", "5階建て", "6階建て", "7階建て", "8階建て", "9階建て", "10階建て以上"],
+      "branches": ["Q008", "Q008", "Q008", "Q008", "Q008", "Q008", "Q008", "Q008", "Q008", "Q008"],
+      "stage": 1
+    },
+    "Q004": {
+      "text": "外壁の材質を教えてください",
+      "choices": ["サイディング", "モルタル", "ガルバリウム", "その他（タイル・レンガ等）", "わからない"],
+      "branches": ["Q004A", "Q004A", "Q004A", "Q004A", "Q004A"],
+      "stage": 2
+    },
+    "Q004A": {
+      "text": "屋根の材質を教えてください",
+      "choices": ["スレート（カラーベスト）", "ガルバリウム", "屋上", "瓦", "その他（トタン等）", "わからない"],
+      "branches": ["Q004B", "Q004B", "Q004B", "Q004B", "Q004B", "Q004B"],
+      "stage": 2
+    },
+    "Q004B": {
+      "text": "気になる箇所はどちらですか？",
+      "choices": ["外壁と屋根", "外壁", "屋根", "その他"],
+      "branches": ["Q006", "Q005", "Q005", "Q007"],
+      "stage": 2
+    },
+    "Q005": {
+      "text": "具体的にどの工事が気になりますか？",
+      "choices": ["塗装", "張替え・カバー工法", "補修", "わからないので相談したい"],
+      "branches": ["Q015", "Q015", "Q015", "Q015"],
+      "stage": 2
+    },
+    "Q006": {
+      "text": "外壁はどの工事が気になりますか？",
+      "choices": ["塗装", "張替え・カバー工法", "補修", "わからないので相談したい"],
+      "branches": ["Q006A", "Q006A", "Q006A", "Q006A"],
+      "stage": 2
+    },
+    "Q006A": {
+      "text": "屋根はどの工事が気になりますか？",
+      "choices": ["塗装", "葺き替え・カバー工法", "補修", "わからないので相談したい"],
+      "branches": ["Q015", "Q015", "Q015", "Q015"],
+      "stage": 2
+    },
+    "Q007": {
+      "text": "具体的にどの箇所が気になりますか？\n（複数回答可）",
+      "choices": ["外壁塗装", "外壁カバー工法", "外壁張替え", "屋根塗装", "屋上防水", "屋根葺き替え・張り替え※現状がスレート・ガルバリウム等", "屋根葺き替え・張り替え※現状が瓦", "屋根カバー工法", "外壁補修", "屋根補修", "ベランダ防水", "内装水回り（バス・キッチン・トイレ）", "内装（フローリングや畳などの床・クロス等）", "外壁雨漏り修繕", "屋根雨漏り修繕", "その他"],
+      "branches": ["Q015", "Q015", "Q015", "Q015", "Q015", "Q015", "Q015", "Q015", "Q015", "Q015", "Q015", "Q015", "Q015", "Q015", "Q015", "Q015"],
+      "stage": 2,
+      "multipleChoice": true
+    },
+    "Q008": {
+      "text": "築年数はどのくらいですか？",
+      "choices": ["1〜9年", "10〜15年", "15〜30年", "30年以上"],
+      "branches": ["Q009", "Q009", "Q009", "Q009"],
+      "stage": 1
+    },
+    "Q009": {
+      "text": "外壁や屋根の工事歴を教えてください",
+      "choices": ["今回が初めて", "2回目", "3回目以上", "わからない"],
+      "branches": ["Q004", "Q009A", "Q009A", "Q004"],
+      "stage": 2,
+      "conditional": true
+    },
+    "Q009A": {
+      "text": "前回の施工時期はいつ頃でしたか？（おおよそで構いません）",
+      "choices": ["1〜4年前", "5〜9年前", "10〜15年前", "16〜20年前", "20年以上前", "不明"],
+      "branches": ["Q009B", "Q009B", "Q009B", "Q009B", "Q009B", "Q009B"],
+      "stage": 2
+    },
+    "Q009B": {
+      "text": "お持ちの見積もりはございますか？",
+      "choices": ["なし", "1社", "2社", "3社以上"],
+      "branches": ["Q004", "Q009C", "Q009C", "Q009C"],
+      "stage": 2
+    },
+    "Q009C": {
+      "text": "どちらで見積もりを手配しましたか？",
+      "choices": ["訪問営業", "ポータルサイト（ネットでの比較サービス）", "近所の業者", "前回施工業者", "知人や家族の紹介", "建てたところ（ハウスメーカー等）"],
+      "branches": ["Q004", "Q004", "Q004", "Q004", "Q004", "Q004"],
+      "stage": 2,
+      "multipleChoice": true
+    },
+    "Q010": {
+      "text": "訪問業者がお家に来られましたか？",
+      "choices": ["最近来たが見積書はまだ手元にない", "最近来て見積書をもらったが未契約", "最近来て契約した", "来ていない"],
+      "branches": ["Q011", "Q011", "Q011", "Q004"],
+      "stage": 2
+    },
+    "Q011": {
+      "text": "※相場よりも高額な提案の可能性があります。比較を強くおすすめします。",
+      "choices": ["急ぎで比較したい", "焦ってはないが比較はしたい", "このまま契約するつもりだが比較は気になる", "比較は不要"],
+      "branches": ["Q012", "Q012", "Q012", "Q004"],
+      "stage": 2
+    },
+    "Q012": {
+      "text": "訪問業者の名前は覚えていますか？",
+      "choices": ["オンテックス", "誠心堂", "その他", "不明"],
+      "branches": ["Q004", "Q004", "Q004", "Q004"],
+      "stage": 2
+    },
+    "Q014": {
+      "text": "お持ちの見積もりはございますか？",
+      "choices": ["なし", "1社", "2社", "3社以上"],
+      "branches": ["Q015", "Q014B", "Q014B", "Q014B"],
+      "stage": 3
+    },
+    "Q014B": {
+      "text": "どちらで見積もりを手配しましたか？",
+      "choices": ["訪問営業", "ポータルサイト（ネットでの比較サービス）", "近所の業者", "知人や家族の紹介", "建てたところ（ハウスメーカー等）"],
+      "branches": ["Q015", "Q015", "Q015", "Q015", "Q015"],
+      "stage": 3,
+      "multipleChoice": true
+    },
+    "Q015": {
+      "text": "建物の外観について、現在気になる点はありますか？",
+      "choices": ["ヒビや割れがある", "色褪せや汚れが目立つ", "雨漏りがある", "大きな劣化は感じない"],
+      "branches": ["Q016", "Q016", "Q016", "Q016"],
+      "stage": 3
+    },
+    "Q016": {
+      "text": "業者選びで重視したいポイントは何ですか？（複数回答可）",
+      "choices": ["なるべく安く", "口コミや評判が気になる", "品質や保証が大事", "親身になってくれる・人柄の良さ"],
+      "branches": ["Q900", "Q901", "Q902", "Q903"],
+      "stage": 3,
+      "multipleChoice": true
+    },
+    "Q900": {
+      "text": "ありがとうございます！「安い順」ランキングなどを参考にしながら業者を選択してください。",
+      "choices": ["見積もりを依頼する"],
+      "branches": ["PHONE"],
+      "stage": 4,
+      "isClosing": true
+    },
+    "Q901": {
+      "text": "ありがとうございます！「口コミ順」ランキングなどを参考にしながら業者を選択してください。",
+      "choices": ["見積もりを依頼する"],
+      "branches": ["PHONE"],
+      "stage": 4,
+      "isClosing": true
+    },
+    "Q902": {
+      "text": "ありがとうございます！「高品質順」ランキングなどを参考にしながら業者を選択してください。",
+      "choices": ["見積もりを依頼する"],
+      "branches": ["PHONE"],
+      "stage": 4,
+      "isClosing": true
+    },
+    "Q903": {
+      "text": "ありがとうございました！それでは最適な業者をご紹介するため、最後に電話番号を教えていただけますか？",
+      "choices": ["見積もりを依頼する"],
+      "branches": ["PHONE"],
+      "stage": 4,
+      "isClosing": true
+    }
+  },
+  "flowControl": {
+    "entryPoints": {
+      "direct_postal": {
+        "description": "郵便番号入力フォームから直接流入",
+        "action": "skipToMainFlow"
+      },
+      "lp_keyword": {
+        "description": "LP上のキーワードリンクから流入",
+        "action": "loadScenario"
+      }
+    },
+    "sessionManagement": {
+      "storage": "sessionStorage",
+      "key": "bot_session",
+      "timeout": 1800000,
+      "data": {
+        "entryKeyword": null,
+        "entrySource": null,
+        "postalCode": null,
+        "currentQuestion": null,
+        "answers": {},
+        "startTime": null,
+        "cv1Data": null,
+        "cv2Data": null
+      }
+    },
+    "transitions": {
+      "postal_to_questions": {
+        "from": "postal_input",
+        "to": "mainQuestions",
+        "condition": "hasValidPostalCode"
+      },
+      "questions_to_cv1": {
+        "from": "mainQuestions",
+        "to": "cv1_capture",
+        "condition": "completedStage3"
+      },
+      "cv1_to_ranking": {
+        "from": "cv1_capture",
+        "to": "ranking_display",
+        "condition": "cv1Submitted"
+      },
+      "ranking_to_cv2": {
+        "from": "ranking_display",
+        "to": "cv2_final",
+        "condition": "franchiseSelected"
+      }
+    },
+    "validationRules": {
+      "postal": {
+        "pattern": "^\\d{3}-?\\d{4}$",
+        "message": "正しい郵便番号を入力してください（例：123-4567）",
+        "formatter": "formatPostalCode"
+      },
+      "phone": {
+        "pattern": "^(0[0-9]{1,4}-?[0-9]{1,4}-?[0-9]{4}|0[0-9]{9,10})$",
+        "message": "正しい電話番号を入力してください",
+        "formatter": "formatPhoneNumber"
+      },
+      "email": {
+        "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+        "message": "正しいメールアドレスを入力してください"
+      }
+    }
+  },
+  "cv1Configuration": {
+    "title": "無料見積もりを始める",
+    "subtitle": "簡単な情報を入力して、複数の業者から見積もりを取得しましょう",
+    "fields": [
+      {
+        "id": "name",
+        "label": "お名前",
+        "type": "text",
+        "required": true,
+        "placeholder": "山田 太郎"
+      },
+      {
+        "id": "email",
+        "label": "メールアドレス",
+        "type": "email",
+        "required": true,
+        "placeholder": "example@email.com",
+        "validation": "email"
+      },
+      {
+        "id": "phone",
+        "label": "電話番号",
+        "type": "tel",
+        "required": true,
+        "placeholder": "090-1234-5678",
+        "validation": "phone"
+      }
+    ],
+    "submitButton": {
+      "text": "次へ（業者ランキングを見る）",
+      "loadingText": "送信中...",
+      "successText": "送信完了！"
+    },
+    "tracking": {
+      "event": "cv1_submission",
+      "dataLayer": true,
+      "slack": true
+    }
+  },
+  "rankingConfiguration": {
+    "title": "あなたの地域のおすすめ業者",
+    "displayCount": 5,
+    "sortOptions": [
+      {
+        "id": "price",
+        "label": "安い順",
+        "icon": "💰",
+        "default": false
+      },
+      {
+        "id": "rating",
+        "label": "口コミ順",
+        "icon": "⭐",
+        "default": true
+      },
+      {
+        "id": "quality",
+        "label": "高品質順",
+        "icon": "✨",
+        "default": false
+      },
+      {
+        "id": "distance",
+        "label": "近い順",
+        "icon": "📍",
+        "default": false
+      }
+    ],
+    "franchiseCard": {
+      "fields": ["companyName", "rating", "reviewCount", "averagePrice", "specialty", "badges", "catchphrase"],
+      "actions": ["viewDetails", "selectForQuote"]
+    },
+    "scoringFactors": {
+      "distance": 0.2,
+      "rating": 0.3,
+      "price": 0.25,
+      "specialty": 0.15,
+      "responseRate": 0.1
+    }
+  },
+  "cv2Configuration": {
+    "title": "詳細見積もりを依頼",
+    "subtitle": "選択した業者に詳細な見積もりを依頼します",
+    "additionalFields": [
+      {
+        "id": "preferredDate",
+        "label": "希望工事時期",
+        "type": "select",
+        "required": false,
+        "options": [
+          { "value": "asap", "label": "できるだけ早く" },
+          { "value": "1month", "label": "1ヶ月以内" },
+          { "value": "3months", "label": "3ヶ月以内" },
+          { "value": "6months", "label": "6ヶ月以内" },
+          { "value": "undecided", "label": "まだ決めていない" }
+        ]
+      },
+      {
+        "id": "budget",
+        "label": "ご予算",
+        "type": "select",
+        "required": false,
+        "options": [
+          { "value": "50-100", "label": "50-100万円" },
+          { "value": "100-200", "label": "100-200万円" },
+          { "value": "200-300", "label": "200-300万円" },
+          { "value": "300+", "label": "300万円以上" },
+          { "value": "undecided", "label": "まだ決めていない" }
+        ]
+      },
+      {
+        "id": "comments",
+        "label": "その他ご要望",
+        "type": "textarea",
+        "required": false,
+        "placeholder": "特別な要望や質問があればご記入ください",
+        "maxLength": 500
+      },
+      {
+        "id": "photoUpload",
+        "label": "現在の状態の写真（任意）",
+        "type": "file",
+        "required": false,
+        "accept": "image/*",
+        "multiple": true,
+        "maxFiles": 5
+      }
+    ],
+    "selectedFranchises": {
+      "min": 1,
+      "max": 3,
+      "default": 3
+    },
+    "submitButton": {
+      "text": "見積もりを依頼する",
+      "loadingText": "送信中...",
+      "successText": "依頼完了！"
+    },
+    "tracking": {
+      "event": "cv2_submission",
+      "dataLayer": true,
+      "slack": true,
+      "sendToFranchise": true
+    }
+  },
+  "analyticsConfiguration": {
+    "events": {
+      "entry": {
+        "name": "bot_entry",
+        "parameters": ["keyword", "source", "campaign"]
+      },
+      "postal_input": {
+        "name": "postal_submitted",
+        "parameters": ["postal_code", "area"]
+      },
+      "question_answered": {
+        "name": "question_answered",
+        "parameters": ["question_id", "answer", "stage"]
+      },
+      "cv1_submission": {
+        "name": "cv1_submitted",
+        "parameters": ["keyword", "postal", "email"]
+      },
+      "ranking_view": {
+        "name": "ranking_viewed",
+        "parameters": ["sort_type", "franchise_count"]
+      },
+      "franchise_selected": {
+        "name": "franchise_selected",
+        "parameters": ["franchise_id", "position"]
+      },
+      "cv2_submission": {
+        "name": "cv2_submitted",
+        "parameters": ["franchise_ids", "budget", "timing"]
+      }
+    },
+    "conversionTracking": {
+      "cv1": {
+        "google": true,
+        "facebook": true,
+        "line": true
+      },
+      "cv2": {
+        "google": true,
+        "facebook": true,
+        "line": true,
+        "value": "dynamic"
+      }
+    }
+  },
+  "notificationConfiguration": {
+    "slack": {
+      "channels": {
+        "cv1": "#leads-cv1",
+        "cv2": "#leads-cv2",
+        "urgent": "#urgent-leads"
+      },
+      "templates": {
+        "cv1": "🎯 新規CV1: {{name}} ({{postal}}) - キーワード: {{keyword}}",
+        "cv2": "💰 新規CV2: {{name}} - 予算: {{budget}} - 加盟店: {{franchises}}"
+      }
+    },
+    "email": {
+      "admin": {
+        "cv1": true,
+        "cv2": true
+      },
+      "franchise": {
+        "cv2": true
+      },
+      "customer": {
+        "cv1_confirmation": true,
+        "cv2_confirmation": true
+      }
+    }
+  },
+  "subsidyConfiguration": {
+    "enabled": true,
+    "displayTiming": "after_phone_input",
+    "message": "助成金情報を確認中...",
+    "apiEndpoint": "/api/subsidy/check",
+    "displayFormat": {
+      "available": "✅ お住まいの地域で{{amount}}円の助成金が利用可能です！",
+      "unavailable": "現在、お住まいの地域では助成金制度はありません",
+      "checking": "助成金情報を確認しています..."
+    }
+  },
+  "errorMessages": {
+    "network": "ネットワークエラーが発生しました。もう一度お試しください。",
+    "validation": "入力内容に誤りがあります。確認してください。",
+    "postal_not_found": "該当する地域が見つかりませんでした。",
+    "no_franchises": "申し訳ございません。お住まいの地域に対応可能な業者が見つかりませんでした。",
+    "session_expired": "セッションがタイムアウトしました。最初からやり直してください。"
+  },
+  "uiConfiguration": {
+    "theme": {
+      "primary": "#2563eb",
+      "secondary": "#10b981",
+      "accent": "#f59e0b",
+      "error": "#ef4444",
+      "success": "#10b981"
+    },
+    "animations": {
+      "enabled": true,
+      "duration": 300,
+      "easing": "ease-in-out"
+    },
+    "responsive": {
+      "breakpoints": {
+        "mobile": 640,
+        "tablet": 1024,
+        "desktop": 1280
+      }
+    },
+    "chatBubble": {
+      "bot": {
+        "background": "#f3f4f6",
+        "color": "#1f2937",
+        "avatar": "🤖"
+      },
+      "user": {
+        "background": "#2563eb",
+        "color": "#ffffff",
+        "avatar": "👤"
+      }
+    }
+  },
+  "cv1Config": {
+    "displayType": "inline",
+    "formStyle": "minimal",
+    "fields": [
+      {
+        "name": "phone",
+        "label": "電話番号（ショートメッセージ）",
+        "type": "tel",
+        "placeholder": "08012345678",
+        "required": true,
+        "validation": "phoneNumber"
+      }
+    ],
+    "submitButton": {
+      "text": "結果を受け取る",
+      "style": "primary"
+    },
+    "messages": {
+      "searching": "現在、いただいた条件にて検索しております。",
+      "timeEstimate": "30秒ほどかかりますので、完了までに送付先の入力をお願いします。"
+    }
+  },
+  "smsConfig": {
+    "enabled": true,
+    "provider": "twilio",
+    "template": "外壁塗装くらべるAIより\nお見積もり相場とおすすめ業者をご確認ください。\n{{link}}\n※72時間有効",
+    "linkExpiry": 72,
+    "includeRanking": true
+  },
+  "rankingConfig": {
+    "maxDisplay": 10,
+    "maxKeep": 5,
+    "defaultSort": "recommended",
+    "sortOptions": ["recommended", "price", "rating", "quality"],
+    "features": {
+      "keepButton": true,
+      "keepBadge": true,
+      "stickyFooter": true,
+      "modalConfirmation": true
+    },
+    "companyCard": {
+      "showRating": true,
+      "showPrice": true,
+      "showWorkCount": true,
+      "showTags": true,
+      "actions": ["detail", "keep"]
+    }
+  },
+  "cv2Config": {
+    "simplifiedForm": true,
+    "prefilledFromSession": true,
+    "modalVideo": {
+      "enabled": true,
+      "placeholder": "https://example.com/flow-video.mp4",
+      "autoplay": false,
+      "duration": "約2分"
+    },
+    "recommendMultiple": true,
+    "minSelection": 1,
+    "maxSelection": 5,
+    "confirmationModal": {
+      "show": true,
+      "emphasizeMultiple": true,
+      "showSelectedCompanies": true
+    }
+  }
+}
