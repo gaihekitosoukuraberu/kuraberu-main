@@ -1692,6 +1692,12 @@
             botContainer.style.fontSize = '16px';
         }
 
+        // 進捗メーターを表示
+        const progressMeter = document.getElementById('progressMeter');
+        if (progressMeter) {
+            progressMeter.classList.remove('hidden');
+        }
+
         // BOTシステムを起動
         await waitForBotSystem();
         if (window.BotCore) {
@@ -1746,6 +1752,12 @@
                     botContainer.style.transform = 'scale(1)';
                     botContainer.style.transformOrigin = 'top left';
                     botContainer.style.fontSize = '16px';
+                }
+
+                // 進捗メーターを表示
+                const progressMeter = document.getElementById('progressMeter');
+                if (progressMeter) {
+                    progressMeter.classList.remove('hidden');
                 }
 
                 // BOTシステムを起動
