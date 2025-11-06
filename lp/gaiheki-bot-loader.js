@@ -20,12 +20,17 @@
     // ============================================
     const CONFIG = {
         BOT_SCRIPTS: [
-            'https://gaihekikuraberu.com/estimate-keep-system/js/bot-config.js',
-            'https://gaihekikuraberu.com/estimate-keep-system/js/bot-ui.js',
-            'https://gaihekikuraberu.com/estimate-keep-system/js/bot-core.js',
-            'https://gaihekikuraberu.com/estimate-keep-system/js/bot-scenarios.js',
-            'https://gaihekikuraberu.com/estimate-keep-system/js/bot-questions.js',
-            'https://gaihekikuraberu.com/estimate-keep-system/js/phone-form.js'
+            'js/utils.js',
+            'js/bot-config.js',
+            'js/bot-ui.js',
+            'js/bot-core.js',
+            'js/bot-scenarios.js',
+            'js/bot-questions.js',
+            'js/bot-integration.js',
+            'js/phone-form.js',
+            'js/cv-api.js',
+            'js/ranking.js',
+            'js/ranking-display.js'
         ]
     };
 
@@ -115,13 +120,25 @@
     async function startBotSystem(type, data) {
         console.log('🎯 BOTシステム起動:', type, data);
 
+        // LP の font-size をリセット（LP は html { font-size: 100px; } なので）
+        document.documentElement.style.fontSize = '16px';
+        document.body.style.fontSize = '16px';
+        console.log('✅ font-size を 16px にリセット');
+
         // BOTシステムの読み込みを待つ
         await waitForBotSystem();
 
         // BOT用のコンテナを表示
         showBotContainer();
 
-        // LPコンテンツを非表示（body直下の最初の要素以外を非表示にする簡易実装）
+        // LPコンテンツを非表示
+        const wrapper = document.querySelector('.wrapper');
+        if (wrapper) {
+            wrapper.style.display = 'none';
+            console.log('✅ LP wrapper を非表示');
+        }
+
+        // body直下の最初の要素以外を非表示にする簡易実装
         const bodyChildren = Array.from(document.body.children);
         bodyChildren.forEach(el => {
             if (el.id !== 'gaiheki-bot-container' && el.id !== 'gaiheki-zip-form-container') {
@@ -153,11 +170,45 @@
     function showBotContainer() {
         let botContainer = document.getElementById('gaiheki-bot-container');
 
+        // LP に既存の BOT DOM がある場合はそれを使う
+        const existingPriceSection = document.getElementById('priceSection');
+        const existingChatSection = document.getElementById('chatSection');
+
+        if (botContainer && existingPriceSection && existingChatSection) {
+            console.log('✅ 既存のBOT DOM構造を検出、表示します');
+
+            // コンテナを表示
+            botContainer.style.display = 'block';
+
+            // hidden クラスを削除
+            const progressMeter = document.getElementById('progressMeter');
+            if (progressMeter) {
+                progressMeter.classList.remove('hidden');
+                console.log('✅ 進捗メーター表示');
+            }
+
+            if (existingPriceSection) {
+                existingPriceSection.classList.remove('hidden');
+                console.log('✅ 相場セクション表示');
+            }
+
+            const mainContainer = document.getElementById('mainContentContainer');
+            if (mainContainer) {
+                mainContainer.classList.remove('hidden');
+                console.log('✅ メインコンテナ表示');
+            }
+
+            return;
+        }
+
+        // 既存のDOM構造がない場合は新規作成
         if (!botContainer) {
             botContainer = document.createElement('div');
             botContainer.id = 'gaiheki-bot-container';
             document.body.appendChild(botContainer);
         }
+
+        console.log('🔧 BOT DOM構造を新規作成');
 
         // lp-test.htmlからBOT部分のHTMLを挿入
         botContainer.innerHTML = `
@@ -473,7 +524,55 @@
             createZipForm();
         }, 500);
 
+        // LP の既存郵便番号フォームに対応
+        const lpPostalCode = document.getElementById('postalCode');
+        const lpSearchButton = document.getElementById('searchButton');
+
+        if (lpPostalCode && lpSearchButton) {
+            console.log('📍 LP郵便番号フォーム検出');
+
+            const handleLPSearch = function() {
+                const postal = lpPostalCode.value.trim();
+
+                if (!postal) {
+                    alert('郵便番号を入力してください');
+                    return;
+                }
+
+                if (!postal.match(/^\d{3}-?\d{4}$/)) {
+                    alert('正しい郵便番号を入力してください（例：100-0001）');
+                    return;
+                }
+
+                console.log('🚀 LP郵便番号フォームから起動:', postal);
+
+                // BOT起動
+                waitForBotSystem().then(() => {
+                    startBotSystem('zip', postal);
+                });
+            };
+
+            lpSearchButton.addEventListener('click', handleLPSearch);
+            lpPostalCode.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleLPSearch();
+                }
+            });
+
+            console.log('✅ LP郵便番号フォームイベント設定完了');
+        }
+
         console.log('✅ 外壁塗装くらべる BOTローダー初期化完了');
     });
+
+    // ============================================
+    // グローバル関数: キーワードからBOT起動
+    // ============================================
+    window.startScenario = function(keyword) {
+        console.log('🎯 キーワードからBOT起動:', keyword);
+        waitForBotSystem().then(() => {
+            startBotSystem('keyword', keyword);
+        });
+    };
 
 })();
