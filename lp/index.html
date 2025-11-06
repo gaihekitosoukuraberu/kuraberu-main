@@ -64,12 +64,21 @@
           display: flex !important;
           justify-content: center !important;
           align-items: center !important;
+          overflow-x: visible !important;
         }
         #postalFormSectionLP > div {
           width: 384px !important;
           padding: 24px !important;
-          max-width: 384px !important;
+          max-width: none !important;
+          min-width: 384px !important;
           margin: 0 !important;
+          transform: scale(0.95) !important;
+          transform-origin: center center !important;
+        }
+      }
+      @media (max-width: 400px) {
+        #postalFormSectionLP > div {
+          transform: scale(0.9) !important;
         }
       }
 
