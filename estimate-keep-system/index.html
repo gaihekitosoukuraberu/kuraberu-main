@@ -1476,7 +1476,14 @@
 
             // BOTシステムに接続
             if (window.BotCore && typeof window.BotCore.startFromZipEntry === 'function') {
-                window.BotCore.startFromZipEntry(postalCode);
+                // BotCore.init()を確実に呼び出してからBOT起動
+                (async function() {
+                    if (!window.BotConfig || !window.BotConfig.state.flowData) {
+                        console.log('🔄 BotCore初期化を実行します...');
+                        await window.BotCore.init();
+                    }
+                    window.BotCore.startFromZipEntry(postalCode);
+                })();
             } else {
                 console.error('❌ BotCoreが読み込まれていません');
             }
