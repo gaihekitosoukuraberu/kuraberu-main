@@ -126,6 +126,11 @@
     async function startBotSystem(type, data) {
         console.log('🎯 BOTシステム起動:', type, data);
 
+        // LP の font-size をリセット（LP は html { font-size: 100px; } なので）
+        document.documentElement.style.fontSize = '16px';
+        document.body.style.fontSize = '16px';
+        console.log('✅ font-size を 16px にリセット');
+
         // BOTシステムの読み込みを待つ
         await waitForBotSystem();
 
