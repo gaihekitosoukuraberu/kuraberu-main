@@ -1648,7 +1648,16 @@
                     </button>
                 `;
                 messages.appendChild(formContainer);
-                scrollToBotBottom();
+
+                // フォームを追加した直後にスクロール
+                setTimeout(() => {
+                    // フォームが見える位置まで自然にスクロール
+                    formContainer.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center',
+                        inline: 'nearest'
+                    });
+                }, 200);
 
                 // イベントリスナー設定
                 setupPhoneFormListeners();
