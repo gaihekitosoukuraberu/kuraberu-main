@@ -55,6 +55,15 @@ const BotCore = {
         // 履歴に追加（ブラウザバックで戻れるようにする）
         history.pushState({ botActive: true }, '', '#bot-active');
 
+        // モバイルプログレスバーを表示
+        if (window.innerWidth < 768) {
+            const mobileProgressBar = document.getElementById('mobileProgressBar');
+            if (mobileProgressBar) {
+                mobileProgressBar.classList.remove('hidden');
+                console.log('✅ モバイルプログレスバー表示');
+            }
+        }
+
         console.log('✅ 全画面モード完了');
     },
 
