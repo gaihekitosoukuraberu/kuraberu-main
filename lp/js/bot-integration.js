@@ -47,6 +47,14 @@ async function initBotForZipEntry() {
         postalCodeSection.style.display = 'none';
     }
 
+    // mainContentContainerを表示（flexレイアウトを維持）
+    const mainContentContainer = document.getElementById('mainContentContainer');
+    if (mainContentContainer) {
+        mainContentContainer.classList.remove('hidden');
+        mainContentContainer.style.display = 'flex';
+        console.log('✅ BOT開始時にmainContentContainer表示（2カラムレイアウト）');
+    }
+
     // ランキングセクションを表示
     const rankingSection = document.getElementById('rankingSection');
     if (rankingSection) {
@@ -278,11 +286,12 @@ function showPostalFormInBot() {
         document.getElementById('priceSection').classList.remove('hidden');
         document.getElementById('areaName').textContent = '東京都千代田区の外壁塗装相場';
 
-        // ランキングセクション表示
+        // ランキングセクション表示（flexレイアウトを維持）
         const mainContentContainer = document.getElementById('mainContentContainer');
         if (mainContentContainer) {
             mainContentContainer.classList.remove('hidden');
-            console.log('✅ ランキングセクション表示');
+            mainContentContainer.style.display = 'flex';
+            console.log('✅ ランキングセクション表示（2カラムレイアウト）');
         }
 
         // GASからランキングを取得してモザイク付きで表示

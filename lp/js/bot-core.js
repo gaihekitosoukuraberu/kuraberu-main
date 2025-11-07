@@ -122,19 +122,20 @@ const BotCore = {
             }
         }
 
-        // ランキングセクションを表示
-        const rankingSection = document.getElementById('rankingSection');
-        if (rankingSection) {
-            rankingSection.classList.remove('hidden');
-            rankingSection.style.display = 'block';
-            console.log('✅ ランキングセクション表示');
-        }
-
+        // mainContentContainerを表示（flexレイアウトを維持）
         const mainContentContainer = document.getElementById('mainContentContainer');
         if (mainContentContainer) {
             mainContentContainer.classList.remove('hidden');
-            mainContentContainer.style.display = 'block';
-            console.log('✅ mainContentContainer表示');
+            // flexレイアウトを維持するため、display: flexを設定
+            mainContentContainer.style.display = 'flex';
+            console.log('✅ mainContentContainer表示（2カラムレイアウト）');
+        }
+
+        // ランキングセクションも確実に表示
+        const rankingSection = document.getElementById('rankingSection');
+        if (rankingSection) {
+            rankingSection.classList.remove('hidden');
+            console.log('✅ ランキングセクション表示');
         }
 
         // GASからランキングを取得してモザイク付きで表示
