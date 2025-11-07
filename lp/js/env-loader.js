@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-03T00:00:00.000Z - Deployment: AKfycbyYyvnqHXEZNSLu2NbbRSP4cRu46_9qD3QSoXMWF9qnzF3fKoVRHd_zYlXoFXuJgNUULQ
+// Auto-synced: 2025-11-07T06:30:00.000Z - Deployment: AKfycbzRqV7gMc7exteuOBwpESCZSm6VggDEwmagDIQxXIhI3QcGxj2DROKQfiKpC8297mmydw
 /**
  * 環境変数ローダー（全システム共通）- 🔥マスターファイル🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1553-MAPS-FIX-2025-11-03T00:00:00
- * @last-update 2025-11-03T00:00:00
+ * @file-version V1554-CV-FIX-2025-11-07T06:30:00
+ * @last-update 2025-11-07T06:30:00
  */
 
 const ENV = {
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1553 - 2025-11-03 00:00）
-  CACHE_BUSTER: '1553_20251103_0000'
+  // キャッシュバスター（V1554 - 2025-11-07 06:30 - CV修正完了版）
+  CACHE_BUSTER: '1554_20251107_0630'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
