@@ -29,7 +29,7 @@ const CVAPI = {
 
             // 送信データ構築
             const data = {
-                action: 'cv1_submit',
+                action: 'submitCV',  // GASが認識するアクション名 (CV1)
                 phone: phoneNumber,
                 postalCode: BotConfig.state.currentZipcode || '',
 
@@ -48,8 +48,8 @@ const CVAPI = {
 
             console.log('📤 送信データ:', data);
 
-            // JSONP送信（CORS回避）
-            const result = await this.sendJSONP(data);
+            // JSONP送信（CORS回避 + リトライ機構）
+            const result = await this.sendJSONPWithRetry(data);
 
             console.log('📥 CV1レスポンス受信:', result);
 
@@ -109,7 +109,7 @@ const CVAPI = {
             // 送信データ構築
             const data = isNewSubmission ? {
                 // 新規作成モード: CV1+CV2の全データを送信
-                action: 'cv1_submit',
+                action: 'submitCV',  // GASが認識するアクション名
                 phone: phone,
                 postalCode: BotConfig.state.currentZipcode || '',
 
@@ -172,11 +172,26 @@ const CVAPI = {
             console.log('📤 送信データ:', data);
             console.log('📤 送信モード:', isNewSubmission ? '新規作成（CV1失敗のフォールバック）' : 'CV2更新');
 
-            // JSONP送信（CORS回避）
-            const result = await this.sendJSONP(data);
+            // localStorageにバックアップ保存（送信失敗時の保険）
+            try {
+                localStorage.setItem('cv2_backup', JSON.stringify({
+                    data: data,
+                    timestamp: new Date().toISOString()
+                }));
+                console.log('💾 CV2データをlocalStorageにバックアップ保存');
+            } catch (e) {
+                console.warn('⚠️ localStorageバックアップ失敗:', e);
+            }
+
+            // JSONP送信（CORS回避 + リトライ機構）
+            const result = await this.sendJSONPWithRetry(data);
 
             if (result.success) {
                 console.log('✅ CV2送信成功');
+
+                // バックアップデータを削除
+                localStorage.removeItem('cv2_backup');
+                console.log('🗑️ CV2バックアップ削除');
 
                 // localStorage クリア
                 BotConfig.clearLocalStorage();
@@ -186,7 +201,12 @@ const CVAPI = {
                     success: true
                 };
             } else {
-                console.error('❌ CV2更新失敗:', result.error);
+                console.error('❌ CV2送信失敗:', result.error);
+
+                // バックアップデータを保持（後で再送信可能）
+                console.warn('⚠️ CV2バックアップをlocalStorageに保持しています');
+                console.warn('⚠️ 次回訪問時に自動再送信を試みます');
+
                 return {
                     success: false,
                     error: result.error
@@ -199,6 +219,41 @@ const CVAPI = {
                 success: false,
                 error: error.toString()
             };
+        }
+    },
+
+    // ============================================
+    // JSONP送信（CORS回避）- リトライ機構付き
+    // ============================================
+    async sendJSONPWithRetry(data, retryCount = 0) {
+        const maxRetries = 3;
+
+        try {
+            return await this.sendJSONP(data);
+        } catch (error) {
+            if (retryCount < maxRetries) {
+                console.warn(`⚠️ リトライ ${retryCount + 1}/${maxRetries}:`, error.message);
+                await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // 指数バックオフ
+                return this.sendJSONPWithRetry(data, retryCount + 1);
+            }
+
+            // 全リトライ失敗 → フォールバックURL試行
+            if (window.ENV?.FALLBACK_GAS_URL && this.GAS_URL !== window.ENV.FALLBACK_GAS_URL) {
+                console.warn('🔄 フォールバックURLで再試行:', window.ENV.FALLBACK_GAS_URL);
+                const originalUrl = this.GAS_URL;
+                try {
+                    // 一時的にフォールバックURLに切り替え
+                    Object.defineProperty(this, 'GAS_URL', { value: window.ENV.FALLBACK_GAS_URL, configurable: true });
+                    const result = await this.sendJSONP(data);
+                    Object.defineProperty(this, 'GAS_URL', { value: originalUrl, configurable: true });
+                    return result;
+                } catch (fallbackError) {
+                    Object.defineProperty(this, 'GAS_URL', { value: originalUrl, configurable: true });
+                    throw fallbackError;
+                }
+            }
+
+            throw error;
         }
     },
 
