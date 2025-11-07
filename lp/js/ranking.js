@@ -905,8 +905,10 @@ window.completeHearingStage = completeHearingStage;
 window.disableSortButtons = disableSortButtons;
 window.enableSortButtons = enableSortButtons;
 
-// 初期化時にキープリストをクリア
+// 初期化時にキープリストをクリアし、ランキングを表示
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('📊 ページロード完了、初期化開始');
+
   // ページ読み込み時にlocalStorageとキープリストをクリア
   localStorage.removeItem('keepList');
   keepList = [];
@@ -920,11 +922,18 @@ document.addEventListener('DOMContentLoaded', function() {
     keepButton.classList.add('hidden');
   }
 
+  // ランキングセクションを表示
+  const rankingSection = document.getElementById('rankingSection');
+  if (rankingSection) {
+    rankingSection.classList.remove('hidden');
+    console.log('✅ ランキングセクション表示');
+  }
+
   // ランキングを初期表示（デフォルトデータ）
   console.log('📊 ランキング初期表示開始');
   if (typeof displayRanking === 'function') {
     displayRanking();
-    console.log('✅ ランキング初期表示完了');
+    console.log('✅ ランキング初期表示完了（デフォルトデータ: T社、S社など）');
   } else {
     console.error('❌ displayRanking関数が見つかりません');
   }
