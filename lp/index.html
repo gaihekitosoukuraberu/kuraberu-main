@@ -1536,98 +1536,6 @@
         </div>
     </div>
 
-    <!-- 以下、見積もりフォーム等は別途実装 -->
-    <div style="display: none;">                    <div id="stepProgress" class="bg-blue-500 h-2 rounded-full transition-all" style="width: 50%"></div>
-                </div>
-            </div>
-
-            <!-- ステップ1: 基本情報 -->
-            <div id="step1" class="p-6">
-                <h2 class="text-xl font-bold mb-4">基本情報の入力</h2>
-
-                <!-- お名前 -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        お名前 <span class="text-red-500">*</span>
-                    </label>
-                    <input type="text" id="userName" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="山田 太郎">
-                </div>
-
-                <!-- 対象物件住所 -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        対象物件住所 <span class="text-red-500">*</span>
-                    </label>
-                    <div class="space-y-2">
-                        <div class="flex gap-2">
-                            <input type="text" id="propertyZip" class="w-32 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="000-0000" readonly>
-                            <input type="text" id="propertyAddress" class="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="市区町村" readonly>
-                        </div>
-                        <input type="text" id="propertyStreet" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="番地・建物名">
-                    </div>
-                </div>
-
-                <!-- 自宅住所（条件付き） -->
-                <div class="mb-4">
-                    <label class="flex items-center">
-                        <input type="checkbox" id="differentHome" class="mr-2" onchange="toggleHomeAddress()">
-                        <span class="text-sm font-medium text-gray-700">対象物件と自宅が異なる場合はチェック</span>
-                    </label>
-
-                    <div id="homeAddressSection" class="hidden mt-3 space-y-2">
-                        <div class="flex gap-2">
-                            <input type="text" id="homeZip" class="w-32 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="000-0000" onblur="fetchAddress(this.value, 'home')">
-                            <input type="text" id="homeAddress" class="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="市区町村" readonly>
-                        </div>
-                        <input type="text" id="homeStreet" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="番地・建物名">
-                    </div>
-                </div>
-
-                <!-- メールアドレス（任意） -->
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        メールアドレス <span class="text-gray-400">(任意)</span>
-                    </label>
-                    <input type="email" id="userEmail" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="example@email.com">
-                </div>
-
-                <div class="flex gap-2">
-                    <button onclick="closeEstimateForm()" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold">
-                        戻る
-                    </button>
-                    <button onclick="nextStep()" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-bold">
-                        次へ
-                    </button>
-                </div>
-            </div>
-
-            <!-- ステップ2: 詳細情報 -->
-            <div id="step2" class="p-4 hidden">
-                <h2 class="text-xl font-bold mb-4">詳細情報の入力</h2>
-
-                <!-- 現地調査希望日時 -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        現地調査希望日時 <span class="text-gray-400">(複数選択可)</span>
-                    </label>
-                    <div class="space-y-2" id="surveyDates">
-                        <!-- 動的に生成 -->
-                    </div>
-                </div>
-
-                <div class="flex gap-2">
-                    <button onclick="prevStep()" id="prevStepBtn" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold">
-                        戻る
-                    </button>
-                    <button onclick="submitForm()" id="submitBtn" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-bold transition-all">
-                        送信する
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    </div>
-
     <!--java script-->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <!-- <script src="js/delay_anim.js"></script> -->
@@ -2457,7 +2365,7 @@
 
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） -->
-    <script src="js/env-loader.js?v=1762517400"></script>
-    <script src="gaiheki-bot-loader.js?v=1762517400"></script>
+    <script src="js/env-loader.js?v=1762518000"></script>
+    <script src="gaiheki-bot-loader.js?v=1762518000"></script>
   </body>
 </html>
