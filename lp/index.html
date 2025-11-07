@@ -194,10 +194,29 @@
 
       /* 電話番号入力フォーム */
       .phone-mini-form {
-        background: linear-gradient(135deg, #E0F2FE, #BAE6FD);
+        background: linear-gradient(135deg, #EBF8FF, #DBEAFE);
         border-radius: 16px;
         padding: 24px;
         margin: 20px 0;
+        animation: fadeIn 0.5s ease-out;
+      }
+
+      .phone-mini-form .form-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #2D3748;
+        margin-bottom: 16px;
+      }
+
+      .phone-input-wrapper {
+        background: white;
+        border: 3px solid #FFD700;
+        border-radius: 12px;
+        padding: 4px;
+        margin-bottom: 12px;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
       }
 
       .waiting-animation {
@@ -256,6 +275,54 @@
         outline: none;
         text-align: center;
         font-weight: 500;
+      }
+
+      .phone-input::placeholder {
+        color: #D1D5DB;
+      }
+
+      .phone-submit-btn {
+        width: 100%;
+        max-width: 400px;
+        background: linear-gradient(135deg, #7B9BF0, #9EBDFD);
+        color: white;
+        padding: 14px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        outline: none;
+        margin: 0 auto;
+        display: block;
+      }
+
+      .phone-submit-btn:hover:not(:disabled) {
+        background: linear-gradient(135deg, #6B8BE0, #8EADED);
+        transform: translateY(-1px);
+      }
+
+      .phone-submit-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* ランキングセクションのテーマカラー */
+      .ranking-section[data-theme="blue"] {
+        background-color: #EBF8FF !important;
+      }
+
+      .ranking-section[data-theme="orange"] {
+        background-color: #FFF5EB !important;
+      }
+
+      .ranking-section[data-theme="green"] {
+        background-color: #F0FDF4 !important;
+      }
+
+      .ranking-section[data-theme="purple"] {
+        background-color: #FAF5FF !important;
       }
 
       /* キープボタン */
