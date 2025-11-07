@@ -1798,3 +1798,57 @@ button {
     font-size: 13px;
   }
 }
+
+/* ============================================
+   PC版専用レイアウト（768px以上）
+============================================ */
+@media screen and (min-width: 768px) {
+  /* 3つのバッジをヘッダー上部に配置（サイズ半分） */
+  .mv .mv__before__txt {
+    position: fixed;
+    top: 20px;
+    right: 150px;
+    width: 300px;
+    margin-top: 0;
+    z-index: 99;
+  }
+
+  .mv .mv__before__txt img {
+    width: 100%;
+    height: auto;
+  }
+
+  /* MVセクション全体を中央寄せに */
+  .mv .container-max {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  /* キーワード検索と郵便番号フォームを縦並び・中央配置 */
+  .mv .mv__before {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  /* キーワード検索を中央配置 */
+  .mv .mv__before__img {
+    width: 600px;
+    max-width: 100%;
+    margin: 0.58rem auto 0.4rem;
+  }
+
+  /* 郵便番号フォームを中央配置 */
+  .mv .mv__after {
+    display: none;
+  }
+
+  #postalFormSectionLP {
+    display: block !important;
+    margin: 20px auto 0 !important;
+    max-width: 600px !important;
+  }
+}
