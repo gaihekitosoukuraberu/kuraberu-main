@@ -1835,25 +1835,35 @@
             document.getElementById('sortReview').className = baseClass + ' hover:border-green-400 hover:shadow-lg hover:scale-105';
             document.getElementById('sortQuality').className = baseClass + ' hover:border-purple-400 hover:shadow-lg hover:scale-105';
 
+            // アイコンの色を各ボタンのテーマカラーに設定（非選択時）
+            document.getElementById('sortRecommended').querySelector('svg').className = 'w-5 h-5 text-blue-600';
+            document.getElementById('sortCheap').querySelector('svg').className = 'w-5 h-5 text-orange-600';
+            document.getElementById('sortReview').querySelector('svg').className = 'w-5 h-5 text-green-600';
+            document.getElementById('sortQuality').querySelector('svg').className = 'w-5 h-5 text-purple-600';
+
             // テーマカラーとタイトルを変更
             switch(type) {
                 case 'recommended':
                     document.getElementById('sortRecommended').className = 'sort-btn sort-btn-active bg-gradient-to-br from-blue-500 to-blue-600 text-white py-2 px-2 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md border-2 border-blue-600 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer';
+                    document.getElementById('sortRecommended').querySelector('svg').className = 'w-5 h-5 text-white';
                     rankingSection.setAttribute('data-theme', 'blue');
                     rankingTitle.textContent = 'おすすめ業者ランキング';
                     break;
                 case 'cheap':
                     document.getElementById('sortCheap').className = 'sort-btn sort-btn-active bg-gradient-to-br from-orange-500 to-orange-600 text-white py-2 px-2 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md border-2 border-orange-600 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer';
+                    document.getElementById('sortCheap').querySelector('svg').className = 'w-5 h-5 text-white';
                     rankingSection.setAttribute('data-theme', 'orange');
                     rankingTitle.textContent = 'コスパ上位ランキング';
                     break;
                 case 'review':
                     document.getElementById('sortReview').className = 'sort-btn sort-btn-active bg-gradient-to-br from-green-500 to-green-600 text-white py-2 px-2 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md border-2 border-green-600 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer';
+                    document.getElementById('sortReview').querySelector('svg').className = 'w-5 h-5 text-white';
                     rankingSection.setAttribute('data-theme', 'green');
                     rankingTitle.textContent = 'クチコミスコアランキング';
                     break;
                 case 'quality':
                     document.getElementById('sortQuality').className = 'sort-btn sort-btn-active bg-gradient-to-br from-purple-500 to-purple-600 text-white py-2 px-2 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md border-2 border-purple-600 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer';
+                    document.getElementById('sortQuality').querySelector('svg').className = 'w-5 h-5 text-white';
                     rankingSection.setAttribute('data-theme', 'purple');
                     rankingTitle.textContent = '高品質保証ランキング';
                     break;
@@ -2452,7 +2462,7 @@
 
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） -->
-    <script src="js/env-loader.js?v=1762509349"></script>
-    <script src="gaiheki-bot-loader.js?v=1762509349"></script>
+    <script src="js/env-loader.js?v=1762510500"></script>
+    <script src="gaiheki-bot-loader.js?v=1762510500"></script>
   </body>
 </html>
