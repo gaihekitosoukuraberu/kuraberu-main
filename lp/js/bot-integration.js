@@ -33,7 +33,7 @@ function showUserMessage(text) {
 }
 
 // 郵便番号エントリ用のBOT初期化
-function initBotForZipEntry() {
+async function initBotForZipEntry() {
     if (!BotConfig.state.flowData) {
         console.error('BOTフローデータがロードされていません');
         return;
@@ -54,10 +54,26 @@ function initBotForZipEntry() {
         console.log('✅ BOT開始時にランキングセクション表示');
     }
 
-    // ランキングを初期表示（デフォルトデータ）
+    // GASからランキングを取得してモザイク付きで表示
+    console.log('🏆 郵便番号入力後、GASからランキングを取得します');
+
+    if (typeof window.fetchRankingFromGAS === 'function') {
+        const success = await window.fetchRankingFromGAS();
+        if (success) {
+            console.log('✅ ランキング取得成功、デフォルト（おすすめ順）で表示');
+            // デフォルトはおすすめ順
+            if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+                window.updateAllCompaniesFromDynamic('recommended');
+            }
+        } else {
+            console.warn('⚠️ ランキング取得失敗、デフォルトデータを使用');
+        }
+    }
+
+    // ランキング表示（モザイク付き）
     if (typeof window.displayRanking === 'function') {
         window.displayRanking();
-        console.log('✅ ランキング初期表示（デフォルトデータ: T社、S社など）');
+        console.log('✅ ランキング表示完了（モザイク付き）');
     }
 
     const messages = document.getElementById('messages');
