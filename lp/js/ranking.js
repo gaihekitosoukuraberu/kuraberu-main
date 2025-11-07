@@ -314,8 +314,8 @@ function displayRanking() {
   
   // ランキングカードを動的生成（samplesフォーマット）
   rankingList.innerHTML = companiesToShow.map(company => {
-    const companyName = window.namesRevealed && realCompanies[company.rank - 1] ?
-      realCompanies[company.rank - 1] : company.name;
+    // GASから取得した実名を使用（イニシャルではなく実名表示）
+    const companyName = company.name;
 
     // 1位は青、2位以降はグレー
     let rankColorClass = company.rank === 1 ? 'text-blue-600' : 'text-gray-600';
