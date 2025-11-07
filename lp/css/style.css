@@ -1893,6 +1893,7 @@ button {
   /* MVセクション全体の高さ調整 */
   .mv {
     position: relative;
+    padding-top: 120px;
     padding-bottom: 60px;
   }
 }
