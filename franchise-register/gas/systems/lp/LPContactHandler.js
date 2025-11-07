@@ -45,7 +45,7 @@ const LPContactHandler = {
         '',                                          // D: フリガナ
         '',                                          // E: 性別
         '',                                          // F: 年齢
-        params.phone ? "'" + params.phone : '',      // G: 電話番号
+        params.phone ? ("'" + params.phone) : '',    // G: 電話番号
         params.email || '',                          // H: メールアドレス
         '',                                          // I: 続柄
 
@@ -115,7 +115,7 @@ const LPContactHandler = {
         '',                                          // BK: 次回架電日時
         '',                                          // BL: メモ
 
-        'LP問い合わせ',                               // BM: 管理ステータス
+        '新規',                                       // BM: 管理ステータス
         '',                                          // BN: 加盟店別ステータス（JSON）
         '',                                          // BO: 初回架電日時
         timestamp,                                   // BP: 最終更新日時
