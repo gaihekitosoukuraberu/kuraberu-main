@@ -1385,6 +1385,114 @@
         </div>
     </div>
 
+    <!-- 見積もりフォームモーダル -->
+    <div id="estimateFormModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <!-- プログレスバー -->
+            <div class="bg-gray-100 p-4 border-b">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-700">ステップ <span id="currentStep">1</span> / 2</span>
+                    <span class="text-sm font-medium text-blue-600"><span id="stepPercent">50</span>%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="stepProgress" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 50%"></div>
+                </div>
+            </div>
+
+            <!-- ステップ1: 基本情報 -->
+            <div id="step1" class="p-6">
+                <h2 class="text-xl font-bold mb-4">基本情報の入力</h2>
+
+                <!-- お名前 -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        お名前 <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="userName" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="山田 太郎">
+                </div>
+
+                <!-- 対象物件住所 -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        対象物件住所 <span class="text-red-500">*</span>
+                    </label>
+                    <div class="space-y-2">
+                        <div class="flex gap-2">
+                            <input type="text" id="propertyZip" class="w-32 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="000-0000" readonly>
+                            <input type="text" id="propertyAddress" class="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="市区町村" readonly>
+                        </div>
+                        <input type="text" id="propertyStreet" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="番地・建物名">
+                    </div>
+                </div>
+
+                <!-- 自宅住所（条件付き） -->
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="differentHome" class="mr-2" onchange="toggleHomeAddress()">
+                        <span class="text-sm font-medium text-gray-700">対象物件と自宅が異なる場合はチェック</span>
+                    </label>
+
+                    <div id="homeAddressSection" class="hidden mt-3 space-y-2">
+                        <div class="flex gap-2">
+                            <input type="text" id="homeZip" class="w-32 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="000-0000">
+                            <input type="text" id="homeAddress" class="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="市区町村" readonly>
+                        </div>
+                        <input type="text" id="homeStreet" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="番地・建物名">
+                    </div>
+                </div>
+
+                <!-- メールアドレス（任意） -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        メールアドレス <span class="text-gray-400">(任意)</span>
+                    </label>
+                    <input type="email" id="userEmail" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="example@email.com">
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="closeEstimateForm()" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold">
+                        戻る
+                    </button>
+                    <button onclick="nextStep()" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-bold">
+                        次へ
+                    </button>
+                </div>
+            </div>
+
+            <!-- ステップ2: 詳細情報 -->
+            <div id="step2" class="p-6 hidden">
+                <h2 class="text-xl font-bold mb-4">詳細情報の入力</h2>
+
+                <!-- 現地調査希望日時 -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        現地調査希望日時 <span class="text-gray-400">(複数選択可)</span>
+                    </label>
+                    <div class="space-y-2" id="surveyDates">
+                        <!-- 動的に生成 -->
+                    </div>
+                </div>
+
+                <!-- その他ご要望 -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        その他ご要望・ご相談 <span class="text-gray-400">(任意)</span>
+                    </label>
+                    <textarea id="requests" rows="4" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="ご要望やご相談があればご記入ください"></textarea>
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="prevStep()" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold">
+                        戻る
+                    </button>
+                    <button id="submitBtn" onclick="submitEstimateForm()" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-bold">
+                        送信する
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 以下、見積もりフォーム等は別途実装 -->
     <div style="display: none;">                    <div id="stepProgress" class="bg-blue-500 h-2 rounded-full transition-all" style="width: 50%"></div>
                 </div>
@@ -1814,8 +1922,175 @@
         // 見積もりフォームを開始
         function startEstimateForm() {
             closeKeepModal();
-            // TODO: 見積もりフォームモーダルを表示する処理
-            alert('見積もりフォームは準備中です。\n\nキープした業者:\n' + keepManager.getList().map(k => k.name).join('\n'));
+            document.getElementById('estimateFormModal').classList.remove('hidden');
+
+            // 郵便番号を自動セット（BOT経由で取得済みの値を使用）
+            if (window.BotConfig && window.BotConfig.state && window.BotConfig.state.currentZipcode) {
+                const zipcode = window.BotConfig.state.currentZipcode;
+                document.getElementById('propertyZip').value = zipcode;
+                // 住所も自動セット（zip-formから取得）
+                const areaName = document.getElementById('areaName');
+                if (areaName) {
+                    document.getElementById('propertyAddress').value = areaName.textContent;
+                }
+            }
+        }
+
+        // 見積もりフォームを閉じる
+        function closeEstimateForm() {
+            document.getElementById('estimateFormModal').classList.add('hidden');
+            // ステップを1に戻す
+            document.getElementById('step1').classList.remove('hidden');
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('currentStep').textContent = '1';
+            document.getElementById('stepPercent').textContent = '50';
+            document.getElementById('stepProgress').style.width = '50%';
+        }
+
+        // 自宅住所の表示切り替え
+        function toggleHomeAddress() {
+            const checkbox = document.getElementById('differentHome');
+            const homeAddressFields = document.getElementById('homeAddressSection');
+            if (checkbox.checked) {
+                homeAddressFields.classList.remove('hidden');
+            } else {
+                homeAddressFields.classList.add('hidden');
+            }
+        }
+
+        // 次のステップへ
+        function nextStep() {
+            const step1 = document.getElementById('step1');
+            const step2 = document.getElementById('step2');
+
+            // バリデーション
+            const name = document.getElementById('userName').value.trim();
+            const street = document.getElementById('propertyStreet').value.trim();
+
+            if (!name) {
+                alert('お名前を入力してください');
+                return;
+            }
+
+            if (!street) {
+                alert('番地を入力してください');
+                return;
+            }
+
+            // 自宅住所チェック（チェックされている場合）
+            const differentHome = document.getElementById('differentHome').checked;
+            if (differentHome) {
+                const homeZip = document.getElementById('homeZip').value.trim();
+                const homeStreet = document.getElementById('homeStreet').value.trim();
+                if (!homeZip || !homeStreet) {
+                    alert('自宅住所を入力してください');
+                    return;
+                }
+            }
+
+            // ステップ切り替え
+            step1.classList.add('hidden');
+            step2.classList.remove('hidden');
+
+            // プログレスバー更新
+            document.getElementById('currentStep').textContent = '2';
+            document.getElementById('stepPercent').textContent = '100';
+            document.getElementById('stepProgress').style.width = '100%';
+
+            // 現地調査希望日時の動的生成
+            generateSurveyDates();
+        }
+
+        // 前のステップへ
+        function prevStep() {
+            const step1 = document.getElementById('step1');
+            const step2 = document.getElementById('step2');
+
+            step2.classList.add('hidden');
+            step1.classList.remove('hidden');
+
+            // プログレスバー更新
+            document.getElementById('currentStep').textContent = '1';
+            document.getElementById('stepPercent').textContent = '50';
+            document.getElementById('stepProgress').style.width = '50%';
+        }
+
+        // 現地調査希望日時を動的生成
+        function generateSurveyDates() {
+            const container = document.getElementById('surveyDates');
+            const today = new Date();
+            const dates = [];
+
+            // 明日から7日分の日付を生成
+            for (let i = 1; i <= 7; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                const dateStr = `${date.getMonth() + 1}月${date.getDate()}日`;
+                dates.push(dateStr);
+            }
+
+            container.innerHTML = dates.map((date, index) => `
+                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                    <input type="checkbox" name="surveyDate" value="${date}" class="mr-3">
+                    <span class="text-sm">${date}</span>
+                </label>
+            `).join('');
+        }
+
+        // 見積もりフォーム送信
+        async function submitEstimateForm() {
+            console.log('📝 見積もりフォーム送信開始');
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '送信中...';
+
+            try {
+                // フォームデータ取得
+                const formData = {
+                    name: document.getElementById('userName').value.trim(),
+                    propertyZip: document.getElementById('propertyZip').value.trim(),
+                    propertyAddress: document.getElementById('propertyAddress').value.trim(),
+                    propertyStreet: document.getElementById('propertyStreet').value.trim(),
+                    email: document.getElementById('userEmail').value.trim(),
+                    requests: document.getElementById('requests').value.trim(),
+                    surveyDates: Array.from(document.querySelectorAll('input[name="surveyDate"]:checked')).map(cb => cb.value),
+                    keptCompanies: keepManager.getList().map(k => k.name),
+                    botAnswers: window.BotConfig ? window.BotConfig.state.userAnswers : {}
+                };
+
+                // 自宅住所（異なる場合）
+                if (document.getElementById('differentHome').checked) {
+                    formData.homeZip = document.getElementById('homeZip').value.trim();
+                    formData.homeAddress = document.getElementById('homeAddress').value.trim();
+                    formData.homeStreet = document.getElementById('homeStreet').value.trim();
+                }
+
+                console.log('📤 送信データ:', formData);
+
+                // GASへ送信（CVAPI.submitEstimate）
+                if (window.CVAPI && window.CVAPI.submitEstimate) {
+                    const response = await window.CVAPI.submitEstimate(formData);
+                    if (response.success) {
+                        console.log('✅ 送信成功');
+                        alert('見積もり依頼を送信しました！\n担当者からご連絡いたしますので、しばらくお待ちください。');
+                        closeEstimateForm();
+                    } else {
+                        console.error('❌ 送信失敗:', response.error);
+                        alert('送信に失敗しま���た。もう一度お試しください。');
+                    }
+                } else {
+                    console.warn('⚠️ CVAPI.submitEstimateが見つかりません');
+                    alert('送信機能は準備中です。\n\nフォームデータ:\n' + JSON.stringify(formData, null, 2));
+                    closeEstimateForm();
+                }
+            } catch (error) {
+                console.error('❌ 送信エラー:', error);
+                alert('送信中にエラーが発生しました。');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '送信する';
+            }
         }
 
         // ============================================

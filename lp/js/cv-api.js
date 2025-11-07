@@ -350,6 +350,45 @@ const CVAPI = {
     }
 };
 
+    /**
+     * 見積もりフォーム送信
+     * @param {Object} formData - フォームデータ
+     * @returns {Promise<Object>} レスポンス
+     */
+    async submitEstimate(formData) {
+        try {
+            console.log('📤 CVAPI.submitEstimate呼び出し', formData);
+
+            const response = await fetch(this.endpoints.submitEstimate, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('✅ 見積もり送信成功:', data);
+
+            return {
+                success: true,
+                data: data
+            };
+
+        } catch (error) {
+            console.error('❌ CVAPI.submitEstimate エラー:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+};
+
 // グローバルに公開
 if (typeof window !== 'undefined') {
     window.CVAPI = CVAPI;
