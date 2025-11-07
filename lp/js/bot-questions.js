@@ -149,11 +149,7 @@ const BotQuestions = {
                 }
 
                 // 次の質問へ
-                if (nextQuestionId === 'PHONE') {
-                    BotCore.connectToPhoneSystem();
-                } else {
-                    this.showQuestion(nextQuestionId);
-                }
+                this.showQuestion(nextQuestionId);
             }, 1000);
             return; // Q016の処理はここで終了
         } else {
