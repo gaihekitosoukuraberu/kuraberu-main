@@ -103,6 +103,13 @@ const BotQuestions = {
             console.log('🏆 Q016回答後、GASからランキングを取得します');
 
             setTimeout(async () => {
+                // ランキングセクションを表示
+                const rankingSection = document.getElementById('rankingSection');
+                if (rankingSection) {
+                    rankingSection.classList.remove('hidden');
+                    console.log('✅ ランキングセクションを表示');
+                }
+
                 // ランキング取得（モザイク表示）
                 if (typeof window.fetchRankingFromGAS === 'function') {
                     const success = await window.fetchRankingFromGAS();
