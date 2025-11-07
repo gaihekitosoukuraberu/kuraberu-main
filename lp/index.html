@@ -2378,7 +2378,7 @@
         }
 
         // フォーム送信の連打防止とローディング表示
-        (function() {
+        document.addEventListener('DOMContentLoaded', function() {
             let isSubmitting = false; // 送信中フラグ
 
             const form = document.querySelector('.km_form');
@@ -2394,25 +2394,38 @@
                         return false;
                     }
 
-                    // バリデーションチェック（km_formのデフォルト動作に任せる）
-                    // 送信処理開始
-                    isSubmitting = true;
+                    // 一旦送信をキャンセルして、バリデーション結果を確認
+                    e.preventDefault();
 
-                    // ボタンを無効化
-                    submitBtn.disabled = true;
-                    submitBtn.style.opacity = '0.6';
-                    submitBtn.style.cursor = 'not-allowed';
+                    // validate.jsのバリデーション実行を待つ
+                    setTimeout(function() {
+                        // バリデーションエラーがある場合はローディングを表示しない
+                        const hasValidationError = form.querySelector('.km_valid_error') !== null;
 
-                    // ローディングオーバーレイを表示
-                    loadingOverlay.style.display = 'flex';
+                        if (hasValidationError) {
+                            console.log('フォーム送信: バリデーションエラーがあります');
+                            return;
+                        }
 
-                    console.log('フォーム送信: 送信処理を開始しました');
+                        // バリデーション成功：送信処理開始
+                        isSubmitting = true;
 
-                    // フォームは通常通り送信される（action="mail.php"）
-                    return true;
+                        // ボタンを無効化
+                        submitBtn.disabled = true;
+                        submitBtn.style.opacity = '0.6';
+                        submitBtn.style.cursor = 'not-allowed';
+
+                        // ローディングオーバーレイを表示
+                        loadingOverlay.style.display = 'flex';
+
+                        console.log('フォーム送信: 送信処理を開始しました');
+
+                        // フォームを手動で送信
+                        form.submit();
+                    }, 100); // validate.jsの処理を待つための遅延
                 });
             }
-        })();
+        });
     </script>
 
     <!-- 外壁塗装くらべる BOTシステム -->
