@@ -33,15 +33,17 @@ const BotQuestions = {
         // 現在の質問IDを保存
         BotConfig.state.currentQuestionId = questionId;
 
-        // 特殊な分岐：PHONE
-        if (questionId === 'PHONE' || this.isPHONEBranch(question)) {
-            // connectToPhoneSystemはasync関数だが、ここではawaitしない（バックグラウンドで実行）
-            BotCore.connectToPhoneSystem();
-            return;
-        }
-
         // AIメッセージ表示
         BotUI.showAIMessage(question.text);
+
+        // 特殊な分岐：PHONE
+        if (questionId === 'PHONE' || this.isPHONEBranch(question)) {
+            // 選択肢なしで直接フォーム表示
+            setTimeout(() => {
+                BotCore.connectToPhoneSystem();
+            }, 500);
+            return;
+        }
 
         // 選択肢表示
         setTimeout(() => {

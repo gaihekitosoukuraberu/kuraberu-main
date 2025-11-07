@@ -1650,21 +1650,7 @@
             const messages = document.getElementById('messages');
             if (!messages) return;
 
-            // AIメッセージコンテナを作成
-            const aiMessageContainer = document.createElement('div');
-            aiMessageContainer.className = 'ai-message-container';
-            aiMessageContainer.innerHTML = `
-                <img src="images/avatars/319260ba-0b3d-47d0-b18f-abf530c2793e.png" alt="AI" class="ai-avatar" loading="eager" decoding="async">
-                <div class="ai-message">
-                    ありがとうございました！<br>
-                    現在、いただいた条件にて検索しております。<br>
-                    30秒ほどかかりますので、完了までに送付先の入力をお願いします。
-                </div>
-            `;
-            messages.appendChild(aiMessageContainer);
-            scrollToBotBottom();
-
-            // フォームを作成
+            // フォームを作成（メッセージはzip-word-bot.jsonから表示済み）
             setTimeout(() => {
                 const formContainer = document.createElement('div');
                 formContainer.className = 'phone-mini-form';
@@ -2463,7 +2449,7 @@
 
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） -->
-    <script src="js/env-loader.js?v=1762513200"></script>
-    <script src="gaiheki-bot-loader.js?v=1762513200"></script>
+    <script src="js/env-loader.js?v=1762513800"></script>
+    <script src="gaiheki-bot-loader.js?v=1762513800"></script>
   </body>
 </html>
