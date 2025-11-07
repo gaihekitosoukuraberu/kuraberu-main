@@ -111,7 +111,7 @@ button {
   width: 48px;
   height: 48px;
   position: absolute;
-  top: 14px;
+  top: calc(50% - 0.24rem);
   right: 20px;
   z-index: 100;
   transition: transform 0.4s;
