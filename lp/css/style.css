@@ -1878,17 +1878,20 @@ button {
 
   /* 郵便番号フォーム（下部・中央に独立配置） */
   #postalFormSectionLP {
-    position: absolute;
-    bottom: -200px;
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: 600px;
-    width: 100%;
-    z-index: 10;
+    grid-column: 1 / -1;
+    position: absolute !important;
+    bottom: -200px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    max-width: 600px !important;
+    width: 100% !important;
+    z-index: 10 !important;
+    margin: 0 auto !important;
   }
 
   /* MVセクション全体の高さ調整 */
   .mv {
+    position: relative;
     padding-bottom: 250px;
   }
 }
