@@ -226,6 +226,7 @@ const BotScenarios = {
 
         // 郵便番号を保存
         BotConfig.state.currentZipcode = postal.replace('-', '');
+        BotConfig.state.postalCodeEntered = true;
 
         // ユーザーメッセージとして表示
         BotUI.showUserMessage(postal);
@@ -233,20 +234,38 @@ const BotScenarios = {
         // フォームを非表示
         formContainer.style.display = 'none';
 
-        // 相場表示（既存システムとの連携）
-        const priceSection = document.getElementById('priceSection');
-        if (priceSection) {
-            priceSection.classList.remove('hidden');
-            const areaName = document.getElementById('areaName');
-            if (areaName) {
-                areaName.textContent = '東京都千代田区の外壁塗装相場';
-            }
-        }
+        // GASからランキングを取得してモザイク付きで表示
+        setTimeout(async () => {
+            console.log('🏆 郵便番号入力後、GASからランキングを取得してモザイク付き表示');
 
-        // mainQuestionsへ
-        setTimeout(() => {
-            this.redirectToMainQuestions();
-        }, 1500);
+            if (typeof window.fetchRankingFromGAS === 'function') {
+                const success = await window.fetchRankingFromGAS();
+                if (success) {
+                    console.log('✅ ランキング取得成功');
+                } else {
+                    console.warn('⚠️ ランキング取得失敗、デフォルトデータを使用');
+                }
+            }
+
+            // デフォルトはおすすめ順
+            if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+                window.updateAllCompaniesFromDynamic('recommended');
+            }
+
+            // ランキング表示（モザイク付き）
+            if (typeof window.displayRanking === 'function') {
+                window.displayRanking();
+                console.log('✅ ランキング表示完了（モザイク付き）');
+            }
+
+            // AIメッセージ表示
+            BotUI.showAIMessage('ありがとうございます。あなたに最適な業者をご紹介するため、いくつか質問させていただきます。');
+
+            // mainQuestionsへ（相場は表示せず質問を開始）
+            setTimeout(() => {
+                this.redirectToMainQuestions();
+            }, 1000);
+        }, 1000);
     },
 
     // ============================================

@@ -334,7 +334,14 @@ function connectToExistingPhoneForm() {
         if (mainContentContainer) {
             mainContentContainer.classList.remove('hidden');
             mainContentContainer.style.display = 'flex';
-            console.log('✅ ランキングセクション表示（2カラムレイアウト）');
+            console.log('✅ メインコンテナ表示（2カラムレイアウト）');
+        }
+
+        // ランキングセクションも明示的に表示
+        const rankingSection = document.getElementById('rankingSection');
+        if (rankingSection) {
+            rankingSection.classList.remove('hidden');
+            console.log('✅ ランキングセクション表示');
         }
 
         // デフォルトはおすすめ順

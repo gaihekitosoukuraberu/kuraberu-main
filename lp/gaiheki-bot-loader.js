@@ -131,7 +131,7 @@
         await waitForBotSystem();
 
         // BOT用のコンテナを表示
-        showBotContainer();
+        showBotContainer(type);
 
         // LPコンテンツを非表示
         const wrapper = document.querySelector('.wrapper');
@@ -173,7 +173,7 @@
     // ============================================
     // BOTコンテナを表示
     // ============================================
-    function showBotContainer() {
+    function showBotContainer(type) {
         let botContainer = document.getElementById('gaiheki-bot-container');
 
         // LP に既存の BOT DOM がある場合はそれを使う
@@ -193,15 +193,35 @@
                 console.log('✅ 進捗メーター表示');
             }
 
-            if (existingPriceSection) {
-                existingPriceSection.classList.remove('hidden');
-                console.log('✅ 相場セクション表示');
-            }
-
+            // メインコンテナは常に表示
             const mainContainer = document.getElementById('mainContentContainer');
             if (mainContainer) {
                 mainContainer.classList.remove('hidden');
+                mainContainer.style.display = 'flex';
                 console.log('✅ メインコンテナ表示');
+            }
+
+            // チャットセクションは常に表示
+            if (existingChatSection) {
+                existingChatSection.classList.remove('hidden');
+                console.log('✅ チャットセクション表示');
+            }
+
+            // ランキングセクションは常に表示（モザイク状態）
+            const rankingSection = document.getElementById('rankingSection');
+            if (rankingSection) {
+                rankingSection.classList.remove('hidden');
+                console.log('✅ ランキングセクション表示（モザイク付き）');
+            }
+
+            // キーワードからの起動時は相場セクションのみ非表示
+            if (type === 'zip') {
+                if (existingPriceSection) {
+                    existingPriceSection.classList.remove('hidden');
+                    console.log('✅ 相場セクション表示（郵便番号入力から）');
+                }
+            } else if (type === 'keyword') {
+                console.log('⏸️ キーワードからの起動のため、相場セクションは質問完了後に表示します');
             }
 
             return;
