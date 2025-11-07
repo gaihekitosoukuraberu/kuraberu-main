@@ -9,9 +9,12 @@
  */
 
 const CVAPI = {
-    // GAS Web App URL（ENV経由で取得、フォールバック付き）
+    // GAS Web App URL（ENV経由で取得、動的参照のみ）
     get GAS_URL() {
-        return window.ENV?.GAS_URL || 'https://script.google.com/macros/s/AKfycbyYyvnqHXEZNSLu2NbbRSP4cRu46_9qD3QSoXMWF9qnzF3fKoVRHd_zYlXoFXuJgNUULQ/exec';
+        if (!window.ENV?.GAS_URL) {
+            console.error('❌ ENV.GAS_URLが未定義です。env-loader.jsが正しくロードされていません。');
+        }
+        return window.ENV?.GAS_URL;
     },
 
     // ============================================
