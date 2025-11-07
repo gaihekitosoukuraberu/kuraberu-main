@@ -1868,7 +1868,6 @@ button {
   .mv .mv__after {
     grid-column: 2;
     grid-row: 1;
-    position: relative;
   }
 
   .mv .mv__after__img {
