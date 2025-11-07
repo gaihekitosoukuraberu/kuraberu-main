@@ -85,10 +85,11 @@ async function fetchRankingFromGAS() {
 
     console.log('✅ ランキング取得成功:', response);
 
-    // レスポンスをキャッシュ（まだ実名には変換しない - 電話番号入力後に変換）
+    // レスポンスをキャッシュ
     dynamicRankings = response.rankings;
+    window.dynamicRankings = dynamicRankings; // グローバルスコープにも反映
 
-    console.log('📦 ランキングデータをキャッシュしました（イニシャル表示のまま）');
+    console.log('📦 ランキングデータをキャッシュしました');
 
     return true;
 
@@ -888,7 +889,8 @@ function completeHearingStage(stage) {
   // 第2段階以降の処理は、chatbot.jsのtriggerSortEnableで制御
 }
 
-// グローバル関数としてエクスポート
+// グローバル変数・関数としてエクスポート
+window.dynamicRankings = dynamicRankings;
 window.fetchRankingFromGAS = fetchRankingFromGAS;
 window.updateAllCompaniesFromDynamic = updateAllCompaniesFromDynamic;
 window.displayRanking = displayRanking;

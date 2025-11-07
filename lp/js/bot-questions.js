@@ -113,42 +113,42 @@ const BotQuestions = {
             console.log(`📊 選択: "${choice}" (index: ${index}) → ソートタイプ: ${sortType}`);
 
             setTimeout(async () => {
-                // ランキング取得
-                if (typeof window.fetchRankingFromGAS === 'function') {
-                    const success = await window.fetchRankingFromGAS();
-                    if (success) {
-                        console.log('✅ ランキング取得成功、スプシの会社名でallCompaniesを更新');
+                // すでにランキングが取得済みか確認
+                const hasDynamicRankings = window.dynamicRankings !== null && window.dynamicRankings !== undefined;
 
-                        // GASから取得したデータでallCompaniesを更新（選択されたソート順で）
-                        if (typeof window.updateAllCompaniesFromDynamic === 'function') {
-                            window.updateAllCompaniesFromDynamic(sortType);
-                            console.log(`✅ allCompanies更新完了、${sortType}順で表示`);
-                        }
+                if (!hasDynamicRankings) {
+                    // まだ取得していない場合のみGASから取得
+                    console.log('⚠️ ランキング未取得のため、GASから取得します');
+                    if (typeof window.fetchRankingFromGAS === 'function') {
+                        await window.fetchRankingFromGAS();
+                    }
+                } else {
+                    console.log('✅ ランキングは取得済み、ソート順のみ変更します');
+                }
 
-                        // ランキング表示を更新
-                        if (typeof window.displayRanking === 'function') {
-                            window.displayRanking();
-                        }
+                // GASから取得したデータでallCompaniesを更新（選択されたソート順で）
+                if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+                    window.updateAllCompaniesFromDynamic(sortType);
+                    console.log(`✅ allCompanies更新完了、${sortType}順で表示`);
+                }
 
-                        // ソートタブの背景色も変更
-                        if (typeof window.switchSortTab === 'function') {
-                            const tabMap = {
-                                'recommended': 'tabRecommend',
-                                'cheap': 'tabCheap',
-                                'review': 'tabReview',
-                                'quality': 'tabQuality'
-                            };
-                            const tabId = tabMap[sortType];
-                            if (tabId) {
-                                window.switchSortTab(tabId);
-                                console.log(`🎨 ソートタブの背景色を変更: ${tabId}`);
-                            }
-                        }
-                    } else {
-                        console.warn('⚠️ ランキング取得失敗、デフォルトデータで表示');
-                        if (typeof window.displayRanking === 'function') {
-                            window.displayRanking();
-                        }
+                // ランキング表示を更新
+                if (typeof window.displayRanking === 'function') {
+                    window.displayRanking();
+                }
+
+                // ソートタブの背景色も変更
+                if (typeof window.switchSortTab === 'function') {
+                    const tabMap = {
+                        'recommended': 'tabRecommend',
+                        'cheap': 'tabCheap',
+                        'review': 'tabReview',
+                        'quality': 'tabQuality'
+                    };
+                    const tabId = tabMap[sortType];
+                    if (tabId) {
+                        window.switchSortTab(tabId);
+                        console.log(`🎨 ソートタブの背景色を変更: ${tabId}`);
                     }
                 }
 

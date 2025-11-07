@@ -262,10 +262,41 @@ function showPostalFormInBot() {
         document.getElementById('priceSection').classList.remove('hidden');
         document.getElementById('areaName').textContent = '東京都千代田区の外壁塗装相場';
 
-        // mainQuestionsへ
-        setTimeout(() => {
-            showQuestion('Q001');
-        }, 1500);
+        // ランキングセクション表示
+        const mainContentContainer = document.getElementById('mainContentContainer');
+        if (mainContentContainer) {
+            mainContentContainer.classList.remove('hidden');
+            console.log('✅ ランキングセクション表示');
+        }
+
+        // GASからランキングを取得してモザイク付きで表示
+        setTimeout(async () => {
+            console.log('🏆 郵便番号入力後、GASからランキングを取得します');
+
+            if (typeof window.fetchRankingFromGAS === 'function') {
+                const success = await window.fetchRankingFromGAS();
+                if (success) {
+                    console.log('✅ ランキング取得成功、デフォルト（おすすめ順）で表示');
+                    // デフォルトはおすすめ順
+                    if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+                        window.updateAllCompaniesFromDynamic('recommended');
+                    }
+                } else {
+                    console.warn('⚠️ ランキング取得失敗、デフォルトデータを使用');
+                }
+            }
+
+            // ランキング表示（モザイク付き）
+            if (typeof window.displayRanking === 'function') {
+                window.displayRanking();
+                console.log('✅ ランキング表示完了（モザイク付き）');
+            }
+
+            // mainQuestionsへ
+            setTimeout(() => {
+                showQuestion('Q001');
+            }, 500);
+        }, 1000);
     });
 
     // Enterキーで送信
