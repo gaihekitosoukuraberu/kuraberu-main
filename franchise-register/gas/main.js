@@ -111,6 +111,14 @@ const SystemRouter = {
       actions: ['getRatingsFromSheet', 'updateCompanyRatings']
     },
 
+    // CVデータ管理システム
+    'cv_': {
+      system: 'CVSheetSystem',
+      description: 'CV送信',
+      prefix: true,
+      actions: ['cv1_submit', 'cv2_update', 'getCVList']
+    },
+
     // Slack連携
     'slack_': {
       system: 'SlackApprovalSystem',
