@@ -124,19 +124,19 @@ document.addEventListener('DOMContentLoaded', function() {
   // 電話番号入力の「表示する」ボタンのイベントリスナー
   const showCompanyNamesBtn = document.getElementById('showCompanyNamesBtn');
   if (showCompanyNamesBtn) {
-    showCompanyNamesBtn.addEventListener('click', function() {
+    showCompanyNamesBtn.addEventListener('click', async function() {
       const phoneInput = document.getElementById('phoneNumber');
       const phoneNumber = phoneInput.value.trim();
-      
+
       console.log('入力された電話番号:', phoneNumber, '文字数:', phoneNumber.length);
-      
+
       if (phoneNumber.length < 8) {
         alert('正しい電話番号を入力してください');
         return;
       }
-      
+
       console.log('電話番号検証OK、業者名を表示中...');
-      
+
       // 電話番号入力フォームをサンクスメッセージに切り替え
       const phoneSection = document.getElementById('phoneSection');
       if (phoneSection) {
@@ -152,10 +152,25 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
         `;
       }
-      
+
+      // GASから動的ランキングを取得
+      console.log('🏆 GASからランキングを取得します...');
+      let rankingFetched = false;
+      if (typeof window.fetchRankingFromGAS === 'function') {
+        const success = await window.fetchRankingFromGAS();
+        if (success) {
+          console.log('✅ ランキング取得成功、動的データを表示');
+          rankingFetched = true;
+        } else {
+          console.warn('⚠️ ランキング取得失敗、デフォルトデータを表示');
+        }
+      } else {
+        console.warn('⚠️ fetchRankingFromGAS関数が見つかりません');
+      }
+
       // 業者名をイニシャルから実名に変更
       revealCompanyNames();
-      
+
       // 下部ボタンを「無料見積もり」に変更
       const showCompanyBtn = document.getElementById('showCompanyNamesFloatingBtn');
       if (showCompanyBtn) {
@@ -166,10 +181,11 @@ document.addEventListener('DOMContentLoaded', function() {
           業者名を見る
         `;
       }
-      
+
       // ランキングを再描画して「無料見積もり」ボタンに更新
       if (typeof window.displayRanking === 'function') {
         window.displayRanking();
+        console.log('✅ ランキング再描画完了' + (rankingFetched ? '（動的データ）' : '（デフォルトデータ）'));
       } else {
         console.log('displayRanking関数がまだ定義されていません');
       }

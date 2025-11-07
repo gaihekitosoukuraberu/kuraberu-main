@@ -29,8 +29,7 @@
             'js/bot-integration.js',
             'js/phone-form.js',
             'js/cv-api.js',
-            'js/ranking.js',
-            'js/ranking-display.js'
+            'js/ranking.js'
         ]
     };
 

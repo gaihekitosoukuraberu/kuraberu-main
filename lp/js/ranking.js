@@ -910,13 +910,22 @@ document.addEventListener('DOMContentLoaded', function() {
   // ページ読み込み時にlocalStorageとキープリストをクリア
   localStorage.removeItem('keepList');
   keepList = [];
-  
+
   // キープ数バッジを更新
   updateKeepCountBadge();
-  
+
   // キープボタンを非表示
   const keepButton = document.getElementById('keepButton');
   if (keepButton) {
     keepButton.classList.add('hidden');
+  }
+
+  // ランキングを初期表示（デフォルトデータ）
+  console.log('📊 ランキング初期表示開始');
+  if (typeof displayRanking === 'function') {
+    displayRanking();
+    console.log('✅ ランキング初期表示完了');
+  } else {
+    console.error('❌ displayRanking関数が見つかりません');
   }
 });
