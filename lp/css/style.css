@@ -1807,7 +1807,7 @@ button {
   .mv .mv__before__txt {
     position: absolute;
     top: 18px;
-    right: 600px;
+    right: 700px;
     width: 320px;
     margin-top: 0;
     z-index: 99;
@@ -1822,9 +1822,9 @@ button {
   .mv .mv__before__img {
     position: absolute;
     top: 18px;
-    left: 280px;
-    width: 300px;
-    max-width: 300px;
+    right: 200px;
+    width: 390px;
+    max-width: 390px;
     margin: 0;
     z-index: 98;
     cursor: pointer;
