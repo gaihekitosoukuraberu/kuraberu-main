@@ -112,6 +112,9 @@ const BotQuestions = {
             const sortTypeMap = ['cheap', 'review', 'quality', 'recommended'];
             const sortType = sortTypeMap[index] || 'recommended';
 
+            // ソートタイプを保存（電話番号入力後のメッセージで使用）
+            BotConfig.state.selectedSortType = sortType;
+
             console.log(`📊 選択: "${choice}" (index: ${index}) → ソートタイプ: ${sortType}`);
 
             setTimeout(async () => {
