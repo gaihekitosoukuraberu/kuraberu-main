@@ -1353,7 +1353,7 @@
                     <div class="bg-white rounded-lg p-3 mb-4 shadow-sm">
                         <h3 class="text-sm font-bold mb-3 text-gray-800">並び替え</h3>
                         <div class="grid grid-cols-4 gap-2">
-                            <button id="sortRecommended" onclick="changeSortType('recommended')" class="sort-btn sort-btn-active bg-gradient-to-br from-blue-500 to-blue-600 text-white py-2 px-2 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md border-2 border-blue-600 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer">
+                            <button id="sortRecommended" onclick="changeSortType('recommended')" class="sort-btn sort-btn-active bg-gradient-to-br from-blue-300 to-blue-400 text-white py-2 px-2 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md border-2 border-blue-400 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer">
                                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
                                 </svg>
@@ -1841,28 +1841,28 @@
             document.getElementById('sortReview').querySelector('svg').className = 'w-5 h-5 text-green-600';
             document.getElementById('sortQuality').querySelector('svg').className = 'w-5 h-5 text-purple-600';
 
-            // テーマカラーとタイトルを変更
+            // テーマカラーとタイトルを変更（パステル調）
             switch(type) {
                 case 'recommended':
-                    document.getElementById('sortRecommended').className = 'sort-btn sort-btn-active bg-gradient-to-br from-blue-500 to-blue-600 text-white py-2 px-2 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md border-2 border-blue-600 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer';
+                    document.getElementById('sortRecommended').className = 'sort-btn sort-btn-active bg-gradient-to-br from-blue-300 to-blue-400 text-white py-2 px-2 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md border-2 border-blue-400 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer';
                     document.getElementById('sortRecommended').querySelector('svg').className = 'w-5 h-5 text-white';
                     rankingSection.setAttribute('data-theme', 'blue');
                     rankingTitle.textContent = 'おすすめ業者ランキング';
                     break;
                 case 'cheap':
-                    document.getElementById('sortCheap').className = 'sort-btn sort-btn-active bg-gradient-to-br from-orange-500 to-orange-600 text-white py-2 px-2 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md border-2 border-orange-600 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer';
+                    document.getElementById('sortCheap').className = 'sort-btn sort-btn-active bg-gradient-to-br from-orange-300 to-orange-400 text-white py-2 px-2 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md border-2 border-orange-400 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer';
                     document.getElementById('sortCheap').querySelector('svg').className = 'w-5 h-5 text-white';
                     rankingSection.setAttribute('data-theme', 'orange');
                     rankingTitle.textContent = 'コスパ上位ランキング';
                     break;
                 case 'review':
-                    document.getElementById('sortReview').className = 'sort-btn sort-btn-active bg-gradient-to-br from-green-500 to-green-600 text-white py-2 px-2 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md border-2 border-green-600 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer';
+                    document.getElementById('sortReview').className = 'sort-btn sort-btn-active bg-gradient-to-br from-green-300 to-green-400 text-white py-2 px-2 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md border-2 border-green-400 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer';
                     document.getElementById('sortReview').querySelector('svg').className = 'w-5 h-5 text-white';
                     rankingSection.setAttribute('data-theme', 'green');
                     rankingTitle.textContent = 'クチコミスコアランキング';
                     break;
                 case 'quality':
-                    document.getElementById('sortQuality').className = 'sort-btn sort-btn-active bg-gradient-to-br from-purple-500 to-purple-600 text-white py-2 px-2 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md border-2 border-purple-600 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer';
+                    document.getElementById('sortQuality').className = 'sort-btn sort-btn-active bg-gradient-to-br from-purple-300 to-purple-400 text-white py-2 px-2 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md border-2 border-purple-400 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer';
                     document.getElementById('sortQuality').querySelector('svg').className = 'w-5 h-5 text-white';
                     rankingSection.setAttribute('data-theme', 'purple');
                     rankingTitle.textContent = '高品質保証ランキング';

@@ -137,19 +137,10 @@ const BotQuestions = {
                     window.displayRanking();
                 }
 
-                // ソートタブの背景色も変更
-                if (typeof window.switchSortTab === 'function') {
-                    const tabMap = {
-                        'recommended': 'tabRecommend',
-                        'cheap': 'tabCheap',
-                        'review': 'tabReview',
-                        'quality': 'tabQuality'
-                    };
-                    const tabId = tabMap[sortType];
-                    if (tabId) {
-                        window.switchSortTab(tabId);
-                        console.log(`🎨 ソートタブの背景色を変更: ${tabId}`);
-                    }
+                // ソートボタンの表示を変更
+                if (typeof window.changeSortType === 'function') {
+                    window.changeSortType(sortType);
+                    console.log(`🎨 ソートタイプを変更: ${sortType}`);
                 }
 
                 // 次の質問へ
