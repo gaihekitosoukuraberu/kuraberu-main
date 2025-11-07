@@ -221,6 +221,19 @@ function initBotForKeywordEntry(keyword) {
         return;
     }
 
+    // ランキングセクションを表示
+    const rankingSection = document.getElementById('rankingSection');
+    if (rankingSection) {
+        rankingSection.classList.remove('hidden');
+        console.log('✅ キーワード検索BOT開始時にランキングセクション表示');
+    }
+
+    // ランキングを初期表示（デフォルトデータ）
+    if (typeof window.displayRanking === 'function') {
+        window.displayRanking();
+        console.log('✅ ランキング初期表示（デフォルトデータ: T社、S社など）');
+    }
+
     // greeting表示
     showAIMessage(scenario.greeting);
 
@@ -283,20 +296,44 @@ function showPostalFormInBot() {
         // 郵便番号を保存したことを記録
         BotConfig.state.postalCodeEntered = true;
 
-        // GASからランキングをバックグラウンドで取得（表示はまだしない）
+        // GASからランキングを取得してモザイク付きで表示
         setTimeout(async () => {
-            console.log('🏆 郵便番号入力後、GASからランキングを取得します（バックグラウンド）');
+            console.log('🏆 郵便番号入力後、GASからランキングを取得してモザイク付き表示');
 
             if (typeof window.fetchRankingFromGAS === 'function') {
                 const success = await window.fetchRankingFromGAS();
                 if (success) {
-                    console.log('✅ ランキング取得成功（表示は質問完了後）');
+                    console.log('✅ ランキング取得成功');
                 } else {
                     console.warn('⚠️ ランキング取得失敗、デフォルトデータを使用');
                 }
             }
 
-            // mainQuestionsへ（相場は表示せず質問を開始）
+            // デフォルトはおすすめ順
+            if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+                window.updateAllCompaniesFromDynamic('recommended');
+            }
+
+            // ランキング表示（モザイク付き）
+            if (typeof window.displayRanking === 'function') {
+                window.displayRanking();
+                console.log('✅ ランキング表示完了（モザイク付き）');
+            }
+
+            // 相場セクションを表示
+            const priceSection = document.getElementById('priceSection');
+            if (priceSection) {
+                priceSection.classList.remove('hidden');
+                priceSection.style.display = 'block';
+                console.log('✅ 相場セクション表示完了（郵便番号入力後）');
+            }
+
+            const areaName = document.getElementById('areaName');
+            if (areaName) {
+                areaName.textContent = '東京都千代田区の外壁塗装相場';
+            }
+
+            // mainQuestionsへ
             showAIMessage('ありがとうございます。あなたに最適な業者をご紹介するため、いくつか質問させていただきます。');
 
             setTimeout(() => {
@@ -326,8 +363,17 @@ function connectToExistingPhoneForm() {
         console.log('✅ キーワード検索経由のため、質問完了後に相場セクション表示');
 
         // 相場表示
-        document.getElementById('priceSection').classList.remove('hidden');
-        document.getElementById('areaName').textContent = '東京都千代田区の外壁塗装相場';
+        const priceSection = document.getElementById('priceSection');
+        if (priceSection) {
+            priceSection.classList.remove('hidden');
+            priceSection.style.display = 'block';
+            console.log('✅ 相場セクション表示完了');
+        }
+
+        const areaName = document.getElementById('areaName');
+        if (areaName) {
+            areaName.textContent = '東京都千代田区の外壁塗装相場';
+        }
 
         // ランキングセクション表示（flexレイアウトを維持）
         const mainContentContainer = document.getElementById('mainContentContainer');

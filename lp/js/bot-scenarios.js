@@ -258,6 +258,19 @@ const BotScenarios = {
                 console.log('✅ ランキング表示完了（モザイク付き）');
             }
 
+            // 相場セクションを表示
+            const priceSection = document.getElementById('priceSection');
+            if (priceSection) {
+                priceSection.classList.remove('hidden');
+                priceSection.style.display = 'block';
+                console.log('✅ 相場セクション表示完了（郵便番号入力後）');
+            }
+
+            const areaName = document.getElementById('areaName');
+            if (areaName) {
+                areaName.textContent = '東京都千代田区の外壁塗装相場';
+            }
+
             // AIメッセージ表示
             BotUI.showAIMessage('ありがとうございます。あなたに最適な業者をご紹介するため、いくつか質問させていただきます。');
 
