@@ -252,6 +252,9 @@ if(($confirmDsp == 0 || $sendmail == 1) && $empty_flag != 1){
 		mail($to,$subject,$adminBody,$header,'-f'.$from);
 		if($remail == 1 && !empty($post_mail)) mail($post_mail,$re_subject,$userBody,$reheader,'-f'.$from);
 	}
+
+	// スプレッドシートとSlack通知への連携
+	sendToGAS($_POST);
 }
 else if($confirmDsp == 1){
 
@@ -645,6 +648,46 @@ function refererCheck($Referer_check,$Referer_check_domain){
 }
 function copyright(){
 	echo '<a style="display:block;text-align:center;margin:15px 0;font-size:11px;color:#aaa;text-decoration:none" href="http://www.php-factory.net/" target="_blank">- PHP工房 -</a>';
+}
+//GASにお問い合わせデータを送信
+function sendToGAS($formData){
+	// GAS Web App URL
+	$gasUrl = 'https://script.google.com/macros/s/AKfycbxMaj0EwqO8HczQOCH1xGNn2wTX3jn4OTU_3en76sIs1vpxYcafIwTHX1OSrUEfHGL97w/exec';
+
+	// お問い合わせ内容を配列から文字列に変換
+	$inquiryContent = '';
+	if(isset($formData['お問い合わせ内容']) && is_array($formData['お問い合わせ内容'])){
+		$inquiryContent = implode(', ', $formData['お問い合わせ内容']);
+	}elseif(isset($formData['お問い合わせ内容'])){
+		$inquiryContent = $formData['お問い合わせ内容'];
+	}
+
+	// 送信データを構築
+	$postData = array(
+		'action' => 'lp_contact_submit',
+		'name' => isset($formData['お名前']) ? $formData['お名前'] : '',
+		'email' => isset($formData['メールアドレス']) ? $formData['メールアドレス'] : '',
+		'phone' => isset($formData['電話番号']) ? $formData['電話番号'] : '',
+		'postalCode' => isset($formData['郵便番号']) ? $formData['郵便番号'] : '',
+		'inquiryContent' => $inquiryContent,
+		'timestamp' => date('Y-m-d H:i:s')
+	);
+
+	// cURLでGASに送信
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $gasUrl);
+	curl_setopt($ch, CURLOPT_POST, true);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+
+	$response = curl_exec($ch);
+	$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	curl_close($ch);
+
+	// ログ記録（デバッグ用）
+	error_log('GAS送信結果: HTTPコード=' . $httpCode . ', レスポンス=' . $response);
 }
 //----------------------------------------------------------------------
 //  関数定義(END)

@@ -133,6 +133,14 @@ const SystemRouter = {
       description: 'Slack承認システム',
       prefix: true,
       actions: []
+    },
+
+    // LP問い合わせフォーム
+    'lp_contact_submit': {
+      system: 'LPContactHandler',
+      description: 'LP問い合わせフォーム送信',
+      prefix: false,
+      actions: ['lp_contact_submit']
     }
   },
 
