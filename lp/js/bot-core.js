@@ -318,11 +318,7 @@ const BotCore = {
         // BOTを一時停止
         BotConfig.state.botActive = false;
 
-        // 誘導メッセージ
-        BotUI.showAIMessage(
-            'ありがとうございました！それでは最適な業者をご紹介するため、' +
-            '最後に電話番号を教えていただけますか？'
-        );
+        // 誘導メッセージは showPhoneMiniForm() 内で表示
 
         // GASからランキングデータを取得
         console.log('🏆 ランキングデータ取得開始...');
