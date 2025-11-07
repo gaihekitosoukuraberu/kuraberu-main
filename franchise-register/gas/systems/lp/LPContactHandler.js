@@ -303,9 +303,3 @@ const LPContactHandler = {
     };
   }
 };
-
-// GAS用：グローバルスコープに明示的に公開
-// GASではglobalオブジェクトが存在しないため、thisを使用
-if (typeof this !== 'undefined') {
-  this.LPContactHandler = LPContactHandler;
-}
