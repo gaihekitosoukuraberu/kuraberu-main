@@ -22,8 +22,8 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- CV対応版 @1590
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbw5JErlE04KjhLWHy3S7gFWLhVe86wyT1DPG32sSAEfSl74dZd1Z60ZA0k1_uJ2-b3GLQ/exec',
+  // プライマリGAS URL（メイン運用）- CV対応版 @1591 (パラメータマッピング修正)
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwn-TxpB6R8PmkTA9XbSOAbZ5oD9gBeBCTqww2jhU6up9E-QvJcbB2_uqQegavyAiCi9Q/exec',
 
   // フォールバックGAS URL（バックアップ）
   FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzRqV7gMc7exteuOBwpESCZSm6VggDEwmagDIQxXIhI3QcGxj2DROKQfiKpC8297mmydw/exec',
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1590 - 2025-11-07 15:57 - CV対応完了版）
-  CACHE_BUSTER: '1590_20251107_1557'
+  // キャッシュバスター（V1591 - 2025-11-07 16:05 - パラメータマッピング修正完了）
+  CACHE_BUSTER: '1591_20251107_1605'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
