@@ -119,6 +119,14 @@ const SystemRouter = {
       actions: ['cv1_submit', 'cv2_update', 'getCVList']
     },
 
+    // ランキング取得
+    'getRanking': {
+      system: 'AISearchSystem',
+      description: 'ランキング取得',
+      prefix: false,
+      actions: ['getRanking']
+    },
+
     // Slack連携
     'slack_': {
       system: 'SlackApprovalSystem',
