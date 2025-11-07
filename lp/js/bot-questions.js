@@ -97,14 +97,45 @@ const BotQuestions = {
             return;
         }
 
-        setTimeout(() => {
-            if (nextQuestionId === 'PHONE') {
-                // connectToPhoneSystemはasync関数だが、ここではawaitしない（バックグラウンドで実行）
-                BotCore.connectToPhoneSystem();
-            } else {
-                this.showQuestion(nextQuestionId);
-            }
-        }, 1000);
+        // Q016の回答後：GASからランキングを取得
+        const currentQuestionId = question.id || BotConfig.state.currentQuestionId;
+        if (currentQuestionId === 'Q016') {
+            console.log('🏆 Q016回答後、GASからランキングを取得します');
+
+            setTimeout(async () => {
+                // ランキング取得（モザイク表示）
+                if (typeof window.fetchRankingFromGAS === 'function') {
+                    const success = await window.fetchRankingFromGAS();
+                    if (success) {
+                        console.log('✅ ランキング取得成功、displayRanking()を呼び出します');
+                        if (typeof window.displayRanking === 'function') {
+                            window.displayRanking();
+                        }
+                    } else {
+                        console.warn('⚠️ ランキング取得失敗、デフォルトデータで表示');
+                        if (typeof window.displayRanking === 'function') {
+                            window.displayRanking();
+                        }
+                    }
+                }
+
+                // 次の質問へ
+                if (nextQuestionId === 'PHONE') {
+                    BotCore.connectToPhoneSystem();
+                } else {
+                    this.showQuestion(nextQuestionId);
+                }
+            }, 1000);
+        } else {
+            // Q016以外：通常の処理
+            setTimeout(() => {
+                if (nextQuestionId === 'PHONE') {
+                    BotCore.connectToPhoneSystem();
+                } else {
+                    this.showQuestion(nextQuestionId);
+                }
+            }, 1000);
+        }
     },
 
     // ============================================

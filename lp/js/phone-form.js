@@ -153,19 +153,24 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
       }
 
-      // GASから動的ランキングを取得
-      console.log('🏆 GASからランキングを取得します...');
-      let rankingFetched = false;
-      if (typeof window.fetchRankingFromGAS === 'function') {
-        const success = await window.fetchRankingFromGAS();
-        if (success) {
-          console.log('✅ ランキング取得成功、動的データを表示');
-          rankingFetched = true;
-        } else {
-          console.warn('⚠️ ランキング取得失敗、デフォルトデータを表示');
+      // 電話番号入力後：モザイク解除（実名表示）
+      console.log('🔓 モザイク解除：実名表示に切り替えます');
+
+      // すでにGASから取得済みの場合は、実名で再表示
+      if (window.dynamicRankings) {
+        console.log('✅ すでにランキング取得済み、実名表示に切り替え');
+        if (typeof window.displayRanking === 'function') {
+          window.displayRanking();
         }
       } else {
-        console.warn('⚠️ fetchRankingFromGAS関数が見つかりません');
+        // 未取得の場合は、ここで取得
+        console.log('⚠️ ランキング未取得のため、ここで取得します');
+        if (typeof window.fetchRankingFromGAS === 'function') {
+          const success = await window.fetchRankingFromGAS();
+          if (success && typeof window.displayRanking === 'function') {
+            window.displayRanking();
+          }
+        }
       }
 
       // 業者名をイニシャルから実名に変更

@@ -85,11 +85,10 @@ async function fetchRankingFromGAS() {
 
     console.log('✅ ランキング取得成功:', response);
 
-    // レスポンスをキャッシュ
+    // レスポンスをキャッシュ（まだ実名には変換しない - 電話番号入力後に変換）
     dynamicRankings = response.rankings;
 
-    // デフォルトは「おすすめ順」
-    updateAllCompaniesFromDynamic('recommended');
+    console.log('📦 ランキングデータをキャッシュしました（イニシャル表示のまま）');
 
     return true;
 
