@@ -1807,7 +1807,7 @@ button {
   .mv .mv__before__txt {
     position: absolute;
     top: 20px;
-    right: 250px;
+    right: 180px;
     width: 360px;
     margin-top: 0;
     z-index: 99;
@@ -1818,7 +1818,7 @@ button {
     height: auto;
   }
 
-  /* MVセクション全体を縦並び・中央寄せに */
+  /* MVセクション全体をコンパクトに */
   .mv .container-max {
     display: flex;
     flex-direction: column;
@@ -1827,27 +1827,45 @@ button {
     position: relative;
   }
 
-  /* キーワード検索と郵便番号フォームを縦並び・中央配置 */
+  /* タイトルを小さく */
+  .mv .mv__before__tit {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .mv .mv__before__tit img {
+    width: 600px;
+    max-width: 80%;
+    height: auto;
+  }
+
+  /* キーワード検索と郵便番号フォームを横並び・ファーストビュー内に収める */
   .mv .mv__before {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    max-width: 700px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    max-width: 1200px;
     width: 100%;
+    gap: 30px;
     margin: 0 auto;
   }
 
-  /* キーワード検索を中央配置 */
+  /* キーワード検索（左側） */
   .mv .mv__before__img {
-    width: 600px;
-    max-width: 100%;
-    margin: 0.58rem auto 0.4rem;
+    width: 480px;
+    max-width: 45%;
+    margin: 0;
+    flex-shrink: 0;
   }
 
-  /* 郵便番号フォームを中央配置 */
+  /* 郵便番号フォーム（右側・より目立たせる） */
   .mv .mv__after {
-    width: 100%;
-    max-width: 600px;
-    margin: 20px auto 0;
+    width: 480px;
+    max-width: 45%;
+    margin: 0;
+    flex-shrink: 0;
   }
 }
