@@ -444,8 +444,8 @@
             }
 
             .phone-input-wrapper {
-                background: white;
-                border: 3px solid #FFD700;
+                background: white !important;
+                border: 3px solid #7DD3FC !important;
                 border-radius: 12px;
                 padding: 4px;
                 margin-bottom: 12px;
