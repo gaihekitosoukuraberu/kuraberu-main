@@ -1838,13 +1838,13 @@ button {
     height: auto;
   }
 
-  /* 3つのバッジ（左、タイトルの下） */
+  /* 3つのバッジ（左、一番下） */
   .mv .mv__before__txt {
     width: 100%;
     max-width: 450px;
-    margin: 0 0 20px 0;
+    margin: 0;
     z-index: 1;
-    order: 2;
+    order: 3;
   }
 
   .mv .mv__before__txt img {
@@ -1852,14 +1852,14 @@ button {
     height: auto;
   }
 
-  /* キーワード検索（左、バッジの下） */
+  /* キーワード検索（左、バッジの上） */
   .mv .mv__before__img {
     width: 100%;
     max-width: 500px;
-    margin: 0;
+    margin: 0 0 20px 0;
     z-index: 1;
     cursor: pointer;
-    order: 3;
+    order: 2;
   }
 
   /* GIF画像（右上） */
