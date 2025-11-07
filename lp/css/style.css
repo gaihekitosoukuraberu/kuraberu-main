@@ -1835,38 +1835,16 @@ button {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto auto;
-    gap: 40px 40px;
+    gap: 40px 60px;
     max-width: 1200px;
     margin: 0 auto;
     position: relative;
     align-items: center;
   }
 
-  /* タイトル（左上） */
-  .mv .mv__before {
-    grid-column: 1;
-    grid-row: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-  }
-
-  .mv .mv__before__tit {
-    width: 100%;
-    text-align: left;
-    margin: 0;
-  }
-
-  .mv .mv__before__tit img {
-    width: 100%;
-    max-width: 500px;
-    height: auto;
-  }
-
-  /* スライド画像（右上） */
+  /* スライド画像（左上） */
   .mv .mv__after {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 1;
     display: flex;
     flex-direction: column;
@@ -1878,6 +1856,28 @@ button {
     width: 100%;
     max-width: 500px;
     margin-bottom: -40px;
+  }
+
+  /* タイトル（右上・大きく） */
+  .mv .mv__before {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .mv .mv__before__tit {
+    width: 100%;
+    text-align: right;
+    margin: 0;
+  }
+
+  .mv .mv__before__tit img {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
   }
 
   /* 郵便番号フォーム（下段・中央） */
