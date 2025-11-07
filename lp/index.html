@@ -194,12 +194,11 @@
 
       /* 電話番号入力フォーム */
       .phone-mini-form {
-        background: linear-gradient(135deg, #E0F2FE, #BAE6FD) !important;
+        background: linear-gradient(135deg, #EBF8FF, #DBEAFE);
         border-radius: 16px;
         padding: 24px;
         margin: 20px 0;
         animation: fadeIn 0.5s ease-out;
-        box-shadow: 0 4px 6px rgba(56, 189, 248, 0.1);
       }
 
       .phone-mini-form .form-title {
@@ -1265,7 +1264,7 @@
             </div>
 
             <!-- ランキングセクション -->
-            <div id="rankingSection" class="ranking-section bg-blue-50 rounded-xl shadow-lg p-2 md:p-3 relative md:w-1/2 order-2 md:order-1 md:h-full md:flex md:flex-col" data-theme="blue">
+            <div id="rankingSection" class="hidden ranking-section bg-blue-50 rounded-xl shadow-lg p-2 md:p-3 relative md:w-1/2 order-2 md:order-1 md:h-full md:flex md:flex-col" data-theme="blue">
                 <h2 id="rankingTitle" class="text-lg font-bold mb-3">おすすめ業者ランキング</h2>
 
                 <!-- モザイク時のメッセージ -->
@@ -1649,16 +1648,7 @@
                     </button>
                 `;
                 messages.appendChild(formContainer);
-
-                // フォームを追加した直後にスクロール
-                setTimeout(() => {
-                    // フォームが見える位置まで自然にスクロール
-                    formContainer.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center',
-                        inline: 'nearest'
-                    });
-                }, 200);
+                scrollToBotBottom();
 
                 // イベントリスナー設定
                 setupPhoneFormListeners();
@@ -1712,7 +1702,7 @@
         }
 
         // 電話番号送信処理
-        async function submitPhoneNumber(phone) {
+        function submitPhoneNumber(phone) {
             // 電話番号を保存
             localStorage.setItem('userPhone', phone);
 
@@ -1725,26 +1715,6 @@
                 if (btn) btn.disabled = true;
                 if (input) input.disabled = true;
             });
-
-            // CV1送信（GASに電話番号とBOT回答を保存）
-            // ※送信失敗してもフローは続行（ユーザー体験を中断させない）
-            console.log('📞 CV1送信開始:', phone);
-            try {
-                if (window.CVAPI && typeof window.CVAPI.sendCV1 === 'function') {
-                    const result = await window.CVAPI.sendCV1(phone);
-                    if (result.success) {
-                        console.log('✅ CV1送信成功、CV ID:', result.cvId);
-                    } else {
-                        console.warn('⚠️ CV1送信失敗（処理は続行）:', result.error);
-                        // エラーでも処理を続行
-                    }
-                } else {
-                    console.warn('⚠️ CVAPI.sendCV1が見つかりません（処理は続行）');
-                }
-            } catch (error) {
-                console.warn('⚠️ CV1送信エラー（処理は続行）:', error);
-                // エラーでも処理を続行
-            }
 
             // 完了メッセージ表示とランキング解除
             setTimeout(() => {
@@ -2256,55 +2226,23 @@
             const container = document.getElementById('surveyDates');
             if (!container) return;
 
-            // 曜日と時間帯のオプション
-            const options = [
-                { value: '月曜_午前', label: '月曜日 午前' },
-                { value: '月曜_午後', label: '月曜日 午後' },
-                { value: '火曜_午前', label: '火曜日 午前' },
-                { value: '火曜_午後', label: '火曜日 午後' },
-                { value: '水曜_午前', label: '水曜日 午前' },
-                { value: '水曜_午後', label: '水曜日 午後' },
-                { value: '木曜_午前', label: '木曜日 午前' },
-                { value: '木曜_午後', label: '木曜日 午後' },
-                { value: '金曜_午前', label: '金曜日 午前' },
-                { value: '金曜_午後', label: '金曜日 午後' },
-                { value: '土曜_午前', label: '土曜日 午前' },
-                { value: '土曜_午後', label: '土曜日 午後' },
-                { value: '日曜_午前', label: '日曜日 午前' },
-                { value: '日曜_午後', label: '日曜日 午後' },
-                { value: '未定', label: '未定' }
-            ];
+            const today = new Date();
+            const dates = [];
 
-            // チェックボックスを生成（午前と午後を横並びに）
-            let html = '';
-            for (let i = 0; i < options.length - 1; i += 2) {
-                html += `<div class="grid grid-cols-2 gap-2">`;
-                html += `
-                    <label class="flex items-center space-x-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                        <input type="checkbox" name="surveyDate" value="${options[i].value}" class="form-checkbox">
-                        <span class="text-sm">${options[i].label}</span>
-                    </label>
-                `;
-                if (i + 1 < options.length - 1) {
-                    html += `
-                        <label class="flex items-center space-x-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                            <input type="checkbox" name="surveyDate" value="${options[i + 1].value}" class="form-checkbox">
-                            <span class="text-sm">${options[i + 1].label}</span>
-                        </label>
-                    `;
-                }
-                html += `</div>`;
+            // 明日から7日分の日付を生成
+            for (let i = 1; i <= 7; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                const dateStr = `${date.getMonth() + 1}月${date.getDate()}日`;
+                dates.push(dateStr);
             }
 
-            // 未定は別枠で表示
-            html += `
-                <label class="flex items-center space-x-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                    <input type="checkbox" name="surveyDate" value="未定" class="form-checkbox">
-                    <span class="text-sm">未定</span>
+            container.innerHTML = dates.map((date, index) => `
+                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                    <input type="checkbox" name="surveyDate" value="${date}" class="mr-3">
+                    <span class="text-sm">${date}</span>
                 </label>
-            `;
-
-            container.innerHTML = html;
+            `).join('');
         }
 
         async function submitForm() {

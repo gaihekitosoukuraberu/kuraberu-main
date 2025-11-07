@@ -279,7 +279,7 @@
                     </div>
 
                     <!-- ランキングセクション -->
-                    <div id="rankingSection" style="background: #EBF8FF; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 16px; flex: 1; min-width: 300px; position: relative;" data-theme="blue">
+                    <div id="rankingSection" style="display: none; background: #EBF8FF; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 16px; flex: 1; min-width: 300px; position: relative;" data-theme="blue">
                         <h2 id="rankingTitle" style="font-size: 18px; font-weight: bold; margin-bottom: 12px;">おすすめ業者ランキング</h2>
 
                         <!-- モザイク時のメッセージ -->
