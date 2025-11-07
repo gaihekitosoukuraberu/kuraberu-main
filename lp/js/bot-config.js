@@ -33,7 +33,7 @@ const BotConfig = {
             // 現在のスクリプトパスから相対的にJSONを読み込む
             const scriptPath = document.currentScript ? document.currentScript.src : window.location.href;
             const basePath = scriptPath.substring(0, scriptPath.lastIndexOf('/'));
-            const jsonUrl = basePath.replace('/js', '') + '/zip-word-bot.json';
+            const jsonUrl = basePath.replace('/js', '') + '/zip-word-bot.json?v=' + (window.ENV ? window.ENV.CACHE_BUSTER : Date.now());
 
             const response = await fetch(jsonUrl);
             if (!response.ok) throw new Error('JSON読み込み失敗');
