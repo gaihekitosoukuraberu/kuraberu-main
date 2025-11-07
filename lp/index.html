@@ -415,6 +415,14 @@
         background-color: #EBF8FF;
       }
     </style>
+
+    <!-- ローディングアニメーション用CSS -->
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body>
     <div class="wrapper">
@@ -1169,13 +1177,20 @@
                 <span class="check_txt">当社規定のプライバシーポリシーへの同意します。</span>
               </label>
             </div>
-            <div class="form__btn">
+            <div class="form__btn" style="position: relative;">
               <button id="analy-form_btn01" type="submit">
                 <picture>
                   <source srcset="img/form/btn_sp.png" media="(max-width: 767px)" />
                   <img src="img/form/btn.png" alt="無料 今すぐ相場を確認する" />
                 </picture>
               </button>
+              <!-- ローディングオーバーレイ -->
+              <div id="form-loading-overlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.9); border-radius: 50px; align-items: center; justify-content: center; z-index: 10;">
+                <div style="text-align: center;">
+                  <div style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 10px;"></div>
+                  <p style="color: #3498db; font-weight: bold; font-size: 16px;">送信中...</p>
+                </div>
+              </div>
             </div>
             <p class="form__notes">お客様の情報は暗号化され、外部に漏れないよう保護されています</p>
           </form>
@@ -2361,6 +2376,43 @@
                 section.classList.add('hidden');
             }
         }
+
+        // フォーム送信の連打防止とローディング表示
+        (function() {
+            let isSubmitting = false; // 送信中フラグ
+
+            const form = document.querySelector('.km_form');
+            const submitBtn = document.getElementById('analy-form_btn01');
+            const loadingOverlay = document.getElementById('form-loading-overlay');
+
+            if (form && submitBtn && loadingOverlay) {
+                form.addEventListener('submit', function(e) {
+                    // 既に送信中の場合は送信をキャンセル
+                    if (isSubmitting) {
+                        e.preventDefault();
+                        console.log('フォーム送信: 既に送信中のため、送信をキャンセルしました');
+                        return false;
+                    }
+
+                    // バリデーションチェック（km_formのデフォルト動作に任せる）
+                    // 送信処理開始
+                    isSubmitting = true;
+
+                    // ボタンを無効化
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.6';
+                    submitBtn.style.cursor = 'not-allowed';
+
+                    // ローディングオーバーレイを表示
+                    loadingOverlay.style.display = 'flex';
+
+                    console.log('フォーム送信: 送信処理を開始しました');
+
+                    // フォームは通常通り送信される（action="mail.php"）
+                    return true;
+                });
+            }
+        })();
     </script>
 
     <!-- 外壁塗装くらべる BOTシステム -->
