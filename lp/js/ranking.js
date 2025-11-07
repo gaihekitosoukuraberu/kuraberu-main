@@ -312,69 +312,53 @@ function displayRanking() {
   // 表示する会社数を決定（初期4社、もっと見るで5~8位まで）
   const companiesToShow = showingAll ? allCompanies : allCompanies.slice(0, 4);
   
-  // ランキングカードを動的生成
+  // ランキングカードを動的生成（samplesフォーマット）
   rankingList.innerHTML = companiesToShow.map(company => {
-    const companyName = window.namesRevealed && realCompanies[company.rank - 1] ? 
+    const companyName = window.namesRevealed && realCompanies[company.rank - 1] ?
       realCompanies[company.rank - 1] : company.name;
-    
-    const keepButtonState = getKeepButtonState(company.rank);
-    
-    // 1,2,3位の数字を金銀銅色に
-    let rankColorClass = 'bg-blue-500';
-    if (company.rank === 1) rankColorClass = 'bg-yellow-400 text-yellow-900'; // 金
-    else if (company.rank === 2) rankColorClass = 'bg-gray-400 text-gray-900'; // 銀
-    else if (company.rank === 3) rankColorClass = 'bg-yellow-600 text-yellow-100'; // 銅
-    
+
+    // 1位は青、2位以降はグレー
+    let rankColorClass = company.rank === 1 ? 'text-blue-600' : 'text-gray-600';
+
+    // 星評価（5つ星表示）
+    const fullStars = Math.floor(company.rating);
+    const emptyStars = 5 - fullStars;
+    const starsHtml = '⭐'.repeat(fullStars) + '☆'.repeat(emptyStars);
+
     return `
-      <div class="ranking-card bg-white rounded-lg border border-gray-200 p-3 md:p-4 shadow-sm hover:shadow-md transition-shadow">
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <div class="flex items-center justify-between mb-2">
-              <div class="flex items-center">
-                <div class="w-6 h-6 md:w-8 md:h-8 ${rankColorClass} rounded-full flex items-center justify-center text-xs md:text-sm font-bold mr-2 md:mr-3">
-                  ${company.rank}
-                </div>
-                <h3 class="company-name font-bold text-sm md:text-base text-gray-900">${companyName}</h3>
-              </div>
-              <div class="flex items-center text-yellow-500">
-                ${generateStarRating(company.rating)}
-              </div>
-            </div>
-            
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-orange-500 text-lg md:text-xl font-bold">${company.price}</span>
-              <span class="text-xs md:text-sm text-gray-600">クチコミ(${company.reviews}件)</span>
-            </div>
-            
-            <div class="flex flex-wrap gap-1 mb-3">
-              ${company.features.map(feature => 
-                `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">${feature}</span>`
-              ).join('')}
-            </div>
-            
+      <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
+        <div class="flex items-start justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="${rankColorClass} text-lg font-bold">${company.rank}</span>
+            <h3 class="text-base font-bold">${companyName}</h3>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-yellow-500 text-sm">${starsHtml}</span>
+            <span class="font-bold text-sm">${company.rating}</span>
           </div>
         </div>
-        
-        <!-- 3つのボタン：詳細を見る、キープ、業者名を見る -->
-        <div class="flex gap-1 md:gap-2 mt-3">
-          <button 
-            onclick="showCompanyDetail(${company.rank})" 
-            class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 md:px-3 py-2 rounded text-xs md:text-sm font-medium flex-1"
-          >
-            詳細を見る
-          </button>
-          <button 
-            onclick="toggleKeep(${company.rank}, '${companyName}')"
-            class="${keepButtonState.classes} px-2 md:px-3 py-2 rounded text-xs md:text-sm font-medium flex-1"
-          >
-            ${keepButtonState.text}
-          </button>
-          <button 
-            onclick="scrollToPhoneForm()" 
-            class="${window.namesRevealed ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-pink-200 hover:bg-pink-300 text-pink-700'} px-2 md:px-3 py-2 rounded text-xs md:text-sm font-medium flex-1"
-          >
-            ${window.namesRevealed ? '無料見積もり' : '業者名を見る'}
-          </button>
+        <div class="flex items-center justify-between mb-1">
+          <div class="flex gap-1">
+            ${company.features.slice(0, 3).map(feature =>
+              `<span class="bg-blue-200 text-blue-800 text-xs px-1.5 py-0.5 rounded">${feature}</span>`
+            ).join('')}
+          </div>
+          <div class="text-gray-600 text-xs">
+            施工実績: ${company.reviews || 0}件
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-xs font-bold text-gray-700">見積もり価格: ${company.price}</span>
+          </div>
+          <div class="flex gap-1">
+            <button class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium flex-1">
+              詳細<span class="hidden sm:inline">を見る</span>
+            </button>
+            <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium flex-1">
+              <span class="keep-text"><span>キープ</span><span class="hidden sm:inline">する</span></span>
+            </button>
+          </div>
         </div>
       </div>
     `;
