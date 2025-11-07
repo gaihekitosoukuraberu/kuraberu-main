@@ -2068,9 +2068,20 @@
 
                 console.log('📤 送信データ:', formData);
 
-                // GASへ送信（CVAPI.submitEstimate）
-                if (window.CVAPI && window.CVAPI.submitEstimate) {
-                    const response = await window.CVAPI.submitEstimate(formData);
+                // CV2フォーマットに変換
+                const cv2FormData = {
+                    name: formData.name,
+                    email: formData.email,
+                    propertyAddress: { postalCode: formData.propertyZip, street: formData.propertyStreet },
+                    isDifferentHome: formData.homeZip ? true : false,
+                    homeAddress: formData.homeZip ? { postalCode: formData.homeZip, street: formData.homeStreet } : null,
+                    surveyDates: formData.surveyDates,
+                    requests: formData.requests
+                };
+
+                // GASへ送信（CV2として送信）
+                if (window.CVAPI && window.CVAPI.sendCV2) {
+                    const response = await window.CVAPI.sendCV2(cv2FormData);
                     if (response.success) {
                         console.log('✅ 送信成功');
                         alert('見積もり依頼を送信しました！\n担当者からご連絡いたしますので、しばらくお待ちください。');
