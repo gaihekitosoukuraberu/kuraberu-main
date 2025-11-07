@@ -122,6 +122,45 @@ const BotCore = {
             }
         }
 
+        // ランキングセクションを表示
+        const rankingSection = document.getElementById('rankingSection');
+        if (rankingSection) {
+            rankingSection.classList.remove('hidden');
+            rankingSection.style.display = 'block';
+            console.log('✅ ランキングセクション表示');
+        }
+
+        const mainContentContainer = document.getElementById('mainContentContainer');
+        if (mainContentContainer) {
+            mainContentContainer.classList.remove('hidden');
+            mainContentContainer.style.display = 'block';
+            console.log('✅ mainContentContainer表示');
+        }
+
+        // GASからランキングを取得してモザイク付きで表示
+        (async () => {
+            console.log('🏆 郵便番号入力後、GASからランキングを取得します');
+
+            if (typeof window.fetchRankingFromGAS === 'function') {
+                const success = await window.fetchRankingFromGAS();
+                if (success) {
+                    console.log('✅ ランキング取得成功、デフォルト（おすすめ順）で表示');
+                    // デフォルトはおすすめ順
+                    if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+                        window.updateAllCompaniesFromDynamic('recommended');
+                    }
+                } else {
+                    console.warn('⚠️ ランキング取得失敗、デフォルトデータを使用');
+                }
+            }
+
+            // ランキング表示（モザイク付き）
+            if (typeof window.displayRanking === 'function') {
+                window.displayRanking();
+                console.log('✅ ランキング表示完了（モザイク付き）');
+            }
+        })();
+
         // UI初期化を確実に実行（Safari対応）
         if (!BotUI.elements.messages) {
             BotUI.init();
