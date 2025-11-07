@@ -1840,32 +1840,33 @@ button {
     height: auto;
   }
 
-  /* キーワード検索と郵便番号フォームを横並び・ファーストビュー内に収める */
+  /* キーワード検索をヘッダー上部に配置 */
+  .mv .mv__before__img {
+    position: absolute;
+    top: 15px;
+    left: 280px;
+    width: 400px;
+    max-width: 400px;
+    margin: 0;
+    z-index: 98;
+    cursor: pointer;
+  }
+
+  /* MVセクション: タイトルと郵便番号フォームを縦並び中央配置 */
   .mv .mv__before {
     display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    max-width: 1200px;
+    max-width: 800px;
     width: 100%;
-    gap: 30px;
     margin: 0 auto;
   }
 
-  /* キーワード検索（左側） */
-  .mv .mv__before__img {
-    width: 480px;
-    max-width: 45%;
-    margin: 0;
-    flex-shrink: 0;
-  }
-
-  /* 郵便番号フォーム（右側・より目立たせる） */
+  /* 郵便番号フォーム（中央・大きく） */
   .mv .mv__after {
-    width: 480px;
-    max-width: 45%;
-    margin: 0;
-    flex-shrink: 0;
+    width: 100%;
+    max-width: 600px;
+    margin: 30px auto 0;
   }
 }
