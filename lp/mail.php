@@ -89,7 +89,7 @@ $requireCheck = 0;
 /* 必須入力項目(入力フォームで指定したname属性の値を指定してください。（上記で1を設定した場合のみ）
 値はシングルクォーテーションで囲み、複数の場合はカンマで区切ってください。フォーム側と順番を合わせると良いです。
 配列の形「name="○○[]"」の場合には必ず後ろの[]を取ったものを指定して下さい。*/
-$require = array('お名前','メールアドレス','電番番号','お問い合わせ内容');
+$require = array('お名前','メールアドレス','電話番号','お問い合わせ内容');
 
 
 //----------------------------------------------------------------------
@@ -654,12 +654,18 @@ function sendToGAS($formData){
 	// GAS Web App URL
 	$gasUrl = 'https://script.google.com/macros/s/AKfycbxMaj0EwqO8HczQOCH1xGNn2wTX3jn4OTU_3en76sIs1vpxYcafIwTHX1OSrUEfHGL97w/exec';
 
+	// デバッグログ: 受信データ
+	error_log('===== LP問い合わせフォーム GAS送信開始 =====');
+	error_log('受信データ: ' . print_r($formData, true));
+
 	// お問い合わせ内容を配列から文字列に変換
 	$inquiryContent = '';
 	if(isset($formData['お問い合わせ内容']) && is_array($formData['お問い合わせ内容'])){
 		$inquiryContent = implode(', ', $formData['お問い合わせ内容']);
+		error_log('お問い合わせ内容（配列）: ' . $inquiryContent);
 	}elseif(isset($formData['お問い合わせ内容'])){
 		$inquiryContent = $formData['お問い合わせ内容'];
+		error_log('お問い合わせ内容（文字列）: ' . $inquiryContent);
 	}
 
 	// 送信データを構築
@@ -673,6 +679,9 @@ function sendToGAS($formData){
 		'timestamp' => date('Y-m-d H:i:s')
 	);
 
+	error_log('送信データ: ' . print_r($postData, true));
+	error_log('送信先URL: ' . $gasUrl);
+
 	// cURLでGASに送信
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, $gasUrl);
@@ -681,13 +690,26 @@ function sendToGAS($formData){
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+	curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 
 	$response = curl_exec($ch);
 	$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	$curlError = curl_error($ch);
 	curl_close($ch);
 
 	// ログ記録（デバッグ用）
-	error_log('GAS送信結果: HTTPコード=' . $httpCode . ', レスポンス=' . $response);
+	error_log('GAS送信結果: HTTPコード=' . $httpCode);
+	if($curlError){
+		error_log('cURLエラー: ' . $curlError);
+	}
+	error_log('GASレスポンス: ' . substr($response, 0, 500)); // 最初の500文字のみ
+	error_log('===== LP問い合わせフォーム GAS送信完了 =====');
+
+	return array(
+		'success' => ($httpCode == 200),
+		'httpCode' => $httpCode,
+		'response' => $response
+	);
 }
 //----------------------------------------------------------------------
 //  関数定義(END)

@@ -331,15 +331,19 @@ function doPost(e) {
       return SlackApprovalSystem.handlePost(e);
     }
 
-    // JSONボディがある場合はパース
+    // JSONボディがある場合はパース、URL-encodedの場合はe.parameterを使用
     let postData = {};
-    if (e.postData && e.postData.contents) {
+    if (e.postData && e.postData.contents && e.postData.type === 'application/json') {
       try {
         postData = JSON.parse(e.postData.contents);
-        console.log('[main.js] Parsed POST data:', JSON.stringify(postData));
+        console.log('[main.js] Parsed JSON POST data:', JSON.stringify(postData));
       } catch (err) {
-        console.error('[main.js] Failed to parse POST data:', err);
+        console.error('[main.js] Failed to parse JSON POST data:', err);
       }
+    } else if (e.parameter) {
+      // URL-encoded form data (application/x-www-form-urlencoded)
+      postData = e.parameter;
+      console.log('[main.js] Using URL-encoded POST data from e.parameter');
     }
 
     // actionをPOSTデータまたはパラメータから取得
