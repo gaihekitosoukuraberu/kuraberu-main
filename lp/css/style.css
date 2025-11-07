@@ -1806,10 +1806,10 @@ button {
   /* MVセクション全体をグリッドレイアウトに（2×2） */
   .mv .container-max {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 45% 55%;
     grid-template-rows: auto auto;
-    gap: 60px 100px;
-    max-width: 1600px;
+    gap: 90px 80px;
+    max-width: 1700px;
     margin: 0 auto;
     position: relative;
     align-items: start;
@@ -1830,42 +1830,42 @@ button {
   .mv .mv__before__tit {
     width: 100%;
     text-align: left;
-    margin: 0 0 50px 0;
+    margin: 0 0 70px 0;
     order: 1;
   }
 
   .mv .mv__before__tit img {
-    width: 100%;
-    max-width: 100%;
+    width: 115%;
+    max-width: 115%;
     height: auto;
   }
 
-  /* 3つのバッジ（左、一番下） */
+  /* 3つのバッジ（左、タイトル直下） */
   .mv .mv__before__txt {
     width: 100%;
-    margin: 0;
+    margin: 0 0 50px 0;
     z-index: 1;
-    order: 3;
+    order: 2;
   }
 
   .mv .mv__before__txt img {
     width: 100%;
-    max-width: 100%;
+    max-width: 90%;
     height: auto;
   }
 
-  /* キーワード検索（左、バッジの上） */
+  /* キーワード検索（左、一番下） */
   .mv .mv__before__img {
     width: 100%;
-    margin: 0 0 30px 0;
+    margin: 0;
     z-index: 1;
     cursor: pointer;
-    order: 2;
+    order: 3;
   }
 
   .mv .mv__before__img img {
     width: 100%;
-    max-width: 100%;
+    max-width: 110%;
     height: auto;
   }
 
@@ -1885,8 +1885,8 @@ button {
   }
 
   .mv .mv__after__img img {
-    width: 100%;
-    max-width: 100%;
+    width: 115%;
+    max-width: 115%;
     height: auto;
   }
 
@@ -1894,7 +1894,7 @@ button {
   #postalFormSectionLP {
     grid-column: 2;
     grid-row: 2;
-    margin-top: 60px;
+    margin-top: 0;
     z-index: 10;
     min-width: 0;
   }
@@ -1907,8 +1907,8 @@ button {
   /* MVセクション全体の高さ調整 */
   .mv {
     position: relative;
-    padding-top: 120px;
-    padding-bottom: 60px;
+    padding-top: 150px;
+    padding-bottom: 120px;
   }
 }
 
