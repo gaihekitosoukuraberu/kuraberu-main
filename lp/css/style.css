@@ -1806,9 +1806,9 @@ button {
   /* 3つのバッジをヘッダー上部に配置（スクロール固定なし） */
   .mv .mv__before__txt {
     position: absolute;
-    top: 20px;
-    right: 180px;
-    width: 400px;
+    top: 18px;
+    right: 200px;
+    width: 350px;
     margin-top: 0;
     z-index: 99;
   }
@@ -1816,6 +1816,19 @@ button {
   .mv .mv__before__txt img {
     width: 100%;
     height: auto;
+  }
+
+  /* キーワード検索をヘッダー上部に配置 */
+  .mv .mv__before__img {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 350px;
+    max-width: 350px;
+    margin: 0;
+    z-index: 98;
+    cursor: pointer;
   }
 
   /* MVセクション全体をコンパクトに */
@@ -1838,18 +1851,6 @@ button {
     width: 600px;
     max-width: 80%;
     height: auto;
-  }
-
-  /* キーワード検索をヘッダー上部に配置 */
-  .mv .mv__before__img {
-    position: absolute;
-    top: 15px;
-    left: 280px;
-    width: 400px;
-    max-width: 400px;
-    margin: 0;
-    z-index: 98;
-    cursor: pointer;
   }
 
   /* MVセクション: タイトルと郵便番号フォームを縦並び中央配置 */
