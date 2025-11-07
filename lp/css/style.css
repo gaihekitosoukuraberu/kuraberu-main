@@ -1803,12 +1803,12 @@ button {
    PC版専用レイアウト（768px以上）
 ============================================ */
 @media screen and (min-width: 768px) {
-  /* 3つのバッジをヘッダー上部に配置（サイズ半分） */
+  /* 3つのバッジをヘッダー上部に配置（スクロール固定なし） */
   .mv .mv__before__txt {
-    position: fixed;
+    position: absolute;
     top: 20px;
-    right: 150px;
-    width: 300px;
+    right: 350px;
+    width: 360px;
     margin-top: 0;
     z-index: 99;
   }
@@ -1823,6 +1823,7 @@ button {
     display: flex;
     justify-content: center;
     align-items: flex-start;
+    position: relative;
   }
 
   /* キーワード検索と郵便番号フォームを縦並び・中央配置 */
@@ -1843,12 +1844,8 @@ button {
 
   /* 郵便番号フォームを中央配置 */
   .mv .mv__after {
-    display: none;
-  }
-
-  #postalFormSectionLP {
-    display: block !important;
-    margin: 20px auto 0 !important;
-    max-width: 600px !important;
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto 0;
   }
 }
