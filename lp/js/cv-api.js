@@ -347,37 +347,42 @@ const CVAPI = {
             utm: utmString,
             userAgent: navigator.userAgent
         };
-    }
-};
+    },
 
-    /**
-     * 見積もりフォーム送信
-     * @param {Object} formData - フォームデータ
-     * @returns {Promise<Object>} レスポンス
-     */
+    // ============================================
+    // 見積もりフォーム送信
+    // ============================================
     async submitEstimate(formData) {
         try {
             console.log('📤 CVAPI.submitEstimate呼び出し', formData);
 
-            const response = await fetch(this.endpoints.submitEstimate, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            console.log('✅ 見積もり送信成功:', data);
-
-            return {
-                success: true,
-                data: data
+            // 送信データ構築
+            const data = {
+                action: 'submitEstimate',
+                ...formData,
+                timestamp: new Date().toISOString()
             };
+
+            console.log('📤 送信データ:', data);
+
+            // JSONP送信
+            const result = await this.sendJSONP(data);
+
+            console.log('📥 見積もり送信レスポンス:', result);
+
+            if (result.success) {
+                console.log('✅ 見積もり送信成功');
+                return {
+                    success: true,
+                    data: result
+                };
+            } else {
+                console.error('❌ 見積もり送信失敗:', result.error);
+                return {
+                    success: false,
+                    error: result.error || '送信に失敗しました'
+                };
+            }
 
         } catch (error) {
             console.error('❌ CVAPI.submitEstimate エラー:', error);
