@@ -42,20 +42,19 @@ document.addEventListener("DOMContentLoaded", function () {
   hamburger.addEventListener("click", function () {
     if (state === true && hamburger.classList.contains("active")) {
       hamburger.classList.remove("active");
+      globalMenu.classList.remove("active");
       fixedarea.classList.add("show");
-
-      fadeOut(globalMenu);
     } else {
       hamburger.classList.add("active");
+      globalMenu.classList.add("active");
       fixedarea.classList.remove("show");
-      fadeIn(globalMenu);
       state = true;
       menuLinks.forEach((link) => {
         link.addEventListener(
           "click",
           function () {
             hamburger.classList.remove("active");
-            fadeOut(globalMenu);
+            globalMenu.classList.remove("active");
           },
           { once: true }
         );
