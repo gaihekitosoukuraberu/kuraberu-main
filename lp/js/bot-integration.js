@@ -47,6 +47,19 @@ function initBotForZipEntry() {
         postalCodeSection.style.display = 'none';
     }
 
+    // ランキングセクションを表示
+    const rankingSection = document.getElementById('rankingSection');
+    if (rankingSection) {
+        rankingSection.classList.remove('hidden');
+        console.log('✅ BOT開始時にランキングセクション表示');
+    }
+
+    // ランキングを初期表示（デフォルトデータ）
+    if (typeof window.displayRanking === 'function') {
+        window.displayRanking();
+        console.log('✅ ランキング初期表示（デフォルトデータ: T社、S社など）');
+    }
+
     const messages = document.getElementById('messages');
 
     // AIメッセージ：相場は既に表示済みなので、直接質問開始
