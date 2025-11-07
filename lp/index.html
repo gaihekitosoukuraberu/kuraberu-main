@@ -2083,17 +2083,16 @@
                 if (window.CVAPI && window.CVAPI.sendCV2) {
                     const response = await window.CVAPI.sendCV2(cv2FormData);
                     if (response.success) {
-                        console.log('✅ 送信成功');
+                        console.log('✅ CV2送信成功');
                         alert('見積もり依頼を送信しました！\n担当者からご連絡いたしますので、しばらくお待ちください。');
                         closeEstimateForm();
                     } else {
-                        console.error('❌ 送信失敗:', response.error);
+                        console.error('❌ CV2送信失敗:', response.error);
                         alert('送信に失敗しま���た。もう一度お試しください。');
                     }
                 } else {
-                    console.warn('⚠️ CVAPI.submitEstimateが見つかりません');
-                    alert('送信機能は準備中です。\n\nフォームデータ:\n' + JSON.stringify(formData, null, 2));
-                    closeEstimateForm();
+                    console.error('❌ CVAPI.sendCV2が見つかりません');
+                    alert('送信機能が利用できません。ページをリロードしてください。');
                 }
             } catch (error) {
                 console.error('❌ 送信エラー:', error);
