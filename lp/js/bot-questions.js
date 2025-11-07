@@ -107,7 +107,15 @@ const BotQuestions = {
                 if (typeof window.fetchRankingFromGAS === 'function') {
                     const success = await window.fetchRankingFromGAS();
                     if (success) {
-                        console.log('✅ ランキング取得成功、displayRanking()を呼び出します');
+                        console.log('✅ ランキング取得成功、スプシの会社名でallCompaniesを更新');
+
+                        // GASから取得したデータでallCompaniesを更新（実際の会社名に変換）
+                        if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+                            window.updateAllCompaniesFromDynamic('recommended');
+                            console.log('✅ allCompanies更新完了、実際の会社名で表示');
+                        }
+
+                        // ランキング表示を更新
                         if (typeof window.displayRanking === 'function') {
                             window.displayRanking();
                         }

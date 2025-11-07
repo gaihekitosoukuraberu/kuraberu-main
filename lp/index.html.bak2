@@ -1340,53 +1340,9 @@
                     <!-- ランキングリスト -->
                     <div id="rankingList" class="space-y-1.5 pb-4 max-h-[550px] overflow-y-auto">
                         <!-- ranking.jsのdisplayRanking()によって動的生成 -->
-                    </div>                </div>
+                </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- キープ確認モーダル -->
-    <div id="keepModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="p-6">
-                <h2 class="text-xl font-bold mb-4">見積もりの流れ</h2>
-
-                <!-- YouTube動画 -->
-                <div class="mb-4">
-                    <div class="flex justify-center">
-                        <div class="relative w-full max-w-xs">
-                            <div class="relative" style="padding-bottom: 56.25%;">
-                                <iframe class="absolute top-0 left-0 w-full h-full rounded-lg"
-                                        src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-                                        frameborder="0"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowfullscreen></iframe>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <h3 class="text-lg font-bold mb-3">キープ中の業者</h3>
-                <div id="keepList" class="space-y-2 mb-4">
-                    <!-- キープリストがここに表示 -->
-                </div>
-
-                <div class="flex gap-2">
-                    <button onclick="closeKeepModal()" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold">
-                        閉じる
-                    </button>
-                    <button onclick="startEstimateForm()" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-bold">
-                        この業者の見積もりを見てみる
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 以下、見積もりフォーム等は別途実装 -->
-    <div style="display: none;">                    <div id="stepProgress" class="bg-blue-500 h-2 rounded-full transition-all" style="width: 50%"></div>
+                    <div id="stepProgress" class="bg-blue-500 h-2 rounded-full transition-all" style="width: 50%"></div>
                 </div>
             </div>
 
@@ -1809,13 +1765,6 @@
         // モーダルを閉じる
         function closeKeepModal() {
             document.getElementById('keepModal').classList.add('hidden');
-        }
-
-        // 見積もりフォームを開始
-        function startEstimateForm() {
-            closeKeepModal();
-            // TODO: 見積もりフォームモーダルを表示する処理
-            alert('見積もりフォームは準備中です。\n\nキープした業者:\n' + keepManager.getList().map(k => k.name).join('\n'));
         }
 
         // ============================================

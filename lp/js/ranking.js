@@ -339,9 +339,14 @@ function displayRanking() {
         </div>
         <div class="flex items-center justify-between mb-1">
           <div class="flex gap-1">
-            ${company.features.slice(0, 3).map(feature =>
-              `<span class="bg-blue-200 text-blue-800 text-xs px-1.5 py-0.5 rounded">${feature}</span>`
-            ).join('')}
+            ${company.features.slice(0, 3).map((feature, idx) => {
+              const colors = [
+                'bg-blue-200 text-blue-800',
+                'bg-green-200 text-green-800',
+                'bg-red-200 text-red-800'
+              ];
+              return `<span class="${colors[idx % 3]} text-xs px-1.5 py-0.5 rounded">${feature}</span>`;
+            }).join('')}
           </div>
           <div class="text-gray-600 text-xs">
             施工実績: ${company.reviews || 0}件
