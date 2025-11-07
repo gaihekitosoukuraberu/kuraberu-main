@@ -1759,6 +1759,16 @@
                 messages.appendChild(aiMessageContainer);
                 scrollToBotBottom();
 
+                // スマホ版の場合はランキングセクションまでスクロール
+                if (window.innerWidth < 768) {
+                    setTimeout(() => {
+                        const rankingSection = document.getElementById('rankingSection');
+                        if (rankingSection) {
+                            rankingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 500);
+                }
+
                 updateProgress(100);
             }, 1000);
         }
