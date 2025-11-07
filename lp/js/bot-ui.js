@@ -40,10 +40,10 @@ const BotUI = {
         if (!this.elements.messages) this.init();
 
         const container = document.createElement('div');
-        container.className = 'ai-message-container new-message';
+        container.className = 'ai-message-container';
         container.innerHTML = `
             <img src="images/avatars/319260ba-0b3d-47d0-b18f-abf530c2793e.png"
-                 alt="AI" class="ai-avatar">
+                 alt="AI" class="ai-avatar" loading="eager" decoding="async">
             <div class="ai-message">${text}</div>
         `;
         this.elements.messages.appendChild(container);

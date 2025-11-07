@@ -137,6 +137,9 @@
         object-fit: cover;
         flex-shrink: 0;
         box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        will-change: auto;
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
       }
 
       .user-message {
@@ -1623,9 +1626,9 @@
 
             // AIメッセージコンテナを作成
             const aiMessageContainer = document.createElement('div');
-            aiMessageContainer.className = 'ai-message-container new-message';
+            aiMessageContainer.className = 'ai-message-container';
             aiMessageContainer.innerHTML = `
-                <img src="images/avatars/319260ba-0b3d-47d0-b18f-abf530c2793e.png" alt="AI" class="ai-avatar">
+                <img src="images/avatars/319260ba-0b3d-47d0-b18f-abf530c2793e.png" alt="AI" class="ai-avatar" loading="eager" decoding="async">
                 <div class="ai-message">
                     現在、いただいた条件にて検索しております。<br>
                     30秒ほどかかりますので、完了までに送付先の入力をお願いします。
@@ -1746,9 +1749,9 @@
 
                 // 完了メッセージ
                 const aiMessageContainer = document.createElement('div');
-                aiMessageContainer.className = 'ai-message-container new-message';
+                aiMessageContainer.className = 'ai-message-container';
                 aiMessageContainer.innerHTML = `
-                    <img src="images/avatars/319260ba-0b3d-47d0-b18f-abf530c2793e.png" alt="AI" class="ai-avatar">
+                    <img src="images/avatars/319260ba-0b3d-47d0-b18f-abf530c2793e.png" alt="AI" class="ai-avatar" loading="eager" decoding="async">
                     <div class="ai-message">
                         分析が完了しました！<br>
                         あなたの条件に最適な業者をランキング形式でご紹介します。
