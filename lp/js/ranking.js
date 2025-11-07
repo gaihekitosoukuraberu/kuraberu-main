@@ -231,14 +231,26 @@ function getKeepButtonState(companyRank) {
 // ランキングセクション表示（モザイク付き）
 function showRankingSection() {
   const rankingSection = document.getElementById('rankingSection');
-  const phoneSection = document.getElementById('phoneSection');
-  
+
   if (rankingSection) {
     rankingSection.classList.remove('hidden');
     
     // サンプルランキングデータを表示
     displayRanking();
     console.log('ランキング表示完了');
+
+    // モザイクを即座に適用（時間差なし）
+    console.log('モザイクをかけています...');
+
+    // h2タイトル以外の部分にモザイクをかける（並び替えも含む）
+    const rankingList = document.getElementById('rankingList');
+    const sortingContainer = document.getElementById('sortingContainer');
+    const sortingSection = sortingContainer ? sortingContainer.parentElement : null;
+    const toggleButton = document.getElementById('toggleAllCompanies');
+
+    if (rankingList) rankingList.classList.add('mosaic-blur');
+    if (sortingSection) sortingSection.classList.add('mosaic-blur');
+    if (toggleButton) toggleButton.parentElement.classList.add('mosaic-blur');
 
     // スマホ版の場合はランキングセクションにスクロール（1秒後）
     if (window.innerWidth < 768) {
@@ -257,25 +269,6 @@ function showRankingSection() {
         });
       }
     }
-    
-    // 表示後にモザイクをかけるとメッセージを追加
-    setTimeout(() => {
-      console.log('モザイクをかけています...');
-      
-      // h2タイトル以外の部分にモザイクをかける（並び替えも含む）
-      const rankingList = document.getElementById('rankingList');
-      const sortingContainer = document.getElementById('sortingContainer');
-      const sortingSection = sortingContainer ? sortingContainer.parentElement : null;
-      const toggleButton = document.getElementById('toggleAllCompanies');
-      
-      if (rankingList) rankingList.classList.add('mosaic-blur');
-      if (sortingSection) sortingSection.classList.add('mosaic-blur');
-      if (toggleButton) toggleButton.parentElement.classList.add('mosaic-blur');
-      
-      // 不要なメッセージは削除済み（オリジナルランキングメッセージは静的HTMLで表示）
-      
-      // 電話番号フォームは表示しない（質問回答後または業者名クリック後に表示）
-    }, 100);
   }
   
   // ソートボタンを無効化（おすすめ順以外）
