@@ -2015,26 +2015,59 @@
             document.getElementById('stepProgress').style.width = '50%';
         }
 
-        // 現地調査希望日時を動的生成
+        // 現地調査希望日時を動的生成（曜日+時間帯形式）
         function generateSurveyDates() {
             const container = document.getElementById('surveyDates');
-            const today = new Date();
-            const dates = [];
 
-            // 明日から7日分の日付を生成
-            for (let i = 1; i <= 7; i++) {
-                const date = new Date(today);
-                date.setDate(today.getDate() + i);
-                const dateStr = `${date.getMonth() + 1}月${date.getDate()}日`;
-                dates.push(dateStr);
+            // 曜日と時間帯のオプション
+            const options = [
+                { value: '月曜_午前', label: '月曜日 午前' },
+                { value: '月曜_午後', label: '月曜日 午後' },
+                { value: '火曜_午前', label: '火曜日 午前' },
+                { value: '火曜_午後', label: '火曜日 午後' },
+                { value: '水曜_午前', label: '水曜日 午前' },
+                { value: '水曜_午後', label: '水曜日 午後' },
+                { value: '木曜_午前', label: '木曜日 午前' },
+                { value: '木曜_午後', label: '木曜日 午後' },
+                { value: '金曜_午前', label: '金曜日 午前' },
+                { value: '金曜_午後', label: '金曜日 午後' },
+                { value: '土曜_午前', label: '土曜日 午前' },
+                { value: '土曜_午後', label: '土曜日 午後' },
+                { value: '日曜_午前', label: '日曜日 午前' },
+                { value: '日曜_午後', label: '日曜日 午後' },
+                { value: '未定', label: '未定' }
+            ];
+
+            // チェックボックスを生成（午前と午後を横並びに）
+            let html = '';
+            for (let i = 0; i < options.length - 1; i += 2) {
+                html += `<div class="grid grid-cols-2 gap-2">`;
+                html += `
+                    <label class="flex items-center space-x-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <input type="checkbox" name="surveyDate" value="${options[i].value}" class="form-checkbox">
+                        <span class="text-sm">${options[i].label}</span>
+                    </label>
+                `;
+                if (i + 1 < options.length - 1) {
+                    html += `
+                        <label class="flex items-center space-x-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="checkbox" name="surveyDate" value="${options[i + 1].value}" class="form-checkbox">
+                            <span class="text-sm">${options[i + 1].label}</span>
+                        </label>
+                    `;
+                }
+                html += `</div>`;
             }
 
-            container.innerHTML = dates.map((date, index) => `
-                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                    <input type="checkbox" name="surveyDate" value="${date}" class="mr-3">
-                    <span class="text-sm">${date}</span>
+            // 未定は別枠で表示
+            html += `
+                <label class="flex items-center space-x-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                    <input type="checkbox" name="surveyDate" value="未定" class="form-checkbox">
+                    <span class="text-sm">未定</span>
                 </label>
-            `).join('');
+            `;
+
+            container.innerHTML = html;
         }
 
         // 見積もりフォーム送信
