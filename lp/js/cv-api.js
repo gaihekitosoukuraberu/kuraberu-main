@@ -91,19 +91,54 @@ const CVAPI = {
             // CV IDを取得
             const cvId = localStorage.getItem('cv_id');
 
-            if (!cvId) {
-                console.error('❌ CV IDが見つかりません');
-                console.error('❌ localStorage全キー:', Object.keys(localStorage));
-                return {
-                    success: false,
-                    error: 'CV ID not found'
-                };
+            // CV IDがない場合は、CV1として全データを新規作成
+            const isNewSubmission = !cvId;
+
+            if (isNewSubmission) {
+                console.warn('⚠️ CV IDが見つかりません。新規作成モードで全データを送信します');
+            } else {
+                console.log('✅ CV ID取得成功:', cvId);
             }
 
-            console.log('✅ CV ID取得成功:', cvId);
+            // 電話番号を取得（CV1失敗時のフォールバック）
+            const phone = localStorage.getItem('userPhone') || '';
 
             // 送信データ構築
-            const data = {
+            const data = isNewSubmission ? {
+                // 新規作成モード: CV1+CV2の全データを送信
+                action: 'cv1_submit',
+                phone: phone,
+                postalCode: BotConfig.state.currentZipcode || '',
+
+                // BOT質問回答
+                ...BotConfig.mapAnswersToSpreadsheet(),
+
+                // 訪問情報
+                ...this.getVisitorInfo(),
+
+                // ステップ1: 基本情報
+                name: formData.name || '',
+                email: formData.email || '',
+
+                // 物件住所
+                propertyPrefecture: window.propertyPrefecture || '',
+                propertyCity: window.propertyCity || '',
+                propertyStreet: formData.propertyAddress?.street || '',
+
+                // 自宅住所（物件と異なる場合）
+                isDifferentHome: formData.isDifferentHome || false,
+                homeZip: formData.homeAddress?.postalCode || '',
+                homePrefecture: window.homePrefecture || '',
+                homeStreet: formData.homeAddress?.street || '',
+
+                // ステップ2: 詳細情報
+                surveyDatePreference: formData.surveyDates?.join(', ') || '',
+                requests: formData.requests || '',
+
+                // タイムスタンプ
+                timestamp: new Date().toISOString()
+            } : {
+                // 更新モード: CV2のみ送信
                 action: 'cv2_update',
                 cvId: cvId,
 
