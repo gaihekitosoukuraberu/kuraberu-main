@@ -223,7 +223,6 @@ const BotUI = {
         formContainer.className = 'phone-mini-form';
         formContainer.innerHTML = config.html;
         this.elements.messages.appendChild(formContainer);
-        this.scrollToBottom();
 
         // イベントリスナー設定
         if (config.onSubmit) {
@@ -232,6 +231,11 @@ const BotUI = {
                 submitBtn.addEventListener('click', config.onSubmit);
             }
         }
+
+        // フォームにスクロール（DOMレイアウト更新後に実行）
+        setTimeout(() => {
+            formContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
 
         return formContainer;
     }

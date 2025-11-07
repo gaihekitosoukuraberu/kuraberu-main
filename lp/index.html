@@ -1660,10 +1660,14 @@
                     </button>
                 `;
                 messages.appendChild(formContainer);
-                scrollToBotBottom();
 
                 // イベントリスナー設定
                 setupPhoneFormListeners();
+
+                // フォームにスクロール（DOMレイアウト更新後に実行）
+                setTimeout(() => {
+                    formContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
             }, 500);
         }
 

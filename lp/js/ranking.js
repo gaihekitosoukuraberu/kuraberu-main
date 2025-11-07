@@ -239,16 +239,23 @@ function showRankingSection() {
     // サンプルランキングデータを表示
     displayRanking();
     console.log('ランキング表示完了');
-    
-    // 相場セクションまでスクロール
-    const areaPrice = document.getElementById('areaPrice');
-    if (areaPrice) {
-      // 相場カードの上部に少し余白が見えるようにスクロール調整
-      const offsetPosition = areaPrice.offsetTop + 10;
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
+
+    // スマホ版の場合はランキングセクションにスクロール（1秒後）
+    if (window.innerWidth < 768) {
+      setTimeout(() => {
+        rankingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 1000);
+    } else {
+      // PC版は相場セクションまでスクロール
+      const areaPrice = document.getElementById('areaPrice');
+      if (areaPrice) {
+        // 相場カードの上部に少し余白が見えるようにスクロール調整
+        const offsetPosition = areaPrice.offsetTop + 10;
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
     }
     
     // 表示後にモザイクをかけるとメッセージを追加
