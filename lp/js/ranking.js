@@ -3,8 +3,8 @@
  * estimate-app専用
  */
 
-// サンプル会社データ（モザイク処理済み）
-const allCompanies = [
+// サンプル会社データ（モザイク処理済み）- デフォルトのフォールバックデータ
+let allCompanies = [
   { rank: 1, name: 'T社', price: '78万円〜', rating: 4.9, reviews: 245, features: ['地元密着', '保証充実', '即日対応'] },
   { rank: 2, name: 'S社', price: '83万円〜', rating: 4.7, reviews: 189, features: ['最低価格保証', '職人直営'] },
   { rank: 3, name: 'K社', price: '85万円〜', rating: 4.5, reviews: 156, features: ['定期点検付', '環境配慮'] },
@@ -15,8 +15,200 @@ const allCompanies = [
   { rank: 8, name: 'C社', price: '99万円〜', rating: 3.9, reviews: 65, features: ['価格重視', '短期施工'] }
 ];
 
+// GASから取得したランキングデータ（キャッシュ）
+let dynamicRankings = null;
+let currentSortType = 'recommended'; // recommended, cheap, review, quality
+
 let showingAll = false;
 let namesRevealed = false;
+
+// ============================================
+// GASからランキングデータを取得
+// ============================================
+async function fetchRankingFromGAS() {
+  try {
+    console.log('🏆 GASからランキング取得開始');
+
+    // BotConfigから必要なパラメータを取得
+    if (!window.BotConfig || !window.BotConfig.state) {
+      console.error('❌ BotConfigが見つかりません');
+      return false;
+    }
+
+    const zipcode = window.BotConfig.state.currentZipcode;
+    if (!zipcode) {
+      console.error('❌ 郵便番号が見つかりません');
+      return false;
+    }
+
+    // BOT回答から施工箇所と築年数を取得
+    const answers = window.BotConfig.state.userAnswers || {};
+    const workTypes = [];
+    let buildingAgeMin = 0;
+    let buildingAgeMax = 100;
+
+    // Q004: 施工箇所
+    if (answers.Q004 && answers.Q004.choice) {
+      workTypes.push(answers.Q004.choice);
+    }
+
+    // Q006: 築年数
+    if (answers.Q006 && answers.Q006.choice) {
+      const ageRange = parseAgeRange(answers.Q006.choice);
+      if (ageRange) {
+        buildingAgeMin = ageRange.min;
+        buildingAgeMax = ageRange.max;
+      }
+    }
+
+    const params = {
+      zipcode: zipcode,
+      workTypes: workTypes,
+      buildingAgeMin: buildingAgeMin,
+      buildingAgeMax: buildingAgeMax
+    };
+
+    console.log('📤 ランキングリクエストパラメータ:', params);
+
+    // CVAPI.getRankingを呼び出し
+    if (!window.CVAPI || !window.CVAPI.getRanking) {
+      console.error('❌ CVAPI.getRankingが見つかりません');
+      return false;
+    }
+
+    const response = await window.CVAPI.getRanking(params);
+
+    if (!response.success) {
+      console.error('❌ ランキング取得失敗:', response.error);
+      return false;
+    }
+
+    console.log('✅ ランキング取得成功:', response);
+
+    // レスポンスをキャッシュ
+    dynamicRankings = response.rankings;
+
+    // デフォルトは「おすすめ順」
+    updateAllCompaniesFromDynamic('recommended');
+
+    return true;
+
+  } catch (error) {
+    console.error('❌ ランキング取得エラー:', error);
+    return false;
+  }
+}
+
+// ============================================
+// 築年数文字列をパース
+// ============================================
+function parseAgeRange(ageStr) {
+  if (!ageStr) return null;
+
+  // "0-5年" → {min: 0, max: 5}
+  // "6-10年" → {min: 6, max: 10}
+  // "30年以上" → {min: 30, max: 100}
+
+  const match = ageStr.match(/(\d+)-(\d+)/);
+  if (match) {
+    return {
+      min: parseInt(match[1]),
+      max: parseInt(match[2])
+    };
+  }
+
+  const overMatch = ageStr.match(/(\d+)年以上/);
+  if (overMatch) {
+    return {
+      min: parseInt(overMatch[1]),
+      max: 100
+    };
+  }
+
+  return null;
+}
+
+// ============================================
+// 動的ランキングからallCompaniesを更新
+// ============================================
+function updateAllCompaniesFromDynamic(sortType) {
+  if (!dynamicRankings) {
+    console.warn('⚠️ 動的ランキングデータがありません');
+    return;
+  }
+
+  currentSortType = sortType;
+
+  // ソートタイプに応じたランキングを取得
+  let rankingList = [];
+  switch(sortType) {
+    case 'cheap':
+      rankingList = dynamicRankings.cheap || [];
+      break;
+    case 'recommended':
+      rankingList = dynamicRankings.recommended || [];
+      break;
+    case 'review':
+      rankingList = dynamicRankings.review || [];
+      break;
+    case 'quality':
+      rankingList = dynamicRankings.premium || [];
+      break;
+    default:
+      rankingList = dynamicRankings.recommended || [];
+  }
+
+  if (rankingList.length === 0) {
+    console.warn('⚠️ ランキングデータが空です、デフォルトデータを使用');
+    return;
+  }
+
+  console.log(`📊 ${sortType}順のランキングを適用 (${rankingList.length}件)`);
+
+  // GASレスポンスをallCompanies形式に変換
+  allCompanies = rankingList.map((company, index) => ({
+    rank: index + 1,
+    name: company.companyName || `${index + 1}位業者`,
+    price: company.avgContractAmount ? `${Math.floor(company.avgContractAmount / 10000)}万円〜` : '見積もり必要',
+    rating: company.rating || 4.0,
+    reviews: company.reviewCount || 0,
+    features: extractFeatures(company),
+    // 元データも保持
+    _original: company
+  }));
+
+  console.log('✅ allCompanies更新完了:', allCompanies.length, '件');
+}
+
+// ============================================
+// 会社データから特徴を抽出
+// ============================================
+function extractFeatures(company) {
+  const features = [];
+
+  // 対応都道府県
+  if (company.prefecture) {
+    features.push(`${company.prefecture}対応`);
+  }
+
+  // 最大対応階数
+  if (company.maxFloors) {
+    features.push(`${company.maxFloors}階建対応`);
+  }
+
+  // 特殊対応項目
+  if (company.specialSupport && company.specialSupport.length > 0) {
+    features.push(...company.specialSupport.slice(0, 2));
+  }
+
+  // 施工実績
+  if (company.contractCount) {
+    features.push(`実績${company.contractCount}件`);
+  }
+
+  // 最大3つまで
+  return features.slice(0, 3);
+}
 
 // ヒアリング段階の管理
 let currentHearingStage = 0; // 0: 未開始, 1: 第1段階完了, 2: 第2段階完了, 3: 第3段階完了, 4: 第4段階完了

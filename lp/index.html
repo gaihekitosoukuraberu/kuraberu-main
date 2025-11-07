@@ -1990,22 +1990,27 @@
             }
 
             toggle(id, name, button) {
+                console.log('🔄 toggle呼び出し - ID:', id, 'Name:', name);
                 const keepData = { id, name };
                 const index = this.keeps.findIndex(k => k.id === id);
 
                 if (index > -1) {
+                    console.log('❌ キープ削除:', name);
                     this.keeps.splice(index, 1);
                     button.classList.remove('active');
                 } else {
                     // 4社までの制限
                     if (this.keeps.length >= 4) {
                         alert('キープは最大4社までです');
+                        console.warn('⚠️ キープ上限に達しました');
                         return;
                     }
+                    console.log('✅ キープ追加:', name);
                     this.keeps.push(keepData);
                     button.classList.add('active');
                 }
 
+                console.log('📊 現在のキープリスト:', this.keeps);
                 this.save();
                 this.updateBadge();
             }
@@ -2015,19 +2020,33 @@
             }
 
             updateBadge() {
+                console.log('🔔 updateBadge呼び出し - キープ数:', this.keeps.length);
                 const badges = document.querySelectorAll('.notification-badge');
                 const estimateBtnContainer = document.getElementById('estimateBtnContainer');
+                console.log('📍 estimateBtnContainer:', estimateBtnContainer);
+                console.log('📍 estimateBtnContainer存在:', !!estimateBtnContainer);
+
+                if (estimateBtnContainer) {
+                    console.log('📍 現在のdisplayスタイル:', window.getComputedStyle(estimateBtnContainer).display);
+                    console.log('📍 現在のhiddenクラス:', estimateBtnContainer.classList.contains('hidden'));
+                }
 
                 badges.forEach(badge => {
                     badge.textContent = this.keeps.length;
+                    console.log('🔔 バッジ更新:', badge, '→', this.keeps.length);
                 });
 
                 if (estimateBtnContainer) {
                     if (this.keeps.length > 0) {
+                        console.log('✅ 見積もりボタンを表示');
                         estimateBtnContainer.classList.remove('hidden');
+                        estimateBtnContainer.style.display = '';
                     } else {
+                        console.log('❌ 見積もりボタンを非表示');
                         estimateBtnContainer.classList.add('hidden');
                     }
+                } else {
+                    console.error('❌ estimateBtnContainerが見つかりません');
                 }
             }
 

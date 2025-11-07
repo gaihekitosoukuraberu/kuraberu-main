@@ -141,7 +141,11 @@
         // body直下の最初の要素以外を非表示にする簡易実装
         const bodyChildren = Array.from(document.body.children);
         bodyChildren.forEach(el => {
-            if (el.id !== 'gaiheki-bot-container' && el.id !== 'gaiheki-zip-form-container') {
+            if (el.id !== 'gaiheki-bot-container' &&
+                el.id !== 'gaiheki-zip-form-container' &&
+                el.id !== 'botParentContainer' &&
+                el.id !== 'estimateBtnContainer' &&
+                el.id !== 'mobileProgressBar') {
                 el.style.display = 'none';
             }
         });
