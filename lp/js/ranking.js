@@ -637,6 +637,18 @@ function switchSortTab(tabType) {
     updateAllCompaniesFromDynamic(sortType);
     displayRanking(); // ランキングを再描画
   }
+
+  // ランキングタイトルを変更
+  const rankingTitle = document.getElementById('rankingTitle');
+  if (rankingTitle) {
+    const titleMap = {
+      'tabRecommend': 'おすすめ業者ランキング',
+      'tabCheap': '安い順ランキング',
+      'tabReview': '口コミ順ランキング',
+      'tabQuality': '高品質順ランキング'
+    };
+    rankingTitle.textContent = titleMap[tabType] || 'おすすめ業者ランキング';
+  }
   
   // すべてのタブの背景色をリセット（無効化されていないもののみ）
   const tabs = ['tabRecommend', 'tabCheap', 'tabReview', 'tabQuality'];
