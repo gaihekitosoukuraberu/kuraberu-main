@@ -172,6 +172,84 @@ const BotConfig = {
             4: 100
         };
         return progressMap[stage] || 0;
+    },
+
+    // ============================================
+    // BOT回答をスプレッドシート形式にマッピング
+    // ============================================
+    mapAnswersToSpreadsheet() {
+        const answers = this.state.userAnswers || {};
+        const mapped = {};
+
+        // Q001: 建物種別
+        if (answers.Q001) {
+            mapped.Q1_building_type = answers.Q001.choice || '';
+        }
+
+        // Q002: 建物階数
+        if (answers.Q002) {
+            mapped.Q2_floors = answers.Q002.choice || '';
+        }
+
+        // Q003: 築年数
+        if (answers.Q003) {
+            mapped.Q3_building_age = answers.Q003.choice || '';
+        }
+
+        // Q004: 施工箇所
+        if (answers.Q004) {
+            mapped.Q4_work_location = answers.Q004.choice || '';
+        }
+
+        // Q005: 建物状態
+        if (answers.Q005) {
+            mapped.Q5_building_condition = answers.Q005.choice || '';
+        }
+
+        // Q006: 劣化状況
+        if (answers.Q006) {
+            mapped.Q6_degradation = answers.Q006.choice || '';
+        }
+
+        // Q007: 希望時期
+        if (answers.Q007) {
+            mapped.Q7_desired_timing = answers.Q007.choice || '';
+        }
+
+        // Q008: 予算
+        if (answers.Q008) {
+            mapped.Q8_budget = answers.Q008.choice || '';
+        }
+
+        // Q009: 工事内容
+        if (answers.Q009) {
+            mapped.Q9_work_content = answers.Q009.choice || '';
+        }
+
+        // Q010-Q016: その他の質問
+        for (let i = 10; i <= 16; i++) {
+            const qid = `Q${String(i).padStart(3, '0')}`;
+            if (answers[qid]) {
+                mapped[`Q${i}_answer`] = answers[qid].choice || '';
+            }
+        }
+
+        console.log('📋 スプレッドシート形式に変換:', mapped);
+        return mapped;
+    },
+
+    // ============================================
+    // localStorage クリア
+    // ============================================
+    clearLocalStorage() {
+        try {
+            sessionStorage.removeItem('bot_answers');
+            sessionStorage.removeItem('bot_zipcode');
+            sessionStorage.removeItem('bot_keyword');
+            console.log('✅ sessionStorageクリア完了');
+        } catch (e) {
+            console.warn('[BotConfig] sessionStorageクリア失敗:', e);
+        }
     }
 };
 

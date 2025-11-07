@@ -1702,7 +1702,7 @@
         }
 
         // 電話番号送信処理
-        function submitPhoneNumber(phone) {
+        async function submitPhoneNumber(phone) {
             // 電話番号を保存
             localStorage.setItem('userPhone', phone);
 
@@ -1715,6 +1715,27 @@
                 if (btn) btn.disabled = true;
                 if (input) input.disabled = true;
             });
+
+            // CV1送信（GASに電話番号とBOT回答を保存）
+            console.log('📞 CV1送信開始:', phone);
+            try {
+                if (window.CVAPI && typeof window.CVAPI.sendCV1 === 'function') {
+                    const result = await window.CVAPI.sendCV1(phone);
+                    if (result.success) {
+                        console.log('✅ CV1送信成功、CV ID:', result.cvId);
+                    } else {
+                        console.error('❌ CV1送信失敗:', result.error);
+                        alert('送信に失敗しました。もう一度お試しください。');
+                        return;
+                    }
+                } else {
+                    console.error('❌ CVAPI.sendCV1が見つかりません');
+                }
+            } catch (error) {
+                console.error('❌ CV1送信エラー:', error);
+                alert('エラーが発生しました。もう一度お試しください。');
+                return;
+            }
 
             // 完了メッセージ表示とランキング解除
             setTimeout(() => {
