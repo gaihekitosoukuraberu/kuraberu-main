@@ -84,8 +84,6 @@ async function initBotForZipEntry() {
         console.log('✅ ランキング表示完了（モザイク付き）');
     }
 
-    const messages = document.getElementById('messages');
-
     // AIメッセージ：相場は既に表示済みなので、直接質問開始
     showAIMessage('ありがとうございます。あなたに最適な業者をご紹介するため、いくつか質問させていただきます。');
 
@@ -282,45 +280,28 @@ function showPostalFormInBot() {
         // フォームを非表示
         formContainer.style.display = 'none';
 
-        // 相場表示
-        document.getElementById('priceSection').classList.remove('hidden');
-        document.getElementById('areaName').textContent = '東京都千代田区の外壁塗装相場';
+        // 郵便番号を保存したことを記録
+        BotConfig.state.postalCodeEntered = true;
 
-        // ランキングセクション表示（flexレイアウトを維持）
-        const mainContentContainer = document.getElementById('mainContentContainer');
-        if (mainContentContainer) {
-            mainContentContainer.classList.remove('hidden');
-            mainContentContainer.style.display = 'flex';
-            console.log('✅ ランキングセクション表示（2カラムレイアウト）');
-        }
-
-        // GASからランキングを取得してモザイク付きで表示
+        // GASからランキングをバックグラウンドで取得（表示はまだしない）
         setTimeout(async () => {
-            console.log('🏆 郵便番号入力後、GASからランキングを取得します');
+            console.log('🏆 郵便番号入力後、GASからランキングを取得します（バックグラウンド）');
 
             if (typeof window.fetchRankingFromGAS === 'function') {
                 const success = await window.fetchRankingFromGAS();
                 if (success) {
-                    console.log('✅ ランキング取得成功、デフォルト（おすすめ順）で表示');
-                    // デフォルトはおすすめ順
-                    if (typeof window.updateAllCompaniesFromDynamic === 'function') {
-                        window.updateAllCompaniesFromDynamic('recommended');
-                    }
+                    console.log('✅ ランキング取得成功（表示は質問完了後）');
                 } else {
                     console.warn('⚠️ ランキング取得失敗、デフォルトデータを使用');
                 }
             }
 
-            // ランキング表示（モザイク付き）
-            if (typeof window.displayRanking === 'function') {
-                window.displayRanking();
-                console.log('✅ ランキング表示完了（モザイク付き）');
-            }
+            // mainQuestionsへ（相場は表示せず質問を開始）
+            showAIMessage('ありがとうございます。あなたに最適な業者をご紹介するため、いくつか質問させていただきます。');
 
-            // mainQuestionsへ
             setTimeout(() => {
                 showQuestion('Q001');
-            }, 500);
+            }, 1000);
         }, 1000);
     });
 
@@ -339,6 +320,34 @@ function connectToExistingPhoneForm() {
 
     // 選択肢をクリア
     document.getElementById('choices').innerHTML = '';
+
+    // キーワード検索経由でBOT内で郵便番号を入力した場合のみ相場セクションを表示
+    if (BotConfig.state.postalCodeEntered) {
+        console.log('✅ キーワード検索経由のため、質問完了後に相場セクション表示');
+
+        // 相場表示
+        document.getElementById('priceSection').classList.remove('hidden');
+        document.getElementById('areaName').textContent = '東京都千代田区の外壁塗装相場';
+
+        // ランキングセクション表示（flexレイアウトを維持）
+        const mainContentContainer = document.getElementById('mainContentContainer');
+        if (mainContentContainer) {
+            mainContentContainer.classList.remove('hidden');
+            mainContentContainer.style.display = 'flex';
+            console.log('✅ ランキングセクション表示（2カラムレイアウト）');
+        }
+
+        // デフォルトはおすすめ順
+        if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+            window.updateAllCompaniesFromDynamic('recommended');
+        }
+
+        // ランキング表示（モザイク付き）
+        if (typeof window.displayRanking === 'function') {
+            window.displayRanking();
+            console.log('✅ ランキング表示完了（モザイク付き）');
+        }
+    }
 
     // showPhoneMiniForm()を呼び出す（index.htmlで定義）
     setTimeout(() => {

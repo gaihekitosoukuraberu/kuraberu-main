@@ -1865,7 +1865,7 @@ button {
 
   .mv .mv__before__img img {
     width: 100%;
-    max-width: 110%;
+    max-width: 120%;
     height: auto;
   }
 
@@ -1897,6 +1897,8 @@ button {
     margin-top: 0;
     z-index: 10;
     min-width: 0;
+    transform: scale(1.15);
+    transform-origin: top center;
   }
 
   #postalFormSectionLP > div {
@@ -1907,8 +1909,8 @@ button {
   /* MVセクション全体の高さ調整 */
   .mv {
     position: relative;
-    padding-top: 150px;
-    padding-bottom: 120px;
+    padding-top: 180px;
+    padding-bottom: 140px;
   }
 }
 
