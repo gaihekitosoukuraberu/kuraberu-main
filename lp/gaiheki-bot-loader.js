@@ -214,6 +214,12 @@
                 console.log('✅ ランキングセクション表示（モザイク付き）');
             }
 
+            // ランキングを初期表示（デフォルトデータ）
+            if (typeof window.displayRanking === 'function') {
+                window.displayRanking();
+                console.log('✅ BOT起動時にランキング初期表示（デフォルトデータ）');
+            }
+
             // キーワードからの起動時は相場セクションのみ非表示
             if (type === 'zip') {
                 if (existingPriceSection) {
