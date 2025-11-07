@@ -1727,6 +1727,7 @@
             });
 
             // CV1送信（GASに電話番号とBOT回答を保存）
+            // ※送信失敗してもフローは続行（ユーザー体験を中断させない）
             console.log('📞 CV1送信開始:', phone);
             try {
                 if (window.CVAPI && typeof window.CVAPI.sendCV1 === 'function') {
@@ -1734,17 +1735,15 @@
                     if (result.success) {
                         console.log('✅ CV1送信成功、CV ID:', result.cvId);
                     } else {
-                        console.error('❌ CV1送信失敗:', result.error);
-                        alert('送信に失敗しました。もう一度お試しください。');
-                        return;
+                        console.warn('⚠️ CV1送信失敗（処理は続行）:', result.error);
+                        // エラーでも処理を続行
                     }
                 } else {
-                    console.error('❌ CVAPI.sendCV1が見つかりません');
+                    console.warn('⚠️ CVAPI.sendCV1が見つかりません（処理は続行）');
                 }
             } catch (error) {
-                console.error('❌ CV1送信エラー:', error);
-                alert('エラーが発生しました。もう一度お試しください。');
-                return;
+                console.warn('⚠️ CV1送信エラー（処理は続行）:', error);
+                // エラーでも処理を続行
             }
 
             // 完了メッセージ表示とランキング解除
