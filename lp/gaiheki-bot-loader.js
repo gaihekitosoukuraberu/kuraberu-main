@@ -437,7 +437,7 @@
             }
 
             .phone-mini-form {
-                background: linear-gradient(135deg, #FEE2E2, #FECACA);
+                background: linear-gradient(135deg, #EBF8FF, #DBEAFE);
                 border-radius: 16px;
                 padding: 24px;
                 margin: 20px 0;
