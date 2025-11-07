@@ -36,8 +36,8 @@ const BotQuestions = {
         // AIメッセージ表示
         BotUI.showAIMessage(question.text);
 
-        // 特殊な分岐：PHONE
-        if (questionId === 'PHONE' || this.isPHONEBranch(question)) {
+        // 特殊な分岐：PHONE（選択肢が空の場合のみ）
+        if ((questionId === 'PHONE' || this.isPHONEBranch(question)) && (!question.choices || question.choices.length === 0)) {
             // 選択肢なしで直接フォーム表示
             setTimeout(() => {
                 BotCore.connectToPhoneSystem();
@@ -155,6 +155,7 @@ const BotQuestions = {
                     this.showQuestion(nextQuestionId);
                 }
             }, 1000);
+            return; // Q016の処理はここで終了
         } else {
             // Q016以外：通常の処理
             setTimeout(() => {
