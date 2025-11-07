@@ -20,6 +20,7 @@
     // ============================================
     const CONFIG = {
         BOT_SCRIPTS: [
+            // env-loader.jsはindex.htmlで直接ロード済み
             'js/utils.js',
             'js/bot-config.js',
             'js/bot-ui.js',
@@ -30,7 +31,9 @@
             'js/phone-form.js',
             'js/cv-api.js',
             'js/ranking.js'
-        ]
+        ],
+        // アバター画像をプリロード（キャッシュ）
+        AVATAR_IMAGE: 'images/avatars/319260ba-0b3d-47d0-b18f-abf530c2793e.png'
     };
 
     // ============================================
@@ -489,25 +492,63 @@
     }
 
     // ============================================
-    // BOTスクリプト読み込み
+    // BOTスクリプト読み込み（直列）
     // ============================================
     function loadBotScripts() {
-        let loadedCount = 0;
         const totalScripts = CONFIG.BOT_SCRIPTS.length;
+        let loadedCount = 0;
 
-        CONFIG.BOT_SCRIPTS.forEach((src) => {
+        // スクリプトを1つずつ順番にロード
+        function loadNextScript(index) {
+            if (index >= totalScripts) {
+                console.log('✅ 全スクリプト読み込み完了');
+                return;
+            }
+
+            const src = CONFIG.BOT_SCRIPTS[index];
             const script = document.createElement('script');
             script.src = src;
-            script.async = false;
+
             script.onload = () => {
                 loadedCount++;
                 console.log(`✅ スクリプト読み込み完了 (${loadedCount}/${totalScripts}): ${src}`);
+
+                // 次のスクリプトをロード
+                loadNextScript(index + 1);
             };
+
             script.onerror = () => {
                 console.error(`❌ スクリプト読み込み失敗: ${src}`);
+                // エラーでも次のスクリプトをロード
+                loadNextScript(index + 1);
             };
+
             document.body.appendChild(script);
-        });
+        }
+
+        // 最初のスクリプトから開始
+        loadNextScript(0);
+    }
+
+    // ============================================
+    // アバター画像をプリロード（キャッシュ）
+    // ============================================
+    function preloadAvatarImage() {
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.href = CONFIG.AVATAR_IMAGE;
+        document.head.appendChild(link);
+
+        // Imageオブジェクトでも事前ロード（ブラウザキャッシュに確実に保存）
+        const img = new Image();
+        img.onload = () => {
+            console.log('✅ アバター画像プリロード完了:', CONFIG.AVATAR_IMAGE);
+        };
+        img.onerror = () => {
+            console.warn('⚠️ アバター画像プリロード失敗:', CONFIG.AVATAR_IMAGE);
+        };
+        img.src = CONFIG.AVATAR_IMAGE;
     }
 
     // ============================================
@@ -518,6 +559,9 @@
 
         // スタイル読み込み
         loadBotStyles();
+
+        // アバター画像をプリロード（チャットメッセージとの時差をなくす）
+        preloadAvatarImage();
 
         // BOTスクリプト読み込み
         loadBotScripts();

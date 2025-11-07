@@ -9,8 +9,10 @@
  */
 
 const CVAPI = {
-    // GAS Web App URL（本番環境）
-    GAS_URL: 'https://script.google.com/macros/s/AKfycbzYC8oyQjjcENCdqKbCtapUKskn7aFpIaxslR-UaW7WgdSqftdq_852R6JgEdRvffjhQA/exec',
+    // GAS Web App URL（ENV経由で取得、フォールバック付き）
+    get GAS_URL() {
+        return window.ENV?.GAS_URL || 'https://script.google.com/macros/s/AKfycbyYyvnqHXEZNSLu2NbbRSP4cRu46_9qD3QSoXMWF9qnzF3fKoVRHd_zYlXoFXuJgNUULQ/exec';
+    },
 
     // ============================================
     // CV1送信（電話番号入力時：即時保存）
@@ -95,7 +97,8 @@ const CVAPI = {
             const isNewSubmission = !cvId;
 
             if (isNewSubmission) {
-                console.warn('⚠️ CV IDが見つかりません。新規作成モードで全データを送信します');
+                console.warn('⚠️ CV IDが見つかりません。CV1が失敗した可能性があります。');
+                console.warn('⚠️ 新規作成モードで全データを送信します（CV1+CV2統合）');
             } else {
                 console.log('✅ CV ID取得成功:', cvId);
             }
@@ -167,12 +170,13 @@ const CVAPI = {
             };
 
             console.log('📤 送信データ:', data);
+            console.log('📤 送信モード:', isNewSubmission ? '新規作成（CV1失敗のフォールバック）' : 'CV2更新');
 
             // JSONP送信（CORS回避）
             const result = await this.sendJSONP(data);
 
             if (result.success) {
-                console.log('✅ CV2更新成功');
+                console.log('✅ CV2送信成功');
 
                 // localStorage クリア
                 BotConfig.clearLocalStorage();
