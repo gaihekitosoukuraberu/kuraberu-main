@@ -622,11 +622,32 @@ function scrollToPhoneForm() {
 // 並び替えタブの処理（段階制限付き）
 function switchSortTab(tabType) {
   console.log('ソートタブ切り替え:', tabType, 'ヒアリング段階:', currentHearingStage);
-  
+
   // ヒアリング段階チェック（第1段階完了でソート機能解放）
   if (tabType !== 'tabRecommend' && currentHearingStage < 1) {
     console.log('第1ヒアリング段階が完了していないため、このタブは利用できません');
     return;
+  }
+
+  // 動的ランキングデータがあれば、ソートタイプに応じてallCompaniesを更新
+  if (dynamicRankings) {
+    let sortType = 'recommended';
+    switch(tabType) {
+      case 'tabRecommend':
+        sortType = 'recommended';
+        break;
+      case 'tabCheap':
+        sortType = 'cheap';
+        break;
+      case 'tabReview':
+        sortType = 'review';
+        break;
+      case 'tabQuality':
+        sortType = 'quality';
+        break;
+    }
+    updateAllCompaniesFromDynamic(sortType);
+    displayRanking(); // ランキングを再描画
   }
   
   // すべてのタブの背景色をリセット（無効化されていないもののみ）
@@ -868,6 +889,8 @@ function completeHearingStage(stage) {
 }
 
 // グローバル関数としてエクスポート
+window.fetchRankingFromGAS = fetchRankingFromGAS;
+window.updateAllCompaniesFromDynamic = updateAllCompaniesFromDynamic;
 window.displayRanking = displayRanking;
 window.toggleKeep = toggleKeep;
 window.showCompanyDetail = showCompanyDetail;

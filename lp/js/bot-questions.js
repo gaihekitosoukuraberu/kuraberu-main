@@ -35,6 +35,7 @@ const BotQuestions = {
 
         // 特殊な分岐：PHONE
         if (questionId === 'PHONE' || this.isPHONEBranch(question)) {
+            // connectToPhoneSystemはasync関数だが、ここではawaitしない（バックグラウンドで実行）
             BotCore.connectToPhoneSystem();
             return;
         }
@@ -98,6 +99,7 @@ const BotQuestions = {
 
         setTimeout(() => {
             if (nextQuestionId === 'PHONE') {
+                // connectToPhoneSystemはasync関数だが、ここではawaitしない（バックグラウンドで実行）
                 BotCore.connectToPhoneSystem();
             } else {
                 this.showQuestion(nextQuestionId);

@@ -2100,6 +2100,180 @@
         function closeKeepModal() {
             document.getElementById('keepModal').classList.add('hidden');
         }
+
+        // ============================================
+        // 見積もりフォーム関連
+        // ============================================
+        function startEstimateForm() {
+            console.log('📝 見積もりフォーム開始');
+
+            // キープモーダルを閉じる
+            closeKeepModal();
+
+            // 見積もりフォームモーダルを表示
+            const modal = document.getElementById('estimateFormModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+
+                // BOT情報から郵便番号と住所を自動入力
+                if (window.BotConfig && window.BotConfig.state) {
+                    const zipcode = window.BotConfig.state.currentZipcode;
+                    if (zipcode) {
+                        document.getElementById('propertyZip').value = zipcode;
+
+                        // 郵便番号から住所を取得
+                        if (typeof window.getAreaFromPostalCode === 'function') {
+                            const area = window.getAreaFromPostalCode(zipcode);
+                            document.getElementById('propertyAddress').value = area || '';
+                        }
+                    }
+                }
+
+                console.log('✅ 見積もりフォーム表示');
+            } else {
+                console.error('❌ estimateFormModalが見つかりません');
+            }
+        }
+
+        function closeEstimateForm() {
+            console.log('📝 見積もりフォーム閉じる');
+            const modal = document.getElementById('estimateFormModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                // ステップ1に戻す
+                document.getElementById('step1').classList.remove('hidden');
+                document.getElementById('step2').classList.add('hidden');
+            }
+        }
+
+        function nextStep() {
+            console.log('📝 次のステップへ');
+
+            // バリデーション
+            const userName = document.getElementById('userName').value.trim();
+            const propertyStreet = document.getElementById('propertyStreet').value.trim();
+
+            if (!userName) {
+                alert('お名前を入力してください');
+                return;
+            }
+
+            if (!propertyStreet) {
+                alert('対象物件の番地・建物名を入力してください');
+                return;
+            }
+
+            // ステップ2へ
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+
+            // プログレスバー更新
+            document.getElementById('currentStep').textContent = '2';
+            document.getElementById('stepPercent').textContent = '100';
+            document.getElementById('stepProgress').style.width = '100%';
+
+            // 現地調査希望日時の選択肢を生成
+            generateSurveyDates();
+        }
+
+        function prevStep() {
+            console.log('📝 前のステップへ');
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step1').classList.remove('hidden');
+
+            // プログレスバー更新
+            document.getElementById('currentStep').textContent = '1';
+            document.getElementById('stepPercent').textContent = '50';
+            document.getElementById('stepProgress').style.width = '50%';
+        }
+
+        function generateSurveyDates() {
+            const container = document.getElementById('surveyDates');
+            if (!container) return;
+
+            const today = new Date();
+            const dates = [];
+
+            // 明日から7日分の日付を生成
+            for (let i = 1; i <= 7; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                const dateStr = `${date.getMonth() + 1}月${date.getDate()}日`;
+                dates.push(dateStr);
+            }
+
+            container.innerHTML = dates.map((date, index) => `
+                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                    <input type="checkbox" name="surveyDate" value="${date}" class="mr-3">
+                    <span class="text-sm">${date}</span>
+                </label>
+            `).join('');
+        }
+
+        async function submitForm() {
+            console.log('📝 フォーム送信開始');
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '送信中...';
+
+            try {
+                // フォームデータを収集
+                const formData = {
+                    name: document.getElementById('userName').value.trim(),
+                    email: document.getElementById('userEmail').value.trim(),
+                    propertyAddress: {
+                        postalCode: document.getElementById('propertyZip').value,
+                        prefecture: document.getElementById('propertyAddress').value,
+                        street: document.getElementById('propertyStreet').value.trim()
+                    },
+                    isDifferentHome: document.getElementById('differentHome').checked,
+                    homeAddress: document.getElementById('differentHome').checked ? {
+                        postalCode: document.getElementById('homeZip').value,
+                        street: document.getElementById('homeStreet').value.trim()
+                    } : null,
+                    surveyDates: Array.from(document.querySelectorAll('input[name="surveyDate"]:checked')).map(cb => cb.value),
+                    requests: document.getElementById('userRequests')?.value || ''
+                };
+
+                console.log('📤 送信データ:', formData);
+
+                // CVAPI.sendCV2を呼び出し
+                if (window.CVAPI && typeof window.CVAPI.sendCV2 === 'function') {
+                    const response = await window.CVAPI.sendCV2(formData);
+
+                    if (response.success) {
+                        console.log('✅ CV2送信成功');
+                        alert('送信が完了しました！業者から連絡が届きます。');
+                        closeEstimateForm();
+                    } else {
+                        console.error('❌ CV2送信失敗:', response.error);
+                        alert('送信に失敗しました。もう一度お試しください。');
+                    }
+                } else {
+                    console.error('❌ CVAPI.sendCV2が見つかりません');
+                    alert('送信機能が利用できません。');
+                }
+
+            } catch (error) {
+                console.error('❌ フォーム送信エラー:', error);
+                alert('エラーが発生しました。もう一度お試しください。');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '送信する';
+            }
+        }
+
+        function toggleHomeAddress() {
+            const checkbox = document.getElementById('differentHome');
+            const section = document.getElementById('homeAddressSection');
+
+            if (checkbox.checked) {
+                section.classList.remove('hidden');
+            } else {
+                section.classList.add('hidden');
+            }
+        }
     </script>
 
     <!-- 外壁塗装くらべる BOTシステム -->

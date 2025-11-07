@@ -272,7 +272,7 @@ const BotCore = {
     // ============================================
     // PHONE分岐（既存システムへ接続）
     // ============================================
-    connectToPhoneSystem() {
+    async connectToPhoneSystem() {
         console.log('📞 PHONE分岐 - 既存システムへ接続');
 
         // BOTを一時停止
@@ -283,6 +283,23 @@ const BotCore = {
             'ありがとうございました！それでは最適な業者をご紹介するため、' +
             '最後に電話番号を教えていただけますか？'
         );
+
+        // GASからランキングデータを取得
+        console.log('🏆 ランキングデータ取得開始...');
+        if (typeof window.fetchRankingFromGAS === 'function') {
+            try {
+                const success = await window.fetchRankingFromGAS();
+                if (success) {
+                    console.log('✅ ランキングデータ取得成功');
+                } else {
+                    console.warn('⚠️ ランキングデータ取得失敗、デフォルトデータを使用');
+                }
+            } catch (error) {
+                console.error('❌ ランキングデータ取得エラー:', error);
+            }
+        } else {
+            console.warn('⚠️ fetchRankingFromGAS関数が見つかりません');
+        }
 
         // 選択肢をクリア
         BotUI.clearChoices();
