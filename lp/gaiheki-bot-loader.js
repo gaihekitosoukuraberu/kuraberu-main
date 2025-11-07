@@ -507,7 +507,7 @@
 
             const src = CONFIG.BOT_SCRIPTS[index];
             const script = document.createElement('script');
-            script.src = src;
+            script.src = src + '?v=' + (window.ENV ? window.ENV.CACHE_BUSTER : Date.now());
 
             script.onload = () => {
                 loadedCount++;
