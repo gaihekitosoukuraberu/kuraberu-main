@@ -1354,24 +1354,24 @@
                         <h3 class="text-sm font-bold mb-3 text-gray-800">並び替え</h3>
                         <div class="grid grid-cols-4 gap-2">
                             <button id="sortRecommended" onclick="changeSortType('recommended')" class="sort-btn sort-btn-active bg-gradient-to-br from-blue-500 to-blue-600 text-white py-2 px-2 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md border-2 border-blue-600 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
                                 </svg>
                                 <span class="whitespace-nowrap">おすすめ順</span>
                             </button>
-                            <button id="sortCheap" onclick="changeSortType('cheap')" class="sort-btn bg-white border-2 border-gray-300 text-gray-700 py-2 px-2 rounded-lg text-xs font-semibold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-sm transition-all duration-200 hover:border-orange-400 hover:shadow-md hover:scale-105 cursor-pointer">
+                            <button id="sortCheap" onclick="changeSortType('cheap')" class="sort-btn bg-gray-50 border-2 border-gray-400 text-gray-700 py-2 px-2 rounded-lg text-xs font-semibold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md transition-all duration-200 hover:border-orange-400 hover:shadow-lg hover:scale-105 cursor-pointer">
                                 <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 <span class="whitespace-nowrap">安い順</span>
                             </button>
-                            <button id="sortReview" onclick="changeSortType('review')" class="sort-btn bg-white border-2 border-gray-300 text-gray-700 py-2 px-2 rounded-lg text-xs font-semibold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-sm transition-all duration-200 hover:border-green-400 hover:shadow-md hover:scale-105 cursor-pointer">
+                            <button id="sortReview" onclick="changeSortType('review')" class="sort-btn bg-gray-50 border-2 border-gray-400 text-gray-700 py-2 px-2 rounded-lg text-xs font-semibold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md transition-all duration-200 hover:border-green-400 hover:shadow-lg hover:scale-105 cursor-pointer">
                                 <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                                 </svg>
                                 <span class="whitespace-nowrap">口コミ順</span>
                             </button>
-                            <button id="sortQuality" onclick="changeSortType('quality')" class="sort-btn bg-white border-2 border-gray-300 text-gray-700 py-2 px-2 rounded-lg text-xs font-semibold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-sm transition-all duration-200 hover:border-purple-400 hover:shadow-md hover:scale-105 cursor-pointer">
+                            <button id="sortQuality" onclick="changeSortType('quality')" class="sort-btn bg-gray-50 border-2 border-gray-400 text-gray-700 py-2 px-2 rounded-lg text-xs font-semibold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md transition-all duration-200 hover:border-purple-400 hover:shadow-lg hover:scale-105 cursor-pointer">
                                 <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
                                 </svg>
@@ -1827,13 +1827,13 @@
             const rankingTitle = document.getElementById('rankingTitle');
 
             // 非選択時の基本クラス
-            const baseClass = 'sort-btn bg-white border-2 border-gray-300 text-gray-700 py-2 px-2 rounded-lg text-xs font-semibold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-sm transition-all duration-200 cursor-pointer';
+            const baseClass = 'sort-btn bg-gray-50 border-2 border-gray-400 text-gray-700 py-2 px-2 rounded-lg text-xs font-semibold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md transition-all duration-200 cursor-pointer';
 
             // すべてのボタンをリセット
-            document.getElementById('sortRecommended').className = baseClass + ' hover:border-blue-400 hover:shadow-md hover:scale-105';
-            document.getElementById('sortCheap').className = baseClass + ' hover:border-orange-400 hover:shadow-md hover:scale-105';
-            document.getElementById('sortReview').className = baseClass + ' hover:border-green-400 hover:shadow-md hover:scale-105';
-            document.getElementById('sortQuality').className = baseClass + ' hover:border-purple-400 hover:shadow-md hover:scale-105';
+            document.getElementById('sortRecommended').className = baseClass + ' hover:border-blue-400 hover:shadow-lg hover:scale-105';
+            document.getElementById('sortCheap').className = baseClass + ' hover:border-orange-400 hover:shadow-lg hover:scale-105';
+            document.getElementById('sortReview').className = baseClass + ' hover:border-green-400 hover:shadow-lg hover:scale-105';
+            document.getElementById('sortQuality').className = baseClass + ' hover:border-purple-400 hover:shadow-lg hover:scale-105';
 
             // テーマカラーとタイトルを変更
             switch(type) {
@@ -2452,7 +2452,7 @@
 
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） -->
-    <script src="js/env-loader.js?v=1762509079"></script>
-    <script src="gaiheki-bot-loader.js?v=1762509079"></script>
+    <script src="js/env-loader.js?v=1762509349"></script>
+    <script src="gaiheki-bot-loader.js?v=1762509349"></script>
   </body>
 </html>
