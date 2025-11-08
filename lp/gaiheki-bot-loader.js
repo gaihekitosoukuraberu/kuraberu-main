@@ -343,6 +343,11 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- フッター -->
+                <footer style="padding: 33px 0 16px; text-align: center; color: #fff; background-color: #273b5a; margin-top: 40px;">
+                    <small style="font-size: 12px; display: block; font-weight: 400;">&copy;外壁塗装くらべる All Rights Reserved.</small>
+                </footer>
             </div>
         `;
 
