@@ -330,63 +330,33 @@ const BotCore = {
         );
 
         // GASからランキングデータを取得
-        console.log('🏆 ランキングデータ取得開始...');
         if (typeof window.fetchRankingFromGAS === 'function') {
-            try {
-                const success = await window.fetchRankingFromGAS();
+            await window.fetchRankingFromGAS();
+        }
 
-                // Q900シリーズで設定されたソート順を適用
-                const sortOrder = BotConfig.state.sortOrder || 'recommended';
+        // Q016で選んだソート順でデータをソート
+        const sortOrder = BotConfig.state.sortOrder || 'recommended';
+        if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+            window.updateAllCompaniesFromDynamic(sortOrder);
+        }
 
-                if (success) {
-                    console.log('✅ ランキングデータ取得成功');
+        // ランキングを画面に反映
+        if (typeof window.displayRanking === 'function') {
+            window.displayRanking();
+        }
 
-                    if (typeof window.updateAllCompaniesFromDynamic === 'function') {
-                        console.log(`📊 ランキングを「${sortOrder}」順でソート（connectToPhoneSystem）`);
-                        window.updateAllCompaniesFromDynamic(sortOrder);
-                    }
-                } else {
-                    console.warn('⚠️ ランキングデータ取得失敗、デフォルトデータを使用');
-                }
-
-                // ヒアリング完了処理（モザイク解除）
-                if (typeof window.completeHearingStage === 'function') {
-                    window.completeHearingStage(3);
-                    console.log('✅ ヒアリング段階を3に設定、モザイク解除');
-                }
-
-                // モザイク解除後にソートタブを更新（遅延実行）
-                setTimeout(() => {
-                    if (typeof window.switchSortTab === 'function') {
-                        const tabMap = {
-                            'recommended': 'sortRecommended',
-                            'cheap': 'sortCheap',
-                            'review': 'sortReview',
-                            'premium': 'sortQuality'
-                        };
-                        const tabId = tabMap[sortOrder];
-                        if (tabId) {
-                            window.switchSortTab(tabId);
-                            console.log(`🎨 ソートタブ更新（connectToPhoneSystem）: ${tabId}`);
-                        }
-                    }
-                }, 2500); // モザイク解除エフェクト完了後に実行
-            } catch (error) {
-                console.error('❌ ランキングデータ取得エラー:', error);
-            }
-        } else {
-            console.warn('⚠️ fetchRankingFromGAS関数が見つかりません');
+        // モザイク解除
+        if (typeof window.completeHearingStage === 'function') {
+            window.completeHearingStage(3);
         }
 
         // 選択肢をクリア
         BotUI.clearChoices();
 
-        // 既存のshowPhoneMiniForm()を呼び出す
+        // 電話番号フォーム表示
         setTimeout(() => {
             if (typeof window.showPhoneMiniForm === 'function') {
                 window.showPhoneMiniForm();
-            } else {
-                console.error('❌ showPhoneMiniForm()が見つかりません');
             }
         }, 1000);
     }
