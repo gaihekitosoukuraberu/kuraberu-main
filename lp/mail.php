@@ -683,10 +683,13 @@ function sendToGAS($formData){
 	error_log('送信先URL: ' . $gasUrl);
 
 	// cURLでGASに送信
+	$queryString = http_build_query($postData);
+	error_log('URLエンコード後: ' . $queryString);
+
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, $gasUrl);
 	curl_setopt($ch, CURLOPT_POST, true);
-	curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $queryString);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
