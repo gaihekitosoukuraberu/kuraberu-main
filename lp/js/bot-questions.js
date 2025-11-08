@@ -337,7 +337,7 @@ const BotQuestions = {
     handleClosingQuestion(question) {
         BotUI.showAIMessage(question.text);
 
-        // Q900シリーズごとにランキングソート順を設定
+        // Q900シリーズごとにランキングソート順を設定して保存
         const sortMap = {
             'Q900': 'cheap',         // なるべく安く → 安い順
             'Q901': 'review',        // 口コミや評判 → 口コミ順
@@ -346,9 +346,10 @@ const BotQuestions = {
         };
 
         const sortOrder = sortMap[BotConfig.state.currentQuestionId];
-        if (sortOrder && typeof window.updateAllCompaniesFromDynamic === 'function') {
-            console.log(`📊 ランキングを「${sortOrder}」順でソート`);
-            window.updateAllCompaniesFromDynamic(sortOrder);
+        if (sortOrder) {
+            // ソート順を保存（connectToPhoneSystemで使用）
+            BotConfig.state.sortOrder = sortOrder;
+            console.log(`📊 ランキングソート順を保存: ${sortOrder}`);
         }
 
         setTimeout(() => {

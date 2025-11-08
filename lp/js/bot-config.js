@@ -60,7 +60,8 @@ const BotConfig = {
         botActive: false,         // BOT起動状態
         currentScenario: null,    // 現在のシナリオ
         currentFlowStep: null,    // 現在のフローステップ
-        questionHistory: []       // 質問履歴（戻る機能用）
+        questionHistory: [],      // 質問履歴（戻る機能用）
+        sortOrder: 'recommended'  // ランキングソート順（Q900シリーズで設定）
     },
 
     // ============================================
