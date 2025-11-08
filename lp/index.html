@@ -1936,6 +1936,36 @@
             document.getElementById('stepProgress').style.width = '50%';
         }
 
+        // 郵便番号から住所を取得
+        async function fetchAddress(postalCode, type) {
+            if (!postalCode) return;
+
+            // 郵便番号から住所を取得
+            if (typeof window.getAreaFromPostalCode === 'function') {
+                const areaInfo = window.getAreaFromPostalCode(postalCode);
+
+                // 都道府県と市区町村に分割
+                const prefectureMatch = areaInfo.match(/(.*?[都道府県])(.*)/);
+
+                if (type === 'home') {
+                    const homeAddressField = document.getElementById('homeAddress');
+                    if (homeAddressField) {
+                        homeAddressField.value = areaInfo;
+                    }
+
+                    if (prefectureMatch) {
+                        window.homePrefecture = prefectureMatch[1];
+                        console.log('✅ 自宅住所を保存:', {
+                            prefecture: window.homePrefecture,
+                            fullAddress: areaInfo
+                        });
+                    } else {
+                        window.homePrefecture = '';
+                    }
+                }
+            }
+        }
+
         // 自宅住所の表示切り替え
         function toggleHomeAddress() {
             const checkbox = document.getElementById('differentHome');

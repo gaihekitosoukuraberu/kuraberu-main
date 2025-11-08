@@ -113,6 +113,24 @@ const BotCore = {
                 areaName.textContent = areaText;
                 console.log('✅ areaName更新:', areaText);
             }
+
+            // 都道府県と市区町村に分割してwindowプロパティに保存
+            // 例: "東京都千代田区" → prefecture: "東京都", city: "千代田区"
+            const prefectureMatch = areaInfo.match(/(.*?[都道府県])(.*)/);
+            if (prefectureMatch) {
+                window.propertyPrefecture = prefectureMatch[1]; // "東京都"
+                window.propertyCity = prefectureMatch[2]; // "千代田区"
+                console.log('✅ 住所情報を保存:', {
+                    prefecture: window.propertyPrefecture,
+                    city: window.propertyCity
+                });
+            } else {
+                // マッチしない場合は全体を市区町村として扱う
+                window.propertyPrefecture = '';
+                window.propertyCity = areaInfo;
+                console.log('⚠️ 都道府県パターンマッチ失敗、全体を市区町村として保存:', areaInfo);
+            }
+
             // 相場セクションを表示
             const priceSection = document.getElementById('priceSection');
             if (priceSection) {
@@ -121,46 +139,6 @@ const BotCore = {
                 console.log('✅ 相場セクション表示');
             }
         }
-
-        // mainContentContainerを表示（flexレイアウトを維持）
-        const mainContentContainer = document.getElementById('mainContentContainer');
-        if (mainContentContainer) {
-            mainContentContainer.classList.remove('hidden');
-            // flexレイアウトを維持するため、display: flexを設定
-            mainContentContainer.style.display = 'flex';
-            console.log('✅ mainContentContainer表示（2カラムレイアウト）');
-        }
-
-        // ランキングセクションも確実に表示
-        const rankingSection = document.getElementById('rankingSection');
-        if (rankingSection) {
-            rankingSection.classList.remove('hidden');
-            console.log('✅ ランキングセクション表示');
-        }
-
-        // GASからランキングを取得してモザイク付きで表示
-        (async () => {
-            console.log('🏆 郵便番号入力後、GASからランキングを取得します');
-
-            if (typeof window.fetchRankingFromGAS === 'function') {
-                const success = await window.fetchRankingFromGAS();
-                if (success) {
-                    console.log('✅ ランキング取得成功、デフォルト（おすすめ順）で表示');
-                    // デフォルトはおすすめ順
-                    if (typeof window.updateAllCompaniesFromDynamic === 'function') {
-                        window.updateAllCompaniesFromDynamic('recommended');
-                    }
-                } else {
-                    console.warn('⚠️ ランキング取得失敗、デフォルトデータを使用');
-                }
-            }
-
-            // ランキング表示（モザイク付き）
-            if (typeof window.displayRanking === 'function') {
-                window.displayRanking();
-                console.log('✅ ランキング表示完了（モザイク付き）');
-            }
-        })();
 
         // UI初期化を確実に実行（Safari対応）
         if (!BotUI.elements.messages) {
@@ -318,7 +296,11 @@ const BotCore = {
         // BOTを一時停止
         BotConfig.state.botActive = false;
 
-        // 誘導メッセージは showPhoneMiniForm() 内で表示
+        // 誘導メッセージ
+        BotUI.showAIMessage(
+            'ありがとうございました！それでは最適な業者をご紹介するため、' +
+            '最後に電話番号を教えていただけますか？'
+        );
 
         // GASからランキングデータを取得
         console.log('🏆 ランキングデータ取得開始...');

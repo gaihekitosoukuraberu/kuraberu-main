@@ -9,12 +9,9 @@
  */
 
 const CVAPI = {
-    // GAS Web App URL（ENV経由で取得、動的参照のみ）
+    // GAS Web App URL（ENV経由で取得、フォールバック付き）
     get GAS_URL() {
-        if (!window.ENV?.GAS_URL) {
-            console.error('❌ ENV.GAS_URLが未定義です。env-loader.jsが正しくロードされていません。');
-        }
-        return window.ENV?.GAS_URL;
+        return window.ENV?.GAS_URL || 'https://script.google.com/macros/s/AKfycbyYyvnqHXEZNSLu2NbbRSP4cRu46_9qD3QSoXMWF9qnzF3fKoVRHd_zYlXoFXuJgNUULQ/exec';
     },
 
     // ============================================
@@ -154,8 +151,8 @@ const CVAPI = {
 
                 // 物件住所
                 postalCode: formData.propertyAddress?.postalCode || '',
-                prefecture: window.propertyPrefecture || '',
-                city: window.propertyCity || '',
+                propertyPrefecture: window.propertyPrefecture || '',
+                propertyCity: window.propertyCity || '',
                 propertyStreet: formData.propertyAddress?.street || '',
 
                 // 自宅住所（物件と異なる場合）
