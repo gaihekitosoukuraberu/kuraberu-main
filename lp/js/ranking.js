@@ -358,11 +358,11 @@ function displayRanking() {
             <span class="text-xs font-bold text-gray-700">見積もり価格: ${company.price}</span>
           </div>
           <div class="flex gap-1">
-            <button class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium flex-1">
-              詳細<span class="hidden sm:inline">を見る</span>
+            <button class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium w-[90px] whitespace-nowrap">
+              詳細
             </button>
-            <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium flex-1">
-              <span class="keep-text"><span>キープ</span><span class="hidden sm:inline">する</span></span>
+            <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap">
+              <span class="keep-text">キープする</span>
             </button>
           </div>
         </div>

@@ -302,13 +302,8 @@
       "immediatePostal": false,
       "flow": {
         "initial": {
-          "type": "message",
-          "message": "スレート・瓦・ガルバリウムなど、素材ごとにメリット・デメリットがあります。",
-          "nextAction": "selectMaterial"
-        },
-        "selectMaterial": {
           "type": "select",
-          "message": "気になる材質はどちらになりますか？",
+          "message": "スレート・瓦・ガルバリウムなど、素材ごとにメリット・デメリットがあります。<br><br>気になる材質はどちらになりますか？",
           "options": [
             {
               "value": "slate",
