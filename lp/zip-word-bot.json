@@ -218,12 +218,12 @@
       "flow": {
         "initial": {
           "type": "message",
-          "message": "完成イメージを事前に見られる業者を表示します。",
+          "message": "完成イメージの具体的な提案に定評のある業者をピックアップしますので、まずは郵便番号を教えていただけますか？",
           "nextAction": "requestPostal"
         },
         "requestPostal": {
           "type": "postal",
-          "message": "郵便番号を教えていただけますか？",
+          "message": "完成イメージの具体的な提案に定評のある業者をピックアップしますので、まずは郵便番号を教えていただけますか？",
           "validation": "^\\d{3}-?\\d{4}$",
           "nextAction": "mainFlow"
         }

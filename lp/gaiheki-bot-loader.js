@@ -286,12 +286,12 @@
                                         戸建て2階建て（延床30坪・築25年）の場合
                                     </p>
                                     <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; flex-wrap: nowrap;">
-                                        <span style="font-size: 32px; font-weight: bold; background: linear-gradient(135deg, #2563EB, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap;">60万円</span>
-                                        <span style="font-size: 20px; color: #9CA3AF; flex-shrink: 0;">〜</span>
-                                        <span style="font-size: 32px; font-weight: bold; background: linear-gradient(135deg, #2563EB, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap;">180万円</span>
+                                        <span style="font-size: 40px; font-weight: bold; background: linear-gradient(135deg, #2563EB, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; flex-shrink: 0;">60万円</span>
+                                        <span style="font-size: 18px; color: #9CA3AF; flex-shrink: 0;">〜</span>
+                                        <span style="font-size: 40px; font-weight: bold; background: linear-gradient(135deg, #2563EB, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; flex-shrink: 0;">180万円</span>
                                     </div>
                                     <p style="font-size: 12px; color: #6B7280;">
-                                        ℹ️ 建物の状態・使用材料により価格は変動します
+                                        ℹ️ 建物の状態や材料により価格変動します
                                     </p>
                                 </div>
                             </div>
