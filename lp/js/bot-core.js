@@ -343,8 +343,39 @@ const BotCore = {
                         console.log(`📊 ランキングを「${sortOrder}」順でソート（connectToPhoneSystem）`);
                         window.updateAllCompaniesFromDynamic(sortOrder);
                     }
+
+                    // ソートタブの表示も更新
+                    if (typeof window.switchSortTab === 'function') {
+                        const tabMap = {
+                            'recommended': 'sortRecommended',
+                            'cheap': 'sortCheap',
+                            'review': 'sortReview',
+                            'premium': 'sortQuality'
+                        };
+                        const tabId = tabMap[sortOrder];
+                        if (tabId) {
+                            window.switchSortTab(tabId);
+                            console.log(`🎨 ソートタブ更新（connectToPhoneSystem）: ${tabId}`);
+                        }
+                    }
                 } else {
                     console.warn('⚠️ ランキングデータ取得失敗、デフォルトデータを使用');
+
+                    // 失敗時でもソートタブの表示は更新
+                    const sortOrder = BotConfig.state.sortOrder || 'recommended';
+                    if (typeof window.switchSortTab === 'function') {
+                        const tabMap = {
+                            'recommended': 'sortRecommended',
+                            'cheap': 'sortCheap',
+                            'review': 'sortReview',
+                            'premium': 'sortQuality'
+                        };
+                        const tabId = tabMap[sortOrder];
+                        if (tabId) {
+                            window.switchSortTab(tabId);
+                            console.log(`🎨 ソートタブ更新（失敗時）: ${tabId}`);
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('❌ ランキングデータ取得エラー:', error);
