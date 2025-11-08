@@ -150,6 +150,7 @@ const CVAPI = {
                 isDifferentHome: formData.isDifferentHome || false,
                 homeZip: formData.homeAddress?.postalCode || '',
                 homePrefecture: window.homePrefecture || '',
+                homeCity: window.homeCity || '',
                 homeStreet: formData.homeAddress?.street || '',
 
                 // ステップ2: 詳細情報
@@ -177,6 +178,7 @@ const CVAPI = {
                 isDifferentHome: formData.isDifferentHome || false,
                 homeZip: formData.homeAddress?.postalCode || '',
                 homePrefecture: window.homePrefecture || '',
+                homeCity: window.homeCity || '',
                 homeStreet: formData.homeAddress?.street || '',
 
                 // ステップ2: 詳細情報

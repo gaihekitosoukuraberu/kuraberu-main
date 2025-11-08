@@ -198,15 +198,16 @@ const CVSheetSystem = {
       '市区町村（物件）',    // P
       '住所詳細（物件）',    // Q
 
-      // R-U: 自宅住所（物件と異なる場合）
+      // R-V: 自宅住所（物件と異なる場合）
       '自宅住所フラグ',      // R
       '郵便番号（自宅）',    // S
       '都道府県（自宅）',    // T
-      '住所詳細（自宅）',    // U
+      '市区町村（自宅）',    // U
+      '住所詳細（自宅）',    // V
 
-      // V-Y: 物件詳細
-      '物件種別',           // V
-      '築年数',             // W
+      // W-Z: 物件詳細
+      '物件種別',           // W
+      '築年数',             // X
       '建物面積',           // X
       '階数',               // Y
 
@@ -552,8 +553,8 @@ const CVSheetSystem = {
         '',
 
         params.postalCode ? "'" + params.postalCode : '',  // N: 郵便番号（物件）（'を先頭に付けて文字列化）
-        '',                                      // O: 都道府県（CV2で入力）
-        '',                                      // P: 市区町村（CV2で入力）
+        params.propertyPrefecture || '',         // O: 都道府県（物件）
+        params.propertyCity || '',               // P: 市区町村（物件）
         '',                                      // Q: 住所詳細（CV2で入力）
 
         'FALSE',                                 // R: 自宅住所フラグ
@@ -711,15 +712,16 @@ const CVSheetSystem = {
       // 更新データを設定
       sheet.getRange(targetRow, 3).setValue(params.name || '');                    // C: 氏名
       sheet.getRange(targetRow, 8).setValue(params.email || '');                   // H: メールアドレス
-      sheet.getRange(targetRow, 15).setValue(params.prefecture || '');             // O: 都道府県
-      sheet.getRange(targetRow, 16).setValue(params.city || '');                   // P: 市区町村
-      sheet.getRange(targetRow, 17).setValue(params.propertyStreet || '');         // Q: 住所詳細
+      sheet.getRange(targetRow, 15).setValue(params.propertyPrefecture || '');     // O: 都道府県（物件）
+      sheet.getRange(targetRow, 16).setValue(params.propertyCity || '');           // P: 市区町村（物件）
+      sheet.getRange(targetRow, 17).setValue(params.propertyStreet || '');         // Q: 住所詳細（物件）
 
       // 自宅住所
       sheet.getRange(targetRow, 18).setValue(params.isDifferentHome ? 'TRUE' : 'FALSE'); // R: 自宅住所フラグ
       sheet.getRange(targetRow, 19).setValue(params.homeZip ? "'" + params.homeZip : '');  // S: 郵便番号（自宅）（'を先頭に付けて文字列化）
       sheet.getRange(targetRow, 20).setValue(params.homePrefecture || '');         // T: 都道府県（自宅）
-      sheet.getRange(targetRow, 21).setValue(params.homeStreet || '');             // U: 住所詳細（自宅）
+      sheet.getRange(targetRow, 21).setValue(params.homeCity || '');               // U: 市区町村（自宅）
+      sheet.getRange(targetRow, 22).setValue(params.homeStreet || '');             // V列は物件種別なので注意: 実際はU列の次のセルに入れる
 
       // CV2詳細情報
       sheet.getRange(targetRow, 43).setValue(params.surveyDatePreference || '');   // AQ: 現地調査希望日時

@@ -2050,13 +2050,16 @@
                     }
 
                     if (prefectureMatch) {
-                        window.homePrefecture = prefectureMatch[1];
+                        window.homePrefecture = prefectureMatch[1];  // 東京都
+                        window.homeCity = prefectureMatch[2];        // 千代田区
                         console.log('✅ 自宅住所を保存:', {
                             prefecture: window.homePrefecture,
+                            city: window.homeCity,
                             fullAddress: areaInfo
                         });
                     } else {
                         window.homePrefecture = '';
+                        window.homeCity = areaInfo;
                     }
                 }
             }
