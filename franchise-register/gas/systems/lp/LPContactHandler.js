@@ -23,6 +23,11 @@ const LPContactHandler = {
     try {
       console.log('[LPContactHandler] 問い合わせフォーム送信処理開始');
       console.log('[LPContactHandler] Params:', JSON.stringify(params));
+      console.log('[LPContactHandler] params.name:', params.name);
+      console.log('[LPContactHandler] params.email:', params.email);
+      console.log('[LPContactHandler] params.phone:', params.phone);
+      console.log('[LPContactHandler] params.postalCode:', params.postalCode);
+      console.log('[LPContactHandler] params.inquiryContent:', params.inquiryContent);
 
       const ssId = this.getSpreadsheetId();
       const ss = SpreadsheetApp.openById(ssId);
