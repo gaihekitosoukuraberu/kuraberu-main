@@ -371,29 +371,29 @@ const CVSheetSystem = {
         data.homeStreet || '',                   // U: 住所詳細（自宅）
 
         // V-Y: 物件詳細（BOT回答から自動抽出）
-        this.extractPropertyType(data.Q1_building_type, data.q1_question),  // V: 物件種別
-        data.Q8_budget || '',                            // W: 築年数
+        this.extractPropertyType(data.Q1_propertyType, data.q1_question),  // V: 物件種別
+        data.Q3_buildingAge || '',                       // W: 築年数
         '',                                              // X: 建物面積（空欄）
-        this.extractFloors(data.Q2_floors, data.Q1_building_type, data.q1_question), // Y: 階数
+        this.extractFloors(data.Q2_floors, data.Q1_propertyType, data.q1_question), // Y: 階数
 
-        // Z-AP: BOT質問回答（Q1〜Q17）- フロントエンドのパラメータ名に合わせる
-        data.Q1_building_type || '',             // Z: Q1_建物種別
+        // Z-AP: BOT質問回答（Q1〜Q17）- BOT側のパラメータ名に合わせる
+        data.Q1_propertyType || '',              // Z: Q1_物件種別
         data.Q2_floors || '',                    // AA: Q2_階数
-        data.Q3_building_age || '',              // AB: Q3_築年数
-        data.Q4_work_location || '',             // AC: Q4_施工箇所
-        data.Q5_building_condition || '',        // AD: Q5_建物状態
-        data.Q6_degradation || '',               // AE: Q6_劣化状況
-        data.Q7_roof_material || '',             // AF: Q7_屋根材質
-        data.Q8_budget || '',                    // AG: Q8_予算
-        data.Q9_work_content || '',              // AH: Q9_工事内容
-        data.Q10_roof_work || '',                // AI: Q10_屋根工事
-        data.Q11_quote_count || '',              // AJ: Q11_見積もり数
-        data.Q12_quote_source || '',             // AK: Q12_見積もり取得先
-        data.Q13_door_sales || '',               // AL: Q13_訪問業者
+        data.Q3_buildingAge || '',               // AB: Q3_築年数
+        data.Q4_workHistory || '',               // AC: Q4_工事歴
+        data.Q5_previousWorkTime || '',          // AD: Q5_前回施工時期
+        data.Q6_exteriorMaterial || '',          // AE: Q6_外壁材質
+        data.Q7_roofMaterial || '',              // AF: Q7_屋根材質
+        data.Q8_concernedArea || '',             // AG: Q8_気になる箇所
+        data.Q9_exteriorWork || '',              // AH: Q9_希望工事内容_外壁
+        data.Q10_roofWork || '',                 // AI: Q10_希望工事内容_屋根
+        data.Q11_quoteCount || '',               // AJ: Q11_見積もり保有数
+        data.Q12_quoteSource || '',              // AK: Q12_見積もり取得先
+        data.Q13_doorSales || '',                // AL: Q13_訪問業者有無
         data.Q14_comparison || '',               // AM: Q14_比較意向
-        data.Q15_answer || '',                   // AN: Q15_回答
-        data.Q16_answer || '',                   // AO: Q16_回答
-        data.Q17_selection || '',                // AP: Q17_選定条件
+        data.Q15_doorSalesCompany || '',         // AN: Q15_訪問業者名
+        data.Q16_degradation || '',              // AO: Q16_現在の劣化状況
+        data.Q17_selectionCriteria || '',        // AP: Q17_業者選定条件
 
         // AQ-AR: CV2入力項目
         data.surveyDatePreference || '',         // AQ: 現地調査希望日時
@@ -562,29 +562,29 @@ const CVSheetSystem = {
         '',
 
         // V-Y: 物件詳細（BOT回答から自動抽出）
-        this.extractPropertyType(params.Q1_building_type, params.q1_question),  // V: 物件種別
-        params.Q8_budget || '',                             // W: 築年数
+        this.extractPropertyType(params.Q1_propertyType, params.q1_question),  // V: 物件種別
+        params.Q3_buildingAge || '',                        // W: 築年数
         '',                                                 // X: 建物面積（空欄）
-        this.extractFloors(params.Q2_floors, params.Q1_building_type, params.q1_question), // Y: 階数
+        this.extractFloors(params.Q2_floors, params.Q1_propertyType, params.q1_question), // Y: 階数
 
-        // Z-AP: BOT質問回答（Q1〜Q17）- フロントエンドのパラメータ名に合わせる
-        params.Q1_building_type || '',           // Z: Q1_建物種別
+        // Z-AP: BOT質問回答（Q1〜Q17）- BOT側のパラメータ名に合わせる
+        params.Q1_propertyType || '',            // Z: Q1_物件種別
         params.Q2_floors || '',                  // AA: Q2_階数
-        params.Q3_building_age || '',            // AB: Q3_築年数
-        params.Q4_work_location || '',           // AC: Q4_施工箇所
-        params.Q5_building_condition || '',      // AD: Q5_建物状態
-        params.Q6_degradation || '',             // AE: Q6_劣化状況
-        params.Q7_roof_material || '',           // AF: Q7_屋根材質
-        params.Q8_budget || '',                  // AG: Q8_予算
-        params.Q9_work_content || '',            // AH: Q9_工事内容
-        params.Q10_roof_work || '',              // AI: Q10_屋根工事
-        params.Q11_quote_count || '',            // AJ: Q11_見積もり数
-        params.Q12_quote_source || '',           // AK: Q12_見積もり取得先
-        params.Q13_door_sales || '',             // AL: Q13_訪問業者
+        params.Q3_buildingAge || '',             // AB: Q3_築年数
+        params.Q4_workHistory || '',             // AC: Q4_工事歴
+        params.Q5_previousWorkTime || '',        // AD: Q5_前回施工時期
+        params.Q6_exteriorMaterial || '',        // AE: Q6_外壁材質
+        params.Q7_roofMaterial || '',            // AF: Q7_屋根材質
+        params.Q8_concernedArea || '',           // AG: Q8_気になる箇所
+        params.Q9_exteriorWork || '',            // AH: Q9_希望工事内容_外壁
+        params.Q10_roofWork || '',               // AI: Q10_希望工事内容_屋根
+        params.Q11_quoteCount || '',             // AJ: Q11_見積もり保有数
+        params.Q12_quoteSource || '',            // AK: Q12_見積もり取得先
+        params.Q13_doorSales || '',              // AL: Q13_訪問業者有無
         params.Q14_comparison || '',             // AM: Q14_比較意向
-        params.Q15_answer || '',                 // AN: Q15_回答
-        params.Q16_answer || '',                 // AO: Q16_回答
-        params.Q17_selection || '',              // AP: Q17_選定条件
+        params.Q15_doorSalesCompany || '',       // AN: Q15_訪問業者名
+        params.Q16_degradation || '',            // AO: Q16_現在の劣化状況
+        params.Q17_selectionCriteria || '',      // AP: Q17_業者選定条件
 
         '',                                      // AQ: 現地調査希望日時（CV2で入力）
         '',                                      // AR: その他ご要望（CV2で入力）
