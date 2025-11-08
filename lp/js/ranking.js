@@ -632,7 +632,7 @@ function switchSortTab(tabType) {
         sortType = 'review';
         break;
       case 'tabQuality':
-        sortType = 'quality';
+        sortType = 'premium';
         break;
     }
     updateAllCompaniesFromDynamic(sortType);
