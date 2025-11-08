@@ -198,16 +198,15 @@ const CVSheetSystem = {
       '市区町村（物件）',    // P
       '住所詳細（物件）',    // Q
 
-      // R-V: 自宅住所（物件と異なる場合）
+      // R-U: 自宅住所（物件と異なる場合）
       '自宅住所フラグ',      // R
       '郵便番号（自宅）',    // S
       '都道府県（自宅）',    // T
-      '市区町村（自宅）',    // U
-      '住所詳細（自宅）',    // V
+      '住所詳細（自宅）',    // U
 
-      // W-Z: 物件詳細
-      '物件種別',           // W
-      '築年数',             // X
+      // V-Y: 物件詳細
+      '物件種別',           // V
+      '築年数',             // W
       '建物面積',           // X
       '階数',               // Y
 
@@ -558,9 +557,9 @@ const CVSheetSystem = {
         '',                                      // Q: 住所詳細（CV2で入力）
 
         'FALSE',                                 // R: 自宅住所フラグ
-        '',                                      // S-U: 自宅住所
-        '',
-        '',
+        '',                                      // S: 郵便番号（自宅）（CV2で入力）
+        '',                                      // T: 都道府県（自宅）（CV2で入力）
+        '',                                      // U: 住所詳細（自宅）（CV2で入力）
 
         // V-Y: 物件詳細（BOT回答から自動抽出）
         this.extractPropertyType(params.Q1_propertyType, params.q1_question),  // V: 物件種別
@@ -720,8 +719,10 @@ const CVSheetSystem = {
       sheet.getRange(targetRow, 18).setValue(params.isDifferentHome ? 'TRUE' : 'FALSE'); // R: 自宅住所フラグ
       sheet.getRange(targetRow, 19).setValue(params.homeZip ? "'" + params.homeZip : '');  // S: 郵便番号（自宅）（'を先頭に付けて文字列化）
       sheet.getRange(targetRow, 20).setValue(params.homePrefecture || '');         // T: 都道府県（自宅）
-      sheet.getRange(targetRow, 21).setValue(params.homeCity || '');               // U: 市区町村（自宅）
-      sheet.getRange(targetRow, 22).setValue(params.homeStreet || '');             // V列は物件種別なので注意: 実際はU列の次のセルに入れる
+
+      // U: 住所詳細（自宅）- 市区町村と番地を結合
+      const homeFullAddress = [params.homeCity, params.homeStreet].filter(v => v).join('');
+      sheet.getRange(targetRow, 21).setValue(homeFullAddress || '');               // U: 住所詳細（自宅）
 
       // CV2詳細情報
       sheet.getRange(targetRow, 43).setValue(params.surveyDatePreference || '');   // AQ: 現地調査希望日時
