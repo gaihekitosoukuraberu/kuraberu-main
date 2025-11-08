@@ -131,29 +131,36 @@ const swiper = new Swiper(".swiper", {
 });
 
 // モーダル
-const mvImg = document.querySelector(".mv__before__img");
-const modal = document.getElementById("modal");
-const closeBtn = document.querySelector(".modal__close");
+document.addEventListener("DOMContentLoaded", function () {
+  const mvImg = document.querySelector(".mv__before__img");
+  const modal = document.getElementById("modal");
+  const closeBtn = document.querySelector(".modal__close");
 
-// モーダルを開く
-mvImg.addEventListener("click", () => {
-  modal.classList.add("show");
-  document.body.classList.add("fixed"); // ← スクロール禁止！
-});
+  if (!mvImg || !modal || !closeBtn) return;
 
-// モーダルを閉じる
-const closeModal = () => {
-  modal.classList.remove("show");
-  document.body.classList.remove("fixed"); // ← スクロール再開！
-};
+  // モーダルを開く
+  mvImg.addEventListener("click", () => {
+    modal.classList.add("show");
+    document.body.classList.add("fixed"); // ← スクロール禁止！
+  });
 
-closeBtn.addEventListener("click", closeModal);
-modal.addEventListener("click", (e) => {
-  if (e.target === modal) {
-    closeModal();
+  // モーダルを閉じる
+  const closeModal = () => {
+    modal.classList.remove("show");
+    document.body.classList.remove("fixed"); // ← スクロール再開！
+  };
+
+  closeBtn.addEventListener("click", closeModal);
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+
+  const modalButton = document.querySelector(".modal button");
+  if (modalButton) {
+    modalButton.addEventListener("click", () => {
+      document.body.classList.remove("fixed"); // ← fixed解除
+    });
   }
-});
-const modalButton = document.querySelector(".modal button"); // 対象ボタンを指定
-modalButton.addEventListener("click", () => {
-  document.body.classList.remove("fixed"); // ← fixed解除
 });

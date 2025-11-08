@@ -1805,6 +1805,14 @@
                     rankingTitle.textContent = '高品質保証ランキング';
                     break;
             }
+
+            // ランキングをソートして表示
+            if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+                window.updateAllCompaniesFromDynamic(type);
+            }
+            if (typeof window.displayRanking === 'function') {
+                window.displayRanking();
+            }
         }
 
         // キープ管理クラス
@@ -2522,21 +2530,7 @@
 
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） -->
-    <script>
-      (function() {
-        var timestamp = new Date().getTime();
-
-        // env-loader.jsを読み込み
-        var script1 = document.createElement('script');
-        script1.src = 'js/env-loader.js?v=' + timestamp;
-        script1.onload = function() {
-          // env-loader.js読み込み完了後、gaiheki-bot-loader.jsを読み込み
-          var script2 = document.createElement('script');
-          script2.src = 'gaiheki-bot-loader.js?v=' + timestamp;
-          document.body.appendChild(script2);
-        };
-        document.body.appendChild(script1);
-      })();
-    </script>
+    <script src="js/env-loader.js"></script>
+    <script src="gaiheki-bot-loader.js"></script>
   </body>
 </html>
