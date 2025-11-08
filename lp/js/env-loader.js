@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-08T04:00:38.000Z - Deployment: AKfycbxMaj0EwqO8HczQOCH1xGNn2wTX3jn4OTU_3en76sIs1vpxYcafIwTHX1OSrUEfHGL97w
+// Auto-synced: 2025-11-08T04:31:43.000Z - Deployment: AKfycbxMaj0EwqO8HczQOCH1xGNn2wTX3jn4OTU_3en76sIs1vpxYcafIwTHX1OSrUEfHGL97w
 /**
  * 環境変数ローダー（全システム共通）- 🔥マスターファイル🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1607-BOT-ALIAS-2025-11-08T04:00:38
- * @last-update 2025-11-08T04:00:38
+ * @file-version V1608-BOT-FIX-2025-11-08T04:31:43
+ * @last-update 2025-11-08T04:31:43
  */
 
 const ENV = {
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1607 - 2025-11-08 13:00 - BOTエイリアス機能追加・雨漏りシナリオ追加）
-  CACHE_BUSTER: '1762574434000'
+  // キャッシュバスター（V1608 - 2025-11-08 13:31 - PHONE分岐メッセージ修正・見積もりボタン表示バグ修正）
+  CACHE_BUSTER: '1762576303000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

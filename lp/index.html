@@ -1847,10 +1847,11 @@
                     if (this.keeps.length > 0) {
                         console.log('✅ 見積もりボタンを表示');
                         estimateBtnContainer.classList.remove('hidden');
-                        estimateBtnContainer.style.display = '';
+                        estimateBtnContainer.style.display = 'block';
                     } else {
                         console.log('❌ 見積もりボタンを非表示');
                         estimateBtnContainer.classList.add('hidden');
+                        estimateBtnContainer.style.display = 'none';
                     }
                 } else {
                     console.error('❌ estimateBtnContainerが見つかりません');
@@ -2390,7 +2391,7 @@
 
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） -->
-    <script src="js/env-loader.js?v=1762574434000"></script>
-    <script src="gaiheki-bot-loader.js?v=1762574434000"></script>
+    <script src="js/env-loader.js?v=1762576303000"></script>
+    <script src="gaiheki-bot-loader.js?v=1762576303000"></script>
   </body>
 </html>
