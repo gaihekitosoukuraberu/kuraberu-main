@@ -334,17 +334,29 @@ const BotCore = {
         if (typeof window.fetchRankingFromGAS === 'function') {
             try {
                 const success = await window.fetchRankingFromGAS();
+
+                // Q900シリーズで設定されたソート順を適用
+                const sortOrder = BotConfig.state.sortOrder || 'recommended';
+
                 if (success) {
                     console.log('✅ ランキングデータ取得成功');
 
-                    // Q900シリーズで設定されたソート順を適用
-                    const sortOrder = BotConfig.state.sortOrder || 'recommended';
                     if (typeof window.updateAllCompaniesFromDynamic === 'function') {
                         console.log(`📊 ランキングを「${sortOrder}」順でソート（connectToPhoneSystem）`);
                         window.updateAllCompaniesFromDynamic(sortOrder);
                     }
+                } else {
+                    console.warn('⚠️ ランキングデータ取得失敗、デフォルトデータを使用');
+                }
 
-                    // ソートタブの表示も更新
+                // ヒアリング完了処理（モザイク解除）
+                if (typeof window.completeHearingStage === 'function') {
+                    window.completeHearingStage(3);
+                    console.log('✅ ヒアリング段階を3に設定、モザイク解除');
+                }
+
+                // モザイク解除後にソートタブを更新（遅延実行）
+                setTimeout(() => {
                     if (typeof window.switchSortTab === 'function') {
                         const tabMap = {
                             'recommended': 'sortRecommended',
@@ -358,25 +370,7 @@ const BotCore = {
                             console.log(`🎨 ソートタブ更新（connectToPhoneSystem）: ${tabId}`);
                         }
                     }
-                } else {
-                    console.warn('⚠️ ランキングデータ取得失敗、デフォルトデータを使用');
-
-                    // 失敗時でもソートタブの表示は更新
-                    const sortOrder = BotConfig.state.sortOrder || 'recommended';
-                    if (typeof window.switchSortTab === 'function') {
-                        const tabMap = {
-                            'recommended': 'sortRecommended',
-                            'cheap': 'sortCheap',
-                            'review': 'sortReview',
-                            'premium': 'sortQuality'
-                        };
-                        const tabId = tabMap[sortOrder];
-                        if (tabId) {
-                            window.switchSortTab(tabId);
-                            console.log(`🎨 ソートタブ更新（失敗時）: ${tabId}`);
-                        }
-                    }
-                }
+                }, 2500); // モザイク解除エフェクト完了後に実行
             } catch (error) {
                 console.error('❌ ランキングデータ取得エラー:', error);
             }
