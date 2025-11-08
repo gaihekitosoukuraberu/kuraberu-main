@@ -286,11 +286,11 @@
                                         戸建て2階建て（延床30坪・築25年）の場合
                                     </p>
                                     <div style="display: flex; align-items: center; justify-center; gap: 12px; margin-bottom: 12px;">
-                                        <div style="font-size: 70px; font-weight: bold; background: linear-gradient(135deg, #2563EB, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                        <div style="font-size: 70px; font-weight: bold; background: linear-gradient(135deg, #1E40AF, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap;">
                                             60万円
                                         </div>
-                                        <span style="font-size: 40px; color: #9CA3AF;">〜</span>
-                                        <div style="font-size: 70px; font-weight: bold; background: linear-gradient(135deg, #2563EB, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                        <span style="font-size: 40px; color: #9CA3AF; white-space: nowrap;">〜</span>
+                                        <div style="font-size: 70px; font-weight: bold; background: linear-gradient(135deg, #1E40AF, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap;">
                                             180万円
                                         </div>
                                     </div>
