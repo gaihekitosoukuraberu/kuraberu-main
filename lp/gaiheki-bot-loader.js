@@ -285,12 +285,12 @@
                                     <p style="font-size: clamp(12px, 3vw, 15px); font-weight: 600; color: #4B5563; margin-bottom: 16px; letter-spacing: 0.02em;">
                                         戸建て2階建て（延床30坪・築25年）の場合
                                     </p>
-                                    <div style="display: flex; align-items: center; justify-content: center; gap: clamp(8px, 2vw, 16px); margin-bottom: 16px; flex-wrap: nowrap;">
-                                        <div style="font-size: clamp(40px, 10vw, 70px); font-weight: 900; background: linear-gradient(135deg, #1E40AF 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; letter-spacing: -0.02em; line-height: 1;">
+                                    <div style="display: flex; align-items: center; justify-content: center; gap: clamp(8px, 2vw, 14px); margin-bottom: 16px; flex-wrap: nowrap;">
+                                        <div style="font-size: clamp(32px, 7vw, 52px); font-weight: 700; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; letter-spacing: -0.01em; line-height: 1.1;">
                                             60万円
                                         </div>
-                                        <span style="font-size: clamp(24px, 6vw, 42px); color: #9CA3AF; white-space: nowrap; font-weight: 300; line-height: 1;">〜</span>
-                                        <div style="font-size: clamp(40px, 10vw, 70px); font-weight: 900; background: linear-gradient(135deg, #1E40AF 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; letter-spacing: -0.02em; line-height: 1;">
+                                        <span style="font-size: clamp(20px, 4.5vw, 36px); color: #9CA3AF; white-space: nowrap; font-weight: 400; line-height: 1.1;">〜</span>
+                                        <div style="font-size: clamp(32px, 7vw, 52px); font-weight: 700; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; letter-spacing: -0.01em; line-height: 1.1;">
                                             180万円
                                         </div>
                                     </div>
