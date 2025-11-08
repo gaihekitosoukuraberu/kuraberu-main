@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-03T00:00:00.000Z - Deployment: AKfycbyYyvnqHXEZNSLu2NbbRSP4cRu46_9qD3QSoXMWF9qnzF3fKoVRHd_zYlXoFXuJgNUULQ
+// Auto-synced: 2025-11-08T02:55:00.000Z - Deployment: AKfycbxMaj0EwqO8HczQOCH1xGNn2wTX3jn4OTU_3en76sIs1vpxYcafIwTHX1OSrUEfHGL97w
 /**
  * 環境変数ローダー（全システム共通）- 🔥マスターファイル🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1553-MAPS-FIX-2025-11-03T00:00:00
- * @last-update 2025-11-03T00:00:00
+ * @file-version V1603-LP-CONTACT-2025-11-08T02:55:00
+ * @last-update 2025-11-08T02:55:00
  */
 
 const ENV = {
@@ -22,14 +22,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V1553 @1580: Google Maps APIキー修正（2025-11-03 00:00）
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbyYyvnqHXEZNSLu2NbbRSP4cRu46_9qD3QSoXMWF9qnzF3fKoVRHd_zYlXoFXuJgNUULQ/exec',
+  // プライマリGAS URL（メイン運用）- LP問い合わせ対応版 @1603
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbxMaj0EwqO8HczQOCH1xGNn2wTX3jn4OTU_3en76sIs1vpxYcafIwTHX1OSrUEfHGL97w/exec',
 
-  // フォールバックGAS URL（バックアップ）- V1465: トップヒット2件版
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzRqV7gMc7exteuOBwpESCZSm6VggDEwmagDIQxXIhI3QcGxj2DROKQfiKpC8297mmydw/exec',
+  // フォールバックGAS URL（バックアップ）- @1603
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxMaj0EwqO8HczQOCH1xGNn2wTX3jn4OTU_3en76sIs1vpxYcafIwTHX1OSrUEfHGL97w/exec',
 
-  // 緊急時URL（最終フォールバック）- V1463: 3回検索版（旧安定版）
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbzRqV7gMc7exteuOBwpESCZSm6VggDEwmagDIQxXIhI3QcGxj2DROKQfiKpC8297mmydw/exec',
+  // 緊急時URL（最終フォールバック）- @1603
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxMaj0EwqO8HczQOCH1xGNn2wTX3jn4OTU_3en76sIs1vpxYcafIwTHX1OSrUEfHGL97w/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1553 - 2025-11-03 00:00）
-  CACHE_BUSTER: '1553_20251103_0000'
+  // キャッシュバスター（V1603 - 2025-11-08 11:55 - LP問い合わせフォーム統合完了）
+  CACHE_BUSTER: '1762571300000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
