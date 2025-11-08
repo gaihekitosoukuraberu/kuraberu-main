@@ -155,8 +155,25 @@ const BotQuestions = {
                         }
                     } else {
                         console.warn('⚠️ ランキング取得失敗、デフォルトデータで表示');
+
+                        // ランキング表示を更新
                         if (typeof window.displayRanking === 'function') {
                             window.displayRanking();
+                        }
+
+                        // 失敗時でもソートタブの背景色を変更
+                        if (typeof window.switchSortTab === 'function') {
+                            const tabMap = {
+                                'recommended': 'tabRecommend',
+                                'cheap': 'tabCheap',
+                                'review': 'tabReview',
+                                'premium': 'tabQuality'
+                            };
+                            const tabId = tabMap[sortType];
+                            if (tabId) {
+                                window.switchSortTab(tabId);
+                                console.log(`🎨 ソートタブの背景色を変更（失敗時）: ${tabId}`);
+                            }
                         }
                     }
                 }
@@ -306,8 +323,25 @@ const BotQuestions = {
                                 }
                             } else {
                                 console.warn('⚠️ ランキング取得失敗、デフォルトデータで表示');
+
+                                // ランキング表示を更新
                                 if (typeof window.displayRanking === 'function') {
                                     window.displayRanking();
+                                }
+
+                                // 失敗時でもソートタブの背景色を変更
+                                if (typeof window.switchSortTab === 'function') {
+                                    const tabMap = {
+                                        'recommended': 'tabRecommend',
+                                        'cheap': 'tabCheap',
+                                        'review': 'tabReview',
+                                        'premium': 'tabQuality'
+                                    };
+                                    const tabId = tabMap[sortType];
+                                    if (tabId) {
+                                        window.switchSortTab(tabId);
+                                        console.log(`🎨 ソートタブの背景色を変更（失敗時・複数選択）: ${tabId}`);
+                                    }
                                 }
                             }
                         }

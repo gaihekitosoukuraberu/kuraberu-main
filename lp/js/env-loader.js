@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1638 - 2025-11-09 00:00 - 3箇所修正：ranking.js line635, line154, index.html line1801）
-  CACHE_BUSTER: '1762614000000'
+  // キャッシュバスター（V1640 - 2025-11-09 00:10 - ランキング取得失敗時もswitchSortTab呼び出し対応）
+  CACHE_BUSTER: '1762614600000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
