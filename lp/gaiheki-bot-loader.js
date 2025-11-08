@@ -312,13 +312,19 @@
                     <div id="chatSection" style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 24px; flex: 1; min-width: 300px; min-height: 500px;">
                         <div id="messages"></div>
                         <div id="choices" class="choices-container" style="margin-top: 16px;"></div>
-                        <div id="typingIndicator" style="display: none; margin-top: 16px;">
-                            <div style="display: flex; gap: 4px;">
-                                <div style="width: 8px; height: 8px; background: #9CA3AF; border-radius: 50%; animation: bounce 1.4s infinite;"></div>
-                                <div style="width: 8px; height: 8px; background: #9CA3AF; border-radius: 50%; animation: bounce 1.4s infinite 0.2s;"></div>
-                                <div style="width: 8px; height: 8px; background: #9CA3AF; border-radius: 50%; animation: bounce 1.4s infinite 0.4s;"></div>
+                        <div id="typingIndicator" class="hidden" style="margin-top: 16px;">
+                            <div style="display: flex; gap: 4px; align-items: center;">
+                                <div style="width: 8px; height: 8px; background: #9CA3AF; border-radius: 50%; animation: typing-bounce 1.4s infinite;"></div>
+                                <div style="width: 8px; height: 8px; background: #9CA3AF; border-radius: 50%; animation: typing-bounce 1.4s infinite 0.2s;"></div>
+                                <div style="width: 8px; height: 8px; background: #9CA3AF; border-radius: 50%; animation: typing-bounce 1.4s infinite 0.4s;"></div>
                             </div>
                         </div>
+                        <style>
+                            @keyframes typing-bounce {
+                                0%, 60%, 100% { transform: translateY(0); }
+                                30% { transform: translateY(-8px); }
+                            }
+                        </style>
                     </div>
 
                     <!-- ランキングセクション -->

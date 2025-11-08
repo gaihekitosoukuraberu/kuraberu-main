@@ -36,18 +36,39 @@ const BotUI = {
     // ============================================
     // AIメッセージ表示
     // ============================================
-    showAIMessage(text) {
+    showAIMessage(text, delay = 800) {
         if (!this.elements.messages) this.init();
 
-        const container = document.createElement('div');
-        container.className = 'ai-message-container';
-        container.innerHTML = `
+        // タイピングインジケーターを表示
+        this.showTyping();
+        this.scrollToBottom();
+
+        // アバター画像を先に表示
+        const avatarContainer = document.createElement('div');
+        avatarContainer.className = 'ai-message-container';
+        avatarContainer.innerHTML = `
             <img src="images/avatars/319260ba-0b3d-47d0-b18f-abf530c2793e.png"
                  alt="AI" class="ai-avatar" loading="eager" decoding="async">
-            <div class="ai-message">${text}</div>
         `;
-        this.elements.messages.appendChild(container);
+        this.elements.messages.appendChild(avatarContainer);
         this.scrollToBottom();
+
+        // 遅延後にメッセージを表示
+        return new Promise(resolve => {
+            setTimeout(() => {
+                // タイピングインジケーターを非表示
+                this.hideTyping();
+
+                // メッセージバブルを追加
+                const messageBubble = document.createElement('div');
+                messageBubble.className = 'ai-message';
+                messageBubble.innerHTML = text;
+                avatarContainer.appendChild(messageBubble);
+
+                this.scrollToBottom();
+                resolve();
+            }, delay);
+        });
     },
 
     // ============================================
