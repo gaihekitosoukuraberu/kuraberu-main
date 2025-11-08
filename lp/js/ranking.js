@@ -132,12 +132,14 @@ function parseAgeRange(ageStr) {
 // 動的ランキングからallCompaniesを更新
 // ============================================
 function updateAllCompaniesFromDynamic(sortType) {
+  currentSortType = sortType;
+
   if (!dynamicRankings) {
-    console.warn('⚠️ 動的ランキングデータがありません');
+    console.warn('⚠️ 動的ランキングデータがありません、デフォルトデータをソート');
+    // デフォルトデータをソート
+    sortDefaultData(sortType);
     return;
   }
-
-  currentSortType = sortType;
 
   // ソートタイプに応じたランキングを取得
   let rankingList = [];
@@ -159,7 +161,8 @@ function updateAllCompaniesFromDynamic(sortType) {
   }
 
   if (rankingList.length === 0) {
-    console.warn('⚠️ ランキングデータが空です、デフォルトデータを使用');
+    console.warn('⚠️ ランキングデータが空です、デフォルトデータをソート');
+    sortDefaultData(sortType);
     return;
   }
 
@@ -178,6 +181,42 @@ function updateAllCompaniesFromDynamic(sortType) {
   }));
 
   console.log('✅ allCompanies更新完了:', allCompanies.length, '件');
+}
+
+// デフォルトデータをソート
+function sortDefaultData(sortType) {
+  const sortedCompanies = [...allCompanies];
+
+  switch(sortType) {
+    case 'cheap':
+      // 価格で昇順ソート
+      sortedCompanies.sort((a, b) => {
+        const priceA = parseInt(a.price.replace(/[^0-9]/g, ''));
+        const priceB = parseInt(b.price.replace(/[^0-9]/g, ''));
+        return priceA - priceB;
+      });
+      break;
+    case 'review':
+      // レビュー数で降順ソート
+      sortedCompanies.sort((a, b) => b.reviews - a.reviews);
+      break;
+    case 'premium':
+      // 評価で降順ソート
+      sortedCompanies.sort((a, b) => b.rating - a.rating);
+      break;
+    case 'recommended':
+    default:
+      // デフォルト順（変更なし）
+      break;
+  }
+
+  // ランクを再割り当て
+  allCompanies = sortedCompanies.map((company, index) => ({
+    ...company,
+    rank: index + 1
+  }));
+
+  console.log(`📊 デフォルトデータを${sortType}順でソート完了`);
 }
 
 // ============================================
