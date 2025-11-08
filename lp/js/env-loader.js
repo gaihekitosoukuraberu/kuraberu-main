@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1633 - 2025-11-08 23:25 - 屋根工事質問に屋上防水追加）
-  CACHE_BUSTER: '1762611900000'
+  // キャッシュバスター（V1636 - 2025-11-08 23:40 - ranking.js switchケース修正（quality→premium））
+  CACHE_BUSTER: '1762612800000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

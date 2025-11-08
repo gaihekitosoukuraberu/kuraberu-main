@@ -151,7 +151,7 @@ function updateAllCompaniesFromDynamic(sortType) {
     case 'review':
       rankingList = dynamicRankings.review || [];
       break;
-    case 'quality':
+    case 'premium':
       rankingList = dynamicRankings.premium || [];
       break;
     default:

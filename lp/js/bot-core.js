@@ -336,6 +336,13 @@ const BotCore = {
                 const success = await window.fetchRankingFromGAS();
                 if (success) {
                     console.log('✅ ランキングデータ取得成功');
+
+                    // Q900シリーズで設定されたソート順を適用
+                    const sortOrder = BotConfig.state.sortOrder || 'recommended';
+                    if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+                        console.log(`📊 ランキングを「${sortOrder}」順でソート（connectToPhoneSystem）`);
+                        window.updateAllCompaniesFromDynamic(sortOrder);
+                    }
                 } else {
                     console.warn('⚠️ ランキングデータ取得失敗、デフォルトデータを使用');
                 }

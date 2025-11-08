@@ -111,12 +111,15 @@ const BotQuestions = {
             // Q016の選択肢とソートタイプのマッピング
             // 0: "なるべく安く" → cheap
             // 1: "口コミや評判が気になる" → review
-            // 2: "品質や保証が大事" → quality
+            // 2: "品質や保証が大事" → premium
             // 3: "親身になってくれる・人柄の良さ" → recommended
-            const sortTypeMap = ['cheap', 'review', 'quality', 'recommended'];
+            const sortTypeMap = ['cheap', 'review', 'premium', 'recommended'];
             const sortType = sortTypeMap[index] || 'recommended';
 
-            console.log(`📊 選択: "${choice}" (index: ${index}) → ソートタイプ: ${sortType}`);
+            // BotConfigに保存（connectToPhoneSystemで使用）
+            BotConfig.state.sortOrder = sortType;
+
+            console.log(`📊 選択: "${choice}" (index: ${index}) → ソートタイプ: ${sortType} (保存完了)`);
 
             setTimeout(async () => {
                 // ランキング取得
@@ -142,7 +145,7 @@ const BotQuestions = {
                                 'recommended': 'tabRecommend',
                                 'cheap': 'tabCheap',
                                 'review': 'tabReview',
-                                'quality': 'tabQuality'
+                                'premium': 'tabQuality'
                             };
                             const tabId = tabMap[sortType];
                             if (tabId) {
@@ -256,12 +259,15 @@ const BotQuestions = {
                     // Q016の選択肢とソートタイプのマッピング（最初の選択を優先）
                     // 0: "なるべく安く" → cheap
                     // 1: "口コミや評判が気になる" → review
-                    // 2: "品質や保証が大事" → quality
+                    // 2: "品質や保証が大事" → premium
                     // 3: "親身になってくれる・人柄の良さ" → recommended
-                    const sortTypeMap = ['cheap', 'review', 'quality', 'recommended'];
+                    const sortTypeMap = ['cheap', 'review', 'premium', 'recommended'];
                     const sortType = sortTypeMap[firstIndex] || 'recommended';
 
-                    console.log(`📊 選択: "${selectedChoices}" (first index: ${firstIndex}) → ソートタイプ: ${sortType}`);
+                    // BotConfigに保存（connectToPhoneSystemで使用）
+                    BotConfig.state.sortOrder = sortType;
+
+                    console.log(`📊 選択: "${selectedChoices}" (first index: ${firstIndex}) → ソートタイプ: ${sortType} (保存完了)`);
 
                     // 次の質問へ（最初の選択肢のbranchを使用）
                     const nextQuestionId = question.branches[firstIndex];
@@ -290,7 +296,7 @@ const BotQuestions = {
                                         'recommended': 'tabRecommend',
                                         'cheap': 'tabCheap',
                                         'review': 'tabReview',
-                                        'quality': 'tabQuality'
+                                        'premium': 'tabQuality'
                                     };
                                     const tabId = tabMap[sortType];
                                     if (tabId) {

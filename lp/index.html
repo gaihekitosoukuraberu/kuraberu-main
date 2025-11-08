@@ -1834,6 +1834,17 @@
                     console.log('✅ キープ追加:', name);
                     this.keeps.push(keepData);
                     button.classList.add('active');
+
+                    // スマホの場合は見積もりボタンまでスクロール
+                    if (window.innerWidth < 768) {
+                        setTimeout(() => {
+                            const estimateBtn = document.getElementById('estimateBtnContainer');
+                            if (estimateBtn && window.getComputedStyle(estimateBtn).display !== 'none') {
+                                estimateBtn.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                                console.log('📱 スマホ: 見積もりボタンまでスクロール');
+                            }
+                        }, 300);
+                    }
                 }
 
                 console.log('📊 現在のキープリスト:', this.keeps);
