@@ -686,12 +686,12 @@
         }
       }
     },
-    "予算150万円〜": {
-      "id": "budget_over_150",
-      "displayName": "予算150万円〜",
-      "lpKeyword": "budget_over_150",
+    "予算200万円〜": {
+      "id": "budget_over_200",
+      "displayName": "予算200万円〜",
+      "lpKeyword": "budget_over_200",
       "icon": "💰",
-      "greeting": "予算150万円以上でお考えですね。",
+      "greeting": "予算200万円以上でお考えですね。",
       "immediatePostal": true,
       "flow": {
         "initial": {
