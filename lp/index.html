@@ -2522,7 +2522,21 @@
 
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） -->
-    <script src="js/env-loader.js?v=1762596120000"></script>
-    <script src="gaiheki-bot-loader.js?v=1762596120000"></script>
+    <script>
+      (function() {
+        var timestamp = new Date().getTime();
+
+        // env-loader.jsを読み込み
+        var script1 = document.createElement('script');
+        script1.src = 'js/env-loader.js?v=' + timestamp;
+        script1.onload = function() {
+          // env-loader.js読み込み完了後、gaiheki-bot-loader.jsを読み込み
+          var script2 = document.createElement('script');
+          script2.src = 'gaiheki-bot-loader.js?v=' + timestamp;
+          document.body.appendChild(script2);
+        };
+        document.body.appendChild(script1);
+      })();
+    </script>
   </body>
 </html>
