@@ -107,12 +107,6 @@ const BotCore = {
         // 地域名の更新
         if (typeof window.getAreaFromPostalCode === 'function') {
             const areaInfo = window.getAreaFromPostalCode(zipcode);
-            const areaText = `${areaInfo}の相場`;
-            const areaName = document.getElementById('areaName');
-            if (areaName) {
-                areaName.textContent = areaText;
-                console.log('✅ areaName更新:', areaText);
-            }
 
             // 都道府県と市区町村に分割してwindowプロパティに保存
             // 例: "東京都千代田区" → prefecture: "東京都", city: "千代田区"
@@ -129,6 +123,14 @@ const BotCore = {
                 window.propertyPrefecture = '';
                 window.propertyCity = areaInfo;
                 console.log('⚠️ 都道府県パターンマッチ失敗、全体を市区町村として保存:', areaInfo);
+            }
+
+            // 市区町村のみ表示（県名なし）
+            const areaText = `${window.propertyCity}の相場`;
+            const areaName = document.getElementById('areaName');
+            if (areaName) {
+                areaName.textContent = areaText;
+                console.log('✅ areaName更新:', areaText);
             }
 
             // 相場セクションを表示

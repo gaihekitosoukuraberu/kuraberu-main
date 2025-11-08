@@ -244,7 +244,7 @@
 
         // lp-test.htmlからBOT部分のHTMLを挿入
         botContainer.innerHTML = `
-            <div style="background: #F9FAFB; min-height: 100vh; padding: 20px 0;">
+            <div style="background: #F9FAFB; min-height: 100vh; padding: 20px 0; padding-bottom: 160px;">
                 <!-- モバイル用固定プログレスバー -->
                 <div id="mobileProgressBar" style="display: none; position: fixed; top: 0; left: 0; right: 0; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); z-index: 50;">
                     <div style="padding: 8px 16px; display: flex; align-items: center; justify-content: space-between;">
@@ -310,19 +310,19 @@
 
                         <!-- モザイク時のメッセージ -->
                         <div id="mosaicMessage" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none;">
-                            <div style="background: white; border-radius: 12px; padding: 32px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
-                                <div style="color: #3B82F6; margin-bottom: 16px;">
+                            <div style="background: white; border-radius: 12px; padding: 24px 16px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 90%;">
+                                <div style="color: #3B82F6; margin-bottom: 12px; font-size: 24px;">
                                     🔒
                                 </div>
-                                <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 12px; color: #2563EB;">オリジナル業者ランキング！</h3>
+                                <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 12px; color: #2563EB; line-height: 1.3;">オリジナル<br>業者ランキング！</h3>
                                 <div id="progressMeter">
-                                    <div style="display: flex; justify-content: flex-end; font-size: 12px; color: #6B7280; margin-bottom: 4px;">
+                                    <div style="display: flex; justify-content: flex-end; font-size: 11px; color: #6B7280; margin-bottom: 4px;">
                                         <span id="progressPercentage">0%</span>
                                     </div>
-                                    <div style="width: 100%; background: #E5E7EB; border-radius: 9999px; height: 8px;">
+                                    <div style="width: 100%; background: #E5E7EB; border-radius: 9999px; height: 6px;">
                                         <div id="progressBar" style="height: 100%; border-radius: 9999px; width: 0%; background: transparent; transition: all 0.5s;"></div>
                                     </div>
-                                    <p style="font-size: 12px; color: #2563EB; margin-top: 8px; font-weight: 500;">AIチャットの質問に答えて下さい</p>
+                                    <p style="font-size: 11px; color: #2563EB; margin-top: 8px; font-weight: 500; line-height: 1.4;">質問に答えると<br>表示されます</p>
                                 </div>
                             </div>
                         </div>
@@ -345,7 +345,7 @@
                 </div>
 
                 <!-- フッター -->
-                <footer style="padding: 33px 0 16px; text-align: center; color: #fff; background-color: #273b5a; margin-top: 40px;">
+                <footer style="padding: 33px 0 16px; text-align: center; color: #fff; background: linear-gradient(135deg, #3B82F6, #2563EB); margin-top: 40px;">
                     <small style="font-size: 12px; display: block; font-weight: 400;">&copy;外壁塗装くらべる All Rights Reserved.</small>
                 </footer>
             </div>

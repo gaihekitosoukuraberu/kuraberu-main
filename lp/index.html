@@ -1246,7 +1246,7 @@
 
     <div id="gaiheki-bot-container" style="display: none;">
     <!-- メインコンテンツ（BOT + ランキング） -->
-    <div id="botParentContainer" class="w-full px-4 space-y-6 pb-32 pt-12 md:pt-0" style="max-width: 100vw; margin: 0; font-size: 16px;">
+    <div id="botParentContainer" class="w-full px-4 space-y-6 pb-40 pt-12 md:pt-0" style="max-width: 100vw; margin: 0; font-size: 16px;">
         <!-- 見積もりボタン（固定位置・白背景） -->
         <div id="estimateBtnContainer" class="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 py-4 z-[9999] hidden">
             <div class="max-w-6xl mx-auto px-4 text-center">
@@ -1327,36 +1327,20 @@
 
                 <!-- モザイク時のメッセージ -->
                 <div id="mosaicMessage" class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                    <div class="bg-white rounded-lg p-8 text-center shadow-lg">
-                        <div class="text-blue-500 mb-4">
-                            <svg class="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
-                            </svg>
+                    <div class="bg-white rounded-lg p-6 px-4 text-center shadow-lg max-w-[90%]">
+                        <div class="text-blue-500 mb-3 text-4xl">
+                            🔒
                         </div>
-                        <h3 class="text-base font-bold mb-3 text-blue-600 whitespace-nowrap">オリジナル業者ランキング！</h3>
-                        <div class="text-gray-600 mb-4 text-xs space-y-1">
-                            <p class="flex items-start">
-                                <span class="text-green-500 mr-1">✅</span>
-                                <span>AIの質問に答えてあなただけの条件にマッチ！</span>
-                            </p>
-                            <p class="flex items-start">
-                                <span class="text-green-500 mr-1">✅</span>
-                                <span>過去のデータに基づいた実績ランキング！</span>
-                            </p>
-                            <p class="flex items-start">
-                                <span class="text-green-500 mr-1">✅</span>
-                                <span>完全無料で４社まで見積もり依頼可能！</span>
-                            </p>
-                        </div>
+                        <h3 class="text-sm font-bold mb-3 text-blue-600 leading-tight">オリジナル<br>業者ランキング！</h3>
                         <!-- 進捗メーター -->
-                        <div id="progressMeter" class="mb-4 hidden">
-                            <div class="flex justify-end text-xs text-gray-500 mb-1">
+                        <div id="progressMeter" class="mb-0">
+                            <div class="flex justify-end text-[11px] text-gray-500 mb-1">
                                 <span id="progressPercentage">0%</span>
                             </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div id="progressBar" style="height: 8px; border-radius: 9999px; width: 0%; background: transparent; transition: all 0.5s;"></div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div id="progressBar" style="height: 6px; border-radius: 9999px; width: 0%; background: transparent; transition: all 0.5s;"></div>
                             </div>
-                            <p class="text-xs text-blue-600 mt-2 font-medium">AIチャットの質問に答えて下さい</p>
+                            <p class="text-[11px] text-blue-600 mt-2 font-medium leading-snug">質問に答えると<br>表示されます</p>
                         </div>
                     </div>
                 </div>
@@ -1404,6 +1388,11 @@
             </div>
         </div>
     </div>
+
+    <!-- フッター -->
+    <footer style="padding: 33px 0 16px; text-align: center; color: #fff; background: linear-gradient(135deg, #3B82F6, #2563EB);">
+        <small style="font-size: 12px; display: block; font-weight: 400;">&copy;外壁塗装くらべる All Rights Reserved.</small>
+    </footer>
 
     <!-- キープ確認モーダル -->
     <div id="keepModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center p-4">
@@ -2391,7 +2380,7 @@
 
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） -->
-    <script src="js/env-loader.js?v=1762595368000"></script>
-    <script src="gaiheki-bot-loader.js?v=1762595368000"></script>
+    <script src="js/env-loader.js?v=1762596120000"></script>
+    <script src="gaiheki-bot-loader.js?v=1762596120000"></script>
   </body>
 </html>
