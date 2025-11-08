@@ -1908,22 +1908,7 @@
             document.getElementById('keepModal').classList.add('hidden');
         }
 
-        // 見積もりフォームを開始
-        function startEstimateForm() {
-            closeKeepModal();
-            document.getElementById('estimateFormModal').classList.remove('hidden');
-
-            // 郵便番号を自動セット（BOT経由で取得済みの値を使用）
-            if (window.BotConfig && window.BotConfig.state && window.BotConfig.state.currentZipcode) {
-                const zipcode = window.BotConfig.state.currentZipcode;
-                document.getElementById('propertyZip').value = zipcode;
-                // 住所も自動セット（zip-formから取得）
-                const areaName = document.getElementById('areaName');
-                if (areaName) {
-                    document.getElementById('propertyAddress').value = areaName.textContent;
-                }
-            }
-        }
+        // 見積もりフォームを開始（※2160行目に詳細版があるため、ここでは定義しない）
 
         // 見積もりフォームを閉じる
         function closeEstimateForm() {
@@ -1977,62 +1962,7 @@
             }
         }
 
-        // 次のステップへ
-        function nextStep() {
-            const step1 = document.getElementById('step1');
-            const step2 = document.getElementById('step2');
-
-            // バリデーション
-            const name = document.getElementById('userName').value.trim();
-            const street = document.getElementById('propertyStreet').value.trim();
-
-            if (!name) {
-                alert('お名前を入力してください');
-                return;
-            }
-
-            if (!street) {
-                alert('番地を入力してください');
-                return;
-            }
-
-            // 自宅住所チェック（チェックされている場合）
-            const differentHome = document.getElementById('differentHome').checked;
-            if (differentHome) {
-                const homeZip = document.getElementById('homeZip').value.trim();
-                const homeStreet = document.getElementById('homeStreet').value.trim();
-                if (!homeZip || !homeStreet) {
-                    alert('自宅住所を入力してください');
-                    return;
-                }
-            }
-
-            // ステップ切り替え
-            step1.classList.add('hidden');
-            step2.classList.remove('hidden');
-
-            // プログレスバー更新
-            document.getElementById('currentStep').textContent = '2';
-            document.getElementById('stepPercent').textContent = '100';
-            document.getElementById('stepProgress').style.width = '100%';
-
-            // 現地調査希望日時の動的生成
-            generateSurveyDates();
-        }
-
-        // 前のステップへ
-        function prevStep() {
-            const step1 = document.getElementById('step1');
-            const step2 = document.getElementById('step2');
-
-            step2.classList.add('hidden');
-            step1.classList.remove('hidden');
-
-            // プログレスバー更新
-            document.getElementById('currentStep').textContent = '1';
-            document.getElementById('stepPercent').textContent = '50';
-            document.getElementById('stepProgress').style.width = '50%';
-        }
+        // nextStep と prevStep は2234行目以降に詳細版で定義されています
 
         // 現地調査希望日時を動的生成（曜日+時間帯形式）
         function generateSurveyDates() {
