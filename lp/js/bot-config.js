@@ -383,7 +383,7 @@ const BotConfig = {
         }
 
         console.log('📋 スプレッドシート形式に変換:', mapped);
-        console.log('📋 変換された項目数:', Object.keys(mapped).filter(k => mapped[k]).length);
+        console.log('📋 変換された項目数:', Object.keys(mapped).filter(key => mapped[key]).length);
         return mapped;
     },
 

@@ -1678,7 +1678,9 @@
         }
 
         // 電話番号送信処理
-        function submitPhoneNumber(phone) {
+        async function submitPhoneNumber(phone) {
+            console.log('📞 CV1送信開始 - 電話番号:', phone);
+
             // 電話番号を保存
             localStorage.setItem('userPhone', phone);
 
@@ -1691,6 +1693,22 @@
                 if (btn) btn.disabled = true;
                 if (input) input.disabled = true;
             });
+
+            // CV1送信（質問回答 + 電話番号）
+            if (window.CVAPI && typeof window.CVAPI.sendCV1 === 'function') {
+                try {
+                    const result = await window.CVAPI.sendCV1(phone);
+                    if (result.success) {
+                        console.log('✅ CV1送信成功 - ID:', result.cvId);
+                    } else {
+                        console.error('❌ CV1送信失敗:', result.error);
+                    }
+                } catch (error) {
+                    console.error('❌ CV1送信エラー:', error);
+                }
+            } else {
+                console.error('❌ CVAPI.sendCV1が見つかりません');
+            }
 
             // 完了メッセージ表示とランキング解除
             setTimeout(() => {
@@ -1814,6 +1832,9 @@
                 window.displayRanking();
             }
         }
+
+        // グローバルに公開
+        window.changeSortType = changeSortType;
 
         // キープ管理クラス
         class KeepManager {

@@ -33,17 +33,35 @@ const CVAPI = {
                 phone: phoneNumber,
                 postalCode: BotConfig.state.currentZipcode || '',
 
+                // 物件住所（郵便番号から取得済み）
+                propertyPrefecture: window.propertyPrefecture || '',
+                propertyCity: window.propertyCity || '',
+
                 // BOT質問回答（Q1〜Q17）
                 ...botAnswers,
+
+                // BOTフロー情報
+                entryPoint: BotConfig.state.currentEntry || '',          // エントリーポイント（zip/keyword）
+                scenario: BotConfig.state.currentScenario || '',         // シナリオ名
+                flowStep: BotConfig.state.currentFlowStep || '',         // フローステップ
+                currentQuestionId: BotConfig.state.currentQuestionId || '', // 最後の質問ID
+                sortOrder: BotConfig.state.sortOrder || '',              // ソート順（業者選定条件）
 
                 // 訪問情報
                 visitCount: visitorInfo.visitCount,
                 referrer: visitorInfo.referrer,
                 utm: visitorInfo.utm,
+                userAgent: visitorInfo.userAgent,
                 keyword: BotConfig.state.currentKeyword || '',
+                currentUrl: window.location.href,           // 現在のページURL
+                pageTitle: document.title,                  // ページタイトル
+                screenWidth: window.screen.width,           // 画面幅
+                screenHeight: window.screen.height,         // 画面高さ
+                deviceType: /Mobile|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : 'desktop', // デバイスタイプ
 
                 // タイムスタンプ
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                lastVisitDate: new Date().toISOString()  // 最終訪問日時
             };
 
             console.log('📤 送信データ:', data);
@@ -377,7 +395,7 @@ const CVAPI = {
             campaign: urlParams.get('utm_campaign') || ''
         };
         const utmString = Object.entries(utm)
-            .filter(([k, v]) => v)
+            .filter(([, v]) => v)
             .map(([k, v]) => `${k}=${v}`)
             .join('&');
 

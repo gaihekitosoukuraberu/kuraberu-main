@@ -334,15 +334,21 @@ const BotCore = {
             await window.fetchRankingFromGAS();
         }
 
-        // Q016で選んだソート順でデータをソート
+        // Q016で選んだソート順でソートして表示
         const sortOrder = BotConfig.state.sortOrder || 'recommended';
-        if (typeof window.updateAllCompaniesFromDynamic === 'function') {
-            window.updateAllCompaniesFromDynamic(sortOrder);
-        }
+        console.log('📊 選択されたソート順:', sortOrder);
 
-        // ランキングを画面に反映
-        if (typeof window.displayRanking === 'function') {
-            window.displayRanking();
+        // changeSortTypeが全て処理する（ソート + 表示 + UI更新）
+        if (typeof window.changeSortType === 'function') {
+            window.changeSortType(sortOrder);
+        } else {
+            // changeSortTypeがない場合は従来の方法
+            if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+                window.updateAllCompaniesFromDynamic(sortOrder);
+            }
+            if (typeof window.displayRanking === 'function') {
+                window.displayRanking();
+            }
         }
 
         // モザイク解除

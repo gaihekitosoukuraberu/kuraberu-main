@@ -137,6 +137,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
       console.log('電話番号検証OK、業者名を表示中...');
 
+      // CV1送信（質問回答 + 電話番号）
+      console.log('📞 CV1送信開始 - 電話番号:', phoneNumber);
+      if (window.CVAPI && typeof window.CVAPI.sendCV1 === 'function') {
+        try {
+          const result = await window.CVAPI.sendCV1(phoneNumber);
+          if (result.success) {
+            console.log('✅ CV1送信成功 - ID:', result.cvId);
+          } else {
+            console.error('❌ CV1送信失敗:', result.error);
+          }
+        } catch (error) {
+          console.error('❌ CV1送信エラー:', error);
+        }
+      } else {
+        console.error('❌ CVAPI.sendCV1が見つかりません');
+      }
+
+      // 電話番号を保存
+      localStorage.setItem('userPhone', phoneNumber);
+
       // 電話番号入力フォームをサンクスメッセージに切り替え
       const phoneSection = document.getElementById('phoneSection');
       if (phoneSection) {
