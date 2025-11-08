@@ -43,13 +43,13 @@ const BotUI = {
         const avatarContainer = document.createElement('div');
         avatarContainer.className = 'ai-message-container';
         avatarContainer.style.display = 'flex';
-        avatarContainer.style.alignItems = 'flex-start';
+        avatarContainer.style.alignItems = 'flex-end';
         avatarContainer.style.gap = '12px';
 
         avatarContainer.innerHTML = `
             <img src="images/avatars/319260ba-0b3d-47d0-b18f-abf530c2793e.png"
                  alt="AI" class="ai-avatar" loading="eager" decoding="async">
-            <div style="display: flex; gap: 4px; align-items: center; padding-top: 8px;">
+            <div style="display: flex; gap: 4px; align-items: flex-end; padding-bottom: 4px;">
                 <div style="width: 8px; height: 8px; background: #9CA3AF; border-radius: 50%; animation: typing-bounce 1.4s infinite;"></div>
                 <div style="width: 8px; height: 8px; background: #9CA3AF; border-radius: 50%; animation: typing-bounce 1.4s infinite 0.2s;"></div>
                 <div style="width: 8px; height: 8px; background: #9CA3AF; border-radius: 50%; animation: typing-bounce 1.4s infinite 0.4s;"></div>
@@ -66,6 +66,9 @@ const BotUI = {
                 if (typingIndicator) {
                     typingIndicator.remove();
                 }
+
+                // メッセージ表示時は上揃えに戻す
+                avatarContainer.style.alignItems = 'flex-start';
 
                 // メッセージバブルを追加
                 const messageBubble = document.createElement('div');
