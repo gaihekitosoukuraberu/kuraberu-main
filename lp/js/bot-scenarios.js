@@ -234,6 +234,26 @@ const BotScenarios = {
         // フォームを非表示
         formContainer.style.display = 'none';
 
+        // 地域名を取得・設定
+        if (typeof window.getAreaFromPostalCode === 'function') {
+            const areaInfo = window.getAreaFromPostalCode(postal.replace('-', ''));
+
+            // 都道府県と市区町村に分割してwindowプロパティに保存
+            const prefectureMatch = areaInfo.match(/(.*?[都道府県])(.*)/);
+            if (prefectureMatch) {
+                window.propertyPrefecture = prefectureMatch[1];
+                window.propertyCity = prefectureMatch[2];
+                console.log('✅ 住所情報を保存（シナリオ）:', {
+                    prefecture: window.propertyPrefecture,
+                    city: window.propertyCity
+                });
+            } else {
+                window.propertyPrefecture = '';
+                window.propertyCity = areaInfo;
+                console.log('⚠️ 都道府県パターンマッチ失敗（シナリオ）、全体を市区町村として保存:', areaInfo);
+            }
+        }
+
         // GASからランキングを取得してモザイク付きで表示
         setTimeout(async () => {
             console.log('🏆 郵便番号入力後、GASからランキングを取得してモザイク付き表示');
@@ -266,9 +286,11 @@ const BotScenarios = {
                 console.log('✅ 相場セクション表示完了（郵便番号入力後）');
             }
 
+            // 地域名を市区町村のみで表示（県名なし）
             const areaName = document.getElementById('areaName');
             if (areaName && window.propertyCity) {
                 areaName.textContent = `${window.propertyCity}の相場`;
+                console.log('✅ areaName更新（シナリオ）:', `${window.propertyCity}の相場`);
             }
 
             // AIメッセージ表示

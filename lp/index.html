@@ -1280,11 +1280,11 @@
                                 戸建て2階建て（延床30坪・築25年）の場合
                             </p>
                             <div class="flex items-center justify-center gap-3 mb-3">
-                                <div class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                <div class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
                                     60万円
                                 </div>
                                 <span class="text-2xl text-gray-400">〜</span>
-                                <div class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                <div class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
                                     180万円
                                 </div>
                             </div>
@@ -1327,20 +1327,36 @@
 
                 <!-- モザイク時のメッセージ -->
                 <div id="mosaicMessage" class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                    <div class="bg-white rounded-lg p-6 px-4 text-center shadow-lg max-w-[90%]">
-                        <div class="text-blue-500 mb-3 text-4xl">
-                            🔒
+                    <div class="bg-white rounded-lg p-8 text-center shadow-lg">
+                        <div class="text-blue-500 mb-4">
+                            <svg class="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                            </svg>
                         </div>
-                        <h3 class="text-sm font-bold mb-3 text-blue-600 leading-tight">オリジナル<br>業者ランキング！</h3>
+                        <h3 class="text-base font-bold mb-3 text-blue-600 whitespace-nowrap">オリジナル業者ランキング！</h3>
+                        <div class="text-gray-600 mb-4 text-xs space-y-1">
+                            <p class="flex items-start">
+                                <span class="text-green-500 mr-1">✅</span>
+                                <span>AIの質問に答えてあなただけの条件にマッチ！</span>
+                            </p>
+                            <p class="flex items-start">
+                                <span class="text-green-500 mr-1">✅</span>
+                                <span>過去のデータに基づいた実績ランキング！</span>
+                            </p>
+                            <p class="flex items-start">
+                                <span class="text-green-500 mr-1">✅</span>
+                                <span>完全無料で４社まで見積もり依頼可能！</span>
+                            </p>
+                        </div>
                         <!-- 進捗メーター -->
-                        <div id="progressMeter" class="mb-0">
-                            <div class="flex justify-end text-[11px] text-gray-500 mb-1">
+                        <div id="progressMeter" class="mb-4 hidden">
+                            <div class="flex justify-end text-xs text-gray-500 mb-1">
                                 <span id="progressPercentage">0%</span>
                             </div>
-                            <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                <div id="progressBar" style="height: 6px; border-radius: 9999px; width: 0%; background: transparent; transition: all 0.5s;"></div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="progressBar" style="height: 8px; border-radius: 9999px; width: 0%; background: transparent; transition: all 0.5s;"></div>
                             </div>
-                            <p class="text-[11px] text-blue-600 mt-2 font-medium leading-snug">質問に答えると<br>表示されます</p>
+                            <p class="text-xs text-blue-600 mt-2 font-medium">AIチャットの質問に答えて下さい</p>
                         </div>
                     </div>
                 </div>

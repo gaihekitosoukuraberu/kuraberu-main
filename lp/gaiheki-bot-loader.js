@@ -152,6 +152,22 @@
             }
         });
 
+        // bodyのスクロールを有効化（スマホでのスクロール問題対策）
+        document.body.style.overflow = 'auto';
+        document.body.style.position = 'static';
+        document.body.style.height = 'auto';
+        document.documentElement.style.overflow = 'auto';
+        document.documentElement.style.position = 'static';
+        document.documentElement.style.height = 'auto';
+        console.log('✅ bodyスクロール有効化');
+
+        // スクロール設定を確実にするため、少し遅延して再設定
+        setTimeout(() => {
+            document.body.style.overflow = 'auto';
+            document.documentElement.style.overflow = 'auto';
+            console.log('✅ bodyスクロール再確認');
+        }, 100);
+
         // BOTシステムを初期化
         if (window.BotCore) {
             await window.BotCore.init();
@@ -272,11 +288,11 @@
                                         戸建て2階建て（延床30坪・築25年）の場合
                                     </p>
                                     <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 12px;">
-                                        <div style="font-size: 36px; font-weight: bold; background: linear-gradient(135deg, #2563EB, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                        <div style="font-size: 36px; font-weight: bold; background: linear-gradient(135deg, #2563EB, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap;">
                                             60万円
                                         </div>
                                         <span style="font-size: 24px; color: #9CA3AF;">〜</span>
-                                        <div style="font-size: 36px; font-weight: bold; background: linear-gradient(135deg, #2563EB, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                        <div style="font-size: 36px; font-weight: bold; background: linear-gradient(135deg, #2563EB, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap;">
                                             180万円
                                         </div>
                                     </div>
@@ -310,19 +326,19 @@
 
                         <!-- モザイク時のメッセージ -->
                         <div id="mosaicMessage" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none;">
-                            <div style="background: white; border-radius: 12px; padding: 24px 16px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 90%;">
-                                <div style="color: #3B82F6; margin-bottom: 12px; font-size: 24px;">
+                            <div style="background: white; border-radius: 12px; padding: 32px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+                                <div style="color: #3B82F6; margin-bottom: 16px;">
                                     🔒
                                 </div>
-                                <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 12px; color: #2563EB; line-height: 1.3;">オリジナル<br>業者ランキング！</h3>
+                                <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 12px; color: #2563EB;">オリジナル業者ランキング！</h3>
                                 <div id="progressMeter">
-                                    <div style="display: flex; justify-content: flex-end; font-size: 11px; color: #6B7280; margin-bottom: 4px;">
+                                    <div style="display: flex; justify-content: flex-end; font-size: 12px; color: #6B7280; margin-bottom: 4px;">
                                         <span id="progressPercentage">0%</span>
                                     </div>
-                                    <div style="width: 100%; background: #E5E7EB; border-radius: 9999px; height: 6px;">
+                                    <div style="width: 100%; background: #E5E7EB; border-radius: 9999px; height: 8px;">
                                         <div id="progressBar" style="height: 100%; border-radius: 9999px; width: 0%; background: transparent; transition: all 0.5s;"></div>
                                     </div>
-                                    <p style="font-size: 11px; color: #2563EB; margin-top: 8px; font-weight: 500; line-height: 1.4;">質問に答えると<br>表示されます</p>
+                                    <p style="font-size: 12px; color: #2563EB; margin-top: 8px; font-weight: 500;">AIチャットの質問に答えて下さい</p>
                                 </div>
                             </div>
                         </div>
