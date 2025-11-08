@@ -33,17 +33,21 @@ const BotQuestions = {
         // 現在の質問IDを保存
         BotConfig.state.currentQuestionId = questionId;
 
-        // AIメッセージ表示
-        BotUI.showAIMessage(question.text);
-
-        // 特殊な分岐：PHONE（選択肢が空の場合のみ）
-        if ((questionId === 'PHONE' || this.isPHONEBranch(question)) && (!question.choices || question.choices.length === 0)) {
-            // 選択肢なしで直接フォーム表示
-            setTimeout(() => {
-                BotCore.connectToPhoneSystem();
-            }, 500);
+        // 特殊な分岐：PHONE
+        if (questionId === 'PHONE' || this.isPHONEBranch(question)) {
+            // connectToPhoneSystemはasync関数だが、ここではawaitしない（バックグラウンドで実行）
+            BotCore.connectToPhoneSystem();
             return;
         }
+
+        // 複数選択の質問の場合
+        if (question.multipleChoice) {
+            this.handleMultipleChoiceQuestion(question);
+            return;
+        }
+
+        // AIメッセージ表示
+        BotUI.showAIMessage(question.text);
 
         // 選択肢表示
         setTimeout(() => {
@@ -112,46 +116,55 @@ const BotQuestions = {
             const sortTypeMap = ['cheap', 'review', 'quality', 'recommended'];
             const sortType = sortTypeMap[index] || 'recommended';
 
-            // ソートタイプを保存（電話番号入力後のメッセージで使用）
-            BotConfig.state.selectedSortType = sortType;
-
             console.log(`📊 選択: "${choice}" (index: ${index}) → ソートタイプ: ${sortType}`);
 
             setTimeout(async () => {
-                // すでにランキングが取得済みか確認
-                const hasDynamicRankings = window.dynamicRankings !== null && window.dynamicRankings !== undefined;
+                // ランキング取得
+                if (typeof window.fetchRankingFromGAS === 'function') {
+                    const success = await window.fetchRankingFromGAS();
+                    if (success) {
+                        console.log('✅ ランキング取得成功、スプシの会社名でallCompaniesを更新');
 
-                if (!hasDynamicRankings) {
-                    // まだ取得していない場合のみGASから取得
-                    console.log('⚠️ ランキング未取得のため、GASから取得します');
-                    if (typeof window.fetchRankingFromGAS === 'function') {
-                        await window.fetchRankingFromGAS();
+                        // GASから取得したデータでallCompaniesを更新（選択されたソート順で）
+                        if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+                            window.updateAllCompaniesFromDynamic(sortType);
+                            console.log(`✅ allCompanies更新完了、${sortType}順で表示`);
+                        }
+
+                        // ランキング表示を更新
+                        if (typeof window.displayRanking === 'function') {
+                            window.displayRanking();
+                        }
+
+                        // ソートタブの背景色も変更
+                        if (typeof window.switchSortTab === 'function') {
+                            const tabMap = {
+                                'recommended': 'tabRecommend',
+                                'cheap': 'tabCheap',
+                                'review': 'tabReview',
+                                'quality': 'tabQuality'
+                            };
+                            const tabId = tabMap[sortType];
+                            if (tabId) {
+                                window.switchSortTab(tabId);
+                                console.log(`🎨 ソートタブの背景色を変更: ${tabId}`);
+                            }
+                        }
+                    } else {
+                        console.warn('⚠️ ランキング取得失敗、デフォルトデータで表示');
+                        if (typeof window.displayRanking === 'function') {
+                            window.displayRanking();
+                        }
                     }
-                } else {
-                    console.log('✅ ランキングは取得済み、ソート順のみ変更します');
-                }
-
-                // GASから取得したデータでallCompaniesを更新（選択されたソート順で）
-                if (typeof window.updateAllCompaniesFromDynamic === 'function') {
-                    window.updateAllCompaniesFromDynamic(sortType);
-                    console.log(`✅ allCompanies更新完了、${sortType}順で表示`);
-                }
-
-                // ランキング表示を更新
-                if (typeof window.displayRanking === 'function') {
-                    window.displayRanking();
-                }
-
-                // ソートボタンの表示を変更
-                if (typeof window.changeSortType === 'function') {
-                    window.changeSortType(sortType);
-                    console.log(`🎨 ソートタイプを変更: ${sortType}`);
                 }
 
                 // 次の質問へ
-                this.showQuestion(nextQuestionId);
+                if (nextQuestionId === 'PHONE') {
+                    BotCore.connectToPhoneSystem();
+                } else {
+                    this.showQuestion(nextQuestionId);
+                }
             }, 1000);
-            return; // Q016の処理はここで終了
         } else {
             // Q016以外：通常の処理
             setTimeout(() => {
@@ -235,15 +248,82 @@ const BotQuestions = {
                     BotUI.updateProgress(percentage);
                 }
 
-                // 次の質問へ（最初の選択肢のbranchを使用）
-                const nextQuestionId = question.branches[firstIndex];
-                setTimeout(() => {
-                    if (nextQuestionId === 'PHONE') {
-                        BotCore.connectToPhoneSystem();
-                    } else {
-                        this.showQuestion(nextQuestionId);
-                    }
-                }, 1000);
+                // Q016の回答後：回答に応じてソート順を変更
+                const currentQuestionId = question.id || BotConfig.state.currentQuestionId;
+                if (currentQuestionId === 'Q016') {
+                    console.log('🏆 Q016回答後、選択内容に応じてソート順を変更します');
+
+                    // Q016の選択肢とソートタイプのマッピング（最初の選択を優先）
+                    // 0: "なるべく安く" → cheap
+                    // 1: "口コミや評判が気になる" → review
+                    // 2: "品質や保証が大事" → quality
+                    // 3: "親身になってくれる・人柄の良さ" → recommended
+                    const sortTypeMap = ['cheap', 'review', 'quality', 'recommended'];
+                    const sortType = sortTypeMap[firstIndex] || 'recommended';
+
+                    console.log(`📊 選択: "${selectedChoices}" (first index: ${firstIndex}) → ソートタイプ: ${sortType}`);
+
+                    // 次の質問へ（最初の選択肢のbranchを使用）
+                    const nextQuestionId = question.branches[firstIndex];
+
+                    setTimeout(async () => {
+                        // ランキング取得
+                        if (typeof window.fetchRankingFromGAS === 'function') {
+                            const success = await window.fetchRankingFromGAS();
+                            if (success) {
+                                console.log('✅ ランキング取得成功、スプシの会社名でallCompaniesを更新');
+
+                                // GASから取得したデータでallCompaniesを更新（選択されたソート順で）
+                                if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+                                    window.updateAllCompaniesFromDynamic(sortType);
+                                    console.log(`✅ allCompanies更新完了、${sortType}順で表示`);
+                                }
+
+                                // ランキング表示を更新
+                                if (typeof window.displayRanking === 'function') {
+                                    window.displayRanking();
+                                }
+
+                                // ソートタブの背景色も変更
+                                if (typeof window.switchSortTab === 'function') {
+                                    const tabMap = {
+                                        'recommended': 'tabRecommend',
+                                        'cheap': 'tabCheap',
+                                        'review': 'tabReview',
+                                        'quality': 'tabQuality'
+                                    };
+                                    const tabId = tabMap[sortType];
+                                    if (tabId) {
+                                        window.switchSortTab(tabId);
+                                        console.log(`🎨 ソートタブの背景色を変更: ${tabId}`);
+                                    }
+                                }
+                            } else {
+                                console.warn('⚠️ ランキング取得失敗、デフォルトデータで表示');
+                                if (typeof window.displayRanking === 'function') {
+                                    window.displayRanking();
+                                }
+                            }
+                        }
+
+                        // 次の質問へ
+                        if (nextQuestionId === 'PHONE') {
+                            BotCore.connectToPhoneSystem();
+                        } else {
+                            this.showQuestion(nextQuestionId);
+                        }
+                    }, 1000);
+                } else {
+                    // Q016以外：通常の処理
+                    const nextQuestionId = question.branches[firstIndex];
+                    setTimeout(() => {
+                        if (nextQuestionId === 'PHONE') {
+                            BotCore.connectToPhoneSystem();
+                        } else {
+                            this.showQuestion(nextQuestionId);
+                        }
+                    }, 1000);
+                }
             });
             choices.appendChild(confirmBtn);
 

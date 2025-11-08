@@ -181,139 +181,140 @@ const BotConfig = {
         const answers = this.state.userAnswers || {};
         const mapped = {};
 
-        // 物件種別 (基本情報): Q001が「はい」なら「戸建て2階建て」、Q002の回答
+        // 基本情報列（V, W, X, Y列: 物件種別、築年数、建物面積、階数）
+        // 物件種別: Q001が「はい」なら「戸建て2階建て」、Q002の回答
         if (answers.Q001 && answers.Q001.choice === 'はい') {
-            mapped['物件種別'] = '戸建て2階建て';
+            mapped.propertyType = '戸建て2階建て';
         } else if (answers.Q002) {
-            mapped['物件種別'] = answers.Q002.choice || '';
+            mapped.propertyType = answers.Q002.choice || '';
         }
 
-        // 階数 (基本情報): Q003, Q003A, Q003B
-        if (answers.Q003) {
-            mapped['階数'] = answers.Q003.choice || '';
-        } else if (answers.Q003A) {
-            mapped['階数'] = answers.Q003A.choice || '';
-        } else if (answers.Q003B) {
-            mapped['階数'] = answers.Q003B.choice || '';
-        }
-
-        // 築年数 (基本情報): Q008
+        // 築年数: Q008
         if (answers.Q008) {
-            mapped['築年数'] = answers.Q008.choice || '';
+            mapped.buildingAge = answers.Q008.choice || '';
         }
 
-        // 建物面積 (基本情報): 現在BOTで収集していないのでNULL
-        mapped['建物面積'] = '';
+        // 建物面積: 現在BOTで収集していない
+        mapped.buildingArea = '';
 
-        // Q1_物件種別: Q001が「はい」なら「戸建て2階建て」、Q002の回答
+        // 階数: Q003, Q003A, Q003B
+        if (answers.Q003) {
+            mapped.floors = answers.Q003.choice || '';
+        } else if (answers.Q003A) {
+            mapped.floors = answers.Q003A.choice || '';
+        } else if (answers.Q003B) {
+            mapped.floors = answers.Q003B.choice || '';
+        }
+
+        // Q1_物件種別（AA列）: Q001が「はい」なら「戸建て2階建て」、Q002の回答
         if (answers.Q001 && answers.Q001.choice === 'はい') {
-            mapped['Q1_物件種別'] = '戸建て2階建て';
+            mapped.Q1_propertyType = '戸建て2階建て';
         } else if (answers.Q002) {
-            mapped['Q1_物件種別'] = answers.Q002.choice || '';
+            mapped.Q1_propertyType = answers.Q002.choice || '';
         }
 
-        // Q2_階数: Q003, Q003A, Q003B
+        // Q2_階数（AB列）: Q003, Q003A, Q003B
         if (answers.Q003) {
-            mapped['Q2_階数'] = answers.Q003.choice || '';
+            mapped.Q2_floors = answers.Q003.choice || '';
         } else if (answers.Q003A) {
-            mapped['Q2_階数'] = answers.Q003A.choice || '';
+            mapped.Q2_floors = answers.Q003A.choice || '';
         } else if (answers.Q003B) {
-            mapped['Q2_階数'] = answers.Q003B.choice || '';
+            mapped.Q2_floors = answers.Q003B.choice || '';
         }
 
-        // Q3_築年数: Q008
+        // Q3_築年数（AC列）: Q008
         if (answers.Q008) {
-            mapped['Q3_築年数'] = answers.Q008.choice || '';
+            mapped.Q3_buildingAge = answers.Q008.choice || '';
         }
 
-        // Q4_工事歴: Q009系列（Q009, Q009_1to9, Q009_10to15, Q009_15plus）
+        // Q4_工事歴（AD列）: Q009系列（Q009, Q009_1to9, Q009_10to15, Q009_15plus）
         if (answers.Q009) {
-            mapped['Q4_工事歴'] = answers.Q009.choice || '';
+            mapped.Q4_workHistory = answers.Q009.choice || '';
         } else if (answers.Q009_1to9) {
-            mapped['Q4_工事歴'] = answers.Q009_1to9.choice || '';
+            mapped.Q4_workHistory = answers.Q009_1to9.choice || '';
         } else if (answers.Q009_10to15) {
-            mapped['Q4_工事歴'] = answers.Q009_10to15.choice || '';
+            mapped.Q4_workHistory = answers.Q009_10to15.choice || '';
         } else if (answers.Q009_15plus) {
-            mapped['Q4_工事歴'] = answers.Q009_15plus.choice || '';
+            mapped.Q4_workHistory = answers.Q009_15plus.choice || '';
         }
 
-        // Q5_前回施工時期: Q009A系列（Q009A, Q009A_1to9, Q009A_10to15, Q009A_15plus）
+        // Q5_前回施工時期（AE列）: Q009A系列（Q009A, Q009A_1to9, Q009A_10to15, Q009A_15plus）
         if (answers.Q009A) {
-            mapped['Q5_前回施工時期'] = answers.Q009A.choice || '';
+            mapped.Q5_previousWorkTime = answers.Q009A.choice || '';
         } else if (answers.Q009A_1to9) {
-            mapped['Q5_前回施工時期'] = answers.Q009A_1to9.choice || '';
+            mapped.Q5_previousWorkTime = answers.Q009A_1to9.choice || '';
         } else if (answers.Q009A_10to15) {
-            mapped['Q5_前回施工時期'] = answers.Q009A_10to15.choice || '';
+            mapped.Q5_previousWorkTime = answers.Q009A_10to15.choice || '';
         } else if (answers.Q009A_15plus) {
-            mapped['Q5_前回施工時期'] = answers.Q009A_15plus.choice || '';
+            mapped.Q5_previousWorkTime = answers.Q009A_15plus.choice || '';
         }
 
-        // Q6_外壁材質: Q004
+        // Q6_外壁材質（AF列）: Q004
         if (answers.Q004) {
-            mapped['Q6_外壁材質'] = answers.Q004.choice || '';
+            mapped.Q6_exteriorMaterial = answers.Q004.choice || '';
         }
 
-        // Q7_屋根材質: Q004A
+        // Q7_屋根材質（AG列）: Q004A
         if (answers.Q004A) {
-            mapped['Q7_屋根材質'] = answers.Q004A.choice || '';
+            mapped.Q7_roofMaterial = answers.Q004A.choice || '';
         }
 
-        // Q8_気になる箇所: Q004B or Q007 (multiselect)
+        // Q8_気になる箇所（AH列）: Q004B or Q007 (multiselect)
         if (answers.Q004B) {
-            mapped['Q8_気になる箇所'] = answers.Q004B.choice || '';
+            mapped.Q8_concernedArea = answers.Q004B.choice || '';
         } else if (answers.Q007) {
-            mapped['Q8_気になる箇所'] = answers.Q007.choice || '';
+            mapped.Q8_concernedArea = answers.Q007.choice || '';
         }
 
-        // Q9_希望工事内容_外壁: Q005 or Q006
+        // Q9_希望工事内容_外壁（AI列）: Q005 or Q006
         if (answers.Q005) {
-            mapped['Q9_希望工事内容_外壁'] = answers.Q005.choice || '';
+            mapped.Q9_exteriorWork = answers.Q005.choice || '';
         } else if (answers.Q006) {
-            mapped['Q9_希望工事内容_外壁'] = answers.Q006.choice || '';
+            mapped.Q9_exteriorWork = answers.Q006.choice || '';
         }
 
-        // Q10_希望工事内容_屋根: Q006A
+        // Q10_希望工事内容_屋根（AJ列）: Q006A
         if (answers.Q006A) {
-            mapped['Q10_希望工事内容_屋根'] = answers.Q006A.choice || '';
+            mapped.Q10_roofWork = answers.Q006A.choice || '';
         }
 
-        // Q11_見積もり保有数: Q009B or Q014
+        // Q11_見積もり保有数（AK列）: Q009B or Q014
         if (answers.Q009B) {
-            mapped['Q11_見積もり保有数'] = answers.Q009B.choice || '';
+            mapped.Q11_quoteCount = answers.Q009B.choice || '';
         } else if (answers.Q014) {
-            mapped['Q11_見積もり保有数'] = answers.Q014.choice || '';
+            mapped.Q11_quoteCount = answers.Q014.choice || '';
         }
 
-        // Q12_見積もり取得先: Q009C or Q014B (multiselect)
+        // Q12_見積もり取得先（AL列）: Q009C or Q014B (multiselect)
         if (answers.Q009C) {
-            mapped['Q12_見積もり取得先'] = answers.Q009C.choice || '';
+            mapped.Q12_quoteSource = answers.Q009C.choice || '';
         } else if (answers.Q014B) {
-            mapped['Q12_見積もり取得先'] = answers.Q014B.choice || '';
+            mapped.Q12_quoteSource = answers.Q014B.choice || '';
         }
 
-        // Q13_訪問業者有無: Q010
+        // Q13_訪問業者有無（AM列）: Q010
         if (answers.Q010) {
-            mapped['Q13_訪問業者有無'] = answers.Q010.choice || '';
+            mapped.Q13_doorSales = answers.Q010.choice || '';
         }
 
-        // Q14_比較意向: Q011
+        // Q14_比較意向（AN列）: Q011
         if (answers.Q011) {
-            mapped['Q14_比較意向'] = answers.Q011.choice || '';
+            mapped.Q14_comparison = answers.Q011.choice || '';
         }
 
-        // Q15_訪問業者名: Q012
+        // Q15_訪問業者名（AO列）: Q012
         if (answers.Q012) {
-            mapped['Q15_訪問業者名'] = answers.Q012.choice || '';
+            mapped.Q15_doorSalesCompany = answers.Q012.choice || '';
         }
 
-        // Q16_現在の劣化状況: Q015
+        // Q16_現在の劣化状況（AP列）: Q015
         if (answers.Q015) {
-            mapped['Q16_現在の劣化状況'] = answers.Q015.choice || '';
+            mapped.Q16_degradation = answers.Q015.choice || '';
         }
 
-        // Q17_業者選定条件: Q016 (multiselect)
+        // Q17_業者選定条件（AQ列）: Q016 (multiselect)
         if (answers.Q016) {
-            mapped['Q17_業者選定条件'] = answers.Q016.choice || '';
+            mapped.Q17_selectionCriteria = answers.Q016.choice || '';
         }
 
         console.log('📋 スプレッドシート形式に変換:', mapped);
