@@ -1498,7 +1498,7 @@
                     <div id="homeAddressSection" class="hidden mt-3 space-y-2">
                         <div class="flex gap-2">
                             <input type="text" id="homeZip" class="w-32 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="000-0000">
-                            <input type="text" id="homeAddress" class="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="市区町村" readonly>
+                            <input type="text" id="homeAddress" class="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="市区町村">
                         </div>
                         <input type="text" id="homeStreet" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="番地・建物名">
                     </div>
@@ -1967,6 +1967,20 @@
                 homeAddressFields.classList.add('hidden');
             }
         }
+
+        // 郵便番号フィールドのイベントリスナーを設定
+        document.addEventListener('DOMContentLoaded', function() {
+            // 自宅郵便番号フィールド
+            const homeZipField = document.getElementById('homeZip');
+            if (homeZipField) {
+                homeZipField.addEventListener('blur', function() {
+                    const zipValue = this.value.replace('-', '').trim();
+                    if (zipValue.length === 7) {
+                        fetchAddress(zipValue, 'home');
+                    }
+                });
+            }
+        });
 
         // nextStep と prevStep は2234行目以降に詳細版で定義されています
 
