@@ -337,6 +337,20 @@ const BotQuestions = {
     handleClosingQuestion(question) {
         BotUI.showAIMessage(question.text);
 
+        // Q900シリーズごとにランキングソート順を設定
+        const sortMap = {
+            'Q900': 'cheap',         // なるべく安く → 安い順
+            'Q901': 'review',        // 口コミや評判 → 口コミ順
+            'Q902': 'premium',       // 品質や保証 → 高品質順
+            'Q903': 'recommended'    // 親身になってくれる → おすすめ順
+        };
+
+        const sortOrder = sortMap[BotConfig.state.currentQuestionId];
+        if (sortOrder && typeof window.updateAllCompaniesFromDynamic === 'function') {
+            console.log(`📊 ランキングを「${sortOrder}」順でソート`);
+            window.updateAllCompaniesFromDynamic(sortOrder);
+        }
+
         setTimeout(() => {
             BotUI.showChoices(question.choices, (choice, index) => {
                 BotUI.showUserMessage(choice);

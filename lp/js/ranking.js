@@ -362,7 +362,7 @@ function displayRanking() {
               詳細
             </button>
             <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap">
-              <span class="keep-text">キープする</span>
+              <span class="keep-text">キープ</span>
             </button>
           </div>
         </div>

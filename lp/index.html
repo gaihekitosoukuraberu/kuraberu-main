@@ -385,12 +385,21 @@
         font-weight: 600;
       }
 
-      .keep-btn.active .keep-text::before {
-        content: 'キープ中';
+      .keep-btn.active .keep-text {
+        visibility: hidden;
+        position: relative;
+        display: inline-block;
+        width: 100%;
       }
 
-      .keep-btn.active .keep-text > span {
-        display: none;
+      .keep-btn.active .keep-text::before {
+        content: 'キープ中';
+        visibility: visible;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        white-space: nowrap;
       }
 
       /* 通知バッジ */
