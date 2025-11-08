@@ -197,6 +197,30 @@ const BotCore = {
         BotUI.clearMessages();
         BotUI.clearChoices();
 
+        // 特殊処理：郵便番号フォームへ直接遷移
+        if (scenario.special === 'direct_postal') {
+            console.log('✨ 特殊シナリオ: 郵便番号フォーム直接表示');
+
+            // greetingメッセージ
+            BotUI.showAIMessage(scenario.greeting);
+
+            // 郵便番号入力フォームを表示
+            setTimeout(() => {
+                if (window.BotScenarios && typeof window.BotScenarios.showPostalForm === 'function') {
+                    window.BotScenarios.showPostalForm({
+                        message: '郵便番号を入力してください',
+                        placeholder: '例：123-4567',
+                        validation: '^\\d{3}-?\\d{4}$',
+                        errorMessage: '正しい郵便番号を入力してください（例：123-4567）',
+                        nextAction: 'mainFlow'
+                    });
+                } else {
+                    console.error('❌ BotScenarios.showPostalForm()が見つかりません');
+                }
+            }, 1000);
+            return;
+        }
+
         // greetingメッセージ
         BotUI.showAIMessage(scenario.greeting);
 

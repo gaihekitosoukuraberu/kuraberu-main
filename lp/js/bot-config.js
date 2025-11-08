@@ -10,6 +10,44 @@
 
 const BotConfig = {
     // ============================================
+    // キーワードエイリアスマッピング
+    // ============================================
+    KEYWORD_ALIASES: {
+        // 表示名の違い
+        'カラーイメージ': 'カラーシミュレーション',
+        'クチコミ・評価順で探す': 'クチコミ',
+        '実績順で探す': '実績',
+        '費用が安い順で探す': '安い順',
+        '屋根張替え': '屋根張り替え',
+
+        // 予算表記の違い
+        '~50万円': '予算50万円以下',
+        '50~100万円': '予算50〜100万円',
+        '100~200万円': '予算100〜200万円',
+        '200万円~': '予算150万円〜',
+
+        // 詳細説明付きワード
+        'チョークのような粉がつく': 'チョーク',
+        'ひび割れている': 'ひび割れ',
+        'はがれている': '剥がれ',
+        '汚れ・くすみがある': '汚れ',
+
+        // 簡略表記
+        'ローンOK': 'リフォームローン',
+        '各種保険完備': '各種保険',
+        'アフターフォローあり': 'アフターフォロー',
+
+        // 希望形ワード
+        '補修したい': '補修',
+        '張り替えたい': '張替え',
+        '塗装したい': '外壁塗装',
+
+        // 特殊ボタン（郵便番号フォームへ直接遷移）
+        '今すぐ相場を確認する': '__DIRECT_POSTAL__',
+        '実際のランキングを見る': '__DIRECT_POSTAL__'
+    },
+
+    // ============================================
     // グローバル状態（外部から参照可能）
     // ============================================
     state: {
@@ -103,13 +141,39 @@ const BotConfig = {
     },
 
     // ============================================
-    // シナリオ取得
+    // シナリオ取得（エイリアス対応）
     // ============================================
     getScenario(keyword) {
+        console.log('[BotConfig] シナリオ検索:', keyword);
+
+        // エイリアス解決
+        const actualKeyword = this.KEYWORD_ALIASES[keyword] || keyword;
+
+        // 特殊処理：郵便番号フォームへ直接遷移
+        if (actualKeyword === '__DIRECT_POSTAL__') {
+            console.log('[BotConfig] 特殊処理: 郵便番号フォームへ直接遷移');
+            return {
+                special: 'direct_postal',
+                displayName: keyword,
+                greeting: '郵便番号を入力して、お住まいエリアの業者をご覧いただけます。'
+            };
+        }
+
+        if (actualKeyword !== keyword) {
+            console.log('[BotConfig] エイリアス解決:', keyword, '→', actualKeyword);
+        }
+
         if (!this.state.flowData || !this.state.flowData.entryScenarios) {
+            console.error('[BotConfig] flowDataが読み込まれていません');
             return null;
         }
-        return this.state.flowData.entryScenarios[keyword] || null;
+
+        const scenario = this.state.flowData.entryScenarios[actualKeyword];
+        if (!scenario) {
+            console.warn('[BotConfig] シナリオが見つかりません:', actualKeyword);
+        }
+
+        return scenario || null;
     },
 
     // ============================================
