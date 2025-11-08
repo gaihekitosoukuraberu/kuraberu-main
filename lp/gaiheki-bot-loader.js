@@ -280,22 +280,22 @@
                                     AI診断済み
                                 </span>
                             </div>
-                            <div style="background: linear-gradient(135deg, #EFF6FF, #F5F3FF); border-radius: 16px; padding: 32px; border: 4px solid #3B82F6;">
+                            <div style="background: linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%); border-radius: 20px; padding: 40px 32px; border: 3px solid #3B82F6; box-shadow: 0 20px 60px rgba(59, 130, 246, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08);">
                                 <div style="text-align: center;">
-                                    <p style="font-size: 14px; font-weight: 500; color: #6B7280; margin-bottom: 16px;">
+                                    <p style="font-size: 15px; font-weight: 600; color: #4B5563; margin-bottom: 24px; letter-spacing: 0.02em;">
                                         戸建て2階建て（延床30坪・築25年）の場合
                                     </p>
-                                    <div style="display: flex; align-items: center; justify-center; gap: 12px; margin-bottom: 12px;">
-                                        <div style="font-size: 70px; font-weight: bold; background: linear-gradient(135deg, #1E40AF, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap;">
+                                    <div style="display: flex; align-items: center; justify-center; gap: 16px; margin-bottom: 20px;">
+                                        <div style="font-size: 70px; font-weight: 900; background: linear-gradient(135deg, #1E40AF 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; letter-spacing: -0.02em;">
                                             60万円
                                         </div>
-                                        <span style="font-size: 40px; color: #9CA3AF; white-space: nowrap;">〜</span>
-                                        <div style="font-size: 70px; font-weight: bold; background: linear-gradient(135deg, #1E40AF, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap;">
+                                        <span style="font-size: 42px; color: #9CA3AF; white-space: nowrap; font-weight: 300;">〜</span>
+                                        <div style="font-size: 70px; font-weight: 900; background: linear-gradient(135deg, #1E40AF 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; letter-spacing: -0.02em;">
                                             180万円
                                         </div>
                                     </div>
-                                    <p style="font-size: 12px; color: #6B7280; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                                        <svg style="width: 12px; height: 12px;" fill="currentColor" viewBox="0 0 20 20">
+                                    <p style="font-size: 13px; color: #6B7280; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 500;">
+                                        <svg style="width: 14px; height: 14px; opacity: 0.7;" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
                                         </svg>
                                         建物の状態・使用材料により価格は変動します
