@@ -181,106 +181,139 @@ const BotConfig = {
         const answers = this.state.userAnswers || {};
         const mapped = {};
 
-        // Q1_building_type: 建物種別 (Q001 or Q002)
-        if (answers.Q001) {
-            mapped.Q1_building_type = answers.Q001.choice || '';
+        // 物件種別 (基本情報): Q001が「はい」なら「戸建て2階建て」、Q002の回答
+        if (answers.Q001 && answers.Q001.choice === 'はい') {
+            mapped['物件種別'] = '戸建て2階建て';
         } else if (answers.Q002) {
-            mapped.Q1_building_type = answers.Q002.choice || '';
+            mapped['物件種別'] = answers.Q002.choice || '';
         }
 
-        // Q2_floors: 建物階数 (Q003, Q003A, Q003B)
+        // 階数 (基本情報): Q003, Q003A, Q003B
         if (answers.Q003) {
-            mapped.Q2_floors = answers.Q003.choice || '';
+            mapped['階数'] = answers.Q003.choice || '';
         } else if (answers.Q003A) {
-            mapped.Q2_floors = answers.Q003A.choice || '';
+            mapped['階数'] = answers.Q003A.choice || '';
         } else if (answers.Q003B) {
-            mapped.Q2_floors = answers.Q003B.choice || '';
+            mapped['階数'] = answers.Q003B.choice || '';
         }
 
-        // Q3_building_age: 築年数 (Q008)
+        // 築年数 (基本情報): Q008
         if (answers.Q008) {
-            mapped.Q3_building_age = answers.Q008.choice || '';
+            mapped['築年数'] = answers.Q008.choice || '';
         }
 
-        // Q4_work_location: 施工箇所・気になる箇所 (Q004B or Q007)
-        if (answers.Q004B) {
-            mapped.Q4_work_location = answers.Q004B.choice || '';
-        } else if (answers.Q007) {
-            // Q007 is multiselect - join with commas
-            mapped.Q4_work_location = answers.Q007.choice || '';
-        } else if (answers.Q004) {
-            // Fallback to Q004 wall material if Q004B not answered
-            mapped.Q4_work_location = answers.Q004.choice || '';
+        // 建物面積 (基本情報): 現在BOTで収集していないのでNULL
+        mapped['建物面積'] = '';
+
+        // Q1_物件種別: Q001が「はい」なら「戸建て2階建て」、Q002の回答
+        if (answers.Q001 && answers.Q001.choice === 'はい') {
+            mapped['Q1_物件種別'] = '戸建て2階建て';
+        } else if (answers.Q002) {
+            mapped['Q1_物件種別'] = answers.Q002.choice || '';
         }
 
-        // Q5_building_condition: 工事種別 (Q005 or Q006)
-        if (answers.Q005) {
-            mapped.Q5_building_condition = answers.Q005.choice || '';
-        } else if (answers.Q006) {
-            mapped.Q5_building_condition = answers.Q006.choice || '';
+        // Q2_階数: Q003, Q003A, Q003B
+        if (answers.Q003) {
+            mapped['Q2_階数'] = answers.Q003.choice || '';
+        } else if (answers.Q003A) {
+            mapped['Q2_階数'] = answers.Q003A.choice || '';
+        } else if (answers.Q003B) {
+            mapped['Q2_階数'] = answers.Q003B.choice || '';
         }
 
-        // Q6_degradation: 劣化状況 (Q015)
-        if (answers.Q015) {
-            mapped.Q6_degradation = answers.Q015.choice || '';
+        // Q3_築年数: Q008
+        if (answers.Q008) {
+            mapped['Q3_築年数'] = answers.Q008.choice || '';
         }
 
-        // Q7_roof_material: 屋根材質 (Q004A)
-        if (answers.Q004A) {
-            mapped.Q7_roof_material = answers.Q004A.choice || '';
-        }
-
-        // Q8_budget: 予算 (not found in current question flow - leave empty for now)
-        // Note: This might need to be added to CV2 form or future questions
-        mapped.Q8_budget = '';
-
-        // Q9_work_content: 工事歴 (Q009)
+        // Q4_工事歴: Q009系列（Q009, Q009_1to9, Q009_10to15, Q009_15plus）
         if (answers.Q009) {
-            mapped.Q9_work_content = answers.Q009.choice || '';
+            mapped['Q4_工事歴'] = answers.Q009.choice || '';
+        } else if (answers.Q009_1to9) {
+            mapped['Q4_工事歴'] = answers.Q009_1to9.choice || '';
+        } else if (answers.Q009_10to15) {
+            mapped['Q4_工事歴'] = answers.Q009_10to15.choice || '';
+        } else if (answers.Q009_15plus) {
+            mapped['Q4_工事歴'] = answers.Q009_15plus.choice || '';
         }
 
-        // Q10_roof_work: 屋根工事種別 (Q006A)
+        // Q5_前回施工時期: Q009A系列（Q009A, Q009A_1to9, Q009A_10to15, Q009A_15plus）
+        if (answers.Q009A) {
+            mapped['Q5_前回施工時期'] = answers.Q009A.choice || '';
+        } else if (answers.Q009A_1to9) {
+            mapped['Q5_前回施工時期'] = answers.Q009A_1to9.choice || '';
+        } else if (answers.Q009A_10to15) {
+            mapped['Q5_前回施工時期'] = answers.Q009A_10to15.choice || '';
+        } else if (answers.Q009A_15plus) {
+            mapped['Q5_前回施工時期'] = answers.Q009A_15plus.choice || '';
+        }
+
+        // Q6_外壁材質: Q004
+        if (answers.Q004) {
+            mapped['Q6_外壁材質'] = answers.Q004.choice || '';
+        }
+
+        // Q7_屋根材質: Q004A
+        if (answers.Q004A) {
+            mapped['Q7_屋根材質'] = answers.Q004A.choice || '';
+        }
+
+        // Q8_気になる箇所: Q004B or Q007 (multiselect)
+        if (answers.Q004B) {
+            mapped['Q8_気になる箇所'] = answers.Q004B.choice || '';
+        } else if (answers.Q007) {
+            mapped['Q8_気になる箇所'] = answers.Q007.choice || '';
+        }
+
+        // Q9_希望工事内容_外壁: Q005 or Q006
+        if (answers.Q005) {
+            mapped['Q9_希望工事内容_外壁'] = answers.Q005.choice || '';
+        } else if (answers.Q006) {
+            mapped['Q9_希望工事内容_外壁'] = answers.Q006.choice || '';
+        }
+
+        // Q10_希望工事内容_屋根: Q006A
         if (answers.Q006A) {
-            mapped.Q10_roof_work = answers.Q006A.choice || '';
+            mapped['Q10_希望工事内容_屋根'] = answers.Q006A.choice || '';
         }
 
-        // Q11_quote_count: 見積もり数 (Q009B or Q014)
+        // Q11_見積もり保有数: Q009B or Q014
         if (answers.Q009B) {
-            mapped.Q11_quote_count = answers.Q009B.choice || '';
+            mapped['Q11_見積もり保有数'] = answers.Q009B.choice || '';
         } else if (answers.Q014) {
-            mapped.Q11_quote_count = answers.Q014.choice || '';
+            mapped['Q11_見積もり保有数'] = answers.Q014.choice || '';
         }
 
-        // Q12_quote_source: 見積もり取得先 (Q009C or Q014B - multiselect)
+        // Q12_見積もり取得先: Q009C or Q014B (multiselect)
         if (answers.Q009C) {
-            mapped.Q12_quote_source = answers.Q009C.choice || '';
+            mapped['Q12_見積もり取得先'] = answers.Q009C.choice || '';
         } else if (answers.Q014B) {
-            mapped.Q12_quote_source = answers.Q014B.choice || '';
+            mapped['Q12_見積もり取得先'] = answers.Q014B.choice || '';
         }
 
-        // Q13_door_sales: 訪問業者 (Q010)
+        // Q13_訪問業者有無: Q010
         if (answers.Q010) {
-            mapped.Q13_door_sales = answers.Q010.choice || '';
+            mapped['Q13_訪問業者有無'] = answers.Q010.choice || '';
         }
 
-        // Q14_comparison: 比較意向 (Q011)
+        // Q14_比較意向: Q011
         if (answers.Q011) {
-            mapped.Q14_comparison = answers.Q011.choice || '';
+            mapped['Q14_比較意向'] = answers.Q011.choice || '';
         }
 
-        // Q15_answer: 現在の気になる点 (Q015)
+        // Q15_訪問業者名: Q012
+        if (answers.Q012) {
+            mapped['Q15_訪問業者名'] = answers.Q012.choice || '';
+        }
+
+        // Q16_現在の劣化状況: Q015
         if (answers.Q015) {
-            mapped.Q15_answer = answers.Q015.choice || '';
+            mapped['Q16_現在の劣化状況'] = answers.Q015.choice || '';
         }
 
-        // Q16_answer: 重視ポイント (Q016 - multiselect)
+        // Q17_業者選定条件: Q016 (multiselect)
         if (answers.Q016) {
-            mapped.Q16_answer = answers.Q016.choice || '';
-        }
-
-        // Q17_selection: 選定条件 (Q016 - same as Q16 or could be handled separately)
-        if (answers.Q016) {
-            mapped.Q17_selection = answers.Q016.choice || '';
+            mapped['Q17_業者選定条件'] = answers.Q016.choice || '';
         }
 
         console.log('📋 スプレッドシート形式に変換:', mapped);
