@@ -286,9 +286,9 @@
                                         戸建て2階建て（延床30坪・築25年）の場合
                                     </p>
                                     <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; flex-wrap: nowrap;">
-                                        <span style="font-size: 40px; font-weight: bold; background: linear-gradient(135deg, #2563EB, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; flex-shrink: 0;">60万円</span>
-                                        <span style="font-size: 18px; color: #9CA3AF; flex-shrink: 0;">〜</span>
-                                        <span style="font-size: 40px; font-weight: bold; background: linear-gradient(135deg, #2563EB, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; flex-shrink: 0;">180万円</span>
+                                        <span style="font-size: 60px; font-weight: bold; background: linear-gradient(135deg, #2563EB, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; flex-shrink: 0;">60万円</span>
+                                        <span style="font-size: 24px; color: #9CA3AF; flex-shrink: 0;">〜</span>
+                                        <span style="font-size: 60px; font-weight: bold; background: linear-gradient(135deg, #2563EB, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; flex-shrink: 0;">180万円</span>
                                     </div>
                                     <p style="font-size: 12px; color: #6B7280;">
                                         ℹ️ 建物の状態や材料により価格変動します
@@ -324,7 +324,21 @@
                                 <div style="color: #3B82F6; margin-bottom: 16px;">
                                     🔒
                                 </div>
-                                <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 12px; color: #2563EB;">オリジナル業者ランキング！</h3>
+                                <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 12px; color: #2563EB; white-space: nowrap;">質問に答えるとランキング表示！</h3>
+                                <div style="color: #6B7280; margin-bottom: 16px; font-size: 10px;">
+                                    <p style="display: flex; align-items: flex-start; flex-wrap: nowrap; margin-bottom: 4px;">
+                                        <span style="color: #10B981; margin-right: 4px; flex-shrink: 0;">✅</span>
+                                        <span style="white-space: nowrap;">AI診断で最適マッチング！</span>
+                                    </p>
+                                    <p style="display: flex; align-items: flex-start; flex-wrap: nowrap; margin-bottom: 4px;">
+                                        <span style="color: #10B981; margin-right: 4px; flex-shrink: 0;">✅</span>
+                                        <span style="white-space: nowrap;">実績データで信頼できる！</span>
+                                    </p>
+                                    <p style="display: flex; align-items: flex-start; flex-wrap: nowrap; margin-bottom: 4px;">
+                                        <span style="color: #10B981; margin-right: 4px; flex-shrink: 0;">✅</span>
+                                        <span style="white-space: nowrap;">4社まで無料見積もり可能！</span>
+                                    </p>
+                                </div>
                                 <div id="progressMeter">
                                     <div style="display: flex; justify-content: flex-end; font-size: 12px; color: #6B7280; margin-bottom: 4px;">
                                         <span id="progressPercentage">0%</span>
