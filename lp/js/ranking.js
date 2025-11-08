@@ -272,7 +272,7 @@ function showRankingSection() {
   }
   
   // ソートボタンを無効化（おすすめ順以外）
-  disableSortButtons(['tabCheap', 'tabReview', 'tabQuality']);
+  disableSortButtons(['sortCheap', 'sortReview', 'sortQuality']);
 }
 
 // 星レーティング生成関数（5つ星）
@@ -613,7 +613,7 @@ function switchSortTab(tabType) {
   console.log('ソートタブ切り替え:', tabType, 'ヒアリング段階:', currentHearingStage);
 
   // ヒアリング段階チェック（第1段階完了でソート機能解放）
-  if (tabType !== 'tabRecommend' && currentHearingStage < 1) {
+  if (tabType !== 'sortRecommended' && currentHearingStage < 1) {
     console.log('第1ヒアリング段階が完了していないため、このタブは利用できません');
     return;
   }
@@ -622,16 +622,16 @@ function switchSortTab(tabType) {
   if (dynamicRankings) {
     let sortType = 'recommended';
     switch(tabType) {
-      case 'tabRecommend':
+      case 'sortRecommended':
         sortType = 'recommended';
         break;
-      case 'tabCheap':
+      case 'sortCheap':
         sortType = 'cheap';
         break;
-      case 'tabReview':
+      case 'sortReview':
         sortType = 'review';
         break;
-      case 'tabQuality':
+      case 'sortQuality':
         sortType = 'premium';
         break;
     }
@@ -639,20 +639,31 @@ function switchSortTab(tabType) {
     displayRanking(); // ランキングを再描画
   }
 
-  // ランキングタイトルを変更
-  const rankingTitle = document.getElementById('rankingTitle');
-  if (rankingTitle) {
-    const titleMap = {
-      'tabRecommend': 'おすすめ業者ランキング',
-      'tabCheap': '安い順ランキング',
-      'tabReview': '口コミ順ランキング',
-      'tabQuality': '高品質順ランキング'
-    };
-    rankingTitle.textContent = titleMap[tabType] || 'おすすめ業者ランキング';
+  // ランキングタイトルを変更（BOTコンテナ内と通常ページ両方）
+  const titleMap = {
+    'sortRecommended': 'おすすめ業者ランキング',
+    'sortCheap': '安い順ランキング',
+    'sortReview': '口コミ順ランキング',
+    'sortQuality': '高品質順ランキング'
+  };
+  const newTitle = titleMap[tabType] || 'おすすめ業者ランキング';
+
+  // BOTコンテナ内のrankingTitle（gaiheki-bot-loader.js内）
+  const rankingTitleBot = document.querySelector('#mainContentContainer #rankingTitle');
+  if (rankingTitleBot) {
+    rankingTitleBot.textContent = newTitle;
+    console.log(`✅ BOTコンテナ内のタイトル更新: ${newTitle}`);
+  }
+
+  // 通常ページのrankingTitle（index.html内）
+  const rankingTitlePage = document.querySelector('#rankingSection #rankingTitle');
+  if (rankingTitlePage) {
+    rankingTitlePage.textContent = newTitle;
+    console.log(`✅ 通常ページのタイトル更新: ${newTitle}`);
   }
   
   // すべてのタブの背景色をリセット（無効化されていないもののみ）
-  const tabs = ['tabRecommend', 'tabCheap', 'tabReview', 'tabQuality'];
+  const tabs = ['sortRecommended', 'sortCheap', 'sortReview', 'sortQuality'];
   tabs.forEach(tabId => {
     const tab = document.getElementById(tabId);
     if (tab && !tab.classList.contains('sort-tab-disabled')) {
@@ -662,31 +673,31 @@ function switchSortTab(tabType) {
       tab.classList.add('border-gray-200', 'text-gray-700');
     }
   });
-  
+
   // 選択されたタブの背景色を変更（無効化されていない場合のみ）
   const activeTab = document.getElementById(tabType);
   console.log('選択されたタブ:', tabType, 'ボタン要素:', activeTab);
   console.log('無効化クラス確認:', activeTab ? activeTab.classList.contains('sort-tab-disabled') : 'ボタンなし');
   console.log('現在のクラス:', activeTab ? activeTab.className : 'ボタンなし');
-  
+
   if (activeTab && !activeTab.classList.contains('sort-tab-disabled')) {
     console.log('ボタン背景色変更を実行中...');
     activeTab.classList.remove('bg-white', 'border-gray-200');
-    
+
     switch(tabType) {
-      case 'tabRecommend':
+      case 'sortRecommended':
         activeTab.classList.add('bg-blue-100', 'border-blue-300', 'text-blue-800');
         console.log('おすすめ順: 青色背景適用');
         break;
-      case 'tabCheap':
+      case 'sortCheap':
         activeTab.classList.add('bg-yellow-100', 'border-yellow-300', 'text-yellow-800');
         console.log('安い順: 黄色背景適用');
         break;
-      case 'tabReview':
+      case 'sortReview':
         activeTab.classList.add('bg-green-100', 'border-green-300', 'text-green-800');
         console.log('クチコミ順: 緑色背景適用');
         break;
-      case 'tabQuality':
+      case 'sortQuality':
         activeTab.classList.add('bg-purple-100', 'border-purple-300', 'text-purple-800');
         console.log('高品質順: 紫色背景適用');
         break;
@@ -723,28 +734,28 @@ function switchSortTab(tabType) {
     let customClass = '';
     
     switch(tabType) {
-      case 'tabRecommend':
+      case 'sortRecommended':
         rankingSection.classList.add('bg-blue-50');
         rankingSection.classList.add('ranking-section-blue');
         backgroundColor = '#eff6ff';
         customClass = 'ranking-section-blue';
         console.log('ランキング背景: 青色適用');
         break;
-      case 'tabCheap':
+      case 'sortCheap':
         rankingSection.classList.add('bg-yellow-50');
         rankingSection.classList.add('ranking-section-yellow');
         backgroundColor = '#fefce8';
         customClass = 'ranking-section-yellow';
         console.log('ランキング背景: 黄色適用');
         break;
-      case 'tabReview':
+      case 'sortReview':
         rankingSection.classList.add('bg-green-50');
         rankingSection.classList.add('ranking-section-green');
         backgroundColor = '#f0fdf4';
         customClass = 'ranking-section-green';
         console.log('ランキング背景: 緑色適用');
         break;
-      case 'tabQuality':
+      case 'sortQuality':
         rankingSection.classList.add('bg-purple-50');
         rankingSection.classList.add('ranking-section-purple');
         backgroundColor = '#faf5ff';
@@ -882,7 +893,7 @@ function completeHearingStage(stage) {
     console.log('第1ヒアリング完了: 派手なモザイク解除エフェクト実行');
     
     // 第1段階完了時にソートボタンを有効化
-    enableSortButtons(['tabCheap', 'tabReview', 'tabQuality']);
+    enableSortButtons(['sortCheap', 'sortReview', 'sortQuality']);
     console.log('第1段階完了: 全ソートボタン有効化');
   }
   

@@ -142,10 +142,10 @@ const BotQuestions = {
                         // ソートタブの背景色も変更
                         if (typeof window.switchSortTab === 'function') {
                             const tabMap = {
-                                'recommended': 'tabRecommend',
-                                'cheap': 'tabCheap',
-                                'review': 'tabReview',
-                                'premium': 'tabQuality'
+                                'recommended': 'sortRecommended',
+                                'cheap': 'sortCheap',
+                                'review': 'sortReview',
+                                'premium': 'sortQuality'
                             };
                             const tabId = tabMap[sortType];
                             if (tabId) {
@@ -164,10 +164,10 @@ const BotQuestions = {
                         // 失敗時でもソートタブの背景色を変更
                         if (typeof window.switchSortTab === 'function') {
                             const tabMap = {
-                                'recommended': 'tabRecommend',
-                                'cheap': 'tabCheap',
-                                'review': 'tabReview',
-                                'premium': 'tabQuality'
+                                'recommended': 'sortRecommended',
+                                'cheap': 'sortCheap',
+                                'review': 'sortReview',
+                                'premium': 'sortQuality'
                             };
                             const tabId = tabMap[sortType];
                             if (tabId) {
@@ -310,10 +310,10 @@ const BotQuestions = {
                                 // ソートタブの背景色も変更
                                 if (typeof window.switchSortTab === 'function') {
                                     const tabMap = {
-                                        'recommended': 'tabRecommend',
-                                        'cheap': 'tabCheap',
-                                        'review': 'tabReview',
-                                        'premium': 'tabQuality'
+                                        'recommended': 'sortRecommended',
+                                        'cheap': 'sortCheap',
+                                        'review': 'sortReview',
+                                        'premium': 'sortQuality'
                                     };
                                     const tabId = tabMap[sortType];
                                     if (tabId) {
@@ -332,10 +332,10 @@ const BotQuestions = {
                                 // 失敗時でもソートタブの背景色を変更
                                 if (typeof window.switchSortTab === 'function') {
                                     const tabMap = {
-                                        'recommended': 'tabRecommend',
-                                        'cheap': 'tabCheap',
-                                        'review': 'tabReview',
-                                        'premium': 'tabQuality'
+                                        'recommended': 'sortRecommended',
+                                        'cheap': 'sortCheap',
+                                        'review': 'sortReview',
+                                        'premium': 'sortQuality'
                                     };
                                     const tabId = tabMap[sortType];
                                     if (tabId) {
