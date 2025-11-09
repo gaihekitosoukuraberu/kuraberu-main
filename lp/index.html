@@ -2186,7 +2186,8 @@
                     isDifferentHome: formData.homeZip ? true : false,
                     homeAddress: formData.homeZip ? { postalCode: formData.homeZip, street: formData.homeStreet } : null,
                     surveyDates: formData.surveyDates,
-                    requests: formData.requests
+                    requests: formData.requests,
+                    keepInfo: formData.keptCompanies.join(', ')  // キープ業者情報をカンマ区切りで追加
                 };
 
                 // GASへ送信（CV2として送信）
@@ -2220,6 +2221,40 @@
 
             // キープモーダルを閉じる
             closeKeepModal();
+
+            // ============================================
+            // BOTで取得済みの情報を自動入力
+            // ============================================
+
+            // 物件の郵便番号を自動入力
+            if (window.BotConfig && window.BotConfig.state.currentZipcode) {
+                const propertyZipField = document.getElementById('propertyZip');
+                if (propertyZipField) {
+                    const zipcode = window.BotConfig.state.currentZipcode;
+                    // ハイフンを追加してフォーマット
+                    const formattedZip = zipcode.length === 7 ?
+                        zipcode.substring(0, 3) + '-' + zipcode.substring(3) : zipcode;
+                    propertyZipField.value = formattedZip;
+                    console.log('✅ 物件郵便番号を自動入力:', formattedZip);
+                }
+            }
+
+            // 物件の住所（都道府県 + 市区町村）を自動入力
+            if (window.propertyPrefecture && window.propertyCity) {
+                const propertyAddressField = document.getElementById('propertyAddress');
+                if (propertyAddressField) {
+                    const fullAddress = window.propertyPrefecture + window.propertyCity;
+                    propertyAddressField.value = fullAddress;
+                    console.log('✅ 物件住所を自動入力:', fullAddress);
+                }
+            } else if (window.propertyCity) {
+                // 都道府県がない場合は市区町村のみ
+                const propertyAddressField = document.getElementById('propertyAddress');
+                if (propertyAddressField) {
+                    propertyAddressField.value = window.propertyCity;
+                    console.log('✅ 物件住所を自動入力（市区町村のみ）:', window.propertyCity);
+                }
+            }
 
             // 見積もりフォームモーダルを表示
             const modal = document.getElementById('estimateFormModal');

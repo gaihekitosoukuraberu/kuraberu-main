@@ -21,8 +21,13 @@ const CVAPI = {
         try {
             console.log('📞 CV1送信開始:', phoneNumber);
 
+            // sessionStorageから回答を復元
+            BotConfig.loadFromSessionStorage();
+            console.log('📋 BOT回答復元完了:', Object.keys(BotConfig.state.userAnswers).length + '件');
+
             // BOT質問回答を取得
             const botAnswers = BotConfig.mapAnswersToSpreadsheet();
+            console.log('📋 スプレッドシート形式に変換:', botAnswers);
 
             // 訪問情報を取得
             const visitorInfo = this.getVisitorInfo();
@@ -117,6 +122,10 @@ const CVAPI = {
             if (isNewSubmission) {
                 console.warn('⚠️ CV IDが見つかりません。CV1が失敗した可能性があります。');
                 console.warn('⚠️ 新規作成モードで全データを送信します（CV1+CV2統合）');
+
+                // sessionStorageから回答を復元（フォールバック時）
+                BotConfig.loadFromSessionStorage();
+                console.log('📋 BOT回答復元完了（フォールバック）:', Object.keys(BotConfig.state.userAnswers).length + '件');
             } else {
                 console.log('✅ CV ID取得成功:', cvId);
             }
@@ -156,6 +165,7 @@ const CVAPI = {
                 // ステップ2: 詳細情報
                 surveyDatePreference: formData.surveyDates?.join(', ') || '',
                 requests: formData.requests || '',
+                keepInfo: formData.keepInfo || '',  // キープ業者情報
 
                 // タイムスタンプ
                 timestamp: new Date().toISOString()
@@ -184,6 +194,7 @@ const CVAPI = {
                 // ステップ2: 詳細情報
                 surveyDatePreference: formData.surveyDates?.join(', ') || '',
                 requests: formData.requests || '',
+                keepInfo: formData.keepInfo || '',  // キープ業者情報
 
                 // タイムスタンプ
                 timestamp: new Date().toISOString()
