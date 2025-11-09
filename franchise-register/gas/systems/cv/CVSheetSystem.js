@@ -231,13 +231,13 @@ const CVSheetSystem = {
 
       // AQ-AR: CV2入力項目
       '現地調査希望日時',    // AQ
-      'その他ご要望',        // AR
+      'キープ業者情報',      // AR
 
       // AS-AV: 予備・運用項目
-      '予算',               // AS
-      '予備項目1',          // AT
-      '予備項目2',          // AU
-      '予備項目3',          // AV
+      '要望・備考',         // AS
+      'エントリーポイント',  // AT
+      'シナリオ名',         // AU
+      'フローステップ',      // AV
 
       // AW-BC: 配信・成約管理
       '配信ステータス',      // AW
@@ -261,7 +261,16 @@ const CVSheetSystem = {
       // BJ-BL: フォローアップ履歴
       '架電履歴',           // BJ
       '最終架電日時',        // BK
-      'メモ'                // BL
+      'メモ',               // BL
+
+      // BM-BS: 管理用フィールド
+      '管理ステータス',      // BM
+      '加盟店別ステータス',  // BN
+      '初回架電日時',        // BO
+      '最終更新日時',        // BP
+      '配信予定日時',        // BQ
+      '予備管理項目',        // BR
+      '担当者名'            // BS
     ];
 
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
@@ -343,7 +352,7 @@ const CVSheetSystem = {
       const cvId = 'CV' + new Date().getTime();
       const timestamp = new Date();
 
-      // データ行構築（57列）
+      // データ行構築（71列）
       const row = [
         cvId,                                    // A: CV ID
         timestamp,                               // B: 登録日時
@@ -400,10 +409,10 @@ const CVSheetSystem = {
         data.keepInfo || '',                     // AR: キープ業者情報
 
         // AS-AV: 予備・運用項目
-        '',                                      // AS: 予算（空欄）
-        '',                                      // AT: 予備項目1
-        '',                                      // AU: 予備項目2
-        '',                                      // AV: 予備項目3
+        data.requests || '',                     // AS: 要望・備考
+        data.entryPoint || '',                   // AT: エントリーポイント
+        data.scenario || '',                     // AU: シナリオ名
+        data.flowStep || '',                     // AV: フローステップ
 
         // AW-BC: 配信・成約管理
         '未配信',                                 // AW: 配信ステータス
@@ -435,6 +444,7 @@ const CVSheetSystem = {
         '',                                      // BO: 初回架電日時
         timestamp,                               // BP: 最終更新日時
         '',                                      // BQ: 配信予定日時
+        '',                                      // BR: 予備管理項目
         ''                                       // BS: 担当者名
       ];
 
@@ -534,7 +544,7 @@ const CVSheetSystem = {
       const cvId = 'CV' + new Date().getTime();
       const timestamp = new Date();
 
-      // データ行構築（57列）
+      // データ行構築（71列）
       const row = [
         cvId,                                    // A: CV ID
         timestamp,                               // B: 登録日時
@@ -587,12 +597,12 @@ const CVSheetSystem = {
         params.Q17_selectionCriteria || '',      // AP: Q17_業者選定条件
 
         '',                                      // AQ: 現地調査希望日時（CV2で入力）
-        '',                                      // AR: その他ご要望（CV2で入力）
+        '',                                      // AR: キープ業者情報（CV2で入力）
 
-        '',                                      // AS-AV: 予備項目
-        '',
-        '',
-        '',
+        '',                                      // AS: 要望・備考（CV2で入力）
+        params.entryPoint || '',                 // AT: エントリーポイント
+        params.scenario || '',                   // AU: シナリオ名
+        params.flowStep || '',                   // AV: フローステップ
 
         '未配信',                                 // AW-BC: 配信・成約管理
         0,
@@ -620,6 +630,7 @@ const CVSheetSystem = {
         '',                                      // BO: 初回架電日時
         timestamp,                               // BP: 最終更新日時
         '',                                      // BQ: 配信予定日時
+        '',                                      // BR: 予備管理項目
         ''                                       // BS: 担当者名
       ];
 
@@ -728,6 +739,7 @@ const CVSheetSystem = {
       // CV2詳細情報
       sheet.getRange(targetRow, 43).setValue(params.surveyDatePreference || '');   // AQ: 現地調査希望日時
       sheet.getRange(targetRow, 44).setValue(params.keepInfo || '');               // AR: キープ業者情報
+      sheet.getRange(targetRow, 45).setValue(params.requests || '');               // AS: 要望・備考
 
       console.log('[CVSheetSystem] CV2更新完了:', cvId);
 
