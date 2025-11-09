@@ -1001,3 +1001,164 @@ const CVSheetSystem = {
 if (typeof global !== 'undefined') {
   global.CVSheetSystem = CVSheetSystem;
 }
+
+/**
+ * ============================================
+ * CVシステム マッピング検証テスト関数
+ * ============================================
+ *
+ * 手動実行用：GASエディタで実行してマッピングを検証
+ * 1. この関数を選択
+ * 2. ▶実行ボタンをクリック
+ * 3. ログを確認
+ */
+function testCVMapping() {
+  console.log('=== CV マッピング検証テスト開始 ===\n');
+
+  const results = {
+    passed: [],
+    failed: [],
+    warnings: []
+  };
+
+  // ============================================
+  // テスト1: ヘッダー配列の要素数チェック
+  // ============================================
+  console.log('【テスト1】ヘッダー配列の要素数チェック');
+
+  const expectedColumnCount = 71;
+  const headers = [
+    'CV ID', '登録日時', '氏名', 'フリガナ', '性別', '年齢', '電話番号', 'メールアドレス', '続柄',
+    '氏名（2人目）', '電話番号（2人目）', '続柄（2人目）', '備考（2人目）',
+    '郵便番号（物件）', '都道府県（物件）', '市区町村（物件）', '住所詳細（物件）',
+    '自宅住所フラグ', '郵便番号（自宅）', '都道府県（自宅）', '住所詳細（自宅）',
+    '物件種別', '築年数', '建物面積', '階数',
+    'Q1_物件種別', 'Q2_階数', 'Q3_築年数', 'Q4_工事歴', 'Q5_前回施工時期',
+    'Q6_外壁材質', 'Q7_屋根材質', 'Q8_気になる箇所', 'Q9_希望工事内容_外壁', 'Q10_希望工事内容_屋根',
+    'Q11_見積もり保有数', 'Q12_見積もり取得先', 'Q13_訪問業者有無', 'Q14_比較意向', 'Q15_訪問業者名',
+    'Q16_現在の劣化状況', 'Q17_業者選定条件',
+    '現地調査希望日時', '業者選定履歴', '案件メモ', '連絡時間帯', '見積もり送付先', 'ワードリンク回答',
+    '配信ステータス', '配信先加盟店数', '配信日時', '成約フラグ', '成約日時', '成約加盟店ID', '成約金額',
+    '流入元URL', '検索キーワード', 'UTMパラメータ',
+    '訪問回数', '最終訪問日時', 'ブロックフラグ',
+    '架電履歴', '次回架電日時', 'メモ',
+    '管理ステータス', '加盟店別ステータス', '初回架電日時', '最終更新日時', '配信予定日時', '担当者名', '最終架電日時'
+  ];
+
+  if (headers.length === expectedColumnCount) {
+    results.passed.push('ヘッダー配列: ' + headers.length + '列 ✅');
+    console.log('✅ PASS: ヘッダー配列は' + expectedColumnCount + '列です');
+  } else {
+    results.failed.push('ヘッダー配列: ' + headers.length + '列（期待値: ' + expectedColumnCount + '列）');
+    console.error('❌ FAIL: ヘッダー配列は' + headers.length + '列です（期待値: ' + expectedColumnCount + '列）');
+  }
+
+  // ============================================
+  // テスト2: 重要カラムのインデックス検証
+  // ============================================
+  console.log('\n【テスト2】重要カラムのインデックス検証');
+
+  const columnMapping = {
+    'AQ（現地調査希望日時）': { index: 42, expected: '現地調査希望日時' },
+    'AR（業者選定履歴）': { index: 43, expected: '業者選定履歴' },
+    'AS（案件メモ）': { index: 44, expected: '案件メモ' },
+    'AT（連絡時間帯）': { index: 45, expected: '連絡時間帯' },
+    'AU（見積もり送付先）': { index: 46, expected: '見積もり送付先' },
+    'AV（ワードリンク回答）': { index: 47, expected: 'ワードリンク回答' },
+    'BK（次回架電日時）': { index: 62, expected: '次回架電日時' },
+    'BR（担当者名）': { index: 69, expected: '担当者名' },
+    'BS（最終架電日時）': { index: 70, expected: '最終架電日時' }
+  };
+
+  for (const key in columnMapping) {
+    const col = columnMapping[key];
+    const actualValue = headers[col.index];
+
+    if (actualValue === col.expected) {
+      results.passed.push(key + ': ' + actualValue + ' ✅');
+      console.log('✅ PASS: ' + key + ' = "' + actualValue + '"');
+    } else {
+      results.failed.push(key + ': "' + actualValue + '"（期待値: "' + col.expected + '"）');
+      console.error('❌ FAIL: ' + key + ' = "' + actualValue + '"（期待値: "' + col.expected + '"）');
+    }
+  }
+
+  // ============================================
+  // テスト3: updateCV2の列番号検証
+  // ============================================
+  console.log('\n【テスト3】updateCV2の列番号検証');
+
+  const updateCV2Columns = {
+    'AQ（現地調査希望日時）': 43,  // インデックス42 + 1
+    'AR（業者選定履歴）': 44,
+    'AS（案件メモ）': 45,
+    'AT（連絡時間帯）': 46,
+    'AU（見積もり送付先）': 47
+  };
+
+  for (const key in updateCV2Columns) {
+    const colNum = updateCV2Columns[key];
+    const headerIndex = colNum - 1;  // 列番号からインデックスに変換
+    const headerName = headers[headerIndex];
+    const expectedName = columnMapping[key].expected;
+
+    if (headerName === expectedName) {
+      results.passed.push('updateCV2 ' + key + ': 列番号' + colNum + ' ✅');
+      console.log('✅ PASS: updateCV2 ' + key + ' = 列番号' + colNum + ' (' + headerName + ')');
+    } else {
+      results.failed.push('updateCV2 ' + key + ': 列番号' + colNum + '（ヘッダー: "' + headerName + '"）');
+      console.error('❌ FAIL: updateCV2 ' + key + ' = 列番号' + colNum + '（ヘッダー: "' + headerName + '"、期待値: "' + expectedName + '"）');
+    }
+  }
+
+  // ============================================
+  // テスト4: 列番号とインデックスの整合性
+  // ============================================
+  console.log('\n【テスト4】列番号とインデックスの整合性');
+
+  const exampleMappings = [
+    { letter: 'A', index: 0, colNum: 1, name: 'CV ID' },
+    { letter: 'G', index: 6, colNum: 7, name: '電話番号' },
+    { letter: 'N', index: 13, colNum: 14, name: '郵便番号（物件）' },
+    { letter: 'AQ', index: 42, colNum: 43, name: '現地調査希望日時' },
+    { letter: 'BR', index: 69, colNum: 70, name: '担当者名' },
+    { letter: 'BS', index: 70, colNum: 71, name: '最終架電日時' }
+  ];
+
+  for (const mapping of exampleMappings) {
+    const actualName = headers[mapping.index];
+
+    if (actualName === mapping.name) {
+      results.passed.push(mapping.letter + '列: インデックス' + mapping.index + '、列番号' + mapping.colNum + ' ✅');
+      console.log('✅ PASS: ' + mapping.letter + '列 = インデックス' + mapping.index + '、列番号' + mapping.colNum + ' (' + actualName + ')');
+    } else {
+      results.failed.push(mapping.letter + '列: インデックス' + mapping.index + '（ヘッダー: "' + actualName + '"、期待値: "' + mapping.name + '"）');
+      console.error('❌ FAIL: ' + mapping.letter + '列 = インデックス' + mapping.index + '（ヘッダー: "' + actualName + '"、期待値: "' + mapping.name + '"）');
+    }
+  }
+
+  // ============================================
+  // 最終結果
+  // ============================================
+  console.log('\n=== テスト結果サマリー ===');
+  console.log('✅ 成功: ' + results.passed.length + '件');
+  console.log('❌ 失敗: ' + results.failed.length + '件');
+  console.log('⚠️  警告: ' + results.warnings.length + '件');
+
+  if (results.failed.length === 0) {
+    console.log('\n🎉 すべてのテストが成功しました！マッピングは完璧です。');
+  } else {
+    console.log('\n❌ 以下の問題を修正してください：');
+    results.failed.forEach(function(msg) {
+      console.log('  - ' + msg);
+    });
+  }
+
+  return {
+    success: results.failed.length === 0,
+    passed: results.passed.length,
+    failed: results.failed.length,
+    warnings: results.warnings.length,
+    details: results
+  };
+}
