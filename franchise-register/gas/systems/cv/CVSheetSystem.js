@@ -537,6 +537,37 @@ const CVSheetSystem = {
    */
   submitCV1(params) {
     try {
+      console.log('[CVSheetSystem] submitCV1 - 受信パラメータ:');
+      console.log('[CVSheetSystem] Q1_propertyType:', params.Q1_propertyType);
+      console.log('[CVSheetSystem] Q2_floors:', params.Q2_floors);
+      console.log('[CVSheetSystem] Q3_buildingAge:', params.Q3_buildingAge);
+      console.log('[CVSheetSystem] Q4_workHistory:', params.Q4_workHistory);
+      console.log('[CVSheetSystem] Q5_previousWorkTime:', params.Q5_previousWorkTime);
+      console.log('[CVSheetSystem] Q6_exteriorMaterial:', params.Q6_exteriorMaterial);
+      console.log('[CVSheetSystem] Q7_roofMaterial:', params.Q7_roofMaterial);
+      console.log('[CVSheetSystem] Q8_concernedArea:', params.Q8_concernedArea);
+      console.log('[CVSheetSystem] Q9_exteriorWork:', params.Q9_exteriorWork);
+      console.log('[CVSheetSystem] Q10_roofWork:', params.Q10_roofWork);
+      console.log('[CVSheetSystem] BOT回答全件:', JSON.stringify({
+        Q1: params.Q1_propertyType,
+        Q2: params.Q2_floors,
+        Q3: params.Q3_buildingAge,
+        Q4: params.Q4_workHistory,
+        Q5: params.Q5_previousWorkTime,
+        Q6: params.Q6_exteriorMaterial,
+        Q7: params.Q7_roofMaterial,
+        Q8: params.Q8_concernedArea,
+        Q9: params.Q9_exteriorWork,
+        Q10: params.Q10_roofWork,
+        Q11: params.Q11_quoteCount,
+        Q12: params.Q12_quoteSource,
+        Q13: params.Q13_doorSales,
+        Q14: params.Q14_comparison,
+        Q15: params.Q15_doorSalesCompany,
+        Q16: params.Q16_degradation,
+        Q17: params.Q17_selectionCriteria
+      }));
+
       const ssId = this.getSpreadsheetId();
       const ss = SpreadsheetApp.openById(ssId);
       const sheet = ss.getSheetByName('ユーザー登録');

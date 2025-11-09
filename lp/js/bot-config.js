@@ -244,6 +244,8 @@ const BotConfig = {
     // ============================================
     mapAnswersToSpreadsheet() {
         const answers = this.state.userAnswers || {};
+        console.log('[BotConfig] mapAnswersToSpreadsheet - 元データ:', answers);
+        console.log('[BotConfig] 元データの質問数:', Object.keys(answers).length);
         const mapped = {};
 
         // 基本情報列（V, W, X, Y列: 物件種別、築年数、建物面積、階数）
@@ -387,6 +389,18 @@ const BotConfig = {
             mapped.wordLinkAnswer = answers.wordLinkAnswer.choice || '';
         }
 
+        console.log('[BotConfig] ===== マッピング結果 =====');
+        console.log('[BotConfig] 全項目:', mapped);
+        console.log('[BotConfig] Q1_propertyType:', mapped.Q1_propertyType);
+        console.log('[BotConfig] Q2_floors:', mapped.Q2_floors);
+        console.log('[BotConfig] Q3_buildingAge:', mapped.Q3_buildingAge);
+        console.log('[BotConfig] Q4_workHistory:', mapped.Q4_workHistory);
+        console.log('[BotConfig] Q5_previousWorkTime:', mapped.Q5_previousWorkTime);
+        console.log('[BotConfig] Q6_exteriorMaterial:', mapped.Q6_exteriorMaterial);
+        console.log('[BotConfig] Q7_roofMaterial:', mapped.Q7_roofMaterial);
+        console.log('[BotConfig] Q8_concernedArea:', mapped.Q8_concernedArea);
+        console.log('[BotConfig] Q9_exteriorWork:', mapped.Q9_exteriorWork);
+        console.log('[BotConfig] Q10_roofWork:', mapped.Q10_roofWork);
         console.log('📋 スプレッドシート形式に変換:', mapped);
         console.log('📋 変換された項目数:', Object.keys(mapped).filter(key => mapped[key]).length);
         return mapped;
