@@ -487,6 +487,18 @@ function displayRanking() {
 
   console.log('ランキング表示完了（正しい仕様に復元）');
 
+  // 「もっと見る」ボタンの表示制御
+  const toggleButton = document.getElementById('toggleAllCompanies');
+  if (toggleButton) {
+    if (showingAll || allCompanies.length <= 4) {
+      // 全て表示中、または業者数が4社以下の場合は非表示
+      toggleButton.style.display = 'none';
+    } else {
+      // 4社のみ表示中かつ5社以上ある場合は表示
+      toggleButton.style.display = 'block';
+    }
+  }
+
   // キープボタンの状態を更新（ソート切り替え後もキープ状態を維持）
   setTimeout(() => {
     keepManager.updateAllButtons();
