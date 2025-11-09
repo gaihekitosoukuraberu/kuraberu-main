@@ -349,6 +349,10 @@ const BotQuestions = {
         console.log('📌 1つ前の質問に戻ります:', previousEntry.questionId);
         console.log('📌 戻った後の履歴:', history.map(h => h.questionId));
 
+        // ✅ 現在の質問IDを更新（重要：これがないと回答が間違ったIDで保存される）
+        BotConfig.state.currentQuestionId = previousEntry.questionId;
+        console.log('✅ currentQuestionIdを更新:', previousEntry.questionId);
+
         // 選択肢をクリア
         BotUI.clearChoices();
 
