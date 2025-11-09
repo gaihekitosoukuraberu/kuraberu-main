@@ -346,8 +346,17 @@ const CVSheetSystem = {
         throw new Error('ユーザー登録シートが見つかりません');
       }
 
-      // CV ID生成（タイムスタンプベース）
-      const cvId = 'CV' + new Date().getTime();
+      // CV ID生成（流入元識別子 + 連番）
+      // entryPoint: 'zip' → CV-Z000001, 'keyword' → CV-KW000001, 想定外 → CV-UNK000001
+      let suffix = 'UNK'; // デフォルト（想定外ケース）
+      if (data.entryPoint === 'zip') {
+        suffix = 'Z';
+      } else if (data.entryPoint === 'keyword') {
+        suffix = 'KW';
+      }
+
+      const lastRow = sheet.getLastRow();
+      const cvId = 'CV-' + suffix + String(lastRow).padStart(6, '0');
       const timestamp = new Date();
 
       // データ行構築（71列）
@@ -445,14 +454,14 @@ const CVSheetSystem = {
       ];
 
       // 最終行に追加
-      const lastRow = sheet.getLastRow() + 1;
       sheet.appendRow(row);
+      const newRowNum = sheet.getLastRow();
 
       // 電話番号と郵便番号を文字列形式に設定（先頭の0が消えないように）
-      sheet.getRange(lastRow, 7).setNumberFormat('@STRING@');  // G: 電話番号
-      sheet.getRange(lastRow, 11).setNumberFormat('@STRING@'); // K: 電話番号（2人目）
-      sheet.getRange(lastRow, 14).setNumberFormat('@STRING@'); // N: 郵便番号（物件）
-      sheet.getRange(lastRow, 19).setNumberFormat('@STRING@'); // S: 郵便番号（自宅）
+      sheet.getRange(newRowNum, 7).setNumberFormat('@STRING@');  // G: 電話番号
+      sheet.getRange(newRowNum, 11).setNumberFormat('@STRING@'); // K: 電話番号（2人目）
+      sheet.getRange(newRowNum, 14).setNumberFormat('@STRING@'); // N: 郵便番号（物件）
+      sheet.getRange(newRowNum, 19).setNumberFormat('@STRING@'); // S: 郵便番号（自宅）
 
       console.log('[CVSheetSystem] ユーザー登録追加:', cvId);
 
@@ -536,8 +545,17 @@ const CVSheetSystem = {
         throw new Error('ユーザー登録シートが見つかりません');
       }
 
-      // CV ID生成
-      const cvId = 'CV' + new Date().getTime();
+      // CV ID生成（流入元識別子 + 連番）
+      // entryPoint: 'zip' → CV-Z000001, 'keyword' → CV-KW000001, 想定外 → CV-UNK000001
+      let suffix = 'UNK'; // デフォルト（想定外ケース）
+      if (params.entryPoint === 'zip') {
+        suffix = 'Z';
+      } else if (params.entryPoint === 'keyword') {
+        suffix = 'KW';
+      }
+
+      const lastRow = sheet.getLastRow();
+      const cvId = 'CV-' + suffix + String(lastRow).padStart(6, '0');
       const timestamp = new Date();
 
       // データ行構築（71列）
@@ -630,14 +648,14 @@ const CVSheetSystem = {
       ];
 
       // 最終行に追加
-      const lastRow = sheet.getLastRow() + 1;
       sheet.appendRow(row);
+      const newRowNum = sheet.getLastRow();
 
       // 電話番号と郵便番号を文字列形式に設定（先頭の0が消えないように）
-      sheet.getRange(lastRow, 7).setNumberFormat('@STRING@');  // G: 電話番号
-      sheet.getRange(lastRow, 11).setNumberFormat('@STRING@'); // K: 電話番号（2人目）
-      sheet.getRange(lastRow, 14).setNumberFormat('@STRING@'); // N: 郵便番号（物件）
-      sheet.getRange(lastRow, 19).setNumberFormat('@STRING@'); // S: 郵便番号（自宅）
+      sheet.getRange(newRowNum, 7).setNumberFormat('@STRING@');  // G: 電話番号
+      sheet.getRange(newRowNum, 11).setNumberFormat('@STRING@'); // K: 電話番号（2人目）
+      sheet.getRange(newRowNum, 14).setNumberFormat('@STRING@'); // N: 郵便番号（物件）
+      sheet.getRange(newRowNum, 19).setNumberFormat('@STRING@'); // S: 郵便番号（自宅）
 
       console.log('[CVSheetSystem] CV1保存完了:', cvId);
 
