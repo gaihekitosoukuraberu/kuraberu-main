@@ -2159,7 +2159,7 @@
                 // フォームデータ取得
                 const formData = {
                     name: document.getElementById('userName').value.trim(),
-                    propertyZip: document.getElementById('propertyZip').value.trim(),
+                    propertyZip: document.getElementById('propertyZip').value.trim().replace('-', ''),  // ハイフン除去
                     propertyAddress: document.getElementById('propertyAddress').value.trim(),
                     propertyStreet: document.getElementById('propertyStreet').value.trim(),
                     email: document.getElementById('userEmail').value.trim(),
@@ -2169,11 +2169,53 @@
                     botAnswers: window.BotConfig ? window.BotConfig.state.userAnswers : {}
                 };
 
+                // 必須項目バリデーション
+                if (!formData.name) {
+                    alert('お名前を入力してください');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '送信する';
+                    return;
+                }
+                if (!formData.email) {
+                    alert('メールアドレスを入力してください');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '送信する';
+                    return;
+                }
+                // メールアドレス形式チェック
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(formData.email)) {
+                    alert('正しいメールアドレスを入力してください');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '送信する';
+                    return;
+                }
+                if (!formData.propertyStreet) {
+                    alert('物件住所（番地・建物名）を入力してください');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '送信する';
+                    return;
+                }
+
                 // 自宅住所（異なる場合）
                 if (document.getElementById('differentHome').checked) {
-                    formData.homeZip = document.getElementById('homeZip').value.trim();
+                    formData.homeZip = document.getElementById('homeZip').value.trim().replace('-', '');  // ハイフン除去
                     formData.homeAddress = document.getElementById('homeAddress').value.trim();
                     formData.homeStreet = document.getElementById('homeStreet').value.trim();
+
+                    // 自宅住所のバリデーション
+                    if (!formData.homeZip) {
+                        alert('自宅の郵便番号を入力してください');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = '送信する';
+                        return;
+                    }
+                    if (!formData.homeStreet) {
+                        alert('自宅住所（番地・建物名）を入力してください');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = '送信する';
+                        return;
+                    }
                 }
 
                 console.log('📤 送信データ:', formData);
