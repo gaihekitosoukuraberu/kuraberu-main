@@ -256,12 +256,88 @@ const realCompanies = ['田中塗装', '山田ペイント', '佐藤工業', '�
 // キープリスト管理（ページ読み込み時にクリア）
 let keepList = [];
 
+// キープマネージャー（業者名ベースで管理）
+const keepManager = {
+  // キープ状態をチェック
+  isKept(companyName) {
+    return keepList.some(item => item.name === companyName);
+  },
+
+  // キープ切り替え
+  toggle(rank, companyName, buttonElement) {
+    const existingIndex = keepList.findIndex(item => item.name === companyName);
+
+    if (existingIndex > -1) {
+      // 既にキープされている場合は削除
+      keepList.splice(existingIndex, 1);
+      console.log('🗑️ キープ解除:', companyName);
+    } else {
+      // キープされていない場合は追加
+      keepList.push({
+        name: companyName,
+        rank: rank  // 現在のランク（表示用）
+      });
+      console.log('✅ キープ追加:', companyName);
+    }
+
+    // localStorageに保存
+    localStorage.setItem('keepList', JSON.stringify(keepList));
+
+    // ボタンの表示を更新
+    this.updateButton(buttonElement, companyName);
+
+    // キープ数バッジを更新
+    updateKeepCountBadge();
+
+    // キープボタンの表示制御
+    const keepButton = document.getElementById('keepButton');
+    if (keepButton) {
+      if (keepList.length > 0) {
+        keepButton.classList.remove('hidden');
+      } else {
+        keepButton.classList.add('hidden');
+      }
+    }
+  },
+
+  // ボタンの表示を更新
+  updateButton(buttonElement, companyName) {
+    if (!buttonElement) return;
+
+    const isKept = this.isKept(companyName);
+    const textElement = buttonElement.querySelector('.keep-text');
+
+    if (isKept) {
+      buttonElement.className = 'keep-btn bg-yellow-200 hover:bg-yellow-300 text-yellow-800 px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap';
+      if (textElement) textElement.textContent = 'キープ中！';
+    } else {
+      buttonElement.className = 'keep-btn bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap';
+      if (textElement) textElement.textContent = 'キープ';
+    }
+  },
+
+  // 全ボタンの表示を更新（ランキング再描画後に使用）
+  updateAllButtons() {
+    document.querySelectorAll('.keep-btn').forEach(button => {
+      // onclick属性から業者名を抽出
+      const onclick = button.getAttribute('onclick');
+      if (onclick) {
+        const match = onclick.match(/'([^']+)'/g);
+        if (match && match.length >= 2) {
+          const companyName = match[1].replace(/'/g, '');
+          this.updateButton(button, companyName);
+        }
+      }
+    });
+  }
+};
+
 // キープボタンの状態をチェックする関数（淡い色に変更）
 function getKeepButtonState(companyRank) {
   const isKept = keepList.some(item => item.id === companyRank.toString());
   return {
     text: isKept ? 'キープ中！' : 'キープ',
-    classes: isKept 
+    classes: isKept
       ? 'keep-btn bg-yellow-200 hover:bg-yellow-300 text-yellow-800 px-2 py-1 rounded text-xs flex-1'
       : 'keep-btn bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-2 py-1 rounded text-xs flex-1'
   };
@@ -408,9 +484,14 @@ function displayRanking() {
       </div>
     `;
   }).join('');
-  
+
   console.log('ランキング表示完了（正しい仕様に復元）');
-  
+
+  // キープボタンの状態を更新（ソート切り替え後もキープ状態を維持）
+  setTimeout(() => {
+    keepManager.updateAllButtons();
+  }, 0);
+
   } catch (error) {
     console.error('❌ ランキング表示でエラーが発生しました:', error);
     // フォールバック表示
@@ -590,7 +671,7 @@ function updateKeepBoxContent() {
           <h4 class="font-medium">${company.name}</h4>
           <p class="text-sm text-gray-500">ランキング${company.rank}位</p>
         </div>
-        <button class="text-red-500 hover:text-red-700" onclick="removeFromKeepList('${company.id}')">
+        <button class="text-red-500 hover:text-red-700" onclick="removeFromKeepList('${company.name}')">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
           </svg>
@@ -601,15 +682,15 @@ function updateKeepBoxContent() {
 }
 
 // キープリストから削除
-function removeFromKeepList(companyId) {
-  keepList = keepList.filter(item => item.id !== companyId);
+function removeFromKeepList(companyName) {
+  keepList = keepList.filter(item => item.name !== companyName);
   localStorage.setItem('keepList', JSON.stringify(keepList));
-  
+
   // 表示を更新
   displayRanking();
   updateKeepCountBadge();
   updateKeepBoxContent();
-  
+
   // キープが0になったら右上ボタンを非表示
   if (keepList.length === 0) {
     const keepButton = document.getElementById('keepButton');
@@ -944,6 +1025,7 @@ window.dynamicRankings = dynamicRankings;
 window.fetchRankingFromGAS = fetchRankingFromGAS;
 window.updateAllCompaniesFromDynamic = updateAllCompaniesFromDynamic;
 window.displayRanking = displayRanking;
+window.keepManager = keepManager;  // 業者名ベースのキープ管理
 window.toggleKeep = toggleKeep;
 window.showCompanyDetail = showCompanyDetail;
 window.toggleAllCompanies = toggleAllCompanies;
