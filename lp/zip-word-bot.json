@@ -277,7 +277,7 @@
       "displayName": "カバー工法",
       "lpKeyword": "cover_method",
       "icon": "🏗️",
-      "greeting": "「外壁や屋根を張り替えずに、カバー工法で安く早く直したい」とお考えですね。",
+      "greeting": "「外壁や屋根のカバー工法（上張り）をご検討中ですね。",
       "immediatePostal": true,
       "flow": {
         "initial": {

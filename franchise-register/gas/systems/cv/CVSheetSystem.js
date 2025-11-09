@@ -711,6 +711,7 @@ const CVSheetSystem = {
       // 更新データを設定
       sheet.getRange(targetRow, 3).setValue(params.name || '');                    // C: 氏名
       sheet.getRange(targetRow, 8).setValue(params.email || '');                   // H: メールアドレス
+      sheet.getRange(targetRow, 14).setValue(params.postalCode ? "'" + params.postalCode : ''); // N: 郵便番号（物件）（'を先頭に付けて文字列化）
       sheet.getRange(targetRow, 15).setValue(params.propertyPrefecture || '');     // O: 都道府県（物件）
       sheet.getRange(targetRow, 16).setValue(params.propertyCity || '');           // P: 市区町村（物件）
       sheet.getRange(targetRow, 17).setValue(params.propertyStreet || '');         // Q: 住所詳細（物件）
