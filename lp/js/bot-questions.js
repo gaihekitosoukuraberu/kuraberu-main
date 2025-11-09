@@ -314,7 +314,35 @@ const BotQuestions = {
 
         // 現在の質問を履歴から削除
         const removed = history.pop();
-        console.log('🗑️ 履歴から削除:', removed.questionId);
+        const currentQuestionId = removed.questionId;
+        console.log('🗑️ 履歴から削除:', currentQuestionId);
+
+        // userAnswersから削除
+        if (BotConfig.state.userAnswers[currentQuestionId]) {
+            delete BotConfig.state.userAnswers[currentQuestionId];
+            console.log('🗑️ 回答を削除:', currentQuestionId);
+        }
+
+        // 残っている質問IDのセットを作成
+        const remainingQuestionIds = new Set(
+            BotConfig.state.questionHistory.map(entry => entry.questionId)
+        );
+
+        // 残っていない質問の回答を全て削除
+        Object.keys(BotConfig.state.userAnswers).forEach(questionId => {
+            if (!remainingQuestionIds.has(questionId)) {
+                delete BotConfig.state.userAnswers[questionId];
+                console.log('🗑️ 後続の回答を削除:', questionId);
+            }
+        });
+
+        // sessionStorageを更新
+        try {
+            sessionStorage.setItem('bot_answers', JSON.stringify(BotConfig.state.userAnswers));
+            console.log('💾 sessionStorage更新完了');
+        } catch (e) {
+            console.warn('[goBack] sessionStorage更新失敗:', e);
+        }
 
         // 1つ前の質問を取得
         const previousEntry = history[history.length - 1];
