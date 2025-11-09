@@ -382,6 +382,11 @@ const BotConfig = {
             mapped.Q17_selectionCriteria = answers.Q016.choice || '';
         }
 
+        // ワードリンク回答（AV列）
+        if (answers.wordLinkAnswer) {
+            mapped.wordLinkAnswer = answers.wordLinkAnswer.choice || '';
+        }
+
         console.log('📋 スプレッドシート形式に変換:', mapped);
         console.log('📋 変換された項目数:', Object.keys(mapped).filter(key => mapped[key]).length);
         return mapped;

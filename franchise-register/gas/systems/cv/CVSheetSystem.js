@@ -229,15 +229,13 @@ const CVSheetSystem = {
       'Q16_現在の劣化状況',   // AO
       'Q17_業者選定条件',     // AP
 
-      // AQ-AR: CV2入力項目
+      // AQ-AV: CV2入力項目・運用項目
       '現地調査希望日時',    // AQ
-      'キープ業者情報',      // AR
-
-      // AS-AV: 予備・運用項目
-      '要望・備考',         // AS
-      'エントリーポイント',  // AT
-      'シナリオ名',         // AU
-      'フローステップ',      // AV
+      '業者選定履歴',        // AR
+      '案件メモ',            // AS
+      '連絡時間帯',          // AT
+      '見積もり送付先',      // AU
+      'ワードリンク回答',    // AV
 
       // AW-BC: 配信・成約管理
       '配信ステータス',      // AW
@@ -260,7 +258,7 @@ const CVSheetSystem = {
 
       // BJ-BL: フォローアップ履歴
       '架電履歴',           // BJ
-      '最終架電日時',        // BK
+      '次回架電日時',        // BK
       'メモ',               // BL
 
       // BM-BS: 管理用フィールド
@@ -269,8 +267,8 @@ const CVSheetSystem = {
       '初回架電日時',        // BO
       '最終更新日時',        // BP
       '配信予定日時',        // BQ
-      '予備管理項目',        // BR
-      '担当者名'            // BS
+      '担当者名',            // BR
+      '最終架電日時'         // BS
     ];
 
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
@@ -404,15 +402,13 @@ const CVSheetSystem = {
         data.Q16_degradation || '',              // AO: Q16_現在の劣化状況
         data.Q17_selectionCriteria || '',        // AP: Q17_業者選定条件
 
-        // AQ-AR: CV2入力項目
+        // AQ-AV: CV2入力項目・運用項目
         data.surveyDatePreference || '',         // AQ: 現地調査希望日時
-        data.keepInfo || '',                     // AR: キープ業者情報
-
-        // AS-AV: 予備・運用項目
-        data.requests || '',                     // AS: 要望・備考
-        data.entryPoint || '',                   // AT: エントリーポイント
-        data.scenario || '',                     // AU: シナリオ名
-        data.flowStep || '',                     // AV: フローステップ
+        data.selectionHistory || '',             // AR: 業者選定履歴
+        data.requests || '',                     // AS: 案件メモ
+        data.contactTimeSlot || '',              // AT: 連絡時間帯
+        data.quoteDestination || '',             // AU: 見積もり送付先
+        data.wordLinkAnswer || '',               // AV: ワードリンク回答
 
         // AW-BC: 配信・成約管理
         '未配信',                                 // AW: 配信ステータス
@@ -435,7 +431,7 @@ const CVSheetSystem = {
 
         // BJ-BL: フォローアップ履歴
         '',                                      // BJ: 架電履歴
-        '',                                      // BK: 最終架電日時
+        '',                                      // BK: 次回架電日時
         '',                                      // BL: メモ
 
         // BM-BS: 管理用フィールド（新規追加）
@@ -444,8 +440,8 @@ const CVSheetSystem = {
         '',                                      // BO: 初回架電日時
         timestamp,                               // BP: 最終更新日時
         '',                                      // BQ: 配信予定日時
-        '',                                      // BR: 予備管理項目
-        ''                                       // BS: 担当者名
+        '',                                      // BR: 担当者名
+        ''                                       // BS: 最終架電日時
       ];
 
       // 最終行に追加
@@ -597,12 +593,11 @@ const CVSheetSystem = {
         params.Q17_selectionCriteria || '',      // AP: Q17_業者選定条件
 
         '',                                      // AQ: 現地調査希望日時（CV2で入力）
-        '',                                      // AR: キープ業者情報（CV2で入力）
-
-        '',                                      // AS: 要望・備考（CV2で入力）
-        params.entryPoint || '',                 // AT: エントリーポイント
-        params.scenario || '',                   // AU: シナリオ名
-        params.flowStep || '',                   // AV: フローステップ
+        '',                                      // AR: 業者選定履歴（CV2で入力）
+        '',                                      // AS: 案件メモ（CV2で入力）
+        '',                                      // AT: 連絡時間帯（CV2で入力）
+        '',                                      // AU: 見積もり送付先（CV2で入力）
+        params.wordLinkAnswer || '',             // AV: ワードリンク回答
 
         '未配信',                                 // AW-BC: 配信・成約管理
         0,
@@ -621,7 +616,7 @@ const CVSheetSystem = {
         'FALSE',                                 // BI: ブロックフラグ
 
         '',                                      // BJ: 架電履歴
-        '',                                      // BK: 最終架電日時
+        '',                                      // BK: 次回架電日時
         '',                                      // BL: メモ
 
         // BM-BS: 管理用フィールド（新規追加）
@@ -630,8 +625,8 @@ const CVSheetSystem = {
         '',                                      // BO: 初回架電日時
         timestamp,                               // BP: 最終更新日時
         '',                                      // BQ: 配信予定日時
-        '',                                      // BR: 予備管理項目
-        ''                                       // BS: 担当者名
+        '',                                      // BR: 担当者名
+        ''                                       // BS: 最終架電日時
       ];
 
       // 最終行に追加
@@ -738,8 +733,10 @@ const CVSheetSystem = {
 
       // CV2詳細情報
       sheet.getRange(targetRow, 43).setValue(params.surveyDatePreference || '');   // AQ: 現地調査希望日時
-      sheet.getRange(targetRow, 44).setValue(params.keepInfo || '');               // AR: キープ業者情報
-      sheet.getRange(targetRow, 45).setValue(params.requests || '');               // AS: 要望・備考
+      sheet.getRange(targetRow, 44).setValue(params.selectionHistory || '');       // AR: 業者選定履歴
+      sheet.getRange(targetRow, 45).setValue(params.requests || '');               // AS: 案件メモ
+      sheet.getRange(targetRow, 46).setValue(params.contactTimeSlot || '');        // AT: 連絡時間帯
+      sheet.getRange(targetRow, 47).setValue(params.quoteDestination || '');       // AU: 見積もり送付先
 
       console.log('[CVSheetSystem] CV2更新完了:', cvId);
 
