@@ -320,11 +320,13 @@ const keepManager = {
   updateAllButtons() {
     document.querySelectorAll('.keep-btn').forEach(button => {
       // onclick属性から業者名を抽出
+      // 例: keepManager.toggle('1', '田中塗装', this)
       const onclick = button.getAttribute('onclick');
       if (onclick) {
-        const match = onclick.match(/'([^']+)'/g);
-        if (match && match.length >= 2) {
-          const companyName = match[1].replace(/'/g, '');
+        // 2番目のパラメータ（業者名）を抽出
+        const matches = onclick.match(/keepManager\.toggle\('([^']+)',\s*'([^']+)'/);
+        if (matches && matches[2]) {
+          const companyName = matches[2];  // 2番目のキャプチャグループが業者名
           this.updateButton(button, companyName);
         }
       }
