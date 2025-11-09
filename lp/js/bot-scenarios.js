@@ -97,7 +97,7 @@ const BotScenarios = {
 
                 // ワードリンク回答を保存（AV列: ワードリンク回答）
                 const wordLinkAnswer = `${initialStep.message} → ${choice}`;
-                BotConfig.saveAnswer('wordLinkAnswer', wordLinkAnswer);
+                BotConfig.saveAnswer('wordLinkAnswer', wordLinkAnswer, index);
 
                 // responseがあれば表示
                 if (selected.response) {

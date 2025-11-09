@@ -165,7 +165,9 @@ const CVAPI = {
                 // ステップ2: 詳細情報
                 surveyDatePreference: formData.surveyDates?.join(', ') || '',
                 requests: formData.requests || '',
-                keepInfo: formData.keepInfo || '',  // キープ業者情報
+                selectionHistory: formData.keepInfo || '',  // AR列：業者選定履歴（キープ業者情報）
+                contactTimeSlot: formData.contactTimeSlot || '',  // AT列：連絡時間帯
+                quoteDestination: formData.quoteDestination || '',  // AU列：見積もり送付先
 
                 // タイムスタンプ
                 timestamp: new Date().toISOString()
@@ -194,7 +196,9 @@ const CVAPI = {
                 // ステップ2: 詳細情報
                 surveyDatePreference: formData.surveyDates?.join(', ') || '',
                 requests: formData.requests || '',
-                keepInfo: formData.keepInfo || '',  // キープ業者情報
+                selectionHistory: formData.keepInfo || '',  // AR列：業者選定履歴（キープ業者情報）
+                contactTimeSlot: formData.contactTimeSlot || '',  // AT列：連絡時間帯
+                quoteDestination: formData.quoteDestination || '',  // AU列：見積もり送付先
 
                 // タイムスタンプ
                 timestamp: new Date().toISOString()
