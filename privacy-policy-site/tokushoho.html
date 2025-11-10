@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>特定商取引法に基づく表記 | 株式会社外壁塗装くらべる</title>
+    <link rel="icon" type="image/png" href="kuraberufavicon.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic Pro', 'ヒラギノ角ゴ Pro', 'メイリオ', Meiryo, 'ＭＳ Ｐゴシック', sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 5px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        header h1 {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .logo {
+            width: 550px;
+            max-width: 85%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 32px;
+            cursor: pointer;
+            padding: 15px;
+            z-index: 1001;
+        }
+
+        .menu-toggle:active {
+            opacity: 0.7;
+        }
+
+        nav {
+            background-color: #34495e;
+            padding: 5px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav ul {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .nav-short {
+            display: none;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 40px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #3498db;
+            text-align: center;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .info-table th,
+        .info-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .info-table th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            font-weight: bold;
+            width: 35%;
+            vertical-align: top;
+        }
+
+        .info-table td {
+            color: #555;
+        }
+
+        .info-table tr:last-child th,
+        .info-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .notice-box {
+            background-color: #fff9e6;
+            border-left: 5px solid #ffc107;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 4px;
+        }
+
+        .notice-box h2 {
+            border: none;
+            padding-left: 0;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #856404;
+        }
+
+        .notice-box p {
+            margin-bottom: 10px;
+            line-height: 1.8;
+        }
+
+        .effective-date {
+            text-align: right;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 50px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            nav ul {
+                gap: 15px;
+                padding: 0 10px;
+            }
+
+            nav a {
+                font-size: 13px;
+                padding: 6px 8px;
+            }
+
+            .nav-full {
+                display: none;
+            }
+
+            .nav-short {
+                display: inline;
+            }
+
+            .info-table th {
+                width: 40%;
+                font-size: 14px;
+            }
+
+            .info-table td {
+                font-size: 14px;
+                word-break: break-all;
+            }
+
+            .info-table td a {
+                font-size: 14px;
+            }
+
+            h2 {
+                font-size: 18px;
+            }
+
+            h3 {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            nav ul {
+                gap: 8px;
+                padding: 0 5px;
+            }
+
+            nav a {
+                font-size: 11px;
+                padding: 5px 6px;
+            }
+
+            .nav-full {
+                display: none;
+            }
+
+            .nav-short {
+                display: inline;
+            }
+
+            .info-table th,
+            .info-table td {
+                padding: 10px;
+                display: block;
+                width: 100%;
+            }
+
+            .info-table td {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        
+        <img src="logo-v3.png" alt="外壁塗装くらべる" class="logo">
+    </header>
+
+    <nav>
+        <ul >
+            <li><a href="index.html"><span class="nav-full">トップページ</span><span class="nav-short">トップ</span></a></li>
+            <li><a href="privacy.html"><span class="nav-full">プライバシーポリシー</span><span class="nav-short">ポリシー</span></a></li>
+            <li><a href="company.html">会社概要</a></li>
+            <li><a href="terms.html">利用規約</a></li>
+            <li><a href="tokushoho.html">特定商取引法</a></li>
+        </ul>
+    </nav>
+
+
+    <div class="container">
+        <h2>特定商取引法に基づく表記</h2>
+
+        <table class="info-table">
+            <tr>
+                <th>販売事業者</th>
+                <td>株式会社外壁塗装くらべる</td>
+            </tr>
+            <tr>
+                <th>代表責任者</th>
+                <td>代表取締役　山内竜太</td>
+            </tr>
+            <tr>
+                <th>所在地</th>
+                <td>〒150-0043<br>東京都渋谷区道玄坂1丁目10番8号<br>渋谷道玄坂東急ビル2F−C</td>
+            </tr>
+            <tr>
+                <th>電話番号</th>
+                <td>03-0000-0000</td>
+            </tr>
+            <tr>
+                <th>メールアドレス</th>
+                <td>info@gaihekikuraberu.com</td>
+            </tr>
+            <tr>
+                <th>営業時間</th>
+                <td>平日 9:00〜18:00（土日祝日を除く）</td>
+            </tr>
+            <tr>
+                <th>設立</th>
+                <td>2025年4月1日</td>
+            </tr>
+            <tr>
+                <th>資本金</th>
+                <td>3,000,000円</td>
+            </tr>
+            <tr>
+                <th>サービス内容</th>
+                <td>外壁塗装業者マッチングプラットフォームの運営<br>
+                お客様のご要望に応じて、全国の優良外壁塗装業者をご紹介いたします。</td>
+            </tr>
+            <tr>
+                <th>サービス利用料</th>
+                <td>無料<br>
+                ※お客様のサービス利用料は無料です。当社は加盟店からの手数料により運営しております。</td>
+            </tr>
+            <tr>
+                <th>加盟店利用料</th>
+                <td>加盟店契約に基づき、別途定める手数料が発生いたします。</td>
+            </tr>
+            <tr>
+                <th>支払方法（加盟店様向け）</th>
+                <td>
+                    ・クレジットカード決済<br>
+                    ・銀行振込<br>
+                    ※詳細は加盟店契約書に記載されています。
+                </td>
+            </tr>
+            <tr>
+                <th>代金の支払い時期</th>
+                <td>加盟店契約に基づき、規定の期日までにお支払いいただきます。<br>
+                詳細は個別の契約内容をご確認ください。</td>
+            </tr>
+            <tr>
+                <th>サービス提供時期</th>
+                <td>お客様からの見積依頼後、即時に加盟店のご紹介を行います。<br>
+                ※実際の施工時期は、紹介先の加盟店との調整によります。</td>
+            </tr>
+            <tr>
+                <th>返品・キャンセルについて</th>
+                <td>
+                    <strong>【お客様向け】</strong><br>
+                    ・見積依頼のキャンセルは、加盟店との契約前であればいつでも可能です。<br>
+                    ・加盟店との契約後のキャンセルについては、各加盟店の規約に従います。<br>
+                    <br>
+                    <strong>【加盟店様向け】</strong><br>
+                    ・サービスの性質上、提供後の返品・返金は原則として承っておりません。<br>
+                    ・契約内容に疑義がある場合は、速やかにお問い合わせください。
+                </td>
+            </tr>
+            <tr>
+                <th>引渡し時期</th>
+                <td>見積依頼フォーム送信後、即時にマッチング業者情報を提供いたします。</td>
+            </tr>
+            <tr>
+                <th>不良品・瑕疵の対応</th>
+                <td>サービス提供に不備があった場合は、速やかに対応いたします。<br>
+                実際の施工に関する不良・瑕疵については、施工を行った加盟店が責任を負います。</td>
+            </tr>
+            <tr>
+                <th>個人情報の取り扱い</th>
+                <td>お客様の個人情報は、当社の<a href="privacy.html" style="color: #3498db; text-decoration: underline;">プライバシーポリシー</a>に基づき、適切に管理・保護いたします。</td>
+            </tr>
+            <tr>
+                <th>免責事項</th>
+                <td>
+                    ・当社は加盟店とお客様のマッチングサービスを提供しており、施工そのものは加盟店が実施します。<br>
+                    ・施工内容・施工品質・施工後のアフターサービスについては、各加盟店が責任を負います。<br>
+                    ・万が一、加盟店との間でトラブルが発生した場合、当社は誠意をもって対応いたしますが、直接の責任は負いかねます。
+                </td>
+            </tr>
+        </table>
+
+        <div class="notice-box">
+            <h2>お問い合わせについて</h2>
+            <p>ご不明な点やご質問がございましたら、下記までお気軽にお問い合わせください。</p>
+            <p><strong>メール：</strong>info@gaihekikuraberu.com</p>
+            <p><strong>電話：</strong>03-0000-0000（平日 9:00〜18:00）</p>
+        </div>
+
+        <h2>決済代行業者について</h2>
+        <table class="info-table">
+            <tr>
+                <th>決済代行業者</th>
+                <td>選定中</td>
+            </tr>
+        </table>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 株式会社外壁塗装くらべる. All Rights Reserved.</p>
+        <p style="margin-top: 10px; font-size: 14px;">
+            <a href="privacy.html" style="color: #3498db; text-decoration: none; margin: 0 10px;">プライバシーポリシー</a>
+            |
+            <a href="company.html" style="color: #3498db; text-decoration: none; margin: 0 10px;">会社概要</a>
+            |
+            <a href="terms.html" style="color: #3498db; text-decoration: none; margin: 0 10px;">利用規約</a>
+            |
+            <a href="tokushoho.html" style="color: #3498db; text-decoration: none; margin: 0 10px;">特定商取引法</a>
+        </p>
+    </footer>
+</body>
+</html>

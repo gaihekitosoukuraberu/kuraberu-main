@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会社概要 | 株式会社外壁塗装くらべる</title>
+    <link rel="icon" type="image/png" href="kuraberufavicon.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic Pro', 'ヒラギノ角ゴ Pro', 'メイリオ', Meiryo, 'ＭＳ Ｐゴシック', sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 5px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        header h1 {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .logo {
+            width: 550px;
+            max-width: 85%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 32px;
+            cursor: pointer;
+            padding: 15px;
+            z-index: 1001;
+        }
+
+        .menu-toggle:active {
+            opacity: 0.7;
+        }
+
+        nav {
+            background-color: #34495e;
+            padding: 5px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav ul {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .nav-short {
+            display: none;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 40px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #3498db;
+            text-align: center;
+        }
+
+        h3 {
+            color: #34495e;
+            font-size: 20px;
+            margin: 30px 0 20px;
+            padding-left: 10px;
+            border-left: 4px solid #3498db;
+        }
+
+        .company-info {
+            margin-top: 30px;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .info-table th,
+        .info-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .info-table th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            font-weight: bold;
+            width: 30%;
+        }
+
+        .info-table td {
+            color: #555;
+        }
+
+        .info-table tr:last-child th,
+        .info-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .business-description {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 30px;
+        }
+
+        .business-description p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .business-list {
+            margin-left: 20px;
+            margin-top: 15px;
+        }
+
+        .business-list li {
+            margin-bottom: 10px;
+            padding-left: 10px;
+            position: relative;
+        }
+
+        .business-list li:before {
+            content: "▸";
+            position: absolute;
+            left: -10px;
+            color: #3498db;
+        }
+
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 50px;
+        }
+
+        .message-section {
+            background-color: #fff;
+            padding: 30px;
+            border-left: 5px solid #3498db;
+            margin: 30px 0;
+        }
+
+        .message-section h3 {
+            border: none;
+            padding-left: 0;
+            margin-bottom: 20px;
+        }
+
+        .message-section p {
+            line-height: 2;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            nav ul {
+                gap: 15px;
+                padding: 0 10px;
+            }
+
+            nav a {
+                font-size: 13px;
+                padding: 6px 8px;
+            }
+
+            .nav-full {
+                display: none;
+            }
+
+            .nav-short {
+                display: inline;
+            }
+
+            .info-table th {
+                width: 40%;
+                font-size: 14px;
+            }
+
+            .info-table td {
+                font-size: 14px;
+                word-break: break-all;
+            }
+
+            .info-table td a {
+                font-size: 14px;
+            }
+
+            h2 {
+                font-size: 18px;
+            }
+
+            h3 {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            nav ul {
+                gap: 8px;
+                padding: 0 5px;
+            }
+
+            nav a {
+                font-size: 11px;
+                padding: 5px 6px;
+            }
+
+            .nav-full {
+                display: none;
+            }
+
+            .nav-short {
+                display: inline;
+            }
+
+            .info-table th,
+            .info-table td {
+                padding: 10px;
+                display: block;
+                width: 100%;
+            }
+
+            .info-table td {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        
+        <img src="logo-v3.png" alt="外壁塗装くらべる" class="logo">
+    </header>
+
+    <nav>
+        <ul >
+            <li><a href="index.html"><span class="nav-full">トップページ</span><span class="nav-short">トップ</span></a></li>
+            <li><a href="privacy.html"><span class="nav-full">プライバシーポリシー</span><span class="nav-short">ポリシー</span></a></li>
+            <li><a href="company.html">会社概要</a></li>
+            <li><a href="terms.html">利用規約</a></li>
+            <li><a href="tokushoho.html">特定商取引法</a></li>
+        </ul>
+    </nav>
+
+
+    <div class="container">
+        <h2>会社概要</h2>
+
+        <div class="company-info">
+            <table class="info-table">
+                <tr>
+                    <th>会社名</th>
+                    <td>株式会社外壁塗装くらべる</td>
+                </tr>
+                <tr>
+                    <th>所在地</th>
+                    <td>〒150-0043<br>東京都渋谷区道玄坂1丁目10番8号<br>渋谷道玄坂東急ビル2F−C</td>
+                </tr>
+                <tr>
+                    <th>代表者</th>
+                    <td>代表取締役　山内 竜太</td>
+                </tr>
+                <tr>
+                    <th>設立</th>
+                    <td>2025年4月1日</td>
+                </tr>
+                <tr>
+                    <th>資本金</th>
+                    <td>3,000,000円</td>
+                </tr>
+                <tr>
+                    <th>電話番号</th>
+                    <td>03-0000-0000</td>
+                </tr>
+                <tr>
+                    <th>メールアドレス</th>
+                    <td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="563f3830391631373f3e333d3f3d232437343324237835393b">[email&#160;protected]</a></td>
+                </tr>
+                <tr>
+                    <th>営業時間</th>
+                    <td>平日 9:00〜18:00（土日祝日を除く）</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="message-section">
+            <h3>代表メッセージ</h3>
+            <p>
+                私たち株式会社外壁塗装くらべるは、お客様に最適な外壁塗装業者をご紹介するマッチングサービスを提供しております。
+            </p>
+            <p>
+                外壁塗装は住まいの大切なメンテナンスの一つです。しかし、業者選びに失敗すると、高額な費用がかかるだけでなく、
+                住まいの寿命にも影響を与えかねません。
+            </p>
+            <p>
+                私たちは、厳選された優良業者のみをご紹介し、お客様が安心して外壁塗装を依頼できる環境を整えています。
+                複数の業者から見積もりを取ることで、適正価格での施工を実現し、お客様の大切な住まいを守るお手伝いをさせていただきます。
+            </p>
+            <p>
+                今後も、お客様の立場に立ったサービスの提供を心がけ、外壁塗装業界の透明性向上に貢献してまいります。
+            </p>
+        </div>
+
+        <h3>事業内容</h3>
+        <div class="business-description">
+            <p>当社は、以下の事業を展開しております。</p>
+            <ul class="business-list">
+                <li>外壁塗装業者マッチングサービスの運営</li>
+                <li>外壁塗装に関する情報提供サービス</li>
+                <li>住宅リフォームに関するコンサルティング</li>
+                <li>建築・リフォーム業者向けマーケティング支援</li>
+                <li>WEBサイトの企画・制作・運営</li>
+            </ul>
+        </div>
+
+        <h3>取引銀行</h3>
+        <div class="business-description">
+            <ul class="business-list">
+                <li>GMOあおぞらネット銀行</li>
+            </ul>
+        </div>
+
+        <h3>主要取引先</h3>
+        <div class="business-description">
+            <p>全国の優良外壁塗装業者 約500社</p>
+        </div>
+
+        <h3>アクセス</h3>
+        <div class="business-description">
+            <p><strong>最寄り駅：</strong></p>
+            <ul class="business-list">
+                <li>JR山手線・埼京線・湘南新宿ライン「渋谷駅」より徒歩5分</li>
+                <li>東京メトロ銀座線・半蔵門線・副都心線「渋谷駅」より徒歩5分</li>
+                <li>東急東横線・田園都市線「渋谷駅」より徒歩5分</li>
+                <li>京王井の頭線「渋谷駅」より徒歩7分</li>
+            </ul>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 株式会社外壁塗装くらべる. All Rights Reserved.</p>
+        <p style="margin-top: 10px; font-size: 14px;">
+            <a href="privacy.html" style="color: #3498db; text-decoration: none; margin: 0 10px;">プライバシーポリシー</a>
+            |
+            <a href="company.html" style="color: #3498db; text-decoration: none; margin: 0 10px;">会社概要</a>
+            |
+            <a href="terms.html" style="color: #3498db; text-decoration: none; margin: 0 10px;">利用規約</a>
+            |
+            <a href="tokushoho.html" style="color: #3498db; text-decoration: none; margin: 0 10px;">特定商取引法</a>
+        </p>
+    </footer>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body>
+</html>
