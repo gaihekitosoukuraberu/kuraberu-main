@@ -530,15 +530,15 @@ function displayRanking() {
 
   console.log('ランキング表示完了（正しい仕様に復元）');
 
-  // 「もっと見る」ボタンの表示制御
+  // 「もっと見る」ボタンの表示制御（V1687 - flex表示に修正）
   const toggleButton = document.getElementById('toggleAllCompanies');
   if (toggleButton) {
     if (showingAll || allCompanies.length <= 4) {
       // 全て表示中、または業者数が4社以下の場合は非表示
       toggleButton.style.display = 'none';
     } else {
-      // 4社のみ表示中かつ5社以上ある場合は表示
-      toggleButton.style.display = 'block';
+      // 4社のみ表示中かつ5社以上ある場合は表示（flexで中央配置を維持）
+      toggleButton.style.display = 'flex';
     }
   }
 
