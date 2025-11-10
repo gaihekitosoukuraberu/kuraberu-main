@@ -271,7 +271,7 @@ const keepManager = {
     return keepList.some(item => item.name === companyName);
   },
 
-  // キープ切り替え
+  // キープ切り替え（V1692 - 4社制限追加）
   toggle(rank, companyName, buttonElement) {
     const existingIndex = keepList.findIndex(item => item.name === companyName);
 
@@ -280,6 +280,13 @@ const keepManager = {
       keepList.splice(existingIndex, 1);
       console.log('🗑️ キープ解除:', companyName);
     } else {
+      // 4社制限チェック（V1692）
+      if (keepList.length >= 4) {
+        alert('最大4社まで選択できます');
+        console.log('⚠️ キープ上限到達（4社）');
+        return;
+      }
+
       // キープされていない場合は追加
       keepList.push({
         name: companyName,
