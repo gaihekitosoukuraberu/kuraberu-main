@@ -93,11 +93,15 @@ function revealCompanyNames() {
     }
   });
 
-  // ランキングのクリックブロッカーを削除（V1684）
+  // ランキングのクリックブロッカーを削除（V1688 - デバッグログ追加）
+  console.log('🔍 クリックブロッカー削除処理開始');
   const clickBlocker = document.getElementById('rankingClickBlocker');
+  console.log('クリックブロッカー要素:', clickBlocker);
   if (clickBlocker) {
     clickBlocker.remove();
     console.log('✅ ランキングのクリックブロッカーを削除');
+  } else {
+    console.log('⚠️ クリックブロッカー要素が見つかりません');
   }
 
   console.log('revealCompanyNames実行完了');
