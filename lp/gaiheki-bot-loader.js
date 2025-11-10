@@ -216,17 +216,26 @@
                 console.log('✅ チャットセクション表示');
             }
 
-            // ランキングセクションは常に表示（モザイク状態）
+            // ランキングセクションは常に表示（モザイク状態）（V1691 - デバッグログ強化）
+            console.log(`🔍 エントリータイプ: ${type}`);
             const rankingSection = document.getElementById('rankingSection');
+            console.log('🔍 rankingSection要素:', rankingSection);
             if (rankingSection) {
+                console.log('🔍 rankingSection hiddenクラス削除前:', rankingSection.classList.contains('hidden'));
                 rankingSection.classList.remove('hidden');
                 console.log('✅ ランキングセクション表示（モザイク付き）');
+                console.log('🔍 rankingSection hiddenクラス削除後:', rankingSection.classList.contains('hidden'));
+            } else {
+                console.log('❌ rankingSection要素が見つかりません');
             }
 
             // ランキングを初期表示（デフォルトデータ）
             if (typeof window.displayRanking === 'function') {
+                console.log('🔍 displayRanking関数を呼び出します');
                 window.displayRanking();
                 console.log('✅ BOT起動時にランキング初期表示（デフォルトデータ）');
+            } else {
+                console.log('❌ displayRanking関数が見つかりません');
             }
 
             // キーワードからの起動時は相場セクションのみ非表示
