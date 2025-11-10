@@ -297,6 +297,20 @@ const keepManager = {
     // キープ数バッジを更新
     updateKeepCountBadge();
 
+    // 無料見積もりボタンの表示制御（V1670）
+    const estimateBtnContainer = document.getElementById('estimateBtnContainer');
+    if (estimateBtnContainer) {
+      if (keepList.length > 0) {
+        estimateBtnContainer.classList.remove('hidden');
+        estimateBtnContainer.style.display = 'block';
+        console.log('✅ 無料見積もりボタン表示');
+      } else {
+        estimateBtnContainer.classList.add('hidden');
+        estimateBtnContainer.style.display = 'none';
+        console.log('❌ 無料見積もりボタン非表示');
+      }
+    }
+
     // キープボタンの表示制御
     const keepButton = document.getElementById('keepButton');
     if (keepButton) {
