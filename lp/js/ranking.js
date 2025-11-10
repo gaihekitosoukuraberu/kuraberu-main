@@ -3,6 +3,14 @@
  * estimate-app専用
  */
 
+// 二重読み込み防止ガード（V1669）
+if (window.RANKING_JS_LOADED) {
+  console.error('❌ ranking.js が既に読み込まれています！二重読み込みを防止しました。');
+  throw new Error('[V1669] ranking.js duplicate load prevented');
+}
+window.RANKING_JS_LOADED = true;
+console.log('✅ ranking.js 読み込み開始 (V1669 - 二重読み込み防止ガード有効)');
+
 // サンプル会社データ（モザイク処理済み）- デフォルトのフォールバックデータ
 let allCompanies = [
   { rank: 1, name: 'T社', price: '78万円〜', rating: 4.9, reviews: 245, features: ['地元密着', '保証充実', '即日対応'] },
