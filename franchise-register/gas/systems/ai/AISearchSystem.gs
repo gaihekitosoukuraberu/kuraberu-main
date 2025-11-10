@@ -39,6 +39,8 @@ const AISearchSystem = {
       switch (action) {
         case 'searchCompany':
           return this.searchCompany(params);
+        case 'getRanking':
+          return this.getRanking(params);
         case 'ai_test':
           return { success: true, message: 'AI search system is running (V1506)' };
         default:
@@ -779,5 +781,159 @@ const AISearchSystem = {
         branches: regexBranches || []
       };
     }
+  },
+
+  // ============================================
+  // ランキング取得（マッチングシステム）
+  // ============================================
+  getRanking: function(params) {
+    try {
+      console.log('[AISearchSystem] getRanking開始:', params);
+
+      // パラメータ検証
+      const zipcode = params.zipcode;
+      if (!zipcode) {
+        throw new Error('郵便番号が指定されていません');
+      }
+
+      // 郵便番号から都道府県を推定
+      const prefecture = this.getPrefectureFromZipcode(zipcode);
+      console.log('[AISearchSystem] 郵便番号 ' + zipcode + ' → 都道府県: ' + prefecture);
+
+      // 加盟店データ取得（DataLayer使用）
+      const sheet = DataLayer.getSheet('加盟店登録管理');
+      const lastRow = sheet.getLastRow();
+      if (lastRow < 2) {
+        console.warn('[AISearchSystem] 加盟店データがありません');
+        return {
+          success: true,
+          rankings: {
+            cheap: [],
+            recommended: [],
+            review: [],
+            premium: []
+          },
+          totalCount: 0,
+          filteredCount: 0
+        };
+      }
+
+      // 全データ取得（ヘッダー行を除く）
+      const allData = sheet.getRange(2, 1, lastRow - 1, 52).getValues();
+      console.log('[AISearchSystem] 全業者数: ' + allData.length);
+
+      // フィルタリング（承認済み + 都道府県マッチ）
+      const filtered = [];
+      for (var i = 0; i < allData.length; i++) {
+        const row = allData[i];
+        const status = row[1];  // B列（status）
+        const prefectures = DataLayer.expandCompressedText(row[33]); // AH列（prefectures）
+
+        // ステータスチェック（承認済み、運用中のみ）
+        if (status !== '承認済み' && status !== '運用中') {
+          continue;
+        }
+
+        // 都道府県チェック
+        if (prefecture && prefectures && prefectures.indexOf(prefecture) !== -1) {
+          filtered.push({
+            companyName: row[2] || '',  // C列
+            avgContractAmount: this.generateRandomPrice(),  // 仮データ（後で実装）
+            rating: this.generateRandomRating(),  // 仮データ（後で実装）
+            reviewCount: this.generateRandomReviewCount(),  // 仮データ（後で実装）
+            prefecture: prefecture,
+            constructionTypes: DataLayer.expandCompressedText(row[31]) || '',  // AF列
+            specialSupport: DataLayer.expandCompressedText(row[32]) || '',  // AG列
+            maxFloors: row[30] || '',  // AE列
+            contractCount: 0  // 仮データ（後で実装）
+          });
+        }
+      }
+
+      console.log('[AISearchSystem] フィルタ後: ' + filtered.length + '件');
+
+      // 4つのソート順で並べ替え
+      const rankings = {
+        cheap: this.sortByPrice(filtered.slice()).slice(0, 8),
+        recommended: filtered.slice(0, 8),  // デフォルト順
+        review: this.sortByReview(filtered.slice()).slice(0, 8),
+        premium: this.sortByRating(filtered.slice()).slice(0, 8)
+      };
+
+      return {
+        success: true,
+        rankings: rankings,
+        totalCount: allData.length,
+        filteredCount: filtered.length
+      };
+
+    } catch (error) {
+      console.error('[AISearchSystem] getRanking エラー:', error);
+      return {
+        success: false,
+        error: error.toString(),
+        rankings: {
+          cheap: [],
+          recommended: [],
+          review: [],
+          premium: []
+        }
+      };
+    }
+  },
+
+  // 郵便番号から都道府県を推定（簡易版）
+  getPrefectureFromZipcode: function(zipcode) {
+    // 郵便番号の最初の2桁で都道府県を判定
+    const prefix = zipcode.substring(0, 2);
+    const map = {
+      '01': '北海道', '02': '青森県', '03': '岩手県', '04': '宮城県', '05': '秋田県',
+      '06': '山形県', '07': '福島県', '08': '茨城県', '09': '栃木県', '10': '群馬県',
+      '11': '埼玉県', '12': '千葉県', '13': '東京都', '14': '神奈川県', '15': '新潟県',
+      '16': '富山県', '17': '石川県', '18': '福井県', '19': '山梨県', '20': '長野県',
+      '21': '岐阜県', '22': '静岡県', '23': '愛知県', '24': '三重県', '25': '滋賀県',
+      '26': '京都府', '27': '大阪府', '28': '兵庫県', '29': '奈良県', '30': '和歌山県',
+      '31': '鳥取県', '32': '島根県', '33': '岡山県', '34': '広島県', '35': '山口県',
+      '36': '徳島県', '37': '香川県', '38': '愛媛県', '39': '高知県', '40': '福岡県',
+      '41': '佐賀県', '42': '長崎県', '43': '熊本県', '44': '大分県', '45': '宮崎県',
+      '46': '鹿児島県', '47': '沖縄県'
+    };
+    return map[prefix] || '';
+  },
+
+  // 仮データ生成（平均契約金額）
+  generateRandomPrice: function() {
+    return Math.floor(Math.random() * (1200000 - 700000 + 1)) + 700000;  // 70万〜120万
+  },
+
+  // 仮データ生成（評価スコア）
+  generateRandomRating: function() {
+    return Math.floor(Math.random() * 20 + 36) / 10;  // 3.6〜5.5
+  },
+
+  // 仮データ生成（口コミ数）
+  generateRandomReviewCount: function() {
+    return Math.floor(Math.random() * 250) + 50;  // 50〜299
+  },
+
+  // 価格順ソート
+  sortByPrice: function(companies) {
+    return companies.sort(function(a, b) {
+      return a.avgContractAmount - b.avgContractAmount;
+    });
+  },
+
+  // 口コミ順ソート
+  sortByReview: function(companies) {
+    return companies.sort(function(a, b) {
+      return b.reviewCount - a.reviewCount;
+    });
+  },
+
+  // 評価順ソート
+  sortByRating: function(companies) {
+    return companies.sort(function(a, b) {
+      return b.rating - a.rating;
+    });
   }
 };
