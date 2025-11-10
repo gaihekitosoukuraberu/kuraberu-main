@@ -176,6 +176,9 @@ document.addEventListener('DOMContentLoaded', function() {
       // 電話番号入力後：モザイク解除（実名表示）
       console.log('🔓 モザイク解除：実名表示に切り替えます');
 
+      // 業者名をイニシャルから実名に変更（V1678 - displayRanking()より先に実行）
+      revealCompanyNames();
+
       // すでにGASから取得済みの場合は、実名で再表示
       if (window.dynamicRankings) {
         console.log('✅ すでにランキング取得済み、実名表示に切り替え');
@@ -192,9 +195,6 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }
       }
-
-      // 業者名をイニシャルから実名に変更
-      revealCompanyNames();
 
       // 下部ボタンを「無料見積もり」に変更
       const showCompanyBtn = document.getElementById('showCompanyNamesFloatingBtn');
