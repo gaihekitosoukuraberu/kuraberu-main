@@ -353,6 +353,11 @@ const keepManager = {
         }
       }
     });
+  },
+
+  // キープリストを取得（V1671 - モーダル表示用）
+  getList() {
+    return keepList;
   }
 };
 
