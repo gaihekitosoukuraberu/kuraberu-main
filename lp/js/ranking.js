@@ -487,12 +487,6 @@ function displayRanking() {
     const emptyStars = 5 - fullStars;
     const starsHtml = '⭐'.repeat(fullStars) + '☆'.repeat(emptyStars);
 
-    // モザイク状態かどうかで��ボタンの有効/無効を切り替え（V1676）
-    const isButtonsEnabled = window.namesRevealed === true;
-    const buttonDisabledClass = isButtonsEnabled ? '' : 'opacity-50 cursor-not-allowed pointer-events-none';
-    const detailOnclick = isButtonsEnabled ? `onclick="showCompanyDetail(${company.rank})"` : '';
-    const keepOnclick = isButtonsEnabled ? `onclick="keepManager.toggle('${company.rank}', '${companyName}', this)"` : '';
-
     return `
       <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
         <div class="flex items-start justify-between mb-2">
@@ -556,9 +550,9 @@ function displayRanking() {
     keepManager.updateAllButtons();
   }, 0);
 
-  // ソートボタンの有効/無効制御（V1680 - デバッグログ追加）
-  const isButtonsEnabled = window.namesRevealed === true;
-  console.log('🔍 displayRanking内: window.namesRevealed =', window.namesRevealed, 'isButtonsEnabled =', isButtonsEnabled);
+  // ソートボタンの有効/無効制御（V1681 - 第1段階完了後は常に有効化）
+  const isButtonsEnabled = (currentHearingStage >= 1) || (window.namesRevealed === true);
+  console.log('🔍 displayRanking内: currentHearingStage =', currentHearingStage, 'window.namesRevealed =', window.namesRevealed, 'isButtonsEnabled =', isButtonsEnabled);
 
   const sortButtons = document.querySelectorAll('.sort-btn');
   sortButtons.forEach(button => {
