@@ -2630,8 +2630,19 @@
     </script>
 
     <!-- 外壁塗装くらべる BOTシステム -->
-    <!-- 環境変数を最初にロード（GAS URL設定） -->
-    <script src="js/env-loader.js"></script>
-    <script src="gaiheki-bot-loader.js"></script>
+    <!-- 環境変数を最初にロード（GAS URL設定） - キャッシュバスター動的参照 -->
+    <script>
+    (function() {
+      var script = document.createElement('script');
+      script.src = 'js/env-loader.js?v=' + Date.now();
+      script.onload = function() {
+        // env-loader.js読み込み完了後にbot-loaderを読み込む
+        var botLoader = document.createElement('script');
+        botLoader.src = 'gaiheki-bot-loader.js';
+        document.body.appendChild(botLoader);
+      };
+      document.currentScript.parentNode.insertBefore(script, document.currentScript.nextSibling);
+    })();
+    </script>
   </body>
 </html>
