@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1659 - 2025-11-10 02:15 - ランキング表示修正：Q008/Q003質問ID＋V列物件種別マッピング）
-  CACHE_BUSTER: '1762708500000'
+  // キャッシュバスター（V1660 - 2025-11-10 02:30 - 緊急修正：showRankingSection内でfetchRankingFromGAS呼び出し追加）
+  CACHE_BUSTER: '1762709400000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

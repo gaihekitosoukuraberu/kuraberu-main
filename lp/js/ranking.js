@@ -346,13 +346,30 @@ function getKeepButtonState(companyRank) {
 }
 
 // ランキングセクション表示（モザイク付き）
-function showRankingSection() {
+async function showRankingSection() {
   const rankingSection = document.getElementById('rankingSection');
 
   if (rankingSection) {
     rankingSection.classList.remove('hidden');
-    
-    // サンプルランキングデータを表示
+
+    // GASからランキングデータを取得（未取得の場合のみ）
+    if (!dynamicRankings) {
+      console.log('🔄 GASからランキングデータ取得開始');
+      const success = await fetchRankingFromGAS();
+      if (success) {
+        console.log('✅ ランキングデータ取得成功、動的データで表示');
+        // 動的データを「おすすめ順」で表示
+        updateAllCompaniesFromDynamic('recommended');
+      } else {
+        console.warn('⚠️ ランキングデータ取得失敗、デフォルトデータで表示');
+      }
+    } else {
+      console.log('✅ ランキングデータは既に取得済み（キャッシュ使用）');
+      // 既存の動的データを使用
+      updateAllCompaniesFromDynamic('recommended');
+    }
+
+    // ランキングデータを表示
     displayRanking();
     console.log('ランキング表示完了');
 
