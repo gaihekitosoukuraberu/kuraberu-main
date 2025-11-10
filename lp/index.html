@@ -1412,7 +1412,15 @@
                     <!-- ランキングリスト -->
                     <div id="rankingList" class="space-y-1.5 pb-4 max-h-[550px] overflow-y-auto">
                         <!-- ranking.jsのdisplayRanking()によって動的生成 -->
-                    </div>                </div>
+                    </div>
+
+                    <!-- もっと見るボタン（V1674） -->
+                    <div id="toggleAllCompanies" class="text-center py-4" style="display: none;">
+                        <button onclick="toggleAllCompanies()" class="text-blue-600 hover:text-blue-800 font-medium text-sm underline">
+                            もっと見る（5〜8位）
+                        </button>
+                    </div>
+                </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
                 </div>
             </div>
@@ -2238,62 +2246,58 @@
             }
         }
 
-        // 完了画面を表示
+        // 完了画面を表示（V1674 - モーダルではなくフォーム内に表示）
         function showCompletionScreen() {
             const modal = document.getElementById('estimateFormModal');
             if (!modal) return;
 
-            // 画面を下部にスクロールして完了画面を見えるようにする（V1672）
-            setTimeout(() => {
-                window.scrollTo({
-                    top: document.body.scrollHeight,
-                    behavior: 'smooth'
-                });
-            }, 100);
-
-            // モーダルを表示
+            // モーダルを表示状態に
             modal.classList.remove('hidden');
 
+            // フォームの内容を完了画面に書き換える
             modal.innerHTML = `
-                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[3000]">
-                    <div class="bg-white rounded-lg max-w-md w-full p-6">
-                        <div class="text-center">
-                            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </div>
-                            <h2 class="text-2xl font-bold mb-2">送信完了しました！</h2>
-                            <p class="text-gray-600 mb-4">
-                                見積もり依頼を受け付けました。
-                            </p>
-                            <div class="bg-orange-50 border border-orange-300 p-4 rounded-lg mb-4">
-                                <p class="font-semibold text-orange-800 mb-2">重要なお知らせ</p>
-                                <p class="text-sm text-gray-700 mb-2">
-                                    弊社オペレーターから簡単なご本人様確認のお電話が入りますのでご対応お願いいたします。
-                                </p>
-                                <p class="text-sm font-semibold text-gray-800">
-                                    担当：山内
-                                </p>
-                                <p class="text-lg font-bold text-orange-800">
-                                    電話番号：090-1994-7162
-                                </p>
-                            </div>
-                            <div class="text-left bg-blue-50 p-4 rounded-lg mb-6">
-                                <p class="font-semibold mb-2">今後の流れ</p>
-                                <ol class="text-sm space-y-1">
-                                    <li>1. 業者から連絡が入ります</li>
-                                    <li>2. 現地調査の日程を調整</li>
-                                    <li>3. 正式な見積もりをご提出</li>
-                                </ol>
-                            </div>
-                            <button onclick="location.reload();" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition w-full font-bold">
-                                閉じる
-                            </button>
+                <div class="bg-white rounded-lg max-w-md w-full p-6 mx-auto my-8">
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
                         </div>
+                        <h2 class="text-2xl font-bold mb-2">送信完了しました！</h2>
+                        <p class="text-gray-600 mb-4">
+                            見積もり依頼を受け付けました。
+                        </p>
+                        <div class="bg-orange-50 border border-orange-300 p-4 rounded-lg mb-4">
+                            <p class="font-semibold text-orange-800 mb-2">重要なお知らせ</p>
+                            <p class="text-sm text-gray-700 mb-2">
+                                弊社オペレーターから簡単なご本人様確認のお電話が入りますのでご対応お願いいたします。
+                            </p>
+                            <p class="text-sm font-semibold text-gray-800">
+                                担当：山内
+                            </p>
+                            <p class="text-lg font-bold text-orange-800">
+                                電話番号：090-1994-7162
+                            </p>
+                        </div>
+                        <div class="text-left bg-blue-50 p-4 rounded-lg mb-6">
+                            <p class="font-semibold mb-2">今後の流れ</p>
+                            <ol class="text-sm space-y-1">
+                                <li>1. 業者から連絡が入ります</li>
+                                <li>2. 現地調査の日程を調整</li>
+                                <li>3. 正式な見積もりをご提出</li>
+                            </ol>
+                        </div>
+                        <button onclick="location.reload();" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition w-full font-bold">
+                            閉じる
+                        </button>
                     </div>
                 </div>
             `;
+
+            // 完了画面までスムーズスクロール
+            setTimeout(() => {
+                modal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
         }
 
         function closeEstimateForm() {
