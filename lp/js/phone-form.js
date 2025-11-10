@@ -92,7 +92,14 @@ function revealCompanyNames() {
       button.innerHTML = button.innerHTML.replace('業者名を見る', '無料見積もり');
     }
   });
-  
+
+  // ランキングのクリックブロッカーを削除（V1684）
+  const clickBlocker = document.getElementById('rankingClickBlocker');
+  if (clickBlocker) {
+    clickBlocker.remove();
+    console.log('✅ ランキングのクリックブロッカーを削除');
+  }
+
   console.log('revealCompanyNames実行完了');
 }
 
