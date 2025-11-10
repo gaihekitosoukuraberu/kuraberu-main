@@ -47,14 +47,14 @@ async function fetchRankingFromGAS() {
     let buildingAgeMin = 0;
     let buildingAgeMax = 100;
 
-    // Q004: 施工箇所
-    if (answers.Q004 && answers.Q004.choice) {
-      workTypes.push(answers.Q004.choice);
+    // Q008: 気になる箇所
+    if (answers.Q008 && answers.Q008.choice) {
+      workTypes.push(answers.Q008.choice);
     }
 
-    // Q006: 築年数
-    if (answers.Q006 && answers.Q006.choice) {
-      const ageRange = parseAgeRange(answers.Q006.choice);
+    // Q003: 築年数
+    if (answers.Q003 && answers.Q003.choice) {
+      const ageRange = parseAgeRange(answers.Q003.choice);
       if (ageRange) {
         buildingAgeMin = ageRange.min;
         buildingAgeMax = ageRange.max;

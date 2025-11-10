@@ -58,9 +58,9 @@ const CVSheetSystem = {
       return 'アパート・マンション';
     }
 
-    // 「実家・別荘・所有物件」はそのまま
+    // 「実家・別荘・所有物件」→「戸建て」（V列用。Z列Q1_物件種別は元の値のまま）
     if (q1Value.includes('実家') || q1Value.includes('別荘') || q1Value.includes('所有物件')) {
-      return '実家・別荘・所有物件';
+      return '戸建て';
     }
 
     // 「店舗・事務所」はそのまま
