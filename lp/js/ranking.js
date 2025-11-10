@@ -989,7 +989,7 @@ function disableSortButtons(buttonIds) {
   });
 }
 
-// ソートボタンの有効化関数
+// ソートボタンの有効化関数（V1679）
 function enableSortButtons(buttonIds) {
   console.log('🎯 ソートボタン有効化開始:', buttonIds);
   buttonIds.forEach(buttonId => {
@@ -997,7 +997,7 @@ function enableSortButtons(buttonIds) {
     console.log('ボタン確認:', buttonId, 'ボタン要素:', button);
     if (button) {
       console.log('有効化前のクラス:', button.className);
-      button.classList.remove('sort-tab-disabled');
+      button.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
       console.log('有効化後のクラス:', button.className);
     } else {
       console.log('⚠️ ボタンが見つかりません:', buttonId);
