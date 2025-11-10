@@ -556,6 +556,17 @@ function displayRanking() {
     keepManager.updateAllButtons();
   }, 0);
 
+  // ソートボタンの有効/無効制御（V1677）
+  const isButtonsEnabled = window.namesRevealed === true;
+  const sortButtons = document.querySelectorAll('.sort-btn');
+  sortButtons.forEach(button => {
+    if (isButtonsEnabled) {
+      button.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+    } else {
+      button.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+    }
+  });
+
   } catch (error) {
     console.error('❌ ランキング表示でエラーが発生しました:', error);
     // フォールバック表示
