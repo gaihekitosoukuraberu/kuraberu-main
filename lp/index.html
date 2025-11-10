@@ -2634,17 +2634,8 @@
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
     <script src="js/env-loader.js?v=1762797000000"></script>
 
-    <!-- gaiheki-bot-loader.js を動的にロード（ENV.CACHE_BUSTERを使用） -->
-    <script>
-      (function() {
-        if (window.ENV && window.ENV.CACHE_BUSTER) {
-          var script = document.createElement('script');
-          script.src = 'gaiheki-bot-loader.js?v=' + window.ENV.CACHE_BUSTER;
-          document.currentScript.parentNode.insertBefore(script, document.currentScript.nextSibling);
-        } else {
-          console.error('[INDEX] ENV.CACHE_BUSTERが見つかりません');
-        }
-      })();
-    </script>
+    <!-- BOTローダー（タイミング問題のため静的ロード必須） -->
+    <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
+    <script src="gaiheki-bot-loader.js?v=1762797000000"></script>
   </body>
 </html>
