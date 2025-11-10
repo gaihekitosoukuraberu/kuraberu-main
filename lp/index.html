@@ -1266,7 +1266,7 @@
             <div class="max-w-6xl mx-auto px-4 text-center">
                 <button onclick="showKeepModal();" class="bg-orange-400 hover:bg-orange-500 text-white font-bold py-4 px-20 rounded-full text-lg transition-all relative inline-flex items-center justify-center shadow-lg">
                     無料見積もり
-                    <span class="notification-badge">0</span>
+                    <span id="keepCountBadge" class="notification-badge hidden">0</span>
                 </button>
             </div>
         </div>
@@ -2242,6 +2242,17 @@
         function showCompletionScreen() {
             const modal = document.getElementById('estimateFormModal');
             if (!modal) return;
+
+            // 画面を下部にスクロールして完了画面を見えるようにする（V1672）
+            setTimeout(() => {
+                window.scrollTo({
+                    top: document.body.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 100);
+
+            // モーダルを表示
+            modal.classList.remove('hidden');
 
             modal.innerHTML = `
                 <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[3000]">
