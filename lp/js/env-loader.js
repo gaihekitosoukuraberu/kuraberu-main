@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1660 - 2025-11-10 02:30 - 緊急修正：showRankingSection内でfetchRankingFromGAS呼び出し追加）
-  CACHE_BUSTER: '1762709400000'
+  // キャッシュバスター（V1664 - 2025-11-10 21:30 - 緊急修正：gaiheki-bot-loader.js バージョン不一致修正）
+  CACHE_BUSTER: '1762797000000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
