@@ -487,6 +487,12 @@ function displayRanking() {
     const emptyStars = 5 - fullStars;
     const starsHtml = '⭐'.repeat(fullStars) + '☆'.repeat(emptyStars);
 
+    // モザイク状態かどうかで��ボタンの有効/無効を切り替え（V1676）
+    const isButtonsEnabled = window.namesRevealed === true;
+    const buttonDisabledClass = isButtonsEnabled ? '' : 'opacity-50 cursor-not-allowed pointer-events-none';
+    const detailOnclick = isButtonsEnabled ? `onclick="showCompanyDetail(${company.rank})"` : '';
+    const keepOnclick = isButtonsEnabled ? `onclick="keepManager.toggle('${company.rank}', '${companyName}', this)"` : '';
+
     return `
       <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
         <div class="flex items-start justify-between mb-2">
@@ -519,10 +525,10 @@ function displayRanking() {
             <span class="text-xs font-bold text-gray-700">見積もり価格: ${company.price}</span>
           </div>
           <div class="flex gap-1">
-            <button class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium w-[90px] whitespace-nowrap">
+            <button ${detailOnclick} class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium w-[90px] whitespace-nowrap ${buttonDisabledClass}">
               詳細
             </button>
-            <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap">
+            <button ${keepOnclick} class="keep-btn px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap ${buttonDisabledClass}">
               <span class="keep-text">キープ</span>
             </button>
           </div>
