@@ -366,6 +366,8 @@
 
                         <!-- ランキング内容 -->
                         <div id="rankingContent" class="mosaic" style="position: relative;">
+                            <!-- 透明オーバーレイ（電話番号入力前はクリックブロック） V1689 -->
+                            <div id="rankingClickBlocker" style="position: absolute; inset: 0; z-index: 20; background: transparent; cursor: not-allowed;"></div>
                             <div id="rankingList"></div>
                         </div>
                     </div>
