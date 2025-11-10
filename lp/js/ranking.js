@@ -431,9 +431,6 @@ async function showRankingSection() {
       }
     }
   }
-  
-  // ソートボタンを無効化（おすすめ順以外）
-  disableSortButtons(['sortCheap', 'sortReview', 'sortQuality']);
 }
 
 // 星レーティング生成関数（5つ星）
@@ -519,10 +516,10 @@ function displayRanking() {
             <span class="text-xs font-bold text-gray-700">見積もり価格: ${company.price}</span>
           </div>
           <div class="flex gap-1">
-            <button ${detailOnclick} class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium w-[90px] whitespace-nowrap ${buttonDisabledClass}">
+            <button onclick="showCompanyDetail(${company.rank})" class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium w-[90px] whitespace-nowrap">
               詳細
             </button>
-            <button ${keepOnclick} class="keep-btn px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap ${buttonDisabledClass}">
+            <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap">
               <span class="keep-text">キープ</span>
             </button>
           </div>
@@ -549,21 +546,6 @@ function displayRanking() {
   setTimeout(() => {
     keepManager.updateAllButtons();
   }, 0);
-
-  // ソートボタンの有効/無効制御（V1681 - 第1段階完了後は常に有効化）
-  const isButtonsEnabled = (currentHearingStage >= 1) || (window.namesRevealed === true);
-  console.log('🔍 displayRanking内: currentHearingStage =', currentHearingStage, 'window.namesRevealed =', window.namesRevealed, 'isButtonsEnabled =', isButtonsEnabled);
-
-  const sortButtons = document.querySelectorAll('.sort-btn');
-  sortButtons.forEach(button => {
-    if (isButtonsEnabled) {
-      button.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
-      console.log('✅ ソートボタン有効化:', button.id);
-    } else {
-      button.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
-      console.log('❌ ソートボタン無効化:', button.id);
-    }
-  });
 
   } catch (error) {
     console.error('❌ ランキング表示でエラーが発生しました:', error);
@@ -977,32 +959,6 @@ function switchSortTab(tabType) {
   }
 }
 
-// ソートボタンの無効化関数
-function disableSortButtons(buttonIds) {
-  buttonIds.forEach(buttonId => {
-    const button = document.getElementById(buttonId);
-    if (button) {
-      button.classList.add('sort-tab-disabled');
-    }
-  });
-}
-
-// ソートボタンの有効化関数（V1679）
-function enableSortButtons(buttonIds) {
-  console.log('🎯 ソートボタン有効化開始:', buttonIds);
-  buttonIds.forEach(buttonId => {
-    const button = document.getElementById(buttonId);
-    console.log('ボタン確認:', buttonId, 'ボタン要素:', button);
-    if (button) {
-      console.log('有効化前のクラス:', button.className);
-      button.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
-      console.log('有効化後のクラス:', button.className);
-    } else {
-      console.log('⚠️ ボタンが見つかりません:', buttonId);
-    }
-  });
-}
-
 // ヒアリング段階完了処理
 function completeHearingStage(stage) {
   currentHearingStage = stage;
@@ -1084,12 +1040,8 @@ function completeHearingStage(stage) {
     }
     
     console.log('第1ヒアリング完了: 派手なモザイク解除エフェクト実行');
-    
-    // 第1段階完了時にソートボタンを有効化
-    enableSortButtons(['sortCheap', 'sortReview', 'sortQuality']);
-    console.log('第1段階完了: 全ソートボタン有効化');
   }
-  
+
   // 第2段階以降の処理は、chatbot.jsのtriggerSortEnableで制御
 }
 
@@ -1109,8 +1061,6 @@ window.showRankingSection = showRankingSection;
 window.scrollToPhoneForm = scrollToPhoneForm;
 window.switchSortTab = switchSortTab;
 window.completeHearingStage = completeHearingStage;
-window.disableSortButtons = disableSortButtons;
-window.enableSortButtons = enableSortButtons;
 
 // 初期化時にキープリストをクリア
 document.addEventListener('DOMContentLoaded', function() {
