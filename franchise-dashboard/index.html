@@ -2562,7 +2562,7 @@
                         <div id="pauseDisplay" class="space-y-2">
                             <div class="flex items-center gap-3">
                                 <span class="text-sm font-medium text-gray-700">一時停止状態:</span>
-                                <span id="pauseStatusDisplay" class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">アクティブ</span>
+                                <span id="pauseStatusDisplay" class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 cursor-pointer hover:opacity-80 transition-opacity" onclick="handleStatusClick()" title="クリックでアクティブに変更">アクティブ</span>
                             </div>
                             <div id="pauseDateDisplay" class="text-sm text-gray-600 hidden">
                                 <div>開始日: <span id="pauseStartDisplay"></span></div>
@@ -7122,13 +7122,97 @@
             pauseStatusDisplay.textContent = status;
 
             if (status === 'アクティブ') {
-                pauseStatusDisplay.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800';
+                pauseStatusDisplay.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 cursor-pointer hover:opacity-80 transition-opacity';
             } else if (status === '一時停止' || status === '一時停止中') {
-                pauseStatusDisplay.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800';
+                pauseStatusDisplay.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 cursor-pointer hover:opacity-80 transition-opacity';
             } else if (status === '休止') {
-                pauseStatusDisplay.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800';
+                pauseStatusDisplay.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800 cursor-pointer hover:opacity-80 transition-opacity';
             } else {
-                pauseStatusDisplay.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800';
+                pauseStatusDisplay.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 cursor-pointer hover:opacity-80 transition-opacity';
+            }
+        }
+
+        // ヘッダーのステータスバッジクリック時の処理
+        async function handleStatusClick() {
+            const pauseStatusDisplay = document.getElementById('pauseStatusDisplay');
+            if (!pauseStatusDisplay) return;
+
+            const currentStatus = pauseStatusDisplay.textContent.trim();
+            console.log('[handleStatusClick] Current status:', currentStatus);
+
+            // 休止または一時停止中の場合のみアクティブに変更可能
+            if (currentStatus === '休止' || currentStatus === '一時停止中' || currentStatus === '一時停止') {
+                const confirmMessage = currentStatus === '休止'
+                    ? '運用ステータスをアクティブに変更しますか？\n一時停止設定も解除されます。'
+                    : '一時停止を解除してアクティブに変更しますか？';
+
+                if (!confirm(confirmMessage)) {
+                    return;
+                }
+
+                try {
+                    await resumeAutoDelivery();
+                } catch (error) {
+                    console.error('[handleStatusClick] Error:', error);
+                    showToast('ステータスの変更に失敗しました', 'error');
+                }
+            } else if (currentStatus === 'アクティブ') {
+                showToast('すでにアクティブ状態です', 'info');
+            }
+        }
+
+        // 一時停止を解除してアクティブに戻す関数
+        async function resumeAutoDelivery() {
+            console.log('[resumeAutoDelivery] 一時停止解除開始');
+
+            try {
+                const requestData = {
+                    action: 'resumeAutoDelivery',
+                    merchantId: window.merchantId
+                };
+
+                console.log('[resumeAutoDelivery] Sending request:', requestData);
+
+                // GASに送信
+                const response = await fetch(window.ENV.GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify(requestData)
+                });
+
+                console.log('[resumeAutoDelivery] Response status:', response.status);
+                const result = await response.json();
+
+                console.log('[resumeAutoDelivery] Response:', result);
+
+                if (result.success) {
+                    showToast('運用ステータスをアクティブに変更しました', 'success');
+
+                    // ヘッダーのステータスを即座に更新
+                    updatePauseStatus('アクティブ');
+
+                    // 一時停止設定のUIもリセット
+                    const autoPauseToggle = document.getElementById('autoPauseToggle');
+                    if (autoPauseToggle) {
+                        autoPauseToggle.checked = false;
+                    }
+
+                    // 閲覧モードの一時停止日時表示を非表示
+                    const pauseDateDisplay = document.getElementById('pauseDateDisplay');
+                    if (pauseDateDisplay) {
+                        pauseDateDisplay.classList.add('hidden');
+                    }
+
+                    // 最新データを再取得して画面を更新
+                    await loadAutodeliverySettings();
+
+                } else {
+                    throw new Error(result.error || '一時停止の解除に失敗しました');
+                }
+
+            } catch (error) {
+                console.error('[resumeAutoDelivery] Error:', error);
+                throw error;
             }
         }
 
@@ -20063,6 +20147,22 @@
                             const verification = localStorage.getItem(`pauseSettings_${window.merchantId}`);
                             console.log('[savePauseSettings] 🔍 Verification after 1 second:', verification);
                         }, 1000);
+
+                        // 🔥 ヘッダーのステータスを即座に更新（V1702）
+                        const pauseFlag = autoPauseToggle.checked;
+                        if (pauseFlag) {
+                            const pauseStartDate = document.getElementById('pauseStartDate')?.value;
+                            const today = new Date().toISOString().split('T')[0];
+
+                            // 開始日が未来の場合はアクティブ（予約状態）、現在または過去の場合は一時停止中
+                            if (pauseStartDate && pauseStartDate > today) {
+                                updatePauseStatus('アクティブ');
+                            } else {
+                                updatePauseStatus('一時停止中');
+                            }
+                        } else {
+                            updatePauseStatus('アクティブ');
+                        }
                     }
 
                     // 閲覧データを更新
