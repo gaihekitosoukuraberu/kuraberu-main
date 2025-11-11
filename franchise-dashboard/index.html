@@ -226,7 +226,7 @@
                 <div class="flex-shrink-0">
                     <div class="relative">
                         <label class="hidden sm:block text-xs text-gray-400 mb-1 text-center">ステータス</label>
-                        <span id="merchantStatus" class="px-3 py-1 text-xs font-semibold rounded-full border-2 bg-gray-100 text-gray-500 border-gray-300">読込中...</span>
+                        <span id="merchantStatus" class="px-3 py-1 text-xs font-semibold rounded-full border-2 bg-gray-100 text-gray-500 border-gray-300 cursor-pointer hover:opacity-80 transition-opacity" onclick="handleHeaderStatusClick()" title="休止時クリックでアクティブに変更">読込中...</span>
                     </div>
                 </div>
 
@@ -7114,6 +7114,33 @@
             }
         }
 
+        // ヘッダーステータスクリック時の処理（V1703）
+        async function handleHeaderStatusClick() {
+            const statusSpan = document.getElementById('merchantStatus');
+            if (!statusSpan) return;
+
+            const currentStatus = statusSpan.textContent.trim();
+            console.log('[handleHeaderStatusClick] Current status:', currentStatus);
+
+            // 休止のときのみアクティブに変更可能
+            if (currentStatus === '休止') {
+                if (!confirm('運用ステータスをアクティブに変更しますか？\n一時停止設定も解除されます。')) {
+                    return;
+                }
+
+                try {
+                    await resumeAutoDelivery();
+                } catch (error) {
+                    console.error('[handleHeaderStatusClick] Error:', error);
+                    showToast('ステータスの変更に失敗しました', 'error');
+                }
+            } else if (currentStatus === 'アクティブ') {
+                showToast('すでにアクティブ状態です。一時停止にするには自動配信設定から変更してください。', 'info');
+            } else if (currentStatus === '一時停止' || currentStatus === '一時停止中') {
+                showToast('一時停止中です。アクティブにするには自動配信設定から変更してください。', 'info');
+            }
+        }
+
         // 一時停止設定のステータス表示を更新する関数（ヘッダーと統一）
         function updatePauseStatus(status) {
             const pauseStatusDisplay = document.getElementById('pauseStatusDisplay');
@@ -7188,7 +7215,8 @@
                 if (result.success) {
                     showToast('運用ステータスをアクティブに変更しました', 'success');
 
-                    // ヘッダーのステータスを即座に更新
+                    // ヘッダーのステータスを即座に更新（V1703）
+                    updateHeaderStatus('アクティブ');
                     updatePauseStatus('アクティブ');
 
                     // 一時停止設定のUIもリセット
@@ -7254,6 +7282,8 @@
                     // ヘッダーのステータスをスプシのAJ列から反映
                     if (result.data['ステータス']) {
                         updateHeaderStatus(result.data['ステータス']);
+                        // V1703: 一時停止設定の状態表示も同期
+                        updatePauseStatus(result.data['ステータス']);
                     }
 
                     // ヘッダーの営業担当者を更新
@@ -20148,20 +20178,11 @@
                             console.log('[savePauseSettings] 🔍 Verification after 1 second:', verification);
                         }, 1000);
 
-                        // 🔥 ヘッダーのステータスを即座に更新（V1702）
-                        const pauseFlag = autoPauseToggle.checked;
-                        if (pauseFlag) {
-                            const pauseStartDate = document.getElementById('pauseStartDate')?.value;
-                            const today = new Date().toISOString().split('T')[0];
-
-                            // 開始日が未来の場合はアクティブ（予約状態）、現在または過去の場合は一時停止中
-                            if (pauseStartDate && pauseStartDate > today) {
-                                updatePauseStatus('アクティブ');
-                            } else {
-                                updatePauseStatus('一時停止中');
-                            }
-                        } else {
-                            updatePauseStatus('アクティブ');
+                        // 🔥 V1703: ヘッダーのステータスを即座に更新（collectAutoDeliveryDataのロジックと統一）
+                        if (fullAutoDeliveryData && fullAutoDeliveryData.status) {
+                            updateHeaderStatus(fullAutoDeliveryData.status);
+                            updatePauseStatus(fullAutoDeliveryData.status);
+                            console.log('[savePauseSettings] Updated header and pause status to:', fullAutoDeliveryData.status);
                         }
                     }
 
