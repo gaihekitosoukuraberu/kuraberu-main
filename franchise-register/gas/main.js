@@ -57,7 +57,8 @@ const SystemRouter = {
         'setPassword',
         'verifyLogin',
         'resetPassword',
-        'getMerchantUrlSlug'
+        'getMerchantUrlSlug',
+        'updateAutoDeliverySettings'
       ]
     },
 
