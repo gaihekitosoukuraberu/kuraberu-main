@@ -1765,19 +1765,34 @@ const AdminSystem = {
         }
       }
 
+      // V1699: 最新データを再取得（承認ステータス更新後のデータ）
+      const registrationSheet = ss.getSheetByName('加盟店登録');
+      const latestData = registrationSheet.getDataRange().getValues();
+      const latestHeaders = latestData[0];
+      const latestIdIndex = latestHeaders.indexOf('登録ID');
+
+      let latestRowData = rowData; // デフォルトは引数のrowData
+      for (let i = 1; i < latestData.length; i++) {
+        if (latestData[i][latestIdIndex] === registrationId) {
+          latestRowData = latestData[i];
+          console.log('[copyToFranchiseMaster] 最新データ取得成功');
+          break;
+        }
+      }
+
       // 「加盟店登録」からデータを抽出
-      const companyName = rowData[headers.indexOf('会社名')] || '';
-      const address = rowData[headers.indexOf('住所')] || '';
-      const prefectures = rowData[headers.indexOf('対応都道府県')] || '';
-      const cities = rowData[headers.indexOf('対応市区町村')] || '';
-      const priorityAreas = rowData[headers.indexOf('優先エリア')] || '';
-      const constructionTypes = rowData[headers.indexOf('施工箇所')] || '';
-      const buildingAge = rowData[headers.indexOf('築年数対応範囲')] || '';
-      const approvalStatus = rowData[headers.indexOf('承認ステータス')] || '';
-      const registrationDate = rowData[headers.indexOf('登録日時')] || '';
-      const branches = rowData[headers.indexOf('支店住所')] || '';
-      const status = rowData[headers.indexOf('ステータス')] || '運用中'; // V1694修正：AJ列→U列（配信ステータス）
-      const silentFlag = rowData[headers.indexOf('サイレントフラグ')] || 'FALSE'; // V1694修正：AW列→AA列
+      const companyName = latestRowData[latestHeaders.indexOf('会社名')] || '';
+      const address = latestRowData[latestHeaders.indexOf('住所')] || '';
+      const prefectures = latestRowData[latestHeaders.indexOf('対応都道府県')] || '';
+      const cities = latestRowData[latestHeaders.indexOf('対応市区町村')] || '';
+      const priorityAreas = latestRowData[latestHeaders.indexOf('優先エリア')] || '';
+      const constructionTypes = latestRowData[latestHeaders.indexOf('施工箇所')] || '';
+      const buildingAge = latestRowData[latestHeaders.indexOf('築年数対応範囲')] || '';
+      const approvalStatus = latestRowData[latestHeaders.indexOf('承認ステータス')] || '';
+      const registrationDate = latestRowData[latestHeaders.indexOf('登録日時')] || '';
+      const branches = latestRowData[latestHeaders.indexOf('支店住所')] || '';
+      const status = latestRowData[latestHeaders.indexOf('ステータス')] || '運用中';
+      const silentFlag = latestRowData[latestHeaders.indexOf('サイレントフラグ')] || 'FALSE';
 
       // 本社都道府県を住所から抽出
       let headquarterPrefecture = '';
@@ -1788,16 +1803,34 @@ const AdminSystem = {
         }
       }
 
-      // 築年数範囲をパース
+      // V1699: 築年数範囲をパース（JSON形式にも対応）
       let buildingAgeMin = '';
       let buildingAgeMax = '';
       if (buildingAge) {
-        const ageMatch = buildingAge.match(/(\d+)年?[〜～-](\d+)年?/);
-        if (ageMatch) {
-          buildingAgeMin = ageMatch[1];
-          buildingAgeMax = ageMatch[2];
+        // JSON形式チェック: {min=0, max=86} or {max=100, min=0}
+        const jsonMinMatch = buildingAge.match(/min\s*=\s*(\d+)/i);
+        const jsonMaxMatch = buildingAge.match(/max\s*=\s*(\d+)/i);
+
+        if (jsonMinMatch && jsonMaxMatch) {
+          buildingAgeMin = jsonMinMatch[1];
+          buildingAgeMax = jsonMaxMatch[1];
+        } else {
+          // 通常の範囲形式: "0年〜86年"
+          const ageMatch = buildingAge.match(/(\d+)年?[〜～-](\d+)年?/);
+          if (ageMatch) {
+            buildingAgeMin = ageMatch[1];
+            buildingAgeMax = ageMatch[2];
+          }
         }
       }
+
+      // V1699: 配信ステータスの変換ロジック
+      // 「休止」「一時停止」→「ストップ」、それ以外→「アクティブ」
+      let deliveryStatus = 'アクティブ';
+      if (status === '休止' || status === '一時停止') {
+        deliveryStatus = 'ストップ';
+      }
+      console.log('[copyToFranchiseMaster] ステータス変換:', status, '→', deliveryStatus);
 
       // 過去データシートから運用実績を取得
       const performanceData = this._getPerformanceFromPastData(companyName);
@@ -1870,7 +1903,8 @@ const AdminSystem = {
             masterRow.push(performanceData.paymentDelay || 'FALSE');
             break;
           case '配信ステータス':
-            masterRow.push(status); // V1694修正：AJ列（ステータス）→U列（配信ステータス）
+            // V1699修正：「休止」「一時停止」→「ストップ」、それ以外→「アクティブ」
+            masterRow.push(deliveryStatus);
             break;
           case '最終更新日時':
             masterRow.push(Utilities.formatDate(new Date(), 'JST', 'yyyy-MM-dd HH:mm:ss'));
