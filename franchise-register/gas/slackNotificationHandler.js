@@ -26,9 +26,10 @@ function sendSlackRegistrationNotification(registrationData) {
       ? branches.map(b => `• ${b.name}: ${b.address}`).join('\n')
       : '支店情報なし';
 
-    // 過去データチェック（V1695）
+    // 過去データチェック（V1698: 過去データなし表示を追加）
     let pastDataWarning = '';
     let paymentDelay = 0;
+    let foundData = false;
     try {
       const companyName = registrationData.companyInfo?.legalName || registrationData.companyName;
       const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
@@ -44,17 +45,26 @@ function sendSlackRegistrationNotification(registrationData) {
         for (let i = 1; i < pastData.length; i++) {
           if (pastData[i][businessNameIndex] === companyName) {
             paymentDelay = pastData[i][delayIndex] || 0;
+            foundData = true;
             break;
           }
         }
 
-        if (paymentDelay > 0) {
+        if (foundData && paymentDelay > 0) {
           const delayLevel = paymentDelay >= 60 ? '🔴 重大' : paymentDelay >= 30 ? '🟠 警告' : '🟡 注意';
           pastDataWarning = `${delayLevel} 支払遅延: ${paymentDelay}日\n⚠️ サイレント承認を推奨`;
+        } else if (foundData && paymentDelay === 0) {
+          pastDataWarning = '✅ 過去データあり（支払遅延なし）';
+        } else {
+          pastDataWarning = 'ℹ️ 過去データなし';
         }
+      } else {
+        // 過去データシートが見つからない場合
+        pastDataWarning = 'ℹ️ 過去データなし';
       }
     } catch (err) {
       console.error('[Slack] 過去データチェックエラー:', err);
+      pastDataWarning = 'ℹ️ 過去データなし（チェックエラー）';
     }
 
     // Slackメッセージの構築
