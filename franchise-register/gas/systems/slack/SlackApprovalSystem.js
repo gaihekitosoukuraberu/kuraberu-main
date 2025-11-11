@@ -107,177 +107,46 @@ const SlackApprovalSystem = {
    * 承認処理
    */
   approveRegistration: function(registrationId, approver) {
-    console.log('[SlackApproval.approve] ==== 承認処理開始 ====');
+    console.log('[SlackApproval.approve] ==== 承認処理開始（AdminSystemに委譲）====');
     console.log('[SlackApproval.approve] ID:', registrationId, 'Approver:', approver);
 
     try {
-      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
-      console.log('[SlackApproval.approve] Spreadsheet ID:', SPREADSHEET_ID);
-
-      if (!SPREADSHEET_ID) {
-        throw new Error('スプレッドシートIDが設定されていません');
+      // AdminSystem.approveRegistrationを呼び出し（V1696）
+      if (typeof AdminSystem === 'undefined' || typeof AdminSystem.approveRegistration !== 'function') {
+        throw new Error('AdminSystem.approveRegistration が見つかりません');
       }
 
-      const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('加盟店登録');
+      const result = AdminSystem.approveRegistration({
+        registrationId: registrationId,
+        approver: approver
+      });
 
-      if (!sheet) {
-        throw new Error('シートが見つかりません');
-      }
+      if (result.success) {
+        console.log('[SlackApproval] AdminSystem承認成功:', registrationId);
 
-      // ヘッダーとデータを取得
-      const dataRange = sheet.getDataRange();
-      console.log('[SlackApproval.approve] Data range rows:', dataRange.getNumRows(), 'cols:', dataRange.getNumColumns());
-      const data = dataRange.getValues();
-      const headers = data[0];
-      console.log('[SlackApproval.approve] Headers:', JSON.stringify(headers));
+        // Slack承認通知を送信
+        const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+        const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('加盟店登録');
+        const data = sheet.getDataRange().getValues();
+        const headers = data[0];
+        const idIndex = headers.indexOf('登録ID');
 
-      // カラムインデックスを動的に取得
-      const idIndex = headers.indexOf('登録ID');
-      const statusIndex = headers.indexOf('ステータス');
-      const approvalStatusIndex = headers.indexOf('承認ステータス');
-      const approvalDateIndex = headers.indexOf('登録日時');
-      let approverIndex = headers.indexOf('承認者');
-      const rejectReasonIndex = headers.indexOf('却下理由');
-      const pauseFlagIndex = headers.indexOf('一時停止フラグ');
-      const pauseStartDateIndex = headers.indexOf('一時停止開始日');
-      const pauseEndDateIndex = headers.indexOf('一時停止再開予定日');
-
-      // デバッグ用ログ
-      console.log('[SlackApproval.approve] Headers found:', headers.length);
-      console.log('[SlackApproval.approve] Column indices - ID:', idIndex, 'Status:', statusIndex, 'ApprovalStatus:', approvalStatusIndex, 'Date:', approvalDateIndex, 'Approver:', approverIndex);
-
-      // 必須カラムの存在確認
-      if (idIndex === -1 || statusIndex === -1 || approvalStatusIndex === -1) {
-        throw new Error(`必須カラムが見つかりません - ID:${idIndex}, Status:${statusIndex}, ApprovalStatus:${approvalStatusIndex}`);
-      }
-
-      // 承認者カラムが存在しない場合は追加する
-      if (approverIndex === -1) {
-        console.log('[SlackApproval.approve] 承認者カラムを追加中...');
-        const lastColumn = headers.length;
-        sheet.getRange(1, lastColumn + 1).setValue('承認者');
-        approverIndex = lastColumn;
-        console.log('[SlackApproval.approve] 承認者カラムを追加完了:', approverIndex);
-      }
-
-      // 登録IDで該当行を検索
-      let targetRow = -1;
-      for (let i = 1; i < data.length; i++) {
-        if (data[i][idIndex] === registrationId) {
-          targetRow = i + 1;
-          break;
+        let targetRow = -1;
+        for (let i = 1; i < data.length; i++) {
+          if (data[i][idIndex] === registrationId) {
+            targetRow = i;
+            break;
+          }
         }
-      }
 
-      if (targetRow === -1) {
-        throw new Error('登録IDが見つかりません: ' + registrationId);
-      }
-
-      // ステータス更新
-      const now = Utilities.formatDate(new Date(), 'JST', 'yyyy-MM-dd HH:mm:ss');
-      const approvalDate = Utilities.formatDate(new Date(), 'JST', 'yyyy-MM-dd');
-
-      // 承認ステータス → "承認済み"
-      sheet.getRange(targetRow, approvalStatusIndex + 1).setValue('承認済み');
-      // ステータス → "休止"
-      sheet.getRange(targetRow, statusIndex + 1).setValue('休止');
-      // 承認者 → 実際のSlackユーザー名を使用
-      sheet.getRange(targetRow, approverIndex + 1).setValue(approver);
-      // 注：登録日時は元の日時を保持（承認日時としては使わない）
-
-      // 一時停止設定を自動設定
-      if (pauseFlagIndex !== -1) {
-        sheet.getRange(targetRow, pauseFlagIndex + 1).setValue('TRUE');
-      }
-      if (pauseStartDateIndex !== -1) {
-        sheet.getRange(targetRow, pauseStartDateIndex + 1).setValue(approvalDate);
-      }
-      if (pauseEndDateIndex !== -1) {
-        sheet.getRange(targetRow, pauseEndDateIndex + 1).setValue('未定');
-      }
-
-      console.log('[SlackApproval] 承認完了:', registrationId);
-      console.log('[SlackApproval] 更新された行:', targetRow);
-      console.log('[SlackApproval] 更新されたカラム - Status:', statusIndex + 1, 'ApprovalStatus:', approvalStatusIndex + 1, 'Approver:', approverIndex + 1);
-
-      // 初回ログインメールを送信
-      console.log('[SlackApproval] ===== メール送信処理開始 =====');
-      console.log('[SlackApproval] targetRow:', targetRow, 'idIndex:', idIndex);
-      console.log('[SlackApproval] headers:', JSON.stringify(headers));
-
-      try {
-        const merchantRow = data[targetRow - 1];
-        console.log('[SlackApproval] merchantRow取得完了');
-
-        const merchantId = merchantRow[idIndex];
-        console.log('[SlackApproval] merchantId:', merchantId);
-
-        const emailIndex1 = headers.indexOf('営業用メールアドレス');
-        const emailIndex2 = headers.indexOf('請求用メールアドレス');
-        const companyIndex1 = headers.indexOf('会社名');
-        const companyIndex2 = headers.indexOf('会社名（法人名）');
-
-        console.log('[SlackApproval] emailIndex1:', emailIndex1, 'emailIndex2:', emailIndex2);
-        console.log('[SlackApproval] companyIndex1:', companyIndex1, 'companyIndex2:', companyIndex2);
-
-        const salesEmail = merchantRow[emailIndex1] || merchantRow[emailIndex2];
-        const companyName = merchantRow[companyIndex1] || merchantRow[companyIndex2];
-
-        console.log('[SlackApproval] salesEmail:', salesEmail, 'companyName:', companyName);
-
-        if (salesEmail && companyName) {
-          console.log('[SlackApproval] 初回ログインメール送信開始');
-          console.log('[SlackApproval] generateFirstLoginUrl関数存在確認:', typeof generateFirstLoginUrl);
-          console.log('[SlackApproval] sendWelcomeEmail関数存在確認:', typeof sendWelcomeEmail);
-
-          const loginUrl = generateFirstLoginUrl(merchantId);
-          console.log('[SlackApproval] ログインURL生成完了:', loginUrl);
-
-          sendWelcomeEmail(salesEmail, companyName, loginUrl, merchantId);
-          console.log('[SlackApproval] sendWelcomeEmail呼び出し完了');
-        } else {
-          console.error('[SlackApproval] メールアドレスまたは会社名が見つかりません');
-          console.error('[SlackApproval] Email:', salesEmail, 'Company:', companyName);
+        if (targetRow !== -1) {
+          this.sendApprovalNotification(data[targetRow], registrationId);
         }
-      } catch (emailError) {
-        console.error('[SlackApproval] メール送信エラー:', emailError);
-        console.error('[SlackApproval] エラー詳細:', emailError.stack);
-        console.error('[SlackApproval] エラーメッセージ:', emailError.message);
+      } else {
+        console.error('[SlackApproval] AdminSystem承認失敗:', result.error);
       }
 
-      console.log('[SlackApproval] ===== メール送信処理終了 =====');
-
-      // Slack承認通知を送信
-      this.sendApprovalNotification(data[targetRow - 1], registrationId);
-
-      // 評価データ自動収集
-      try {
-        console.log('[SlackApproval] ===== 評価データ収集開始 =====');
-        const companyIndex = headers.indexOf('会社名') !== -1 ? headers.indexOf('会社名') : headers.indexOf('会社名（法人名）');
-        const addressIndex = headers.indexOf('住所');
-        const companyName = data[targetRow - 1][companyIndex];
-        const address = data[targetRow - 1][addressIndex] || '';
-
-        console.log('[SlackApproval] 評価データ収集対象:', companyName, 'Address:', address);
-
-        // EvaluationDataManagerが存在する場合のみ実行
-        if (typeof EvaluationDataManager !== 'undefined') {
-          const ratingsResult = EvaluationDataManager.collectRatingsFromAPIs(companyName, address);
-          console.log('[SlackApproval] 評価データ収集結果:', JSON.stringify(ratingsResult));
-        } else {
-          console.warn('[SlackApproval] EvaluationDataManager未定義、評価データ収集スキップ');
-        }
-      } catch (evalError) {
-        console.error('[SlackApproval] 評価データ収集エラー:', evalError);
-        console.error('[SlackApproval] エラースタック:', evalError.stack);
-      }
-      console.log('[SlackApproval] ===== 評価データ収集終了 =====');
-
-      return {
-        success: true,
-        message: '承認完了',
-        registrationId: registrationId
-      };
+      return result;
 
     } catch (error) {
       console.error('[SlackApproval] 承認エラー:', error);

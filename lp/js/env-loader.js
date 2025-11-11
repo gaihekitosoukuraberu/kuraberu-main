@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1695-PAST-DATA-WARNING-2025-11-11T10:30:00
- * @last-update 2025-11-11T10:30:00
+ * @file-version V1696-SLACK-APPROVAL-FIX-2025-11-11T10:45:00
+ * @last-update 2025-11-11T10:45:00
  */
 
 const ENV = {
@@ -22,14 +22,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- 過去データ警告表示 @1612
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbwrJMptuK9tpTzopgv3E101brJI-7gvQrcgRN7vt5oVMkF_j6GKATHnbX1FPwMkwKwNVA/exec',
+  // プライマリGAS URL（メイン運用）- Slack承認統一 @1613
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbyteZRlP2zjCN6v7XNaAhFTh1u2Y5wFUfD0NqMkPivo5o7lKh_TECXQWMwkEenNuJfUQA/exec',
 
-  // フォールバックGAS URL（バックアップ）- @1612
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbwrJMptuK9tpTzopgv3E101brJI-7gvQrcgRN7vt5oVMkF_j6GKATHnbX1FPwMkwKwNVA/exec',
+  // フォールバックGAS URL（バックアップ）- @1613
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbyteZRlP2zjCN6v7XNaAhFTh1u2Y5wFUfD0NqMkPivo5o7lKh_TECXQWMwkEenNuJfUQA/exec',
 
-  // 緊急時URL（最終フォールバック）- @1612
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbwrJMptuK9tpTzopgv3E101brJI-7gvQrcgRN7vt5oVMkF_j6GKATHnbX1FPwMkwKwNVA/exec',
+  // 緊急時URL（最終フォールバック）- @1613
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbyteZRlP2zjCN6v7XNaAhFTh1u2Y5wFUfD0NqMkPivo5o7lKh_TECXQWMwkEenNuJfUQA/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1695 - 2025-11-11 10:30 - 過去データ警告表示）
-  CACHE_BUSTER: '1762825800000'
+  // キャッシュバスター（V1696 - 2025-11-11 10:45 - Slack承認統一）
+  CACHE_BUSTER: '1762826700000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
