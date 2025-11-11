@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-08T02:55:00.000Z - Deployment: AKfycbxMaj0EwqO8HczQOCH1xGNn2wTX3jn4OTU_3en76sIs1vpxYcafIwTHX1OSrUEfHGL97w
+// Auto-synced: 2025-11-08T09:55:20.000Z - Deployment: AKfycbxMaj0EwqO8HczQOCH1xGNn2wTX3jn4OTU_3en76sIs1vpxYcafIwTHX1OSrUEfHGL97w
 /**
  * 環境変数ローダー（全システム共通）- 🔥マスターファイル🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1603-LP-CONTACT-2025-11-08T02:55:00
- * @last-update 2025-11-08T02:55:00
+ * @file-version V1697-MASTER-MAPPING-FIX-2025-11-11T11:00:00
+ * @last-update 2025-11-11T11:00:00
  */
 
 const ENV = {
@@ -45,7 +45,7 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1699 - 2025-11-12 00:00 - 加盟店マスタマッピング修正）
+  // キャッシュバスター（V1697 - 2025-11-11 11:00 - 加盟店マスタマッピング修正）
   CACHE_BUSTER: '1762870096000'
 };
 
