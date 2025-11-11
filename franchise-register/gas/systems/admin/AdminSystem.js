@@ -1837,7 +1837,8 @@ const AdminSystem = {
             masterRow.push(approvalStatus);
             break;
           case '加盟日':
-            masterRow.push(registrationDate);
+            // V1697修正: 加盟日が空の場合は現在日時を使用
+            masterRow.push(registrationDate || Utilities.formatDate(new Date(), 'JST', 'yyyy-MM-dd HH:mm:ss'));
             break;
           case '直近3ヶ月_成約件数':
             masterRow.push(performanceData.contractCount || 0);
@@ -1861,10 +1862,12 @@ const AdminSystem = {
             masterRow.push(performanceData.handicap || 0);
             break;
           case 'デポジット前金':
-            masterRow.push(performanceData.deposit || 0);
+            // V1697修正: デフォルトはFALSE
+            masterRow.push(performanceData.deposit || 'FALSE');
             break;
           case '支払遅延':
-            masterRow.push(performanceData.paymentDelay || 0);
+            // V1697修正: デフォルトはFALSE
+            masterRow.push(performanceData.paymentDelay || 'FALSE');
             break;
           case '配信ステータス':
             masterRow.push(status); // V1694修正：AJ列（ステータス）→U列（配信ステータス）
@@ -1911,7 +1914,7 @@ const AdminSystem = {
   },
 
   /**
-   * 過去データシートから運用実績を取得（V1694）
+   * 過去データシートから運用実績を取得（V1697修正）
    */
   _getPerformanceFromPastData: function(companyName) {
     try {
@@ -1937,16 +1940,23 @@ const AdminSystem = {
         if (businessName === companyName) {
           console.log('[_getPerformanceFromPastData] ✅ マッチング成功:', companyName);
 
+          // 遅延日数を取得してTRUE/FALSEに変換
+          const delayDays = row[pastHeaders.indexOf('遅延日数合計')] || 0;
+          const hasPaymentDelay = delayDays > 0 ? 'TRUE' : 'FALSE';
+
+          // 評価データシートから評価を取得
+          const rating = this._getRatingFromEvaluationData(companyName);
+
           return {
             contractCount: row[pastHeaders.indexOf('成約件数')] || 0,
-            inquiryCount: 0, // 過去データにはないため0
+            inquiryCount: row[pastHeaders.indexOf('返品前販売件数')] || 0, // V1697修正
             avgContractAmount: row[pastHeaders.indexOf('成約単価')] || 0,
             totalSales: row[pastHeaders.indexOf('成約売上')] || 0,
-            rating: 0, // 後で評価データシートから取得可能
+            rating: rating, // V1697修正
             reviewCount: 0,
             handicap: 0,
-            deposit: 0,
-            paymentDelay: row[pastHeaders.indexOf('遅延日数合計')] || 0,
+            deposit: 'FALSE', // V1697修正
+            paymentDelay: hasPaymentDelay, // V1697修正: TRUE/FALSE
             pastContractCount: row[pastHeaders.indexOf('成約件数')] || 0,
             pastAvgAmount: row[pastHeaders.indexOf('成約単価')] || 0,
             pastTotalSales: row[pastHeaders.indexOf('成約売上')] || 0
@@ -1960,6 +1970,46 @@ const AdminSystem = {
     } catch (error) {
       console.error('[_getPerformanceFromPastData] エラー:', error);
       return {};
+    }
+  },
+
+  /**
+   * 評価データシートから評価を取得（V1697新規）
+   */
+  _getRatingFromEvaluationData: function(companyName) {
+    try {
+      console.log('[_getRatingFromEvaluationData] 会社名:', companyName);
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const evaluationSheet = ss.getSheetByName('評価データ');
+
+      if (!evaluationSheet) {
+        console.warn('[_getRatingFromEvaluationData] 評価データシートが見つかりません');
+        return 0;
+      }
+
+      const evalData = evaluationSheet.getDataRange().getValues();
+      const evalHeaders = evalData[0];
+
+      // 会社名でマッチング
+      for (let i = 1; i < evalData.length; i++) {
+        const row = evalData[i];
+        const businessName = row[evalHeaders.indexOf('会社名')] || '';
+
+        if (businessName === companyName) {
+          const totalScore = row[evalHeaders.indexOf('総合スコア')] || 0;
+          console.log('[_getRatingFromEvaluationData] ✅ 評価取得成功:', totalScore);
+          return totalScore;
+        }
+      }
+
+      console.warn('[_getRatingFromEvaluationData] 評価データなし:', companyName);
+      return 0;
+
+    } catch (error) {
+      console.error('[_getRatingFromEvaluationData] エラー:', error);
+      return 0;
     }
   }
 };
