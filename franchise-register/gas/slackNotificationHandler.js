@@ -26,6 +26,37 @@ function sendSlackRegistrationNotification(registrationData) {
       ? branches.map(b => `• ${b.name}: ${b.address}`).join('\n')
       : '支店情報なし';
 
+    // 過去データチェック（V1695）
+    let pastDataWarning = '';
+    let paymentDelay = 0;
+    try {
+      const companyName = registrationData.companyInfo?.legalName || registrationData.companyName;
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const pastDataSheet = ss.getSheetByName('過去データ');
+
+      if (pastDataSheet && companyName) {
+        const pastData = pastDataSheet.getDataRange().getValues();
+        const pastHeaders = pastData[0];
+        const businessNameIndex = pastHeaders.indexOf('業者名');
+        const delayIndex = pastHeaders.indexOf('遅延日数合計');
+
+        for (let i = 1; i < pastData.length; i++) {
+          if (pastData[i][businessNameIndex] === companyName) {
+            paymentDelay = pastData[i][delayIndex] || 0;
+            break;
+          }
+        }
+
+        if (paymentDelay > 0) {
+          const delayLevel = paymentDelay >= 60 ? '🔴 重大' : paymentDelay >= 30 ? '🟠 警告' : '🟡 注意';
+          pastDataWarning = `${delayLevel} 支払遅延: ${paymentDelay}日\n⚠️ サイレント承認を推奨`;
+        }
+      }
+    } catch (err) {
+      console.error('[Slack] 過去データチェックエラー:', err);
+    }
+
     // Slackメッセージの構築
     const message = {
       text: '@channel 🎉 新規加盟店登録がありました',
@@ -79,7 +110,11 @@ function sendSlackRegistrationNotification(registrationData) {
               value: '承認待ち',
               short: true
             }
-          ],
+          ].concat(pastDataWarning ? [{
+            title: '⚠️ 過去データ警告',
+            value: pastDataWarning,
+            short: false
+          }] : []),
           footer: '外壁塗装くらべるAI',
           ts: Math.floor(Date.now() / 1000)
         }
