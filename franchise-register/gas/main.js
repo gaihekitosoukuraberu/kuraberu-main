@@ -334,12 +334,15 @@ function doPost(e) {
 
     // JSONボディがある場合はパース、URL-encodedの場合はe.parameterを使用
     let postData = {};
-    if (e.postData && e.postData.contents && e.postData.type === 'application/json') {
-      try {
-        postData = JSON.parse(e.postData.contents);
-        console.log('[main.js] Parsed JSON POST data:', JSON.stringify(postData));
-      } catch (err) {
-        console.error('[main.js] Failed to parse JSON POST data:', err);
+    if (e.postData && e.postData.contents) {
+      // V1701: text/plainでもJSONをパースする（フロントエンドがtext/plainで送信するため）
+      if (e.postData.type === 'application/json' || e.postData.type === 'text/plain') {
+        try {
+          postData = JSON.parse(e.postData.contents);
+          console.log('[main.js] Parsed JSON POST data (type: ' + e.postData.type + '):', JSON.stringify(postData));
+        } catch (err) {
+          console.error('[main.js] Failed to parse JSON POST data:', err);
+        }
       }
     } else if (e.parameter) {
       // URL-encoded form data (application/x-www-form-urlencoded)
