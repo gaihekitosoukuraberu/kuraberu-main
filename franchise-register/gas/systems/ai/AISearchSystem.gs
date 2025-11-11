@@ -800,9 +800,27 @@ const AISearchSystem = {
       const prefecture = this.getPrefectureFromZipcode(zipcode);
       console.log('[AISearchSystem] 郵便番号 ' + zipcode + ' → 都道府県: ' + prefecture);
 
-      // 加盟店データ取得（DataLayer使用）
-      const sheet = DataLayer.getSheet('加盟店登録管理');
-      const lastRow = sheet.getLastRow();
+      // 加盟店マスタから取得（V1694）
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const masterSheet = ss.getSheetByName('加盟店マスタ');
+
+      if (!masterSheet) {
+        console.warn('[AISearchSystem] 加盟店マスタシートが見つかりません');
+        return {
+          success: true,
+          rankings: {
+            cheap: [],
+            recommended: [],
+            review: [],
+            premium: []
+          },
+          totalCount: 0,
+          filteredCount: 0
+        };
+      }
+
+      const lastRow = masterSheet.getLastRow();
       if (lastRow < 2) {
         console.warn('[AISearchSystem] 加盟店データがありません');
         return {
@@ -818,34 +836,51 @@ const AISearchSystem = {
         };
       }
 
-      // 全データ取得（ヘッダー行を除く）
-      const allData = sheet.getRange(2, 1, lastRow - 1, 52).getValues();
+      // ヘッダー取得
+      const masterHeaders = masterSheet.getRange(1, 1, 1, masterSheet.getLastColumn()).getValues()[0];
+      const allData = masterSheet.getRange(2, 1, lastRow - 1, masterSheet.getLastColumn()).getValues();
       console.log('[AISearchSystem] 全業者数: ' + allData.length);
 
-      // フィルタリング（承認済み + 都道府県マッチ）
+      // カラムインデックス取得
+      const colIndex = {
+        companyName: masterHeaders.indexOf('会社名'),
+        prefecture: masterHeaders.indexOf('対応都道府県'),
+        approvalStatus: masterHeaders.indexOf('承認ステータス'),
+        deliveryStatus: masterHeaders.indexOf('配信ステータス'),
+        avgContractAmount: masterHeaders.indexOf('直近3ヶ月_平均成約金額'),
+        rating: masterHeaders.indexOf('評価'),
+        reviewCount: masterHeaders.indexOf('口コミ件数'),
+        contractCount: masterHeaders.indexOf('直近3ヶ月_成約件数'),
+        constructionTypes: masterHeaders.indexOf('対応工事種別'),
+        silentFlag: masterHeaders.indexOf('サイレントフラグ')
+      };
+
+      // フィルタリング（承認済み + 配信中 + 都道府県マッチ）
       const filtered = [];
       for (var i = 0; i < allData.length; i++) {
         const row = allData[i];
-        const status = row[1];  // B列（status）
-        const prefectures = DataLayer.expandCompressedText(row[33]); // AH列（prefectures）
+        const approvalStatus = row[colIndex.approvalStatus] || '';
+        const deliveryStatus = row[colIndex.deliveryStatus] || '';
+        const prefectures = row[colIndex.prefecture] || '';
+        const silentFlag = row[colIndex.silentFlag] || 'FALSE';
 
-        // ステータスチェック（承認済み、運用中のみ）
-        if (status !== '承認済み' && status !== '運用中') {
-          continue;
-        }
+        // ステータスチェック（承認済み + 運用中 + サイレントフラグOFF）
+        if (approvalStatus !== '承認済み') continue;
+        if (deliveryStatus !== '運用中') continue;
+        if (silentFlag === 'TRUE') continue;
 
         // 都道府県チェック
         if (prefecture && prefectures && prefectures.indexOf(prefecture) !== -1) {
           filtered.push({
-            companyName: row[2] || '',  // C列
-            avgContractAmount: this.generateRandomPrice(),  // 仮データ（後で実装）
-            rating: this.generateRandomRating(),  // 仮データ（後で実装）
-            reviewCount: this.generateRandomReviewCount(),  // 仮データ（後で実装）
+            companyName: row[colIndex.companyName] || '',
+            avgContractAmount: row[colIndex.avgContractAmount] || 0,
+            rating: row[colIndex.rating] || 0,
+            reviewCount: row[colIndex.reviewCount] || 0,
             prefecture: prefecture,
-            constructionTypes: DataLayer.expandCompressedText(row[31]) || '',  // AF列
-            specialSupport: DataLayer.expandCompressedText(row[32]) || '',  // AG列
-            maxFloors: row[30] || '',  // AE列
-            contractCount: 0  // 仮データ（後で実装）
+            constructionTypes: row[colIndex.constructionTypes] || '',
+            specialSupport: '',
+            maxFloors: '',
+            contractCount: row[colIndex.contractCount] || 0
           });
         }
       }

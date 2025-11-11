@@ -592,6 +592,21 @@ const AdminSystem = {
             // エラーは無視して処理を続行
           }
 
+          // 加盟店マスタへのデータコピー（V1694）
+          try {
+            console.log('[AdminSystem] ===== 加盟店マスタ自動構築開始 =====');
+            const masterResult = this.copyToFranchiseMaster(registrationId, data[i], headers);
+            if (masterResult.success) {
+              console.log('[AdminSystem] ✅ 加盟店マスタ構築成功');
+            } else {
+              console.error('[AdminSystem] ❌ 加盟店マスタ構築失敗:', masterResult.error);
+            }
+          } catch (masterError) {
+            console.error('[AdminSystem] 加盟店マスタ構築エラー:', masterError);
+            // エラーは無視して処理を続行
+          }
+          console.log('[AdminSystem] ===== 加盟店マスタ自動構築終了 =====');
+
           return {
             success: true,
             message: '承認処理が完了しました'
@@ -1643,6 +1658,235 @@ const AdminSystem = {
     } catch (error) {
       console.error('[AdminSystem] スラッグ生成エラー:', error);
       return companySlug;
+    }
+  },
+
+  /**
+   * 加盟店マスタへのデータコピー（V1694）
+   * 承認時に「加盟店登録」→「加盟店マスタ」へデータを転記
+   */
+  copyToFranchiseMaster: function(registrationId, rowData, headers) {
+    try {
+      console.log('[copyToFranchiseMaster] 開始 - 登録ID:', registrationId);
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const masterSheet = ss.getSheetByName('加盟店マスタ');
+
+      if (!masterSheet) {
+        throw new Error('加盟店マスタシートが見つかりません');
+      }
+
+      // ヘッダー行取得
+      const masterHeaders = masterSheet.getRange(1, 1, 1, masterSheet.getLastColumn()).getValues()[0];
+      console.log('[copyToFranchiseMaster] マスタヘッダー数:', masterHeaders.length);
+
+      // 重複チェック
+      const existingData = masterSheet.getDataRange().getValues();
+      const idIndex = masterHeaders.indexOf('加盟店ID');
+
+      for (let i = 1; i < existingData.length; i++) {
+        if (existingData[i][idIndex] === registrationId) {
+          console.warn('[copyToFranchiseMaster] 既に存在します:', registrationId);
+          return { success: true, message: '既存データ（更新不要）' };
+        }
+      }
+
+      // 「加盟店登録」からデータを抽出
+      const companyName = rowData[headers.indexOf('会社名')] || '';
+      const address = rowData[headers.indexOf('住所')] || '';
+      const prefectures = rowData[headers.indexOf('対応都道府県')] || '';
+      const cities = rowData[headers.indexOf('対応市区町村')] || '';
+      const priorityAreas = rowData[headers.indexOf('優先エリア')] || '';
+      const constructionTypes = rowData[headers.indexOf('施工箇所')] || '';
+      const buildingAge = rowData[headers.indexOf('築年数対応範囲')] || '';
+      const approvalStatus = rowData[headers.indexOf('承認ステータス')] || '';
+      const registrationDate = rowData[headers.indexOf('登録日時')] || '';
+      const branches = rowData[headers.indexOf('支店住所')] || '';
+      const deliveryStatus = rowData[headers.indexOf('配信ステータス')] || '運用中'; // V1694修正：動的取得
+      const silentFlag = rowData[headers.indexOf('サイレントフラグ')] || 'FALSE'; // V1694修正：動的取得
+
+      // 本社都道府県を住所から抽出
+      let headquarterPrefecture = '';
+      if (address) {
+        const prefMatch = address.match(/^(北海道|.+?[都道府県])/);
+        if (prefMatch) {
+          headquarterPrefecture = prefMatch[1];
+        }
+      }
+
+      // 築年数範囲をパース
+      let buildingAgeMin = '';
+      let buildingAgeMax = '';
+      if (buildingAge) {
+        const ageMatch = buildingAge.match(/(\d+)年?[〜～-](\d+)年?/);
+        if (ageMatch) {
+          buildingAgeMin = ageMatch[1];
+          buildingAgeMax = ageMatch[2];
+        }
+      }
+
+      // 過去データシートから運用実績を取得
+      const performanceData = this._getPerformanceFromPastData(companyName);
+
+      // 加盟店マスタ行データ構築
+      const masterRow = [];
+      masterHeaders.forEach(header => {
+        switch(header) {
+          case '加盟店ID':
+            masterRow.push(registrationId);
+            break;
+          case '会社名':
+            masterRow.push(companyName);
+            break;
+          case '本社都道府県':
+            masterRow.push(headquarterPrefecture);
+            break;
+          case '対応都道府県':
+            masterRow.push(prefectures);
+            break;
+          case '対応市区町村':
+            masterRow.push(cities);
+            break;
+          case '優先エリア':
+            masterRow.push(priorityAreas);
+            break;
+          case '対応工事種別':
+            masterRow.push(constructionTypes);
+            break;
+          case '対応築年数_最小':
+            masterRow.push(buildingAgeMin);
+            break;
+          case '対応築年数_最大':
+            masterRow.push(buildingAgeMax);
+            break;
+          case '承認ステータス':
+            masterRow.push(approvalStatus);
+            break;
+          case '加盟日':
+            masterRow.push(registrationDate);
+            break;
+          case '直近3ヶ月_成約件数':
+            masterRow.push(performanceData.contractCount || 0);
+            break;
+          case '直近3ヶ月_問合せ件数':
+            masterRow.push(performanceData.inquiryCount || 0);
+            break;
+          case '直近3ヶ月_平均成約金額':
+            masterRow.push(performanceData.avgContractAmount || 0);
+            break;
+          case '直近3ヶ月_総売上':
+            masterRow.push(performanceData.totalSales || 0);
+            break;
+          case '評価':
+            masterRow.push(performanceData.rating || 0);
+            break;
+          case '口コミ件数':
+            masterRow.push(performanceData.reviewCount || 0);
+            break;
+          case 'ハンデ':
+            masterRow.push(performanceData.handicap || 0);
+            break;
+          case 'デポジット前金':
+            masterRow.push(performanceData.deposit || 0);
+            break;
+          case '支払遅延':
+            masterRow.push(performanceData.paymentDelay || 0);
+            break;
+          case '配信ステータス':
+            masterRow.push(deliveryStatus); // V1694修正：動的取得
+            break;
+          case '最終更新日時':
+            masterRow.push(Utilities.formatDate(new Date(), 'JST', 'yyyy-MM-dd HH:mm:ss'));
+            break;
+          case '支店情報':
+            masterRow.push(branches);
+            break;
+          case '過去_成約件数':
+            masterRow.push(performanceData.pastContractCount || 0);
+            break;
+          case '過去_平均成約金額':
+            masterRow.push(performanceData.pastAvgAmount || 0);
+            break;
+          case '過去_総売上':
+            masterRow.push(performanceData.pastTotalSales || 0);
+            break;
+          case 'サイレントフラグ':
+            masterRow.push(silentFlag); // V1694修正：動的取得
+            break;
+          default:
+            masterRow.push('');
+        }
+      });
+
+      // マスタシートに追加
+      masterSheet.appendRow(masterRow);
+      console.log('[copyToFranchiseMaster] ✅ 加盟店マスタに追加完了:', registrationId);
+
+      return {
+        success: true,
+        message: '加盟店マスタに追加しました'
+      };
+
+    } catch (error) {
+      console.error('[copyToFranchiseMaster] エラー:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * 過去データシートから運用実績を取得（V1694）
+   */
+  _getPerformanceFromPastData: function(companyName) {
+    try {
+      console.log('[_getPerformanceFromPastData] 会社名:', companyName);
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const pastDataSheet = ss.getSheetByName('過去データ');
+
+      if (!pastDataSheet) {
+        console.warn('[_getPerformanceFromPastData] 過去データシートが見つかりません');
+        return {};
+      }
+
+      const pastData = pastDataSheet.getDataRange().getValues();
+      const pastHeaders = pastData[0];
+
+      // 会社名でマッチング
+      for (let i = 1; i < pastData.length; i++) {
+        const row = pastData[i];
+        const businessName = row[pastHeaders.indexOf('業者名')] || '';
+
+        if (businessName === companyName) {
+          console.log('[_getPerformanceFromPastData] ✅ マッチング成功:', companyName);
+
+          return {
+            contractCount: row[pastHeaders.indexOf('成約件数')] || 0,
+            inquiryCount: 0, // 過去データにはないため0
+            avgContractAmount: row[pastHeaders.indexOf('成約単価')] || 0,
+            totalSales: row[pastHeaders.indexOf('成約売上')] || 0,
+            rating: 0, // 後で評価データシートから取得可能
+            reviewCount: 0,
+            handicap: 0,
+            deposit: 0,
+            paymentDelay: row[pastHeaders.indexOf('遅延日数合計')] || 0,
+            pastContractCount: row[pastHeaders.indexOf('成約件数')] || 0,
+            pastAvgAmount: row[pastHeaders.indexOf('成約単価')] || 0,
+            pastTotalSales: row[pastHeaders.indexOf('成約売上')] || 0
+          };
+        }
+      }
+
+      console.warn('[_getPerformanceFromPastData] マッチングデータなし:', companyName);
+      return {};
+
+    } catch (error) {
+      console.error('[_getPerformanceFromPastData] エラー:', error);
+      return {};
     }
   }
 };
