@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1700-SYSTEMROUTER-FIX-2025-11-12T01:45:00
- * @last-update 2025-11-12T01:45:00
+ * @file-version V1703-HEADER-STATUS-CLICK-2025-11-12T05:30:00
+ * @last-update 2025-11-12T05:30:00
  */
 
 const ENV = {
@@ -22,14 +22,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- ヘッダーステータスクリック対応 @1621
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbyAQk-_03sCzjsrbT4X19eveZn4etDe9yMZxtM7dj_0Z98CnSmPy694ePxx_Qd3sAfNtw/exec',
+  // プライマリGAS URL（メイン運用）- ヘッダーステータスクリック機能 @1622
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbzvbqgI2760Ogt3Wu8tOeSqs-qJ3708KrEgRuFF9A_uXG_8Zlz3Lfwe06eRCVg3ssnvfg/exec',
 
-  // フォールバックGAS URL（バックアップ）- @1621
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbyAQk-_03sCzjsrbT4X19eveZn4etDe9yMZxtM7dj_0Z98CnSmPy694ePxx_Qd3sAfNtw/exec',
+  // フォールバックGAS URL（バックアップ）- @1622
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzvbqgI2760Ogt3Wu8tOeSqs-qJ3708KrEgRuFF9A_uXG_8Zlz3Lfwe06eRCVg3ssnvfg/exec',
 
-  // 緊急時URL（最終フォールバック）- @1621
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbyAQk-_03sCzjsrbT4X19eveZn4etDe9yMZxtM7dj_0Z98CnSmPy694ePxx_Qd3sAfNtw/exec',
+  // 緊急時URL（最終フォールバック）- @1622
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbzvbqgI2760Ogt3Wu8tOeSqs-qJ3708KrEgRuFF9A_uXG_8Zlz3Lfwe06eRCVg3ssnvfg/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1702 - 2025-11-12 04:00 - ヘッダーステータスクリック対応 @1621）
-  CACHE_BUSTER: '1731354000000'
+  // キャッシュバスター（V1703-FIX2 - 2025-11-12 06:15 - pauseStatusDisplay更新修正 @1622）
+  CACHE_BUSTER: '1731362100000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

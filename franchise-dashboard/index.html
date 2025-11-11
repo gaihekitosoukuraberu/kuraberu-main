@@ -7215,6 +7215,12 @@
                 if (result.success) {
                     showToast('運用ステータスをアクティブに変更しました', 'success');
 
+                    // V1703-FIX2: localStorageから一時停止設定をクリア
+                    if (window.merchantId) {
+                        localStorage.removeItem(`pauseSettings_${window.merchantId}`);
+                        console.log('[resumeAutoDelivery] Cleared localStorage pause settings');
+                    }
+
                     // ヘッダーのステータスを即座に更新（V1703）
                     updateHeaderStatus('アクティブ');
                     updatePauseStatus('アクティブ');
@@ -7231,8 +7237,11 @@
                         pauseDateDisplay.classList.add('hidden');
                     }
 
-                    // 最新データを再取得して画面を更新
-                    await loadAutodeliverySettings();
+                    // 最新データを再取得して画面を更新（V1703 FIX）
+                    await fetchMerchantData(window.merchantId);
+                    if (window.merchantData) {
+                        window.loadAutodeliverySettings(window.merchantData);
+                    }
 
                 } else {
                     throw new Error(result.error || '一時停止の解除に失敗しました');
@@ -19955,6 +19964,13 @@
             }
 
             console.log('[loadAutodeliverySettings] Settings loaded');
+
+            // V1703-FIX: ステータスに基づいてpauseStatusDisplayを更新
+            const currentStatus = data['ステータス'] || 'アクティブ';
+            if (typeof updatePauseStatus === 'function') {
+                updatePauseStatus(currentStatus);
+                console.log('[loadAutodeliverySettings] Updated pauseStatusDisplay to:', currentStatus);
+            }
 
             // 閲覧モード表示を更新
             updateViewData('pause');
