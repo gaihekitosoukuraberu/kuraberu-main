@@ -72,6 +72,19 @@ const SlackApprovalSystem = {
         return this.createSlackResponse();
       }
 
+      // サイレントで承認ボタン（V1695）
+      else if (action.action_id === 'approve_silent_registration') {
+        console.log('[SlackApproval] サイレント承認ボタン押下検出');
+        const registrationId = action.value.replace('approve_silent_', '');
+        console.log('[SlackApproval] 処理対象ID:', registrationId);
+        const result = this.approveSilentRegistration(registrationId, user);
+        console.log('[SlackApproval] サイレント承認処理結果:', JSON.stringify(result));
+
+        // Slackメッセージを更新
+        this.updateSlackMessage(payload, '🔇 サイレント承認済み', registrationId, user);
+        return this.createSlackResponse();
+      }
+
       // 却下ボタン
       else if (action.action_id === 'reject_registration') {
         const registrationId = action.value.replace('reject_', '');
@@ -276,6 +289,61 @@ const SlackApprovalSystem = {
   },
 
   /**
+   * サイレント承認処理（V1695）
+   * AdminSystem.approveSilentRegistrationを呼び出す
+   */
+  approveSilentRegistration: function(registrationId, approver) {
+    console.log('[SlackApproval.approveSilent] ==== サイレント承認処理開始 ====');
+    console.log('[SlackApproval.approveSilent] ID:', registrationId, 'Approver:', approver);
+
+    try {
+      // AdminSystem.approveSilentRegistrationを呼び出し
+      if (typeof AdminSystem === 'undefined' || typeof AdminSystem.approveSilentRegistration !== 'function') {
+        throw new Error('AdminSystem.approveSilentRegistration が見つかりません');
+      }
+
+      const result = AdminSystem.approveSilentRegistration({
+        registrationId: registrationId,
+        approver: approver
+      });
+
+      if (result.success) {
+        console.log('[SlackApproval.approveSilent] サイレント承認成功:', registrationId);
+
+        // Slack承認通知を送信
+        const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+        const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('加盟店登録');
+        const data = sheet.getDataRange().getValues();
+        const headers = data[0];
+        const idIndex = headers.indexOf('登録ID');
+
+        let targetRow = -1;
+        for (let i = 1; i < data.length; i++) {
+          if (data[i][idIndex] === registrationId) {
+            targetRow = i;
+            break;
+          }
+        }
+
+        if (targetRow !== -1) {
+          this.sendSilentApprovalNotification(data[targetRow], registrationId);
+        }
+      } else {
+        console.error('[SlackApproval.approveSilent] サイレント承認失敗:', result.error);
+      }
+
+      return result;
+
+    } catch (error) {
+      console.error('[SlackApproval.approveSilent] エラー:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
    * 却下処理
    */
   rejectRegistration: function(registrationId, rejector, reason = 'Slackから却下') {
@@ -418,6 +486,79 @@ const SlackApprovalSystem = {
 
     } catch (error) {
       console.error('[SlackApproval] 承認通知エラー:', error);
+    }
+  },
+
+  /**
+   * Slackサイレント承認通知送信（V1695）
+   */
+  sendSilentApprovalNotification: function(rowData, registrationId) {
+    try {
+      const SLACK_WEBHOOK = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
+
+      if (!SLACK_WEBHOOK) {
+        console.log('[SlackApproval] サイレント承認通知Webhook未設定');
+        return;
+      }
+
+      const companyName = rowData[2]; // C列: 会社名
+      const representative = rowData[6]; // G列: 代表者名
+
+      const message = {
+        text: '加盟店登録がサイレント承認されました',
+        blocks: [
+          {
+            type: 'header',
+            text: {
+              type: 'plain_text',
+              text: '🔇 加盟店登録サイレント承認完了'
+            }
+          },
+          {
+            type: 'section',
+            fields: [
+              {
+                type: 'mrkdwn',
+                text: `*登録ID:*\n${registrationId}`
+              },
+              {
+                type: 'mrkdwn',
+                text: `*会社名:*\n${companyName}`
+              },
+              {
+                type: 'mrkdwn',
+                text: `*代表者:*\n${representative}`
+              },
+              {
+                type: 'mrkdwn',
+                text: `*ステータス:*\nサイレント承認済み 🔇`
+              }
+            ]
+          },
+          {
+            type: 'context',
+            elements: [
+              {
+                type: 'mrkdwn',
+                text: '⚠️ この業者はランキング表示されません（サイレントフラグ: TRUE）'
+              }
+            ]
+          }
+        ]
+      };
+
+      const options = {
+        method: 'post',
+        contentType: 'application/json',
+        payload: JSON.stringify(message),
+        muteHttpExceptions: true
+      };
+
+      UrlFetchApp.fetch(SLACK_WEBHOOK, options);
+      console.log('[SlackApproval] サイレント承認通知送信完了');
+
+    } catch (error) {
+      console.error('[SlackApproval] サイレント承認通知エラー:', error);
     }
   },
 

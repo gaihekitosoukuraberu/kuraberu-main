@@ -110,6 +110,17 @@ function sendSlackRegistrationNotification(registrationData) {
               type: 'button',
               text: {
                 type: 'plain_text',
+                text: '🔇 サイレントで承認',
+                emoji: true
+              },
+              style: 'primary',
+              value: `approve_silent_${registrationId}`,
+              action_id: 'approve_silent_registration'
+            },
+            {
+              type: 'button',
+              text: {
+                type: 'plain_text',
                 text: '❌ 却下',
                 emoji: true
               },

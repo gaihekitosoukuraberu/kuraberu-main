@@ -629,6 +629,79 @@ const AdminSystem = {
   },
 
   /**
+   * サイレントフラグ付き承認（V1695）
+   * 承認と同時にサイレントフラグをTRUEに設定
+   */
+  approveSilentRegistration: function(params) {
+    try {
+      const registrationId = params.registrationId;
+      const approver = params.approver || '管理者';
+
+      if (!registrationId) {
+        return {
+          success: false,
+          error: '登録IDが指定されていません'
+        };
+      }
+
+      console.log('[AdminSystem] サイレント承認開始:', registrationId);
+
+      // スプレッドシート更新
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('加盟店登録');
+
+      const data = sheet.getDataRange().getValues();
+      const headers = data[0];
+      const idIndex = headers.indexOf('登録ID');
+      const silentFlagIndex = headers.indexOf('サイレントフラグ');
+
+      if (silentFlagIndex === -1) {
+        console.error('[AdminSystem] サイレントフラグ列が見つかりません');
+        return {
+          success: false,
+          error: 'サイレントフラグ列が見つかりません'
+        };
+      }
+
+      // 該当行を検索してサイレントフラグをTRUEに設定
+      let found = false;
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][idIndex] === registrationId) {
+          // サイレントフラグをTRUEに設定
+          sheet.getRange(i + 1, silentFlagIndex + 1).setValue('TRUE');
+          console.log('[AdminSystem] サイレントフラグをTRUEに設定:', registrationId);
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        return {
+          success: false,
+          error: '該当する登録IDが見つかりません'
+        };
+      }
+
+      // 通常の承認処理を実行
+      console.log('[AdminSystem] 通常の承認処理を実行中...');
+      const result = this.approveRegistration(params);
+
+      if (result.success) {
+        console.log('[AdminSystem] サイレント承認完了:', registrationId);
+      }
+
+      return result;
+
+    } catch (error) {
+      console.error('[AdminSystem] approveSilentRegistration error:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
    * ヘッダーチェック（デバッグ用）
    */
   checkHeaders: function() {
