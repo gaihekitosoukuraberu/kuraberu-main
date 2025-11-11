@@ -1703,8 +1703,8 @@ const AdminSystem = {
       const approvalStatus = rowData[headers.indexOf('承認ステータス')] || '';
       const registrationDate = rowData[headers.indexOf('登録日時')] || '';
       const branches = rowData[headers.indexOf('支店住所')] || '';
-      const deliveryStatus = rowData[headers.indexOf('配信ステータス')] || '運用中'; // V1694修正：動的取得
-      const silentFlag = rowData[headers.indexOf('サイレントフラグ')] || 'FALSE'; // V1694修正：動的取得
+      const status = rowData[headers.indexOf('ステータス')] || '運用中'; // V1694修正：AJ列→U列（配信ステータス）
+      const silentFlag = rowData[headers.indexOf('サイレントフラグ')] || 'FALSE'; // V1694修正：AW列→AA列
 
       // 本社都道府県を住所から抽出
       let headquarterPrefecture = '';
@@ -1794,7 +1794,7 @@ const AdminSystem = {
             masterRow.push(performanceData.paymentDelay || 0);
             break;
           case '配信ステータス':
-            masterRow.push(deliveryStatus); // V1694修正：動的取得
+            masterRow.push(status); // V1694修正：AJ列（ステータス）→U列（配信ステータス）
             break;
           case '最終更新日時':
             masterRow.push(Utilities.formatDate(new Date(), 'JST', 'yyyy-MM-dd HH:mm:ss'));
@@ -1812,7 +1812,7 @@ const AdminSystem = {
             masterRow.push(performanceData.pastTotalSales || 0);
             break;
           case 'サイレントフラグ':
-            masterRow.push(silentFlag); // V1694修正：動的取得
+            masterRow.push(silentFlag); // V1694修正：AW列→AA列
             break;
           default:
             masterRow.push('');
