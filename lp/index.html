@@ -1896,28 +1896,42 @@
                 console.log('✅ 無料見積もりボタン非表示（モーダル表示）');
             }
 
-            // スマホの場合は現在のスクロール位置に表示
-            if (window.innerWidth < 768) {
-                const scrollY = window.scrollY || window.pageYOffset;
-                modal.style.position = 'absolute';
-                modal.style.top = scrollY + 'px';
-                modal.style.left = '0';
-                modal.style.right = '0';
-                modal.style.height = '100vh';
-                modal.style.bottom = 'auto';
-            } else {
-                // PCの場合は固定位置（画面中央）
-                modal.style.position = 'fixed';
-                modal.style.top = '0';
-                modal.style.left = '0';
-                modal.style.right = '0';
-                modal.style.bottom = '0';
-                modal.style.height = '';
-            }
+            // V1713-FIX: 背景スクロール完全防止（スクロール位置固定方式）
+            const scrollY = window.scrollY || window.pageYOffset;
+            window.modalScrollPosition = scrollY;
 
-            // スマホでの背景スクロール防止
+            // モーダルを固定位置に表示
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.right = '0';
+            modal.style.bottom = '0';
+            modal.style.height = '';
+
+            // bodyを固定してスクロール防止
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${scrollY}px`;
+            document.body.style.width = '100%';
             document.body.style.overflow = 'hidden';
             document.body.style.touchAction = 'none';
+
+            // gaiheki-bot-containerも固定
+            const botContainer = document.getElementById('gaiheki-bot-container');
+            if (botContainer) {
+                botContainer.style.position = 'fixed';
+                botContainer.style.top = '0';
+                botContainer.style.left = '0';
+                botContainer.style.right = '0';
+                botContainer.style.bottom = '0';
+                botContainer.style.overflow = 'hidden';
+            }
+
+            // モーダル背景のタッチムーブイベントを防止
+            modal.addEventListener('touchmove', function(e) {
+                if (e.target === modal) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
         }
 
         // モーダルを閉じる
@@ -1933,9 +1947,32 @@
             modal.style.bottom = '';
             modal.style.height = '';
 
-            // 背景スクロールを復元
-            document.body.style.overflow = '';
-            document.body.style.touchAction = '';
+            // V1713-FIX: 背景スクロールを復元（skipButtonRestore時はスキップ）
+            if (!skipButtonRestore) {
+                // bodyの固定を解除
+                document.body.style.position = '';
+                document.body.style.top = '';
+                document.body.style.width = '';
+                document.body.style.overflow = '';
+                document.body.style.touchAction = '';
+
+                // スクロール位置を復元
+                if (window.modalScrollPosition !== undefined) {
+                    window.scrollTo(0, window.modalScrollPosition);
+                    delete window.modalScrollPosition;
+                }
+
+                // gaiheki-bot-containerも復元
+                const botContainer = document.getElementById('gaiheki-bot-container');
+                if (botContainer) {
+                    botContainer.style.position = '';
+                    botContainer.style.top = '';
+                    botContainer.style.left = '';
+                    botContainer.style.right = '';
+                    botContainer.style.bottom = '';
+                    botContainer.style.overflow = '';
+                }
+            }
 
             // V1713-UX: キープリストがあれば無料見積もりボタンを再表示
             // skipButtonRestore=trueの場合は再表示しない（見積もりフォームを開く場合など）
