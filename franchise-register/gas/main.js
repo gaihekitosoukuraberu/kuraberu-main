@@ -121,9 +121,9 @@ const SystemRouter = {
       actions: ['cv1_submit', 'cv2_update', 'getCVList']
     },
 
-    // ランキング取得
+    // ランキング取得（V1713: RankingSystemに分離）
     'getRanking': {
-      system: 'AISearchSystem',
+      system: 'RankingSystem',
       description: 'ランキング取得',
       prefix: false,
       actions: ['getRanking']

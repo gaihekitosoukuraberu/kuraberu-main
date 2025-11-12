@@ -79,25 +79,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
       console.log('電話番号検証OK、業者名を表示中...');
 
-      // CV1送信（質問回答 + 電話番号）
-      console.log('📞 CV1送信開始 - 電話番号:', phoneNumber);
+      // 電話番号を保存（先に保存）
+      localStorage.setItem('userPhone', phoneNumber);
+
+      // V1713-UX: CV1送信をバックグラウンド実行（UIブロックしない）
+      console.log('📞 CV1送信開始（バックグラウンド）- 電話番号:', phoneNumber);
       if (window.CVAPI && typeof window.CVAPI.sendCV1 === 'function') {
-        try {
-          const result = await window.CVAPI.sendCV1(phoneNumber);
+        // awaitせずにバックグラウンドで実行
+        window.CVAPI.sendCV1(phoneNumber).then(result => {
           if (result.success) {
-            console.log('✅ CV1送信成功 - ID:', result.cvId);
+            console.log('✅ CV1送信成功（バックグラウンド）- ID:', result.cvId);
           } else {
-            console.error('❌ CV1送信失敗:', result.error);
+            console.error('❌ CV1送信失敗（バックグラウンド）:', result.error);
+            console.warn('⚠️ CV2送信時に統合モードで再送します');
           }
-        } catch (error) {
-          console.error('❌ CV1送信エラー:', error);
-        }
+        }).catch(error => {
+          console.error('❌ CV1送信エラー（バックグラウンド）:', error);
+          console.warn('⚠️ CV2送信時に統合モードで再送します');
+        });
       } else {
         console.error('❌ CVAPI.sendCV1が見つかりません');
       }
-
-      // 電話番号を保存
-      localStorage.setItem('userPhone', phoneNumber);
 
       // 電話番号入力フォームをサンクスメッセージに切り替え
       const phoneSection = document.getElementById('phoneSection');
