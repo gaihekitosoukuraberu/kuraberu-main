@@ -79,6 +79,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
       console.log('電話番号検証OK、業者名を表示中...');
 
+      // V1713-UX: ローディング表示
+      const phoneSection = document.getElementById('phoneSection');
+      if (phoneSection) {
+        const loadingHtml = `
+          <div id="phoneLoadingIndicator" class="container mx-auto px-4">
+            <div class="max-w-2xl mx-auto">
+              <div class="flex items-center justify-center py-8">
+                <div class="flex items-center gap-3 bg-blue-50 px-6 py-4 rounded-lg">
+                  <svg class="animate-spin h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span class="text-base text-blue-600 font-medium">業者名を表示中...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        phoneSection.innerHTML = loadingHtml;
+      }
+
       // 電話番号を保存（先に保存）
       localStorage.setItem('userPhone', phoneNumber);
 
@@ -101,22 +122,6 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('❌ CVAPI.sendCV1が見つかりません');
       }
 
-      // 電話番号入力フォームをサンクスメッセージに切り替え
-      const phoneSection = document.getElementById('phoneSection');
-      if (phoneSection) {
-        phoneSection.innerHTML = `
-          <div class="container mx-auto px-4">
-            <div class="max-w-2xl mx-auto">
-              <div class="bg-green-50 p-8 rounded-2xl border-2 border-green-300 shadow-lg text-center">
-                <div class="text-6xl mb-4">🎉</div>
-                <h3 class="font-bold text-lg sm:text-xl md:text-xl lg:text-xl text-green-800 mb-2 whitespace-nowrap">おめでとうございます！</h3>
-                <p class="text-sm sm:text-base md:text-base lg:text-base text-green-700 whitespace-nowrap">無料見積もりが可能になりました！</p>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-
       // 電話番号入力後：ランキングを再表示（V1704 - 実データのみ使用）
       console.log('🔓 ランキング再表示');
 
@@ -135,6 +140,23 @@ document.addEventListener('DOMContentLoaded', function() {
             window.displayRanking();
           }
         }
+      }
+
+      // V1713-UX: ローディング削除してサンクスメッセージ表示
+      const phoneLoadingIndicator = document.getElementById('phoneLoadingIndicator');
+      if (phoneLoadingIndicator && phoneSection) {
+        phoneSection.innerHTML = `
+          <div class="container mx-auto px-4">
+            <div class="max-w-2xl mx-auto">
+              <div class="bg-green-50 p-8 rounded-2xl border-2 border-green-300 shadow-lg text-center">
+                <div class="text-6xl mb-4">🎉</div>
+                <h3 class="font-bold text-lg sm:text-xl md:text-xl lg:text-xl text-green-800 mb-2 whitespace-nowrap">おめでとうございます！</h3>
+                <p class="text-sm sm:text-base md:text-base lg:text-base text-green-700 whitespace-nowrap">無料見積もりが可能になりました！</p>
+              </div>
+            </div>
+          </div>
+        `;
+        console.log('✅ ローディング削除 → サンクスメッセージ表示');
       }
 
       // 下部ボタンを「無料見積もり」に変更

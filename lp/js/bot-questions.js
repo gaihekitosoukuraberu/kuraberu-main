@@ -33,6 +33,16 @@ const BotQuestions = {
         // 現在の質問IDを保存
         BotConfig.state.currentQuestionId = questionId;
 
+        // V1713-UX: Q014表示時にランキング事前取得開始（ユーザーが選択する前に開始）
+        if (questionId === 'Q014' && typeof window.fetchRankingFromGAS === 'function' && !window.dynamicRankings) {
+            console.log('🚀 Q014表示 → ランキング事前取得開始（バックグラウンド・即時）');
+            window.fetchRankingFromGAS().then(() => {
+                console.log('✅ ランキング事前取得完了（ユーザーが選択中に完了）');
+            }).catch(err => {
+                console.warn('⚠️ ランキング事前取得エラー（非致命的）:', err);
+            });
+        }
+
         // 特殊な分岐：PHONE
         if (questionId === 'PHONE' || this.isPHONEBranch(question)) {
             // connectToPhoneSystemはasync関数だが、ここではawaitしない（バックグラウンドで実行）
@@ -86,18 +96,8 @@ const BotQuestions = {
         // 回答を保存
         BotConfig.saveAnswer(question.id || BotConfig.state.currentQuestionId, choice, index);
 
-        // V1713-UX: Q014回答時にランキング事前取得（バックグラウンド）- Q004より前に移動
-        const currentQuestionId = question.id || BotConfig.state.currentQuestionId;
-        if (currentQuestionId === 'Q014' && typeof window.fetchRankingFromGAS === 'function') {
-            console.log('🚀 Q014回答 → ランキング事前取得開始（バックグラウンド・超早期）');
-            window.fetchRankingFromGAS().then(() => {
-                console.log('✅ ランキング事前取得完了（Q016到達前に十分な時間確保）');
-            }).catch(err => {
-                console.warn('⚠️ ランキング事前取得エラー（非致命的）:', err);
-            });
-        }
-
         // V1713-FIX: 回答後にランキングを動的更新（非同期・非ブロッキング）
+        const currentQuestionId = question.id || BotConfig.state.currentQuestionId;
         if (typeof window.updateRankingDynamically === 'function') {
             window.updateRankingDynamically().catch(err => {
                 console.warn('⚠️ ランキング動的更新エラー（非致命的）:', err);
