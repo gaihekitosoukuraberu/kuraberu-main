@@ -247,6 +247,7 @@ function doGet(e) {
   try {
     const action = e.parameter.action;
     const callback = e.parameter.callback;
+    const dataVar = e.parameter.dataVar;  // V1713-FIX: グローバル変数方式対応
 
     console.log('[main.js] GET request:', action);
 
@@ -255,7 +256,7 @@ function doGet(e) {
       return createJsonpResponse({
         success: false,
         error: 'Action parameter is required'
-      }, callback);
+      }, callback, dataVar);
     }
 
     let result;
@@ -306,7 +307,7 @@ function doGet(e) {
     }
 
     // JSONP形式で返却
-    return createJsonpResponse(result, callback);
+    return createJsonpResponse(result, callback, dataVar);
 
   } catch (error) {
     console.error('[main.js] doGet error:', error);
@@ -314,7 +315,7 @@ function doGet(e) {
       success: false,
       error: error.toString(),
       stack: error.stack
-    }, e.parameter.callback);
+    }, e.parameter.callback, e.parameter.dataVar);
   }
 }
 
@@ -471,29 +472,24 @@ function doOptions(e) {
 /**
  * JSONP形式のレスポンス作成（共通関数）
  */
-function createJsonpResponse(data, callback) {
+function createJsonpResponse(data, callback, dataVar) {
   const jsonString = JSON.stringify(data);
 
-  // V1713-FIX: XMLHttpRequest用にCORSヘッダー必須
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Max-Age': '86400'
-  };
-
-  if (callback) {
-    // JSONP形式 + CORSヘッダー（XHR対応）
+  if (dataVar) {
+    // V1713-FIX: グローバル変数方式（スマホ対応 - CORS不要）
+    return ContentService
+      .createTextOutput('window["' + dataVar + '"] = ' + jsonString + ';')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  } else if (callback) {
+    // JSONP形式（従来の方式）
     return ContentService
       .createTextOutput(callback + '(' + jsonString + ')')
-      .setMimeType(ContentService.MimeType.JAVASCRIPT)
-      .setHeaders(headers);
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
   } else {
     // 通常のJSON（callbackなしの場合）
     return ContentService
       .createTextOutput(jsonString)
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeaders(headers);
+      .setMimeType(ContentService.MimeType.JSON);
   }
 }
 

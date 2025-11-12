@@ -239,100 +239,90 @@ const CVAPI = {
     },
 
     // ============================================
-    // JSONP送信（CORS回避）- V1713-FIX: スマホ対応（XHR方式）
+    // JSONP送信（CORS回避）- V1713-FIX: スマホ対応（グローバル変数方式）
     // ============================================
     sendJSONP(data) {
         return new Promise((resolve, reject) => {
-            // V1713-FIX: スマホ対応 - XMLHttpRequest方式
-            // 理由: 動的scriptタグがスマホブラウザで完全にブロックされる
+            // V1713-FIX: スマホ対応 - グローバル変数にデータを代入する方式
+            // 理由: コールバック不要、CORS不要、スマホでも確実に動作
 
-            // コールバック関数名を生成
-            const callbackName = 'cvCallback_' + Date.now();
-            console.log('🔧 コールバック関数名:', callbackName);
+            // グローバル変数名を生成
+            const dataVarName = '__gasData_' + Date.now();
+            console.log('🔧 グローバル変数名:', dataVarName);
 
-            // グローバルにコールバック関数を定義
-            window[callbackName] = function(response) {
-                console.log('✅ コールバック関数が実行されました');
-                delete window[callbackName];
-                console.log('📥 JSONP レスポンス受信:', response);
-                resolve(response);
-            };
-
-            // URLパラメータ構築
+            // URLパラメータ構築（callbackなし、dataVar指定）
             const params = new URLSearchParams();
             for (const key in data) {
                 if (data.hasOwnProperty(key)) {
                     params.append(key, data[key]);
                 }
             }
-            params.append('callback', callbackName);
+            params.append('dataVar', dataVarName);  // GASにグローバル変数名を渡す
 
             const fullUrl = this.GAS_URL + '?' + params.toString();
 
-            console.log('📤 XMLHttpRequest リクエスト送信');
+            console.log('📤 scriptタグ送信（グローバル変数方式）');
             console.log('📤 URL:', fullUrl);
             console.log('📤 URL文字数:', fullUrl.length);
 
-            // V1713-FIX: スマホ対応 - XMLHttpRequestでJSONPテキストを取得
-            const xhr = new XMLHttpRequest();
-            xhr.timeout = 60000; // 60秒
+            // scriptタグを動的に生成
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.async = false;
+            script.charset = 'utf-8';
 
-            xhr.onload = function() {
-                console.log('📥 XHR レスポンス受信:', xhr.status);
-                console.log('📥 レスポンステキスト:', xhr.responseText.substring(0, 100) + '...');
+            script.onerror = function(e) {
+                console.error('❌ スクリプト読み込みエラー');
+                delete window[dataVarName];
+                if (script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
+                reject(new Error('Script load failed'));
+            };
 
-                if (xhr.status === 200) {
-                    try {
-                        // JSONP形式のレスポンスをevalで実行
-                        eval(xhr.responseText);
-                        console.log('✅ eval実行成功');
-                    } catch (evalError) {
-                        console.error('❌ eval失敗:', evalError);
+            script.onload = function() {
+                console.log('✅ スクリプト読み込み完了');
 
-                        if (/Mobile|Android|iPhone/i.test(navigator.userAgent)) {
-                            alert('デバッグ: eval失敗\n' + evalError.toString());
-                        }
-
-                        delete window[callbackName];
-                        reject(new Error('Eval failed: ' + evalError.toString()));
+                // グローバル変数からデータを取得
+                if (window[dataVarName]) {
+                    const response = window[dataVarName];
+                    console.log('📥 データ取得成功:', response);
+                    delete window[dataVarName];
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
                     }
+                    resolve(response);
                 } else {
-                    console.error('❌ HTTP エラー:', xhr.status);
-
-                    if (/Mobile|Android|iPhone/i.test(navigator.userAgent)) {
-                        alert('デバッグ: HTTP エラー\nステータス: ' + xhr.status);
+                    console.error('❌ グローバル変数が見つかりません:', dataVarName);
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
                     }
-
-                    delete window[callbackName];
-                    reject(new Error('HTTP error: ' + xhr.status));
+                    reject(new Error('Data variable not found'));
                 }
             };
 
-            xhr.onerror = function() {
-                console.error('❌ XHR エラー');
-
-                if (/Mobile|Android|iPhone/i.test(navigator.userAgent)) {
-                    alert('デバッグ: XHR エラー\nネットワークエラーまたはCORS制限');
+            // タイムアウト設定
+            setTimeout(() => {
+                if (window[dataVarName] === undefined) {
+                    console.error('❌ タイムアウト（60秒）');
+                    delete window[dataVarName];
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                    reject(new Error('Request timeout (60s)'));
                 }
+            }, 60000);
 
-                delete window[callbackName];
-                reject(new Error('XHR request failed'));
-            };
+            // DOMに追加してからsrcを設定
+            const targetElement = document.head || document.getElementsByTagName('head')[0] || document.body;
+            if (!targetElement) {
+                reject(new Error('No DOM element to append script'));
+                return;
+            }
 
-            xhr.ontimeout = function() {
-                console.error('❌ XHR タイムアウト（60秒）');
-
-                if (/Mobile|Android|iPhone/i.test(navigator.userAgent)) {
-                    alert('デバッグ: XHR タイムアウト（60秒）');
-                }
-
-                delete window[callbackName];
-                reject(new Error('XHR timeout (60s)'));
-            };
-
-            xhr.open('GET', fullUrl, true);
-            xhr.send();
-            console.log('✅ XHR送信完了');
+            targetElement.appendChild(script);
+            script.src = fullUrl;
+            console.log('✅ scriptタグ追加完了');
         });
     },
 

@@ -39,14 +39,6 @@ async function fetchRankingFromGAS() {
     if (!zipcode) {
       console.error('❌ 郵便番号が見つかりません');
       console.error('📋 BotConfig.state:', JSON.stringify(window.BotConfig.state, null, 2));
-
-      // デバッグ: スマホ実機でエラーを可視化
-      if (/Mobile|Android|iPhone/i.test(navigator.userAgent)) {
-        alert('デバッグ: 郵便番号が見つかりません\n' +
-              'currentZipcode: ' + (window.BotConfig.state.currentZipcode || 'undefined') + '\n' +
-              'postalCodeEntered: ' + (window.BotConfig.state.postalCodeEntered || 'false'));
-      }
-
       return false;
     }
 
@@ -100,15 +92,6 @@ async function fetchRankingFromGAS() {
     if (!response.success) {
       console.error('❌ ランキング取得失敗:', response.error);
 
-      // デバッグ: スマホ実機でエラーを可視化
-      if (/Mobile|Android|iPhone/i.test(navigator.userAgent)) {
-        const errorMsg = response.error || '不明なエラー';
-        const isUrlTooLong = errorMsg.includes('URL length');
-        alert('デバッグ: ランキング取得失敗\n' +
-              'エラー: ' + errorMsg + '\n' +
-              (isUrlTooLong ? '\n※URLが長すぎる可能性があります' : ''));
-      }
-
       return false;
     }
 
@@ -124,14 +107,6 @@ async function fetchRankingFromGAS() {
 
   } catch (error) {
     console.error('❌ ランキング取得エラー:', error);
-
-    // デバッグ: スマホ実機でエラーを可視化
-    if (/Mobile|Android|iPhone/i.test(navigator.userAgent)) {
-      alert('デバッグ: ランキング取得エラー（例外）\n' +
-            'エラー: ' + error.message + '\n' +
-            'スタック: ' + (error.stack || '').substring(0, 100));
-    }
-
     return false;
   }
 }
