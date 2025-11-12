@@ -1261,16 +1261,6 @@
     <div id="gaiheki-bot-container" style="display: none;">
     <!-- メインコンテンツ（BOT + ランキング） -->
     <div id="botParentContainer" class="w-full px-4 space-y-6 pb-40 pt-12 md:pt-0" style="max-width: 100vw; margin: 0; font-size: 16px;">
-        <!-- 見積もりボタン（固定位置・白背景） -->
-        <div id="estimateBtnContainer" class="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 py-4 z-[9999] hidden">
-            <div class="max-w-6xl mx-auto px-4 text-center">
-                <button onclick="showKeepModal();" class="bg-orange-400 hover:bg-orange-500 text-white font-bold py-4 px-20 rounded-full text-lg transition-all relative inline-flex items-center justify-center shadow-lg">
-                    無料見積もり
-                    <span id="keepCountBadge" class="notification-badge hidden"></span>
-                </button>
-            </div>
-        </div>
-
         <!-- 相場表示 -->
         <div id="priceSection" class="hidden">
             <div class="bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-2xl shadow-xl p-1">
@@ -2564,13 +2554,24 @@
         });
     </script>
 
+    <!-- V1713-UX: 見積もりボタン（body直下で固定位置） -->
+    <!-- transform親要素の影響を受けないよう、gaiheki-bot-containerの外に配置 -->
+    <div id="estimateBtnContainer" class="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 py-4 hidden" style="z-index: 99999 !important;">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <button onclick="showKeepModal();" class="bg-orange-400 hover:bg-orange-500 text-white font-bold py-4 px-20 rounded-full text-lg transition-all relative inline-flex items-center justify-center shadow-lg">
+                無料見積もり
+                <span id="keepCountBadge" class="notification-badge hidden"></span>
+            </button>
+        </div>
+    </div>
+
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） - 固定キャッシュバスター -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="js/env-loader.js?v=1762959333444"></script>
+    <script src="js/env-loader.js?v=1762960306399"></script>
 
     <!-- BOTローダー（タイミング問題のため静的ロード必須） -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="gaiheki-bot-loader.js?v=1762959333444"></script>
+    <script src="gaiheki-bot-loader.js?v=1762960306399"></script>
   </body>
 </html>
