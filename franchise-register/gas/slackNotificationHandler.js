@@ -26,10 +26,12 @@ function sendSlackRegistrationNotification(registrationData) {
       ? branches.map(b => `• ${b.name}: ${b.address}`).join('\n')
       : '支店情報なし';
 
-    // 過去データチェック（V1698: 過去データなし表示を追加）
+    // 過去データチェック（V1708: 包括的な警告システム実装）
     let pastDataWarning = '';
-    let paymentDelay = 0;
     let foundData = false;
+    let warningMessages = [];
+    let criticalLevel = 0; // 0=問題なし, 1=注意, 2=警告, 3=重大, 4=却下推奨
+
     try {
       const companyName = registrationData.companyInfo?.legalName || registrationData.companyName;
       const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
@@ -39,32 +41,142 @@ function sendSlackRegistrationNotification(registrationData) {
       if (pastDataSheet && companyName) {
         const pastData = pastDataSheet.getDataRange().getValues();
         const pastHeaders = pastData[0];
+
+        // V1708: 全カラムのインデックスを取得
         const businessNameIndex = pastHeaders.indexOf('業者名');
+        const bankruptcyFlagIndex = pastHeaders.indexOf('貸倒フラグ');
+        const warningStatusIndex = pastHeaders.indexOf('要注意先ステータス');
+        const contractCountIndex = pastHeaders.indexOf('成約件数');
+        const hiddenContractIndex = pastHeaders.indexOf('成約隠し件数');
+        const unpaidRateIndex = pastHeaders.indexOf('未入金発生率');
+        const avgDelayPerInvoiceIndex = pastHeaders.indexOf('1請求あたり平均遅延日数');
+        const complaintCountIndex = pastHeaders.indexOf('ユーザークレーム回数');
+        const complaintContentIndex = pastHeaders.indexOf('クレーム詳細・内容');
         const delayIndex = pastHeaders.indexOf('遅延日数合計');
 
+        // 過去データを検索
         for (let i = 1; i < pastData.length; i++) {
           if (pastData[i][businessNameIndex] === companyName) {
-            paymentDelay = pastData[i][delayIndex] || 0;
             foundData = true;
+
+            // V1708 Priority 1: 貸倒フラグチェック（最高優先度）
+            const bankruptcyFlag = pastData[i][bankruptcyFlagIndex];
+            if (bankruptcyFlag === true || bankruptcyFlag === 'TRUE' || bankruptcyFlag === '○' || bankruptcyFlag === 'YES') {
+              warningMessages.push('🔴🔴 *【却下推奨】貸倒発生あり*');
+              criticalLevel = Math.max(criticalLevel, 4);
+            }
+
+            // V1708 Priority 1: 要注意先ステータスチェック
+            const warningStatus = pastData[i][warningStatusIndex];
+            if (warningStatus && warningStatus !== '' && warningStatus !== '-') {
+              warningMessages.push(`🟠 *要注意先指定:* ${warningStatus}`);
+              criticalLevel = Math.max(criticalLevel, 2);
+            }
+
+            // V1708 Priority 2: 成約隠し件数チェック（比率計算）
+            const contractCount = parseFloat(pastData[i][contractCountIndex]) || 0;
+            const hiddenCount = parseFloat(pastData[i][hiddenContractIndex]) || 0;
+            if (contractCount > 0 && hiddenCount > 0) {
+              const hiddenRate = (hiddenCount / contractCount * 100).toFixed(1);
+              if (parseFloat(hiddenRate) >= 30) {
+                warningMessages.push(`🔴 *成約隠し率: ${hiddenRate}%* (${hiddenCount}件/${contractCount}件)`);
+                criticalLevel = Math.max(criticalLevel, 3);
+              } else if (parseFloat(hiddenRate) >= 15) {
+                warningMessages.push(`🟠 *成約隠し率: ${hiddenRate}%* (${hiddenCount}件/${contractCount}件)`);
+                criticalLevel = Math.max(criticalLevel, 2);
+              } else if (hiddenCount > 0) {
+                warningMessages.push(`🟡 *成約隠し: ${hiddenCount}件* (全${contractCount}件中 ${hiddenRate}%)`);
+                criticalLevel = Math.max(criticalLevel, 1);
+              }
+            }
+
+            // V1708 Priority 3: ユーザークレームチェック（1件でも報告）
+            const complaintCount = parseFloat(pastData[i][complaintCountIndex]) || 0;
+            const complaintContent = pastData[i][complaintContentIndex] || '';
+            if (complaintCount > 0) {
+              if (complaintCount >= 3) {
+                warningMessages.push(`🔴 *ユーザークレーム: ${complaintCount}件*`);
+                criticalLevel = Math.max(criticalLevel, 3);
+              } else if (complaintCount >= 2) {
+                warningMessages.push(`🟠 *ユーザークレーム: ${complaintCount}件*`);
+                criticalLevel = Math.max(criticalLevel, 2);
+              } else {
+                warningMessages.push(`🟡 *ユーザークレーム: ${complaintCount}件*`);
+                criticalLevel = Math.max(criticalLevel, 1);
+              }
+
+              // クレーム内容を添付
+              if (complaintContent && complaintContent !== '' && complaintContent !== '-') {
+                warningMessages.push(`   内容: ${complaintContent}`);
+              }
+            }
+
+            // V1708 Priority 4: 未入金分析（発生率＋平均遅延日数）
+            const unpaidRate = parseFloat(pastData[i][unpaidRateIndex]) || 0;
+            const avgDelayPerInvoice = parseFloat(pastData[i][avgDelayPerInvoiceIndex]) || 0;
+
+            if (unpaidRate > 0 || avgDelayPerInvoice > 0) {
+              let unpaidWarning = '';
+              if (unpaidRate >= 30 && avgDelayPerInvoice >= 15) {
+                unpaidWarning = `🔴 *未入金リスク高:* 発生率 ${unpaidRate.toFixed(1)}% / 平均遅延 ${avgDelayPerInvoice.toFixed(1)}日`;
+                criticalLevel = Math.max(criticalLevel, 3);
+              } else if (unpaidRate >= 15 || avgDelayPerInvoice >= 10) {
+                unpaidWarning = `🟠 *未入金リスク中:* 発生率 ${unpaidRate.toFixed(1)}% / 平均遅延 ${avgDelayPerInvoice.toFixed(1)}日`;
+                criticalLevel = Math.max(criticalLevel, 2);
+              } else if (unpaidRate >= 5 || avgDelayPerInvoice >= 5) {
+                unpaidWarning = `🟡 未入金あり: 発生率 ${unpaidRate.toFixed(1)}% / 平均遅延 ${avgDelayPerInvoice.toFixed(1)}日`;
+                criticalLevel = Math.max(criticalLevel, 1);
+              }
+              if (unpaidWarning) {
+                warningMessages.push(unpaidWarning);
+              }
+            }
+
+            // 既存の遅延日数合計チェック（参考情報として継続）
+            const paymentDelay = parseFloat(pastData[i][delayIndex]) || 0;
+            if (paymentDelay > 0) {
+              if (paymentDelay >= 60) {
+                warningMessages.push(`🔴 支払遅延累計: ${paymentDelay}日`);
+                criticalLevel = Math.max(criticalLevel, 3);
+              } else if (paymentDelay >= 30) {
+                warningMessages.push(`🟠 支払遅延累計: ${paymentDelay}日`);
+                criticalLevel = Math.max(criticalLevel, 2);
+              } else {
+                warningMessages.push(`🟡 支払遅延累計: ${paymentDelay}日`);
+                criticalLevel = Math.max(criticalLevel, 1);
+              }
+            }
+
             break;
           }
         }
 
-        if (foundData && paymentDelay > 0) {
-          const delayLevel = paymentDelay >= 60 ? '🔴 重大' : paymentDelay >= 30 ? '🟠 警告' : '🟡 注意';
-          pastDataWarning = `${delayLevel} 支払遅延: ${paymentDelay}日\n⚠️ サイレント承認を推奨`;
-        } else if (foundData && paymentDelay === 0) {
-          pastDataWarning = '✅ 過去データあり（支払遅延なし）';
+        // 警告メッセージの生成
+        if (foundData && warningMessages.length > 0) {
+          let recommendationText = '';
+          if (criticalLevel === 4) {
+            recommendationText = '\n\n⛔️ *【推奨アクション】登録却下を検討*';
+          } else if (criticalLevel === 3) {
+            recommendationText = '\n\n⚠️ *【推奨アクション】サイレント承認 + 厳重監視*';
+          } else if (criticalLevel === 2) {
+            recommendationText = '\n\n⚠️ *【推奨アクション】サイレント承認を推奨*';
+          } else if (criticalLevel === 1) {
+            recommendationText = '\n\nℹ️ 注意事項あり - 要確認';
+          }
+
+          pastDataWarning = warningMessages.join('\n') + recommendationText;
+        } else if (foundData && warningMessages.length === 0) {
+          pastDataWarning = '✅ 過去データあり（問題なし）';
         } else {
-          pastDataWarning = 'ℹ️ 過去データなし';
+          pastDataWarning = 'ℹ️ 過去データなし（新規加盟店）';
         }
       } else {
         // 過去データシートが見つからない場合
-        pastDataWarning = 'ℹ️ 過去データなし';
+        pastDataWarning = 'ℹ️ 過去データなし（新規加盟店）';
       }
     } catch (err) {
       console.error('[Slack] 過去データチェックエラー:', err);
-      pastDataWarning = 'ℹ️ 過去データなし（チェックエラー）';
+      pastDataWarning = 'ℹ️ 過去データチェックエラー: ' + err.toString();
     }
 
     // Slackメッセージの構築
