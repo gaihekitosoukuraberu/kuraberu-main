@@ -340,9 +340,20 @@ const BotCore = {
             }
         }, 500);
 
-        // V1713-UX: ランキング取得 - Q015で事前取得済みの場合はスキップ
+        // V1713-PERF: ランキング取得 - Q015で事前取得済みの場合はスキップ
         const sortOrder = BotConfig.state.sortOrder || 'recommended';
         console.log('📊 選択されたソート順:', sortOrder);
+
+        // V1713-PERF: ローディングインジケーター削除関数（共通化）
+        const removeLoadingIndicator = () => {
+            const loadingIndicator = document.getElementById('botLoadingIndicator');
+            if (loadingIndicator) {
+                loadingIndicator.remove();
+                console.log('✅ ローディングインジケーター削除');
+            } else {
+                console.warn('⚠️ ローディングインジケーターが見つかりません');
+            }
+        };
 
         // ランキングが既に取得済みかチェック
         if (window.dynamicRankings) {
@@ -366,19 +377,42 @@ const BotCore = {
                 window.completeHearingStage(3);
             }
 
-            // V1713-UX: ローディング非表示
-            const loadingIndicator = document.getElementById('botLoadingIndicator');
-            if (loadingIndicator) {
-                loadingIndicator.remove();
-            }
+            // ローディング削除
+            removeLoadingIndicator();
 
             console.log('🎉 ランキング表示完了（ソート順:', sortOrder, '）- 即座に完了');
         } else if (typeof window.fetchRankingFromGAS === 'function') {
-            // 未取得の場合のみGAS通信を実行（フォールバック）
-            console.warn('⚠️ ランキング未取得 - 今から取得します（本来はQ015で事前取得済みのはず）');
+            // V1713-PERF: 未取得または取得中の場合
+            console.log('⚠️ ランキング未取得または取得中 - 完了を待ちます');
 
-            window.fetchRankingFromGAS().then(() => {
-                console.log('✅ ランキング取得完了（フォールバック） - ソート順適用:', sortOrder);
+            // 取得完了を待つポーリング関数
+            const waitForRanking = () => {
+                return new Promise((resolve, reject) => {
+                    let attempts = 0;
+                    const maxAttempts = 120; // 60秒（0.5秒 × 120回）
+
+                    const checkInterval = setInterval(() => {
+                        attempts++;
+
+                        // ランキングが取得済みかチェック
+                        if (window.dynamicRankings) {
+                            clearInterval(checkInterval);
+                            console.log('✅ ランキング取得完了を確認');
+                            resolve();
+                        } else if (attempts >= maxAttempts) {
+                            clearInterval(checkInterval);
+                            console.error('❌ ランキング取得タイムアウト');
+                            reject(new Error('Ranking fetch timeout'));
+                        }
+
+                        // 0.5秒ごとにチェック
+                    }, 500);
+                });
+            };
+
+            // ランキング取得が完了するまで待つ
+            waitForRanking().then(() => {
+                console.log('✅ ランキングデータ確認 - ソート順適用:', sortOrder);
 
                 // Q016で選んだソート順でソートして表示
                 if (typeof window.changeSortType === 'function') {
@@ -398,21 +432,15 @@ const BotCore = {
                     window.completeHearingStage(3);
                 }
 
-                // V1713-UX: ローディング非表示
-                const loadingIndicator = document.getElementById('botLoadingIndicator');
-                if (loadingIndicator) {
-                    loadingIndicator.remove();
-                }
+                // ローディング削除
+                removeLoadingIndicator();
 
                 console.log('🎉 ランキング表示完了（ソート順:', sortOrder, '）');
             }).catch(err => {
-                console.error('❌ ランキング取得エラー（非致命的）:', err);
+                console.error('❌ ランキング取得待機エラー:', err);
 
-                // V1713-UX: エラー時もローディング非表示
-                const loadingIndicator = document.getElementById('botLoadingIndicator');
-                if (loadingIndicator) {
-                    loadingIndicator.remove();
-                }
+                // エラー時もローディング削除
+                removeLoadingIndicator();
 
                 // エラーでも電話番号フォームは既に表示されているのでOK
             });
@@ -422,11 +450,8 @@ const BotCore = {
                 window.completeHearingStage(3);
             }
 
-            // V1713-UX: ローディング非表示
-            const loadingIndicator = document.getElementById('botLoadingIndicator');
-            if (loadingIndicator) {
-                loadingIndicator.remove();
-            }
+            // ローディング削除
+            removeLoadingIndicator();
         }
     }
 };
