@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-12T20:05:00.000Z - Deployment: AKfycbwpWsJ5oN2ksC1MncZhAenfdezApy6L_AVp3haYDu0lTsR1Apyd_vT0eXojBi418H7YXg
+// Auto-synced: 2025-11-12T20:21:00.000Z - Deployment: AKfycbxBPYMT39Z9egQtc9utSm9j4DXbzGY1uE5rhzA6njUJkkqWj9s0jXgxqQXRQg520YSL2Q
 /**
  * 環境変数ローダー（全システム共通）- 🔥マスターファイル🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1713-FIX-AUTO-SYNC-2025-11-12T20:05:00
- * @last-update 2025-11-12T20:05:00
+ * @file-version V1713-FIX-STATUS-SYNC-2025-11-12T20:21:00
+ * @last-update 2025-11-12T20:21:00
  */
 
 const ENV = {
@@ -22,14 +22,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // GAS URL（V1713-FIX: Auto-sync delivery status via onEdit trigger @1627）
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbwpWsJ5oN2ksC1MncZhAenfdezApy6L_AVp3haYDu0lTsR1Apyd_vT0eXojBi418H7YXg/exec',
+  // GAS URL（V1713-FIX: Status sync complete - 8 merchants updated @1628）
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbxBPYMT39Z9egQtc9utSm9j4DXbzGY1uE5rhzA6njUJkkqWj9s0jXgxqQXRQg520YSL2Q/exec',
 
-  // フォールバックGAS URL（バックアップ）- @1627
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbwpWsJ5oN2ksC1MncZhAenfdezApy6L_AVp3haYDu0lTsR1Apyd_vT0eXojBi418H7YXg/exec',
+  // フォールバックGAS URL（バックアップ）- @1628
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxBPYMT39Z9egQtc9utSm9j4DXbzGY1uE5rhzA6njUJkkqWj9s0jXgxqQXRQg520YSL2Q/exec',
 
-  // 緊急時URL（最終フォールバック）- @1627
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbwpWsJ5oN2ksC1MncZhAenfdezApy6L_AVp3haYDu0lTsR1Apyd_vT0eXojBi418H7YXg/exec',
+  // 緊急時URL（最終フォールバック）- @1628
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxBPYMT39Z9egQtc9utSm9j4DXbzGY1uE5rhzA6njUJkkqWj9s0jXgxqQXRQg520YSL2Q/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1713-FIX - 2025-11-12 20:05 - Auto-sync via onEdit @1627）
-  CACHE_BUSTER: '1762923894656'
+  // キャッシュバスター（V1713-FIX - 2025-11-12 20:21 - Status sync @1628）
+  CACHE_BUSTER: '1762924879390'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

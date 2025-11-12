@@ -1,9 +1,14 @@
 /**
- * V1713-FIX: 配信ステータス自動同期トリガー
+ * V1713-FIX: ステータス自動同期トリガー
  *
  * 【目的】
- * 加盟店登録のAJ列（配信ステータス）が変更されたら、
- * 加盟店マスタの該当行も自動的に更新する
+ * 加盟店登録の「ステータス」列が変更されたら、
+ * 加盟店マスタの「配信ステータス」列を自動的に更新する
+ *
+ * 【変換ルール】
+ * - アクティブ → アクティブ
+ * - 一時停止 → ストップ
+ * - 休止 → ストップ
  *
  * 【メリット】
  * - ランキング取得時に加盟店マスタだけ読めばOK（高速化）
@@ -39,17 +44,17 @@ function onEdit(e) {
       return;
     }
 
-    // AJ列（配信ステータス）の取得
+    // ステータス列の取得
     const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    const deliveryStatusCol = headers.indexOf('配信ステータス') + 1; // 1-based
+    const statusCol = headers.indexOf('ステータス') + 1; // 1-based
 
-    // 配信ステータス列でない場合はスキップ
-    if (col !== deliveryStatusCol) {
+    // ステータス列でない場合はスキップ
+    if (col !== statusCol) {
       return;
     }
 
-    // V1713-FIX: 配信ステータスが変更されたので加盟店マスタを更新
-    syncDeliveryStatusToMaster(e.source, sheet, row, headers);
+    // V1713-FIX: ステータスが変更されたので加盟店マスタの配信ステータスを更新
+    syncStatusToMaster(e.source, sheet, row, headers);
 
   } catch (error) {
     console.error('[StatusSyncTrigger] onEditエラー:', error.message);
@@ -57,36 +62,44 @@ function onEdit(e) {
 }
 
 /**
- * 配信ステータスを加盟店マスタに同期
+ * ステータスを加盟店マスタの配信ステータスに同期
  * @param {Spreadsheet} ss - スプレッドシート
  * @param {Sheet} registrationSheet - 加盟店登録シート
  * @param {number} editedRow - 編集された行番号（1-based）
  * @param {Array} headers - ヘッダー配列
  */
-function syncDeliveryStatusToMaster(ss, registrationSheet, editedRow, headers) {
+function syncStatusToMaster(ss, registrationSheet, editedRow, headers) {
   try {
     // 編集された行のデータ取得
     const rowData = registrationSheet.getRange(editedRow, 1, 1, headers.length).getValues()[0];
 
     const companyNameIdx = headers.indexOf('会社名');
-    const deliveryStatusIdx = headers.indexOf('配信ステータス');
+    const statusIdx = headers.indexOf('ステータス');
     const registrationIdIdx = headers.indexOf('加盟店ID');
 
-    if (companyNameIdx === -1 || deliveryStatusIdx === -1) {
+    if (companyNameIdx === -1 || statusIdx === -1) {
       console.error('[StatusSyncTrigger] 必要なカラムが見つかりません');
       return;
     }
 
     const companyName = rowData[companyNameIdx];
-    const newDeliveryStatus = rowData[deliveryStatusIdx];
+    const status = rowData[statusIdx];
     const registrationId = rowData[registrationIdIdx];
+
+    // V1713-FIX: ステータス → 配信ステータス変換
+    // アクティブ → アクティブ
+    // 一時停止/休止 → ストップ
+    let newDeliveryStatus = 'アクティブ';
+    if (status === '一時停止' || status === '休止') {
+      newDeliveryStatus = 'ストップ';
+    }
 
     if (!companyName) {
       console.log('[StatusSyncTrigger] 会社名が空のためスキップ');
       return;
     }
 
-    console.log('[StatusSyncTrigger] 同期開始:', companyName, '→', newDeliveryStatus);
+    console.log('[StatusSyncTrigger] 同期開始:', companyName, 'ステータス:', status, '→ 配信ステータス:', newDeliveryStatus);
 
     // 加盟店マスタシート取得
     const masterSheet = ss.getSheetByName('加盟店マスタ');
@@ -154,10 +167,11 @@ function syncDeliveryStatusToMaster(ss, registrationSheet, editedRow, headers) {
 
 /**
  * 初回一括同期（手動実行用）
- * 加盟店登録の全データを加盟店マスタに同期します
+ * 加盟店登録の「ステータス」列を読み取り、加盟店マスタの「配信ステータス」に同期します
+ * 変換ルール: アクティブ→アクティブ、一時停止/休止→ストップ
  */
 function initialSyncAllDeliveryStatus() {
-  console.log('[StatusSyncTrigger] ===== 初回一括同期開始 =====');
+  console.log('[StatusSyncTrigger] ===== 初回一括同期開始（ステータス→配信ステータス） =====');
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const registrationSheet = ss.getSheetByName('加盟店登録');
@@ -174,7 +188,7 @@ function initialSyncAllDeliveryStatus() {
   const regRows = regData.slice(1);
 
   const regCompanyNameIdx = regHeaders.indexOf('会社名');
-  const regDeliveryStatusIdx = regHeaders.indexOf('配信ステータス');
+  const regStatusIdx = regHeaders.indexOf('ステータス');
   const regIdIdx = regHeaders.indexOf('加盟店ID');
   const regApprovalStatusIdx = regHeaders.indexOf('承認ステータス');
 
@@ -195,9 +209,25 @@ function initialSyncAllDeliveryStatus() {
   for (let i = 0; i < regRows.length; i++) {
     const regRow = regRows[i];
     const companyName = regRow[regCompanyNameIdx];
-    const deliveryStatus = regRow[regDeliveryStatusIdx];
+    const status = regRow[regStatusIdx];
     const registrationId = regRow[regIdIdx];
     const approvalStatus = regRow[regApprovalStatusIdx];
+
+    // V1713-FIX: ステータス → 配信ステータス変換
+    let deliveryStatus = 'アクティブ';
+    if (status === '一時停止' || status === '休止') {
+      deliveryStatus = 'ストップ';
+    }
+
+    // デバッグ: 最初の5件を詳細ログ出力
+    if (i < 5) {
+      console.log('[StatusSyncTrigger] 加盟店登録 行' + (i+2) + ':');
+      console.log('  会社名: ' + companyName);
+      console.log('  承認ステータス: ' + approvalStatus);
+      console.log('  ステータス(I列): ' + status);
+      console.log('  → 配信ステータス: ' + deliveryStatus);
+      console.log('  加盟店ID: ' + registrationId);
+    }
 
     // 承認済みのみ処理
     if (approvalStatus !== '承認済み') {
@@ -205,7 +235,7 @@ function initialSyncAllDeliveryStatus() {
       continue;
     }
 
-    if (!companyName || !deliveryStatus) {
+    if (!companyName || !status) {
       skipCount++;
       continue;
     }
@@ -240,10 +270,16 @@ function initialSyncAllDeliveryStatus() {
     // 現在の配信ステータス取得
     const currentStatus = masterRows[foundRowNumber - 2][masterDeliveryStatusIdx];
 
+    // デバッグ: 最初の5件の比較ログ
+    if (i < 5) {
+      console.log('  加盟店マスタ 配信ステータス（現在）: ' + currentStatus);
+      console.log('  比較結果: ' + (currentStatus === deliveryStatus ? '一致 - 更新不要' : '不一致 → ' + deliveryStatus + 'に更新'));
+    }
+
     // 異なる場合のみ更新
     if (currentStatus !== deliveryStatus) {
       masterSheet.getRange(foundRowNumber, masterDeliveryStatusIdx + 1).setValue(deliveryStatus);
-      console.log('[StatusSyncTrigger] 更新:', companyName, currentStatus, '→', deliveryStatus);
+      console.log('[StatusSyncTrigger] 更新:', companyName, ':', currentStatus, '→', deliveryStatus, '(ステータス:', status, ')');
       updateCount++;
     }
   }
