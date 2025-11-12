@@ -1704,28 +1704,35 @@
             if (phoneInput) phoneInput.disabled = true;
 
             // CV1送信（質問回答 + 電話番号）
-            if (window.CVAPI && typeof window.CVAPI.sendCV1 === 'function') {
-                try {
+            try {
+                if (window.CVAPI && typeof window.CVAPI.sendCV1 === 'function') {
                     const result = await window.CVAPI.sendCV1(phone);
                     if (result.success) {
                         console.log('✅ CV1送信成功 - ID:', result.cvId);
                     } else {
                         console.error('❌ CV1送信失敗:', result.error);
                     }
-                } catch (error) {
-                    console.error('❌ CV1送信エラー:', error);
+                } else {
+                    console.error('❌ CVAPI.sendCV1が見つかりません');
                 }
-            } else {
-                console.error('❌ CVAPI.sendCV1が見つかりません');
-            }
+            } catch (error) {
+                console.error('❌ CV1送信エラー:', error);
+            } finally {
+                // V1713-FIX: 成功・失敗に関わらず、必ずフォームを非表示にする
+                const phoneMiniFormContainer = document.querySelector('.phone-mini-form');
+                if (phoneMiniFormContainer) {
+                    phoneMiniFormContainer.style.display = 'none';
+                    console.log('✅ 電話番号フォーム非表示（finally）');
+                } else {
+                    console.warn('⚠️ 電話番号フォームが見つかりません');
+                }
 
-            // V1713-PERF: ボタンとフォーム全体を非表示にする
-            const phoneMiniFormContainer = document.querySelector('.phone-mini-form');
-            if (phoneMiniFormContainer) {
-                phoneMiniFormContainer.style.display = 'none';
-                console.log('✅ 電話番号フォーム非表示');
-            } else {
-                console.warn('⚠️ 電話番号フォームが見つかりません');
+                // V1713-FIX: botLoadingIndicatorも確実に削除
+                const loadingIndicator = document.getElementById('botLoadingIndicator');
+                if (loadingIndicator) {
+                    loadingIndicator.remove();
+                    console.log('✅ ローディングインジケーター削除（電話番号送信後）');
+                }
             }
 
             // 完了メッセージ表示とランキング解除
@@ -1929,6 +1936,20 @@
             // 背景スクロールを復元
             document.body.style.overflow = '';
             document.body.style.touchAction = '';
+
+            // V1713-UX: キープリストがあれば無料見積もりボタンを再表示
+            // ただし、見積もりフォームが開いている場合は再表示しない
+            const estimateFormModal = document.getElementById('estimateFormModal');
+            const isEstimateFormOpen = estimateFormModal && !estimateFormModal.classList.contains('hidden');
+
+            const keeps = keepManager.getList();
+            const estimateBtnContainer = document.getElementById('estimateBtnContainer');
+            if (estimateBtnContainer && keeps.length > 0 && !isEstimateFormOpen) {
+                estimateBtnContainer.style.display = 'block';
+                console.log('✅ 無料見積もりボタン再表示（モーダル閉じる）');
+            } else if (isEstimateFormOpen) {
+                console.log('⚠️ 見積もりフォームが開いているため、ボタン再表示をスキップ');
+            }
         }
 
         // 見積もりフォームを開始（※2160行目に詳細版があるため、ここでは定義しない）
@@ -1956,6 +1977,14 @@
             document.getElementById('currentStep').textContent = '1';
             document.getElementById('stepPercent').textContent = '50';
             document.getElementById('stepProgress').style.width = '50%';
+
+            // V1713-UX: キープリストがあれば無料見積もりボタンを再表示
+            const keeps = keepManager.getList();
+            const estimateBtnContainer = document.getElementById('estimateBtnContainer');
+            if (estimateBtnContainer && keeps.length > 0) {
+                estimateBtnContainer.style.display = 'block';
+                console.log('✅ 無料見積もりボタン再表示（フォーム閉じる）');
+            }
         }
 
         // 郵便番号から住所を取得
@@ -2186,6 +2215,13 @@
         // ============================================
         function startEstimateForm() {
             console.log('📝 見積もりフォーム開始');
+
+            // V1713-UX: 無料見積もりボタンを非表示（フォームが邪魔にならないように）
+            const estimateBtnContainer = document.getElementById('estimateBtnContainer');
+            if (estimateBtnContainer) {
+                estimateBtnContainer.style.display = 'none';
+                console.log('✅ 無料見積もりボタン非表示（見積もりフォーム表示）');
+            }
 
             // キープモーダルを閉じる
             closeKeepModal();
@@ -2565,11 +2601,11 @@
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） - 固定キャッシュバスター -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="js/env-loader.js?v=1762962900000"></script>
+    <script src="js/env-loader.js?v=1762963800000"></script>
 
     <!-- BOTローダー（タイミング問題のため静的ロード必須） -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="gaiheki-bot-loader.js?v=1762962900000"></script>
+    <script src="gaiheki-bot-loader.js?v=1762963800000"></script>
 
     <!-- V1713-FIX: 無料見積もりボタン（body直下・viewport基準で完全固定） -->
     <div id="estimateBtnContainer" style="display: none !important; position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 999999 !important; background: white !important; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1) !important; border-top: 1px solid #e5e7eb !important; padding: 1rem 0 !important; pointer-events: auto !important;">
