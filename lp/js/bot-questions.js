@@ -278,16 +278,35 @@ const BotQuestions = {
 
         setTimeout(() => {
             if (typeof BotUI.showSlider === 'function') {
+                const currentQuestionId = question.id || BotConfig.state.currentQuestionId;
+
+                // 「不明」ボタンのコールバック（unknownBranchがある場合のみ）
+                const onUnknown = question.unknownBranch ? () => {
+                    BotUI.showUserMessage('不明');
+                    BotUI.clearChoices();
+
+                    // 進捗更新
+                    if (question.stage) {
+                        const percentage = BotConfig.calculateProgress(question.stage);
+                        BotUI.updateProgress(percentage);
+                    }
+
+                    // 不明の場合はunknownBranchへ
+                    setTimeout(() => {
+                        this.showQuestion(question.unknownBranch);
+                    }, 1000);
+                } : null;
+
+                // スライダー表示（「決定」と「不明」の両方）
                 BotUI.showSlider(question.sliderConfig, (value) => {
                     // ユーザーメッセージ表示
                     BotUI.showUserMessage(`${value}${question.sliderConfig.unit}`);
 
                     // 回答を保存
-                    const currentQuestionId = question.id || BotConfig.state.currentQuestionId;
                     BotConfig.saveAnswer(currentQuestionId, value, 0);
 
                     // V1713-FIX: 築年数の正確な値を保存
-                    if (currentQuestionId === 'Q008A') {
+                    if (currentQuestionId === 'Q008' || currentQuestionId === 'Q008_SLIDER' || currentQuestionId === 'Q008A') {
                         BotConfig.state.exactBuildingAge = value;
                         console.log('✅ 築年数（正確）:', value + '年');
                     }
@@ -301,10 +320,23 @@ const BotQuestions = {
                         BotUI.updateProgress(percentage);
                     }
 
-                    // Q008Aの場合、Q008の回答に応じて分岐先を決定
+                    // 値に応じた分岐処理
                     let nextQuestionId;
-                    if (currentQuestionId === 'Q008A') {
-                        // Q008の回答（userAnswers.Q008.index）を取得
+                    if ((currentQuestionId === 'Q008' || currentQuestionId === 'Q008_SLIDER') && question.branchLogic === 'byValue') {
+                        // 築年数の値に応じて分岐
+                        // 0-9年 → branches[0], 10-15年 → branches[1], 16年以上 → branches[2]
+                        let branchIndex = 0;
+                        if (value >= 1 && value <= 9) {
+                            branchIndex = 0;
+                        } else if (value >= 10 && value <= 15) {
+                            branchIndex = 1;
+                        } else if (value >= 16) {
+                            branchIndex = 2;
+                        }
+                        nextQuestionId = question.branches[branchIndex];
+                        console.log('📍 築年数:', value + '年', '→ 分岐index:', branchIndex, '→ 次の質問:', nextQuestionId);
+                    } else if (currentQuestionId === 'Q008A') {
+                        // 旧Q008Aの場合（後方互換性のため残す）
                         const q008Answer = BotConfig.state.userAnswers.Q008;
                         const q008Index = q008Answer ? q008Answer.index : 0;
                         nextQuestionId = question.branches[q008Index];
@@ -317,7 +349,7 @@ const BotQuestions = {
                     setTimeout(() => {
                         this.showQuestion(nextQuestionId);
                     }, 1000);
-                });
+                }, onUnknown);
             } else {
                 console.error('❌ BotUI.showSliderが見つかりません');
             }

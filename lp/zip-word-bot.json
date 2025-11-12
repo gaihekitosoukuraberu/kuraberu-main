@@ -1139,20 +1139,22 @@
       "multipleChoice": true
     },
     "Q008": {
-      "text": "築年数はどのくらいですか？（おおよそで構いません）",
-      "choices": ["1〜9年", "10〜15年", "15〜30年", "30年以上"],
-      "branches": ["Q008A", "Q008A", "Q008A", "Q008A"],
-      "stage": 1
-    },
-    "Q008A": {
-      "text": "より正確な築年数を教えてください（おおよそで構いません）",
+      "text": "築年数を入力してください",
       "inputType": "slider",
       "sliderConfig": {
         "min": 0,
-        "max": 50,
+        "max": 100,
         "step": 1,
         "unit": "年"
       },
+      "branches": ["Q009_1to9", "Q009_10to15", "Q009_15plus", "Q009_15plus"],
+      "stage": 1,
+      "branchLogic": "byValue",
+      "unknownBranch": "Q008_ROUGH"
+    },
+    "Q008_ROUGH": {
+      "text": "築年数はどのくらいですか？（おおよそで構いません）",
+      "choices": ["1〜9年", "10〜15年", "15〜30年", "30年以上"],
       "branches": ["Q009_1to9", "Q009_10to15", "Q009_15plus", "Q009_15plus"],
       "stage": 1
     },

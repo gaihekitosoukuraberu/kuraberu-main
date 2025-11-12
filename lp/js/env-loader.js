@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1713-FIX - 2025-11-12 21:59 - Non-blocking ranking fetch @HEAD）
-  CACHE_BUSTER: '1762930751000'
+  // キャッシュバスター（V1713-FIX - 2025-11-12 22:26 - Q008 direct slider + Unknown button）
+  CACHE_BUSTER: '1762932384000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

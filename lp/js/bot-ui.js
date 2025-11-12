@@ -155,17 +155,17 @@ const BotUI = {
     // ============================================
     // スライダー表示（V1713-FIX: Q008A築年数入力）
     // ============================================
-    showSlider(config, onConfirm) {
+    showSlider(config, onConfirm, onUnknown = null) {
         if (!this.elements.choices) this.init();
 
         const { min, max, step, unit } = config;
         const defaultValue = Math.floor((min + max) / 2);
 
         this.elements.choices.innerHTML = `
-            <div class="slider-container p-4 bg-white rounded-lg border-2 border-blue-400 shadow-md">
-                <div class="mb-4 text-center">
-                    <span class="text-3xl font-bold text-blue-600" id="sliderValue">${defaultValue}</span>
-                    <span class="text-lg text-gray-600">${unit}</span>
+            <div class="slider-container p-8 bg-white rounded-lg border-2 border-blue-400 shadow-md">
+                <div class="mb-8 text-center">
+                    <span style="font-size: 120px; line-height: 1;" class="font-bold text-blue-600" id="sliderValue">${defaultValue}</span>
+                    <span style="font-size: 48px;" class="text-gray-600 ml-3">${unit}</span>
                 </div>
                 <input type="range"
                        id="ageSlider"
@@ -173,15 +173,23 @@ const BotUI = {
                        max="${max}"
                        step="${step}"
                        value="${defaultValue}"
-                       class="w-full h-3 bg-blue-200 rounded-lg appearance-none cursor-pointer slider-thumb">
-                <div class="flex justify-between text-xs text-gray-500 mt-2">
+                       class="w-full h-5 bg-blue-200 rounded-lg appearance-none cursor-pointer slider-thumb">
+                <div class="flex justify-between text-base text-gray-500 mt-4 font-medium">
                     <span>${min}${unit}</span>
                     <span>${max}${unit}</span>
                 </div>
-                <button id="sliderConfirm"
-                        class="choice-btn w-full mt-4 bg-gradient-to-br from-blue-500 to-blue-600 text-white py-3 px-6 rounded-lg font-bold text-base shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
-                    決定
-                </button>
+                <div class="mt-8 space-y-3">
+                    <button id="sliderConfirm"
+                            class="choice-btn w-full bg-gradient-to-br from-blue-500 to-blue-600 text-white py-4 px-6 rounded-lg font-bold text-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                        決定
+                    </button>
+                    ${onUnknown ? `
+                    <button id="sliderUnknown"
+                            class="choice-btn w-full bg-gradient-to-br from-gray-400 to-gray-500 text-white py-4 px-6 rounded-lg font-bold text-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                        不明
+                    </button>
+                    ` : ''}
+                </div>
             </div>
             <style>
                 /* スライダーのカスタムスタイル */
@@ -217,6 +225,7 @@ const BotUI = {
         const slider = document.getElementById('ageSlider');
         const valueDisplay = document.getElementById('sliderValue');
         const confirmBtn = document.getElementById('sliderConfirm');
+        const unknownBtn = document.getElementById('sliderUnknown');
 
         // スライダー値変更時の処理
         slider.addEventListener('input', (e) => {
@@ -228,6 +237,13 @@ const BotUI = {
             const value = parseInt(slider.value);
             onConfirm(value);
         });
+
+        // 不明ボタン
+        if (unknownBtn && onUnknown) {
+            unknownBtn.addEventListener('click', () => {
+                onUnknown();
+            });
+        }
 
         this.scrollToBottom();
     },
