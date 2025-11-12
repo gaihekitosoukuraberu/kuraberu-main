@@ -1921,7 +1921,7 @@
         }
 
         // モーダルを閉じる
-        function closeKeepModal() {
+        function closeKeepModal(skipButtonRestore = false) {
             const modal = document.getElementById('keepModal');
             modal.classList.add('hidden');
 
@@ -1938,6 +1938,12 @@
             document.body.style.touchAction = '';
 
             // V1713-UX: キープリストがあれば無料見積もりボタンを再表示
+            // skipButtonRestore=trueの場合は再表示しない（見積もりフォームを開く場合など）
+            if (skipButtonRestore) {
+                console.log('⚠️ ボタン再表示をスキップ（skipButtonRestore=true）');
+                return;
+            }
+
             // ただし、見積もりフォームが開いている場合は再表示しない
             const estimateFormModal = document.getElementById('estimateFormModal');
             const isEstimateFormOpen = estimateFormModal && !estimateFormModal.classList.contains('hidden');
@@ -2223,8 +2229,8 @@
                 console.log('✅ 無料見積もりボタン非表示（見積もりフォーム表示）');
             }
 
-            // キープモーダルを閉じる
-            closeKeepModal();
+            // キープモーダルを閉じる（ボタン再表示をスキップ）
+            closeKeepModal(true);
 
             // ============================================
             // BOTで取得済みの情報を自動入力
@@ -2601,11 +2607,11 @@
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） - 固定キャッシュバスター -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="js/env-loader.js?v=1762963800000"></script>
+    <script src="js/env-loader.js?v=1762964100000"></script>
 
     <!-- BOTローダー（タイミング問題のため静的ロード必須） -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="gaiheki-bot-loader.js?v=1762963800000"></script>
+    <script src="gaiheki-bot-loader.js?v=1762964100000"></script>
 
     <!-- V1713-FIX: 無料見積もりボタン（body直下・viewport基準で完全固定） -->
     <div id="estimateBtnContainer" style="display: none !important; position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 999999 !important; background: white !important; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1) !important; border-top: 1px solid #e5e7eb !important; padding: 1rem 0 !important; pointer-events: auto !important;">

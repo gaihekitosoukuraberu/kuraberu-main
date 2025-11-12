@@ -1143,7 +1143,7 @@
       "inputType": "slider",
       "sliderConfig": {
         "min": 0,
-        "max": 99,
+        "max": 50,
         "step": 1,
         "unit": "年",
         "default": 10
