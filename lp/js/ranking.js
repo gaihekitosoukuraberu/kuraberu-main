@@ -40,7 +40,7 @@ async function fetchRankingFromGAS() {
       return false;
     }
 
-    // BOT回答から施工箇所と築年数を取得
+    // BOT回答から施工箇所と築年数を取得（V1705拡張）
     const answers = window.BotConfig.state.userAnswers || {};
     const workTypes = [];
     let buildingAgeMin = 0;
@@ -60,11 +60,21 @@ async function fetchRankingFromGAS() {
       }
     }
 
+    // V1705: 材質・工事内容追加
+    const wallMaterial = answers.Q006 && answers.Q006.choice ? answers.Q006.choice : '';
+    const roofMaterial = answers.Q007 && answers.Q007.choice ? answers.Q007.choice : '';
+    const wallWorkType = answers.Q009 && answers.Q009.choice ? answers.Q009.choice : '';
+    const roofWorkType = answers.Q010 && answers.Q010.choice ? answers.Q010.choice : '';
+
     const params = {
       zipcode: zipcode,
       workTypes: workTypes,
       buildingAgeMin: buildingAgeMin,
-      buildingAgeMax: buildingAgeMax
+      buildingAgeMax: buildingAgeMax,
+      wallMaterial: wallMaterial,
+      roofMaterial: roofMaterial,
+      wallWorkType: wallWorkType,
+      roofWorkType: roofWorkType
     };
 
     console.log('📤 ランキングリクエストパラメータ:', params);

@@ -796,9 +796,17 @@ const AISearchSystem = {
         throw new Error('郵便番号が指定されていません');
       }
 
-      // 郵便番号から都道府県を推定
+      // 郵便番号から都道府県・市区町村を推定（V1705拡張）
       const prefecture = this.getPrefectureFromZipcode(zipcode);
-      console.log('[AISearchSystem] 郵便番号 ' + zipcode + ' → 都道府県: ' + prefecture);
+      const city = this.getCityFromZipcode(zipcode);
+      console.log('[AISearchSystem] 郵便番号 ' + zipcode + ' → 都道府県: ' + prefecture + ', 市区町村: ' + city);
+
+      // V1705: BOT回答データ取得
+      const wallMaterial = params.wallMaterial || '';
+      const roofMaterial = params.roofMaterial || '';
+      const wallWorkType = params.wallWorkType || '';
+      const roofWorkType = params.roofWorkType || '';
+      console.log('[AISearchSystem] 材質・工事内容:', { wallMaterial, roofMaterial, wallWorkType, roofWorkType });
 
       // 加盟店マスタから取得（V1694）
       const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
@@ -935,6 +943,32 @@ const AISearchSystem = {
       '46': '鹿児島県', '47': '沖縄県'
     };
     return map[prefix] || '';
+  },
+
+  // 郵便番号から市区町村を推定（V1705追加 - 簡易版）
+  // TODO: 実運用では外部APIまたは完全なマッピングテーブル推奨
+  getCityFromZipcode: function(zipcode) {
+    // 簡易マッピング（主要都市のみ）
+    // 完全なマッピングには12万件以上のデータが必要
+    const cityMap = {
+      '100': '千代田区', '101': '千代田区', '102': '千代田区', '103': '中央区', '104': '中央区',
+      '105': '港区', '106': '港区', '107': '港区', '108': '港区', '150': '渋谷区',
+      '151': '渋谷区', '152': '目黒区', '153': '目黒区', '154': '世田谷区', '155': '世田谷区',
+      '156': '世田谷区', '157': '世田谷区', '158': '世田谷区', '160': '新宿区', '161': '新宿区',
+      '162': '新宿区', '163': '新宿区', '164': '中野区', '165': '中野区', '166': '杉並区',
+      '167': '杉並区', '168': '杉並区', '169': '新宿区', '170': '豊島区', '171': '豊島区',
+      '530': '大阪市北区', '531': '大阪市北区', '532': '大阪市淀川区', '533': '大阪市東淀川区',
+      '534': '大阪市都島区', '535': '大阪市旭区', '536': '大阪市城東区', '537': '大阪市東成区',
+      '540': '大阪市中央区', '541': '大阪市中央区', '542': '大阪市中央区', '543': '大阪市天王寺区',
+      '450': '名古屋市中村区', '451': '名古屋市西区', '452': '名古屋市西区', '453': '名古屋市中村区',
+      '454': '名古屋市中川区', '455': '名古屋市港区', '456': '名古屋市熱田区', '457': '名古屋市南区',
+      '460': '名古屋市中区', '461': '名古屋市東区', '462': '名古屋市北区', '463': '名古屋市守山区',
+      '810': '福岡市中央区', '811': '福岡市博多区', '812': '福岡市博多区', '813': '福岡市東区',
+      '814': '福岡市早良区', '815': '福岡市南区', '816': '福岡市博多区', '819': '福岡市西区'
+    };
+
+    const prefix3 = zipcode.substring(0, 3);
+    return cityMap[prefix3] || '';
   },
 
   // 仮データ生成（平均契約金額）
