@@ -306,7 +306,8 @@ const keepManager = {
     const textElement = buttonElement.querySelector('.keep-text');
 
     if (isKept) {
-      buttonElement.className = 'keep-btn bg-yellow-200 hover:bg-yellow-300 text-yellow-800 px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap';
+      // V1713-UX: キープ中はオレンジ色（無料見積もりボタンと同じ色）
+      buttonElement.className = 'keep-btn bg-orange-400 hover:bg-orange-500 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap';
       if (textElement) textElement.textContent = 'キープ中！';
     } else {
       buttonElement.className = 'keep-btn bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap';
