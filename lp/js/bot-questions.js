@@ -86,10 +86,10 @@ const BotQuestions = {
         // 回答を保存
         BotConfig.saveAnswer(question.id || BotConfig.state.currentQuestionId, choice, index);
 
-        // V1713-UX: Q004回答時にランキング事前取得（バックグラウンド）- Q015より早く開始
+        // V1713-UX: Q014回答時にランキング事前取得（バックグラウンド）- Q004より前に移動
         const currentQuestionId = question.id || BotConfig.state.currentQuestionId;
-        if (currentQuestionId === 'Q004' && typeof window.fetchRankingFromGAS === 'function') {
-            console.log('🚀 Q004回答 → ランキング事前取得開始（バックグラウンド・超早期）');
+        if (currentQuestionId === 'Q014' && typeof window.fetchRankingFromGAS === 'function') {
+            console.log('🚀 Q014回答 → ランキング事前取得開始（バックグラウンド・超早期）');
             window.fetchRankingFromGAS().then(() => {
                 console.log('✅ ランキング事前取得完了（Q016到達前に十分な時間確保）');
             }).catch(err => {
