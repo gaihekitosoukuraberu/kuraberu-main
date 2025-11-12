@@ -852,6 +852,9 @@ const AISearchSystem = {
       const allData = masterSheet.getRange(2, 1, lastRow - 1, masterSheet.getLastColumn()).getValues();
       console.log('[AISearchSystem] 全業者数: ' + allData.length);
 
+      // V1713-FIX: onEditトリガーで加盟店登録→加盟店マスタが自動同期されるため、
+      // マスタシートだけを読めばOK（高速化）
+
       // カラムインデックス取得（V1707: 対応築年数追加 / V1713: ボーナス・フラグ追加）
       const colIndex = {
         companyName: masterHeaders.indexOf('会社名'),
