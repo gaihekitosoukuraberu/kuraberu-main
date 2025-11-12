@@ -901,8 +901,23 @@ const AISearchSystem = {
 
       // フィルタリング（承認済み + 配信中 + 都道府県マッチ + 市区町村マッチ + 工事種別マッチ）（V1705拡張）
       const filtered = [];
+
+      // V1713-DEBUG: フィルタリング統計
+      const filterStats = {
+        total: allData.length,
+        rejectedByApproval: 0,
+        rejectedByDelivery: 0,
+        rejectedBySilent: 0,
+        rejectedByPrefecture: 0,
+        rejectedByCity: 0,
+        rejectedByConstruction: 0,
+        rejectedByBuildingAge: 0,
+        passed: 0
+      };
+
       for (var i = 0; i < allData.length; i++) {
         const row = allData[i];
+        const companyName = row[colIndex.companyName] || '';
         const approvalStatus = row[colIndex.approvalStatus] || '';
         const deliveryStatus = row[colIndex.deliveryStatus] || '';
         const prefectures = row[colIndex.prefecture] || '';
@@ -910,16 +925,41 @@ const AISearchSystem = {
         const constructionTypes = row[colIndex.constructionTypes] || '';
         const silentFlag = row[colIndex.silentFlag] || 'FALSE';
 
+        // V1713-DEBUG: 最初の3件のステータスをログ出力
+        if (i < 3) {
+          console.log('[V1713-DEBUG] 業者' + (i+1) + ': ' + companyName);
+          console.log('  承認ステータス: ' + approvalStatus);
+          console.log('  配信ステータス: ' + deliveryStatus);
+          console.log('  サイレントフラグ: ' + silentFlag);
+          console.log('  対応都道府県: ' + prefectures);
+          console.log('  対応市区町村: ' + cities);
+        }
+
         // ステータスチェック（承認済み + アクティブ + サイレントフラグOFF）（V1705修正）
-        if (approvalStatus !== '承認済み') continue;
-        if (deliveryStatus !== 'アクティブ') continue;
-        if (silentFlag === 'TRUE') continue;
+        if (approvalStatus !== '承認済み') {
+          filterStats.rejectedByApproval++;
+          continue;
+        }
+        if (deliveryStatus !== 'アクティブ') {
+          filterStats.rejectedByDelivery++;
+          continue;
+        }
+        if (silentFlag === 'TRUE') {
+          filterStats.rejectedBySilent++;
+          continue;
+        }
 
         // 都道府県チェック
-        if (!prefecture || !prefectures || prefectures.indexOf(prefecture) === -1) continue;
+        if (!prefecture || !prefectures || prefectures.indexOf(prefecture) === -1) {
+          filterStats.rejectedByPrefecture++;
+          continue;
+        }
 
         // 市区町村チェック（V1705追加 - cityが取得できた場合のみ）
-        if (city && cities && cities.indexOf(city) === -1) continue;
+        if (city && cities && cities.indexOf(city) === -1) {
+          filterStats.rejectedByCity++;
+          continue;
+        }
 
         // 工事種別チェック（V1705追加 - BOT回答に基づくマッチング）
         // constructionTypesには「外壁塗装,屋根塗装,防水工事」のようにカンマ区切りで格納
@@ -969,7 +1009,10 @@ const AISearchSystem = {
           }
         }
 
-        if (!constructionTypeMatch) continue;
+        if (!constructionTypeMatch) {
+          filterStats.rejectedByConstruction++;
+          continue;
+        }
 
         // 築年数チェック（V1707追加）
         const merchantAgeMin = row[colIndex.buildingAgeMin] || 0;
@@ -980,7 +1023,10 @@ const AISearchSystem = {
         const overlapMax = Math.min(buildingAgeMax, merchantAgeMax);
 
         // 重複がない場合はスキップ
-        if (overlapMin > overlapMax) continue;
+        if (overlapMin > overlapMax) {
+          filterStats.rejectedByBuildingAge++;
+          continue;
+        }
 
         // マッチ度スコア計算（0-100）
         const overlapSize = overlapMax - overlapMin;
@@ -988,7 +1034,6 @@ const AISearchSystem = {
         const buildingAgeMatchScore = userRangeSize > 0 ? (overlapSize / userRangeSize) * 100 : 100;
 
         // V1712: 過去データに基づくリスクスコアを取得
-        const companyName = row[colIndex.companyName] || '';
         const riskScore = this.getPastDataRiskScore(companyName);
 
         // V1713: 完全マッチ判定（都道府県 + 市区町村 + 工事種別 + 築年数100%マッチ）
@@ -1006,6 +1051,7 @@ const AISearchSystem = {
         const prioritySupplyFlag = row[colIndex.prioritySupplyFlag];
 
         // すべての条件を満たした業者を追加（V1707: 築年数マッチスコア / V1712: リスクスコア / V1713: 完全マッチ・ボーナス）
+        filterStats.passed++;
         filtered.push({
           companyName: companyName,
           avgContractAmount: row[colIndex.avgContractAmount] || 0,
@@ -1032,6 +1078,18 @@ const AISearchSystem = {
           contractCount: row[colIndex.contractCount] || 0
         });
       }
+
+      // V1713-DEBUG: フィルタリング統計を出力
+      console.log('[V1713-DEBUG] フィルタリング統計:');
+      console.log('  全業者数: ' + filterStats.total);
+      console.log('  承認ステータス除外: ' + filterStats.rejectedByApproval);
+      console.log('  配信ステータス除外: ' + filterStats.rejectedByDelivery);
+      console.log('  サイレントフラグ除外: ' + filterStats.rejectedBySilent);
+      console.log('  都道府県除外: ' + filterStats.rejectedByPrefecture);
+      console.log('  市区町村除外: ' + filterStats.rejectedByCity);
+      console.log('  工事種別除外: ' + filterStats.rejectedByConstruction);
+      console.log('  築年数除外: ' + filterStats.rejectedByBuildingAge);
+      console.log('  通過: ' + filterStats.passed);
 
       console.log('[AISearchSystem] フィルタ後: ' + filtered.length + '件');
 

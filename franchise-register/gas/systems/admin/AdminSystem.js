@@ -1754,14 +1754,16 @@ const AdminSystem = {
       const masterHeaders = masterSheet.getRange(1, 1, 1, masterSheet.getLastColumn()).getValues()[0];
       console.log('[copyToFranchiseMaster] マスタヘッダー数:', masterHeaders.length);
 
-      // 重複チェック
+      // V1713-FIX: 既存レコードのチェックと更新
       const existingData = masterSheet.getDataRange().getValues();
       const idIndex = masterHeaders.indexOf('加盟店ID');
 
+      let existingRowNumber = -1;
       for (let i = 1; i < existingData.length; i++) {
         if (existingData[i][idIndex] === registrationId) {
-          console.warn('[copyToFranchiseMaster] 既に存在します:', registrationId);
-          return { success: true, message: '既存データ（更新不要）' };
+          existingRowNumber = i + 1; // スプレッドシートの行番号（1-indexed）
+          console.log('[copyToFranchiseMaster] 既存レコード発見（行' + existingRowNumber + '）- 更新モード');
+          break;
         }
       }
 
@@ -1792,7 +1794,13 @@ const AdminSystem = {
       const registrationDate = latestRowData[latestHeaders.indexOf('登録日時')] || '';
       const branches = latestRowData[latestHeaders.indexOf('支店住所')] || '';
       const status = latestRowData[latestHeaders.indexOf('ステータス')] || '運用中';
+      const deliveryStatusFromReg = latestRowData[latestHeaders.indexOf('配信ステータス')] || ''; // V1713-FIX: AJ列を直接読み取り
       const silentFlag = latestRowData[latestHeaders.indexOf('サイレントフラグ')] || 'FALSE';
+
+      // V1713: 新しいカラムの読み取り
+      const handicapFromReg = latestRowData[latestHeaders.indexOf('ハンデ')] || 0;
+      const depositAdvanceFromReg = latestRowData[latestHeaders.indexOf('デポジット前金')] || 'FALSE';
+      const prioritySupplyFlagFromReg = latestRowData[latestHeaders.indexOf('最優先供給フラグ')] || 'FALSE';
 
       // 本社都道府県を住所から抽出
       let headquarterPrefecture = '';
@@ -1824,13 +1832,23 @@ const AdminSystem = {
         }
       }
 
-      // V1699: 配信ステータスの変換ロジック
-      // 「休止」「一時停止」→「ストップ」、それ以外→「アクティブ」
+      // V1713-FIX: 配信ステータスの決定ロジック
+      // 1. 「配信ステータス」カラム（AJ列）が存在する場合はそれを優先
+      // 2. なければ「ステータス」カラムから変換（V1699互換）
       let deliveryStatus = 'アクティブ';
-      if (status === '休止' || status === '一時停止') {
-        deliveryStatus = 'ストップ';
+
+      if (deliveryStatusFromReg) {
+        // V1713: 配信ステータスカラムが存在する場合はそのまま使用
+        deliveryStatus = deliveryStatusFromReg;
+        console.log('[copyToFranchiseMaster] 配信ステータス（AJ列）:', deliveryStatusFromReg);
+      } else {
+        // V1699: 配信ステータスカラムがない場合は「ステータス」から変換
+        // 「休止」「一時停止」→「ストップ」、それ以外→「アクティブ」
+        if (status === '休止' || status === '一時停止') {
+          deliveryStatus = 'ストップ';
+        }
+        console.log('[copyToFranchiseMaster] ステータス変換:', status, '→', deliveryStatus);
       }
-      console.log('[copyToFranchiseMaster] ステータス変換:', status, '→', deliveryStatus);
 
       // 過去データシートから運用実績を取得
       const performanceData = this._getPerformanceFromPastData(companyName);
@@ -1892,11 +1910,12 @@ const AdminSystem = {
             masterRow.push(performanceData.reviewCount || 0);
             break;
           case 'ハンデ':
-            masterRow.push(performanceData.handicap || 0);
+            // V1713-FIX: 加盟店登録から取得（performanceDataではなく）
+            masterRow.push(handicapFromReg || 0);
             break;
           case 'デポジット前金':
-            // V1697修正: デフォルトはFALSE
-            masterRow.push(performanceData.deposit || 'FALSE');
+            // V1713-FIX: 加盟店登録から取得（performanceDataではなく）
+            masterRow.push(depositAdvanceFromReg || 'FALSE');
             break;
           case '支払遅延':
             // V1697修正: デフォルトはFALSE
@@ -1924,19 +1943,33 @@ const AdminSystem = {
           case 'サイレントフラグ':
             masterRow.push(silentFlag); // V1694修正：AW列→AA列
             break;
+          case '最優先供給フラグ':
+            // V1713: 最優先供給フラグを加盟店登録から取得
+            masterRow.push(prioritySupplyFlagFromReg || 'FALSE');
+            break;
           default:
             masterRow.push('');
         }
       });
 
-      // マスタシートに追加
-      masterSheet.appendRow(masterRow);
-      console.log('[copyToFranchiseMaster] ✅ 加盟店マスタに追加完了:', registrationId);
-
-      return {
-        success: true,
-        message: '加盟店マスタに追加しました'
-      };
+      // V1713-FIX: 既存レコードの更新 or 新規追加
+      if (existingRowNumber > 0) {
+        // 既存レコードを更新
+        masterSheet.getRange(existingRowNumber, 1, 1, masterRow.length).setValues([masterRow]);
+        console.log('[copyToFranchiseMaster] ✅ 加盟店マスタを更新完了（行' + existingRowNumber + '）:', registrationId);
+        return {
+          success: true,
+          message: '加盟店マスタを更新しました（行' + existingRowNumber + '）'
+        };
+      } else {
+        // 新規レコードを追加
+        masterSheet.appendRow(masterRow);
+        console.log('[copyToFranchiseMaster] ✅ 加盟店マスタに追加完了:', registrationId);
+        return {
+          success: true,
+          message: '加盟店マスタに追加しました'
+        };
+      }
 
     } catch (error) {
       console.error('[copyToFranchiseMaster] エラー:', error);

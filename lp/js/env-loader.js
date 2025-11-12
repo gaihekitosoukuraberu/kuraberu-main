@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1713-FIX-CONFIG-BUG-2025-11-12T19:45:00
- * @last-update 2025-11-12T19:45:00
+ * @file-version V1713-DEBUG-COLUMN-VALIDATION-2025-11-12T19:50:00
+ * @last-update 2025-11-12T19:50:00
  */
 
 const ENV = {
