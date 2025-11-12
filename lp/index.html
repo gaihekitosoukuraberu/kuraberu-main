@@ -1973,9 +1973,32 @@
             modal.style.bottom = '';
             modal.style.height = '';
 
-            // 背景スクロールを復元
+            // V1713-FIX: 背景スクロールを復元（スクロール位置も復元）
+            // bodyの固定を解除
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.width = '';
             document.body.style.overflow = '';
             document.body.style.touchAction = '';
+
+            // スクロール位置を復元
+            if (window.modalScrollPosition !== undefined) {
+                window.scrollTo(0, window.modalScrollPosition);
+                delete window.modalScrollPosition;
+            }
+
+            // gaiheki-bot-containerも復元
+            const botContainer = document.getElementById('gaiheki-bot-container');
+            if (botContainer) {
+                botContainer.style.position = '';
+                botContainer.style.top = '';
+                botContainer.style.left = '';
+                botContainer.style.right = '';
+                botContainer.style.bottom = '';
+                botContainer.style.overflow = '';
+            }
+
+            console.log('✅ 背景スクロール復元（モーダル閉じる）');
 
             // ステップを1に戻す
             document.getElementById('step1').classList.remove('hidden');
@@ -2137,19 +2160,17 @@
                     submitBtn.textContent = '送信する';
                     return;
                 }
-                if (!formData.email) {
-                    alert('メールアドレスを入力してください');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = '送信する';
-                    return;
-                }
-                // メールアドレス形式チェック
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(formData.email)) {
-                    alert('正しいメールアドレスを入力してください');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = '送信する';
-                    return;
+
+                // V1713-FIX: メールアドレスは任意（空白OK、入力されている場合のみ形式チェック）
+                if (formData.email) {
+                    // メールアドレスが入力されている場合のみ形式チェック
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(formData.email)) {
+                        alert('正しいメールアドレスを入力してください');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = '送信する';
+                        return;
+                    }
                 }
                 if (!formData.propertyStreet) {
                     alert('物件住所（番地・建物名）を入力してください');
@@ -2290,9 +2311,38 @@
                     modal.style.height = '';
                 }
 
-                // スマホでの背景スクロール防止
+                // V1713-FIX: 背景スクロール完全防止（スクロール位置固定方式）
+                // 現在のスクロール位置を保存
+                const scrollY = window.scrollY || window.pageYOffset;
+                window.modalScrollPosition = scrollY;
+
+                // bodyを固定してスクロール防止
+                document.body.style.position = 'fixed';
+                document.body.style.top = `-${scrollY}px`;
+                document.body.style.width = '100%';
                 document.body.style.overflow = 'hidden';
                 document.body.style.touchAction = 'none';
+
+                // gaiheki-bot-containerも固定
+                const botContainer = document.getElementById('gaiheki-bot-container');
+                if (botContainer) {
+                    botContainer.style.position = 'fixed';
+                    botContainer.style.top = '0';
+                    botContainer.style.left = '0';
+                    botContainer.style.right = '0';
+                    botContainer.style.bottom = '0';
+                    botContainer.style.overflow = 'hidden';
+                }
+
+                // モーダル背景のタッチムーブイベントを防止
+                modal.addEventListener('touchmove', function(e) {
+                    // モーダル内部のスクロール可能エリア以外はスクロール防止
+                    if (e.target === modal) {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+
+                console.log('✅ 背景スクロール完全無効化（モーダル表示）');
 
                 // BOT情報から郵便番号と住所を自動入力
                 if (window.BotConfig && window.BotConfig.state) {
@@ -2607,11 +2657,11 @@
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） - 固定キャッシュバスター -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="js/env-loader.js?v=1762964100000"></script>
+    <script src="js/env-loader.js?v=1762964520000"></script>
 
     <!-- BOTローダー（タイミング問題のため静的ロード必須） -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="gaiheki-bot-loader.js?v=1762964100000"></script>
+    <script src="gaiheki-bot-loader.js?v=1762964520000"></script>
 
     <!-- V1713-FIX: 無料見積もりボタン（body直下・viewport基準で完全固定） -->
     <div id="estimateBtnContainer" style="display: none !important; position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 999999 !important; background: white !important; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1) !important; border-top: 1px solid #e5e7eb !important; padding: 1rem 0 !important; pointer-events: auto !important;">
