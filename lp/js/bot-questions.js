@@ -323,12 +323,12 @@ const BotQuestions = {
                     // 値に応じた分岐処理
                     let nextQuestionId;
                     if ((currentQuestionId === 'Q008' || currentQuestionId === 'Q008_SLIDER') && question.branchLogic === 'byValue') {
-                        // 築年数の値に応じて分岐
-                        // 0-9年 → branches[0], 10-15年 → branches[1], 16年以上 → branches[2]
+                        // 築年数の値に応じて分岐（V1713-UX: 10年以下 = 訪問業者リスク高）
+                        // 0-10年 → branches[0], 11-15年 → branches[1], 16年以上 → branches[2]
                         let branchIndex = 0;
-                        if (value >= 1 && value <= 9) {
+                        if (value >= 1 && value <= 10) {
                             branchIndex = 0;
-                        } else if (value >= 10 && value <= 15) {
+                        } else if (value >= 11 && value <= 15) {
                             branchIndex = 1;
                         } else if (value >= 16) {
                             branchIndex = 2;
