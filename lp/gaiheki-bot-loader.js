@@ -216,26 +216,28 @@
                 console.log('✅ チャットセクション表示');
             }
 
-            // V1713-FIX: ランキング常時表示（全国版 or 地域版）
+            // V1713-FIX: ランキング常時表示（ソートボタンのみ、カードは質問回答後に動的更新）
             const rankingSection = document.getElementById('rankingSection');
             if (rankingSection) {
                 rankingSection.classList.remove('hidden');
+                console.log('✅ ランキングセクション表示（初期: ソートボタンのみ）');
+            }
+
+            // displayRanking()を呼び出してプレースホルダー表示
+            if (typeof window.displayRanking === 'function') {
+                window.displayRanking();
+                console.log('✅ ランキングプレースホルダー表示');
             }
 
             if (type === 'zip') {
-                // 郵便番号入力から：地域版ランキング + 相場表示
-                console.log('✅ ランキングセクション表示（地域版）');
+                // 郵便番号入力から：相場表示 + 質問回答後に地域版ランキング表示
                 if (existingPriceSection) {
                     existingPriceSection.classList.remove('hidden');
                     console.log('✅ 相場セクション表示');
                 }
             } else if (type === 'keyword') {
-                // キーワード起動：全国版ランキング表示（郵便番号入力後に地域版に切り替え）
-                console.log('✅ ランキングセクション表示（全国版）');
-                if (typeof window.fetchNationalRanking === 'function') {
-                    window.fetchNationalRanking();
-                }
-                console.log('⏸️ 相場セクションは郵便番号入力後に表示');
+                // キーワード起動：郵便番号入力後にランキング表示開始
+                console.log('⏸️ 相場・ランキングは郵便番号入力後に表示');
             }
 
             // BOT画面表示時にスクロール位置を最上部にリセット

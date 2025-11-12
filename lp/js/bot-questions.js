@@ -80,6 +80,13 @@ const BotQuestions = {
         // 回答を保存
         BotConfig.saveAnswer(question.id || BotConfig.state.currentQuestionId, choice, index);
 
+        // V1713-FIX: 回答後にランキングを動的更新（非同期・非ブロッキング）
+        if (typeof window.updateRankingDynamically === 'function') {
+            window.updateRankingDynamically().catch(err => {
+                console.warn('⚠️ ランキング動的更新エラー（非致命的）:', err);
+            });
+        }
+
         // 選択肢をクリア
         BotUI.clearChoices();
 

@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-12T20:48:00.000Z - Deployment: AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj
+// Auto-synced: 2025-11-12T21:03:00.000Z - Deployment: AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj
 /**
  * 環境変数ローダー（全システム共通）- 🔥マスターファイル🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1713-FIX-NATIONAL-2025-11-12T20:48:00
- * @last-update 2025-11-12T20:48:00
+ * @file-version V1713-FIX-DYNAMIC-2025-11-12T21:03:00
+ * @last-update 2025-11-12T21:03:00
  */
 
 const ENV = {
@@ -22,7 +22,7 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // GAS URL（V1713-FIX: National ranking + Keyword launch ranking @HEAD）
+  // GAS URL（V1713-FIX: Dynamic ranking updates per BOT question @HEAD）
   GAS_URL: 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/exec',
 
   // フォールバックGAS URL（バックアップ）- @HEAD
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1713-FIX - 2025-11-12 20:48 - National ranking @HEAD）
-  CACHE_BUSTER: '1762926480000'
+  // キャッシュバスター（V1713-FIX - 2025-11-12 21:03 - Dynamic ranking updates @HEAD）
+  CACHE_BUSTER: '1762927392000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

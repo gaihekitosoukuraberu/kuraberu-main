@@ -1076,10 +1076,47 @@ async function fetchNationalRanking() {
   }
 }
 
+// ============================================
+// V1713-FIX: 動的ランキング更新（BOT質問ごとに自動更新）
+// ============================================
+async function updateRankingDynamically() {
+  try {
+    // 郵便番号がなければスキップ（全国版→地域版に切り替わるまで待つ）
+    if (!window.BotConfig || !window.BotConfig.state || !window.BotConfig.state.currentZipcode) {
+      console.log('🔄 郵便番号未入力のため動的更新スキップ');
+      return false;
+    }
+
+    console.log('🔄 ランキング動的更新開始（モザイクの裏で更新）');
+
+    // fetchRankingFromGAS()を呼び出してランキング再取得
+    const success = await fetchRankingFromGAS();
+
+    if (success) {
+      // 現在のソートタイプを維持してallCompaniesを更新
+      updateAllCompaniesFromDynamic(currentSortType);
+
+      // displayRanking()を呼び出して表示更新（モザイクはそのまま）
+      displayRanking();
+
+      console.log('✅ ランキング動的更新完了（' + allCompanies.length + '社）');
+      return true;
+    } else {
+      console.warn('⚠️ ランキング動的更新失敗');
+      return false;
+    }
+
+  } catch (error) {
+    console.error('❌ ランキング動的更新エラー:', error);
+    return false;
+  }
+}
+
 // グローバル変数・関数としてエクスポート
 window.dynamicRankings = dynamicRankings;
 window.fetchRankingFromGAS = fetchRankingFromGAS;
 window.fetchNationalRanking = fetchNationalRanking;
+window.updateRankingDynamically = updateRankingDynamically; // V1713-FIX: 動的更新
 window.updateAllCompaniesFromDynamic = updateAllCompaniesFromDynamic;
 window.displayRanking = displayRanking;
 window.keepManager = keepManager;  // 業者名ベースのキープ管理
