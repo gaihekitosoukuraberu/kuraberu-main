@@ -22,11 +22,21 @@ let currentSortType = 'recommended'; // recommended, cheap, review, quality
 let showingAll = false;
 // V1704: namesRevealedフラグ削除 - 実データのみ使用
 
+// V1713-PERF: 重複実行防止フラグ
+let isRankingFetching = false;
+
 // ============================================
 // GASからランキングデータを取得
 // ============================================
 async function fetchRankingFromGAS() {
+  // V1713-PERF: 既に取得中の場合はスキップ
+  if (isRankingFetching) {
+    console.warn('⚠️ ランキング取得中のため、重複リクエストをスキップします');
+    return false;
+  }
+
   try {
+    isRankingFetching = true;
     console.log('🏆 GASからランキング取得開始');
 
     // BotConfigから必要なパラメータを取得
@@ -103,10 +113,12 @@ async function fetchRankingFromGAS() {
 
     console.log('📦 ランキングデータをキャッシュしました');
 
+    isRankingFetching = false;
     return true;
 
   } catch (error) {
     console.error('❌ ランキング取得エラー:', error);
+    isRankingFetching = false;
     return false;
   }
 }

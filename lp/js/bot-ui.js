@@ -180,13 +180,11 @@ const BotUI = {
                     <span>${max}${unit}</span>
                 </div>
                 <div class="mt-8 space-y-3">
-                    <button id="sliderConfirm"
-                            class="choice-btn w-full bg-gradient-to-br from-blue-500 to-blue-600 text-white py-4 px-6 rounded-lg font-bold text-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                    <button id="sliderConfirm" class="choice-btn w-full">
                         決定
                     </button>
                     ${onUnknown ? `
-                    <button id="sliderUnknown"
-                            class="choice-btn w-full bg-gradient-to-br from-gray-400 to-gray-500 text-white py-4 px-6 rounded-lg font-bold text-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                    <button id="sliderUnknown" class="choice-btn w-full">
                         不明
                     </button>
                     ` : ''}
