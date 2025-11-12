@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1706-LP-YAHOO-API-ZIPCODE-2025-11-12T15:30:00
- * @last-update 2025-11-12T15:30:00
+ * @file-version V1707-LP-BUILDING-AGE-MATCH-2025-11-12T16:00:00
+ * @last-update 2025-11-12T16:00:00
  */
 
 const ENV = {
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1706 - 2025-11-12 15:30 - Yahoo! API郵便番号全国対応）
-  CACHE_BUSTER: '1731400200000'
+  // キャッシュバスター（V1707 - 2025-11-12 16:00 - 築年数マッチ度スコアリング実装）
+  CACHE_BUSTER: '1731402000000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
