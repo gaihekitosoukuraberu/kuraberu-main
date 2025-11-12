@@ -434,7 +434,7 @@ function generateStarRating(rating) {
   return `<span class="text-sm">${starsHtml}</span><span class="text-xs ml-1">${rating}</span>`;
 }
 
-// ランキング表示（正しい仕様に復元）
+// ランキング表示（V1713-FIX: 動的更新対応）
 function displayRanking() {
   try {
     const rankingList = document.getElementById('rankingList');
@@ -442,10 +442,35 @@ function displayRanking() {
       console.error('rankingList要素が見つかりません');
       return;
     }
-  
+
+  // V1713-FIX: 空配列時はプレースホルダー表示（ソートボタンは常に表示）
+  if (!allCompanies || allCompanies.length === 0) {
+    rankingList.innerHTML = `
+      <div class="flex items-center justify-center h-full min-h-[300px]">
+        <div class="text-center text-gray-500 px-4">
+          <div class="mb-3">
+            <svg class="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+          </div>
+          <p class="text-sm font-medium mb-1">質問に答えると</p>
+          <p class="text-sm font-medium">最適なランキングが表示されます</p>
+        </div>
+      </div>
+    `;
+    console.log('📭 ランキングデータなし - プレースホルダー表示');
+
+    // もっと見るボタンを非表示
+    const toggleButton = document.getElementById('toggleAllCompanies');
+    if (toggleButton) {
+      toggleButton.style.display = 'none';
+    }
+    return;
+  }
+
   // 表示する会社数を決定（初期4社、もっと見るで5~8位まで）
   const companiesToShow = showingAll ? allCompanies : allCompanies.slice(0, 4);
-  
+
   // ランキングカードを動的生成（samplesフォーマット）
   rankingList.innerHTML = companiesToShow.map(company => {
     // GASから取得した実名を使用（イニシャルではなく実名表示）
@@ -503,7 +528,7 @@ function displayRanking() {
     `;
   }).join('');
 
-  console.log('ランキング表示完了（正しい仕様に復元）');
+  console.log('✅ ランキング表示完了（' + companiesToShow.length + '社）');
 
   // 「もっと見る」ボタンの表示制御（V1687 - flex表示に修正）
   const toggleButton = document.getElementById('toggleAllCompanies');

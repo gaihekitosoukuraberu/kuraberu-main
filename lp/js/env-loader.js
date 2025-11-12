@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-12T20:35:00.000Z - Deployment: AKfycbxK5ua2Sik5MtsDQUBwfC33AOAuYni4_bXahn7dQHoFW4By1sNZrCIOFlIj1l45rtJT_Q
+// Auto-synced: 2025-11-12T20:48:00.000Z - Deployment: AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj
 /**
  * 環境変数ローダー（全システム共通）- 🔥マスターファイル🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1713-FIX-ZIPCODE-2025-11-12T20:35:00
- * @last-update 2025-11-12T20:35:00
+ * @file-version V1713-FIX-NATIONAL-2025-11-12T20:48:00
+ * @last-update 2025-11-12T20:48:00
  */
 
 const ENV = {
@@ -22,14 +22,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // GAS URL（V1713-FIX: Zipcode format + Prefecture mapping fix @1629）
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxK5ua2Sik5MtsDQUBwfC33AOAuYni4_bXahn7dQHoFW4By1sNZrCIOFlIj1l45rtJT_Q/exec',
+  // GAS URL（V1713-FIX: National ranking + Keyword launch ranking @HEAD）
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/exec',
 
-  // フォールバックGAS URL（バックアップ）- @1629
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxK5ua2Sik5MtsDQUBwfC33AOAuYni4_bXahn7dQHoFW4By1sNZrCIOFlIj1l45rtJT_Q/exec',
+  // フォールバックGAS URL（バックアップ）- @HEAD
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/exec',
 
-  // 緊急時URL（最終フォールバック）- @1629
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxK5ua2Sik5MtsDQUBwfC33AOAuYni4_bXahn7dQHoFW4By1sNZrCIOFlIj1l45rtJT_Q/exec',
+  // 緊急時URL（最終フォールバック）- @HEAD
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1713-FIX - 2025-11-12 20:35 - Zipcode fix @1629）
-  CACHE_BUSTER: '1762925700000'
+  // キャッシュバスター（V1713-FIX - 2025-11-12 20:48 - National ranking @HEAD）
+  CACHE_BUSTER: '1762926480000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

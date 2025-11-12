@@ -955,8 +955,8 @@ const AISearchSystem = {
           continue;
         }
 
-        // 都道府県チェック
-        if (!prefecture || !prefectures || prefectures.indexOf(prefecture) === -1) {
+        // V1713-FIX: 都道府県チェック（全国版の場合はスキップ）
+        if (prefecture && (!prefectures || prefectures.indexOf(prefecture) === -1)) {
           filterStats.rejectedByPrefecture++;
           continue;
         }
