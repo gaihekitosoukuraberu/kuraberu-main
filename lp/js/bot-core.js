@@ -366,6 +366,12 @@ const BotCore = {
                 window.completeHearingStage(3);
             }
 
+            // V1713-UX: ローディング非表示
+            const loadingIndicator = document.getElementById('botLoadingIndicator');
+            if (loadingIndicator) {
+                loadingIndicator.remove();
+            }
+
             console.log('🎉 ランキング表示完了（ソート順:', sortOrder, '）- 即座に完了');
         } else if (typeof window.fetchRankingFromGAS === 'function') {
             // 未取得の場合のみGAS通信を実行（フォールバック）
@@ -392,15 +398,34 @@ const BotCore = {
                     window.completeHearingStage(3);
                 }
 
+                // V1713-UX: ローディング非表示
+                const loadingIndicator = document.getElementById('botLoadingIndicator');
+                if (loadingIndicator) {
+                    loadingIndicator.remove();
+                }
+
                 console.log('🎉 ランキング表示完了（ソート順:', sortOrder, '）');
             }).catch(err => {
                 console.error('❌ ランキング取得エラー（非致命的）:', err);
+
+                // V1713-UX: エラー時もローディング非表示
+                const loadingIndicator = document.getElementById('botLoadingIndicator');
+                if (loadingIndicator) {
+                    loadingIndicator.remove();
+                }
+
                 // エラーでも電話番号フォームは既に表示されているのでOK
             });
         } else {
             // fetchRankingFromGASがない場合はモザイクだけ解除
             if (typeof window.completeHearingStage === 'function') {
                 window.completeHearingStage(3);
+            }
+
+            // V1713-UX: ローディング非表示
+            const loadingIndicator = document.getElementById('botLoadingIndicator');
+            if (loadingIndicator) {
+                loadingIndicator.remove();
             }
         }
     }
