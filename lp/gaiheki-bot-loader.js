@@ -216,27 +216,26 @@
                 console.log('✅ チャットセクション表示');
             }
 
-            // ランキングセクションは常に表示（モザイク状態）
+            // V1713-FIX: ランキング常時表示（全国版 or 地域版）
             const rankingSection = document.getElementById('rankingSection');
             if (rankingSection) {
                 rankingSection.classList.remove('hidden');
-                console.log('✅ ランキングセクション表示（モザイク付き）');
             }
 
-            // ランキングを初期表示（デフォルトデータ）
-            if (typeof window.displayRanking === 'function') {
-                window.displayRanking();
-                console.log('✅ BOT起動時にランキング初期表示（デフォルトデータ）');
-            }
-
-            // キーワードからの起動時は相場セクションのみ非表示
             if (type === 'zip') {
+                // 郵便番号入力から：地域版ランキング + 相場表示
+                console.log('✅ ランキングセクション表示（地域版）');
                 if (existingPriceSection) {
                     existingPriceSection.classList.remove('hidden');
-                    console.log('✅ 相場セクション表示（郵便番号入力から）');
+                    console.log('✅ 相場セクション表示');
                 }
             } else if (type === 'keyword') {
-                console.log('⏸️ キーワードからの起動のため、相場セクションは質問完了後に表示します');
+                // キーワード起動：全国版ランキング表示（郵便番号入力後に地域版に切り替え）
+                console.log('✅ ランキングセクション表示（全国版）');
+                if (typeof window.fetchNationalRanking === 'function') {
+                    window.fetchNationalRanking();
+                }
+                console.log('⏸️ 相場セクションは郵便番号入力後に表示');
             }
 
             // BOT画面表示時にスクロール位置を最上部にリセット

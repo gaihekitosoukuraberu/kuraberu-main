@@ -790,16 +790,19 @@ const AISearchSystem = {
     try {
       console.log('[AISearchSystem] getRanking開始:', params);
 
-      // パラメータ検証
-      const zipcode = params.zipcode;
-      if (!zipcode) {
-        throw new Error('郵便番号が指定されていません');
-      }
+      // V1713-FIX: 郵便番号なし = 全国版ランキング
+      const zipcode = params.zipcode || '';
+      let prefecture = '';
+      let city = '';
 
-      // 郵便番号から都道府県・市区町村を推定（V1705拡張）
-      const prefecture = this.getPrefectureFromZipcode(zipcode);
-      const city = this.getCityFromZipcode(zipcode);
-      console.log('[AISearchSystem] 郵便番号 ' + zipcode + ' → 都道府県: ' + prefecture + ', 市区町村: ' + city);
+      if (zipcode) {
+        // 郵便番号から都道府県・市区町村を推定（V1705拡張）
+        prefecture = this.getPrefectureFromZipcode(zipcode);
+        city = this.getCityFromZipcode(zipcode);
+        console.log('[AISearchSystem] 郵便番号 ' + zipcode + ' → 都道府県: ' + prefecture + ', 市区町村: ' + city);
+      } else {
+        console.log('[AISearchSystem] 全国版ランキング取得（郵便番号なし）');
+      }
 
       // V1705/V1707: BOT回答データ取得
       const wallMaterial = params.wallMaterial || '';
@@ -1128,21 +1131,55 @@ const AISearchSystem = {
 
   // 郵便番号から都道府県を推定（簡易版）
   getPrefectureFromZipcode: function(zipcode) {
-    // 郵便番号の最初の2桁で都道府県を判定
-    const prefix = zipcode.substring(0, 2);
-    const map = {
+    // V1713-FIX: 郵便番号の最初の3桁で都道府県を判定（より正確）
+    const zip = zipcode.toString().replace(/[^0-9]/g, ''); // 数字のみ抽出
+    const prefix3 = zip.substring(0, 3);
+    const prefix2 = zip.substring(0, 2);
+
+    // 3桁プレフィックスマッピング（優先）
+    const map3 = {
+      '220': '神奈川県', '221': '神奈川県', '222': '神奈川県', '223': '神奈川県',
+      '224': '神奈川県', '225': '神奈川県', '226': '神奈川県', '227': '神奈川県',
+      '228': '神奈川県', '229': '神奈川県', // 横浜市
+      '210': '神奈川県', '211': '神奈川県', '212': '神奈川県', '213': '神奈川県',
+      '214': '神奈川県', '215': '神奈川県', '216': '神奈川県', '217': '神奈川県',
+      '218': '神奈川県', '219': '神奈川県', // 川崎市
+      '230': '神奈川県', '231': '神奈川県', '232': '神奈川県', '233': '神奈川県',
+      '234': '神奈川県', '235': '神奈川県', '236': '神奈川県', '237': '神奈川県',
+      '238': '神奈川県', '239': '神奈川県', // 横須賀市など
+      '240': '神奈川県', '241': '神奈川県', '242': '神奈川県', '243': '神奈川県',
+      '244': '神奈川県', '245': '神奈川県', '246': '神奈川県', '247': '神奈川県',
+      '248': '神奈川県', '249': '神奈川県', '250': '神奈川県', '251': '神奈川県',
+      '252': '神奈川県', '253': '神奈川県', '254': '神奈川県', '255': '神奈川県',
+      '256': '神奈川県', '257': '神奈川県', '258': '神奈川県', '259': '神奈川県', // その他神奈川県
+      '410': '静岡県', '411': '静岡県', '412': '静岡県', '413': '静岡県',
+      '414': '静岡県', '415': '静岡県', '416': '静岡県', '417': '静岡県',
+      '418': '静岡県', '419': '静岡県', '420': '静岡県', '421': '静岡県',
+      '422': '静岡県', '423': '静岡県', '424': '静岡県', '425': '静岡県',
+      '426': '静岡県', '427': '静岡県', '428': '静岡県', '429': '静岡県',
+      '430': '静岡県', '431': '静岡県', '432': '静岡県', '433': '静岡県',
+      '434': '静岡県', '435': '静岡県', '436': '静岡県', '437': '静岡県',
+      '438': '静岡県', '439': '静岡県' // 静岡県
+    };
+
+    if (map3[prefix3]) {
+      return map3[prefix3];
+    }
+
+    // 2桁フォールバック（従来の簡易マッピング）
+    const map2 = {
       '01': '北海道', '02': '青森県', '03': '岩手県', '04': '宮城県', '05': '秋田県',
       '06': '山形県', '07': '福島県', '08': '茨城県', '09': '栃木県', '10': '群馬県',
       '11': '埼玉県', '12': '千葉県', '13': '東京都', '14': '神奈川県', '15': '新潟県',
       '16': '富山県', '17': '石川県', '18': '福井県', '19': '山梨県', '20': '長野県',
-      '21': '岐阜県', '22': '静岡県', '23': '愛知県', '24': '三重県', '25': '滋賀県',
+      '21': '岐阜県', '23': '愛知県', '24': '三重県', '25': '滋賀県',
       '26': '京都府', '27': '大阪府', '28': '兵庫県', '29': '奈良県', '30': '和歌山県',
       '31': '鳥取県', '32': '島根県', '33': '岡山県', '34': '広島県', '35': '山口県',
       '36': '徳島県', '37': '香川県', '38': '愛媛県', '39': '高知県', '40': '福岡県',
       '41': '佐賀県', '42': '長崎県', '43': '熊本県', '44': '大分県', '45': '宮崎県',
       '46': '鹿児島県', '47': '沖縄県'
     };
-    return map[prefix] || '';
+    return map2[prefix2] || '';
   },
 
   // 郵便番号から市区町村を取得（V1706 - Yahoo! API使用）
@@ -1152,7 +1189,13 @@ const AISearchSystem = {
       const appId = PropertiesService.getScriptProperties().getProperty('YAHOO_APP_ID');
 
       if (appId) {
-        const url = 'https://map.yahooapis.jp/search/zip/V1/zipCodeSearch?appid=' + appId + '&query=' + zipcode + '&output=json';
+        // V1713-FIX: 郵便番号にハイフンを挿入（2250024 → 225-0024）
+        let formattedZipcode = zipcode.toString().replace(/[^0-9]/g, ''); // 数字のみ抽出
+        if (formattedZipcode.length === 7) {
+          formattedZipcode = formattedZipcode.substring(0, 3) + '-' + formattedZipcode.substring(3);
+        }
+
+        const url = 'https://map.yahooapis.jp/search/zip/V1/zipCodeSearch?appid=' + appId + '&query=' + formattedZipcode + '&output=json';
         const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
 
         if (response.getResponseCode() === 200) {
@@ -1161,7 +1204,7 @@ const AISearchSystem = {
           if (data.Feature && data.Feature.length > 0) {
             const property = data.Feature[0].Property;
             const city = property.City || '';
-            console.log('[AISearchSystem] Yahoo! API: ' + zipcode + ' → ' + city);
+            console.log('[AISearchSystem] Yahoo! API: ' + formattedZipcode + ' → ' + city);
             return city;
           }
         }

@@ -12,6 +12,7 @@ window.RANKING_JS_LOADED = true;
 console.log('✅ ranking.js 読み込み開始 (V1669 - 二重読み込み防止ガード有効)');
 
 // V1704: ダミーデータ削除 - 加盟店マスタの実データのみ使用
+// V1713-FIX: BOT起動時はランキング非表示（郵便番号入力後に実データを表示）
 let allCompanies = [];
 
 // GASから取得したランキングデータ（キャッシュ）
@@ -1004,9 +1005,56 @@ function completeHearingStage(stage) {
   // 第2段階以降の処理は、chatbot.jsのtriggerSortEnableで制御
 }
 
+// ============================================
+// V1713-FIX: 全国版ランキング取得（郵便番号なし）
+// ============================================
+async function fetchNationalRanking() {
+  try {
+    console.log('🌏 全国版ランキング取得開始');
+
+    const params = {
+      zipcode: '', // 空文字で全国版
+      workTypes: [],
+      buildingAgeMin: 0,
+      buildingAgeMax: 100
+    };
+
+    console.log('📤 全国版ランキングリクエスト:', params);
+
+    if (!window.CVAPI || !window.CVAPI.getRanking) {
+      console.error('❌ CVAPI.getRankingが見つかりません');
+      return false;
+    }
+
+    const response = await window.CVAPI.getRanking(params);
+
+    if (!response.success) {
+      console.error('❌ 全国版ランキング取得失敗:', response.error);
+      return false;
+    }
+
+    console.log('✅ 全国版ランキング取得成功:', response);
+
+    dynamicRankings = response.rankings;
+    window.dynamicRankings = dynamicRankings;
+
+    // おすすめ順で表示
+    updateAllCompaniesFromDynamic('recommended');
+    displayRanking();
+
+    console.log('📦 全国版ランキング表示完了');
+    return true;
+
+  } catch (error) {
+    console.error('❌ 全国版ランキング取得エラー:', error);
+    return false;
+  }
+}
+
 // グローバル変数・関数としてエクスポート
 window.dynamicRankings = dynamicRankings;
 window.fetchRankingFromGAS = fetchRankingFromGAS;
+window.fetchNationalRanking = fetchNationalRanking;
 window.updateAllCompaniesFromDynamic = updateAllCompaniesFromDynamic;
 window.displayRanking = displayRanking;
 window.keepManager = keepManager;  // 業者名ベースのキープ管理
