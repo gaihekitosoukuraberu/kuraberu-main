@@ -46,6 +46,12 @@ const BotQuestions = {
             return;
         }
 
+        // スライダー入力の質問の場合（V1713-FIX: Q008A対応）
+        if (question.inputType === 'slider') {
+            this.handleSliderQuestion(question);
+            return;
+        }
+
         // AIメッセージ表示
         BotUI.showAIMessage(question.text);
 
@@ -261,6 +267,60 @@ const BotQuestions = {
             choices.appendChild(confirmBtn);
 
             BotUI.scrollToBottom();
+        }, 500);
+    },
+
+    // ============================================
+    // スライダー入力質問（V1713-FIX: Q008A対応）
+    // ============================================
+    handleSliderQuestion(question) {
+        BotUI.showAIMessage(question.text);
+
+        setTimeout(() => {
+            if (typeof BotUI.showSlider === 'function') {
+                BotUI.showSlider(question.sliderConfig, (value) => {
+                    // ユーザーメッセージ表示
+                    BotUI.showUserMessage(`${value}${question.sliderConfig.unit}`);
+
+                    // 回答を保存
+                    const currentQuestionId = question.id || BotConfig.state.currentQuestionId;
+                    BotConfig.saveAnswer(currentQuestionId, value, 0);
+
+                    // V1713-FIX: 築年数の正確な値を保存
+                    if (currentQuestionId === 'Q008A') {
+                        BotConfig.state.exactBuildingAge = value;
+                        console.log('✅ 築年数（正確）:', value + '年');
+                    }
+
+                    // 選択肢をクリア
+                    BotUI.clearChoices();
+
+                    // 進捗更新
+                    if (question.stage) {
+                        const percentage = BotConfig.calculateProgress(question.stage);
+                        BotUI.updateProgress(percentage);
+                    }
+
+                    // Q008Aの場合、Q008の回答に応じて分岐先を決定
+                    let nextQuestionId;
+                    if (currentQuestionId === 'Q008A') {
+                        // Q008の回答（userAnswers.Q008.index）を取得
+                        const q008Answer = BotConfig.state.userAnswers.Q008;
+                        const q008Index = q008Answer ? q008Answer.index : 0;
+                        nextQuestionId = question.branches[q008Index];
+                        console.log('📍 Q008の選択:', q008Index, '→ 次の質問:', nextQuestionId);
+                    } else {
+                        nextQuestionId = question.branches[0];
+                    }
+
+                    // 次の質問へ
+                    setTimeout(() => {
+                        this.showQuestion(nextQuestionId);
+                    }, 1000);
+                });
+            } else {
+                console.error('❌ BotUI.showSliderが見つかりません');
+            }
         }, 500);
     },
 

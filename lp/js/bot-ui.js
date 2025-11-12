@@ -153,6 +153,86 @@ const BotUI = {
     },
 
     // ============================================
+    // スライダー表示（V1713-FIX: Q008A築年数入力）
+    // ============================================
+    showSlider(config, onConfirm) {
+        if (!this.elements.choices) this.init();
+
+        const { min, max, step, unit } = config;
+        const defaultValue = Math.floor((min + max) / 2);
+
+        this.elements.choices.innerHTML = `
+            <div class="slider-container p-4 bg-white rounded-lg border-2 border-blue-400 shadow-md">
+                <div class="mb-4 text-center">
+                    <span class="text-3xl font-bold text-blue-600" id="sliderValue">${defaultValue}</span>
+                    <span class="text-lg text-gray-600">${unit}</span>
+                </div>
+                <input type="range"
+                       id="ageSlider"
+                       min="${min}"
+                       max="${max}"
+                       step="${step}"
+                       value="${defaultValue}"
+                       class="w-full h-3 bg-blue-200 rounded-lg appearance-none cursor-pointer slider-thumb">
+                <div class="flex justify-between text-xs text-gray-500 mt-2">
+                    <span>${min}${unit}</span>
+                    <span>${max}${unit}</span>
+                </div>
+                <button id="sliderConfirm"
+                        class="choice-btn w-full mt-4 bg-gradient-to-br from-blue-500 to-blue-600 text-white py-3 px-6 rounded-lg font-bold text-base shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                    決定
+                </button>
+            </div>
+            <style>
+                /* スライダーのカスタムスタイル */
+                .slider-thumb::-webkit-slider-thumb {
+                    appearance: none;
+                    width: 24px;
+                    height: 24px;
+                    background: #3B82F6;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
+                }
+                .slider-thumb::-moz-range-thumb {
+                    width: 24px;
+                    height: 24px;
+                    background: #3B82F6;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
+                    border: none;
+                }
+                .slider-thumb::-webkit-slider-thumb:hover {
+                    background: #2563EB;
+                    transform: scale(1.1);
+                }
+                .slider-thumb::-moz-range-thumb:hover {
+                    background: #2563EB;
+                    transform: scale(1.1);
+                }
+            </style>
+        `;
+
+        const slider = document.getElementById('ageSlider');
+        const valueDisplay = document.getElementById('sliderValue');
+        const confirmBtn = document.getElementById('sliderConfirm');
+
+        // スライダー値変更時の処理
+        slider.addEventListener('input', (e) => {
+            valueDisplay.textContent = e.target.value;
+        });
+
+        // 決定ボタン
+        confirmBtn.addEventListener('click', () => {
+            const value = parseInt(slider.value);
+            onConfirm(value);
+        });
+
+        this.scrollToBottom();
+    },
+
+    // ============================================
     // メッセージクリア
     // ============================================
     clearMessages() {

@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1713-FIX - 2025-11-12 21:15 - Phone form instant display @HEAD）
-  CACHE_BUSTER: '1762928154000'
+  // キャッシュバスター（V1713-FIX - 2025-11-12 21:59 - Non-blocking ranking fetch @HEAD）
+  CACHE_BUSTER: '1762930751000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

@@ -62,32 +62,40 @@ async function initBotForZipEntry() {
         console.log('✅ BOT開始時にランキングセクション表示');
     }
 
-    // GASからランキングを取得してモザイク付きで表示
-    console.log('🏆 郵便番号入力後、GASからランキングを取得します');
-
-    if (typeof window.fetchRankingFromGAS === 'function') {
-        const success = await window.fetchRankingFromGAS();
-        if (success) {
-            console.log('✅ ランキング取得成功、デフォルト（おすすめ順）で表示');
-            // デフォルトはおすすめ順
-            if (typeof window.updateAllCompaniesFromDynamic === 'function') {
-                window.updateAllCompaniesFromDynamic('recommended');
-            }
-        } else {
-            console.warn('⚠️ ランキング取得失敗、デフォルトデータを使用');
-        }
-    }
-
-    // ランキング表示（モザイク付き）
+    // V1713-FIX: ランキング表示（プレースホルダー）を即座に表示
     if (typeof window.displayRanking === 'function') {
         window.displayRanking();
-        console.log('✅ ランキング表示完了（モザイク付き）');
+        console.log('✅ ランキングプレースホルダー表示（空配列）');
+    }
+
+    // V1713-FIX: GASからランキングをバックグラウンドで取得（非ブロッキング）
+    console.log('🏆 郵便番号入力後、GASからランキングを取得します（バックグラウンド）');
+
+    if (typeof window.fetchRankingFromGAS === 'function') {
+        // awaitせずにバックグラウンドで実行
+        window.fetchRankingFromGAS().then((success) => {
+            if (success) {
+                console.log('✅ ランキング取得成功、デフォルト（おすすめ順）で表示');
+                // デフォルトはおすすめ順
+                if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+                    window.updateAllCompaniesFromDynamic('recommended');
+                }
+                // 再表示
+                if (typeof window.displayRanking === 'function') {
+                    window.displayRanking();
+                }
+            } else {
+                console.warn('⚠️ ランキング取得失敗、プレースホルダー表示維持');
+            }
+        }).catch(err => {
+            console.error('❌ ランキング取得エラー（非致命的）:', err);
+        });
     }
 
     // AIメッセージ：相場は既に表示済みなので、直接質問開始
     showAIMessage('ありがとうございます。あなたに最適な業者をご紹介するため、いくつか質問させていただきます。');
 
-    // mainQuestions.Q001から開始
+    // mainQuestions.Q001から開始（ランキング取得を待たない）
     setTimeout(() => {
         showQuestion('Q001');
     }, 1000);
