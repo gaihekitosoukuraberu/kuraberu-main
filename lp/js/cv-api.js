@@ -239,83 +239,16 @@ const CVAPI = {
     },
 
     // ============================================
-    // JSONP送信（CORS回避）- V1713-FIX: fetch優先、JSONP=フォールバック
+    // JSONP送信（CORS回避）- V1713-FIX: スマホ対応（async=false）
     // ============================================
     sendJSONP(data) {
         return new Promise((resolve, reject) => {
-            // V1713-FIX: スマホ対応 - fetchを優先、失敗時のみJSONPにフォールバック
-            // 理由: スマホブラウザはContent-Type厳格チェックでJSONPが失敗する
+            // V1713-FIX: スマホ対応 - 純粋なJSONP方式のみ（CORS不使用）
+            // 理由: fetchベースのCORS方式は頻繁にエラーが発生するため
 
-            // URLパラメータ構築
-            const params = new URLSearchParams();
-            for (const key in data) {
-                if (data.hasOwnProperty(key)) {
-                    params.append(key, data[key]);
-                }
-            }
-
-            const fetchUrl = this.GAS_URL + '?' + params.toString();
-
-            // V1713-FIX: スマホ対応 - fetchでJSONPテキスト取得 → evalで実行
-            // 理由: スマホブラウザは動的scriptタグを制限するが、fetchは動作する
-
-            // コールバック関数を先に定義
+            // コールバック関数名を生成
             const callbackName = 'cvCallback_' + Date.now();
-            window[callbackName] = function(response) {
-                console.log('✅ コールバック関数実行:', response);
-                delete window[callbackName];
-                resolve(response);
-            };
-
-            // callbackパラメータ付きでfetch（JSONP形式のレスポンスを取得）
-            const fetchUrlWithCallback = fetchUrl + '&callback=' + callbackName;
-            console.log('🔧 fetchでJSONP取得:', fetchUrlWithCallback);
-
-            fetch(fetchUrlWithCallback, {
-                method: 'GET',
-                mode: 'cors', // V1713-FIX: GASはCORSヘッダーを返す
-                cache: 'no-cache',
-                credentials: 'omit'
-            })
-            .then(response => {
-                console.log('📥 fetch レスポンス受信:', response.status, response.type);
-                console.log('📥 Content-Type:', response.headers.get('content-type'));
-
-                if (!response.ok) {
-                    throw new Error('HTTP status: ' + response.status);
-                }
-
-                return response.text(); // JSONPはテキストとして取得
-            })
-            .then(responseText => {
-                console.log('📥 レスポンステキスト:', responseText.substring(0, 100) + '...');
-
-                // "callbackName({...})"形式のテキストをevalで実行
-                try {
-                    eval(responseText);
-                    // evalでコールバック関数が実行されてresolveされる
-                    console.log('✅ eval実行成功');
-                } catch (evalError) {
-                    console.error('❌ eval失敗:', evalError);
-                    delete window[callbackName];
-                    // eval失敗の場合はscriptタグにフォールバック
-                    this.sendJSONPFallback(data, resolve, reject);
-                }
-            })
-            .catch(error => {
-                console.warn('⚠️ fetch失敗、scriptタグにフォールバック:', error.message);
-                delete window[callbackName];
-                // fetchが失敗した場合はscriptタグにフォールバック
-                this.sendJSONPFallback(data, resolve, reject);
-            });
-        });
-    },
-
-    // JSONPフォールバック（従来の方法）
-    sendJSONPFallback(data, resolve, reject) {
-        // コールバック関数名を生成
-        const callbackName = 'cvCallback_' + Date.now();
-        console.log('🔧 コールバック関数名:', callbackName);
+            console.log('🔧 コールバック関数名:', callbackName);
 
         // グローバルにコールバック関数を定義
         window[callbackName] = function(response) {
@@ -338,11 +271,11 @@ const CVAPI = {
         }
         params.append('callback', callbackName);
 
-        // scriptタグを動的に生成
-        const script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.async = true;
-        script.charset = 'utf-8';
+            // scriptタグを動的に生成
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.async = false;  // V1713-FIX: スマホ対応 - asyncをfalseに（確実に実行）
+            script.charset = 'utf-8';
 
         const fullUrl = this.GAS_URL + '?' + params.toString();
 
@@ -357,9 +290,7 @@ const CVAPI = {
         console.log('📋 URL(コピー用):');
         console.log(fullUrl);
 
-        // src設定は最後に行う
-        script.src = fullUrl;
-
+        // V1713-FIX: エラーハンドラーを先に設定
         script.onerror = function(e) {
             console.error('❌ JSONP スクリプト読み込みエラー');
             console.error('❌ エラーイベント:', e);
@@ -413,17 +344,23 @@ const CVAPI = {
             }
         }, 60000);
 
-        // V1713-FIX: スマホ対応 - document.headに追加（bodyより確実）
-        const targetElement = document.head || document.getElementsByTagName('head')[0] || document.body;
+            // V1713-FIX: スマホ対応 - 先にDOMに追加してからsrcを設定
+            const targetElement = document.head || document.getElementsByTagName('head')[0] || document.body;
 
-        if (!targetElement) {
-            console.error('❌ scriptタグを追加する要素が見つかりません');
-            reject(new Error('No DOM element to append script'));
-            return;
-        }
+            if (!targetElement) {
+                console.error('❌ scriptタグを追加する要素が見つかりません');
+                reject(new Error('No DOM element to append script'));
+                return;
+            }
 
-        targetElement.appendChild(script);
-        console.log('✅ scriptタグを', targetElement.tagName, 'に追加しました');
+            // 重要: 先にappendしてからsrcを設定（スマホブラウザ対策）
+            targetElement.appendChild(script);
+            console.log('✅ scriptタグを', targetElement.tagName, 'に追加しました');
+
+            // srcは最後に設定（これでリクエストが開始される）
+            script.src = fullUrl;
+            console.log('✅ script.src設定完了:', fullUrl.substring(0, 80) + '...');
+        });
     },
 
     // ============================================

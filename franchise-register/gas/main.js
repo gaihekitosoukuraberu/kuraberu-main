@@ -459,7 +459,7 @@ function createJsonpResponse(data, callback) {
   const jsonString = JSON.stringify(data);
 
   if (callback) {
-    // JSONP形式
+    // JSONP形式（V1713-FIX: 純粋なJSONP - CORS不使用）
     return ContentService
       .createTextOutput(callback + '(' + jsonString + ')')
       .setMimeType(ContentService.MimeType.JAVASCRIPT);

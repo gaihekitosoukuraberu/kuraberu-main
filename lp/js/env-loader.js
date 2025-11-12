@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1713-FIX - 2025-11-12 23:20 - fetch API with CORS fallback to JSONP）
-  CACHE_BUSTER: '1762935622000'
+  // キャッシュバスター（V1713-FIX - 2025-11-12 23:50 - Append script before setting src）
+  CACHE_BUSTER: '1762937007000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
