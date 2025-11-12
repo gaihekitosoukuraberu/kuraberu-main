@@ -304,28 +304,13 @@ function showPostalFormInBot() {
         // 郵便番号を保存したことを記録
         BotConfig.state.postalCodeEntered = true;
 
-        // GASからランキングを取得してモザイク付きで表示
-        setTimeout(async () => {
-            console.log('🏆 郵便番号入力後、GASからランキングを取得してモザイク付き表示');
+        // V1713-FIX: ランキングプレースホルダー表示（即座）
+        setTimeout(() => {
+            console.log('✅ ランキングプレースホルダー表示（空配列）');
 
-            if (typeof window.fetchRankingFromGAS === 'function') {
-                const success = await window.fetchRankingFromGAS();
-                if (success) {
-                    console.log('✅ ランキング取得成功');
-                } else {
-                    console.warn('⚠️ ランキング取得失敗、デフォルトデータを使用');
-                }
-            }
-
-            // デフォルトはおすすめ順
-            if (typeof window.updateAllCompaniesFromDynamic === 'function') {
-                window.updateAllCompaniesFromDynamic('recommended');
-            }
-
-            // ランキング表示（モザイク付き）
+            // ランキング表示（プレースホルダー）
             if (typeof window.displayRanking === 'function') {
                 window.displayRanking();
-                console.log('✅ ランキング表示完了（モザイク付き）');
             }
 
             // 相場セクションを表示
@@ -340,13 +325,35 @@ function showPostalFormInBot() {
             if (areaName) {
                 areaName.textContent = '東京都千代田区の外壁塗装相場';
             }
+        }, 500);
 
-            // mainQuestionsへ
-            showAIMessage('ありがとうございます。あなたに最適な業者をご紹介するため、いくつか質問させていただきます。');
+        // V1713-FIX: GASからランキングをバックグラウンドで取得（非ブロッキング）
+        console.log('🏆 郵便番号入力後、GASからランキングを取得します（バックグラウンド）');
+        if (typeof window.fetchRankingFromGAS === 'function') {
+            window.fetchRankingFromGAS().then((success) => {
+                if (success) {
+                    console.log('✅ ランキング取得成功（バックグラウンド）');
+                    // デフォルトはおすすめ順
+                    if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+                        window.updateAllCompaniesFromDynamic('recommended');
+                    }
+                    // ランキング再表示
+                    if (typeof window.displayRanking === 'function') {
+                        window.displayRanking();
+                    }
+                } else {
+                    console.warn('⚠️ ランキング取得失敗、プレースホルダー維持');
+                }
+            }).catch(err => {
+                console.error('❌ ランキング取得エラー（非致命的）:', err);
+            });
+        }
 
-            setTimeout(() => {
-                showQuestion('Q001');
-            }, 1000);
+        // mainQuestionsへ（即座に開始）
+        showAIMessage('ありがとうございます。あなたに最適な業者をご紹介するため、いくつか質問させていただきます。');
+
+        setTimeout(() => {
+            showQuestion('Q001');
         }, 1000);
     });
 
