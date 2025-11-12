@@ -1006,11 +1006,42 @@ const AISearchSystem = {
     return map[prefix] || '';
   },
 
-  // 郵便番号から市区町村を推定（V1705追加 - 簡易版）
-  // TODO: 実運用では外部APIまたは完全なマッピングテーブル推奨
+  // 郵便番号から市区町村を取得（V1706 - Yahoo! API使用）
   getCityFromZipcode: function(zipcode) {
+    try {
+      // Yahoo! APIを試行
+      const appId = PropertiesService.getScriptProperties().getProperty('YAHOO_APP_ID');
+
+      if (appId) {
+        const url = 'https://map.yahooapis.jp/search/zip/V1/zipCodeSearch?appid=' + appId + '&query=' + zipcode + '&output=json';
+        const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+
+        if (response.getResponseCode() === 200) {
+          const data = JSON.parse(response.getContentText());
+
+          if (data.Feature && data.Feature.length > 0) {
+            const property = data.Feature[0].Property;
+            const city = property.City || '';
+            console.log('[AISearchSystem] Yahoo! API: ' + zipcode + ' → ' + city);
+            return city;
+          }
+        }
+      }
+
+      // APIが使えない場合は簡易マッピングにフォールバック
+      console.log('[AISearchSystem] Yahoo! API未使用、簡易マッピングにフォールバック');
+      return this.getCityFromZipcodeSimple(zipcode);
+
+    } catch (error) {
+      console.error('[AISearchSystem] getCityFromZipcode エラー:', error);
+      // エラー時も簡易マッピングにフォールバック
+      return this.getCityFromZipcodeSimple(zipcode);
+    }
+  },
+
+  // 郵便番号から市区町村を推定（簡易版 - フォールバック用）
+  getCityFromZipcodeSimple: function(zipcode) {
     // 簡易マッピング（主要都市のみ）
-    // 完全なマッピングには12万件以上のデータが必要
     const cityMap = {
       '100': '千代田区', '101': '千代田区', '102': '千代田区', '103': '中央区', '104': '中央区',
       '105': '港区', '106': '港区', '107': '港区', '108': '港区', '150': '渋谷区',
