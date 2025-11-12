@@ -841,10 +841,11 @@ const AISearchSystem = {
       const allData = masterSheet.getRange(2, 1, lastRow - 1, masterSheet.getLastColumn()).getValues();
       console.log('[AISearchSystem] 全業者数: ' + allData.length);
 
-      // カラムインデックス取得
+      // カラムインデックス取得（V1705: 対応市区町村追加）
       const colIndex = {
         companyName: masterHeaders.indexOf('会社名'),
         prefecture: masterHeaders.indexOf('対応都道府県'),
+        cities: masterHeaders.indexOf('対応市区町村'),
         approvalStatus: masterHeaders.indexOf('承認ステータス'),
         deliveryStatus: masterHeaders.indexOf('配信ステータス'),
         avgContractAmount: masterHeaders.indexOf('直近3ヶ月_平均成約金額'),
@@ -864,9 +865,9 @@ const AISearchSystem = {
         const prefectures = row[colIndex.prefecture] || '';
         const silentFlag = row[colIndex.silentFlag] || 'FALSE';
 
-        // ステータスチェック（承認済み + 運用中 + サイレントフラグOFF）
+        // ステータスチェック（承認済み + アクティブ + サイレントフラグOFF）（V1705修正）
         if (approvalStatus !== '承認済み') continue;
-        if (deliveryStatus !== '運用中') continue;
+        if (deliveryStatus !== 'アクティブ') continue;
         if (silentFlag === 'TRUE') continue;
 
         // 都道府県チェック
