@@ -1259,313 +1259,314 @@
     </div>
 
     <div id="gaiheki-bot-container" style="display: none;">
-    <!-- メインコンテンツ（BOT + ランキング） -->
-    <div id="botParentContainer" class="w-full px-4 space-y-6 pb-40 pt-12 md:pt-0" style="max-width: 100vw; margin: 0; font-size: 16px;">
-        <!-- 相場表示 -->
-        <div id="priceSection" class="hidden">
-            <div class="bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-2xl shadow-xl p-1">
-                <div class="bg-white rounded-xl p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                            <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
-                            <span id="areaName">検索中...</span>
-                        </h2>
-                        <span class="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                            AI診断済み
-                        </span>
+        <!-- メインコンテンツ（BOT + ランキング） -->
+        <div id="botParentContainer" class="w-full px-4 space-y-6 pb-40 pt-12 md:pt-0" style="max-width: 100vw; margin: 0; font-size: 16px;">
+            <!-- 相場表示 -->
+            <div id="priceSection" class="hidden">
+                <div class="bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-2xl shadow-xl p-1">
+                    <div class="bg-white rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <span id="areaName">検索中...</span>
+                            </h2>
+                            <span class="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                                AI診断済み
+                            </span>
+                        </div>
+
+                        <div style="background: linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%); border-radius: 20px; padding: 24px 16px; box-shadow: 0 20px 60px rgba(59, 130, 246, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08);">
+                            <div style="text-align: center;">
+                                <p style="font-size: clamp(12px, 3vw, 15px); font-weight: 600; color: #4B5563; margin-bottom: 16px; letter-spacing: 0.02em;">
+                                    戸建て2階建て（延床30坪・築25年）の場合
+                                </p>
+                                <div style="display: flex; align-items: center; justify-content: center; gap: clamp(8px, 2vw, 14px); margin-bottom: 16px; flex-wrap: nowrap;">
+                                    <div style="font-size: clamp(32px, 7vw, 52px); font-weight: 700; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; letter-spacing: -0.01em; line-height: 1.1;">
+                                        60万円
+                                    </div>
+                                    <span style="font-size: clamp(20px, 4.5vw, 36px); color: #9CA3AF; white-space: nowrap; font-weight: 400; line-height: 1.1;">〜</span>
+                                    <div style="font-size: clamp(32px, 7vw, 52px); font-weight: 700; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; letter-spacing: -0.01em; line-height: 1.1;">
+                                        180万円
+                                    </div>
+                                </div>
+
+                                <p style="font-size: clamp(11px, 2.5vw, 13px); color: #6B7280; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 500;">
+                                    <svg style="width: 14px; height: 14px; opacity: 0.7; flex-shrink: 0;" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    建物の状態・使用材料により価格は変動します
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOT + ランキング -->
+            <div id="mainContentContainer" class="hidden flex flex-col md:flex-row md:gap-6 md:space-y-0 space-y-6 md:h-[800px] relative mb-16">
+
+                <!-- AIチャットボット (右側) -->
+                <div id="chatSection" class="bg-white rounded-xl shadow-lg p-4 md:p-6 min-h-[500px] md:h-full md:w-1/2 order-1 md:order-2 overflow-y-auto">
+                    <div id="messages"></div>
+
+                    <!-- Choices area -->
+                    <div id="choices" class="choices-container space-y-2 mt-4"></div>
+
+                    <!-- Typing indicator -->
+                    <div id="typingIndicator" class="flex items-center text-gray-500 text-sm mt-4 hidden">
+                        <div class="flex space-x-1 mr-2">
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ランキングセクション -->
+                <div id="rankingSection" class="hidden ranking-section bg-blue-50 rounded-xl shadow-lg p-2 md:p-3 relative md:w-1/2 order-2 md:order-1 md:h-full md:flex md:flex-col" data-theme="blue">
+                    <h2 id="rankingTitle" class="text-lg font-bold mb-3">おすすめ業者ランキング</h2>
+
+                    <!-- モザイク時のメッセージ -->
+                    <div id="mosaicMessage" class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                        <div class="bg-white rounded-lg p-8 text-center shadow-lg">
+                            <div class="text-blue-500 mb-4">
+                                <svg class="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-base font-bold mb-3 text-blue-600 whitespace-nowrap">質問に答えるとランキング表示！</h3>
+                            <div class="text-gray-600 mb-4 text-[10px] md:text-xs space-y-1">
+                                <p class="flex items-start flex-nowrap">
+                                    <span class="text-green-500 mr-1 flex-shrink-0">✅</span>
+                                    <span class="whitespace-nowrap">AI診断で最適マッチング！</span>
+                                </p>
+                                <p class="flex items-start flex-nowrap">
+                                    <span class="text-green-500 mr-1 flex-shrink-0">✅</span>
+                                    <span class="whitespace-nowrap">実績データで信頼できる！</span>
+                                </p>
+                                <p class="flex items-start flex-nowrap">
+                                    <span class="text-green-500 mr-1 flex-shrink-0">✅</span>
+                                    <span class="whitespace-nowrap">4社まで無料見積もり可能！</span>
+                                </p>
+                            </div>
+                            <!-- 進捗メーター -->
+                            <div id="progressMeter" class="mb-4 hidden">
+                                <div class="flex justify-end text-xs text-gray-500 mb-1">
+                                    <span id="progressPercentage">0%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div id="progressBar" style="height: 8px; border-radius: 9999px; width: 0%; background: transparent; transition: all 0.5s;"></div>
+                                </div>
+                                <p class="text-xs text-blue-600 mt-2 font-medium">AIチャットの質問に答えて下さい</p>
+                            </div>
+                        </div>
                     </div>
 
-                    <div style="background: linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%); border-radius: 20px; padding: 24px 16px; box-shadow: 0 20px 60px rgba(59, 130, 246, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08);">
-                        <div style="text-align: center;">
-                            <p style="font-size: clamp(12px, 3vw, 15px); font-weight: 600; color: #4B5563; margin-bottom: 16px; letter-spacing: 0.02em;">
-                                戸建て2階建て（延床30坪・築25年）の場合
-                            </p>
-                            <div style="display: flex; align-items: center; justify-content: center; gap: clamp(8px, 2vw, 14px); margin-bottom: 16px; flex-wrap: nowrap;">
-                                <div style="font-size: clamp(32px, 7vw, 52px); font-weight: 700; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; letter-spacing: -0.01em; line-height: 1.1;">
-                                    60万円
-                                </div>
-                                <span style="font-size: clamp(20px, 4.5vw, 36px); color: #9CA3AF; white-space: nowrap; font-weight: 400; line-height: 1.1;">〜</span>
-                                <div style="font-size: clamp(32px, 7vw, 52px); font-weight: 700; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; letter-spacing: -0.01em; line-height: 1.1;">
-                                    180万円
-                                </div>
-                            </div>
+                    <!-- ランキング内容（モザイクをかける対象） -->
+                    <div id="rankingContent" class="mosaic relative md:flex-1 md:flex md:flex-col overflow-hidden">
 
-                            <p style="font-size: clamp(11px, 2.5vw, 13px); color: #6B7280; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 500;">
-                                <svg style="width: 14px; height: 14px; opacity: 0.7; flex-shrink: 0;" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-                                </svg>
-                                建物の状態・使用材料により価格は変動します
-                            </p>
+                        <!-- 透明オーバーレイ（電話番号入力前はクリックブロック） V1684 -->
+                        <div id="rankingClickBlocker" style="position: absolute; inset: 0; z-index: 20; background: transparent; cursor: not-allowed;"></div>
+
+                        <!-- 並び替えタブ -->
+                        <div class="bg-white rounded-lg p-3 mb-4 shadow-sm">
+                            <h3 class="text-sm font-bold mb-3 text-gray-800">並び替え</h3>
+                            <div class="grid grid-cols-4 gap-2">
+                                <button id="sortRecommended" onclick="changeSortType('recommended')" class="sort-btn sort-btn-active bg-gradient-to-br from-blue-300 to-blue-400 text-white py-2 px-2 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md border-2 border-blue-400 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                    </svg>
+                                    <span class="whitespace-nowrap">おすすめ順</span>
+                                </button>
+                                <button id="sortCheap" onclick="changeSortType('cheap')" class="sort-btn bg-gray-50 border-2 border-gray-400 text-gray-700 py-2 px-2 rounded-lg text-xs font-semibold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md transition-all duration-200 hover:border-orange-400 hover:shadow-lg hover:scale-105 cursor-pointer">
+                                    <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span class="whitespace-nowrap">安い順</span>
+                                </button>
+                                <button id="sortReview" onclick="changeSortType('review')" class="sort-btn bg-gray-50 border-2 border-gray-400 text-gray-700 py-2 px-2 rounded-lg text-xs font-semibold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md transition-all duration-200 hover:border-green-400 hover:shadow-lg hover:scale-105 cursor-pointer">
+                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                    </svg>
+                                    <span class="whitespace-nowrap">口コミ順</span>
+                                </button>
+                                <button id="sortQuality" onclick="changeSortType('premium')" class="sort-btn bg-gray-50 border-2 border-gray-400 text-gray-700 py-2 px-2 rounded-lg text-xs font-semibold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md transition-all duration-200 hover:border-purple-400 hover:shadow-lg hover:scale-105 cursor-pointer">
+                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                                    </svg>
+                                    <span class="whitespace-nowrap">高品質順</span>
+                                </button>
+                            </div>
                         </div>
+
+                        <!-- ランキングリスト -->
+                        <div id="rankingList" class="space-y-1.5 pb-4 max-h-[550px] overflow-y-auto">
+                            <!-- ranking.jsのdisplayRanking()によって動的生成 -->
+                        </div>
+
+                        <!-- もっと見るボタン（V1680 - 中央配置確実化） -->
+                        <div id="toggleAllCompanies" class="w-full flex justify-center py-4" style="display: none;">
+                            <button onclick="toggleAllCompanies()" class="text-blue-600 hover:text-blue-800 font-medium text-sm underline">
+                                もっと見る
+                            </button>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- BOT + ランキング -->
-        <div id="mainContentContainer" class="hidden flex flex-col md:flex-row md:gap-6 md:space-y-0 space-y-6 md:h-[800px] relative mb-16">
+        <!-- フッター -->
+        <footer style="padding: 33px 0 16px; text-align: center; color: #fff; background: linear-gradient(135deg, #3B82F6, #2563EB);">
+            <small style="font-size: 12px; display: block; font-weight: 400;">&copy;外壁塗装くらべる All Rights Reserved.</small>
+        </footer>
 
-            <!-- AIチャットボット (右側) -->
-            <div id="chatSection" class="bg-white rounded-xl shadow-lg p-4 md:p-6 min-h-[500px] md:h-full md:w-1/2 order-1 md:order-2 overflow-y-auto">
-                <div id="messages"></div>
+        <!-- キープ確認モーダル -->
+        <div id="keepModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="p-6">
+                    <h2 class="text-xl font-bold mb-4">見積もりの流れ</h2>
 
-                <!-- Choices area -->
-                <div id="choices" class="choices-container space-y-2 mt-4"></div>
-
-                <!-- Typing indicator -->
-                <div id="typingIndicator" class="flex items-center text-gray-500 text-sm mt-4 hidden">
-                    <div class="flex space-x-1 mr-2">
-                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ランキングセクション -->
-            <div id="rankingSection" class="hidden ranking-section bg-blue-50 rounded-xl shadow-lg p-2 md:p-3 relative md:w-1/2 order-2 md:order-1 md:h-full md:flex md:flex-col" data-theme="blue">
-                <h2 id="rankingTitle" class="text-lg font-bold mb-3">おすすめ業者ランキング</h2>
-
-                <!-- モザイク時のメッセージ -->
-                <div id="mosaicMessage" class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                    <div class="bg-white rounded-lg p-8 text-center shadow-lg">
-                        <div class="text-blue-500 mb-4">
-                            <svg class="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <h3 class="text-base font-bold mb-3 text-blue-600 whitespace-nowrap">質問に答えるとランキング表示！</h3>
-                        <div class="text-gray-600 mb-4 text-[10px] md:text-xs space-y-1">
-                            <p class="flex items-start flex-nowrap">
-                                <span class="text-green-500 mr-1 flex-shrink-0">✅</span>
-                                <span class="whitespace-nowrap">AI診断で最適マッチング！</span>
-                            </p>
-                            <p class="flex items-start flex-nowrap">
-                                <span class="text-green-500 mr-1 flex-shrink-0">✅</span>
-                                <span class="whitespace-nowrap">実績データで信頼できる！</span>
-                            </p>
-                            <p class="flex items-start flex-nowrap">
-                                <span class="text-green-500 mr-1 flex-shrink-0">✅</span>
-                                <span class="whitespace-nowrap">4社まで無料見積もり可能！</span>
-                            </p>
-                        </div>
-                        <!-- 進捗メーター -->
-                        <div id="progressMeter" class="mb-4 hidden">
-                            <div class="flex justify-end text-xs text-gray-500 mb-1">
-                                <span id="progressPercentage">0%</span>
+                    <!-- YouTube動画 -->
+                    <div class="mb-4">
+                        <div class="flex justify-center">
+                            <div class="relative w-full max-w-xs">
+                                <div class="relative" style="padding-bottom: 56.25%;">
+                                    <iframe class="absolute top-0 left-0 w-full h-full rounded-lg"
+                                            src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                                            frameborder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowfullscreen></iframe>
+                                </div>
                             </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div id="progressBar" style="height: 8px; border-radius: 9999px; width: 0%; background: transparent; transition: all 0.5s;"></div>
-                            </div>
-                            <p class="text-xs text-blue-600 mt-2 font-medium">AIチャットの質問に答えて下さい</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ランキング内容（モザイクをかける対象） -->
-                <div id="rankingContent" class="mosaic relative md:flex-1 md:flex md:flex-col overflow-hidden">
-
-                    <!-- 透明オーバーレイ（電話番号入力前はクリックブロック） V1684 -->
-                    <div id="rankingClickBlocker" style="position: absolute; inset: 0; z-index: 20; background: transparent; cursor: not-allowed;"></div>
-
-                    <!-- 並び替えタブ -->
-                    <div class="bg-white rounded-lg p-3 mb-4 shadow-sm">
-                        <h3 class="text-sm font-bold mb-3 text-gray-800">並び替え</h3>
-                        <div class="grid grid-cols-4 gap-2">
-                            <button id="sortRecommended" onclick="changeSortType('recommended')" class="sort-btn sort-btn-active bg-gradient-to-br from-blue-300 to-blue-400 text-white py-2 px-2 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md border-2 border-blue-400 transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
-                                </svg>
-                                <span class="whitespace-nowrap">おすすめ順</span>
-                            </button>
-                            <button id="sortCheap" onclick="changeSortType('cheap')" class="sort-btn bg-gray-50 border-2 border-gray-400 text-gray-700 py-2 px-2 rounded-lg text-xs font-semibold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md transition-all duration-200 hover:border-orange-400 hover:shadow-lg hover:scale-105 cursor-pointer">
-                                <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                <span class="whitespace-nowrap">安い順</span>
-                            </button>
-                            <button id="sortReview" onclick="changeSortType('review')" class="sort-btn bg-gray-50 border-2 border-gray-400 text-gray-700 py-2 px-2 rounded-lg text-xs font-semibold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md transition-all duration-200 hover:border-green-400 hover:shadow-lg hover:scale-105 cursor-pointer">
-                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                </svg>
-                                <span class="whitespace-nowrap">口コミ順</span>
-                            </button>
-                            <button id="sortQuality" onclick="changeSortType('premium')" class="sort-btn bg-gray-50 border-2 border-gray-400 text-gray-700 py-2 px-2 rounded-lg text-xs font-semibold flex flex-col items-center justify-center gap-1 h-16 min-h-16 shadow-md transition-all duration-200 hover:border-purple-400 hover:shadow-lg hover:scale-105 cursor-pointer">
-                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
-                                </svg>
-                                <span class="whitespace-nowrap">高品質順</span>
-                            </button>
                         </div>
                     </div>
 
-                    <!-- ランキングリスト -->
-                    <div id="rankingList" class="space-y-1.5 pb-4 max-h-[550px] overflow-y-auto">
-                        <!-- ranking.jsのdisplayRanking()によって動的生成 -->
+                    <h3 class="text-lg font-bold mb-3">キープ中の業者</h3>
+                    <div id="keepList" class="space-y-2 mb-4">
+                        <!-- キープリストがここに表示 -->
                     </div>
 
-                    <!-- もっと見るボタン（V1680 - 中央配置確実化） -->
-                    <div id="toggleAllCompanies" class="w-full flex justify-center py-4" style="display: none;">
-                        <button onclick="toggleAllCompanies()" class="text-blue-600 hover:text-blue-800 font-medium text-sm underline">
-                            もっと見る
+                    <div class="flex gap-2">
+                        <button onclick="closeKeepModal()" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold">
+                            閉じる
+                        </button>
+                        <button onclick="startEstimateForm()" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-bold">
+                            この業者の見積もりを見てみる
                         </button>
                     </div>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                </div>
             </div>
         </div>
-    </div>
 
-    <!-- フッター -->
-    <footer style="padding: 33px 0 16px; text-align: center; color: #fff; background: linear-gradient(135deg, #3B82F6, #2563EB);">
-        <small style="font-size: 12px; display: block; font-weight: 400;">&copy;外壁塗装くらべる All Rights Reserved.</small>
-    </footer>
+        <!-- 見積もりフォームモーダル -->
+        <div id="estimateFormModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <!-- プログレスバー -->
+                <div class="bg-gray-100 p-4 border-b">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">ステップ <span id="currentStep">1</span> / 2</span>
+                        <span class="text-sm font-medium text-blue-600"><span id="stepPercent">50</span>%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div id="stepProgress" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 50%"></div>
+                    </div>
+                </div>
 
-    <!-- キープ確認モーダル -->
-    <div id="keepModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="p-6">
-                <h2 class="text-xl font-bold mb-4">見積もりの流れ</h2>
+                <!-- ステップ1: 基本情報 -->
+                <div id="step1" class="p-6">
+                    <h2 class="text-xl font-bold mb-4">基本情報の入力</h2>
 
-                <!-- YouTube動画 -->
-                <div class="mb-4">
-                    <div class="flex justify-center">
-                        <div class="relative w-full max-w-xs">
-                            <div class="relative" style="padding-bottom: 56.25%;">
-                                <iframe class="absolute top-0 left-0 w-full h-full rounded-lg"
-                                        src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-                                        frameborder="0"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowfullscreen></iframe>
+                    <!-- お名前 -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            お名前 <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="userName" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="山田 太郎">
+                    </div>
+
+                    <!-- 対象物件住所 -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            対象物件住所 <span class="text-red-500">*</span>
+                        </label>
+                        <div class="space-y-2">
+                            <div class="flex gap-2">
+                                <input type="text" id="propertyZip" class="w-32 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="000-0000" readonly>
+                                <input type="text" id="propertyAddress" class="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="市区町村" readonly>
                             </div>
+                            <input type="text" id="propertyStreet" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="番地・建物名">
                         </div>
                     </div>
-                </div>
 
-                <h3 class="text-lg font-bold mb-3">キープ中の業者</h3>
-                <div id="keepList" class="space-y-2 mb-4">
-                    <!-- キープリストがここに表示 -->
-                </div>
+                    <!-- 自宅住所（条件付き） -->
+                    <div class="mb-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="differentHome" class="mr-2" onchange="toggleHomeAddress()">
+                            <span class="text-sm font-medium text-gray-700">対象物件と自宅が異なる場合はチェック</span>
+                        </label>
 
-                <div class="flex gap-2">
-                    <button onclick="closeKeepModal()" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold">
-                        閉じる
-                    </button>
-                    <button onclick="startEstimateForm()" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-bold">
-                        この業者の見積もりを見てみる
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 見積もりフォームモーダル -->
-    <div id="estimateFormModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <!-- プログレスバー -->
-            <div class="bg-gray-100 p-4 border-b">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm font-medium text-gray-700">ステップ <span id="currentStep">1</span> / 2</span>
-                    <span class="text-sm font-medium text-blue-600"><span id="stepPercent">50</span>%</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div id="stepProgress" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 50%"></div>
-                </div>
-            </div>
-
-            <!-- ステップ1: 基本情報 -->
-            <div id="step1" class="p-6">
-                <h2 class="text-xl font-bold mb-4">基本情報の入力</h2>
-
-                <!-- お名前 -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        お名前 <span class="text-red-500">*</span>
-                    </label>
-                    <input type="text" id="userName" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="山田 太郎">
-                </div>
-
-                <!-- 対象物件住所 -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        対象物件住所 <span class="text-red-500">*</span>
-                    </label>
-                    <div class="space-y-2">
-                        <div class="flex gap-2">
-                            <input type="text" id="propertyZip" class="w-32 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="000-0000" readonly>
-                            <input type="text" id="propertyAddress" class="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="市区町村" readonly>
+                        <div id="homeAddressSection" class="hidden mt-3 space-y-2">
+                            <div class="flex gap-2">
+                                <input type="text" id="homeZip" class="w-32 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="000-0000">
+                                <input type="text" id="homeAddress" class="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="市区町村">
+                            </div>
+                            <input type="text" id="homeStreet" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="番地・建物名">
                         </div>
-                        <input type="text" id="propertyStreet" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="番地・建物名">
+                    </div>
+
+                    <!-- メールアドレス（任意） -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            メールアドレス <span class="text-gray-400">(任意)</span>
+                        </label>
+                        <input type="email" id="userEmail" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="example@email.com">
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button onclick="closeEstimateForm()" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold">
+                            戻る
+                        </button>
+                        <button onclick="nextStep()" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-bold">
+                            次へ
+                        </button>
                     </div>
                 </div>
 
-                <!-- 自宅住所（条件付き） -->
-                <div class="mb-4">
-                    <label class="flex items-center">
-                        <input type="checkbox" id="differentHome" class="mr-2" onchange="toggleHomeAddress()">
-                        <span class="text-sm font-medium text-gray-700">対象物件と自宅が異なる場合はチェック</span>
-                    </label>
+                <!-- ステップ2: 詳細情報 -->
+                <div id="step2" class="p-6 hidden">
+                    <h2 class="text-xl font-bold mb-4">詳細情報の入力</h2>
 
-                    <div id="homeAddressSection" class="hidden mt-3 space-y-2">
-                        <div class="flex gap-2">
-                            <input type="text" id="homeZip" class="w-32 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="000-0000">
-                            <input type="text" id="homeAddress" class="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="市区町村">
+                    <!-- 現地調査希望日時 -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            現地調査希望日時 <span class="text-gray-400">(複数選択可)</span>
+                        </label>
+                        <div class="space-y-2" id="surveyDates">
+                            <!-- 動的に生成 -->
                         </div>
-                        <input type="text" id="homeStreet" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="番地・建物名">
                     </div>
-                </div>
 
-                <!-- メールアドレス（任意） -->
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        メールアドレス <span class="text-gray-400">(任意)</span>
-                    </label>
-                    <input type="email" id="userEmail" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="example@email.com">
-                </div>
-
-                <div class="flex gap-2">
-                    <button onclick="closeEstimateForm()" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold">
-                        戻る
-                    </button>
-                    <button onclick="nextStep()" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-bold">
-                        次へ
-                    </button>
-                </div>
-            </div>
-
-            <!-- ステップ2: 詳細情報 -->
-            <div id="step2" class="p-6 hidden">
-                <h2 class="text-xl font-bold mb-4">詳細情報の入力</h2>
-
-                <!-- 現地調査希望日時 -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        現地調査希望日時 <span class="text-gray-400">(複数選択可)</span>
-                    </label>
-                    <div class="space-y-2" id="surveyDates">
-                        <!-- 動的に生成 -->
+                    <!-- その他ご要望 -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            その他ご要望・ご相談 <span class="text-gray-400">(任意)</span>
+                        </label>
+                        <textarea id="requests" rows="4" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="ご要望やご相談があればご記入ください"></textarea>
                     </div>
-                </div>
 
-                <!-- その他ご要望 -->
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        その他ご要望・ご相談 <span class="text-gray-400">(任意)</span>
-                    </label>
-                    <textarea id="requests" rows="4" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="ご要望やご相談があればご記入ください"></textarea>
-                </div>
-
-                <div class="flex gap-2">
-                    <button onclick="prevStep()" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold">
-                        戻る
-                    </button>
-                    <button id="submitBtn" onclick="submitEstimateForm()" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-bold">
-                        送信する
-                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="prevStep()" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold">
+                            戻る
+                        </button>
+                        <button id="submitBtn" onclick="submitEstimateForm()" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-bold">
+                            送信する
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1880,6 +1881,13 @@
 
             // モーダル表示（背景スクロール防止）
             modal.classList.remove('hidden');
+
+            // V1713-UX: 無料見積もりボタンを非表示（フォームが邪魔にならないように）
+            const estimateBtnContainer = document.getElementById('estimateBtnContainer');
+            if (estimateBtnContainer) {
+                estimateBtnContainer.style.display = 'none';
+                console.log('✅ 無料見積もりボタン非表示（モーダル表示）');
+            }
 
             // スマホの場合は現在のスクロール位置に表示
             if (window.innerWidth < 768) {
@@ -2557,11 +2565,11 @@
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） - 固定キャッシュバスター -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="js/env-loader.js?v=1762962480000"></script>
+    <script src="js/env-loader.js?v=1762962900000"></script>
 
     <!-- BOTローダー（タイミング問題のため静的ロード必須） -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="gaiheki-bot-loader.js?v=1762962480000"></script>
+    <script src="gaiheki-bot-loader.js?v=1762962900000"></script>
 
     <!-- V1713-FIX: 無料見積もりボタン（body直下・viewport基準で完全固定） -->
     <div id="estimateBtnContainer" style="display: none !important; position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 999999 !important; background: white !important; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1) !important; border-top: 1px solid #e5e7eb !important; padding: 1rem 0 !important; pointer-events: auto !important;">
