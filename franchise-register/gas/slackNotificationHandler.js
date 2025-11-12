@@ -151,6 +151,81 @@ function sendSlackRegistrationNotification(registrationData) {
           }
         }
 
+        // V1710: 過去業者リスト照合（名前変更業者の検出）
+        try {
+          const pastMerchantsListSheet = ss.getSheetByName('過去業者リスト');
+
+          if (pastMerchantsListSheet) {
+            console.log('[V1710] 過去業者リスト照合開始');
+            const listData = pastMerchantsListSheet.getDataRange().getValues();
+            const listHeaders = listData[0];
+            const listRows = listData.slice(1);
+
+            const registrationPhone = registrationData.companyInfo?.phone || '';
+            const registrationAddress = registrationData.companyInfo?.fullAddress || '';
+
+            const listColIndex = {
+              clientName: listHeaders.indexOf('クライアント名'),
+              address: listHeaders.indexOf('住所'),
+              mainPhone: listHeaders.indexOf('代表電話'),
+              contactPhone1: listHeaders.indexOf('担当電話番号1'),
+              contactPhone2: listHeaders.indexOf('担当電話番号2'),
+              warningStatus: listHeaders.indexOf('要注意先')
+            };
+
+            const normalizedRegPhone = normalizePhoneForSlack(registrationPhone);
+            const normalizedRegAddress = normalizeAddressForSlack(registrationAddress);
+
+            console.log(`[V1710] 照合対象: ${companyName} / Tel: ${normalizedRegPhone} / Address: ${normalizedRegAddress}`);
+
+            for (let j = 0; j < listRows.length; j++) {
+              const listClientName = listRows[j][listColIndex.clientName] || '';
+              const listMainPhone = normalizePhoneForSlack(listRows[j][listColIndex.mainPhone]);
+              const listContactPhone1 = normalizePhoneForSlack(listRows[j][listColIndex.contactPhone1]);
+              const listContactPhone2 = normalizePhoneForSlack(listRows[j][listColIndex.contactPhone2]);
+              const listAddress = normalizeAddressForSlack(listRows[j][listColIndex.address]);
+              const listWarningStatus = listRows[j][listColIndex.warningStatus];
+
+              // 電話番号マッチング
+              const phoneMatch = normalizedRegPhone && (
+                normalizedRegPhone === listMainPhone ||
+                normalizedRegPhone === listContactPhone1 ||
+                normalizedRegPhone === listContactPhone2
+              );
+
+              // 住所マッチング（部分一致）
+              const addressMatch = normalizedRegAddress && listAddress &&
+                normalizedRegAddress.length > 5 && listAddress.length > 5 &&
+                (normalizedRegAddress.indexOf(listAddress) !== -1 || listAddress.indexOf(normalizedRegAddress) !== -1);
+
+              if (phoneMatch || addressMatch) {
+                const nameMatch = companyName === listClientName;
+
+                if (!nameMatch) {
+                  // 名前が異なる！過去にやらかした業者が名前を変えて再加盟の疑い
+                  console.log(`[V1710] 🚨 名前変更検出: ${companyName} ≠ ${listClientName}`);
+                  warningMessages.push(`🔴🔴 *【名前変更の疑い】過去業者リストと照合*`);
+                  warningMessages.push(`   過去の名前: ${listClientName}`);
+                  warningMessages.push(`   照合方法: ${phoneMatch ? '電話番号' : '住所'}一致`);
+                  if (listWarningStatus && listWarningStatus !== '' && listWarningStatus !== '-') {
+                    warningMessages.push(`   過去の要注意先: ${listWarningStatus}`);
+                  }
+                  criticalLevel = Math.max(criticalLevel, 4);
+                  break; // 1件見つかれば十分
+                } else {
+                  console.log(`[V1710] 同一業者を確認: ${companyName}`);
+                }
+              }
+            }
+
+            console.log('[V1710] 過去業者リスト照合完了');
+          } else {
+            console.log('[V1710] 過去業者リストシートが見つかりません');
+          }
+        } catch (listErr) {
+          console.error('[V1710] 過去業者リスト照合エラー:', listErr);
+        }
+
         // 警告メッセージの生成
         if (foundData && warningMessages.length > 0) {
           let recommendationText = '';
@@ -682,4 +757,30 @@ function handleSlackInteraction(data) {
       }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+/**
+ * V1710: 電話番号の正規化（比較用）
+ * @param {string} phone - 電話番号
+ * @return {string} 正規化された電話番号
+ */
+function normalizePhoneForSlack(phone) {
+  if (!phone) return '';
+  return String(phone)
+    .replace(/[^0-9]/g, '') // 数字以外を削除（ハイフン、括弧など）
+    .replace(/^0+/, ''); // 先頭の0を削除（03-1234-5678 → 312345678）
+}
+
+/**
+ * V1710: 住所の正規化（比較用）
+ * @param {string} address - 住所
+ * @return {string} 正規化された住所
+ */
+function normalizeAddressForSlack(address) {
+  if (!address) return '';
+  return String(address)
+    .replace(/\s+/g, '') // 空白削除
+    .replace(/[０-９]/g, function(s) { // 全角数字を半角に
+      return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+    });
 }

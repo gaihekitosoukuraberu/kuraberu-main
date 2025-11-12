@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1708-PAST-DATA-WARNINGS-2025-11-12T17:00:00
- * @last-update 2025-11-12T17:00:00
+ * @file-version V1710-NAME-CHANGE-DETECTION-2025-11-12T17:45:00
+ * @last-update 2025-11-12T17:45:00
  */
 
 const ENV = {
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1708 - 2025-11-12 17:00 - Slack過去データ警告強化）
-  CACHE_BUSTER: '1731405600000'
+  // キャッシュバスター（V1710 - 2025-11-12 17:45 - 過去業者リスト名前変更検出）
+  CACHE_BUSTER: '1731408300000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
