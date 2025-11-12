@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1713-FIX - 2025-11-12 22:43 - Smaller fonts 80px/40px + Max 99）
-  CACHE_BUSTER: '1762933437000'
+  // キャッシュバスター（V1713-DEBUG - 2025-11-12 23:07 - URL length debug + 60s timeout）
+  CACHE_BUSTER: '1762934856000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
