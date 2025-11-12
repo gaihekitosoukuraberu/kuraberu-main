@@ -864,13 +864,15 @@ const AISearchSystem = {
         silentFlag: masterHeaders.indexOf('サイレントフラグ')
       };
 
-      // フィルタリング（承認済み + 配信中 + 都道府県マッチ）
+      // フィルタリング（承認済み + 配信中 + 都道府県マッチ + 市区町村マッチ + 工事種別マッチ）（V1705拡張）
       const filtered = [];
       for (var i = 0; i < allData.length; i++) {
         const row = allData[i];
         const approvalStatus = row[colIndex.approvalStatus] || '';
         const deliveryStatus = row[colIndex.deliveryStatus] || '';
         const prefectures = row[colIndex.prefecture] || '';
+        const cities = row[colIndex.cities] || '';
+        const constructionTypes = row[colIndex.constructionTypes] || '';
         const silentFlag = row[colIndex.silentFlag] || 'FALSE';
 
         // ステータスチェック（承認済み + アクティブ + サイレントフラグOFF）（V1705修正）
@@ -879,19 +881,78 @@ const AISearchSystem = {
         if (silentFlag === 'TRUE') continue;
 
         // 都道府県チェック
-        if (prefecture && prefectures && prefectures.indexOf(prefecture) !== -1) {
-          filtered.push({
-            companyName: row[colIndex.companyName] || '',
-            avgContractAmount: row[colIndex.avgContractAmount] || 0,
-            rating: row[colIndex.rating] || 0,
-            reviewCount: row[colIndex.reviewCount] || 0,
-            prefecture: prefecture,
-            constructionTypes: row[colIndex.constructionTypes] || '',
-            specialSupport: '',
-            maxFloors: '',
-            contractCount: row[colIndex.contractCount] || 0
-          });
+        if (!prefecture || !prefectures || prefectures.indexOf(prefecture) === -1) continue;
+
+        // 市区町村チェック（V1705追加 - cityが取得できた場合のみ）
+        if (city && cities && cities.indexOf(city) === -1) continue;
+
+        // 工事種別チェック（V1705追加 - BOT回答に基づくマッチング）
+        // constructionTypesには「外壁塗装,屋根塗装,防水工事」のようにカンマ区切りで格納
+        let constructionTypeMatch = true;
+
+        // 外壁材質チェック（Q6）
+        if (wallMaterial && constructionTypes) {
+          // 材質に応じた工事種別が含まれているかチェック
+          // 例: サイディング → 外壁塗装, モルタル → 外壁塗装, など
+          if (wallMaterial.indexOf('サイディング') !== -1 || wallMaterial.indexOf('モルタル') !== -1) {
+            if (constructionTypes.indexOf('外壁塗装') === -1 && constructionTypes.indexOf('外壁リフォーム') === -1) {
+              constructionTypeMatch = false;
+            }
+          }
         }
+
+        // 屋根材質チェック（Q7）
+        if (roofMaterial && constructionTypes && constructionTypeMatch) {
+          // 材質に応じた工事種別が含まれているかチェック
+          // 例: スレート → 屋根塗装, 瓦 → 屋根葺き替え, など
+          if (roofMaterial.indexOf('スレート') !== -1 || roofMaterial.indexOf('コロニアル') !== -1) {
+            if (constructionTypes.indexOf('屋根塗装') === -1 && constructionTypes.indexOf('屋根リフォーム') === -1) {
+              constructionTypeMatch = false;
+            }
+          } else if (roofMaterial.indexOf('瓦') !== -1) {
+            if (constructionTypes.indexOf('屋根葺き替え') === -1 && constructionTypes.indexOf('屋根リフォーム') === -1) {
+              constructionTypeMatch = false;
+            }
+          }
+        }
+
+        // 外壁工事内容チェック（Q9）
+        if (wallWorkType && constructionTypes && constructionTypeMatch) {
+          if (wallWorkType.indexOf('塗装') !== -1 && constructionTypes.indexOf('外壁塗装') === -1) {
+            constructionTypeMatch = false;
+          } else if (wallWorkType.indexOf('張り替え') !== -1 && constructionTypes.indexOf('外壁リフォーム') === -1) {
+            constructionTypeMatch = false;
+          }
+        }
+
+        // 屋根工事内容チェック（Q10）
+        if (roofWorkType && constructionTypes && constructionTypeMatch) {
+          if (roofWorkType.indexOf('塗装') !== -1 && constructionTypes.indexOf('屋根塗装') === -1) {
+            constructionTypeMatch = false;
+          } else if (roofWorkType.indexOf('葺き替え') !== -1 && constructionTypes.indexOf('屋根葺き替え') === -1 && constructionTypes.indexOf('屋根リフォーム') === -1) {
+            constructionTypeMatch = false;
+          }
+        }
+
+        if (!constructionTypeMatch) continue;
+
+        // すべての条件を満たした業者を追加
+        filtered.push({
+          companyName: row[colIndex.companyName] || '',
+          avgContractAmount: row[colIndex.avgContractAmount] || 0,
+          rating: row[colIndex.rating] || 0,
+          reviewCount: row[colIndex.reviewCount] || 0,
+          prefecture: prefecture,
+          city: city,
+          constructionTypes: constructionTypes,
+          wallMaterial: wallMaterial,
+          roofMaterial: roofMaterial,
+          wallWorkType: wallWorkType,
+          roofWorkType: roofWorkType,
+          specialSupport: '',
+          maxFloors: '',
+          contractCount: row[colIndex.contractCount] || 0
+        });
       }
 
       console.log('[AISearchSystem] フィルタ後: ' + filtered.length + '件');
