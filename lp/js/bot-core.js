@@ -340,14 +340,39 @@ const BotCore = {
             }
         }, 500);
 
-        // V1713-FIX: ランキング取得をバックグラウンドで実行（非ブロッキング）
+        // V1713-UX: ランキング取得 - Q015で事前取得済みの場合はスキップ
         const sortOrder = BotConfig.state.sortOrder || 'recommended';
-        console.log('📊 選択されたソート順:', sortOrder, '（バックグラウンド処理開始）');
+        console.log('📊 選択されたソート順:', sortOrder);
 
-        if (typeof window.fetchRankingFromGAS === 'function') {
-            // awaitせずにバックグラウンドで実行
+        // ランキングが既に取得済みかチェック
+        if (window.dynamicRankings) {
+            console.log('✅ ランキング取得済み - ソート切り替えのみ実行');
+
+            // Q016で選んだソート順でソートして表示
+            if (typeof window.changeSortType === 'function') {
+                window.changeSortType(sortOrder);
+            } else {
+                // changeSortTypeがない場合は従来の方法
+                if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+                    window.updateAllCompaniesFromDynamic(sortOrder);
+                }
+                if (typeof window.displayRanking === 'function') {
+                    window.displayRanking();
+                }
+            }
+
+            // モザイク解除
+            if (typeof window.completeHearingStage === 'function') {
+                window.completeHearingStage(3);
+            }
+
+            console.log('🎉 ランキング表示完了（ソート順:', sortOrder, '）- 即座に完了');
+        } else if (typeof window.fetchRankingFromGAS === 'function') {
+            // 未取得の場合のみGAS通信を実行（フォールバック）
+            console.warn('⚠️ ランキング未取得 - 今から取得します（本来はQ015で事前取得済みのはず）');
+
             window.fetchRankingFromGAS().then(() => {
-                console.log('✅ ランキング取得完了 - ソート順適用:', sortOrder);
+                console.log('✅ ランキング取得完了（フォールバック） - ソート順適用:', sortOrder);
 
                 // Q016で選んだソート順でソートして表示
                 if (typeof window.changeSortType === 'function') {

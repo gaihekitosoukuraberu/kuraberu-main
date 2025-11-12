@@ -86,6 +86,17 @@ const BotQuestions = {
         // 回答を保存
         BotConfig.saveAnswer(question.id || BotConfig.state.currentQuestionId, choice, index);
 
+        // V1713-UX: Q015回答時にランキング事前取得（バックグラウンド）
+        const currentQuestionId = question.id || BotConfig.state.currentQuestionId;
+        if (currentQuestionId === 'Q015' && typeof window.fetchRankingFromGAS === 'function') {
+            console.log('🚀 Q015回答 → ランキング事前取得開始（バックグラウンド）');
+            window.fetchRankingFromGAS().then(() => {
+                console.log('✅ ランキング事前取得完了（Q016到達前に準備完了）');
+            }).catch(err => {
+                console.warn('⚠️ ランキング事前取得エラー（非致命的）:', err);
+            });
+        }
+
         // V1713-FIX: 回答後にランキングを動的更新（非同期・非ブロッキング）
         if (typeof window.updateRankingDynamically === 'function') {
             window.updateRankingDynamically().catch(err => {
