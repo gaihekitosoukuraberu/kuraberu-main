@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1712-RISK-SCORE-RANKING-2025-11-12T18:30:00
- * @last-update 2025-11-12T18:30:00
+ * @file-version V1713-PRIORITY-SYSTEM-2025-11-12T19:15:00
+ * @last-update 2025-11-12T19:15:00
  */
 
 const ENV = {
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1712 - 2025-11-12 18:30 - リスクスコアのランキング統合）
-  CACHE_BUSTER: '1731411000000'
+  // キャッシュバスター（V1713 - 2025-11-12 19:15 - 完全マッチ優先・最優先供給フラグ・ボーナス調整）
+  CACHE_BUSTER: '1762919640000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

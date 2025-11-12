@@ -852,7 +852,7 @@ const AISearchSystem = {
       const allData = masterSheet.getRange(2, 1, lastRow - 1, masterSheet.getLastColumn()).getValues();
       console.log('[AISearchSystem] 全業者数: ' + allData.length);
 
-      // カラムインデックス取得（V1707: 対応築年数追加）
+      // カラムインデックス取得（V1707: 対応築年数追加 / V1713: ボーナス・フラグ追加）
       const colIndex = {
         companyName: masterHeaders.indexOf('会社名'),
         prefecture: masterHeaders.indexOf('対応都道府県'),
@@ -866,7 +866,11 @@ const AISearchSystem = {
         constructionTypes: masterHeaders.indexOf('対応工事種別'),
         buildingAgeMin: masterHeaders.indexOf('対応築年数_最小'),
         buildingAgeMax: masterHeaders.indexOf('対応築年数_最大'),
-        silentFlag: masterHeaders.indexOf('サイレントフラグ')
+        silentFlag: masterHeaders.indexOf('サイレントフラグ'),
+        priorityArea: masterHeaders.indexOf('優先エリア'),
+        handicap: masterHeaders.indexOf('ハンデ'),
+        depositAdvance: masterHeaders.indexOf('デポジット前金'),
+        prioritySupplyFlag: masterHeaders.indexOf('最優先供給フラグ')
       };
 
       // フィルタリング（承認済み + 配信中 + 都道府県マッチ + 市区町村マッチ + 工事種別マッチ）（V1705拡張）
@@ -961,7 +965,21 @@ const AISearchSystem = {
         const companyName = row[colIndex.companyName] || '';
         const riskScore = this.getPastDataRiskScore(companyName);
 
-        // すべての条件を満たした業者を追加（V1707: 築年数マッチスコア / V1712: リスクスコア追加）
+        // V1713: 完全マッチ判定（都道府県 + 市区町村 + 工事種別 + 築年数100%マッチ）
+        // 市区町村マッチ: cityがnull（取得できなかった）またはマッチしている場合はtrue
+        const cityMatch = !city || (cities && cities.indexOf(city) !== -1);
+        // 築年数100%マッチ: ユーザーの希望範囲が業者の対応範囲に完全に含まれる
+        const buildingAgeFullMatch = (buildingAgeMatchScore === 100);
+        // 完全マッチフラグ: 上記すべてがtrue（都道府県と工事種別は既にフィルタ済み）
+        const isCompleteMatch = cityMatch && buildingAgeFullMatch;
+
+        // V1713: ボーナスフィールド取得
+        const priorityArea = row[colIndex.priorityArea];
+        const handicap = parseFloat(row[colIndex.handicap]) || 0;
+        const depositAdvance = row[colIndex.depositAdvance];
+        const prioritySupplyFlag = row[colIndex.prioritySupplyFlag];
+
+        // すべての条件を満たした業者を追加（V1707: 築年数マッチスコア / V1712: リスクスコア / V1713: 完全マッチ・ボーナス）
         filtered.push({
           companyName: companyName,
           avgContractAmount: row[colIndex.avgContractAmount] || 0,
@@ -978,6 +996,11 @@ const AISearchSystem = {
           buildingAgeMax: merchantAgeMax,
           buildingAgeMatchScore: buildingAgeMatchScore,
           riskScore: riskScore,
+          isCompleteMatch: isCompleteMatch,
+          priorityArea: priorityArea,
+          handicap: handicap,
+          depositAdvance: depositAdvance,
+          prioritySupplyFlag: prioritySupplyFlag,
           specialSupport: '',
           maxFloors: '',
           contractCount: row[colIndex.contractCount] || 0
@@ -986,12 +1009,12 @@ const AISearchSystem = {
 
       console.log('[AISearchSystem] フィルタ後: ' + filtered.length + '件');
 
-      // 4つのソート順で並べ替え（V1707: おすすめ順もマッチ度優先）
+      // 4つのソート順で並べ替え（V1707: おすすめ順もマッチ度優先 / V1713: ボーナス調整追加）
       const rankings = {
-        cheap: this.sortByPrice(filtered.slice()).slice(0, 8),
-        recommended: this.sortByMatchScore(filtered.slice()).slice(0, 8),
-        review: this.sortByReview(filtered.slice()).slice(0, 8),
-        premium: this.sortByRating(filtered.slice()).slice(0, 8)
+        cheap: this.applyRankBonus(this.sortByPrice(filtered.slice())).slice(0, 8),
+        recommended: this.applyRankBonus(this.sortByMatchScore(filtered.slice())).slice(0, 8),
+        review: this.applyRankBonus(this.sortByReview(filtered.slice())).slice(0, 8),
+        premium: this.applyRankBonus(this.sortByRating(filtered.slice())).slice(0, 8)
       };
 
       return {
@@ -1107,59 +1130,132 @@ const AISearchSystem = {
     return Math.floor(Math.random() * 250) + 50;  // 50〜299
   },
 
-  // マッチ度順ソート（V1707: おすすめ順用 / V1712: リスクスコア統合）
+  // マッチ度順ソート（V1707: おすすめ順用 / V1712: リスクスコア統合 / V1713: 完全マッチ・最優先供給フラグ優先）
   sortByMatchScore: function(companies) {
     return companies.sort(function(a, b) {
-      // V1712: 複合スコア = 築年数マッチ度40% + リスクスコア60%
-      // 優良業者優遇のため、信頼性（リスクスコア）を高めに重み付け
+      // V1713: Priority 1 - 完全マッチ > 部分マッチ（最重要！）
+      const completeMatchDiff = (b.isCompleteMatch ? 1 : 0) - (a.isCompleteMatch ? 1 : 0);
+      if (completeMatchDiff !== 0) return completeMatchDiff;
+
+      // V1713: Priority 2 - 最優先供給フラグ（おすすめ順のみ）
+      const priorityFlagA = (a.prioritySupplyFlag === 'TRUE' || a.prioritySupplyFlag === true) ? 1 : 0;
+      const priorityFlagB = (b.prioritySupplyFlag === 'TRUE' || b.prioritySupplyFlag === true) ? 1 : 0;
+      const priorityDiff = priorityFlagB - priorityFlagA;
+      if (priorityDiff !== 0) return priorityDiff;
+
+      // V1713: Priority 3 - 複合スコア（V1712: 築年数40% + リスクスコア60%）
       const compositeScoreA = (a.buildingAgeMatchScore || 0) * 0.4 + (a.riskScore || 80) * 0.6;
       const compositeScoreB = (b.buildingAgeMatchScore || 0) * 0.4 + (b.riskScore || 80) * 0.6;
       const compositeDiff = compositeScoreB - compositeScoreA;
       if (Math.abs(compositeDiff) > 0.1) return compositeDiff;
-      // 複合スコアが同じなら成約件数でソート
+
+      // Priority 4 - 成約件数でソート
       const contractDiff = (b.contractCount || 0) - (a.contractCount || 0);
       if (contractDiff !== 0) return contractDiff;
-      // 成約件数も同じなら評価でソート
+
+      // Priority 5 - 評価でソート
       return (b.rating || 0) - (a.rating || 0);
     });
   },
 
-  // 価格順ソート（V1712: リスクスコア統合）
+  // 価格順ソート（V1712: リスクスコア統合 / V1713: 完全マッチ優先）
   sortByPrice: function(companies) {
     return companies.sort(function(a, b) {
-      // V1712: 複合スコアを最優先（優良業者優遇）
+      // V1713: Priority 1 - 完全マッチ > 部分マッチ（最重要！）
+      const completeMatchDiff = (b.isCompleteMatch ? 1 : 0) - (a.isCompleteMatch ? 1 : 0);
+      if (completeMatchDiff !== 0) return completeMatchDiff;
+
+      // V1713: Priority 2 - 複合スコア（V1712: 築年数40% + リスクスコア60%）
       const compositeScoreA = (a.buildingAgeMatchScore || 0) * 0.4 + (a.riskScore || 80) * 0.6;
       const compositeScoreB = (b.buildingAgeMatchScore || 0) * 0.4 + (b.riskScore || 80) * 0.6;
       const compositeDiff = compositeScoreB - compositeScoreA;
       if (Math.abs(compositeDiff) > 0.1) return compositeDiff;
-      // 複合スコアが同じなら価格でソート
+
+      // Priority 3 - 価格（安い順）
       return a.avgContractAmount - b.avgContractAmount;
     });
   },
 
-  // 口コミ順ソート（V1712: リスクスコア統合）
+  // 口コミ順ソート（V1712: リスクスコア統合 / V1713: 完全マッチ優先）
   sortByReview: function(companies) {
     return companies.sort(function(a, b) {
-      // V1712: 複合スコアを最優先（優良業者優遇）
+      // V1713: Priority 1 - 完全マッチ > 部分マッチ（最重要！）
+      const completeMatchDiff = (b.isCompleteMatch ? 1 : 0) - (a.isCompleteMatch ? 1 : 0);
+      if (completeMatchDiff !== 0) return completeMatchDiff;
+
+      // V1713: Priority 2 - 複合スコア（V1712: 築年数40% + リスクスコア60%）
       const compositeScoreA = (a.buildingAgeMatchScore || 0) * 0.4 + (a.riskScore || 80) * 0.6;
       const compositeScoreB = (b.buildingAgeMatchScore || 0) * 0.4 + (b.riskScore || 80) * 0.6;
       const compositeDiff = compositeScoreB - compositeScoreA;
       if (Math.abs(compositeDiff) > 0.1) return compositeDiff;
-      // 複合スコアが同じなら口コミ数でソート
+
+      // Priority 3 - 口コミ数（多い順）
       return b.reviewCount - a.reviewCount;
     });
   },
 
-  // 評価順ソート（V1712: リスクスコア統合）
+  // 評価順ソート（V1712: リスクスコア統合 / V1713: 完全マッチ優先）
   sortByRating: function(companies) {
     return companies.sort(function(a, b) {
-      // V1712: 複合スコアを最優先（優良業者優遇）
+      // V1713: Priority 1 - 完全マッチ > 部分マッチ（最重要！）
+      const completeMatchDiff = (b.isCompleteMatch ? 1 : 0) - (a.isCompleteMatch ? 1 : 0);
+      if (completeMatchDiff !== 0) return completeMatchDiff;
+
+      // V1713: Priority 2 - 複合スコア（V1712: 築年数40% + リスクスコア60%）
       const compositeScoreA = (a.buildingAgeMatchScore || 0) * 0.4 + (a.riskScore || 80) * 0.6;
       const compositeScoreB = (b.buildingAgeMatchScore || 0) * 0.4 + (b.riskScore || 80) * 0.6;
       const compositeDiff = compositeScoreB - compositeScoreA;
       if (Math.abs(compositeDiff) > 0.1) return compositeDiff;
-      // 複合スコアが同じなら評価でソート
+
+      // Priority 3 - 評価（高い順）
       return b.rating - a.rating;
+    });
+  },
+
+  /**
+   * V1713: ボーナス調整（ランク位置調整方式）
+   * ソート後の配列に対して、優先エリア・デポジット・ハンデに基づいてランク位置を調整
+   * @param {Array} companies - ソート済み業者配列
+   * @return {Array} ボーナス調整後の業者配列
+   */
+  applyRankBonus: function(companies) {
+    if (!companies || companies.length === 0) return companies;
+
+    // 各業者に元の順位とボーナス値を付与
+    const companiesWithBonus = companies.map(function(company, index) {
+      var bonus = 0;
+
+      // 優先エリア: +1ランク
+      if (company.priorityArea === 'TRUE' || company.priorityArea === true) {
+        bonus += 1;
+      }
+
+      // デポジット前金: +1ランク
+      if (company.depositAdvance === 'TRUE' || company.depositAdvance === true) {
+        bonus += 1;
+      }
+
+      // ハンデ: ±3ランク（数値）
+      bonus += company.handicap;
+
+      return {
+        company: company,
+        originalRank: index,
+        bonus: bonus,
+        adjustedRank: Math.max(0, index - bonus) // ボーナス分だけランクアップ（インデックスを減らす）
+      };
+    });
+
+    // 調整後ランクでソート（同じ調整ランクの場合は元の順位を維持）
+    companiesWithBonus.sort(function(a, b) {
+      const rankDiff = a.adjustedRank - b.adjustedRank;
+      if (rankDiff !== 0) return rankDiff;
+      return a.originalRank - b.originalRank;
+    });
+
+    // company部分のみを返す
+    return companiesWithBonus.map(function(item) {
+      return item.company;
     });
   },
 
