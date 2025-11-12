@@ -111,24 +111,25 @@ function sendSlackRegistrationNotification(registrationData) {
               }
             }
 
-            // V1708 Priority 4: 未入金分析（発生率＋平均遅延日数）
+            // V1711: 平均遅延日数を最優先（未入金発生率は参考程度）
             const unpaidRate = parseFloat(pastData[i][unpaidRateIndex]) || 0;
             const avgDelayPerInvoice = parseFloat(pastData[i][avgDelayPerInvoiceIndex]) || 0;
 
-            if (unpaidRate > 0 || avgDelayPerInvoice > 0) {
-              let unpaidWarning = '';
-              if (unpaidRate >= 30 && avgDelayPerInvoice >= 15) {
-                unpaidWarning = `🔴 *未入金リスク高:* 発生率 ${unpaidRate.toFixed(1)}% / 平均遅延 ${avgDelayPerInvoice.toFixed(1)}日`;
+            if (avgDelayPerInvoice > 0 || unpaidRate > 0) {
+              // 平均遅延日数による判定（最優先）
+              if (avgDelayPerInvoice >= 15) {
+                warningMessages.push(`🔴 *平均遅延日数: ${avgDelayPerInvoice.toFixed(1)}日* (未入金率: ${unpaidRate.toFixed(1)}%)`);
                 criticalLevel = Math.max(criticalLevel, 3);
-              } else if (unpaidRate >= 15 || avgDelayPerInvoice >= 10) {
-                unpaidWarning = `🟠 *未入金リスク中:* 発生率 ${unpaidRate.toFixed(1)}% / 平均遅延 ${avgDelayPerInvoice.toFixed(1)}日`;
+              } else if (avgDelayPerInvoice >= 10) {
+                warningMessages.push(`🟠 *平均遅延日数: ${avgDelayPerInvoice.toFixed(1)}日* (未入金率: ${unpaidRate.toFixed(1)}%)`);
                 criticalLevel = Math.max(criticalLevel, 2);
-              } else if (unpaidRate >= 5 || avgDelayPerInvoice >= 5) {
-                unpaidWarning = `🟡 未入金あり: 発生率 ${unpaidRate.toFixed(1)}% / 平均遅延 ${avgDelayPerInvoice.toFixed(1)}日`;
+              } else if (avgDelayPerInvoice >= 5) {
+                warningMessages.push(`🟡 平均遅延日数: ${avgDelayPerInvoice.toFixed(1)}日 (未入金率: ${unpaidRate.toFixed(1)}%)`);
                 criticalLevel = Math.max(criticalLevel, 1);
-              }
-              if (unpaidWarning) {
-                warningMessages.push(unpaidWarning);
+              } else if (unpaidRate > 0) {
+                // 遅延5日未満だが未入金はある場合（参考情報として表示のみ）
+                warningMessages.push(`ℹ️ 未入金率: ${unpaidRate.toFixed(1)}% (平均遅延: ${avgDelayPerInvoice.toFixed(1)}日 - 許容範囲)`);
+                // criticalLevelは上げない
               }
             }
 
