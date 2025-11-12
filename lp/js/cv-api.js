@@ -239,119 +239,191 @@ const CVAPI = {
     },
 
     // ============================================
-    // JSONP送信（CORS回避）
+    // JSONP送信（CORS回避）- V1713-FIX: fetch優先、JSONP=フォールバック
     // ============================================
     sendJSONP(data) {
         return new Promise((resolve, reject) => {
-            // コールバック関数名を生成
-            const callbackName = 'cvCallback_' + Date.now();
-            console.log('🔧 コールバック関数名:', callbackName);
+            // V1713-FIX: スマホ対応 - fetchを優先、失敗時のみJSONPにフォールバック
+            // 理由: スマホブラウザはContent-Type厳格チェックでJSONPが失敗する
 
-            // グローバルにコールバック関数を定義
-            window[callbackName] = function(response) {
-                console.log('✅ コールバック関数が実行されました');
-                // コールバック実行後にクリーンアップ
-                delete window[callbackName];
-                if (script.parentNode) {
-                    script.parentNode.removeChild(script);
-                }
-                console.log('📥 JSONP レスポンス受信:', response);
-                resolve(response);
-            };
-
-            // URLパラメータ構築（オブジェクトを平坦化）
+            // URLパラメータ構築
             const params = new URLSearchParams();
             for (const key in data) {
                 if (data.hasOwnProperty(key)) {
                     params.append(key, data[key]);
                 }
             }
-            params.append('callback', callbackName);
 
-            // scriptタグを動的に生成
-            const script = document.createElement('script');
-            script.type = 'text/javascript';
-            script.async = true;
-            script.charset = 'utf-8';
+            const fetchUrl = this.GAS_URL + '?' + params.toString();
 
-            const fullUrl = this.GAS_URL + '?' + params.toString();
+            // V1713-FIX: スマホ対応 - fetchでJSONPテキスト取得 → evalで実行
+            // 理由: スマホブラウザは動的scriptタグを制限するが、fetchは動作する
 
-            console.log('📤 JSONP リクエスト送信');
-            console.log('📤 URL:', fullUrl);
-            console.log('📤 URL文字数:', fullUrl.length);
-            console.log('📤 document.body exists:', !!document.body);
-            console.log('📤 document.head exists:', !!document.head);
-            console.log('📤 document.readyState:', document.readyState);
+            // コールバック関数を先に定義
+            const callbackName = 'cvCallback_' + Date.now();
+            window[callbackName] = function(response) {
+                console.log('✅ コールバック関数実行:', response);
+                delete window[callbackName];
+                resolve(response);
+            };
 
-            // ブラウザでURLをコピーできるようにする
-            console.log('📋 URL(コピー用):');
-            console.log(fullUrl);
+            // callbackパラメータ付きでfetch（JSONP形式のレスポンスを取得）
+            const fetchUrlWithCallback = fetchUrl + '&callback=' + callbackName;
+            console.log('🔧 fetchでJSONP取得:', fetchUrlWithCallback);
 
-            // src設定は最後に行う
-            script.src = fullUrl;
+            fetch(fetchUrlWithCallback, {
+                method: 'GET',
+                mode: 'cors', // V1713-FIX: GASはCORSヘッダーを返す
+                cache: 'no-cache',
+                credentials: 'omit'
+            })
+            .then(response => {
+                console.log('📥 fetch レスポンス受信:', response.status, response.type);
+                console.log('📥 Content-Type:', response.headers.get('content-type'));
 
-            script.onerror = function(e) {
-                console.error('❌ JSONP スクリプト読み込みエラー');
-                console.error('❌ エラーイベント:', e);
-                console.error('❌ script.src:', script.src);
-                console.error('❌ GAS_URL:', this.GAS_URL);
-                console.error('❌ URL長:', fullUrl.length, '文字');
+                if (!response.ok) {
+                    throw new Error('HTTP status: ' + response.status);
+                }
 
-                // URLを直接ブラウザで開いてテスト
-                console.error('🔍 以下のURLをブラウザで直接開いてテスト:');
-                console.error(fullUrl);
+                return response.text(); // JSONPはテキストとして取得
+            })
+            .then(responseText => {
+                console.log('📥 レスポンステキスト:', responseText.substring(0, 100) + '...');
 
-                // デバッグ: スマホ実機でエラーを詳細表示
+                // "callbackName({...})"形式のテキストをevalで実行
+                try {
+                    eval(responseText);
+                    // evalでコールバック関数が実行されてresolveされる
+                    console.log('✅ eval実行成功');
+                } catch (evalError) {
+                    console.error('❌ eval失敗:', evalError);
+                    delete window[callbackName];
+                    // eval失敗の場合はscriptタグにフォールバック
+                    this.sendJSONPFallback(data, resolve, reject);
+                }
+            })
+            .catch(error => {
+                console.warn('⚠️ fetch失敗、scriptタグにフォールバック:', error.message);
+                delete window[callbackName];
+                // fetchが失敗した場合はscriptタグにフォールバック
+                this.sendJSONPFallback(data, resolve, reject);
+            });
+        });
+    },
+
+    // JSONPフォールバック（従来の方法）
+    sendJSONPFallback(data, resolve, reject) {
+        // コールバック関数名を生成
+        const callbackName = 'cvCallback_' + Date.now();
+        console.log('🔧 コールバック関数名:', callbackName);
+
+        // グローバルにコールバック関数を定義
+        window[callbackName] = function(response) {
+            console.log('✅ コールバック関数が実行されました');
+            // コールバック実行後にクリーンアップ
+            delete window[callbackName];
+            if (script.parentNode) {
+                script.parentNode.removeChild(script);
+            }
+            console.log('📥 JSONP レスポンス受信:', response);
+            resolve(response);
+        };
+
+        // URLパラメータ構築（オブジェクトを平坦化）
+        const params = new URLSearchParams();
+        for (const key in data) {
+            if (data.hasOwnProperty(key)) {
+                params.append(key, data[key]);
+            }
+        }
+        params.append('callback', callbackName);
+
+        // scriptタグを動的に生成
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.async = true;
+        script.charset = 'utf-8';
+
+        const fullUrl = this.GAS_URL + '?' + params.toString();
+
+        console.log('📤 JSONP リクエスト送信');
+        console.log('📤 URL:', fullUrl);
+        console.log('📤 URL文字数:', fullUrl.length);
+        console.log('📤 document.body exists:', !!document.body);
+        console.log('📤 document.head exists:', !!document.head);
+        console.log('📤 document.readyState:', document.readyState);
+
+        // ブラウザでURLをコピーできるようにする
+        console.log('📋 URL(コピー用):');
+        console.log(fullUrl);
+
+        // src設定は最後に行う
+        script.src = fullUrl;
+
+        script.onerror = function(e) {
+            console.error('❌ JSONP スクリプト読み込みエラー');
+            console.error('❌ エラーイベント:', e);
+            console.error('❌ script.src:', script.src);
+            console.error('❌ GAS_URL:', this.GAS_URL);
+            console.error('❌ URL長:', fullUrl.length, '文字');
+
+            // URLを直接ブラウザで開いてテスト
+            console.error('🔍 以下のURLをブラウザで直接開いてテスト:');
+            console.error(fullUrl);
+
+            // デバッグ: スマホ実機でエラーを詳細表示
+            if (/Mobile|Android|iPhone/i.test(navigator.userAgent)) {
+                alert('デバッグ: JSONP読み込みエラー\n' +
+                      'URL長: ' + fullUrl.length + ' 文字\n' +
+                      'エラー型: ' + (e ? e.type : 'unknown') + '\n' +
+                      'script.readyState: ' + (script.readyState || 'undefined') + '\n' +
+                      'script.parentNode: ' + (script.parentNode ? script.parentNode.tagName : 'null') + '\n' +
+                      'GAS URL直接アクセスでは成功しているため、\n' +
+                      'スマホブラウザの動的script制限の可能性');
+            }
+
+            delete window[callbackName];
+            if (script.parentNode) {
+                script.parentNode.removeChild(script);
+            }
+            reject(new Error('JSONP request failed (URL length: ' + fullUrl.length + ')'));
+        }.bind(this);
+
+        script.onload = function() {
+            console.log('✅ スクリプトタグ読み込み完了');
+        };
+
+        // タイムアウト設定（60秒: スマホ回線考慮）
+        setTimeout(() => {
+            if (window[callbackName]) {
+                console.error('❌ JSONP タイムアウト（60秒）');
+                console.error('❌ コールバック関数が呼ばれませんでした');
+
+                // デバッグ: スマホ実機でタイムアウトを通知
                 if (/Mobile|Android|iPhone/i.test(navigator.userAgent)) {
-                    alert('デバッグ: JSONP読み込みエラー\n' +
-                          'URL長: ' + fullUrl.length + ' 文字\n' +
-                          'GAS_URL: ' + this.GAS_URL.substring(0, 50) + '...\n' +
-                          '※URL長が2000文字超えている場合はGETからPOSTに変更が必要');
+                    alert('デバッグ: JSONP タイムアウト（60秒）\n' +
+                          'GASへのリクエストがタイムアウトしました');
                 }
 
                 delete window[callbackName];
                 if (script.parentNode) {
                     script.parentNode.removeChild(script);
                 }
-                reject(new Error('JSONP request failed (URL length: ' + fullUrl.length + ')'));
-            }.bind(this);
-
-            script.onload = function() {
-                console.log('✅ スクリプトタグ読み込み完了');
-            };
-
-            // タイムアウト設定（60秒: スマホ回線考慮）
-            setTimeout(() => {
-                if (window[callbackName]) {
-                    console.error('❌ JSONP タイムアウト（60秒）');
-                    console.error('❌ コールバック関数が呼ばれませんでした');
-
-                    // デバッグ: スマホ実機でタイムアウトを通知
-                    if (/Mobile|Android|iPhone/i.test(navigator.userAgent)) {
-                        alert('デバッグ: JSONP タイムアウト（60秒）\n' +
-                              'GASへのリクエストがタイムアウトしました');
-                    }
-
-                    delete window[callbackName];
-                    if (script.parentNode) {
-                        document.body.removeChild(script);
-                    }
-                    reject(new Error('JSONP request timeout (60s)'));
-                }
-            }, 60000);
-
-            // V1713-FIX: スマホ対応 - document.headに追加（bodyより確実）
-            const targetElement = document.head || document.getElementsByTagName('head')[0] || document.body;
-
-            if (!targetElement) {
-                console.error('❌ scriptタグを追加する要素が見つかりません');
-                reject(new Error('No DOM element to append script'));
-                return;
+                reject(new Error('JSONP request timeout (60s)'));
             }
+        }, 60000);
 
-            targetElement.appendChild(script);
-            console.log('✅ scriptタグを', targetElement.tagName, 'に追加しました');
-        });
+        // V1713-FIX: スマホ対応 - document.headに追加（bodyより確実）
+        const targetElement = document.head || document.getElementsByTagName('head')[0] || document.body;
+
+        if (!targetElement) {
+            console.error('❌ scriptタグを追加する要素が見つかりません');
+            reject(new Error('No DOM element to append script'));
+            return;
+        }
+
+        targetElement.appendChild(script);
+        console.log('✅ scriptタグを', targetElement.tagName, 'に追加しました');
     },
 
     // ============================================
