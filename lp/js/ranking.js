@@ -285,15 +285,14 @@ const keepManager = {
     // キープ数バッジを更新
     updateKeepCountBadge();
 
-    // V1713-UX: 無料見積もりボタンの表示制御（固定位置維持）
+    // V1713-UX: 無料見積もりボタンの表示制御（完全固定・インラインスタイルで制御）
     const estimateBtnContainer = document.getElementById('estimateBtnContainer');
     if (estimateBtnContainer) {
       if (keepList.length > 0) {
-        estimateBtnContainer.classList.remove('hidden');
-        // style.displayは削除（CSSのfixed bottom-0を維持）
+        estimateBtnContainer.style.display = 'block';
         console.log('✅ 無料見積もりボタン表示（固定位置）');
       } else {
-        estimateBtnContainer.classList.add('hidden');
+        estimateBtnContainer.style.display = 'none';
         console.log('❌ 無料見積もりボタン非表示');
       }
     }

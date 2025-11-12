@@ -2556,8 +2556,8 @@
 
     <!-- V1713-UX: 見積もりボタン（body直下で固定位置） -->
     <!-- transform親要素の影響を受けないよう、gaiheki-bot-containerの外に配置 -->
-    <div id="estimateBtnContainer" class="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 py-4 hidden" style="z-index: 99999 !important;">
-        <div class="max-w-6xl mx-auto px-4 text-center">
+    <div id="estimateBtnContainer" style="display: none !important; position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 99999 !important; background: white !important; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1) !important; border-top: 1px solid #e5e7eb !important; padding: 1rem 0 !important;">
+        <div style="max-width: 72rem; margin: 0 auto; padding: 0 1rem; text-align: center;">
             <button onclick="showKeepModal();" class="bg-orange-400 hover:bg-orange-500 text-white font-bold py-4 px-20 rounded-full text-lg transition-all relative inline-flex items-center justify-center shadow-lg">
                 無料見積もり
                 <span id="keepCountBadge" class="notification-badge hidden"></span>
@@ -2568,10 +2568,10 @@
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） - 固定キャッシュバスター -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="js/env-loader.js?v=1762960306399"></script>
+    <script src="js/env-loader.js?v=1762961316755"></script>
 
     <!-- BOTローダー（タイミング問題のため静的ロード必須） -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="gaiheki-bot-loader.js?v=1762960306399"></script>
+    <script src="gaiheki-bot-loader.js?v=1762961316755"></script>
   </body>
 </html>
