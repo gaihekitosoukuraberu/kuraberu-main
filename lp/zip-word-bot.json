@@ -1139,13 +1139,14 @@
       "multipleChoice": true
     },
     "Q008": {
-      "text": "築年数を入力してください",
+      "text": "築年数を入力してください\n（おおよそでも構いません）",
       "inputType": "slider",
       "sliderConfig": {
         "min": 0,
-        "max": 100,
+        "max": 99,
         "step": 1,
-        "unit": "年"
+        "unit": "年",
+        "default": 10
       },
       "branches": ["Q009_1to9", "Q009_10to15", "Q009_15plus", "Q009_15plus"],
       "stage": 1,

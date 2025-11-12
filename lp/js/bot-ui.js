@@ -159,13 +159,14 @@ const BotUI = {
         if (!this.elements.choices) this.init();
 
         const { min, max, step, unit } = config;
-        const defaultValue = Math.floor((min + max) / 2);
+        const defaultValue = config.default !== undefined ? config.default : Math.floor((min + max) / 2);
 
         this.elements.choices.innerHTML = `
             <div class="slider-container p-8 bg-white rounded-lg border-2 border-blue-400 shadow-md">
                 <div class="mb-8 text-center">
-                    <span style="font-size: 120px; line-height: 1;" class="font-bold text-blue-600" id="sliderValue">${defaultValue}</span>
-                    <span style="font-size: 48px;" class="text-gray-600 ml-3">${unit}</span>
+                    <span style="font-size: 40px; line-height: 1;" class="font-bold text-gray-600">築</span>
+                    <span style="font-size: 80px; line-height: 1;" class="font-bold text-blue-600" id="sliderValue">${defaultValue}</span>
+                    <span style="font-size: 40px; line-height: 1;" class="font-bold text-gray-600">${unit}</span>
                 </div>
                 <input type="range"
                        id="ageSlider"
