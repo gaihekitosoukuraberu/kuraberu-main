@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1704-LP-REAL-DATA-2025-11-12T14:30:00
- * @last-update 2025-11-12T14:30:00
+ * @file-version V1705-LP-CITY-CONSTRUCTION-FILTER-2025-11-12T15:00:00
+ * @last-update 2025-11-12T15:00:00
  */
 
 const ENV = {
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1704 - 2025-11-12 14:30 - LP実データ完全版対応）
-  CACHE_BUSTER: '1731391800000'
+  // キャッシュバスター（V1705 - 2025-11-12 15:00 - 市区町村・工事種別フィルタリング実装）
+  CACHE_BUSTER: '1731398400000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
