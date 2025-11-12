@@ -957,9 +957,13 @@ const AISearchSystem = {
         const userRangeSize = buildingAgeMax - buildingAgeMin;
         const buildingAgeMatchScore = userRangeSize > 0 ? (overlapSize / userRangeSize) * 100 : 100;
 
-        // すべての条件を満たした業者を追加（V1707: 築年数マッチスコア追加）
+        // V1712: 過去データに基づくリスクスコアを取得
+        const companyName = row[colIndex.companyName] || '';
+        const riskScore = this.getPastDataRiskScore(companyName);
+
+        // すべての条件を満たした業者を追加（V1707: 築年数マッチスコア / V1712: リスクスコア追加）
         filtered.push({
-          companyName: row[colIndex.companyName] || '',
+          companyName: companyName,
           avgContractAmount: row[colIndex.avgContractAmount] || 0,
           rating: row[colIndex.rating] || 0,
           reviewCount: row[colIndex.reviewCount] || 0,
@@ -973,6 +977,7 @@ const AISearchSystem = {
           buildingAgeMin: merchantAgeMin,
           buildingAgeMax: merchantAgeMax,
           buildingAgeMatchScore: buildingAgeMatchScore,
+          riskScore: riskScore,
           specialSupport: '',
           maxFloors: '',
           contractCount: row[colIndex.contractCount] || 0
@@ -1102,13 +1107,16 @@ const AISearchSystem = {
     return Math.floor(Math.random() * 250) + 50;  // 50〜299
   },
 
-  // マッチ度順ソート（V1707: おすすめ順用）
+  // マッチ度順ソート（V1707: おすすめ順用 / V1712: リスクスコア統合）
   sortByMatchScore: function(companies) {
     return companies.sort(function(a, b) {
-      // 築年数マッチ度を最優先
-      const matchDiff = (b.buildingAgeMatchScore || 0) - (a.buildingAgeMatchScore || 0);
-      if (Math.abs(matchDiff) > 0.1) return matchDiff;
-      // マッチ度が同じなら成約件数でソート
+      // V1712: 複合スコア = 築年数マッチ度40% + リスクスコア60%
+      // 優良業者優遇のため、信頼性（リスクスコア）を高めに重み付け
+      const compositeScoreA = (a.buildingAgeMatchScore || 0) * 0.4 + (a.riskScore || 80) * 0.6;
+      const compositeScoreB = (b.buildingAgeMatchScore || 0) * 0.4 + (b.riskScore || 80) * 0.6;
+      const compositeDiff = compositeScoreB - compositeScoreA;
+      if (Math.abs(compositeDiff) > 0.1) return compositeDiff;
+      // 複合スコアが同じなら成約件数でソート
       const contractDiff = (b.contractCount || 0) - (a.contractCount || 0);
       if (contractDiff !== 0) return contractDiff;
       // 成約件数も同じなら評価でソート
@@ -1116,36 +1124,144 @@ const AISearchSystem = {
     });
   },
 
-  // 価格順ソート
+  // 価格順ソート（V1712: リスクスコア統合）
   sortByPrice: function(companies) {
     return companies.sort(function(a, b) {
-      // V1707: 築年数マッチ度を最優先
-      const matchDiff = (b.buildingAgeMatchScore || 0) - (a.buildingAgeMatchScore || 0);
-      if (Math.abs(matchDiff) > 0.1) return matchDiff;
-      // マッチ度が同じなら価格でソート
+      // V1712: 複合スコアを最優先（優良業者優遇）
+      const compositeScoreA = (a.buildingAgeMatchScore || 0) * 0.4 + (a.riskScore || 80) * 0.6;
+      const compositeScoreB = (b.buildingAgeMatchScore || 0) * 0.4 + (b.riskScore || 80) * 0.6;
+      const compositeDiff = compositeScoreB - compositeScoreA;
+      if (Math.abs(compositeDiff) > 0.1) return compositeDiff;
+      // 複合スコアが同じなら価格でソート
       return a.avgContractAmount - b.avgContractAmount;
     });
   },
 
-  // 口コミ順ソート
+  // 口コミ順ソート（V1712: リスクスコア統合）
   sortByReview: function(companies) {
     return companies.sort(function(a, b) {
-      // V1707: 築年数マッチ度を最優先
-      const matchDiff = (b.buildingAgeMatchScore || 0) - (a.buildingAgeMatchScore || 0);
-      if (Math.abs(matchDiff) > 0.1) return matchDiff;
-      // マッチ度が同じなら口コミ数でソート
+      // V1712: 複合スコアを最優先（優良業者優遇）
+      const compositeScoreA = (a.buildingAgeMatchScore || 0) * 0.4 + (a.riskScore || 80) * 0.6;
+      const compositeScoreB = (b.buildingAgeMatchScore || 0) * 0.4 + (b.riskScore || 80) * 0.6;
+      const compositeDiff = compositeScoreB - compositeScoreA;
+      if (Math.abs(compositeDiff) > 0.1) return compositeDiff;
+      // 複合スコアが同じなら口コミ数でソート
       return b.reviewCount - a.reviewCount;
     });
   },
 
-  // 評価順ソート
+  // 評価順ソート（V1712: リスクスコア統合）
   sortByRating: function(companies) {
     return companies.sort(function(a, b) {
-      // V1707: 築年数マッチ度を最優先
-      const matchDiff = (b.buildingAgeMatchScore || 0) - (a.buildingAgeMatchScore || 0);
-      if (Math.abs(matchDiff) > 0.1) return matchDiff;
-      // マッチ度が同じなら評価でソート
+      // V1712: 複合スコアを最優先（優良業者優遇）
+      const compositeScoreA = (a.buildingAgeMatchScore || 0) * 0.4 + (a.riskScore || 80) * 0.6;
+      const compositeScoreB = (b.buildingAgeMatchScore || 0) * 0.4 + (b.riskScore || 80) * 0.6;
+      const compositeDiff = compositeScoreB - compositeScoreA;
+      if (Math.abs(compositeDiff) > 0.1) return compositeDiff;
+      // 複合スコアが同じなら評価でソート
       return b.rating - a.rating;
     });
+  },
+
+  /**
+   * V1712: 過去データに基づくリスクスコアを取得
+   * @param {string} companyName - 業者名
+   * @return {number} リスクスコア (0-100, 100が最良)
+   */
+  getPastDataRiskScore: function(companyName) {
+    try {
+      const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+      const pastDataSheet = ss.getSheetByName('過去データ');
+
+      if (!pastDataSheet) {
+        console.log('[V1712] 過去データシートが見つかりません');
+        return 80; // デフォルトスコア（新規業者扱い）
+      }
+
+      const pastData = pastDataSheet.getDataRange().getValues();
+      const headers = pastData[0];
+      const rows = pastData.slice(1);
+
+      // カラムインデックス
+      const colIndex = {
+        companyName: headers.indexOf('業者名'),
+        bankruptcyFlag: headers.indexOf('貸倒フラグ'),
+        warningStatus: headers.indexOf('要注意先ステータス'),
+        contractCount: headers.indexOf('成約件数'),
+        hiddenContract: headers.indexOf('成約隠し件数'),
+        unpaidRate: headers.indexOf('未入金発生率'),
+        avgDelayPerInvoice: headers.indexOf('1請求あたり平均遅延日数'),
+        complaintCount: headers.indexOf('ユーザークレーム回数')
+      };
+
+      // 業者名で検索
+      const matchedRow = rows.find(function(row) {
+        return row[colIndex.companyName] === companyName;
+      });
+
+      if (!matchedRow) {
+        // 過去データなし = 新規業者（初期スコア80点）
+        return 80;
+      }
+
+      // V1712: V1711閾値に基づくリスクスコア計算
+      return this.calculateRiskScoreV1712(matchedRow, colIndex);
+
+    } catch (err) {
+      console.error('[V1712] リスクスコア取得エラー:', err);
+      return 80; // エラー時はデフォルトスコア
+    }
+  },
+
+  /**
+   * V1712: リスクスコア計算（V1711閾値に基づく）
+   * @param {Array} row - 過去データの行
+   * @param {Object} colIndex - カラムインデックス
+   * @return {number} リスクスコア (0-100)
+   */
+  calculateRiskScoreV1712: function(row, colIndex) {
+    let score = 100; // 満点からスタート
+
+    // 1. 貸倒フラグ（即座に0点）- V1708
+    const bankruptcy = row[colIndex.bankruptcyFlag];
+    if (bankruptcy === true || bankruptcy === 'TRUE' || bankruptcy === '○' || bankruptcy === 'YES') {
+      return 0;
+    }
+
+    // 2. 要注意先ステータス（-20点）- V1708
+    const warning = row[colIndex.warningStatus];
+    if (warning && warning !== '' && warning !== '-') {
+      score -= 20;
+    }
+
+    // 3. 平均遅延日数（最優先）- V1711
+    const avgDelay = parseFloat(row[colIndex.avgDelayPerInvoice]) || 0;
+    if (avgDelay >= 15) {
+      score -= 40; // 重大（criticalLevel 3）
+    } else if (avgDelay >= 10) {
+      score -= 25; // 警告（criticalLevel 2）
+    } else if (avgDelay >= 5) {
+      score -= 10; // 注意（criticalLevel 1）
+    }
+    // 5日未満は減点なし（許容範囲）
+
+    // 4. 未入金発生率（参考程度）- V1711
+    const unpaidRate = parseFloat(row[colIndex.unpaidRate]) || 0;
+    score -= Math.min(unpaidRate / 10, 10); // 最大-10点（100%でも-10点のみ）
+
+    // 5. 成約隠し率（-20点まで）- V1708
+    const contractCount = parseFloat(row[colIndex.contractCount]) || 0;
+    const hiddenCount = parseFloat(row[colIndex.hiddenContract]) || 0;
+    if (contractCount > 0 && hiddenCount > 0) {
+      const hiddenRate = (hiddenCount / contractCount) * 100;
+      score -= Math.min(hiddenRate / 5, 20); // 100%で-20点
+    }
+
+    // 6. クレーム件数（1件で-5点）- V1708
+    const complaints = parseFloat(row[colIndex.complaintCount]) || 0;
+    score -= complaints * 5;
+
+    // 0点未満にはしない
+    return Math.max(score, 0);
   }
 };
