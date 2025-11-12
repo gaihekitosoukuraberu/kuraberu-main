@@ -873,6 +873,32 @@ const AISearchSystem = {
         prioritySupplyFlag: masterHeaders.indexOf('最優先供給フラグ')
       };
 
+      // V1713-DEBUG: カラムインデックス検証
+      console.log('[V1713-DEBUG] カラムインデックス:', JSON.stringify(colIndex));
+
+      // V1713-DEBUG: 必須カラムチェック
+      const missingColumns = [];
+      if (colIndex.companyName === -1) missingColumns.push('会社名');
+      if (colIndex.prefecture === -1) missingColumns.push('対応都道府県');
+      if (colIndex.approvalStatus === -1) missingColumns.push('承認ステータス');
+      if (colIndex.deliveryStatus === -1) missingColumns.push('配信ステータス');
+
+      if (missingColumns.length > 0) {
+        console.error('[V1713-ERROR] 必須カラムが見つかりません:', missingColumns.join(', '));
+        throw new Error('必須カラムが見つかりません: ' + missingColumns.join(', '));
+      }
+
+      // V1713-DEBUG: V1713カラムの存在確認
+      const v1713Columns = [];
+      if (colIndex.priorityArea === -1) v1713Columns.push('優先エリア');
+      if (colIndex.handicap === -1) v1713Columns.push('ハンデ');
+      if (colIndex.depositAdvance === -1) v1713Columns.push('デポジット前金');
+      if (colIndex.prioritySupplyFlag === -1) v1713Columns.push('最優先供給フラグ');
+
+      if (v1713Columns.length > 0) {
+        console.warn('[V1713-WARNING] V1713カラムが見つかりません（機能制限モード）:', v1713Columns.join(', '));
+      }
+
       // フィルタリング（承認済み + 配信中 + 都道府県マッチ + 市区町村マッチ + 工事種別マッチ）（V1705拡張）
       const filtered = [];
       for (var i = 0; i < allData.length; i++) {
@@ -1266,7 +1292,8 @@ const AISearchSystem = {
    */
   getPastDataRiskScore: function(companyName) {
     try {
-      const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       const pastDataSheet = ss.getSheetByName('過去データ');
 
       if (!pastDataSheet) {
