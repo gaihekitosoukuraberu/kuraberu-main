@@ -801,12 +801,15 @@ const AISearchSystem = {
       const city = this.getCityFromZipcode(zipcode);
       console.log('[AISearchSystem] 郵便番号 ' + zipcode + ' → 都道府県: ' + prefecture + ', 市区町村: ' + city);
 
-      // V1705: BOT回答データ取得
+      // V1705/V1707: BOT回答データ取得
       const wallMaterial = params.wallMaterial || '';
       const roofMaterial = params.roofMaterial || '';
       const wallWorkType = params.wallWorkType || '';
       const roofWorkType = params.roofWorkType || '';
+      const buildingAgeMin = params.buildingAgeMin || 0;
+      const buildingAgeMax = params.buildingAgeMax || 100;
       console.log('[AISearchSystem] 材質・工事内容:', { wallMaterial, roofMaterial, wallWorkType, roofWorkType });
+      console.log('[AISearchSystem] 築年数:', { buildingAgeMin, buildingAgeMax });
 
       // 加盟店マスタから取得（V1694）
       const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
@@ -849,7 +852,7 @@ const AISearchSystem = {
       const allData = masterSheet.getRange(2, 1, lastRow - 1, masterSheet.getLastColumn()).getValues();
       console.log('[AISearchSystem] 全業者数: ' + allData.length);
 
-      // カラムインデックス取得（V1705: 対応市区町村追加）
+      // カラムインデックス取得（V1707: 対応築年数追加）
       const colIndex = {
         companyName: masterHeaders.indexOf('会社名'),
         prefecture: masterHeaders.indexOf('対応都道府県'),
@@ -861,6 +864,8 @@ const AISearchSystem = {
         reviewCount: masterHeaders.indexOf('口コミ件数'),
         contractCount: masterHeaders.indexOf('直近3ヶ月_成約件数'),
         constructionTypes: masterHeaders.indexOf('対応工事種別'),
+        buildingAgeMin: masterHeaders.indexOf('対応築年数_最小'),
+        buildingAgeMax: masterHeaders.indexOf('対応築年数_最大'),
         silentFlag: masterHeaders.indexOf('サイレントフラグ')
       };
 
@@ -936,7 +941,23 @@ const AISearchSystem = {
 
         if (!constructionTypeMatch) continue;
 
-        // すべての条件を満たした業者を追加
+        // 築年数チェック（V1707追加）
+        const merchantAgeMin = row[colIndex.buildingAgeMin] || 0;
+        const merchantAgeMax = row[colIndex.buildingAgeMax] || 100;
+
+        // 範囲の重複をチェック
+        const overlapMin = Math.max(buildingAgeMin, merchantAgeMin);
+        const overlapMax = Math.min(buildingAgeMax, merchantAgeMax);
+
+        // 重複がない場合はスキップ
+        if (overlapMin > overlapMax) continue;
+
+        // マッチ度スコア計算（0-100）
+        const overlapSize = overlapMax - overlapMin;
+        const userRangeSize = buildingAgeMax - buildingAgeMin;
+        const buildingAgeMatchScore = userRangeSize > 0 ? (overlapSize / userRangeSize) * 100 : 100;
+
+        // すべての条件を満たした業者を追加（V1707: 築年数マッチスコア追加）
         filtered.push({
           companyName: row[colIndex.companyName] || '',
           avgContractAmount: row[colIndex.avgContractAmount] || 0,
@@ -949,6 +970,9 @@ const AISearchSystem = {
           roofMaterial: roofMaterial,
           wallWorkType: wallWorkType,
           roofWorkType: roofWorkType,
+          buildingAgeMin: merchantAgeMin,
+          buildingAgeMax: merchantAgeMax,
+          buildingAgeMatchScore: buildingAgeMatchScore,
           specialSupport: '',
           maxFloors: '',
           contractCount: row[colIndex.contractCount] || 0
@@ -957,10 +981,10 @@ const AISearchSystem = {
 
       console.log('[AISearchSystem] フィルタ後: ' + filtered.length + '件');
 
-      // 4つのソート順で並べ替え
+      // 4つのソート順で並べ替え（V1707: おすすめ順もマッチ度優先）
       const rankings = {
         cheap: this.sortByPrice(filtered.slice()).slice(0, 8),
-        recommended: filtered.slice(0, 8),  // デフォルト順
+        recommended: this.sortByMatchScore(filtered.slice()).slice(0, 8),
         review: this.sortByReview(filtered.slice()).slice(0, 8),
         premium: this.sortByRating(filtered.slice()).slice(0, 8)
       };
@@ -1078,9 +1102,27 @@ const AISearchSystem = {
     return Math.floor(Math.random() * 250) + 50;  // 50〜299
   },
 
+  // マッチ度順ソート（V1707: おすすめ順用）
+  sortByMatchScore: function(companies) {
+    return companies.sort(function(a, b) {
+      // 築年数マッチ度を最優先
+      const matchDiff = (b.buildingAgeMatchScore || 0) - (a.buildingAgeMatchScore || 0);
+      if (Math.abs(matchDiff) > 0.1) return matchDiff;
+      // マッチ度が同じなら成約件数でソート
+      const contractDiff = (b.contractCount || 0) - (a.contractCount || 0);
+      if (contractDiff !== 0) return contractDiff;
+      // 成約件数も同じなら評価でソート
+      return (b.rating || 0) - (a.rating || 0);
+    });
+  },
+
   // 価格順ソート
   sortByPrice: function(companies) {
     return companies.sort(function(a, b) {
+      // V1707: 築年数マッチ度を最優先
+      const matchDiff = (b.buildingAgeMatchScore || 0) - (a.buildingAgeMatchScore || 0);
+      if (Math.abs(matchDiff) > 0.1) return matchDiff;
+      // マッチ度が同じなら価格でソート
       return a.avgContractAmount - b.avgContractAmount;
     });
   },
@@ -1088,6 +1130,10 @@ const AISearchSystem = {
   // 口コミ順ソート
   sortByReview: function(companies) {
     return companies.sort(function(a, b) {
+      // V1707: 築年数マッチ度を最優先
+      const matchDiff = (b.buildingAgeMatchScore || 0) - (a.buildingAgeMatchScore || 0);
+      if (Math.abs(matchDiff) > 0.1) return matchDiff;
+      // マッチ度が同じなら口コミ数でソート
       return b.reviewCount - a.reviewCount;
     });
   },
@@ -1095,6 +1141,10 @@ const AISearchSystem = {
   // 評価順ソート
   sortByRating: function(companies) {
     return companies.sort(function(a, b) {
+      // V1707: 築年数マッチ度を最優先
+      const matchDiff = (b.buildingAgeMatchScore || 0) - (a.buildingAgeMatchScore || 0);
+      if (Math.abs(matchDiff) > 0.1) return matchDiff;
+      // マッチ度が同じなら評価でソート
       return b.rating - a.rating;
     });
   }
