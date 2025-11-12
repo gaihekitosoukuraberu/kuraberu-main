@@ -453,21 +453,47 @@ function handleLegacyPostAction(action, e, postData) {
 }
 
 /**
+ * OPTIONSリクエスト処理（CORSプリフライト対応）
+ * V1713-FIX: XMLHttpRequest用にCORSプリフライトリクエストに対応
+ */
+function doOptions(e) {
+  return ContentService
+    .createTextOutput('')
+    .setMimeType(ContentService.MimeType.TEXT)
+    .setHeaders({
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Max-Age': '86400'
+    });
+}
+
+/**
  * JSONP形式のレスポンス作成（共通関数）
  */
 function createJsonpResponse(data, callback) {
   const jsonString = JSON.stringify(data);
 
+  // V1713-FIX: XMLHttpRequest用にCORSヘッダー必須
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '86400'
+  };
+
   if (callback) {
-    // JSONP形式（V1713-FIX: 純粋なJSONP - CORS不使用）
+    // JSONP形式 + CORSヘッダー（XHR対応）
     return ContentService
       .createTextOutput(callback + '(' + jsonString + ')')
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+      .setMimeType(ContentService.MimeType.JAVASCRIPT)
+      .setHeaders(headers);
   } else {
     // 通常のJSON（callbackなしの場合）
     return ContentService
       .createTextOutput(jsonString)
-      .setMimeType(ContentService.MimeType.JSON);
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeaders(headers);
   }
 }
 

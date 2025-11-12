@@ -239,127 +239,100 @@ const CVAPI = {
     },
 
     // ============================================
-    // JSONP送信（CORS回避）- V1713-FIX: スマホ対応（async=false）
+    // JSONP送信（CORS回避）- V1713-FIX: スマホ対応（XHR方式）
     // ============================================
     sendJSONP(data) {
         return new Promise((resolve, reject) => {
-            // V1713-FIX: スマホ対応 - 純粋なJSONP方式のみ（CORS不使用）
-            // 理由: fetchベースのCORS方式は頻繁にエラーが発生するため
+            // V1713-FIX: スマホ対応 - XMLHttpRequest方式
+            // 理由: 動的scriptタグがスマホブラウザで完全にブロックされる
 
             // コールバック関数名を生成
             const callbackName = 'cvCallback_' + Date.now();
             console.log('🔧 コールバック関数名:', callbackName);
 
-        // グローバルにコールバック関数を定義
-        window[callbackName] = function(response) {
-            console.log('✅ コールバック関数が実行されました');
-            // コールバック実行後にクリーンアップ
-            delete window[callbackName];
-            if (script.parentNode) {
-                script.parentNode.removeChild(script);
+            // グローバルにコールバック関数を定義
+            window[callbackName] = function(response) {
+                console.log('✅ コールバック関数が実行されました');
+                delete window[callbackName];
+                console.log('📥 JSONP レスポンス受信:', response);
+                resolve(response);
+            };
+
+            // URLパラメータ構築
+            const params = new URLSearchParams();
+            for (const key in data) {
+                if (data.hasOwnProperty(key)) {
+                    params.append(key, data[key]);
+                }
             }
-            console.log('📥 JSONP レスポンス受信:', response);
-            resolve(response);
-        };
+            params.append('callback', callbackName);
 
-        // URLパラメータ構築（オブジェクトを平坦化）
-        const params = new URLSearchParams();
-        for (const key in data) {
-            if (data.hasOwnProperty(key)) {
-                params.append(key, data[key]);
-            }
-        }
-        params.append('callback', callbackName);
+            const fullUrl = this.GAS_URL + '?' + params.toString();
 
-            // scriptタグを動的に生成
-            const script = document.createElement('script');
-            script.type = 'text/javascript';
-            script.async = false;  // V1713-FIX: スマホ対応 - asyncをfalseに（確実に実行）
-            script.charset = 'utf-8';
+            console.log('📤 XMLHttpRequest リクエスト送信');
+            console.log('📤 URL:', fullUrl);
+            console.log('📤 URL文字数:', fullUrl.length);
 
-        const fullUrl = this.GAS_URL + '?' + params.toString();
+            // V1713-FIX: スマホ対応 - XMLHttpRequestでJSONPテキストを取得
+            const xhr = new XMLHttpRequest();
+            xhr.timeout = 60000; // 60秒
 
-        console.log('📤 JSONP リクエスト送信');
-        console.log('📤 URL:', fullUrl);
-        console.log('📤 URL文字数:', fullUrl.length);
-        console.log('📤 document.body exists:', !!document.body);
-        console.log('📤 document.head exists:', !!document.head);
-        console.log('📤 document.readyState:', document.readyState);
+            xhr.onload = function() {
+                console.log('📥 XHR レスポンス受信:', xhr.status);
+                console.log('📥 レスポンステキスト:', xhr.responseText.substring(0, 100) + '...');
 
-        // ブラウザでURLをコピーできるようにする
-        console.log('📋 URL(コピー用):');
-        console.log(fullUrl);
+                if (xhr.status === 200) {
+                    try {
+                        // JSONP形式のレスポンスをevalで実行
+                        eval(xhr.responseText);
+                        console.log('✅ eval実行成功');
+                    } catch (evalError) {
+                        console.error('❌ eval失敗:', evalError);
 
-        // V1713-FIX: エラーハンドラーを先に設定
-        script.onerror = function(e) {
-            console.error('❌ JSONP スクリプト読み込みエラー');
-            console.error('❌ エラーイベント:', e);
-            console.error('❌ script.src:', script.src);
-            console.error('❌ GAS_URL:', this.GAS_URL);
-            console.error('❌ URL長:', fullUrl.length, '文字');
+                        if (/Mobile|Android|iPhone/i.test(navigator.userAgent)) {
+                            alert('デバッグ: eval失敗\n' + evalError.toString());
+                        }
 
-            // URLを直接ブラウザで開いてテスト
-            console.error('🔍 以下のURLをブラウザで直接開いてテスト:');
-            console.error(fullUrl);
+                        delete window[callbackName];
+                        reject(new Error('Eval failed: ' + evalError.toString()));
+                    }
+                } else {
+                    console.error('❌ HTTP エラー:', xhr.status);
 
-            // デバッグ: スマホ実機でエラーを詳細表示
-            if (/Mobile|Android|iPhone/i.test(navigator.userAgent)) {
-                alert('デバッグ: JSONP読み込みエラー\n' +
-                      'URL長: ' + fullUrl.length + ' 文字\n' +
-                      'エラー型: ' + (e ? e.type : 'unknown') + '\n' +
-                      'script.readyState: ' + (script.readyState || 'undefined') + '\n' +
-                      'script.parentNode: ' + (script.parentNode ? script.parentNode.tagName : 'null') + '\n' +
-                      'GAS URL直接アクセスでは成功しているため、\n' +
-                      'スマホブラウザの動的script制限の可能性');
-            }
+                    if (/Mobile|Android|iPhone/i.test(navigator.userAgent)) {
+                        alert('デバッグ: HTTP エラー\nステータス: ' + xhr.status);
+                    }
 
-            delete window[callbackName];
-            if (script.parentNode) {
-                script.parentNode.removeChild(script);
-            }
-            reject(new Error('JSONP request failed (URL length: ' + fullUrl.length + ')'));
-        }.bind(this);
+                    delete window[callbackName];
+                    reject(new Error('HTTP error: ' + xhr.status));
+                }
+            };
 
-        script.onload = function() {
-            console.log('✅ スクリプトタグ読み込み完了');
-        };
+            xhr.onerror = function() {
+                console.error('❌ XHR エラー');
 
-        // タイムアウト設定（60秒: スマホ回線考慮）
-        setTimeout(() => {
-            if (window[callbackName]) {
-                console.error('❌ JSONP タイムアウト（60秒）');
-                console.error('❌ コールバック関数が呼ばれませんでした');
-
-                // デバッグ: スマホ実機でタイムアウトを通知
                 if (/Mobile|Android|iPhone/i.test(navigator.userAgent)) {
-                    alert('デバッグ: JSONP タイムアウト（60秒）\n' +
-                          'GASへのリクエストがタイムアウトしました');
+                    alert('デバッグ: XHR エラー\nネットワークエラーまたはCORS制限');
                 }
 
                 delete window[callbackName];
-                if (script.parentNode) {
-                    script.parentNode.removeChild(script);
+                reject(new Error('XHR request failed'));
+            };
+
+            xhr.ontimeout = function() {
+                console.error('❌ XHR タイムアウト（60秒）');
+
+                if (/Mobile|Android|iPhone/i.test(navigator.userAgent)) {
+                    alert('デバッグ: XHR タイムアウト（60秒）');
                 }
-                reject(new Error('JSONP request timeout (60s)'));
-            }
-        }, 60000);
 
-            // V1713-FIX: スマホ対応 - 先にDOMに追加してからsrcを設定
-            const targetElement = document.head || document.getElementsByTagName('head')[0] || document.body;
+                delete window[callbackName];
+                reject(new Error('XHR timeout (60s)'));
+            };
 
-            if (!targetElement) {
-                console.error('❌ scriptタグを追加する要素が見つかりません');
-                reject(new Error('No DOM element to append script'));
-                return;
-            }
-
-            // 重要: 先にappendしてからsrcを設定（スマホブラウザ対策）
-            targetElement.appendChild(script);
-            console.log('✅ scriptタグを', targetElement.tagName, 'に追加しました');
-
-            // srcは最後に設定（これでリクエストが開始される）
-            script.src = fullUrl;
-            console.log('✅ script.src設定完了:', fullUrl.substring(0, 80) + '...');
+            xhr.open('GET', fullUrl, true);
+            xhr.send();
+            console.log('✅ XHR送信完了');
         });
     },
 

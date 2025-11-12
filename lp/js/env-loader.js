@@ -22,8 +22,8 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // GAS URL（V1713-FIX: Phone form instant display + background ranking @HEAD）
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/exec',
+  // GAS URL（V1713-FIX: XHR with CORS + doOptions @1632）
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwydbQQ0GwtJ_4HJlcSoKCNppUGQm9wENH60_VmBC4TDHXLnDZK6KvRVo6IzTzoFRO8fg/exec',
 
   // フォールバックGAS URL（バックアップ）- @HEAD
   FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/exec',
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1713-FIX - 2025-11-12 23:50 - Append script before setting src）
-  CACHE_BUSTER: '1762937007000'
+  // キャッシュバスター（V1713-FIX - 2025-11-13 00:03 - New deployment @1632 with CORS）
+  CACHE_BUSTER: '1762937805000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
