@@ -329,42 +329,55 @@ const BotCore = {
             '30秒ほどかかりますので、完了までに送付先の入力をお願いします。'
         );
 
-        // GASからランキングデータを取得
-        if (typeof window.fetchRankingFromGAS === 'function') {
-            await window.fetchRankingFromGAS();
-        }
-
-        // Q016で選んだソート順でソートして表示
-        const sortOrder = BotConfig.state.sortOrder || 'recommended';
-        console.log('📊 選択されたソート順:', sortOrder);
-
-        // changeSortTypeが全て処理する（ソート + 表示 + UI更新）
-        if (typeof window.changeSortType === 'function') {
-            window.changeSortType(sortOrder);
-        } else {
-            // changeSortTypeがない場合は従来の方法
-            if (typeof window.updateAllCompaniesFromDynamic === 'function') {
-                window.updateAllCompaniesFromDynamic(sortOrder);
-            }
-            if (typeof window.displayRanking === 'function') {
-                window.displayRanking();
-            }
-        }
-
-        // モザイク解除
-        if (typeof window.completeHearingStage === 'function') {
-            window.completeHearingStage(3);
-        }
-
         // 選択肢をクリア
         BotUI.clearChoices();
 
-        // 電話番号フォーム表示
+        // V1713-FIX: 電話番号フォームを即座に表示（バックグラウンド処理を待たない）
         setTimeout(() => {
             if (typeof window.showPhoneMiniForm === 'function') {
                 window.showPhoneMiniForm();
+                console.log('📱 電話番号フォーム表示（即座）');
             }
-        }, 1000);
+        }, 500);
+
+        // V1713-FIX: ランキング取得をバックグラウンドで実行（非ブロッキング）
+        const sortOrder = BotConfig.state.sortOrder || 'recommended';
+        console.log('📊 選択されたソート順:', sortOrder, '（バックグラウンド処理開始）');
+
+        if (typeof window.fetchRankingFromGAS === 'function') {
+            // awaitせずにバックグラウンドで実行
+            window.fetchRankingFromGAS().then(() => {
+                console.log('✅ ランキング取得完了 - ソート順適用:', sortOrder);
+
+                // Q016で選んだソート順でソートして表示
+                if (typeof window.changeSortType === 'function') {
+                    window.changeSortType(sortOrder);
+                } else {
+                    // changeSortTypeがない場合は従来の方法
+                    if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+                        window.updateAllCompaniesFromDynamic(sortOrder);
+                    }
+                    if (typeof window.displayRanking === 'function') {
+                        window.displayRanking();
+                    }
+                }
+
+                // モザイク解除
+                if (typeof window.completeHearingStage === 'function') {
+                    window.completeHearingStage(3);
+                }
+
+                console.log('🎉 ランキング表示完了（ソート順:', sortOrder, '）');
+            }).catch(err => {
+                console.error('❌ ランキング取得エラー（非致命的）:', err);
+                // エラーでも電話番号フォームは既に表示されているのでOK
+            });
+        } else {
+            // fetchRankingFromGASがない場合はモザイクだけ解除
+            if (typeof window.completeHearingStage === 'function') {
+                window.completeHearingStage(3);
+            }
+        }
     }
 };
 
