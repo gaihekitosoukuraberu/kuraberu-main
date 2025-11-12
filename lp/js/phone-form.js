@@ -36,72 +36,7 @@ function formatPhoneNumber(input) {
   input.value = value;
 }
 
-// 業者名をイニシャルから実名に変更する関数
-function revealCompanyNames() {
-  console.log('revealCompanyNames実行開始');
-  
-  // グローバルフラグを設定（イニシャルに戻ることを防ぐ）
-  window.namesRevealed = true;
-  console.log('window.namesRevealed =', window.namesRevealed);
-  
-  // T社、S社などを実名に変更
-  const companyNameElements = document.querySelectorAll('.company-name, h4, h3');
-  console.log('会社名要素数:', companyNameElements.length);
-  
-  companyNameElements.forEach(element => {
-    const text = element.textContent;
-    if (text.includes('T社')) {
-      element.textContent = text.replace('T社', '田中ホームテック');
-      console.log('T社を田中ホームテックに変更');
-    } else if (text.includes('S社')) {
-      element.textContent = text.replace('S社', '佐藤建装');
-      console.log('S社を佐藤建装に変更');
-    } else if (text.includes('Y社')) {
-      element.textContent = text.replace('Y社', '山田塗装工業');
-      console.log('Y社を山田塗装工業に変更');
-    } else if (text.includes('H社')) {
-      element.textContent = text.replace('H社', 'ハート工務店');
-      console.log('H社をハート工務店に変更');
-    } else if (text.includes('M社')) {
-      element.textContent = text.replace('M社', '松本リフォーム');
-      console.log('M社を松本リフォームに変更');
-    } else if (text.includes('K社')) {
-      element.textContent = text.replace('K社', '加藤建設');
-      console.log('K社を加藤建設に変更');
-    } else if (text.includes('W社')) {
-      element.textContent = text.replace('W社', '渡辺塗装店');
-      console.log('W社を渡辺塗装店に変更');
-    } else if (text.includes('N社')) {
-      element.textContent = text.replace('N社', '中村ペイント');
-      console.log('N社を中村ペイントに変更');
-    }
-  });
-  
-  // 「※電話番号入力後に詳細開示」の文言を削除
-  const noteElements = document.querySelectorAll('p, span');
-  noteElements.forEach(element => {
-    if (element.textContent.includes('※電話番号入力後に詳細開示')) {
-      element.style.display = 'none';
-    }
-  });
-  
-  // 「業者名を見る」ボタンを「無料見積もり」に変更
-  const companyButtons = document.querySelectorAll('button');
-  companyButtons.forEach(button => {
-    if (button.textContent.includes('業者名を見る')) {
-      button.innerHTML = button.innerHTML.replace('業者名を見る', '無料見積もり');
-    }
-  });
-
-  // ランキングのクリックブロッカーを削除
-  const clickBlocker = document.getElementById('rankingClickBlocker');
-  if (clickBlocker) {
-    clickBlocker.remove();
-    console.log('✅ ランキングのクリックブロッカーを削除');
-  }
-
-  console.log('revealCompanyNames実行完了');
-}
+// V1704: revealCompanyNames()関数削除 - 実データのみ使用
 
 // 電話番号入力フォームのイベントリスナー設定
 document.addEventListener('DOMContentLoaded', function() {
@@ -180,11 +115,8 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
       }
 
-      // 電話番号入力後：モザイク解除（実名表示）
-      console.log('🔓 モザイク解除：実名表示に切り替えます');
-
-      // 業者名をイニシャルから実名に変更（V1678 - displayRanking()より先に実行）
-      revealCompanyNames();
+      // 電話番号入力後：ランキングを再表示（V1704 - 実データのみ使用）
+      console.log('🔓 ランキング再表示');
 
       // すでにGASから取得済みの場合は、実名で再表示
       if (window.dynamicRankings) {
@@ -295,7 +227,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// グローバル関数としてエクスポート
+// グローバル関数としてエクスポート（V1704: revealCompanyNames削除）
 window.showPhoneInputForm = showPhoneInputForm;
-window.revealCompanyNames = revealCompanyNames;
 window.formatPhoneNumber = formatPhoneNumber;

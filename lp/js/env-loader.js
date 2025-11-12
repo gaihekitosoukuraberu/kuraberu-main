@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1697-MASTER-MAPPING-FIX-2025-11-11T11:00:00
- * @last-update 2025-11-11T11:00:00
+ * @file-version V1704-LP-REAL-DATA-2025-11-12T14:30:00
+ * @last-update 2025-11-12T14:30:00
  */
 
 const ENV = {
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1701 - 2025-11-12 02:25 - text/plainパース対応 @1620デプロイ完了）
-  CACHE_BUSTER: '1731348300000'
+  // キャッシュバスター（V1704 - 2025-11-12 14:30 - LP実データ完全版対応）
+  CACHE_BUSTER: '1731391800000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

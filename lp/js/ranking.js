@@ -11,24 +11,15 @@ if (window.RANKING_JS_LOADED) {
 window.RANKING_JS_LOADED = true;
 console.log('✅ ranking.js 読み込み開始 (V1669 - 二重読み込み防止ガード有効)');
 
-// サンプル会社データ（モザイク処理済み）- デフォルトのフォールバックデータ
-let allCompanies = [
-  { rank: 1, name: 'T社', price: '78万円〜', rating: 4.9, reviews: 245, features: ['地元密着', '保証充実', '即日対応'] },
-  { rank: 2, name: 'S社', price: '83万円〜', rating: 4.7, reviews: 189, features: ['最低価格保証', '職人直営'] },
-  { rank: 3, name: 'K社', price: '85万円〜', rating: 4.5, reviews: 156, features: ['定期点検付', '環境配慮'] },
-  { rank: 4, name: 'P社', price: '92万円〜', rating: 4.3, reviews: 123, features: ['10年保証', '高級塗料使用'] },
-  { rank: 5, name: 'M社', price: '94万円〜', rating: 4.2, reviews: 98, features: ['無料保証', '迅速対応'] },
-  { rank: 6, name: 'A社', price: '96万円〜', rating: 4.1, reviews: 87, features: ['高品質塗料', '技術力'] },
-  { rank: 7, name: 'B社', price: '98万円〜', rating: 4.0, reviews: 76, features: ['老舗企業', '安心実績'] },
-  { rank: 8, name: 'C社', price: '99万円〜', rating: 3.9, reviews: 65, features: ['価格重視', '短期施工'] }
-];
+// V1704: ダミーデータ削除 - 加盟店マスタの実データのみ使用
+let allCompanies = [];
 
 // GASから取得したランキングデータ（キャッシュ）
 let dynamicRankings = null;
 let currentSortType = 'recommended'; // recommended, cheap, review, quality
 
 let showingAll = false;
-let namesRevealed = false;
+// V1704: namesRevealedフラグ削除 - 実データのみ使用
 
 // ============================================
 // GASからランキングデータを取得
@@ -143,9 +134,8 @@ function updateAllCompaniesFromDynamic(sortType) {
   currentSortType = sortType;
 
   if (!dynamicRankings) {
-    console.warn('⚠️ 動的ランキングデータがありません、デフォルトデータをソート');
-    // デフォルトデータをソート
-    sortDefaultData(sortType);
+    console.error('❌ 動的ランキングデータがありません（V1704: デフォルトデータなし）');
+    allCompanies = [];
     return;
   }
 
@@ -169,8 +159,8 @@ function updateAllCompaniesFromDynamic(sortType) {
   }
 
   if (rankingList.length === 0) {
-    console.warn('⚠️ ランキングデータが空です、デフォルトデータをソート');
-    sortDefaultData(sortType);
+    console.error('❌ ランキングデータが空です（V1704: デフォルトデータなし）');
+    allCompanies = [];
     return;
   }
 
@@ -191,41 +181,7 @@ function updateAllCompaniesFromDynamic(sortType) {
   console.log('✅ allCompanies更新完了:', allCompanies.length, '件');
 }
 
-// デフォルトデータをソート
-function sortDefaultData(sortType) {
-  const sortedCompanies = [...allCompanies];
-
-  switch(sortType) {
-    case 'cheap':
-      // 価格で昇順ソート
-      sortedCompanies.sort((a, b) => {
-        const priceA = parseInt(a.price.replace(/[^0-9]/g, ''));
-        const priceB = parseInt(b.price.replace(/[^0-9]/g, ''));
-        return priceA - priceB;
-      });
-      break;
-    case 'review':
-      // レビュー数で降順ソート
-      sortedCompanies.sort((a, b) => b.reviews - a.reviews);
-      break;
-    case 'premium':
-      // 評価で降順ソート
-      sortedCompanies.sort((a, b) => b.rating - a.rating);
-      break;
-    case 'recommended':
-    default:
-      // デフォルト順（変更なし）
-      break;
-  }
-
-  // ランクを再割り当て
-  allCompanies = sortedCompanies.map((company, index) => ({
-    ...company,
-    rank: index + 1
-  }));
-
-  console.log(`📊 デフォルトデータを${sortType}順でソート完了`);
-}
+// V1704: sortDefaultData関数削除 - デフォルトデータなし、実データのみ使用
 
 // ============================================
 // 会社データから特徴を抽出
@@ -259,7 +215,7 @@ function extractFeatures(company) {
 
 // ヒアリング段階の管理
 let currentHearingStage = 0; // 0: 未開始, 1: 第1段階完了, 2: 第2段階完了, 3: 第3段階完了, 4: 第4段階完了
-const realCompanies = ['田中塗装', '山田ペイント', '佐藤工業', '鈴木建装', '松本塗装', '高橋ペイント', '伊藤建装', '渡辺塗装'];
+// V1704: realCompanies削除 - 実データのみ使用
 
 // キープリスト管理（ページ読み込み時にクリア）
 let keepList = [];
@@ -395,7 +351,8 @@ async function showRankingSection() {
         // 動的データを「おすすめ順」で表示
         updateAllCompaniesFromDynamic('recommended');
       } else {
-        console.warn('⚠️ ランキングデータ取得失敗、デフォルトデータで表示');
+        console.error('❌ ランキングデータ取得失敗（V1704: デフォルトデータなし）');
+        allCompanies = [];
       }
     } else {
       console.log('✅ ランキングデータは既に取得済み（キャッシュ使用）');
@@ -563,12 +520,7 @@ function displayRanking() {
   }
 }
 
-// 業者名の開示状態を更新（動的生成のためランキングを再描画）
-function updateCompanyNames() {
-  // 動的生成の場合はランキングを再描画するだけ
-  // displayRanking()関数内でwindow.namesRevealedの状態をチェックして適切な表示を行う
-  console.log('業者名更新処理省略（動的生成のため）');
-}
+// V1704: updateCompanyNames削除 - 実データのみ使用
 
 // キープ機能
 function toggleKeep(companyRank, companyName) {
@@ -628,13 +580,12 @@ function updateKeepCountBadge() {
   }
 }
 
-// 会社詳細表示
+// 会社詳細表示（V1704: 実データのみ使用）
 function showCompanyDetail(companyRank) {
   const company = allCompanies.find(c => c.rank === companyRank);
   if (!company) return;
-  
-  const companyName = window.namesRevealed && realCompanies[company.rank - 1] ? 
-    realCompanies[company.rank - 1] : company.name;
+
+  const companyName = company.name;
   
   // モーダル作成
   const modal = document.createElement('div');
@@ -763,16 +714,7 @@ function removeFromKeepList(companyName) {
   }
 }
 
-// キープリストの実名更新
-function updateKeepListWithRealNames() {
-  keepList.forEach(item => {
-    const companyIndex = parseInt(item.id) - 1;
-    if (realCompanies[companyIndex]) {
-      item.name = realCompanies[companyIndex];
-    }
-  });
-  localStorage.setItem('keepList', JSON.stringify(keepList));
-}
+// V1704: updateKeepListWithRealNames削除 - 実データのみ使用
 
 // 業者名を見るボタンで電話番号フォームにスクロール
 function scrollToPhoneForm() {
