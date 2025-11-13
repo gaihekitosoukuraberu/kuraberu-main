@@ -332,6 +332,12 @@ const BotCore = {
         // 選択肢をクリア
         BotUI.clearChoices();
 
+        // V1731-UX: 質問完了 - 進捗を100%にする
+        if (typeof window.updateProgress === 'function') {
+            window.updateProgress(100);
+            console.log('📊 進捗更新: 質問完了 → 100%');
+        }
+
         // V1713-FIX: 電話番号フォームを即座に表示（バックグラウンド処理を待たない）
         setTimeout(() => {
             if (typeof window.showPhoneMiniForm === 'function') {
