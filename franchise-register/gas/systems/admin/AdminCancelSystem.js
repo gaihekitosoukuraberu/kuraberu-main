@@ -23,7 +23,7 @@
  * ⚠️  トランザクション的な整合性を保つ
  */
 
-const AdminCancelSystem = {
+var AdminCancelSystem = {
   /**
    * キャンセル申請を承認
    * @param {Object} params - {

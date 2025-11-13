@@ -24,7 +24,7 @@
  * ⚠️  フォローアップ履歴の最低要件に注意
  */
 
-const MerchantCancelReport = {
+var MerchantCancelReport = {
   /**
    * キャンセル申請可能案件一覧を取得
    * @param {Object} params - { merchantId: 加盟店ID }

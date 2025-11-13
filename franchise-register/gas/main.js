@@ -144,6 +144,60 @@ const SystemRouter = {
       description: 'LP問い合わせフォーム送信',
       prefix: false,
       actions: ['lp_contact_submit']
+    },
+
+    // キャンセル申請システム
+    'getCancelableCases': {
+      system: 'MerchantCancelReport',
+      description: 'キャンセル申請可能案件取得',
+      prefix: false,
+      actions: ['getCancelableCases']
+    },
+    'submitCancelReport': {
+      system: 'MerchantCancelReport',
+      description: 'キャンセル申請登録',
+      prefix: false,
+      actions: ['submitCancelReport']
+    },
+
+    // 期限延長申請システム
+    'getExtensionEligibleCases': {
+      system: 'MerchantDeadlineExtension',
+      description: '期限延長申請可能案件取得',
+      prefix: false,
+      actions: ['getExtensionEligibleCases']
+    },
+    'submitExtensionRequest': {
+      system: 'MerchantDeadlineExtension',
+      description: '期限延長申請登録',
+      prefix: false,
+      actions: ['submitExtensionRequest']
+    },
+
+    // キャンセル承認システム（管理者用）
+    'approveCancelReport': {
+      system: 'AdminCancelSystem',
+      description: 'キャンセル申請承認',
+      prefix: false,
+      actions: ['approveCancelReport']
+    },
+    'rejectCancelReport': {
+      system: 'AdminCancelSystem',
+      description: 'キャンセル申請却下',
+      prefix: false,
+      actions: ['rejectCancelReport']
+    },
+    'approveExtensionRequest': {
+      system: 'AdminCancelSystem',
+      description: '期限延長申請承認',
+      prefix: false,
+      actions: ['approveExtensionRequest']
+    },
+    'rejectExtensionRequest': {
+      system: 'AdminCancelSystem',
+      description: '期限延長申請却下',
+      prefix: false,
+      actions: ['rejectExtensionRequest']
     }
   },
 

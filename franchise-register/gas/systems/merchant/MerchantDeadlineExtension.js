@@ -23,7 +23,7 @@
  * ⚠️  申請期限（7日以内）の厳密な判定に注意
  */
 
-const MerchantDeadlineExtension = {
+var MerchantDeadlineExtension = {
   /**
    * 期限延長申請可能案件一覧を取得
    * @param {Object} params - { merchantId: 加盟店ID }
