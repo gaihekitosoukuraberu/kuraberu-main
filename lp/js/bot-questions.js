@@ -10,10 +10,10 @@
 
 const BotQuestions = {
     // ============================================
-    // V1747-UX: 質問カウント方式（12問想定・前のめり曲線）
+    // V1747-UX: 質問カウント方式（20問想定・平方根曲線）
     // ============================================
     questionCount: 0,
-    EXPECTED_QUESTIONS: 12,  // 前のめり設定：12問想定
+    EXPECTED_QUESTIONS: 20,  // 平均的なフロー20問想定（ZIP13%→Q001で21%）
 
     // ============================================
     // V1747-UX: 質問カウンターリセット
@@ -24,14 +24,14 @@ const BotQuestions = {
     },
 
     // ============================================
-    // V1747-UX: 進捗度更新（12問想定・前のめり曲線）
+    // V1747-UX: 進捗度更新（20問想定・平方根曲線）
     // ============================================
     updateQuestionProgress(questionId) {
         this.questionCount++;
-        // 非線形進捗曲線（累乗0.35）：前のめり・サクサク進む
+        // 非線形進捗曲線（累乗0.5 = 平方根）：20問で98%到達、Q001で21%
         const ratio = this.questionCount / this.EXPECTED_QUESTIONS;
         const progressPercentage = Math.min(
-            Math.floor(Math.pow(ratio, 0.35) * 98),
+            Math.floor(Math.pow(ratio, 0.5) * 98),
             98
         );
 

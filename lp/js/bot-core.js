@@ -167,10 +167,10 @@ const BotCore = {
         BotUI.clearMessages();
         BotUI.clearChoices();
 
-        // V1747-UX: 郵便番号入力完了で進捗度を上げる（15%）
+        // V1747-UX: 郵便番号入力完了で進捗度を上げる（13%）
         if (typeof window.updateProgress === 'function') {
-            window.updateProgress(15);
-            console.log('📊 進捗更新: 郵便番号入力完了 → 15%');
+            window.updateProgress(13);
+            console.log('📊 進捗更新: 郵便番号入力完了 → 13%');
         }
 
         // 開始メッセージ
@@ -241,10 +241,10 @@ const BotCore = {
         if (scenario.special === 'direct_postal') {
             console.log('✨ 特殊シナリオ: 郵便番号フォーム直接表示');
 
-            // V1747-UX: ワードリンク流入時の初期表示で進捗度を上げる（8%）
+            // V1747-UX: ワードリンク流入時の初期表示で進捗度を上げる（3%）
             if (typeof window.updateProgress === 'function') {
-                window.updateProgress(8);
-                console.log('📊 進捗更新: ワードリンク流入（greeting表示・direct_postal） → 8%');
+                window.updateProgress(3);
+                console.log('📊 進捗更新: ワードリンク流入（greeting表示・direct_postal） → 3%');
             }
 
             // greetingメッセージ
@@ -267,10 +267,10 @@ const BotCore = {
             return;
         }
 
-        // V1747-UX: ワードリンク流入時の初期表示で進捗度を上げる（8%）
+        // V1747-UX: ワードリンク流入時の初期表示で進捗度を上げる（3%）
         if (typeof window.updateProgress === 'function') {
-            window.updateProgress(8);
-            console.log('📊 進捗更新: ワードリンク流入（greeting表示） → 8%');
+            window.updateProgress(3);
+            console.log('📊 進捗更新: ワードリンク流入（greeting表示） → 3%');
         }
 
         // greetingメッセージ
@@ -382,11 +382,8 @@ const BotCore = {
         // 選択肢をクリア
         BotUI.clearChoices();
 
-        // V1731-UX: 質問完了 - 進捗を100%にする
-        if (typeof window.updateProgress === 'function') {
-            window.updateProgress(100);
-            console.log('📊 進捗更新: 質問完了 → 100%');
-        }
+        // V1747-UX: 進捗更新はshowPhoneMiniForm()内で実行（フォーム表示時に100%）
+        // 削除: window.updateProgress(100) - 重複を避けるため
 
         // V1713-FIX: 電話番号フォームを即座に表示（バックグラウンド処理を待たない）
         setTimeout(() => {

@@ -1760,6 +1760,12 @@
             const messages = document.getElementById('messages');
             if (!messages) return;
 
+            // V1747-UX: 電話番号フォーム表示時に進捗を100%にする
+            if (typeof window.updateProgress === 'function') {
+                window.updateProgress(100);
+                console.log('📊 進捗更新: 電話番号フォーム表示 → 100%');
+            }
+
             // フォームを作成（メッセージはzip-word-bot.jsonから表示済み）
             setTimeout(() => {
                 const formContainer = document.createElement('div');
@@ -1922,6 +1928,18 @@
                 messages.appendChild(aiMessageContainer);
                 scrollToBotBottom();
 
+                // V1747-UX: ランキング表示完了後、進捗バーを非表示にする
+                const desktopProgressBar = document.getElementById('desktopProgressBar');
+                const mobileProgressBar = document.getElementById('mobileProgressBar');
+                if (desktopProgressBar) {
+                    desktopProgressBar.classList.add('hidden');
+                    console.log('✅ デスクトップ進捗バー非表示（ランキング表示完了）');
+                }
+                if (mobileProgressBar) {
+                    mobileProgressBar.classList.add('hidden');
+                    console.log('✅ モバイル進捗バー非表示（ランキング表示完了）');
+                }
+
                 // V1747-UX: スマホ版の場合はメッセージを読ませてからランキングセクションまでスクロール
                 if (window.innerWidth < 768) {
                     setTimeout(() => {
@@ -1932,8 +1950,6 @@
                         }
                     }, 2000);  // V1747-UX: 500ms→2000msに変更（メッセージを読む時間を確保）
                 }
-
-                // V1733-UX: 進捗度は既に100%のため更新不要（bot-core.js connectToPhoneSystem()で100%設定済み）
             }, 1000);
         }
 
@@ -3229,11 +3245,11 @@
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） - 固定キャッシュバスター -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="js/env-loader.js?v=1763026000000"></script>
+    <script src="js/env-loader.js?v=1763028000000"></script>
 
     <!-- BOTローダー（タイミング問題のため静的ロード必須） -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="gaiheki-bot-loader.js?v=1763026000000"></script>
+    <script src="gaiheki-bot-loader.js?v=1763028000000"></script>
 
     <!-- V1713-FIX: 無料見積もりボタン（body直下・viewport基準で完全固定） -->
     <div id="estimateBtnContainer" style="display: none !important; position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 999999 !important; background: white !important; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 200px 0 200px white !important; border-top: 1px solid #e5e7eb !important; padding: 1rem 0 !important; padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important; pointer-events: auto !important;">

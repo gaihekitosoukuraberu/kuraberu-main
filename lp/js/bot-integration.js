@@ -92,10 +92,10 @@ async function initBotForZipEntry() {
         });
     }
 
-    // V1747-UX: 郵便番号入力完了で進捗度を上げる（15%）
+    // V1747-UX: 郵便番号入力完了で進捗度を上げる（13%）
     if (typeof window.updateProgress === 'function') {
-        window.updateProgress(15);
-        console.log('📊 進捗更新: 郵便番号入力完了 → 15%');
+        window.updateProgress(13);
+        console.log('📊 進捗更新: 郵便番号入力完了 → 13%');
     }
 
     // AIメッセージ：相場は既に表示済みなので、直接質問開始
@@ -227,10 +227,10 @@ function initBotForKeywordEntry(keyword) {
         console.log('✅ ランキング初期表示（デフォルトデータ: T社、S社など）');
     }
 
-    // V1747-UX: ワードリンク流入時の初期表示で進捗度を上げる（8%）
+    // V1747-UX: ワードリンク流入時の初期表示で進捗度を上げる（3%）
     if (typeof window.updateProgress === 'function') {
-        window.updateProgress(8);
-        console.log('📊 進捗更新: ワードリンク流入（greeting表示） → 8%');
+        window.updateProgress(3);
+        console.log('📊 進捗更新: ワードリンク流入（greeting表示） → 3%');
     }
 
     // greeting表示
@@ -340,10 +340,10 @@ function showPostalFormInBot() {
             });
         }
 
-        // V1747-UX: 郵便番号入力完了で進捗度を上げる（15%）
+        // V1747-UX: 郵便番号入力完了で進捗度を上げる（13%）
         if (typeof window.updateProgress === 'function') {
-            window.updateProgress(15);
-            console.log('📊 進捗更新: 郵便番号入力完了（ワードリンク） → 15%');
+            window.updateProgress(13);
+            console.log('📊 進捗更新: 郵便番号入力完了（ワードリンク） → 13%');
         }
 
         // mainQuestionsへ（即座に開始）
