@@ -1888,221 +1888,69 @@
                 console.log('✅ ローディングインジケーター削除（即座）');
             }
 
-            // V1747-UX: サンクスページ表示
+            // 完了メッセージ表示とランキング解除
             setTimeout(() => {
-                showThanksPage();
-            }, 500);
-        }
+                const messages = document.getElementById('messages');
 
-        // V1747-UX: サンクスページ表示関数
-        function showThanksPage() {
-            console.log('🎉 サンクスページ表示');
+                // モザイクを解除
+                const rankingContent = document.getElementById('rankingContent');
+                const mosaicMessage = document.getElementById('mosaicMessage');
+                if (rankingContent) rankingContent.classList.remove('mosaic');
+                if (mosaicMessage) mosaicMessage.style.display = 'none';
 
-            // 進捗バーを非表示
-            const desktopProgressBar = document.getElementById('desktopProgressBar');
-            const mobileProgressBar = document.getElementById('mobileProgressBar');
-            if (desktopProgressBar) desktopProgressBar.classList.add('hidden');
-            if (mobileProgressBar) mobileProgressBar.classList.add('hidden');
-
-            // サンクスページオーバーレイを作成
-            const overlay = document.createElement('div');
-            overlay.id = 'thanksPageOverlay';
-            overlay.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                z-index: 10000;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                animation: fadeIn 0.3s ease-in;
-            `;
-
-            // サンクスページコンテンツ
-            overlay.innerHTML = `
-                <style>
-                    @keyframes fadeIn {
-                        from { opacity: 0; }
-                        to { opacity: 1; }
-                    }
-                    @keyframes checkmark {
-                        0% { transform: scale(0) rotate(0deg); }
-                        50% { transform: scale(1.2) rotate(180deg); }
-                        100% { transform: scale(1) rotate(360deg); }
-                    }
-                    @keyframes pulse {
-                        0%, 100% { transform: scale(1); }
-                        50% { transform: scale(1.05); }
-                    }
-                    .thanks-content {
-                        text-align: center;
-                        color: white;
-                        max-width: 600px;
-                        padding: 3rem;
-                        animation: fadeIn 0.5s ease-in 0.2s both;
-                    }
-                    .thanks-checkmark {
-                        width: 120px;
-                        height: 120px;
-                        margin: 0 auto 2rem;
-                        background: white;
-                        border-radius: 50%;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        animation: checkmark 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-                        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-                    }
-                    .thanks-checkmark svg {
-                        width: 60px;
-                        height: 60px;
-                        stroke: #667eea;
-                        stroke-width: 3;
-                        stroke-linecap: round;
-                        stroke-linejoin: round;
-                        fill: none;
-                        stroke-dasharray: 100;
-                        stroke-dashoffset: 100;
-                        animation: draw 0.5s ease-out 0.3s forwards;
-                    }
-                    @keyframes draw {
-                        to { stroke-dashoffset: 0; }
-                    }
-                    .thanks-title {
-                        font-size: 2.5rem;
-                        font-weight: bold;
-                        margin-bottom: 1rem;
-                        text-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                    }
-                    .thanks-message {
-                        font-size: 1.2rem;
-                        margin-bottom: 2rem;
-                        opacity: 0.95;
-                        line-height: 1.6;
-                    }
-                    .thanks-countdown {
-                        font-size: 1rem;
-                        opacity: 0.9;
-                        margin-top: 2rem;
-                        animation: pulse 2s ease-in-out infinite;
-                    }
-                    .thanks-countdown-number {
-                        font-size: 2rem;
-                        font-weight: bold;
-                        display: inline-block;
-                        margin: 0 0.3rem;
-                    }
-                    @media (max-width: 768px) {
-                        .thanks-content {
-                            padding: 2rem 1.5rem;
-                        }
-                        .thanks-title {
-                            font-size: 2rem;
-                        }
-                        .thanks-message {
-                            font-size: 1rem;
-                        }
-                        .thanks-checkmark {
-                            width: 100px;
-                            height: 100px;
-                        }
-                        .thanks-checkmark svg {
-                            width: 50px;
-                            height: 50px;
-                        }
-                    }
-                </style>
-                <div class="thanks-content">
-                    <div class="thanks-checkmark">
-                        <svg viewBox="0 0 52 52">
-                            <polyline points="14 27 22 35 38 19"/>
-                        </svg>
-                    </div>
-                    <h1 class="thanks-title">お申し込みありがとうございます！</h1>
-                    <p class="thanks-message">
-                        ご入力いただいた内容を確認次第、<br>
-                        担当者よりご連絡させていただきます。<br>
-                        今しばらくお待ちくださいませ。
-                    </p>
-                    <div class="thanks-countdown">
-                        このページは<span class="thanks-countdown-number" id="countdownNumber">5</span>秒後に自動的に閉じます
-                    </div>
-                </div>
-            `;
-
-            document.body.appendChild(overlay);
-
-            // カウントダウン開始
-            let countdown = 5;
-            const countdownElement = document.getElementById('countdownNumber');
-
-            const countdownInterval = setInterval(() => {
-                countdown--;
-                if (countdownElement) {
-                    countdownElement.textContent = countdown;
+                // ランキングのクリックブロッカーを削除（V1690）
+                const clickBlocker = document.getElementById('rankingClickBlocker');
+                if (clickBlocker) {
+                    clickBlocker.remove();
+                    console.log('✅ ランキングのクリックブロッカーを削除（submitPhoneNumber）');
+                } else {
+                    console.log('⚠️ クリックブロッカー要素が見つかりません（submitPhoneNumber）');
                 }
 
-                if (countdown <= 0) {
-                    clearInterval(countdownInterval);
-                    // ウィンドウを閉じる試行
-                    attemptCloseWindow();
-                }
-            }, 1000);
-        }
+                // 完了メッセージ（選択したソート順に応じたメッセージ）
+                const sortTypeMessages = {
+                    'cheap': 'ありがとうございます！「安い順」ランキングなどを参考にしながら業者を選択してください。',
+                    'review': 'ありがとうございます！「口コミ順」ランキングなどを参考にしながら業者を選択してください。',
+                    'premium': 'ありがとうございます！「高品質順」ランキングなどを参考にしながら業者を選択してください。',
+                    'recommended': 'ありがとうございます！「おすすめ順」ランキングなどを参考にしながら業者を選択してください。'
+                };
+                const selectedSortType = (window.BotConfig && window.BotConfig.state && window.BotConfig.state.selectedSortType) || 'recommended';
+                const completionMessage = sortTypeMessages[selectedSortType] || sortTypeMessages['recommended'];
 
-        // ウィンドウを閉じる試行
-        function attemptCloseWindow() {
-            console.log('🚪 ウィンドウを閉じます');
-
-            // まず通常のclose()を試行
-            window.close();
-
-            // 200ms後にまだ開いている場合は手動クローズメッセージを表示
-            setTimeout(() => {
-                if (!window.closed) {
-                    console.log('⚠️ ウィンドウを自動で閉じられませんでした');
-                    showManualCloseMessage();
-                }
-            }, 200);
-        }
-
-        // 手動クローズメッセージ表示
-        function showManualCloseMessage() {
-            const overlay = document.getElementById('thanksPageOverlay');
-            if (overlay) {
-                overlay.innerHTML = `
-                    <div class="thanks-content">
-                        <div class="thanks-checkmark">
-                            <svg viewBox="0 0 52 52">
-                                <polyline points="14 27 22 35 38 19"/>
-                            </svg>
-                        </div>
-                        <h1 class="thanks-title">お申し込み完了</h1>
-                        <p class="thanks-message">
-                            このタブ・ウィンドウを<br>
-                            閉じていただいて構いません。
-                        </p>
-                        <button onclick="window.close()" style="
-                            background: white;
-                            color: #667eea;
-                            border: none;
-                            padding: 1rem 2rem;
-                            border-radius: 0.5rem;
-                            font-size: 1rem;
-                            font-weight: bold;
-                            cursor: pointer;
-                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                            margin-top: 1rem;
-                            transition: transform 0.2s;
-                        " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                            閉じる
-                        </button>
+                const aiMessageContainer = document.createElement('div');
+                aiMessageContainer.className = 'ai-message-container';
+                aiMessageContainer.innerHTML = `
+                    <img src="images/avatars/319260ba-0b3d-47d0-b18f-abf530c2793e.png" alt="AI" class="ai-avatar" loading="eager" decoding="async">
+                    <div class="ai-message">
+                        ${completionMessage}
                     </div>
                 `;
-            }
+                messages.appendChild(aiMessageContainer);
+                scrollToBotBottom();
+
+                // V1747-UX: ランキング表示完了後、進捗バーを非表示にする
+                const desktopProgressBar = document.getElementById('desktopProgressBar');
+                const mobileProgressBar = document.getElementById('mobileProgressBar');
+                if (desktopProgressBar) {
+                    desktopProgressBar.classList.add('hidden');
+                    console.log('✅ デスクトップ進捗バー非表示（ランキング表示完了）');
+                }
+                if (mobileProgressBar) {
+                    mobileProgressBar.classList.add('hidden');
+                    console.log('✅ モバイル進捗バー非表示（ランキング表示完了）');
+                }
+
+                // V1747-UX: スマホ版の場合はメッセージを読ませてからランキングセクションまでスクロール
+                if (window.innerWidth < 768) {
+                    setTimeout(() => {
+                        const rankingSection = document.getElementById('rankingSection');
+                        if (rankingSection) {
+                            rankingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            console.log('📱 ランキングセクションへ自動スクロール（メッセージ表示2秒後）');
+                        }
+                    }, 2000);  // V1747-UX: 500ms→2000msに変更（メッセージを読む時間を確保）
+                }
+            }, 1000);
         }
 
         // 進捗更新（V1736-FIX: 進捗度が絶対に下がらないように永続化）
@@ -2934,8 +2782,8 @@
                     const response = await window.CVAPI.sendCV2(cv2FormData);
                     if (response.success) {
                         console.log('✅ CV2送信成功（詳細情報追加）');
-                        alert('詳細情報を登録しました。業者とのやり取りがよりスムーズになります。');
                         closeEstimateForm();
+                        showThanksModal();
                     } else {
                         console.error('❌ CV2送信失敗:', response.error);
                         alert('送信に失敗しま���た。もう一度お試しください。');
@@ -2950,6 +2798,166 @@
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = '送信する';
+            }
+        }
+
+        // ============================================
+        // サンクスモーダル（CV2完了時）
+        // ============================================
+        function showThanksModal() {
+            console.log('🎉 サンクスモーダル表示');
+
+            // モーダルHTML作成
+            const modalHtml = `
+                <div id="thanksModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center transform transition-all">
+                        <!-- チェックマークアニメーション -->
+                        <div class="mb-6">
+                            <div class="checkmark-circle mx-auto">
+                                <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                                    <circle class="checkmark-circle-path" cx="26" cy="26" r="25" fill="none"/>
+                                    <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- メッセージ -->
+                        <h2 class="text-2xl font-bold text-gray-800 mb-3">
+                            お申し込みありがとうございます！
+                        </h2>
+                        <p class="text-gray-600 mb-6 leading-relaxed">
+                            詳細情報を登録しました。<br>
+                            業者とのやり取りがよりスムーズになります。
+                        </p>
+
+                        <!-- カウントダウン -->
+                        <div class="text-sm text-gray-500 mb-4">
+                            <span id="thanksCountdown">5</span>秒後に自動的に閉じます
+                        </div>
+
+                        <!-- 手動クローズボタン（フォールバック） -->
+                        <button id="thanksCloseBtn" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 font-bold transition-all duration-200 shadow-lg hover:shadow-xl">
+                            閉じる
+                        </button>
+                    </div>
+                </div>
+
+                <style>
+                    /* チェックマークアニメーション */
+                    .checkmark-circle {
+                        width: 80px;
+                        height: 80px;
+                        position: relative;
+                        display: inline-block;
+                        vertical-align: top;
+                    }
+
+                    .checkmark {
+                        width: 80px;
+                        height: 80px;
+                        border-radius: 50%;
+                        display: block;
+                        stroke-width: 2;
+                        stroke: #4CAF50;
+                        stroke-miterlimit: 10;
+                        box-shadow: inset 0px 0px 0px #4CAF50;
+                        animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both;
+                    }
+
+                    .checkmark-circle-path {
+                        stroke-dasharray: 166;
+                        stroke-dashoffset: 166;
+                        stroke-width: 2;
+                        stroke-miterlimit: 10;
+                        stroke: #4CAF50;
+                        fill: none;
+                        animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+                    }
+
+                    .checkmark-check {
+                        transform-origin: 50% 50%;
+                        stroke-dasharray: 48;
+                        stroke-dashoffset: 48;
+                        stroke: #4CAF50;
+                        stroke-width: 3;
+                        animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+                    }
+
+                    @keyframes stroke {
+                        100% {
+                            stroke-dashoffset: 0;
+                        }
+                    }
+
+                    @keyframes scale {
+                        0%, 100% {
+                            transform: none;
+                        }
+                        50% {
+                            transform: scale3d(1.1, 1.1, 1);
+                        }
+                    }
+
+                    @keyframes fill {
+                        100% {
+                            box-shadow: inset 0px 0px 0px 30px #4CAF50;
+                        }
+                    }
+                </style>
+            `;
+
+            // モーダルをDOMに追加
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // カウントダウン開始
+            let countdown = 5;
+            const countdownEl = document.getElementById('thanksCountdown');
+
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                if (countdownEl) {
+                    countdownEl.textContent = countdown;
+                }
+
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    closeWindow();
+                }
+            }, 1000);
+
+            // 手動クローズボタン
+            const closeBtn = document.getElementById('thanksCloseBtn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    clearInterval(countdownInterval);
+                    closeWindow();
+                });
+            }
+
+            // ウィンドウクローズ処理
+            function closeWindow() {
+                console.log('🚪 ウィンドウクローズ試行');
+
+                // まずモーダルを削除
+                const modal = document.getElementById('thanksModal');
+                if (modal) {
+                    modal.remove();
+                }
+
+                // window.close()を試行
+                try {
+                    window.close();
+
+                    // 500ms待ってもクローズできなければ、フォールバック処理
+                    setTimeout(() => {
+                        // まだウィンドウが開いている場合
+                        console.log('⚠️ window.close()が動作しませんでした');
+                        alert('ブラウザのタブを閉じてください。ご利用ありがとうございました。');
+                    }, 500);
+                } catch (error) {
+                    console.error('❌ window.close()エラー:', error);
+                    alert('ブラウザのタブを閉じてください。ご利用ありがとうございました。');
+                }
             }
         }
 
