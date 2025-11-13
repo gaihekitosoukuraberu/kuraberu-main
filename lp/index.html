@@ -1502,36 +1502,24 @@
             </div>
         </div>
 
-        <!-- 見積もりフォームモーダル（V1714-UX: プロ仕様デザイン） -->
+        <!-- 見積もりフォームモーダル（V1717-UX: プロ仕様デザイン・シンプル化） -->
         <div id="estimateFormModal" class="hidden fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all">
-                <!-- プログレスバー（改善版） -->
-                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-5 rounded-t-2xl">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            <span class="text-sm font-bold">ステップ <span id="currentStep">1</span> / 1</span>
+                <!-- ヘッダー（シンプル版） -->
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-t-2xl">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <div>
+                            <h2 class="text-2xl font-bold">見積もり依頼フォーム</h2>
+                            <p class="text-blue-100 text-sm mt-1">必要事項をご入力ください</p>
                         </div>
-                        <span class="text-sm font-bold bg-white bg-opacity-20 px-3 py-1 rounded-full"><span id="stepPercent">100</span>%完了</span>
-                    </div>
-                    <div class="w-full bg-white bg-opacity-20 rounded-full h-3 overflow-hidden">
-                        <div id="stepProgress" class="bg-white h-3 rounded-full transition-all duration-500 shadow-lg" style="width: 100%"></div>
                     </div>
                 </div>
 
                 <!-- ステップ1: 基本情報 -->
                 <div id="step1" class="p-6">
-                    <div class="mb-6">
-                        <div class="flex items-center gap-2 mb-2">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
-                            <h2 class="text-2xl font-bold text-gray-900">基本情報の入力</h2>
-                        </div>
-                        <p class="text-sm text-gray-600">お客様の基本情報をご入力ください</p>
-                    </div>
 
                     <!-- お名前 -->
                     <div class="mb-5">
@@ -1572,7 +1560,8 @@
                         <div id="homeAddressSection" class="hidden mt-4 p-4 bg-blue-50 rounded-xl border-2 border-blue-200 space-y-3">
                             <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
                                 <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 </svg>
                                 自宅住所 <span class="text-red-500 ml-1">*</span>
                             </label>
@@ -2232,12 +2221,9 @@
 
             console.log('✅ 背景スクロール復元（モーダル閉じる）');
 
-            // V1715-UX: ステップを1に戻す（100%）
+            // V1717-UX: ステップを1に戻す
             document.getElementById('step1').classList.remove('hidden');
             document.getElementById('step2').classList.add('hidden');
-            document.getElementById('currentStep').textContent = '1';
-            document.getElementById('stepPercent').textContent = '100';
-            document.getElementById('stepProgress').style.width = '100%';
 
             // V1713-UX: キープリストがあれば無料見積もりボタンを再表示
             const keeps = keepManager.getList();
@@ -2563,11 +2549,6 @@
             document.getElementById('step1').classList.add('hidden');
             document.getElementById('step2').classList.remove('hidden');
 
-            // プログレスバー更新（2/2）
-            document.getElementById('currentStep').textContent = '2';
-            document.getElementById('stepPercent').textContent = '100';
-            document.getElementById('stepProgress').style.width = '100%';
-
             // 背景スクロール防止（継続）
             const scrollY = window.modalScrollPosition || window.scrollY || window.pageYOffset;
             window.modalScrollPosition = scrollY;
@@ -2596,6 +2577,51 @@
 
             // 現地調査希望日時のチェックボックスを生成
             generateSurveyDateOptions();
+        }
+
+        // ============================================
+        // V1715-UX: 現地調査希望日時の選択肢を生成
+        // ============================================
+        function generateSurveyDateOptions() {
+            console.log('📅 現地調査希望日時の選択肢生成');
+
+            const container = document.getElementById('surveyDates');
+            if (!container) {
+                console.error('❌ surveyDates コンテナが見つかりません');
+                return;
+            }
+
+            // 曜日名の配列
+            const dayNames = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
+
+            // 今日から7日間の選択肢を生成（曜日のみ、コンパクト表示）
+            const today = new Date();
+            const options = [];
+
+            for (let i = 1; i <= 7; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                const dayName = dayNames[date.getDay()];
+
+                options.push(`
+                    <div class="flex items-center gap-3 p-2 bg-white border border-gray-200 rounded-lg">
+                        <div class="w-16 font-bold text-sm text-gray-900">${dayName}</div>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-1.5 cursor-pointer hover:text-blue-600 transition-colors">
+                                <input type="checkbox" name="surveyDate" value="${dayName}・午前" class="w-4 h-4 text-blue-600 rounded focus:ring-1 focus:ring-blue-500">
+                                <span class="text-sm">午前</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer hover:text-blue-600 transition-colors">
+                                <input type="checkbox" name="surveyDate" value="${dayName}・午後" class="w-4 h-4 text-blue-600 rounded focus:ring-1 focus:ring-blue-500">
+                                <span class="text-sm">午後</span>
+                            </label>
+                        </div>
+                    </div>
+                `);
+            }
+
+            container.innerHTML = options.join('');
+            console.log('✅ 現地調査希望日時の選択肢を生成しました（7日×2時間帯）');
         }
 
         // ============================================
