@@ -158,6 +158,26 @@ const BotCore = {
             }
         }
 
+        // V1747-FIX: mainContentContainerとランキングセクションを確実に表示
+        const mainContentContainer = document.getElementById('mainContentContainer');
+        if (mainContentContainer) {
+            mainContentContainer.classList.remove('hidden');
+            mainContentContainer.style.display = 'flex';
+            console.log('✅ mainContentContainer表示（2カラムレイアウト）');
+        }
+
+        const rankingSection = document.getElementById('rankingSection');
+        if (rankingSection) {
+            rankingSection.classList.remove('hidden');
+            console.log('✅ ランキングセクション表示');
+        }
+
+        // ランキング表示（プレースホルダー）
+        if (typeof window.displayRanking === 'function') {
+            window.displayRanking();
+            console.log('✅ ランキングプレースホルダー表示');
+        }
+
         // UI初期化を確実に実行（Safari対応）
         if (!BotUI.elements.messages) {
             BotUI.init();
@@ -171,6 +191,28 @@ const BotCore = {
         if (typeof window.updateProgress === 'function') {
             window.updateProgress(13);
             console.log('📊 進捗更新: 郵便番号入力完了 → 13%');
+        }
+
+        // V1747-FIX: GASからランキングをバックグラウンドで取得（非ブロッキング）
+        console.log('🏆 郵便番号入力後、GASからランキングを取得します（バックグラウンド）');
+        if (typeof window.fetchRankingFromGAS === 'function') {
+            window.fetchRankingFromGAS().then((success) => {
+                if (success) {
+                    console.log('✅ ランキング取得成功（バックグラウンド）');
+                    // デフォルトはおすすめ順
+                    if (typeof window.updateAllCompaniesFromDynamic === 'function') {
+                        window.updateAllCompaniesFromDynamic('recommended');
+                    }
+                    // ランキング再表示
+                    if (typeof window.displayRanking === 'function') {
+                        window.displayRanking();
+                    }
+                } else {
+                    console.warn('⚠️ ランキング取得失敗、プレースホルダー維持');
+                }
+            }).catch(err => {
+                console.error('❌ ランキング取得エラー（非致命的）:', err);
+            });
         }
 
         // 開始メッセージ
@@ -236,6 +278,26 @@ const BotCore = {
         // メッセージクリア
         BotUI.clearMessages();
         BotUI.clearChoices();
+
+        // V1747-FIX: ランキングセクションを確実に表示（ワードリンク流入時も表示）
+        const mainContentContainer = document.getElementById('mainContentContainer');
+        if (mainContentContainer) {
+            mainContentContainer.classList.remove('hidden');
+            mainContentContainer.style.display = 'flex';
+            console.log('✅ mainContentContainer表示（2カラムレイアウト・ワードリンク）');
+        }
+
+        const rankingSection = document.getElementById('rankingSection');
+        if (rankingSection) {
+            rankingSection.classList.remove('hidden');
+            console.log('✅ ランキングセクション表示（ワードリンク）');
+        }
+
+        // ランキング表示（プレースホルダー）
+        if (typeof window.displayRanking === 'function') {
+            window.displayRanking();
+            console.log('✅ ランキングプレースホルダー表示（ワードリンク）');
+        }
 
         // 特殊処理：郵便番号フォームへ直接遷移
         if (scenario.special === 'direct_postal') {
