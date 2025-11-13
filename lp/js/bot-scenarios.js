@@ -274,6 +274,21 @@ const BotScenarios = {
         setTimeout(() => {
             console.log('✅ ランキングプレースホルダー表示（空配列）');
 
+            // mainContentContainerを表示（2カラムレイアウト）
+            const mainContentContainer = document.getElementById('mainContentContainer');
+            if (mainContentContainer) {
+                mainContentContainer.classList.remove('hidden');
+                mainContentContainer.style.display = 'flex';
+                console.log('✅ mainContentContainer表示（2カラムレイアウト）');
+            }
+
+            // ランキングセクションを表示
+            const rankingSection = document.getElementById('rankingSection');
+            if (rankingSection) {
+                rankingSection.classList.remove('hidden');
+                console.log('✅ ランキングセクション表示');
+            }
+
             // ランキング表示（プレースホルダー）
             if (typeof window.displayRanking === 'function') {
                 window.displayRanking();

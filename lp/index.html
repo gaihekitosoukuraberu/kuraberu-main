@@ -1958,23 +1958,9 @@
         window.maxProgressPercentage = parseInt(sessionStorage.getItem('maxProgress') || '0', 10);
         console.log(`🔄 進捗度復元: ${window.maxProgressPercentage}%`);
 
-        // V1736-FIX: 復元時に100%だった場合、即座に非表示にする
-        if (window.maxProgressPercentage >= 100) {
-            // DOM読み込み完了後に実行
-            document.addEventListener('DOMContentLoaded', function() {
-                const mobileProgressBarContainer = document.getElementById('mobileProgressBar');
-                const desktopProgressMeter = document.getElementById('progressMeter');
-
-                if (mobileProgressBarContainer) {
-                    mobileProgressBarContainer.classList.add('hidden');
-                    console.log('✅ モバイル進捗バー非表示（復元時100%）');
-                }
-                if (desktopProgressMeter) {
-                    desktopProgressMeter.classList.add('hidden');
-                    console.log('✅ デスクトップ進捗バー非表示（復元時100%）');
-                }
-            });
-        }
+        // V1747-UX: 復元時に100%でも進捗バーは表示したまま
+        // 進捗バーは電話番号送信後のみ非表示にする（submitPhoneNumber()で実行）
+        // 削除: 復元時の自動非表示 - ページリロード時も進捗バーを表示し続ける
 
         function updateProgress(percentage) {
             // V1735-FIX: 最大進捗度より大きい場合のみ更新（絶対に戻らない）
@@ -2013,11 +1999,8 @@
                 mobileProgressBar.style.background = 'linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%)';
             }
 
-            // 100%になったらモバイル版のプログレスバーを非表示にする
-            if (percentage >= 100 && mobileProgressBarContainer) {
-                mobileProgressBarContainer.classList.add('hidden');
-                console.log('✅ モバイル進捗バー非表示（100%達成）');
-            }
+            // V1747-UX: 100%到達時も進捗バーは表示したまま（submitPhoneNumber()で非表示）
+            // 削除: percentage >= 100での自動非表示 - 電話番号送信後のみ非表示にする
         }
 
         // 進捗度リセット関数（開発・デバッグ用）
@@ -3245,11 +3228,11 @@
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） - 固定キャッシュバスター -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="js/env-loader.js?v=1763031000000"></script>
+    <script src="js/env-loader.js?v=1763032000000"></script>
 
     <!-- BOTローダー（タイミング問題のため静的ロード必須） -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="gaiheki-bot-loader.js?v=1763031000000"></script>
+    <script src="gaiheki-bot-loader.js?v=1763032000000"></script>
 
     <!-- V1713-FIX: 無料見積もりボタン（body直下・viewport基準で完全固定） -->
     <div id="estimateBtnContainer" style="display: none !important; position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 999999 !important; background: white !important; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 200px 0 200px white !important; border-top: 1px solid #e5e7eb !important; padding: 1rem 0 !important; padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important; pointer-events: auto !important;">
