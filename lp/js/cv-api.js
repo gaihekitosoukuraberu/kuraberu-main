@@ -301,17 +301,18 @@ const CVAPI = {
                 }
             };
 
-            // タイムアウト設定（V1747-FIX: 60秒→20秒に短縮）
+            // タイムアウト設定（V1748-FIX: ENV.TIMEOUTを使用、60秒）
+            const timeout = (window.ENV && window.ENV.TIMEOUT) || 60000;
             setTimeout(() => {
                 if (window[dataVarName] === undefined) {
-                    console.error('❌ タイムアウト（20秒）');
+                    console.error(`❌ タイムアウト（${timeout/1000}秒）`);
                     delete window[dataVarName];
                     if (script.parentNode) {
                         script.parentNode.removeChild(script);
                     }
-                    reject(new Error('Request timeout (20s)'));
+                    reject(new Error(`Request timeout (${timeout/1000}s)`));
                 }
-            }, 20000);
+            }, timeout);
 
             // DOMに追加してからsrcを設定
             const targetElement = document.head || document.getElementsByTagName('head')[0] || document.body;
