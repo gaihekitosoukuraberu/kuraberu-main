@@ -109,6 +109,11 @@ const BotCore = {
             }
         }
 
+        // V1741-UX: 質問カウンターリセット
+        if (window.BotQuestions && typeof window.BotQuestions.resetQuestionCount === 'function') {
+            window.BotQuestions.resetQuestionCount();
+        }
+
         // 全画面モード開始
         this.enterFullscreen();
 
@@ -195,6 +200,11 @@ const BotCore = {
             } catch (e) {
                 console.warn('⚠️ 進捗度リセット失敗:', e);
             }
+        }
+
+        // V1741-UX: 質問カウンターリセット
+        if (window.BotQuestions && typeof window.BotQuestions.resetQuestionCount === 'function') {
+            window.BotQuestions.resetQuestionCount();
         }
 
         // 全画面モード開始
