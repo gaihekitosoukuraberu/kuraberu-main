@@ -44,6 +44,26 @@ function testAddContractRecord(cvId) {
 }
 
 /**
+ * トリガー設定テスト（初回のみ実行）
+ * 成約データ自動登録 + 日次集計の両方のトリガーを設定
+ */
+function testSetupAllTriggers() {
+  console.log('===== 全トリガー設定 =====');
+
+  // 1. onEditトリガー（成約データ自動登録 + ステータス同期）
+  console.log('\n1. onEditトリガーを設定中...');
+  setupOnEditTrigger();
+
+  // 2. 日次集計トリガー（毎日0時実行）
+  console.log('\n2. 日次集計トリガーを設定中...');
+  setupDailyMetricsTrigger();
+
+  console.log('\n✅ 全トリガー設定完了');
+  console.log('- onEditトリガー: ユーザー登録の管理ステータスが「完了」になったら成約データに自動追加');
+  console.log('- 日次集計トリガー: 毎日0時に直近3ヶ月データを集計して加盟店マスタを更新');
+}
+
+/**
  * スプレッドシートのヘッダー確認
  */
 function checkSpreadsheetHeaders() {

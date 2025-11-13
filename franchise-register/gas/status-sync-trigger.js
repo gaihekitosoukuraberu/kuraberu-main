@@ -1,7 +1,7 @@
 /**
- * V1713-FIX: ステータス自動同期トリガー
+ * V1713-FIX: ステータス自動同期トリガー + 成約データ自動登録
  *
- * 【目的】
+ * 【目的1】加盟店ステータス同期
  * 加盟店登録の「ステータス」列が変更されたら、
  * 加盟店マスタの「配信ステータス」列を自動的に更新する
  *
@@ -10,10 +10,15 @@
  * - 一時停止 → ストップ
  * - 休止 → ストップ
  *
+ * 【目的2】成約データ自動登録
+ * ユーザー登録の「管理ステータス」が「完了」になったら、
+ * 成約データシートに自動的にレコードを追加する
+ *
  * 【メリット】
  * - ランキング取得時に加盟店マスタだけ読めばOK（高速化）
  * - 常に同期されているので、手動同期不要
  * - リアルタイムで反映される
+ * - 成約データの登録漏れを防止
  */
 
 /**
@@ -34,27 +39,54 @@ function onEdit(e) {
     const row = range.getRow();
     const col = range.getColumn();
 
-    // 加盟店登録シート以外は処理しない
-    if (sheetName !== '加盟店登録') {
-      return;
-    }
-
     // ヘッダー行は処理しない
     if (row === 1) {
       return;
     }
 
-    // ステータス列の取得
-    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    const statusCol = headers.indexOf('ステータス') + 1; // 1-based
+    // === 1. 加盟店登録シートのステータス変更処理 ===
+    if (sheetName === '加盟店登録') {
+      // ステータス列の取得
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      const statusCol = headers.indexOf('ステータス') + 1; // 1-based
 
-    // ステータス列でない場合はスキップ
-    if (col !== statusCol) {
+      // ステータス列が変更された場合
+      if (col === statusCol) {
+        // V1713-FIX: ステータスが変更されたので加盟店マスタの配信ステータスを更新
+        syncStatusToMaster(e.source, sheet, row, headers);
+      }
       return;
     }
 
-    // V1713-FIX: ステータスが変更されたので加盟店マスタの配信ステータスを更新
-    syncStatusToMaster(e.source, sheet, row, headers);
+    // === 2. ユーザー登録シートの管理ステータス変更処理 ===
+    if (sheetName === 'ユーザー登録') {
+      // 管理ステータス列の取得
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      const managementStatusCol = headers.indexOf('管理ステータス') + 1; // 1-based
+
+      // 管理ステータス列が変更された場合
+      if (col === managementStatusCol) {
+        const newStatus = range.getValue();
+
+        // 「完了」になった場合、成約データシートに自動追加
+        if (newStatus === '完了') {
+          const cvIdCol = headers.indexOf('CV ID') + 1;
+          const cvId = sheet.getRange(row, cvIdCol).getValue();
+
+          if (cvId) {
+            console.log('[ContractTrigger] 管理ステータスが「完了」になりました。CV ID:', cvId);
+            const result = ContractDataSystem.addContractRecord(cvId);
+
+            if (result.success) {
+              console.log('[ContractTrigger] ✅ 成約データに自動追加しました:', cvId);
+            } else {
+              console.log('[ContractTrigger] ⚠️ 成約データ追加スキップ:', result.message);
+            }
+          }
+        }
+      }
+      return;
+    }
 
   } catch (error) {
     console.error('[StatusSyncTrigger] onEditエラー:', error.message);
@@ -313,6 +345,46 @@ function setupOnEditTrigger() {
 }
 
 /**
+ * 日次集計トリガー設定（初回のみ手動実行）
+ * 毎日深夜0時に直近3ヶ月データを集計して加盟店マスタを更新
+ */
+function setupDailyMetricsTrigger() {
+  // 既存の日次集計トリガーを削除
+  const triggers = ScriptApp.getProjectTriggers();
+  triggers.forEach(trigger => {
+    if (trigger.getHandlerFunction() === 'dailyUpdateRecent3MonthMetrics') {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+
+  // 日次集計トリガーを作成（毎日午前0時〜1時）
+  ScriptApp.newTrigger('dailyUpdateRecent3MonthMetrics')
+    .timeBased()
+    .atHour(0)
+    .everyDays(1)
+    .create();
+
+  console.log('[ContractTrigger] 日次集計トリガー設定完了（毎日0時実行）');
+}
+
+/**
+ * 日次集計実行関数（トリガーから自動実行される）
+ */
+function dailyUpdateRecent3MonthMetrics() {
+  console.log('[ContractTrigger] ===== 日次集計開始 =====');
+  const result = ContractDataSystem.updateRecent3MonthMetrics();
+
+  if (result.success) {
+    console.log('[ContractTrigger] ✅ 日次集計完了:', result.updateCount + '件更新');
+    console.log('[ContractTrigger] 期間:', result.period.from + ' 〜 ' + result.period.to);
+  } else {
+    console.error('[ContractTrigger] ❌ 日次集計エラー:', result.message);
+  }
+
+  return result;
+}
+
+/**
  * テスト関数（手動実行用）
  */
 function testStatusSync() {
@@ -328,5 +400,5 @@ function testStatusSync() {
 
   // 2行目（最初のデータ行）でテスト
   console.log('=== テスト実行: 2行目の配信ステータスを同期 ===');
-  syncDeliveryStatusToMaster(ss, registrationSheet, 2, headers);
+  syncStatusToMaster(ss, registrationSheet, 2, headers);
 }
