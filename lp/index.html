@@ -1955,17 +1955,27 @@
             }, 1000);
         }
 
-        // 進捗更新（V1730-UX: 進捗度が下がらないように制御）
-        let currentProgressPercentage = 0; // 現在の進捗度を保持
+        // 進捗更新（V1735-FIX: 進捗度が絶対に下がらないように永続化）
+        // sessionStorageから最大進捗度を復元（ページリロードしても保持）
+        window.maxProgressPercentage = parseInt(sessionStorage.getItem('maxProgress') || '0', 10);
+        console.log(`🔄 進捗度復元: ${window.maxProgressPercentage}%`);
 
         function updateProgress(percentage) {
-            // V1730-UX: 現在の進捗度より大きい場合のみ更新（進捗度が戻らないように）
-            if (percentage < currentProgressPercentage) {
-                console.log(`⏭️ 進捗度スキップ: ${percentage}% < 現在${currentProgressPercentage}%`);
+            // V1735-FIX: 最大進捗度より大きい場合のみ更新（絶対に戻らない）
+            if (percentage < window.maxProgressPercentage) {
+                console.log(`⏭️ 進捗度スキップ: ${percentage}% < 最大進捗${window.maxProgressPercentage}%`);
                 return;
             }
 
-            currentProgressPercentage = percentage;
+            // 最大進捗度を更新してsessionStorageに保存
+            window.maxProgressPercentage = percentage;
+            try {
+                sessionStorage.setItem('maxProgress', percentage.toString());
+            } catch (e) {
+                console.warn('⚠️ sessionStorage保存失敗:', e);
+            }
+
+            console.log(`📊 進捗度更新: ${percentage}% (デスクトップ・モバイル同期・永続化)`);
 
             // デスクトップ版
             const progressPercentage = document.getElementById('progressPercentage');
@@ -1976,7 +1986,7 @@
                 progressBar.style.background = 'linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%)';
             }
 
-            // モバイル版
+            // モバイル版（デスクトップと完全同期）
             const mobileProgressPercentage = document.getElementById('mobileProgressPercentage');
             const mobileProgressBar = document.getElementById('mobileProgressBarFill');
             const mobileProgressBarContainer = document.getElementById('mobileProgressBar');
@@ -1990,8 +2000,17 @@
             // 100%になったらモバイル版のプログレスバーを非表示にする
             if (percentage >= 100 && mobileProgressBarContainer) {
                 mobileProgressBarContainer.classList.add('hidden');
+                console.log('✅ モバイル進捗バー非表示（100%達成）');
             }
         }
+
+        // 進捗度リセット関数（開発・デバッグ用）
+        window.resetProgress = function() {
+            window.maxProgressPercentage = 0;
+            sessionStorage.removeItem('maxProgress');
+            updateProgress(0);
+            console.log('🔄 進捗度リセット完了');
+        };
 
         // ランキングソート切り替え
         function changeSortType(type) {
@@ -2549,6 +2568,13 @@
         function showQuickBooking() {
             console.log('📅 クイック予約（詳細情報）表示');
 
+            // V1734-FIX: モバイル進捗バーを非表示
+            const mobileProgressBarContainer = document.getElementById('mobileProgressBar');
+            if (mobileProgressBarContainer) {
+                mobileProgressBarContainer.classList.add('hidden');
+                console.log('✅ モバイル進捗バー非表示（クイック予約表示）');
+            }
+
             // 完了モーダルを閉じる
             const completionModal = document.getElementById('completionModal');
             completionModal.classList.add('hidden');
@@ -2781,6 +2807,13 @@
         // ============================================
         function startEstimateForm() {
             console.log('📝 見積もりフォーム開始');
+
+            // V1734-FIX: モバイル進捗バーを非表示
+            const mobileProgressBarContainer = document.getElementById('mobileProgressBar');
+            if (mobileProgressBarContainer) {
+                mobileProgressBarContainer.classList.add('hidden');
+                console.log('✅ モバイル進捗バー非表示（見積もりフォーム表示）');
+            }
 
             // V1713-UX: 無料見積もりボタンを非表示（フォームが邪魔にならないように）
             const estimateBtnContainer = document.getElementById('estimateBtnContainer');

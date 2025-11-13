@@ -98,6 +98,17 @@ const BotCore = {
     startFromZipEntry(zipcode) {
         console.log('📍 郵便番号エントリー:', zipcode);
 
+        // V1735-FIX: 進捗度リセット（新しいセッション開始）
+        if (typeof window.maxProgressPercentage !== 'undefined') {
+            window.maxProgressPercentage = 0;
+            try {
+                sessionStorage.setItem('maxProgress', '0');
+                console.log('🔄 進捗度リセット（BOT開始）');
+            } catch (e) {
+                console.warn('⚠️ 進捗度リセット失敗:', e);
+            }
+        }
+
         // 全画面モード開始
         this.enterFullscreen();
 
