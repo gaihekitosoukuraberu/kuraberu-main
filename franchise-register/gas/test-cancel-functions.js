@@ -13,7 +13,7 @@ function testGetCancelableCases() {
   console.log('===== testGetCancelableCases 開始 =====');
 
   const params = {
-    merchantId: 'TEST_MERCHANT_ID' // 実際の加盟店IDに置き換えてください
+    merchantId: 'FR251112004600' // テストデータ用の加盟店ID
   };
 
   const result = MerchantCancelReport.getCancelableCases(params);
@@ -40,7 +40,7 @@ function testSubmitCancelReport() {
   console.log('===== testSubmitCancelReport 開始 =====');
 
   const params = {
-    merchantId: 'TEST_MERCHANT_ID', // 実際の加盟店IDに置き換えてください
+    merchantId: 'FR251112004600', // テストデータ用の加盟店ID
     merchantName: 'テスト加盟店',
     applicantName: 'テスト担当者',
     cvId: 'TEST_CV_ID', // 実際のCV IDに置き換えてください
@@ -84,7 +84,7 @@ function testGetExtensionEligibleCases() {
   console.log('===== testGetExtensionEligibleCases 開始 =====');
 
   const params = {
-    merchantId: 'TEST_MERCHANT_ID' // 実際の加盟店IDに置き換えてください
+    merchantId: 'FR251112004600' // テストデータ用の加盟店ID
   };
 
   const result = MerchantDeadlineExtension.getExtensionEligibleCases(params);
@@ -111,7 +111,7 @@ function testSubmitExtensionRequest() {
   console.log('===== testSubmitExtensionRequest 開始 =====');
 
   const params = {
-    merchantId: 'TEST_MERCHANT_ID', // 実際の加盟店IDに置き換えてください
+    merchantId: 'FR251112004600', // テストデータ用の加盟店ID
     merchantName: 'テスト加盟店',
     applicantName: 'テスト担当者',
     cvId: 'TEST_CV_ID', // 実際のCV IDに置き換えてください
