@@ -109,7 +109,7 @@ const BotCore = {
             }
         }
 
-        // V1744-UX: 質問カウンターリセット
+        // V1742-FIX: 質問カウンターリセット
         if (window.BotQuestions && typeof window.BotQuestions.resetQuestionCount === 'function') {
             window.BotQuestions.resetQuestionCount();
         }
@@ -202,7 +202,7 @@ const BotCore = {
             }
         }
 
-        // V1744-UX: 質問カウンターリセット
+        // V1742-FIX: 質問カウンターリセット
         if (window.BotQuestions && typeof window.BotQuestions.resetQuestionCount === 'function') {
             window.BotQuestions.resetQuestionCount();
         }
