@@ -1,53 +1,75 @@
 /**
- * スクリプトプロパティを確認（デバッグ用）
- * Test: デバッグログ付きワークフローをトリガー
+ * スクリプトプロパティ一覧を取得
+ *
+ * Google Apps Scriptエディタで実行してください：
+ * https://script.google.com/home/projects/1VALw14wYqzPq_lBaJZxboFkrG5FTJ_2X2XFaBxisK3lQZ5ppQFYxpHMg/edit
  */
-function checkScriptProperties() {
+
+function listAllProperties() {
   const props = PropertiesService.getScriptProperties();
-  const firstLoginUrl = props.getProperty('FIRST_LOGIN_URL');
-  const driveFolderId = props.getProperty('DRIVE_ROOT_FOLDER_ID');
-  const spreadsheetId = props.getProperty('SPREADSHEET_ID');
+  const allProps = props.getProperties();
+  const keys = Object.keys(allProps);
 
-  console.log('=== Script Properties ===');
-  console.log('FIRST_LOGIN_URL:', firstLoginUrl);
-  console.log('DRIVE_ROOT_FOLDER_ID:', driveFolderId);
-  console.log('SPREADSHEET_ID:', spreadsheetId);
+  console.log('=== スクリプトプロパティ一覧 ===');
+  console.log('合計: ' + keys.length + ' / 50個');
+  console.log('');
 
-  // フォルダアクセステスト
-  if (driveFolderId) {
-    try {
-      const folder = DriveApp.getFolderById(driveFolderId);
-      console.log('✅ Drive folder accessible:', folder.getName());
-    } catch (e) {
-      console.error('❌ Drive folder NOT accessible:', e.toString());
-    }
-  } else {
-    console.error('❌ DRIVE_ROOT_FOLDER_ID not set');
+  keys.sort().forEach((key, index) => {
+    const value = allProps[key];
+    const maskedValue = value ? 
+      (value.length > 50 ? value.substring(0, 50) + '...' : value) : 
+      '(空)';
+    console.log((index + 1) + '. ' + key + ': ' + maskedValue);
+  });
+
+  if (keys.length >= 50) {
+    console.log('\n⚠️ 上限に達しています！');
+  } else if (keys.length >= 45) {
+    console.log('\n⚠️ あと ' + (50 - keys.length) + ' 個で上限です');
   }
+}
 
-  return {
-    FIRST_LOGIN_URL: firstLoginUrl,
-    DRIVE_ROOT_FOLDER_ID: driveFolderId,
-    SPREADSHEET_ID: spreadsheetId
-  };
+function findUnusedProperties() {
+  const props = PropertiesService.getScriptProperties();
+  const keys = Object.keys(props.getProperties());
+
+  console.log('=== 削除候補 ===');
+  const patterns = [/test/i, /tmp/i, /backup/i, /old/i, /demo/i];
+
+  keys.forEach(key => {
+    if (patterns.some(p => p.test(key))) {
+      console.log('🗑️  ' + key);
+    }
+  });
 }
 
 /**
- * FIRST_LOGIN_URLを更新
+ * Web経由でプロパティ一覧を取得（一時的なエンドポイント）
  */
-function updateFirstLoginUrl() {
+function getPropertiesForAPI() {
   const props = PropertiesService.getScriptProperties();
-  const newUrl = 'https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/first-login.html';
+  const allProps = props.getProperties();
+  const keys = Object.keys(allProps).sort();
 
-  props.setProperty('FIRST_LOGIN_URL', newUrl);
+  const deleteCandidates = [];
+  const patterns = [/test/i, /tmp/i, /backup/i, /old/i, /demo/i];
 
-  console.log('✅ FIRST_LOGIN_URL updated to:', newUrl);
+  keys.forEach(key => {
+    if (patterns.some(p => p.test(key))) {
+      deleteCandidates.push(key);
+    }
+  });
 
   return {
     success: true,
-    newUrl: newUrl
+    total: keys.length,
+    limit: 50,
+    remaining: 50 - keys.length,
+    keys: keys,
+    deleteCandidates: deleteCandidates,
+    requiredForAdmin: ['ADMIN_USER', 'ADMIN_PASS'],
+    message: keys.length >= 50 ? '⚠️ 上限に達しています！' :
+             keys.length >= 45 ? `⚠️ あと ${50 - keys.length} 個で上限です` :
+             `✅ まだ ${50 - keys.length} 個追加できます`
   };
 }
-// Test auto-deploy 20251031-164120
-// Test 20251031-171619
-// Test: 自動ロールバック機能テスト
