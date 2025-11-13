@@ -346,6 +346,7 @@ const RankingSystem = {
           pastGrossUnitAfterReturn: pastDataMetrics.grossUnitAfterReturn,
           pastReturnRate: pastDataMetrics.returnRate,
           pastConversionRate: pastDataMetrics.conversionRate,
+          pastContractCount: pastDataMetrics.contractCount, // V1751: 過去データ件数追加
           // V1751: 加盟日追加
           joinDate: joinDate
         });
@@ -542,75 +543,74 @@ const RankingSystem = {
   },
 
   /**
-   * V1751: データ混合スコア計算（実データと過去データを経過月数に応じて混合 + 件数ベース信頼性）
+   * V1751: データ混合スコア計算（完全件数ベース: 実データ×3倍の価値）
+   * 例: 過去100件/実30件 → 100 vs 90 = 53%:47%、過去100件/実100件 → 100 vs 300 = 25%:75% (1:3)
    * @param {Object} company - 業者オブジェクト
    * @param {number} recentValue - 3ヶ月データの値
    * @param {number} historicalValue - 過去データの値
    * @param {number} defaultValue - デフォルト値
-   * @param {Object} options - オプション（rankWeight, returnPenalty, minThreshold, historicalCount等）
-   * @return {Object} { score, source, recentWeight, historicalWeight, reliabilityFactor }
+   * @param {Object} options - オプション（recentCount, historicalCount, minThreshold等）
+   * @return {Object} { score, source, recentWeight, historicalWeight }
    */
   calculateMixedScore: function(company, recentValue, historicalValue, defaultValue, options) {
     const RANK_WEIGHT = { 'S': 1.33, 'A': 1.16, 'B': 1.0, 'C': 0.90 };
+    const RECENT_MULTIPLIER = 3.0; // 実データは過去データの3倍の価値
+    const MIN_DATA_MONTHS = 2; // 加盟2ヶ月未満は実データ使わない（購入データ反映まで約2ヶ月）
+
     const rankWeight = RANK_WEIGHT[company.pastRank] || 1.0;
     const returnPenalty = options.returnPenalty !== undefined
       ? options.returnPenalty
       : Math.max(0.7, 1.0 - (company.pastReturnRate * 0.3));
     const minThreshold = options.minThreshold || 0;
+    const recentCount = options.recentCount || 0; // 実データの件数
     const historicalCount = options.historicalCount || 0; // 過去データの件数
 
-    // 経過月数計算
+    // 経過月数計算（加盟1ヶ月未満チェック用）
     const dataMonths = this.calculateDataMonths(company.joinDate);
+    const canUseRecentData = dataMonths >= MIN_DATA_MONTHS;
 
-    // V1751-FIX: 経過月数に応じた重み（3ヶ月20%, 6ヶ月50%, 12ヶ月80%）
-    let recentWeight = 0;
-    if (dataMonths >= 12) {
-      recentWeight = 0.8; // 12ヶ月以上: 80%
-    } else if (dataMonths >= 6) {
-      recentWeight = 0.5; // 6ヶ月: 50%
-    } else if (dataMonths >= 3) {
-      recentWeight = 0.2; // 3ヶ月: 20%
-    } else {
-      recentWeight = 0; // 3ヶ月未満: 0%
-    }
+    // V1751: 完全件数ベース重み付け（実データ×3倍）
+    let finalRecentWeight = 0;
+    let finalHistoricalWeight = 1.0;
 
-    const historicalWeight = 1.0 - recentWeight;
+    const hasRecentData = canUseRecentData && recentValue > minThreshold && recentCount > 0;
+    const hasHistoricalData = historicalValue > minThreshold && historicalCount > 0;
 
-    // V1751: 過去データの信頼性係数（件数ベース）
-    let reliabilityFactor = 1.0;
-    if (historicalCount >= 30) {
-      reliabilityFactor = 1.0; // 30件以上: 100%信頼
-    } else if (historicalCount >= 10) {
-      reliabilityFactor = 0.7; // 10-29件: 70%信頼
-    } else if (historicalCount >= 5) {
-      reliabilityFactor = 0.5; // 5-9件: 50%信頼
-    } else if (historicalCount >= 1) {
-      reliabilityFactor = 0.3; // 1-4件: 30%信頼
-    } else {
-      reliabilityFactor = 0; // 0件: データなし
+    if (hasRecentData && hasHistoricalData) {
+      // 両方あり: 完全件数ベース（実データ×3倍）
+      const adjustedRecentCount = recentCount * RECENT_MULTIPLIER;
+      const totalWeight = adjustedRecentCount + historicalCount;
+      if (totalWeight > 0) {
+        finalRecentWeight = adjustedRecentCount / totalWeight;
+        finalHistoricalWeight = historicalCount / totalWeight;
+      }
+    } else if (hasRecentData) {
+      // 実データのみ: 100%
+      finalRecentWeight = 1.0;
+      finalHistoricalWeight = 0;
+    } else if (hasHistoricalData) {
+      // 過去データのみ: 100%
+      finalRecentWeight = 0;
+      finalHistoricalWeight = 1.0;
     }
 
     let baseScore = 0;
     let dataSource = '';
 
-    // 閾値チェック
-    const hasRecentData = recentValue > minThreshold;
-    const hasHistoricalData = historicalValue > minThreshold && reliabilityFactor > 0;
-
     if (hasRecentData && hasHistoricalData) {
-      // 両方あり: 重み付けして混合
-      const recentScore = recentValue * recentWeight;
-      const historicalScore = historicalValue * historicalWeight * rankWeight * returnPenalty * reliabilityFactor;
+      // 両方あり: 件数ベースで重み付けして混合
+      const recentScore = recentValue * finalRecentWeight;
+      const historicalScore = historicalValue * finalHistoricalWeight * rankWeight * returnPenalty;
       baseScore = recentScore + historicalScore;
-      dataSource = 'MIX[R:' + Math.round(recentWeight * 100) + '%+H:' + Math.round(historicalWeight * 100) + '%*' + Math.round(reliabilityFactor * 100) + '%]';
+      dataSource = 'MIX[R' + recentCount + ':' + Math.round(finalRecentWeight * 100) + '%+H' + historicalCount + ':' + Math.round(finalHistoricalWeight * 100) + '%]';
     } else if (hasRecentData) {
       // 実データのみ
-      baseScore = recentValue * Math.max(0.2, recentWeight); // 最低20%の重みは保証
-      dataSource = '3M[' + Math.round(Math.max(0.2, recentWeight) * 100) + '%]';
+      baseScore = recentValue;
+      dataSource = '3M[' + recentCount + '件]';
     } else if (hasHistoricalData) {
       // 過去データのみ
-      baseScore = historicalValue * historicalWeight * rankWeight * returnPenalty * reliabilityFactor;
-      dataSource = 'HIST[' + Math.round(historicalWeight * 100) + '%*RANK*RET*REL' + Math.round(reliabilityFactor * 100) + '%]';
+      baseScore = historicalValue * rankWeight * returnPenalty;
+      dataSource = 'HIST[' + historicalCount + '件*RANK*RET]';
     } else {
       // どちらもなし: デフォルト
       baseScore = defaultValue * rankWeight;
@@ -620,9 +620,8 @@ const RankingSystem = {
     return {
       score: baseScore,
       source: dataSource,
-      recentWeight: recentWeight,
-      historicalWeight: historicalWeight,
-      reliabilityFactor: reliabilityFactor
+      recentWeight: finalRecentWeight,
+      historicalWeight: finalHistoricalWeight
     };
   },
 
@@ -695,13 +694,17 @@ const RankingSystem = {
       // V1751: 売上スコア計算（データ混合 + ボーナス）
       const calculateRevenueScore = function(company) {
         // Step 1: データ混合スコア計算（過去データの売上 = 単価 × 成約件数）
-        const historicalRevenue = company.pastGrossUnitAfterReturn * (company.contractCount || 1);
+        const historicalRevenue = company.pastGrossUnitAfterReturn * (company.pastContractCount || 1);
         const mixedScore = self.calculateMixedScore(
           company,
           company.recent3MonthRevenue,
           historicalRevenue,
           DEFAULT_REVENUE,
-          { minThreshold: 0, returnPenalty: Math.max(0.7, 1.0 - (company.pastReturnRate * 0.3)) }
+          {
+            minThreshold: 0,
+            returnPenalty: Math.max(0.7, 1.0 - (company.pastReturnRate * 0.3)),
+            historicalCount: company.pastContractCount || 0 // V1751: 過去データ件数を渡す
+          }
         );
 
         let finalScore = mixedScore.score;
@@ -754,7 +757,11 @@ const RankingSystem = {
           company.avgContractAmount,
           company.pastGrossUnitAfterReturn,
           DEFAULT_AMOUNT,
-          { minThreshold: MIN_THRESHOLD, returnPenalty: Math.max(0.7, 1.0 - (company.pastReturnRate * 0.3)) }
+          {
+            minThreshold: MIN_THRESHOLD,
+            returnPenalty: Math.max(0.7, 1.0 - (company.pastReturnRate * 0.3)),
+            historicalCount: company.pastContractCount || 0 // V1751: 過去データ件数を渡す
+          }
         );
 
         let finalScore = mixedScore.score;
@@ -807,7 +814,11 @@ const RankingSystem = {
           recentConversion,
           company.pastConversionRate,
           DEFAULT_CONVERSION,
-          { minThreshold: 0, returnPenalty: 1.0 } // 成約率には返品ペナルティ不要
+          {
+            minThreshold: 0,
+            returnPenalty: 1.0, // 成約率には返品ペナルティ不要
+            historicalCount: company.pastContractCount || 0 // V1751: 過去データ件数を渡す
+          }
         );
 
         let finalScore = mixedScore.score;
@@ -857,7 +868,12 @@ const RankingSystem = {
           company.avgContractAmount,
           company.pastGrossUnitAfterReturn,
           DEFAULT_AMOUNT,
-          { minThreshold: MIN_THRESHOLD, returnPenalty: Math.max(0.7, 1.0 - (company.pastReturnRate * 0.3)) }
+          {
+            minThreshold: MIN_THRESHOLD,
+            returnPenalty: Math.max(0.7, 1.0 - (company.pastReturnRate * 0.3)),
+            recentCount: company.contractCount || 0, // V1751: 実データ件数
+            historicalCount: company.pastContractCount || 0 // V1751: 過去データ件数
+          }
         );
 
         let finalScore = mixedScore.score;
