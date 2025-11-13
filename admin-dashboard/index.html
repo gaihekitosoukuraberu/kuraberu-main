@@ -282,7 +282,7 @@
             <div class="my-4 border-t border-gray-700"></div>
 
             <!-- ログアウト -->
-            <a href="#" onclick="logout(); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-red-600/20 text-red-400 hover:text-red-300">
+            <a href="#" onclick="logout(); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
@@ -5322,12 +5322,38 @@
     <script>
 (function() {
   const cacheBuster = new Date().getTime();
-  const script = document.createElement("script");
-  script.src = "js/env-loader.js?v=" + cacheBuster;
-  document.write("<script src=\"" + script.src + "\"><\/script>");
+
+  // env-loader.js を動的ロード
+  const envScript = document.createElement("script");
+  envScript.src = "js/env-loader.js?v=" + cacheBuster;
+  document.write("<script src=\"" + envScript.src + "\"><\/script>");
+
+  // api-client.js を動的ロード
+  const apiScript = document.createElement("script");
+  apiScript.src = "js/api-client.js?v=" + cacheBuster;
+  document.write("<script src=\"" + apiScript.src + "\"><\/script>");
+
+  // ApiClient インスタンス作成（ENVとApiClientが両方ロードされた後）
+  document.write("<script>(function initApiClient() {" +
+    "const maxRetries = 50;" +
+    "let retries = 0;" +
+    "function tryInit() {" +
+      "if (window.ENV && window.ApiClient) {" +
+        "window.apiClient = new ApiClient();" +
+        "console.log('[Admin] ApiClient initialized');" +
+      "} else {" +
+        "retries++;" +
+        "if (retries < maxRetries) {" +
+          "setTimeout(tryInit, 100);" +
+        "} else {" +
+          "console.error('[Admin] Failed to initialize ApiClient after ' + maxRetries + ' retries');" +
+        "}" +
+      "}" +
+    "}" +
+    "tryInit();" +
+  "})();<\/script>");
 })();
 </script>
-    <script src="js/api-client.js?v=V1402-JSONP-ONLY"></script>
     <!-- dashboard-api.js は registration-requests.js に統合済みのため無効化 -->
     <!-- <script src="js/dashboard-api.js?v=20251016_1615"></script> -->
     <script src="js/data-formatter.js?v=V1402-JSONP-ONLY"></script>
