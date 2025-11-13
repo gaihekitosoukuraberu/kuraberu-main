@@ -677,10 +677,9 @@ const RankingSystem = {
    */
   calculateSupplyBonus: function(inquiryCount) {
     if (inquiryCount === 0) return 1.20;      // 0件: +20%
-    if (inquiryCount <= 5) return 1.10;       // 1-5件: +10%
-    if (inquiryCount <= 10) return 1.05;      // 6-10件: +5%
-    if (inquiryCount <= 20) return 1.02;      // 11-20件: +2%
-    return 1.0;                                // 21件以上: ボーナスなし
+    if (inquiryCount <= 2) return 1.07;       // 1-2件: +7%
+    if (inquiryCount <= 4) return 1.05;       // 3-4件: +5%
+    return 1.0;                                // 5件以上: ボーナスなし
   },
 
   /**
