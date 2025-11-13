@@ -99,10 +99,10 @@ const BotScenarios = {
                 const wordLinkAnswer = `${initialStep.message} → ${choice}`;
                 BotConfig.saveAnswer('wordLinkAnswer', wordLinkAnswer, index);
 
-                // V1747-UX: 初期質問回答で進捗度を上げる（5%）
+                // V1747-UX: 初期質問回答で進捗度を上げる（8%）
                 if (typeof window.updateProgress === 'function') {
-                    window.updateProgress(5);
-                    console.log('📊 進捗更新: 初期質問回答（ワードリンク） → 5%');
+                    window.updateProgress(8);
+                    console.log('📊 進捗更新: 初期質問回答（ワードリンク） → 8%');
                 }
 
                 // responseがあれば表示
@@ -172,10 +172,10 @@ const BotScenarios = {
                 BotUI.showUserMessage(selectedLabels);
                 BotUI.clearChoices();
 
-                // V1747-UX: 初期質問回答で進捗度を上げる（5%）
+                // V1747-UX: 初期質問回答で進捗度を上げる（8%）
                 if (typeof window.updateProgress === 'function') {
-                    window.updateProgress(5);
-                    console.log('📊 進捗更新: 初期質問回答（ワードリンク・複数選択） → 5%');
+                    window.updateProgress(8);
+                    console.log('📊 進捗更新: 初期質問回答（ワードリンク・複数選択） → 8%');
                 }
 
                 setTimeout(() => {

@@ -241,11 +241,8 @@ const BotCore = {
         if (scenario.special === 'direct_postal') {
             console.log('✨ 特殊シナリオ: 郵便番号フォーム直接表示');
 
-            // V1747-UX: ワードリンク流入時の初期表示で進捗度を上げる（3%）
-            if (typeof window.updateProgress === 'function') {
-                window.updateProgress(3);
-                console.log('📊 進捗更新: ワードリンク流入（greeting表示・direct_postal） → 3%');
-            }
+            // V1747-UX: ワードリンク流入時は0%スタート（進捗更新なし）
+            // 削除: updateProgress(3) - 初期は0%のまま
 
             // greetingメッセージ
             BotUI.showAIMessage(scenario.greeting);
@@ -267,11 +264,8 @@ const BotCore = {
             return;
         }
 
-        // V1747-UX: ワードリンク流入時の初期表示で進捗度を上げる（3%）
-        if (typeof window.updateProgress === 'function') {
-            window.updateProgress(3);
-            console.log('📊 進捗更新: ワードリンク流入（greeting表示） → 3%');
-        }
+        // V1747-UX: ワードリンク流入時は0%スタート（進捗更新なし）
+        // 削除: updateProgress(3) - 初期は0%のまま
 
         // greetingメッセージ
         BotUI.showAIMessage(scenario.greeting);
