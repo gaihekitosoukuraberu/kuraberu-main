@@ -1,0 +1,232 @@
+<!-- ============================================== -->
+<!-- キャンセル申請セクション -->
+<!-- index.htmlの成約報告セクションの前に挿入してください -->
+<!-- ============================================== -->
+
+<!-- キャンセル申請セクション -->
+<div id="cancelSection" class="section" style="display: none;">
+    <div class="flex justify-between items-start mb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900">キャンセル申請</h2>
+            <p class="text-sm text-gray-600 mt-1">配信案件のキャンセル申請を行います（配信日から6〜7日の間に申請可能）</p>
+        </div>
+    </div>
+
+    <!-- 申請可能案件一覧 -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h3 class="text-lg font-semibold mb-4">申請可能案件</h3>
+        <div id="cancelableCasesList" class="space-y-4">
+            <!-- 案件カードが動的に表示される -->
+            <div class="text-center text-gray-500 py-8">
+                読み込み中...
+            </div>
+        </div>
+    </div>
+
+    <!-- キャンセル申請モーダル -->
+    <div id="cancelModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
+            <!-- 閉じるボタン -->
+            <button onclick="closeCancelModal()" class="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 transition-colors z-10">
+                <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+
+            <div class="p-6">
+                <h3 class="text-xl font-bold mb-4">キャンセル申請</h3>
+
+                <!-- 顧客情報表示 -->
+                <div id="cancelCustomerInfo" class="mb-6 p-4 bg-blue-50 rounded-lg">
+                    <div class="text-lg font-semibold" id="cancelCustomerName"></div>
+                    <div class="text-gray-600 text-sm mt-1">
+                        <span id="cancelCustomerTel"></span> / <span id="cancelCustomerAddress"></span>
+                    </div>
+                    <div class="text-sm text-gray-500 mt-2">
+                        <span>配信日: <span id="cancelDeliveredAt"></span></span> |
+                        <span>経過日数: <span id="cancelDaysElapsed"></span>日</span> |
+                        <span>申請期限: <span id="cancelDeadline"></span></span>
+                    </div>
+                </div>
+
+                <!-- ステップインジケーター -->
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center flex-1">
+                        <div class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white font-semibold" id="step1Indicator">1</div>
+                        <div class="flex-1 h-1 bg-gray-200 mx-2" id="step1Line"></div>
+                    </div>
+                    <div class="flex items-center flex-1">
+                        <div class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-gray-500 font-semibold" id="step2Indicator">2</div>
+                        <div class="flex-1 h-1 bg-gray-200 mx-2" id="step2Line"></div>
+                    </div>
+                    <div class="flex items-center flex-1">
+                        <div class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-gray-500 font-semibold" id="step3Indicator">3</div>
+                        <div class="flex-1 h-1 bg-gray-200 mx-2" id="step3Line"></div>
+                    </div>
+                    <div class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-gray-500 font-semibold" id="step4Indicator">4</div>
+                </div>
+
+                <!-- ステップ1: メインカテゴリ選択 -->
+                <div id="cancelStep1" class="cancel-step">
+                    <h4 class="text-lg font-semibold mb-4">キャンセル理由を選択してください</h4>
+                    <div class="space-y-3" id="cancelCategoryList">
+                        <!-- カテゴリボタンが動的に生成される -->
+                    </div>
+                </div>
+
+                <!-- ステップ2: サブカテゴリ選択 -->
+                <div id="cancelStep2" class="cancel-step hidden">
+                    <button onclick="cancelGoToStep(1)" class="text-blue-500 hover:text-blue-700 mb-4 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                        戻る
+                    </button>
+                    <h4 class="text-lg font-semibold mb-4">詳細な理由を選択してください</h4>
+                    <div class="space-y-3" id="cancelSubCategoryList">
+                        <!-- サブカテゴリボタンが動的に生成される -->
+                    </div>
+                </div>
+
+                <!-- ステップ3: 階層的質問フロー -->
+                <div id="cancelStep3" class="cancel-step hidden">
+                    <button onclick="cancelGoToStep(2)" class="text-blue-500 hover:text-blue-700 mb-4 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                        戻る
+                    </button>
+                    <h4 class="text-lg font-semibold mb-4">詳細情報を入力してください</h4>
+                    <div id="cancelQuestionsContainer" class="space-y-4">
+                        <!-- 質問フォームが動的に生成される -->
+                    </div>
+                    <div class="mt-6 flex justify-end">
+                        <button onclick="cancelGoToStep(4)" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold">
+                            確認画面へ
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ステップ4: 確認画面 -->
+                <div id="cancelStep4" class="cancel-step hidden">
+                    <button onclick="cancelGoToStep(3)" class="text-blue-500 hover:text-blue-700 mb-4 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                        戻る
+                    </button>
+                    <h4 class="text-lg font-semibold mb-4">申請内容の確認</h4>
+                    <div id="cancelConfirmContent" class="space-y-4 bg-gray-50 p-4 rounded-lg mb-6">
+                        <!-- 確認内容が動的に生成される -->
+                    </div>
+                    <div class="flex gap-4">
+                        <button onclick="closeCancelModal()" class="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold">
+                            キャンセル
+                        </button>
+                        <button onclick="submitCancelApplication()" class="flex-1 px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 font-semibold">
+                            申請する
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- キャンセル期限延長申請セクション -->
+<!-- キャンセル申請セクションの直後に挿入してください -->
+<!-- ============================================== -->
+
+<!-- 期限延長申請セクション -->
+<div id="extensionSection" class="section" style="display: none;">
+    <div class="flex justify-between items-start mb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900">キャンセル期限延長申請</h2>
+            <p class="text-sm text-gray-600 mt-1">配信日から7日以内に連絡がついたが、アポが7日以降になる場合の期限延長申請</p>
+        </div>
+    </div>
+
+    <!-- 申請可能案件一覧 -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h3 class="text-lg font-semibold mb-4">申請可能案件（配信日から7日以内）</h3>
+        <div id="extensionEligibleCasesList" class="space-y-4">
+            <!-- 案件カードが動的に表示される -->
+            <div class="text-center text-gray-500 py-8">
+                読み込み中...
+            </div>
+        </div>
+    </div>
+
+    <!-- 期限延長申請モーダル -->
+    <div id="extensionModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto relative">
+            <!-- 閉じるボタン -->
+            <button onclick="closeExtensionModal()" class="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 transition-colors z-10">
+                <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+
+            <div class="p-6">
+                <h3 class="text-xl font-bold mb-4">キャンセル期限延長申請</h3>
+
+                <!-- 顧客情報表示 -->
+                <div id="extensionCustomerInfo" class="mb-6 p-4 bg-blue-50 rounded-lg">
+                    <div class="text-lg font-semibold" id="extensionCustomerName"></div>
+                    <div class="text-gray-600 text-sm mt-1">
+                        <span id="extensionCustomerTel"></span> / <span id="extensionCustomerAddress"></span>
+                    </div>
+                    <div class="text-sm text-gray-500 mt-2">
+                        <span>配信日: <span id="extensionDeliveredAt"></span></span> |
+                        <span>経過日数: <span id="extensionDaysElapsed"></span>日</span>
+                    </div>
+                    <div class="mt-2 p-3 bg-orange-50 border border-orange-200 rounded">
+                        <div class="text-sm font-semibold text-orange-800">延長後の期限</div>
+                        <div class="text-lg font-bold text-orange-900" id="extensionExtendedDeadline"></div>
+                    </div>
+                </div>
+
+                <!-- 申請フォーム -->
+                <form id="extensionApplicationForm" class="space-y-6">
+                    <!-- 連絡がついた日時 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            連絡がついた日時 <span class="text-red-500">*</span>
+                        </label>
+                        <input type="datetime-local" id="extensionContactDate" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500" required>
+                        <p class="text-xs text-gray-500 mt-1">顧客と実際に電話が繋がった日時を入力してください</p>
+                    </div>
+
+                    <!-- アポ予定日 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            アポ予定日 <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" id="extensionAppointmentDate" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500" required>
+                        <p class="text-xs text-gray-500 mt-1">訪問・商談予定日を入力してください</p>
+                    </div>
+
+                    <!-- 延長理由 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            延長理由 <span class="text-red-500">*</span>
+                        </label>
+                        <textarea id="extensionReason" rows="4" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500" placeholder="期限延長が必要な理由を詳しく記入してください" required></textarea>
+                        <p class="text-xs text-gray-500 mt-1">例: 顧客と7日以内に連絡が取れましたが、顧客の都合により訪問が10日後となりました。</p>
+                    </div>
+
+                    <!-- 送信ボタン -->
+                    <div class="flex gap-4">
+                        <button type="button" onclick="closeExtensionModal()" class="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold">
+                            キャンセル
+                        </button>
+                        <button type="submit" class="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-semibold">
+                            申請する
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

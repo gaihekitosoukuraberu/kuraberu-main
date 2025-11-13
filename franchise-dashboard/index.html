@@ -319,6 +319,12 @@
                     </svg>
                     キャンセル申請
                 </a>
+                <a href="#extension" onclick="showSection('extension'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    期限延長申請
+                </a>
                 <a href="#contract" onclick="showSection('contract'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -4984,44 +4990,7 @@
                 <div class="flex justify-between items-start mb-6">
                     <div>
                         <h2 class="text-2xl font-bold text-gray-900">キャンセル申請</h2>
-                        <p class="text-sm text-gray-600 mt-1">案件のキャンセル理由を選択して申請してください</p>
-                    </div>
-                </div>
-
-                <!-- 検索バー -->
-                <div class="bg-white rounded-lg shadow p-4 mb-6">
-                    <!-- 基本検索 -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                        <div class="lg:col-span-2">
-                            <input type="text" id="cancelSearchInput" placeholder="顧客名・電話番号・住所で検索（部分一致）" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500" onkeyup="searchCancelCases()">
-                        </div>
-                        <div>
-                            <select id="cancelAssigneeFilter" class="w-full px-4 py-2 border rounded-lg" onchange="searchCancelCases()">
-                                <option value="">担当者で検索</option>
-                                <option value="self">自分の案件</option>
-                                <option value="田中太郎">田中太郎</option>
-                                <option value="佐藤花子">佐藤花子</option>
-                                <option value="鈴木一郎">鈴木一郎</option>
-                                <option value="高橋みゆき">高橋みゆき</option>
-                                <option value="伊藤健">伊藤健</option>
-                                <option value="未割当">未割当</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- 期間検索 -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="flex items-center gap-2">
-                            <label class="text-xs text-gray-600">流入期間</label>
-                            <input type="date" id="cancelStartDate" class="px-3 py-2 border rounded-lg" onchange="searchCancelCases()">
-                            <span class="text-xs text-gray-600">〜</span>
-                            <input type="date" id="cancelEndDate" class="px-3 py-2 border rounded-lg" onchange="searchCancelCases()">
-                        </div>
-                        <div class="flex items-center justify-end">
-                            <button onclick="searchCancelCases()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                                検索
-                            </button>
-                        </div>
+                        <p class="text-sm text-gray-600 mt-1">申請可能な案件を選択してキャンセル理由を入力してください（配信後6-7日目のみ申請可能）</p>
                     </div>
                 </div>
 
@@ -5030,29 +4999,240 @@
                     <!-- 案件カードが動的に表示される -->
                 </div>
 
-                <!-- キャンセル申請フォーム（モーダル） -->
+                <!-- キャンセル申請モーダル -->
                 <div id="cancelModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-                    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
                         <div class="p-6">
-                            <h3 class="text-xl font-bold mb-4">キャンセル理由の選択</h3>
-                            <div id="cancelQuestionContainer">
-                                <!-- 質問が動的に表示される -->
+                            <!-- ヘッダー -->
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-xl font-bold text-gray-900">キャンセル申請</h3>
+                                <button onclick="closeCancelModal()" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
                             </div>
-                            <div id="cancelAIResponse" class="hidden mt-6 p-4 bg-blue-50 rounded-lg">
-                                <h4 class="font-semibold text-gray-800 mb-2">AI生成の申請文</h4>
-                                <div id="cancelAIText" class="text-gray-700 whitespace-pre-wrap"></div>
-                                <div class="mt-4 flex gap-3">
-                                    <button onclick="submitCancelRequest()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                                        この内容で申請
-                                    </button>
-                                    <button onclick="regenerateCancelText()" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
-                                        再生成
+
+                            <!-- ステップインジケーター -->
+                            <div class="mb-6">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex-1 flex items-center" id="cancelStep1Indicator">
+                                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 text-white font-semibold">1</div>
+                                        <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
+                                    </div>
+                                    <div class="flex-1 flex items-center" id="cancelStep2Indicator">
+                                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300 text-gray-600 font-semibold">2</div>
+                                        <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
+                                    </div>
+                                    <div class="flex-1 flex items-center" id="cancelStep3Indicator">
+                                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300 text-gray-600 font-semibold">3</div>
+                                        <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
+                                    </div>
+                                    <div class="flex items-center" id="cancelStep4Indicator">
+                                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300 text-gray-600 font-semibold">4</div>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between mt-2 text-xs text-gray-600">
+                                    <span class="w-1/4 text-center">顧客情報</span>
+                                    <span class="w-1/4 text-center">理由カテゴリ</span>
+                                    <span class="w-1/4 text-center">詳細入力</span>
+                                    <span class="w-1/4 text-center">確認</span>
+                                </div>
+                            </div>
+
+                            <!-- Step 1: 顧客情報表示 -->
+                            <div id="cancelStep1" class="cancel-step">
+                                <h4 class="font-semibold text-lg mb-4">顧客情報</h4>
+                                <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <p class="text-xs text-gray-600">CV ID</p>
+                                            <p class="font-semibold" id="cancelModalCvId"></p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-600">顧客名</p>
+                                            <p class="font-semibold" id="cancelModalCustomerName"></p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-600">電話番号</p>
+                                            <p class="font-semibold" id="cancelModalPhone"></p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-600">配信日</p>
+                                            <p class="font-semibold" id="cancelModalDeliveredDate"></p>
+                                        </div>
+                                        <div class="col-span-2">
+                                            <p class="text-xs text-gray-600">申請期限</p>
+                                            <p class="font-semibold text-red-600" id="cancelModalDeadline"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-6 flex justify-end">
+                                    <button onclick="cancelGoToStep(2)" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                                        次へ
                                     </button>
                                 </div>
                             </div>
-                            <button onclick="closeCancelModal()" class="mt-4 text-gray-500 hover:text-gray-700">
-                                キャンセル
-                            </button>
+
+                            <!-- Step 2: キャンセル理由カテゴリ選択 -->
+                            <div id="cancelStep2" class="cancel-step hidden">
+                                <h4 class="font-semibold text-lg mb-4">キャンセル理由を選択してください</h4>
+                                <div id="cancelCategoryList" class="space-y-3">
+                                    <!-- カテゴリが動的に表示される -->
+                                </div>
+                                <div class="mt-6 flex justify-between">
+                                    <button onclick="cancelGoToStep(1)" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                                        戻る
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: サブカテゴリ選択と詳細質問 -->
+                            <div id="cancelStep3" class="cancel-step hidden">
+                                <h4 class="font-semibold text-lg mb-4">詳細を選択してください</h4>
+                                <div id="cancelSubCategoryList" class="space-y-3 mb-6">
+                                    <!-- サブカテゴリが動的に表示される -->
+                                </div>
+                                <div id="cancelQuestionsForm" class="hidden space-y-4">
+                                    <!-- 質問フォームが動的に表示される -->
+                                </div>
+                                <div class="mt-6 flex justify-between">
+                                    <button onclick="cancelGoToStep(2)" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                                        戻る
+                                    </button>
+                                    <button id="cancelStep3NextBtn" onclick="cancelGoToStep(4)" class="hidden px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                                        確認画面へ
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Step 4: 確認画面 -->
+                            <div id="cancelStep4" class="cancel-step hidden">
+                                <h4 class="font-semibold text-lg mb-4">申請内容の確認</h4>
+                                <div class="bg-gray-50 rounded-lg p-4 space-y-4">
+                                    <div>
+                                        <p class="text-xs text-gray-600">キャンセル理由カテゴリ</p>
+                                        <p class="font-semibold" id="cancelConfirmCategory"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-600">詳細理由</p>
+                                        <p class="font-semibold" id="cancelConfirmDetail"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-600">回答内容</p>
+                                        <div id="cancelConfirmAnswers" class="text-sm text-gray-700 space-y-2"></div>
+                                    </div>
+                                </div>
+                                <div class="mt-6 flex justify-between">
+                                    <button onclick="cancelGoToStep(3)" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                                        戻る
+                                    </button>
+                                    <button onclick="submitCancelApplication()" class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                                        キャンセル申請を提出
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 期限延長申請セクション -->
+            <div id="extensionSection" class="section" style="display: none;">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">キャンセル期限延長申請</h2>
+                        <p class="text-sm text-gray-600 mt-1">連絡がついたがアポが期限外の場合、期限延長を申請できます（配信後7日以内のみ申請可能）</p>
+                    </div>
+                </div>
+
+                <!-- 案件一覧 -->
+                <div id="extensionCasesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+                    <!-- 案件カードが動的に表示される -->
+                </div>
+
+                <!-- 期限延長申請モーダル -->
+                <div id="extensionModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div class="p-6">
+                            <!-- ヘッダー -->
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-xl font-bold text-gray-900">キャンセル期限延長申請</h3>
+                                <button onclick="closeExtensionModal()" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- 顧客情報 -->
+                            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                                <h4 class="font-semibold text-sm mb-3">顧客情報</h4>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-xs text-gray-600">CV ID</p>
+                                        <p class="font-semibold" id="extensionModalCvId"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-600">顧客名</p>
+                                        <p class="font-semibold" id="extensionModalCustomerName"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-600">電話番号</p>
+                                        <p class="font-semibold" id="extensionModalPhone"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-600">配信日</p>
+                                        <p class="font-semibold" id="extensionModalDeliveredDate"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-600">現在の期限</p>
+                                        <p class="font-semibold text-red-600" id="extensionModalCurrentDeadline"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-600">延長後期限</p>
+                                        <p class="font-semibold text-green-600" id="extensionModalNewDeadline"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 申請フォーム -->
+                            <form id="extensionForm" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        連絡がついた日時 <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="datetime-local" id="extensionContactDate" required
+                                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        アポ予定日 <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="date" id="extensionAppointmentDate" required
+                                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        延長理由 <span class="text-red-500">*</span>
+                                    </label>
+                                    <textarea id="extensionReason" rows="4" required
+                                              placeholder="例：お客様と連絡が取れましたが、10日後に訪問予定のため期限延長を申請します。"
+                                              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"></textarea>
+                                    <p class="text-xs text-gray-500 mt-1">期限延長が必要な理由を具体的に記入してください</p>
+                                </div>
+
+                                <div class="flex justify-between pt-4">
+                                    <button type="button" onclick="closeExtensionModal()" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                                        キャンセル
+                                    </button>
+                                    <button type="submit" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                                        期限延長を申請
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -13313,6 +13493,16 @@
                         loadGoogleMap();
                     }, 100);
                 }
+
+                // キャンセル申請セクションの場合は申請可能案件を読み込み
+                if (sectionName === 'cancel') {
+                    loadCancelableCases();
+                }
+
+                // 期限延長申請セクションの場合は申請可能案件を読み込み
+                if (sectionName === 'extension') {
+                    loadExtensionEligibleCases();
+                }
             }
 
             // メニューを閉じる
@@ -18903,6 +19093,439 @@
             }
 
             // 一時停止の日付変更時に即時保存
+        });
+
+        // ============================================
+        // キャンセル申請・期限延長申請システム
+        // ============================================
+
+        // API URL (env-loaderから動的取得)
+        const CANCEL_API_URL = window.ENV?.GAS_URL || '';
+
+        // キャンセル理由の階層構造定義
+        const CANCEL_REASONS = {
+            categories: [
+                { id: 'no_contact', label: '1. 連絡が繋がらない', requiresFollowUp: true, minPhoneCalls: 3, minSMS: 2 },
+                { id: 'contact_lost', label: '2. 電話繋がったがアポ取れず、その後不通', requiresFollowUp: true, minPhoneCalls: 2, minSMS: 1 },
+                { id: 'customer_cancel_phone', label: '3. お客様から電話でキャンセルされた', requiresFollowUp: false },
+                { id: 'customer_cancel_sms', label: '4. お客様からSMSでキャンセルされた', requiresFollowUp: false },
+                { id: 'complaint', label: '5. クレーム', requiresFollowUp: false }
+            ],
+            subCategories: {
+                no_contact: [
+                    { id: 'no_answer_multiple', label: '複数回電話したが出ない', questions: ['phone_count', 'sms_count', 'last_contact_date', 'sms_content'] },
+                    { id: 'invalid_number', label: '番号が無効（音声ガイダンス・使われていない）', questions: ['guidance_message', 'attempt_count', 'last_attempt_date'] },
+                    { id: 'wrong_number', label: '間違い電話（別人が出た）', questions: ['who_answered', 'confirmation_count'] },
+                    { id: 'other', label: 'その他', questions: ['detail_hearing'] }
+                ],
+                contact_lost: [
+                    { id: 'appointment_rejected', label: 'アポ取得を断られた後、不通', questions: ['contact_date', 'rejection_reason', 'customer_sentiment', 'follow_up_count', 'last_contact_date'] },
+                    { id: 'postponed_then_lost', label: '後日連絡と言われたが、その後繋がらず', questions: ['contact_date', 'promised_callback_date', 'follow_up_count', 'sms_count', 'last_contact_date'] },
+                    { id: 'other', label: 'その他', questions: ['detail_hearing'] }
+                ],
+                customer_cancel_phone: [
+                    { id: 'already_contracted', label: '既に他社で契約済み', questions: ['contact_date', 'other_company', 'contract_timing', 'customer_sentiment'] },
+                    { id: 'not_interested', label: 'やっぱり工事しない・興味がない', questions: ['contact_date', 'reason', 'customer_sentiment'] },
+                    { id: 'timing_issue', label: 'タイミングが合わない', questions: ['contact_date', 'timing_reason', 'future_contact'] },
+                    { id: 'request_not_submitted', label: '自分で申し込んでいない（覚えがない）', questions: ['contact_date', 'customer_reaction', 'possible_reason'] },
+                    { id: 'other', label: 'その他', questions: ['detail_hearing'] }
+                ],
+                customer_cancel_sms: [
+                    { id: 'sms_decline', label: 'SMSで断りの連絡が来た', questions: ['sms_received_date', 'sms_content', 'decline_reason', 'follow_up_attempted'] },
+                    { id: 'sms_already_contracted', label: 'SMSで他社契約済みと連絡が来た', questions: ['sms_received_date', 'sms_content', 'other_company', 'contract_timing'] },
+                    { id: 'other', label: 'その他', questions: ['detail_hearing'] }
+                ],
+                complaint: [
+                    { id: 'too_many_calls', label: '電話・SMSがしつこい', questions: ['complaint_date', 'complaint_detail', 'actual_contact_count', 'actual_sms_count', 'apology_done'] },
+                    { id: 'rude_attitude', label: '対応が悪い・失礼', questions: ['complaint_date', 'complaint_detail', 'who_complained_about', 'apology_done'] },
+                    { id: 'privacy_concern', label: '個人情報の扱いに不安', questions: ['complaint_date', 'complaint_detail', 'explanation_done'] },
+                    { id: 'other', label: 'その他', questions: ['detail_hearing'] }
+                ]
+            }
+        };
+
+        // グローバル状態
+        let cancelCurrentStep = 1;
+        let cancelSelectedCase = null;
+        let cancelSelectedCategory = null;
+        let cancelSelectedSubCategory = null;
+        let cancelQuestionAnswers = {};
+
+        let extensionSelectedCase = null;
+
+        // キャンセル申請可能案件を読み込み
+        async function loadCancelableCases() {
+            try {
+                const merchantId = window.merchantId;
+                if (!merchantId) {
+                    alert('ログインしていません');
+                    return;
+                }
+                const response = await fetch(`${CANCEL_API_URL}?action=getCancelableCases&merchantId=${merchantId}`);
+                const result = await response.json();
+
+                const casesList = document.getElementById('cancelCasesList');
+                if (result.success && result.cases.length > 0) {
+                    casesList.innerHTML = result.cases.map(caseItem => `
+                        <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                             onclick="openCancelModal('${caseItem.cvId}')">
+                            <div class="flex justify-between items-start mb-3">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">申請可能</span>
+                            </div>
+                            <h3 class="font-bold text-lg mb-1">${caseItem.customerName}</h3>
+                            <p class="text-sm text-gray-600 mb-2">CV ID: ${caseItem.cvId}</p>
+                            <p class="text-sm text-gray-600 mb-2">📞 ${caseItem.customerPhone}</p>
+                            <p class="text-sm text-gray-600 mb-2">配信日: ${caseItem.deliveredDate}</p>
+                            <p class="text-sm text-red-600 font-semibold">期限: ${caseItem.deadline}</p>
+                            <p class="text-xs text-gray-500 mt-2">経過日数: ${caseItem.elapsedDays}日</p>
+                        </div>
+                    `).join('');
+                } else {
+                    casesList.innerHTML = '<p class="text-gray-600 col-span-full text-center py-8">申請可能な案件はありません</p>';
+                }
+            } catch (error) {
+                console.error('キャンセル案件の読み込みエラー:', error);
+                alert('案件の読み込みに失敗しました');
+            }
+        }
+
+        // キャンセルモーダルを開く
+        async function openCancelModal(cvId) {
+            try {
+                const merchantId = window.merchantId;
+                if (!merchantId) {
+                    alert('ログインしていません');
+                    return;
+                }
+                const response = await fetch(`${CANCEL_API_URL}?action=getCancelableCases&merchantId=${merchantId}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    cancelSelectedCase = result.cases.find(c => c.cvId === cvId);
+                    if (cancelSelectedCase) {
+                        // 顧客情報を表示
+                        document.getElementById('cancelModalCvId').textContent = cancelSelectedCase.cvId;
+                        document.getElementById('cancelModalCustomerName').textContent = cancelSelectedCase.customerName;
+                        document.getElementById('cancelModalPhone').textContent = cancelSelectedCase.customerPhone;
+                        document.getElementById('cancelModalDeliveredDate').textContent = cancelSelectedCase.deliveredDate;
+                        document.getElementById('cancelModalDeadline').textContent = cancelSelectedCase.deadline;
+
+                        // モーダルを表示
+                        document.getElementById('cancelModal').classList.remove('hidden');
+                        cancelGoToStep(1);
+                    }
+                }
+            } catch (error) {
+                console.error('顧客情報の読み込みエラー:', error);
+                alert('顧客情報の読み込みに失敗しました');
+            }
+        }
+
+        // キャンセルモーダルを閉じる
+        function closeCancelModal() {
+            document.getElementById('cancelModal').classList.add('hidden');
+            cancelCurrentStep = 1;
+            cancelSelectedCase = null;
+            cancelSelectedCategory = null;
+            cancelSelectedSubCategory = null;
+            cancelQuestionAnswers = {};
+        }
+
+        // ステップ移動
+        function cancelGoToStep(step) {
+            // 現在のステップを非表示
+            document.querySelectorAll('.cancel-step').forEach(el => el.classList.add('hidden'));
+
+            // 新しいステップを表示
+            document.getElementById(`cancelStep${step}`).classList.remove('hidden');
+            cancelCurrentStep = step;
+
+            // インジケーター更新
+            for (let i = 1; i <= 4; i++) {
+                const indicator = document.getElementById(`cancelStep${i}Indicator`).querySelector('div');
+                if (i < step) {
+                    indicator.classList.remove('bg-gray-300', 'text-gray-600', 'bg-blue-500');
+                    indicator.classList.add('bg-green-500', 'text-white');
+                } else if (i === step) {
+                    indicator.classList.remove('bg-gray-300', 'text-gray-600', 'bg-green-500');
+                    indicator.classList.add('bg-blue-500', 'text-white');
+                } else {
+                    indicator.classList.remove('bg-blue-500', 'bg-green-500');
+                    indicator.classList.add('bg-gray-300', 'text-gray-600');
+                }
+            }
+
+            // ステップ2: カテゴリ一覧を表示
+            if (step === 2) {
+                const categoryList = document.getElementById('cancelCategoryList');
+                categoryList.innerHTML = CANCEL_REASONS.categories.map(cat => `
+                    <div onclick="selectCancelCategory('${cat.id}')"
+                         class="p-4 border rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-500 transition-colors">
+                        <p class="font-semibold">${cat.label}</p>
+                        ${cat.requiresFollowUp ? `<p class="text-xs text-red-600 mt-1">※ フォローアップ履歴必須（電話${cat.minPhoneCalls}回以上、SMS${cat.minSMS}回以上）</p>` : ''}
+                    </div>
+                `).join('');
+            }
+
+            // ステップ4: 確認画面
+            if (step === 4) {
+                const category = CANCEL_REASONS.categories.find(c => c.id === cancelSelectedCategory);
+                const subCategory = CANCEL_REASONS.subCategories[cancelSelectedCategory].find(sc => sc.id === cancelSelectedSubCategory);
+
+                document.getElementById('cancelConfirmCategory').textContent = category.label;
+                document.getElementById('cancelConfirmDetail').textContent = subCategory.label;
+
+                const answersHtml = Object.entries(cancelQuestionAnswers).map(([key, value]) => `
+                    <div class="bg-white p-2 rounded">
+                        <span class="font-semibold">${key}:</span> ${value}
+                    </div>
+                `).join('');
+                document.getElementById('cancelConfirmAnswers').innerHTML = answersHtml;
+            }
+        }
+
+        // カテゴリ選択
+        function selectCancelCategory(categoryId) {
+            cancelSelectedCategory = categoryId;
+
+            // サブカテゴリ一覧を表示
+            const subCategories = CANCEL_REASONS.subCategories[categoryId];
+            const subCategoryList = document.getElementById('cancelSubCategoryList');
+            subCategoryList.innerHTML = subCategories.map(subCat => `
+                <div onclick="selectCancelSubCategory('${subCat.id}')"
+                     class="p-4 border rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-500 transition-colors">
+                    <p class="font-semibold">${subCat.label}</p>
+                </div>
+            `).join('');
+
+            cancelGoToStep(3);
+        }
+
+        // サブカテゴリ選択と質問フォーム生成
+        function selectCancelSubCategory(subCategoryId) {
+            cancelSelectedSubCategory = subCategoryId;
+            cancelQuestionAnswers = {};
+
+            // 質問フォームを生成（簡易版）
+            const questionsForm = document.getElementById('cancelQuestionsForm');
+            questionsForm.innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">詳細情報を入力してください</label>
+                        <textarea id="cancelDetailInput" rows="4" class="w-full px-4 py-2 border rounded-lg"
+                                  placeholder="キャンセル理由の詳細を記入してください"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">電話回数</label>
+                        <input type="number" id="cancelPhoneCount" class="w-full px-4 py-2 border rounded-lg" min="0">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">SMS回数</label>
+                        <input type="number" id="cancelSmsCount" class="w-full px-4 py-2 border rounded-lg" min="0">
+                    </div>
+                </div>
+            `;
+            questionsForm.classList.remove('hidden');
+            document.getElementById('cancelStep3NextBtn').classList.remove('hidden');
+        }
+
+        // キャンセル申請を提出
+        async function submitCancelApplication() {
+            const category = CANCEL_REASONS.categories.find(c => c.id === cancelSelectedCategory);
+            const subCategory = CANCEL_REASONS.subCategories[cancelSelectedCategory].find(sc => sc.id === cancelSelectedSubCategory);
+
+            const detailInput = document.getElementById('cancelDetailInput')?.value || '';
+            const phoneCount = parseInt(document.getElementById('cancelPhoneCount')?.value || 0);
+            const smsCount = parseInt(document.getElementById('cancelSmsCount')?.value || 0);
+
+            // バリデーション
+            if (category.requiresFollowUp) {
+                if (phoneCount < category.minPhoneCalls) {
+                    alert(`このキャンセル理由では最低${category.minPhoneCalls}回の電話が必要です`);
+                    return;
+                }
+                if (smsCount < category.minSMS) {
+                    alert(`このキャンセル理由では最低${category.minSMS}回のSMSが必要です`);
+                    return;
+                }
+            }
+
+            try {
+                const merchantId = window.merchantId;
+                const merchantName = window.merchantData?.['会社名'] || '';
+                const applicantName = window.merchantData?.['営業担当者氏名'] || currentUser || '';
+
+                if (!merchantId) {
+                    alert('ログインしていません');
+                    return;
+                }
+
+                const params = {
+                    action: 'submitCancelReport',
+                    merchantId: merchantId,
+                    merchantName: merchantName,
+                    applicantName: applicantName,
+                    cvId: cancelSelectedCase.cvId,
+                    cancelReasonCategory: category.label,
+                    cancelReasonDetail: subCategory.label,
+                    reasonData: JSON.stringify({
+                        category: cancelSelectedCategory,
+                        subCategory: cancelSelectedSubCategory,
+                        detail: detailInput
+                    }),
+                    additionalInfo1: detailInput,
+                    phoneCallCount: phoneCount,
+                    smsCount: smsCount,
+                    lastContactDate: new Date().toISOString()
+                };
+
+                const response = await fetch(CANCEL_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(params)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('キャンセル申請を提出しました');
+                    closeCancelModal();
+                    loadCancelableCases();
+                } else {
+                    alert('申請に失敗しました: ' + result.error);
+                }
+            } catch (error) {
+                console.error('キャンセル申請エラー:', error);
+                alert('申請の送信に失敗しました');
+            }
+        }
+
+        // 期限延長申請可能案件を読み込み
+        async function loadExtensionEligibleCases() {
+            try {
+                const merchantId = window.merchantId;
+                if (!merchantId) {
+                    alert('ログインしていません');
+                    return;
+                }
+                const response = await fetch(`${CANCEL_API_URL}?action=getExtensionEligibleCases&merchantId=${merchantId}`);
+                const result = await response.json();
+
+                const casesList = document.getElementById('extensionCasesList');
+                if (result.success && result.cases.length > 0) {
+                    casesList.innerHTML = result.cases.map(caseItem => `
+                        <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                             onclick="openExtensionModal('${caseItem.cvId}')">
+                            <div class="flex justify-between items-start mb-3">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">延長可能</span>
+                            </div>
+                            <h3 class="font-bold text-lg mb-1">${caseItem.customerName}</h3>
+                            <p class="text-sm text-gray-600 mb-2">CV ID: ${caseItem.cvId}</p>
+                            <p class="text-sm text-gray-600 mb-2">📞 ${caseItem.customerPhone}</p>
+                            <p class="text-sm text-gray-600 mb-2">配信日: ${caseItem.deliveredDate}</p>
+                            <p class="text-sm text-red-600">現在の期限: ${caseItem.currentDeadline}</p>
+                            <p class="text-sm text-green-600 font-semibold">延長後期限: ${caseItem.extendedDeadline}</p>
+                        </div>
+                    `).join('');
+                } else {
+                    casesList.innerHTML = '<p class="text-gray-600 col-span-full text-center py-8">申請可能な案件はありません</p>';
+                }
+            } catch (error) {
+                console.error('期限延長案件の読み込みエラー:', error);
+                alert('案件の読み込みに失敗しました');
+            }
+        }
+
+        // 期限延長モーダルを開く
+        async function openExtensionModal(cvId) {
+            try {
+                const merchantId = window.merchantId;
+                if (!merchantId) {
+                    alert('ログインしていません');
+                    return;
+                }
+                const response = await fetch(`${CANCEL_API_URL}?action=getExtensionEligibleCases&merchantId=${merchantId}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    extensionSelectedCase = result.cases.find(c => c.cvId === cvId);
+                    if (extensionSelectedCase) {
+                        document.getElementById('extensionModalCvId').textContent = extensionSelectedCase.cvId;
+                        document.getElementById('extensionModalCustomerName').textContent = extensionSelectedCase.customerName;
+                        document.getElementById('extensionModalPhone').textContent = extensionSelectedCase.customerPhone;
+                        document.getElementById('extensionModalDeliveredDate').textContent = extensionSelectedCase.deliveredDate;
+                        document.getElementById('extensionModalCurrentDeadline').textContent = extensionSelectedCase.currentDeadline;
+                        document.getElementById('extensionModalNewDeadline').textContent = extensionSelectedCase.extendedDeadline;
+
+                        document.getElementById('extensionModal').classList.remove('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error('顧客情報の読み込みエラー:', error);
+                alert('顧客情報の読み込みに失敗しました');
+            }
+        }
+
+        // 期限延長モーダルを閉じる
+        function closeExtensionModal() {
+            document.getElementById('extensionModal').classList.add('hidden');
+            extensionSelectedCase = null;
+            document.getElementById('extensionForm').reset();
+        }
+
+        // 期限延長申請フォーム送信
+        document.getElementById('extensionForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const contactDate = document.getElementById('extensionContactDate').value;
+            const appointmentDate = document.getElementById('extensionAppointmentDate').value;
+            const reason = document.getElementById('extensionReason').value;
+
+            if (!contactDate || !appointmentDate || !reason) {
+                alert('すべての項目を入力してください');
+                return;
+            }
+
+            try {
+                const merchantId = window.merchantId;
+                const merchantName = window.merchantData?.['会社名'] || '';
+                const applicantName = window.merchantData?.['営業担当者氏名'] || currentUser || '';
+
+                if (!merchantId) {
+                    alert('ログインしていません');
+                    return;
+                }
+
+                const params = {
+                    action: 'submitExtensionRequest',
+                    merchantId: merchantId,
+                    merchantName: merchantName,
+                    applicantName: applicantName,
+                    cvId: extensionSelectedCase.cvId,
+                    contactDate: contactDate,
+                    appointmentDate: appointmentDate,
+                    extensionReason: reason
+                };
+
+                const response = await fetch(CANCEL_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(params)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('期限延長申請を提出しました');
+                    closeExtensionModal();
+                    loadExtensionEligibleCases();
+                } else {
+                    alert('申請に失敗しました: ' + result.error);
+                }
+            } catch (error) {
+                console.error('期限延長申請エラー:', error);
+                alert('申請の送信に失敗しました');
+            }
         });
     </script>
     <style>
