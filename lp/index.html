@@ -1436,7 +1436,7 @@
                         </svg>
                         <div>
                             <h2 class="text-2xl font-bold">選択業者の確認</h2>
-                            <p class="text-blue-100 text-sm mt-1">最大3社まで無料で一括見積もりできます</p>
+                            <p class="text-blue-100 text-sm mt-1">最大4社まで無料で一括見積もりできます</p>
                         </div>
                     </div>
                 </div>
@@ -1449,7 +1449,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <div class="text-sm text-gray-700">
-                                <p class="font-semibold text-blue-900 mb-1">完全無料・匿名でご利用いただけます</p>
+                                <p class="font-semibold text-blue-900 mb-1">完全無料でご利用いただけます</p>
                                 <p class="text-xs text-gray-600">お客様の情報は厳重に管理し、無断で第三者に提供することはありません</p>
                             </div>
                         </div>
@@ -1512,12 +1512,12 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
-                            <span class="text-sm font-bold">ステップ <span id="currentStep">1</span> / 2</span>
+                            <span class="text-sm font-bold">ステップ <span id="currentStep">1</span> / 1</span>
                         </div>
-                        <span class="text-sm font-bold bg-white bg-opacity-20 px-3 py-1 rounded-full"><span id="stepPercent">50</span>%完了</span>
+                        <span class="text-sm font-bold bg-white bg-opacity-20 px-3 py-1 rounded-full"><span id="stepPercent">100</span>%完了</span>
                     </div>
                     <div class="w-full bg-white bg-opacity-20 rounded-full h-3 overflow-hidden">
-                        <div id="stepProgress" class="bg-white h-3 rounded-full transition-all duration-500 shadow-lg" style="width: 50%"></div>
+                        <div id="stepProgress" class="bg-white h-3 rounded-full transition-all duration-500 shadow-lg" style="width: 100%"></div>
                     </div>
                 </div>
 
@@ -1570,6 +1570,12 @@
                         </label>
 
                         <div id="homeAddressSection" class="hidden mt-4 p-4 bg-blue-50 rounded-xl border-2 border-blue-200 space-y-3">
+                            <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                                </svg>
+                                自宅住所 <span class="text-red-500 ml-1">*</span>
+                            </label>
                             <div class="flex gap-2">
                                 <input type="text" id="homeZip" class="w-32 border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" placeholder="000-0000">
                                 <input type="text" id="homeAddress" class="flex-1 border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" placeholder="市区町村">
@@ -1596,11 +1602,11 @@
                             </svg>
                             戻る
                         </button>
-                        <button onclick="nextStep()" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2">
-                            次へ進む
+                        <button id="submitBtnStep1" onclick="submitEstimateFormCV1()" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
+                            送信する
                         </button>
                     </div>
                 </div>
@@ -1653,6 +1659,97 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             送信する
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 送信完了モーダル（V1714-UX: CV導線短縮） -->
+        <div id="completionModal" class="hidden fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all">
+                <!-- ヘッダー（成功グラデーション） -->
+                <div class="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-t-2xl">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <h2 class="text-2xl font-bold">送信完了！</h2>
+                            <p class="text-green-100 text-sm mt-1">見積もり依頼を受け付けました</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <!-- 成功メッセージ -->
+                    <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-6 rounded-r-lg">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <div class="text-sm text-gray-700">
+                                <p class="font-semibold text-green-900 mb-2">ご登録ありがとうございます</p>
+                                <p class="text-xs text-gray-600 mb-1">選定した業者から順次ご連絡がございます。</p>
+                                <p class="text-xs text-gray-600">通常、1〜3営業日以内に最初のご連絡がございます。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 次のステップ -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">次のステップ</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                                <div class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">1</div>
+                                <div>
+                                    <p class="font-semibold text-gray-900">業者からのご連絡</p>
+                                    <p class="text-sm text-gray-600">お電話またはメールにてご連絡いたします</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                                <div class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">2</div>
+                                <div>
+                                    <p class="font-semibold text-gray-900">現地調査の日程調整</p>
+                                    <p class="text-sm text-gray-600">ご都合の良い日時をお伝えください</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                                <div class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">3</div>
+                                <div>
+                                    <p class="font-semibold text-gray-900">見積もりのご提案</p>
+                                    <p class="text-sm text-gray-600">各業者から詳細な見積書をお届けします</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- クイック予約案内 -->
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-4 mb-6">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            <div class="text-sm">
+                                <p class="font-bold text-gray-900 mb-1">さらにスムーズに！</p>
+                                <p class="text-xs text-gray-600">現地調査の希望日時を今すぐ登録すると、業者とのやり取りがよりスピーディーになります</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ボタン -->
+                    <div class="flex gap-3 pt-4 border-t">
+                        <button onclick="closeCompletionModal()" class="px-8 bg-gray-100 hover:bg-gray-200 text-gray-700 py-4 rounded-xl font-bold transition-all duration-200 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            閉じる
+                        </button>
+                        <button onclick="showQuickBooking()" class="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            クイック予約する
                         </button>
                     </div>
                 </div>
@@ -2135,12 +2232,12 @@
 
             console.log('✅ 背景スクロール復元（モーダル閉じる）');
 
-            // ステップを1に戻す
+            // V1715-UX: ステップを1に戻す（100%）
             document.getElementById('step1').classList.remove('hidden');
             document.getElementById('step2').classList.add('hidden');
             document.getElementById('currentStep').textContent = '1';
-            document.getElementById('stepPercent').textContent = '50';
-            document.getElementById('stepProgress').style.width = '50%';
+            document.getElementById('stepPercent').textContent = '100';
+            document.getElementById('stepProgress').style.width = '100%';
 
             // V1713-UX: キープリストがあれば無料見積もりボタンを再表示
             const keeps = keepManager.getList();
@@ -2267,8 +2364,245 @@
         }
 
         // 見積もりフォーム送信
+        // ============================================
+        // V1714-UX: CV1送信（基本情報のみ）- CV導線短縮
+        // ============================================
+        async function submitEstimateFormCV1() {
+            console.log('📝 CV1送信開始（基本情報のみ）');
+
+            const submitBtn = document.getElementById('submitBtnStep1');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> 送信中...';
+
+            try {
+                // フォームデータ取得
+                const formData = {
+                    name: document.getElementById('userName').value.trim(),
+                    propertyZip: document.getElementById('propertyZip').value.trim().replace('-', ''),
+                    propertyAddress: document.getElementById('propertyAddress').value.trim(),
+                    propertyStreet: document.getElementById('propertyStreet').value.trim(),
+                    email: document.getElementById('userEmail').value.trim()
+                };
+
+                // 必須項目バリデーション
+                if (!formData.name) {
+                    alert('お名前を入力してください');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 送信する';
+                    return;
+                }
+
+                if (formData.email) {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(formData.email)) {
+                        alert('正しいメールアドレスを入力してください');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 送信する';
+                        return;
+                    }
+                }
+
+                if (!formData.propertyStreet) {
+                    alert('物件住所（番地・建物名）を入力してください');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 送信する';
+                    return;
+                }
+
+                // 自宅住所（異なる場合）
+                if (document.getElementById('differentHome').checked) {
+                    formData.homeZip = document.getElementById('homeZip').value.trim().replace('-', '');
+                    formData.homeAddress = document.getElementById('homeAddress').value.trim();
+                    formData.homeStreet = document.getElementById('homeStreet').value.trim();
+
+                    if (!formData.homeZip || !formData.homeStreet) {
+                        alert('自宅住所を入力してください');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 送信する';
+                        return;
+                    }
+                }
+
+                console.log('📤 CV1送信データ:', formData);
+
+                // CV2フォーマットに変換（CV1として送信）
+                const cv2FormData = {
+                    name: formData.name,
+                    email: formData.email,
+                    propertyAddress: { postalCode: formData.propertyZip, street: formData.propertyStreet },
+                    isDifferentHome: formData.homeZip ? true : false,
+                    homeAddress: formData.homeZip ? { postalCode: formData.homeZip, street: formData.homeStreet } : null,
+                    surveyDates: [],  // 空配列
+                    requests: '',  // 空文字列
+                    keepInfo: keepManager.getList().map(k => k.name).join(', ')
+                };
+
+                // GASへ送信（CV2として送信）
+                if (window.CVAPI && window.CVAPI.sendCV2) {
+                    const response = await window.CVAPI.sendCV2(cv2FormData);
+                    if (response.success) {
+                        console.log('✅ CV1送信成功');
+                        // 完了画面を表示
+                        showCompletionModal();
+                    } else {
+                        console.error('❌ CV1送信失敗:', response.error);
+                        alert('送信に失敗しました。もう一度お試しください。');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 送信する';
+                    }
+                } else {
+                    console.error('❌ CVAPI.sendCV2が見つかりません');
+                    alert('送信機能が利用できません。ページをリロードしてください。');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 送信する';
+                }
+            } catch (error) {
+                console.error('❌ CV1送信エラー:', error);
+                alert('送信中にエラーが発生しました。');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 送信する';
+            }
+        }
+
+        // ============================================
+        // V1714-UX: 完了モーダル表示
+        // ============================================
+        function showCompletionModal() {
+            console.log('✅ 完了モーダル表示');
+
+            // 見積もりフォームを閉じる（スクロール位置復元はスキップ）
+            const estimateModal = document.getElementById('estimateFormModal');
+            estimateModal.classList.add('hidden');
+
+            // 完了モーダルを表示
+            const completionModal = document.getElementById('completionModal');
+            completionModal.classList.remove('hidden');
+
+            // 背景スクロール防止（引き続き）
+            const scrollY = window.modalScrollPosition || window.scrollY || window.pageYOffset;
+            window.modalScrollPosition = scrollY;
+
+            completionModal.style.position = 'fixed';
+            completionModal.style.top = '0';
+            completionModal.style.left = '0';
+            completionModal.style.right = '0';
+            completionModal.style.bottom = '0';
+
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${scrollY}px`;
+            document.body.style.width = '100%';
+            document.body.style.overflow = 'hidden';
+            document.body.style.touchAction = 'none';
+
+            const botContainer = document.getElementById('gaiheki-bot-container');
+            if (botContainer) {
+                botContainer.style.position = 'fixed';
+                botContainer.style.top = '0';
+                botContainer.style.left = '0';
+                botContainer.style.right = '0';
+                botContainer.style.bottom = '0';
+                botContainer.style.overflow = 'hidden';
+            }
+
+            completionModal.addEventListener('touchmove', function(e) {
+                if (e.target === completionModal) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        }
+
+        // ============================================
+        // V1714-UX: 完了モーダルを閉じる
+        // ============================================
+        function closeCompletionModal() {
+            console.log('✅ 完了モーダルを閉じる');
+
+            const modal = document.getElementById('completionModal');
+            modal.classList.add('hidden');
+
+            // 背景スクロールを復元
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.width = '';
+            document.body.style.overflow = '';
+            document.body.style.touchAction = '';
+
+            if (window.modalScrollPosition !== undefined) {
+                window.scrollTo(0, window.modalScrollPosition);
+                delete window.modalScrollPosition;
+            }
+
+            const botContainer = document.getElementById('gaiheki-bot-container');
+            if (botContainer) {
+                botContainer.style.position = '';
+                botContainer.style.top = '';
+                botContainer.style.left = '';
+                botContainer.style.right = '';
+                botContainer.style.bottom = '';
+                botContainer.style.overflow = '';
+            }
+
+            console.log('✅ 背景スクロール復元（完了モーダル閉じる）');
+        }
+
+        // ============================================
+        // V1714-UX: クイック予約（詳細情報入力）を表示
+        // ============================================
+        function showQuickBooking() {
+            console.log('📅 クイック予約（詳細情報）表示');
+
+            // 完了モーダルを閉じる
+            const completionModal = document.getElementById('completionModal');
+            completionModal.classList.add('hidden');
+
+            // 見積もりフォームのステップ2（詳細情報）を表示
+            const estimateModal = document.getElementById('estimateFormModal');
+            estimateModal.classList.remove('hidden');
+
+            // ステップ2を表示
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+
+            // プログレスバー更新（2/2）
+            document.getElementById('currentStep').textContent = '2';
+            document.getElementById('stepPercent').textContent = '100';
+            document.getElementById('stepProgress').style.width = '100%';
+
+            // 背景スクロール防止（継続）
+            const scrollY = window.modalScrollPosition || window.scrollY || window.pageYOffset;
+            window.modalScrollPosition = scrollY;
+
+            estimateModal.style.position = 'fixed';
+            estimateModal.style.top = '0';
+            estimateModal.style.left = '0';
+            estimateModal.style.right = '0';
+            estimateModal.style.bottom = '0';
+
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${scrollY}px`;
+            document.body.style.width = '100%';
+            document.body.style.overflow = 'hidden';
+            document.body.style.touchAction = 'none';
+
+            const botContainer = document.getElementById('gaiheki-bot-container');
+            if (botContainer) {
+                botContainer.style.position = 'fixed';
+                botContainer.style.top = '0';
+                botContainer.style.left = '0';
+                botContainer.style.right = '0';
+                botContainer.style.bottom = '0';
+                botContainer.style.overflow = 'hidden';
+            }
+
+            // 現地調査希望日時のチェックボックスを生成
+            generateSurveyDateOptions();
+        }
+
+        // ============================================
+        // V1714-UX: CV2送信（詳細情報のみ）
+        // ============================================
         async function submitEstimateForm() {
-            console.log('📝 見積もりフォーム送信開始');
+            console.log('📝 CV2送信開始（詳細情報のみ）');
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
@@ -2353,8 +2687,9 @@
                 if (window.CVAPI && window.CVAPI.sendCV2) {
                     const response = await window.CVAPI.sendCV2(cv2FormData);
                     if (response.success) {
-                        console.log('✅ CV2送信成功');
-                        showCompletionScreen();
+                        console.log('✅ CV2送信成功（詳細情報追加）');
+                        alert('詳細情報を登録しました。業者とのやり取りがよりスムーズになります。');
+                        closeEstimateForm();
                     } else {
                         console.error('❌ CV2送信失敗:', response.error);
                         alert('送信に失敗しま���た。もう一度お試しください。');
