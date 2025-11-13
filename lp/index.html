@@ -1654,47 +1654,83 @@
             </div>
         </div>
 
-        <!-- 送信完了モーダル（V1718-UX: 電話確認必須を強調） -->
+        <!-- 送信完了モーダル（V1719-UX: やんわり電話確認＋クイック申し込み復活） -->
         <div id="completionModal" class="hidden fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto transform transition-all">
-                <!-- ヘッダー（重要度強調） -->
-                <div class="bg-gradient-to-r from-red-500 to-orange-500 text-white p-6 rounded-t-2xl">
+                <!-- ヘッダー（優しい雰囲気） -->
+                <div class="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-t-2xl">
                     <div class="flex items-center gap-3">
-                        <svg class="w-12 h-12 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         <div>
-                            <h2 class="text-2xl font-bold">【重要】お電話での確認が必要です</h2>
-                            <p class="text-orange-100 text-sm mt-1">この後すぐにお電話いたします</p>
+                            <h2 class="text-2xl font-bold">お申込みありがとうございます</h2>
+                            <p class="text-green-100 text-sm mt-1">外壁塗装くらべる｜ご本人様確認のお電話をさせていただきます</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="p-6">
-                    <!-- 重要メッセージ -->
-                    <div class="bg-orange-50 border-2 border-orange-400 p-5 mb-6 rounded-xl">
-                        <div class="text-center">
-                            <p class="text-lg font-bold text-gray-900 mb-3">申込み完了には電話確認が必須です</p>
-                            <p class="text-sm text-gray-700 mb-4">担当者から5分以内にお電話いたしますので、<br>必ずご対応いただきますようお願いいたします。</p>
+                    <!-- 電話確認のお願い -->
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-5 mb-5 rounded-r-xl">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                            </svg>
+                            <div class="text-sm text-gray-700">
+                                <p class="font-bold text-blue-900 mb-2">ご本人様確認のお電話をいたします（所要時間：平均3〜5分）</p>
+                                <p class="text-xs text-gray-600 mb-3">お申し込み内容の確認と、より正確なお見積もりのため、担当者からお電話させていただきます。</p>
 
-                            <!-- 電話番号表示 -->
-                            <div class="bg-white border-2 border-orange-400 rounded-xl p-4 mb-4">
-                                <p class="text-xs text-gray-600 mb-1">着信番号</p>
-                                <p class="text-3xl font-bold text-orange-600 tracking-wider">090-1994-7162</p>
-                                <p class="text-sm text-gray-700 mt-2">担当：山内</p>
+                                <!-- 電話番号表示 -->
+                                <div class="bg-white border border-blue-300 rounded-lg p-3 text-center">
+                                    <p class="text-xs text-gray-600 mb-1">着信番号</p>
+                                    <p class="text-2xl font-bold text-blue-600 tracking-wider">090-1994-7162</p>
+                                    <p class="text-xs text-gray-700 mt-1">外壁塗装くらべる 担当：山内</p>
+                                </div>
                             </div>
-
-                            <p class="text-xs text-gray-600">※ 上記番号からお電話いたします。ご登録をお願いいたします。</p>
                         </div>
                     </div>
 
-                    <!-- 簡潔な流れ -->
-                    <div class="bg-blue-50 rounded-xl p-4 mb-6">
-                        <p class="text-sm font-bold text-gray-900 mb-2">📞 今後の流れ</p>
-                        <ol class="text-sm text-gray-700 space-y-1 list-decimal list-inside">
-                            <li>担当者からお電話（5分以内）</li>
-                            <li>ご希望内容の確認</li>
-                            <li>業者からの見積もり提案</li>
+                    <!-- クイック申し込みで対応時間短縮 -->
+                    <div class="bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-xl p-4 mb-5">
+                        <div class="flex items-start gap-2 mb-3">
+                            <svg class="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            <div>
+                                <p class="text-sm font-bold text-gray-900 mb-1">クイック申し込みでさらにスムーズに</p>
+                                <p class="text-xs text-gray-600">現地調査のご希望日時などを事前にご入力いただくと、お電話での確認がよりスピーディーになります。</p>
+                            </div>
+                        </div>
+                        <button onclick="showQuickBooking()" class="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white py-3 rounded-xl font-bold transition-all duration-200 shadow-md hover:shadow-lg">
+                            <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            クイック申し込み（任意）
+                        </button>
+                    </div>
+
+                    <!-- 今後の流れ -->
+                    <div class="bg-gray-50 rounded-xl p-4 mb-5">
+                        <p class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                            </svg>
+                            今後の流れ
+                        </p>
+                        <ol class="text-sm text-gray-700 space-y-2">
+                            <li class="flex items-start gap-2">
+                                <span class="bg-blue-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
+                                <span>担当者からお電話（5分以内・所要時間3〜5分）</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="bg-blue-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
+                                <span>ご希望内容の確認</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="bg-blue-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
+                                <span>最適な業者からの見積もり提案</span>
+                            </li>
                         </ol>
                     </div>
 
@@ -1703,7 +1739,7 @@
                         <button onclick="closeCompletionModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-4 rounded-xl font-bold transition-all duration-200">
                             閉じる
                         </button>
-                        <p class="text-xs text-gray-500 mt-3">※ お電話が鳴るまでしばらくお待ちください</p>
+                        <p class="text-xs text-gray-500 mt-3">※ お電話をお待ちください。通話料はかかりません。</p>
                     </div>
                 </div>
             </div>
