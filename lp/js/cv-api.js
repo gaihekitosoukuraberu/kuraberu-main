@@ -301,17 +301,17 @@ const CVAPI = {
                 }
             };
 
-            // タイムアウト設定
+            // タイムアウト設定（V1747-FIX: 60秒→20秒に短縮）
             setTimeout(() => {
                 if (window[dataVarName] === undefined) {
-                    console.error('❌ タイムアウト（60秒）');
+                    console.error('❌ タイムアウト（20秒）');
                     delete window[dataVarName];
                     if (script.parentNode) {
                         script.parentNode.removeChild(script);
                     }
-                    reject(new Error('Request timeout (60s)'));
+                    reject(new Error('Request timeout (20s)'));
                 }
-            }, 60000);
+            }, 20000);
 
             // DOMに追加してからsrcを設定
             const targetElement = document.head || document.getElementsByTagName('head')[0] || document.body;

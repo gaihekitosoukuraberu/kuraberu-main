@@ -1692,7 +1692,7 @@
                             </svg>
                             <div>
                                 <p class="text-sm font-bold text-gray-900 mb-1">クイック申し込みでさらにスムーズに</p>
-                                <p class="text-xs text-gray-600">クイック申し込みでお電話での確認がより短縮されます。</p>
+                                <p class="text-xs text-gray-600">お電話での確認時間がより短縮されます。</p>
                             </div>
                         </div>
                         <button onclick="showQuickBooking()" class="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white py-3 rounded-xl font-bold transition-all duration-200 shadow-md hover:shadow-lg">
@@ -1846,59 +1846,40 @@
         }
 
         // 電話番号送信処理
-        async function submitPhoneNumber(phone) {
+        function submitPhoneNumber(phone) {
             console.log('📞 CV1送信開始 - 電話番号:', phone);
 
             // 電話番号を保存
             localStorage.setItem('userPhone', phone);
 
-            // V1713-UX: ボタンにスピナー表示
-            const submitBtn = document.getElementById('phoneSubmitBtn');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = `
-                    <svg class="animate-spin h-5 w-5 text-white" style="display: inline-block; margin-right: 8px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    処理中...
-                `;
-            }
-
-            // 入力フィールドも無効化
-            const phoneInput = document.getElementById('phoneInput');
-            if (phoneInput) phoneInput.disabled = true;
-
-            // CV1送信（質問回答 + 電話番号）
-            try {
-                if (window.CVAPI && typeof window.CVAPI.sendCV1 === 'function') {
-                    const result = await window.CVAPI.sendCV1(phone);
+            // V1747-FIX: バックグラウンドでCV1送信（レスポンスを待たない）
+            if (window.CVAPI && typeof window.CVAPI.sendCV1 === 'function') {
+                window.CVAPI.sendCV1(phone).then(result => {
                     if (result.success) {
                         console.log('✅ CV1送信成功 - ID:', result.cvId);
                     } else {
                         console.error('❌ CV1送信失敗:', result.error);
                     }
-                } else {
-                    console.error('❌ CVAPI.sendCV1が見つかりません');
-                }
-            } catch (error) {
-                console.error('❌ CV1送信エラー:', error);
-            } finally {
-                // V1713-FIX: 成功・失敗に関わらず、必ずフォームを非表示にする
-                const phoneMiniFormContainer = document.querySelector('.phone-mini-form');
-                if (phoneMiniFormContainer) {
-                    phoneMiniFormContainer.style.display = 'none';
-                    console.log('✅ 電話番号フォーム非表示（finally）');
-                } else {
-                    console.warn('⚠️ 電話番号フォームが見つかりません');
-                }
+                }).catch(error => {
+                    console.error('❌ CV1送信エラー:', error);
+                });
+            } else {
+                console.error('❌ CVAPI.sendCV1が見つかりません');
+            }
 
-                // V1713-FIX: botLoadingIndicatorも確実に削除
-                const loadingIndicator = document.getElementById('botLoadingIndicator');
-                if (loadingIndicator) {
-                    loadingIndicator.remove();
-                    console.log('✅ ローディングインジケーター削除（電話番号送信後）');
-                }
+            // V1747-FIX: 送信後すぐにローディング解除してUI更新（レスポンスを待たない）
+            // 電話番号フォーム非表示
+            const phoneMiniFormContainer = document.querySelector('.phone-mini-form');
+            if (phoneMiniFormContainer) {
+                phoneMiniFormContainer.style.display = 'none';
+                console.log('✅ 電話番号フォーム非表示（即座）');
+            }
+
+            // botLoadingIndicatorも削除
+            const loadingIndicator = document.getElementById('botLoadingIndicator');
+            if (loadingIndicator) {
+                loadingIndicator.remove();
+                console.log('✅ ローディングインジケーター削除（即座）');
             }
 
             // 完了メッセージ表示とランキング解除
