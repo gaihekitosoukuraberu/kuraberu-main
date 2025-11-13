@@ -95,6 +95,58 @@ const SlackApprovalSystem = {
         return this.createSlackResponse();
       }
 
+      // キャンセル申請承認ボタン
+      else if (action.action_id === 'approve_cancel_report') {
+        console.log('[SlackApproval] キャンセル申請承認ボタン押下検出');
+        const applicationId = action.value.replace('approve_cancel_', '');
+        console.log('[SlackApproval] 処理対象ID:', applicationId);
+        const result = this.approveCancelReport(applicationId, user);
+        console.log('[SlackApproval] キャンセル申請承認処理結果:', JSON.stringify(result));
+
+        // Slackメッセージを更新
+        this.updateSlackMessage(payload, '✅ キャンセル申請承認済み', applicationId, user);
+        return this.createSlackResponse();
+      }
+
+      // キャンセル申請却下ボタン
+      else if (action.action_id === 'reject_cancel_report') {
+        console.log('[SlackApproval] キャンセル申請却下ボタン押下検出');
+        const applicationId = action.value.replace('reject_cancel_', '');
+        console.log('[SlackApproval] 処理対象ID:', applicationId);
+        const result = this.rejectCancelReport(applicationId, user, 'Slackから却下');
+        console.log('[SlackApproval] キャンセル申請却下処理結果:', JSON.stringify(result));
+
+        // Slackメッセージを更新
+        this.updateSlackMessage(payload, '❌ キャンセル申請却下', applicationId, user);
+        return this.createSlackResponse();
+      }
+
+      // 期限延長申請承認ボタン
+      else if (action.action_id === 'approve_extension_request') {
+        console.log('[SlackApproval] 期限延長申請承認ボタン押下検出');
+        const extensionId = action.value.replace('approve_extension_', '');
+        console.log('[SlackApproval] 処理対象ID:', extensionId);
+        const result = this.approveExtensionRequest(extensionId, user);
+        console.log('[SlackApproval] 期限延長申請承認処理結果:', JSON.stringify(result));
+
+        // Slackメッセージを更新
+        this.updateSlackMessage(payload, '✅ 期限延長申請承認済み', extensionId, user);
+        return this.createSlackResponse();
+      }
+
+      // 期限延長申請却下ボタン
+      else if (action.action_id === 'reject_extension_request') {
+        console.log('[SlackApproval] 期限延長申請却下ボタン押下検出');
+        const extensionId = action.value.replace('reject_extension_', '');
+        console.log('[SlackApproval] 処理対象ID:', extensionId);
+        const result = this.rejectExtensionRequest(extensionId, user, 'Slackから却下');
+        console.log('[SlackApproval] 期限延長申請却下処理結果:', JSON.stringify(result));
+
+        // Slackメッセージを更新
+        this.updateSlackMessage(payload, '❌ 期限延長申請却下', extensionId, user);
+        return this.createSlackResponse();
+      }
+
       return this.createSlackResponse('Unknown action');
 
     } catch (error) {
@@ -475,6 +527,148 @@ const SlackApprovalSystem = {
 
     } catch (error) {
       console.error('[SlackApproval] メッセージ更新エラー:', error);
+    }
+  },
+
+  /**
+   * キャンセル申請承認処理
+   */
+  approveCancelReport: function(applicationId, approver) {
+    console.log('[SlackApproval.approveCancelReport] 承認処理開始（AdminCancelSystemに委譲）');
+    console.log('[SlackApproval.approveCancelReport] ID:', applicationId, 'Approver:', approver);
+
+    try {
+      // AdminCancelSystem.approveCancelReportを呼び出し
+      if (typeof AdminCancelSystem === 'undefined' || typeof AdminCancelSystem.approveCancelReport !== 'function') {
+        throw new Error('AdminCancelSystem.approveCancelReport が見つかりません');
+      }
+
+      const result = AdminCancelSystem.approveCancelReport({
+        applicationId: applicationId,
+        approverName: approver
+      });
+
+      if (result.success) {
+        console.log('[SlackApproval] キャンセル申請承認成功:', applicationId);
+      } else {
+        console.error('[SlackApproval] キャンセル申請承認失敗:', result.error);
+      }
+
+      return result;
+
+    } catch (error) {
+      console.error('[SlackApproval] キャンセル申請承認エラー:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * キャンセル申請却下処理
+   */
+  rejectCancelReport: function(applicationId, rejector, reason = 'Slackから却下') {
+    console.log('[SlackApproval.rejectCancelReport] 却下処理開始（AdminCancelSystemに委譲）');
+    console.log('[SlackApproval.rejectCancelReport] ID:', applicationId, 'Rejector:', rejector);
+
+    try {
+      // AdminCancelSystem.rejectCancelReportを呼び出し
+      if (typeof AdminCancelSystem === 'undefined' || typeof AdminCancelSystem.rejectCancelReport !== 'function') {
+        throw new Error('AdminCancelSystem.rejectCancelReport が見つかりません');
+      }
+
+      const result = AdminCancelSystem.rejectCancelReport({
+        applicationId: applicationId,
+        approverName: rejector,
+        rejectReason: reason
+      });
+
+      if (result.success) {
+        console.log('[SlackApproval] キャンセル申請却下成功:', applicationId);
+      } else {
+        console.error('[SlackApproval] キャンセル申請却下失敗:', result.error);
+      }
+
+      return result;
+
+    } catch (error) {
+      console.error('[SlackApproval] キャンセル申請却下エラー:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * 期限延長申請承認処理
+   */
+  approveExtensionRequest: function(extensionId, approver) {
+    console.log('[SlackApproval.approveExtensionRequest] 承認処理開始（AdminCancelSystemに委譲）');
+    console.log('[SlackApproval.approveExtensionRequest] ID:', extensionId, 'Approver:', approver);
+
+    try {
+      // AdminCancelSystem.approveExtensionRequestを呼び出し
+      if (typeof AdminCancelSystem === 'undefined' || typeof AdminCancelSystem.approveExtensionRequest !== 'function') {
+        throw new Error('AdminCancelSystem.approveExtensionRequest が見つかりません');
+      }
+
+      const result = AdminCancelSystem.approveExtensionRequest({
+        extensionId: extensionId,
+        approverName: approver
+      });
+
+      if (result.success) {
+        console.log('[SlackApproval] 期限延長申請承認成功:', extensionId);
+      } else {
+        console.error('[SlackApproval] 期限延長申請承認失敗:', result.error);
+      }
+
+      return result;
+
+    } catch (error) {
+      console.error('[SlackApproval] 期限延長申請承認エラー:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * 期限延長申請却下処理
+   */
+  rejectExtensionRequest: function(extensionId, rejector, reason = 'Slackから却下') {
+    console.log('[SlackApproval.rejectExtensionRequest] 却下処理開始（AdminCancelSystemに委譲）');
+    console.log('[SlackApproval.rejectExtensionRequest] ID:', extensionId, 'Rejector:', rejector);
+
+    try {
+      // AdminCancelSystem.rejectExtensionRequestを呼び出し
+      if (typeof AdminCancelSystem === 'undefined' || typeof AdminCancelSystem.rejectExtensionRequest !== 'function') {
+        throw new Error('AdminCancelSystem.rejectExtensionRequest が見つかりません');
+      }
+
+      const result = AdminCancelSystem.rejectExtensionRequest({
+        extensionId: extensionId,
+        approverName: rejector,
+        rejectReason: reason
+      });
+
+      if (result.success) {
+        console.log('[SlackApproval] 期限延長申請却下成功:', extensionId);
+      } else {
+        console.error('[SlackApproval] 期限延長申請却下失敗:', result.error);
+      }
+
+      return result;
+
+    } catch (error) {
+      console.error('[SlackApproval] 期限延長申請却下エラー:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
     }
   },
 

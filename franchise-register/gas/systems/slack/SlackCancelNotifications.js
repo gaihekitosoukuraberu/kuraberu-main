@@ -1,0 +1,344 @@
+/**
+ * ====================================
+ * Slack キャンセル申請通知システム
+ * ====================================
+ *
+ * 【機能】
+ * - キャンセル申請通知（承認/却下ボタン付き）
+ * - 期限延長申請通知（承認/却下ボタン付き）
+ *
+ * 【依存関係】
+ * - AdminCancelSystem（承認/却下処理）
+ * - PropertiesService（SLACK_WEBHOOK_URL）
+ *
+ * 【影響範囲】
+ * - MerchantCancelReport.js
+ * - MerchantDeadlineExtension.js
+ */
+
+/**
+ * キャンセル申請をSlackに通知
+ * @param {Object} data - {
+ *   applicationId: 申請ID,
+ *   cvId: CV ID,
+ *   customerName: 顧客名,
+ *   merchantId: 加盟店ID,
+ *   merchantName: 加盟店名,
+ *   cancelReasonCategory: キャンセル理由カテゴリ,
+ *   cancelReasonDetail: キャンセル理由詳細,
+ *   cancelApplicationText: キャンセル申請文,
+ *   phoneCallCount: 電話回数,
+ *   smsCount: SMS回数
+ * }
+ * @return {Object} 通知結果
+ */
+function sendSlackCancelNotification(data) {
+  try {
+    const webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
+
+    if (!webhookUrl) {
+      console.error('[SlackCancel] Webhook URLが設定されていません');
+      return { success: false, message: 'Slack設定エラー' };
+    }
+
+    // キャンセル申請文を整形（長すぎる場合は省略）
+    const appTextPreview = data.cancelApplicationText?.length > 200
+      ? data.cancelApplicationText.substring(0, 200) + '...'
+      : data.cancelApplicationText;
+
+    const message = {
+      text: `@channel 🚫 キャンセル申請が提出されました`,
+      blocks: [
+        {
+          type: 'header',
+          text: {
+            type: 'plain_text',
+            text: '🚫 キャンセル申請',
+            emoji: true
+          }
+        },
+        {
+          type: 'section',
+          fields: [
+            {
+              type: 'mrkdwn',
+              text: `*申請ID:*\n${data.applicationId}`
+            },
+            {
+              type: 'mrkdwn',
+              text: `*CV ID:*\n${data.cvId}`
+            },
+            {
+              type: 'mrkdwn',
+              text: `*顧客名:*\n${data.customerName}`
+            },
+            {
+              type: 'mrkdwn',
+              text: `*加盟店:*\n${data.merchantName} (ID: ${data.merchantId})`
+            }
+          ]
+        },
+        {
+          type: 'section',
+          fields: [
+            {
+              type: 'mrkdwn',
+              text: `*キャンセル理由:*\n${data.cancelReasonCategory}\n→ ${data.cancelReasonDetail}`
+            },
+            {
+              type: 'mrkdwn',
+              text: `*フォローアップ履歴:*\n電話: ${data.phoneCallCount || 0}回\nSMS: ${data.smsCount || 0}回`
+            }
+          ]
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*申請文:*\n\`\`\`${appTextPreview}\`\`\``
+          }
+        },
+        {
+          type: 'divider'
+        },
+        {
+          type: 'actions',
+          elements: [
+            {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: '✅ 承認',
+                emoji: true
+              },
+              style: 'primary',
+              value: `approve_cancel_${data.applicationId}`,
+              action_id: 'approve_cancel_report'
+            },
+            {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: '❌ 却下',
+                emoji: true
+              },
+              style: 'danger',
+              value: `reject_cancel_${data.applicationId}`,
+              action_id: 'reject_cancel_report'
+            },
+            {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: '📊 スプレッドシートを開く',
+                emoji: true
+              },
+              url: getSpreadsheetUrl(),
+              action_id: 'open_spreadsheet_cancel'
+            }
+          ]
+        }
+      ]
+    };
+
+    const options = {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify(message),
+      muteHttpExceptions: true
+    };
+
+    const response = UrlFetchApp.fetch(webhookUrl, options);
+
+    if (response.getResponseCode() === 200) {
+      console.log('[SlackCancel] 通知送信成功:', data.applicationId);
+      return {
+        success: true,
+        message: 'Slack通知を送信しました'
+      };
+    } else {
+      console.error('[SlackCancel] 通知送信失敗:', response.getContentText());
+      return {
+        success: false,
+        message: 'Slack通知の送信に失敗しました'
+      };
+    }
+
+  } catch (error) {
+    console.error('[SlackCancel] 通知エラー:', error);
+    return {
+      success: false,
+      message: error.toString()
+    };
+  }
+}
+
+/**
+ * キャンセル期限延長申請をSlackに通知
+ * @param {Object} data - {
+ *   extensionId: 申請ID,
+ *   cvId: CV ID,
+ *   customerName: 顧客名,
+ *   merchantId: 加盟店ID,
+ *   merchantName: 加盟店名,
+ *   contactDate: 連絡がついた日時,
+ *   appointmentDate: アポ予定日,
+ *   extensionReason: 延長理由,
+ *   extendedDeadline: 延長後期限
+ * }
+ * @return {Object} 通知結果
+ */
+function sendSlackExtensionNotification(data) {
+  try {
+    const webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
+
+    if (!webhookUrl) {
+      console.error('[SlackExtension] Webhook URLが設定されていません');
+      return { success: false, message: 'Slack設定エラー' };
+    }
+
+    // 日時フォーマット
+    const contactDateStr = data.contactDate
+      ? Utilities.formatDate(new Date(data.contactDate), 'JST', 'yyyy-MM-dd HH:mm')
+      : '未設定';
+    const appointmentDateStr = data.appointmentDate
+      ? Utilities.formatDate(new Date(data.appointmentDate), 'JST', 'yyyy-MM-dd')
+      : '未設定';
+    const extendedDeadlineStr = data.extendedDeadline
+      ? Utilities.formatDate(new Date(data.extendedDeadline), 'JST', 'yyyy-MM-dd HH:mm')
+      : '未設定';
+
+    const message = {
+      text: `@channel ⏰ キャンセル期限延長申請が提出されました`,
+      blocks: [
+        {
+          type: 'header',
+          text: {
+            type: 'plain_text',
+            text: '⏰ キャンセル期限延長申請',
+            emoji: true
+          }
+        },
+        {
+          type: 'section',
+          fields: [
+            {
+              type: 'mrkdwn',
+              text: `*申請ID:*\n${data.extensionId}`
+            },
+            {
+              type: 'mrkdwn',
+              text: `*CV ID:*\n${data.cvId}`
+            },
+            {
+              type: 'mrkdwn',
+              text: `*顧客名:*\n${data.customerName}`
+            },
+            {
+              type: 'mrkdwn',
+              text: `*加盟店:*\n${data.merchantName} (ID: ${data.merchantId})`
+            }
+          ]
+        },
+        {
+          type: 'section',
+          fields: [
+            {
+              type: 'mrkdwn',
+              text: `*連絡がついた日時:*\n${contactDateStr}`
+            },
+            {
+              type: 'mrkdwn',
+              text: `*アポ予定日:*\n${appointmentDateStr}`
+            },
+            {
+              type: 'mrkdwn',
+              text: `*延長後期限:*\n${extendedDeadlineStr}`
+            },
+            {
+              type: 'mrkdwn',
+              text: `*ステータス:*\n申請中 🕐`
+            }
+          ]
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*延長理由:*\n${data.extensionReason || '（記載なし）'}`
+          }
+        },
+        {
+          type: 'divider'
+        },
+        {
+          type: 'actions',
+          elements: [
+            {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: '✅ 承認',
+                emoji: true
+              },
+              style: 'primary',
+              value: `approve_extension_${data.extensionId}`,
+              action_id: 'approve_extension_request'
+            },
+            {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: '❌ 却下',
+                emoji: true
+              },
+              style: 'danger',
+              value: `reject_extension_${data.extensionId}`,
+              action_id: 'reject_extension_request'
+            },
+            {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: '📊 スプレッドシートを開く',
+                emoji: true
+              },
+              url: getSpreadsheetUrl(),
+              action_id: 'open_spreadsheet_extension'
+            }
+          ]
+        }
+      ]
+    };
+
+    const options = {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify(message),
+      muteHttpExceptions: true
+    };
+
+    const response = UrlFetchApp.fetch(webhookUrl, options);
+
+    if (response.getResponseCode() === 200) {
+      console.log('[SlackExtension] 通知送信成功:', data.extensionId);
+      return {
+        success: true,
+        message: 'Slack通知を送信しました'
+      };
+    } else {
+      console.error('[SlackExtension] 通知送信失敗:', response.getContentText());
+      return {
+        success: false,
+        message: 'Slack通知の送信に失敗しました'
+      };
+    }
+
+  } catch (error) {
+    console.error('[SlackExtension] 通知エラー:', error);
+    return {
+      success: false,
+      message: error.toString()
+    };
+  }
+}
