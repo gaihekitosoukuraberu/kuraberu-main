@@ -714,13 +714,20 @@ function testSubmitContractReport() {
 
   // テスト用データを指定（実際のデータに合わせて変更してください）
   const testData = {
-    merchantId: 'F20240001',           // ← 実際の加盟店IDに変更
-    merchantName: 'テスト株式会社',    // ← 実際の加盟店名に変更
-    cvId: 'CV20250101001',            // ← 実際のCV IDに変更
-    contractDate: '2025-01-13',       // 成約日
-    contractAmount: 1200000,          // 成約金額（円）
-    workContent: '外壁塗装・屋根塗装', // 見積工事内容
-    paymentDueDate: '2025-02-28'      // 入金予定日
+    merchantId: 'F20240001',                    // ← 実際の加盟店IDに変更
+    merchantName: 'テスト株式会社',              // ← 実際の加盟店名に変更
+    cvId: 'CV20250101001',                      // ← 実際のCV IDに変更
+    reportType: '成約報告',                      // 成約報告 or 追加工事報告
+    currentStatus: '契約後・工事前',             // 契約前・口頭確約済/契約後・工事前/工事中/工事完了後
+    contractDate: '2025-01-13',                 // 成約日
+    contractAmount: 1200000,                    // 成約金額（円）
+    constructionEndDate: '2025-03-31',          // 完工予定日
+    paymentDueDate: '2025-02-28',               // 着金予定日
+    propertyType: '戸建て',                      // 対象物件種別
+    floors: '2階建て',                           // 階数
+    workContent: ['外壁塗装', '屋根塗装'],       // 施工内容（配列）
+    estimateFileUrl: '',                        // 見積書URL（オプション）
+    receiptFileUrl: ''                          // 領収書URL（オプション）
   };
 
   console.log('\nテストデータ:');
@@ -747,6 +754,11 @@ function testSubmitContractReport() {
     const contractDateIdx = headers.indexOf('成約日');
     const contractAmountIdx = headers.indexOf('成約金額');
     const managementStatusIdx = headers.indexOf('管理ステータス');
+    const constructionStatusIdx = headers.indexOf('工事進捗ステータス');
+    const constructionEndDateIdx = headers.indexOf('工事完了予定日');
+    const propertyTypeIdx = headers.indexOf('Q1_物件種別');
+    const floorsIdx = headers.indexOf('Q2_階数');
+    const workContentIdx = headers.indexOf('見積工事内容');
 
     // CV IDで検索
     for (let i = 0; i < rows.length; i++) {
@@ -757,6 +769,11 @@ function testSubmitContractReport() {
         console.log('  成約日:', rows[i][contractDateIdx]);
         console.log('  成約金額:', rows[i][contractAmountIdx]);
         console.log('  管理ステータス:', rows[i][managementStatusIdx]);
+        console.log('  工事進捗ステータス:', rows[i][constructionStatusIdx]);
+        console.log('  完工予定日:', rows[i][constructionEndDateIdx]);
+        console.log('  物件種別:', rows[i][propertyTypeIdx]);
+        console.log('  階数:', rows[i][floorsIdx]);
+        console.log('  施工内容:', rows[i][workContentIdx]);
         break;
       }
     }
@@ -810,10 +827,15 @@ function testContractReportIntegration() {
     merchantId: testMerchantId,
     merchantName: 'テスト株式会社',
     cvId: firstCase.cvId,
+    reportType: '成約報告',
+    currentStatus: '契約後・工事前',
     contractDate: '2025-01-13',
     contractAmount: 1000000,
-    workContent: '外壁塗装',
-    paymentDueDate: '2025-02-28'
+    constructionEndDate: '2025-03-31',
+    paymentDueDate: '2025-02-28',
+    propertyType: '戸建て',
+    floors: '2階建て',
+    workContent: ['外壁塗装']
   });
 
   if (reportResult.success) {

@@ -125,16 +125,38 @@ const MerchantContractReport = {
    *   merchantId: 加盟店ID,
    *   merchantName: 加盟店名,
    *   cvId: CV ID,
+   *   reportType: 報告種別（成約報告/追加工事報告）,
+   *   currentStatus: 現在の状況（契約前・口頭確約済/契約後・工事前/工事中/工事完了後）,
    *   contractDate: 成約日,
-   *   contractAmount: 成約金額,
-   *   workContent: 見積工事内容,
-   *   paymentDueDate: 入金予定日
+   *   contractAmount: 成約金額（税込）,
+   *   constructionEndDate: 完工予定日,
+   *   paymentDueDate: 着金予定日,
+   *   propertyType: 対象物件種別,
+   *   floors: 階数,
+   *   workContent: 施工内容（配列）,
+   *   estimateFileUrl: 見積書URL,
+   *   receiptFileUrl: 領収書URL
    * }
    * @return {Object} - { success: boolean }
    */
   submitContractReport: function(params) {
     try {
-      const { merchantId, merchantName, cvId, contractDate, contractAmount, workContent, paymentDueDate } = params;
+      const {
+        merchantId,
+        merchantName,
+        cvId,
+        reportType,
+        currentStatus,
+        contractDate,
+        contractAmount,
+        constructionEndDate,
+        paymentDueDate,
+        propertyType,
+        floors,
+        workContent,
+        estimateFileUrl,
+        receiptFileUrl
+      } = params;
 
       // バリデーション
       if (!merchantId || !cvId) {
@@ -144,10 +166,10 @@ const MerchantContractReport = {
         };
       }
 
-      if (!contractDate || !contractAmount) {
+      if (!contractAmount) {
         return {
           success: false,
-          error: '成約日と成約金額は必須です'
+          error: '成約金額は必須です'
         };
       }
 
@@ -177,6 +199,12 @@ const MerchantContractReport = {
       const workContentIdx = headers.indexOf('見積工事内容');
       const paymentDueDateIdx = headers.indexOf('入金予定日');
       const managementStatusIdx = headers.indexOf('管理ステータス');
+      const constructionEndDateIdx = headers.indexOf('工事完了予定日');
+      const constructionStatusIdx = headers.indexOf('工事進捗ステータス');
+      const additionalWorkFlagIdx = headers.indexOf('追加工事フラグ');
+      const propertyTypeIdx = headers.indexOf('Q1_物件種別');
+      const floorsIdx = headers.indexOf('Q2_階数');
+      const contractReportDateIdx = headers.indexOf('成約報告日');
 
       // CV IDで行を検索
       let targetRow = -1;
@@ -194,22 +222,57 @@ const MerchantContractReport = {
         };
       }
 
-      // すでに成約報告済みかチェック
-      const currentContractMerchantId = rows[targetRow - 2][contractMerchantIdIdx];
-      if (currentContractMerchantId && currentContractMerchantId !== '') {
-        return {
-          success: false,
-          error: 'この案件はすでに成約報告済みです（加盟店ID: ' + currentContractMerchantId + '）'
-        };
+      // 報告種別に応じた処理
+      const isAdditionalWork = reportType === '追加工事報告';
+
+      // 追加工事報告でない場合のみ成約加盟店IDをチェック
+      if (!isAdditionalWork) {
+        const currentContractMerchantId = rows[targetRow - 2][contractMerchantIdIdx];
+        if (currentContractMerchantId && currentContractMerchantId !== '') {
+          return {
+            success: false,
+            error: 'この案件はすでに成約報告済みです（加盟店ID: ' + currentContractMerchantId + '）'
+          };
+        }
       }
 
-      // データ更新
-      userSheet.getRange(targetRow, contractMerchantIdIdx + 1).setValue(merchantId);
-      userSheet.getRange(targetRow, contractMerchantNameIdx + 1).setValue(merchantName || '');
-      userSheet.getRange(targetRow, contractDateIdx + 1).setValue(contractDate);
+      // 現在の状況から管理ステータスと工事進捗ステータスを判定
+      let newManagementStatus = '入金予定';
+      let constructionStatus = '';
+
+      if (currentStatus === '契約前・口頭確約済') {
+        newManagementStatus = '商談中';
+        constructionStatus = '契約前';
+      } else if (currentStatus === '契約後・工事前') {
+        newManagementStatus = '入金予定';
+        constructionStatus = '工事前';
+      } else if (currentStatus === '工事中') {
+        newManagementStatus = '入金予定';
+        constructionStatus = '工事中';
+      } else if (currentStatus === '工事完了後') {
+        newManagementStatus = '完了';
+        constructionStatus = '工事完了';
+      }
+
+      // データ更新（通常の成約報告の場合）
+      if (!isAdditionalWork) {
+        userSheet.getRange(targetRow, contractMerchantIdIdx + 1).setValue(merchantId);
+        userSheet.getRange(targetRow, contractMerchantNameIdx + 1).setValue(merchantName || '');
+        userSheet.getRange(targetRow, contractReportDateIdx + 1).setValue(new Date());
+      }
+
+      // 共通項目の更新
+      if (contractDate) {
+        userSheet.getRange(targetRow, contractDateIdx + 1).setValue(contractDate);
+      }
+
       userSheet.getRange(targetRow, contractAmountIdx + 1).setValue(contractAmount);
 
-      if (workContent) {
+      // 施工内容（配列を文字列に変換）
+      if (workContent && Array.isArray(workContent)) {
+        const workContentStr = workContent.join('、');
+        userSheet.getRange(targetRow, workContentIdx + 1).setValue(workContentStr);
+      } else if (workContent) {
         userSheet.getRange(targetRow, workContentIdx + 1).setValue(workContent);
       }
 
@@ -217,14 +280,43 @@ const MerchantContractReport = {
         userSheet.getRange(targetRow, paymentDueDateIdx + 1).setValue(paymentDueDate);
       }
 
-      // 管理ステータスを「入金予定」に更新
-      userSheet.getRange(targetRow, managementStatusIdx + 1).setValue('入金予定');
+      if (constructionEndDate) {
+        userSheet.getRange(targetRow, constructionEndDateIdx + 1).setValue(constructionEndDate);
+      }
 
-      console.log('[MerchantContractReport] submitContractReport - 成約報告完了:', cvId);
+      if (propertyType && propertyTypeIdx !== -1) {
+        userSheet.getRange(targetRow, propertyTypeIdx + 1).setValue(propertyType);
+      }
+
+      if (floors && floorsIdx !== -1) {
+        userSheet.getRange(targetRow, floorsIdx + 1).setValue(floors);
+      }
+
+      // 工事進捗ステータス
+      if (constructionStatus && constructionStatusIdx !== -1) {
+        userSheet.getRange(targetRow, constructionStatusIdx + 1).setValue(constructionStatus);
+      }
+
+      // 追加工事フラグ
+      if (isAdditionalWork && additionalWorkFlagIdx !== -1) {
+        userSheet.getRange(targetRow, additionalWorkFlagIdx + 1).setValue(true);
+      }
+
+      // 管理ステータス更新
+      userSheet.getRange(targetRow, managementStatusIdx + 1).setValue(newManagementStatus);
+
+      console.log('[MerchantContractReport] submitContractReport - 成約報告完了:', cvId, '報告種別:', reportType);
+
+      const successMessage = isAdditionalWork ? '追加工事報告を登録しました' : '成約報告を登録しました';
 
       return {
         success: true,
-        message: '成約報告を登録しました'
+        message: successMessage,
+        data: {
+          cvId: cvId,
+          managementStatus: newManagementStatus,
+          constructionStatus: constructionStatus
+        }
       };
 
     } catch (error) {
