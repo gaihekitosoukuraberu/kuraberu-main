@@ -186,30 +186,9 @@ function updateProgressFromStage(stage) {
     updateProgress(percentage);
 }
 
-// 既存のupdateProgress関数を使用
-function updateProgress(percentage) {
-    // デスクトップ版
-    const progressPercentage = document.getElementById('progressPercentage');
-    const progressBar = document.getElementById('progressBar');
-    if (progressPercentage) {
-        progressPercentage.textContent = percentage + '%';
-    }
-    if (progressBar) {
-        progressBar.style.width = percentage + '%';
-        progressBar.style.background = 'linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%)';
-    }
-
-    // モバイル版
-    const mobileProgressPercentage = document.getElementById('mobileProgressPercentage');
-    const mobileProgressBar = document.getElementById('mobileProgressBarFill');
-    if (mobileProgressPercentage) {
-        mobileProgressPercentage.textContent = percentage + '%';
-    }
-    if (mobileProgressBar) {
-        mobileProgressBar.style.width = percentage + '%';
-        mobileProgressBar.style.background = 'linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%)';
-    }
-}
+// V1738-FIX: updateProgress関数はindex.htmlで定義済み（ガード節付き）
+// ここでは再定義せず、グローバルのwindow.updateProgressを使用
+// 重複定義を削除して、進捗度が絶対に下がらない機能を保持
 
 // ワードリンクエントリ用のBOT初期化
 function initBotForKeywordEntry(keyword) {
