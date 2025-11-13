@@ -675,7 +675,7 @@ function testGetDeliveredCases() {
   // テスト用の加盟店IDを指定（実際の加盟店IDを使用してください）
   const testMerchantId = 'F20240001';  // ← ここを実際の加盟店IDに変更
 
-  const result = MerchantSystem.getDeliveredCases({
+  const result = MerchantContractReport.getDeliveredCases({
     merchantId: testMerchantId
   });
 
@@ -726,7 +726,7 @@ function testSubmitContractReport() {
   console.log('\nテストデータ:');
   console.log(JSON.stringify(testData, null, 2));
 
-  const result = MerchantSystem.submitContractReport(testData);
+  const result = MerchantContractReport.submitContractReport(testData);
 
   console.log('\n結果:', JSON.stringify(result, null, 2));
 
@@ -780,7 +780,7 @@ function testContractReportIntegration() {
 
   // 1. 配信済み案件一覧取得
   console.log('【ステップ1】配信済み案件一覧取得');
-  const casesResult = MerchantSystem.getDeliveredCases({
+  const casesResult = MerchantContractReport.getDeliveredCases({
     merchantId: testMerchantId
   });
 
@@ -806,7 +806,7 @@ function testContractReportIntegration() {
   // 2. 成約報告テスト（実際にデータを更新するためコメントアウト推奨）
   /*
   console.log('\n【ステップ2】成約報告登録テスト');
-  const reportResult = MerchantSystem.submitContractReport({
+  const reportResult = MerchantContractReport.submitContractReport({
     merchantId: testMerchantId,
     merchantName: 'テスト株式会社',
     cvId: firstCase.cvId,
