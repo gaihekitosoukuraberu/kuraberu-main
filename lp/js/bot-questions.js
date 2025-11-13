@@ -10,13 +10,13 @@
 
 const BotQuestions = {
     // ============================================
-    // V1741-UX: 質問カウント方式（フロー分岐に依存しない均等な進捗）
+    // V1742-FIX: 質問カウント方式（回答時のみカウント - 重複防止）
     // ============================================
     questionCount: 0,
     EXPECTED_QUESTIONS: 15,  // 想定質問数（平均的なフロー）
 
     // ============================================
-    // V1741-UX: 質問カウンターリセット
+    // V1742-FIX: 質問カウンターリセット
     // ============================================
     resetQuestionCount() {
         this.questionCount = 0;
@@ -24,7 +24,7 @@ const BotQuestions = {
     },
 
     // ============================================
-    // V1741-UX: 進捗度更新（カウントベース）
+    // V1742-FIX: 進捗度更新（回答時のみカウント - 質問表示時は除外）
     // ============================================
     updateQuestionProgress(questionId) {
         this.questionCount++;
@@ -64,8 +64,8 @@ const BotQuestions = {
         // 現在の質問IDを保存
         BotConfig.state.currentQuestionId = questionId;
 
-        // V1730-UX: 質問表示時に進捗更新
-        this.updateQuestionProgress(questionId);
+        // V1742-FIX: 進捗更新は回答時のみ（質問表示時はカウントしない）
+        // 削除: this.updateQuestionProgress(questionId); - 重複カウント防止
 
         // V1713-UX: Q014表示時にランキング事前取得開始（ユーザーが選択する前に開始）
         if (questionId === 'Q014' && typeof window.fetchRankingFromGAS === 'function' && !window.dynamicRankings) {
