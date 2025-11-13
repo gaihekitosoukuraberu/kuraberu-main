@@ -1922,14 +1922,15 @@
                 messages.appendChild(aiMessageContainer);
                 scrollToBotBottom();
 
-                // スマホ版の場合はランキングセクションまでスクロール
+                // V1747-UX: スマホ版の場合はメッセージを読ませてからランキングセクションまでスクロール
                 if (window.innerWidth < 768) {
                     setTimeout(() => {
                         const rankingSection = document.getElementById('rankingSection');
                         if (rankingSection) {
                             rankingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            console.log('📱 ランキングセクションへ自動スクロール（メッセージ表示2秒後）');
                         }
-                    }, 500);
+                    }, 2000);  // V1747-UX: 500ms→2000msに変更（メッセージを読む時間を確保）
                 }
 
                 // V1733-UX: 進捗度は既に100%のため更新不要（bot-core.js connectToPhoneSystem()で100%設定済み）
@@ -3228,11 +3229,11 @@
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） - 固定キャッシュバスター -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="js/env-loader.js?v=1763025000000"></script>
+    <script src="js/env-loader.js?v=1763026000000"></script>
 
     <!-- BOTローダー（タイミング問題のため静的ロード必須） -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="gaiheki-bot-loader.js?v=1763025000000"></script>
+    <script src="gaiheki-bot-loader.js?v=1763026000000"></script>
 
     <!-- V1713-FIX: 無料見積もりボタン（body直下・viewport基準で完全固定） -->
     <div id="estimateBtnContainer" style="display: none !important; position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 999999 !important; background: white !important; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 200px 0 200px white !important; border-top: 1px solid #e5e7eb !important; padding: 1rem 0 !important; padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important; pointer-events: auto !important;">

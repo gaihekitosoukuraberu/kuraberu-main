@@ -167,6 +167,12 @@ const BotCore = {
         BotUI.clearMessages();
         BotUI.clearChoices();
 
+        // V1747-UX: 郵便番号入力完了で進捗度を上げる（15%）
+        if (typeof window.updateProgress === 'function') {
+            window.updateProgress(15);
+            console.log('📊 進捗更新: 郵便番号入力完了 → 15%');
+        }
+
         // 開始メッセージ
         BotUI.showAIMessage(
             'ありがとうございます。あなたに最適な業者をご紹介するため、いくつか質問させていただきます。'
@@ -235,6 +241,12 @@ const BotCore = {
         if (scenario.special === 'direct_postal') {
             console.log('✨ 特殊シナリオ: 郵便番号フォーム直接表示');
 
+            // V1747-UX: ワードリンク流入時の初期表示で進捗度を上げる（8%）
+            if (typeof window.updateProgress === 'function') {
+                window.updateProgress(8);
+                console.log('📊 進捗更新: ワードリンク流入（greeting表示・direct_postal） → 8%');
+            }
+
             // greetingメッセージ
             BotUI.showAIMessage(scenario.greeting);
 
@@ -253,6 +265,12 @@ const BotCore = {
                 }
             }, 1000);
             return;
+        }
+
+        // V1747-UX: ワードリンク流入時の初期表示で進捗度を上げる（8%）
+        if (typeof window.updateProgress === 'function') {
+            window.updateProgress(8);
+            console.log('📊 進捗更新: ワードリンク流入（greeting表示） → 8%');
         }
 
         // greetingメッセージ

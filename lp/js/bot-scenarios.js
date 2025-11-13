@@ -99,6 +99,12 @@ const BotScenarios = {
                 const wordLinkAnswer = `${initialStep.message} → ${choice}`;
                 BotConfig.saveAnswer('wordLinkAnswer', wordLinkAnswer, index);
 
+                // V1747-UX: 初期質問回答で進捗度を上げる（12%）
+                if (typeof window.updateProgress === 'function') {
+                    window.updateProgress(12);
+                    console.log('📊 進捗更新: 初期質問回答（ワードリンク） → 12%');
+                }
+
                 // responseがあれば表示
                 if (selected.response) {
                     setTimeout(() => {
@@ -165,6 +171,12 @@ const BotScenarios = {
 
                 BotUI.showUserMessage(selectedLabels);
                 BotUI.clearChoices();
+
+                // V1747-UX: 初期質問回答で進捗度を上げる（12%）
+                if (typeof window.updateProgress === 'function') {
+                    window.updateProgress(12);
+                    console.log('📊 進捗更新: 初期質問回答（ワードリンク・複数選択） → 12%');
+                }
 
                 setTimeout(() => {
                     this.showPostalForm(requestPostal);
@@ -280,6 +292,12 @@ const BotScenarios = {
             if (areaName && window.propertyCity) {
                 areaName.textContent = `${window.propertyCity}の相場`;
                 console.log('✅ areaName更新（シナリオ）:', `${window.propertyCity}の相場`);
+            }
+
+            // V1747-UX: 郵便番号入力完了で進捗度を上げる（15%）
+            if (typeof window.updateProgress === 'function') {
+                window.updateProgress(15);
+                console.log('📊 進捗更新: 郵便番号入力完了（シナリオ） → 15%');
             }
 
             // AIメッセージ表示

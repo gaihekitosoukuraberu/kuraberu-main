@@ -92,6 +92,12 @@ async function initBotForZipEntry() {
         });
     }
 
+    // V1747-UX: 郵便番号入力完了で進捗度を上げる（15%）
+    if (typeof window.updateProgress === 'function') {
+        window.updateProgress(15);
+        console.log('📊 進捗更新: 郵便番号入力完了 → 15%');
+    }
+
     // AIメッセージ：相場は既に表示済みなので、直接質問開始
     showAIMessage('ありがとうございます。あなたに最適な業者をご紹介するため、いくつか質問させていただきます。');
 
@@ -221,6 +227,12 @@ function initBotForKeywordEntry(keyword) {
         console.log('✅ ランキング初期表示（デフォルトデータ: T社、S社など）');
     }
 
+    // V1747-UX: ワードリンク流入時の初期表示で進捗度を上げる（8%）
+    if (typeof window.updateProgress === 'function') {
+        window.updateProgress(8);
+        console.log('📊 進捗更新: ワードリンク流入（greeting表示） → 8%');
+    }
+
     // greeting表示
     showAIMessage(scenario.greeting);
 
@@ -326,6 +338,12 @@ function showPostalFormInBot() {
             }).catch(err => {
                 console.error('❌ ランキング取得エラー（非致命的）:', err);
             });
+        }
+
+        // V1747-UX: 郵便番号入力完了で進捗度を上げる（15%）
+        if (typeof window.updateProgress === 'function') {
+            window.updateProgress(15);
+            console.log('📊 進捗更新: 郵便番号入力完了（ワードリンク） → 15%');
         }
 
         // mainQuestionsへ（即座に開始）
