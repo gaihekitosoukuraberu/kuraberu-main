@@ -32,6 +32,9 @@ const AdminSystem = {
       const action = params.action;
 
       switch (action) {
+        case 'verifyAdminLogin':
+          return verifyAdminLogin(params.userId, params.password);
+
         case 'getRegistrationRequests':
           return this.getRegistrationRequests(params);
 
@@ -94,6 +97,9 @@ const AdminSystem = {
       const action = postData.action || e.parameter.action;
 
       switch (action) {
+        case 'verifyAdminLogin':
+          return verifyAdminLogin(postData.userId, postData.password);
+
         case 'getMerchantData':
           return this.getMerchantData(postData);
 

@@ -202,3 +202,120 @@ function checkLoginAttempts(merchantId) {
 function resetLoginAttempts(merchantId) {
   delete loginAttempts[merchantId];
 }
+
+// ====================================
+// 管理者認証システム
+// ====================================
+
+// 管理者ログイン試行回数管理
+const adminLoginAttempts = {};
+
+/**
+ * 管理者ログイン検証
+ * @param {string} userId - 入力されたユーザーID
+ * @param {string} password - 入力されたパスワード
+ * @returns {Object} - {success: boolean, message: string}
+ */
+function verifyAdminLogin(userId, password) {
+  try {
+    // 入力チェック
+    if (!userId || !password) {
+      return {
+        success: false,
+        message: 'ユーザーIDとパスワードを入力してください'
+      };
+    }
+
+    // ログイン試行回数チェック
+    if (!checkAdminLoginAttempts(userId)) {
+      return {
+        success: false,
+        message: 'ログイン試行回数が上限に達しました。15分後に再度お試しください。'
+      };
+    }
+
+    // スクリプトプロパティから認証情報を取得
+    const props = PropertiesService.getScriptProperties();
+    const adminUser = props.getProperty('ADMIN_USER');
+    const adminPass = props.getProperty('ADMIN_PASS');
+
+    // 認証情報が設定されているかチェック
+    if (!adminUser || !adminPass) {
+      console.error('[verifyAdminLogin] 管理者認証情報が設定されていません');
+      return {
+        success: false,
+        message: '管理者認証情報が設定されていません。システム管理者に連絡してください。'
+      };
+    }
+
+    // 認証チェック
+    if (userId === adminUser && password === adminPass) {
+      // ログイン成功
+      resetAdminLoginAttempts(userId);
+
+      console.log('[verifyAdminLogin] 管理者ログイン成功:', userId);
+
+      return {
+        success: true,
+        message: 'ログインに成功しました',
+        userId: userId,
+        loginTime: new Date().toISOString()
+      };
+    } else {
+      // ログイン失敗
+      console.warn('[verifyAdminLogin] 管理者ログイン失敗:', userId);
+
+      return {
+        success: false,
+        message: 'ユーザーIDまたはパスワードが正しくありません'
+      };
+    }
+
+  } catch (error) {
+    console.error('[verifyAdminLogin] エラー:', error);
+    return {
+      success: false,
+      message: 'ログイン処理中にエラーが発生しました'
+    };
+  }
+}
+
+/**
+ * 管理者ログイン試行回数チェック
+ * @param {string} userId - ユーザーID
+ * @returns {boolean} - true: ログイン可能, false: ロックアウト
+ */
+function checkAdminLoginAttempts(userId) {
+  const now = Date.now();
+
+  // 古いエントリをクリーンアップ
+  for (const id in adminLoginAttempts) {
+    if (adminLoginAttempts[id].expires < now) {
+      delete adminLoginAttempts[id];
+    }
+  }
+
+  if (!adminLoginAttempts[userId]) {
+    adminLoginAttempts[userId] = {
+      count: 0,
+      expires: now + 900000 // 15分
+    };
+  }
+
+  adminLoginAttempts[userId].count++;
+
+  if (adminLoginAttempts[userId].count > 5) {
+    console.warn('[checkAdminLoginAttempts] ログイン試行回数超過:', userId);
+    return false; // ロックアウト
+  }
+
+  return true;
+}
+
+/**
+ * 管理者ログイン試行回数リセット
+ * @param {string} userId - ユーザーID
+ */
+function resetAdminLoginAttempts(userId) {
+  delete adminLoginAttempts[userId];
+}

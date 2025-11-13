@@ -86,6 +86,7 @@ const SystemRouter = {
       description: '管理ダッシュボード',
       prefix: true,
       actions: [
+        'verifyAdminLogin',
         'getRegistrationRequests',
         'getFranchiseManagementData',
         'getMerchantData',

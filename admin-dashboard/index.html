@@ -5201,43 +5201,83 @@
 
     <!-- ログイン処理スクリプト -->
     <script>
-        // ログイン処理
-        function handleLogin(event) {
+        // ログイン処理（サーバーサイド認証）
+        async function handleLogin(event) {
             event.preventDefault();
-            
-            const userId = document.getElementById('userId').value;
+
+            const userId = document.getElementById('userId').value.trim();
             const password = document.getElementById('password').value;
             const rememberMe = document.getElementById('rememberMe').checked;
             const loginError = document.getElementById('loginError');
-            
-            // デモ用の認証（実際はサーバー側で認証）
-            // ユーザー: admin / パスワード: admin123
-            // ユーザー: admin@example.com / パスワード: admin123 も許可
-            if ((userId === 'admin' || userId === 'admin@example.com') && password === 'admin123') {
+            const loginButton = event.target.querySelector('button[type="submit"]');
+
+            // バリデーション
+            if (!userId || !password) {
+                loginError.textContent = 'ユーザーIDとパスワードを入力してください';
+                loginError.classList.remove('hidden');
+                return;
+            }
+
+            // ローディング状態
+            const originalButtonText = loginButton.textContent;
+            loginButton.disabled = true;
+            loginButton.textContent = 'ログイン中...';
+            loginError.classList.add('hidden');
+
+            try {
+                // GAS APIで認証（JSONP方式）
+                const result = await new Promise((resolve, reject) => {
+                    if (typeof apiClient === 'undefined') {
+                        reject(new Error('APIクライアントが読み込まれていません'));
+                        return;
+                    }
+
+                    apiClient.call({
+                        action: 'admin_verifyAdminLogin',
+                        userId: userId,
+                        password: password
+                    }, function(response) {
+                        if (response.success) {
+                            resolve(response);
+                        } else {
+                            reject(new Error(response.message || 'ログインに失敗しました'));
+                        }
+                    }, function(error) {
+                        reject(error);
+                    });
+                });
+
                 // ログイン成功
-                loginError.classList.add('hidden');
-                
+                console.log('[Login] 認証成功:', result);
+
                 // セッションまたはローカルストレージに保存
                 const storage = rememberMe ? localStorage : sessionStorage;
                 storage.setItem('isLoggedIn', 'true');
-                storage.setItem('userId', userId);
-                storage.setItem('loginTime', new Date().toISOString());
-                
+                storage.setItem('userId', result.userId || userId);
+                storage.setItem('loginTime', result.loginTime || new Date().toISOString());
+
                 // ログイン画面を非表示、メインアプリを表示
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('mainApp').classList.remove('hidden');
-                
+
                 // 初期化処理を実行
                 if (typeof initializeListView === 'function') {
                     initializeListView();
                 }
-            } else {
+
+            } catch (error) {
                 // ログイン失敗
-                loginError.textContent = 'ユーザーIDまたはパスワードが正しくありません';
+                console.error('[Login] 認証エラー:', error);
+                loginError.textContent = error.message || 'ログインに失敗しました。ユーザーIDとパスワードを確認してください。';
                 loginError.classList.remove('hidden');
-                
+
                 // パスワードフィールドをクリア
                 document.getElementById('password').value = '';
+
+            } finally {
+                // ボタンを元に戻す
+                loginButton.disabled = false;
+                loginButton.textContent = originalButtonText;
             }
         }
         
