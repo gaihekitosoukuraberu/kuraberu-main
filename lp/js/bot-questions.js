@@ -10,6 +10,40 @@
 
 const BotQuestions = {
     // ============================================
+    // V1730-UX: 進捗度マップ（全質問共通）
+    // ============================================
+    progressMap: {
+        'Q001': 15,  // 建物タイプ
+        'Q002': 25,  // 築年数
+        'Q003': 35,  // 塗装部位
+        'Q004': 45,  // 建物構造
+        'Q005': 52,  // 階数
+        'Q006': 58,  // 屋根形状
+        'Q007': 64,  // 外壁材質
+        'Q008': 70,  // 面積・坪数
+        'Q008A': 72, // 坪数スライダー
+        'Q009': 76,  // 現状の悩み
+        'Q010': 80,  // 希望時期
+        'Q011': 83,  // 予算
+        'Q012': 86,  // こだわりポイント
+        'Q013': 89,  // 色の希望
+        'Q014': 92,  // 郵便番号入力
+        'Q015': 95,  // ランキング表示完了
+        'Q016': 95,  // 何を重視
+    },
+
+    // ============================================
+    // V1730-UX: 進捗度更新（共通関数）
+    // ============================================
+    updateQuestionProgress(questionId) {
+        const progressPercentage = this.progressMap[questionId];
+        if (progressPercentage && typeof window.updateProgress === 'function') {
+            window.updateProgress(progressPercentage);
+            console.log(`📊 進捗更新: ${questionId} → ${progressPercentage}%`);
+        }
+    },
+
+    // ============================================
     // 質問表示
     // ============================================
     showQuestion(questionId, skipHistory = false) {
@@ -32,6 +66,9 @@ const BotQuestions = {
 
         // 現在の質問IDを保存
         BotConfig.state.currentQuestionId = questionId;
+
+        // V1730-UX: 質問表示時に進捗更新
+        this.updateQuestionProgress(questionId);
 
         // V1713-UX: Q014表示時にランキング事前取得開始（ユーザーが選択する前に開始）
         if (questionId === 'Q014' && typeof window.fetchRankingFromGAS === 'function' && !window.dynamicRankings) {
@@ -107,11 +144,9 @@ const BotQuestions = {
         // 選択肢をクリア
         BotUI.clearChoices();
 
-        // 進捗更新
-        if (question.stage) {
-            const percentage = BotConfig.calculateProgress(question.stage);
-            BotUI.updateProgress(percentage);
-        }
+        // V1730-UX: 進捗更新（共通関数を使用）
+        const currentQuestionIdForProgress = question.id || BotConfig.state.currentQuestionId;
+        this.updateQuestionProgress(currentQuestionIdForProgress);
 
         // 複数選択の場合
         if (question.multipleChoice) {
@@ -229,14 +264,11 @@ const BotQuestions = {
 
                 BotUI.clearChoices();
 
-                // 進捗更新
-                if (question.stage) {
-                    const percentage = BotConfig.calculateProgress(question.stage);
-                    BotUI.updateProgress(percentage);
-                }
+                // V1730-UX: 進捗更新（共通関数を使用）
+                const currentQuestionId = question.id || BotConfig.state.currentQuestionId;
+                this.updateQuestionProgress(currentQuestionId);
 
                 // Q016の回答後：回答に応じてソート順を変更
-                const currentQuestionId = question.id || BotConfig.state.currentQuestionId;
                 if (currentQuestionId === 'Q016') {
                     console.log('🏆 Q016回答後、選択内容に応じてソート順を変更します');
 
@@ -295,11 +327,8 @@ const BotQuestions = {
                     BotUI.showUserMessage('不明');
                     BotUI.clearChoices();
 
-                    // 進捗更新
-                    if (question.stage) {
-                        const percentage = BotConfig.calculateProgress(question.stage);
-                        BotUI.updateProgress(percentage);
-                    }
+                    // V1730-UX: 進捗更新（共通関数を使用）
+                    this.updateQuestionProgress(currentQuestionId);
 
                     // 不明の場合はunknownBranchへ
                     setTimeout(() => {
@@ -324,11 +353,8 @@ const BotQuestions = {
                     // 選択肢をクリア
                     BotUI.clearChoices();
 
-                    // 進捗更新
-                    if (question.stage) {
-                        const percentage = BotConfig.calculateProgress(question.stage);
-                        BotUI.updateProgress(percentage);
-                    }
+                    // V1730-UX: 進捗更新（共通関数を使用）
+                    this.updateQuestionProgress(currentQuestionId);
 
                     // 値に応じた分岐処理
                     let nextQuestionId;

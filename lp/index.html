@@ -1951,12 +1951,23 @@
                     }, 500);
                 }
 
-                updateProgress(100);
+                // V1729-UX: ランキング表示完了時は95%（最後の手前）
+                updateProgress(95);
             }, 1000);
         }
 
-        // 進捗更新
+        // 進捗更新（V1730-UX: 進捗度が下がらないように制御）
+        let currentProgressPercentage = 0; // 現在の進捗度を保持
+
         function updateProgress(percentage) {
+            // V1730-UX: 現在の進捗度より大きい場合のみ更新（進捗度が戻らないように）
+            if (percentage < currentProgressPercentage) {
+                console.log(`⏭️ 進捗度スキップ: ${percentage}% < 現在${currentProgressPercentage}%`);
+                return;
+            }
+
+            currentProgressPercentage = percentage;
+
             // デスクトップ版
             const progressPercentage = document.getElementById('progressPercentage');
             const progressBar = document.getElementById('progressBar');
@@ -2454,6 +2465,9 @@
         // ============================================
         function showCompletionModal() {
             console.log('✅ 完了モーダル表示');
+
+            // V1729-UX: フォーム送信完了時に100%
+            updateProgress(100);
 
             // 見積もりフォームを閉じる（スクロール位置復元はスキップ）
             const estimateModal = document.getElementById('estimateFormModal');
@@ -3183,11 +3197,11 @@
     <!-- 外壁塗装くらべる BOTシステム -->
     <!-- 環境変数を最初にロード（GAS URL設定） - 固定キャッシュバスター -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="js/env-loader.js?v=1762964520000"></script>
+    <script src="js/env-loader.js?v=1762974300000"></script>
 
     <!-- BOTローダー（タイミング問題のため静的ロード必須） -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="gaiheki-bot-loader.js?v=1762964520000"></script>
+    <script src="gaiheki-bot-loader.js?v=1762974300000"></script>
 
     <!-- V1713-FIX: 無料見積もりボタン（body直下・viewport基準で完全固定） -->
     <div id="estimateBtnContainer" style="display: none !important; position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 999999 !important; background: white !important; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 200px 0 200px white !important; border-top: 1px solid #e5e7eb !important; padding: 1rem 0 !important; padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important; pointer-events: auto !important;">
