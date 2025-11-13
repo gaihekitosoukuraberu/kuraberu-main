@@ -1955,10 +1955,28 @@
             }, 1000);
         }
 
-        // 進捗更新（V1735-FIX: 進捗度が絶対に下がらないように永続化）
+        // 進捗更新（V1736-FIX: 進捗度が絶対に下がらないように永続化）
         // sessionStorageから最大進捗度を復元（ページリロードしても保持）
         window.maxProgressPercentage = parseInt(sessionStorage.getItem('maxProgress') || '0', 10);
         console.log(`🔄 進捗度復元: ${window.maxProgressPercentage}%`);
+
+        // V1736-FIX: 復元時に100%だった場合、即座に非表示にする
+        if (window.maxProgressPercentage >= 100) {
+            // DOM読み込み完了後に実行
+            document.addEventListener('DOMContentLoaded', function() {
+                const mobileProgressBarContainer = document.getElementById('mobileProgressBar');
+                const desktopProgressMeter = document.getElementById('progressMeter');
+
+                if (mobileProgressBarContainer) {
+                    mobileProgressBarContainer.classList.add('hidden');
+                    console.log('✅ モバイル進捗バー非表示（復元時100%）');
+                }
+                if (desktopProgressMeter) {
+                    desktopProgressMeter.classList.add('hidden');
+                    console.log('✅ デスクトップ進捗バー非表示（復元時100%）');
+                }
+            });
+        }
 
         function updateProgress(percentage) {
             // V1735-FIX: 最大進捗度より大きい場合のみ更新（絶対に戻らない）
