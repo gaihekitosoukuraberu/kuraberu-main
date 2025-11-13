@@ -6,9 +6,11 @@
  * 【機能】
  * - キャンセル申請通知（承認/却下ボタン付き）
  * - 期限延長申請通知（承認/却下ボタン付き）
+ * - 他社追客状況チェック機能（CVDeliveryChecker統合）
  *
  * 【依存関係】
  * - AdminCancelSystem（承認/却下処理）
+ * - CVDeliveryChecker（他社状況チェック）
  * - PropertiesService（SLACK_WEBHOOK_URL）
  *
  * 【影響範囲】
@@ -46,99 +48,124 @@ function sendSlackCancelNotification(data) {
       ? data.cancelApplicationText.substring(0, 200) + '...'
       : data.cancelApplicationText;
 
-    const message = {
-      text: `@channel 🚫 キャンセル申請が提出されました`,
-      blocks: [
+    // 🔥 他社の追客状況をチェック 🔥
+    const competitorCheck = CVDeliveryChecker.checkOtherMerchantsStatus(data.cvId, data.merchantId);
+
+    console.log('[SlackCancel] 他社追客チェック結果:', competitorCheck.hasActiveCompetitors ? '警告あり' : '問題なし');
+
+    // ブロック配列を構築
+    const blocks = [
+      {
+        type: 'header',
+        text: {
+          type: 'plain_text',
+          text: competitorCheck.hasActiveCompetitors ? '🚫⚠️ キャンセル申請（要確認）' : '🚫 キャンセル申請',
+          emoji: true
+        }
+      },
+      {
+        type: 'section',
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: `*申請ID:*\n${data.applicationId}`
+          },
+          {
+            type: 'mrkdwn',
+            text: `*CV ID:*\n${data.cvId}`
+          },
+          {
+            type: 'mrkdwn',
+            text: `*顧客名:*\n${data.customerName}`
+          },
+          {
+            type: 'mrkdwn',
+            text: `*加盟店:*\n${data.merchantName} (ID: ${data.merchantId})`
+          }
+        ]
+      },
+      {
+        type: 'section',
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: `*キャンセル理由:*\n${data.cancelReasonCategory}\n→ ${data.cancelReasonDetail}`
+          },
+          {
+            type: 'mrkdwn',
+            text: `*フォローアップ履歴:*\n電話: ${data.phoneCallCount || 0}回\nSMS: ${data.smsCount || 0}回`
+          }
+        ]
+      },
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*申請文:*\n\`\`\`${appTextPreview}\`\`\``
+        }
+      }
+    ];
+
+    // 🔥 他社追客状況の警告ブロックを追加 🔥
+    if (competitorCheck.hasActiveCompetitors) {
+      blocks.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: competitorCheck.warningMessage
+        }
+      });
+    }
+
+    // dividerと操作ボタン
+    blocks.push({
+      type: 'divider'
+    });
+
+    // ボタンのスタイルを他社状況に応じて変更
+    blocks.push({
+      type: 'actions',
+      elements: [
         {
-          type: 'header',
+          type: 'button',
           text: {
             type: 'plain_text',
-            text: '🚫 キャンセル申請',
+            text: '✅ 承認',
             emoji: true
-          }
+          },
+          style: competitorCheck.hasActiveCompetitors ? 'default' : 'primary',
+          value: `approve_cancel_${data.applicationId}`,
+          action_id: 'approve_cancel_report'
         },
         {
-          type: 'section',
-          fields: [
-            {
-              type: 'mrkdwn',
-              text: `*申請ID:*\n${data.applicationId}`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*CV ID:*\n${data.cvId}`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*顧客名:*\n${data.customerName}`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*加盟店:*\n${data.merchantName} (ID: ${data.merchantId})`
-            }
-          ]
-        },
-        {
-          type: 'section',
-          fields: [
-            {
-              type: 'mrkdwn',
-              text: `*キャンセル理由:*\n${data.cancelReasonCategory}\n→ ${data.cancelReasonDetail}`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*フォローアップ履歴:*\n電話: ${data.phoneCallCount || 0}回\nSMS: ${data.smsCount || 0}回`
-            }
-          ]
-        },
-        {
-          type: 'section',
+          type: 'button',
           text: {
-            type: 'mrkdwn',
-            text: `*申請文:*\n\`\`\`${appTextPreview}\`\`\``
-          }
+            type: 'plain_text',
+            text: '❌ 却下',
+            emoji: true
+          },
+          style: competitorCheck.hasActiveCompetitors ? 'danger' : 'default',
+          value: `reject_cancel_${data.applicationId}`,
+          action_id: 'reject_cancel_report'
         },
         {
-          type: 'divider'
-        },
-        {
-          type: 'actions',
-          elements: [
-            {
-              type: 'button',
-              text: {
-                type: 'plain_text',
-                text: '✅ 承認',
-                emoji: true
-              },
-              style: 'primary',
-              value: `approve_cancel_${data.applicationId}`,
-              action_id: 'approve_cancel_report'
-            },
-            {
-              type: 'button',
-              text: {
-                type: 'plain_text',
-                text: '❌ 却下',
-                emoji: true
-              },
-              style: 'danger',
-              value: `reject_cancel_${data.applicationId}`,
-              action_id: 'reject_cancel_report'
-            },
-            {
-              type: 'button',
-              text: {
-                type: 'plain_text',
-                text: '📊 スプレッドシートを開く',
-                emoji: true
-              },
-              url: getSpreadsheetUrl(),
-              action_id: 'open_spreadsheet_cancel'
-            }
-          ]
+          type: 'button',
+          text: {
+            type: 'plain_text',
+            text: '📊 スプレッドシートを開く',
+            emoji: true
+          },
+          url: getSpreadsheetUrl(),
+          action_id: 'open_spreadsheet_cancel'
         }
       ]
+    });
+
+    const message = {
+      text: competitorCheck.hasActiveCompetitors
+        ? `@channel 🚫⚠️ キャンセル申請（他社追客中）`
+        : `@channel 🚫 キャンセル申請が提出されました`,
+      blocks: blocks
     };
 
     const options = {
@@ -341,4 +368,12 @@ function sendSlackExtensionNotification(data) {
       message: error.toString()
     };
   }
+}
+
+/**
+ * スプレッドシートURLを取得
+ * @return {String} スプレッドシートURL
+ */
+function getSpreadsheetUrl() {
+  return SpreadsheetApp.getActiveSpreadsheet().getUrl();
 }
