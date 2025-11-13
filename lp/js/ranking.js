@@ -450,6 +450,13 @@ function generateStarRating(rating) {
 // ランキング表示（V1713-FIX: 動的更新対応）
 function displayRanking() {
   try {
+    // V1737-FIX: ランキング表示時にモバイル進捗バーを非表示にする
+    const mobileProgressBarContainer = document.getElementById('mobileProgressBar');
+    if (mobileProgressBarContainer) {
+      mobileProgressBarContainer.classList.add('hidden');
+      console.log('✅ モバイル進捗バー非表示（ランキング表示時）');
+    }
+
     const rankingList = document.getElementById('rankingList');
     if (!rankingList) {
       console.error('rankingList要素が見つかりません');
