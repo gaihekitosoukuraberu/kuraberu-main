@@ -365,12 +365,12 @@ const RankingSystem = {
 
       console.log('[RankingSystem] フィルタ後: ' + filtered.length + '件');
 
-      // 4つのソート順で並べ替え（V1707: おすすめ順もマッチ度優先 / V1713: ボーナス調整追加）
+      // 4つのソート順で並べ替え（V1751: 距離ボーナス・ローテーション・供給数ボーナス追加）
       const rankings = {
-        cheap: this.applyRankBonus(this.sortByPrice(filtered.slice())).slice(0, 8),
-        recommended: this.applyRankBonus(this.sortByMatchScore(filtered.slice())).slice(0, 8),
-        review: this.applyRankBonus(this.sortByReview(filtered.slice())).slice(0, 8),
-        premium: this.applyRankBonus(this.sortByRating(filtered.slice())).slice(0, 8)
+        cheap: this.applyRankBonus(this.sortByPrice(filtered.slice(), city)).slice(0, 8),
+        recommended: this.applyRankBonus(this.sortByMatchScore(filtered.slice(), city)).slice(0, 8),
+        review: this.applyRankBonus(this.sortByReview(filtered.slice(), city)).slice(0, 8),
+        premium: this.applyRankBonus(this.sortByRating(filtered.slice(), city)).slice(0, 8)
       };
 
       return {
@@ -518,41 +518,214 @@ const RankingSystem = {
   },
 
   /**
-   * V1750: おすすめ順ソート（売上高順 - 完全リニューアル）
-   * データ優先順位: 3ヶ月売上 (100%) > 過去データ (40% × RANK × 返品ペナルティ) > デフォルト
+   * V1751: 加盟日から経過月数を計算
+   * @param {string} joinDate - 加盟日（例: 2025/11/12 0:38:08）
+   * @return {number} 経過月数（0〜99）
    */
-  sortByMatchScore: function(companies) {
+  calculateDataMonths: function(joinDate) {
+    if (!joinDate) return 0;
+
+    try {
+      const join = new Date(joinDate);
+      const now = new Date();
+
+      // 月数の差分を計算
+      const yearDiff = now.getFullYear() - join.getFullYear();
+      const monthDiff = now.getMonth() - join.getMonth();
+      const totalMonths = yearDiff * 12 + monthDiff;
+
+      return Math.max(0, totalMonths);
+    } catch (err) {
+      console.error('[V1751] 加盟日パースエラー:', err);
+      return 0;
+    }
+  },
+
+  /**
+   * V1751: データ混合スコア計算（実データと過去データを経過月数に応じて混合 + 件数ベース信頼性）
+   * @param {Object} company - 業者オブジェクト
+   * @param {number} recentValue - 3ヶ月データの値
+   * @param {number} historicalValue - 過去データの値
+   * @param {number} defaultValue - デフォルト値
+   * @param {Object} options - オプション（rankWeight, returnPenalty, minThreshold, historicalCount等）
+   * @return {Object} { score, source, recentWeight, historicalWeight, reliabilityFactor }
+   */
+  calculateMixedScore: function(company, recentValue, historicalValue, defaultValue, options) {
     const RANK_WEIGHT = { 'S': 1.33, 'A': 1.16, 'B': 1.0, 'C': 0.90 };
-    const HISTORICAL_WEIGHT = 0.4;
+    const rankWeight = RANK_WEIGHT[company.pastRank] || 1.0;
+    const returnPenalty = options.returnPenalty !== undefined
+      ? options.returnPenalty
+      : Math.max(0.7, 1.0 - (company.pastReturnRate * 0.3));
+    const minThreshold = options.minThreshold || 0;
+    const historicalCount = options.historicalCount || 0; // 過去データの件数
+
+    // 経過月数計算
+    const dataMonths = this.calculateDataMonths(company.joinDate);
+
+    // V1751-FIX: 経過月数に応じた重み（3ヶ月20%, 6ヶ月50%, 12ヶ月80%）
+    let recentWeight = 0;
+    if (dataMonths >= 12) {
+      recentWeight = 0.8; // 12ヶ月以上: 80%
+    } else if (dataMonths >= 6) {
+      recentWeight = 0.5; // 6ヶ月: 50%
+    } else if (dataMonths >= 3) {
+      recentWeight = 0.2; // 3ヶ月: 20%
+    } else {
+      recentWeight = 0; // 3ヶ月未満: 0%
+    }
+
+    const historicalWeight = 1.0 - recentWeight;
+
+    // V1751: 過去データの信頼性係数（件数ベース）
+    let reliabilityFactor = 1.0;
+    if (historicalCount >= 30) {
+      reliabilityFactor = 1.0; // 30件以上: 100%信頼
+    } else if (historicalCount >= 10) {
+      reliabilityFactor = 0.7; // 10-29件: 70%信頼
+    } else if (historicalCount >= 5) {
+      reliabilityFactor = 0.5; // 5-9件: 50%信頼
+    } else if (historicalCount >= 1) {
+      reliabilityFactor = 0.3; // 1-4件: 30%信頼
+    } else {
+      reliabilityFactor = 0; // 0件: データなし
+    }
+
+    let baseScore = 0;
+    let dataSource = '';
+
+    // 閾値チェック
+    const hasRecentData = recentValue > minThreshold;
+    const hasHistoricalData = historicalValue > minThreshold && reliabilityFactor > 0;
+
+    if (hasRecentData && hasHistoricalData) {
+      // 両方あり: 重み付けして混合
+      const recentScore = recentValue * recentWeight;
+      const historicalScore = historicalValue * historicalWeight * rankWeight * returnPenalty * reliabilityFactor;
+      baseScore = recentScore + historicalScore;
+      dataSource = 'MIX[R:' + Math.round(recentWeight * 100) + '%+H:' + Math.round(historicalWeight * 100) + '%*' + Math.round(reliabilityFactor * 100) + '%]';
+    } else if (hasRecentData) {
+      // 実データのみ
+      baseScore = recentValue * Math.max(0.2, recentWeight); // 最低20%の重みは保証
+      dataSource = '3M[' + Math.round(Math.max(0.2, recentWeight) * 100) + '%]';
+    } else if (hasHistoricalData) {
+      // 過去データのみ
+      baseScore = historicalValue * historicalWeight * rankWeight * returnPenalty * reliabilityFactor;
+      dataSource = 'HIST[' + Math.round(historicalWeight * 100) + '%*RANK*RET*REL' + Math.round(reliabilityFactor * 100) + '%]';
+    } else {
+      // どちらもなし: デフォルト
+      baseScore = defaultValue * rankWeight;
+      dataSource = 'DEFAULT*RANK';
+    }
+
+    return {
+      score: baseScore,
+      source: dataSource,
+      recentWeight: recentWeight,
+      historicalWeight: historicalWeight,
+      reliabilityFactor: reliabilityFactor
+    };
+  },
+
+  /**
+   * V1751: 距離ボーナス計算（同じ市区町村で15%アップ）
+   * @param {Object} company - 業者オブジェクト
+   * @param {string} userCity - ユーザーの市区町村
+   * @return {number} ボーナス係数（1.0 = ボーナスなし、1.15 = 15%アップ）
+   */
+  calculateDistanceBonus: function(company, userCity) {
+    if (!userCity || !company.city) return 1.0;
+
+    // 同じ市区町村の場合15%ボーナス
+    if (company.city === userCity) {
+      return 1.15;
+    }
+
+    return 1.0;
+  },
+
+  /**
+   * V1751: 日替わりローテーション計算（±10%の揺らぎ）
+   * @param {string} companyName - 業者名
+   * @return {number} ローテーション係数（0.9〜1.1）
+   */
+  calculateDailyRotation: function(companyName) {
+    if (!companyName) return 1.0;
+
+    // 今日の日付から日数を取得
+    const today = new Date();
+    const dayNumber = Math.floor(today.getTime() / (1000 * 60 * 60 * 24));
+
+    // 業者名の文字コード合計
+    let nameHash = 0;
+    for (let i = 0; i < companyName.length; i++) {
+      nameHash += companyName.charCodeAt(i);
+    }
+
+    // 疑似乱数生成（0〜100の範囲）
+    const seed = (nameHash * 31 + dayNumber) % 100;
+
+    // ±10%の範囲に変換（0.9〜1.1）
+    const rotation = 0.9 + (seed / 100) * 0.2;
+
+    return rotation;
+  },
+
+  /**
+   * V1751: 供給数ボーナス計算（月間問合せ数に応じた調整）
+   * 問合せ数が少ない業者ほどボーナスを付与してチャンスを与える
+   * @param {number} inquiryCount - 月間問合せ件数
+   * @return {number} ボーナス係数（1.0〜1.2）
+   */
+  calculateSupplyBonus: function(inquiryCount) {
+    if (inquiryCount === 0) return 1.20;      // 0件: +20%
+    if (inquiryCount <= 5) return 1.10;       // 1-5件: +10%
+    if (inquiryCount <= 10) return 1.05;      // 6-10件: +5%
+    if (inquiryCount <= 20) return 1.02;      // 11-20件: +2%
+    return 1.0;                                // 21件以上: ボーナスなし
+  },
+
+  /**
+   * V1751: おすすめ順ソート（売上高順 - データ混合システム + 全ボーナス適用）
+   */
+  sortByMatchScore: function(companies, userCity) {
+    const self = this;
     const DEFAULT_REVENUE = 500000; // デフォルト売上: 50万円
 
     return companies.sort(function(a, b) {
-      // V1750: 売上スコア計算
+      // V1751: 売上スコア計算（データ混合 + ボーナス）
       const calculateRevenueScore = function(company) {
-        let baseScore = 0;
-        let dataSource = '';
+        // Step 1: データ混合スコア計算（過去データの売上 = 単価 × 成約件数）
+        const historicalRevenue = company.pastGrossUnitAfterReturn * (company.contractCount || 1);
+        const mixedScore = self.calculateMixedScore(
+          company,
+          company.recent3MonthRevenue,
+          historicalRevenue,
+          DEFAULT_REVENUE,
+          { minThreshold: 0, returnPenalty: Math.max(0.7, 1.0 - (company.pastReturnRate * 0.3)) }
+        );
 
-        // Priority 1: Recent 3-month revenue (100% weight)
-        if (company.recent3MonthRevenue > 0) {
-          baseScore = company.recent3MonthRevenue;
-          dataSource = '3M';
-        }
-        // Priority 2: Historical data (40% weight + RANK + return penalty)
-        else if (company.pastGrossUnitAfterReturn > 0 && company.contractCount > 0) {
-          const rankWeight = RANK_WEIGHT[company.pastRank] || 1.0;
-          const returnPenalty = Math.max(0.7, 1.0 - (company.pastReturnRate * 0.3));
-          // 過去データの単価 × 成約件数 × 係数
-          baseScore = company.pastGrossUnitAfterReturn * company.contractCount * HISTORICAL_WEIGHT * rankWeight * returnPenalty;
-          dataSource = 'HIST*0.4*RANK*RET';
-        }
-        // Priority 3: Default
-        else {
-          const rankWeight = RANK_WEIGHT[company.pastRank] || 1.0;
-          baseScore = DEFAULT_REVENUE * rankWeight;
-          dataSource = 'DEFAULT';
-        }
+        let finalScore = mixedScore.score;
 
-        return { score: baseScore, source: dataSource };
+        // Step 2: 距離ボーナス（15%）
+        const distanceBonus = self.calculateDistanceBonus(company, userCity);
+        finalScore *= distanceBonus;
+
+        // Step 3: 日替わりローテーション（±10%）
+        const rotation = self.calculateDailyRotation(company.companyName);
+        finalScore *= rotation;
+
+        // Step 4: 供給数ボーナス（0件+20%, 1-5件+10%, etc.）
+        const supplyBonus = self.calculateSupplyBonus(company.recent3MonthInquiryCount);
+        finalScore *= supplyBonus;
+
+        return {
+          score: finalScore,
+          baseScore: mixedScore.score,
+          source: mixedScore.source,
+          distanceBonus: distanceBonus,
+          rotation: rotation,
+          supplyBonus: supplyBonus
+        };
       };
 
       const scoreA = calculateRevenueScore(a);
@@ -564,41 +737,45 @@ const RankingSystem = {
   },
 
   /**
-   * V1750: 価格順ソート（安い順 - 完全リニューアル）
-   * 50万円以下除外 + データ優先順位: 3ヶ月平均 (100%) > 過去データ (40% × RANK × 返品ペナルティ) > デフォルト
+   * V1751: 価格順ソート（安い順 - データ混合システム + 全ボーナス適用）
+   * 50万円以下除外
    */
-  sortByPrice: function(companies) {
-    const RANK_WEIGHT = { 'S': 1.33, 'A': 1.16, 'B': 1.0, 'C': 0.90 };
-    const HISTORICAL_WEIGHT = 0.4;
+  sortByPrice: function(companies, userCity) {
+    const self = this;
     const DEFAULT_AMOUNT = 1200000; // デフォルト価格: 120万円
     const MIN_THRESHOLD = 500000; // 50万円以下除外
 
     return companies.sort(function(a, b) {
-      // V1750: 価格スコア計算（安い順なので昇順）
+      // V1751: 価格スコア計算（安い順なので昇順）
       const calculatePriceScore = function(company) {
-        let baseScore = 0;
-        let dataSource = '';
+        // Step 1: データ混合スコア計算
+        const mixedScore = self.calculateMixedScore(
+          company,
+          company.avgContractAmount,
+          company.pastGrossUnitAfterReturn,
+          DEFAULT_AMOUNT,
+          { minThreshold: MIN_THRESHOLD, returnPenalty: Math.max(0.7, 1.0 - (company.pastReturnRate * 0.3)) }
+        );
 
-        // Priority 1: Recent 3-month average (100% weight)
-        if (company.avgContractAmount > MIN_THRESHOLD) {
-          baseScore = company.avgContractAmount;
-          dataSource = '3M';
-        }
-        // Priority 2: Historical data (40% weight + RANK + return penalty)
-        else if (company.pastGrossUnitAfterReturn > MIN_THRESHOLD) {
-          const rankWeight = RANK_WEIGHT[company.pastRank] || 1.0;
-          const returnPenalty = Math.max(0.7, 1.0 - (company.pastReturnRate * 0.3));
-          baseScore = company.pastGrossUnitAfterReturn * HISTORICAL_WEIGHT * rankWeight * returnPenalty;
-          dataSource = 'HIST*0.4*RANK*RET';
-        }
-        // Priority 3: Default
-        else {
-          const rankWeight = RANK_WEIGHT[company.pastRank] || 1.0;
-          baseScore = DEFAULT_AMOUNT * rankWeight;
-          dataSource = 'DEFAULT';
-        }
+        let finalScore = mixedScore.score;
 
-        return { score: baseScore, source: dataSource };
+        // Step 2: 距離ボーナス（15%）- 安い順なので割り算
+        const distanceBonus = self.calculateDistanceBonus(company, userCity);
+        finalScore /= distanceBonus; // 安い方が上位なので逆算
+
+        // Step 3: 日替わりローテーション（±10%）
+        const rotation = self.calculateDailyRotation(company.companyName);
+        finalScore *= rotation;
+
+        // Step 4: 供給数ボーナス（安い順なので割り算）
+        const supplyBonus = self.calculateSupplyBonus(company.recent3MonthInquiryCount);
+        finalScore /= supplyBonus; // 安い方が上位なので逆算
+
+        return {
+          score: finalScore,
+          baseScore: mixedScore.score,
+          source: mixedScore.source
+        };
       };
 
       const scoreA = calculatePriceScore(a);
@@ -610,40 +787,48 @@ const RankingSystem = {
   },
 
   /**
-   * V1750: 口コミ順ソート（成約率順 - 完全リニューアル）
-   * データ優先順位: 3ヶ月成約率 (100%) > 過去データ成約率 (40%) > デフォルト
+   * V1751: 口コミ順ソート（成約率順 - データ混合システム + 全ボーナス適用）
+   * 問合せ5件以上で信頼できるデータとする
    */
-  sortByReview: function(companies) {
-    const RANK_WEIGHT = { 'S': 1.33, 'A': 1.16, 'B': 1.0, 'C': 0.90 };
-    const HISTORICAL_WEIGHT = 0.4;
+  sortByReview: function(companies, userCity) {
+    const self = this;
     const DEFAULT_CONVERSION = 0.20; // デフォルト成約率: 20%
 
     return companies.sort(function(a, b) {
-      // V1750: 成約率スコア計算
+      // V1751: 成約率スコア計算
       const calculateConversionScore = function(company) {
-        let baseScore = 0;
-        let dataSource = '';
+        // Step 1: データ混合スコア計算（問合せ5件以上で信頼できるデータ）
+        const recentConversion = company.recent3MonthInquiryCount >= 5
+          ? company.recent3MonthConversionRate
+          : 0; // 5件未満は使わない
 
-        // Priority 1: Recent 3-month conversion rate (100% weight)
-        if (company.recent3MonthInquiryCount >= 5) {
-          // 問合せ5件以上の場合のみ信頼できるデータとする
-          baseScore = company.recent3MonthConversionRate;
-          dataSource = '3M';
-        }
-        // Priority 2: Historical conversion rate (40% weight)
-        else if (company.pastConversionRate > 0) {
-          const rankWeight = RANK_WEIGHT[company.pastRank] || 1.0;
-          baseScore = company.pastConversionRate * HISTORICAL_WEIGHT * rankWeight;
-          dataSource = 'HIST*0.4*RANK';
-        }
-        // Priority 3: Default
-        else {
-          const rankWeight = RANK_WEIGHT[company.pastRank] || 1.0;
-          baseScore = DEFAULT_CONVERSION * rankWeight;
-          dataSource = 'DEFAULT';
-        }
+        const mixedScore = self.calculateMixedScore(
+          company,
+          recentConversion,
+          company.pastConversionRate,
+          DEFAULT_CONVERSION,
+          { minThreshold: 0, returnPenalty: 1.0 } // 成約率には返品ペナルティ不要
+        );
 
-        return { score: baseScore, source: dataSource };
+        let finalScore = mixedScore.score;
+
+        // Step 2: 距離ボーナス（15%）
+        const distanceBonus = self.calculateDistanceBonus(company, userCity);
+        finalScore *= distanceBonus;
+
+        // Step 3: 日替わりローテーション（±10%）
+        const rotation = self.calculateDailyRotation(company.companyName);
+        finalScore *= rotation;
+
+        // Step 4: 供給数ボーナス
+        const supplyBonus = self.calculateSupplyBonus(company.recent3MonthInquiryCount);
+        finalScore *= supplyBonus;
+
+        return {
+          score: finalScore,
+          baseScore: mixedScore.score,
+          source: mixedScore.source
+        };
       };
 
       const scoreA = calculateConversionScore(a);
@@ -655,41 +840,45 @@ const RankingSystem = {
   },
 
   /**
-   * V1750: 高品質順ソート（高額順 - 完全リニューアル）
-   * 50万円以下除外 + データ優先順位: 3ヶ月平均 (100%) > 過去データ (40% × RANK × 返品ペナルティ) > デフォルト
+   * V1751: 高品質順ソート（高額順 - データ混合システム + 全ボーナス適用）
+   * 50万円以下除外
    */
-  sortByRating: function(companies) {
-    const RANK_WEIGHT = { 'S': 1.33, 'A': 1.16, 'B': 1.0, 'C': 0.90 };
-    const HISTORICAL_WEIGHT = 0.4;
+  sortByRating: function(companies, userCity) {
+    const self = this;
     const DEFAULT_AMOUNT = 1500000; // デフォルト価格: 150万円
     const MIN_THRESHOLD = 500000; // 50万円以下除外
 
     return companies.sort(function(a, b) {
-      // V1750: 高品質スコア計算（高い順なので降順）
+      // V1751: 高品質スコア計算（高い順なので降順）
       const calculatePremiumScore = function(company) {
-        let baseScore = 0;
-        let dataSource = '';
+        // Step 1: データ混合スコア計算
+        const mixedScore = self.calculateMixedScore(
+          company,
+          company.avgContractAmount,
+          company.pastGrossUnitAfterReturn,
+          DEFAULT_AMOUNT,
+          { minThreshold: MIN_THRESHOLD, returnPenalty: Math.max(0.7, 1.0 - (company.pastReturnRate * 0.3)) }
+        );
 
-        // Priority 1: Recent 3-month average (100% weight)
-        if (company.avgContractAmount > MIN_THRESHOLD) {
-          baseScore = company.avgContractAmount;
-          dataSource = '3M';
-        }
-        // Priority 2: Historical data (40% weight + RANK + return penalty)
-        else if (company.pastGrossUnitAfterReturn > MIN_THRESHOLD) {
-          const rankWeight = RANK_WEIGHT[company.pastRank] || 1.0;
-          const returnPenalty = Math.max(0.7, 1.0 - (company.pastReturnRate * 0.3));
-          baseScore = company.pastGrossUnitAfterReturn * HISTORICAL_WEIGHT * rankWeight * returnPenalty;
-          dataSource = 'HIST*0.4*RANK*RET';
-        }
-        // Priority 3: Default
-        else {
-          const rankWeight = RANK_WEIGHT[company.pastRank] || 1.0;
-          baseScore = DEFAULT_AMOUNT * rankWeight;
-          dataSource = 'DEFAULT';
-        }
+        let finalScore = mixedScore.score;
 
-        return { score: baseScore, source: dataSource };
+        // Step 2: 距離ボーナス（15%）
+        const distanceBonus = self.calculateDistanceBonus(company, userCity);
+        finalScore *= distanceBonus;
+
+        // Step 3: 日替わりローテーション（±10%）
+        const rotation = self.calculateDailyRotation(company.companyName);
+        finalScore *= rotation;
+
+        // Step 4: 供給数ボーナス
+        const supplyBonus = self.calculateSupplyBonus(company.recent3MonthInquiryCount);
+        finalScore *= supplyBonus;
+
+        return {
+          score: finalScore,
+          baseScore: mixedScore.score,
+          source: mixedScore.source
+        };
       };
 
       const scoreA = calculatePremiumScore(a);
@@ -801,6 +990,7 @@ const RankingSystem = {
           grossUnitAfterReturn: 0,
           returnRate: 0,
           conversionRate: 0,
+          contractCount: 0, // V1751: 件数追加
           riskScore: 80
         };
       }
@@ -809,6 +999,7 @@ const RankingSystem = {
       const grossUnit = matchedRow[colIndex.grossUnitAfterReturn];
       const returnRateStr = matchedRow[colIndex.returnRate];
       const conversionRateStr = matchedRow[colIndex.conversionRate];
+      const contractCountValue = matchedRow[colIndex.contractCount]; // V1751: 成約件数取得
 
       // 数値変換（カンマ除去、%除去）
       const parseNumber = function(value) {
@@ -821,6 +1012,7 @@ const RankingSystem = {
       let grossUnitAfterReturn = parseNumber(grossUnit);
       let returnRate = parseNumber(returnRateStr);
       let conversionRate = parseNumber(conversionRateStr);
+      const contractCount = parseNumber(contractCountValue); // V1751: 件数を数値化
 
       // %表記の場合は100で割る（0-1の範囲に変換）
       if (returnRateStr && returnRateStr.toString().indexOf('%') !== -1) {
@@ -845,6 +1037,7 @@ const RankingSystem = {
         grossUnitAfterReturn: grossUnitAfterReturn,
         returnRate: returnRate,
         conversionRate: conversionRate,
+        contractCount: contractCount, // V1751: 件数を返す
         riskScore: this.calculateRiskScoreV1712(matchedRow, colIndex)
       };
 
@@ -855,6 +1048,7 @@ const RankingSystem = {
         grossUnitAfterReturn: 0,
         returnRate: 0,
         conversionRate: 0,
+        contractCount: 0, // V1751: 件数追加
         riskScore: 80
       };
     }
