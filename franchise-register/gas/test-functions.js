@@ -6,6 +6,44 @@
  */
 
 /**
+ * 成約データシートを作成
+ */
+function testCreateContractDataSheet() {
+  console.log('===== 成約データシート作成 =====');
+  const result = ContractDataSystem.createContractDataSheet();
+  console.log('結果:', JSON.stringify(result, null, 2));
+  return result;
+}
+
+/**
+ * 日次集計テスト（直近3ヶ月データ更新）
+ */
+function testUpdateRecent3MonthMetrics() {
+  console.log('===== 日次集計テスト =====');
+  const result = ContractDataSystem.updateRecent3MonthMetrics();
+  console.log('結果:', JSON.stringify(result, null, 2));
+  return result;
+}
+
+/**
+ * 成約データ追加テスト
+ * @param {string} cvId - テスト用CV ID（例: 'CV20250101001'）
+ */
+function testAddContractRecord(cvId) {
+  console.log('===== 成約データ追加テスト =====');
+  console.log('CV ID:', cvId);
+
+  if (!cvId) {
+    console.error('エラー: CV IDを指定してください');
+    return { success: false, message: 'CV IDを指定してください' };
+  }
+
+  const result = ContractDataSystem.addContractRecord(cvId);
+  console.log('結果:', JSON.stringify(result, null, 2));
+  return result;
+}
+
+/**
  * スプレッドシートのヘッダー確認
  */
 function checkSpreadsheetHeaders() {
