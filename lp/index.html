@@ -1425,18 +1425,42 @@
             <small style="font-size: 12px; display: block; font-weight: 400;">&copy;外壁塗装くらべる All Rights Reserved.</small>
         </footer>
 
-        <!-- キープ確認モーダル -->
-        <div id="keepModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center p-4">
-            <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <!-- キープ確認モーダル（V1714-UX: プロ仕様デザイン） -->
+        <div id="keepModal" class="hidden fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all">
+                <!-- ヘッダー（グラデーション） -->
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-t-2xl">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <h2 class="text-2xl font-bold">選択業者の確認</h2>
+                            <p class="text-blue-100 text-sm mt-1">最大3社まで無料で一括見積もりできます</p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="p-6">
-                    <h2 class="text-xl font-bold mb-4">見積もりの流れ</h2>
+                    <!-- 安心ポイント -->
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-r-lg">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div class="text-sm text-gray-700">
+                                <p class="font-semibold text-blue-900 mb-1">完全無料・匿名でご利用いただけます</p>
+                                <p class="text-xs text-gray-600">お客様の情報は厳重に管理し、無断で第三者に提供することはありません</p>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- YouTube動画 -->
-                    <div class="mb-4">
+                    <div class="mb-6">
                         <div class="flex justify-center">
-                            <div class="relative w-full max-w-xs">
-                                <div class="relative" style="padding-bottom: 56.25%;">
-                                    <iframe class="absolute top-0 left-0 w-full h-full rounded-lg"
+                            <div class="relative w-full max-w-md">
+                                <div class="relative rounded-xl overflow-hidden shadow-lg" style="padding-bottom: 56.25%;">
+                                    <iframe class="absolute top-0 left-0 w-full h-full"
                                             src="https://www.youtube.com/embed/dQw4w9WgXcQ"
                                             frameborder="0"
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -1446,124 +1470,188 @@
                         </div>
                     </div>
 
-                    <h3 class="text-lg font-bold mb-3">キープ中の業者</h3>
-                    <div id="keepList" class="space-y-2 mb-4">
-                        <!-- キープリストがここに表示 -->
+                    <!-- キープ中の業者 -->
+                    <div class="mb-6">
+                        <div class="flex items-center gap-2 mb-4">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <h3 class="text-lg font-bold text-gray-900">キープ中の業者</h3>
+                        </div>
+                        <div id="keepList" class="space-y-3">
+                            <!-- キープリストがここに表示（カード型デザイン） -->
+                        </div>
                     </div>
 
-                    <div class="flex gap-2">
-                        <button onclick="closeKeepModal()" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold">
+                    <!-- ボタン -->
+                    <div class="flex gap-3 pt-4 border-t">
+                        <button onclick="closeKeepModal()" class="px-6 bg-gray-100 hover:bg-gray-200 text-gray-700 py-4 rounded-xl font-bold transition-all duration-200 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
                             閉じる
                         </button>
-                        <button onclick="startEstimateForm()" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-bold">
-                            この業者の見積もりを見てみる
+                        <button onclick="startEstimateForm()" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                            見積もり依頼へ進む
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 見積もりフォームモーダル -->
-        <div id="estimateFormModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center p-4">
-            <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <!-- プログレスバー -->
-                <div class="bg-gray-100 p-4 border-b">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-medium text-gray-700">ステップ <span id="currentStep">1</span> / 2</span>
-                        <span class="text-sm font-medium text-blue-600"><span id="stepPercent">50</span>%</span>
+        <!-- 見積もりフォームモーダル（V1714-UX: プロ仕様デザイン） -->
+        <div id="estimateFormModal" class="hidden fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all">
+                <!-- プログレスバー（改善版） -->
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-5 rounded-t-2xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <span class="text-sm font-bold">ステップ <span id="currentStep">1</span> / 2</span>
+                        </div>
+                        <span class="text-sm font-bold bg-white bg-opacity-20 px-3 py-1 rounded-full"><span id="stepPercent">50</span>%完了</span>
                     </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div id="stepProgress" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 50%"></div>
+                    <div class="w-full bg-white bg-opacity-20 rounded-full h-3 overflow-hidden">
+                        <div id="stepProgress" class="bg-white h-3 rounded-full transition-all duration-500 shadow-lg" style="width: 50%"></div>
                     </div>
                 </div>
 
                 <!-- ステップ1: 基本情報 -->
                 <div id="step1" class="p-6">
-                    <h2 class="text-xl font-bold mb-4">基本情報の入力</h2>
+                    <div class="mb-6">
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                            <h2 class="text-2xl font-bold text-gray-900">基本情報の入力</h2>
+                        </div>
+                        <p class="text-sm text-gray-600">お客様の基本情報をご入力ください</p>
+                    </div>
 
                     <!-- お名前 -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            お名前 <span class="text-red-500">*</span>
+                    <div class="mb-5">
+                        <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                            お名前 <span class="text-red-500 ml-1">*</span>
                         </label>
-                        <input type="text" id="userName" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="山田 太郎">
+                        <input type="text" id="userName" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" placeholder="山田 太郎">
                     </div>
 
                     <!-- 対象物件住所 -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            対象物件住所 <span class="text-red-500">*</span>
+                    <div class="mb-5">
+                        <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            対象物件住所 <span class="text-red-500 ml-1">*</span>
                         </label>
-                        <div class="space-y-2">
+                        <div class="space-y-3">
                             <div class="flex gap-2">
-                                <input type="text" id="propertyZip" class="w-32 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="000-0000" readonly>
-                                <input type="text" id="propertyAddress" class="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="市区町村" readonly>
+                                <input type="text" id="propertyZip" class="w-32 border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all bg-gray-50" placeholder="000-0000" readonly>
+                                <input type="text" id="propertyAddress" class="flex-1 border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all bg-gray-50" placeholder="市区町村" readonly>
                             </div>
-                            <input type="text" id="propertyStreet" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="番地・建物名">
+                            <input type="text" id="propertyStreet" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" placeholder="番地・建物名">
                         </div>
                     </div>
 
                     <!-- 自宅住所（条件付き） -->
-                    <div class="mb-4">
-                        <label class="flex items-center">
-                            <input type="checkbox" id="differentHome" class="mr-2" onchange="toggleHomeAddress()">
+                    <div class="mb-5">
+                        <label class="flex items-center gap-2 p-4 bg-gray-50 rounded-xl border-2 border-gray-200 hover:border-blue-300 cursor-pointer transition-all">
+                            <input type="checkbox" id="differentHome" class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500" onchange="toggleHomeAddress()">
                             <span class="text-sm font-medium text-gray-700">対象物件と自宅が異なる場合はチェック</span>
                         </label>
 
-                        <div id="homeAddressSection" class="hidden mt-3 space-y-2">
+                        <div id="homeAddressSection" class="hidden mt-4 p-4 bg-blue-50 rounded-xl border-2 border-blue-200 space-y-3">
                             <div class="flex gap-2">
-                                <input type="text" id="homeZip" class="w-32 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="000-0000">
-                                <input type="text" id="homeAddress" class="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="市区町村">
+                                <input type="text" id="homeZip" class="w-32 border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" placeholder="000-0000">
+                                <input type="text" id="homeAddress" class="flex-1 border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" placeholder="市区町村">
                             </div>
-                            <input type="text" id="homeStreet" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="番地・建物名">
+                            <input type="text" id="homeStreet" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" placeholder="番地・建物名">
                         </div>
                     </div>
 
                     <!-- メールアドレス（任意） -->
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            メールアドレス <span class="text-gray-400">(任意)</span>
+                        <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            メールアドレス <span class="text-gray-400 text-xs ml-1">(任意)</span>
                         </label>
-                        <input type="email" id="userEmail" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="example@email.com">
+                        <input type="email" id="userEmail" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" placeholder="example@email.com">
                     </div>
 
-                    <div class="flex gap-2">
-                        <button onclick="closeEstimateForm()" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold">
+                    <div class="flex gap-3 pt-4 border-t">
+                        <button onclick="closeEstimateForm()" class="px-8 bg-gray-100 hover:bg-gray-200 text-gray-700 py-4 rounded-xl font-bold transition-all duration-200 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
                             戻る
                         </button>
-                        <button onclick="nextStep()" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-bold">
-                            次へ
+                        <button onclick="nextStep()" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2">
+                            次へ進む
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                            </svg>
                         </button>
                     </div>
                 </div>
 
                 <!-- ステップ2: 詳細情報 -->
                 <div id="step2" class="p-6 hidden">
-                    <h2 class="text-xl font-bold mb-4">詳細情報の入力</h2>
+                    <div class="mb-6">
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <h2 class="text-2xl font-bold text-gray-900">詳細情報の入力</h2>
+                        </div>
+                        <p class="text-sm text-gray-600">現地調査日程とご要望をお聞かせください</p>
+                    </div>
 
                     <!-- 現地調査希望日時 -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            現地調査希望日時 <span class="text-gray-400">(複数選択可)</span>
+                    <div class="mb-5">
+                        <label class="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-1">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            現地調査希望日時 <span class="text-gray-400 text-xs ml-1">(複数選択可)</span>
                         </label>
-                        <div class="space-y-2" id="surveyDates">
+                        <div class="space-y-2 bg-gray-50 p-4 rounded-xl" id="surveyDates">
                             <!-- 動的に生成 -->
                         </div>
                     </div>
 
                     <!-- その他ご要望 -->
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            その他ご要望・ご相談 <span class="text-gray-400">(任意)</span>
+                        <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                            </svg>
+                            その他ご要望・ご相談 <span class="text-gray-400 text-xs ml-1">(任意)</span>
                         </label>
-                        <textarea id="requests" rows="4" class="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="ご要望やご相談があればご記入ください"></textarea>
+                        <textarea id="requests" rows="4" class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" placeholder="ご要望やご相談があればご記入ください"></textarea>
                     </div>
 
-                    <div class="flex gap-2">
-                        <button onclick="prevStep()" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold">
+                    <div class="flex gap-3 pt-4 border-t">
+                        <button onclick="prevStep()" class="px-8 bg-gray-100 hover:bg-gray-200 text-gray-700 py-4 rounded-xl font-bold transition-all duration-200 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
                             戻る
                         </button>
-                        <button id="submitBtn" onclick="submitEstimateForm()" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-bold">
+                        <button id="submitBtn" onclick="submitEstimateForm()" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
                             送信する
                         </button>
                     </div>
@@ -1879,10 +1967,20 @@
             const keeps = keepManager.getList();
 
             // キ���プリストを表示
-            keepList.innerHTML = keeps.map(keep => `
-                <div class="p-3 border rounded-lg flex items-center justify-between">
-                    <span class="font-medium">${keep.name}</span>
-                    <span class="text-sm text-gray-500">キープ中</span>
+            keepList.innerHTML = keeps.map((keep, index) => `
+                <div class="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-4 flex items-center justify-between shadow-md hover:shadow-lg transition-all duration-200">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md">
+                            ${index + 1}
+                        </div>
+                        <span class="font-bold text-gray-900">${keep.name}</span>
+                    </div>
+                    <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-sm">
+                        <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-sm font-semibold text-green-600">選択中</span>
+                    </div>
                 </div>
             `).join('');
 
