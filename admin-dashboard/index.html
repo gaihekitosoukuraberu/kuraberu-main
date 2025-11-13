@@ -5236,27 +5236,32 @@
             loginError.classList.add('hidden');
 
             try {
-                // GAS APIで認証（JSONP方式）
-                const result = await new Promise((resolve, reject) => {
-                    if (typeof apiClient === 'undefined') {
-                        reject(new Error('APIクライアントが読み込まれていません'));
-                        return;
-                    }
+                // apiClientが利用可能になるまで待機
+                const waitForApiClient = async () => {
+                    const maxWait = 5000; // 5秒
+                    const startTime = Date.now();
 
-                    apiClient.call({
-                        action: 'admin_verifyAdminLogin',
-                        userId: userId,
-                        password: password
-                    }, function(response) {
-                        if (response.success) {
-                            resolve(response);
-                        } else {
-                            reject(new Error(response.message || 'ログインに失敗しました'));
+                    while (typeof window.apiClient === 'undefined' || !window.apiClient) {
+                        if (Date.now() - startTime > maxWait) {
+                            throw new Error('APIクライアントの初期化がタイムアウトしました。ページを再読み込みしてください。');
                         }
-                    }, function(error) {
-                        reject(error);
-                    });
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    return window.apiClient;
+                };
+
+                const client = await waitForApiClient();
+
+                // GAS APIで認証（JSONP方式）
+                const result = await client.jsonpRequest('verifyAdminLogin', {
+                    userId: userId,
+                    password: password
                 });
+
+                // レスポンスの成功チェック
+                if (!result.success) {
+                    throw new Error(result.message || 'ログインに失敗しました');
+                }
 
                 // ログイン成功
                 console.log('[Login] 認証成功:', result);

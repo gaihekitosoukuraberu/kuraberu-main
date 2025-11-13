@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-08T09:55:20.000Z - Deployment: AKfycbxMaj0EwqO8HczQOCH1xGNn2wTX3jn4OTU_3en76sIs1vpxYcafIwTHX1OSrUEfHGL97w
+// Auto-synced: 2025-11-13T00:00:00.000Z - Deployment: AKfycbwZUVAvM6NPTvFpozEvY6Hm7xy4XmvLFYwLcqbxCm92sjalOjajNhIjJROYd25IcTrrww
 /**
  * 環境変数ローダー（全システム共通）- 🔥マスターファイル🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1697-MASTER-MAPPING-FIX-2025-11-11T11:00:00
- * @last-update 2025-11-11T11:00:00
+ * @file-version V1714-ADMIN-AUTH-SECURITY-FIX-2025-11-13T00:00:00
+ * @last-update 2025-11-13T00:00:00
  */
 
 const ENV = {
@@ -22,14 +22,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- text/plainパース対応 @1620
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxMc_NHW8nrUninWeaXVqNViIE8_SZrRbgQboLlMPjjDgHD5RJEYkb9GdkFNqegegp-mw/exec',
+  // プライマリGAS URL（メイン運用）- V1714 管理者認証セキュリティ修正 @1637
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwZUVAvM6NPTvFpozEvY6Hm7xy4XmvLFYwLcqbxCm92sjalOjajNhIjJROYd25IcTrrww/exec',
 
-  // フォールバックGAS URL（バックアップ）- @1620
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxMc_NHW8nrUninWeaXVqNViIE8_SZrRbgQboLlMPjjDgHD5RJEYkb9GdkFNqegegp-mw/exec',
+  // フォールバックGAS URL（バックアップ）- @1637
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbwZUVAvM6NPTvFpozEvY6Hm7xy4XmvLFYwLcqbxCm92sjalOjajNhIjJROYd25IcTrrww/exec',
 
-  // 緊急時URL（最終フォールバック）- @1620
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxMc_NHW8nrUninWeaXVqNViIE8_SZrRbgQboLlMPjjDgHD5RJEYkb9GdkFNqegegp-mw/exec',
+  // 緊急時URL（最終フォールバック）- @1637
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbwZUVAvM6NPTvFpozEvY6Hm7xy4XmvLFYwLcqbxCm92sjalOjajNhIjJROYd25IcTrrww/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1701 - 2025-11-12 02:25 - text/plainパース対応 @1620デプロイ完了）
-  CACHE_BUSTER: '1731348300000'
+  // キャッシュバスター（V1714 - 2025-11-13 - 管理者認証セキュリティ修正 @1637デプロイ完了）
+  CACHE_BUSTER: '1731499200000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
