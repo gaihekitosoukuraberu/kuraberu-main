@@ -280,8 +280,23 @@ const CVAPI = {
                 reject(new Error('Script load failed'));
             };
 
+            // タイムアウト設定（V1748-FIX: ENV.TIMEOUTを使用、60秒）
+            const timeout = (window.ENV && window.ENV.TIMEOUT) || 60000;
+            const timeoutId = setTimeout(() => {
+                if (window[dataVarName] === undefined) {
+                    console.warn(`⏱️ リクエストタイムアウト（${timeout/1000}秒）- 古いリクエストの可能性`);
+                    delete window[dataVarName];
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                    // 新しいリクエストが成功している場合があるため、静かに失敗させる
+                    resolve({ success: false, timeout: true });
+                }
+            }, timeout);
+
             script.onload = function() {
                 console.log('✅ スクリプト読み込み完了');
+                clearTimeout(timeoutId);
 
                 // グローバル変数からデータを取得
                 if (window[dataVarName]) {
@@ -300,19 +315,6 @@ const CVAPI = {
                     reject(new Error('Data variable not found'));
                 }
             };
-
-            // タイムアウト設定（V1748-FIX: ENV.TIMEOUTを使用、60秒）
-            const timeout = (window.ENV && window.ENV.TIMEOUT) || 60000;
-            setTimeout(() => {
-                if (window[dataVarName] === undefined) {
-                    console.error(`❌ タイムアウト（${timeout/1000}秒）`);
-                    delete window[dataVarName];
-                    if (script.parentNode) {
-                        script.parentNode.removeChild(script);
-                    }
-                    reject(new Error(`Request timeout (${timeout/1000}s)`));
-                }
-            }, timeout);
 
             // DOMに追加してからsrcを設定
             const targetElement = document.head || document.getElementsByTagName('head')[0] || document.body;
