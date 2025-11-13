@@ -658,3 +658,173 @@ function testCVMapping() {
     details: results
   };
 }
+
+/**
+ * ============================================
+ * 成約報告機能テスト
+ * ============================================
+ *
+ * 手動実行用：GASエディタで実行して成約報告機能をテスト
+ * 1. この関数を選択
+ * 2. ▶実行ボタンをクリック
+ * 3. ログを確認
+ */
+function testGetDeliveredCases() {
+  console.log('===== 配信済み案件一覧取得テスト =====');
+
+  // テスト用の加盟店IDを指定（実際の加盟店IDを使用してください）
+  const testMerchantId = 'F20240001';  // ← ここを実際の加盟店IDに変更
+
+  const result = MerchantSystem.getDeliveredCases({
+    merchantId: testMerchantId
+  });
+
+  console.log('\n結果:', JSON.stringify(result, null, 2));
+
+  if (result.success) {
+    console.log('\n✅ 取得成功');
+    console.log('配信済み案件数:', result.cases.length);
+
+    if (result.cases.length > 0) {
+      console.log('\n最初の3件:');
+      result.cases.slice(0, 3).forEach((caseData, index) => {
+        console.log(`\n[案件 ${index + 1}]`);
+        console.log('  CV ID:', caseData.cvId);
+        console.log('  顧客名:', caseData.customerName);
+        console.log('  電話番号:', caseData.tel);
+        console.log('  住所:', caseData.address);
+        console.log('  工事種別:', caseData.workCategory);
+        console.log('  配信日時:', caseData.deliveredAt);
+        console.log('  管理ステータス:', caseData.managementStatus);
+      });
+    }
+  } else {
+    console.error('\n❌ 取得失敗:', result.error);
+  }
+
+  return result;
+}
+
+/**
+ * 成約報告登録テスト
+ * ⚠️ 実際にデータを更新するため、テスト用データで実行してください
+ */
+function testSubmitContractReport() {
+  console.log('===== 成約報告登録テスト =====');
+
+  // テスト用データを指定（実際のデータに合わせて変更してください）
+  const testData = {
+    merchantId: 'F20240001',           // ← 実際の加盟店IDに変更
+    merchantName: 'テスト株式会社',    // ← 実際の加盟店名に変更
+    cvId: 'CV20250101001',            // ← 実際のCV IDに変更
+    contractDate: '2025-01-13',       // 成約日
+    contractAmount: 1200000,          // 成約金額（円）
+    workContent: '外壁塗装・屋根塗装', // 見積工事内容
+    paymentDueDate: '2025-02-28'      // 入金予定日
+  };
+
+  console.log('\nテストデータ:');
+  console.log(JSON.stringify(testData, null, 2));
+
+  const result = MerchantSystem.submitContractReport(testData);
+
+  console.log('\n結果:', JSON.stringify(result, null, 2));
+
+  if (result.success) {
+    console.log('\n✅ 成約報告登録成功');
+    console.log('メッセージ:', result.message);
+
+    // ユーザー登録シートを確認
+    console.log('\n📊 ユーザー登録シート確認中...');
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const userSheet = ss.getSheetByName('ユーザー登録');
+    const data = userSheet.getDataRange().getValues();
+    const headers = data[0];
+    const rows = data.slice(1);
+
+    const cvIdIdx = headers.indexOf('CV ID');
+    const contractMerchantIdIdx = headers.indexOf('成約加盟店ID');
+    const contractDateIdx = headers.indexOf('成約日');
+    const contractAmountIdx = headers.indexOf('成約金額');
+    const managementStatusIdx = headers.indexOf('管理ステータス');
+
+    // CV IDで検索
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i][cvIdIdx] === testData.cvId) {
+        console.log('\n更新後のデータ:');
+        console.log('  CV ID:', rows[i][cvIdIdx]);
+        console.log('  成約加盟店ID:', rows[i][contractMerchantIdIdx]);
+        console.log('  成約日:', rows[i][contractDateIdx]);
+        console.log('  成約金額:', rows[i][contractAmountIdx]);
+        console.log('  管理ステータス:', rows[i][managementStatusIdx]);
+        break;
+      }
+    }
+  } else {
+    console.error('\n❌ 成約報告登録失敗:', result.error);
+  }
+
+  return result;
+}
+
+/**
+ * 成約報告機能の統合テスト
+ * 1. 配信済み案件一覧取得
+ * 2. 最初の案件で成約報告テスト（コメントアウト推奨）
+ */
+function testContractReportIntegration() {
+  console.log('========== 成約報告機能 統合テスト開始 ==========\n');
+
+  // テスト用の加盟店ID
+  const testMerchantId = 'F20240001';  // ← 実際の加盟店IDに変更
+
+  // 1. 配信済み案件一覧取得
+  console.log('【ステップ1】配信済み案件一覧取得');
+  const casesResult = MerchantSystem.getDeliveredCases({
+    merchantId: testMerchantId
+  });
+
+  if (!casesResult.success) {
+    console.error('❌ 案件一覧取得失敗:', casesResult.error);
+    return;
+  }
+
+  console.log('✅ 案件一覧取得成功:', casesResult.cases.length, '件');
+
+  if (casesResult.cases.length === 0) {
+    console.log('⚠️ 配信済み案件がありません。テスト終了。');
+    return;
+  }
+
+  // 最初の案件を表示
+  const firstCase = casesResult.cases[0];
+  console.log('\n最初の案件:');
+  console.log('  CV ID:', firstCase.cvId);
+  console.log('  顧客名:', firstCase.customerName);
+  console.log('  工事種別:', firstCase.workCategory);
+
+  // 2. 成約報告テスト（実際にデータを更新するためコメントアウト推奨）
+  /*
+  console.log('\n【ステップ2】成約報告登録テスト');
+  const reportResult = MerchantSystem.submitContractReport({
+    merchantId: testMerchantId,
+    merchantName: 'テスト株式会社',
+    cvId: firstCase.cvId,
+    contractDate: '2025-01-13',
+    contractAmount: 1000000,
+    workContent: '外壁塗装',
+    paymentDueDate: '2025-02-28'
+  });
+
+  if (reportResult.success) {
+    console.log('✅ 成約報告登録成功');
+  } else {
+    console.error('❌ 成約報告登録失敗:', reportResult.error);
+  }
+  */
+
+  console.log('\n⚠️ 実際の成約報告テストはコメントアウトされています');
+  console.log('テストする場合は、testContractReportIntegration関数内のコメントを外してください');
+
+  console.log('\n========== 統合テスト完了 ==========');
+}
