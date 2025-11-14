@@ -126,8 +126,8 @@ var MerchantDeadlineExtension = {
 
         if (!isDelivered) continue;
 
-        // 管理ステータスが「配信済」「対応中」「見積提出済」「商談中」のいずれか
-        const validStatuses = ['配信済', '対応中', '見積提出済', '商談中'];
+        // 管理ステータスが「配信済」「配信後未成約」「対応中」「見積提出済」「商談中」のいずれか
+        const validStatuses = ['配信済', '配信後未成約', '対応中', '見積提出済', '商談中'];
         if (!validStatuses.includes(managementStatus)) continue;
 
         // すでに成約報告済みの場合はスキップ
@@ -413,5 +413,26 @@ var MerchantDeadlineExtension = {
     const nextMonthEnd = new Date(date.getFullYear(), date.getMonth() + 2, 0);
     nextMonthEnd.setHours(23, 59, 59, 999);
     return nextMonthEnd;
+  },
+
+  /**
+   * SystemRouter用のハンドラー
+   * @param {Object} params - リクエストパラメータ
+   * @return {Object} - レスポンス
+   */
+  handle: function(params) {
+    const action = params.action;
+
+    switch(action) {
+      case 'getExtensionEligibleCases':
+        return this.getExtensionEligibleCases(params);
+      case 'submitExtensionRequest':
+        return this.submitExtensionRequest(params);
+      default:
+        return {
+          success: false,
+          error: 'Unknown action: ' + action
+        };
+    }
   }
 };

@@ -108,8 +108,8 @@ var MerchantCancelReport = {
 
         if (!isDelivered) continue;
 
-        // 管理ステータスが「配信済」「対応中」「見積提出済」「商談中」のいずれか
-        const validStatuses = ['配信済', '対応中', '見積提出済', '商談中'];
+        // 管理ステータスが「配信済」「配信後未成約」「対応中」「見積提出済」「商談中」のいずれか
+        const validStatuses = ['配信済', '配信後未成約', '対応中', '見積提出済', '商談中'];
         if (!validStatuses.includes(managementStatus)) continue;
 
         // すでに成約報告済みの場合はスキップ
@@ -552,5 +552,26 @@ var MerchantCancelReport = {
     text += `以上の理由により、キャンセル申請をさせていただきます。`;
 
     return text;
+  },
+
+  /**
+   * SystemRouter用のハンドラー
+   * @param {Object} params - リクエストパラメータ
+   * @return {Object} - レスポンス
+   */
+  handle: function(params) {
+    const action = params.action;
+
+    switch(action) {
+      case 'getCancelableCases':
+        return this.getCancelableCases(params);
+      case 'submitCancelReport':
+        return this.submitCancelReport(params);
+      default:
+        return {
+          success: false,
+          error: 'Unknown action: ' + action
+        };
+    }
   }
 };

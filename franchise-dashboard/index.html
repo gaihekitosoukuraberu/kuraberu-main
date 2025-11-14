@@ -19027,7 +19027,10 @@
 
                 const casesList = document.getElementById('cancelCasesList');
                 if (result.success && result.cases.length > 0) {
-                    casesList.innerHTML = result.cases.map(caseItem => `
+                    casesList.innerHTML = result.cases.map(caseItem => {
+                        const deliveredDate = new Date(caseItem.deliveredAt).toLocaleDateString('ja-JP');
+                        const deadlineDate = new Date(caseItem.deadlineDate).toLocaleDateString('ja-JP');
+                        return `
                         <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
                              onclick="openCancelModal('${caseItem.cvId}')">
                             <div class="flex justify-between items-start mb-3">
@@ -19035,12 +19038,13 @@
                             </div>
                             <h3 class="font-bold text-lg mb-1">${caseItem.customerName}</h3>
                             <p class="text-sm text-gray-600 mb-2">CV ID: ${caseItem.cvId}</p>
-                            <p class="text-sm text-gray-600 mb-2">📞 ${caseItem.customerPhone}</p>
-                            <p class="text-sm text-gray-600 mb-2">配信日: ${caseItem.deliveredDate}</p>
-                            <p class="text-sm text-red-600 font-semibold">期限: ${caseItem.deadline}</p>
-                            <p class="text-xs text-gray-500 mt-2">経過日数: ${caseItem.elapsedDays}日</p>
+                            <p class="text-sm text-gray-600 mb-2">📞 ${caseItem.tel}</p>
+                            <p class="text-sm text-gray-600 mb-2">配信日: ${deliveredDate}</p>
+                            <p class="text-sm text-red-600 font-semibold">期限: ${deadlineDate}</p>
+                            <p class="text-xs text-gray-500 mt-2">経過日数: ${caseItem.daysElapsed}日</p>
                         </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 } else {
                     casesList.innerHTML = '<p class="text-gray-600 col-span-full text-center py-8">申請可能な案件はありません</p>';
                 }
@@ -19067,9 +19071,9 @@
                         // 顧客情報を表示
                         document.getElementById('cancelModalCvId').textContent = cancelSelectedCase.cvId;
                         document.getElementById('cancelModalCustomerName').textContent = cancelSelectedCase.customerName;
-                        document.getElementById('cancelModalPhone').textContent = cancelSelectedCase.customerPhone;
-                        document.getElementById('cancelModalDeliveredDate').textContent = cancelSelectedCase.deliveredDate;
-                        document.getElementById('cancelModalDeadline').textContent = cancelSelectedCase.deadline;
+                        document.getElementById('cancelModalPhone').textContent = cancelSelectedCase.tel;
+                        document.getElementById('cancelModalDeliveredDate').textContent = new Date(cancelSelectedCase.deliveredAt).toLocaleDateString('ja-JP');
+                        document.getElementById('cancelModalDeadline').textContent = new Date(cancelSelectedCase.deadlineDate).toLocaleDateString('ja-JP');
 
                         // モーダルを表示
                         document.getElementById('cancelModal').classList.remove('hidden');
@@ -19274,7 +19278,11 @@
 
                 const casesList = document.getElementById('extensionCasesList');
                 if (result.success && result.cases.length > 0) {
-                    casesList.innerHTML = result.cases.map(caseItem => `
+                    casesList.innerHTML = result.cases.map(caseItem => {
+                        const deliveredDate = new Date(caseItem.deliveredAt).toLocaleDateString('ja-JP');
+                        const currentDeadline = new Date(caseItem.applicationDeadline).toLocaleDateString('ja-JP');
+                        const extendedDeadline = new Date(caseItem.extendedDeadline).toLocaleDateString('ja-JP');
+                        return `
                         <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
                              onclick="openExtensionModal('${caseItem.cvId}')">
                             <div class="flex justify-between items-start mb-3">
@@ -19282,12 +19290,13 @@
                             </div>
                             <h3 class="font-bold text-lg mb-1">${caseItem.customerName}</h3>
                             <p class="text-sm text-gray-600 mb-2">CV ID: ${caseItem.cvId}</p>
-                            <p class="text-sm text-gray-600 mb-2">📞 ${caseItem.customerPhone}</p>
-                            <p class="text-sm text-gray-600 mb-2">配信日: ${caseItem.deliveredDate}</p>
-                            <p class="text-sm text-red-600">現在の期限: ${caseItem.currentDeadline}</p>
-                            <p class="text-sm text-green-600 font-semibold">延長後期限: ${caseItem.extendedDeadline}</p>
+                            <p class="text-sm text-gray-600 mb-2">📞 ${caseItem.tel}</p>
+                            <p class="text-sm text-gray-600 mb-2">配信日: ${deliveredDate}</p>
+                            <p class="text-sm text-red-600">現在の期限: ${currentDeadline}</p>
+                            <p class="text-sm text-green-600 font-semibold">延長後期限: ${extendedDeadline}</p>
                         </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 } else {
                     casesList.innerHTML = '<p class="text-gray-600 col-span-full text-center py-8">申請可能な案件はありません</p>';
                 }
@@ -19313,10 +19322,10 @@
                     if (extensionSelectedCase) {
                         document.getElementById('extensionModalCvId').textContent = extensionSelectedCase.cvId;
                         document.getElementById('extensionModalCustomerName').textContent = extensionSelectedCase.customerName;
-                        document.getElementById('extensionModalPhone').textContent = extensionSelectedCase.customerPhone;
-                        document.getElementById('extensionModalDeliveredDate').textContent = extensionSelectedCase.deliveredDate;
-                        document.getElementById('extensionModalCurrentDeadline').textContent = extensionSelectedCase.currentDeadline;
-                        document.getElementById('extensionModalNewDeadline').textContent = extensionSelectedCase.extendedDeadline;
+                        document.getElementById('extensionModalPhone').textContent = extensionSelectedCase.tel;
+                        document.getElementById('extensionModalDeliveredDate').textContent = new Date(extensionSelectedCase.deliveredAt).toLocaleDateString('ja-JP');
+                        document.getElementById('extensionModalCurrentDeadline').textContent = new Date(extensionSelectedCase.applicationDeadline).toLocaleDateString('ja-JP');
+                        document.getElementById('extensionModalNewDeadline').textContent = new Date(extensionSelectedCase.extendedDeadline).toLocaleDateString('ja-JP');
 
                         document.getElementById('extensionModal').classList.remove('hidden');
                     }
