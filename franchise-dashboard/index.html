@@ -19663,7 +19663,8 @@
 
                 console.log('[キャンセル申請] 送信データ:', params);
 
-                const response = await fetch(CANCEL_API_URL, {
+                // リトライロジックを使用
+                const response = await fetchWithRetry(CANCEL_API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(params)
