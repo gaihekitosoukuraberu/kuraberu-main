@@ -13,13 +13,13 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1734-CANCEL-TEXT-UX-2025-11-15T06:30:00
- * @last-update 2025-11-15T06:30:00
+ * @file-version V1736-VOICE-BUTTON-FIX-2025-11-15T07:00:00
+ * @last-update 2025-11-15T07:00:00
  */
 
 const ENV = {
   // ============================================
-  // 🎯 URL設定（完全一元管理）
+  // URL設定（完全一元管理）
   // ============================================
 
   // プライマリGAS URL（メイン運用）- V1711: 架電履歴追加 + 階層的質問フロー対応
@@ -32,7 +32,7 @@ const ENV = {
   EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbzUu1nHQ6J1vHD-DuuZ4eClkPj5K1YfHnMB3nr9qIY50bvJn75jTVYkCQSerkfk5lNArg/exec',
 
   // ============================================
-  // 🔧 システム設定
+  // システム設定
   // ============================================
 
   // デバッグモード
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1735 - 2025-11-15 - 絵文字削除でSyntaxError修正）
-  CACHE_BUSTER: '1763189500000'
+  // キャッシュバスター（V1736 - 2025-11-15 - 音声入力ボタン配置修正: bottom-3/right-3で枠内に適切配置）
+  CACHE_BUSTER: '1763189800000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

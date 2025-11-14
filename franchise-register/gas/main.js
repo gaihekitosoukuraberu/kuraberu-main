@@ -160,8 +160,8 @@ const SystemRouter = {
       actions: ['submitCancelReport']
     },
     'generateAICancelText': {
-      system: 'AITextPolisher',
-      description: 'AI文章生成（キャンセル申請）',
+      system: 'MerchantCancelAI',
+      description: '加盟店キャンセル申請AI校正',
       prefix: false,
       actions: ['generateAICancelText']
     },
