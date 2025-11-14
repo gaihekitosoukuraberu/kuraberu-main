@@ -90,7 +90,22 @@ const CancelReasons = {
       {
         id: 'sms_response_no_appointment',
         label: 'SMS返信あるもアポ取れず電話不通',
-        questions: []
+        questions: [
+          {
+            id: 'phone_attempts',
+            label: '電話は何回くらい架けましたか？',
+            type: 'number',
+            required: true,
+            min: 1
+          },
+          {
+            id: 'sms_attempts',
+            label: 'SMSは何回くらいしましたか？',
+            type: 'number',
+            required: true,
+            min: 0
+          }
+        ]
       },
       {
         id: 'sms_declined',

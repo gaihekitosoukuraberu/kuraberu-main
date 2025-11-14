@@ -159,6 +159,12 @@ const SystemRouter = {
       prefix: false,
       actions: ['submitCancelReport']
     },
+    'generateAICancelText': {
+      system: 'AITextPolisher',
+      description: 'AI文章生成（キャンセル申請）',
+      prefix: false,
+      actions: ['generateAICancelText']
+    },
 
     // 期限延長申請システム
     'getExtensionEligibleCases': {

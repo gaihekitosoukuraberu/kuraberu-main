@@ -19557,8 +19557,8 @@
             return `${question}: ${answer}`;
         }
 
-        // キャンセル申請テキストを自動生成
-        function generateCancelApplicationText() {
+        // キャンセル申請テキストを自動生成（ハイブリッド方式）
+        async function generateCancelApplicationText() {
             // 生成回数チェック（2回まで）
             if (cancelAiGenerationCount >= 2) {
                 alert('AI生成は2回までです');
@@ -19570,6 +19570,7 @@
                 // 質問フォームから回答を収集
                 const questions = window.CancelReasons.getQuestions(cancelSelectedCategory, cancelSelectedSubCategory);
                 const answers = {};
+                let hasFreeText = false; // 自由記述があるかフラグ
 
                 // 各質問の回答を取得
                 if (questions && questions.length > 0) {
@@ -19589,6 +19590,10 @@
                                         const fqElement = document.getElementById(fqId);
                                         if (fqElement && fqElement.value) {
                                             answers[fq.label] = fqElement.value;
+                                            // followUpがtextarea/textの場合、自由記述とみなす
+                                            if (fq.type === 'textarea' || fq.type === 'text') {
+                                                hasFreeText = true;
+                                            }
                                         }
                                     });
                                 }
@@ -19606,6 +19611,11 @@
                                 }
                             }
                         }
+
+                        // textarea/textタイプの質問があればフラグを立てる
+                        if ((q.type === 'textarea' || q.type === 'text') && element && element.value && element.value.trim() !== '') {
+                            hasFreeText = true;
+                        }
                     });
                 }
 
@@ -19614,41 +19624,93 @@
                 const subCats = window.CancelReasons.getSubCategories(cancelSelectedCategory);
                 const subCategory = subCats.find(sc => sc.id === cancelSelectedSubCategory);
 
-                // AI生成風の自然な申請文を作成
-                const phoneCallCount = cancelSelectedCase.phoneCallCount || 0;
-                const smsCount = cancelSelectedCase.smsCount || 0;
-
-                let generatedText = '';
-
-                // 基本情報
-                generatedText += `${cancelSelectedCase.customerName}様（${cancelSelectedCase.tel}、${cancelSelectedCase.address}）について、`;
-                generatedText += `キャンセル申請をいたします。\n\n`;
-
-                // フォローアップ状況
-                // 理由を文章化
-                const categoryLabel = category.label.replace(/^\d+\.\s*/, ''); // 数字とドットを削除
-                const subCategoryLabel = subCategory.label;
-
-                generatedText += `フォローアップを実施しましたが、${subCategoryLabel}という状況のため、対応が困難と判断いたしました。\n\n`;
-
-                // 回答内容を自然な文章に組み込む
-                if (Object.keys(answers).length > 0) {
-                    generatedText += `【補足事項】\n`;
-                    Object.entries(answers).forEach(([key, value]) => {
-                        generatedText += `・${convertQuestionToNaturalText(key, value)}\n`;
-                    });
-                    generatedText += `\n`;
+                // ハイブリッド判定: 自由記述があればAI、なければテンプレート
+                if (hasFreeText) {
+                    console.log('[generateCancelApplicationText] 自由記述あり → AI生成を使用');
+                    await generateWithAI(category, subCategory, answers);
+                } else {
+                    console.log('[generateCancelApplicationText] 選択肢のみ → テンプレート生成を使用');
+                    generateWithTemplate(category, subCategory, answers);
                 }
-
-                generatedText += `以上の状況により、本案件のキャンセルを申請させていただきます。`;
-
-                // textareaに自動生成テキストをセット
-                document.getElementById('cancelApplicationText').value = generatedText;
 
             } catch (error) {
                 console.error('テキスト自動生成エラー:', error);
-                document.getElementById('cancelApplicationText').value = 'キャンセル申請内容を入力してください。';
+                alert('文章生成に失敗しました。もう一度お試しください。');
             }
+        }
+
+        // AI生成を使用（OpenRouter + DeepSeek）
+        async function generateWithAI(category, subCategory, answers) {
+            try {
+                const categoryLabel = category.label.replace(/^\d+\.\s*/, '');
+                const subCategoryLabel = subCategory.label;
+
+                // GAS側のAI生成APIを呼び出し
+                const rawData = {
+                    customerName: cancelSelectedCase.customerName,
+                    tel: cancelSelectedCase.tel,
+                    address: cancelSelectedCase.address,
+                    categoryLabel: categoryLabel,
+                    subCategoryLabel: subCategoryLabel,
+                    answers: answers
+                };
+
+                console.log('[generateWithAI] Calling AI API...', rawData);
+
+                // ローディング表示
+                const textarea = document.getElementById('cancelApplicationText');
+                textarea.value = 'AI文章生成中...';
+
+                const urlParams = new URLSearchParams({
+                    action: 'generateAICancelText',
+                    rawData: JSON.stringify(rawData)
+                });
+
+                const response = await fetch(`${CANCEL_API_URL}?${urlParams.toString()}`);
+                const result = await response.json();
+
+                if (result.success && result.generatedText) {
+                    textarea.value = result.generatedText;
+                    console.log('[generateWithAI] AI生成成功');
+                } else {
+                    console.error('[generateWithAI] AI生成失敗、テンプレートにフォールバック');
+                    generateWithTemplate(category, subCategory, answers);
+                }
+
+            } catch (error) {
+                console.error('[generateWithAI] Error:', error);
+                // エラー時はテンプレートにフォールバック
+                generateWithTemplate(category, subCategory, answers);
+            }
+        }
+
+        // テンプレート生成（従来のロジック）
+        function generateWithTemplate(category, subCategory, answers) {
+            const categoryLabel = category.label.replace(/^\d+\.\s*/, '');
+            const subCategoryLabel = subCategory.label;
+
+            let generatedText = '';
+
+            // 基本情報
+            generatedText += `${cancelSelectedCase.customerName}様（${cancelSelectedCase.tel}、${cancelSelectedCase.address}）について、`;
+            generatedText += `キャンセル申請をいたします。\n\n`;
+
+            // フォローアップ状況
+            generatedText += `フォローアップを実施しましたが、${subCategoryLabel}という状況のため、対応が困難と判断いたしました。\n\n`;
+
+            // 回答内容を自然な文章に組み込む
+            if (Object.keys(answers).length > 0) {
+                generatedText += `【補足事項】\n`;
+                Object.entries(answers).forEach(([key, value]) => {
+                    generatedText += `・${convertQuestionToNaturalText(key, value)}\n`;
+                });
+                generatedText += `\n`;
+            }
+
+            generatedText += `以上の状況により、本案件のキャンセルを申請させていただきます。`;
+
+            // textareaに自動生成テキストをセット
+            document.getElementById('cancelApplicationText').value = generatedText;
         }
 
         // キャンセル申請を提出
@@ -19735,13 +19797,13 @@
 
                 console.log('[キャンセル申請] 送信データ:', params);
 
-                // 直接fetchを使用（他の成功しているPOSTと同様）
-                const response = await fetch(CANCEL_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify(params)
-                });
+                // GETリクエストに変更（getCancelableCasesと同じパターン）
+                const urlParams = new URLSearchParams();
+                for (const [key, value] of Object.entries(params)) {
+                    urlParams.append(key, value);
+                }
 
+                const response = await fetch(`${CANCEL_API_URL}?${urlParams.toString()}`);
                 console.log('[キャンセル申請] Response status:', response.status);
                 const result = await response.json();
 
@@ -19901,13 +19963,13 @@
 
                 console.log('[期限延長申請] 送信データ:', params);
 
-                // 直接fetchを使用（他の成功しているPOSTと同様）
-                const response = await fetch(CANCEL_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify(params)
-                });
+                // GETリクエストに変更（getCancelableCasesと同じパターン）
+                const urlParams = new URLSearchParams();
+                for (const [key, value] of Object.entries(params)) {
+                    urlParams.append(key, value);
+                }
 
+                const response = await fetch(`${CANCEL_API_URL}?${urlParams.toString()}`);
                 console.log('[期限延長申請] Response status:', response.status);
                 const result = await response.json();
 
