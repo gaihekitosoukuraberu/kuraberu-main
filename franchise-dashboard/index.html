@@ -19491,6 +19491,11 @@
                 }
             }
 
+            // 「おおよそ何日前ですか？」パターン
+            if (question.includes('おおよそ何日前ですか')) {
+                return `約${answer}日前に繋がりました。`;
+            }
+
             // 「何回くらい架けましたか？」パターン
             if (question.includes('何回くらい架けましたか')) {
                 const prefix = question.replace('は何回くらい架けましたか？', '');
@@ -19730,13 +19735,14 @@
 
                 console.log('[キャンセル申請] 送信データ:', params);
 
-                // リトライロジックを使用
-                const response = await fetchWithRetry(CANCEL_API_URL, {
+                // 直接fetchを使用（他の成功しているPOSTと同様）
+                const response = await fetch(CANCEL_API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify(params)
                 });
 
+                console.log('[キャンセル申請] Response status:', response.status);
                 const result = await response.json();
 
                 if (result.success) {
@@ -19893,12 +19899,16 @@
                     extensionReason: reason
                 };
 
-                const response = await fetchWithRetry(CANCEL_API_URL, {
+                console.log('[期限延長申請] 送信データ:', params);
+
+                // 直接fetchを使用（他の成功しているPOSTと同様）
+                const response = await fetch(CANCEL_API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify(params)
                 });
 
+                console.log('[期限延長申請] Response status:', response.status);
                 const result = await response.json();
 
                 if (result.success) {

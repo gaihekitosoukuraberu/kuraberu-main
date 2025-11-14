@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1725 - 2025-11-15 - Content-Type修正でFailed to fetch解消）
-  CACHE_BUSTER: '1763186600000'
+  // キャッシュバスター（V1727 - 2025-11-15 - fetchWithRetryから直接fetchに変更）
+  CACHE_BUSTER: '1763186800000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
