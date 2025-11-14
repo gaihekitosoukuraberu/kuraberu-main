@@ -320,6 +320,12 @@
                     </svg>
                     キャンセル申請
                 </a>
+                <a href="#archive" onclick="showSection('archive'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    追客終了BOX
+                </a>
                 <a href="#extension" onclick="showSection('extension'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -4995,9 +5001,50 @@
                     </div>
                 </div>
 
-                <!-- 案件一覧 -->
-                <div id="cancelCasesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
-                    <!-- 案件カードが動的に表示される -->
+                <!-- タブナビゲーション -->
+                <div class="mb-6 border-b border-gray-200">
+                    <nav class="flex space-x-4">
+                        <button onclick="switchCancelTab('available')" id="cancelTab-available" class="cancel-tab px-4 py-2 border-b-2 border-blue-500 text-blue-600 font-medium">
+                            申請可能
+                        </button>
+                        <button onclick="switchCancelTab('pending')" id="cancelTab-pending" class="cancel-tab px-4 py-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                            審査中
+                        </button>
+                        <button onclick="switchCancelTab('approved')" id="cancelTab-approved" class="cancel-tab px-4 py-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                            承認済み
+                        </button>
+                        <button onclick="switchCancelTab('rejected')" id="cancelTab-rejected" class="cancel-tab px-4 py-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                            却下済み
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- タブコンテンツ: 申請可能 -->
+                <div id="cancelTabContent-available" class="cancel-tab-content">
+                    <div id="cancelCasesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+                        <!-- 案件カードが動的に表示される -->
+                    </div>
+                </div>
+
+                <!-- タブコンテンツ: 審査中 -->
+                <div id="cancelTabContent-pending" class="cancel-tab-content hidden">
+                    <div id="cancelPendingList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+                        <!-- 審査中案件が動的に表示される -->
+                    </div>
+                </div>
+
+                <!-- タブコンテンツ: 承認済み -->
+                <div id="cancelTabContent-approved" class="cancel-tab-content hidden">
+                    <div id="cancelApprovedList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+                        <!-- 承認済み案件が動的に表示される -->
+                    </div>
+                </div>
+
+                <!-- タブコンテンツ: 却下済み -->
+                <div id="cancelTabContent-rejected" class="cancel-tab-content hidden">
+                    <div id="cancelRejectedList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+                        <!-- 却下済み案件が動的に表示される -->
+                    </div>
                 </div>
 
                 <!-- キャンセル申請モーダル -->
@@ -5120,6 +5167,21 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- 追客終了BOXセクション -->
+            <div id="archiveSection" class="section" style="display: none;">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">追客終了BOX</h2>
+                        <p class="text-sm text-gray-600 mt-1">追客を終了した案件の一覧（いつでも復元可能）</p>
+                    </div>
+                </div>
+
+                <!-- アーカイブ案件一覧 -->
+                <div id="archiveCasesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+                    <!-- 案件カードが動的に表示される -->
                 </div>
             </div>
 
@@ -13485,6 +13547,11 @@
                     loadCancelableCases();
                 }
 
+                // 追客終了BOXセクションの場合はアーカイブ案件を読み込み
+                if (sectionName === 'archive') {
+                    loadArchivedCases();
+                }
+
                 // 期限延長申請セクションの場合は申請可能案件を読み込み
                 if (sectionName === 'extension') {
                     loadExtensionEligibleCases();
@@ -19000,6 +19067,318 @@
                     console.log(`[fetchWithRetry] ${waitTime}ms 待機後、再試行します...`);
                     await new Promise(resolve => setTimeout(resolve, waitTime));
                 }
+            }
+        }
+
+        // ============================================
+        // キャンセル申請タブ管理
+        // ============================================
+
+        let currentCancelTab = 'available'; // 現在のタブ
+
+        // タブ切り替え
+        function switchCancelTab(tabName) {
+            currentCancelTab = tabName;
+
+            // 全タブボタンのスタイルをリセット
+            document.querySelectorAll('.cancel-tab').forEach(tab => {
+                tab.classList.remove('border-blue-500', 'text-blue-600', 'font-medium');
+                tab.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            // 全タブコンテンツを非表示
+            document.querySelectorAll('.cancel-tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // 選択されたタブをアクティブ化
+            const selectedTab = document.getElementById(`cancelTab-${tabName}`);
+            if (selectedTab) {
+                selectedTab.classList.remove('border-transparent', 'text-gray-500');
+                selectedTab.classList.add('border-blue-500', 'text-blue-600', 'font-medium');
+            }
+
+            // 選択されたタブコンテンツを表示
+            const selectedContent = document.getElementById(`cancelTabContent-${tabName}`);
+            if (selectedContent) {
+                selectedContent.classList.remove('hidden');
+            }
+
+            // タブに応じてデータを読み込み
+            switch(tabName) {
+                case 'available':
+                    loadCancelableCases();
+                    break;
+                case 'pending':
+                    loadAppliedCases('pending');
+                    break;
+                case 'approved':
+                    loadAppliedCases('approved');
+                    break;
+                case 'rejected':
+                    loadAppliedCases('rejected');
+                    break;
+            }
+        }
+
+        // キャンセル申請済み案件を読み込み（ステータス別）
+        async function loadAppliedCases(status) {
+            // ステータスに応じたDOMコンテナを取得
+            const containerIds = {
+                'pending': 'cancelPendingList',
+                'approved': 'cancelApprovedList',
+                'rejected': 'cancelRejectedList'
+            };
+
+            const containerId = containerIds[status];
+            const container = document.getElementById(containerId);
+
+            if (!container) {
+                console.error(`Container not found for status: ${status}`);
+                return;
+            }
+
+            try {
+                const merchantId = window.merchantId;
+                if (!merchantId) {
+                    alert('ログインしていません');
+                    return;
+                }
+
+                // ローディング表示
+                container.innerHTML = '<div class="col-span-full text-center py-8"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div><p class="text-gray-600 mt-2">読み込み中...</p></div>';
+
+                const response = await fetchWithRetry(`${CANCEL_API_URL}?action=getCancelAppliedCases&merchantId=${merchantId}&status=${status}`);
+                const result = await response.json();
+
+                if (result.success && result.cases && result.cases.length > 0) {
+                    container.innerHTML = result.cases.map(caseItem => {
+                        const appliedDate = new Date(caseItem.appliedAt).toLocaleDateString('ja-JP');
+                        const deliveredDate = new Date(caseItem.deliveredAt).toLocaleDateString('ja-JP');
+
+                        // ステータスバッジの色分け
+                        const statusBadges = {
+                            'pending': { color: 'bg-yellow-100 text-yellow-800', label: '審査中' },
+                            'approved': { color: 'bg-green-100 text-green-800', label: '承認済み' },
+                            'rejected': { color: 'bg-red-100 text-red-800', label: '却下済み' }
+                        };
+                        const badge = statusBadges[status];
+
+                        // 却下理由（却下タブの場合のみ）
+                        const rejectionReason = status === 'rejected' && caseItem.rejectionReason
+                            ? `<p class="text-sm text-red-600 mt-2"><span class="font-semibold">却下理由:</span> ${caseItem.rejectionReason}</p>`
+                            : '';
+
+                        // 承認日/却下日（該当タブの場合のみ）
+                        const reviewedDate = status === 'approved' && caseItem.approvedAt
+                            ? `<p class="text-sm text-gray-600 mb-2">承認日: ${new Date(caseItem.approvedAt).toLocaleDateString('ja-JP')}</p>`
+                            : status === 'rejected' && caseItem.rejectedAt
+                            ? `<p class="text-sm text-gray-600 mb-2">却下日: ${new Date(caseItem.rejectedAt).toLocaleDateString('ja-JP')}</p>`
+                            : '';
+
+                        return `
+                        <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
+                            <div class="flex justify-between items-start mb-3">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full ${badge.color}">${badge.label}</span>
+                            </div>
+                            <h3 class="font-bold text-lg mb-1">${caseItem.customerName}</h3>
+                            <p class="text-sm text-gray-600 mb-2">📍 ${caseItem.address}</p>
+                            <p class="text-sm text-gray-600 mb-2">📞 ${caseItem.tel}</p>
+                            <p class="text-sm text-gray-600 mb-2">配信日: ${deliveredDate}</p>
+                            <p class="text-sm text-gray-600 mb-2">申請日: ${appliedDate}</p>
+                            ${reviewedDate}
+                            ${rejectionReason}
+                            <div class="mt-3 pt-3 border-t border-gray-200">
+                                <p class="text-xs text-gray-500 font-semibold mb-1">申請理由:</p>
+                                <p class="text-xs text-gray-700">${caseItem.reason}</p>
+                            </div>
+                        </div>
+                        `;
+                    }).join('');
+                } else {
+                    const emptyMessages = {
+                        'pending': '審査中の案件はありません',
+                        'approved': '承認済みの案件はありません',
+                        'rejected': '却下された案件はありません'
+                    };
+                    container.innerHTML = `<p class="text-gray-600 col-span-full text-center py-8">${emptyMessages[status]}</p>`;
+                }
+            } catch (error) {
+                console.error('キャンセル申請済み案件の読み込みエラー:', error);
+
+                // エラー内容を解析
+                let errorMessage = '案件の読み込みに失敗しました。';
+                if (error.name === 'AbortError') {
+                    errorMessage = 'リクエストがタイムアウトしました。ネットワーク接続を確認してください。';
+                } else if (error.message.includes('HTTP error')) {
+                    errorMessage = `サーバーエラーが発生しました (${error.message})`;
+                } else if (error.message === 'Failed to fetch') {
+                    errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。';
+                }
+
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <div class="text-red-500 mb-4">
+                            <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            <p class="font-semibold">${errorMessage}</p>
+                        </div>
+                        <button onclick="loadAppliedCases('${status}')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            再読み込み
+                        </button>
+                    </div>
+                `;
+                alert(errorMessage);
+            }
+        }
+
+        // ============================================
+        // 追客終了BOX（アーカイブ）管理
+        // ============================================
+
+        // アーカイブ案件一覧を読み込み
+        async function loadArchivedCases() {
+            const container = document.getElementById('archiveCasesList');
+
+            try {
+                const merchantId = window.merchantId;
+                if (!merchantId) {
+                    alert('ログインしていません');
+                    return;
+                }
+
+                // ローディング表示
+                container.innerHTML = '<div class="col-span-full text-center py-8"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div><p class="text-gray-600 mt-2">読み込み中...</p></div>';
+
+                const response = await fetchWithRetry(`${CANCEL_API_URL}?action=getArchivedCases&merchantId=${merchantId}`);
+                const result = await response.json();
+
+                if (result.success && result.cases && result.cases.length > 0) {
+                    container.innerHTML = result.cases.map(caseItem => {
+                        const deliveredDate = new Date(caseItem.deliveredAt).toLocaleDateString('ja-JP');
+                        const archivedDate = new Date(caseItem.archivedAt).toLocaleDateString('ja-JP');
+
+                        return `
+                        <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
+                            <div class="flex justify-between items-start mb-3">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">アーカイブ済み</span>
+                                <button onclick="restoreArchivedCase('${caseItem.cvId}')" class="px-3 py-1 text-xs bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                                    復元
+                                </button>
+                            </div>
+                            <h3 class="font-bold text-lg mb-1">${caseItem.customerName}</h3>
+                            <p class="text-sm text-gray-600 mb-2">📍 ${caseItem.address}</p>
+                            <p class="text-sm text-gray-600 mb-2">📞 ${caseItem.tel}</p>
+                            <p class="text-sm text-gray-600 mb-2">配信日: ${deliveredDate}</p>
+                            <p class="text-sm text-gray-600 mb-2">アーカイブ日: ${archivedDate}</p>
+                        </div>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = '<p class="text-gray-600 col-span-full text-center py-8">アーカイブされた案件はありません</p>';
+                }
+            } catch (error) {
+                console.error('アーカイブ案件の読み込みエラー:', error);
+
+                let errorMessage = '案件の読み込みに失敗しました。';
+                if (error.name === 'AbortError') {
+                    errorMessage = 'リクエストがタイムアウトしました。ネットワーク接続を確認してください。';
+                } else if (error.message.includes('HTTP error')) {
+                    errorMessage = `サーバーエラーが発生しました (${error.message})`;
+                } else if (error.message === 'Failed to fetch') {
+                    errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。';
+                }
+
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <div class="text-red-500 mb-4">
+                            <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            <p class="font-semibold">${errorMessage}</p>
+                        </div>
+                        <button onclick="loadArchivedCases()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            再読み込み
+                        </button>
+                    </div>
+                `;
+                alert(errorMessage);
+            }
+        }
+
+        // 案件をアーカイブ（追客終了BOXへ移動）
+        async function archiveCase(cvId) {
+            if (!confirm('この案件を追客終了BOXに移動しますか？\n（いつでも復元できます）')) {
+                return;
+            }
+
+            try {
+                const merchantId = window.merchantId;
+                if (!merchantId) {
+                    alert('ログインしていません');
+                    return;
+                }
+
+                const response = await fetchWithRetry(CANCEL_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `action=archiveCase&merchantId=${merchantId}&cvId=${cvId}`
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('案件を追客終了BOXに移動しました');
+                    // 現在のセクションに応じてリロード
+                    const currentSection = document.querySelector('.section:not([style*="display: none"])');
+                    if (currentSection && currentSection.id === 'casesSection') {
+                        location.reload(); // 案件管理画面の場合はページリロード
+                    }
+                } else {
+                    alert('エラー: ' + (result.error || '不明なエラー'));
+                }
+            } catch (error) {
+                console.error('アーカイブエラー:', error);
+                alert('案件のアーカイブに失敗しました');
+            }
+        }
+
+        // アーカイブ案件を復元
+        async function restoreArchivedCase(cvId) {
+            if (!confirm('この案件を復元しますか？')) {
+                return;
+            }
+
+            try {
+                const merchantId = window.merchantId;
+                if (!merchantId) {
+                    alert('ログインしていません');
+                    return;
+                }
+
+                const response = await fetchWithRetry(CANCEL_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `action=restoreCase&merchantId=${merchantId}&cvId=${cvId}`
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('案件を復元しました');
+                    // アーカイブ一覧を再読み込み
+                    loadArchivedCases();
+                } else {
+                    alert('エラー: ' + (result.error || '不明なエラー'));
+                }
+            } catch (error) {
+                console.error('復元エラー:', error);
+                alert('案件の復元に失敗しました');
             }
         }
 

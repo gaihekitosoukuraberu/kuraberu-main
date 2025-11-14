@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1736-VOICE-BUTTON-FIX-2025-11-15T07:00:00
- * @last-update 2025-11-15T07:00:00
+ * @file-version V1737-CANCEL-4TAB-ARCHIVEBOX-2025-11-15T12:00:00
+ * @last-update 2025-11-15T12:00:00
  */
 
 const ENV = {
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1736 - 2025-11-15 - 音声入力ボタン配置修正: bottom-3/right-3で枠内に適切配置）
-  CACHE_BUSTER: '1763189800000'
+  // キャッシュバスター（V1737 - 2025-11-15 - キャンセル申請4タブUI + 追客終了BOX実装: 申請済み案件管理・アーカイブ機能追加）
+  CACHE_BUSTER: '1763204400000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

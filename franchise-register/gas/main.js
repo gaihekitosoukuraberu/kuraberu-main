@@ -153,6 +153,12 @@ const SystemRouter = {
       prefix: false,
       actions: ['getCancelableCases']
     },
+    'getCancelAppliedCases': {
+      system: 'MerchantCancelReport',
+      description: 'キャンセル申請済み案件取得（ステータス別）',
+      prefix: false,
+      actions: ['getCancelAppliedCases']
+    },
     'submitCancelReport': {
       system: 'MerchantCancelReport',
       description: 'キャンセル申請登録',
@@ -164,6 +170,26 @@ const SystemRouter = {
       description: '加盟店キャンセル申請AI校正',
       prefix: false,
       actions: ['generateAICancelText']
+    },
+
+    // 追客終了BOXシステム
+    'archiveCase': {
+      system: 'MerchantCaseArchive',
+      description: '案件をアーカイブ（追客終了BOXへ移動）',
+      prefix: false,
+      actions: ['archiveCase']
+    },
+    'restoreCase': {
+      system: 'MerchantCaseArchive',
+      description: 'アーカイブ案件を復元',
+      prefix: false,
+      actions: ['restoreCase']
+    },
+    'getArchivedCases': {
+      system: 'MerchantCaseArchive',
+      description: 'アーカイブ案件一覧取得',
+      prefix: false,
+      actions: ['getArchivedCases']
     },
 
     // 期限延長申請システム

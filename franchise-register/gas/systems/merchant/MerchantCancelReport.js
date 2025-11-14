@@ -69,6 +69,8 @@ var MerchantCancelReport = {
       const deliveredAtIdx = headers.indexOf('配信日時');
       const contractMerchantIdIdx = headers.indexOf('成約加盟店ID');
       const callHistoryIdx = headers.indexOf('架電履歴');
+      const archiveStatusIdx = headers.indexOf('アーカイブ状態');
+      const archiveMerchantIdx = headers.indexOf('アーカイブ加盟店ID');
 
       // 既にキャンセル申請済みのCV IDを取得
       const appliedCvIds = new Set();
@@ -121,6 +123,16 @@ var MerchantCancelReport = {
         // すでにキャンセル申請済みの場合はスキップ
         if (appliedCvIds.has(cvId)) {
           continue;
+        }
+
+        // アーカイブ済み（追客終了BOX）の案件はスキップ
+        if (archiveStatusIdx >= 0 && archiveMerchantIdx >= 0) {
+          const archiveStatus = row[archiveStatusIdx];
+          const archiveMerchantId = row[archiveMerchantIdx];
+          if (archiveStatus === 'archived' &&
+              (archiveMerchantId === merchantId || archiveMerchantId === String(merchantId))) {
+            continue;
+          }
         }
 
         // 配信日時からの経過日数を計算
@@ -194,6 +206,128 @@ var MerchantCancelReport = {
 
     } catch (error) {
       console.error('[MerchantCancelReport] getCancelableCases error:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * キャンセル申請済み案件一覧を取得（ステータス別）
+   * @param {Object} params - { merchantId: 加盟店ID, status: 'pending' | 'approved' | 'rejected' }
+   * @return {Object} - { success: boolean, cases: Array }
+   */
+  getCancelAppliedCases: function(params) {
+    try {
+      const merchantId = params.merchantId;
+      const status = params.status;
+
+      if (!merchantId) {
+        return {
+          success: false,
+          error: '加盟店IDが指定されていません'
+        };
+      }
+
+      if (!status || !['pending', 'approved', 'rejected'].includes(status)) {
+        return {
+          success: false,
+          error: 'ステータスが不正です（pending, approved, rejected のいずれか）'
+        };
+      }
+
+      console.log('[MerchantCancelReport] getCancelAppliedCases - 加盟店ID:', merchantId, 'ステータス:', status);
+
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const cancelSheet = ss.getSheetByName('キャンセル申請');
+
+      if (!cancelSheet) {
+        return {
+          success: false,
+          error: 'キャンセル申請シートが見つかりません'
+        };
+      }
+
+      // データ取得
+      const data = cancelSheet.getDataRange().getValues();
+      const headers = data[0];
+      const rows = data.slice(1);
+
+      // 必要なカラムのインデックス取得
+      const cvIdIdx = headers.indexOf('CV ID');
+      const customerNameIdx = headers.indexOf('顧客名');
+      const telIdx = headers.indexOf('電話番号');
+      const addressIdx = headers.indexOf('住所');
+      const merchantIdIdx = headers.indexOf('加盟店ID');
+      const merchantNameIdx = headers.indexOf('加盟店名');
+      const applicantNameIdx = headers.indexOf('申請担当者');
+      const deliveredAtIdx = headers.indexOf('配信日時');
+      const timestampIdx = headers.indexOf('タイムスタンプ');
+      const applicationIdIdx = headers.indexOf('申請ID');
+      const statusColIdx = headers.indexOf('承認ステータス');
+      const approverIdx = headers.indexOf('承認者');
+      const approvedAtIdx = headers.indexOf('承認日時');
+      const rejectionReasonIdx = headers.indexOf('却下理由');
+      const cancelReasonCategoryIdx = headers.indexOf('キャンセル理由カテゴリ');
+      const cancelReasonDetailIdx = headers.indexOf('キャンセル理由詳細');
+      const cancelApplicationTextIdx = headers.indexOf('キャンセル申請文');
+
+      // ステータスマッピング
+      const statusMapping = {
+        'pending': '申請中',
+        'approved': '承認済み',
+        'rejected': '却下済み'
+      };
+      const targetStatus = statusMapping[status];
+
+      // 申請済み案件を抽出
+      const appliedCases = [];
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const rowMerchantId = row[merchantIdIdx];
+        const rowStatus = row[statusColIdx];
+
+        // 空行スキップ
+        if (!row[cvIdIdx]) continue;
+
+        // この加盟店の案件で、指定されたステータスのもののみ
+        if ((rowMerchantId === merchantId || rowMerchantId === String(merchantId)) &&
+            rowStatus === targetStatus) {
+
+          // 案件情報を追加
+          appliedCases.push({
+            cvId: row[cvIdIdx],
+            applicationId: row[applicationIdIdx] || '',
+            customerName: row[customerNameIdx] || '',
+            tel: row[telIdx] || '',
+            address: row[addressIdx] || '',
+            merchantName: row[merchantNameIdx] || '',
+            applicantName: row[applicantNameIdx] || '',
+            deliveredAt: row[deliveredAtIdx] || '',
+            appliedAt: row[timestampIdx] || '',
+            status: rowStatus,
+            approver: row[approverIdx] || '',
+            approvedAt: row[approvedAtIdx] || '',
+            rejectionReason: row[rejectionReasonIdx] || '',
+            rejectedAt: rowStatus === '却下済み' ? row[approvedAtIdx] : '', // 却下日は承認日時列と同じ
+            cancelReasonCategory: row[cancelReasonCategoryIdx] || '',
+            cancelReasonDetail: row[cancelReasonDetailIdx] || '',
+            reason: row[cancelApplicationTextIdx] || '' // フロントで申請理由として表示
+          });
+        }
+      }
+
+      console.log('[MerchantCancelReport] getCancelAppliedCases - 取得件数:', appliedCases.length);
+
+      return {
+        success: true,
+        cases: appliedCases
+      };
+
+    } catch (error) {
+      console.error('[MerchantCancelReport] getCancelAppliedCases error:', error);
       return {
         success: false,
         error: error.toString()
@@ -594,6 +728,8 @@ var MerchantCancelReport = {
     switch(action) {
       case 'getCancelableCases':
         return this.getCancelableCases(params);
+      case 'getCancelAppliedCases':
+        return this.getCancelAppliedCases(params);
       case 'submitCancelReport':
         return this.submitCancelReport(params);
       default:
