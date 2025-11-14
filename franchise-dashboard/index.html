@@ -5065,7 +5065,7 @@
 
                             <!-- Step 3: 確認画面 -->
                             <div id="cancelStep3" class="cancel-step hidden">
-                                <h4 class="font-semibold text-lg mb-4">申請内容の確認と詳細入力</h4>
+                                <h4 class="font-semibold text-lg mb-4">申請内容詳細</h4>
 
                                 <!-- 申請内容詳細（フリー入力・編集可能） -->
                                 <div class="mb-6">
@@ -5073,18 +5073,28 @@
                                         <label class="block text-sm font-semibold text-gray-700">
                                             申請内容詳細 <span class="text-red-500">*</span>
                                         </label>
-                                        <button type="button" onclick="startVoiceInput()"
-                                                class="flex items-center px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">
-                                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M7 4a3 3 0 016 0v6a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z"></path>
-                                            </svg>
-                                            音声入力
-                                        </button>
+                                        <div class="flex gap-2">
+                                            <button type="button" onclick="generateCancelApplicationText()"
+                                                    class="flex items-center px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 font-semibold">
+                                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M13 7H7v6h6V7z"></path>
+                                                    <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                AI自動生成
+                                            </button>
+                                            <button type="button" onclick="startVoiceInput()"
+                                                    class="flex items-center px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">
+                                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M7 4a3 3 0 016 0v6a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z"></path>
+                                                </svg>
+                                                音声入力
+                                            </button>
+                                        </div>
                                     </div>
                                     <textarea id="cancelApplicationText" rows="8" required
                                               class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-blue-500"
-                                              placeholder="自動生成された文章を編集できます"></textarea>
-                                    <p class="text-xs text-gray-500 mt-1">※ 選択した内容から自動生成されます。必要に応じて編集してください。</p>
+                                              placeholder="「AI自動生成」ボタンで申請文を作成できます"></textarea>
+                                    <p class="text-xs text-gray-500 mt-1">※ AI自動生成後、内容を編集できます。音声入力も可能です。</p>
                                 </div>
 
 
@@ -19155,9 +19165,30 @@
                 }
             }
 
-            // ステップ3: 確認画面 - 自動生成テキストを作成
+            // ステップ2: サブカテゴリ選択または質問入力
+            if (step === 2) {
+                // Step 3から戻ってきた場合、質問フォームを非表示にしてサブカテゴリリストを表示
+                const subCategoryList = document.getElementById('cancelSubCategoryList');
+                const questionsForm = document.getElementById('cancelQuestionsForm');
+                const nextBtn = document.getElementById('cancelStep2NextBtn');
+
+                // 質問フォームを非表示
+                if (questionsForm) {
+                    questionsForm.classList.add('hidden');
+                }
+                if (nextBtn) {
+                    nextBtn.classList.add('hidden');
+                }
+
+                // サブカテゴリリストを表示
+                if (subCategoryList && cancelSelectedCategory) {
+                    subCategoryList.classList.remove('hidden');
+                }
+            }
+
+            // ステップ3: 確認画面
             if (step === 3) {
-                generateCancelApplicationText();
+                // ボタンで生成するため、ここでは何もしない
             }
         }
 
@@ -19182,6 +19213,7 @@
                     <p class="font-semibold">${subCat.label}</p>
                 </div>
             `).join('');
+            subCategoryList.classList.remove('hidden');
 
             cancelGoToStep(2);
         }
@@ -19190,6 +19222,10 @@
         function selectCancelSubCategory(subCategoryId) {
             cancelSelectedSubCategory = subCategoryId;
             cancelQuestionAnswers = {};
+
+            // サブカテゴリリストを非表示にする
+            const subCategoryList = document.getElementById('cancelSubCategoryList');
+            subCategoryList.classList.add('hidden');
 
             // 質問リストを取得
             const questions = window.CancelReasons.getQuestions(cancelSelectedCategory, subCategoryId);
@@ -19212,6 +19248,21 @@
             const smsCount = cancelSelectedCase.smsCount || 0;
 
             let formHtml = `<div class="space-y-4">`;
+
+            // 参考情報として電話・SMS回数を表示
+            formHtml += `
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <p class="text-sm font-semibold text-blue-800">参考：システム集計</p>
+                    </div>
+                    <p class="text-sm text-blue-700 mt-2 ml-7">
+                        電話: <span class="font-bold">${phoneCallCount}回</span>、SMS: <span class="font-bold">${smsCount}回</span>
+                    </p>
+                </div>
+            `;
 
             // 各質問のHTML生成
             questions.forEach((q, index) => {
@@ -19398,26 +19449,35 @@
                 const subCats = window.CancelReasons.getSubCategories(cancelSelectedCategory);
                 const subCategory = subCats.find(sc => sc.id === cancelSelectedSubCategory);
 
-                // 自動生成テキストを作成
-                let generatedText = `【キャンセル申請】\n\n`;
-                generatedText += `顧客名: ${cancelSelectedCase.customerName}\n`;
-                generatedText += `電話番号: ${cancelSelectedCase.tel}\n`;
-                generatedText += `住所: ${cancelSelectedCase.address}\n\n`;
-
-                generatedText += `【キャンセル理由】\n`;
-                generatedText += `${category.label} > ${subCategory.label}\n\n`;
-
-                // フォローアップ履歴
+                // AI生成風の自然な申請文を作成
                 const phoneCallCount = cancelSelectedCase.phoneCallCount || 0;
                 const smsCount = cancelSelectedCase.smsCount || 0;
-                generatedText += `【フォローアップ状況】\n`;
-                generatedText += `電話: ${phoneCallCount}回、SMS: ${smsCount}回\n\n`;
 
-                // 回答内容を自然な文章に
-                generatedText += `【詳細】\n`;
-                Object.entries(answers).forEach(([key, value]) => {
-                    generatedText += `${key}: ${value}\n`;
-                });
+                let generatedText = '';
+
+                // 基本情報
+                generatedText += `${cancelSelectedCase.customerName}様（${cancelSelectedCase.tel}、${cancelSelectedCase.address}）について、`;
+                generatedText += `キャンセル申請をいたします。\n\n`;
+
+                // フォローアップ状況
+                generatedText += `これまで電話${phoneCallCount}回、SMS${smsCount}回のフォローアップを実施しましたが、`;
+
+                // 理由を文章化
+                const categoryLabel = category.label.replace(/^\d+\.\s*/, ''); // 数字とドットを削除
+                const subCategoryLabel = subCategory.label;
+
+                generatedText += `${subCategoryLabel}という状況のため、対応が困難と判断いたしました。\n\n`;
+
+                // 回答内容を自然な文章に組み込む
+                if (Object.keys(answers).length > 0) {
+                    generatedText += `【補足事項】\n`;
+                    Object.entries(answers).forEach(([key, value]) => {
+                        generatedText += `${key}については、${value}となっております。\n`;
+                    });
+                    generatedText += `\n`;
+                }
+
+                generatedText += `以上の状況により、本案件のキャンセルを申請させていただきます。`;
 
                 // textareaに自動生成テキストをセット
                 document.getElementById('cancelApplicationText').value = generatedText;
