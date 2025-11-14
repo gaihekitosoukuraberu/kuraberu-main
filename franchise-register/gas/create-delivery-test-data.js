@@ -70,13 +70,13 @@ function createCVDeliveryTestData() {
   });
 
   // 配信管理シートに4社分のレコードを追加
-  // A社: 追客中（電話3回、SMS2回、アポ確定）
+  // A社: アポ済（電話3回、SMS2回、アポ確定）
   addDeliveryRecordForTest({
     cvId: cv1Id,
     merchantId: testMerchants[0].id,
     deliveredAt: sixDaysAgo,
     rank: 1,
-    detailStatus: 'アポ確定',
+    detailStatus: 'アポ済',
     phoneCount: 3,
     smsCount: 2,
     lastContact: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1日前
@@ -89,13 +89,13 @@ function createCVDeliveryTestData() {
     memo: '外壁塗装希望。予算150万円程度'
   });
 
-  // B社: 追客中（電話2回、SMS1回）
+  // B社: 架電済/未アポ（電話2回、SMS1回）
   addDeliveryRecordForTest({
     cvId: cv1Id,
     merchantId: testMerchants[1].id,
     deliveredAt: sixDaysAgo,
     rank: 2,
-    detailStatus: '追客中',
+    detailStatus: '架電済/未アポ',
     phoneCount: 2,
     smsCount: 1,
     lastContact: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2日前
@@ -153,13 +153,13 @@ function createCVDeliveryTestData() {
   });
 
   // 配信管理シートに3社分のレコードを追加
-  // A社: 追客中（電話4回、訪問済み）
+  // A社: 見積提出済み（電話4回、訪問済み）
   addDeliveryRecordForTest({
     cvId: cv2Id,
     merchantId: testMerchants[0].id,
     deliveredAt: sixDaysAgo,
     rank: 1,
-    detailStatus: '訪問済み',
+    detailStatus: '見積提出済み',
     phoneCount: 4,
     smsCount: 0,
     visitCount: 1,
@@ -188,7 +188,7 @@ function createCVDeliveryTestData() {
     merchantId: testMerchants[2].id,
     deliveredAt: sixDaysAgo,
     rank: 3,
-    detailStatus: '追客中',
+    detailStatus: '架電済/未アポ',
     phoneCount: 1,
     smsCount: 0,
     lastContact: sixDaysAgo,

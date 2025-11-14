@@ -74,8 +74,8 @@ var CVDeliveryChecker = {
         const lastContact = row[lastContactIdx];
         const appointmentDate = row[appointmentDateIdx];
 
-        // 既に成約・辞退・キャンセルの場合はスキップ
-        if (['成約', '辞退', 'キャンセル承認済み'].includes(deliveryStatus)) {
+        // 既に終了ステータスの場合はスキップ（StatusDefinitionsから取得）
+        if (StatusDefinitions.isClosedStatus(detailStatus)) {
           continue;
         }
 
@@ -83,13 +83,7 @@ var CVDeliveryChecker = {
         const hasRecentContact = lastContact &&
           (new Date() - new Date(lastContact)) < 7 * 24 * 60 * 60 * 1000;
 
-        const hasActiveStatus = [
-          '追客中',
-          'アポ確定',
-          '訪問済み',
-          '見積提出済み',
-          '検討中'
-        ].includes(detailStatus);
+        const hasActiveStatus = StatusDefinitions.isActiveStatus(detailStatus);
 
         const hasCallActivity = phoneCount > 0;
 

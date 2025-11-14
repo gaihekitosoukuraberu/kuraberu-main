@@ -165,26 +165,16 @@ function setupCVDeliverySheet() {
     .build();
   sheet.getRange('E2:E').setDataValidation(rankRule);
 
-  // 配信ステータス
+  // 配信ステータス（StatusDefinitionsから取得）
   const deliveryStatusRule = SpreadsheetApp.newDataValidation()
-    .requireValueInList(['配信済み', '辞退', '成約', 'キャンセル承認済み'])
+    .requireValueInList(StatusDefinitions.getAllDeliveryStatuses())
     .setAllowInvalid(false)
     .build();
   sheet.getRange('F2:F').setDataValidation(deliveryStatusRule);
 
-  // 詳細ステータス
+  // 詳細ステータス（StatusDefinitionsから取得）
   const detailStatusRule = SpreadsheetApp.newDataValidation()
-    .requireValueInList([
-      '未対応',
-      '追客中',
-      'アポ確定',
-      '訪問済み',
-      '見積提出済み',
-      '検討中',
-      '成約',
-      '辞退',
-      'キャンセル'
-    ])
+    .requireValueInList(StatusDefinitions.getAllMerchantStatuses())
     .setAllowInvalid(false)
     .build();
   sheet.getRange('G2:G').setDataValidation(detailStatusRule);
@@ -353,7 +343,27 @@ function updateDeliverySheetConditionalFormatting() {
   sheet.setConditionalFormatRules(rules);
 
   console.log('✅ 条件付き書式を設定しました（CV IDごとに7色で色分け）');
-  console.log('\n===== 条件付き書式更新完了 =====');
+
+  // データバリデーションも更新（StatusDefinitionsベース）
+  console.log('\n【データバリデーション更新】');
+
+  // 配信ステータス（StatusDefinitionsから取得）
+  const deliveryStatusRule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(StatusDefinitions.getAllDeliveryStatuses())
+    .setAllowInvalid(false)
+    .build();
+  sheet.getRange('F2:F').setDataValidation(deliveryStatusRule);
+  console.log('✅ 配信ステータスのバリデーションを更新しました');
+
+  // 詳細ステータス（StatusDefinitionsから取得）
+  const detailStatusRule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(StatusDefinitions.getAllMerchantStatuses())
+    .setAllowInvalid(false)
+    .build();
+  sheet.getRange('G2:G').setDataValidation(detailStatusRule);
+  console.log('✅ 詳細ステータスのバリデーションを更新しました（加盟店ステータス13種類）');
+
+  console.log('\n===== 条件付き書式 & データバリデーション更新完了 =====');
   console.log('\n【次のステップ】');
   console.log('1. 古いテストデータを削除: deleteDeliveryTestData()');
   console.log('2. 新しいテストデータを作成: createCVDeliveryTestData()');
