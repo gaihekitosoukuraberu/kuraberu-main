@@ -60,6 +60,14 @@ function sendSlackCancelNotification(data) {
       });
     }
 
+    // 期限情報をフォーマット
+    let deadlineText = '期限までは引き続き追客をお願いいたします。';
+    if (data.cancelDeadline) {
+      const deadlineDate = new Date(data.cancelDeadline);
+      const formattedDeadline = Utilities.formatDate(deadlineDate, 'JST', 'yyyy年MM月dd日');
+      deadlineText = `キャンセル申請期限は${formattedDeadline}です。期限までは引き続き追客をお願いいたします。`;
+    }
+
     // Bot Token APIペイロード（chat.postMessage）
     const payload = {
       channel: slackChannel,
@@ -135,23 +143,23 @@ function sendSlackCancelNotification(data) {
                     text: '追客回数不足',
                     emoji: true
                   },
-                  value: `reject_cancel_${data.applicationId}::追客回数が不足しているため、キャンセルは承認できません。お客様のニーズを十分に把握するため、もう少し追客を続けてください。`
+                  value: `reject_cancel_${data.applicationId}::追客回数が不足しているため、キャンセル申請を承認できません。引き続きご対応をお願いいたします。`
                 },
                 {
                   text: {
                     type: 'plain_text',
-                    text: '連絡未確認（他社はアポ取得済）',
+                    text: '連絡未確認（他社アポ取得済）',
                     emoji: true
                   },
-                  value: `reject_cancel_${data.applicationId}::他社がアポイントを取得できている状況で「連絡がつかない」というのは不自然です。時間帯やアプローチ方法を変えて、引き続き架電・SMS等で連絡を試みてください。`
+                  value: `reject_cancel_${data.applicationId}::他社様でアポイントが取得されているのが確認されております。引き続き追客をお願いいたします。`
                 },
                 {
                   text: {
                     type: 'plain_text',
-                    text: 'SMS未送信',
+                    text: '連絡回数不足',
                     emoji: true
                   },
-                  value: `reject_cancel_${data.applicationId}::SMS送信回数が不足しています。SMSでの連絡も併用し、お客様との接点を増やしてください。`
+                  value: `reject_cancel_${data.applicationId}::電話${data.phoneCallCount || 0}回、SMS${data.smsCount || 0}回は他社様と比較してもアクションが少ない状況です。引き続き追客をお願いいたします。`
                 },
                 {
                   text: {
@@ -159,10 +167,26 @@ function sendSlackCancelNotification(data) {
                     text: '期限前',
                     emoji: true
                   },
-                  value: `reject_cancel_${data.applicationId}::まだキャンセル期限前です。期限まで追客を継続してください。`
+                  value: `reject_cancel_${data.applicationId}::DEADLINE_TEXT`
                 }
               ],
               action_id: 'reject_cancel_select'
+            }
+          ]
+        },
+        {
+          type: 'actions',
+          elements: [
+            {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: '✏️ カスタム理由を入力',
+                emoji: true
+              },
+              style: 'danger',
+              value: `reject_cancel_${data.applicationId}`,
+              action_id: 'reject_cancel_report'
             },
             {
               type: 'button',
@@ -331,34 +355,26 @@ function sendSlackExtensionNotification(data) {
                     text: '理由不十分',
                     emoji: true
                   },
-                  value: `reject_extension_${data.extensionId}::期限延長の理由が不十分です。より具体的な理由とアポイント予定日を明記して再申請してください。`
-                },
-                {
-                  text: {
-                    type: 'plain_text',
-                    text: 'アポ日未記入',
-                    emoji: true
-                  },
-                  value: `reject_extension_${data.extensionId}::アポイント予定日が記入されていません。具体的な予定日を明記して再申請してください。`
-                },
-                {
-                  text: {
-                    type: 'plain_text',
-                    text: '連絡日不明確',
-                    emoji: true
-                  },
-                  value: `reject_extension_${data.extensionId}::連絡がついた日時が不明確です。具体的な連絡日時を明記して再申請してください。`
-                },
-                {
-                  text: {
-                    type: 'plain_text',
-                    text: '延長期限が長すぎる',
-                    emoji: true
-                  },
-                  value: `reject_extension_${data.extensionId}::希望する延長期限が長すぎます。より短い期限で再申請してください。`
+                  value: `reject_extension_${data.extensionId}::期限延長の理由が不十分なため、申請を承認できません。より具体的な理由とアポイント予定日を明記して再申請をお願いいたします。`
                 }
               ],
               action_id: 'reject_extension_select'
+            }
+          ]
+        },
+        {
+          type: 'actions',
+          elements: [
+            {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: '✏️ カスタム理由を入力',
+                emoji: true
+              },
+              style: 'danger',
+              value: `reject_extension_${data.extensionId}`,
+              action_id: 'reject_extension_request'
             },
             {
               type: 'button',

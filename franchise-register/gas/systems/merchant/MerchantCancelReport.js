@@ -467,7 +467,8 @@ var MerchantCancelReport = {
             cancelReasonDetail: cancelReasonDetail,
             cancelApplicationText: cancelApplicationText,
             phoneCallCount: phoneCallCount,
-            smsCount: smsCount
+            smsCount: smsCount,
+            cancelDeadline: applicableDeadline  // 🔥 期限情報を追加
           });
           console.log('[MerchantCancelReport] Slack通知送信完了');
         }
