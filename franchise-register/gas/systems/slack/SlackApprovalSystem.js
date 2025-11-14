@@ -40,6 +40,11 @@ const SlackApprovalSystem = {
         return this.handleBlockActions(payload);
       }
 
+      // モーダル送信処理
+      if (payload.type === 'view_submission') {
+        return this.handleViewSubmission(payload);
+      }
+
       return this.createSlackResponse('Unknown interaction type');
 
     } catch (error) {
@@ -55,6 +60,7 @@ const SlackApprovalSystem = {
     try {
       const action = payload.actions[0];
       const user = payload.user?.name || payload.user?.username || payload.user?.id || 'Slackユーザー';
+      const triggerId = payload.trigger_id;
 
       console.log('[SlackApproval] Action ID:', action.action_id);
       console.log('[SlackApproval] Value:', action.value);
@@ -108,16 +114,14 @@ const SlackApprovalSystem = {
         return this.createSlackResponse();
       }
 
-      // キャンセル申請却下ボタン
+      // キャンセル申請却下ボタン -> モーダルを開く
       else if (action.action_id === 'reject_cancel_report') {
         console.log('[SlackApproval] キャンセル申請却下ボタン押下検出');
         const applicationId = action.value.replace('reject_cancel_', '');
         console.log('[SlackApproval] 処理対象ID:', applicationId);
-        const result = this.rejectCancelReport(applicationId, user, 'Slackから却下');
-        console.log('[SlackApproval] キャンセル申請却下処理結果:', JSON.stringify(result));
 
-        // Slackメッセージを更新
-        this.updateSlackMessage(payload, '❌ キャンセル申請却下', applicationId, user);
+        // モーダルを開く
+        this.openCancelRejectionModal(triggerId, applicationId, user);
         return this.createSlackResponse();
       }
 
@@ -134,16 +138,14 @@ const SlackApprovalSystem = {
         return this.createSlackResponse();
       }
 
-      // 期限延長申請却下ボタン
+      // 期限延長申請却下ボタン -> モーダルを開く
       else if (action.action_id === 'reject_extension_request') {
         console.log('[SlackApproval] 期限延長申請却下ボタン押下検出');
         const extensionId = action.value.replace('reject_extension_', '');
         console.log('[SlackApproval] 処理対象ID:', extensionId);
-        const result = this.rejectExtensionRequest(extensionId, user, 'Slackから却下');
-        console.log('[SlackApproval] 期限延長申請却下処理結果:', JSON.stringify(result));
 
-        // Slackメッセージを更新
-        this.updateSlackMessage(payload, '❌ 期限延長申請却下', extensionId, user);
+        // モーダルを開く
+        this.openExtensionRejectionModal(triggerId, extensionId, user);
         return this.createSlackResponse();
       }
 
@@ -550,6 +552,9 @@ const SlackApprovalSystem = {
 
       if (result.success) {
         console.log('[SlackApproval] キャンセル申請承認成功:', applicationId);
+
+        // 🔥 加盟店に承認通知を送信 🔥
+        this.sendApprovalNotificationToMerchant(applicationId, approver, 'cancel');
       } else {
         console.error('[SlackApproval] キャンセル申請承認失敗:', result.error);
       }
@@ -621,6 +626,9 @@ const SlackApprovalSystem = {
 
       if (result.success) {
         console.log('[SlackApproval] 期限延長申請承認成功:', extensionId);
+
+        // 🔥 加盟店に承認通知を送信 🔥
+        this.sendApprovalNotificationToMerchant(extensionId, approver, 'extension');
       } else {
         console.error('[SlackApproval] 期限延長申請承認失敗:', result.error);
       }
@@ -717,6 +725,493 @@ const SlackApprovalSystem = {
         success: false,
         error: error.toString()
       };
+    }
+  },
+
+  /**
+   * キャンセル申請却下モーダルを開く
+   * @param {String} triggerId - Slack trigger ID
+   * @param {String} applicationId - 申請ID
+   * @param {String} user - ユーザー名
+   */
+  openCancelRejectionModal: function(triggerId, applicationId, user) {
+    try {
+      console.log('[SlackApproval] キャンセル却下モーダル表示開始:', applicationId);
+
+      // 申請データを取得
+      const applicationData = this.getCancelApplicationData(applicationId);
+
+      if (!applicationData) {
+        console.error('[SlackApproval] 申請データが見つかりません:', applicationId);
+        return;
+      }
+
+      // AI生成理由を取得
+      console.log('[SlackApproval] AI理由生成開始...');
+      const aiReasonResult = AIReasonGenerator.generateCancelRejectionReason(applicationData);
+      const aiReason = aiReasonResult.reason || 'AI生成に失敗しました。理由を手動で入力してください。';
+
+      console.log('[SlackApproval] AI生成理由:', aiReason);
+
+      // モーダルビューを構築
+      const modalView = {
+        type: 'modal',
+        callback_id: 'cancel_rejection_modal',
+        title: {
+          type: 'plain_text',
+          text: 'キャンセル申請却下'
+        },
+        submit: {
+          type: 'plain_text',
+          text: '却下を確定'
+        },
+        close: {
+          type: 'plain_text',
+          text: 'キャンセル'
+        },
+        private_metadata: JSON.stringify({
+          applicationId: applicationId,
+          user: user
+        }),
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `*顧客: ${applicationData.customerName}*\n申請ID: ${applicationId}`
+            }
+          },
+          {
+            type: 'divider'
+          },
+          {
+            type: 'input',
+            block_id: 'rejection_reason_block',
+            label: {
+              type: 'plain_text',
+              text: '却下理由（AI生成・編集可能）'
+            },
+            element: {
+              type: 'plain_text_input',
+              action_id: 'rejection_reason_input',
+              multiline: true,
+              initial_value: aiReason,
+              placeholder: {
+                type: 'plain_text',
+                text: '却下理由を入力してください'
+              }
+            }
+          },
+          {
+            type: 'context',
+            elements: [
+              {
+                type: 'mrkdwn',
+                text: aiReasonResult.fallback ? '⚠️ AIフォールバック理由を使用' : '✅ AI生成理由（編集可能）'
+              }
+            ]
+          }
+        ]
+      };
+
+      // Slack API (views.open) を呼び出し
+      this.openSlackModal(triggerId, modalView);
+
+    } catch (error) {
+      console.error('[SlackApproval] モーダル表示エラー:', error);
+    }
+  },
+
+  /**
+   * 期限延長申請却下モーダルを開く
+   * @param {String} triggerId - Slack trigger ID
+   * @param {String} extensionId - 申請ID
+   * @param {String} user - ユーザー名
+   */
+  openExtensionRejectionModal: function(triggerId, extensionId, user) {
+    try {
+      console.log('[SlackApproval] 期限延長却下モーダル表示開始:', extensionId);
+
+      // 申請データを取得
+      const extensionData = this.getExtensionApplicationData(extensionId);
+
+      if (!extensionData) {
+        console.error('[SlackApproval] 申請データが見つかりません:', extensionId);
+        return;
+      }
+
+      // AI生成理由を取得
+      console.log('[SlackApproval] AI理由生成開始...');
+      const aiReasonResult = AIReasonGenerator.generateExtensionRejectionReason(extensionData);
+      const aiReason = aiReasonResult.reason || 'AI生成に失敗しました。理由を手動で入力してください。';
+
+      console.log('[SlackApproval] AI生成理由:', aiReason);
+
+      // モーダルビューを構築
+      const modalView = {
+        type: 'modal',
+        callback_id: 'extension_rejection_modal',
+        title: {
+          type: 'plain_text',
+          text: '期限延長申請却下'
+        },
+        submit: {
+          type: 'plain_text',
+          text: '却下を確定'
+        },
+        close: {
+          type: 'plain_text',
+          text: 'キャンセル'
+        },
+        private_metadata: JSON.stringify({
+          extensionId: extensionId,
+          user: user
+        }),
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `*顧客: ${extensionData.customerName}*\n申請ID: ${extensionId}`
+            }
+          },
+          {
+            type: 'divider'
+          },
+          {
+            type: 'input',
+            block_id: 'rejection_reason_block',
+            label: {
+              type: 'plain_text',
+              text: '却下理由（AI生成・編集可能）'
+            },
+            element: {
+              type: 'plain_text_input',
+              action_id: 'rejection_reason_input',
+              multiline: true,
+              initial_value: aiReason,
+              placeholder: {
+                type: 'plain_text',
+                text: '却下理由を入力してください'
+              }
+            }
+          },
+          {
+            type: 'context',
+            elements: [
+              {
+                type: 'mrkdwn',
+                text: aiReasonResult.fallback ? '⚠️ AIフォールバック理由を使用' : '✅ AI生成理由（編集可能）'
+              }
+            ]
+          }
+        ]
+      };
+
+      // Slack API (views.open) を呼び出し
+      this.openSlackModal(triggerId, modalView);
+
+    } catch (error) {
+      console.error('[SlackApproval] モーダル表示エラー:', error);
+    }
+  },
+
+  /**
+   * Slackモーダルを開く（views.open API呼び出し）
+   * @param {String} triggerId - Trigger ID
+   * @param {Object} modalView - モーダルビュー定義
+   */
+  openSlackModal: function(triggerId, modalView) {
+    try {
+      const botToken = PropertiesService.getScriptProperties().getProperty('SLACK_BOT_TOKEN');
+
+      if (!botToken) {
+        console.error('[SlackApproval] SLACK_BOT_TOKENが設定されていません');
+        return;
+      }
+
+      const payload = {
+        trigger_id: triggerId,
+        view: modalView
+      };
+
+      const options = {
+        method: 'post',
+        contentType: 'application/json',
+        headers: {
+          'Authorization': 'Bearer ' + botToken
+        },
+        payload: JSON.stringify(payload),
+        muteHttpExceptions: true
+      };
+
+      const response = UrlFetchApp.fetch('https://slack.com/api/views.open', options);
+      const responseData = JSON.parse(response.getContentText());
+
+      if (!responseData.ok) {
+        console.error('[SlackApproval] モーダル表示失敗:', responseData.error);
+      } else {
+        console.log('[SlackApproval] モーダル表示成功');
+      }
+
+    } catch (error) {
+      console.error('[SlackApproval] Slackモーダル表示エラー:', error);
+    }
+  },
+
+  /**
+   * モーダル送信処理（view_submission）
+   * @param {Object} payload - Slackペイロード
+   */
+  handleViewSubmission: function(payload) {
+    try {
+      const callbackId = payload.view.callback_id;
+      const user = payload.user?.name || payload.user?.username || payload.user?.id || 'Slackユーザー';
+      const privateMetadata = JSON.parse(payload.view.private_metadata);
+
+      console.log('[SlackApproval] モーダル送信処理:', callbackId);
+
+      // 却下理由を取得
+      const rejectionReason = payload.view.state.values.rejection_reason_block.rejection_reason_input.value;
+
+      if (callbackId === 'cancel_rejection_modal') {
+        const applicationId = privateMetadata.applicationId;
+        console.log('[SlackApproval] キャンセル却下確定:', applicationId);
+
+        // 却下処理実行
+        const result = this.rejectCancelReport(applicationId, user, rejectionReason);
+
+        if (result.success) {
+          // 🔥 加盟店に通知を送信 🔥
+          this.sendRejectionNotification(applicationId, rejectionReason, 'cancel');
+        }
+
+        return this.createSlackResponse();
+      }
+
+      if (callbackId === 'extension_rejection_modal') {
+        const extensionId = privateMetadata.extensionId;
+        console.log('[SlackApproval] 期限延長却下確定:', extensionId);
+
+        // 却下処理実行
+        const result = this.rejectExtensionRequest(extensionId, user, rejectionReason);
+
+        if (result.success) {
+          // 🔥 加盟店に通知を送信 🔥
+          this.sendRejectionNotification(extensionId, rejectionReason, 'extension');
+        }
+
+        return this.createSlackResponse();
+      }
+
+      return this.createSlackResponse();
+
+    } catch (error) {
+      console.error('[SlackApproval] モーダル送信エラー:', error);
+      return this.createSlackResponse('Error: ' + error.toString());
+    }
+  },
+
+  /**
+   * キャンセル申請データを取得
+   * @param {String} applicationId - 申請ID
+   * @return {Object} 申請データ
+   */
+  getCancelApplicationData: function(applicationId) {
+    try {
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const cancelSheet = ss.getSheetByName('キャンセル申請');
+
+      if (!cancelSheet) {
+        console.error('[SlackApproval] キャンセル申請シートが見つかりません');
+        return null;
+      }
+
+      const data = cancelSheet.getDataRange().getValues();
+      const headers = data[0];
+
+      const idIndex = headers.indexOf('申請ID');
+      const customerNameIndex = headers.indexOf('顧客名');
+      const cvIdIndex = headers.indexOf('CV ID');
+      const phoneCountIndex = headers.indexOf('電話回数');
+      const smsCountIndex = headers.indexOf('SMS回数');
+      const categoryIndex = headers.indexOf('キャンセル理由カテゴリ');
+      const detailIndex = headers.indexOf('キャンセル理由詳細');
+      const lastContactIndex = headers.indexOf('最終連絡日時');
+      const merchantIdIndex = headers.indexOf('加盟店ID');
+
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][idIndex] === applicationId) {
+          return {
+            customerName: data[i][customerNameIndex],
+            cvId: data[i][cvIdIndex],
+            phoneCallCount: data[i][phoneCountIndex],
+            smsCount: data[i][smsCountIndex],
+            cancelReasonCategory: data[i][categoryIndex],
+            cancelReasonDetail: data[i][detailIndex],
+            lastContactDate: data[i][lastContactIndex],
+            merchantId: data[i][merchantIdIndex]
+          };
+        }
+      }
+
+      return null;
+
+    } catch (error) {
+      console.error('[SlackApproval] 申請データ取得エラー:', error);
+      return null;
+    }
+  },
+
+  /**
+   * 期限延長申請データを取得
+   * @param {String} extensionId - 申請ID
+   * @return {Object} 申請データ
+   */
+  getExtensionApplicationData: function(extensionId) {
+    try {
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const extensionSheet = ss.getSheetByName('期限延長申請');
+
+      if (!extensionSheet) {
+        console.error('[SlackApproval] 期限延長申請シートが見つかりません');
+        return null;
+      }
+
+      const data = extensionSheet.getDataRange().getValues();
+      const headers = data[0];
+
+      const idIndex = headers.indexOf('申請ID');
+      const customerNameIndex = headers.indexOf('顧客名');
+      const cvIdIndex = headers.indexOf('CV ID');
+      const contactDateIndex = headers.indexOf('連絡がついた日時');
+      const appointmentDateIndex = headers.indexOf('アポ予定日');
+      const extensionReasonIndex = headers.indexOf('延長理由');
+      const merchantIdIndex = headers.indexOf('加盟店ID');
+
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][idIndex] === extensionId) {
+          return {
+            customerName: data[i][customerNameIndex],
+            cvId: data[i][cvIdIndex],
+            contactDate: data[i][contactDateIndex],
+            appointmentDate: data[i][appointmentDateIndex],
+            extensionReason: data[i][extensionReasonIndex],
+            merchantId: data[i][merchantIdIndex]
+          };
+        }
+      }
+
+      return null;
+
+    } catch (error) {
+      console.error('[SlackApproval] 申請データ取得エラー:', error);
+      return null;
+    }
+  },
+
+  /**
+   * 却下通知を加盟店に送信
+   * @param {String} applicationId - 申請ID
+   * @param {String} rejectionReason - 却下理由
+   * @param {String} type - 'cancel' or 'extension'
+   */
+  sendRejectionNotification: function(applicationId, rejectionReason, type) {
+    try {
+      console.log('[SlackApproval] 却下通知送信開始:', applicationId, type);
+
+      // 申請データから加盟店IDとユーザーIDを取得
+      let merchantId = null;
+      let applicationData = null;
+
+      if (type === 'cancel') {
+        applicationData = this.getCancelApplicationData(applicationId);
+        merchantId = applicationData?.merchantId;
+      } else if (type === 'extension') {
+        applicationData = this.getExtensionApplicationData(applicationId);
+        merchantId = applicationData?.merchantId;
+      }
+
+      if (!merchantId) {
+        console.error('[SlackApproval] 加盟店IDが取得できません');
+        return;
+      }
+
+      // 通知データを構築
+      const notificationData = {
+        ...applicationData,
+        applicationId: type === 'cancel' ? applicationId : undefined,
+        extensionId: type === 'extension' ? applicationId : undefined,
+        aiReason: rejectionReason,
+        rejectedBy: '管理者',
+        rejectedAt: new Date()
+      };
+
+      const notificationType = type === 'cancel' ? 'cancelRejection' : 'extensionRejection';
+
+      // NotificationDispatcherを使って通知送信
+      const result = NotificationDispatcher.dispatchToMerchant(merchantId, notificationType, notificationData);
+
+      if (result.success) {
+        console.log('[SlackApproval] 却下通知送信成功:', result.message);
+      } else {
+        console.error('[SlackApproval] 却下通知送信失敗:', result.message);
+      }
+
+    } catch (error) {
+      console.error('[SlackApproval] 却下通知送信エラー:', error);
+    }
+  },
+
+  /**
+   * 承認通知を加盟店に送信
+   * @param {String} applicationId - 申請ID
+   * @param {String} approver - 承認者
+   * @param {String} type - 'cancel' or 'extension'
+   */
+  sendApprovalNotificationToMerchant: function(applicationId, approver, type) {
+    try {
+      console.log('[SlackApproval] 承認通知送信開始:', applicationId, type);
+
+      // 申請データから加盟店IDを取得
+      let merchantId = null;
+      let applicationData = null;
+
+      if (type === 'cancel') {
+        applicationData = this.getCancelApplicationData(applicationId);
+        merchantId = applicationData?.merchantId;
+      } else if (type === 'extension') {
+        applicationData = this.getExtensionApplicationData(applicationId);
+        merchantId = applicationData?.merchantId;
+      }
+
+      if (!merchantId) {
+        console.error('[SlackApproval] 加盟店IDが取得できません');
+        return;
+      }
+
+      // 通知データを構築
+      const notificationData = {
+        ...applicationData,
+        applicationId: type === 'cancel' ? applicationId : undefined,
+        extensionId: type === 'extension' ? applicationId : undefined,
+        approvedBy: approver,
+        approvedAt: new Date()
+      };
+
+      const notificationType = type === 'cancel' ? 'cancelApproval' : 'extensionApproval';
+
+      // NotificationDispatcherを使って通知送信
+      const result = NotificationDispatcher.dispatchToMerchant(merchantId, notificationType, notificationData);
+
+      if (result.success) {
+        console.log('[SlackApproval] 承認通知送信成功:', result.message);
+      } else {
+        console.error('[SlackApproval] 承認通知送信失敗:', result.message);
+      }
+
+    } catch (error) {
+      console.error('[SlackApproval] 承認通知送信エラー:', error);
     }
   }
 };
