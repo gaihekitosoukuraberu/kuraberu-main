@@ -310,6 +310,19 @@ const CancelReasons = {
             }
           }
         ]
+      },
+      {
+        id: 'other',
+        label: 'その他',
+        questions: [
+          {
+            id: 'detail',
+            label: '詳細ヒアリング',
+            type: 'textarea',
+            required: true,
+            placeholder: 'キャンセル理由の詳細を入力してください（箇条書きでもOK）'
+          }
+        ]
       }
     ],
 

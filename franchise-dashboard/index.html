@@ -19391,10 +19391,23 @@
                     break;
 
                 case 'textarea':
-                    html += `<textarea id="question_${index}" name="question_${index}" rows="4"
+                    html += `
+                        <div class="relative">
+                            <textarea id="question_${index}" name="question_${index}" rows="4"
                                        ${question.required ? 'required' : ''}
-                                       placeholder="${question.placeholder || ''}"
-                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"></textarea>`;
+                                       maxlength="1000"
+                                       placeholder="${question.placeholder || '箇条書きでもOKです'}"
+                                       class="w-full px-4 py-2 pr-12 border rounded-lg focus:outline-none focus:border-blue-500"></textarea>
+                            <button type="button"
+                                    onclick="startVoiceInputForQuestion(${index})"
+                                    class="absolute bottom-2 right-2 p-2 text-gray-500 hover:text-blue-600 transition-colors"
+                                    title="音声入力">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                            <p class="text-xs text-gray-500 mt-1">最大1000文字</p>
+                        </div>`;
                     break;
 
                 case 'number':
@@ -19451,10 +19464,23 @@
 
                 switch (fq.type) {
                     case 'textarea':
-                        followUpHtml += `<textarea id="${fqId}" name="${fqId}" rows="3"
-                                                   ${fq.required ? 'required' : ''}
-                                                   placeholder="${fq.placeholder || ''}"
-                                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"></textarea>`;
+                        followUpHtml += `
+                            <div class="relative">
+                                <textarea id="${fqId}" name="${fqId}" rows="3"
+                                           ${fq.required ? 'required' : ''}
+                                           maxlength="1000"
+                                           placeholder="${fq.placeholder || '箇条書きでもOKです'}"
+                                           class="w-full px-4 py-2 pr-12 border rounded-lg focus:outline-none focus:border-blue-500"></textarea>
+                                <button type="button"
+                                        onclick="startVoiceInputForFollowUp('${fqId}')"
+                                        class="absolute bottom-2 right-2 p-2 text-gray-500 hover:text-blue-600 transition-colors"
+                                        title="音声入力">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                                <p class="text-xs text-gray-500 mt-1">最大1000文字</p>
+                            </div>`;
                         break;
                     case 'text':
                     default:
@@ -19555,6 +19581,62 @@
 
             // その他のパターン
             return `${question}: ${answer}`;
+        }
+
+        // 音声入力機能（質問用）
+        function startVoiceInputForQuestion(questionIndex) {
+            const textarea = document.getElementById(`question_${questionIndex}`);
+            startVoiceInput(textarea, '箇条書きでもOKです');
+        }
+
+        // 音声入力機能（followUp用）
+        function startVoiceInputForFollowUp(fqId) {
+            const textarea = document.getElementById(fqId);
+            startVoiceInput(textarea, '箇条書きでもOKです');
+        }
+
+        // 音声入力（共通処理）
+        function startVoiceInput(textarea, defaultPlaceholder) {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert('お使いのブラウザは音声入力に対応していません。Chrome、Edge、Safariをご利用ください。');
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+
+            recognition.lang = 'ja-JP';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = function() {
+                textarea.placeholder = '🎤 音声入力中...話してください';
+                textarea.style.borderColor = '#ef4444';
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                // 既存のテキストに追加（改行で区切る）
+                if (textarea.value.trim() !== '') {
+                    textarea.value += '\n' + transcript;
+                } else {
+                    textarea.value = transcript;
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error('音声認識エラー:', event.error);
+                alert('音声認識に失敗しました: ' + event.error);
+                textarea.placeholder = defaultPlaceholder;
+                textarea.style.borderColor = '';
+            };
+
+            recognition.onend = function() {
+                textarea.placeholder = defaultPlaceholder;
+                textarea.style.borderColor = '';
+            };
+
+            recognition.start();
         }
 
         // キャンセル申請テキストを自動生成（ハイブリッド方式）
