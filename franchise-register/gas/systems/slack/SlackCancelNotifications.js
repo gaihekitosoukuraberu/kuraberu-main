@@ -168,6 +168,9 @@ function sendSlackCancelNotification(data) {
       blocks: blocks
     };
 
+    // デバッグ: 送信するJSONをログ出力
+    console.log('[SlackCancel] 送信するペイロード:', JSON.stringify(message, null, 2));
+
     const options = {
       method: 'post',
       contentType: 'application/json',
@@ -184,7 +187,15 @@ function sendSlackCancelNotification(data) {
         message: 'Slack通知を送信しました'
       };
     } else {
-      console.error('[SlackCancel] 通知送信失敗:', response.getContentText());
+      const errorText = response.getContentText();
+      console.error('[SlackCancel] 通知送信失敗 (Status:', response.getResponseCode(), ')');
+      console.error('[SlackCancel] エラー詳細:', errorText);
+      try {
+        const errorJson = JSON.parse(errorText);
+        console.error('[SlackCancel] Slackエラー:', JSON.stringify(errorJson, null, 2));
+      } catch (e) {
+        // JSON parse失敗時はそのまま表示
+      }
       return {
         success: false,
         message: 'Slack通知の送信に失敗しました'

@@ -111,7 +111,7 @@ var CVDeliveryChecker = {
       // 警告メッセージ生成
       let warningMessage = '';
       if (alerts.length > 0) {
-        warningMessage = '\n\n⚠️ *他社で追客活動が確認されています:*\n';
+        warningMessage = '⚠️ *他社で追客活動が確認されています:*\n';
         alerts.forEach(comp => {
           warningMessage += `• *${comp.merchantName}* (${comp.merchantId})\n`;
           warningMessage += `  - 📞 電話: ${comp.phoneCount}回 | 📱 SMS: ${comp.smsCount}回\n`;
