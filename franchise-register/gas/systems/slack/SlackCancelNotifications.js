@@ -53,63 +53,136 @@ function sendSlackCancelNotification(data) {
 
     console.log('[SlackCancel] 他社追客チェック結果:', competitorCheck.hasActiveCompetitors ? '警告あり' : '問題なし');
 
-    // ブロック配列を構築（加盟店登録と同じシンプル構造）
-    const summaryText = competitorCheck.hasActiveCompetitors
-      ? `*キャンセル申請（要確認）*\n申請ID: ${data.applicationId}\n顧客: ${data.customerName} | 加盟店: ${data.merchantName}`
-      : `*キャンセル申請*\n申請ID: ${data.applicationId}\n顧客: ${data.customerName} | 加盟店: ${data.merchantName}`;
+    // 他社の追客状況テキストを構築
+    let competitorWarningText = '';
+    if (competitorCheck.hasActiveCompetitors) {
+      competitorWarningText = '⚠️ *他社で追客活動が確認されています:*\n';
+      competitorCheck.competitorDetails.forEach((comp) => {
+        const lastContactStr = comp.lastContact || '不明';
+        competitorWarningText += `• *${comp.merchantName}* (${comp.status}) - 電話${comp.phoneCount}回 - 最終連絡: ${lastContactStr}\n`;
+      });
+    }
 
-    const blocks = [
+    // 最終連絡日時を整形
+    const lastContactStr = data.lastContactDate
+      ? Utilities.formatDate(new Date(data.lastContactDate), 'JST', 'yyyy-MM-dd HH:mm')
+      : '未設定';
+
+    // フィールド配列を構築
+    const fields = [
       {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: summaryText
-        }
+        title: '申請ID',
+        value: data.applicationId,
+        short: true
       },
       {
-        type: 'actions',
-        elements: [
-          {
-            type: 'button',
-            text: {
-              type: 'plain_text',
-              text: '✅ 承認',
-              emoji: true
-            },
-            style: competitorCheck.hasActiveCompetitors ? 'default' : 'primary',
-            value: `approve_cancel_${data.applicationId}`,
-            action_id: 'approve_cancel_report'
-          },
-          {
-            type: 'button',
-            text: {
-              type: 'plain_text',
-              text: '❌ 却下',
-              emoji: true
-            },
-            style: competitorCheck.hasActiveCompetitors ? 'danger' : 'default',
-            value: `reject_cancel_${data.applicationId}`,
-            action_id: 'reject_cancel_report'
-          },
-          {
-            type: 'button',
-            text: {
-              type: 'plain_text',
-              text: '📊 スプレッドシートを開く',
-              emoji: true
-            },
-            url: getSpreadsheetUrl(),
-            action_id: 'open_spreadsheet_cancel'
-          }
-        ]
+        title: 'CV ID',
+        value: data.cvId,
+        short: true
+      },
+      {
+        title: '顧客名',
+        value: data.customerName,
+        short: true
+      },
+      {
+        title: '加盟店',
+        value: `${data.merchantName} (ID: ${data.merchantId})`,
+        short: true
+      },
+      {
+        title: 'キャンセル理由',
+        value: `${data.cancelReasonCategory} - ${data.cancelReasonDetail}`,
+        short: false
+      },
+      {
+        title: '電話回数',
+        value: `${data.phoneCallCount || 0}回`,
+        short: true
+      },
+      {
+        title: 'SMS回数',
+        value: `${data.smsCount || 0}回`,
+        short: true
+      },
+      {
+        title: '最終連絡日時',
+        value: lastContactStr,
+        short: true
       }
     ];
+
+    // キャンセル申請文がある場合は追加
+    if (appTextPreview) {
+      fields.push({
+        title: 'キャンセル申請文',
+        value: appTextPreview,
+        short: false
+      });
+    }
 
     const message = {
       text: competitorCheck.hasActiveCompetitors
         ? `@channel 🚫⚠️ キャンセル申請（他社追客中）`
         : `@channel 🚫 キャンセル申請が提出されました`,
-      blocks: blocks
+      attachments: [
+        {
+          color: competitorCheck.hasActiveCompetitors ? 'warning' : 'good',
+          title: 'キャンセル申請詳細',
+          text: competitorWarningText || undefined,
+          fields: fields,
+          footer: '外壁塗装くらべるAI - 加盟店管理システム',
+          ts: Math.floor(Date.now() / 1000)
+        }
+      ],
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: competitorCheck.hasActiveCompetitors
+              ? `*🚫⚠️ キャンセル申請（他社追客中）*\n申請ID: ${data.applicationId}\n顧客: ${data.customerName} | 加盟店: ${data.merchantName}\n\n${competitorWarningText}`
+              : `*🚫 キャンセル申請*\n申請ID: ${data.applicationId}\n顧客: ${data.customerName} | 加盟店: ${data.merchantName}`
+          }
+        },
+        {
+          type: 'actions',
+          elements: [
+            {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: '✅ 承認',
+                emoji: true
+              },
+              style: 'primary',
+              value: `approve_cancel_${data.applicationId}`,
+              action_id: 'approve_cancel_report'
+            },
+            {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: '❌ 却下',
+                emoji: true
+              },
+              style: 'danger',
+              value: `reject_cancel_${data.applicationId}`,
+              action_id: 'reject_cancel_report'
+            },
+            {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: '📊 スプレッドシートを開く',
+                emoji: true
+              },
+              url: getSpreadsheetUrl(),
+              action_id: 'open_spreadsheet_cancel'
+            }
+          ]
+        }
+      ]
     };
 
     // デバッグ: 送信するJSONをログ出力
@@ -191,10 +264,38 @@ function sendSlackExtensionNotification(data) {
       : '未設定';
 
     // シンプルな構造に統一
-    const summaryText = `*⏰ キャンセル期限延長申請*\n申請ID: ${data.extensionId} | CV ID: ${data.cvId}\n顧客: ${data.customerName} | 加盟店: ${data.merchantName}\n\n連絡日時: ${contactDateStr}\nアポ予定: ${appointmentDateStr}\n延長後期限: ${extendedDeadlineStr}\n\n延長理由: ${data.extensionReason || '（記載なし）'}`;
+    const summaryText = `*⏰ キャンセル期限延長申請*\n申請ID: ${data.extensionId}\n顧客: ${data.customerName} | 加盟店: ${data.merchantName}`;
 
     const message = {
       text: `@channel ⏰ キャンセル期限延長申請が提出されました`,
+      attachments: [
+        {
+          color: 'good',
+          title: '期限延長申請',
+          fields: [
+            {
+              title: '申請ID',
+              value: data.extensionId,
+              short: true
+            },
+            {
+              title: '顧客名',
+              value: data.customerName,
+              short: true
+            },
+            {
+              title: '加盟店',
+              value: data.merchantName,
+              short: true
+            },
+            {
+              title: '延長後期限',
+              value: extendedDeadlineStr,
+              short: true
+            }
+          ]
+        }
+      ],
       blocks: [
         {
           type: 'section',
