@@ -205,40 +205,62 @@ function setupCVDeliverySheet() {
 
   console.log('✅ データバリデーションを設定しました');
 
-  // 条件付き書式設定（配信順位の色分け）
+  // 条件付き書式設定（CV IDごとに色分け）
+  // CV IDの最後の文字コードを7で割った余りで色を決定
 
-  // 1位: 青
-  const rule1 = SpreadsheetApp.newConditionalFormatRule()
-    .whenFormulaSatisfied('=$E2=1')
+  // 色0: 青
+  const rule0 = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=MOD(CODE(RIGHT($B2,1)),7)=0')
     .setBackground('#C9DAF8')
     .setRanges([sheet.getRange('A2:AJ')])
     .build();
 
-  // 2位: 黄
+  // 色1: 緑
+  const rule1 = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=MOD(CODE(RIGHT($B2,1)),7)=1')
+    .setBackground('#D9EAD3')
+    .setRanges([sheet.getRange('A2:AJ')])
+    .build();
+
+  // 色2: 黄
   const rule2 = SpreadsheetApp.newConditionalFormatRule()
-    .whenFormulaSatisfied('=$E2=2')
+    .whenFormulaSatisfied('=MOD(CODE(RIGHT($B2,1)),7)=2')
     .setBackground('#FFF2CC')
     .setRanges([sheet.getRange('A2:AJ')])
     .build();
 
-  // 3位: オレンジ
+  // 色3: オレンジ
   const rule3 = SpreadsheetApp.newConditionalFormatRule()
-    .whenFormulaSatisfied('=$E2=3')
+    .whenFormulaSatisfied('=MOD(CODE(RIGHT($B2,1)),7)=3')
     .setBackground('#FCE5CD')
     .setRanges([sheet.getRange('A2:AJ')])
     .build();
 
-  // 4位: 灰色
+  // 色4: ピンク
   const rule4 = SpreadsheetApp.newConditionalFormatRule()
-    .whenFormulaSatisfied('=$E2=4')
-    .setBackground('#EFEFEF')
+    .whenFormulaSatisfied('=MOD(CODE(RIGHT($B2,1)),7)=4')
+    .setBackground('#EAD1DC')
     .setRanges([sheet.getRange('A2:AJ')])
     .build();
 
-  const rules = [rule1, rule2, rule3, rule4];
+  // 色5: 紫
+  const rule5 = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=MOD(CODE(RIGHT($B2,1)),7)=5')
+    .setBackground('#D9D2E9')
+    .setRanges([sheet.getRange('A2:AJ')])
+    .build();
+
+  // 色6: 水色
+  const rule6 = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=MOD(CODE(RIGHT($B2,1)),7)=6')
+    .setBackground('#CFE2F3')
+    .setRanges([sheet.getRange('A2:AJ')])
+    .build();
+
+  const rules = [rule0, rule1, rule2, rule3, rule4, rule5, rule6];
   sheet.setConditionalFormatRules(rules);
 
-  console.log('✅ 条件付き書式を設定しました（配信順位で色分け）');
+  console.log('✅ 条件付き書式を設定しました（CV IDごとに7色で色分け）');
 
   // 行の固定（ヘッダー行）
   sheet.setFrozenRows(1);
