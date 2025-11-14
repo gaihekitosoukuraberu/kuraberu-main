@@ -5073,28 +5073,19 @@
                                         <label class="block text-sm font-semibold text-gray-700">
                                             申請内容詳細 <span class="text-red-500">*</span>
                                         </label>
-                                        <div class="flex gap-2">
-                                            <button type="button" onclick="generateCancelApplicationText()"
-                                                    class="flex items-center px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 font-semibold">
-                                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M13 7H7v6h6V7z"></path>
-                                                    <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd"></path>
-                                                </svg>
-                                                AI自動生成
-                                            </button>
-                                            <button type="button" onclick="startVoiceInput()"
-                                                    class="flex items-center px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">
-                                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M7 4a3 3 0 016 0v6a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z"></path>
-                                                </svg>
-                                                音声入力
-                                            </button>
-                                        </div>
+                                        <button type="button" onclick="generateCancelApplicationText()"
+                                                class="flex items-center px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 font-semibold">
+                                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M13 7H7v6h6V7z"></path>
+                                                <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            AI自動生成
+                                        </button>
                                     </div>
-                                    <textarea id="cancelApplicationText" rows="8" required
+                                    <textarea id="cancelApplicationText" rows="8" maxlength="1000" required
                                               class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-blue-500"
                                               placeholder="「AI自動生成」ボタンで申請文を作成できます"></textarea>
-                                    <p class="text-xs text-gray-500 mt-1">※ AI自動生成後、内容を編集できます。音声入力も可能です。</p>
+                                    <p class="text-xs text-gray-500 mt-1">※ AI自動生成後、内容を編集できます（最大1000文字）</p>
                                 </div>
 
 
@@ -19586,43 +19577,6 @@
                 console.error('テキスト自動生成エラー:', error);
                 document.getElementById('cancelApplicationText').value = 'キャンセル申請内容を入力してください。';
             }
-        }
-
-        // 音声入力を開始
-        function startVoiceInput() {
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                alert('お使いのブラウザは音声入力に対応していません。Chrome、Edge、Safariをご利用ください。');
-                return;
-            }
-
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'ja-JP';
-            recognition.continuous = false;
-            recognition.interimResults = false;
-
-            recognition.onstart = function() {
-                console.log('音声入力開始');
-                alert('音声入力を開始します。話してください。');
-            };
-
-            recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript;
-                const textarea = document.getElementById('cancelApplicationText');
-                textarea.value += '\n' + transcript;
-                console.log('音声入力結果:', transcript);
-            };
-
-            recognition.onerror = function(event) {
-                console.error('音声入力エラー:', event.error);
-                alert('音声入力エラー: ' + event.error);
-            };
-
-            recognition.onend = function() {
-                console.log('音声入力終了');
-            };
-
-            recognition.start();
         }
 
         // キャンセル申請を提出
