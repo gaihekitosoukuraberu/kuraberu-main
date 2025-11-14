@@ -19437,6 +19437,71 @@
             followUpContainer.innerHTML = followUpHtml;
         }
 
+        // 質問と回答を自然な文章に変換
+        function convertQuestionToNaturalText(question, answer) {
+            // 日付形式の場合（YYYY-MM-DD）
+            if (typeof answer === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(answer)) {
+                const date = new Date(answer);
+                const month = date.getMonth() + 1;
+                const day = date.getDate();
+                if (question.includes('いつ繋がりましたか')) {
+                    return `${month}月${day}日に繋がりました。`;
+                }
+            }
+
+            // 「何回くらい架けましたか？」パターン
+            if (question.includes('何回くらい架けましたか')) {
+                const prefix = question.replace('は何回くらい架けましたか？', '');
+                return `${prefix}は${answer}回くらい架けました。`;
+            }
+
+            // 「何回くらいしましたか？」パターン
+            if (question.includes('何回くらいしましたか')) {
+                const prefix = question.replace('は何回くらいしましたか？', '');
+                return `${prefix}は${answer}回くらいしました。`;
+            }
+
+            // 「〇〇はわかりますか？」パターン
+            if (question.includes('はわかりますか')) {
+                if (answer === 'YES') {
+                    return question.replace('はわかりますか？', 'はわかります。');
+                } else if (answer === 'NO') {
+                    return question.replace('はわかりますか？', 'はわかりません。');
+                }
+            }
+
+            // 「〇〇はありましたか？」パターン
+            if (question.includes('はありましたか')) {
+                if (answer === 'あり') {
+                    return question.replace('はありましたか？', 'がありました。');
+                } else if (answer === 'なし') {
+                    return question.replace('はありましたか？', 'はありませんでした。');
+                }
+            }
+
+            // 「温度感はどうでしたか？」パターン
+            if (question.includes('温度感はどうでしたか')) {
+                return `温度感は${answer}でした。`;
+            }
+
+            // 「ご契約時期はわかりますか？」パターン
+            if (question.includes('ご契約時期はわかりますか')) {
+                if (answer === 'YES') {
+                    return 'ご契約時期はわかります。';
+                } else if (answer === 'NO') {
+                    return 'ご契約時期はわかりません。';
+                }
+            }
+
+            // followUpの詳細項目（業者名、契約時期、理由の詳細など）
+            if (question === '業者名' || question === '契約時期' || question.includes('詳細')) {
+                return `${question}: ${answer}`;
+            }
+
+            // その他のパターン
+            return `${question}: ${answer}`;
+        }
+
         // キャンセル申請テキストを自動生成
         function generateCancelApplicationText() {
             // 生成回数チェック（2回まで）
@@ -19497,19 +19562,17 @@
                 generatedText += `キャンセル申請をいたします。\n\n`;
 
                 // フォローアップ状況
-                generatedText += `これまで電話${phoneCallCount}回、SMS${smsCount}回のフォローアップを実施しましたが、`;
-
                 // 理由を文章化
                 const categoryLabel = category.label.replace(/^\d+\.\s*/, ''); // 数字とドットを削除
                 const subCategoryLabel = subCategory.label;
 
-                generatedText += `${subCategoryLabel}という状況のため、対応が困難と判断いたしました。\n\n`;
+                generatedText += `フォローアップを実施しましたが、${subCategoryLabel}という状況のため、対応が困難と判断いたしました。\n\n`;
 
                 // 回答内容を自然な文章に組み込む
                 if (Object.keys(answers).length > 0) {
                     generatedText += `【補足事項】\n`;
                     Object.entries(answers).forEach(([key, value]) => {
-                        generatedText += `・${key}: ${value}\n`;
+                        generatedText += `・${convertQuestionToNaturalText(key, value)}\n`;
                     });
                     generatedText += `\n`;
                 }
