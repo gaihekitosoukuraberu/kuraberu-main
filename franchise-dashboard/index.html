@@ -19336,6 +19336,8 @@
                             const valueStr = date.toISOString().split('T')[0];
                             html += `<option value="${valueStr}">${dateStr}</option>`;
                         }
+                        // 期限延長している人向けに「その他」を追加
+                        html += `<option value="other">その他</option>`;
                     } else {
                         // 通常のオプション
                         question.options.forEach(option => {
@@ -19440,16 +19442,31 @@
                 }
             }
 
+            // 「その他」の場合
+            if (answer === 'other' || answer === 'その他') {
+                if (question.includes('いつ繋がりましたか')) {
+                    return 'その他の日時に繋がりました。';
+                }
+            }
+
             // 「何回くらい架けましたか？」パターン
             if (question.includes('何回くらい架けましたか')) {
                 const prefix = question.replace('は何回くらい架けましたか？', '');
-                return `${prefix}は${answer}回くらい架けました。`;
+                const count = parseInt(answer);
+                if (count === 0) {
+                    return `${prefix}はしていません。`;
+                }
+                return `${prefix}は${answer}回架けました。`;
             }
 
             // 「何回くらいしましたか？」パターン
             if (question.includes('何回くらいしましたか')) {
                 const prefix = question.replace('は何回くらいしましたか？', '');
-                return `${prefix}は${answer}回くらいしました。`;
+                const count = parseInt(answer);
+                if (count === 0) {
+                    return `${prefix}はしていません。`;
+                }
+                return `${prefix}は${answer}回しました。`;
             }
 
             // 「〇〇はわかりますか？」パターン
