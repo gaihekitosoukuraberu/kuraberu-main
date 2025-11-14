@@ -275,6 +275,91 @@ function setupCVDeliverySheet() {
 }
 
 /**
+ * 既存の配信管理シートの条件付き書式を更新
+ * ランクベース（1-4）からCV IDベース（7色）に変更
+ */
+function updateDeliverySheetConditionalFormatting() {
+  console.log('===== 配信管理シート 条件付き書式更新開始 =====');
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheetName = '配信管理';
+  const sheet = ss.getSheetByName(sheetName);
+
+  if (!sheet) {
+    console.error('❌ 配信管理シートが見つかりません');
+    console.log('先に setupCVDeliverySheet() を実行してシートを作成してください');
+    return;
+  }
+
+  console.log('✅ 配信管理シートを見つけました');
+
+  // 既存の条件付き書式をクリア
+  sheet.clearConditionalFormatRules();
+  console.log('既存の条件付き書式をクリアしました');
+
+  // 条件付き書式設定（CV IDごとに色分け）
+  // CV IDの最後の文字コードを7で割った余りで色を決定
+
+  // 色0: 青
+  const rule0 = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=MOD(CODE(RIGHT($B2,1)),7)=0')
+    .setBackground('#C9DAF8')
+    .setRanges([sheet.getRange('A2:AJ')])
+    .build();
+
+  // 色1: 緑
+  const rule1 = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=MOD(CODE(RIGHT($B2,1)),7)=1')
+    .setBackground('#D9EAD3')
+    .setRanges([sheet.getRange('A2:AJ')])
+    .build();
+
+  // 色2: 黄
+  const rule2 = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=MOD(CODE(RIGHT($B2,1)),7)=2')
+    .setBackground('#FFF2CC')
+    .setRanges([sheet.getRange('A2:AJ')])
+    .build();
+
+  // 色3: オレンジ
+  const rule3 = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=MOD(CODE(RIGHT($B2,1)),7)=3')
+    .setBackground('#FCE5CD')
+    .setRanges([sheet.getRange('A2:AJ')])
+    .build();
+
+  // 色4: ピンク
+  const rule4 = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=MOD(CODE(RIGHT($B2,1)),7)=4')
+    .setBackground('#EAD1DC')
+    .setRanges([sheet.getRange('A2:AJ')])
+    .build();
+
+  // 色5: 紫
+  const rule5 = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=MOD(CODE(RIGHT($B2,1)),7)=5')
+    .setBackground('#D9D2E9')
+    .setRanges([sheet.getRange('A2:AJ')])
+    .build();
+
+  // 色6: 水色
+  const rule6 = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=MOD(CODE(RIGHT($B2,1)),7)=6')
+    .setBackground('#CFE2F3')
+    .setRanges([sheet.getRange('A2:AJ')])
+    .build();
+
+  const rules = [rule0, rule1, rule2, rule3, rule4, rule5, rule6];
+  sheet.setConditionalFormatRules(rules);
+
+  console.log('✅ 条件付き書式を設定しました（CV IDごとに7色で色分け）');
+  console.log('\n===== 条件付き書式更新完了 =====');
+  console.log('\n【次のステップ】');
+  console.log('1. 古いテストデータを削除: deleteDeliveryTestData()');
+  console.log('2. 新しいテストデータを作成: createCVDeliveryTestData()');
+}
+
+/**
  * レコードID生成関数
  * DL + YYMMDDHHmmss + 連番3桁
  */
