@@ -18948,6 +18948,7 @@
         let cancelSelectedCategory = null;
         let cancelSelectedSubCategory = null;
         let cancelQuestionAnswers = {};
+        let cancelAiGenerationCount = 0; // AI生成回数カウンター
 
         let extensionSelectedCase = null;
 
@@ -19083,6 +19084,8 @@
                 cancelSelectedCase = cancelableCasesCache.find(c => c.cvId === cvId);
 
                 if (cancelSelectedCase) {
+                    // AI生成回数をリセット
+                    cancelAiGenerationCount = 0;
                     // モーダルを表示して直接Step 1（理由カテゴリ選択）へ
                     document.getElementById('cancelModal').classList.remove('hidden');
                     cancelGoToStep(1);
@@ -19104,6 +19107,7 @@
             cancelSelectedCategory = null;
             cancelSelectedSubCategory = null;
             cancelQuestionAnswers = {};
+            cancelAiGenerationCount = 0; // AI生成回数をリセット
         }
 
         // ステップ移動
@@ -19206,6 +19210,13 @@
 
             // サブカテゴリ一覧を表示
             const subCategories = window.CancelReasons.getSubCategories(categoryId);
+
+            // サブカテゴリが1つだけの場合は自動選択
+            if (subCategories.length === 1) {
+                selectCancelSubCategory(subCategories[0].id);
+                return;
+            }
+
             const subCategoryList = document.getElementById('cancelSubCategoryList');
             subCategoryList.innerHTML = subCategories.map(subCat => `
                 <div onclick="selectCancelSubCategory('${subCat.id}')"
@@ -19409,6 +19420,13 @@
 
         // キャンセル申請テキストを自動生成
         function generateCancelApplicationText() {
+            // 生成回数チェック（2回まで）
+            if (cancelAiGenerationCount >= 2) {
+                alert('AI生成は2回までです');
+                return;
+            }
+            cancelAiGenerationCount++;
+
             try {
                 // 質問フォームから回答を収集
                 const questions = window.CancelReasons.getQuestions(cancelSelectedCategory, cancelSelectedSubCategory);
@@ -19472,7 +19490,7 @@
                 if (Object.keys(answers).length > 0) {
                     generatedText += `【補足事項】\n`;
                     Object.entries(answers).forEach(([key, value]) => {
-                        generatedText += `${key}については、${value}となっております。\n`;
+                        generatedText += `・${key}: ${value}\n`;
                     });
                     generatedText += `\n`;
                 }
