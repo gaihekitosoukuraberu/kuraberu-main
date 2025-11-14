@@ -98,6 +98,13 @@ function sendSlackCancelNotification(data) {
           ]
         },
         {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*📝 キャンセル申請文*\n${data.cancelApplicationText || '未記入'}`
+          }
+        },
+        {
           type: 'divider'
         },
         {
@@ -115,15 +122,47 @@ function sendSlackCancelNotification(data) {
               action_id: 'approve_cancel_report'
             },
             {
-              type: 'button',
-              text: {
+              type: 'static_select',
+              placeholder: {
                 type: 'plain_text',
-                text: '❌ 却下',
+                text: '❌ 却下理由を選択',
                 emoji: true
               },
-              style: 'danger',
-              value: `reject_cancel_${data.applicationId}`,
-              action_id: 'reject_cancel_report'
+              options: [
+                {
+                  text: {
+                    type: 'plain_text',
+                    text: '追客回数不足',
+                    emoji: true
+                  },
+                  value: `reject_cancel_${data.applicationId}::追客回数が不足しているため、キャンセルは承認できません。お客様のニーズを十分に把握するため、もう少し追客を続けてください。`
+                },
+                {
+                  text: {
+                    type: 'plain_text',
+                    text: '連絡未確認（他社はアポ取得済）',
+                    emoji: true
+                  },
+                  value: `reject_cancel_${data.applicationId}::他社がアポイントを取得できている状況で「連絡がつかない」というのは不自然です。時間帯やアプローチ方法を変えて、引き続き架電・SMS等で連絡を試みてください。`
+                },
+                {
+                  text: {
+                    type: 'plain_text',
+                    text: 'SMS未送信',
+                    emoji: true
+                  },
+                  value: `reject_cancel_${data.applicationId}::SMS送信回数が不足しています。SMSでの連絡も併用し、お客様との接点を増やしてください。`
+                },
+                {
+                  text: {
+                    type: 'plain_text',
+                    text: '期限前',
+                    emoji: true
+                  },
+                  value: `reject_cancel_${data.applicationId}::まだキャンセル期限前です。期限まで追客を継続してください。`
+                }
+              ],
+              action_id: 'reject_cancel_select'
             },
             {
               type: 'button',
@@ -279,15 +318,47 @@ function sendSlackExtensionNotification(data) {
               action_id: 'approve_extension_request'
             },
             {
-              type: 'button',
-              text: {
+              type: 'static_select',
+              placeholder: {
                 type: 'plain_text',
-                text: '❌ 却下',
+                text: '❌ 却下理由を選択',
                 emoji: true
               },
-              style: 'danger',
-              value: `reject_extension_${data.extensionId}`,
-              action_id: 'reject_extension_request'
+              options: [
+                {
+                  text: {
+                    type: 'plain_text',
+                    text: '理由不十分',
+                    emoji: true
+                  },
+                  value: `reject_extension_${data.extensionId}::期限延長の理由が不十分です。より具体的な理由とアポイント予定日を明記して再申請してください。`
+                },
+                {
+                  text: {
+                    type: 'plain_text',
+                    text: 'アポ日未記入',
+                    emoji: true
+                  },
+                  value: `reject_extension_${data.extensionId}::アポイント予定日が記入されていません。具体的な予定日を明記して再申請してください。`
+                },
+                {
+                  text: {
+                    type: 'plain_text',
+                    text: '連絡日不明確',
+                    emoji: true
+                  },
+                  value: `reject_extension_${data.extensionId}::連絡がついた日時が不明確です。具体的な連絡日時を明記して再申請してください。`
+                },
+                {
+                  text: {
+                    type: 'plain_text',
+                    text: '延長期限が長すぎる',
+                    emoji: true
+                  },
+                  value: `reject_extension_${data.extensionId}::希望する延長期限が長すぎます。より短い期限で再申請してください。`
+                }
+              ],
+              action_id: 'reject_extension_select'
             },
             {
               type: 'button',

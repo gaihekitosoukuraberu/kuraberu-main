@@ -102,19 +102,19 @@ const SlackApprovalSystem = {
         return this.createSlackResponse();
       }
 
-      // キャンセル申請却下ボタン -> モーダルを開く
-      else if (action.action_id === 'reject_cancel_report') {
-        const applicationId = action.value.replace('reject_cancel_', '');
-        const channelId = payload.channel?.id || payload.container?.channel_id;
-        let messageTs = payload.message?.ts || payload.container?.message_ts;
+      // キャンセル申請却下プルダウン選択
+      else if (action.action_id === 'reject_cancel_select') {
+        const selectedValue = action.selected_option.value;
+        const [applicationId, rejectionReason] = selectedValue.split('::');
+        const cleanId = applicationId.replace('reject_cancel_', '');
 
-        // Message TSを文字列に変換して精度保持
-        if (messageTs && typeof messageTs === 'number') {
-          messageTs = messageTs.toString();
-        }
+        const result = this.rejectCancelReport(cleanId, user, rejectionReason);
 
-        // モーダルを開く
-        this.openCancelRejectionModal(triggerId, applicationId, user, channelId, messageTs, botToken);
+        // 却下通知送信
+        const notificationResult = this.sendRejectionNotification(cleanId, rejectionReason, 'cancel');
+
+        // Slackメッセージを更新
+        this.updateSlackMessage(payload, '❌ キャンセル申請却下済み', cleanId, user);
         return this.createSlackResponse();
       }
 
@@ -131,19 +131,19 @@ const SlackApprovalSystem = {
         return this.createSlackResponse();
       }
 
-      // 期限延長申請却下ボタン -> モーダルを開く
-      else if (action.action_id === 'reject_extension_request') {
-        const extensionId = action.value.replace('reject_extension_', '');
-        const channelId = payload.channel?.id || payload.container?.channel_id;
-        let messageTs = payload.message?.ts || payload.container?.message_ts;
+      // 期限延長申請却下プルダウン選択
+      else if (action.action_id === 'reject_extension_select') {
+        const selectedValue = action.selected_option.value;
+        const [extensionId, rejectionReason] = selectedValue.split('::');
+        const cleanId = extensionId.replace('reject_extension_', '');
 
-        // Message TSを文字列に変換して小数点以下を保持
-        if (messageTs && typeof messageTs === 'number') {
-          messageTs = messageTs.toString();
-        }
+        const result = this.rejectExtensionRequest(cleanId, user, rejectionReason);
 
-        // モーダルを開く
-        this.openExtensionRejectionModal(triggerId, extensionId, user, channelId, messageTs, botToken);
+        // 却下通知送信
+        const notificationResult = this.sendRejectionNotification(cleanId, rejectionReason, 'extension');
+
+        // Slackメッセージを更新
+        this.updateSlackMessage(payload, '❌ 期限延長申請却下済み', cleanId, user);
         return this.createSlackResponse();
       }
 
