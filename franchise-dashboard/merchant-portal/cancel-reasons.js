@@ -81,7 +81,7 @@ const CancelReasons = {
       },
       {
         id: 'sms_response_no_appointment',
-        label: '電話は不通、SMSで返信あったがアポ取れず',
+        label: 'SMS返信あるもアポ取れず電話不通',
         questions: []
       },
       {

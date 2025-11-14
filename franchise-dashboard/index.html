@@ -5087,24 +5087,6 @@
                                     <p class="text-xs text-gray-500 mt-1">※ 選択した内容から自動生成されます。必要に応じて編集してください。</p>
                                 </div>
 
-                                <!-- 選択内容サマリー（折りたたみ可能） -->
-                                <details class="bg-gray-50 rounded-lg p-4 mb-6">
-                                    <summary class="cursor-pointer font-semibold text-sm text-gray-700">選択した内容を確認</summary>
-                                    <div class="mt-4 space-y-3">
-                                        <div>
-                                            <p class="text-xs text-gray-600">カテゴリ</p>
-                                            <p class="font-semibold text-sm" id="cancelConfirmCategory"></p>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs text-gray-600">詳細理由</p>
-                                            <p class="font-semibold text-sm" id="cancelConfirmDetail"></p>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs text-gray-600">回答内容</p>
-                                            <div id="cancelConfirmAnswers" class="text-sm text-gray-700 space-y-1"></div>
-                                        </div>
-                                    </div>
-                                </details>
 
                                 <div class="flex justify-between">
                                     <button onclick="cancelGoToStep(2)" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
@@ -18959,15 +18941,57 @@
 
         let extensionSelectedCase = null;
 
+        // リトライ機能付きFetch関数
+        async function fetchWithRetry(url, options = {}, retries = window.ENV.MAX_RETRIES, delay = window.ENV.RETRY_DELAY) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    console.log(`[fetchWithRetry] 試行 ${i + 1}/${retries}: ${url}`);
+
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), window.ENV.TIMEOUT);
+
+                    const response = await fetch(url, {
+                        ...options,
+                        signal: controller.signal
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    return response;
+                } catch (error) {
+                    console.error(`[fetchWithRetry] 試行 ${i + 1} 失敗:`, error);
+
+                    if (i === retries - 1) {
+                        throw error;
+                    }
+
+                    // 指数バックオフでリトライ
+                    const waitTime = delay * Math.pow(2, i);
+                    console.log(`[fetchWithRetry] ${waitTime}ms 待機後、再試行します...`);
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                }
+            }
+        }
+
         // キャンセル申請可能案件を読み込み
         async function loadCancelableCases() {
+            const casesList = document.getElementById('cancelCasesList');
+
             try {
                 const merchantId = window.merchantId;
                 if (!merchantId) {
                     alert('ログインしていません');
                     return;
                 }
-                const response = await fetch(`${CANCEL_API_URL}?action=getCancelableCases&merchantId=${merchantId}`);
+
+                // ローディング表示
+                casesList.innerHTML = '<div class="col-span-full text-center py-8"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div><p class="text-gray-600 mt-2">読み込み中...</p></div>';
+
+                const response = await fetchWithRetry(`${CANCEL_API_URL}?action=getCancelableCases&merchantId=${merchantId}`);
                 const result = await response.json();
 
                 // データをキャッシュに保存
@@ -18975,7 +18999,6 @@
                     cancelableCasesCache = result.cases;
                 }
 
-                const casesList = document.getElementById('cancelCasesList');
                 if (result.success && result.cases.length > 0) {
                     casesList.innerHTML = result.cases.map(caseItem => {
                         const deliveredDate = new Date(caseItem.deliveredAt).toLocaleDateString('ja-JP');
@@ -19015,7 +19038,31 @@
                 }
             } catch (error) {
                 console.error('キャンセル案件の読み込みエラー:', error);
-                alert('案件の読み込みに失敗しました');
+
+                // エラー内容を解析
+                let errorMessage = '案件の読み込みに失敗しました。';
+                if (error.name === 'AbortError') {
+                    errorMessage = 'リクエストがタイムアウトしました。ネットワーク接続を確認してください。';
+                } else if (error.message.includes('HTTP error')) {
+                    errorMessage = `サーバーエラーが発生しました (${error.message})`;
+                } else if (error.message === 'Failed to fetch') {
+                    errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。';
+                }
+
+                casesList.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <div class="text-red-500 mb-4">
+                            <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            <p class="font-semibold">${errorMessage}</p>
+                        </div>
+                        <button onclick="loadCancelableCases()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            再読み込み
+                        </button>
+                    </div>
+                `;
+                alert(errorMessage);
             }
         }
 
@@ -19351,17 +19398,6 @@
                 const subCats = window.CancelReasons.getSubCategories(cancelSelectedCategory);
                 const subCategory = subCats.find(sc => sc.id === cancelSelectedSubCategory);
 
-                // 確認画面のサマリーを更新
-                document.getElementById('cancelConfirmCategory').textContent = category ? category.label : '';
-                document.getElementById('cancelConfirmDetail').textContent = subCategory ? subCategory.label : '';
-
-                const answersHtml = Object.entries(answers).map(([key, value]) => `
-                    <div class="text-sm">
-                        <span class="font-semibold text-gray-700">${key}:</span> <span class="text-gray-600">${value}</span>
-                    </div>
-                `).join('');
-                document.getElementById('cancelConfirmAnswers').innerHTML = answersHtml;
-
                 // 自動生成テキストを作成
                 let generatedText = `【キャンセル申請】\n\n`;
                 generatedText += `顧客名: ${cancelSelectedCase.customerName}\n`;
@@ -19536,13 +19572,19 @@
 
         // 期限延長申請可能案件を読み込み
         async function loadExtensionEligibleCases() {
+            const casesList = document.getElementById('extensionCasesList');
+
             try {
                 const merchantId = window.merchantId;
                 if (!merchantId) {
                     alert('ログインしていません');
                     return;
                 }
-                const response = await fetch(`${CANCEL_API_URL}?action=getExtensionEligibleCases&merchantId=${merchantId}`);
+
+                // ローディング表示
+                casesList.innerHTML = '<div class="col-span-full text-center py-8"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div><p class="text-gray-600 mt-2">読み込み中...</p></div>';
+
+                const response = await fetchWithRetry(`${CANCEL_API_URL}?action=getExtensionEligibleCases&merchantId=${merchantId}`);
                 const result = await response.json();
 
                 // データをキャッシュに保存
@@ -19550,7 +19592,6 @@
                     extensionEligibleCasesCache = result.cases;
                 }
 
-                const casesList = document.getElementById('extensionCasesList');
                 if (result.success && result.cases.length > 0) {
                     casesList.innerHTML = result.cases.map(caseItem => {
                         const deliveredDate = new Date(caseItem.deliveredAt).toLocaleDateString('ja-JP');
@@ -19576,7 +19617,31 @@
                 }
             } catch (error) {
                 console.error('期限延長案件の読み込みエラー:', error);
-                alert('案件の読み込みに失敗しました');
+
+                // エラー内容を解析
+                let errorMessage = '案件の読み込みに失敗しました。';
+                if (error.name === 'AbortError') {
+                    errorMessage = 'リクエストがタイムアウトしました。ネットワーク接続を確認してください。';
+                } else if (error.message.includes('HTTP error')) {
+                    errorMessage = `サーバーエラーが発生しました (${error.message})`;
+                } else if (error.message === 'Failed to fetch') {
+                    errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。';
+                }
+
+                casesList.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <div class="text-red-500 mb-4">
+                            <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            <p class="font-semibold">${errorMessage}</p>
+                        </div>
+                        <button onclick="loadExtensionEligibleCases()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            再読み込み
+                        </button>
+                    </div>
+                `;
+                alert(errorMessage);
             }
         }
 
