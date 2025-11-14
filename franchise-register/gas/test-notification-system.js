@@ -398,3 +398,37 @@ function testViewSubmission() {
 
   return result;
 }
+
+/**
+ * 一時処理キューを処理するテスト関数
+ * test-notification-system.js
+ *
+ * 【実行方法】
+ * GASエディタでこの関数を選択して実行
+ *
+ * 【処理内容】
+ * 1. 一時処理キューシートから未処理データを取得
+ * 2. 各データに対して却下処理・通知送信・Slack更新を実行
+ * 3. 処理済みフラグを更新
+ */
+function processRejectionQueue() {
+  console.log('===== 一時処理キュー手動処理開始 =====\n');
+
+  const result = SlackApprovalSystem.processRejectionQueue();
+
+  console.log('\n===== 処理結果 =====');
+  console.log('成功:', result.success ? '✅' : '❌');
+  console.log('メッセージ:', result.message);
+  console.log('処理件数:', result.processed, '件');
+
+  if (result.error) {
+    console.error('エラー:', result.error);
+  }
+
+  console.log('\n===== スプレッドシートを確認してください =====');
+  console.log('- 一時処理キューシートの「処理済み」列がTRUEになっているか');
+  console.log('- キャンセル申請シートのステータスが「却下」になっているか');
+  console.log('- Slackメッセージが更新されているか');
+
+  return result;
+}

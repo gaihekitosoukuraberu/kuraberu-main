@@ -120,8 +120,12 @@ const SlackApprovalSystem = {
         const applicationId = action.value.replace('reject_cancel_', '');
         console.log('[SlackApproval] 処理対象ID:', applicationId);
 
+        // Slackメッセージ情報を取得
+        const channelId = payload.channel?.id || payload.container?.channel_id;
+        const messageTs = payload.message?.ts || payload.container?.message_ts;
+
         // モーダルを開く
-        this.openCancelRejectionModal(triggerId, applicationId, user);
+        this.openCancelRejectionModal(triggerId, applicationId, user, channelId, messageTs);
         return this.createSlackResponse();
       }
 
@@ -144,8 +148,12 @@ const SlackApprovalSystem = {
         const extensionId = action.value.replace('reject_extension_', '');
         console.log('[SlackApproval] 処理対象ID:', extensionId);
 
+        // Slackメッセージ情報を取得
+        const channelId = payload.channel?.id || payload.container?.channel_id;
+        const messageTs = payload.message?.ts || payload.container?.message_ts;
+
         // モーダルを開く
-        this.openExtensionRejectionModal(triggerId, extensionId, user);
+        this.openExtensionRejectionModal(triggerId, extensionId, user, channelId, messageTs);
         return this.createSlackResponse();
       }
 
@@ -733,8 +741,10 @@ const SlackApprovalSystem = {
    * @param {String} triggerId - Slack trigger ID
    * @param {String} applicationId - 申請ID
    * @param {String} user - ユーザー名
+   * @param {String} channelId - Slack channel ID
+   * @param {String} messageTs - Slack message timestamp
    */
-  openCancelRejectionModal: function(triggerId, applicationId, user) {
+  openCancelRejectionModal: function(triggerId, applicationId, user, channelId, messageTs) {
     try {
       console.log('[SlackApproval] キャンセル却下モーダル表示開始:', applicationId);
 
@@ -770,7 +780,9 @@ const SlackApprovalSystem = {
         },
         private_metadata: JSON.stringify({
           applicationId: applicationId,
-          user: user
+          user: user,
+          channelId: channelId,
+          messageTs: messageTs
         }),
         blocks: [
           {
@@ -826,8 +838,10 @@ const SlackApprovalSystem = {
    * @param {String} triggerId - Slack trigger ID
    * @param {String} extensionId - 申請ID
    * @param {String} user - ユーザー名
+   * @param {String} channelId - Slack channel ID
+   * @param {String} messageTs - Slack message timestamp
    */
-  openExtensionRejectionModal: function(triggerId, extensionId, user) {
+  openExtensionRejectionModal: function(triggerId, extensionId, user, channelId, messageTs) {
     try {
       console.log('[SlackApproval] 期限延長却下モーダル表示開始:', extensionId);
 
@@ -863,7 +877,9 @@ const SlackApprovalSystem = {
         },
         private_metadata: JSON.stringify({
           extensionId: extensionId,
-          user: user
+          user: user,
+          channelId: channelId,
+          messageTs: messageTs
         }),
         blocks: [
           {
@@ -983,31 +999,49 @@ const SlackApprovalSystem = {
 
       if (!tempSheet) {
         tempSheet = ss.insertSheet('一時処理キュー');
-        tempSheet.appendRow(['タイムスタンプ', 'タイプ', 'ID', 'ユーザー', '却下理由', '処理済み']);
+        tempSheet.appendRow(['タイムスタンプ', 'タイプ', 'ID', 'ユーザー', '却下理由', 'Slack Channel ID', 'Slack Message TS', '処理済み']);
       }
 
       if (callbackId === 'cancel_rejection_modal') {
         const applicationId = privateMetadata.applicationId;
+        const channelId = privateMetadata.channelId || '';
+        const messageTs = privateMetadata.messageTs || '';
+
+        // Message TSを文字列として保存するため、先頭に'を付ける
+        const messageTsString = messageTs ? `'${messageTs}` : '';
+
         tempSheet.appendRow([
           new Date(),
           'cancel_rejection',
           applicationId,
           user,
           rejectionReason,
+          channelId,
+          messageTsString,
           'false'
         ]);
         console.log('[SlackApproval] キャンセル却下データを一時保存:', applicationId);
+        console.log('[SlackApproval] Message TS保存:', messageTsString);
       } else if (callbackId === 'extension_rejection_modal') {
         const extensionId = privateMetadata.extensionId;
+        const channelId = privateMetadata.channelId || '';
+        const messageTs = privateMetadata.messageTs || '';
+
+        // Message TSを文字列として保存するため、先頭に'を付ける
+        const messageTsString = messageTs ? `'${messageTs}` : '';
+
         tempSheet.appendRow([
           new Date(),
           'extension_rejection',
           extensionId,
           user,
           rejectionReason,
+          channelId,
+          messageTsString,
           'false'
         ]);
         console.log('[SlackApproval] 期限延長却下データを一時保存:', extensionId);
+        console.log('[SlackApproval] Message TS保存:', messageTsString);
       }
 
       // 🚨 即座にレスポンスを返す（処理はトリガーで後で実行）
@@ -1117,6 +1151,289 @@ const SlackApprovalSystem = {
     } catch (error) {
       console.error('[SlackApproval] 申請データ取得エラー:', error);
       return null;
+    }
+  },
+
+  /**
+   * 一時処理キューを処理する
+   * 未処理のデータを取得して、却下処理・通知送信・Slack更新を実行
+   */
+  processRejectionQueue: function() {
+    console.log('[SlackApproval] ===== 一時処理キュー処理開始 =====');
+
+    try {
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const tempSheet = ss.getSheetByName('一時処理キュー');
+
+      if (!tempSheet) {
+        console.log('[SlackApproval] 一時処理キューシートが存在しません');
+        return { success: true, message: 'キューシートなし', processed: 0 };
+      }
+
+      const data = tempSheet.getDataRange().getValues();
+      const headers = data[0];
+      const rows = data.slice(1);
+
+      // カラムインデックス
+      const timestampIdx = 0;
+      const typeIdx = 1;
+      const idIdx = 2;
+      const userIdx = 3;
+      const reasonIdx = 4;
+      const channelIdIdx = 5;
+      const messageTsIdx = 6;
+      const processedIdx = 7;
+
+      let processedCount = 0;
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const isProcessed = row[processedIdx] === 'true' || row[processedIdx] === true || row[processedIdx] === 'TRUE';
+
+        if (isProcessed) {
+          console.log('[SlackApproval] 行', i + 2, 'は処理済みスキップ');
+          continue;
+        }
+
+        const type = row[typeIdx];
+        const id = row[idIdx];
+        const user = row[userIdx];
+        const reason = row[reasonIdx];
+        const channelId = row[channelIdIdx];
+        let messageTs = row[messageTsIdx];
+
+        // Message TSの先頭に'がある場合は削除（文字列として保存したため）
+        if (messageTs && typeof messageTs === 'string' && messageTs.startsWith("'")) {
+          messageTs = messageTs.substring(1);
+        }
+
+        console.log(`[SlackApproval] ========== 行 ${i + 2} 処理開始 ==========`);
+        console.log(`[SlackApproval] タイプ: ${type}`);
+        console.log(`[SlackApproval] ID: ${id}`);
+        console.log(`[SlackApproval] ユーザー: ${user}`);
+        console.log(`[SlackApproval] 却下理由: ${reason}`);
+        console.log(`[SlackApproval] Channel ID: "${channelId}"`);
+        console.log(`[SlackApproval] Message TS (raw): "${row[messageTsIdx]}"`);
+        console.log(`[SlackApproval] Message TS (cleaned): "${messageTs}"`);
+
+        try {
+          if (type === 'cancel_rejection') {
+            // キャンセル申請却下処理
+            console.log('[SlackApproval] キャンセル申請却下処理実行中...');
+            const result = this.rejectCancelReport(id, user, reason);
+
+            if (result.success) {
+              console.log('[SlackApproval] ✅ 却下処理成功:', id);
+
+              // 通知送信（エラーは無視して継続）
+              try {
+                console.log('[SlackApproval] 却下通知送信中...');
+                this.sendRejectionNotification(id, reason, 'cancel');
+                console.log('[SlackApproval] ✅ 却下通知送信完了');
+              } catch (notifError) {
+                console.error('[SlackApproval] ❌ 通知送信エラー（継続）:', notifError);
+              }
+
+              // Slackメッセージ更新
+              if (channelId && messageTs) {
+                console.log('[SlackApproval] Slackメッセージ更新を実行します');
+                console.log(`[SlackApproval] 更新対象 - Channel: ${channelId}, TS: ${messageTs}`);
+                this.updateSlackMessageWithResult(channelId, messageTs, {
+                  type: 'cancel_rejection',
+                  id: id,
+                  user: user,
+                  reason: reason,
+                  success: true
+                });
+              } else {
+                console.warn('[SlackApproval] ⚠️ Channel IDまたはMessage TSが空のため、Slack更新スキップ');
+                console.warn(`[SlackApproval] channelId="${channelId}", messageTs="${messageTs}"`);
+              }
+
+              // 処理済みフラグを更新
+              console.log('[SlackApproval] 処理済みフラグを設定中...');
+              tempSheet.getRange(i + 2, processedIdx + 1).setValue('true');
+              processedCount++;
+              console.log('[SlackApproval] ✅ 処理完了');
+
+            } else {
+              console.error('[SlackApproval] ❌ 却下処理失敗:', result.error);
+            }
+
+          } else if (type === 'extension_rejection') {
+            // 期限延長申請却下処理
+            console.log('[SlackApproval] 期限延長申請却下処理実行中...');
+            const result = this.rejectExtensionRequest(id, user, reason);
+
+            if (result.success) {
+              console.log('[SlackApproval] ✅ 却下処理成功:', id);
+
+              // 通知送信（エラーは無視して継続）
+              try {
+                console.log('[SlackApproval] 却下通知送信中...');
+                this.sendRejectionNotification(id, reason, 'extension');
+                console.log('[SlackApproval] ✅ 却下通知送信完了');
+              } catch (notifError) {
+                console.error('[SlackApproval] ❌ 通知送信エラー（継続）:', notifError);
+              }
+
+              // Slackメッセージ更新
+              if (channelId && messageTs) {
+                console.log('[SlackApproval] Slackメッセージ更新を実行します');
+                console.log(`[SlackApproval] 更新対象 - Channel: ${channelId}, TS: ${messageTs}`);
+                this.updateSlackMessageWithResult(channelId, messageTs, {
+                  type: 'extension_rejection',
+                  id: id,
+                  user: user,
+                  reason: reason,
+                  success: true
+                });
+              } else {
+                console.warn('[SlackApproval] ⚠️ Channel IDまたはMessage TSが空のため、Slack更新スキップ');
+                console.warn(`[SlackApproval] channelId="${channelId}", messageTs="${messageTs}"`);
+              }
+
+              // 処理済みフラグを更新
+              console.log('[SlackApproval] 処理済みフラグを設定中...');
+              tempSheet.getRange(i + 2, processedIdx + 1).setValue('true');
+              processedCount++;
+              console.log('[SlackApproval] ✅ 処理完了');
+
+            } else {
+              console.error('[SlackApproval] ❌ 却下処理失敗:', result.error);
+            }
+          }
+
+        } catch (error) {
+          console.error(`[SlackApproval] 行 ${i + 2} の処理エラー:`, error);
+          // エラーが発生しても次の行を処理
+        }
+      }
+
+      console.log(`[SlackApproval] ===== 処理完了: ${processedCount}件処理 =====`);
+      return { success: true, message: `${processedCount}件処理`, processed: processedCount };
+
+    } catch (error) {
+      console.error('[SlackApproval] キュー処理エラー:', error);
+      return { success: false, error: error.toString(), processed: 0 };
+    }
+  },
+
+  /**
+   * Slackメッセージを結果で更新
+   * @param {String} channelId - Slack channel ID
+   * @param {String} messageTs - Message timestamp
+   * @param {Object} result - 処理結果
+   */
+  updateSlackMessageWithResult: function(channelId, messageTs, result) {
+    console.log('[SlackApproval] ========== Slackメッセージ更新開始 ==========');
+    console.log('[SlackApproval] channelId:', channelId);
+    console.log('[SlackApproval] messageTs (raw):', messageTs);
+    console.log('[SlackApproval] messageTs type:', typeof messageTs);
+    console.log('[SlackApproval] result:', JSON.stringify(result));
+
+    try {
+      const botToken = PropertiesService.getScriptProperties().getProperty('SLACK_BOT_TOKEN');
+
+      if (!botToken) {
+        console.error('[SlackApproval] ❌ SLACK_BOT_TOKENが設定されていません');
+        return;
+      }
+
+      console.log('[SlackApproval] Bot Token取得成功（先頭10文字）:', botToken.substring(0, 10) + '...');
+
+      // channelIdとmessageTsが空でないか確認
+      if (!channelId || channelId === '') {
+        console.error('[SlackApproval] ❌ channelIdが空です');
+        return;
+      }
+
+      if (!messageTs || messageTs === '') {
+        console.error('[SlackApproval] ❌ messageTsが空です');
+        return;
+      }
+
+      // Message TSを文字列に変換（数値の場合も対応）
+      const messageTsString = String(messageTs);
+      console.log('[SlackApproval] messageTs (文字列変換後):', messageTsString);
+
+      // 結果メッセージを構築
+      const typeLabel = result.type === 'cancel_rejection' ? 'キャンセル申請' : '期限延長申請';
+      const statusEmoji = result.success ? '❌' : '⚠️';
+      const statusText = result.success ? '却下済み' : '却下失敗';
+
+      console.log('[SlackApproval] メッセージ種別:', typeLabel);
+      console.log('[SlackApproval] ステータス:', statusText);
+
+      const updatedBlocks = [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `${statusEmoji} *${typeLabel}${statusText}*\n申請ID: ${result.id}\n却下者: ${result.user}\n却下日時: ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}`
+          }
+        },
+        {
+          type: 'divider'
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*却下理由:*\n${result.reason}`
+          }
+        },
+        {
+          type: 'context',
+          elements: [
+            {
+              type: 'mrkdwn',
+              text: '✅ 通知送信完了（メール送信済み）'
+            }
+          ]
+        }
+      ];
+
+      const payload = {
+        channel: channelId,
+        ts: messageTsString,
+        blocks: updatedBlocks,
+        text: `${statusEmoji} ${typeLabel}${statusText}`
+      };
+
+      console.log('[SlackApproval] Slack API呼び出し準備完了');
+      console.log('[SlackApproval] Payload:', JSON.stringify(payload));
+
+      const options = {
+        method: 'post',
+        contentType: 'application/json',
+        headers: {
+          'Authorization': 'Bearer ' + botToken
+        },
+        payload: JSON.stringify(payload),
+        muteHttpExceptions: true
+      };
+
+      console.log('[SlackApproval] Slack API (chat.update) 呼び出し中...');
+      const response = UrlFetchApp.fetch('https://slack.com/api/chat.update', options);
+      const responseText = response.getContentText();
+      console.log('[SlackApproval] Slack APIレスポンス:', responseText);
+
+      const responseData = JSON.parse(responseText);
+
+      if (!responseData.ok) {
+        console.error('[SlackApproval] ❌ Slackメッセージ更新失敗');
+        console.error('[SlackApproval] エラー詳細:', responseData.error);
+        console.error('[SlackApproval] 完全なレスポンス:', JSON.stringify(responseData));
+      } else {
+        console.log('[SlackApproval] ✅ Slackメッセージ更新成功！');
+      }
+
+      console.log('[SlackApproval] ========== Slackメッセージ更新終了 ==========');
+
+    } catch (error) {
+      console.error('[SlackApproval] ❌ Slackメッセージ更新エラー:', error);
+      console.error('[SlackApproval] エラースタック:', error.stack);
     }
   },
 
