@@ -684,10 +684,10 @@ const SlackApprovalSystem = {
    * Slack用レスポンス作成
    */
   createSlackResponse: function(text = '') {
-    // Slackには常に200 OKを返す（空のレスポンス）
+    // Slackには常に200 OKを返す（空のJSONレスポンス）
     return ContentService
-      .createTextOutput('')
-      .setMimeType(ContentService.MimeType.TEXT);
+      .createTextOutput(JSON.stringify({}))
+      .setMimeType(ContentService.MimeType.JSON);
   },
 
   /**
@@ -976,13 +976,11 @@ const SlackApprovalSystem = {
         const applicationId = privateMetadata.applicationId;
         console.log('[SlackApproval] キャンセル却下確定:', applicationId);
 
-        // 却下処理実行
+        // 却下処理実行（通知送信は一旦スキップして軽量化）
         const result = this.rejectCancelReport(applicationId, user, rejectionReason);
+        console.log('[SlackApproval] 却下処理完了:', result.success);
 
-        if (result.success) {
-          // 🔥 加盟店に通知を送信 🔥
-          this.sendRejectionNotification(applicationId, rejectionReason, 'cancel');
-        }
+        // TODO: 通知送信は別途トリガーで実行予定
 
         return this.createSlackResponse();
       }
@@ -991,13 +989,11 @@ const SlackApprovalSystem = {
         const extensionId = privateMetadata.extensionId;
         console.log('[SlackApproval] 期限延長却下確定:', extensionId);
 
-        // 却下処理実行
+        // 却下処理実行（通知送信は一旦スキップして軽量化）
         const result = this.rejectExtensionRequest(extensionId, user, rejectionReason);
+        console.log('[SlackApproval] 却下処理完了:', result.success);
 
-        if (result.success) {
-          // 🔥 加盟店に通知を送信 🔥
-          this.sendRejectionNotification(extensionId, rejectionReason, 'extension');
-        }
+        // TODO: 通知送信は別途トリガーで実行予定
 
         return this.createSlackResponse();
       }
