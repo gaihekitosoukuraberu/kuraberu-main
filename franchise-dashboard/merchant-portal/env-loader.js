@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1724 - 2025-11-15 - 日付選択に「その他」追加 + AI生成文改善）
-  CACHE_BUSTER: '1763186400000'
+  // キャッシュバスター（V1725 - 2025-11-15 - Content-Type修正でFailed to fetch解消）
+  CACHE_BUSTER: '1763186600000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
