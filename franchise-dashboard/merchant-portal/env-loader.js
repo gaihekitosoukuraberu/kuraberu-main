@@ -22,14 +22,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- ヘッダーステータスクリック機能 @1622
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbzvbqgI2760Ogt3Wu8tOeSqs-qJ3708KrEgRuFF9A_uXG_8Zlz3Lfwe06eRCVg3ssnvfg/exec',
+  // プライマリGAS URL（メイン運用）- キャンセル申請システム有効化 @1707
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbzv4yhR1Kjh-FYvIq1qGAanEY-fXbz3eWE9gET00JwTKA4SwWtT55yaHHnUTQrUwGI_7Q/exec',
 
-  // フォールバックGAS URL（バックアップ）- @1622
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzvbqgI2760Ogt3Wu8tOeSqs-qJ3708KrEgRuFF9A_uXG_8Zlz3Lfwe06eRCVg3ssnvfg/exec',
+  // フォールバックGAS URL（バックアップ）- @1707
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzv4yhR1Kjh-FYvIq1qGAanEY-fXbz3eWE9gET00JwTKA4SwWtT55yaHHnUTQrUwGI_7Q/exec',
 
-  // 緊急時URL（最終フォールバック）- @1622
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbzvbqgI2760Ogt3Wu8tOeSqs-qJ3708KrEgRuFF9A_uXG_8Zlz3Lfwe06eRCVg3ssnvfg/exec',
+  // 緊急時URL（最終フォールバック）- @1707
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbzv4yhR1Kjh-FYvIq1qGAanEY-fXbz3eWE9gET00JwTKA4SwWtT55yaHHnUTQrUwGI_7Q/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1706 - 2025-11-14 02:40 - キャンセル申請JS修正：searchCancelCases未定義エラー解決）
-  CACHE_BUSTER: '1763126006727'
+  // キャッシュバスター（V1707 - 2025-11-14 02:50 - 最新GAS URL適用：キャンセル申請API有効化）
+  CACHE_BUSTER: '1763126588139'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
