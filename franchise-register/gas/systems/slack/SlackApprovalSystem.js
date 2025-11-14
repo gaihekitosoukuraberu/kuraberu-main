@@ -1073,9 +1073,20 @@ const SlackApprovalSystem = {
         console.log('[SlackApproval] Message TS保存完了');
       }
 
-      // 🚨 即座にレスポンスを返す（処理はトリガーで後で実行）
-      console.log('[SlackApproval] データ保存完了、即座にレスポンス返却');
-      return this.createSlackResponse();
+      // 🚨 即座にレスポンスを返す準備
+      console.log('[SlackApproval] データ保存完了、レスポンス準備中');
+      const response = this.createSlackResponse();
+
+      // 🔥 レスポンス準備後、即座にキュー処理を実行（非同期的に）
+      console.log('[SlackApproval] 却下キュー処理を即座に実行中...');
+      try {
+        this.processRejectionQueue();
+      } catch (queueError) {
+        console.error('[SlackApproval] キュー処理エラー（ログのみ、レスポンスには影響なし）:', queueError);
+      }
+
+      console.log('[SlackApproval] レスポンス返却');
+      return response;
 
     } catch (error) {
       console.error('[SlackApproval] ❌ エラー:', error);
