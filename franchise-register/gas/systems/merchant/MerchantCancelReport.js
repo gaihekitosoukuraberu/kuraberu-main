@@ -68,6 +68,7 @@ var MerchantCancelReport = {
       const workCategoryIdx = headers.indexOf('工事種別');
       const deliveredAtIdx = headers.indexOf('配信日時');
       const contractMerchantIdIdx = headers.indexOf('成約加盟店ID');
+      const callHistoryIdx = headers.indexOf('架電履歴');
 
       // 既にキャンセル申請済みのCV IDを取得
       const appliedCvIds = new Set();
@@ -141,6 +142,30 @@ var MerchantCancelReport = {
           isWithinDeadline = today <= deadlineDate;
         }
 
+        // 架電履歴を解析
+        let callHistory = [];
+        let phoneCallCount = 0;
+        let smsCount = 0;
+        let lastContactDate = null;
+
+        if (callHistoryIdx >= 0 && row[callHistoryIdx]) {
+          try {
+            callHistory = JSON.parse(row[callHistoryIdx]);
+            if (Array.isArray(callHistory)) {
+              phoneCallCount = callHistory.filter(h => h.type === '電話').length;
+              smsCount = callHistory.filter(h => h.type === 'SMS').length;
+
+              // 最終連絡日時を取得
+              if (callHistory.length > 0) {
+                const sortedHistory = callHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+                lastContactDate = sortedHistory[0].date;
+              }
+            }
+          } catch (e) {
+            console.error('[MerchantCancelReport] 架電履歴パースエラー:', e);
+          }
+        }
+
         // 案件情報を追加
         cancelableCases.push({
           cvId: cvId,
@@ -152,7 +177,11 @@ var MerchantCancelReport = {
           daysElapsed: daysElapsed,
           deadlineDate: deadlineDate,
           isWithinDeadline: isWithinDeadline,
-          managementStatus: managementStatus
+          managementStatus: managementStatus,
+          callHistory: callHistory,
+          phoneCallCount: phoneCallCount,
+          smsCount: smsCount,
+          lastContactDate: lastContactDate
         });
       }
 

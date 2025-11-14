@@ -7,6 +7,7 @@
 (function() {
   const cacheBuster = new Date().getTime();
   document.write("<script src=\"merchant-portal/env-loader.js?v=" + cacheBuster + "\"><\/script>");
+  document.write("<script src=\"merchant-portal/cancel-reasons.js?v=" + cacheBuster + "\"><\/script>");
 })();
 </script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -5046,10 +5047,6 @@
                                 <div class="bg-gray-50 rounded-lg p-4 space-y-3">
                                     <div class="grid grid-cols-2 gap-4">
                                         <div>
-                                            <p class="text-xs text-gray-600">CV ID</p>
-                                            <p class="font-semibold" id="cancelModalCvId"></p>
-                                        </div>
-                                        <div>
                                             <p class="text-xs text-gray-600">顧客名</p>
                                             <p class="font-semibold" id="cancelModalCustomerName"></p>
                                         </div>
@@ -5061,7 +5058,7 @@
                                             <p class="text-xs text-gray-600">配信日</p>
                                             <p class="font-semibold" id="cancelModalDeliveredDate"></p>
                                         </div>
-                                        <div class="col-span-2">
+                                        <div>
                                             <p class="text-xs text-gray-600">申請期限</p>
                                             <p class="font-semibold text-red-600" id="cancelModalDeadline"></p>
                                         </div>
@@ -19068,8 +19065,7 @@
                 if (result.success) {
                     cancelSelectedCase = result.cases.find(c => c.cvId === cvId);
                     if (cancelSelectedCase) {
-                        // 顧客情報を表示
-                        document.getElementById('cancelModalCvId').textContent = cancelSelectedCase.cvId;
+                        // 顧客情報を表示（CV IDは非表示）
                         document.getElementById('cancelModalCustomerName').textContent = cancelSelectedCase.customerName;
                         document.getElementById('cancelModalPhone').textContent = cancelSelectedCase.tel;
                         document.getElementById('cancelModalDeliveredDate').textContent = new Date(cancelSelectedCase.deliveredAt).toLocaleDateString('ja-JP');
@@ -19123,29 +19119,36 @@
             // ステップ2: カテゴリ一覧を表示
             if (step === 2) {
                 const categoryList = document.getElementById('cancelCategoryList');
-                categoryList.innerHTML = CANCEL_REASONS.categories.map(cat => `
-                    <div onclick="selectCancelCategory('${cat.id}')"
-                         class="p-4 border rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-500 transition-colors">
-                        <p class="font-semibold">${cat.label}</p>
-                        ${cat.requiresFollowUp ? `<p class="text-xs text-red-600 mt-1">※ フォローアップ履歴必須（電話${cat.minPhoneCalls}回以上、SMS${cat.minSMS}回以上）</p>` : ''}
-                    </div>
-                `).join('');
+                if (window.CancelReasons && window.CancelReasons.categories) {
+                    categoryList.innerHTML = window.CancelReasons.categories.map(cat => `
+                        <div onclick="selectCancelCategory('${cat.id}')"
+                             class="p-4 border rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-500 transition-colors">
+                            <p class="font-semibold">${cat.label}</p>
+                        </div>
+                    `).join('');
+                } else {
+                    console.error('CancelReasonsが読み込まれていません');
+                    categoryList.innerHTML = '<p class="text-red-500">カテゴリの読み込みに失敗しました</p>';
+                }
             }
 
             // ステップ4: 確認画面
             if (step === 4) {
-                const category = CANCEL_REASONS.categories.find(c => c.id === cancelSelectedCategory);
-                const subCategory = CANCEL_REASONS.subCategories[cancelSelectedCategory].find(sc => sc.id === cancelSelectedSubCategory);
+                if (window.CancelReasons) {
+                    const category = window.CancelReasons.getCategoryById(cancelSelectedCategory);
+                    const subCats = window.CancelReasons.getSubCategories(cancelSelectedCategory);
+                    const subCategory = subCats.find(sc => sc.id === cancelSelectedSubCategory);
 
-                document.getElementById('cancelConfirmCategory').textContent = category.label;
-                document.getElementById('cancelConfirmDetail').textContent = subCategory.label;
+                    document.getElementById('cancelConfirmCategory').textContent = category ? category.label : '';
+                    document.getElementById('cancelConfirmDetail').textContent = subCategory ? subCategory.label : '';
 
-                const answersHtml = Object.entries(cancelQuestionAnswers).map(([key, value]) => `
-                    <div class="bg-white p-2 rounded">
-                        <span class="font-semibold">${key}:</span> ${value}
-                    </div>
-                `).join('');
-                document.getElementById('cancelConfirmAnswers').innerHTML = answersHtml;
+                    const answersHtml = Object.entries(cancelQuestionAnswers).map(([key, value]) => `
+                        <div class="bg-white p-2 rounded">
+                            <span class="font-semibold">${key}:</span> ${value}
+                        </div>
+                    `).join('');
+                    document.getElementById('cancelConfirmAnswers').innerHTML = answersHtml;
+                }
             }
         }
 
@@ -19154,7 +19157,7 @@
             cancelSelectedCategory = categoryId;
 
             // サブカテゴリ一覧を表示
-            const subCategories = CANCEL_REASONS.subCategories[categoryId];
+            const subCategories = window.CancelReasons.getSubCategories(categoryId);
             const subCategoryList = document.getElementById('cancelSubCategoryList');
             subCategoryList.innerHTML = subCategories.map(subCat => `
                 <div onclick="selectCancelSubCategory('${subCat.id}')"
@@ -19162,6 +19165,10 @@
                     <p class="font-semibold">${subCat.label}</p>
                 </div>
             `).join('');
+
+            // 質問フォームとボタンを非表示
+            document.getElementById('cancelQuestionsForm').classList.add('hidden');
+            document.getElementById('cancelStep3NextBtn').classList.add('hidden');
 
             cancelGoToStep(3);
         }
@@ -19171,51 +19178,230 @@
             cancelSelectedSubCategory = subCategoryId;
             cancelQuestionAnswers = {};
 
-            // 質問フォームを生成（簡易版）
+            // 質問リストを取得
+            const questions = window.CancelReasons.getQuestions(cancelSelectedCategory, subCategoryId);
             const questionsForm = document.getElementById('cancelQuestionsForm');
-            questionsForm.innerHTML = `
+
+            if (!questions || questions.length === 0) {
+                // 質問がない場合は次へボタンのみ表示
+                questionsForm.innerHTML = '';
+                questionsForm.classList.remove('hidden');
+                document.getElementById('cancelStep3NextBtn').classList.remove('hidden');
+                return;
+            }
+
+            // 電話回数・SMS回数を自動表示
+            const phoneCallCount = cancelSelectedCase.phoneCallCount || 0;
+            const smsCount = cancelSelectedCase.smsCount || 0;
+
+            let formHtml = `
                 <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-semibold mb-2">詳細情報を入力してください</label>
-                        <textarea id="cancelDetailInput" rows="4" class="w-full px-4 py-2 border rounded-lg"
-                                  placeholder="キャンセル理由の詳細を記入してください"></textarea>
+                    <!-- 架電履歴情報（自動表示） -->
+                    <div class="bg-blue-50 p-3 rounded-lg">
+                        <p class="text-sm font-semibold text-blue-900 mb-2">フォローアップ履歴</p>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                                <span class="text-gray-600">電話回数:</span>
+                                <span class="font-semibold text-blue-900">${phoneCallCount}回</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-600">SMS回数:</span>
+                                <span class="font-semibold text-blue-900">${smsCount}回</span>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-2">電話回数</label>
-                        <input type="number" id="cancelPhoneCount" class="w-full px-4 py-2 border rounded-lg" min="0">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-2">SMS回数</label>
-                        <input type="number" id="cancelSmsCount" class="w-full px-4 py-2 border rounded-lg" min="0">
-                    </div>
-                </div>
             `;
+
+            // 各質問のHTML生成
+            questions.forEach((q, index) => {
+                formHtml += generateQuestionHTML(q, index);
+            });
+
+            formHtml += '</div>';
+            questionsForm.innerHTML = formHtml;
+
+            // ラジオボタンやセレクトの変更イベントを設定（followUp対応）
+            questions.forEach((q, index) => {
+                if (q.followUp && (q.type === 'radio' || q.type === 'select')) {
+                    const inputName = `question_${index}`;
+                    const inputs = document.getElementsByName(inputName);
+                    inputs.forEach(input => {
+                        input.addEventListener('change', function() {
+                            handleFollowUpQuestion(q, index, this.value);
+                        });
+                    });
+                }
+            });
+
             questionsForm.classList.remove('hidden');
             document.getElementById('cancelStep3NextBtn').classList.remove('hidden');
         }
 
-        // キャンセル申請を提出
-        async function submitCancelApplication() {
-            const category = CANCEL_REASONS.categories.find(c => c.id === cancelSelectedCategory);
-            const subCategory = CANCEL_REASONS.subCategories[cancelSelectedCategory].find(sc => sc.id === cancelSelectedSubCategory);
+        // 質問HTMLを生成
+        function generateQuestionHTML(question, index) {
+            const required = question.required ? '<span class="text-red-500">*</span>' : '';
+            let html = `<div id="question_${index}_container">`;
 
-            const detailInput = document.getElementById('cancelDetailInput')?.value || '';
-            const phoneCount = parseInt(document.getElementById('cancelPhoneCount')?.value || 0);
-            const smsCount = parseInt(document.getElementById('cancelSmsCount')?.value || 0);
+            html += `<label class="block text-sm font-semibold text-gray-700 mb-2">
+                ${question.label} ${required}
+            </label>`;
 
-            // バリデーション
-            if (category.requiresFollowUp) {
-                if (phoneCount < category.minPhoneCalls) {
-                    alert(`このキャンセル理由では最低${category.minPhoneCalls}回の電話が必要です`);
-                    return;
-                }
-                if (smsCount < category.minSMS) {
-                    alert(`このキャンセル理由では最低${category.minSMS}回のSMSが必要です`);
-                    return;
-                }
+            switch (question.type) {
+                case 'radio':
+                    html += `<div class="space-y-2">`;
+                    question.options.forEach(option => {
+                        html += `
+                            <label class="flex items-center">
+                                <input type="radio" name="question_${index}" value="${option}"
+                                       ${question.required ? 'required' : ''}
+                                       class="mr-2">
+                                <span>${option}</span>
+                            </label>
+                        `;
+                    });
+                    html += `</div>`;
+                    break;
+
+                case 'select':
+                    html += `<select id="question_${index}" name="question_${index}"
+                                     ${question.required ? 'required' : ''}
+                                     class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                        <option value="">選択してください</option>`;
+                    question.options.forEach(option => {
+                        html += `<option value="${option}">${option}</option>`;
+                    });
+                    html += `</select>`;
+                    break;
+
+                case 'textarea':
+                    html += `<textarea id="question_${index}" name="question_${index}" rows="4"
+                                       ${question.required ? 'required' : ''}
+                                       placeholder="${question.placeholder || ''}"
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"></textarea>`;
+                    break;
+
+                case 'number':
+                    html += `<input type="number" id="question_${index}" name="question_${index}"
+                                    ${question.required ? 'required' : ''}
+                                    ${question.min !== undefined ? `min="${question.min}"` : ''}
+                                    placeholder="${question.placeholder || ''}"
+                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500">`;
+                    break;
+
+                case 'datetime-local':
+                    html += `<input type="datetime-local" id="question_${index}" name="question_${index}"
+                                    ${question.required ? 'required' : ''}
+                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500">`;
+                    break;
+
+                case 'text':
+                default:
+                    html += `<input type="text" id="question_${index}" name="question_${index}"
+                                    ${question.required ? 'required' : ''}
+                                    placeholder="${question.placeholder || ''}"
+                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500">`;
+                    break;
             }
 
+            html += `<div id="question_${index}_followup"></div>`;
+            html += '</div>';
+
+            return html;
+        }
+
+        // followUp質問を処理
+        function handleFollowUpQuestion(question, index, selectedValue) {
+            const followUpContainer = document.getElementById(`question_${index}_followup`);
+
+            if (!question.followUp || !question.followUp[selectedValue]) {
+                // followUpがない場合はクリア
+                followUpContainer.innerHTML = '';
+                return;
+            }
+
+            // followUp質問を生成
+            const followUpQuestions = question.followUp[selectedValue];
+            let followUpHtml = '<div class="ml-4 mt-3 space-y-3 border-l-2 border-blue-300 pl-4">';
+
+            followUpQuestions.forEach((fq, fqIndex) => {
+                const fqId = `question_${index}_followup_${fqIndex}`;
+                const required = fq.required ? '<span class="text-red-500">*</span>' : '';
+
+                followUpHtml += `<div id="${fqId}_container">`;
+                followUpHtml += `<label class="block text-sm font-semibold text-gray-700 mb-2">
+                    ${fq.label} ${required}
+                </label>`;
+
+                switch (fq.type) {
+                    case 'textarea':
+                        followUpHtml += `<textarea id="${fqId}" name="${fqId}" rows="3"
+                                                   ${fq.required ? 'required' : ''}
+                                                   placeholder="${fq.placeholder || ''}"
+                                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"></textarea>`;
+                        break;
+                    case 'text':
+                    default:
+                        followUpHtml += `<input type="text" id="${fqId}" name="${fqId}"
+                                                ${fq.required ? 'required' : ''}
+                                                placeholder="${fq.placeholder || ''}"
+                                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500">`;
+                        break;
+                }
+
+                followUpHtml += '</div>';
+            });
+
+            followUpHtml += '</div>';
+            followUpContainer.innerHTML = followUpHtml;
+        }
+
+        // キャンセル申請を提出
+        async function submitCancelApplication() {
             try {
+                // 質問フォームから回答を収集
+                const questions = window.CancelReasons.getQuestions(cancelSelectedCategory, cancelSelectedSubCategory);
+                const answers = {};
+
+                // 各質問の回答を取得
+                if (questions && questions.length > 0) {
+                    questions.forEach((q, index) => {
+                        const inputName = `question_${index}`;
+                        const element = document.querySelector(`[name="${inputName}"]`);
+
+                        if (q.type === 'radio') {
+                            const checked = document.querySelector(`[name="${inputName}"]:checked`);
+                            if (checked) {
+                                answers[q.label] = checked.value;
+
+                                // followUp回答も収集
+                                if (q.followUp && q.followUp[checked.value]) {
+                                    q.followUp[checked.value].forEach((fq, fqIndex) => {
+                                        const fqId = `question_${index}_followup_${fqIndex}`;
+                                        const fqElement = document.getElementById(fqId);
+                                        if (fqElement && fqElement.value) {
+                                            answers[fq.label] = fqElement.value;
+                                        }
+                                    });
+                                }
+                            }
+                        } else if (element) {
+                            if (element.value) {
+                                answers[q.label] = element.value;
+                            }
+                        }
+                    });
+                }
+
+                // カテゴリとサブカテゴリ情報
+                const category = window.CancelReasons.getCategoryById(cancelSelectedCategory);
+                const subCats = window.CancelReasons.getSubCategories(cancelSelectedCategory);
+                const subCategory = subCats.find(sc => sc.id === cancelSelectedSubCategory);
+
+                // 架電履歴から自動取得したデータを使用
+                const phoneCount = cancelSelectedCase.phoneCallCount || 0;
+                const smsCount = cancelSelectedCase.smsCount || 0;
+                const lastContactDate = cancelSelectedCase.lastContactDate || new Date().toISOString();
+
                 const merchantId = window.merchantId;
                 const merchantName = window.merchantData?.['会社名'] || '';
                 const applicantName = window.merchantData?.['営業担当者氏名'] || currentUser || '';
@@ -19224,6 +19410,11 @@
                     alert('ログインしていません');
                     return;
                 }
+
+                // 回答を整形して追加情報として保存
+                const answersText = Object.entries(answers).map(([key, value]) => {
+                    return `${key}: ${value}`;
+                }).join('\n');
 
                 const params = {
                     action: 'submitCancelReport',
@@ -19236,13 +19427,15 @@
                     reasonData: JSON.stringify({
                         category: cancelSelectedCategory,
                         subCategory: cancelSelectedSubCategory,
-                        detail: detailInput
+                        answers: answers
                     }),
-                    additionalInfo1: detailInput,
+                    additionalInfo1: answersText,
                     phoneCallCount: phoneCount,
                     smsCount: smsCount,
-                    lastContactDate: new Date().toISOString()
+                    lastContactDate: lastContactDate
                 };
+
+                console.log('[キャンセル申請] 送信データ:', params);
 
                 const response = await fetch(CANCEL_API_URL, {
                     method: 'POST',
