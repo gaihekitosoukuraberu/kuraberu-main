@@ -348,3 +348,53 @@ function setOpenRouterKey(apiKey) {
   console.log('✅ OPENROUTER_API_KEY設定完了');
   console.log('プレビュー:', apiKey.substring(0, 20) + '...');
 }
+
+/**
+ * モーダル送信処理のテスト（view_submission）
+ * test-notification-system.js
+ */
+function testViewSubmission() {
+  console.log('===== モーダル送信処理テスト開始 =====\n');
+
+  const testPayload = {
+    type: 'view_submission',
+    view: {
+      callback_id: 'cancel_rejection_modal',
+      state: {
+        values: {
+          rejection_reason_block: {
+            rejection_reason_input: {
+              value: 'テスト却下理由：追客回数が不足しています'
+            }
+          }
+        }
+      },
+      private_metadata: JSON.stringify({
+        applicationId: 'CN251114155411',
+        user: 'test_user'
+      })
+    },
+    user: {
+      name: 'test_user',
+      username: 'test_user',
+      id: 'U12345'
+    }
+  };
+
+  console.log('テストペイロード:', JSON.stringify(testPayload, null, 2));
+  console.log('\nhandleViewSubmission実行中...\n');
+
+  const result = SlackApprovalSystem.handleViewSubmission(testPayload);
+
+  console.log('\n結果:', result);
+  console.log('\n===== 一時処理キューシートを確認してください =====');
+  console.log('スプレッドシートに「一時処理キュー」シートが作成され、');
+  console.log('以下のデータが書き込まれているはずです:');
+  console.log('- タイプ: cancel_rejection');
+  console.log('- ID: CN251114155411');
+  console.log('- ユーザー: test_user');
+  console.log('- 却下理由: テスト却下理由：追客回数が不足しています');
+  console.log('- 処理済み: false');
+
+  return result;
+}
