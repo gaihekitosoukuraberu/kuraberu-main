@@ -19285,6 +19285,26 @@
                         });
                     });
                 }
+
+                // dynamicOptions === 'past7days' の場合、「その他」選択時の追加質問を表示
+                if (q.dynamicOptions === 'past7days') {
+                    const selectElement = document.getElementById(`question_${index}`);
+                    const otherDaysDiv = document.getElementById(`question_${index}_other_days`);
+                    const daysAgoSelect = document.getElementById(`question_${index}_days_ago`);
+
+                    if (selectElement && otherDaysDiv && daysAgoSelect) {
+                        selectElement.addEventListener('change', function() {
+                            if (this.value === 'other') {
+                                otherDaysDiv.classList.remove('hidden');
+                                daysAgoSelect.setAttribute('required', 'required');
+                            } else {
+                                otherDaysDiv.classList.add('hidden');
+                                daysAgoSelect.removeAttribute('required');
+                                daysAgoSelect.value = '';
+                            }
+                        });
+                    }
+                }
             });
 
             questionsForm.classList.remove('hidden');
@@ -19346,6 +19366,28 @@
                     }
 
                     html += `</select>`;
+
+                    // 「その他」選択時の追加質問エリア（過去7日間の日付選択の場合のみ）
+                    if (question.dynamicOptions === 'past7days') {
+                        html += `
+                            <div id="question_${index}_other_days" class="mt-3 hidden">
+                                <label class="block text-sm font-semibold text-gray-900 mb-2">
+                                    おおよそ何日前ですか？ <span class="text-red-500">*</span>
+                                </label>
+                                <select id="question_${index}_days_ago" name="question_${index}_days_ago"
+                                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                                    <option value="">選択してください</option>`;
+
+                        // 8日前〜60日前まで生成
+                        for (let days = 8; days <= 60; days++) {
+                            html += `<option value="${days}">約${days}日前</option>`;
+                        }
+
+                        html += `
+                                </select>
+                            </div>`;
+                    }
+
                     break;
 
                 case 'textarea':
@@ -19549,6 +19591,14 @@
                         } else if (element) {
                             if (element.value) {
                                 answers[q.label] = element.value;
+
+                                // dynamicOptions === 'past7days' で「その他」が選ばれている場合、days_agoも収集
+                                if (q.dynamicOptions === 'past7days' && element.value === 'other') {
+                                    const daysAgoElement = document.getElementById(`question_${index}_days_ago`);
+                                    if (daysAgoElement && daysAgoElement.value) {
+                                        answers['おおよそ何日前ですか？'] = daysAgoElement.value;
+                                    }
+                                }
                             }
                         }
                     });
