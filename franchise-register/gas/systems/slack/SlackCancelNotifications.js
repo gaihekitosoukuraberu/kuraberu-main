@@ -36,10 +36,12 @@
  */
 function sendSlackCancelNotification(data) {
   try {
-    const webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
+    // Bot Tokenを使用（Webhook代わり）- メッセージ更新のため
+    const botToken = PropertiesService.getScriptProperties().getProperty('SLACK_BOT_TOKEN');
+    const slackChannel = PropertiesService.getScriptProperties().getProperty('SLACK_CHANNEL_ID') || '#加盟店管理';
 
-    if (!webhookUrl) {
-      console.error('[SlackCancel] Webhook URLが設定されていません');
+    if (!botToken) {
+      console.error('[SlackCancel] SLACK_BOT_TOKENが設定されていません');
       return { success: false, message: 'Slack設定エラー' };
     }
 
@@ -121,20 +123,12 @@ function sendSlackCancelNotification(data) {
       });
     }
 
-    const message = {
+    // Bot Token APIペイロード（chat.postMessage）
+    const payload = {
+      channel: slackChannel,
       text: competitorCheck.hasActiveCompetitors
-        ? `@channel 🚫⚠️ キャンセル申請（他社追客中）`
-        : `@channel 🚫 キャンセル申請が提出されました`,
-      attachments: [
-        {
-          color: competitorCheck.hasActiveCompetitors ? 'warning' : 'good',
-          title: 'キャンセル申請詳細',
-          text: competitorWarningText || undefined,
-          fields: fields,
-          footer: '外壁塗装くらべるAI - 加盟店管理システム',
-          ts: Math.floor(Date.now() / 1000)
-        }
-      ],
+        ? `🚫⚠️ キャンセル申請（他社追客中）`
+        : `🚫 キャンセル申請が提出されました`,
       blocks: [
         {
           type: 'section',
@@ -186,36 +180,40 @@ function sendSlackCancelNotification(data) {
     };
 
     // デバッグ: 送信するJSONをログ出力
-    console.log('[SlackCancel] 送信するペイロード:', JSON.stringify(message, null, 2));
+    console.log('[SlackCancel] 送信するペイロード:', JSON.stringify(payload, null, 2));
 
     const options = {
       method: 'post',
       contentType: 'application/json',
-      payload: JSON.stringify(message),
+      headers: {
+        'Authorization': 'Bearer ' + botToken
+      },
+      payload: JSON.stringify(payload),
       muteHttpExceptions: true
     };
 
-    const response = UrlFetchApp.fetch(webhookUrl, options);
+    const response = UrlFetchApp.fetch('https://slack.com/api/chat.postMessage', options);
+    const responseText = response.getContentText();
+    console.log('[SlackCancel] Slack APIレスポンス:', responseText);
 
-    if (response.getResponseCode() === 200) {
+    const responseData = JSON.parse(responseText);
+
+    if (responseData.ok) {
       console.log('[SlackCancel] 通知送信成功:', data.applicationId);
+      console.log('[SlackCancel] Message TS:', responseData.ts);
+      console.log('[SlackCancel] Channel ID:', responseData.channel);
+
       return {
         success: true,
-        message: 'Slack通知を送信しました'
+        message: 'Slack通知を送信しました',
+        channelId: responseData.channel,
+        messageTs: responseData.ts
       };
     } else {
-      const errorText = response.getContentText();
-      console.error('[SlackCancel] 通知送信失敗 (Status:', response.getResponseCode(), ')');
-      console.error('[SlackCancel] エラー詳細:', errorText);
-      try {
-        const errorJson = JSON.parse(errorText);
-        console.error('[SlackCancel] Slackエラー:', JSON.stringify(errorJson, null, 2));
-      } catch (e) {
-        // JSON parse失敗時はそのまま表示
-      }
+      console.error('[SlackCancel] 通知送信失敗:', responseData.error);
       return {
         success: false,
-        message: 'Slack通知の送信に失敗しました'
+        message: 'Slack通知の送信に失敗しました: ' + responseData.error
       };
     }
 
@@ -245,10 +243,12 @@ function sendSlackCancelNotification(data) {
  */
 function sendSlackExtensionNotification(data) {
   try {
-    const webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
+    // Bot Tokenを使用（Webhook代わり）- メッセージ更新のため
+    const botToken = PropertiesService.getScriptProperties().getProperty('SLACK_BOT_TOKEN');
+    const slackChannel = PropertiesService.getScriptProperties().getProperty('SLACK_CHANNEL_ID') || '#加盟店管理';
 
-    if (!webhookUrl) {
-      console.error('[SlackExtension] Webhook URLが設定されていません');
+    if (!botToken) {
+      console.error('[SlackExtension] SLACK_BOT_TOKENが設定されていません');
       return { success: false, message: 'Slack設定エラー' };
     }
 
@@ -266,36 +266,10 @@ function sendSlackExtensionNotification(data) {
     // シンプルな構造に統一
     const summaryText = `*⏰ キャンセル期限延長申請*\n申請ID: ${data.extensionId}\n顧客: ${data.customerName} | 加盟店: ${data.merchantName}`;
 
-    const message = {
-      text: `@channel ⏰ キャンセル期限延長申請が提出されました`,
-      attachments: [
-        {
-          color: 'good',
-          title: '期限延長申請',
-          fields: [
-            {
-              title: '申請ID',
-              value: data.extensionId,
-              short: true
-            },
-            {
-              title: '顧客名',
-              value: data.customerName,
-              short: true
-            },
-            {
-              title: '加盟店',
-              value: data.merchantName,
-              short: true
-            },
-            {
-              title: '延長後期限',
-              value: extendedDeadlineStr,
-              short: true
-            }
-          ]
-        }
-      ],
+    // Bot Token APIペイロード（chat.postMessage）
+    const payload = {
+      channel: slackChannel,
+      text: `⏰ キャンセル期限延長申請が提出されました`,
       blocks: [
         {
           type: 'section',
@@ -347,23 +321,35 @@ function sendSlackExtensionNotification(data) {
     const options = {
       method: 'post',
       contentType: 'application/json',
-      payload: JSON.stringify(message),
+      headers: {
+        'Authorization': 'Bearer ' + botToken
+      },
+      payload: JSON.stringify(payload),
       muteHttpExceptions: true
     };
 
-    const response = UrlFetchApp.fetch(webhookUrl, options);
+    const response = UrlFetchApp.fetch('https://slack.com/api/chat.postMessage', options);
+    const responseText = response.getContentText();
+    console.log('[SlackExtension] Slack APIレスポンス:', responseText);
 
-    if (response.getResponseCode() === 200) {
+    const responseData = JSON.parse(responseText);
+
+    if (responseData.ok) {
       console.log('[SlackExtension] 通知送信成功:', data.extensionId);
+      console.log('[SlackExtension] Message TS:', responseData.ts);
+      console.log('[SlackExtension] Channel ID:', responseData.channel);
+
       return {
         success: true,
-        message: 'Slack通知を送信しました'
+        message: 'Slack通知を送信しました',
+        channelId: responseData.channel,
+        messageTs: responseData.ts
       };
     } else {
-      console.error('[SlackExtension] 通知送信失敗:', response.getContentText());
+      console.error('[SlackExtension] 通知送信失敗:', responseData.error);
       return {
         success: false,
-        message: 'Slack通知の送信に失敗しました'
+        message: 'Slack通知の送信に失敗しました: ' + responseData.error
       };
     }
 

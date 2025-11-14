@@ -122,7 +122,23 @@ const SlackApprovalSystem = {
 
         // Slackメッセージ情報を取得
         const channelId = payload.channel?.id || payload.container?.channel_id;
-        const messageTs = payload.message?.ts || payload.container?.message_ts;
+        let messageTs = payload.message?.ts || payload.container?.message_ts;
+
+        // デバッグ: Message TSの型と値を確認
+        console.log('[SlackApproval] ===== Message TS デバッグ =====');
+        console.log('[SlackApproval] payload.message?.ts:', payload.message?.ts);
+        console.log('[SlackApproval] payload.container?.message_ts:', payload.container?.message_ts);
+        console.log('[SlackApproval] messageTs (raw):', messageTs);
+        console.log('[SlackApproval] messageTs type:', typeof messageTs);
+
+        // Message TSを文字列に変換して小数点以下を保持
+        if (messageTs && typeof messageTs === 'number') {
+          messageTs = messageTs.toString();
+          console.log('[SlackApproval] ⚠️ Message TSが数値だったため文字列に変換:', messageTs);
+        }
+
+        console.log('[SlackApproval] messageTs (最終):', messageTs);
+        console.log('[SlackApproval] Channel ID:', channelId);
 
         // モーダルを開く
         this.openCancelRejectionModal(triggerId, applicationId, user, channelId, messageTs);
@@ -150,7 +166,20 @@ const SlackApprovalSystem = {
 
         // Slackメッセージ情報を取得
         const channelId = payload.channel?.id || payload.container?.channel_id;
-        const messageTs = payload.message?.ts || payload.container?.message_ts;
+        let messageTs = payload.message?.ts || payload.container?.message_ts;
+
+        // デバッグ: Message TSの型と値を確認
+        console.log('[SlackApproval] ===== Message TS デバッグ =====');
+        console.log('[SlackApproval] messageTs (raw):', messageTs);
+        console.log('[SlackApproval] messageTs type:', typeof messageTs);
+
+        // Message TSを文字列に変換して小数点以下を保持
+        if (messageTs && typeof messageTs === 'number') {
+          messageTs = messageTs.toString();
+          console.log('[SlackApproval] ⚠️ Message TSが数値だったため文字列に変換:', messageTs);
+        }
+
+        console.log('[SlackApproval] messageTs (最終):', messageTs);
 
         // モーダルを開く
         this.openExtensionRejectionModal(triggerId, extensionId, user, channelId, messageTs);

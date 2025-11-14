@@ -350,6 +350,22 @@ function setOpenRouterKey(apiKey) {
 }
 
 /**
+ * Slack Channel IDを設定する関数
+ * test-notification-system.js
+ *
+ * 使い方:
+ * GASエディタでこの関数を実行するだけ（デフォルトでDMに送信）
+ */
+function setSlackChannelId() {
+  // デフォルトはあなたのDM Channel ID
+  const channelId = 'D0973BJFB19';
+
+  PropertiesService.getScriptProperties().setProperty('SLACK_CHANNEL_ID', channelId);
+  console.log('✅ SLACK_CHANNEL_ID設定完了');
+  console.log('Channel ID:', channelId);
+}
+
+/**
  * モーダル送信処理のテスト（view_submission）
  * test-notification-system.js
  */
