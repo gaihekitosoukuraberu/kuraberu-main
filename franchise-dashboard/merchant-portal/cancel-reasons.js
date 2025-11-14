@@ -67,8 +67,16 @@ const CancelReasons = {
           {
             id: 'contact_date',
             label: 'いつ繋がりましたか？',
-            type: 'datetime-local',
-            required: true
+            type: 'select',
+            required: true,
+            dynamicOptions: 'past7days' // 過去7日間の日付を動的生成
+          },
+          {
+            id: 'phone_attempts',
+            label: '電話は何回くらい架けましたか？',
+            type: 'number',
+            required: true,
+            min: 1
           },
           {
             id: 'sms_attempts',
@@ -119,8 +127,16 @@ const CancelReasons = {
           {
             id: 'contact_date',
             label: 'いつ繋がりましたか？',
-            type: 'datetime-local',
-            required: true
+            type: 'select',
+            required: true,
+            dynamicOptions: 'past7days' // 過去7日間の日付を動的生成
+          },
+          {
+            id: 'phone_attempts',
+            label: '電話は何回くらい架けましたか？',
+            type: 'number',
+            required: true,
+            min: 1
           },
           {
             id: 'sms_attempts',

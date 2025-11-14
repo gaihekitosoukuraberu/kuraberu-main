@@ -19330,9 +19330,28 @@
                                      ${question.required ? 'required' : ''}
                                      class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
                         <option value="">選択してください</option>`;
-                    question.options.forEach(option => {
-                        html += `<option value="${option}">${option}</option>`;
-                    });
+
+                    // 動的オプション生成（過去7日間の日付）
+                    if (question.dynamicOptions === 'past7days') {
+                        const today = new Date();
+                        for (let i = 0; i < 7; i++) {
+                            const date = new Date(today);
+                            date.setDate(date.getDate() - i);
+                            const dateStr = date.toLocaleDateString('ja-JP', {
+                                month: 'long',
+                                day: 'numeric',
+                                weekday: 'short'
+                            });
+                            const valueStr = date.toISOString().split('T')[0];
+                            html += `<option value="${valueStr}">${dateStr}</option>`;
+                        }
+                    } else {
+                        // 通常のオプション
+                        question.options.forEach(option => {
+                            html += `<option value="${option}">${option}</option>`;
+                        });
+                    }
+
                     html += `</select>`;
                     break;
 
