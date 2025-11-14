@@ -746,12 +746,11 @@ const SlackApprovalSystem = {
         return;
       }
 
-      // AI生成理由を取得
-      console.log('[SlackApproval] AI理由生成開始...');
-      const aiReasonResult = AIReasonGenerator.generateCancelRejectionReason(applicationData);
-      const aiReason = aiReasonResult.reason || 'AI生成に失敗しました。理由を手動で入力してください。';
+      // デフォルト却下理由を使用（Slackタイムアウト対策でAI生成はスキップ）
+      console.log('[SlackApproval] デフォルト却下理由を使用（タイムアウト対策）');
+      const aiReason = AIReasonGenerator._getDefaultCancelRejectionReason(applicationData);
 
-      console.log('[SlackApproval] AI生成理由:', aiReason);
+      console.log('[SlackApproval] 却下理由:', aiReason);
 
       // モーダルビューを構築
       const modalView = {
@@ -789,7 +788,7 @@ const SlackApprovalSystem = {
             block_id: 'rejection_reason_block',
             label: {
               type: 'plain_text',
-              text: '却下理由（AI生成・編集可能）'
+              text: '却下理由（編集可能）'
             },
             element: {
               type: 'plain_text_input',
@@ -807,7 +806,7 @@ const SlackApprovalSystem = {
             elements: [
               {
                 type: 'mrkdwn',
-                text: aiReasonResult.fallback ? '⚠️ AIフォールバック理由を使用' : '✅ AI生成理由（編集可能）'
+                text: 'ℹ️ デフォルト理由（編集可能）'
               }
             ]
           }
@@ -840,12 +839,11 @@ const SlackApprovalSystem = {
         return;
       }
 
-      // AI生成理由を取得
-      console.log('[SlackApproval] AI理由生成開始...');
-      const aiReasonResult = AIReasonGenerator.generateExtensionRejectionReason(extensionData);
-      const aiReason = aiReasonResult.reason || 'AI生成に失敗しました。理由を手動で入力してください。';
+      // デフォルト却下理由を使用（Slackタイムアウト対策でAI生成はスキップ）
+      console.log('[SlackApproval] デフォルト却下理由を使用（タイムアウト対策）');
+      const aiReason = AIReasonGenerator._getDefaultExtensionRejectionReason(extensionData);
 
-      console.log('[SlackApproval] AI生成理由:', aiReason);
+      console.log('[SlackApproval] 却下理由:', aiReason);
 
       // モーダルビューを構築
       const modalView = {
@@ -883,7 +881,7 @@ const SlackApprovalSystem = {
             block_id: 'rejection_reason_block',
             label: {
               type: 'plain_text',
-              text: '却下理由（AI生成・編集可能）'
+              text: '却下理由（編集可能）'
             },
             element: {
               type: 'plain_text_input',
@@ -901,7 +899,7 @@ const SlackApprovalSystem = {
             elements: [
               {
                 type: 'mrkdwn',
-                text: aiReasonResult.fallback ? '⚠️ AIフォールバック理由を使用' : '✅ AI生成理由（編集可能）'
+                text: 'ℹ️ デフォルト理由（編集可能）'
               }
             ]
           }
