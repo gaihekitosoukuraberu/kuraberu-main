@@ -58,6 +58,9 @@ const SlackApprovalSystem = {
    */
   handleBlockActions: function(payload) {
     try {
+      // 🚀 Bot Tokenを最初に一度だけ取得（パフォーマンス最適化）
+      const botToken = PropertiesService.getScriptProperties().getProperty('SLACK_BOT_TOKEN');
+
       const action = payload.actions[0];
       const user = payload.user?.name || payload.user?.username || payload.user?.id || 'Slackユーザー';
       const triggerId = payload.trigger_id;
@@ -116,29 +119,14 @@ const SlackApprovalSystem = {
 
       // キャンセル申請却下ボタン -> モーダルを開く
       else if (action.action_id === 'reject_cancel_report') {
-        console.log('[SlackApproval] キャンセル申請却下ボタン押下検出');
         const applicationId = action.value.replace('reject_cancel_', '');
-        console.log('[SlackApproval] 処理対象ID:', applicationId);
-
-        // Slackメッセージ情報を取得
         const channelId = payload.channel?.id || payload.container?.channel_id;
         let messageTs = payload.message?.ts || payload.container?.message_ts;
 
-        // デバッグ: Message TSの型と値を確認
-        console.log('[SlackApproval] ===== Message TS デバッグ =====');
-        console.log('[SlackApproval] payload.message?.ts:', payload.message?.ts);
-        console.log('[SlackApproval] payload.container?.message_ts:', payload.container?.message_ts);
-        console.log('[SlackApproval] messageTs (raw):', messageTs);
-        console.log('[SlackApproval] messageTs type:', typeof messageTs);
-
-        // Message TSを文字列に変換して小数点以下を保持
+        // Message TSを文字列に変換して精度保持
         if (messageTs && typeof messageTs === 'number') {
           messageTs = messageTs.toString();
-          console.log('[SlackApproval] ⚠️ Message TSが数値だったため文字列に変換:', messageTs);
         }
-
-        console.log('[SlackApproval] messageTs (最終):', messageTs);
-        console.log('[SlackApproval] Channel ID:', channelId);
 
         // モーダルを開く
         this.openCancelRejectionModal(triggerId, applicationId, user, channelId, messageTs);
@@ -775,10 +763,6 @@ const SlackApprovalSystem = {
    */
   openCancelRejectionModal: function(triggerId, applicationId, user, channelId, messageTs) {
     try {
-      console.log('[SlackApproval] キャンセル却下モーダル表示開始:', applicationId);
-
-      // 🔥 タイムアウト対策：データ取得をスキップして固定の却下理由を使用
-      console.log('[SlackApproval] 固定の却下理由を使用（3秒タイムアウト対策）');
       const aiReason = '追客回数が不足しているため、キャンセルは承認できません。お客様のニーズを十分に把握するため、もう少し追客を続けてください。';
 
       // モーダルビューを構築
@@ -862,10 +846,6 @@ const SlackApprovalSystem = {
    */
   openExtensionRejectionModal: function(triggerId, extensionId, user, channelId, messageTs) {
     try {
-      console.log('[SlackApproval] 期限延長却下モーダル表示開始:', extensionId);
-
-      // 🔥 タイムアウト対策：データ取得をスキップして固定の却下理由を使用
-      console.log('[SlackApproval] 固定の却下理由を使用（3秒タイムアウト対策）');
       const aiReason = '期限延長の理由が不十分です。より具体的な理由とアポイント予定日を明記して再申請してください。';
 
       // モーダルビューを構築
@@ -1219,6 +1199,7 @@ const SlackApprovalSystem = {
       const processedIdx = 7;
 
       let processedCount = 0;
+      const processedIds = new Set();  // 🔥 重複処理を防止
 
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
@@ -1235,6 +1216,14 @@ const SlackApprovalSystem = {
         const reason = row[reasonIdx];
         const channelId = row[channelIdIdx];
         let messageTs = row[messageTsIdx];
+
+        // 🔥 同じIDを複数回処理しないようにチェック
+        if (processedIds.has(id)) {
+          console.log(`[SlackApproval] 行 ${i + 2} は既に処理済み（ID重複）: ${id}`);
+          tempSheet.getRange(i + 2, processedIdx + 1).setValue('true');  // 重複行も処理済みにする
+          continue;
+        }
+        processedIds.add(id);
 
         // Message TSの先頭に'がある場合は削除（文字列として保存したため）
         if (messageTs && typeof messageTs === 'string' && messageTs.startsWith("'")) {
@@ -1436,44 +1425,25 @@ const SlackApprovalSystem = {
         notificationStatusText = '⚠️ 通知送信結果不明';
       }
 
+      // 却下情報だけのシンプルなブロック（元のメッセージは保持しない）
       const updatedBlocks = [
         {
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: `${statusEmoji} *${typeLabel}${statusText}*\n申請ID: ${result.id}\n却下者: ${result.user}\n却下日時: ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}`
+            text: `${statusEmoji} *${typeLabel}${statusText}*\n申請ID: ${result.id}\n却下者: ${result.user}\n却下日時: ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}\n\n*却下理由:*\n${result.reason}\n\n${notificationStatusText}`
           }
-        },
-        {
-          type: 'divider'
-        },
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `*却下理由:*\n${result.reason}`
-          }
-        },
-        {
-          type: 'context',
-          elements: [
-            {
-              type: 'mrkdwn',
-              text: notificationStatusText
-            }
-          ]
         }
       ];
 
+      // 🔥 chat.updateは精度問題でエラーになるため、スレッド返信で通知
       const payload = {
         channel: channelId,
-        ts: messageTsString,
         blocks: updatedBlocks,
         text: `${statusEmoji} ${typeLabel}${statusText}`
       };
 
-      console.log('[SlackApproval] Slack API呼び出し準備完了');
-      console.log('[SlackApproval] Payload:', JSON.stringify(payload));
+      console.log('[SlackApproval] Slack API (chat.postMessage) 呼び出し中...');
 
       const options = {
         method: 'post',
@@ -1485,8 +1455,7 @@ const SlackApprovalSystem = {
         muteHttpExceptions: true
       };
 
-      console.log('[SlackApproval] Slack API (chat.update) 呼び出し中...');
-      const response = UrlFetchApp.fetch('https://slack.com/api/chat.update', options);
+      const response = UrlFetchApp.fetch('https://slack.com/api/chat.postMessage', options);
       const responseText = response.getContentText();
       console.log('[SlackApproval] Slack APIレスポンス:', responseText);
 
