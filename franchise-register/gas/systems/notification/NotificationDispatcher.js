@@ -357,12 +357,12 @@ const NotificationDispatcher = {
   _getUserEmail(userId, merchantId) {
     try {
       // TODO: 実際のユーザー管理シートから取得する実装
-      // 現在は仮実装（加盟店管理シートから取得）
+      // 現在は仮実装（加盟店登録シートから取得）
       const ss = SpreadsheetApp.getActiveSpreadsheet();
-      const merchantSheet = ss.getSheetByName('加盟店管理');
+      const merchantSheet = ss.getSheetByName('加盟店登録');
 
       if (!merchantSheet) {
-        console.error('[NotificationDispatcher] 加盟店管理シートが見つかりません');
+        console.error('[NotificationDispatcher] 加盟店登録シートが見つかりません');
         return null;
       }
 

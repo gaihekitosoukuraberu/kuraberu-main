@@ -140,6 +140,41 @@ function sendSlackCancelNotification(data) {
           }
         },
         {
+          type: 'section',
+          fields: [
+            {
+              type: 'mrkdwn',
+              text: `*CV ID*\n${data.cvId}`
+            },
+            {
+              type: 'mrkdwn',
+              text: `*電話回数*\n${data.phoneCallCount || 0}回`
+            },
+            {
+              type: 'mrkdwn',
+              text: `*SMS回数*\n${data.smsCount || 0}回`
+            },
+            {
+              type: 'mrkdwn',
+              text: `*最終連絡日時*\n${lastContactStr}`
+            }
+          ]
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*キャンセル理由*\n${data.cancelReasonCategory} - ${data.cancelReasonDetail}`
+          }
+        },
+        ...(appTextPreview ? [{
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*キャンセル申請文*\n${appTextPreview}`
+          }
+        }] : []),
+        {
           type: 'actions',
           elements: [
             {
