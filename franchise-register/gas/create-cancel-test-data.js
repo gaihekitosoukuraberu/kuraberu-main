@@ -63,9 +63,14 @@ function createCancelTestData() {
   const generateCvId = () => 'CVTEST' + Date.now() + Math.floor(Math.random() * 1000);
 
   // テストデータ3件作成
+  // CV IDを先に生成（期限延長申請で使用）
+  const cvId1 = generateCvId();
+  const cvId2 = generateCvId();
+  const cvId3 = generateCvId();
+
   const testData = [
     {
-      'CV ID': generateCvId(),
+      'CV ID': cvId1,
       登録日時: applicationDate,
       氏名: 'テスト太郎A',
       フリガナ: 'テストタロウA',
@@ -90,7 +95,7 @@ function createCancelTestData() {
       ])
     },
     {
-      'CV ID': generateCvId(),
+      'CV ID': cvId2,
       登録日時: applicationDate,
       氏名: 'テスト花子B（フォロー不足）',
       フリガナ: 'テストハナコB',
@@ -108,7 +113,7 @@ function createCancelTestData() {
       ])
     },
     {
-      'CV ID': generateCvId(),
+      'CV ID': cvId3,
       登録日時: applicationDate,
       氏名: 'テスト一郎C（期限延長済み）',
       フリガナ: 'テストイチロウC',
@@ -165,17 +170,30 @@ function createCancelTestData() {
     extendedDeadline.setDate(0); // 翌月末
     extendedDeadline.setHours(23, 59, 59, 999);
 
-    extensionSheet.getRange(extNewRow, getExtColIndex('申請日時')).setValue(now);
+    // キャンセル期限延長申請IDを生成
+    const extensionId = 'DE' + Utilities.formatDate(now, 'JST', 'yyMMddHHmmss');
+
+    extensionSheet.getRange(extNewRow, getExtColIndex('タイムスタンプ')).setValue(now);
+    extensionSheet.getRange(extNewRow, getExtColIndex('申請ID')).setValue(extensionId);
+    extensionSheet.getRange(extNewRow, getExtColIndex('CV ID')).setValue(cvId3);
+    extensionSheet.getRange(extNewRow, getExtColIndex('顧客名')).setValue('テスト一郎C（期限延長済み）');
+    extensionSheet.getRange(extNewRow, getExtColIndex('電話番号')).setValue('03-3456-7890');
+    extensionSheet.getRange(extNewRow, getExtColIndex('住所')).setValue('神奈川県横浜市');
     extensionSheet.getRange(extNewRow, getExtColIndex('加盟店ID')).setValue('FR251112004600');
-    extensionSheet.getRange(extNewRow, getExtColIndex('加盟店名')).setValue('テスト株式会社C（期限延長済み）');
-    extensionSheet.getRange(extNewRow, getExtColIndex('申請者名')).setValue('テスト営業C');
-    extensionSheet.getRange(extNewRow, getExtColIndex('顧客会社名')).setValue('テスト株式会社C（期限延長済み）');
-    extensionSheet.getRange(extNewRow, getExtColIndex('配信日')).setValue(sixDaysAgo);
-    extensionSheet.getRange(extNewRow, getExtColIndex('延長後の期限')).setValue(extendedDeadline);
-    extensionSheet.getRange(extNewRow, getExtColIndex('申請理由')).setValue('連絡がついたがアポが来週になったため');
-    extensionSheet.getRange(extNewRow, getExtColIndex('ステータス')).setValue('承認済み');
+    extensionSheet.getRange(extNewRow, getExtColIndex('加盟店名')).setValue('テスト加盟店');
+    extensionSheet.getRange(extNewRow, getExtColIndex('申請担当者')).setValue('テスト営業C');
+    extensionSheet.getRange(extNewRow, getExtColIndex('配信日時')).setValue(sixDaysAgo);
+    extensionSheet.getRange(extNewRow, getExtColIndex('経過日数')).setValue(6);
+    extensionSheet.getRange(extNewRow, getExtColIndex('申請期限')).setValue(new Date(sixDaysAgo.getTime() + 7 * 24 * 60 * 60 * 1000));
+    extensionSheet.getRange(extNewRow, getExtColIndex('期限内フラグ')).setValue('TRUE');
+    extensionSheet.getRange(extNewRow, getExtColIndex('連絡がついた日時')).setValue(sixDaysAgo);
+    extensionSheet.getRange(extNewRow, getExtColIndex('アポ予定日')).setValue(new Date(sixDaysAgo.getTime() + 14 * 24 * 60 * 60 * 1000));
+    extensionSheet.getRange(extNewRow, getExtColIndex('延長理由')).setValue('連絡がついたがアポが来週になったため');
+    extensionSheet.getRange(extNewRow, getExtColIndex('延長後期限')).setValue(extendedDeadline);
+    extensionSheet.getRange(extNewRow, getExtColIndex('承認ステータス')).setValue('承認済み');
     extensionSheet.getRange(extNewRow, getExtColIndex('承認者')).setValue('管理者テスト');
     extensionSheet.getRange(extNewRow, getExtColIndex('承認日時')).setValue(now);
+    extensionSheet.getRange(extNewRow, getExtColIndex('最終更新日時')).setValue(now);
 
     console.log('✅ 期限延長申請データを追加（承認済み）');
   }
