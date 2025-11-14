@@ -1,8 +1,12 @@
 /**
- * AI文章校正システム（OpenRouter + DeepSeek）
+ * 加盟店キャンセル申請AI校正システム（OpenRouter + DeepSeek）
+ *
+ * 【重要】このファイルは加盟店ダッシュボードのキャンセル申請専用です
+ * franchise-register/js/ai-assistant-v2.js（フランチャイズ登録AI入力補助）とは別物
  *
  * 【目的】
- * - お客様の生々しい表現を丁寧なビジネス文書に変換
+ * - キャンセル申請文の誤字脱字・文法を最小限修正
+ * - 感情表現やニュアンスはそのまま保持
  * - コスト効率: DeepSeek使用で激安（$0.14/1M tokens）
  *
  * 【使用タイミング】
@@ -10,7 +14,7 @@
  * - 選択肢や数字のみの場合はテンプレート使用（AI不使用）
  */
 
-const AITextPolisher = {
+const MerchantCancelAI = {
   /**
    * OpenRouter経由でDeepSeekを使って文章を丁寧に変換
    * @param {Object} rawData - 生データ
@@ -18,18 +22,18 @@ const AITextPolisher = {
    */
   polishCancelText: function(rawData) {
     try {
-      console.log('[AITextPolisher] 文章生成開始');
+      console.log('[MerchantCancelAI] 文章生成開始');
 
       // APIキー取得
       const apiKey = PropertiesService.getScriptProperties().getProperty('OPENROUTER_API_KEY');
       if (!apiKey) {
-        console.error('[AITextPolisher] OPENROUTER_API_KEY not found');
+        console.error('[MerchantCancelAI] OPENROUTER_API_KEY not found');
         return this.fallbackToTemplate(rawData);
       }
 
       // プロンプト構築
       const prompt = this.buildPrompt(rawData);
-      console.log('[AITextPolisher] Prompt length:', prompt.length);
+      console.log('[MerchantCancelAI] Prompt length:', prompt.length);
 
       // OpenRouter API呼び出し
       const payload = {
@@ -54,31 +58,31 @@ const AITextPolisher = {
         muteHttpExceptions: true
       };
 
-      console.log('[AITextPolisher] Calling OpenRouter API...');
+      console.log('[MerchantCancelAI] Calling OpenRouter API...');
       const response = UrlFetchApp.fetch('https://openrouter.ai/api/v1/chat/completions', options);
       const responseCode = response.getResponseCode();
 
-      console.log('[AITextPolisher] Response code:', responseCode);
+      console.log('[MerchantCancelAI] Response code:', responseCode);
 
       if (responseCode !== 200) {
-        console.error('[AITextPolisher] API error:', response.getContentText());
+        console.error('[MerchantCancelAI] API error:', response.getContentText());
         return this.fallbackToTemplate(rawData);
       }
 
       const result = JSON.parse(response.getContentText());
 
       if (!result.choices || !result.choices[0] || !result.choices[0].message) {
-        console.error('[AITextPolisher] Invalid response structure');
+        console.error('[MerchantCancelAI] Invalid response structure');
         return this.fallbackToTemplate(rawData);
       }
 
       const generatedText = result.choices[0].message.content.trim();
-      console.log('[AITextPolisher] 生成成功, length:', generatedText.length);
+      console.log('[MerchantCancelAI] 生成成功, length:', generatedText.length);
 
       return generatedText;
 
     } catch (error) {
-      console.error('[AITextPolisher] Error:', error);
+      console.error('[MerchantCancelAI] Error:', error);
       return this.fallbackToTemplate(rawData);
     }
   },
@@ -140,7 +144,7 @@ const AITextPolisher = {
    * フォールバック: テンプレート生成
    */
   fallbackToTemplate: function(data) {
-    console.log('[AITextPolisher] Using template fallback');
+    console.log('[MerchantCancelAI] Using template fallback');
 
     let text = `${data.customerName}様（${data.tel}、${data.address}）について、キャンセル申請をいたします。\n\n`;
     text += `フォローアップを実施しましたが、${data.subCategoryLabel}という状況のため、対応が困難と判断いたしました。\n\n`;
@@ -172,7 +176,7 @@ const AITextPolisher = {
           try {
             rawData = JSON.parse(rawData);
           } catch (e) {
-            console.error('[AITextPolisher] Failed to parse rawData:', e);
+            console.error('[MerchantCancelAI] Failed to parse rawData:', e);
             return {
               success: false,
               error: 'Invalid rawData format'

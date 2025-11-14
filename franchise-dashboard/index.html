@@ -5054,7 +5054,7 @@
                                     <!-- 質問フォームが動的に表示される -->
                                 </div>
                                 <div class="mt-6 flex justify-between">
-                                    <button onclick="cancelGoToStep(1)" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                                    <button onclick="cancelGoBack()" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
                                         戻る
                                     </button>
                                     <button id="cancelStep2NextBtn" onclick="cancelGoToStep(3)" class="hidden px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
@@ -5073,19 +5073,39 @@
                                         <label class="block text-sm font-semibold text-gray-700">
                                             申請内容詳細 <span class="text-red-500">*</span>
                                         </label>
-                                        <button type="button" onclick="generateCancelApplicationText()"
-                                                class="flex items-center px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 font-semibold">
-                                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M13 7H7v6h6V7z"></path>
-                                                <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd"></path>
-                                            </svg>
-                                            AI自動生成
-                                        </button>
+                                        <div class="flex gap-2">
+                                            <!-- アンドゥ/リドゥボタン -->
+                                            <button type="button" id="undoTextBtn" onclick="undoText()"
+                                                    class="flex items-center px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    title="元に戻す (Ctrl+Z)"
+                                                    disabled>
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+                                                </svg>
+                                            </button>
+                                            <button type="button" id="redoTextBtn" onclick="redoText()"
+                                                    class="flex items-center px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    title="やり直す (Ctrl+Y)"
+                                                    disabled>
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a8 8 0 00-8 8v2m18-10l-6 6m6-6l-6-6"></path>
+                                                </svg>
+                                            </button>
+                                            <!-- AI校正ボタン -->
+                                            <button type="button" onclick="generateCancelApplicationText()"
+                                                    class="flex items-center px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 font-semibold">
+                                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M13 7H7v6h6V7z"></path>
+                                                    <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                AI校正
+                                            </button>
+                                        </div>
                                     </div>
                                     <textarea id="cancelApplicationText" rows="8" maxlength="1000" required
                                               class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-blue-500"
-                                              placeholder="「AI自動生成」ボタンで申請文を作成できます"></textarea>
-                                    <p class="text-xs text-gray-500 mt-1">※ AI自動生成後、内容を編集できます（最大1000文字）</p>
+                                              placeholder="自動生成されたテンプレート文を編集できます"></textarea>
+                                    <p class="text-xs text-gray-500 mt-1">※ 自由記述がある場合はAI校正、選択肢のみの場合はテンプレート生成されます（最大1000文字）</p>
                                 </div>
 
 
@@ -18941,6 +18961,10 @@
         let cancelQuestionAnswers = {};
         let cancelAiGenerationCount = 0; // AI生成回数カウンター
 
+        // テキスト履歴管理（アンドゥ/リドゥ用）
+        let textHistory = [];
+        let textHistoryIndex = -1;
+
         let extensionSelectedCase = null;
 
         // リトライ機能付きFetch関数
@@ -19077,6 +19101,11 @@
                 if (cancelSelectedCase) {
                     // AI生成回数をリセット
                     cancelAiGenerationCount = 0;
+                    // テキスト履歴をリセット
+                    textHistory = [];
+                    textHistoryIndex = -1;
+                    // textareaをクリア
+                    document.getElementById('cancelApplicationText').value = '';
                     // モーダルを表示して直接Step 1（理由カテゴリ選択）へ
                     document.getElementById('cancelModal').classList.remove('hidden');
                     cancelGoToStep(1);
@@ -19183,8 +19212,95 @@
 
             // ステップ3: 確認画面
             if (step === 3) {
-                // ボタンで生成するため、ここでは何もしない
+                // Step 3に移動したら自動的にテンプレート文を生成
+                const textarea = document.getElementById('cancelApplicationText');
+                if (!textarea.value || textarea.value.trim() === '') {
+                    // まだ何も入力されていない場合、テンプレート文を自動生成
+                    const category = window.CancelReasons.getCategoryById(cancelSelectedCategory);
+                    const subCats = window.CancelReasons.getSubCategories(cancelSelectedCategory);
+                    const subCategory = subCats.find(sc => sc.id === cancelSelectedSubCategory);
+
+                    // 質問の回答を収集
+                    const questions = window.CancelReasons.getQuestions(cancelSelectedCategory, cancelSelectedSubCategory);
+                    const answers = {};
+                    if (questions && questions.length > 0) {
+                        questions.forEach((q, index) => {
+                            const inputName = `question_${index}`;
+                            const element = document.querySelector(`[name="${inputName}"]`);
+
+                            if (q.type === 'radio') {
+                                const checked = document.querySelector(`[name="${inputName}"]:checked`);
+                                if (checked) {
+                                    answers[q.label] = checked.value;
+
+                                    // followUp回答も収集
+                                    if (q.followUp && q.followUp[checked.value]) {
+                                        q.followUp[checked.value].forEach((fq, fqIndex) => {
+                                            const fqId = `question_${index}_followup_${fqIndex}`;
+                                            const fqElement = document.getElementById(fqId);
+                                            if (fqElement && fqElement.value) {
+                                                answers[fq.label] = fqElement.value;
+                                            }
+                                        });
+                                    }
+                                }
+                            } else if (element) {
+                                if (element.value) {
+                                    answers[q.label] = element.value;
+
+                                    // dynamicOptions === 'past7days' で「その他」が選ばれている場合、days_agoも収集
+                                    if (q.dynamicOptions === 'past7days' && element.value === 'other') {
+                                        const daysAgoElement = document.getElementById(`question_${index}_days_ago`);
+                                        if (daysAgoElement && daysAgoElement.value) {
+                                            answers[`${q.label} (詳細)`] = `約${daysAgoElement.value}日前`;
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    // テンプレート生成して履歴に追加
+                    generateWithTemplate(category, subCategory, answers);
+                    saveTextHistory();
+                }
             }
+        }
+
+        // 戻るボタンハンドラー（段階的に戻る）
+        function cancelGoBack() {
+            if (cancelCurrentStep === 3) {
+                // Step 3 → Step 2
+                cancelGoToStep(2);
+                return;
+            }
+
+            if (cancelCurrentStep === 2) {
+                const questionsForm = document.getElementById('cancelQuestionsForm');
+                const subCategoryList = document.getElementById('cancelSubCategoryList');
+
+                // 質問フォームが表示されている場合
+                if (!questionsForm.classList.contains('hidden')) {
+                    // サブカテゴリが複数ある場合は、サブカテゴリ選択に戻る
+                    const subCategories = window.CancelReasons.getSubCategories(cancelSelectedCategory);
+                    if (subCategories && subCategories.length > 1) {
+                        // サブカテゴリ選択画面に戻る
+                        questionsForm.innerHTML = '';
+                        questionsForm.classList.add('hidden');
+                        document.getElementById('cancelStep2NextBtn').classList.add('hidden');
+                        subCategoryList.classList.remove('hidden');
+                        cancelSelectedSubCategory = null;
+                        cancelQuestionAnswers = {};
+                        return;
+                    }
+                }
+
+                // それ以外の場合は Step 1 に戻る
+                cancelGoToStep(1);
+                return;
+            }
+
+            // Step 1の場合は何もしない（すでに最初）
         }
 
         // カテゴリ選択
@@ -19204,6 +19320,7 @@
 
             // サブカテゴリが1つだけの場合は自動選択
             if (subCategories.length === 1) {
+                cancelGoToStep(2); // 先にステップ2に移動
                 selectCancelSubCategory(subCategories[0].id);
                 return;
             }
@@ -19426,10 +19543,22 @@
 
                 case 'text':
                 default:
-                    html += `<input type="text" id="question_${index}" name="question_${index}"
+                    html += `
+                        <div class="relative">
+                            <input type="text" id="question_${index}" name="question_${index}"
                                     ${question.required ? 'required' : ''}
+                                    maxlength="1000"
                                     placeholder="${question.placeholder || ''}"
-                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500">`;
+                                    class="w-full px-4 py-2 pr-12 border rounded-lg focus:outline-none focus:border-blue-500">
+                            <button type="button"
+                                    onclick="startVoiceInputForQuestion(${index})"
+                                    class="absolute top-1/2 -translate-y-1/2 right-2 p-2 text-gray-500 hover:text-blue-600 transition-colors"
+                                    title="音声入力">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </div>`;
                     break;
             }
 
@@ -19753,16 +19882,19 @@
 
                 if (result.success && result.generatedText) {
                     textarea.value = result.generatedText;
+                    saveTextHistory(); // 履歴に保存
                     console.log('[generateWithAI] AI生成成功');
                 } else {
                     console.error('[generateWithAI] AI生成失敗、テンプレートにフォールバック');
                     generateWithTemplate(category, subCategory, answers);
+                    saveTextHistory(); // 履歴に保存
                 }
 
             } catch (error) {
                 console.error('[generateWithAI] Error:', error);
                 // エラー時はテンプレートにフォールバック
                 generateWithTemplate(category, subCategory, answers);
+                saveTextHistory(); // 履歴に保存
             }
         }
 
@@ -19793,6 +19925,67 @@
 
             // textareaに自動生成テキストをセット
             document.getElementById('cancelApplicationText').value = generatedText;
+        }
+
+        // テキスト履歴を保存（アンドゥ/リドゥ用）
+        function saveTextHistory() {
+            const textarea = document.getElementById('cancelApplicationText');
+            const currentText = textarea.value;
+
+            // 現在のインデックスより後ろの履歴を削除（新しい分岐を作る）
+            textHistory = textHistory.slice(0, textHistoryIndex + 1);
+
+            // 新しいテキストを履歴に追加
+            textHistory.push(currentText);
+            textHistoryIndex = textHistory.length - 1;
+
+            // アンドゥ/リドゥボタンの状態を更新
+            updateUndoRedoButtons();
+
+            console.log('[履歴] 保存:', {
+                historyLength: textHistory.length,
+                currentIndex: textHistoryIndex
+            });
+        }
+
+        // アンドゥ（元に戻す）
+        function undoText() {
+            if (textHistoryIndex > 0) {
+                textHistoryIndex--;
+                const textarea = document.getElementById('cancelApplicationText');
+                textarea.value = textHistory[textHistoryIndex];
+                updateUndoRedoButtons();
+                console.log('[履歴] アンドゥ:', textHistoryIndex);
+            }
+        }
+
+        // リドゥ（やり直す）
+        function redoText() {
+            if (textHistoryIndex < textHistory.length - 1) {
+                textHistoryIndex++;
+                const textarea = document.getElementById('cancelApplicationText');
+                textarea.value = textHistory[textHistoryIndex];
+                updateUndoRedoButtons();
+                console.log('[履歴] リドゥ:', textHistoryIndex);
+            }
+        }
+
+        // アンドゥ/リドゥボタンの有効/無効を更新
+        function updateUndoRedoButtons() {
+            const undoBtn = document.getElementById('undoTextBtn');
+            const redoBtn = document.getElementById('redoTextBtn');
+
+            if (undoBtn) {
+                undoBtn.disabled = textHistoryIndex <= 0;
+                undoBtn.classList.toggle('opacity-50', textHistoryIndex <= 0);
+                undoBtn.classList.toggle('cursor-not-allowed', textHistoryIndex <= 0);
+            }
+
+            if (redoBtn) {
+                redoBtn.disabled = textHistoryIndex >= textHistory.length - 1;
+                redoBtn.classList.toggle('opacity-50', textHistoryIndex >= textHistory.length - 1);
+                redoBtn.classList.toggle('cursor-not-allowed', textHistoryIndex >= textHistory.length - 1);
+            }
         }
 
         // キャンセル申請を提出

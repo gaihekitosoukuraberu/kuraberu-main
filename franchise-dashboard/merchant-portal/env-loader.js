@@ -1,9 +1,9 @@
 // Auto-synced: 2025-11-08T09:55:20.000Z - Deployment: AKfycbxMaj0EwqO8HczQOCH1xGNn2wTX3jn4OTU_3en76sIs1vpxYcafIwTHX1OSrUEfHGL97w
 /**
- * 環境変数ローダー（全システム共通）- 🔥マスターファイル🔥
+ * 環境変数ローダー（全システム共通）- マスターファイル
  * .envファイルの代わりにJavaScriptで定数管理
  *
- * 🔥 重要：CACHE_BUSTERを変更するだけで全JSファイルが更新されます 🔥
+ * 重要：CACHE_BUSTERを変更するだけで全JSファイルが更新されます
  * マスター場所：shared/env-loader.js
  *
  * 自動同期先（GitHub Actions）：
@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1703-HEADER-STATUS-CLICK-2025-11-12T05:30:00
- * @last-update 2025-11-12T05:30:00
+ * @file-version V1734-CANCEL-TEXT-UX-2025-11-15T06:30:00
+ * @last-update 2025-11-15T06:30:00
  */
 
 const ENV = {
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1732 - 2025-11-15 - 電話キャンセルに「その他」追加）
-  CACHE_BUSTER: '1763187400000'
+  // キャッシュバスター（V1735 - 2025-11-15 - 絵文字削除でSyntaxError修正）
+  CACHE_BUSTER: '1763189500000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
