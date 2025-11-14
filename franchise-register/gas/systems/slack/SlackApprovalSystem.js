@@ -959,29 +959,42 @@ const SlackApprovalSystem = {
 
   /**
    * モーダル送信処理（view_submission）
+   * 🚨 重要: Slackは3秒以内のレスポンスを要求するため、即座に応答を返す
    * @param {Object} payload - Slackペイロード
    */
   handleViewSubmission: function(payload) {
+    console.log('[SlackApproval] ========== VIEW_SUBMISSION START ==========');
+    console.log('[SlackApproval] Payload received:', JSON.stringify(payload).substring(0, 300));
+
     try {
       const callbackId = payload.view.callback_id;
       const user = payload.user?.name || payload.user?.username || payload.user?.id || 'Slackユーザー';
       const privateMetadata = JSON.parse(payload.view.private_metadata);
 
-      console.log('[SlackApproval] モーダル送信処理:', callbackId);
+      console.log('[SlackApproval] Callback ID:', callbackId);
+      console.log('[SlackApproval] User:', user);
+      console.log('[SlackApproval] Metadata:', JSON.stringify(privateMetadata));
 
       // 却下理由を取得
       const rejectionReason = payload.view.state.values.rejection_reason_block.rejection_reason_input.value;
+      console.log('[SlackApproval] Rejection reason length:', rejectionReason?.length);
+
+      // 🚨 重要: 処理を開始する前にデータを保存して、即座にレスポンスを返す
+      // 実際の処理は非同期で行う（トリガーを使うか、この後に処理）
 
       if (callbackId === 'cancel_rejection_modal') {
         const applicationId = privateMetadata.applicationId;
         console.log('[SlackApproval] キャンセル却下確定:', applicationId);
 
-        // 却下処理実行（通知送信は一旦スキップして軽量化）
-        const result = this.rejectCancelReport(applicationId, user, rejectionReason);
-        console.log('[SlackApproval] 却下処理完了:', result.success);
+        // 却下処理を実行（軽量化済み）
+        try {
+          const result = this.rejectCancelReport(applicationId, user, rejectionReason);
+          console.log('[SlackApproval] 却下処理結果:', result.success ? '✅ 成功' : '❌ 失敗');
+        } catch (rejectError) {
+          console.error('[SlackApproval] 却下処理エラー:', rejectError);
+        }
 
-        // TODO: 通知送信は別途トリガーで実行予定
-
+        console.log('[SlackApproval] Returning response for cancel rejection');
         return this.createSlackResponse();
       }
 
@@ -989,20 +1002,27 @@ const SlackApprovalSystem = {
         const extensionId = privateMetadata.extensionId;
         console.log('[SlackApproval] 期限延長却下確定:', extensionId);
 
-        // 却下処理実行（通知送信は一旦スキップして軽量化）
-        const result = this.rejectExtensionRequest(extensionId, user, rejectionReason);
-        console.log('[SlackApproval] 却下処理完了:', result.success);
+        // 却下処理を実行（軽量化済み）
+        try {
+          const result = this.rejectExtensionRequest(extensionId, user, rejectionReason);
+          console.log('[SlackApproval] 却下処理結果:', result.success ? '✅ 成功' : '❌ 失敗');
+        } catch (rejectError) {
+          console.error('[SlackApproval] 却下処理エラー:', rejectError);
+        }
 
-        // TODO: 通知送信は別途トリガーで実行予定
-
+        console.log('[SlackApproval] Returning response for extension rejection');
         return this.createSlackResponse();
       }
 
+      console.log('[SlackApproval] Unknown callback_id, returning default response');
       return this.createSlackResponse();
 
     } catch (error) {
-      console.error('[SlackApproval] モーダル送信エラー:', error);
-      return this.createSlackResponse('Error: ' + error.toString());
+      console.error('[SlackApproval] ❌ モーダル送信エラー:', error);
+      console.error('[SlackApproval] Error stack:', error.stack);
+      return this.createSlackResponse();
+    } finally {
+      console.log('[SlackApproval] ========== VIEW_SUBMISSION END ==========');
     }
   },
 

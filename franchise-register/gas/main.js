@@ -379,15 +379,36 @@ function doGet(e) {
  */
 function doPost(e) {
   try {
-    console.log('[main.js] POST request received');
+    // 🔍 詳細ロギング開始
+    console.log('[main.js] ========== POST REQUEST START ==========');
+    console.log('[main.js] Timestamp:', new Date().toISOString());
+    console.log('[main.js] Content Type:', e.contentType);
+    console.log('[main.js] PostData Type:', e.postData ? e.postData.type : 'No postData');
+    console.log('[main.js] PostData Length:', e.postData ? e.postData.length : 0);
+    console.log('[main.js] PostData Contents (first 500 chars):',
+      e.postData ? e.postData.contents.substring(0, 500) : 'No postData');
+    console.log('[main.js] Parameter keys:', Object.keys(e.parameter || {}));
     console.log('[main.js] Parameters:', JSON.stringify(e.parameter));
-    console.log('[main.js] PostData:', e.postData ? e.postData.contents : 'No postData');
+    console.log('[main.js] Has payload param:', !!e.parameter.payload);
 
     // Slackインタラクション専用処理（payloadがある場合）
     if (e.parameter.payload) {
-      console.log('[main.js] Slack interaction detected - routing to SlackApprovalSystem');
+      console.log('[main.js] ✅ Slack interaction detected (payload found)');
+      const payloadPreview = e.parameter.payload.substring(0, 200);
+      console.log('[main.js] Payload preview:', payloadPreview);
+
+      try {
+        const parsedPayload = JSON.parse(e.parameter.payload);
+        console.log('[main.js] Payload type:', parsedPayload.type);
+        console.log('[main.js] Routing to SlackApprovalSystem...');
+      } catch (parseError) {
+        console.error('[main.js] ❌ Failed to parse payload for logging:', parseError);
+      }
+
       return SlackApprovalSystem.handlePost(e);
     }
+
+    console.log('[main.js] ⚠️ No Slack payload found - continuing to general routing');
 
     // JSONボディがある場合はパース、URL-encodedの場合はe.parameterを使用
     let postData = {};
@@ -447,10 +468,14 @@ function doPost(e) {
     }
 
     // JSON形式で返却
+    console.log('[main.js] Returning JSON response, success:', result.success);
+    console.log('[main.js] ========== POST REQUEST END ==========');
     return createJsonResponse(result);
 
   } catch (error) {
-    console.error('[main.js] doPost error:', error);
+    console.error('[main.js] ❌ doPost error:', error);
+    console.error('[main.js] Error stack:', error.stack);
+    console.log('[main.js] ========== POST REQUEST ERROR END ==========');
     return createJsonResponse({
       success: false,
       error: error.toString(),
