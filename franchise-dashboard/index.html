@@ -18960,47 +18960,9 @@
         // API URL (env-loaderから動的取得)
         const CANCEL_API_URL = window.ENV?.GAS_URL || '';
 
-        // キャンセル理由の階層構造定義
-        const CANCEL_REASONS = {
-            categories: [
-                { id: 'no_contact', label: '1. 連絡が繋がらない', requiresFollowUp: true, minPhoneCalls: 3, minSMS: 2 },
-                { id: 'contact_lost', label: '2. 電話繋がったがアポ取れず、その後不通', requiresFollowUp: true, minPhoneCalls: 2, minSMS: 1 },
-                { id: 'customer_cancel_phone', label: '3. お客様から電話でキャンセルされた', requiresFollowUp: false },
-                { id: 'customer_cancel_sms', label: '4. お客様からSMSでキャンセルされた', requiresFollowUp: false },
-                { id: 'complaint', label: '5. クレーム', requiresFollowUp: false }
-            ],
-            subCategories: {
-                no_contact: [
-                    { id: 'no_answer_multiple', label: '複数回電話したが出ない', questions: ['phone_count', 'sms_count', 'last_contact_date', 'sms_content'] },
-                    { id: 'invalid_number', label: '番号が無効（音声ガイダンス・使われていない）', questions: ['guidance_message', 'attempt_count', 'last_attempt_date'] },
-                    { id: 'wrong_number', label: '間違い電話（別人が出た）', questions: ['who_answered', 'confirmation_count'] },
-                    { id: 'other', label: 'その他', questions: ['detail_hearing'] }
-                ],
-                contact_lost: [
-                    { id: 'appointment_rejected', label: 'アポ取得を断られた後、不通', questions: ['contact_date', 'rejection_reason', 'customer_sentiment', 'follow_up_count', 'last_contact_date'] },
-                    { id: 'postponed_then_lost', label: '後日連絡と言われたが、その後繋がらず', questions: ['contact_date', 'promised_callback_date', 'follow_up_count', 'sms_count', 'last_contact_date'] },
-                    { id: 'other', label: 'その他', questions: ['detail_hearing'] }
-                ],
-                customer_cancel_phone: [
-                    { id: 'already_contracted', label: '既に他社で契約済み', questions: ['contact_date', 'other_company', 'contract_timing', 'customer_sentiment'] },
-                    { id: 'not_interested', label: 'やっぱり工事しない・興味がない', questions: ['contact_date', 'reason', 'customer_sentiment'] },
-                    { id: 'timing_issue', label: 'タイミングが合わない', questions: ['contact_date', 'timing_reason', 'future_contact'] },
-                    { id: 'request_not_submitted', label: '自分で申し込んでいない（覚えがない）', questions: ['contact_date', 'customer_reaction', 'possible_reason'] },
-                    { id: 'other', label: 'その他', questions: ['detail_hearing'] }
-                ],
-                customer_cancel_sms: [
-                    { id: 'sms_decline', label: 'SMSで断りの連絡が来た', questions: ['sms_received_date', 'sms_content', 'decline_reason', 'follow_up_attempted'] },
-                    { id: 'sms_already_contracted', label: 'SMSで他社契約済みと連絡が来た', questions: ['sms_received_date', 'sms_content', 'other_company', 'contract_timing'] },
-                    { id: 'other', label: 'その他', questions: ['detail_hearing'] }
-                ],
-                complaint: [
-                    { id: 'too_many_calls', label: '電話・SMSがしつこい', questions: ['complaint_date', 'complaint_detail', 'actual_contact_count', 'actual_sms_count', 'apology_done'] },
-                    { id: 'rude_attitude', label: '対応が悪い・失礼', questions: ['complaint_date', 'complaint_detail', 'who_complained_about', 'apology_done'] },
-                    { id: 'privacy_concern', label: '個人情報の扱いに不安', questions: ['complaint_date', 'complaint_detail', 'explanation_done'] },
-                    { id: 'other', label: 'その他', questions: ['detail_hearing'] }
-                ]
-            }
-        };
+        // データキャッシュ用変数
+        let cancelableCasesCache = [];
+        let extensionEligibleCasesCache = [];
 
         // グローバル状態
         let cancelCurrentStep = 1;
@@ -19021,6 +18983,11 @@
                 }
                 const response = await fetch(`${CANCEL_API_URL}?action=getCancelableCases&merchantId=${merchantId}`);
                 const result = await response.json();
+
+                // データをキャッシュに保存
+                if (result.success && result.cases) {
+                    cancelableCasesCache = result.cases;
+                }
 
                 const casesList = document.getElementById('cancelCasesList');
                 if (result.success && result.cases.length > 0) {
@@ -19052,29 +19019,24 @@
         }
 
         // キャンセルモーダルを開く
-        async function openCancelModal(cvId) {
+        function openCancelModal(cvId) {
             try {
-                const merchantId = window.merchantId;
-                if (!merchantId) {
-                    alert('ログインしていません');
-                    return;
-                }
-                const response = await fetch(`${CANCEL_API_URL}?action=getCancelableCases&merchantId=${merchantId}`);
-                const result = await response.json();
+                // キャッシュからデータを取得
+                cancelSelectedCase = cancelableCasesCache.find(c => c.cvId === cvId);
 
-                if (result.success) {
-                    cancelSelectedCase = result.cases.find(c => c.cvId === cvId);
-                    if (cancelSelectedCase) {
-                        // 顧客情報を表示（CV IDは非表示）
-                        document.getElementById('cancelModalCustomerName').textContent = cancelSelectedCase.customerName;
-                        document.getElementById('cancelModalPhone').textContent = cancelSelectedCase.tel;
-                        document.getElementById('cancelModalDeliveredDate').textContent = new Date(cancelSelectedCase.deliveredAt).toLocaleDateString('ja-JP');
-                        document.getElementById('cancelModalDeadline').textContent = new Date(cancelSelectedCase.deadlineDate).toLocaleDateString('ja-JP');
+                if (cancelSelectedCase) {
+                    // 顧客情報を表示（CV IDは非表示）
+                    document.getElementById('cancelModalCustomerName').textContent = cancelSelectedCase.customerName;
+                    document.getElementById('cancelModalPhone').textContent = cancelSelectedCase.tel;
+                    document.getElementById('cancelModalDeliveredDate').textContent = new Date(cancelSelectedCase.deliveredAt).toLocaleDateString('ja-JP');
+                    document.getElementById('cancelModalDeadline').textContent = new Date(cancelSelectedCase.deadlineDate).toLocaleDateString('ja-JP');
 
-                        // モーダルを表示
-                        document.getElementById('cancelModal').classList.remove('hidden');
-                        cancelGoToStep(1);
-                    }
+                    // モーダルを表示
+                    document.getElementById('cancelModal').classList.remove('hidden');
+                    cancelGoToStep(1);
+                } else {
+                    console.error('案件が見つかりません:', cvId);
+                    alert('案件情報が見つかりません。画面を再読み込みしてください。');
                 }
             } catch (error) {
                 console.error('顧客情報の読み込みエラー:', error);
@@ -19469,6 +19431,11 @@
                 const response = await fetch(`${CANCEL_API_URL}?action=getExtensionEligibleCases&merchantId=${merchantId}`);
                 const result = await response.json();
 
+                // データをキャッシュに保存
+                if (result.success && result.cases) {
+                    extensionEligibleCasesCache = result.cases;
+                }
+
                 const casesList = document.getElementById('extensionCasesList');
                 if (result.success && result.cases.length > 0) {
                     casesList.innerHTML = result.cases.map(caseItem => {
@@ -19500,28 +19467,23 @@
         }
 
         // 期限延長モーダルを開く
-        async function openExtensionModal(cvId) {
+        function openExtensionModal(cvId) {
             try {
-                const merchantId = window.merchantId;
-                if (!merchantId) {
-                    alert('ログインしていません');
-                    return;
-                }
-                const response = await fetch(`${CANCEL_API_URL}?action=getExtensionEligibleCases&merchantId=${merchantId}`);
-                const result = await response.json();
+                // キャッシュからデータを取得
+                extensionSelectedCase = extensionEligibleCasesCache.find(c => c.cvId === cvId);
 
-                if (result.success) {
-                    extensionSelectedCase = result.cases.find(c => c.cvId === cvId);
-                    if (extensionSelectedCase) {
-                        document.getElementById('extensionModalCvId').textContent = extensionSelectedCase.cvId;
-                        document.getElementById('extensionModalCustomerName').textContent = extensionSelectedCase.customerName;
-                        document.getElementById('extensionModalPhone').textContent = extensionSelectedCase.tel;
-                        document.getElementById('extensionModalDeliveredDate').textContent = new Date(extensionSelectedCase.deliveredAt).toLocaleDateString('ja-JP');
-                        document.getElementById('extensionModalCurrentDeadline').textContent = new Date(extensionSelectedCase.applicationDeadline).toLocaleDateString('ja-JP');
-                        document.getElementById('extensionModalNewDeadline').textContent = new Date(extensionSelectedCase.extendedDeadline).toLocaleDateString('ja-JP');
+                if (extensionSelectedCase) {
+                    document.getElementById('extensionModalCvId').textContent = extensionSelectedCase.cvId;
+                    document.getElementById('extensionModalCustomerName').textContent = extensionSelectedCase.customerName;
+                    document.getElementById('extensionModalPhone').textContent = extensionSelectedCase.tel;
+                    document.getElementById('extensionModalDeliveredDate').textContent = new Date(extensionSelectedCase.deliveredAt).toLocaleDateString('ja-JP');
+                    document.getElementById('extensionModalCurrentDeadline').textContent = new Date(extensionSelectedCase.applicationDeadline).toLocaleDateString('ja-JP');
+                    document.getElementById('extensionModalNewDeadline').textContent = new Date(extensionSelectedCase.extendedDeadline).toLocaleDateString('ja-JP');
 
-                        document.getElementById('extensionModal').classList.remove('hidden');
-                    }
+                    document.getElementById('extensionModal').classList.remove('hidden');
+                } else {
+                    console.error('案件が見つかりません:', cvId);
+                    alert('案件情報が見つかりません。画面を再読み込みしてください。');
                 }
             } catch (error) {
                 console.error('顧客情報の読み込みエラー:', error);
