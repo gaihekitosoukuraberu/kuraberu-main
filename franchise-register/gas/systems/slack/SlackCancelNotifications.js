@@ -56,46 +56,20 @@ function sendSlackCancelNotification(data) {
     // ブロック配列を構築
     const blocks = [
       {
-        type: 'header',
+        type: 'section',
         text: {
-          type: 'plain_text',
-          text: competitorCheck.hasActiveCompetitors ? '🚫⚠️ キャンセル申請（要確認）' : '🚫 キャンセル申請',
-          emoji: true
+          type: 'mrkdwn',
+          text: competitorCheck.hasActiveCompetitors
+            ? `*🚫⚠️ キャンセル申請（要確認）*\n\n*申請ID:* ${data.applicationId}\n*CV ID:* ${data.cvId}\n*顧客名:* ${data.customerName}\n*加盟店:* ${data.merchantName} (ID: ${data.merchantId})`
+            : `*🚫 キャンセル申請*\n\n*申請ID:* ${data.applicationId}\n*CV ID:* ${data.cvId}\n*顧客名:* ${data.customerName}\n*加盟店:* ${data.merchantName} (ID: ${data.merchantId})`
         }
       },
       {
         type: 'section',
-        fields: [
-          {
-            type: 'mrkdwn',
-            text: `*申請ID:*\n${data.applicationId}`
-          },
-          {
-            type: 'mrkdwn',
-            text: `*CV ID:*\n${data.cvId}`
-          },
-          {
-            type: 'mrkdwn',
-            text: `*顧客名:*\n${data.customerName}`
-          },
-          {
-            type: 'mrkdwn',
-            text: `*加盟店:*\n${data.merchantName} (ID: ${data.merchantId})`
-          }
-        ]
-      },
-      {
-        type: 'section',
-        fields: [
-          {
-            type: 'mrkdwn',
-            text: `*キャンセル理由:*\n${data.cancelReasonCategory}\n→ ${data.cancelReasonDetail}`
-          },
-          {
-            type: 'mrkdwn',
-            text: `*フォローアップ履歴:*\n電話: ${data.phoneCallCount || 0}回\nSMS: ${data.smsCount || 0}回`
-          }
-        ]
+        text: {
+          type: 'mrkdwn',
+          text: `*キャンセル理由:* ${data.cancelReasonCategory} → ${data.cancelReasonDetail}\n*フォローアップ履歴:* 電話: ${data.phoneCallCount || 0}回 | SMS: ${data.smsCount || 0}回`
+        }
       },
       {
         type: 'section',
@@ -250,11 +224,10 @@ function sendSlackExtensionNotification(data) {
       text: `@channel ⏰ キャンセル期限延長申請が提出されました`,
       blocks: [
         {
-          type: 'header',
+          type: 'section',
           text: {
-            type: 'plain_text',
-            text: '⏰ キャンセル期限延長申請',
-            emoji: true
+            type: 'mrkdwn',
+            text: '*⏰ キャンセル期限延長申請*'
           }
         },
         {
