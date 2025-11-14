@@ -12,11 +12,6 @@ const SlackApprovalSystem = {
    * POSTリクエストのエントリーポイント
    */
   handlePost: function(e) {
-    console.log('[SlackApproval] ==== handlePost開始 ====');
-    console.log('[SlackApproval] Raw parameters:', JSON.stringify(e.parameter));
-    console.log('[SlackApproval] Content Type:', e.contentType);
-    console.log('[SlackApproval] Post Data:', e.postData?.contents);
-
     try {
       // Slackからのpayloadを取得
       const payload = e.parameter.payload ?
@@ -27,13 +22,6 @@ const SlackApprovalSystem = {
         console.log('[SlackApproval] ERROR: payloadがありません');
         return this.createSlackResponse('Payload not found');
       }
-
-      console.log('[SlackApproval] Payload解析成功');
-      console.log('[SlackApproval] Full Payload:', JSON.stringify(payload));
-      console.log('[SlackApproval] Interaction Type:', payload.type);
-      console.log('[SlackApproval] User:', payload.user?.name || payload.user?.username);
-      console.log('[SlackApproval] Team:', payload.team?.domain);
-      console.log('[SlackApproval] Actions:', JSON.stringify(payload.actions));
 
       // ブロックアクション（ボタン押下）の処理
       if (payload.type === 'block_actions') {
@@ -64,9 +52,6 @@ const SlackApprovalSystem = {
       const action = payload.actions[0];
       const user = payload.user?.name || payload.user?.username || payload.user?.id || 'Slackユーザー';
       const triggerId = payload.trigger_id;
-
-      console.log('[SlackApproval] Action ID:', action.action_id);
-      console.log('[SlackApproval] Value:', action.value);
 
       // 承認ボタン
       if (action.action_id === 'approve_registration') {
@@ -129,7 +114,7 @@ const SlackApprovalSystem = {
         }
 
         // モーダルを開く
-        this.openCancelRejectionModal(triggerId, applicationId, user, channelId, messageTs);
+        this.openCancelRejectionModal(triggerId, applicationId, user, channelId, messageTs, botToken);
         return this.createSlackResponse();
       }
 
@@ -148,29 +133,17 @@ const SlackApprovalSystem = {
 
       // 期限延長申請却下ボタン -> モーダルを開く
       else if (action.action_id === 'reject_extension_request') {
-        console.log('[SlackApproval] 期限延長申請却下ボタン押下検出');
         const extensionId = action.value.replace('reject_extension_', '');
-        console.log('[SlackApproval] 処理対象ID:', extensionId);
-
-        // Slackメッセージ情報を取得
         const channelId = payload.channel?.id || payload.container?.channel_id;
         let messageTs = payload.message?.ts || payload.container?.message_ts;
-
-        // デバッグ: Message TSの型と値を確認
-        console.log('[SlackApproval] ===== Message TS デバッグ =====');
-        console.log('[SlackApproval] messageTs (raw):', messageTs);
-        console.log('[SlackApproval] messageTs type:', typeof messageTs);
 
         // Message TSを文字列に変換して小数点以下を保持
         if (messageTs && typeof messageTs === 'number') {
           messageTs = messageTs.toString();
-          console.log('[SlackApproval] ⚠️ Message TSが数値だったため文字列に変換:', messageTs);
         }
 
-        console.log('[SlackApproval] messageTs (最終):', messageTs);
-
         // モーダルを開く
-        this.openExtensionRejectionModal(triggerId, extensionId, user, channelId, messageTs);
+        this.openExtensionRejectionModal(triggerId, extensionId, user, channelId, messageTs, botToken);
         return this.createSlackResponse();
       }
 
@@ -760,8 +733,9 @@ const SlackApprovalSystem = {
    * @param {String} user - ユーザー名
    * @param {String} channelId - Slack channel ID
    * @param {String} messageTs - Slack message timestamp
+   * @param {String} botToken - Slack Bot Token
    */
-  openCancelRejectionModal: function(triggerId, applicationId, user, channelId, messageTs) {
+  openCancelRejectionModal: function(triggerId, applicationId, user, channelId, messageTs, botToken) {
     try {
       const aiReason = '追客回数が不足しているため、キャンセルは承認できません。お客様のニーズを十分に把握するため、もう少し追客を続けてください。';
 
@@ -829,7 +803,7 @@ const SlackApprovalSystem = {
       };
 
       // Slack API (views.open) を呼び出し
-      this.openSlackModal(triggerId, modalView);
+      this.openSlackModal(triggerId, modalView, botToken);
 
     } catch (error) {
       console.error('[SlackApproval] モーダル表示エラー:', error);
@@ -843,8 +817,9 @@ const SlackApprovalSystem = {
    * @param {String} user - ユーザー名
    * @param {String} channelId - Slack channel ID
    * @param {String} messageTs - Slack message timestamp
+   * @param {String} botToken - Slack Bot Token
    */
-  openExtensionRejectionModal: function(triggerId, extensionId, user, channelId, messageTs) {
+  openExtensionRejectionModal: function(triggerId, extensionId, user, channelId, messageTs, botToken) {
     try {
       const aiReason = '期限延長の理由が不十分です。より具体的な理由とアポイント予定日を明記して再申請してください。';
 
@@ -912,7 +887,7 @@ const SlackApprovalSystem = {
       };
 
       // Slack API (views.open) を呼び出し
-      this.openSlackModal(triggerId, modalView);
+      this.openSlackModal(triggerId, modalView, botToken);
 
     } catch (error) {
       console.error('[SlackApproval] モーダル表示エラー:', error);
@@ -923,11 +898,10 @@ const SlackApprovalSystem = {
    * Slackモーダルを開く（views.open API呼び出し）
    * @param {String} triggerId - Trigger ID
    * @param {Object} modalView - モーダルビュー定義
+   * @param {String} botToken - Slack Bot Token
    */
-  openSlackModal: function(triggerId, modalView) {
+  openSlackModal: function(triggerId, modalView, botToken) {
     try {
-      const botToken = PropertiesService.getScriptProperties().getProperty('SLACK_BOT_TOKEN');
-
       if (!botToken) {
         console.error('[SlackApproval] SLACK_BOT_TOKENが設定されていません');
         return;
@@ -953,8 +927,6 @@ const SlackApprovalSystem = {
 
       if (!responseData.ok) {
         console.error('[SlackApproval] モーダル表示失敗:', responseData.error);
-      } else {
-        console.log('[SlackApproval] モーダル表示成功');
       }
 
     } catch (error) {
