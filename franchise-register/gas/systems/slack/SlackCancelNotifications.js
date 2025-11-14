@@ -53,87 +53,57 @@ function sendSlackCancelNotification(data) {
 
     console.log('[SlackCancel] 他社追客チェック結果:', competitorCheck.hasActiveCompetitors ? '警告あり' : '問題なし');
 
-    // ブロック配列を構築
+    // ブロック配列を構築（加盟店登録と同じシンプル構造）
+    const summaryText = competitorCheck.hasActiveCompetitors
+      ? `*キャンセル申請（要確認）*\n申請ID: ${data.applicationId}\n顧客: ${data.customerName} | 加盟店: ${data.merchantName}`
+      : `*キャンセル申請*\n申請ID: ${data.applicationId}\n顧客: ${data.customerName} | 加盟店: ${data.merchantName}`;
+
     const blocks = [
       {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: competitorCheck.hasActiveCompetitors
-            ? `*🚫⚠️ キャンセル申請（要確認）*\n\n*申請ID:* ${data.applicationId}\n*CV ID:* ${data.cvId}\n*顧客名:* ${data.customerName}\n*加盟店:* ${data.merchantName} (ID: ${data.merchantId})`
-            : `*🚫 キャンセル申請*\n\n*申請ID:* ${data.applicationId}\n*CV ID:* ${data.cvId}\n*顧客名:* ${data.customerName}\n*加盟店:* ${data.merchantName} (ID: ${data.merchantId})`
+          text: summaryText
         }
       },
       {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `*キャンセル理由:* ${data.cancelReasonCategory} → ${data.cancelReasonDetail}\n*フォローアップ履歴:* 電話: ${data.phoneCallCount || 0}回 | SMS: ${data.smsCount || 0}回`
-        }
-      },
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `*申請文:*\n\`\`\`${appTextPreview}\`\`\``
-        }
+        type: 'actions',
+        elements: [
+          {
+            type: 'button',
+            text: {
+              type: 'plain_text',
+              text: '✅ 承認',
+              emoji: true
+            },
+            style: competitorCheck.hasActiveCompetitors ? 'default' : 'primary',
+            value: `approve_cancel_${data.applicationId}`,
+            action_id: 'approve_cancel_report'
+          },
+          {
+            type: 'button',
+            text: {
+              type: 'plain_text',
+              text: '❌ 却下',
+              emoji: true
+            },
+            style: competitorCheck.hasActiveCompetitors ? 'danger' : 'default',
+            value: `reject_cancel_${data.applicationId}`,
+            action_id: 'reject_cancel_report'
+          },
+          {
+            type: 'button',
+            text: {
+              type: 'plain_text',
+              text: '📊 スプレッドシートを開く',
+              emoji: true
+            },
+            url: getSpreadsheetUrl(),
+            action_id: 'open_spreadsheet_cancel'
+          }
+        ]
       }
     ];
-
-    // 🔥 他社追客状況の警告ブロックを追加 🔥
-    if (competitorCheck.hasActiveCompetitors) {
-      blocks.push({
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: competitorCheck.warningMessage
-        }
-      });
-    }
-
-    // dividerと操作ボタン
-    blocks.push({
-      type: 'divider'
-    });
-
-    // ボタンのスタイルを他社状況に応じて変更
-    blocks.push({
-      type: 'actions',
-      elements: [
-        {
-          type: 'button',
-          text: {
-            type: 'plain_text',
-            text: '✅ 承認',
-            emoji: true
-          },
-          style: competitorCheck.hasActiveCompetitors ? 'default' : 'primary',
-          value: `approve_cancel_${data.applicationId}`,
-          action_id: 'approve_cancel_report'
-        },
-        {
-          type: 'button',
-          text: {
-            type: 'plain_text',
-            text: '❌ 却下',
-            emoji: true
-          },
-          style: competitorCheck.hasActiveCompetitors ? 'danger' : 'default',
-          value: `reject_cancel_${data.applicationId}`,
-          action_id: 'reject_cancel_report'
-        },
-        {
-          type: 'button',
-          text: {
-            type: 'plain_text',
-            text: '📊 スプレッドシートを開く',
-            emoji: true
-          },
-          url: getSpreadsheetUrl(),
-          action_id: 'open_spreadsheet_cancel'
-        }
-      ]
-    });
 
     const message = {
       text: competitorCheck.hasActiveCompetitors
@@ -220,6 +190,9 @@ function sendSlackExtensionNotification(data) {
       ? Utilities.formatDate(new Date(data.extendedDeadline), 'JST', 'yyyy-MM-dd HH:mm')
       : '未設定';
 
+    // シンプルな構造に統一
+    const summaryText = `*⏰ キャンセル期限延長申請*\n申請ID: ${data.extensionId} | CV ID: ${data.cvId}\n顧客: ${data.customerName} | 加盟店: ${data.merchantName}\n\n連絡日時: ${contactDateStr}\nアポ予定: ${appointmentDateStr}\n延長後期限: ${extendedDeadlineStr}\n\n延長理由: ${data.extensionReason || '（記載なし）'}`;
+
     const message = {
       text: `@channel ⏰ キャンセル期限延長申請が提出されました`,
       blocks: [
@@ -227,60 +200,8 @@ function sendSlackExtensionNotification(data) {
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: '*⏰ キャンセル期限延長申請*'
+            text: summaryText
           }
-        },
-        {
-          type: 'section',
-          fields: [
-            {
-              type: 'mrkdwn',
-              text: `*申請ID:*\n${data.extensionId}`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*CV ID:*\n${data.cvId}`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*顧客名:*\n${data.customerName}`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*加盟店:*\n${data.merchantName} (ID: ${data.merchantId})`
-            }
-          ]
-        },
-        {
-          type: 'section',
-          fields: [
-            {
-              type: 'mrkdwn',
-              text: `*連絡がついた日時:*\n${contactDateStr}`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*アポ予定日:*\n${appointmentDateStr}`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*延長後期限:*\n${extendedDeadlineStr}`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*ステータス:*\n申請中 🕐`
-            }
-          ]
-        },
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `*延長理由:*\n${data.extensionReason || '（記載なし）'}`
-          }
-        },
-        {
-          type: 'divider'
         },
         {
           type: 'actions',
