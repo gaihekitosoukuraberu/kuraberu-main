@@ -45,11 +45,6 @@ function sendSlackCancelNotification(data) {
       return { success: false, message: 'Slack設定エラー' };
     }
 
-    // キャンセル申請文を整形（長すぎる場合は省略）
-    const appTextPreview = data.cancelApplicationText?.length > 200
-      ? data.cancelApplicationText.substring(0, 200) + '...'
-      : data.cancelApplicationText;
-
     // 🔥 他社の追客状況をチェック 🔥
     const competitorCheck = CVDeliveryChecker.checkOtherMerchantsStatus(data.cvId, data.merchantId);
 
@@ -62,64 +57,6 @@ function sendSlackCancelNotification(data) {
       competitorCheck.competitorDetails.forEach((comp) => {
         const lastContactStr = comp.lastContact || '不明';
         competitorWarningText += `• *${comp.merchantName}* (${comp.status}) - 電話${comp.phoneCount}回 - 最終連絡: ${lastContactStr}\n`;
-      });
-    }
-
-    // 最終連絡日時を整形
-    const lastContactStr = data.lastContactDate
-      ? Utilities.formatDate(new Date(data.lastContactDate), 'JST', 'yyyy-MM-dd HH:mm')
-      : '未設定';
-
-    // フィールド配列を構築
-    const fields = [
-      {
-        title: '申請ID',
-        value: data.applicationId,
-        short: true
-      },
-      {
-        title: 'CV ID',
-        value: data.cvId,
-        short: true
-      },
-      {
-        title: '顧客名',
-        value: data.customerName,
-        short: true
-      },
-      {
-        title: '加盟店',
-        value: `${data.merchantName} (ID: ${data.merchantId})`,
-        short: true
-      },
-      {
-        title: 'キャンセル理由',
-        value: `${data.cancelReasonCategory} - ${data.cancelReasonDetail}`,
-        short: false
-      },
-      {
-        title: '電話回数',
-        value: `${data.phoneCallCount || 0}回`,
-        short: true
-      },
-      {
-        title: 'SMS回数',
-        value: `${data.smsCount || 0}回`,
-        short: true
-      },
-      {
-        title: '最終連絡日時',
-        value: lastContactStr,
-        short: true
-      }
-    ];
-
-    // キャンセル申請文がある場合は追加
-    if (appTextPreview) {
-      fields.push({
-        title: 'キャンセル申請文',
-        value: appTextPreview,
-        short: false
       });
     }
 
@@ -148,32 +85,21 @@ function sendSlackCancelNotification(data) {
             },
             {
               type: 'mrkdwn',
+              text: `*キャンセル理由*\n${data.cancelReasonCategory} - ${data.cancelReasonDetail}`
+            },
+            {
+              type: 'mrkdwn',
               text: `*電話回数*\n${data.phoneCallCount || 0}回`
             },
             {
               type: 'mrkdwn',
               text: `*SMS回数*\n${data.smsCount || 0}回`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*最終連絡日時*\n${lastContactStr}`
             }
           ]
         },
         {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `*キャンセル理由*\n${data.cancelReasonCategory} - ${data.cancelReasonDetail}`
-          }
+          type: 'divider'
         },
-        ...(appTextPreview ? [{
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `*キャンセル申請文*\n${appTextPreview}`
-          }
-        }] : []),
         {
           type: 'actions',
           elements: [
@@ -289,17 +215,14 @@ function sendSlackExtensionNotification(data) {
 
     // 日時フォーマット
     const contactDateStr = data.contactDate
-      ? Utilities.formatDate(new Date(data.contactDate), 'JST', 'yyyy-MM-dd HH:mm')
+      ? Utilities.formatDate(new Date(data.contactDate), 'JST', 'yyyy/MM/dd HH:mm')
       : '未設定';
     const appointmentDateStr = data.appointmentDate
-      ? Utilities.formatDate(new Date(data.appointmentDate), 'JST', 'yyyy-MM-dd')
+      ? Utilities.formatDate(new Date(data.appointmentDate), 'JST', 'yyyy/MM/dd')
       : '未設定';
     const extendedDeadlineStr = data.extendedDeadline
-      ? Utilities.formatDate(new Date(data.extendedDeadline), 'JST', 'yyyy-MM-dd HH:mm')
+      ? Utilities.formatDate(new Date(data.extendedDeadline), 'JST', 'yyyy/MM/dd HH:mm')
       : '未設定';
-
-    // シンプルな構造に統一
-    const summaryText = `*⏰ キャンセル期限延長申請*\n申請ID: ${data.extensionId}\n顧客: ${data.customerName} | 加盟店: ${data.merchantName}`;
 
     // Bot Token APIペイロード（chat.postMessage）
     const payload = {
@@ -310,7 +233,35 @@ function sendSlackExtensionNotification(data) {
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: summaryText
+            text: `*⏰ キャンセル期限延長申請*\n申請ID: ${data.extensionId}\n顧客: ${data.customerName} | 加盟店: ${data.merchantName}`
+          }
+        },
+        {
+          type: 'section',
+          fields: [
+            {
+              type: 'mrkdwn',
+              text: `*CV ID*\n${data.cvId}`
+            },
+            {
+              type: 'mrkdwn',
+              text: `*連絡がついた日時*\n${contactDateStr}`
+            },
+            {
+              type: 'mrkdwn',
+              text: `*アポ予定日*\n${appointmentDateStr}`
+            },
+            {
+              type: 'mrkdwn',
+              text: `*希望期限*\n${extendedDeadlineStr}`
+            }
+          ]
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*延長理由*\n${data.extensionReason || '未記入'}`
           }
         },
         {

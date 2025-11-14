@@ -777,19 +777,9 @@ const SlackApprovalSystem = {
     try {
       console.log('[SlackApproval] キャンセル却下モーダル表示開始:', applicationId);
 
-      // 申請データを取得
-      const applicationData = this.getCancelApplicationData(applicationId);
-
-      if (!applicationData) {
-        console.error('[SlackApproval] 申請データが見つかりません:', applicationId);
-        return;
-      }
-
-      // デフォルト却下理由を使用（Slackタイムアウト対策でAI生成はスキップ）
-      console.log('[SlackApproval] デフォルト却下理由を使用（タイムアウト対策）');
-      const aiReason = AIReasonGenerator._getDefaultCancelRejectionReason(applicationData);
-
-      console.log('[SlackApproval] 却下理由:', aiReason);
+      // 🔥 タイムアウト対策：データ取得をスキップして固定の却下理由を使用
+      console.log('[SlackApproval] 固定の却下理由を使用（3秒タイムアウト対策）');
+      const aiReason = '追客回数が不足しているため、キャンセルは承認できません。お客様のニーズを十分に把握するため、もう少し追客を続けてください。';
 
       // モーダルビューを構築
       const modalView = {
@@ -811,14 +801,14 @@ const SlackApprovalSystem = {
           applicationId: applicationId,
           user: user,
           channelId: channelId,
-          messageTs: messageTs
+          messageTs: String(messageTs)  // 🔥 文字列に変換してからJSON化（精度保持）
         }),
         blocks: [
           {
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: `*顧客: ${applicationData.customerName}*\n申請ID: ${applicationId}`
+              text: `*キャンセル申請却下*\n申請ID: ${applicationId}`
             }
           },
           {
@@ -847,7 +837,7 @@ const SlackApprovalSystem = {
             elements: [
               {
                 type: 'mrkdwn',
-                text: 'ℹ️ デフォルト理由（編集可能）'
+                text: 'ℹ️ 却下理由を編集してください'
               }
             ]
           }
@@ -874,19 +864,9 @@ const SlackApprovalSystem = {
     try {
       console.log('[SlackApproval] 期限延長却下モーダル表示開始:', extensionId);
 
-      // 申請データを取得
-      const extensionData = this.getExtensionApplicationData(extensionId);
-
-      if (!extensionData) {
-        console.error('[SlackApproval] 申請データが見つかりません:', extensionId);
-        return;
-      }
-
-      // デフォルト却下理由を使用（Slackタイムアウト対策でAI生成はスキップ）
-      console.log('[SlackApproval] デフォルト却下理由を使用（タイムアウト対策）');
-      const aiReason = AIReasonGenerator._getDefaultExtensionRejectionReason(extensionData);
-
-      console.log('[SlackApproval] 却下理由:', aiReason);
+      // 🔥 タイムアウト対策：データ取得をスキップして固定の却下理由を使用
+      console.log('[SlackApproval] 固定の却下理由を使用（3秒タイムアウト対策）');
+      const aiReason = '期限延長の理由が不十分です。より具体的な理由とアポイント予定日を明記して再申請してください。';
 
       // モーダルビューを構築
       const modalView = {
@@ -908,14 +888,14 @@ const SlackApprovalSystem = {
           extensionId: extensionId,
           user: user,
           channelId: channelId,
-          messageTs: messageTs
+          messageTs: String(messageTs)  // 🔥 文字列に変換してからJSON化（精度保持）
         }),
         blocks: [
           {
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: `*顧客: ${extensionData.customerName}*\n申請ID: ${extensionId}`
+              text: `*期限延長申請却下*\n申請ID: ${extensionId}`
             }
           },
           {
@@ -944,7 +924,7 @@ const SlackApprovalSystem = {
             elements: [
               {
                 type: 'mrkdwn',
-                text: 'ℹ️ デフォルト理由（編集可能）'
+                text: 'ℹ️ 却下理由を編集してください'
               }
             ]
           }
@@ -1045,6 +1025,10 @@ const SlackApprovalSystem = {
         console.log('[SlackApproval] Message TS (保存前):', messageTs);
         console.log('[SlackApproval] Message TS type:', typeof messageTs);
 
+        // 🔥 Message TSを文字列に変換（精度保持のため）
+        const messageTsStr = String(messageTs);
+        console.log('[SlackApproval] Message TS (文字列変換後):', messageTsStr);
+
         // 次の行番号を取得
         const nextRow = tempSheet.getLastRow() + 1;
 
@@ -1056,7 +1040,7 @@ const SlackApprovalSystem = {
           user,
           rejectionReason,
           channelId,
-          messageTs,  // そのまま書き込む（セルが既にテキスト形式）
+          messageTsStr,  // 文字列として書き込む
           'false'
         ]]);
 
@@ -1070,6 +1054,10 @@ const SlackApprovalSystem = {
         console.log('[SlackApproval] Message TS (保存前):', messageTs);
         console.log('[SlackApproval] Message TS type:', typeof messageTs);
 
+        // 🔥 Message TSを文字列に変換（精度保持のため）
+        const messageTsStr = String(messageTs);
+        console.log('[SlackApproval] Message TS (文字列変換後):', messageTsStr);
+
         // 次の行番号を取得
         const nextRow = tempSheet.getLastRow() + 1;
 
@@ -1081,7 +1069,7 @@ const SlackApprovalSystem = {
           user,
           rejectionReason,
           channelId,
-          messageTs,  // そのまま書き込む（セルが既にテキスト形式）
+          messageTsStr,  // 文字列として書き込む
           'false'
         ]]);
 
