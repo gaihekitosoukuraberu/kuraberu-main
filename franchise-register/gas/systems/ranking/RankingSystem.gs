@@ -1129,5 +1129,27 @@ const RankingSystem = {
 
     // 0点未満にはしない
     return Math.max(score, 0);
+  },
+
+  /**
+   * GETリクエストハンドラー（main.jsから呼ばれる）
+   * @param {Object} params - リクエストパラメータ
+   * @return {Object} レスポンス
+   */
+  handle: function(params) {
+    console.log('[RankingSystem] handle called');
+    console.log('[RankingSystem] params:', JSON.stringify(params));
+
+    const action = params.action;
+    console.log('[RankingSystem] action:', action);
+
+    if (action === 'getRanking') {
+      return this.getRanking(params);
+    }
+
+    return {
+      success: false,
+      error: 'Unknown action: ' + action
+    };
   }
 };
