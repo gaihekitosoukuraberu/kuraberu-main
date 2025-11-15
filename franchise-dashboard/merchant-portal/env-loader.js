@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1747-KANA-SETUP-SCRIPT-2025-11-15T17:30:00
- * @last-update 2025-11-15T17:30:00
+ * @file-version V1748-KANA-DYNAMIC-ASSIGN-2025-11-15T18:30:00
+ * @last-update 2025-11-15T18:30:00
  */
 
 const ENV = {
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1747 - 2025-11-15 - フリガナセットアップスクリプト）
-  CACHE_BUSTER: '1763222400000'
+  // キャッシュバスター（V1748 - 2025-11-15 - フリガナ動的アサイン）
+  CACHE_BUSTER: '1763226000000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

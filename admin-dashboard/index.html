@@ -2973,228 +2973,230 @@
         let currentStatusFilter = '';
 
         // 案件データベース
-        console.log('About to define casesData...');
-        const casesData = {
-            '001': {
-                name: '田中太郎',
-                nameKana: 'タナカタロウ',
-                gender: '男性',
-                age: '40代',
-                relation: '本人',
-                phone: '090-1234-5678',
-                email: 'tanaka@example.com',
-                propertyType: '戸建て',
-                floors: '2階建て',
-                buildingAge: '15年',
-                area: '120㎡',
-                constructionCount: '初回',
-                wallMaterial: 'サイディング',
-                roofMaterial: 'スレート',
-                postalCode: '150-0001',
-                address: '東京都渋谷区神宮前1-1-1',
-                searchKeyword: '外壁塗装 東京',
-                workItems: ['外壁塗装', '屋根塗装（外壁工事含む）'],
-                companiesCount: 3,
-                status: '配信済',
-                date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5日前
-                amount: '¥60,000',
-                franchiseStatuses: {
-                    'franchise1': { name: 'A工務店', status: 'アポ済' },
-                    'franchise2': { name: 'B塗装', status: '現調済' },
-                    'franchise3': { name: 'C建設', status: '見積提出済' }
-                }
-            },
-            '002': {
-                name: '鈴木花子',
-                nameKana: 'スズキハナコ',
-                gender: '女性',
-                age: '50代',
-                relation: '本人',
-                phone: '080-9876-5432',
-                email: 'suzuki@example.com',
-                propertyType: 'マンション',
-                floors: '5階建て',
-                buildingAge: '8年',
-                area: '85㎡',
-                constructionCount: '2回目',
-                wallMaterial: 'モルタル',
-                roofMaterial: '瓦',
-                postalCode: '160-0022',
-                address: '東京都新宿区新宿2-2-2',
-                searchKeyword: '外壁塗装 マンション',
-                workItems: ['外壁塗装', 'ベランダ防水（外壁工事含む）'],
-                companiesCount: 3,
-                status: '配信中',
-                date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2日前
-                amount: '¥45,000',
-                franchiseStatuses: {
-                    'franchise1': { name: 'D外装工業', status: '新規配信' },
-                    'franchise2': { name: 'E塗装店', status: '配信済' },
-                    'franchise3': { name: 'F建設工業', status: '配信済' }
-                }
-            },
-            '003': {
-                name: '佐藤一郎',
-                nameKana: 'サトウイチロウ',
-                gender: '男性',
-                age: '60代',
-                relation: '本人',
-                phone: '070-5555-7777',
-                email: 'sato@example.com',
-                propertyType: '戸建て',
-                floors: '2階建て',
-                buildingAge: '25年',
-                area: '150㎡',
-                constructionCount: '3回目以上',
-                wallMaterial: 'ALC',
-                roofMaterial: '金属',
-                postalCode: '140-0013',
-                address: '東京都品川区南大井3-3-3',
-                searchKeyword: '屋根替え 外壁工事',
-                workItems: ['屋根葺き替え・張り替え（スレート・ガルバリウム等）', '外壁補修（外壁工事含む）'],
-                companiesCount: 3,
-                status: '見込み',
-                date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10日前
-                amount: '¥90,000',
-                franchiseStatuses: {}
-            },
-            '004': {
-                name: '山田次郎',
-                nameKana: 'ヤマダジロウ',
-                gender: '男性',
-                age: '30代',
-                relation: '本人',
-                phone: '090-1111-2222',
-                email: 'yamada@example.com',
-                propertyType: '戸建て',
-                floors: '3階建て',
-                buildingAge: '10年',
-                area: '100㎡',
-                constructionCount: '初回',
-                wallMaterial: 'サイディング',
-                roofMaterial: 'スレート',
-                postalCode: '151-0001',
-                address: '東京都渋谷区代々木1-1-1',
-                searchKeyword: '外壁塗装 渋谷',
-                workItems: ['外壁塗装', '外壁補修（外壁工事含む）'],
-                companiesCount: 2,
-                status: '新規',
-                date: new Date(),
-                amount: '¥80,000',
-                franchiseStatuses: {}
-            },
-            '005': {
-                name: '高橋美咲',
-                nameKana: 'タカハシミサキ',
-                gender: '女性',
-                age: '40代',
-                relation: '本人',
-                phone: '080-3333-4444',
-                email: 'takahashi@example.com',
-                propertyType: 'マンション',
-                floors: '8階建て',
-                buildingAge: '20年',
-                area: '75㎡',
-                constructionCount: '2回目',
-                wallMaterial: 'タイル',
-                roofMaterial: '陸屋根',
-                postalCode: '162-0001',
-                address: '東京都新宿区市谷1-1-1',
-                searchKeyword: 'マンション 防水',
-                workItems: ['屋上防水（外壁工事含む）', 'ベランダ防水（外壁工事含む）'],
-                companiesCount: 3,
-                status: '不在',
-                date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-                amount: '¥60,000',
-                callHistory: [
-                    { date: '2025-01-10 10:30', note: '初回架電、不在。再架電予定。' }
-                ],
-                franchiseStatuses: {}
-            },
-            '006': {
-                name: '伊藤健一',
-                nameKana: 'イトウケンイチ',
-                gender: '男性',
-                age: '50代',
-                relation: '本人',
-                phone: '070-5555-6666',
-                email: 'ito@example.com',
-                propertyType: '店舗',
-                floors: '2階建て',
-                buildingAge: '30年',
-                area: '200㎡',
-                constructionCount: '3回目以上',
-                wallMaterial: 'モルタル',
-                roofMaterial: '瓦',
-                postalCode: '141-0001',
-                address: '東京都品川区北品川1-1-1',
-                searchKeyword: '店舗 外壁',
-                workItems: ['外壁カバー工法', '屋根カバー工法'],
-                companiesCount: 4,
-                status: '再架電',
-                date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-                amount: '¥120,000',
-                callHistory: [
-                    { date: '2025-01-08 14:00', note: '初回架電。見積もり希望。' },
-                    { date: '2025-01-09 11:00', note: '資料送付の確認。次回架電予定。' }
-                ],
-                franchiseStatuses: {}
-            },
-            '007': {
-                name: '渡辺陽子',
-                nameKana: 'ワタナベヨウコ',
-                gender: '女性',
-                age: '60代',
-                relation: '配偶者',
-                phone: '090-7777-8888',
-                email: 'watanabe@example.com',
-                propertyType: '戸建て',
-                floors: '平屋',
-                buildingAge: '35年',
-                area: '90㎡',
-                constructionCount: '初回',
-                wallMaterial: 'ALC',
-                roofMaterial: '瓦',
-                postalCode: '143-0001',
-                address: '東京都大田区東海1-1-1',
-                searchKeyword: '屋根葺き替え',
-                workItems: ['屋根葺き替え・張り替え（瓦）', '雨漏り修繕'],
-                companiesCount: 3,
-                status: '配信済',
-                date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-                amount: '¥100,000',
-                franchiseStatuses: {
-                    'franchise1': { name: 'G屋根工事', status: '見積提出済' },
-                    'franchise2': { name: 'H建築', status: 'アポ済' },
-                    'franchise3': { name: 'I工務店', status: '検討中' }
-                }
-            },
-            '008': {
-                name: '中村太一',
-                nameKana: 'ナカムラタイチ',
-                gender: '男性',
-                age: '40代',
-                relation: '本人',
-                phone: '080-9999-0000',
-                email: 'nakamura@example.com',
-                propertyType: 'アパート',
-                floors: '3階建て',
-                buildingAge: '15年',
-                area: '250㎡',
-                constructionCount: '2回目',
-                wallMaterial: 'サイディング',
-                roofMaterial: 'スレート',
-                postalCode: '144-0001',
-                address: '東京都大田区蒲田1-1-1',
-                searchKeyword: 'アパート 塗装',
-                workItems: ['外壁塗装', '屋根塗装（外壁工事含む）', '鉄部塗装'],
-                companiesCount: 3,
-                status: '新規',
-                date: new Date(),
-                amount: '¥150,000',
-                franchiseStatuses: {}
-            }
-        };
+        // 案件データ（実データ）
+        let casesData = {}; // 初期値は空、loadCasesData()で取得
+        //         console.log('About to define casesData...');
+        //         const casesData = {
+        //             '001': {
+        //                 name: '田中太郎',
+        //                 nameKana: 'タナカタロウ',
+        //                 gender: '男性',
+        //                 age: '40代',
+        //                 relation: '本人',
+        //                 phone: '090-1234-5678',
+        //                 email: 'tanaka@example.com',
+        //                 propertyType: '戸建て',
+        //                 floors: '2階建て',
+        //                 buildingAge: '15年',
+        //                 area: '120㎡',
+        //                 constructionCount: '初回',
+        //                 wallMaterial: 'サイディング',
+        //                 roofMaterial: 'スレート',
+        //                 postalCode: '150-0001',
+        //                 address: '東京都渋谷区神宮前1-1-1',
+        //                 searchKeyword: '外壁塗装 東京',
+        //                 workItems: ['外壁塗装', '屋根塗装（外壁工事含む）'],
+        //                 companiesCount: 3,
+        //                 status: '配信済',
+        //                 date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5日前
+        //                 amount: '¥60,000',
+        //                 franchiseStatuses: {
+        //                     'franchise1': { name: 'A工務店', status: 'アポ済' },
+        //                     'franchise2': { name: 'B塗装', status: '現調済' },
+        //                     'franchise3': { name: 'C建設', status: '見積提出済' }
+        //                 }
+        //             },
+        //             '002': {
+        //                 name: '鈴木花子',
+        //                 nameKana: 'スズキハナコ',
+        //                 gender: '女性',
+        //                 age: '50代',
+        //                 relation: '本人',
+        //                 phone: '080-9876-5432',
+        //                 email: 'suzuki@example.com',
+        //                 propertyType: 'マンション',
+        //                 floors: '5階建て',
+        //                 buildingAge: '8年',
+        //                 area: '85㎡',
+        //                 constructionCount: '2回目',
+        //                 wallMaterial: 'モルタル',
+        //                 roofMaterial: '瓦',
+        //                 postalCode: '160-0022',
+        //                 address: '東京都新宿区新宿2-2-2',
+        //                 searchKeyword: '外壁塗装 マンション',
+        //                 workItems: ['外壁塗装', 'ベランダ防水（外壁工事含む）'],
+        //                 companiesCount: 3,
+        //                 status: '配信中',
+        //                 date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2日前
+        //                 amount: '¥45,000',
+        //                 franchiseStatuses: {
+        //                     'franchise1': { name: 'D外装工業', status: '新規配信' },
+        //                     'franchise2': { name: 'E塗装店', status: '配信済' },
+        //                     'franchise3': { name: 'F建設工業', status: '配信済' }
+        //                 }
+        //             },
+        //             '003': {
+        //                 name: '佐藤一郎',
+        //                 nameKana: 'サトウイチロウ',
+        //                 gender: '男性',
+        //                 age: '60代',
+        //                 relation: '本人',
+        //                 phone: '070-5555-7777',
+        //                 email: 'sato@example.com',
+        //                 propertyType: '戸建て',
+        //                 floors: '2階建て',
+        //                 buildingAge: '25年',
+        //                 area: '150㎡',
+        //                 constructionCount: '3回目以上',
+        //                 wallMaterial: 'ALC',
+        //                 roofMaterial: '金属',
+        //                 postalCode: '140-0013',
+        //                 address: '東京都品川区南大井3-3-3',
+        //                 searchKeyword: '屋根替え 外壁工事',
+        //                 workItems: ['屋根葺き替え・張り替え（スレート・ガルバリウム等）', '外壁補修（外壁工事含む）'],
+        //                 companiesCount: 3,
+        //                 status: '見込み',
+        //                 date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10日前
+        //                 amount: '¥90,000',
+        //                 franchiseStatuses: {}
+        //             },
+        //             '004': {
+        //                 name: '山田次郎',
+        //                 nameKana: 'ヤマダジロウ',
+        //                 gender: '男性',
+        //                 age: '30代',
+        //                 relation: '本人',
+        //                 phone: '090-1111-2222',
+        //                 email: 'yamada@example.com',
+        //                 propertyType: '戸建て',
+        //                 floors: '3階建て',
+        //                 buildingAge: '10年',
+        //                 area: '100㎡',
+        //                 constructionCount: '初回',
+        //                 wallMaterial: 'サイディング',
+        //                 roofMaterial: 'スレート',
+        //                 postalCode: '151-0001',
+        //                 address: '東京都渋谷区代々木1-1-1',
+        //                 searchKeyword: '外壁塗装 渋谷',
+        //                 workItems: ['外壁塗装', '外壁補修（外壁工事含む）'],
+        //                 companiesCount: 2,
+        //                 status: '新規',
+        //                 date: new Date(),
+        //                 amount: '¥80,000',
+        //                 franchiseStatuses: {}
+        //             },
+        //             '005': {
+        //                 name: '高橋美咲',
+        //                 nameKana: 'タカハシミサキ',
+        //                 gender: '女性',
+        //                 age: '40代',
+        //                 relation: '本人',
+        //                 phone: '080-3333-4444',
+        //                 email: 'takahashi@example.com',
+        //                 propertyType: 'マンション',
+        //                 floors: '8階建て',
+        //                 buildingAge: '20年',
+        //                 area: '75㎡',
+        //                 constructionCount: '2回目',
+        //                 wallMaterial: 'タイル',
+        //                 roofMaterial: '陸屋根',
+        //                 postalCode: '162-0001',
+        //                 address: '東京都新宿区市谷1-1-1',
+        //                 searchKeyword: 'マンション 防水',
+        //                 workItems: ['屋上防水（外壁工事含む）', 'ベランダ防水（外壁工事含む）'],
+        //                 companiesCount: 3,
+        //                 status: '不在',
+        //                 date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+        //                 amount: '¥60,000',
+        //                 callHistory: [
+        //                     { date: '2025-01-10 10:30', note: '初回架電、不在。再架電予定。' }
+        //                 ],
+        //                 franchiseStatuses: {}
+        //             },
+        //             '006': {
+        //                 name: '伊藤健一',
+        //                 nameKana: 'イトウケンイチ',
+        //                 gender: '男性',
+        //                 age: '50代',
+        //                 relation: '本人',
+        //                 phone: '070-5555-6666',
+        //                 email: 'ito@example.com',
+        //                 propertyType: '店舗',
+        //                 floors: '2階建て',
+        //                 buildingAge: '30年',
+        //                 area: '200㎡',
+        //                 constructionCount: '3回目以上',
+        //                 wallMaterial: 'モルタル',
+        //                 roofMaterial: '瓦',
+        //                 postalCode: '141-0001',
+        //                 address: '東京都品川区北品川1-1-1',
+        //                 searchKeyword: '店舗 外壁',
+        //                 workItems: ['外壁カバー工法', '屋根カバー工法'],
+        //                 companiesCount: 4,
+        //                 status: '再架電',
+        //                 date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        //                 amount: '¥120,000',
+        //                 callHistory: [
+        //                     { date: '2025-01-08 14:00', note: '初回架電。見積もり希望。' },
+        //                     { date: '2025-01-09 11:00', note: '資料送付の確認。次回架電予定。' }
+        //                 ],
+        //                 franchiseStatuses: {}
+        //             },
+        //             '007': {
+        //                 name: '渡辺陽子',
+        //                 nameKana: 'ワタナベヨウコ',
+        //                 gender: '女性',
+        //                 age: '60代',
+        //                 relation: '配偶者',
+        //                 phone: '090-7777-8888',
+        //                 email: 'watanabe@example.com',
+        //                 propertyType: '戸建て',
+        //                 floors: '平屋',
+        //                 buildingAge: '35年',
+        //                 area: '90㎡',
+        //                 constructionCount: '初回',
+        //                 wallMaterial: 'ALC',
+        //                 roofMaterial: '瓦',
+        //                 postalCode: '143-0001',
+        //                 address: '東京都大田区東海1-1-1',
+        //                 searchKeyword: '屋根葺き替え',
+        //                 workItems: ['屋根葺き替え・張り替え（瓦）', '雨漏り修繕'],
+        //                 companiesCount: 3,
+        //                 status: '配信済',
+        //                 date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        //                 amount: '¥100,000',
+        //                 franchiseStatuses: {
+        //                     'franchise1': { name: 'G屋根工事', status: '見積提出済' },
+        //                     'franchise2': { name: 'H建築', status: 'アポ済' },
+        //                     'franchise3': { name: 'I工務店', status: '検討中' }
+        //                 }
+        //             },
+        //             '008': {
+        //                 name: '中村太一',
+        //                 nameKana: 'ナカムラタイチ',
+        //                 gender: '男性',
+        //                 age: '40代',
+        //                 relation: '本人',
+        //                 phone: '080-9999-0000',
+        //                 email: 'nakamura@example.com',
+        //                 propertyType: 'アパート',
+        //                 floors: '3階建て',
+        //                 buildingAge: '15年',
+        //                 area: '250㎡',
+        //                 constructionCount: '2回目',
+        //                 wallMaterial: 'サイディング',
+        //                 roofMaterial: 'スレート',
+        //                 postalCode: '144-0001',
+        //                 address: '東京都大田区蒲田1-1-1',
+        //                 searchKeyword: 'アパート 塗装',
+        //                 workItems: ['外壁塗装', '屋根塗装（外壁工事含む）', '鉄部塗装'],
+        //                 companiesCount: 3,
+        //                 status: '新規',
+        //                 date: new Date(),
+        //                 amount: '¥150,000',
+        //                 franchiseStatuses: {}
+        //             }
+        //         };
         
         console.log('casesData defined successfully:', Object.keys(casesData).length + ' cases');
         console.log('Case IDs:', Object.keys(casesData));
@@ -4977,6 +4979,36 @@
 
         // 初期化処理
         document.addEventListener('DOMContentLoaded', function() {
+
+            // CV一覧を読み込み（実データ）
+            async function loadCasesData() {
+                try {
+                    console.log("[loadCasesData] CV一覧読み込み開始...");
+                    
+                    // CV一覧を取得
+                    const loadedCasesData = await window.CVListManager.loadAndConvert();
+                    
+                    // グローバル変数に代入
+                    Object.assign(casesData, loadedCasesData);
+                    
+                    console.log("[loadCasesData] CV一覧読み込み完了:", Object.keys(casesData).length, "件");
+                    
+                    // リストビューを再初期化
+                    if (typeof initializeListView === "function") {
+                        initializeListView();
+                    }
+                    if (typeof updateStatsCounts === "function") {
+                        updateStatsCounts();
+                    }
+                    
+                } catch (error) {
+                    console.error("[loadCasesData] CV一覧読み込みエラー:", error);
+                    // エラー時はダミーデータを使用するなど、フォールバック処理を実装可能
+                }
+            }
+            
+            // CV一覧を非同期で読み込み
+            loadCasesData();
             console.log('=== DOMContentLoaded - 初期化開始 ===');
             console.log('casesData:', casesData);
             console.log('Total cases:', Object.keys(casesData).length);
@@ -5415,5 +5447,12 @@
         });
 
     </script>
+
+    <!-- 外部JSファイル読み込み -->
+    <script src="js/env-loader.js"></script>
+    <script src="js/api-client.js"></script>
+    <script src="js/cv-data-handler.js"></script>
+    <script src="js/fee-calculator.js"></script>
+    <script src="js/cv-list-manager.js"></script>
 </body>
 </html><!-- Test auto-deploy Fri Oct 31 16:40:05 JST 2025 -->

@@ -276,7 +276,8 @@ function generateAddressKanaForUsers() {
   let updateCount = 0;
   const maxRows = 50; // 一度に処理する最大行数（API制限対策）
 
-  for (let i = 0; i < Math.min(rows.length, maxRows); i++) {
+  // 全行をループして未処理の行を見つけ次第処理（最大50件）
+  for (let i = 0; i < rows.length && updateCount < maxRows; i++) {
     const row = rows[i];
     const zipCode = row[zipIdx];
     const existingKana = row[addressKanaIdx];
@@ -292,9 +293,20 @@ function generateAddressKanaForUsers() {
     }
   }
 
+  // 未処理の件数を計算
+  let remainingCount = 0;
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const zipCode = row[zipIdx];
+    const existingKana = row[addressKanaIdx];
+    if (!existingKana && zipCode) {
+      remainingCount++;
+    }
+  }
+
   Logger.log(`✅ ${updateCount}件の住所フリガナを自動生成しました`);
 
-  if (rows.length > maxRows) {
-    Logger.log(`⚠️ まだ${rows.length - maxRows}件残っています。再度実行してください`);
+  if (remainingCount > 0) {
+    Logger.log(`⚠️ まだ${remainingCount}件残っています。再度実行してください`);
   }
 }

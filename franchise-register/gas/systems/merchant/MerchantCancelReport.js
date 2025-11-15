@@ -253,12 +253,37 @@ var MerchantCancelReport = {
 
       const ss = SpreadsheetApp.getActiveSpreadsheet();
       const cancelSheet = ss.getSheetByName('キャンセル申請');
+      const userSheet = ss.getSheetByName('ユーザー登録');
 
       if (!cancelSheet) {
         return {
           success: false,
           error: 'キャンセル申請シートが見つかりません'
         };
+      }
+
+      // ユーザー登録シートからフリガナマップを作成（動的アサイン）
+      let kanaMap = {};
+      if (userSheet) {
+        const userData = userSheet.getDataRange().getValues();
+        const userHeaders = userData[0];
+        const userRows = userData.slice(1);
+
+        const userCvIdIdx = userHeaders.indexOf('CV ID');
+        const userNameKanaIdx = userHeaders.indexOf('フリガナ');
+        const userAddressKanaIdx = userHeaders.indexOf('住所フリガナ');
+
+        if (userCvIdIdx >= 0 && userNameKanaIdx >= 0) {
+          userRows.forEach(userRow => {
+            const cvId = userRow[userCvIdIdx];
+            if (cvId) {
+              kanaMap[cvId] = {
+                nameKana: userRow[userNameKanaIdx] || '',
+                addressKana: userAddressKanaIdx >= 0 ? (userRow[userAddressKanaIdx] || '') : ''
+              };
+            }
+          });
+        }
       }
 
       // データ取得
@@ -269,10 +294,8 @@ var MerchantCancelReport = {
       // 必要なカラムのインデックス取得
       const cvIdIdx = headers.indexOf('CV ID');
       const customerNameIdx = headers.indexOf('顧客名');
-      const customerNameKanaIdx = headers.indexOf('顧客名フリガナ'); // 新規追加列（まだ存在しない場合あり）
       const telIdx = headers.indexOf('電話番号');
       const addressIdx = headers.indexOf('住所');
-      const addressKanaIdx = headers.indexOf('住所フリガナ'); // 将来用（現在は列が存在しない）
       const merchantIdIdx = headers.indexOf('加盟店ID');
       const merchantNameIdx = headers.indexOf('加盟店名');
       const applicantNameIdx = headers.indexOf('申請担当者');
@@ -302,23 +325,27 @@ var MerchantCancelReport = {
         const row = rows[i];
         const rowMerchantId = row[merchantIdIdx];
         const rowStatus = row[statusColIdx];
+        const cvId = row[cvIdIdx];
 
         // 空行スキップ
-        if (!row[cvIdIdx]) continue;
+        if (!cvId) continue;
 
         // この加盟店の案件で、指定されたステータスのもののみ
         if ((rowMerchantId === merchantId || rowMerchantId === String(merchantId)) &&
             rowStatus === targetStatus) {
 
+          // ユーザー登録シートから動的にフリガナ取得
+          const kanaData = kanaMap[cvId] || { nameKana: '', addressKana: '' };
+
           // 案件情報を追加
           appliedCases.push({
-            cvId: row[cvIdIdx],
+            cvId: cvId,
             applicationId: row[applicationIdIdx] || '',
             customerName: row[customerNameIdx] || '',
-            customerNameKana: customerNameKanaIdx >= 0 ? (row[customerNameKanaIdx] || '') : '',
+            customerNameKana: kanaData.nameKana,
             tel: row[telIdx] || '',
             address: row[addressIdx] || '',
-            addressKana: addressKanaIdx >= 0 ? (row[addressKanaIdx] || '') : '',
+            addressKana: kanaData.addressKana,
             merchantName: row[merchantNameIdx] || '',
             applicantName: row[applicantNameIdx] || '',
             deliveredAt: row[deliveredAtIdx] || '',

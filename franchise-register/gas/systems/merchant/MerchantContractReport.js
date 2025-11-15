@@ -56,8 +56,12 @@ const MerchantContractReport = {
       const deliveredMerchantsIdx = headers.indexOf('配信先業者一覧');
       const managementStatusIdx = headers.indexOf('管理ステータス');
       const nameIdx = headers.indexOf('氏名');
+      const nameKanaIdx = headers.indexOf('フリガナ');
       const telIdx = headers.indexOf('電話番号');
-      const addressIdx = headers.indexOf('住所');
+      const prefectureIdx = headers.indexOf('都道府県（物件）');
+      const cityIdx = headers.indexOf('市区町村（物件）');
+      const addressDetailIdx = headers.indexOf('住所詳細（物件）');
+      const addressKanaIdx = headers.indexOf('住所フリガナ');
       const workCategoryIdx = headers.indexOf('工事種別');
       const deliveredAtIdx = headers.indexOf('配信日時');
       const contractMerchantIdIdx = headers.indexOf('成約加盟店ID');
@@ -91,12 +95,20 @@ const MerchantContractReport = {
           continue;
         }
 
+        // 住所を結合
+        const prefecture = prefectureIdx >= 0 ? (row[prefectureIdx] || '') : '';
+        const city = cityIdx >= 0 ? (row[cityIdx] || '') : '';
+        const addressDetail = addressDetailIdx >= 0 ? (row[addressDetailIdx] || '') : '';
+        const fullAddress = prefecture + city + addressDetail;
+
         // 案件情報を追加
         deliveredCases.push({
           cvId: cvId,
           customerName: row[nameIdx] || '',
+          customerNameKana: nameKanaIdx >= 0 ? (row[nameKanaIdx] || '') : '',
           tel: row[telIdx] || '',
-          address: row[addressIdx] || '',
+          address: fullAddress,
+          addressKana: addressKanaIdx >= 0 ? (row[addressKanaIdx] || '') : '',
           workCategory: row[workCategoryIdx] || '',
           deliveredAt: row[deliveredAtIdx] || '',
           managementStatus: managementStatus

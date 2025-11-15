@@ -589,38 +589,39 @@ const CVSheetSystem = {
       const cvId = 'CV-' + suffix + String(lastRow).padStart(6, '0');
       const timestamp = new Date();
 
-      // データ行構築（71列）
+      // データ行構築（73列）
       const row = [
-        cvId,                                    // A: CV ID
-        timestamp,                               // B: 登録日時
-        '',                                      // C: 氏名（CV2で入力）
-        '',                                      // D: フリガナ
-        '',                                      // E: 性別
-        '',                                      // F: 年齢
-        params.phone ? "'" + params.phone : '',  // G: 電話番号（'を先頭に付けて文字列化）
-        '',                                      // H: メールアドレス（CV2で入力）
-        '',                                      // I: 続柄
+        cvId,                                    // A(1): CV ID
+        timestamp,                               // B(2): 登録日時
+        '',                                      // C(3): 氏名（CV2で入力）
+        '',                                      // D(4): フリガナ
+        '',                                      // E(5): 性別
+        '',                                      // F(6): 年齢
+        params.phone ? "'" + params.phone : '',  // G(7): 電話番号（'を先頭に付けて文字列化）
+        '',                                      // H(8): メールアドレス（CV2で入力）
+        '',                                      // I(9): 続柄
 
-        '',                                      // J-M: 2人目情報
+        '',                                      // J(10)-M(13): 2人目情報
         '',
         '',
         '',
 
-        params.postalCode ? "'" + params.postalCode : '',  // N: 郵便番号（物件）（'を先頭に付けて文字列化）
-        params.propertyPrefecture || '',         // O: 都道府県（物件）
-        params.propertyCity || '',               // P: 市区町村（物件）
-        '',                                      // Q: 住所詳細（CV2で入力）
+        params.postalCode ? "'" + params.postalCode : '',  // N(14): 郵便番号（物件）（'を先頭に付けて文字列化）
+        params.propertyPrefecture || '',         // O(15): 都道府県（物件）
+        params.propertyCity || '',               // P(16): 市区町村（物件）
+        '',                                      // Q(17): 住所詳細（CV2で入力）
+        '',                                      // R(18): 住所フリガナ（CV2で入力）
 
-        'FALSE',                                 // R: 自宅住所フラグ
-        '',                                      // S: 郵便番号（自宅）（CV2で入力）
-        '',                                      // T: 都道府県（自宅）（CV2で入力）
-        '',                                      // U: 住所詳細（自宅）（CV2で入力）
+        'FALSE',                                 // S(19): 自宅住所フラグ
+        '',                                      // T(20): 郵便番号（自宅）（CV2で入力）
+        '',                                      // U(21): 都道府県（自宅）（CV2で入力）
+        '',                                      // V(22): 住所詳細（自宅）（CV2で入力）
 
-        // V-Y: 物件詳細（BOT回答から自動抽出）
-        this.extractPropertyType(params.Q1_propertyType, params.q1_question),  // V: 物件種別
-        params.Q3_buildingAge || '',                        // W: 築年数
-        '',                                                 // X: 建物面積（空欄）
-        this.extractFloors(params.Q2_floors, params.Q1_propertyType, params.q1_question), // Y: 階数
+        // W(23)-Z(26): 物件詳細（BOT回答から自動抽出）
+        this.extractPropertyType(params.Q1_propertyType, params.q1_question),  // W(23): 物件種別
+        params.Q3_buildingAge || '',                        // X(24): 築年数
+        '',                                                 // Y(25): 建物面積（空欄）
+        this.extractFloors(params.Q2_floors, params.Q1_propertyType, params.q1_question), // Z(26): 階数
 
         // Z-AP: BOT質問回答（Q1〜Q17）- BOT側のパラメータ名に合わせる
         params.Q1_propertyType || '',            // Z: Q1_物件種別
@@ -941,18 +942,18 @@ const CVSheetSystem = {
           lastVisitDate: row[59] || '',                 // BH: 最終訪問日時
           isBlocked: row[60] === 'TRUE',                // BI: ブロックフラグ
 
-          // BJ-BL: フォローアップ履歴
+          // BJ-BT: フォローアップ履歴・管理用フィールド
           callHistory: row[61] || '',                   // BJ: 架電履歴
-          lastCallDate: row[62] || '',                  // BK: 最終架電日時
+          nextCallDate: row[62] || '',                  // BK: 次回架電日時
           memo: row[63] || '',                          // BL: メモ
-
-          // BM-BS: 管理用フィールド（新規追加）
           status: row[64] || '新規',                     // BM: 管理ステータス
           franchiseStatuses: row[65] || '',             // BN: 加盟店別ステータス（JSON）
           firstCallDate: row[66] || '',                 // BO: 初回架電日時
           lastUpdateDate: row[67] || '',                // BP: 最終更新日時
           scheduledDeliveryDate: row[68] || '',         // BQ: 配信予定日時
-          assignedTo: row[69] || ''                     // BS: 担当者名
+          assignedTo: row[69] || '',                    // BR: 担当者名
+          lastCallDate: row[70] || '',                  // BS: 最終架電日時
+          deliveredMerchants: row[71] || ''             // BT: 配信先業者一覧
         };
       }).filter(cv => cv !== null); // 空行を除外
 
