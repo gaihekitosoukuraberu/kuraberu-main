@@ -366,21 +366,15 @@ const BotConfig = {
             mapped.Q13_doorSales = answers.Q010.choice || '';
         }
 
-        // Q14_比較意向（AN列）: Q009E_extra or Q009E or Q011
-        if (answers.Q009E_extra) {
-            // Q009E_extraは「比較は不要」選択後の追加説得なので、固定値を設定
-            mapped.Q14_comparison = '比較は不要';
-        } else if (answers.Q009E) {
+        // Q14_比較意向（AN列）: Q009E or Q011
+        if (answers.Q009E) {
             mapped.Q14_comparison = answers.Q009E.choice || '';
         } else if (answers.Q011) {
             mapped.Q14_comparison = answers.Q011.choice || '';
         }
 
-        // Q15_訪問業者名（AO列）: Q009E_extra or Q009F or Q012
-        if (answers.Q009E_extra) {
-            // Q009E_extraはテキスト入力なので、ユーザー入力値（業者名）を設定
-            mapped.Q15_doorSalesCompany = answers.Q009E_extra.choice || '';
-        } else if (answers.Q009F) {
+        // Q15_訪問業者名（AO列）: Q009F or Q012
+        if (answers.Q009F) {
             mapped.Q15_doorSalesCompany = answers.Q009F.choice || '';
         } else if (answers.Q012) {
             mapped.Q15_doorSalesCompany = answers.Q012.choice || '';

@@ -19419,17 +19419,30 @@
                             ? `<p class="text-sm text-gray-600 mb-2">却下日: ${new Date(caseItem.rejectedAt).toLocaleDateString('ja-JP')}</p>`
                             : '';
 
-                        // 却下済みタブの場合のみアクションボタンを表示
-                        const actionButtons = status === 'rejected' ? `
-                            <div class="flex gap-1 mt-3">
-                                <button onclick="archiveCase('${caseItem.cvId}')" class="flex-1 px-2 py-1.5 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200 transition-colors" title="追客終了BOXへ移動">
-                                    🗑️ 追客終了
-                                </button>
-                                <button onclick="openCancelReapplication('${caseItem.cvId}')" class="flex-1 px-2 py-1.5 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200 transition-colors" title="再申請">
-                                    🔄 再申請
-                                </button>
-                            </div>
-                        ` : '';
+                        // ステータス別のアクションボタン
+                        let actionButtons = '';
+                        if (status === 'rejected') {
+                            // 却下済みタブ：追客終了・再申請ボタン
+                            actionButtons = `
+                                <div class="flex gap-1 mt-3">
+                                    <button onclick="archiveCase('${caseItem.cvId}')" class="flex-1 px-2 py-1.5 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200 transition-colors" title="追客終了BOXへ移動">
+                                        🗑️ 追客終了
+                                    </button>
+                                    <button onclick="openCancelReapplication('${caseItem.cvId}')" class="flex-1 px-2 py-1.5 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200 transition-colors" title="再申請">
+                                        🔄 再申請
+                                    </button>
+                                </div>
+                            `;
+                        } else if (status === 'pending') {
+                            // 審査中タブ：申請取り消しボタン
+                            actionButtons = `
+                                <div class="mt-3">
+                                    <button onclick="withdrawCancelApplication('${caseItem.applicationId}', '${caseItem.cvId}')" class="w-full px-3 py-2 bg-red-100 text-red-700 rounded text-sm font-semibold hover:bg-red-200 transition-colors" title="申請取り消し">
+                                        ❌ 申請取り消し
+                                    </button>
+                                </div>
+                            `;
+                        }
 
                         return `
                         <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
@@ -19635,6 +19648,42 @@
             } catch (error) {
                 console.error('復元エラー:', error);
                 alert('案件の復元に失敗しました');
+            }
+        }
+
+        // キャンセル申請を取り消し
+        window.withdrawCancelApplication = async function(applicationId, cvId) {
+            if (!confirm('このキャンセル申請を取り消しますか？\n取り消すと、再度キャンセル申請が可能になります。')) {
+                return;
+            }
+
+            try {
+                const merchantId = window.merchantId;
+                if (!merchantId) {
+                    alert('ログインしていません');
+                    return;
+                }
+
+                const response = await fetchWithRetry(CANCEL_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `action=withdrawCancelApplication&merchantId=${merchantId}&applicationId=${applicationId}&cvId=${cvId}`
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('キャンセル申請を取り消しました');
+                    // 審査中タブを再読み込み
+                    loadAppliedCases('pending');
+                } else {
+                    alert('エラー: ' + (result.error || '不明なエラー'));
+                }
+            } catch (error) {
+                console.error('申請取り消しエラー:', error);
+                alert('キャンセル申請の取り消しに失敗しました');
             }
         }
 

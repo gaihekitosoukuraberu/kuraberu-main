@@ -22,8 +22,8 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- text/plainパース対応 @1620
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbyyPTMmaNv5euO7QaYFz-IZMQVxL4_Mh0g2YlL8NlFplya78UpoPHvyeygj7CDU5j3_hQ/exec',
+  // プライマリGAS URL（メイン運用）- V1754: 審査中マッピング修正 + 申請取り消しボタン
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwlTB8M9fvOM4H8SFvGklkUFNWkH9W7YjRd2lZDE6Ep8Kfd2uFx-ZQX__9NnGsqMuEn-Q/exec',
 
   // フォールバックGAS URL（バックアップ）- @1620
   FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbyyPTMmaNv5euO7QaYFz-IZMQVxL4_Mh0g2YlL8NlFplya78UpoPHvyeygj7CDU5j3_hQ/exec',

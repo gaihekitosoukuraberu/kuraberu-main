@@ -27,9 +27,9 @@ function recreateTestData() {
   const nameIdx = userHeaders.indexOf('氏名');
   const contractMerchantIdIdx = userHeaders.indexOf('成約加盟店ID');
 
-  console.log('【ユーザー登録シートから未成約のCV IDを取得】');
+  console.log('【ユーザー登録シートからCV IDを取得】');
 
-  // 未成約で、アーカイブされていない案件を5件取得
+  // まず未成約のCV IDを探す
   const availableCvIds = [];
   for (let i = 0; i < userRows.length && availableCvIds.length < 5; i++) {
     const row = userRows[i];
@@ -42,12 +42,30 @@ function recreateTestData() {
         cvId: cvId,
         name: name
       });
-      console.log(availableCvIds.length + ':', cvId, '-', name);
+      console.log(availableCvIds.length + ':', cvId, '-', name, '（未成約）');
+    }
+  }
+
+  // 未成約が見つからない場合は、最新の5件を使う（成約済みでも可）
+  if (availableCvIds.length === 0) {
+    console.log('⚠️  未成約のCV IDが見つからないため、最新5件を使用します');
+    for (let i = userRows.length - 1; i >= 0 && availableCvIds.length < 5; i--) {
+      const row = userRows[i];
+      const cvId = row[cvIdIdx];
+      const name = row[nameIdx];
+
+      if (cvId) {
+        availableCvIds.push({
+          cvId: cvId,
+          name: name
+        });
+        console.log(availableCvIds.length + ':', cvId, '-', name, '（最新データ使用）');
+      }
     }
   }
 
   if (availableCvIds.length === 0) {
-    console.log('❌ 利用可能なCV IDが見つかりませんでした');
+    console.log('❌ ユーザー登録シートにCV IDが見つかりませんでした');
     return;
   }
 

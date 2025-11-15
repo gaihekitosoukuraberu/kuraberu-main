@@ -297,8 +297,8 @@ var MerchantCancelReport = {
         };
       }
 
-      // ユーザー登録シートからフリガナマップを作成（動的アサイン）
-      let kanaMap = {};
+      // ユーザー登録シートから顧客情報マップを作成（動的アサイン）
+      let userDataMap = {};
       if (userSheet) {
         const userData = userSheet.getDataRange().getValues();
         const userHeaders = userData[0];
@@ -307,14 +307,25 @@ var MerchantCancelReport = {
         const userCvIdIdx = userHeaders.indexOf('CV ID');
         const userNameKanaIdx = userHeaders.indexOf('フリガナ');
         const userAddressKanaIdx = userHeaders.indexOf('住所フリガナ');
+        const userTelIdx = userHeaders.indexOf('電話番号');
+        const userPrefectureIdx = userHeaders.indexOf('都道府県（物件）');
+        const userCityIdx = userHeaders.indexOf('市区町村（物件）');
+        const userAddressDetailIdx = userHeaders.indexOf('住所詳細（物件）');
 
-        if (userCvIdIdx >= 0 && userNameKanaIdx >= 0) {
+        if (userCvIdIdx >= 0) {
           userRows.forEach(userRow => {
             const cvId = userRow[userCvIdIdx];
             if (cvId) {
-              kanaMap[cvId] = {
-                nameKana: userRow[userNameKanaIdx] || '',
-                addressKana: userAddressKanaIdx >= 0 ? (userRow[userAddressKanaIdx] || '') : ''
+              const prefecture = userPrefectureIdx >= 0 ? (userRow[userPrefectureIdx] || '') : '';
+              const city = userCityIdx >= 0 ? (userRow[userCityIdx] || '') : '';
+              const addressDetail = userAddressDetailIdx >= 0 ? (userRow[userAddressDetailIdx] || '') : '';
+              const fullAddress = prefecture + city + addressDetail;
+
+              userDataMap[cvId] = {
+                nameKana: userNameKanaIdx >= 0 ? (userRow[userNameKanaIdx] || '') : '',
+                addressKana: userAddressKanaIdx >= 0 ? (userRow[userAddressKanaIdx] || '') : '',
+                tel: userTelIdx >= 0 ? (userRow[userTelIdx] || '') : '',
+                address: fullAddress
               };
             }
           });
@@ -369,18 +380,18 @@ var MerchantCancelReport = {
         if ((rowMerchantId === merchantId || rowMerchantId === String(merchantId)) &&
             rowStatus === targetStatus) {
 
-          // ユーザー登録シートから動的にフリガナ取得
-          const kanaData = kanaMap[cvId] || { nameKana: '', addressKana: '' };
+          // ユーザー登録シートから動的に顧客情報を取得（住所・電話・フリガナ）
+          const userData = userDataMap[cvId] || { nameKana: '', addressKana: '', tel: '', address: '' };
 
           // 案件情報を追加
           appliedCases.push({
             cvId: cvId,
             applicationId: row[applicationIdIdx] || '',
             customerName: row[customerNameIdx] || '',
-            customerNameKana: kanaData.nameKana,
-            tel: row[telIdx] || '',
-            address: row[addressIdx] || '',
-            addressKana: kanaData.addressKana,
+            customerNameKana: userData.nameKana,
+            tel: userData.tel,  // ユーザー登録シートから取得
+            address: userData.address,  // ユーザー登録シートから取得
+            addressKana: userData.addressKana,  // ユーザー登録シートから取得
             merchantName: row[merchantNameIdx] || '',
             applicantName: row[applicantNameIdx] || '',
             deliveredAt: row[deliveredAtIdx] || '',
@@ -833,6 +844,91 @@ var MerchantCancelReport = {
   },
 
   /**
+   * キャンセル申請を取り消し（削除）
+   * @param {Object} params - { merchantId: 加盟店ID, applicationId: 申請ID, cvId: CV ID }
+   * @return {Object} - { success: boolean }
+   */
+  withdrawCancelApplication: function(params) {
+    try {
+      const merchantId = params.merchantId;
+      const applicationId = params.applicationId;
+      const cvId = params.cvId;
+
+      if (!merchantId || !applicationId) {
+        return {
+          success: false,
+          error: '必須パラメータが不足しています（merchantId, applicationId）'
+        };
+      }
+
+      console.log('[MerchantCancelReport] withdrawCancelApplication - 申請ID:', applicationId, '加盟店ID:', merchantId);
+
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const cancelSheet = ss.getSheetByName('キャンセル申請');
+
+      if (!cancelSheet) {
+        return {
+          success: false,
+          error: 'キャンセル申請シートが見つかりません'
+        };
+      }
+
+      // データ取得
+      const data = cancelSheet.getDataRange().getValues();
+      const headers = data[0];
+      const rows = data.slice(1);
+
+      const applicationIdIdx = headers.indexOf('申請ID');
+      const merchantIdIdx = headers.indexOf('加盟店ID');
+      const statusIdx = headers.indexOf('承認ステータス');
+      const cvIdIdx = headers.indexOf('CV ID');
+
+      // 申請を検索して削除
+      let deleted = false;
+      for (let i = rows.length - 1; i >= 0; i--) {
+        const row = rows[i];
+        const rowApplicationId = row[applicationIdIdx];
+        const rowMerchantId = row[merchantIdIdx];
+        const rowStatus = row[statusIdx];
+        const rowCvId = row[cvIdIdx];
+
+        // 申請IDと加盟店IDが一致し、かつステータスが「申請中」の場合のみ削除
+        if (rowApplicationId === applicationId &&
+            (rowMerchantId === merchantId || rowMerchantId === String(merchantId)) &&
+            rowStatus === '申請中') {
+
+          // 行を削除（+2は、ヘッダー行+1、0-indexed+1）
+          cancelSheet.deleteRow(i + 2);
+          deleted = true;
+          console.log('[MerchantCancelReport] withdrawCancelApplication - 削除完了: 行', i + 2, 'CV ID:', rowCvId);
+          break;
+        }
+      }
+
+      if (!deleted) {
+        return {
+          success: false,
+          error: '取り消し可能な申請が見つかりませんでした（申請中のステータスのみ取り消し可能です）'
+        };
+      }
+
+      console.log('[MerchantCancelReport] withdrawCancelApplication - 取り消し完了:', applicationId);
+
+      return {
+        success: true,
+        message: 'キャンセル申請を取り消しました'
+      };
+
+    } catch (error) {
+      console.error('[MerchantCancelReport] withdrawCancelApplication error:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
    * SystemRouter用のハンドラー
    * @param {Object} params - リクエストパラメータ
    * @return {Object} - レスポンス
@@ -847,6 +943,8 @@ var MerchantCancelReport = {
         return this.getCancelAppliedCases(params);
       case 'submitCancelReport':
         return this.submitCancelReport(params);
+      case 'withdrawCancelApplication':
+        return this.withdrawCancelApplication(params);
       default:
         return {
           success: false,

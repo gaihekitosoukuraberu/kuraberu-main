@@ -191,6 +191,34 @@ const BotQuestions = {
             return;
         }
 
+        // V1752-FIX: Q009Eの「比較は不要」選択後：Q009Cの選択数をチェック
+        if (currentQuestionId === 'Q009E' && index === 3) {
+            console.log('📋 Q009E「比較は不要」選択後、Q009Cの選択数チェック');
+
+            // 追加説得メッセージを表示
+            const persuasionMessage = '外装リフォームは訪問業者で契約する場合80％以上が相場よりも割高で契約している実態があります。そのため見積もり比較は必須と言ってもいいです。比較したうえで元々のところを選んでもいいと思いますし、一度金額だけでも比べてみるのを強くおすすめします。契約済みであっても最短当日中に無料見積もり可能です。しつこい営業は加盟店ルールで禁止になっていますのでご安心下さい。';
+            BotUI.showAIMessage(persuasionMessage);
+
+            // Q009Cの回答を取得して選択数をチェック
+            const q009cAnswer = BotConfig.state.userAnswers && BotConfig.state.userAnswers.Q009C;
+            const isMultipleSelection = q009cAnswer && q009cAnswer.choice && q009cAnswer.choice.includes('、');
+
+            if (isMultipleSelection) {
+                // 複数選択の場合：業者名入力をスキップしてQ004へ
+                console.log('✅ Q009C複数選択 → 業者名入力スキップ → Q004へ');
+                setTimeout(() => {
+                    this.showQuestion('Q004');
+                }, 1500);
+            } else {
+                // 単一選択（訪問営業のみ）の場合：業者名入力へ
+                console.log('✅ Q009C単一選択 → Q009F（業者名入力）へ');
+                setTimeout(() => {
+                    this.showQuestion('Q009F');
+                }, 1500);
+            }
+            return;
+        }
+
         // Q016の回答後：回答に応じてソート順を変更（currentQuestionIdは90行目で既に宣言済み）
         if (currentQuestionId === 'Q016') {
             console.log('🏆 Q016回答後、選択内容に応じてソート順を変更します');
