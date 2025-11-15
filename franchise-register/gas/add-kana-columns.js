@@ -13,6 +13,12 @@ function addKanaColumnsToAllSheets() {
   // ユーザー登録シートは既に「フリガナ」列があるので確認のみ
   checkUserRegistrationSheet(ss);
 
+  // ユーザー登録シートに「住所フリガナ」列を追加
+  addKanaToSheet(ss, 'ユーザー登録', {
+    afterColumn: '住所',
+    newColumns: ['住所フリガナ']
+  });
+
   // キャンセル申請シートに列追加
   addKanaToSheet(ss, 'キャンセル申請', {
     afterColumn: '顧客名',
