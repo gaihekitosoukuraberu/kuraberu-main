@@ -268,7 +268,14 @@ const CVSheetSystem = {
       '最終更新日時',        // BP
       '配信予定日時',        // BQ
       '担当者名',            // BR
-      '最終架電日時'         // BS
+      '最終架電日時',        // BS
+      '配信先業者一覧',      // BT
+
+      // BU-BX: ハートビート＆行動トラッキング（V1754, V1755）
+      '最終ハートビート時刻', // BU(74)
+      'サイト滞在時間（秒）',  // BV(75)
+      'CV1→CV2時間差（秒）',  // BW(76)
+      'デバイス種別'          // BX(77)
     ];
 
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
@@ -672,16 +679,21 @@ const CVSheetSystem = {
         '',                                      // BL(64): 次回架電日時
         '',                                      // BM(65): メモ
 
-        // BN(66)-BU(73): 管理用フィールド
-        '新規',                                   // BN(66): 管理ステータス
-        '',                                      // BO(67): 加盟店別ステータス（JSON）
-        '',                                      // BP(68): 初回架電日時
-        timestamp,                               // BQ(69): 最終更新日時
-        '',                                      // BR(70): 配信予定日時
-        '',                                      // BS(71): 担当者名
-        '',                                      // BT(72): 最終架電日時
-        '',                                      // BU(73): 配信先業者一覧
-        timestamp                                // BV(74): 最終ハートビート時刻（V1754）
+        // BM(66)-BT(73): 管理用フィールド
+        '新規',                                   // BM(66): 管理ステータス
+        '',                                      // BN(67): 加盟店別ステータス（JSON）
+        '',                                      // BO(68): 初回架電日時
+        timestamp,                               // BP(69): 最終更新日時
+        '',                                      // BQ(70): 配信予定日時
+        '',                                      // BR(71): 担当者名
+        '',                                      // BS(72): 最終架電日時
+        '',                                      // BT(73): 配信先業者一覧
+
+        // BU(74)-BX(77): ハートビート＆行動トラッキング（V1754, V1755）
+        timestamp,                               // BU(74): 最終ハートビート時刻（V1754）
+        params.siteStayDuration || 0,            // BV(75): サイト滞在時間（秒）（V1755）
+        0,                                       // BW(76): CV1→CV2時間差（秒）（V1755）
+        params.deviceType || ''                  // BX(77): デバイス種別（V1755）
       ];
 
       // 最終行に追加
@@ -813,6 +825,11 @@ const CVSheetSystem = {
       sheet.getRange(targetRow, 46).setValue(params.requests || '');               // AT(46): 案件メモ
       sheet.getRange(targetRow, 47).setValue(params.contactTimeSlot || '');        // AU(47): 連絡時間帯
       sheet.getRange(targetRow, 48).setValue(params.quoteDestination || '');       // AV(48): 見積もり送付先
+
+      // V1755: CV1→CV2時間差を記録
+      if (params.cv1ToCV2Duration !== undefined && params.cv1ToCV2Duration !== null) {
+        sheet.getRange(targetRow, 76).setValue(params.cv1ToCV2Duration);           // BW(76): CV1→CV2時間差（秒）
+      }
 
       console.log('[CVSheetSystem] CV2更新完了:', cvId);
 
