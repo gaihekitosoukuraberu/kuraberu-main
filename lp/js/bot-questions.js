@@ -323,8 +323,30 @@ const BotQuestions = {
                             this.showQuestion(nextQuestionId);
                         }
                     }, 1000);
+                } else if (currentQuestionId === 'Q009C') {
+                    // V1752-FEAT: Q009Cの回答後：「訪問営業」が含まれている場合のみQ009Dへ
+                    console.log('📋 Q009C回答後、訪問営業選択チェック');
+
+                    // 「訪問営業」が選択されているかチェック
+                    const hasVisitingSales = selectedChoices.includes('訪問営業');
+
+                    // 築10年未満の場合は既にQ010-Q012で訪問業者について聞いているかチェック
+                    const alreadyAskedAboutVisitor = BotConfig.state.userAnswers &&
+                        (BotConfig.state.userAnswers.Q010 || BotConfig.state.userAnswers.Q011 || BotConfig.state.userAnswers.Q012);
+
+                    if (hasVisitingSales && !alreadyAskedAboutVisitor) {
+                        console.log('✅ 訪問営業選択 → Q009Dへ');
+                        setTimeout(() => {
+                            this.showQuestion('Q009D');
+                        }, 1000);
+                    } else {
+                        console.log('✅ 訪問営業なし または 既に訪問質問済み → Q004へ');
+                        setTimeout(() => {
+                            this.showQuestion('Q004');
+                        }, 1000);
+                    }
                 } else {
-                    // Q016以外：通常の処理
+                    // Q016/Q009C以外：通常の処理
                     const nextQuestionId = question.branches[firstIndex];
                     setTimeout(() => {
                         if (nextQuestionId === 'PHONE') {
