@@ -612,7 +612,7 @@ const CVSheetSystem = {
         params.propertyPrefecture || '',         // O(15): 都道府県（物件）
         params.propertyCity || '',               // P(16): 市区町村（物件）
         '',                                      // Q(17): 住所詳細（CV2で入力）
-        '',                                      // R(18): 住所フリガナ（CV2で入力）
+        params.addressKana || '',                // R(18): 住所フリガナ（V1752: ZipCloud APIから取得）
 
         'FALSE',                                 // S(19): 自宅住所フラグ
         '',                                      // T(20): 郵便番号（自宅）（CV2で入力）
@@ -774,7 +774,7 @@ const CVSheetSystem = {
       sheet.getRange(targetRow, 15).setValue(params.propertyPrefecture || '');     // O(15): 都道府県（物件）
       sheet.getRange(targetRow, 16).setValue(params.propertyCity || '');           // P(16): 市区町村（物件）
       sheet.getRange(targetRow, 17).setValue(params.propertyStreet || '');         // Q(17): 住所詳細（物件）
-      sheet.getRange(targetRow, 18).setValue(params.propertyKana || '');           // R(18): 住所フリガナ
+      sheet.getRange(targetRow, 18).setValue(params.addressKana || '');            // R(18): 住所フリガナ（V1752: ZipCloud APIから取得）
 
       // 自宅住所
       sheet.getRange(targetRow, 19).setValue(params.isDifferentHome ? 'TRUE' : 'FALSE'); // S(19): 自宅住所フラグ
