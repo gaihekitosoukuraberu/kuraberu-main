@@ -63,8 +63,10 @@ var MerchantDeadlineExtension = {
       const deliveredMerchantsIdx = headers.indexOf('配信先業者一覧');
       const managementStatusIdx = headers.indexOf('管理ステータス');
       const nameIdx = headers.indexOf('氏名');
+      const nameKanaIdx = headers.indexOf('フリガナ');
       const telIdx = headers.indexOf('電話番号');
       const addressIdx = headers.indexOf('住所');
+      const addressKanaIdx = headers.indexOf('住所フリガナ'); // 将来用（現在は列が存在しない）
       const workCategoryIdx = headers.indexOf('工事種別');
       const deliveredAtIdx = headers.indexOf('配信日時');
       const contractMerchantIdIdx = headers.indexOf('成約加盟店ID');
@@ -175,8 +177,10 @@ var MerchantDeadlineExtension = {
         eligibleCases.push({
           cvId: cvId,
           customerName: row[nameIdx] || '',
+          customerNameKana: nameKanaIdx >= 0 ? (row[nameKanaIdx] || '') : '',
           tel: row[telIdx] || '',
           address: row[addressIdx] || '',
+          addressKana: addressKanaIdx >= 0 ? (row[addressKanaIdx] || '') : '',
           workCategory: row[workCategoryIdx] || '',
           deliveredAt: deliveredAt,
           daysElapsed: daysElapsed,
@@ -269,22 +273,28 @@ var MerchantDeadlineExtension = {
 
       const cvIdIdx = userHeaders.indexOf('CV ID');
       const nameIdx = userHeaders.indexOf('氏名');
+      const nameKanaIdx = userHeaders.indexOf('フリガナ');
       const telIdx = userHeaders.indexOf('電話番号');
       const addressIdx = userHeaders.indexOf('住所');
+      const addressKanaIdx = userHeaders.indexOf('住所フリガナ'); // 将来用
       const deliveredAtIdx = userHeaders.indexOf('配信日時');
 
       let targetUserRow = -1;
       let customerName = '';
+      let customerNameKana = '';
       let tel = '';
       let address = '';
+      let addressKana = '';
       let deliveredAt = null;
 
       for (let i = 0; i < userRows.length; i++) {
         if (userRows[i][cvIdIdx] === cvId) {
           targetUserRow = i + 2; // ヘッダー分+1、0-indexed分+1
           customerName = userRows[i][nameIdx] || '';
+          customerNameKana = nameKanaIdx >= 0 ? (userRows[i][nameKanaIdx] || '') : '';
           tel = userRows[i][telIdx] || '';
           address = userRows[i][addressIdx] || '';
+          addressKana = addressKanaIdx >= 0 ? (userRows[i][addressKanaIdx] || '') : '';
           deliveredAt = userRows[i][deliveredAtIdx];
           break;
         }

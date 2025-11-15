@@ -63,8 +63,10 @@ var MerchantCancelReport = {
       const deliveredMerchantsIdx = headers.indexOf('配信先業者一覧');
       const managementStatusIdx = headers.indexOf('管理ステータス');
       const nameIdx = headers.indexOf('氏名');
+      const nameKanaIdx = headers.indexOf('フリガナ');
       const telIdx = headers.indexOf('電話番号');
       const addressIdx = headers.indexOf('住所');
+      const addressKanaIdx = headers.indexOf('住所フリガナ'); // 将来用（現在は列が存在しない）
       const workCategoryIdx = headers.indexOf('工事種別');
       const deliveredAtIdx = headers.indexOf('配信日時');
       const contractMerchantIdIdx = headers.indexOf('成約加盟店ID');
@@ -182,8 +184,10 @@ var MerchantCancelReport = {
         cancelableCases.push({
           cvId: cvId,
           customerName: row[nameIdx] || '',
+          customerNameKana: nameKanaIdx >= 0 ? (row[nameKanaIdx] || '') : '',
           tel: row[telIdx] || '',
           address: row[addressIdx] || '',
+          addressKana: addressKanaIdx >= 0 ? (row[addressKanaIdx] || '') : '',
           workCategory: row[workCategoryIdx] || '',
           deliveredAt: deliveredAt || '',
           daysElapsed: daysElapsed,
@@ -257,8 +261,10 @@ var MerchantCancelReport = {
       // 必要なカラムのインデックス取得
       const cvIdIdx = headers.indexOf('CV ID');
       const customerNameIdx = headers.indexOf('顧客名');
+      const customerNameKanaIdx = headers.indexOf('顧客名フリガナ'); // 新規追加列（まだ存在しない場合あり）
       const telIdx = headers.indexOf('電話番号');
       const addressIdx = headers.indexOf('住所');
+      const addressKanaIdx = headers.indexOf('住所フリガナ'); // 将来用（現在は列が存在しない）
       const merchantIdIdx = headers.indexOf('加盟店ID');
       const merchantNameIdx = headers.indexOf('加盟店名');
       const applicantNameIdx = headers.indexOf('申請担当者');
@@ -301,8 +307,10 @@ var MerchantCancelReport = {
             cvId: row[cvIdIdx],
             applicationId: row[applicationIdIdx] || '',
             customerName: row[customerNameIdx] || '',
+            customerNameKana: customerNameKanaIdx >= 0 ? (row[customerNameKanaIdx] || '') : '',
             tel: row[telIdx] || '',
             address: row[addressIdx] || '',
+            addressKana: addressKanaIdx >= 0 ? (row[addressKanaIdx] || '') : '',
             merchantName: row[merchantNameIdx] || '',
             applicantName: row[applicantNameIdx] || '',
             deliveredAt: row[deliveredAtIdx] || '',
@@ -427,23 +435,29 @@ var MerchantCancelReport = {
 
       const cvIdIdx = userHeaders.indexOf('CV ID');
       const nameIdx = userHeaders.indexOf('氏名');
+      const nameKanaIdx = userHeaders.indexOf('フリガナ');
       const telIdx = userHeaders.indexOf('電話番号');
       const addressIdx = userHeaders.indexOf('住所');
+      const addressKanaIdx = userHeaders.indexOf('住所フリガナ'); // 将来用（現在は列が存在しない）
       const deliveredAtIdx = userHeaders.indexOf('配信日時');
       const deliveredMerchantsIdx = userHeaders.indexOf('配信先業者一覧');
 
       let targetUserRow = -1;
       let customerName = '';
+      let customerNameKana = '';
       let tel = '';
       let address = '';
+      let addressKana = '';
       let deliveredAt = null;
 
       for (let i = 0; i < userRows.length; i++) {
         if (userRows[i][cvIdIdx] === cvId) {
           targetUserRow = i + 2; // ヘッダー分+1、0-indexed分+1
           customerName = userRows[i][nameIdx] || '';
+          customerNameKana = nameKanaIdx >= 0 ? (userRows[i][nameKanaIdx] || '') : '';
           tel = userRows[i][telIdx] || '';
           address = userRows[i][addressIdx] || '';
+          addressKana = addressKanaIdx >= 0 ? (userRows[i][addressKanaIdx] || '') : '';
           deliveredAt = userRows[i][deliveredAtIdx];
           break;
         }
@@ -575,8 +589,10 @@ var MerchantCancelReport = {
         applicationId,                  // 申請ID
         cvId,                          // CV ID
         customerName,                  // 顧客名
+        customerNameKana,              // 顧客名フリガナ
         tel,                           // 電話番号
         address,                       // 住所
+        addressKana,                   // 住所フリガナ
         merchantId,                    // 加盟店ID
         merchantName || '',            // 加盟店名
         applicantName || '',           // 申請担当者
