@@ -228,7 +228,7 @@ const BotScenarios = {
     // ============================================
     // 郵便番号送信処理
     // ============================================
-    handlePostalSubmit(postalConfig, formContainer) {
+    async handlePostalSubmit(postalConfig, formContainer) {
         const input = formContainer.querySelector('#postalInputBot');
         const errorDiv = formContainer.querySelector('#postalError');
         const postal = input.value.trim();
@@ -252,8 +252,8 @@ const BotScenarios = {
             console.warn('⚠️ sessionStorage保存失敗:', e);
         }
 
-        // V1752-FEAT: ZipCloud APIで住所フリガナを取得
-        this.fetchAddressKana(postal.replace('-', ''));
+        // V1752-FEAT: ZipCloud APIで住所フリガナを取得（同期的に待機）
+        await this.fetchAddressKana(postal.replace('-', ''));
 
         // ユーザーメッセージとして表示
         BotUI.showUserMessage(postal);

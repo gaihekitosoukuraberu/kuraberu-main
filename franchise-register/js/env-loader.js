@@ -22,8 +22,8 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V1754: 審査中マッピング修正 + 申請取り消しボタン
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbwlTB8M9fvOM4H8SFvGklkUFNWkH9W7YjRd2lZDE6Ep8Kfd2uFx-ZQX__9NnGsqMuEn-Q/exec',
+  // プライマリGAS URL（メイン運用）- V1755: Fix rejected status string mismatch (却下済み → 却下)
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwugB7qipVNg3io6si4gHK0aHzJij84JPrdqiNjwnvKia1pRavyIUczywrhZnMYRWE8DA/exec',
 
   // フォールバックGAS URL（バックアップ）- @1620
   FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbyyPTMmaNv5euO7QaYFz-IZMQVxL4_Mh0g2YlL8NlFplya78UpoPHvyeygj7CDU5j3_hQ/exec',
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1701 - 2025-11-12 02:25 - text/plainパース対応 @1620デプロイ完了）
-  CACHE_BUSTER: '1763194157000'
+  // キャッシュバスター（V1755 - 2025-11-15 - 却下ステータス文字列ミスマッチ修正）
+  CACHE_BUSTER: '1763197200000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

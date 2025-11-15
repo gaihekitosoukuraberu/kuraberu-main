@@ -5215,7 +5215,7 @@
                                     <button onclick="cancelGoToStep(2)" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
                                         戻る
                                     </button>
-                                    <button onclick="submitCancelApplication()" class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                                    <button id="submitCancelBtn" onclick="submitCancelApplication()" class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
                                         キャンセル申請を提出
                                     </button>
                                 </div>
@@ -19651,16 +19651,28 @@
             }
         }
 
+        // 申請取り消し処理中フラグ
+        let isWithdrawing = false;
+
         // キャンセル申請を取り消し
         window.withdrawCancelApplication = async function(applicationId, cvId) {
+            // 二重送信防止
+            if (isWithdrawing) {
+                console.log('[申請取り消し] 処理中のため無視します');
+                return;
+            }
+
             if (!confirm('このキャンセル申請を取り消しますか？\n取り消すと、再度キャンセル申請が可能になります。')) {
                 return;
             }
+
+            isWithdrawing = true;
 
             try {
                 const merchantId = window.merchantId;
                 if (!merchantId) {
                     alert('ログインしていません');
+                    isWithdrawing = false;
                     return;
                 }
 
@@ -19684,6 +19696,8 @@
             } catch (error) {
                 console.error('申請取り消しエラー:', error);
                 alert('キャンセル申請の取り消しに失敗しました');
+            } finally {
+                isWithdrawing = false;
             }
         }
 
@@ -19827,13 +19841,25 @@
         }
 
         // 成約報告を送信
+        // 成約報告処理中フラグ
+        let isSubmittingContract = false;
+
         window.submitContractReport = async function(selectedWorkTypes, selectedPropertyTypes) {
+            // 二重送信防止
+            if (isSubmittingContract) {
+                console.log('[成約報告] 処理中のため無視します');
+                return;
+            }
+
+            isSubmittingContract = true;
+
             try {
                 const merchantId = window.merchantId;
                 const merchantName = window.merchantName || '';
 
                 if (!merchantId || !selectedContractCase) {
                     alert('必要な情報が不足しています');
+                    isSubmittingContract = false;
                     return;
                 }
 
@@ -19847,6 +19873,7 @@
                 // バリデーション
                 if (!contractAmount || contractAmount <= 0) {
                     alert('契約金額を入力してください');
+                    isSubmittingContract = false;
                     return;
                 }
 
@@ -19905,6 +19932,8 @@
             } catch (error) {
                 console.error('[Contract] 成約報告送信エラー:', error);
                 alert('成約報告の送信に失敗しました');
+            } finally {
+                isSubmittingContract = false;
             }
         }
 
@@ -20920,6 +20949,14 @@
 
         // キャンセル申請を提出
         async function submitCancelApplication() {
+            // ボタンを無効化して二重送信を防止
+            const submitBtn = document.getElementById('submitCancelBtn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                submitBtn.textContent = '送信中...';
+            }
+
             try {
                 // 質問フォームから回答を収集
                 const questions = window.CancelReasons.getQuestions(cancelSelectedCategory, cancelSelectedSubCategory);
@@ -20971,6 +21008,12 @@
 
                 if (!merchantId) {
                     alert('ログインしていません');
+                    // ボタンを有効化
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        submitBtn.textContent = 'キャンセル申請を提出';
+                    }
                     return;
                 }
 
@@ -20978,6 +21021,12 @@
                 const applicationText = document.getElementById('cancelApplicationText').value;
                 if (!applicationText || applicationText.trim() === '') {
                     alert('申請内容を入力してください');
+                    // ボタンを有効化
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        submitBtn.textContent = 'キャンセル申請を提出';
+                    }
                     return;
                 }
 
@@ -21019,10 +21068,23 @@
                     switchCancelTab('pending');
                 } else {
                     alert('申請に失敗しました: ' + result.error);
+                    // ボタンを有効化
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        submitBtn.textContent = 'キャンセル申請を提出';
+                    }
                 }
             } catch (error) {
                 console.error('キャンセル申請エラー:', error);
                 alert('申請の送信に失敗しました');
+                // ボタンを有効化
+                const submitBtn = document.getElementById('submitCancelBtn');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    submitBtn.textContent = 'キャンセル申請を提出';
+                }
             }
         }
 

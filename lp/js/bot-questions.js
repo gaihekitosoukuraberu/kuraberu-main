@@ -97,7 +97,7 @@ const BotQuestions = {
             return;
         }
 
-        // V1752-FEAT: テキスト入力の質問の場合（Q009F: 訪問業者名）
+        // テキスト入力の質問の場合（将来の拡張用）
         if (question.type === 'text') {
             this.handleTextInputQuestion(question);
             return;

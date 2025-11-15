@@ -281,7 +281,7 @@ function showPostalFormInBot() {
     scrollToBotBottom();
 
     // イベントリスナー
-    document.getElementById('postalSubmitBtn').addEventListener('click', function() {
+    document.getElementById('postalSubmitBtn').addEventListener('click', async function() {
         const postal = document.getElementById('postalInputBot').value.trim();
 
         if (!postal.match(/^\d{3}-?\d{4}$/)) {
@@ -300,9 +300,9 @@ function showPostalFormInBot() {
             console.warn('⚠️ sessionStorage保存失敗:', e);
         }
 
-        // V1752-FEAT: ZipCloud APIで住所フリガナを取得
+        // V1752-FEAT: ZipCloud APIで住所フリガナを取得（同期的に待機）
         if (window.BotScenarios && typeof window.BotScenarios.fetchAddressKana === 'function') {
-            window.BotScenarios.fetchAddressKana(postal.replace('-', ''));
+            await window.BotScenarios.fetchAddressKana(postal.replace('-', ''));
         }
 
         // ユーザーメッセージとして表示
