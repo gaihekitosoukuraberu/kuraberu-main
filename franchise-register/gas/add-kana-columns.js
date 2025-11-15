@@ -15,7 +15,7 @@ function addKanaColumnsToAllSheets() {
 
   // ユーザー登録シートに「住所フリガナ」列を追加
   addKanaToSheet(ss, 'ユーザー登録', {
-    afterColumn: '住所',
+    afterColumn: '住所詳細（物件）',
     newColumns: ['住所フリガナ']
   });
 
