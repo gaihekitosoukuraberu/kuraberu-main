@@ -720,7 +720,9 @@ const CVSheetSystem = {
           phone: params.phone,
           prefecture: params.propertyPrefecture,
           city: params.propertyCity,
-          workTypes: workTypes
+          workTypes: workTypes,
+          siteStayDuration: params.siteStayDuration || 0,  // V1755: サイト滞在時間
+          deviceType: params.deviceType || '不明'          // V1755: デバイス種別
         });
         console.log('[CVSheetSystem] ✅ Slack通知送信完了（CV1）');
       } catch (slackError) {

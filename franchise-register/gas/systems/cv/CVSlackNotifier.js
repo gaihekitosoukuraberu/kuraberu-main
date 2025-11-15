@@ -21,11 +21,11 @@ class CVSlackNotifier {
 
   /**
    * CV1送信通知
-   * @param {Object} params - { cvId, phone, prefecture, city, workTypes }
+   * @param {Object} params - { cvId, phone, prefecture, city, workTypes, siteStayDuration, deviceType }
    */
   static sendCV1Notification(params) {
     try {
-      const { cvId, phone, prefecture, city, workTypes } = params;
+      const { cvId, phone, prefecture, city, workTypes, siteStayDuration, deviceType } = params;
 
       const message = {
         text: '🔥 新規リード獲得！',
@@ -56,6 +56,19 @@ class CVSlackNotifier {
               {
                 type: 'mrkdwn',
                 text: `*CV ID:*\n${cvId}`
+              }
+            ]
+          },
+          {
+            type: 'section',
+            fields: [
+              {
+                type: 'mrkdwn',
+                text: `*⏱️ サイト滞在:*\n${this.formatDuration(siteStayDuration)}`
+              },
+              {
+                type: 'mrkdwn',
+                text: `*📱 デバイス:*\n${deviceType || '不明'}`
               }
             ]
           },
@@ -234,6 +247,26 @@ class CVSlackNotifier {
     } catch (error) {
       console.error('[CVSlack] 離脱通知エラー:', error);
       return false;
+    }
+  }
+
+  /**
+   * 時間をフォーマット（秒 → 読みやすい形式）
+   * @param {number} seconds - 秒数
+   * @return {string} フォーマット済み文字列
+   */
+  static formatDuration(seconds) {
+    if (!seconds || seconds === 0) return '0秒';
+
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+
+    if (minutes === 0) {
+      return `${secs}秒`;
+    } else if (secs === 0) {
+      return `${minutes}分`;
+    } else {
+      return `${minutes}分${secs}秒`;
     }
   }
 

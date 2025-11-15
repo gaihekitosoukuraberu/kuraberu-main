@@ -15,6 +15,74 @@ const CVAPI = {
     },
 
     // ============================================
+    // 行動トラッキング（V1755）
+    // ============================================
+
+    /**
+     * 初回訪問時刻を記録（ページロード時に自動実行）
+     */
+    recordFirstVisit() {
+        if (!sessionStorage.getItem('first_visit_time')) {
+            const now = new Date().getTime();
+            sessionStorage.setItem('first_visit_time', now);
+            console.log('⏰ 初回訪問時刻を記録:', new Date(now).toISOString());
+        }
+    },
+
+    /**
+     * サイト滞在時間を計算（秒）
+     * @return {number} 滞在時間（秒）
+     */
+    getSiteStayDuration() {
+        const firstVisit = sessionStorage.getItem('first_visit_time');
+        if (!firstVisit) return 0;
+
+        const now = new Date().getTime();
+        const duration = Math.floor((now - parseInt(firstVisit)) / 1000);
+        console.log(`⏱️ サイト滞在時間: ${duration}秒`);
+        return duration;
+    },
+
+    /**
+     * CV1送信時刻を記録
+     */
+    recordCV1Time() {
+        const now = new Date().getTime();
+        sessionStorage.setItem('cv1_time', now);
+        console.log('📞 CV1送信時刻を記録:', new Date(now).toISOString());
+    },
+
+    /**
+     * CV1→CV2時間差を計算（秒）
+     * @return {number} 時間差（秒）
+     */
+    getCV1ToCV2Duration() {
+        const cv1Time = sessionStorage.getItem('cv1_time');
+        if (!cv1Time) return 0;
+
+        const now = new Date().getTime();
+        const duration = Math.floor((now - parseInt(cv1Time)) / 1000);
+        console.log(`⏱️ CV1→CV2時間差: ${duration}秒`);
+        return duration;
+    },
+
+    /**
+     * デバイス種別を判定
+     * @return {string} 'PC' | 'スマホ' | 'タブレット'
+     */
+    getDeviceType() {
+        const ua = navigator.userAgent;
+
+        if (/iPad/.test(ua) || (/Android/.test(ua) && !/Mobile/.test(ua))) {
+            return 'タブレット';
+        } else if (/Mobile|Android|iPhone/.test(ua)) {
+            return 'スマホ';
+        } else {
+            return 'PC';
+        }
+    },
+
+    // ============================================
     // CV1送信（電話番号入力時：即時保存）
     // ============================================
     async sendCV1(phoneNumber) {
@@ -65,7 +133,10 @@ const CVAPI = {
                 pageTitle: document.title,                  // ページタイトル
                 screenWidth: window.screen.width,           // 画面幅
                 screenHeight: window.screen.height,         // 画面高さ
-                deviceType: /Mobile|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : 'desktop', // デバイスタイプ
+
+                // V1755: 行動トラッキング
+                siteStayDuration: this.getSiteStayDuration(), // サイト滞在時間（秒）
+                deviceType: this.getDeviceType(),             // デバイス種別（PC/スマホ/タブレット）
 
                 // タイムスタンプ
                 timestamp: new Date().toISOString(),
@@ -85,6 +156,9 @@ const CVAPI = {
                 // CV IDをlocalStorageに保存（CV2で使用）
                 localStorage.setItem('cv_id', result.cvId);
                 console.log('✅ localStorage保存完了 cv_id:', localStorage.getItem('cv_id'));
+
+                // V1755: CV1送信時刻を記録（CV1→CV2時間差計算用）
+                this.recordCV1Time();
 
                 // V1754: ハートビート開始（10分間監視）
                 this.startHeartbeat(result.cvId);
@@ -176,7 +250,10 @@ const CVAPI = {
                 requests: formData.requests || '',
                 selectionHistory: formData.keepInfo || '',  // AR列：業者選定履歴（キープ業者情報）
                 contactTimeSlot: formData.contactTimeSlot || '',  // AT列：連絡時間帯
-                quoteDestination: formData.quoteDestination || '',  // AU列：見積もり送付先
+                quoteDestination: formData.quoteDestination || '',  // AV列：見積もり送付先
+
+                // V1755: CV1→CV2時間差（新規作成モード）
+                cv1ToCV2Duration: this.getCV1ToCV2Duration(),
 
                 // タイムスタンプ
                 timestamp: new Date().toISOString()
@@ -214,6 +291,9 @@ const CVAPI = {
 
                 // 訪問情報
                 ...this.getVisitorInfo(),
+
+                // V1755: CV1→CV2時間差（更新モード）
+                cv1ToCV2Duration: this.getCV1ToCV2Duration(),
 
                 // タイムスタンプ
                 timestamp: new Date().toISOString()
@@ -526,4 +606,14 @@ const CVAPI = {
 // グローバルに公開
 if (typeof window !== 'undefined') {
     window.CVAPI = CVAPI;
+
+    // V1755: ページロード時に初回訪問時刻を自動記録
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            CVAPI.recordFirstVisit();
+        });
+    } else {
+        // すでにDOMロード済みの場合は即実行
+        CVAPI.recordFirstVisit();
+    }
 }
