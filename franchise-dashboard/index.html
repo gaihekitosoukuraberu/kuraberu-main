@@ -19316,10 +19316,6 @@
 
         let extensionSelectedCase = null;
 
-        // 成約報告用グローバル状態
-        let selectedContractCase = null;
-        let contractAnswers = []; // 質問フローの回答
-
         // リトライ機能付きFetch関数
         async function fetchWithRetry(url, options = {}, retries = window.ENV.MAX_RETRIES, delay = window.ENV.RETRY_DELAY) {
             for (let i = 0; i < retries; i++) {
