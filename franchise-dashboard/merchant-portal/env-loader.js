@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1737-CANCEL-4TAB-ARCHIVEBOX-2025-11-15T12:00:00
- * @last-update 2025-11-15T12:00:00
+ * @file-version V1738-SIDEMENU-SCROLL-FIX-2025-11-15T12:30:00
+ * @last-update 2025-11-15T12:30:00
  */
 
 const ENV = {
