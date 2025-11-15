@@ -360,7 +360,7 @@ var MerchantCancelReport = {
       const statusMapping = {
         'pending': '申請中',
         'approved': '承認済み',
-        'rejected': '却下済み'
+        'rejected': '却下'
       };
       const targetStatus = statusMapping[status];
 
