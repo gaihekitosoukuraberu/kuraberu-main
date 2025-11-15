@@ -18856,7 +18856,7 @@
         let selectedContractCase = null;
 
         // 成約案件選択
-        function selectContractCase(caseId) {
+        window.selectContractCase = function(caseId) {
             selectedContractCase = casesData.find(c => c.id === caseId);
             if (selectedContractCase) {
                 // 顧客情報を表示
@@ -19359,7 +19359,7 @@
         let currentCancelTab = 'available'; // 現在のタブ
 
         // タブ切り替え
-        function switchCancelTab(tabName) {
+        window.switchCancelTab = function(tabName) {
             currentCancelTab = tabName;
 
             // 全タブボタンのスタイルをリセット
@@ -19538,7 +19538,7 @@
         // ============================================
 
         // アーカイブ案件一覧を読み込み
-        async function loadArchivedCases() {
+        window.loadArchivedCases = async function() {
             const container = document.getElementById('archiveCasesList');
 
             try {
@@ -19608,7 +19608,7 @@
         }
 
         // 案件をアーカイブ（追客終了BOXへ移動）
-        async function archiveCase(cvId) {
+        window.archiveCase = async function(cvId) {
             if (!confirm('この案件を追客終了BOXに移動しますか？\n（いつでも復元できます）')) {
                 return;
             }
@@ -19647,7 +19647,7 @@
         }
 
         // アーカイブ案件を復元
-        async function restoreArchivedCase(cvId) {
+        window.restoreArchivedCase = async function(cvId) {
             if (!confirm('この案件を復元しますか？')) {
                 return;
             }
@@ -19687,7 +19687,7 @@
         // ============================================
 
         // 配信済み案件一覧を読み込み（成約報告対象）
-        async function loadContractCases() {
+        window.loadContractCases = async function() {
             const container = document.getElementById('contractCasesList');
 
             try {
@@ -19746,7 +19746,7 @@
         }
 
         // 成約報告する案件を選択
-        function selectContractCase(cvId) {
+        window.selectContractCase = function(cvId) {
             selectedContractCase = deliveredCasesCache.find(c => c.cvId === cvId);
             if (!selectedContractCase) {
                 alert('案件が見つかりません');
@@ -19773,7 +19773,7 @@
         }
 
         // 成約報告を送信
-        async function submitContractReport(selectedWorkTypes, selectedPropertyTypes) {
+        window.submitContractReport = async function(selectedWorkTypes, selectedPropertyTypes) {
             try {
                 const merchantId = window.merchantId;
                 const merchantName = window.merchantName || '';
@@ -19855,7 +19855,7 @@
         }
 
         // キャンセル申請可能案件を読み込み
-        async function loadCancelableCases() {
+        window.loadCancelableCases = async function() {
             const casesList = document.getElementById('cancelCasesList');
 
             try {
@@ -20970,7 +20970,7 @@
         }
 
         // 期限延長申請可能案件を読み込み
-        async function loadExtensionEligibleCases() {
+        window.loadExtensionEligibleCases = async function() {
             const casesList = document.getElementById('extensionCasesList');
 
             try {
