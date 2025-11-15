@@ -252,7 +252,7 @@ const CancelReasons = {
       },
       {
         id: 'no_application_awareness',
-        label: '理由：申し込み認識なし',
+        label: '申し込み認識なし',
         questions: [
           {
             id: 'customer_sentiment',
@@ -265,7 +265,7 @@ const CancelReasons = {
       },
       {
         id: 'customer_reason',
-        label: '理由：お客様起因',
+        label: 'お客様起因',
         questions: [
           {
             id: 'specific_reason',
@@ -289,7 +289,7 @@ const CancelReasons = {
       },
       {
         id: 'kuraberu_staff_reason',
-        label: '理由：外壁塗装くらべる担当起因',
+        label: '外壁塗装くらべる担当起因',
         questions: [
           {
             id: 'specific_reason',
@@ -370,12 +370,12 @@ const CancelReasons = {
       },
       {
         id: 'no_application_awareness',
-        label: '理由：申し込み認識なし',
+        label: '申し込み認識なし',
         questions: []
       },
       {
         id: 'customer_reason',
-        label: '理由：お客様起因',
+        label: 'お客様起因',
         questions: [
           {
             id: 'detail',
@@ -388,7 +388,7 @@ const CancelReasons = {
       },
       {
         id: 'kuraberu_staff_reason',
-        label: '理由：外壁塗装くらべる担当起因',
+        label: '外壁塗装くらべる担当起因',
         questions: [
           {
             id: 'detail',
