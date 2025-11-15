@@ -22,8 +22,8 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // GAS URL（V1748: CV完全マッピング修正 - 73列対応 @1661）
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbwBOj5KN_lIXxopGqRukr9GqHbPmxbENMttY0FTfZgceBswjIYJ075wO03RUpUTJXFhAA/exec',
+  // GAS URL（V1750: RankingSystem追加 - @HEAD 常に最新版）
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/exec',
 
   // フォールバックGAS URL（バックアップ）- @1660
   FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzUu1nHQ6J1vHD-DuuZ4eClkPj5K1YfHnMB3nr9qIY50bvJn75jTVYkCQSerkfk5lNArg/exec',
