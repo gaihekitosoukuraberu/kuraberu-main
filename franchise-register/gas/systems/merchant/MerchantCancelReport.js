@@ -65,8 +65,10 @@ var MerchantCancelReport = {
       const nameIdx = headers.indexOf('氏名');
       const nameKanaIdx = headers.indexOf('フリガナ');
       const telIdx = headers.indexOf('電話番号');
-      const addressIdx = headers.indexOf('住所');
-      const addressKanaIdx = headers.indexOf('住所フリガナ'); // 将来用（現在は列が存在しない）
+      const prefectureIdx = headers.indexOf('都道府県（物件）');
+      const cityIdx = headers.indexOf('市区町村（物件）');
+      const addressDetailIdx = headers.indexOf('住所詳細（物件）');
+      const addressKanaIdx = headers.indexOf('住所フリガナ');
       const workCategoryIdx = headers.indexOf('工事種別');
       const deliveredAtIdx = headers.indexOf('配信日時');
       const contractMerchantIdIdx = headers.indexOf('成約加盟店ID');
@@ -180,13 +182,19 @@ var MerchantCancelReport = {
           }
         }
 
+        // 住所を結合
+        const prefecture = prefectureIdx >= 0 ? (row[prefectureIdx] || '') : '';
+        const city = cityIdx >= 0 ? (row[cityIdx] || '') : '';
+        const addressDetail = addressDetailIdx >= 0 ? (row[addressDetailIdx] || '') : '';
+        const fullAddress = prefecture + city + addressDetail;
+
         // 案件情報を追加
         cancelableCases.push({
           cvId: cvId,
           customerName: row[nameIdx] || '',
           customerNameKana: nameKanaIdx >= 0 ? (row[nameKanaIdx] || '') : '',
           tel: row[telIdx] || '',
-          address: row[addressIdx] || '',
+          address: fullAddress,
           addressKana: addressKanaIdx >= 0 ? (row[addressKanaIdx] || '') : '',
           workCategory: row[workCategoryIdx] || '',
           deliveredAt: deliveredAt || '',
@@ -437,8 +445,10 @@ var MerchantCancelReport = {
       const nameIdx = userHeaders.indexOf('氏名');
       const nameKanaIdx = userHeaders.indexOf('フリガナ');
       const telIdx = userHeaders.indexOf('電話番号');
-      const addressIdx = userHeaders.indexOf('住所');
-      const addressKanaIdx = userHeaders.indexOf('住所フリガナ'); // 将来用（現在は列が存在しない）
+      const prefectureIdx = userHeaders.indexOf('都道府県（物件）');
+      const cityIdx = userHeaders.indexOf('市区町村（物件）');
+      const addressDetailIdx = userHeaders.indexOf('住所詳細（物件）');
+      const addressKanaIdx = userHeaders.indexOf('住所フリガナ');
       const deliveredAtIdx = userHeaders.indexOf('配信日時');
       const deliveredMerchantsIdx = userHeaders.indexOf('配信先業者一覧');
 
@@ -456,7 +466,13 @@ var MerchantCancelReport = {
           customerName = userRows[i][nameIdx] || '';
           customerNameKana = nameKanaIdx >= 0 ? (userRows[i][nameKanaIdx] || '') : '';
           tel = userRows[i][telIdx] || '';
-          address = userRows[i][addressIdx] || '';
+
+          // 住所を結合
+          const prefecture = prefectureIdx >= 0 ? (userRows[i][prefectureIdx] || '') : '';
+          const city = cityIdx >= 0 ? (userRows[i][cityIdx] || '') : '';
+          const addressDetail = addressDetailIdx >= 0 ? (userRows[i][addressDetailIdx] || '') : '';
+          address = prefecture + city + addressDetail;
+
           addressKana = addressKanaIdx >= 0 ? (userRows[i][addressKanaIdx] || '') : '';
           deliveredAt = userRows[i][deliveredAtIdx];
           break;

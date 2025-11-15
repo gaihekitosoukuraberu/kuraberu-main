@@ -131,9 +131,10 @@ function copyKanaFromUserRegistration() {
 
   const cvIdIdx = userHeaders.indexOf('CV ID');
   const nameIdx = userHeaders.indexOf('氏名');
-  const kanaIdx = userHeaders.indexOf('フリガナ');
+  const nameKanaIdx = userHeaders.indexOf('フリガナ');
+  const addressKanaIdx = userHeaders.indexOf('住所フリガナ');
 
-  if (cvIdIdx === -1 || nameIdx === -1 || kanaIdx === -1) {
+  if (cvIdIdx === -1 || nameIdx === -1 || nameKanaIdx === -1) {
     Logger.log('⚠️ ユーザー登録シート: 必要な列が見つかりません');
     return;
   }
@@ -142,9 +143,13 @@ function copyKanaFromUserRegistration() {
   const kanaMap = {};
   userRows.forEach(row => {
     const cvId = row[cvIdIdx];
-    const kana = row[kanaIdx];
-    if (cvId && kana) {
-      kanaMap[cvId] = kana;
+    const nameKana = row[nameKanaIdx];
+    const addressKana = addressKanaIdx >= 0 ? row[addressKanaIdx] : '';
+    if (cvId && (nameKana || addressKana)) {
+      kanaMap[cvId] = {
+        nameKana: nameKana || '',
+        addressKana: addressKana || ''
+      };
     }
   });
 
@@ -172,27 +177,42 @@ function updateKanaInSheet(ss, sheetName, kanaMap) {
   const rows = data.slice(1);
 
   const cvIdIdx = headers.indexOf('CV ID');
-  const kanaColIdx = headers.indexOf('顧客名フリガナ');
+  const nameKanaColIdx = headers.indexOf('顧客名フリガナ');
+  const addressKanaColIdx = headers.indexOf('住所フリガナ');
 
-  if (cvIdIdx === -1 || kanaColIdx === -1) {
-    Logger.log(`⚠️ ${sheetName}: CV IDまたは顧客名フリガナ列が見つかりません`);
+  if (cvIdIdx === -1) {
+    Logger.log(`⚠️ ${sheetName}: CV ID列が見つかりません`);
     return;
   }
 
-  let updateCount = 0;
+  if (nameKanaColIdx === -1 && addressKanaColIdx === -1) {
+    Logger.log(`⚠️ ${sheetName}: フリガナ列が見つかりません`);
+    return;
+  }
+
+  let nameUpdateCount = 0;
+  let addressUpdateCount = 0;
 
   rows.forEach((row, idx) => {
     const cvId = row[cvIdIdx];
     if (cvId && kanaMap[cvId]) {
-      // 既にフリガナが入っている場合はスキップ
-      if (!row[kanaColIdx]) {
-        sheet.getRange(idx + 2, kanaColIdx + 1).setValue(kanaMap[cvId]);
-        updateCount++;
+      const kanaData = kanaMap[cvId];
+
+      // 顧客名フリガナを更新
+      if (nameKanaColIdx >= 0 && kanaData.nameKana && !row[nameKanaColIdx]) {
+        sheet.getRange(idx + 2, nameKanaColIdx + 1).setValue(kanaData.nameKana);
+        nameUpdateCount++;
+      }
+
+      // 住所フリガナを更新
+      if (addressKanaColIdx >= 0 && kanaData.addressKana && !row[addressKanaColIdx]) {
+        sheet.getRange(idx + 2, addressKanaColIdx + 1).setValue(kanaData.addressKana);
+        addressUpdateCount++;
       }
     }
   });
 
-  Logger.log(`✅ ${sheetName}: ${updateCount}件のフリガナを自動入力しました`);
+  Logger.log(`✅ ${sheetName}: 顧客名フリガナ${nameUpdateCount}件、住所フリガナ${addressUpdateCount}件を自動入力しました`);
 }
 
 /**
