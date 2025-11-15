@@ -42,6 +42,7 @@ async function fetchRankingFromGAS() {
     // BotConfigから必要なパラメータを取得
     if (!window.BotConfig || !window.BotConfig.state) {
       console.error('❌ BotConfigが見つかりません');
+      isRankingFetching = false;
       return false;
     }
 
@@ -56,6 +57,7 @@ async function fetchRankingFromGAS() {
       console.error('❌ 郵便番号が見つかりません');
       console.error('📋 BotConfig.state:', JSON.stringify(window.BotConfig.state, null, 2));
       console.error('📋 sessionStorage bot_zipcode:', sessionStorage.getItem('bot_zipcode'));
+      isRankingFetching = false;
       return false;
     }
 
@@ -103,6 +105,7 @@ async function fetchRankingFromGAS() {
     // CVAPI.getRankingを呼び出し
     if (!window.CVAPI || !window.CVAPI.getRanking) {
       console.error('❌ CVAPI.getRankingが見つかりません');
+      isRankingFetching = false;
       return false;
     }
 
@@ -110,7 +113,7 @@ async function fetchRankingFromGAS() {
 
     if (!response.success) {
       console.error('❌ ランキング取得失敗:', response.error);
-
+      isRankingFetching = false;
       return false;
     }
 

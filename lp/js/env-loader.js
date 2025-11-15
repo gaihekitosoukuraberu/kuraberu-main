@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1749 - 2025-11-15 - ZIP保存漏れ修正・sessionStorage永続化）
-  CACHE_BUSTER: '1731668400000'
+  // キャッシュバスター（V1749 - 2025-11-15 - isRankingFetchingセマフォア修正）
+  CACHE_BUSTER: '1731669000000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
