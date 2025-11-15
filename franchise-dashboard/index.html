@@ -5365,7 +5365,7 @@
                                     <button type="button" onclick="closeExtensionModal()" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
                                         キャンセル
                                     </button>
-                                    <button type="submit" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                                    <button id="submitExtensionBtn" type="submit" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
                                         期限延長を申請
                                     </button>
                                 </div>
@@ -20954,7 +20954,13 @@
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                submitBtn.textContent = '送信中...';
+                submitBtn.innerHTML = `
+                    <svg class="animate-spin h-5 w-5 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    送信中...
+                `;
             }
 
             try {
@@ -21012,7 +21018,7 @@
                     if (submitBtn) {
                         submitBtn.disabled = false;
                         submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                        submitBtn.textContent = 'キャンセル申請を提出';
+                        submitBtn.innerHTML = 'キャンセル申請を提出';
                     }
                     return;
                 }
@@ -21025,7 +21031,7 @@
                     if (submitBtn) {
                         submitBtn.disabled = false;
                         submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                        submitBtn.textContent = 'キャンセル申請を提出';
+                        submitBtn.innerHTML = 'キャンセル申請を提出';
                     }
                     return;
                 }
@@ -21072,7 +21078,7 @@
                     if (submitBtn) {
                         submitBtn.disabled = false;
                         submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                        submitBtn.textContent = 'キャンセル申請を提出';
+                        submitBtn.innerHTML = 'キャンセル申請を提出';
                     }
                 }
             } catch (error) {
@@ -21083,7 +21089,7 @@
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                    submitBtn.textContent = 'キャンセル申請を提出';
+                    submitBtn.innerHTML = 'キャンセル申請を提出';
                 }
             }
         }
@@ -21261,22 +21267,46 @@
         document.getElementById('extensionForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            const contactDate = document.getElementById('extensionContactDate').value;
-            const appointmentDate = document.getElementById('extensionAppointmentDate').value;
-            const reason = document.getElementById('extensionReason').value;
-
-            if (!contactDate || !appointmentDate || !reason) {
-                alert('すべての項目を入力してください');
-                return;
+            // ボタンを無効化して二重送信を防止
+            const submitBtn = document.getElementById('submitExtensionBtn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                submitBtn.innerHTML = `
+                    <svg class="animate-spin h-5 w-5 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    送信中...
+                `;
             }
 
             try {
+                const contactDate = document.getElementById('extensionContactDate').value;
+                const appointmentDate = document.getElementById('extensionAppointmentDate').value;
+                const reason = document.getElementById('extensionReason').value;
+
+                if (!contactDate || !appointmentDate || !reason) {
+                    alert('すべての項目を入力してください');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        submitBtn.innerHTML = '期限延長を申請';
+                    }
+                    return;
+                }
+
                 const merchantId = window.merchantId;
                 const merchantName = window.merchantData?.['会社名'] || '';
                 const applicantName = window.merchantData?.['営業担当者氏名'] || currentUser || '';
 
                 if (!merchantId) {
                     alert('ログインしていません');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        submitBtn.innerHTML = '期限延長を申請';
+                    }
                     return;
                 }
 
@@ -21309,10 +21339,20 @@
                     loadExtensionEligibleCases();
                 } else {
                     alert('申請に失敗しました: ' + result.error);
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        submitBtn.innerHTML = '期限延長を申請';
+                    }
                 }
             } catch (error) {
                 console.error('期限延長申請エラー:', error);
                 alert('申請の送信に失敗しました');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    submitBtn.innerHTML = '期限延長を申請';
+                }
             }
         });
     </script>
