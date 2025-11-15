@@ -252,6 +252,9 @@ const BotScenarios = {
             console.warn('⚠️ sessionStorage保存失敗:', e);
         }
 
+        // V1752-FEAT: ZipCloud APIで住所フリガナを取得
+        this.fetchAddressKana(postal.replace('-', ''));
+
         // ユーザーメッセージとして表示
         BotUI.showUserMessage(postal);
 
@@ -364,6 +367,50 @@ const BotScenarios = {
             window.BotQuestions.showQuestion('Q001');
         } else {
             console.error('❌ BotQuestionsが読み込まれていません');
+        }
+    },
+
+    // ============================================
+    // V1752-FEAT: ZipCloud APIで住所フリガナを取得
+    // ============================================
+    async fetchAddressKana(zipcode) {
+        try {
+            console.log('📍 ZipCloud APIで住所フリガナ取得開始:', zipcode);
+
+            const url = `https://zipcloud.ibsnet.co.jp/api/search?zipcode=${zipcode}`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.status === 200 && data.results && data.results.length > 0) {
+                const result = data.results[0];
+
+                // 住所フリガナを結合（都道府県カナ + 市区町村カナ + 町域カナ）
+                const addressKana = result.kana1 + result.kana2 + result.kana3;
+
+                // BotConfigに保存
+                BotConfig.state.addressKana = addressKana;
+
+                // sessionStorageにも保存（データ永続化）
+                try {
+                    sessionStorage.setItem('bot_addressKana', addressKana);
+                    console.log('✅ 住所フリガナをsessionStorageに保存:', addressKana);
+                } catch (e) {
+                    console.warn('⚠️ sessionStorage保存失敗:', e);
+                }
+
+                console.log('✅ ZipCloud API成功:', {
+                    prefecture: result.address1,
+                    city: result.address2,
+                    town: result.address3,
+                    kana: addressKana
+                });
+            } else {
+                console.warn('⚠️ ZipCloud API: 該当する住所が見つかりません');
+                BotConfig.state.addressKana = '';
+            }
+        } catch (error) {
+            console.error('❌ ZipCloud API エラー:', error);
+            BotConfig.state.addressKana = '';
         }
     }
 };
