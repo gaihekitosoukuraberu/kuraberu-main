@@ -63,7 +63,7 @@ class CVHeartbeatSystem {
         return { success: false, error: `CV ID ${cvId} が見つかりません` };
       }
 
-      // BU列(74)に最終ハートビート時刻を更新
+      // BV列(74)に最終ハートビート時刻を更新
       const now = new Date(timestamp || new Date());
       sheet.getRange(targetRow, 74).setValue(now);
 
@@ -103,7 +103,7 @@ class CVHeartbeatSystem {
         const cvId = values[i][0];              // A列: CV ID
         const phone = values[i][6];             // G列: 電話番号
         const registrationTime = values[i][1];  // B列: 登録日時
-        const lastHeartbeat = values[i][73];    // BU列（74列目、インデックス73）: 最終ハートビート時刻
+        const lastHeartbeat = values[i][73];    // BV列（74列目、インデックス73）: 最終ハートビート時刻
 
         // ハートビートがない、または空の場合はスキップ
         if (!lastHeartbeat || lastHeartbeat === '') continue;
