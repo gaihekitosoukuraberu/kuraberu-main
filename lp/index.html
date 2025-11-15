@@ -3035,20 +3035,34 @@
                 }
             }
 
-            // 物件の住所（都道府県 + 市区町村）を自動入力
+            // 物件の住所（都道府県 + 市区町村 + 町名）を自動入力（V1753-FIX6）
             if (window.propertyPrefecture && window.propertyCity) {
                 const propertyAddressField = document.getElementById('propertyAddress');
                 if (propertyAddressField) {
-                    const fullAddress = window.propertyPrefecture + window.propertyCity;
+                    // 都道府県 + 市区町村
+                    let fullAddress = window.propertyPrefecture + window.propertyCity;
+
+                    // 町名がまだ含まれていない場合は明示的に追加（郵便番号から取得した町名）
+                    if (window.propertyTown && !fullAddress.includes(window.propertyTown)) {
+                        fullAddress += window.propertyTown;
+                    }
+
                     propertyAddressField.value = fullAddress;
-                    console.log('✅ 物件住所を自動入力:', fullAddress);
+                    console.log('✅ 物件住所を自動入力（町名含む）:', fullAddress);
                 }
             } else if (window.propertyCity) {
                 // 都道府県がない場合は市区町村のみ
                 const propertyAddressField = document.getElementById('propertyAddress');
                 if (propertyAddressField) {
-                    propertyAddressField.value = window.propertyCity;
-                    console.log('✅ 物件住所を自動入力（市区町村のみ）:', window.propertyCity);
+                    let fullAddress = window.propertyCity;
+
+                    // 町名がまだ含まれていない場合は明示的に追加
+                    if (window.propertyTown && !fullAddress.includes(window.propertyTown)) {
+                        fullAddress += window.propertyTown;
+                    }
+
+                    propertyAddressField.value = fullAddress;
+                    console.log('✅ 物件住所を自動入力（市区町村+町名）:', fullAddress);
                 }
             }
 
