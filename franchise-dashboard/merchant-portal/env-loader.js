@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-08T09:55:20.000Z - Deployment: AKfycbxMaj0EwqO8HczQOCH1xGNn2wTX3jn4OTU_3en76sIs1vpxYcafIwTHX1OSrUEfHGL97w
+// Auto-synced: 2025-11-08T09:55:20.000Z - Deployment: AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj
 /**
  * 環境変数ローダー（全システム共通）- マスターファイル
  * .envファイルの代わりにJavaScriptで定数管理
@@ -23,7 +23,7 @@ const ENV = {
   // ============================================
 
   // プライマリGAS URL（メイン運用）- V1752: 配信管理シート対応
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbytU7ULNrVP3we5Zi0Yh7OZ_eElxz1vK0Xfyr6YEmWfrNV0HK654xfIUVWol4Zc2YVJow/exec',
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/exec',
 
   // フォールバックGAS URL（バックアップ）- @1711
   FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzUu1nHQ6J1vHD-DuuZ4eClkPj5K1YfHnMB3nr9qIY50bvJn75jTVYkCQSerkfk5lNArg/exec',
@@ -46,7 +46,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1752 - 2025-11-15 - 配信管理シート対応：全システム修正）
-  CACHE_BUSTER: '1763237400000'
+  CACHE_BUSTER: '1763192615000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

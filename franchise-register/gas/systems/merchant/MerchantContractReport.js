@@ -20,7 +20,7 @@
  * ⚠️  管理ステータスの遷移ロジックに注意
  */
 
-const MerchantContractReport = {
+var MerchantContractReport = {
   /**
    * 配信済み案件一覧を取得（成約報告対象）
    * @param {Object} params - { merchantId: 加盟店ID }
