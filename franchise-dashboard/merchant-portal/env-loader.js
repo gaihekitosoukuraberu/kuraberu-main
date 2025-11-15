@@ -22,8 +22,8 @@ const ENV = {
   // URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V1711: 架電履歴追加 + 階層的質問フロー対応
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbzUu1nHQ6J1vHD-DuuZ4eClkPj5K1YfHnMB3nr9qIY50bvJn75jTVYkCQSerkfk5lNArg/exec',
+  // プライマリGAS URL（メイン運用）- V1751: 成約報告システム + 関数スコープ修正
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbzvuuAwy986G90bXVQhcjjoGYIvw6hRkOFryVIxDMvqI1-Y6sdnBh3PWCQRz1S71z5AUg/exec',
 
   // フォールバックGAS URL（バックアップ）- @1711
   FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzUu1nHQ6J1vHD-DuuZ4eClkPj5K1YfHnMB3nr9qIY50bvJn75jTVYkCQSerkfk5lNArg/exec',
