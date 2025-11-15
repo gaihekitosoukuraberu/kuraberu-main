@@ -1543,8 +1543,8 @@
                         </label>
                         <div class="space-y-3">
                             <div class="flex gap-1.5 sm:gap-2">
-                                <input type="text" id="propertyZip" class="w-24 sm:w-32 border-2 border-gray-300 rounded-xl px-2 sm:px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base" placeholder="000-0000">
-                                <input type="text" id="propertyAddress" class="flex-1 border-2 border-gray-300 rounded-xl px-2 sm:px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base" placeholder="市区町村+町名">
+                                <input type="text" id="propertyZip" class="w-24 sm:w-32 border-2 border-gray-300 rounded-xl px-2 sm:px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base" placeholder="000-0000" onblur="fetchAddressFromZip('property')">
+                                <input type="text" id="propertyAddress" class="flex-1 border-2 border-gray-300 rounded-xl px-2 sm:px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base" placeholder="市区町村">
                             </div>
                             <input type="text" id="propertyStreet" class="w-full border-2 border-gray-300 rounded-xl px-2 sm:px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base" placeholder="番地・建物名（例：1-2-3 ○○マンション101号室）">
                         </div>
@@ -2211,7 +2211,7 @@
         // 見積もりフォームを閉じる
         // V1753-FIX7: closeEstimateForm()は3200行目に統合（重複削除）
 
-        // 郵便番号から住所を取得（V1753-FIX2: ZipCloud APIで町名も取得）
+        // 郵便番号から住所を取得（V1753-FIX8: 物件・自宅両対応）
         async function fetchAddress(postalCode, type) {
             if (!postalCode) return;
 
@@ -2227,7 +2227,24 @@
                     const city = result.address2;        // 市区町村
                     const town = result.address3 || '';  // 町名
 
-                    if (type === 'home') {
+                    if (type === 'property') {
+                        // V1753-FIX8: 物件住所の自動入力
+                        const propertyAddressField = document.getElementById('propertyAddress');
+                        if (propertyAddressField) {
+                            // 都道府県 + 市区町村 + 町名を表示
+                            propertyAddressField.value = prefecture + city + town;
+                        }
+
+                        window.propertyPrefecture = prefecture;
+                        window.propertyCity = city + town;
+                        window.propertyTown = town;
+
+                        console.log('✅ 物件住所を保存:', {
+                            prefecture: window.propertyPrefecture,
+                            city: window.propertyCity,
+                            town: town
+                        });
+                    } else if (type === 'home') {
                         const homeAddressField = document.getElementById('homeAddress');
                         if (homeAddressField) {
                             // 市区町村+町名を表示
@@ -2235,7 +2252,7 @@
                         }
 
                         window.homePrefecture = prefecture;
-                        window.homeCity = city + town;  // V1753-FIX2: 市区町村+町名
+                        window.homeCity = city + town;
 
                         console.log('✅ 自宅住所を保存:', {
                             prefecture: window.homePrefecture,
@@ -2249,7 +2266,20 @@
                         const areaInfo = window.getAreaFromPostalCode(postalCode);
                         const prefectureMatch = areaInfo.match(/(.*?[都道府県])(.*)/);
 
-                        if (type === 'home') {
+                        if (type === 'property') {
+                            const propertyAddressField = document.getElementById('propertyAddress');
+                            if (propertyAddressField) {
+                                propertyAddressField.value = areaInfo;
+                            }
+
+                            if (prefectureMatch) {
+                                window.propertyPrefecture = prefectureMatch[1];
+                                window.propertyCity = prefectureMatch[2];
+                            } else {
+                                window.propertyPrefecture = '';
+                                window.propertyCity = areaInfo;
+                            }
+                        } else if (type === 'home') {
                             const homeAddressField = document.getElementById('homeAddress');
                             if (homeAddressField) {
                                 homeAddressField.value = prefectureMatch ? prefectureMatch[2] : areaInfo;
@@ -2267,6 +2297,20 @@
                 }
             } catch (error) {
                 console.error('❌ fetchAddress エラー:', error);
+            }
+        }
+
+        // fetchAddressFromZip()のエイリアス（onblur="fetchAddressFromZip('property')"用）
+        function fetchAddressFromZip(type) {
+            const zipField = type === 'property' ?
+                document.getElementById('propertyZip') :
+                document.getElementById('homeZip');
+
+            if (zipField) {
+                const zipValue = zipField.value.replace('-', '').trim();
+                if (zipValue.length === 7) {
+                    fetchAddress(zipValue, type);
+                }
             }
         }
 
@@ -2972,6 +3016,7 @@
             // BOTで取得済みの情報を自動入力
             // ============================================
 
+            // V1753-FIX8: 郵便番号のみ自動入力（住所は郵便番号入力時にAPIで取得）
             // 物件の郵便番号を自動入力
             if (window.BotConfig && window.BotConfig.state.currentZipcode) {
                 const propertyZipField = document.getElementById('propertyZip');
@@ -2982,37 +3027,12 @@
                         zipcode.substring(0, 3) + '-' + zipcode.substring(3) : zipcode;
                     propertyZipField.value = formattedZip;
                     console.log('✅ 物件郵便番号を自動入力:', formattedZip);
-                }
-            }
 
-            // 物件の住所（都道府県 + 市区町村 + 町名）を自動入力（V1753-FIX6）
-            if (window.propertyPrefecture && window.propertyCity) {
-                const propertyAddressField = document.getElementById('propertyAddress');
-                if (propertyAddressField) {
-                    // 都道府県 + 市区町村
-                    let fullAddress = window.propertyPrefecture + window.propertyCity;
-
-                    // 町名がまだ含まれていない場合は明示的に追加（郵便番号から取得した町名）
-                    if (window.propertyTown && !fullAddress.includes(window.propertyTown)) {
-                        fullAddress += window.propertyTown;
-                    }
-
-                    propertyAddressField.value = fullAddress;
-                    console.log('✅ 物件住所を自動入力（町名含む）:', fullAddress);
-                }
-            } else if (window.propertyCity) {
-                // 都道府県がない場合は市区町村のみ
-                const propertyAddressField = document.getElementById('propertyAddress');
-                if (propertyAddressField) {
-                    let fullAddress = window.propertyCity;
-
-                    // 町名がまだ含まれていない場合は明示的に追加
-                    if (window.propertyTown && !fullAddress.includes(window.propertyTown)) {
-                        fullAddress += window.propertyTown;
-                    }
-
-                    propertyAddressField.value = fullAddress;
-                    console.log('✅ 物件住所を自動入力（市区町村+町名）:', fullAddress);
+                    // 郵便番号が入力されたら自動で住所を取得
+                    setTimeout(() => {
+                        const event = new Event('blur');
+                        propertyZipField.dispatchEvent(event);
+                    }, 100);
                 }
             }
 
@@ -3072,21 +3092,6 @@
                 }, { passive: false });
 
                 console.log('✅ 背景スクロール完全無効化（モーダル表示）');
-
-                // BOT情報から郵便番号と住所を自動入力
-                if (window.BotConfig && window.BotConfig.state) {
-                    const zipcode = window.BotConfig.state.currentZipcode;
-                    if (zipcode) {
-                        document.getElementById('propertyZip').value = zipcode;
-
-                        // 郵便番号から住所を取得
-                        if (typeof window.getAreaFromPostalCode === 'function') {
-                            const area = window.getAreaFromPostalCode(zipcode);
-                            document.getElementById('propertyAddress').value = area || '';
-                        }
-                    }
-                }
-
                 console.log('✅ 見積もりフォーム表示');
             } else {
                 console.error('❌ estimateFormModalが見つかりません');
