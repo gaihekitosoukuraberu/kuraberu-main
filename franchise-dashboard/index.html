@@ -18620,7 +18620,7 @@
         }
 
         // キャンセル申請の案件検索
-        function searchCancelCases() {
+        window.searchCancelCases = function() {
             const searchTerm = normalizeKana(document.getElementById('cancelSearchInput').value);
             const startDate = document.getElementById('cancelStartDate').value;
             const endDate = document.getElementById('cancelEndDate').value;
@@ -18755,7 +18755,7 @@
         }
 
         // 期限延長申請の案件検索
-        function searchExtensionCases() {
+        window.searchExtensionCases = function() {
             const searchTerm = normalizeKana(document.getElementById('extensionSearchInput').value);
             const startDate = document.getElementById('extensionStartDate').value;
             const endDate = document.getElementById('extensionEndDate').value;
@@ -18852,65 +18852,9 @@
                 options: ['契約前・口頭確約済', '契約後・工事前', '工事中', '工事完了後']
             }
         ];
-        let contractAnswers = [];
-        let selectedContractCase = null;
-
-        // 成約案件選択
-        window.selectContractCase = function(caseId) {
-            selectedContractCase = casesData.find(c => c.id === caseId);
-            if (selectedContractCase) {
-                // 顧客情報を表示
-                document.getElementById('contractCustomerInfo').classList.remove('hidden');
-                document.getElementById('contractCustomerName').textContent = selectedContractCase.name || '';
-                document.getElementById('contractCustomerAddress').textContent =
-                    selectedContractCase.address || selectedContractCase.location || selectedContractCase.area || '';
-
-                contractAnswers = [];
-                showContractQuestions();
-                document.getElementById('contractModal').classList.remove('hidden');
-            }
-        }
-
-        // 成約報告質問表示
-        function showContractQuestions() {
-            const container = document.getElementById('contractQuestionContainer');
-            const currentQuestion = contractQuestions[contractAnswers.length];
-
-            if (currentQuestion) {
-                container.innerHTML = `
-                    <div class="mb-4">
-                        <h4 class="text-lg font-medium mb-3">${currentQuestion.question}</h4>
-                        <div class="grid grid-cols-2 gap-3">
-                            ${currentQuestion.options.map(option => `
-                                <button onclick="answerContractQuestion('${option}')"
-                                        class="p-3 text-left border rounded-lg hover:bg-green-50 hover:border-green-500 transition-colors">
-                                    ${option}
-                                </button>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        // 成約質問回答
-        function answerContractQuestion(answer) {
-            contractAnswers.push(answer);
-
-            if (contractAnswers.length < contractQuestions.length) {
-                showContractQuestions();
-            } else {
-                // フォームフェーズに移行
-                document.getElementById('contractQuestionContainer').classList.add('hidden');
-                document.getElementById('contractFormPhase').classList.remove('hidden');
-
-                // 契約状況に応じて日付ラベルを変更
-                updateDateLabels(contractAnswers[1]);
-            }
-        }
 
         // 契約状況に応じて日付ラベルを更新
-        function updateDateLabels(status) {
+        window.updateDateLabels = function(status) {
             const completionLabel = document.getElementById('completionDateLabel');
             const paymentLabel = document.getElementById('paymentDateLabel');
 
@@ -18935,7 +18879,7 @@
         }
 
         // その他チェック時の詳細入力欄表示
-        function toggleOtherWorkDetails() {
+        window.toggleOtherWorkDetails = function() {
             const otherCheckbox = document.querySelector('input[name="workType"][value="その他"]');
             const detailsTextarea = document.getElementById('workDetails');
 
@@ -18948,7 +18892,7 @@
         }
 
         // その他物件タイプの詳細入力欄表示
-        function toggleOtherPropertyDetails() {
+        window.toggleOtherPropertyDetails = function() {
             const otherCheckbox = document.querySelector('input[name="propertyType"][value="その他"]');
             const detailsInput = document.getElementById('otherPropertyDetails');
 
@@ -18961,7 +18905,7 @@
         }
 
         // 成約モーダルを閉じる
-        function closeContractModal() {
+        window.closeContractModal = function() {
             document.getElementById('contractModal').classList.add('hidden');
             document.getElementById('contractQuestionContainer').classList.remove('hidden');
             document.getElementById('contractFormPhase').classList.add('hidden');
@@ -18994,7 +18938,7 @@
         }
 
         // その他の理由を送信
-        function submitOtherReason() {
+        window.submitOtherReason = function() {
             const reasonInput = document.getElementById('otherReasonInput');
             if (reasonInput && reasonInput.value.trim()) {
                 cancelAnswers.otherReason = reasonInput.value.trim();
@@ -19005,7 +18949,7 @@
         }
 
         // 追加情報入力画面を表示
-        function showAdditionalInfoInput() {
+        window.showAdditionalInfoInput = function() {
             const container = document.getElementById('cancelQuestionContainer');
             container.innerHTML = `
                 <div class="mb-4">
@@ -19025,20 +18969,20 @@
         }
 
         // 追加情報をスキップ
-        function skipAdditionalInfo() {
+        window.skipAdditionalInfo = function() {
             cancelAnswers.additionalInfo = '';
             generateCancelText();
         }
 
         // 追加情報を送信
-        function submitAdditionalInfo() {
+        window.submitAdditionalInfo = function() {
             const infoInput = document.getElementById('additionalInfoInput');
             cancelAnswers.additionalInfo = infoInput ? infoInput.value.trim() : '';
             generateCancelText();
         }
 
         // キャンセル質問回答
-        function answerCancelQuestion(answer) {
+        window.answerCancelQuestion = function(answer) {
             const container = document.getElementById('cancelQuestionContainer');
 
             // 最初の回答を保存
@@ -19088,13 +19032,13 @@
         }
 
         // 連絡状況を送信
-        function submitContactStatus(status) {
+        window.submitContactStatus = function(status) {
             cancelAnswers.contactStatus = status;
             showAdditionalInfoInput();
         }
 
         // 競合他社を送信
-        function submitCompetitor(competitor) {
+        window.submitCompetitor = function(competitor) {
             cancelAnswers.competitor = competitor;
             showAdditionalInfoInput();
         }
@@ -19114,7 +19058,7 @@
         }
 
         // 競合他社名を送信
-        function submitCompetitorName() {
+        window.submitCompetitorName = function() {
             const nameInput = document.getElementById('competitorNameInput');
             if (nameInput && nameInput.value.trim()) {
                 cancelAnswers.competitor = nameInput.value.trim();
@@ -19210,7 +19154,7 @@
         }
 
         // キャンセルモーダルを閉じる
-        function closeCancelModal() {
+        window.closeCancelModal = function() {
             document.getElementById('cancelModal').classList.add('hidden');
             selectedCancelCase = null;
             cancelAnswers = [];
@@ -19243,7 +19187,7 @@
         }
 
         // 成約報告フォームリセット
-        function resetContractForm() {
+        window.resetContractForm = function() {
             const form = document.getElementById('contractReportForm');
             if (form) {
                 form.reset();
@@ -19309,6 +19253,10 @@
         let cancelSelectedSubCategory = null;
         let cancelQuestionAnswers = {};
         let cancelAiGenerationCount = 0; // AI生成回数カウンター
+
+        // 成約報告用グローバル状態
+        let selectedContractCase = null;
+        let contractAnswers = [];
 
         // テキスト履歴管理（アンドゥ/リドゥ用）
         let textHistory = [];
@@ -19772,6 +19720,53 @@
             showContractQuestion(0);
         }
 
+        // 成約報告質問を表示
+        window.showContractQuestion = function(questionIndex) {
+            const container = document.getElementById('contractQuestionContainer');
+            const currentQuestion = contractQuestions[questionIndex];
+
+            if (currentQuestion) {
+                container.innerHTML = `
+                    <div class="mb-4">
+                        <h4 class="text-lg font-medium mb-3">${currentQuestion.question}</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            ${currentQuestion.options.map(option => `
+                                <button onclick="answerContractQuestion('${option}')"
+                                        class="p-3 text-left border rounded-lg hover:bg-green-50 hover:border-green-500 transition-colors">
+                                    ${option}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // 全質問完了 - フォームフェーズへ
+                document.getElementById('contractQuestionContainer').classList.add('hidden');
+                document.getElementById('contractFormPhase').classList.remove('hidden');
+
+                // 契約状況に応じて日付ラベルを変更
+                if (contractAnswers[1]) {
+                    updateDateLabels(contractAnswers[1]);
+                }
+            }
+        }
+
+        // 成約質問回答
+        window.answerContractQuestion = function(answer) {
+            contractAnswers.push(answer);
+
+            if (contractAnswers.length < contractQuestions.length) {
+                showContractQuestion(contractAnswers.length);
+            } else {
+                // フォームフェーズに移行
+                document.getElementById('contractQuestionContainer').classList.add('hidden');
+                document.getElementById('contractFormPhase').classList.remove('hidden');
+
+                // 契約状況に応じて日付ラベルを変更
+                updateDateLabels(contractAnswers[1]);
+            }
+        }
+
         // 成約報告を送信
         window.submitContractReport = async function(selectedWorkTypes, selectedPropertyTypes) {
             try {
@@ -19944,7 +19939,7 @@
         }
 
         // キャンセルモーダルを開く
-        function openCancelModal(cvId) {
+        window.openCancelModal = function(cvId) {
             try {
                 // 複数のキャッシュからデータを取得（キャンセル可能案件 or 期限延長可能案件）
                 cancelSelectedCase = cancelableCasesCache.find(c => c.cvId === cvId) ||
@@ -19972,7 +19967,7 @@
         }
 
         // キャンセル再申請モーダルを開く（却下済み案件用）
-        function openCancelReapplication(cvId) {
+        window.openCancelReapplication = function(cvId) {
             try {
                 // 却下済みキャッシュから案件データを取得
                 const rejectedCase = cancelRejectedCasesCache.find(c => c.cvId === cvId);
@@ -20008,7 +20003,7 @@
         }
 
         // キャンセルモーダルを閉じる
-        function closeCancelModal() {
+        window.closeCancelModal = function() {
             document.getElementById('cancelModal').classList.add('hidden');
             cancelCurrentStep = 1;
             cancelSelectedCase = null;
@@ -20019,7 +20014,7 @@
         }
 
         // ステップ移動
-        function cancelGoToStep(step) {
+        window.cancelGoToStep = function(step) {
             // 現在のステップを非表示
             document.querySelectorAll('.cancel-step').forEach(el => el.classList.add('hidden'));
 
@@ -20156,7 +20151,7 @@
         }
 
         // 戻るボタンハンドラー（段階的に戻る）
-        function cancelGoBack() {
+        window.cancelGoBack = function() {
             if (cancelCurrentStep === 3) {
                 // Step 3 → Step 2
                 cancelGoToStep(2);
@@ -20192,7 +20187,7 @@
         }
 
         // カテゴリ選択
-        function selectCancelCategory(categoryId) {
+        window.selectCancelCategory = function(categoryId) {
             cancelSelectedCategory = categoryId;
             cancelSelectedSubCategory = null;
             cancelQuestionAnswers = {};
@@ -20226,7 +20221,7 @@
         }
 
         // サブカテゴリ選択と質問フォーム生成
-        function selectCancelSubCategory(subCategoryId) {
+        window.selectCancelSubCategory = function(subCategoryId) {
             cancelSelectedSubCategory = subCategoryId;
             cancelQuestionAnswers = {};
 
@@ -21075,7 +21070,7 @@
         }
 
         // 期限延長モーダルを閉じる
-        function closeExtensionModal() {
+        window.closeExtensionModal = function() {
             document.getElementById('extensionModal').classList.add('hidden');
             extensionSelectedCase = null;
             document.getElementById('extensionForm').reset();
