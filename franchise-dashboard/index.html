@@ -12095,6 +12095,25 @@
             return url; // Google Drive URLでない場合はそのまま
         }
 
+        // カナ正規化関数（カタカナ→ひらがな変換 + 小文字化）
+        // 「オオサカ」→「おおさか」に変換して検索マッチさせる
+        function normalizeKana(str) {
+            if (!str) return '';
+            return str
+                .split('')
+                .map(char => {
+                    const code = char.charCodeAt(0);
+                    // カタカナ（U+30A0～U+30FF）をひらがな（U+3040～U+309F）に変換
+                    if (code >= 0x30A0 && code <= 0x30FF) {
+                        return String.fromCharCode(code - 0x60);
+                    }
+                    return char;
+                })
+                .join('')
+                .toLowerCase()
+                .trim();
+        }
+
         // 施工事例の重複除去共通関数（URL正規化対応）
         function getUniqueExamples(examples) {
             console.log('[getUniqueExamples] 入力:', examples.length, '件');
@@ -16818,7 +16837,7 @@
 
         // 検索機能
         function searchCases() {
-            currentSearchTerm = document.getElementById('caseSearchInput').value.toLowerCase();
+            currentSearchTerm = normalizeKana(document.getElementById('caseSearchInput').value);
             renderFilteredAndSortedCards();
         }
 
@@ -16844,8 +16863,8 @@
             // 検索フィルター
             if (currentSearchTerm) {
                 filteredCases = filteredCases.filter(c =>
-                    c.name.toLowerCase().includes(currentSearchTerm) ||
-                    c.location.toLowerCase().includes(currentSearchTerm)
+                    normalizeKana(c.name).includes(currentSearchTerm) ||
+                    normalizeKana(c.location).includes(currentSearchTerm)
                 );
             }
 
@@ -18552,7 +18571,7 @@
 
         // 成約報告の案件検索
         function searchContractCases() {
-            const searchTerm = document.getElementById('contractSearchInput').value.toLowerCase().trim();
+            const searchTerm = normalizeKana(document.getElementById('contractSearchInput').value);
             const assigneeFilter = document.getElementById('contractAssigneeFilter').value;
             const startDate = document.getElementById('contractStartDate').value;
             const endDate = document.getElementById('contractEndDate').value;
@@ -18563,13 +18582,13 @@
             // テキスト検索（名前・電話・住所・エリア・フリガナ対応）
             if (searchTerm) {
                 filteredCases = filteredCases.filter(c => {
-                    return (c.name && c.name.toLowerCase().includes(searchTerm)) ||
-                           (c.nameKana && c.nameKana.toLowerCase().includes(searchTerm)) ||
-                           (c.phone && c.phone.toLowerCase().includes(searchTerm)) ||
-                           (c.location && c.location.toLowerCase().includes(searchTerm)) ||
-                           (c.area && c.area.toLowerCase().includes(searchTerm)) ||
-                           (c.address && c.address.toLowerCase().includes(searchTerm)) ||
-                           (c.addressKana && c.addressKana.toLowerCase().includes(searchTerm));
+                    return (c.name && normalizeKana(c.name).includes(searchTerm)) ||
+                           (c.nameKana && normalizeKana(c.nameKana).includes(searchTerm)) ||
+                           (c.phone && normalizeKana(c.phone).includes(searchTerm)) ||
+                           (c.location && normalizeKana(c.location).includes(searchTerm)) ||
+                           (c.area && normalizeKana(c.area).includes(searchTerm)) ||
+                           (c.address && normalizeKana(c.address).includes(searchTerm)) ||
+                           (c.addressKana && normalizeKana(c.addressKana).includes(searchTerm));
                 });
             }
 
@@ -18611,7 +18630,7 @@
 
         // キャンセル申請の案件検索
         function searchCancelCases() {
-            const searchTerm = document.getElementById('cancelSearchInput').value.toLowerCase().trim();
+            const searchTerm = normalizeKana(document.getElementById('cancelSearchInput').value);
             const startDate = document.getElementById('cancelStartDate').value;
             const endDate = document.getElementById('cancelEndDate').value;
 
@@ -18651,11 +18670,11 @@
             // テキスト検索（名前・電話・住所・フリガナ対応）
             if (searchTerm) {
                 filteredCases = filteredCases.filter(c => {
-                    return (c.customerName && c.customerName.toLowerCase().includes(searchTerm)) ||
-                           (c.customerNameKana && c.customerNameKana.toLowerCase().includes(searchTerm)) ||
-                           (c.tel && c.tel.toLowerCase().includes(searchTerm)) ||
-                           (c.address && c.address.toLowerCase().includes(searchTerm)) ||
-                           (c.addressKana && c.addressKana.toLowerCase().includes(searchTerm));
+                    return (c.customerName && normalizeKana(c.customerName).includes(searchTerm)) ||
+                           (c.customerNameKana && normalizeKana(c.customerNameKana).includes(searchTerm)) ||
+                           (c.tel && normalizeKana(c.tel).includes(searchTerm)) ||
+                           (c.address && normalizeKana(c.address).includes(searchTerm)) ||
+                           (c.addressKana && normalizeKana(c.addressKana).includes(searchTerm));
                 });
             }
 
@@ -18746,7 +18765,7 @@
 
         // 期限延長申請の案件検索
         function searchExtensionCases() {
-            const searchTerm = document.getElementById('extensionSearchInput').value.toLowerCase().trim();
+            const searchTerm = normalizeKana(document.getElementById('extensionSearchInput').value);
             const startDate = document.getElementById('extensionStartDate').value;
             const endDate = document.getElementById('extensionEndDate').value;
             const container = document.getElementById('extensionCasesList');
@@ -18760,12 +18779,12 @@
             // テキスト検索（名前・電話・住所・CV ID・フリガナ対応）
             if (searchTerm) {
                 filteredCases = filteredCases.filter(c => {
-                    return (c.customerName && c.customerName.toLowerCase().includes(searchTerm)) ||
-                           (c.customerNameKana && c.customerNameKana.toLowerCase().includes(searchTerm)) ||
-                           (c.tel && c.tel.toLowerCase().includes(searchTerm)) ||
-                           (c.address && c.address.toLowerCase().includes(searchTerm)) ||
-                           (c.addressKana && c.addressKana.toLowerCase().includes(searchTerm)) ||
-                           (c.cvId && c.cvId.toLowerCase().includes(searchTerm));
+                    return (c.customerName && normalizeKana(c.customerName).includes(searchTerm)) ||
+                           (c.customerNameKana && normalizeKana(c.customerNameKana).includes(searchTerm)) ||
+                           (c.tel && normalizeKana(c.tel).includes(searchTerm)) ||
+                           (c.address && normalizeKana(c.address).includes(searchTerm)) ||
+                           (c.addressKana && normalizeKana(c.addressKana).includes(searchTerm)) ||
+                           (c.cvId && normalizeKana(c.cvId).includes(searchTerm));
                 });
             }
 

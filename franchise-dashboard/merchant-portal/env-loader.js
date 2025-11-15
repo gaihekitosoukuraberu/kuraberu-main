@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1748-KANA-DYNAMIC-ASSIGN-2025-11-15T18:30:00
- * @last-update 2025-11-15T18:30:00
+ * @file-version V1749-KANA-SEARCH-FIX-2025-11-15T19:00:00
+ * @last-update 2025-11-15T19:00:00
  */
 
 const ENV = {
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1748 - 2025-11-15 - フリガナ動的アサイン）
-  CACHE_BUSTER: '1763226000000'
+  // キャッシュバスター（V1749 - 2025-11-15 - フリガナ検索修正：カタカナ→ひらがな変換対応）
+  CACHE_BUSTER: '1763229600000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

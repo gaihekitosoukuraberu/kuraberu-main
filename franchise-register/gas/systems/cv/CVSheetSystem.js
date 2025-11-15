@@ -359,98 +359,100 @@ const CVSheetSystem = {
       const cvId = 'CV-' + suffix + String(lastRow).padStart(6, '0');
       const timestamp = new Date();
 
-      // データ行構築（71列）
+      // データ行構築（73列）
       const row = [
-        cvId,                                    // A: CV ID
-        timestamp,                               // B: 登録日時
-        data.name || '',                         // C: 氏名
-        '',                                      // D: フリガナ（空欄）
-        '',                                      // E: 性別（空欄）
-        '',                                      // F: 年齢（空欄）
-        data.phone ? "'" + data.phone : '',      // G: 電話番号（'を先頭に付けて文字列化）
-        data.email || '',                        // H: メールアドレス
-        '',                                      // I: 続柄（空欄）
+        cvId,                                    // A(1): CV ID
+        timestamp,                               // B(2): 登録日時
+        data.name || '',                         // C(3): 氏名
+        '',                                      // D(4): フリガナ（空欄）
+        '',                                      // E(5): 性別（空欄）
+        '',                                      // F(6): 年齢（空欄）
+        data.phone ? "'" + data.phone : '',      // G(7): 電話番号（'を先頭に付けて文字列化）
+        data.email || '',                        // H(8): メールアドレス
+        '',                                      // I(9): 続柄（空欄）
 
-        '',                                      // J: 氏名（2人目）
-        '',                                      // K: 電話番号（2人目）
-        '',                                      // L: 続柄（2人目）
-        '',                                      // M: 備考（2人目）
+        '',                                      // J(10): 氏名（2人目）
+        '',                                      // K(11): 電話番号（2人目）
+        '',                                      // L(12): 続柄（2人目）
+        '',                                      // M(13): 備考（2人目）
 
-        data.postalCode ? "'" + data.postalCode : '',  // N: 郵便番号（物件）（'を先頭に付けて文字列化）
-        data.prefecture || '',                   // O: 都道府県（物件）
-        data.city || '',                         // P: 市区町村（物件）
-        data.propertyStreet || '',               // Q: 住所詳細（物件）
+        data.postalCode ? "'" + data.postalCode : '',  // N(14): 郵便番号（物件）（'を先頭に付けて文字列化）
+        data.prefecture || '',                   // O(15): 都道府県（物件）
+        data.city || '',                         // P(16): 市区町村（物件）
+        data.propertyStreet || '',               // Q(17): 住所詳細（物件）
+        '',                                      // R(18): 住所フリガナ（空欄）
 
-        data.isDifferentHome || 'FALSE',         // R: 自宅住所フラグ
-        data.homeZip ? "'" + data.homeZip : '',  // S: 郵便番号（自宅）（'を先頭に付けて文字列化）
-        data.homePrefecture || '',               // T: 都道府県（自宅）
-        data.homeStreet || '',                   // U: 住所詳細（自宅）
+        data.isDifferentHome || 'FALSE',         // S(19): 自宅住所フラグ
+        data.homeZip ? "'" + data.homeZip : '',  // T(20): 郵便番号（自宅）（'を先頭に付けて文字列化）
+        data.homePrefecture || '',               // U(21): 都道府県（自宅）
+        data.homeStreet || '',                   // V(22): 住所詳細（自宅）
 
-        // V-Y: 物件詳細（BOT回答から自動抽出）
-        this.extractPropertyType(data.Q1_propertyType, data.q1_question),  // V: 物件種別
-        data.Q3_buildingAge || '',                       // W: 築年数
-        '',                                              // X: 建物面積（空欄）
-        this.extractFloors(data.Q2_floors, data.Q1_propertyType, data.q1_question), // Y: 階数
+        // W-Z(23-26): 物件詳細（BOT回答から自動抽出）
+        this.extractPropertyType(data.Q1_propertyType, data.q1_question),  // W(23): 物件種別
+        data.Q3_buildingAge || '',                       // X(24): 築年数
+        '',                                              // Y(25): 建物面積（空欄）
+        this.extractFloors(data.Q2_floors, data.Q1_propertyType, data.q1_question), // Z(26): 階数
 
-        // Z-AP: BOT質問回答（Q1〜Q17）- BOT側のパラメータ名に合わせる
-        data.Q1_propertyType || '',              // Z: Q1_物件種別
-        data.Q2_floors || '',                    // AA: Q2_階数
-        data.Q3_buildingAge || '',               // AB: Q3_築年数
-        data.Q4_workHistory || '',               // AC: Q4_工事歴
-        data.Q5_previousWorkTime || '',          // AD: Q5_前回施工時期
-        data.Q6_exteriorMaterial || '',          // AE: Q6_外壁材質
-        data.Q7_roofMaterial || '',              // AF: Q7_屋根材質
-        data.Q8_concernedArea || '',             // AG: Q8_気になる箇所
-        data.Q9_exteriorWork || '',              // AH: Q9_希望工事内容_外壁
-        data.Q10_roofWork || '',                 // AI: Q10_希望工事内容_屋根
-        data.Q11_quoteCount || '',               // AJ: Q11_見積もり保有数
-        data.Q12_quoteSource || '',              // AK: Q12_見積もり取得先
-        data.Q13_doorSales || '',                // AL: Q13_訪問業者有無
-        data.Q14_comparison || '',               // AM: Q14_比較意向
-        data.Q15_doorSalesCompany || '',         // AN: Q15_訪問業者名
-        data.Q16_degradation || '',              // AO: Q16_現在の劣化状況
-        data.Q17_selectionCriteria || '',        // AP: Q17_業者選定条件
+        // AA-AQ(27-43): BOT質問回答（Q1〜Q17）- BOT側のパラメータ名に合わせる
+        data.Q1_propertyType || '',              // AA(27): Q1_物件種別
+        data.Q2_floors || '',                    // AB(28): Q2_階数
+        data.Q3_buildingAge || '',               // AC(29): Q3_築年数
+        data.Q4_workHistory || '',               // AD(30): Q4_工事歴
+        data.Q5_previousWorkTime || '',          // AE(31): Q5_前回施工時期
+        data.Q6_exteriorMaterial || '',          // AF(32): Q6_外壁材質
+        data.Q7_roofMaterial || '',              // AG(33): Q7_屋根材質
+        data.Q8_concernedArea || '',             // AH(34): Q8_気になる箇所
+        data.Q9_exteriorWork || '',              // AI(35): Q9_希望工事内容_外壁
+        data.Q10_roofWork || '',                 // AJ(36): Q10_希望工事内容_屋根
+        data.Q11_quoteCount || '',               // AK(37): Q11_見積もり保有数
+        data.Q12_quoteSource || '',              // AL(38): Q12_見積もり取得先
+        data.Q13_doorSales || '',                // AM(39): Q13_訪問業者有無
+        data.Q14_comparison || '',               // AN(40): Q14_比較意向
+        data.Q15_doorSalesCompany || '',         // AO(41): Q15_訪問業者名
+        data.Q16_degradation || '',              // AP(42): Q16_現在の劣化状況
+        data.Q17_selectionCriteria || '',        // AQ(43): Q17_業者選定条件
 
-        // AQ-AV: CV2入力項目・運用項目
-        data.surveyDatePreference || '',         // AQ: 現地調査希望日時
-        data.selectionHistory || '',             // AR: 業者選定履歴
-        data.requests || '',                     // AS: 案件メモ
-        data.contactTimeSlot || '',              // AT: 連絡時間帯
-        data.quoteDestination || '',             // AU: 見積もり送付先
-        data.wordLinkAnswer || '',               // AV: ワードリンク回答
+        // AR-AW(44-49): CV2入力項目・運用項目
+        data.surveyDatePreference || '',         // AR(44): 現地調査希望日時
+        data.selectionHistory || '',             // AS(45): 業者選定履歴
+        data.requests || '',                     // AT(46): 案件メモ
+        data.contactTimeSlot || '',              // AU(47): 連絡時間帯
+        data.quoteDestination || '',             // AV(48): 見積もり送付先
+        data.wordLinkAnswer || '',               // AW(49): ワードリンク回答
 
-        // AW-BC: 配信・成約管理
-        '未配信',                                 // AW: 配信ステータス
-        0,                                       // AX: 配信先加盟店数
-        '',                                      // AY: 配信日時
-        'FALSE',                                 // AZ: 成約フラグ
-        '',                                      // BA: 成約日時
-        '',                                      // BB: 成約加盟店ID
-        '',                                      // BC: 成約金額
+        // AX-BD(50-56): 配信・成約管理
+        '未配信',                                 // AX(50): 配信ステータス
+        0,                                       // AY(51): 配信先加盟店数
+        '',                                      // AZ(52): 配信日時
+        'FALSE',                                 // BA(53): 成約フラグ
+        '',                                      // BB(54): 成約日時
+        '',                                      // BC(55): 成約加盟店ID
+        '',                                      // BD(56): 成約金額
 
-        // BD-BF: 流入トラッキング
-        data.referrer || '',                     // BD: 流入元URL
-        data.keyword || '',                      // BE: 検索キーワード
-        data.utm || '',                          // BF: UTMパラメータ
+        // BE-BG(57-59): 流入トラッキング
+        data.referrer || '',                     // BE(57): 流入元URL
+        data.keyword || '',                      // BF(58): 検索キーワード
+        data.utm || '',                          // BG(59): UTMパラメータ
 
-        // BG-BI: 不正対策
-        data.visitCount || 1,                    // BG: 訪問回数
-        timestamp,                               // BH: 最終訪問日時
-        data.isBlocked || 'FALSE',               // BI: ブロックフラグ
+        // BH-BJ(60-62): 不正対策
+        data.visitCount || 1,                    // BH(60): 訪問回数
+        timestamp,                               // BI(61): 最終訪問日時
+        data.isBlocked || 'FALSE',               // BJ(62): ブロックフラグ
 
-        // BJ-BL: フォローアップ履歴
-        '',                                      // BJ: 架電履歴
-        '',                                      // BK: 次回架電日時
-        '',                                      // BL: メモ
+        // BK-BM(63-65): フォローアップ履歴
+        '',                                      // BK(63): 架電履歴
+        '',                                      // BL(64): 次回架電日時
+        '',                                      // BM(65): メモ
 
-        // BM-BS: 管理用フィールド（新規追加）
-        '新規',                                   // BM: 管理ステータス
-        '',                                      // BN: 加盟店別ステータス（JSON）
-        '',                                      // BO: 初回架電日時
-        timestamp,                               // BP: 最終更新日時
-        '',                                      // BQ: 配信予定日時
-        '',                                      // BR: 担当者名
-        ''                                       // BS: 最終架電日時
+        // BN-BU(66-73): 管理用フィールド
+        '新規',                                   // BN(66): 管理ステータス
+        '',                                      // BO(67): 加盟店別ステータス（JSON）
+        '',                                      // BP(68): 初回架電日時
+        timestamp,                               // BQ(69): 最終更新日時
+        '',                                      // BR(70): 配信予定日時
+        '',                                      // BS(71): 担当者名
+        '',                                      // BT(72): 最終架電日時
+        ''                                       // BU(73): 配信先業者一覧
       ];
 
       // 最終行に追加
@@ -458,10 +460,10 @@ const CVSheetSystem = {
       const newRowNum = sheet.getLastRow();
 
       // 電話番号と郵便番号を文字列形式に設定（先頭の0が消えないように）
-      sheet.getRange(newRowNum, 7).setNumberFormat('@STRING@');  // G: 電話番号
-      sheet.getRange(newRowNum, 11).setNumberFormat('@STRING@'); // K: 電話番号（2人目）
-      sheet.getRange(newRowNum, 14).setNumberFormat('@STRING@'); // N: 郵便番号（物件）
-      sheet.getRange(newRowNum, 19).setNumberFormat('@STRING@'); // S: 郵便番号（自宅）
+      sheet.getRange(newRowNum, 7).setNumberFormat('@STRING@');  // G(7): 電話番号
+      sheet.getRange(newRowNum, 11).setNumberFormat('@STRING@'); // K(11): 電話番号（2人目）
+      sheet.getRange(newRowNum, 14).setNumberFormat('@STRING@'); // N(14): 郵便番号（物件）
+      sheet.getRange(newRowNum, 20).setNumberFormat('@STRING@'); // T(20): 郵便番号（自宅）
 
       console.log('[CVSheetSystem] ユーザー登録追加:', cvId);
 
@@ -623,60 +625,61 @@ const CVSheetSystem = {
         '',                                                 // Y(25): 建物面積（空欄）
         this.extractFloors(params.Q2_floors, params.Q1_propertyType, params.q1_question), // Z(26): 階数
 
-        // Z-AP: BOT質問回答（Q1〜Q17）- BOT側のパラメータ名に合わせる
-        params.Q1_propertyType || '',            // Z: Q1_物件種別
-        params.Q2_floors || '',                  // AA: Q2_階数
-        params.Q3_buildingAge || '',             // AB: Q3_築年数
-        params.Q4_workHistory || '',             // AC: Q4_工事歴
-        params.Q5_previousWorkTime || '',        // AD: Q5_前回施工時期
-        params.Q6_exteriorMaterial || '',        // AE: Q6_外壁材質
-        params.Q7_roofMaterial || '',            // AF: Q7_屋根材質
-        params.Q8_concernedArea || '',           // AG: Q8_気になる箇所
-        params.Q9_exteriorWork || '',            // AH: Q9_希望工事内容_外壁
-        params.Q10_roofWork || '',               // AI: Q10_希望工事内容_屋根
-        params.Q11_quoteCount || '',             // AJ: Q11_見積もり保有数
-        params.Q12_quoteSource || '',            // AK: Q12_見積もり取得先
-        params.Q13_doorSales || '',              // AL: Q13_訪問業者有無
-        params.Q14_comparison || '',             // AM: Q14_比較意向
-        params.Q15_doorSalesCompany || '',       // AN: Q15_訪問業者名
-        params.Q16_degradation || '',            // AO: Q16_現在の劣化状況
-        params.Q17_selectionCriteria || '',      // AP: Q17_業者選定条件
+        // AA(27)-AQ(43): BOT質問回答（Q1〜Q17）
+        params.Q1_propertyType || '',            // AA(27): Q1_物件種別
+        params.Q2_floors || '',                  // AB(28): Q2_階数
+        params.Q3_buildingAge || '',             // AC(29): Q3_築年数
+        params.Q4_workHistory || '',             // AD(30): Q4_工事歴
+        params.Q5_previousWorkTime || '',        // AE(31): Q5_前回施工時期
+        params.Q6_exteriorMaterial || '',        // AF(32): Q6_外壁材質
+        params.Q7_roofMaterial || '',            // AG(33): Q7_屋根材質
+        params.Q8_concernedArea || '',           // AH(34): Q8_気になる箇所
+        params.Q9_exteriorWork || '',            // AI(35): Q9_希望工事内容_外壁
+        params.Q10_roofWork || '',               // AJ(36): Q10_希望工事内容_屋根
+        params.Q11_quoteCount || '',             // AK(37): Q11_見積もり保有数
+        params.Q12_quoteSource || '',            // AL(38): Q12_見積もり取得先
+        params.Q13_doorSales || '',              // AM(39): Q13_訪問業者有無
+        params.Q14_comparison || '',             // AN(40): Q14_比較意向
+        params.Q15_doorSalesCompany || '',       // AO(41): Q15_訪問業者名
+        params.Q16_degradation || '',            // AP(42): Q16_現在の劣化状況
+        params.Q17_selectionCriteria || '',      // AQ(43): Q17_業者選定条件
 
-        '',                                      // AQ: 現地調査希望日時（CV2で入力）
-        '',                                      // AR: 業者選定履歴（CV2で入力）
-        '',                                      // AS: 案件メモ（CV2で入力）
-        '',                                      // AT: 連絡時間帯（CV2で入力）
-        '',                                      // AU: 見積もり送付先（CV2で入力）
-        params.wordLinkAnswer || '',             // AV: ワードリンク回答
+        '',                                      // AR(44): 現地調査希望日時（CV2で入力）
+        '',                                      // AS(45): 業者選定履歴（CV2で入力）
+        '',                                      // AT(46): 案件メモ（CV2で入力）
+        '',                                      // AU(47): 連絡時間帯（CV2で入力）
+        '',                                      // AV(48): 見積もり送付先（CV2で入力）
+        params.wordLinkAnswer || '',             // AW(49): ワードリンク回答
 
-        '未配信',                                 // AW-BC: 配信・成約管理
-        0,
-        '',
-        'FALSE',
-        '',
-        '',
-        '',
+        '未配信',                                 // AX(50): 配信ステータス
+        0,                                       // AY(51): 配信先加盟店数
+        '',                                      // AZ(52): 配信日時
+        'FALSE',                                 // BA(53): 成約フラグ
+        '',                                      // BB(54): 成約日時
+        '',                                      // BC(55): 成約加盟店ID
+        '',                                      // BD(56): 成約金額
 
-        params.referrer || '',                   // BD: 流入元URL
-        params.keyword || '',                    // BE: 検索キーワード
-        params.utm || '',                        // BF: UTMパラメータ
+        params.referrer || '',                   // BE(57): 流入元URL
+        params.keyword || '',                    // BF(58): 検索キーワード
+        params.utm || '',                        // BG(59): UTMパラメータ
 
-        params.visitCount || 1,                  // BG: 訪問回数
-        timestamp,                               // BH: 最終訪問日時
-        'FALSE',                                 // BI: ブロックフラグ
+        params.visitCount || 1,                  // BH(60): 訪問回数
+        timestamp,                               // BI(61): 最終訪問日時
+        'FALSE',                                 // BJ(62): ブロックフラグ
 
-        '',                                      // BJ: 架電履歴
-        '',                                      // BK: 次回架電日時
-        '',                                      // BL: メモ
+        '',                                      // BK(63): 架電履歴
+        '',                                      // BL(64): 次回架電日時
+        '',                                      // BM(65): メモ
 
-        // BM-BS: 管理用フィールド（新規追加）
-        '新規',                                   // BM: 管理ステータス
-        '',                                      // BN: 加盟店別ステータス（JSON）
-        '',                                      // BO: 初回架電日時
-        timestamp,                               // BP: 最終更新日時
-        '',                                      // BQ: 配信予定日時
-        '',                                      // BR: 担当者名
-        ''                                       // BS: 最終架電日時
+        // BN(66)-BT(73): 管理用フィールド
+        '新規',                                   // BN(66): 管理ステータス
+        '',                                      // BO(67): 加盟店別ステータス（JSON）
+        '',                                      // BP(68): 初回架電日時
+        timestamp,                               // BQ(69): 最終更新日時
+        '',                                      // BR(70): 配信予定日時
+        '',                                      // BS(71): 担当者名
+        '',                                      // BT(72): 最終架電日時
+        ''                                       // BU(73): 配信先業者一覧
       ];
 
       // 最終行に追加
@@ -684,10 +687,10 @@ const CVSheetSystem = {
       const newRowNum = sheet.getLastRow();
 
       // 電話番号と郵便番号を文字列形式に設定（先頭の0が消えないように）
-      sheet.getRange(newRowNum, 7).setNumberFormat('@STRING@');  // G: 電話番号
-      sheet.getRange(newRowNum, 11).setNumberFormat('@STRING@'); // K: 電話番号（2人目）
-      sheet.getRange(newRowNum, 14).setNumberFormat('@STRING@'); // N: 郵便番号（物件）
-      sheet.getRange(newRowNum, 19).setNumberFormat('@STRING@'); // S: 郵便番号（自宅）
+      sheet.getRange(newRowNum, 7).setNumberFormat('@STRING@');  // G(7): 電話番号
+      sheet.getRange(newRowNum, 11).setNumberFormat('@STRING@'); // K(11): 電話番号（2人目）
+      sheet.getRange(newRowNum, 14).setNumberFormat('@STRING@'); // N(14): 郵便番号（物件）
+      sheet.getRange(newRowNum, 20).setNumberFormat('@STRING@'); // T(20): 郵便番号（自宅）
 
       console.log('[CVSheetSystem] CV1保存完了:', cvId);
 
@@ -765,28 +768,29 @@ const CVSheetSystem = {
       }
 
       // 更新データを設定
-      sheet.getRange(targetRow, 3).setValue(params.name || '');                    // C: 氏名
-      sheet.getRange(targetRow, 8).setValue(params.email || '');                   // H: メールアドレス
-      sheet.getRange(targetRow, 14).setValue(params.postalCode ? "'" + params.postalCode : ''); // N: 郵便番号（物件）（'を先頭に付けて文字列化）
-      sheet.getRange(targetRow, 15).setValue(params.propertyPrefecture || '');     // O: 都道府県（物件）
-      sheet.getRange(targetRow, 16).setValue(params.propertyCity || '');           // P: 市区町村（物件）
-      sheet.getRange(targetRow, 17).setValue(params.propertyStreet || '');         // Q: 住所詳細（物件）
+      sheet.getRange(targetRow, 3).setValue(params.name || '');                    // C(3): 氏名
+      sheet.getRange(targetRow, 8).setValue(params.email || '');                   // H(8): メールアドレス
+      sheet.getRange(targetRow, 14).setValue(params.postalCode ? "'" + params.postalCode : ''); // N(14): 郵便番号（物件）
+      sheet.getRange(targetRow, 15).setValue(params.propertyPrefecture || '');     // O(15): 都道府県（物件）
+      sheet.getRange(targetRow, 16).setValue(params.propertyCity || '');           // P(16): 市区町村（物件）
+      sheet.getRange(targetRow, 17).setValue(params.propertyStreet || '');         // Q(17): 住所詳細（物件）
+      sheet.getRange(targetRow, 18).setValue(params.propertyKana || '');           // R(18): 住所フリガナ
 
       // 自宅住所
-      sheet.getRange(targetRow, 18).setValue(params.isDifferentHome ? 'TRUE' : 'FALSE'); // R: 自宅住所フラグ
-      sheet.getRange(targetRow, 19).setValue(params.homeZip ? "'" + params.homeZip : '');  // S: 郵便番号（自宅）（'を先頭に付けて文字列化）
-      sheet.getRange(targetRow, 20).setValue(params.homePrefecture || '');         // T: 都道府県（自宅）
+      sheet.getRange(targetRow, 19).setValue(params.isDifferentHome ? 'TRUE' : 'FALSE'); // S(19): 自宅住所フラグ
+      sheet.getRange(targetRow, 20).setValue(params.homeZip ? "'" + params.homeZip : '');  // T(20): 郵便番号（自宅）
+      sheet.getRange(targetRow, 21).setValue(params.homePrefecture || '');         // U(21): 都道府県（自宅）
 
-      // U: 住所詳細（自宅）- 市区町村と番地を結合
+      // V(22): 住所詳細（自宅）- 市区町村と番地を結合
       const homeFullAddress = [params.homeCity, params.homeStreet].filter(v => v).join('');
-      sheet.getRange(targetRow, 21).setValue(homeFullAddress || '');               // U: 住所詳細（自宅）
+      sheet.getRange(targetRow, 22).setValue(homeFullAddress || '');               // V(22): 住所詳細（自宅）
 
       // CV2詳細情報
-      sheet.getRange(targetRow, 43).setValue(params.surveyDatePreference || '');   // AQ: 現地調査希望日時
-      sheet.getRange(targetRow, 44).setValue(params.selectionHistory || '');       // AR: 業者選定履歴
-      sheet.getRange(targetRow, 45).setValue(params.requests || '');               // AS: 案件メモ
-      sheet.getRange(targetRow, 46).setValue(params.contactTimeSlot || '');        // AT: 連絡時間帯
-      sheet.getRange(targetRow, 47).setValue(params.quoteDestination || '');       // AU: 見積もり送付先
+      sheet.getRange(targetRow, 44).setValue(params.surveyDatePreference || '');   // AR(44): 現地調査希望日時
+      sheet.getRange(targetRow, 45).setValue(params.selectionHistory || '');       // AS(45): 業者選定履歴
+      sheet.getRange(targetRow, 46).setValue(params.requests || '');               // AT(46): 案件メモ
+      sheet.getRange(targetRow, 47).setValue(params.contactTimeSlot || '');        // AU(47): 連絡時間帯
+      sheet.getRange(targetRow, 48).setValue(params.quoteDestination || '');       // AV(48): 見積もり送付先
 
       console.log('[CVSheetSystem] CV2更新完了:', cvId);
 
