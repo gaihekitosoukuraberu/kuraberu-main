@@ -22,8 +22,8 @@ const ENV = {
   // URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V1755: Fix rejected status string mismatch (却下済み → 却下)
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbwugB7qipVNg3io6si4gHK0aHzJij84JPrdqiNjwnvKia1pRavyIUczywrhZnMYRWE8DA/exec',
+  // プライマリGAS URL（メイン運用）- V1757: Add handle function to MerchantContractReport
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbzAoTXkkw6vltB2uNAsEsFUQ_sToWKOuraH7Zr3d9yZeaV_ncrEWbIjUtVJ7DqQg93FQw/exec',
 
   // フォールバックGAS URL（バックアップ）- @1711
   FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzUu1nHQ6J1vHD-DuuZ4eClkPj5K1YfHnMB3nr9qIY50bvJn75jTVYkCQSerkfk5lNArg/exec',
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1755 - 2025-11-15 - 却下ステータス文字列ミスマッチ修正）
-  CACHE_BUSTER: '1763197200000'
+  // キャッシュバスター（V1757 - 2025-11-15 - テストデータ管理API完成）
+  CACHE_BUSTER: '1763202228000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

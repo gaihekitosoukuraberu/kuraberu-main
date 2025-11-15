@@ -387,7 +387,10 @@ const BotScenarios = {
                 // 住所フリガナを結合（都道府県カナ + 市区町村カナ + 町域カナ）
                 const addressKana = result.kana1 + result.kana2 + result.kana3;
 
-                // BotConfigに保存
+                // windowプロパティに保存（propertyPrefecture/propertyCityと同じパターン）
+                window.addressKana = addressKana;
+
+                // BotConfigにも保存
                 BotConfig.state.addressKana = addressKana;
 
                 // sessionStorageにも保存（データ永続化）

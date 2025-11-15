@@ -377,5 +377,26 @@ var MerchantContractReport = {
         error: error.toString()
       };
     }
+  },
+
+  /**
+   * アクションルーター
+   * @param {Object} params - { action: アクション名, ...その他のパラメータ }
+   * @return {Object} - 実行結果
+   */
+  handle: function(params) {
+    const action = params.action;
+
+    switch(action) {
+      case 'getDeliveredCases':
+        return this.getDeliveredCases(params);
+      case 'submitContractReport':
+        return this.submitContractReport(params);
+      default:
+        return {
+          success: false,
+          error: 'Unknown action: ' + action
+        };
+    }
   }
 };

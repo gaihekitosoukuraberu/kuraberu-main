@@ -237,6 +237,20 @@ const SystemRouter = {
       description: '期限延長申請却下',
       prefix: false,
       actions: ['rejectExtensionRequest']
+    },
+
+    // テストデータ管理（開発用）
+    'recreateTestData': {
+      system: 'TestDataManager',
+      description: 'テストデータ再作成',
+      prefix: false,
+      actions: ['recreateTestData']
+    },
+    'cleanupAllTestData': {
+      system: 'TestDataManager',
+      description: 'テストデータ完全削除',
+      prefix: false,
+      actions: ['cleanupAllTestData']
     }
   },
 

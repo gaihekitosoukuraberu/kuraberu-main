@@ -120,6 +120,11 @@ const BotCore = {
         // 状態設定
         BotConfig.setZipEntry(zipcode);
 
+        // V1752-FEAT: ZipCloud APIで住所フリガナを取得
+        if (window.BotScenarios && typeof BotScenarios.fetchAddressKana === 'function') {
+            BotScenarios.fetchAddressKana(zipcode);
+        }
+
         // 地域名の更新
         if (typeof window.getAreaFromPostalCode === 'function') {
             const areaInfo = window.getAreaFromPostalCode(zipcode);
