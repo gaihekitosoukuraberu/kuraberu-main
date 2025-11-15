@@ -1543,8 +1543,8 @@
                         </label>
                         <div class="space-y-3">
                             <div class="flex gap-1.5 sm:gap-2">
-                                <input type="text" id="propertyZip" class="w-24 sm:w-32 border-2 border-gray-300 rounded-xl px-2 sm:px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all bg-gray-50 text-sm sm:text-base" placeholder="000-0000" readonly>
-                                <input type="text" id="propertyAddress" class="flex-1 border-2 border-gray-300 rounded-xl px-2 sm:px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all bg-gray-50 text-sm sm:text-base" placeholder="市区町村+町名" readonly>
+                                <input type="text" id="propertyZip" class="w-24 sm:w-32 border-2 border-gray-300 rounded-xl px-2 sm:px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base" placeholder="000-0000">
+                                <input type="text" id="propertyAddress" class="flex-1 border-2 border-gray-300 rounded-xl px-2 sm:px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base" placeholder="市区町村+町名">
                             </div>
                             <input type="text" id="propertyStreet" class="w-full border-2 border-gray-300 rounded-xl px-2 sm:px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base" placeholder="番地・建物名（例：1-2-3 ○○マンション101号室）">
                         </div>
@@ -2209,57 +2209,7 @@
         // 見積もりフォームを開始（※2160行目に詳細版があるため、ここでは定義しない）
 
         // 見積もりフォームを閉じる
-        function closeEstimateForm() {
-            const modal = document.getElementById('estimateFormModal');
-            modal.classList.add('hidden');
-
-            // モーダルのスタイルをリセット
-            modal.style.position = '';
-            modal.style.top = '';
-            modal.style.left = '';
-            modal.style.right = '';
-            modal.style.bottom = '';
-            modal.style.height = '';
-
-            // V1713-FIX: 背景スクロールを復元（スクロール位置も復元）
-            // bodyの固定を解除
-            document.body.style.position = '';
-            document.body.style.top = '';
-            document.body.style.width = '';
-            document.body.style.overflow = '';
-            document.body.style.touchAction = '';
-
-            // スクロール位置を復元
-            if (window.modalScrollPosition !== undefined) {
-                window.scrollTo(0, window.modalScrollPosition);
-                delete window.modalScrollPosition;
-            }
-
-            // gaiheki-bot-containerも復元
-            const botContainer = document.getElementById('gaiheki-bot-container');
-            if (botContainer) {
-                botContainer.style.position = '';
-                botContainer.style.top = '';
-                botContainer.style.left = '';
-                botContainer.style.right = '';
-                botContainer.style.bottom = '';
-                botContainer.style.overflow = '';
-            }
-
-            console.log('✅ 背景スクロール復元（モーダル閉じる）');
-
-            // V1717-UX: ステップを1に戻す
-            document.getElementById('step1').classList.remove('hidden');
-            document.getElementById('step2').classList.add('hidden');
-
-            // V1713-UX: キープリストがあれば無料見積もりボタンを再表示
-            const keeps = keepManager.getList();
-            const estimateBtnContainer = document.getElementById('estimateBtnContainer');
-            if (estimateBtnContainer && keeps.length > 0) {
-                estimateBtnContainer.style.display = 'block';
-                console.log('✅ 無料見積もりボタン再表示（フォーム閉じる）');
-            }
-        }
+        // V1753-FIX7: closeEstimateForm()は3200行目に統合（重複削除）
 
         // 郵便番号から住所を取得（V1753-FIX2: ZipCloud APIで町名も取得）
         async function fetchAddress(postalCode, type) {
@@ -3211,13 +3161,43 @@
                 modal.style.bottom = '';
                 modal.style.height = '';
 
-                // 背景スクロールを復元
+                // V1753-FIX7: 背景スクロールを復元（スクロール位置も復元）
+                document.body.style.position = '';
+                document.body.style.top = '';
+                document.body.style.width = '';
                 document.body.style.overflow = '';
                 document.body.style.touchAction = '';
+
+                // スクロール位置を復元
+                if (window.modalScrollPosition !== undefined) {
+                    window.scrollTo(0, window.modalScrollPosition);
+                    delete window.modalScrollPosition;
+                }
+
+                // gaiheki-bot-containerも復元
+                const botContainer = document.getElementById('gaiheki-bot-container');
+                if (botContainer) {
+                    botContainer.style.position = '';
+                    botContainer.style.top = '';
+                    botContainer.style.left = '';
+                    botContainer.style.right = '';
+                    botContainer.style.bottom = '';
+                    botContainer.style.overflow = '';
+                }
+
+                console.log('✅ 背景スクロール復元（モーダル閉じる）');
 
                 // ステップ1に戻す
                 document.getElementById('step1').classList.remove('hidden');
                 document.getElementById('step2').classList.add('hidden');
+
+                // V1753-FIX7: キープリストがあれば無料見積もりボタンを再表示
+                const keeps = keepManager.getList();
+                const estimateBtnContainer = document.getElementById('estimateBtnContainer');
+                if (estimateBtnContainer && keeps.length > 0) {
+                    estimateBtnContainer.style.display = 'block';
+                    console.log('✅ 無料見積もりボタン再表示（フォーム閉じる）');
+                }
             }
         }
 
