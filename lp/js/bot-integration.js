@@ -39,6 +39,15 @@ async function initBotForZipEntry() {
         return;
     }
 
+    // V1750-FIX: 前のセッションのCV IDをクリア（新しいユーザー対応）
+    try {
+        localStorage.removeItem('cv_id');
+        localStorage.removeItem('userPhone');
+        console.log('🔄 前セッションのCV情報クリア（郵便番号入力）');
+    } catch (e) {
+        console.warn('⚠️ CV情報クリア失敗:', e);
+    }
+
     BotConfig.state.botActive = true;
 
     // 郵便番号入力フォームを非表示（別ページ風に）

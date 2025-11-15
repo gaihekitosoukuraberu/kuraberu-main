@@ -250,6 +250,15 @@ const BotCore = {
             }
         }
 
+        // V1750-FIX: 前のセッションのCV IDをクリア（新しいユーザー対応）
+        try {
+            localStorage.removeItem('cv_id');
+            localStorage.removeItem('userPhone');
+            console.log('🔄 前セッションのCV情報クリア（BOT開始）');
+        } catch (e) {
+            console.warn('⚠️ CV情報クリア失敗:', e);
+        }
+
         // V1747-UX: 質問カウンターリセット
         if (window.BotQuestions && typeof window.BotQuestions.resetQuestionCount === 'function') {
             window.BotQuestions.resetQuestionCount();

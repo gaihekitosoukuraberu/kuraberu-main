@@ -213,9 +213,13 @@ const CVAPI = {
             if (result.success) {
                 console.log('✅ CV2送信成功');
 
-                // localStorage クリア
+                // sessionStorageのBOT回答データをクリア（BOTセッション終了）
                 BotConfig.clearLocalStorage();
-                localStorage.removeItem('cv_id');
+
+                // V1750-FIX: CV2送信が複数回発生する可能性があるため、cv_idは削除しない
+                // （見積もりフォーム → クイック予約の2段階送信に対応）
+                // 次回のBOTセッション開始時またはページ離脱時にクリアする
+                // localStorage.removeItem('cv_id');
 
                 return {
                     success: true

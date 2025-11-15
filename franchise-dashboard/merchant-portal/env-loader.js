@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1750-CONTRACT-REPORT-2025-11-15T20:00:00
- * @last-update 2025-11-15T20:00:00
+ * @file-version V1751-SCOPE-FIX-2025-11-15T21:00:00
+ * @last-update 2025-11-15T21:00:00
  */
 
 const ENV = {
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1750 - 2025-11-15 - 成約報告システム完成：API接続実装）
-  CACHE_BUSTER: '1763233200000'
+  // キャッシュバスター（V1751 - 2025-11-15 - 関数スコープ修正：全システム動作可能に）
+  CACHE_BUSTER: '1763236800000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
