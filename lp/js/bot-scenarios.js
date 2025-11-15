@@ -270,13 +270,26 @@ const BotScenarios = {
             if (prefectureMatch) {
                 window.propertyPrefecture = prefectureMatch[1];
                 window.propertyCity = prefectureMatch[2];
+
+                // V1753-FIX: 町名を市区町村に結合（P列 = 市区町村 + 町名）
+                if (window.propertyTown) {
+                    window.propertyCity = window.propertyCity + window.propertyTown;
+                }
+
                 console.log('✅ 住所情報を保存（シナリオ）:', {
                     prefecture: window.propertyPrefecture,
-                    city: window.propertyCity
+                    city: window.propertyCity,
+                    town: window.propertyTown || ''
                 });
             } else {
                 window.propertyPrefecture = '';
                 window.propertyCity = areaInfo;
+
+                // V1753-FIX: 町名を市区町村に結合
+                if (window.propertyTown) {
+                    window.propertyCity = window.propertyCity + window.propertyTown;
+                }
+
                 console.log('⚠️ 都道府県パターンマッチ失敗（シナリオ）、全体を市区町村として保存:', areaInfo);
             }
         }
@@ -387,16 +400,22 @@ const BotScenarios = {
                 // 住所フリガナを結合（都道府県カナ + 市区町村カナ + 町域カナ）
                 const addressKana = result.kana1 + result.kana2 + result.kana3;
 
+                // V1753-FIX: 町名も保存（P列に市区町村+町名を入れるため）
+                const townName = result.address3 || '';
+
                 // windowプロパティに保存（propertyPrefecture/propertyCityと同じパターン）
                 window.addressKana = addressKana;
+                window.propertyTown = townName;
 
                 // BotConfigにも保存
                 BotConfig.state.addressKana = addressKana;
+                BotConfig.state.propertyTown = townName;
 
                 // sessionStorageにも保存（データ永続化）
                 try {
                     sessionStorage.setItem('bot_addressKana', addressKana);
-                    console.log('✅ 住所フリガナをsessionStorageに保存:', addressKana);
+                    sessionStorage.setItem('bot_propertyTown', townName);
+                    console.log('✅ 住所フリガナ・町名をsessionStorageに保存:', { kana: addressKana, town: townName });
                 } catch (e) {
                     console.warn('⚠️ sessionStorage保存失敗:', e);
                 }

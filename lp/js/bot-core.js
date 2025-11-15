@@ -95,7 +95,7 @@ const BotCore = {
     // ============================================
     // 郵便番号エントリーでBOT起動
     // ============================================
-    startFromZipEntry(zipcode) {
+    async startFromZipEntry(zipcode) {
         console.log('📍 郵便番号エントリー:', zipcode);
 
         // V1735-FIX: 進捗度リセット（新しいセッション開始）
@@ -120,9 +120,9 @@ const BotCore = {
         // 状態設定
         BotConfig.setZipEntry(zipcode);
 
-        // V1752-FEAT: ZipCloud APIで住所フリガナを取得
+        // V1753-FIX: ZipCloud APIで住所フリガナ・町名を取得（同期的に待機）
         if (window.BotScenarios && typeof BotScenarios.fetchAddressKana === 'function') {
-            BotScenarios.fetchAddressKana(zipcode);
+            await BotScenarios.fetchAddressKana(zipcode);
         }
 
         // 地域名の更新
@@ -135,14 +135,27 @@ const BotCore = {
             if (prefectureMatch) {
                 window.propertyPrefecture = prefectureMatch[1]; // "東京都"
                 window.propertyCity = prefectureMatch[2]; // "千代田区"
+
+                // V1753-FIX: 町名を市区町村に結合（P列 = 市区町村 + 町名）
+                if (window.propertyTown) {
+                    window.propertyCity = window.propertyCity + window.propertyTown;
+                }
+
                 console.log('✅ 住所情報を保存:', {
                     prefecture: window.propertyPrefecture,
-                    city: window.propertyCity
+                    city: window.propertyCity,
+                    town: window.propertyTown || ''
                 });
             } else {
                 // マッチしない場合は全体を市区町村として扱う
                 window.propertyPrefecture = '';
                 window.propertyCity = areaInfo;
+
+                // V1753-FIX: 町名を市区町村に結合
+                if (window.propertyTown) {
+                    window.propertyCity = window.propertyCity + window.propertyTown;
+                }
+
                 console.log('⚠️ 都道府県パターンマッチ失敗、全体を市区町村として保存:', areaInfo);
             }
 

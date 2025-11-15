@@ -300,9 +300,39 @@ function showPostalFormInBot() {
             console.warn('⚠️ sessionStorage保存失敗:', e);
         }
 
-        // V1752-FEAT: ZipCloud APIで住所フリガナを取得（同期的に待機）
+        // V1753-FIX: ZipCloud APIで住所フリガナ・町名を取得（同期的に待機）
         if (window.BotScenarios && typeof window.BotScenarios.fetchAddressKana === 'function') {
             await window.BotScenarios.fetchAddressKana(postal.replace('-', ''));
+        }
+
+        // V1753-FIX: 地域名を取得・設定（propertyPrefecture/propertyCity）
+        if (typeof window.getAreaFromPostalCode === 'function') {
+            const areaInfo = window.getAreaFromPostalCode(postal.replace('-', ''));
+            const prefectureMatch = areaInfo.match(/(.*?[都道府県])(.*)/);
+
+            if (prefectureMatch) {
+                window.propertyPrefecture = prefectureMatch[1];
+                window.propertyCity = prefectureMatch[2];
+
+                // 町名を市区町村に結合（P列 = 市区町村 + 町名）
+                if (window.propertyTown) {
+                    window.propertyCity = window.propertyCity + window.propertyTown;
+                }
+
+                console.log('✅ 住所情報を保存（統合）:', {
+                    prefecture: window.propertyPrefecture,
+                    city: window.propertyCity,
+                    town: window.propertyTown || ''
+                });
+            } else {
+                window.propertyPrefecture = '';
+                window.propertyCity = areaInfo;
+
+                // 町名を市区町村に結合
+                if (window.propertyTown) {
+                    window.propertyCity = window.propertyCity + window.propertyTown;
+                }
+            }
         }
 
         // ユーザーメッセージとして表示

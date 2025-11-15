@@ -153,20 +153,20 @@ const CVAPI = {
                 name: formData.name || '',
                 email: formData.email || '',
 
-                // 物件住所
+                // 物件住所（V1753-FIX2: propertyCity = 市区町村+町名）
                 propertyPrefecture: window.propertyPrefecture || '',
                 propertyCity: window.propertyCity || '',
-                propertyStreet: formData.propertyAddress?.street || '',
+                propertyStreet: formData.propertyStreet || '',
 
-                // V1752-FEAT: 住所フリガナ（ZipCloud APIから取得、window.addressKanaを優先）
+                // V1753-FIX: 住所フリガナ（ZipCloud APIから取得、window.addressKanaを優先）
                 addressKana: window.addressKana || BotConfig.state.addressKana || sessionStorage.getItem('bot_addressKana') || '',
 
-                // 自宅住所（物件と異なる場合）
+                // 自宅住所（物件と異なる場合）（V1753-FIX2: homeCity = 市区町村+町名）
                 isDifferentHome: formData.isDifferentHome || false,
-                homeZip: formData.homeAddress?.postalCode || '',
-                homePrefecture: window.homePrefecture || '',
-                homeCity: window.homeCity || '',
-                homeStreet: formData.homeAddress?.street || '',
+                homeZip: formData.homeZip || '',
+                homePrefecture: formData.homePrefecture || '',
+                homeCity: formData.homeCity || '',
+                homeStreet: formData.homeStreet || '',
 
                 // ステップ2: 詳細情報
                 surveyDatePreference: formData.surveyDates?.join(', ') || '',
