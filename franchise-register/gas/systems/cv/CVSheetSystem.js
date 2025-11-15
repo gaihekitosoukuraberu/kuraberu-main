@@ -591,7 +591,7 @@ const CVSheetSystem = {
       const cvId = 'CV-' + suffix + String(lastRow).padStart(6, '0');
       const timestamp = new Date();
 
-      // データ行構築（73列）
+      // データ行構築（74列 - V1754: ハートビート追加）
       const row = [
         cvId,                                    // A(1): CV ID
         timestamp,                               // B(2): 登録日時
@@ -672,7 +672,7 @@ const CVSheetSystem = {
         '',                                      // BL(64): 次回架電日時
         '',                                      // BM(65): メモ
 
-        // BN(66)-BT(73): 管理用フィールド
+        // BN(66)-BU(73): 管理用フィールド
         '新規',                                   // BN(66): 管理ステータス
         '',                                      // BO(67): 加盟店別ステータス（JSON）
         '',                                      // BP(68): 初回架電日時
@@ -680,7 +680,8 @@ const CVSheetSystem = {
         '',                                      // BR(70): 配信予定日時
         '',                                      // BS(71): 担当者名
         '',                                      // BT(72): 最終架電日時
-        ''                                       // BU(73): 配信先業者一覧
+        '',                                      // BU(73): 配信先業者一覧
+        timestamp                                // BV(74): 最終ハートビート時刻（V1754）
       ];
 
       // 最終行に追加
