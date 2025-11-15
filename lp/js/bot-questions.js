@@ -97,6 +97,12 @@ const BotQuestions = {
             return;
         }
 
+        // V1752-FEAT: テキスト入力の質問の場合（Q009F: 訪問業者名）
+        if (question.type === 'text') {
+            this.handleTextInputQuestion(question);
+            return;
+        }
+
         // AIメッセージ表示
         BotUI.showAIMessage(question.text);
 
@@ -157,6 +163,31 @@ const BotQuestions = {
 
         if (!nextQuestionId) {
             console.error('❌ 次の質問IDが見つかりません');
+            return;
+        }
+
+        // V1752-FEAT: Q009Cの回答後：「訪問営業」が含まれている場合のみQ009Dへ
+        if (currentQuestionId === 'Q009C') {
+            console.log('📋 Q009C回答後、訪問営業選択チェック');
+
+            // Q009Cは複数選択なので、choiceが「訪問営業」を含むかチェック
+            const hasVisitingSales = choice && (choice === '訪問営業' || choice.includes('訪問営業'));
+
+            // 築10年未満の場合は既にQ010-Q012で訪問業者について聞いているかチェック
+            const alreadyAskedAboutVisitor = BotConfig.state.userAnswers &&
+                (BotConfig.state.userAnswers.Q010 || BotConfig.state.userAnswers.Q011 || BotConfig.state.userAnswers.Q012);
+
+            if (hasVisitingSales && !alreadyAskedAboutVisitor) {
+                console.log('✅ 訪問営業選択 → Q009Dへ');
+                setTimeout(() => {
+                    this.showQuestion('Q009D');
+                }, 1000);
+            } else {
+                console.log('✅ 訪問営業なし または 既に訪問質問済み → Q004へ');
+                setTimeout(() => {
+                    this.showQuestion('Q004');
+                }, 1000);
+            }
             return;
         }
 
@@ -532,6 +563,77 @@ const BotQuestions = {
                 this.handleAnswer(question, choice, index);
             });
         }, 100);
+    },
+
+    // ============================================
+    // V1752-FEAT: テキスト入力質問処理（Q009F: 訪問業者名）
+    // ============================================
+    handleTextInputQuestion(question) {
+        console.log('✏️ テキスト入力質問表示:', question.text);
+
+        // AIメッセージ表示
+        BotUI.showAIMessage(question.text);
+
+        // テキスト入力フォーム表示
+        setTimeout(() => {
+            const formHtml = `
+                <div class="form-title">業者名を入力してください</div>
+                <div class="phone-input-wrapper">
+                    <input type="text" id="textInput" class="phone-input"
+                           placeholder="例：〇〇建設株式会社" maxlength="100">
+                </div>
+                <button id="textSubmitBtn" class="phone-submit-btn">次へ</button>
+            `;
+
+            const formContainer = BotUI.showCustomForm({
+                html: formHtml,
+                submitSelector: '#textSubmitBtn',
+                onSubmit: () => this.handleTextInputSubmit(question, formContainer)
+            });
+
+            // Enterキー対応
+            const input = formContainer.querySelector('#textInput');
+            if (input) {
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        formContainer.querySelector('#textSubmitBtn').click();
+                    }
+                });
+            }
+        }, 500);
+    },
+
+    // ============================================
+    // V1752-FEAT: テキスト入力送信処理
+    // ============================================
+    handleTextInputSubmit(question, formContainer) {
+        const input = formContainer.querySelector('#textInput');
+        const text = input.value.trim();
+
+        if (!text) {
+            alert('業者名を入力してください');
+            return;
+        }
+
+        // ユーザーメッセージ表示
+        BotUI.showUserMessage(text);
+
+        // 回答を保存
+        BotConfig.saveAnswer(question.id || BotConfig.state.currentQuestionId, text, 0);
+
+        // フォームを非表示
+        formContainer.style.display = 'none';
+
+        // 次の質問へ
+        const nextQuestionId = question.branches[0];
+
+        setTimeout(() => {
+            if (nextQuestionId === 'PHONE') {
+                BotCore.connectToPhoneSystem();
+            } else {
+                this.showQuestion(nextQuestionId);
+            }
+        }, 1000);
     }
 };
 

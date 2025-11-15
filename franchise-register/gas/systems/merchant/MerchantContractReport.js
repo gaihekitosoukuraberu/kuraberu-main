@@ -8,13 +8,15 @@
  * - 成約報告登録
  *
  * 【依存関係】
- * - ユーザー登録シート（読み取り・書き込み）
+ * - 配信管理シート（読み取り） ← 主データソース
+ * - ユーザー登録シート（読み取り・書き込み） ← 顧客情報JOIN用 & 成約情報更新
  *
  * 【影響範囲】
  * - フロント: franchise-dashboard（成約報告メニュー）
  *
  * 【変更時の注意】
- * ⚠️  ユーザー登録シートのカラム構成に依存
+ * ⚠️  配信管理シートの「配信ステータス」は「配信済み」（末尾に「み」）
+ * ⚠️  加盟店IDは直接比較（includes不要）
  * ⚠️  管理ステータスの遷移ロジックに注意
  */
 
@@ -37,7 +39,15 @@ const MerchantContractReport = {
       console.log('[MerchantContractReport] getDeliveredCases - 加盟店ID:', merchantId);
 
       const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const deliverySheet = ss.getSheetByName('配信管理');
       const userSheet = ss.getSheetByName('ユーザー登録');
+
+      if (!deliverySheet) {
+        return {
+          success: false,
+          error: '配信管理シートが見つかりません'
+        };
+      }
 
       if (!userSheet) {
         return {
@@ -46,72 +56,101 @@ const MerchantContractReport = {
         };
       }
 
-      // ヘッダーとデータ取得
-      const data = userSheet.getDataRange().getValues();
-      const headers = data[0];
-      const rows = data.slice(1);
+      // ユーザー登録シートから顧客情報マップを作成（CV ID → 顧客情報）
+      const userData = userSheet.getDataRange().getValues();
+      const userHeaders = userData[0];
+      const userRows = userData.slice(1);
 
-      // 必要なカラムのインデックス取得
-      const cvIdIdx = headers.indexOf('CV ID');
-      const deliveredMerchantsIdx = headers.indexOf('配信先業者一覧');
-      const managementStatusIdx = headers.indexOf('管理ステータス');
-      const nameIdx = headers.indexOf('氏名');
-      const nameKanaIdx = headers.indexOf('フリガナ');
-      const telIdx = headers.indexOf('電話番号');
-      const prefectureIdx = headers.indexOf('都道府県（物件）');
-      const cityIdx = headers.indexOf('市区町村（物件）');
-      const addressDetailIdx = headers.indexOf('住所詳細（物件）');
-      const addressKanaIdx = headers.indexOf('住所フリガナ');
-      const workCategoryIdx = headers.indexOf('工事種別');
-      const deliveredAtIdx = headers.indexOf('配信日時');
-      const contractMerchantIdIdx = headers.indexOf('成約加盟店ID');
+      const userCvIdIdx = userHeaders.indexOf('CV ID');
+      const userNameIdx = userHeaders.indexOf('氏名');
+      const userNameKanaIdx = userHeaders.indexOf('フリガナ');
+      const userTelIdx = userHeaders.indexOf('電話番号');
+      const userPrefectureIdx = userHeaders.indexOf('都道府県（物件）');
+      const userCityIdx = userHeaders.indexOf('市区町村（物件）');
+      const userAddressDetailIdx = userHeaders.indexOf('住所詳細（物件）');
+      const userAddressKanaIdx = userHeaders.indexOf('住所フリガナ');
+      const userWorkCategoryIdx = userHeaders.indexOf('工事種別');
+      const userContractMerchantIdIdx = userHeaders.indexOf('成約加盟店ID');
+
+      // CV ID → ユーザー情報マップ
+      const userMap = {};
+      userRows.forEach(row => {
+        const cvId = row[userCvIdIdx];
+        if (cvId) {
+          const prefecture = userPrefectureIdx >= 0 ? (row[userPrefectureIdx] || '') : '';
+          const city = userCityIdx >= 0 ? (row[userCityIdx] || '') : '';
+          const addressDetail = userAddressDetailIdx >= 0 ? (row[userAddressDetailIdx] || '') : '';
+          const fullAddress = prefecture + city + addressDetail;
+
+          userMap[cvId] = {
+            customerName: row[userNameIdx] || '',
+            customerNameKana: userNameKanaIdx >= 0 ? (row[userNameKanaIdx] || '') : '',
+            tel: row[userTelIdx] || '',
+            address: fullAddress,
+            addressKana: userAddressKanaIdx >= 0 ? (row[userAddressKanaIdx] || '') : '',
+            workCategory: row[userWorkCategoryIdx] || '',
+            contractMerchantId: row[userContractMerchantIdIdx] || ''
+          };
+        }
+      });
+
+      // 配信管理シートから配信済み案件を取得
+      const deliveryData = deliverySheet.getDataRange().getValues();
+      const deliveryHeaders = deliveryData[0];
+      const deliveryRows = deliveryData.slice(1);
+
+      const delCvIdIdx = deliveryHeaders.indexOf('CV ID');
+      const delMerchantIdIdx = deliveryHeaders.indexOf('加盟店ID');
+      const delDeliveredAtIdx = deliveryHeaders.indexOf('配信日時');
+      const delStatusIdx = deliveryHeaders.indexOf('配信ステータス');
+      const delDetailStatusIdx = deliveryHeaders.indexOf('詳細ステータス');
 
       // 配信済み案件を抽出（この加盟店に配信されていて、まだこの加盟店が成約報告していないもの）
       const deliveredCases = [];
 
-      for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
-        const cvId = row[cvIdIdx];
-        const deliveredMerchants = row[deliveredMerchantsIdx];
-        const managementStatus = row[managementStatusIdx];
-        const contractMerchantId = row[contractMerchantIdIdx];
+      for (let i = 0; i < deliveryRows.length; i++) {
+        const row = deliveryRows[i];
+        const cvId = row[delCvIdIdx];
+        const rowMerchantId = row[delMerchantIdIdx];
+        const deliveredAt = row[delDeliveredAtIdx];
+        const deliveryStatus = row[delStatusIdx];
+        const detailStatus = row[delDetailStatusIdx];
 
         // 空行スキップ
         if (!cvId) continue;
 
-        // この加盟店に配信されているか確認
-        const isDelivered = deliveredMerchants &&
-                           (deliveredMerchants.toString().includes(merchantId) ||
-                            deliveredMerchants.toString().includes(String(merchantId)));
-
-        if (!isDelivered) continue;
-
-        // 管理ステータスが「配信済」「対応中」「見積提出済」「商談中」のいずれか
-        const validStatuses = ['配信済', '対応中', '見積提出済', '商談中'];
-        if (!validStatuses.includes(managementStatus)) continue;
-
-        // すでにこの加盟店が成約報告済みの場合はスキップ
-        if (contractMerchantId === merchantId || contractMerchantId === String(merchantId)) {
+        // この加盟店に配信されているか確認（完全一致）
+        if (rowMerchantId !== merchantId && rowMerchantId !== String(merchantId)) {
           continue;
         }
 
-        // 住所を結合
-        const prefecture = prefectureIdx >= 0 ? (row[prefectureIdx] || '') : '';
-        const city = cityIdx >= 0 ? (row[cityIdx] || '') : '';
-        const addressDetail = addressDetailIdx >= 0 ? (row[addressDetailIdx] || '') : '';
-        const fullAddress = prefecture + city + addressDetail;
+        // 配信ステータスが「配信済み」（末尾に「み」）
+        if (deliveryStatus !== '配信済み') {
+          continue;
+        }
+
+        // ユーザー情報を取得
+        const userInfo = userMap[cvId];
+        if (!userInfo) {
+          continue; // ユーザー登録シートにない案件はスキップ
+        }
+
+        // すでにこの加盟店が成約報告済みの場合はスキップ
+        if (userInfo.contractMerchantId === merchantId || userInfo.contractMerchantId === String(merchantId)) {
+          continue;
+        }
 
         // 案件情報を追加
         deliveredCases.push({
           cvId: cvId,
-          customerName: row[nameIdx] || '',
-          customerNameKana: nameKanaIdx >= 0 ? (row[nameKanaIdx] || '') : '',
-          tel: row[telIdx] || '',
-          address: fullAddress,
-          addressKana: addressKanaIdx >= 0 ? (row[addressKanaIdx] || '') : '',
-          workCategory: row[workCategoryIdx] || '',
-          deliveredAt: row[deliveredAtIdx] || '',
-          managementStatus: managementStatus
+          customerName: userInfo.customerName,
+          customerNameKana: userInfo.customerNameKana,
+          tel: userInfo.tel,
+          address: userInfo.address,
+          addressKana: userInfo.addressKana,
+          workCategory: userInfo.workCategory,
+          deliveredAt: deliveredAt || '',
+          managementStatus: detailStatus || '配信済み'
         });
       }
 

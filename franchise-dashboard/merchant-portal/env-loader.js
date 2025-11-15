@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1751-SCOPE-FIX-2025-11-15T21:00:00
- * @last-update 2025-11-15T21:00:00
+ * @file-version V1752-DELIVERY-SHEET-2025-11-15T22:00:00
+ * @last-update 2025-11-15T22:00:00
  */
 
 const ENV = {
@@ -22,8 +22,8 @@ const ENV = {
   // URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V1751: 成約報告システム + 関数スコープ修正
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbzvuuAwy986G90bXVQhcjjoGYIvw6hRkOFryVIxDMvqI1-Y6sdnBh3PWCQRz1S71z5AUg/exec',
+  // プライマリGAS URL（メイン運用）- V1752: 配信管理シート対応
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbytU7ULNrVP3we5Zi0Yh7OZ_eElxz1vK0Xfyr6YEmWfrNV0HK654xfIUVWol4Zc2YVJow/exec',
 
   // フォールバックGAS URL（バックアップ）- @1711
   FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzUu1nHQ6J1vHD-DuuZ4eClkPj5K1YfHnMB3nr9qIY50bvJn75jTVYkCQSerkfk5lNArg/exec',
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1751 - 2025-11-15 - 関数スコープ修正：全システム動作可能に）
-  CACHE_BUSTER: '1763236800000'
+  // キャッシュバスター（V1752 - 2025-11-15 - 配信管理シート対応：全システム修正）
+  CACHE_BUSTER: '1763237400000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

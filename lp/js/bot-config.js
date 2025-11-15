@@ -359,18 +359,24 @@ const BotConfig = {
             mapped.Q12_quoteSource = answers.Q014B.choice || '';
         }
 
-        // Q13_訪問業者有無（AM列）: Q010
-        if (answers.Q010) {
+        // Q13_訪問業者有無（AM列）: Q009D or Q010
+        if (answers.Q009D) {
+            mapped.Q13_doorSales = answers.Q009D.choice || '';
+        } else if (answers.Q010) {
             mapped.Q13_doorSales = answers.Q010.choice || '';
         }
 
-        // Q14_比較意向（AN列）: Q011
-        if (answers.Q011) {
+        // Q14_比較意向（AN列）: Q009E or Q011
+        if (answers.Q009E) {
+            mapped.Q14_comparison = answers.Q009E.choice || '';
+        } else if (answers.Q011) {
             mapped.Q14_comparison = answers.Q011.choice || '';
         }
 
-        // Q15_訪問業者名（AO列）: Q012
-        if (answers.Q012) {
+        // Q15_訪問業者名（AO列）: Q009F or Q012
+        if (answers.Q009F) {
+            mapped.Q15_doorSalesCompany = answers.Q009F.choice || '';
+        } else if (answers.Q012) {
             mapped.Q15_doorSalesCompany = answers.Q012.choice || '';
         }
 

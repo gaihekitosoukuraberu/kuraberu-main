@@ -15,13 +15,14 @@
  * - アーカイブ日時も記録
  *
  * 【依存関係】
- * - ユーザー登録シート（読み書き）
+ * - 配信管理シート（読み取り） ← 配信確認用
+ * - ユーザー登録シート（読み書き） ← アーカイブフラグ管理
  *
  * 【影響範囲】
  * - フロント: franchise-dashboard（追客終了BOXメニュー）
  *
  * 【変更時の注意】
- * ⚠️  ユーザー登録シートのカラム構成に依存
+ * ⚠️  配信管理シートで配信確認してからアーカイブ
  * ⚠️  削除ではなくアーカイブ（非破壊）
  */
 
@@ -46,7 +47,15 @@ var MerchantCaseArchive = {
       console.log('[MerchantCaseArchive] archiveCase - 加盟店ID:', merchantId, 'CV ID:', cvId);
 
       const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const deliverySheet = ss.getSheetByName('配信管理');
       const userSheet = ss.getSheetByName('ユーザー登録');
+
+      if (!deliverySheet) {
+        return {
+          success: false,
+          error: '配信管理シートが見つかりません'
+        };
+      }
 
       if (!userSheet) {
         return {
@@ -55,45 +64,68 @@ var MerchantCaseArchive = {
         };
       }
 
-      // ヘッダーとデータ取得
-      const data = userSheet.getDataRange().getValues();
-      const headers = data[0];
-      const rows = data.slice(1);
+      // まず配信管理シートでこの加盟店にこの案件が配信されているか確認
+      const deliveryData = deliverySheet.getDataRange().getValues();
+      const deliveryHeaders = deliveryData[0];
+      const deliveryRows = deliveryData.slice(1);
+
+      const delCvIdIdx = deliveryHeaders.indexOf('CV ID');
+      const delMerchantIdIdx = deliveryHeaders.indexOf('加盟店ID');
+      const delStatusIdx = deliveryHeaders.indexOf('配信ステータス');
+
+      let isDelivered = false;
+      for (let i = 0; i < deliveryRows.length; i++) {
+        const row = deliveryRows[i];
+        if (row[delCvIdIdx] === cvId &&
+            (row[delMerchantIdIdx] === merchantId || row[delMerchantIdIdx] === String(merchantId)) &&
+            row[delStatusIdx] === '配信済み') {
+          isDelivered = true;
+          break;
+        }
+      }
+
+      if (!isDelivered) {
+        return {
+          success: false,
+          error: 'この案件はこの加盟店に配信されていません'
+        };
+      }
+
+      // ユーザー登録シートでアーカイブ処理
+      const userData = userSheet.getDataRange().getValues();
+      const userHeaders = userData[0];
+      const userRows = userData.slice(1);
 
       // 必要なカラムのインデックス取得
-      const cvIdIdx = headers.indexOf('CV ID');
-      const deliveredMerchantsIdx = headers.indexOf('配信先業者一覧');
+      const cvIdIdx = userHeaders.indexOf('CV ID');
 
       // アーカイブ状態列のインデックスを取得（存在しない場合は作成）
-      let archiveStatusIdx = headers.indexOf('アーカイブ状態');
-      let archiveDateIdx = headers.indexOf('アーカイブ日時');
-      let archiveMerchantIdx = headers.indexOf('アーカイブ加盟店ID');
+      let archiveStatusIdx = userHeaders.indexOf('アーカイブ状態');
+      let archiveDateIdx = userHeaders.indexOf('アーカイブ日時');
+      let archiveMerchantIdx = userHeaders.indexOf('アーカイブ加盟店ID');
 
       // 列が存在しない場合は作成
       if (archiveStatusIdx === -1) {
-        archiveStatusIdx = headers.length;
+        archiveStatusIdx = userHeaders.length;
         userSheet.getRange(1, archiveStatusIdx + 1).setValue('アーカイブ状態');
       }
       if (archiveDateIdx === -1) {
-        archiveDateIdx = headers.length + (archiveStatusIdx === headers.length ? 1 : 0);
+        archiveDateIdx = userHeaders.length + (archiveStatusIdx === userHeaders.length ? 1 : 0);
         userSheet.getRange(1, archiveDateIdx + 1).setValue('アーカイブ日時');
       }
       if (archiveMerchantIdx === -1) {
-        archiveMerchantIdx = headers.length + (archiveStatusIdx === headers.length ? 1 : 0) + (archiveDateIdx === headers.length + 1 ? 1 : 0);
+        archiveMerchantIdx = userHeaders.length + (archiveStatusIdx === userHeaders.length ? 1 : 0) + (archiveDateIdx === userHeaders.length + 1 ? 1 : 0);
         userSheet.getRange(1, archiveMerchantIdx + 1).setValue('アーカイブ加盟店ID');
       }
 
       // 対象行を検索
       let targetRow = -1;
-      for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
+      for (let i = 0; i < userRows.length; i++) {
+        const row = userRows[i];
         const rowCvId = row[cvIdIdx];
-        const deliveredMerchants = row[deliveredMerchantsIdx];
 
-        // CV IDが一致し、この加盟店に配信されている案件
-        if (rowCvId === cvId && deliveredMerchants &&
-            (deliveredMerchants.toString().includes(merchantId) ||
-             deliveredMerchants.toString().includes(String(merchantId)))) {
+        // CV IDが一致
+        if (rowCvId === cvId) {
           targetRow = i + 2; // ヘッダー分+1、0-indexed分+1
           break;
         }
@@ -235,6 +267,7 @@ var MerchantCaseArchive = {
       console.log('[MerchantCaseArchive] getArchivedCases - 加盟店ID:', merchantId);
 
       const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const deliverySheet = ss.getSheetByName('配信管理');
       const userSheet = ss.getSheetByName('ユーザー登録');
 
       if (!userSheet) {
@@ -244,22 +277,23 @@ var MerchantCaseArchive = {
         };
       }
 
-      // ヘッダーとデータ取得
-      const data = userSheet.getDataRange().getValues();
-      const headers = data[0];
-      const rows = data.slice(1);
+      // ユーザー登録シートから顧客情報を取得
+      const userData = userSheet.getDataRange().getValues();
+      const userHeaders = userData[0];
+      const userRows = userData.slice(1);
 
       // 必要なカラムのインデックス取得
-      const cvIdIdx = headers.indexOf('CV ID');
-      const nameIdx = headers.indexOf('氏名');
-      const telIdx = headers.indexOf('電話番号');
-      const addressIdx = headers.indexOf('住所');
-      const workCategoryIdx = headers.indexOf('工事種別');
-      const deliveredAtIdx = headers.indexOf('配信日時');
-      const managementStatusIdx = headers.indexOf('管理ステータス');
-      const archiveStatusIdx = headers.indexOf('アーカイブ状態');
-      const archiveDateIdx = headers.indexOf('アーカイブ日時');
-      const archiveMerchantIdx = headers.indexOf('アーカイブ加盟店ID');
+      const cvIdIdx = userHeaders.indexOf('CV ID');
+      const nameIdx = userHeaders.indexOf('氏名');
+      const telIdx = userHeaders.indexOf('電話番号');
+      const prefectureIdx = userHeaders.indexOf('都道府県（物件）');
+      const cityIdx = userHeaders.indexOf('市区町村（物件）');
+      const addressDetailIdx = userHeaders.indexOf('住所詳細（物件）');
+      const workCategoryIdx = userHeaders.indexOf('工事種別');
+      const managementStatusIdx = userHeaders.indexOf('管理ステータス');
+      const archiveStatusIdx = userHeaders.indexOf('アーカイブ状態');
+      const archiveDateIdx = userHeaders.indexOf('アーカイブ日時');
+      const archiveMerchantIdx = userHeaders.indexOf('アーカイブ加盟店ID');
 
       if (archiveStatusIdx === -1) {
         // アーカイブ列がない場合は空配列を返す
@@ -269,11 +303,33 @@ var MerchantCaseArchive = {
         };
       }
 
+      // 配信管理シートから配信日時を取得するためのマップを作成
+      let deliveryMap = {};
+      if (deliverySheet) {
+        const deliveryData = deliverySheet.getDataRange().getValues();
+        const deliveryHeaders = deliveryData[0];
+        const deliveryRows = deliveryData.slice(1);
+
+        const delCvIdIdx = deliveryHeaders.indexOf('CV ID');
+        const delMerchantIdIdx = deliveryHeaders.indexOf('加盟店ID');
+        const delDeliveredAtIdx = deliveryHeaders.indexOf('配信日時');
+
+        deliveryRows.forEach(row => {
+          const cvId = row[delCvIdIdx];
+          const delMerchantId = row[delMerchantIdIdx];
+          const deliveredAt = row[delDeliveredAtIdx];
+
+          if (cvId && (delMerchantId === merchantId || delMerchantId === String(merchantId))) {
+            deliveryMap[cvId] = deliveredAt;
+          }
+        });
+      }
+
       // アーカイブ案件を抽出
       const archivedCases = [];
 
-      for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
+      for (let i = 0; i < userRows.length; i++) {
+        const row = userRows[i];
         const cvId = row[cvIdIdx];
         const archiveStatus = row[archiveStatusIdx];
         const archiveMerchantId = row[archiveMerchantIdx];
@@ -285,13 +341,19 @@ var MerchantCaseArchive = {
         if (archiveStatus === 'archived' &&
             (archiveMerchantId === merchantId || archiveMerchantId === String(merchantId))) {
 
+          // 住所を結合
+          const prefecture = prefectureIdx >= 0 ? (row[prefectureIdx] || '') : '';
+          const city = cityIdx >= 0 ? (row[cityIdx] || '') : '';
+          const addressDetail = addressDetailIdx >= 0 ? (row[addressDetailIdx] || '') : '';
+          const fullAddress = prefecture + city + addressDetail;
+
           archivedCases.push({
             cvId: cvId,
             customerName: row[nameIdx] || '',
             tel: row[telIdx] || '',
-            address: row[addressIdx] || '',
+            address: fullAddress,
             workCategory: row[workCategoryIdx] || '',
-            deliveredAt: row[deliveredAtIdx] || '',
+            deliveredAt: deliveryMap[cvId] || '',
             managementStatus: row[managementStatusIdx] || '',
             archivedAt: row[archiveDateIdx] || ''
           });

@@ -300,6 +300,11 @@ function showPostalFormInBot() {
             console.warn('⚠️ sessionStorage保存失敗:', e);
         }
 
+        // V1752-FEAT: ZipCloud APIで住所フリガナを取得
+        if (window.BotScenarios && typeof window.BotScenarios.fetchAddressKana === 'function') {
+            window.BotScenarios.fetchAddressKana(postal.replace('-', ''));
+        }
+
         // ユーザーメッセージとして表示
         showUserMessage(postal);
 

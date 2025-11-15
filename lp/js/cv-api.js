@@ -42,6 +42,9 @@ const CVAPI = {
                 propertyPrefecture: window.propertyPrefecture || '',
                 propertyCity: window.propertyCity || '',
 
+                // V1752-FEAT: 住所フリガナ（ZipCloud APIから取得）
+                addressKana: BotConfig.state.addressKana || sessionStorage.getItem('bot_addressKana') || '',
+
                 // BOT質問回答（Q1〜Q17）
                 ...botAnswers,
 
@@ -154,6 +157,9 @@ const CVAPI = {
                 propertyPrefecture: window.propertyPrefecture || '',
                 propertyCity: window.propertyCity || '',
                 propertyStreet: formData.propertyAddress?.street || '',
+
+                // V1752-FEAT: 住所フリガナ（ZipCloud APIから取得）
+                addressKana: BotConfig.state.addressKana || sessionStorage.getItem('bot_addressKana') || '',
 
                 // 自宅住所（物件と異なる場合）
                 isDifferentHome: formData.isDifferentHome || false,
