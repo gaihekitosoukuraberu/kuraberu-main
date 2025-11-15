@@ -5328,9 +5328,9 @@
                             <form id="extensionForm" class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                        連絡がついた日時 <span class="text-red-500">*</span>
+                                        連絡がついた日 <span class="text-red-500">*</span>
                                     </label>
-                                    <input type="datetime-local" id="extensionContactDate" required
+                                    <input type="date" id="extensionContactDate" required
                                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
                                 </div>
 
@@ -5346,9 +5346,18 @@
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                                         延長理由 <span class="text-red-500">*</span>
                                     </label>
-                                    <textarea id="extensionReason" rows="4" required
-                                              placeholder="例：お客様と連絡が取れましたが、10日後に訪問予定のため期限延長を申請します。"
-                                              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"></textarea>
+                                    <div class="relative">
+                                        <textarea id="extensionReason" rows="4" required
+                                                  placeholder="例：お客様と連絡が取れましたが、10日後に訪問予定のため期限延長を申請します。"
+                                                  class="w-full px-4 py-2 pr-12 border rounded-lg focus:outline-none focus:border-blue-500"></textarea>
+                                        <button type="button" onclick="startExtensionReasonVoiceInput()"
+                                                class="absolute bottom-2 right-2 p-2 text-gray-400 hover:text-blue-500 transition-colors"
+                                                title="音声入力">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-1">期限延長が必要な理由を具体的に記入してください</p>
                                 </div>
 
@@ -21076,6 +21085,60 @@
                 alert('顧客情報の読み込みに失敗しました');
             }
         }
+
+        // 延長理由の音声入力
+        window.startExtensionReasonVoiceInput = function() {
+            const textarea = document.getElementById('extensionReason');
+
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert('お使いのブラウザは音声入力に対応していません。Chrome、Edge、Safariをご利用ください。');
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+
+            recognition.lang = 'ja-JP';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = function() {
+                console.log('[音声入力] 開始');
+                textarea.placeholder = '🎤 音声入力中...';
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                console.log('[音声入力] 認識結果:', transcript);
+
+                // 既存のテキストに追加
+                if (textarea.value) {
+                    textarea.value += ' ' + transcript;
+                } else {
+                    textarea.value = transcript;
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error('[音声入力] エラー:', event.error);
+                textarea.placeholder = '例：お客様と連絡が取れましたが、10日後に訪問予定のため期限延長を申請します。';
+
+                if (event.error === 'no-speech') {
+                    alert('音声が認識されませんでした。もう一度お試しください。');
+                } else if (event.error === 'not-allowed') {
+                    alert('マイクの使用が許可されていません。ブラウザの設定でマイクを許可してください。');
+                } else {
+                    alert('音声入力エラーが発生しました: ' + event.error);
+                }
+            };
+
+            recognition.onend = function() {
+                console.log('[音声入力] 終了');
+                textarea.placeholder = '例：お客様と連絡が取れましたが、10日後に訪問予定のため期限延長を申請します。';
+            };
+
+            recognition.start();
+        };
 
         // 期限延長モーダルを閉じる
         window.closeExtensionModal = function() {
