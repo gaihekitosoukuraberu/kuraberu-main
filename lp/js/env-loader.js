@@ -22,14 +22,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // GAS URL（V1713-FIX: Global variable method - no callback, no CORS @1633）
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbwq1BZnulofjYn2tSm3Sd80YDylEABSzyIDNbRlBeGwEYo7ZbALHqXqaHeB1ghBc-wS/exec',
+  // GAS URL（V1748: CV完全マッピング修正 - 73列対応 @1661）
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwBOj5KN_lIXxopGqRukr9GqHbPmxbENMttY0FTfZgceBswjIYJ075wO03RUpUTJXFhAA/exec',
 
-  // フォールバックGAS URL（バックアップ）- @HEAD
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/exec',
+  // フォールバックGAS URL（バックアップ）- @1660
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzUu1nHQ6J1vHD-DuuZ4eClkPj5K1YfHnMB3nr9qIY50bvJn75jTVYkCQSerkfk5lNArg/exec',
 
-  // 緊急時URL（最終フォールバック）- @HEAD
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/exec',
+  // 緊急時URL（最終フォールバック）- @1633
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbwq1BZnulofjYn2tSm3Sd80YDylEABSzyIDNbRlBeGwEYo7ZbALHqXqaHeB1ghBc-wS/exec',
 
   // ============================================
   // 🔧 システム設定

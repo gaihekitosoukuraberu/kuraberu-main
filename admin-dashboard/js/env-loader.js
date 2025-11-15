@@ -22,14 +22,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V1748 最新デプロイ
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbzUu1nHQ6J1vHD-DuuZ4eClkPj5K1YfHnMB3nr9qIY50bvJn75jTVYkCQSerkfk5lNArg/exec',
+  // プライマリGAS URL（メイン運用）- V1748: CV完全マッピング修正 - 73列対応 @1661
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwBOj5KN_lIXxopGqRukr9GqHbPmxbENMttY0FTfZgceBswjIYJ075wO03RUpUTJXFhAA/exec',
 
-  // フォールバックGAS URL（バックアップ）
+  // フォールバックGAS URL（バックアップ）- @1660
   FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzUu1nHQ6J1vHD-DuuZ4eClkPj5K1YfHnMB3nr9qIY50bvJn75jTVYkCQSerkfk5lNArg/exec',
 
-  // 緊急時URL（最終フォールバック）
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbzUu1nHQ6J1vHD-DuuZ4eClkPj5K1YfHnMB3nr9qIY50bvJn75jTVYkCQSerkfk5lNArg/exec',
+  // 緊急時URL（最終フォールバック）- @1633
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbwq1BZnulofjYn2tSm3Sd80YDylEABSzyIDNbRlBeGwEYo7ZbALHqXqaHeB1ghBc-wS/exec',
 
   // ============================================
   // 🔧 システム設定
