@@ -2261,36 +2261,62 @@
             }
         }
 
-        // 郵便番号から住所を取得
+        // 郵便番号から住所を取得（V1753-FIX2: ZipCloud APIで町名も取得）
         async function fetchAddress(postalCode, type) {
             if (!postalCode) return;
 
-            // 郵便番号から住所を取得
-            if (typeof window.getAreaFromPostalCode === 'function') {
-                const areaInfo = window.getAreaFromPostalCode(postalCode);
+            try {
+                // ZipCloud APIで住所・町名を取得
+                const url = `https://zipcloud.ibsnet.co.jp/api/search?zipcode=${postalCode}`;
+                const response = await fetch(url);
+                const data = await response.json();
 
-                // 都道府県と市区町村に分割
-                const prefectureMatch = areaInfo.match(/(.*?[都道府県])(.*)/);
+                if (data.status === 200 && data.results && data.results.length > 0) {
+                    const result = data.results[0];
+                    const prefecture = result.address1;  // 都道府県
+                    const city = result.address2;        // 市区町村
+                    const town = result.address3 || '';  // 町名
 
-                if (type === 'home') {
-                    const homeAddressField = document.getElementById('homeAddress');
-                    if (homeAddressField) {
-                        homeAddressField.value = areaInfo;
-                    }
+                    if (type === 'home') {
+                        const homeAddressField = document.getElementById('homeAddress');
+                        if (homeAddressField) {
+                            // 市区町村+町名を表示
+                            homeAddressField.value = city + town;
+                        }
 
-                    if (prefectureMatch) {
-                        window.homePrefecture = prefectureMatch[1];  // 東京都
-                        window.homeCity = prefectureMatch[2];        // 千代田区
+                        window.homePrefecture = prefecture;
+                        window.homeCity = city + town;  // V1753-FIX2: 市区町村+町名
+
                         console.log('✅ 自宅住所を保存:', {
                             prefecture: window.homePrefecture,
                             city: window.homeCity,
-                            fullAddress: areaInfo
+                            town: town
                         });
-                    } else {
-                        window.homePrefecture = '';
-                        window.homeCity = areaInfo;
+                    }
+                } else {
+                    // ZipCloud API失敗時のフォールバック（ローカルマッピング）
+                    if (typeof window.getAreaFromPostalCode === 'function') {
+                        const areaInfo = window.getAreaFromPostalCode(postalCode);
+                        const prefectureMatch = areaInfo.match(/(.*?[都道府県])(.*)/);
+
+                        if (type === 'home') {
+                            const homeAddressField = document.getElementById('homeAddress');
+                            if (homeAddressField) {
+                                homeAddressField.value = prefectureMatch ? prefectureMatch[2] : areaInfo;
+                            }
+
+                            if (prefectureMatch) {
+                                window.homePrefecture = prefectureMatch[1];
+                                window.homeCity = prefectureMatch[2];
+                            } else {
+                                window.homePrefecture = '';
+                                window.homeCity = areaInfo;
+                            }
+                        }
                     }
                 }
+            } catch (error) {
+                console.error('❌ fetchAddress エラー:', error);
             }
         }
 
@@ -2742,10 +2768,12 @@
                     return;
                 }
 
-                // 自宅住所（異なる場合）
+                // 自宅住所（異なる場合）（V1753-FIX2: window.homePrefecture/homeCityを使用）
                 if (document.getElementById('differentHome').checked) {
+                    formData.isDifferentHome = true;
                     formData.homeZip = document.getElementById('homeZip').value.trim().replace('-', '');  // ハイフン除去
-                    formData.homeAddress = document.getElementById('homeAddress').value.trim();
+                    formData.homePrefecture = window.homePrefecture || '';
+                    formData.homeCity = window.homeCity || '';
                     formData.homeStreet = document.getElementById('homeStreet').value.trim();
 
                     // 自宅住所のバリデーション
@@ -3388,13 +3416,13 @@
     </script>
 
     <!-- 外壁塗装くらべる BOTシステム -->
-    <!-- 環境変数を最初にロード（GAS URL設定） - V1753-FIX2: 町名を市区町村に結合 -->
+    <!-- 環境変数を最初にロード（GAS URL設定） - V1753-FIX3: 自宅郵便番号もZipCloud API対応 -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="js/env-loader.js?v=1763246000000"></script>
+    <script src="js/env-loader.js?v=1763247000000"></script>
 
     <!-- BOTローダー（タイミング問題のため静的ロード必須） -->
     <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="gaiheki-bot-loader.js?v=1763246000000"></script>
+    <script src="gaiheki-bot-loader.js?v=1763247000000"></script>
 
     <!-- V1713-FIX: 無料見積もりボタン（body直下・viewport基準で完全固定） -->
     <div id="estimateBtnContainer" style="display: none !important; position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 999999 !important; background: white !important; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 200px 0 200px white !important; border-top: 1px solid #e5e7eb !important; padding: 1rem 0 !important; padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important; pointer-events: auto !important;">
