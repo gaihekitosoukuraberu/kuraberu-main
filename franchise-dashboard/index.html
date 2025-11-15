@@ -19648,12 +19648,14 @@
                 // ローディング表示
                 container.innerHTML = '<div class="col-span-full text-center py-8"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div><p class="text-gray-600 mt-2">読み込み中...</p></div>';
 
+                console.log('[Contract] API呼び出し - merchantId:', merchantId);
                 const response = await fetchWithRetry(`${CANCEL_API_URL}?action=getDeliveredCases&merchantId=${merchantId}`);
                 const result = await response.json();
+                console.log('[Contract] APIレスポンス:', result);
 
                 if (result.success && result.cases) {
                     deliveredCasesCache = result.cases;
-                    console.log('[Contract] 配信済み案件取得:', deliveredCasesCache.length, '件');
+                    console.log('[Contract] 配信済み案件取得:', deliveredCasesCache.length, '件', deliveredCasesCache);
 
                     if (deliveredCasesCache.length > 0) {
                         container.innerHTML = deliveredCasesCache.map(caseItem => createContractCaseCard(caseItem)).join('');
@@ -19863,12 +19865,15 @@
                 // ローディング表示
                 casesList.innerHTML = '<div class="col-span-full text-center py-8"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div><p class="text-gray-600 mt-2">読み込み中...</p></div>';
 
+                console.log('[Cancel] API呼び出し - merchantId:', merchantId);
                 const response = await fetchWithRetry(`${CANCEL_API_URL}?action=getCancelableCases&merchantId=${merchantId}`);
                 const result = await response.json();
+                console.log('[Cancel] APIレスポンス:', result);
 
                 // データをキャッシュに保存
                 if (result.success && result.cases) {
                     cancelableCasesCache = result.cases;
+                    console.log('[Cancel] キャンセル可能案件:', cancelableCasesCache.length, '件', cancelableCasesCache);
                 }
 
                 if (result.success && result.cases.length > 0) {
@@ -20978,12 +20983,15 @@
                 // ローディング表示
                 casesList.innerHTML = '<div class="col-span-full text-center py-8"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div><p class="text-gray-600 mt-2">読み込み中...</p></div>';
 
+                console.log('[Extension] API呼び出し - merchantId:', merchantId);
                 const response = await fetchWithRetry(`${CANCEL_API_URL}?action=getExtensionEligibleCases&merchantId=${merchantId}`);
                 const result = await response.json();
+                console.log('[Extension] APIレスポンス:', result);
 
                 // データをキャッシュに保存
                 if (result.success && result.cases) {
                     extensionEligibleCasesCache = result.cases;
+                    console.log('[Extension] 期限延長可能案件:', extensionEligibleCasesCache.length, '件', extensionEligibleCasesCache);
                 }
 
                 if (result.success && result.cases.length > 0) {

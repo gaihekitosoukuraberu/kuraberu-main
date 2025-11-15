@@ -1,10 +1,10 @@
 {
-  "version": "3.0.1",
+  "version": "3.0.2",
   "metadata": {
-    "lastUpdated": "2025-11-08",
+    "lastUpdated": "2025-11-15",
     "totalScenarios": 46,
     "defaultFlow": "general",
-    "description": "完全統合版：document14の45シナリオ + 雨漏りシナリオ追加 + document12の質問フロー"
+    "description": "V1751-FIX: Q009C重複質問修正（見積もり有無がQ009BとQ014で2回表示される問題を修正）"
   },
   "entryScenarios": {
     "塗料": {
@@ -1182,10 +1182,10 @@
     "Q009C": {
       "text": "どちらで見積もりを手配しましたか？",
       "choices": ["訪問営業", "ポータルサイト（ネットでの比較サービス）", "近所の業者", "前回施工業者", "知人や家族の紹介", "建てたところ（ハウスメーカー等）"],
-      "branches": ["Q014", "Q014", "Q014", "Q014", "Q014", "Q014"],
+      "branches": ["Q004", "Q004", "Q004", "Q004", "Q004", "Q004"],
       "stage": 2,
       "multipleChoice": true,
-      "comment": "V1713: Q014に統合するためQ004→Q014に変更"
+      "comment": "V1751-FIX: Q009Bで見積もり有無を聞いているため、Q014（見積もり有無重複）をスキップしてQ004へ"
     },
     "Q009_1to9": {
       "text": "外壁や屋根の工事歴を教えてください",
