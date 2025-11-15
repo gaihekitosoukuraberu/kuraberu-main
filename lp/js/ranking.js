@@ -45,12 +45,21 @@ async function fetchRankingFromGAS() {
       return false;
     }
 
+    // sessionStorageから郵便番号と回答を復元（データ永続化）
+    if (typeof window.BotConfig.loadFromSessionStorage === 'function') {
+      window.BotConfig.loadFromSessionStorage();
+      console.log('✅ sessionStorageからBotConfig復元完了');
+    }
+
     const zipcode = window.BotConfig.state.currentZipcode;
     if (!zipcode) {
       console.error('❌ 郵便番号が見つかりません');
       console.error('📋 BotConfig.state:', JSON.stringify(window.BotConfig.state, null, 2));
+      console.error('📋 sessionStorage bot_zipcode:', sessionStorage.getItem('bot_zipcode'));
       return false;
     }
+
+    console.log('✅ 郵便番号取得成功:', zipcode);
 
     // BOT回答から施工箇所と築年数を取得（V1705拡張）
     const answers = window.BotConfig.state.userAnswers || {};

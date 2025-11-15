@@ -283,6 +283,14 @@ function showPostalFormInBot() {
         // 郵便番号を保存
         BotConfig.state.currentZipcode = postal.replace('-', '');
 
+        // sessionStorageにも保存（データ永続化）
+        try {
+            sessionStorage.setItem('bot_zipcode', postal.replace('-', ''));
+            console.log('✅ 郵便番号をsessionStorageに保存:', postal.replace('-', ''));
+        } catch (e) {
+            console.warn('⚠️ sessionStorage保存失敗:', e);
+        }
+
         // ユーザーメッセージとして表示
         showUserMessage(postal);
 
