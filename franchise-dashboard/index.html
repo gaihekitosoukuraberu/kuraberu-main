@@ -702,6 +702,9 @@
                             <button onclick="event.stopPropagation(); openCancelRequest(1)" class="p-1.5 rounded-lg hover:bg-red-100 transition-colors" title="キャンセル申請">
                                 <span class="text-lg">❌</span>
                             </button>
+                            <button onclick="event.stopPropagation(); archiveCase('CV001')" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="追客終了BOXへ移動">
+                                <span class="text-lg">🗑️</span>
+                            </button>
                         </div>
                     </div>
                     <h3 class="font-bold text-lg mb-1">山田太郎</h3>
@@ -745,6 +748,9 @@
                             </button>
                             <button onclick="event.stopPropagation(); openCancelRequest(2)" class="p-1.5 rounded-lg hover:bg-red-100 transition-colors" title="キャンセル申請">
                                 <span class="text-lg">❌</span>
+                            </button>
+                            <button onclick="event.stopPropagation(); archiveCase('CV002')" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="追客終了BOXへ移動">
+                                <span class="text-lg">🗑️</span>
                             </button>
                         </div>
                     </div>
@@ -790,6 +796,9 @@
                             <button onclick="event.stopPropagation(); openCancelRequest(3)" class="p-1.5 rounded-lg hover:bg-red-100 transition-colors" title="キャンセル申請">
                                 <span class="text-lg">❌</span>
                             </button>
+                            <button onclick="event.stopPropagation(); archiveCase('CV003')" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="追客終了BOXへ移動">
+                                <span class="text-lg">🗑️</span>
+                            </button>
                         </div>
                     </div>
                     <h3 class="font-bold text-lg mb-1">佐藤一郎</h3>
@@ -834,6 +843,9 @@
                             <button onclick="event.stopPropagation(); openCancelRequest(4)" class="p-1.5 rounded-lg hover:bg-red-100 transition-colors" title="キャンセル申請">
                                 <span class="text-lg">❌</span>
                             </button>
+                            <button onclick="event.stopPropagation(); archiveCase('CV004')" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="追客終了BOXへ移動">
+                                <span class="text-lg">🗑️</span>
+                            </button>
                         </div>
                     </div>
                     <h3 class="font-bold text-lg mb-1">田中美咲</h3>
@@ -877,6 +889,9 @@
                             </button>
                             <button onclick="event.stopPropagation(); openCancelRequest(5)" class="p-1.5 rounded-lg hover:bg-red-100 transition-colors" title="キャンセル申請">
                                 <span class="text-lg">❌</span>
+                            </button>
+                            <button onclick="event.stopPropagation(); archiveCase('CV005')" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="追客終了BOXへ移動">
+                                <span class="text-lg">🗑️</span>
                             </button>
                         </div>
                     </div>
@@ -16661,6 +16676,9 @@
                             </button>
                             <button onclick="event.stopPropagation(); openCancelRequest(${caseItem.id})" class="p-1.5 rounded-lg hover:bg-red-100 transition-colors" title="キャンセル申請">
                                 <span class="text-lg">❌</span>
+                            </button>
+                            <button onclick="event.stopPropagation(); archiveCase('${caseItem.cvId || caseItem.id}')" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="追客終了BOXへ移動">
+                                <span class="text-lg">🗑️</span>
                             </button>
                         </div>
                     </div>

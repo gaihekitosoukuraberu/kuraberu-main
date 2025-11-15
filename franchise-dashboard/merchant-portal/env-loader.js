@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1738-SIDEMENU-SCROLL-FIX-2025-11-15T12:30:00
- * @last-update 2025-11-15T12:30:00
+ * @file-version V1739-ARCHIVE-BUTTON-2025-11-15T13:00:00
+ * @last-update 2025-11-15T13:00:00
  */
 
 const ENV = {
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1738 - 2025-11-15 - サイドメニュースクロール修正 + メニュー順序最適化）
-  CACHE_BUSTER: '1763204500000'
+  // キャッシュバスター（V1739 - 2025-11-15 - 案件カードに追客終了BOXボタン追加）
+  CACHE_BUSTER: '1763204600000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
