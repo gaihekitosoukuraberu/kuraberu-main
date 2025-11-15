@@ -122,6 +122,14 @@ const SystemRouter = {
       actions: ['cv1_submit', 'cv2_update', 'getCVList']
     },
 
+    // CVハートビートシステム（V1754）
+    'heartbeat': {
+      system: 'CVHeartbeatSystem',
+      description: 'CVハートビート更新',
+      prefix: false,
+      actions: ['heartbeat']
+    },
+
     // ランキング取得（V1713: RankingSystemに分離）
     'getRanking': {
       system: 'RankingSystem',

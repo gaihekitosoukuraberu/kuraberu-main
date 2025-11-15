@@ -696,6 +696,26 @@ const CVSheetSystem = {
 
       console.log('[CVSheetSystem] CV1保存完了:', cvId);
 
+      // V1754: Slack通知送信
+      try {
+        const workTypes = [
+          params.Q9_exteriorWork,
+          params.Q10_roofWork
+        ].filter(v => v).join('、') || '未選択';
+
+        CVSlackNotifier.sendCV1Notification({
+          cvId: cvId,
+          phone: params.phone,
+          prefecture: params.propertyPrefecture,
+          city: params.propertyCity,
+          workTypes: workTypes
+        });
+        console.log('[CVSheetSystem] ✅ Slack通知送信完了（CV1）');
+      } catch (slackError) {
+        console.error('[CVSheetSystem] ❌ Slack通知エラー（CV1）:', slackError);
+        // エラーが発生してもCV1送信は成功とする
+      }
+
       // 不正対策ログを記録
       console.log('[CVSheetSystem] 🔍 不正対策ログ記録開始');
       console.log('[CVSheetSystem] 🔍 visitorId:', params.visitorId);
@@ -795,6 +815,29 @@ const CVSheetSystem = {
       sheet.getRange(targetRow, 48).setValue(params.quoteDestination || '');       // AV(48): 見積もり送付先
 
       console.log('[CVSheetSystem] CV2更新完了:', cvId);
+
+      // V1754: Slack通知送信
+      try {
+        const fullAddress = [
+          params.propertyPrefecture,
+          params.propertyCity,
+          params.propertyStreet
+        ].filter(v => v).join('') || '未入力';
+
+        CVSlackNotifier.sendCV2Notification({
+          cvId: cvId,
+          name: params.name,
+          email: params.email,
+          phone: values[targetRow - 1][6],  // G列: 電話番号（既存データから取得）
+          address: fullAddress,
+          surveyDates: params.surveyDatePreference,
+          requests: params.requests
+        });
+        console.log('[CVSheetSystem] ✅ Slack通知送信完了（CV2）');
+      } catch (slackError) {
+        console.error('[CVSheetSystem] ❌ Slack通知エラー（CV2）:', slackError);
+        // エラーが発生してもCV2送信は成功とする
+      }
 
       // 不正対策ログを記録
       console.log('[CVSheetSystem] 🔍 不正対策ログ記録開始（CV2）');

@@ -86,6 +86,9 @@ const CVAPI = {
                 localStorage.setItem('cv_id', result.cvId);
                 console.log('✅ localStorage保存完了 cv_id:', localStorage.getItem('cv_id'));
 
+                // V1754: ハートビート開始（10分間監視）
+                this.startHeartbeat(result.cvId);
+
                 return {
                     success: true,
                     cvId: result.cvId
@@ -447,6 +450,75 @@ const CVAPI = {
             utm: utmString,
             userAgent: navigator.userAgent
         };
+    },
+
+    // ============================================
+    // ハートビート機能（V1754: 離脱検知）
+    // ============================================
+    heartbeatInterval: null,
+    heartbeatTimeout: null,
+
+    /**
+     * ハートビート開始（CV1成功後に呼び出し）
+     * @param {string} cvId - CV ID
+     * @param {number} duration - 監視時間（ミリ秒、デフォルト10分）
+     */
+    startHeartbeat(cvId, duration = 10 * 60 * 1000) {
+        if (!cvId) return;
+
+        console.log(`💓 ハートビート開始: CV ID=${cvId}, 期間=${duration / 1000}秒`);
+
+        // 既存のハートビートを停止
+        this.stopHeartbeat();
+
+        // 30秒ごとにハートビート送信
+        this.heartbeatInterval = setInterval(() => {
+            this.sendHeartbeat(cvId);
+        }, 30000);
+
+        // 指定時間後に自動停止
+        this.heartbeatTimeout = setTimeout(() => {
+            console.log('⏱️ ハートビート自動停止（監視期間終了）');
+            this.stopHeartbeat();
+        }, duration);
+
+        // ページ離脱時に停止
+        window.addEventListener('beforeunload', () => this.stopHeartbeat());
+    },
+
+    /**
+     * ハートビート停止
+     */
+    stopHeartbeat() {
+        if (this.heartbeatInterval) {
+            clearInterval(this.heartbeatInterval);
+            this.heartbeatInterval = null;
+        }
+        if (this.heartbeatTimeout) {
+            clearTimeout(this.heartbeatTimeout);
+            this.heartbeatTimeout = null;
+        }
+    },
+
+    /**
+     * ハートビート送信
+     * @param {string} cvId - CV ID
+     */
+    async sendHeartbeat(cvId) {
+        if (!cvId) return;
+
+        try {
+            const data = {
+                action: 'heartbeat',
+                cvId: cvId,
+                timestamp: new Date().toISOString()
+            };
+
+            await this.sendJSONP(data);
+            console.log('💓 ハートビート送信:', cvId);
+        } catch (error) {
+            console.error('❌ ハートビート送信エラー:', error);
+        }
     },
 
 };
