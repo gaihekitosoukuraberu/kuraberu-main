@@ -206,6 +206,20 @@ const SystemRouter = {
       actions: ['submitExtensionRequest']
     },
 
+    // 成約報告システム
+    'getDeliveredCases': {
+      system: 'MerchantContractReport',
+      description: '配信済み案件取得（成約報告対象）',
+      prefix: false,
+      actions: ['getDeliveredCases']
+    },
+    'submitContractReport': {
+      system: 'MerchantContractReport',
+      description: '成約報告登録',
+      prefix: false,
+      actions: ['submitContractReport']
+    },
+
     // キャンセル承認システム（管理者用）
     'approveCancelReport': {
       system: 'AdminCancelSystem',

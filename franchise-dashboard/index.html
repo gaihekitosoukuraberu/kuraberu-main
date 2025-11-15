@@ -13655,6 +13655,11 @@
                 if (sectionName === 'extension') {
                     loadExtensionEligibleCases();
                 }
+
+                // 成約報告セクションの場合は配信済み案件を読み込み
+                if (sectionName === 'contract') {
+                    loadContractCases();
+                }
             }
 
             // メニューを閉じる
@@ -18516,28 +18521,28 @@
 
         // 成約報告用の案件カード作成
         function createContractCaseCard(caseItem) {
-            const statusColor = getStatusColor(caseItem.status);
+            const statusColor = getStatusColor(caseItem.managementStatus);
+            const deliveredDate = caseItem.deliveredAt ? new Date(caseItem.deliveredAt).toLocaleDateString('ja-JP') : '';
+
             return `
                 <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
-                     onclick="selectContractCase(${caseItem.id})"
-                     data-contract-case-id="${caseItem.id}">
+                     onclick="selectContractCase('${caseItem.cvId}')"
+                     data-contract-case-id="${caseItem.cvId}">
                     <div class="flex justify-between items-start mb-3">
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColor}">${caseItem.status}</span>
-                        <button onclick="event.stopPropagation(); selectContractCase(${caseItem.id})"
-                                class="p-1.5 rounded-lg bg-green-100 hover:bg-green-200 transition-colors" title="選択">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColor}">${caseItem.managementStatus || '配信済'}</span>
+                        <button onclick="event.stopPropagation(); selectContractCase('${caseItem.cvId}')"
+                                class="p-1.5 rounded-lg bg-green-100 hover:bg-green-200 transition-colors" title="成約報告">
                             <span class="text-lg">✅</span>
                         </button>
                     </div>
-                    <h3 class="font-bold text-lg mb-1">${caseItem.name}</h3>
-                    <div class="mb-2">
-                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">👤 担当: ${caseItem.assignee || '未割当'}</span>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-2">${caseItem.location || caseItem.area || ''}</p>
-                    <p class="text-sm text-gray-600 mb-3">${caseItem.propertyType || ''}</p>
-                    <p class="text-sm text-gray-600 mb-3">📞 ${caseItem.phone || ''}</p>
+                    <h3 class="font-bold text-lg mb-1">${caseItem.customerName || ''}</h3>
+                    <p class="text-xs text-gray-500 mb-2">${caseItem.customerNameKana || ''}</p>
+                    <p class="text-sm text-gray-600 mb-2">📍 ${caseItem.address || ''}</p>
+                    <p class="text-sm text-gray-600 mb-2">📞 ${caseItem.tel || ''}</p>
+                    <p class="text-sm text-gray-600 mb-2">🔨 ${caseItem.workCategory || ''}</p>
                     <div class="flex justify-between items-center text-xs text-gray-500">
-                        <span>最終連絡: ${caseItem.lastContact || '未連絡'}</span>
-                        <span>次回予定: ${caseItem.nextAction || '未定'}</span>
+                        <span>配信日: ${deliveredDate}</span>
+                        <span class="text-blue-600 font-semibold">CV ID: ${caseItem.cvId}</span>
                     </div>
                 </div>
             `;
@@ -18577,48 +18582,34 @@
             const endDate = document.getElementById('contractEndDate').value;
             const contractList = document.getElementById('contractCasesList');
 
-            let filteredCases = casesData;
+            if (!deliveredCasesCache || deliveredCasesCache.length === 0) {
+                return; // データがない場合は何もしない
+            }
 
-            // テキスト検索（名前・電話・住所・エリア・フリガナ対応）
+            let filteredCases = deliveredCasesCache;
+
+            // テキスト検索（名前・電話・住所・フリガナ対応）
             if (searchTerm) {
                 filteredCases = filteredCases.filter(c => {
-                    return (c.name && normalizeKana(c.name).includes(searchTerm)) ||
-                           (c.nameKana && normalizeKana(c.nameKana).includes(searchTerm)) ||
-                           (c.phone && normalizeKana(c.phone).includes(searchTerm)) ||
-                           (c.location && normalizeKana(c.location).includes(searchTerm)) ||
-                           (c.area && normalizeKana(c.area).includes(searchTerm)) ||
+                    return (c.customerName && normalizeKana(c.customerName).includes(searchTerm)) ||
+                           (c.customerNameKana && normalizeKana(c.customerNameKana).includes(searchTerm)) ||
+                           (c.tel && normalizeKana(c.tel).includes(searchTerm)) ||
                            (c.address && normalizeKana(c.address).includes(searchTerm)) ||
                            (c.addressKana && normalizeKana(c.addressKana).includes(searchTerm));
                 });
             }
 
-
-            // 担当者フィルター
-            if (assigneeFilter) {
-                if (assigneeFilter === 'self') {
-                    // 自分の案件（ログインユーザーを田中太郎と仮定）
-                    filteredCases = filteredCases.filter(c => c.assignee === '田中太郎');
-                } else if (assigneeFilter === '未割当') {
-                    filteredCases = filteredCases.filter(c => !c.assignee);
-                } else {
-                    filteredCases = filteredCases.filter(c => c.assignee === assigneeFilter);
-                }
-            }
-
-            // 期間フィルター（ダミーデータとしてIDを使用）
+            // 期間フィルター（配信日時で絞り込み）
             if (startDate || endDate) {
                 const start = startDate ? new Date(startDate) : new Date('2000-01-01');
-                const end = endDate ? new Date(endDate + 'T23:59:59') : new Date();
+                const end = endDate ? new Date(endDate + 'T23:59:59') : new Date('2100-12-31');
 
-                // ダミー実装：IDを日付の代わりに使用
                 filteredCases = filteredCases.filter(c => {
-                    // 実際の実装ではc.registeredDateをDateオブジェクトに変換して比較
-                    return true; // 今は全て表示
+                    if (!c.deliveredAt) return false;
+                    const deliveredDate = new Date(c.deliveredAt);
+                    return deliveredDate >= start && deliveredDate <= end;
                 });
             }
-
-            // 新しい順にソート（IDが大きい順）
-            filteredCases.sort((a, b) => b.id - a.id);
 
             // カード表示
             if (filteredCases.length > 0) {
@@ -19290,26 +19281,8 @@
                         selectedPropertyTypes.push(checkbox.value);
                     });
 
-                    // フォームデータを収集
-                    const formData = {
-                        reportType: contractAnswers[0],
-                        status: contractAnswers[1],
-                        caseName: selectedContractCase ? selectedContractCase.name : '',
-                        caseAddress: selectedContractCase ? (selectedContractCase.address || selectedContractCase.location || selectedContractCase.area) : '',
-                        amount: document.getElementById('contractAmount').value,
-                        paymentDate: document.getElementById('paymentDate').value,
-                        completionDate: document.getElementById('completionDate').value,
-                        buildingFloors: document.getElementById('buildingFloors').value,
-                        propertyTypes: selectedPropertyTypes,
-                        otherPropertyDetails: document.getElementById('otherPropertyDetails').value,
-                        workTypes: selectedWorkTypes,
-                        workDetails: document.getElementById('workDetails').value,
-                        notes: document.getElementById('contractNotes').value
-                    };
-
-                    console.log('成約報告データ:', formData);
-                    alert(`${contractAnswers[0]}が送信されました`);
-                    closeContractModal();
+                    // 成約報告を送信
+                    submitContractReport(selectedWorkTypes, selectedPropertyTypes);
                 });
             }
 
@@ -19327,6 +19300,7 @@
         let cancelableCasesCache = [];
         let cancelRejectedCasesCache = []; // 却下済み案件キャッシュ
         let extensionEligibleCasesCache = [];
+        let deliveredCasesCache = []; // 成約報告：配信済み案件キャッシュ
 
         // グローバル状態
         let cancelCurrentStep = 1;
@@ -19341,6 +19315,10 @@
         let textHistoryIndex = -1;
 
         let extensionSelectedCase = null;
+
+        // 成約報告用グローバル状態
+        let selectedContractCase = null;
+        let contractAnswers = []; // 質問フローの回答
 
         // リトライ機能付きFetch関数
         async function fetchWithRetry(url, options = {}, retries = window.ENV.MAX_RETRIES, delay = window.ENV.RETRY_DELAY) {
@@ -19705,6 +19683,178 @@
             } catch (error) {
                 console.error('復元エラー:', error);
                 alert('案件の復元に失敗しました');
+            }
+        }
+
+        // ============================================
+        // 成約報告システム
+        // ============================================
+
+        // 配信済み案件一覧を読み込み（成約報告対象）
+        async function loadContractCases() {
+            const container = document.getElementById('contractCasesList');
+
+            try {
+                const merchantId = window.merchantId;
+                if (!merchantId) {
+                    alert('ログインしていません');
+                    return;
+                }
+
+                // ローディング表示
+                container.innerHTML = '<div class="col-span-full text-center py-8"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div><p class="text-gray-600 mt-2">読み込み中...</p></div>';
+
+                const response = await fetchWithRetry(`${CANCEL_API_URL}?action=getDeliveredCases&merchantId=${merchantId}`);
+                const result = await response.json();
+
+                if (result.success && result.cases) {
+                    deliveredCasesCache = result.cases;
+                    console.log('[Contract] 配信済み案件取得:', deliveredCasesCache.length, '件');
+
+                    if (deliveredCasesCache.length > 0) {
+                        container.innerHTML = deliveredCasesCache.map(caseItem => createContractCaseCard(caseItem)).join('');
+                    } else {
+                        container.innerHTML = '<p class="text-gray-600 col-span-full text-center py-8">成約報告可能な案件はありません</p>';
+                    }
+                } else {
+                    container.innerHTML = '<p class="text-gray-600 col-span-full text-center py-8">案件の読み込みに失敗しました</p>';
+                    console.error('[Contract] API エラー:', result.error);
+                }
+            } catch (error) {
+                console.error('[Contract] 配信済み案件の読み込みエラー:', error);
+
+                let errorMessage = '案件の読み込みに失敗しました。';
+                if (error.name === 'AbortError') {
+                    errorMessage = 'リクエストがタイムアウトしました。ネットワーク接続を確認してください。';
+                } else if (error.message.includes('HTTP error')) {
+                    errorMessage = `サーバーエラーが発生しました (${error.message})`;
+                } else if (error.message === 'Failed to fetch') {
+                    errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。';
+                }
+
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <div class="text-red-500 mb-4">
+                            <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            <p class="font-semibold">${errorMessage}</p>
+                        </div>
+                        <button onclick="loadContractCases()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            再読み込み
+                        </button>
+                    </div>
+                `;
+                alert(errorMessage);
+            }
+        }
+
+        // 成約報告する案件を選択
+        function selectContractCase(cvId) {
+            selectedContractCase = deliveredCasesCache.find(c => c.cvId === cvId);
+            if (!selectedContractCase) {
+                alert('案件が見つかりません');
+                return;
+            }
+
+            // 質問フローをリセット
+            contractAnswers = [];
+
+            // 顧客情報を表示
+            const customerInfo = document.getElementById('contractCustomerInfo');
+            const customerName = document.getElementById('contractCustomerName');
+            const customerAddress = document.getElementById('contractCustomerAddress');
+
+            customerName.textContent = selectedContractCase.customerName || '';
+            customerAddress.textContent = selectedContractCase.address || '';
+            customerInfo.classList.remove('hidden');
+
+            // 成約報告モーダルを開く
+            document.getElementById('contractModal').classList.remove('hidden');
+
+            // 質問フローを開始
+            showContractQuestion(0);
+        }
+
+        // 成約報告を送信
+        async function submitContractReport(selectedWorkTypes, selectedPropertyTypes) {
+            try {
+                const merchantId = window.merchantId;
+                const merchantName = window.merchantName || '';
+
+                if (!merchantId || !selectedContractCase) {
+                    alert('必要な情報が不足しています');
+                    return;
+                }
+
+                // フォームデータを収集
+                const contractAmount = document.getElementById('contractAmount').value;
+                const paymentDate = document.getElementById('paymentDate').value;
+                const completionDate = document.getElementById('completionDate').value;
+                const buildingFloors = document.getElementById('buildingFloors').value;
+                const workDetails = document.getElementById('workDetails').value;
+
+                // バリデーション
+                if (!contractAmount || contractAmount <= 0) {
+                    alert('契約金額を入力してください');
+                    return;
+                }
+
+                // 施工内容を文字列に変換
+                const workContent = selectedWorkTypes.length > 0 ? selectedWorkTypes : [workDetails];
+
+                // 物件種別を文字列に変換
+                const propertyType = selectedPropertyTypes.join('、');
+
+                // 報告種別と現在の状況を取得
+                const reportType = contractAnswers[0] || '成約報告';
+                const currentStatus = contractAnswers[1] || '契約後・工事前';
+
+                console.log('[Contract] 成約報告送信:', {
+                    cvId: selectedContractCase.cvId,
+                    merchantId,
+                    reportType,
+                    currentStatus,
+                    contractAmount
+                });
+
+                // API呼び出し
+                const params = new URLSearchParams({
+                    action: 'submitContractReport',
+                    merchantId: merchantId,
+                    merchantName: merchantName,
+                    cvId: selectedContractCase.cvId,
+                    reportType: reportType,
+                    currentStatus: currentStatus,
+                    contractAmount: contractAmount,
+                    constructionEndDate: completionDate || '',
+                    paymentDueDate: paymentDate || '',
+                    propertyType: propertyType,
+                    floors: buildingFloors || '',
+                    workContent: JSON.stringify(workContent)
+                });
+
+                const response = await fetchWithRetry(CANCEL_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: params.toString()
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('成約報告を送信しました！');
+                    closeContractModal();
+                    // 案件一覧を再読み込み
+                    loadContractCases();
+                } else {
+                    alert('エラー: ' + (result.error || '不明なエラー'));
+                }
+            } catch (error) {
+                console.error('[Contract] 成約報告送信エラー:', error);
+                alert('成約報告の送信に失敗しました');
             }
         }
 
