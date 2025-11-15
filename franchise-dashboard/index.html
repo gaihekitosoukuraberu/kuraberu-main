@@ -5049,6 +5049,31 @@
                     </nav>
                 </div>
 
+                <!-- 検索バー -->
+                <div class="bg-white rounded-lg shadow p-4 mb-6">
+                    <!-- 基本検索 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                        <div class="lg:col-span-2">
+                            <input type="text" id="cancelSearchInput" placeholder="顧客名・電話番号・住所で検索（部分一致）" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500" onkeyup="searchCancelCases()">
+                        </div>
+                    </div>
+
+                    <!-- 期間検索 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <label class="text-xs text-gray-600 whitespace-nowrap">配信期間</label>
+                            <input type="date" id="cancelStartDate" class="w-full sm:w-auto px-3 py-2 border rounded-lg" onchange="searchCancelCases()">
+                            <span class="text-xs text-gray-600 text-center sm:text-left">〜</span>
+                            <input type="date" id="cancelEndDate" class="w-full sm:w-auto px-3 py-2 border rounded-lg" onchange="searchCancelCases()">
+                        </div>
+                        <div class="flex items-center justify-start md:justify-end">
+                            <button onclick="searchCancelCases()" class="w-full md:w-auto px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                                検索
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- タブコンテンツ: 申請可能 -->
                 <div id="cancelTabContent-available" class="cancel-tab-content">
                     <div id="cancelCasesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
@@ -5224,6 +5249,31 @@
                     </div>
                 </div>
 
+                <!-- 検索バー -->
+                <div class="bg-white rounded-lg shadow p-4 mb-6">
+                    <!-- 基本検索 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                        <div class="lg:col-span-2">
+                            <input type="text" id="extensionSearchInput" placeholder="顧客名・電話番号・住所で検索（部分一致）" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500" onkeyup="searchExtensionCases()">
+                        </div>
+                    </div>
+
+                    <!-- 期間検索 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <label class="text-xs text-gray-600 whitespace-nowrap">配信期間</label>
+                            <input type="date" id="extensionStartDate" class="w-full sm:w-auto px-3 py-2 border rounded-lg" onchange="searchExtensionCases()">
+                            <span class="text-xs text-gray-600 text-center sm:text-left">〜</span>
+                            <input type="date" id="extensionEndDate" class="w-full sm:w-auto px-3 py-2 border rounded-lg" onchange="searchExtensionCases()">
+                        </div>
+                        <div class="flex items-center justify-start md:justify-end">
+                            <button onclick="searchExtensionCases()" class="w-full md:w-auto px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                                検索
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 案件一覧 -->
                 <div id="extensionCasesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
                     <!-- 案件カードが動的に表示される -->
@@ -5348,14 +5398,14 @@
 
                     <!-- 期間検索 -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="flex items-center gap-2">
-                            <label class="text-xs text-gray-600">流入期間</label>
-                            <input type="date" id="contractStartDate" class="px-3 py-2 border rounded-lg" onchange="searchContractCases()">
-                            <span class="text-xs text-gray-600">〜</span>
-                            <input type="date" id="contractEndDate" class="px-3 py-2 border rounded-lg" onchange="searchContractCases()">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <label class="text-xs text-gray-600 whitespace-nowrap">流入期間</label>
+                            <input type="date" id="contractStartDate" class="w-full sm:w-auto px-3 py-2 border rounded-lg" onchange="searchContractCases()">
+                            <span class="text-xs text-gray-600 text-center sm:text-left">〜</span>
+                            <input type="date" id="contractEndDate" class="w-full sm:w-auto px-3 py-2 border rounded-lg" onchange="searchContractCases()">
                         </div>
-                        <div class="flex items-center justify-end">
-                            <button onclick="searchContractCases()" class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                        <div class="flex items-center justify-start md:justify-end">
+                            <button onclick="searchContractCases()" class="w-full md:w-auto px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
                                 検索
                             </button>
                         </div>
@@ -18557,6 +18607,205 @@
             }
         }
 
+        // キャンセル申請の案件検索
+        function searchCancelCases() {
+            const searchTerm = document.getElementById('cancelSearchInput').value.toLowerCase().trim();
+            const startDate = document.getElementById('cancelStartDate').value;
+            const endDate = document.getElementById('cancelEndDate').value;
+
+            // 現在アクティブなタブを取得
+            const activeTab = document.querySelector('.cancel-tab.border-blue-500, .cancel-tab[class*="border-blue"]');
+            const currentTab = activeTab ? activeTab.id.replace('cancelTab-', '') : 'available';
+
+            // タブに応じたキャッシュとコンテナを取得
+            let caseCache, containerId;
+
+            if (currentTab === 'available') {
+                caseCache = cancelableCasesCache;
+                containerId = 'cancelCasesList';
+            } else if (currentTab === 'pending') {
+                // 審査中タブは loadAppliedCases('pending') で読み込み済み
+                caseCache = cancelRejectedCasesCache; // 一時的にこのキャッシュを使用
+                containerId = 'cancelPendingList';
+                // 実際には専用キャッシュを作成すべき
+                return; // 現時点では検索スキップ
+            } else if (currentTab === 'approved') {
+                containerId = 'cancelApprovedList';
+                return; // 現時点では検索スキップ
+            } else if (currentTab === 'rejected') {
+                caseCache = cancelRejectedCasesCache;
+                containerId = 'cancelRejectedList';
+            }
+
+            if (!caseCache || caseCache.length === 0) {
+                return; // データがない場合は何もしない
+            }
+
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            let filteredCases = caseCache;
+
+            // テキスト検索
+            if (searchTerm) {
+                filteredCases = filteredCases.filter(c => {
+                    return (c.customerName && c.customerName.toLowerCase().includes(searchTerm)) ||
+                           (c.tel && c.tel.toLowerCase().includes(searchTerm)) ||
+                           (c.address && c.address.toLowerCase().includes(searchTerm));
+                });
+            }
+
+            // 期間フィルター
+            if (startDate || endDate) {
+                const start = startDate ? new Date(startDate) : new Date('2000-01-01');
+                const end = endDate ? new Date(endDate + 'T23:59:59') : new Date('2100-12-31');
+
+                filteredCases = filteredCases.filter(c => {
+                    if (!c.deliveredAt) return false;
+                    const deliveredDate = new Date(c.deliveredAt);
+                    return deliveredDate >= start && deliveredDate <= end;
+                });
+            }
+
+            // カード再描画
+            if (currentTab === 'available' && filteredCases.length > 0) {
+                container.innerHTML = filteredCases.map(caseItem => {
+                    const deliveredDate = new Date(caseItem.deliveredAt).toLocaleDateString('ja-JP');
+                    const deadlineDate = new Date(caseItem.deadlineDate).toLocaleDateString('ja-JP');
+
+                    const statusColors = {
+                        '配信済': 'bg-blue-100 text-blue-800',
+                        '配信後未成約': 'bg-yellow-100 text-yellow-800',
+                        '対応中': 'bg-green-100 text-green-800',
+                        '見積提出済': 'bg-purple-100 text-purple-800',
+                        '商談中': 'bg-orange-100 text-orange-800'
+                    };
+                    const statusColor = statusColors[caseItem.managementStatus] || 'bg-gray-100 text-gray-800';
+
+                    const daysUntilDeadline = 7 - caseItem.daysElapsed;
+                    const deadlineClass = daysUntilDeadline <= 1 ? 'text-red-600 font-bold' : 'text-gray-600';
+
+                    return `
+                    <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                         onclick="openCancelModal('${caseItem.cvId}')">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColor}">${caseItem.managementStatus}</span>
+                        </div>
+                        <h3 class="font-bold text-lg mb-1">${caseItem.customerName}</h3>
+                        <p class="text-sm text-gray-600 mb-2">📍 ${caseItem.address}</p>
+                        <p class="text-sm text-gray-600 mb-2">📞 ${caseItem.tel}</p>
+                        <p class="text-sm text-gray-600 mb-2">配信日: ${deliveredDate}</p>
+                        <p class="text-sm ${deadlineClass}">期限: ${deadlineDate} (残り${daysUntilDeadline}日)</p>
+                    </div>
+                    `;
+                }).join('');
+            } else if (currentTab === 'rejected' && filteredCases.length > 0) {
+                container.innerHTML = filteredCases.map(caseItem => {
+                    const appliedDate = new Date(caseItem.appliedAt).toLocaleDateString('ja-JP');
+                    const deliveredDate = new Date(caseItem.deliveredAt).toLocaleDateString('ja-JP');
+                    const rejectedDate = caseItem.rejectedAt ? new Date(caseItem.rejectedAt).toLocaleDateString('ja-JP') : '';
+                    const rejectionReason = caseItem.rejectionReason
+                        ? `<p class="text-sm text-red-600 mt-2"><span class="font-semibold">却下理由:</span> ${caseItem.rejectionReason}</p>`
+                        : '';
+
+                    return `
+                    <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">却下済み</span>
+                        </div>
+                        <h3 class="font-bold text-lg mb-1">${caseItem.customerName}</h3>
+                        <p class="text-sm text-gray-600 mb-2">📍 ${caseItem.address}</p>
+                        <p class="text-sm text-gray-600 mb-2">📞 ${caseItem.tel}</p>
+                        <p class="text-sm text-gray-600 mb-2">配信日: ${deliveredDate}</p>
+                        <p class="text-sm text-gray-600 mb-2">申請日: ${appliedDate}</p>
+                        ${rejectedDate ? `<p class="text-sm text-gray-600 mb-2">却下日: ${rejectedDate}</p>` : ''}
+                        ${rejectionReason}
+                        <div class="mt-3 pt-3 border-t border-gray-200">
+                            <p class="text-xs text-gray-500 font-semibold mb-1">申請理由:</p>
+                            <p class="text-xs text-gray-700">${caseItem.reason}</p>
+                        </div>
+                        <div class="flex gap-1 mt-3">
+                            <button onclick="archiveCase('${caseItem.cvId}')" class="flex-1 px-2 py-1.5 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200 transition-colors" title="追客終了BOXへ移動">
+                                🗑️ 追客終了
+                            </button>
+                            <button onclick="openCancelReapplication('${caseItem.cvId}')" class="flex-1 px-2 py-1.5 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200 transition-colors" title="再申請">
+                                🔄 再申請
+                            </button>
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+            } else {
+                container.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">該当する案件が見つかりません</div>';
+            }
+        }
+
+        // 期限延長申請の案件検索
+        function searchExtensionCases() {
+            const searchTerm = document.getElementById('extensionSearchInput').value.toLowerCase().trim();
+            const startDate = document.getElementById('extensionStartDate').value;
+            const endDate = document.getElementById('extensionEndDate').value;
+            const container = document.getElementById('extensionCasesList');
+
+            if (!extensionEligibleCasesCache || extensionEligibleCasesCache.length === 0) {
+                return; // データがない場合は何もしない
+            }
+
+            let filteredCases = extensionEligibleCasesCache;
+
+            // テキスト検索
+            if (searchTerm) {
+                filteredCases = filteredCases.filter(c => {
+                    return (c.customerName && c.customerName.toLowerCase().includes(searchTerm)) ||
+                           (c.tel && c.tel.toLowerCase().includes(searchTerm)) ||
+                           (c.address && c.address.toLowerCase().includes(searchTerm)) ||
+                           (c.cvId && c.cvId.toLowerCase().includes(searchTerm));
+                });
+            }
+
+            // 期間フィルター
+            if (startDate || endDate) {
+                const start = startDate ? new Date(startDate) : new Date('2000-01-01');
+                const end = endDate ? new Date(endDate + 'T23:59:59') : new Date('2100-12-31');
+
+                filteredCases = filteredCases.filter(c => {
+                    if (!c.deliveredAt) return false;
+                    const deliveredDate = new Date(c.deliveredAt);
+                    return deliveredDate >= start && deliveredDate <= end;
+                });
+            }
+
+            // カード再描画
+            if (filteredCases.length > 0) {
+                container.innerHTML = filteredCases.map(caseItem => {
+                    const deliveredDate = new Date(caseItem.deliveredAt).toLocaleDateString('ja-JP');
+                    const currentDeadline = new Date(caseItem.applicationDeadline).toLocaleDateString('ja-JP');
+                    const extendedDeadline = new Date(caseItem.extendedDeadline).toLocaleDateString('ja-JP');
+                    return `
+                    <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                         onclick="openExtensionModal('${caseItem.cvId}')">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">延長可能</span>
+                            <button onclick="event.stopPropagation(); openCancelModal('${caseItem.cvId}')"
+                                    class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+                                    title="キャンセル申請">
+                                ❌ キャンセル
+                            </button>
+                        </div>
+                        <h3 class="font-bold text-lg mb-1">${caseItem.customerName}</h3>
+                        <p class="text-sm text-gray-600 mb-2">CV ID: ${caseItem.cvId}</p>
+                        <p class="text-sm text-gray-600 mb-2">📞 ${caseItem.tel}</p>
+                        <p class="text-sm text-gray-600 mb-2">配信日: ${deliveredDate}</p>
+                        <p class="text-sm text-red-600">現在の期限: ${currentDeadline}</p>
+                        <p class="text-sm text-green-600 font-semibold">延長後期限: ${extendedDeadline}</p>
+                    </div>
+                    `;
+                }).join('');
+            } else {
+                container.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">該当する案件が見つかりません</div>';
+            }
+        }
+
         // 初期表示用
         function displayCancelCases() {
             loadCancelableCases();
@@ -19051,6 +19300,7 @@
 
         // データキャッシュ用変数
         let cancelableCasesCache = [];
+        let cancelRejectedCasesCache = []; // 却下済み案件キャッシュ
         let extensionEligibleCasesCache = [];
 
         // グローバル状態
@@ -19185,6 +19435,11 @@
                 const result = await response.json();
 
                 if (result.success && result.cases && result.cases.length > 0) {
+                    // 却下済み案件の場合はキャッシュに保存（再申請用）
+                    if (status === 'rejected') {
+                        cancelRejectedCasesCache = result.cases;
+                    }
+
                     container.innerHTML = result.cases.map(caseItem => {
                         const appliedDate = new Date(caseItem.appliedAt).toLocaleDateString('ja-JP');
                         const deliveredDate = new Date(caseItem.deliveredAt).toLocaleDateString('ja-JP');
@@ -19209,6 +19464,18 @@
                             ? `<p class="text-sm text-gray-600 mb-2">却下日: ${new Date(caseItem.rejectedAt).toLocaleDateString('ja-JP')}</p>`
                             : '';
 
+                        // 却下済みタブの場合のみアクションボタンを表示
+                        const actionButtons = status === 'rejected' ? `
+                            <div class="flex gap-1 mt-3">
+                                <button onclick="archiveCase('${caseItem.cvId}')" class="flex-1 px-2 py-1.5 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200 transition-colors" title="追客終了BOXへ移動">
+                                    🗑️ 追客終了
+                                </button>
+                                <button onclick="openCancelReapplication('${caseItem.cvId}')" class="flex-1 px-2 py-1.5 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200 transition-colors" title="再申請">
+                                    🔄 再申請
+                                </button>
+                            </div>
+                        ` : '';
+
                         return `
                         <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
                             <div class="flex justify-between items-start mb-3">
@@ -19225,6 +19492,7 @@
                                 <p class="text-xs text-gray-500 font-semibold mb-1">申請理由:</p>
                                 <p class="text-xs text-gray-700">${caseItem.reason}</p>
                             </div>
+                            ${actionButtons}
                         </div>
                         `;
                     }).join('');
@@ -19507,8 +19775,9 @@
         // キャンセルモーダルを開く
         function openCancelModal(cvId) {
             try {
-                // キャッシュからデータを取得
-                cancelSelectedCase = cancelableCasesCache.find(c => c.cvId === cvId);
+                // 複数のキャッシュからデータを取得（キャンセル可能案件 or 期限延長可能案件）
+                cancelSelectedCase = cancelableCasesCache.find(c => c.cvId === cvId) ||
+                                    extensionEligibleCasesCache.find(c => c.cvId === cvId);
 
                 if (cancelSelectedCase) {
                     // AI生成回数をリセット
@@ -19528,6 +19797,42 @@
             } catch (error) {
                 console.error('顧客情報の読み込みエラー:', error);
                 alert('顧客情報の読み込みに失敗しました');
+            }
+        }
+
+        // キャンセル再申請モーダルを開く（却下済み案件用）
+        function openCancelReapplication(cvId) {
+            try {
+                // 却下済みキャッシュから案件データを取得
+                const rejectedCase = cancelRejectedCasesCache.find(c => c.cvId === cvId);
+
+                if (rejectedCase) {
+                    // 案件データを構築（キャンセル可能案件と同じ形式に）
+                    cancelSelectedCase = {
+                        cvId: rejectedCase.cvId,
+                        customerName: rejectedCase.customerName,
+                        tel: rejectedCase.tel,
+                        address: rejectedCase.address,
+                        deliveredAt: rejectedCase.deliveredAt
+                    };
+
+                    // AI生成回数をリセット
+                    cancelAiGenerationCount = 0;
+                    // テキスト履歴をリセット
+                    textHistory = [];
+                    textHistoryIndex = -1;
+                    // textareaをクリア
+                    document.getElementById('cancelApplicationText').value = '';
+                    // モーダルを表示して直接Step 1（理由カテゴリ選択）へ
+                    document.getElementById('cancelModal').classList.remove('hidden');
+                    cancelGoToStep(1);
+                } else {
+                    console.error('却下済み案件が見つかりません:', cvId);
+                    alert('案件情報が見つかりません。画面を再読み込みしてください。');
+                }
+            } catch (error) {
+                console.error('再申請エラー:', error);
+                alert('再申請の準備に失敗しました');
             }
         }
 
@@ -20539,6 +20844,11 @@
                              onclick="openExtensionModal('${caseItem.cvId}')">
                             <div class="flex justify-between items-start mb-3">
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">延長可能</span>
+                                <button onclick="event.stopPropagation(); openCancelModal('${caseItem.cvId}')"
+                                        class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+                                        title="キャンセル申請">
+                                    ❌ キャンセル
+                                </button>
                             </div>
                             <h3 class="font-bold text-lg mb-1">${caseItem.customerName}</h3>
                             <p class="text-sm text-gray-600 mb-2">CV ID: ${caseItem.cvId}</p>
