@@ -595,12 +595,12 @@ const CVSheetSystem = {
       const row = [
         cvId,                                    // A(1): CV ID
         timestamp,                               // B(2): 登録日時
-        '',                                      // C(3): 氏名（CV2で入力）
+        params.name || '',                       // C(3): 氏名（V1753: CV1フォールバック対応）
         '',                                      // D(4): フリガナ
         '',                                      // E(5): 性別
         '',                                      // F(6): 年齢
         params.phone ? "'" + params.phone : '',  // G(7): 電話番号（'を先頭に付けて文字列化）
-        '',                                      // H(8): メールアドレス（CV2で入力）
+        params.email || '',                      // H(8): メールアドレス（V1753: CV1フォールバック対応）
         '',                                      // I(9): 続柄
 
         '',                                      // J(10)-M(13): 2人目情報
@@ -610,14 +610,15 @@ const CVSheetSystem = {
 
         params.postalCode ? "'" + params.postalCode : '',  // N(14): 郵便番号（物件）（'を先頭に付けて文字列化）
         params.propertyPrefecture || '',         // O(15): 都道府県（物件）
-        params.propertyCity || '',               // P(16): 市区町村（物件）
-        '',                                      // Q(17): 住所詳細（CV2で入力）
-        params.addressKana || '',                // R(18): 住所フリガナ（V1752: ZipCloud APIから取得）
+        params.propertyCity || '',               // P(16): 市区町村（物件）（V1753: 市区町村+町名）
+        params.propertyStreet || '',             // Q(17): 住所詳細（物件）（V1753: CV1フォールバック対応）
+        params.addressKana || '',                // R(18): 住所フリガナ（V1753: ZipCloud APIから取得）
 
-        'FALSE',                                 // S(19): 自宅住所フラグ
-        '',                                      // T(20): 郵便番号（自宅）（CV2で入力）
-        '',                                      // U(21): 都道府県（自宅）（CV2で入力）
-        '',                                      // V(22): 住所詳細（自宅）（CV2で入力）
+        params.isDifferentHome ? 'TRUE' : 'FALSE', // S(19): 自宅住所フラグ（V1753: CV1フォールバック対応）
+        params.homeZip ? "'" + params.homeZip : '',  // T(20): 郵便番号（自宅）（V1753: CV1フォールバック対応）
+        params.homePrefecture || '',             // U(21): 都道府県（自宅）（V1753: CV1フォールバック対応）
+        // V(22): 住所詳細（自宅）= 市区町村+番地・建物名（V1753: CV1フォールバック対応）
+        [params.homeCity, params.homeStreet].filter(v => v).join('') || '',
 
         // W(23)-Z(26): 物件詳細（BOT回答から自動抽出）
         this.extractPropertyType(params.Q1_propertyType, params.q1_question),  // W(23): 物件種別
@@ -644,11 +645,11 @@ const CVSheetSystem = {
         params.Q16_degradation || '',            // AP(42): Q16_現在の劣化状況
         params.Q17_selectionCriteria || '',      // AQ(43): Q17_業者選定条件
 
-        '',                                      // AR(44): 現地調査希望日時（CV2で入力）
-        '',                                      // AS(45): 業者選定履歴（CV2で入力）
-        '',                                      // AT(46): 案件メモ（CV2で入力）
-        '',                                      // AU(47): 連絡時間帯（CV2で入力）
-        '',                                      // AV(48): 見積もり送付先（CV2で入力）
+        params.surveyDatePreference || '',       // AR(44): 現地調査希望日時（V1753: CV1フォールバック対応）
+        params.selectionHistory || '',           // AS(45): 業者選定履歴（V1753: CV1フォールバック対応）
+        params.requests || '',                   // AT(46): 案件メモ（V1753: CV1フォールバック対応）
+        params.contactTimeSlot || '',            // AU(47): 連絡時間帯（V1753: CV1フォールバック対応）
+        params.quoteDestination || '',           // AV(48): 見積もり送付先（V1753: CV1フォールバック対応）
         params.wordLinkAnswer || '',             // AW(49): ワードリンク回答
 
         '未配信',                                 // AX(50): 配信ステータス

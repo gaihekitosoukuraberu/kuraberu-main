@@ -186,25 +186,31 @@ const CVAPI = {
                 name: formData.name || '',
                 email: formData.email || '',
 
-                // 物件住所
-                postalCode: formData.propertyAddress?.postalCode || '',
+                // 物件住所（V1753-FIX3: formDataから正しく取得）
+                postalCode: formData.propertyZip || BotConfig.state.currentZipcode || '',
                 propertyPrefecture: window.propertyPrefecture || '',
                 propertyCity: window.propertyCity || '',
-                propertyStreet: formData.propertyAddress?.street || '',
+                propertyStreet: formData.propertyStreet || '',
 
-                // 自宅住所（物件と異なる場合）
+                // V1753-FIX3: 住所フリガナ（ZipCloud APIから取得、window.addressKanaを優先）
+                addressKana: window.addressKana || BotConfig.state.addressKana || sessionStorage.getItem('bot_addressKana') || '',
+
+                // 自宅住所（物件と異なる場合）（V1753-FIX3: formDataから正しく取得）
                 isDifferentHome: formData.isDifferentHome || false,
-                homeZip: formData.homeAddress?.postalCode || '',
-                homePrefecture: window.homePrefecture || '',
-                homeCity: window.homeCity || '',
-                homeStreet: formData.homeAddress?.street || '',
+                homeZip: formData.homeZip || '',
+                homePrefecture: formData.homePrefecture || '',
+                homeCity: formData.homeCity || '',
+                homeStreet: formData.homeStreet || '',
 
                 // ステップ2: 詳細情報
                 surveyDatePreference: formData.surveyDates?.join(', ') || '',
                 requests: formData.requests || '',
-                selectionHistory: formData.keepInfo || '',  // AR列：業者選定履歴（キープ業者情報）
-                contactTimeSlot: formData.contactTimeSlot || '',  // AT列：連絡時間帯
-                quoteDestination: formData.quoteDestination || '',  // AU列：見積もり送付先
+                selectionHistory: formData.keepInfo || '',  // AS列：業者選定履歴（キープ業者情報）
+                contactTimeSlot: formData.contactTimeSlot || '',  // AU列：連絡時間帯
+                quoteDestination: formData.quoteDestination || '',  // AV列：見積もり送付先
+
+                // 訪問情報
+                ...this.getVisitorInfo(),
 
                 // タイムスタンプ
                 timestamp: new Date().toISOString()
