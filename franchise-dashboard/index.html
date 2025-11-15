@@ -1051,18 +1051,18 @@
 
                 <!-- タブナビゲーション -->
                 <div class="bg-white rounded-lg shadow mb-6">
-                    <div class="border-b border-gray-200">
-                        <nav class="flex -mb-px">
-                            <button onclick="showBillingTab('purchase')" class="billing-tab billing-tab-active px-6 py-3 border-b-2 font-medium text-sm" data-tab="purchase">
+                    <div class="border-b border-gray-200 overflow-x-auto">
+                        <nav class="flex -mb-px min-w-max">
+                            <button onclick="showBillingTab('purchase')" class="billing-tab billing-tab-active px-4 sm:px-6 py-3 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap" data-tab="purchase">
                                 紹介料履歴
                             </button>
-                            <button onclick="showBillingTab('commission')" class="billing-tab px-6 py-3 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="commission">
+                            <button onclick="showBillingTab('commission')" class="billing-tab px-4 sm:px-6 py-3 border-b-2 font-medium text-xs sm:text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap" data-tab="commission">
                                 成約手数料
                             </button>
-                            <button onclick="showBillingTab('payment')" class="billing-tab px-6 py-3 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="payment">
+                            <button onclick="showBillingTab('payment')" class="billing-tab px-4 sm:px-6 py-3 border-b-2 font-medium text-xs sm:text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap" data-tab="payment">
                                 支払履歴
                             </button>
-                            <button onclick="showBillingTab('analysis')" class="billing-tab px-6 py-3 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="analysis">
+                            <button onclick="showBillingTab('analysis')" class="billing-tab px-4 sm:px-6 py-3 border-b-2 font-medium text-xs sm:text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap" data-tab="analysis">
                                 収支分析
                             </button>
                         </nav>
@@ -5032,18 +5032,18 @@
                 </div>
 
                 <!-- タブナビゲーション -->
-                <div class="mb-6 border-b border-gray-200">
-                    <nav class="flex space-x-4">
-                        <button onclick="switchCancelTab('available')" id="cancelTab-available" class="cancel-tab px-4 py-2 border-b-2 border-blue-500 text-blue-600 font-medium">
+                <div class="mb-6 border-b border-gray-200 overflow-x-auto">
+                    <nav class="flex space-x-2 sm:space-x-4 min-w-max">
+                        <button onclick="switchCancelTab('available')" id="cancelTab-available" class="cancel-tab px-3 sm:px-4 py-2 border-b-2 border-blue-500 text-blue-600 font-medium text-sm sm:text-base whitespace-nowrap">
                             申請可能
                         </button>
-                        <button onclick="switchCancelTab('pending')" id="cancelTab-pending" class="cancel-tab px-4 py-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                        <button onclick="switchCancelTab('pending')" id="cancelTab-pending" class="cancel-tab px-3 sm:px-4 py-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 text-sm sm:text-base whitespace-nowrap">
                             審査中
                         </button>
-                        <button onclick="switchCancelTab('approved')" id="cancelTab-approved" class="cancel-tab px-4 py-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                        <button onclick="switchCancelTab('approved')" id="cancelTab-approved" class="cancel-tab px-3 sm:px-4 py-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 text-sm sm:text-base whitespace-nowrap">
                             承認済み
                         </button>
-                        <button onclick="switchCancelTab('rejected')" id="cancelTab-rejected" class="cancel-tab px-4 py-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                        <button onclick="switchCancelTab('rejected')" id="cancelTab-rejected" class="cancel-tab px-3 sm:px-4 py-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 text-sm sm:text-base whitespace-nowrap">
                             却下済み
                         </button>
                     </nav>
@@ -5207,7 +5207,7 @@
                                     <textarea id="cancelApplicationText" rows="8" maxlength="1000" required
                                               class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-blue-500"
                                               placeholder="自動生成されたテンプレート文を編集できます"></textarea>
-                                    <p class="text-xs text-gray-500 mt-1">※ 自由記述がある場合はAI校正、選択肢のみの場合はテンプレート生成されます（最大1000文字）</p>
+                                    <p class="text-xs text-gray-500 mt-1">最大1000文字</p>
                                 </div>
 
 
@@ -20498,7 +20498,6 @@
                 // 質問フォームから回答を収集
                 const questions = window.CancelReasons.getQuestions(cancelSelectedCategory, cancelSelectedSubCategory);
                 const answers = {};
-                let hasFreeText = false; // 自由記述があるかフラグ
 
                 // 各質問の回答を取得
                 if (questions && questions.length > 0) {
@@ -20518,10 +20517,6 @@
                                         const fqElement = document.getElementById(fqId);
                                         if (fqElement && fqElement.value) {
                                             answers[fq.label] = fqElement.value;
-                                            // followUpがtextarea/textの場合、自由記述とみなす
-                                            if (fq.type === 'textarea' || fq.type === 'text') {
-                                                hasFreeText = true;
-                                            }
                                         }
                                     });
                                 }
@@ -20539,11 +20534,6 @@
                                 }
                             }
                         }
-
-                        // textarea/textタイプの質問があればフラグを立てる
-                        if ((q.type === 'textarea' || q.type === 'text') && element && element.value && element.value.trim() !== '') {
-                            hasFreeText = true;
-                        }
                     });
                 }
 
@@ -20552,14 +20542,9 @@
                 const subCats = window.CancelReasons.getSubCategories(cancelSelectedCategory);
                 const subCategory = subCats.find(sc => sc.id === cancelSelectedSubCategory);
 
-                // ハイブリッド判定: 自由記述があればAI、なければテンプレート
-                if (hasFreeText) {
-                    console.log('[generateCancelApplicationText] 自由記述あり → AI生成を使用');
-                    await generateWithAI(category, subCategory, answers);
-                } else {
-                    console.log('[generateCancelApplicationText] 選択肢のみ → テンプレート生成を使用');
-                    generateWithTemplate(category, subCategory, answers);
-                }
+                // AI校正ボタンを押したら常にAI生成を使用
+                console.log('[generateCancelApplicationText] AI生成を使用');
+                await generateWithAI(category, subCategory, answers);
 
             } catch (error) {
                 console.error('テキスト自動生成エラー:', error);

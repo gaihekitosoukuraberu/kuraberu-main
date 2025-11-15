@@ -13,8 +13,8 @@
  * - admin-dashboard/dist/js/env-loader.js
  * - estimate-keep-system/dist/js/env-loader.js
  *
- * @file-version V1741-SEARCH-FUNCTIONS-2025-11-15T14:30:00
- * @last-update 2025-11-15T14:30:00
+ * @file-version V1743-AI-ALWAYS-ON-2025-11-15T15:30:00
+ * @last-update 2025-11-15T15:30:00
  */
 
 const ENV = {
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1740 - 2025-11-15 - 却下済み再申請＋検索UI改善＋レスポンシブ対応）
-  CACHE_BUSTER: '1763208000000'
+  // キャッシュバスター（V1743 - 2025-11-15 - AI校正常時ON化）
+  CACHE_BUSTER: '1763212800000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
