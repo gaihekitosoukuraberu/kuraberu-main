@@ -15,10 +15,19 @@ const CVSheetSystem = {
 
   /**
    * スプレッドシートIDを取得
-   * 固定ID: 1eHAUiuDbTdv9WC-RfpMUdp9HGlaqd1C7MHtgntKbSIU
+   * PropertiesServiceから取得、フォールバック付き
    */
   getSpreadsheetId() {
-    return '1eHAUiuDbTdv9WC-RfpMUdp9HGlaqd1C7MHtgntKbSIU';
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const spreadsheetId = scriptProperties.getProperty('SPREADSHEET_ID');
+
+    if (!spreadsheetId) {
+      // フォールバック: デフォルト値
+      console.log('[CVSheetSystem] SPREADSHEET_IDプロパティが見つかりません。デフォルト値を使用します。');
+      return '1eHAUiuDbTdv9WC-RfpMUdp9HGlaqd1C7MHtgntKbSIU';
+    }
+
+    return spreadsheetId;
   },
 
   /**

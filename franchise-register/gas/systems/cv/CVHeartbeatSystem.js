@@ -42,7 +42,7 @@ class CVHeartbeatSystem {
       console.log(`[CVHeartbeat] 受信: ${cvId}`);
 
       // CVシート取得
-      const sheet = SpreadsheetApp.openById(CONFIG.SHEETS.CV_SHEET_ID).getSheetByName('CV管理');
+      const sheet = SpreadsheetApp.openById(CVSheetSystem.getSpreadsheetId()).getSheetByName('ユーザー登録');
       if (!sheet) {
         return { success: false, error: 'CVシートが見つかりません' };
       }
@@ -85,7 +85,7 @@ class CVHeartbeatSystem {
     try {
       console.log('[CVHeartbeat] 離脱チェック開始');
 
-      const sheet = SpreadsheetApp.openById(CONFIG.SHEETS.CV_SHEET_ID).getSheetByName('CV管理');
+      const sheet = SpreadsheetApp.openById(CVSheetSystem.getSpreadsheetId()).getSheetByName('ユーザー登録');
       if (!sheet) {
         console.error('[CVHeartbeat] CVシートが見つかりません');
         return;
