@@ -914,15 +914,13 @@ const CVSheetSystem = {
             q17_selectionCriteria: row[41] || ''        // AP: Q17_業者選定条件
           },
 
-          // AQ-AR: CV2入力項目
+          // AQ-AW: CV2入力項目・運用項目
           surveyDatePreference: row[42] || '',          // AQ: 現地調査希望日時
-          keepInfo: row[43] || '',                      // AR: その他ご要望
-
-          // AS-AV: 予備・運用項目
-          budget: row[44] || '',                        // AS: 予算
-          reserve1: row[45] || '',                      // AT: 予備項目1
-          reserve2: row[46] || '',                      // AU: 予備項目2
-          reserve3: row[47] || '',                      // AV: 予備項目3
+          franchiseSelectionHistory: row[43] || '',     // AR: 業者選定履歴
+          caseMemo: row[44] || '',                      // AS: 案件メモ
+          contactTimePreference: row[45] || '',         // AT: 連絡時間帯
+          estimateDeliveryAddress: row[46] || '',       // AU: 見積もり送付先
+          wordLinkAnswer: row[47] || '',                // AV: ワードリンク回答
 
           // AW-BC: 配信・成約管理
           deliveryStatus: row[48] || '',                // AW: 配信ステータス
