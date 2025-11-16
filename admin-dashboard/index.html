@@ -3363,13 +3363,24 @@ window.addEventListener('beforeunload', function(e) {
 
         // Google Mapリンク生成機能（短縮URL版）
         async function generateGoogleMapLink() {
+            const zipInput = document.getElementById('zipInput');
             const addressInput = document.getElementById('addressInput');
             const mapLinkInput = document.getElementById('mapLinkInput');
 
+            // 住所を組み立て（郵便番号、住所詳細を結合）
+            let fullAddress = '';
+
+            if (zipInput && zipInput.value.trim()) {
+                fullAddress += zipInput.value.trim();
+            }
+
             if (addressInput && addressInput.value.trim()) {
-                const address = addressInput.value.trim();
+                fullAddress += (fullAddress ? ' ' : '') + addressInput.value.trim();
+            }
+
+            if (fullAddress) {
                 // Google Maps URLを生成
-                const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+                const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
 
                 try {
                     // GAS経由で短縮URL取得
@@ -3910,10 +3921,11 @@ window.addEventListener('beforeunload', function(e) {
             const addressInput = document.getElementById('addressInput');
             if (addressInput) {
                 addressInput.value = data.address || data['住所詳細（物件）'] || '';
-                // 住所があればGoogle Mapsリンクを自動生成
-                if (addressInput.value) {
-                    setTimeout(() => generateGoogleMapLink(), 100);
-                }
+            }
+
+            // 郵便番号または住所があればGoogle Mapsリンクを自動生成
+            if ((zipInput && zipInput.value) || (addressInput && addressInput.value)) {
+                setTimeout(() => generateGoogleMapLink(), 100);
             }
 
             // 物件情報リンク（Google Maps）
