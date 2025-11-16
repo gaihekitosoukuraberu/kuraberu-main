@@ -186,35 +186,35 @@
     <!-- メインアプリケーション（初期状態は非表示） -->
     <div id="mainApp" class="hidden">
     <!-- トップバー -->
-    <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-gray-900/95 glass border-b border-gray-200">
+    <div class="fixed top-0 left-0 right-0 z-50 h-16 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm">
         <div class="flex items-center justify-between h-full px-6">
             <div class="flex items-center space-x-4">
-                <button onclick="toggleMenu()" class="p-2 rounded-lg hover:bg-gray-800 transition-colors">
-                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button onclick="toggleMenu()" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
-                <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                        <span class="text-gray-100 font-bold">本</span>
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <span class="text-white font-bold text-sm">本</span>
                     </div>
-                    <span class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                         本部管理システム
                     </span>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
                 <div class="relative">
-                    <button class="p-2 rounded-lg hover:bg-gray-800 transition-colors">
-                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
                         <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                     </button>
                 </div>
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-500 rounded-full"></div>
-                    <span class="text-sm text-gray-700">管理者</span>
+                <div class="flex items-center space-x-3 px-3 py-1.5 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200">
+                    <div class="w-8 h-8 bg-gradient-to-br from-green-400 to-blue-500 rounded-full shadow-md"></div>
+                    <span class="text-sm font-medium text-gray-700">管理者</span>
                 </div>
             </div>
         </div>
@@ -294,23 +294,31 @@
     <!-- メインコンテンツ -->
     <main class="pt-20 px-6">
             <!-- ヘッダー -->
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">案件管理</h1>
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">案件管理</h1>
+                        <p class="text-sm text-gray-500 mt-0.5">Case Management</p>
+                    </div>
                 </div>
-                <div class="flex items-center space-x-2">
-                    <button onclick="createNewCase()" class="bg-green-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-600 transition-all flex items-center gap-2">
+                <div class="flex items-center gap-2">
+                    <button onclick="createNewCase()" class="bg-gradient-to-r from-green-500 to-green-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
                         新規作成
                     </button>
-                    <button onclick="location.reload()" class="bg-blue-400 text-white p-2 rounded-lg hover:bg-blue-500 transition-all" title="更新">
+                    <button onclick="location.reload()" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-2.5 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105" title="更新">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                     </button>
-                    <button onclick="saveAllData()" class="bg-pink-400 text-white px-4 py-2 rounded-lg font-medium hover:bg-pink-500 transition-all flex items-center gap-2">
+                    <button onclick="saveAllData()" class="bg-gradient-to-r from-pink-500 to-pink-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:from-pink-600 hover:to-pink-700 transition-all flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2" />
                         </svg>
@@ -323,51 +331,47 @@
             <div class="form-section py-4">
                 
                 <!-- 検索・フィルターダッシュボード（レスポンシブ版） -->
-                <div class="bg-white rounded-lg p-3 mb-4 border border-gray-200">
+                <div class="bg-gradient-to-r from-gray-50 to-white rounded-xl p-4 mb-6 border border-gray-200 shadow-sm">
                     <!-- モバイル: 縦並び、PC: すべて横一列 -->
-                    <div class="flex flex-wrap items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-3">
                         <!-- 統計ボタン群 -->
-                        <button onclick="filterByNewStatus()" class="flex items-center space-x-1 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow hover:shadow-md transition-all cursor-pointer">
-                            <span class="text-lg font-bold" id="newCount">0</span>
-                            <span class="text-xs">新規</span>
+                        <button onclick="filterByNewStatus()" class="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer hover:scale-105 transform">
+                            <span class="text-2xl font-bold" id="newCount">15</span>
+                            <span class="text-sm font-medium">新規</span>
                         </button>
-                        <button onclick="filterByProspect()" class="flex items-center space-x-1 px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg shadow hover:shadow-md transition-all cursor-pointer">
-                            <span class="text-lg font-bold" id="prospectCount">0</span>
-                            <span class="text-xs">見込み</span>
+                        <button onclick="filterByProspect()" class="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer hover:scale-105 transform">
+                            <span class="text-2xl font-bold" id="prospectCount">0</span>
+                            <span class="text-sm font-medium">見込み</span>
                         </button>
-                        <button onclick="filterByAbsent()" class="flex items-center space-x-1 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg shadow hover:shadow-md transition-all cursor-pointer">
-                            <span class="text-lg font-bold" id="absentCount">0</span>
-                            <span class="text-xs">対応中</span>
+                        <button onclick="filterByAbsent()" class="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer hover:scale-105 transform">
+                            <span class="text-2xl font-bold" id="absentCount">0</span>
+                            <span class="text-sm font-medium">対応中</span>
                         </button>
-                        <div class="flex items-center space-x-1 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg shadow">
-                            <span class="text-lg font-bold" id="predictedAmount">¥0</span>
-                            <span class="text-xs">予測</span>
-                        </div>
-                        
+
                         <!-- PC用スペーサー（左寄せから右寄せに切り替え） -->
                         <div class="hidden lg:block lg:flex-1"></div>
-                        
+
                         <!-- 検索・ソートコントロール（PCでは右側、モバイルでは下段） -->
                         <div class="flex items-center gap-2 w-full lg:w-auto">
                             <!-- 検索ボックス -->
-                            <div class="flex-1 lg:flex-none lg:w-40">
+                            <div class="flex-1 lg:flex-none lg:w-52">
                                 <div class="relative">
-                                    <input type="search" id="searchInput" placeholder="検索..." oninput="searchRegistrations()" autocomplete="off" class="w-full pl-7 pr-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-transparent touch-manipulation">
-                                    <div class="absolute left-2 top-1.5">
-                                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <input type="search" id="searchInput" placeholder="検索..." oninput="searchRegistrations()" autocomplete="off" class="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all">
+                                    <div class="absolute left-3 top-3">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                         </svg>
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- ソートボタン -->
-                            <button onclick="openSortModal()" class="px-3 py-1 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg text-xs font-medium shadow hover:shadow-md transition-all">
+                            <button onclick="openSortModal()" class="px-4 py-2.5 bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-xl text-sm font-semibold shadow-md hover:shadow-lg transition-all hover:scale-105 transform">
                                 ソート
                             </button>
-                            
+
                             <!-- ソートオプション -->
-                            <select id="sortSelect" class="px-2 py-1 border border-gray-300 rounded-lg text-xs bg-white">
+                            <select id="sortSelect" class="px-3 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 transition-all">
                                 <option value="date-desc">新着順</option>
                                 <option value="date-asc">古い順</option>
                                 <option value="amount-desc">金額順</option>
