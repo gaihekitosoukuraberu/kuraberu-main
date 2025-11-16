@@ -142,6 +142,12 @@ const CVListManager = {
         searchKeyword: cv.searchKeyword || '',
         workItems: workItems,
 
+        // 見積もり・工事に関するご要望
+        quoteSource: cv.botAnswers?.q12_quoteSource || '',           // Q12: 見積もり取得先
+        constructionTiming: '',                                        // TODO: 施工時期（データソース確認が必要）
+        quoteStatus: '',                                               // TODO: 他社見積もり状況（データソース確認が必要）
+        quoteCount: cv.botAnswers?.q11_quoteCount || '',              // Q11: 見積もり保有数
+
         // 配信・成約
         companiesCount: companiesCount,
         status: cv.status || '新規',
