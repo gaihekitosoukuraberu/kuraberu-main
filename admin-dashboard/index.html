@@ -489,19 +489,27 @@
                         <div class="border-b px-6 py-4 bg-gray-50">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-4">
-                                    <!-- ステータスドロップダウン -->
-                                    <select id="crmStatus" class="text-lg font-semibold border rounded px-3 py-2" onchange="changeCRMStatus(this.value)">
-                                        <option value="新規">新規</option>
-                                        <option value="不在">不在</option>
-                                        <option value="再架電">再架電</option>
-                                        <option value="見込み">見込み</option>
-                                        <option value="ロスト">ロスト</option>
-                                        <option value="配信中">配信中</option>
-                                        <option value="配信済">配信済</option>
-                                        <option value="他社契約済">他社契約済</option>
-                                        <option value="無効">無効</option>
-                                        <option value="クレーム">クレーム</option>
-                                    </select>
+                                    <!-- ステータスバッジ（クリックで変更モーダル表示） -->
+                                    <div class="relative inline-block">
+                                        <button id="crmStatusBadge" onclick="toggleStatusModal()" class="px-4 py-2 rounded-lg font-semibold text-base transition-all hover:shadow-md cursor-pointer bg-blue-100 text-blue-700">
+                                            新規
+                                        </button>
+                                        <!-- ステータス選択モーダル -->
+                                        <div id="statusModal" class="hidden absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 min-w-[200px]">
+                                            <div class="p-2 space-y-1">
+                                                <button onclick="selectCRMStatus('新規')" class="w-full text-left px-3 py-2 rounded hover:bg-gray-50 text-sm font-medium">新規</button>
+                                                <button onclick="selectCRMStatus('不在')" class="w-full text-left px-3 py-2 rounded hover:bg-gray-50 text-sm font-medium">不在</button>
+                                                <button onclick="selectCRMStatus('再架電')" class="w-full text-left px-3 py-2 rounded hover:bg-gray-50 text-sm font-medium">再架電</button>
+                                                <button onclick="selectCRMStatus('見込み')" class="w-full text-left px-3 py-2 rounded hover:bg-gray-50 text-sm font-medium">見込み</button>
+                                                <button onclick="selectCRMStatus('ロスト')" class="w-full text-left px-3 py-2 rounded hover:bg-gray-50 text-sm font-medium">ロスト</button>
+                                                <button onclick="selectCRMStatus('配信中')" class="w-full text-left px-3 py-2 rounded hover:bg-gray-50 text-sm font-medium">配信中</button>
+                                                <button onclick="selectCRMStatus('配信済')" class="w-full text-left px-3 py-2 rounded hover:bg-gray-50 text-sm font-medium">配信済</button>
+                                                <button onclick="selectCRMStatus('他社契約済')" class="w-full text-left px-3 py-2 rounded hover:bg-gray-50 text-sm font-medium">他社契約済</button>
+                                                <button onclick="selectCRMStatus('無効')" class="w-full text-left px-3 py-2 rounded hover:bg-gray-50 text-sm font-medium">無効</button>
+                                                <button onclick="selectCRMStatus('クレーム')" class="w-full text-left px-3 py-2 rounded hover:bg-gray-50 text-sm font-medium">クレーム</button>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <!-- 架電履歴ボタン -->
                                     <div class="relative group inline-block">
                                         <button onclick="openCallHistoryModal()" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all text-2xl" title="架電履歴">
@@ -1264,15 +1272,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="mb-4">
                     <h4 class="text-sm font-medium text-gray-700 mb-2">管理ステータス</h4>
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="filterBySpecificStatus('不在')" class="px-3 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">不在</button>
-                        <button onclick="filterBySpecificStatus('再架電')" class="px-3 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">再架電</button>
-                        <button onclick="filterBySpecificStatus('見込み')" class="px-3 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">見込み</button>
-                        <button onclick="filterBySpecificStatus('ロスト')" class="px-3 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">ロスト</button>
-                        <button onclick="filterBySpecificStatus('配信中')" class="px-3 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">配信中</button>
-                        <button onclick="filterBySpecificStatus('配信済')" class="px-3 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">配信済</button>
-                        <button onclick="filterBySpecificStatus('他社契約済')" class="px-3 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">他社契約済</button>
-                        <button onclick="filterBySpecificStatus('無効')" class="px-3 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">無効</button>
-                        <button onclick="filterBySpecificStatus('クレーム')" class="px-3 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">クレーム</button>
+                        <button onclick="filterBySpecificStatus('不在')" class="px-3 py-2 bg-gradient-to-r from-purple-400 to-purple-500 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">不在</button>
+                        <button onclick="filterBySpecificStatus('再架電')" class="px-3 py-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">再架電</button>
+                        <button onclick="filterBySpecificStatus('見込み')" class="px-3 py-2 bg-gradient-to-r from-emerald-400 to-green-500 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">見込み</button>
+                        <button onclick="filterBySpecificStatus('ロスト')" class="px-3 py-2 bg-gradient-to-r from-rose-400 to-red-500 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">ロスト</button>
+                        <button onclick="filterBySpecificStatus('配信中')" class="px-3 py-2 bg-gradient-to-r from-yellow-400 to-amber-500 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">配信中</button>
+                        <button onclick="filterBySpecificStatus('配信済')" class="px-3 py-2 bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">配信済</button>
+                        <button onclick="filterBySpecificStatus('他社契約済')" class="px-3 py-2 bg-gradient-to-r from-slate-400 to-gray-500 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">他社契約済</button>
+                        <button onclick="filterBySpecificStatus('無効')" class="px-3 py-2 bg-gradient-to-r from-gray-400 to-slate-500 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">無効</button>
+                        <button onclick="filterBySpecificStatus('クレーム')" class="px-3 py-2 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">クレーム</button>
                     </div>
                 </div>
                 
@@ -1280,15 +1288,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div>
                     <h4 class="text-sm font-medium text-gray-700 mb-2">配信後ステータス</h4>
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="filterBySpecificStatus('アポ済')" class="px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">アポ済</button>
-                        <button onclick="filterBySpecificStatus('現調済')" class="px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">現調済</button>
-                        <button onclick="filterBySpecificStatus('見積提出済')" class="px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">見積提出済</button>
-                        <button onclick="filterBySpecificStatus('入金予定')" class="px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">入金予定</button>
-                        <button onclick="filterBySpecificStatus('完了')" class="px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">完了</button>
-                        <button onclick="filterBySpecificStatus('紹介後キャンセル')" class="px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">紹介後キャンセル</button>
-                        <button onclick="filterBySpecificStatus('現調前キャンセル')" class="px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">現調前キャンセル</button>
-                        <button onclick="filterBySpecificStatus('現調後ロスト')" class="px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">現調後ロスト</button>
-                        <button onclick="filterBySpecificStatus('他社契約済')" class="px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg shadow hover:shadow-md transition-all text-sm font-medium">他社契約済</button>
+                        <button onclick="filterBySpecificStatus('アポ済')" class="px-3 py-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">アポ済</button>
+                        <button onclick="filterBySpecificStatus('現調済')" class="px-3 py-2 bg-gradient-to-r from-teal-400 to-cyan-500 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">現調済</button>
+                        <button onclick="filterBySpecificStatus('見積提出済')" class="px-3 py-2 bg-gradient-to-r from-violet-400 to-purple-500 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">見積提出済</button>
+                        <button onclick="filterBySpecificStatus('入金予定')" class="px-3 py-2 bg-gradient-to-r from-yellow-400 to-amber-500 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">入金予定</button>
+                        <button onclick="filterBySpecificStatus('完了')" class="px-3 py-2 bg-gradient-to-r from-emerald-400 to-green-600 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">完了</button>
+                        <button onclick="filterBySpecificStatus('紹介後キャンセル')" class="px-3 py-2 bg-gradient-to-r from-pink-400 to-rose-500 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">紹介後キャンセル</button>
+                        <button onclick="filterBySpecificStatus('現調前キャンセル')" class="px-3 py-2 bg-gradient-to-r from-rose-400 to-pink-600 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">現調前キャンセル</button>
+                        <button onclick="filterBySpecificStatus('現調後ロスト')" class="px-3 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">現調後ロスト</button>
+                        <button onclick="filterBySpecificStatus('他社契約済')" class="px-3 py-2 bg-gradient-to-r from-slate-400 to-gray-500 text-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">他社契約済</button>
                     </div>
                 </div>
             </div>
@@ -4519,7 +4527,45 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!currentCaseId) return;
             casesData[currentCaseId].status = newStatus;
             console.log(`案件 ${currentCaseId} のステータスを ${newStatus} に変更`);
+            updateCRMStatusBadge(newStatus);
         }
+
+        // ステータスモーダルのトグル
+        function toggleStatusModal() {
+            const modal = document.getElementById('statusModal');
+            if (modal) {
+                modal.classList.toggle('hidden');
+            }
+        }
+
+        // ステータスを選択
+        function selectCRMStatus(status) {
+            changeCRMStatus(status);
+            toggleStatusModal();
+        }
+
+        // ステータスバッジの表示を更新
+        function updateCRMStatusBadge(status) {
+            const badge = document.getElementById('crmStatusBadge');
+            if (!badge) return;
+
+            // 既存のカラークラスを削除
+            badge.className = 'px-4 py-2 rounded-lg font-semibold text-base transition-all hover:shadow-md cursor-pointer';
+
+            // 新しいステータスに応じた色を適用
+            const colorClass = getStatusColor(status);
+            badge.className += ' ' + colorClass;
+            badge.textContent = status;
+        }
+
+        // モーダル外クリックで閉じる
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('statusModal');
+            const badge = document.getElementById('crmStatusBadge');
+            if (modal && badge && !modal.contains(event.target) && !badge.contains(event.target)) {
+                modal.classList.add('hidden');
+            }
+        });
         
         // 架電履歴モーダルを開く（リストからもCRMからも使える）
         function openCallHistoryModal(caseId) {
@@ -4861,8 +4907,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // ステータスを設定
-            document.getElementById('crmStatus').value = caseData.status;
+            // ステータスバッジを更新
+            updateCRMStatusBadge(caseData.status);
 
             // CRMビューのメモプレビューを更新
             const crmMemoPreview = document.getElementById('crmMemoPreview');
