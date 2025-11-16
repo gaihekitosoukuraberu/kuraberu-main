@@ -101,28 +101,59 @@ const CVListManager = {
       const workItems = [];
       if (cv.botAnswers && cv.botAnswers.q9_wallWorkType) {
         const wallWork = cv.botAnswers.q9_wallWorkType;
-        // 「塗装」→「外壁塗装」に変換
-        if (wallWork === '塗装') {
-          workItems.push('外壁塗装');
-        } else if (wallWork === '張替え・カバー工法') {
-          workItems.push('外壁カバー工法');
-        } else if (wallWork === '補修') {
-          workItems.push('外壁補修');
-        } else {
-          workItems.push(wallWork);
+        // 外壁工事種別のマッピング
+        switch (wallWork) {
+          case '塗装':
+            workItems.push('外壁塗装');
+            break;
+          case '張替え':
+            workItems.push('外壁張替え');
+            break;
+          case 'カバー工法':
+            workItems.push('外壁カバー工法');
+            break;
+          case '補修':
+            workItems.push('外壁補修');
+            break;
+          case '不明':
+            workItems.push('外壁不明');
+            break;
+          default:
+            // その他の値はそのまま
+            workItems.push(wallWork);
         }
       }
       if (cv.botAnswers && cv.botAnswers.q10_roofWorkType) {
         const roofWork = cv.botAnswers.q10_roofWorkType;
-        // 「塗装」→「屋根塗装」に変換
-        if (roofWork === '塗装') {
-          workItems.push('屋根塗装');
-        } else if (roofWork === '葺き替え・カバー工法') {
-          workItems.push('屋根カバー工法');
-        } else if (roofWork === '補修') {
-          workItems.push('屋根補修');
-        } else {
-          workItems.push(roofWork);
+        // 屋根工事種別のマッピング
+        switch (roofWork) {
+          case '塗装':
+            workItems.push('屋根塗装');
+            break;
+          case '葺き替え':
+            // 屋根材質に基づいて判断（デフォルトはスレート）
+            const roofMaterial = cv.botAnswers?.q7_roofMaterial || '';
+            if (roofMaterial === '瓦') {
+              workItems.push('屋根葺き替え（瓦）');
+            } else {
+              workItems.push('屋根葺き替え（スレート）');
+            }
+            break;
+          case 'カバー工法':
+            workItems.push('屋根カバー工法');
+            break;
+          case '補修':
+            workItems.push('屋根補修');
+            break;
+          case '屋上防水':
+            workItems.push('屋上防水');
+            break;
+          case '不明':
+            workItems.push('屋根不明');
+            break;
+          default:
+            // その他の値はそのまま
+            workItems.push(roofWork);
         }
       }
 
