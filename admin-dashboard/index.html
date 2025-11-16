@@ -596,11 +596,11 @@
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">性別</label>
-                        <div class="button-group">
-                            <button type="button" class="option-button px-4 py-2.5 bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-sm font-medium text-gray-700" onclick="selectGender(this, '男性')">男性</button>
-                            <button type="button" class="option-button px-4 py-2.5 bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-sm font-medium text-gray-700" onclick="selectGender(this, '女性')">女性</button>
-                        </div>
-                        <input type="hidden" id="genderValue" value="">
+                        <select id="genderSelect" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
+                            <option value="">選択してください</option>
+                            <option value="男性">男性</option>
+                            <option value="女性">女性</option>
+                        </select>
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">年齢</label>
@@ -615,14 +615,14 @@
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">関係性</label>
-                        <input type="text" id="relationInput" list="relationList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                        <datalist id="relationList">
-                            <option value="本人">
-                            <option value="配偶者">
-                            <option value="親">
-                            <option value="子">
-                            <option value="その他">
-                        </datalist>
+                        <select id="relationSelect" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
+                            <option value="">選択してください</option>
+                            <option value="本人">本人</option>
+                            <option value="配偶者">配偶者</option>
+                            <option value="親">親</option>
+                            <option value="子">子</option>
+                            <option value="その他">その他</option>
+                        </select>
                     </div>
                     <div class="relative sm:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">メールアドレス</label>
@@ -3718,28 +3718,19 @@ window.addEventListener('beforeunload', function(e) {
                 kanaInput.value = data.nameKana || data['フリガナ'] || '';
             }
 
-            // 性別（ボタングループ）
-            const genderValue = data.gender || data['性別'] || '';
-            const genderHiddenInput = document.getElementById('genderValue');
-            if (genderHiddenInput && genderValue) {
-                genderHiddenInput.value = genderValue;
-                // ボタンも選択状態にする
-                crmContent.querySelectorAll('.button-group .option-button').forEach(btn => {
-                    if (btn.textContent.trim() === genderValue) {
-                        btn.classList.add('selected');
-                    } else {
-                        btn.classList.remove('selected');
-                    }
-                });
+            // 性別（セレクト - IDで直接アクセス）
+            const genderSelect = document.getElementById('genderSelect');
+            if (genderSelect) {
+                genderSelect.value = data.gender || data['性別'] || '';
             }
 
             // 年齢（セレクト）
             setSelectValue('年齢', data.age || data['年齢']);
 
-            // 関係性（datalist対応 - IDで直接アクセス）
-            const relationInput = document.getElementById('relationInput');
-            if (relationInput) {
-                relationInput.value = data.relation || data['続柄'] || '';
+            // 関係性（セレクト - IDで直接アクセス）
+            const relationSelect = document.getElementById('relationSelect');
+            if (relationSelect) {
+                relationSelect.value = data.relation || data['続柄'] || '';
             }
 
             // 電話番号とメール
@@ -4959,33 +4950,6 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
-        // 性別選択ボタン
-        function selectGender(button, value) {
-            console.log('[selectGender] クリック:', value);
-
-            // 全てのボタンから selected クラスを削除
-            const buttons = button.parentElement.querySelectorAll('.option-button');
-            buttons.forEach(btn => {
-                btn.classList.remove('selected');
-                console.log('[selectGender] selected削除:', btn.textContent, btn.classList.toString());
-            });
-
-            // クリックされたボタンに selected クラスを追加
-            button.classList.add('selected');
-            console.log('[selectGender] selected追加:', button.textContent, button.classList.toString());
-
-            // hidden input に値を設定
-            document.getElementById('genderValue').value = value;
-            console.log('[selectGender] genderValue設定:', value);
-
-            // 変更を記録（Mapなのでsetを使用）
-            if (currentCaseId) {
-                unsavedChanges.set(currentCaseId, { type: 'form' });
-                updateSaveButton();
-                console.log('[selectGender] 未保存変更を記録:', currentCaseId);
-            }
-        }
-
         // 現地調査希望日時の選択ボタン
         function selectSurveyDateTime(button) {
             // 既に選択されている場合は解除
@@ -5045,16 +5009,16 @@ window.addEventListener('beforeunload', function(e) {
             const emailInput = crmContent.querySelector('input[type="email"]');
             if (emailInput) data.email = emailInput.value;
 
-            // 性別（hidden inputから取得）
-            const genderHidden = document.getElementById('genderValue');
-            if (genderHidden) data.gender = genderHidden.value;
+            // 性別（セレクトから取得）
+            const genderSelect = document.getElementById('genderSelect');
+            if (genderSelect) data.gender = genderSelect.value;
 
             // セレクト・datalist項目
             data.age = getInputOrSelectValue('年齢');
 
-            // 関係性（IDで直接取得）
-            const relationInput = document.getElementById('relationInput');
-            if (relationInput) data.relation = relationInput.value;
+            // 関係性（セレクトから取得）
+            const relationSelect = document.getElementById('relationSelect');
+            if (relationSelect) data.relation = relationSelect.value;
 
             // 住所
             const zipInput = document.getElementById('zipInput');
