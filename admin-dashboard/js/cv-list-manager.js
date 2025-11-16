@@ -97,13 +97,33 @@ const CVListManager = {
       // CV IDをキーとして使用
       const caseId = cv.cvId || `CV${index + 1}`;
 
-      // 工事内容を配列に変換
+      // 工事内容を配列に変換（Q9: 外壁, Q10: 屋根）
       const workItems = [];
       if (cv.botAnswers && cv.botAnswers.q9_wallWorkType) {
-        workItems.push(cv.botAnswers.q9_wallWorkType);
+        const wallWork = cv.botAnswers.q9_wallWorkType;
+        // 「塗装」→「外壁塗装」に変換
+        if (wallWork === '塗装') {
+          workItems.push('外壁塗装');
+        } else if (wallWork === '張替え・カバー工法') {
+          workItems.push('外壁カバー工法');
+        } else if (wallWork === '補修') {
+          workItems.push('外壁補修');
+        } else {
+          workItems.push(wallWork);
+        }
       }
       if (cv.botAnswers && cv.botAnswers.q10_roofWorkType) {
-        workItems.push(cv.botAnswers.q10_roofWorkType);
+        const roofWork = cv.botAnswers.q10_roofWorkType;
+        // 「塗装」→「屋根塗装」に変換
+        if (roofWork === '塗装') {
+          workItems.push('屋根塗装');
+        } else if (roofWork === '葺き替え・カバー工法') {
+          workItems.push('屋根カバー工法');
+        } else if (roofWork === '補修') {
+          workItems.push('屋根補修');
+        } else {
+          workItems.push(roofWork);
+        }
       }
 
       // 紹介料を計算
