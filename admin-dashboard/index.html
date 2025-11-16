@@ -3430,11 +3430,19 @@ window.addEventListener('beforeunload', function(e) {
                         if (mapLinkInput) {
                             mapLinkInput.value = response.shortUrl;
                         }
+                        // URL自動生成後に未入力フィールド検証を更新
+                        if (typeof validateEmptyFields === 'function') {
+                            validateEmptyFields();
+                        }
                         return response.shortUrl;
                     } else {
                         // 短縮失敗時は元のURLを使用
                         if (mapLinkInput) {
                             mapLinkInput.value = googleMapsUrl;
+                        }
+                        // URL自動生成後に未入力フィールド検証を更新
+                        if (typeof validateEmptyFields === 'function') {
+                            validateEmptyFields();
                         }
                         return googleMapsUrl;
                     }
@@ -3443,6 +3451,10 @@ window.addEventListener('beforeunload', function(e) {
                     // エラー時は元のURLを使用
                     if (mapLinkInput) {
                         mapLinkInput.value = googleMapsUrl;
+                    }
+                    // URL自動生成後に未入力フィールド検証を更新
+                    if (typeof validateEmptyFields === 'function') {
+                        validateEmptyFields();
                     }
                     return googleMapsUrl;
                 }
@@ -4147,7 +4159,12 @@ window.addEventListener('beforeunload', function(e) {
             });
 
             // 未入力フィールドの赤枠表示を更新
-            validateEmptyFields();
+            // 自動生成（氏名カナ、Google Mapsリンクなど）が完了するまで少し待つ
+            setTimeout(() => {
+                if (typeof validateEmptyFields === 'function') {
+                    validateEmptyFields();
+                }
+            }, 200);
         }
 
         /**
