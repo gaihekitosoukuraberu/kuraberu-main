@@ -1303,7 +1303,15 @@ function copyFieldValue(event, fieldId) {
     // クリップボードにコピー
     navigator.clipboard.writeText(value).then(() => {
         // コピー成功のフィードバック
-        showNotification('コピーしました: ' + value, 'success');
+        showNotification('コピー＆カットしました: ' + value, 'success');
+
+        // フィールドをクリア（カット）
+        field.value = '';
+
+        // バリデーション状態を更新
+        if (typeof validateEmptyFields === 'function') {
+            validateEmptyFields();
+        }
 
         // コピーボタンを一時的に青色にする
         const button = event.target.closest('button');
@@ -4212,8 +4220,19 @@ window.addEventListener('beforeunload', function(e) {
             if (zipInput) zipInput.value = data.postalCode || data['郵便番号'] || '';
 
             const addressInput = document.getElementById('addressInput');
-            if (addressInput) {
-                addressInput.value = data.address || data['住所詳細（物件）'] || '';
+            const addressNumberInput = document.getElementById('addressNumberInput');
+            if (addressInput && addressNumberInput) {
+                const fullAddress = data.address || data['住所詳細（物件）'] || '';
+                // 住所を「住所」と「番地」に分離
+                // 数字やハイフンで始まる部分を「番地」とする
+                const match = fullAddress.match(/^(.*?)(\d+[-\d]+.*)$/);
+                if (match) {
+                    addressInput.value = match[1].trim();  // 住所部分
+                    addressNumberInput.value = match[2].trim();  // 番地部分
+                } else {
+                    addressInput.value = fullAddress;
+                    addressNumberInput.value = '';
+                }
             }
 
             // 郵便番号または住所があればGoogle Mapsリンクを自動生成
@@ -5656,7 +5675,13 @@ window.addEventListener('beforeunload', function(e) {
             if (zipInput) data.postalCode = zipInput.value;
 
             const addressInput = document.getElementById('addressInput');
-            if (addressInput) data.address = addressInput.value;
+            const addressNumberInput = document.getElementById('addressNumberInput');
+            if (addressInput && addressNumberInput) {
+                // 住所と番地を結合して保存
+                data.address = (addressInput.value + addressNumberInput.value).trim();
+            } else if (addressInput) {
+                data.address = addressInput.value;
+            }
 
             // 物件プロフィール（IDベースで直接取得）
             const propertyTypeInput = document.getElementById('propertyTypeSelect');
