@@ -2027,7 +2027,22 @@ window.addEventListener('beforeunload', function(e) {
         }
 
         // セクション切り替え機能
+        // 現在のセクションを追跡
+        let currentSection = 'assignment'; // デフォルトは案件管理
+
         function showSection(sectionName) {
+            // 未保存変更チェック
+            if (unsavedChanges.size > 0 && sectionName !== currentSection) {
+                console.log('[showSection] 未保存の変更があります:', unsavedChanges.size, '件');
+                showSectionNavigationWarning(sectionName);
+                // 元のハッシュに戻す
+                window.location.hash = '#' + currentSection;
+                return;
+            }
+
+            // 現在のセクションを更新
+            currentSection = sectionName;
+
             // メニューを閉じる
             document.getElementById('sideMenu').classList.add('-translate-x-full');
 
@@ -4849,6 +4864,106 @@ window.addEventListener('beforeunload', function(e) {
             closeUnsavedChangesModal();
         }
 
+        // ページ内遷移時の保存確認モーダル（CRM→リスト等）
+        function showInternalNavigationWarning(targetView) {
+            const modal = document.createElement('div');
+            modal.id = 'internalNavigationModal';
+            modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 relative">
+                    <button onclick="closeInternalNavigationModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <div class="text-center">
+                        <div class="mb-4">
+                            <svg class="w-16 h-16 mx-auto text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">未保存の変更があります</h3>
+                        <p class="text-gray-600 mb-6">${unsavedChanges.size} 件の変更が保存されていません。<br>保存しますか？</p>
+                        <button onclick="saveAndNavigate('${targetView}')" class="w-full px-6 py-3 bg-pink-500 text-white rounded-lg font-semibold hover:bg-pink-600 transition-all shadow-lg hover:shadow-xl">
+                            保存する
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // ページ内遷移モーダルを閉じる
+        function closeInternalNavigationModal() {
+            const modal = document.getElementById('internalNavigationModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // 保存してから遷移
+        async function saveAndNavigate(targetView) {
+            await saveAllData();
+            closeInternalNavigationModal();
+            performViewSwitch(targetView);
+        }
+
+        // 保存せずに遷移
+        function navigateWithoutSaving(targetView) {
+            // 未保存変更をクリア
+            unsavedChanges.clear();
+            updateSaveButtonState();
+            closeInternalNavigationModal();
+            performViewSwitch(targetView);
+        }
+
+        // セクション遷移時の保存確認モーダル（案件管理→ダッシュボード等）
+        function showSectionNavigationWarning(targetSection) {
+            const modal = document.createElement('div');
+            modal.id = 'sectionNavigationModal';
+            modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 relative">
+                    <button onclick="closeSectionNavigationModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <div class="text-center">
+                        <div class="mb-4">
+                            <svg class="w-16 h-16 mx-auto text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">未保存の変更があります</h3>
+                        <p class="text-gray-600 mb-6">${unsavedChanges.size} 件の変更が保存されていません。<br>保存しますか？</p>
+                        <button onclick="saveAndNavigateSection('${targetSection}')" class="w-full px-6 py-3 bg-pink-500 text-white rounded-lg font-semibold hover:bg-pink-600 transition-all shadow-lg hover:shadow-xl">
+                            保存する
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // セクション遷移モーダルを閉じる
+        function closeSectionNavigationModal() {
+            const modal = document.getElementById('sectionNavigationModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // 保存してからセクション遷移
+        async function saveAndNavigateSection(targetSection) {
+            await saveAllData();
+            closeSectionNavigationModal();
+            // 未保存変更をクリアしてから遷移
+            unsavedChanges.clear();
+            updateSaveButtonState();
+            showSection(targetSection);
+        }
+
         // ========================================
         // オートセーブシステム ここまで
         // ========================================
@@ -5087,6 +5202,20 @@ window.addEventListener('beforeunload', function(e) {
         
         function switchView(view) {
             console.log('switchView called with view:', view);
+
+            // ページ内遷移時の未保存変更チェック
+            if (unsavedChanges.size > 0) {
+                console.log('[switchView] 未保存の変更があります:', unsavedChanges.size, '件');
+                showInternalNavigationWarning(view);
+                return; // 遷移を一時停止
+            }
+
+            performViewSwitch(view);
+        }
+
+        // 実際のビュー切り替え処理
+        function performViewSwitch(view) {
+            console.log('performViewSwitch called with view:', view);
             if (view === 'list') {
                 document.getElementById('listView').classList.remove('hidden');
                 document.getElementById('crmView').classList.add('hidden');
@@ -5173,67 +5302,6 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
-        // CRMコンテンツをロード
-        function loadCRMContent(caseId) {
-            console.log('[loadCRMContent] Called with caseId:', caseId);
-
-            const crmContent = document.getElementById('crmContent');
-            const originalForm = document.getElementById('originalFormContent');
-
-            if (!crmContent || !originalForm) {
-                console.error('[CRM] crmContentまたはoriginalFormContentが見つかりません');
-                return;
-            }
-
-            // フォームの内容をコピー
-            crmContent.innerHTML = originalForm.innerHTML;
-
-            // データを取得
-            const data = casesData[caseId];
-            if (!data) {
-                console.log('[CRM] データが見つかりません:', caseId);
-                return;
-            }
-
-            console.log('[loadCRMContent] Data:', {
-                name: data.name,
-                nameKana: data.nameKana,
-                status: data.status
-            });
-
-            // フォームにデータを設定
-            const nameInput = document.getElementById('crmNameInput');
-            const kanaInput = document.getElementById('crmKanaInput');
-
-            console.log('[loadCRMContent] Input elements:', {
-                nameInput: nameInput ? 'found' : 'NOT FOUND',
-                kanaInput: kanaInput ? 'found' : 'NOT FOUND'
-            });
-
-            if (nameInput) nameInput.value = data.name || '';
-            if (kanaInput) kanaInput.value = data.nameKana || '';
-
-            // ステータスバッジを更新
-            updateCRMStatusBadge(data.status || '新規');
-
-            // 名前があってカナが空なら自動変換
-            console.log('[loadCRMContent] Checking conversion condition:', {
-                hasName: data.name && data.name.trim() !== '',
-                kanaEmpty: !data.nameKana || data.nameKana.trim() === '',
-                willConvert: (data.name && data.name.trim() !== '' && (!data.nameKana || data.nameKana.trim() === ''))
-            });
-
-            if (data.name && data.name.trim() !== '' && (!data.nameKana || data.nameKana.trim() === '')) {
-                console.log('[loadCRMContent] 条件合致 - 変換実行します');
-                setTimeout(() => {
-                    autoConvertNameToKana(data.name, kanaInput);
-                }, 200); // DOM更新後に実行
-            } else {
-                console.log('[loadCRMContent] 条件不一致 - 変換スキップ');
-            }
-
-            console.log('[CRM] コンテンツをロードしました:', caseId);
-        }
 
         // CRM詳細を開く
         function openCRM(caseId) {
@@ -5357,6 +5425,35 @@ window.addEventListener('beforeunload', function(e) {
                 // フォームに案件データを反映（エラーハンドリング付き）
                 try {
                     populateForm(caseId);
+
+                    // 名前があってカナが空なら自動変換
+                    console.log('[loadCRMContent] 自動変換チェック:', {
+                        name: caseData.name,
+                        nameKana: caseData.nameKana
+                    });
+
+                    if (caseData.name && caseData.name.trim() !== '' && (!caseData.nameKana || caseData.nameKana.trim() === '')) {
+                        console.log('[loadCRMContent] 条件合致 - 変換実行します');
+
+                        // DOM更新後に実行
+                        setTimeout(() => {
+                            const crmContent = document.getElementById('crmContent');
+                            if (!crmContent) {
+                                console.error('[loadCRMContent] crmContentが見つかりません');
+                                return;
+                            }
+
+                            // カナ入力フィールドを取得（2番目のテキストフィールド）
+                            const kanaInput = crmContent.querySelectorAll('input[type="text"]')[1];
+                            if (kanaInput) {
+                                autoConvertNameToKana(caseData.name, kanaInput);
+                            } else {
+                                console.error('[loadCRMContent] カナ入力フィールドが見つかりません');
+                            }
+                        }, 300);
+                    } else {
+                        console.log('[loadCRMContent] 変換スキップ - カナが既に存在するか名前が空です');
+                    }
                 } catch (e) {
                     console.log('フォームデータの反映でエラー:', e);
                 }
