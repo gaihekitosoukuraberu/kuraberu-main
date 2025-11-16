@@ -975,20 +975,20 @@
                 </div>
             </div>
 
-            <!-- 📞 現地調査・立ち会い関連 -->
+            <!-- 📞 現地調査 -->
             <div class="form-section bg-gradient-to-br from-orange-50 to-white rounded-xl shadow-sm border border-orange-100 p-6 mb-6">
                 <div class="flex items-center mb-5">
                     <svg class="w-6 h-6 text-orange-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <h2 class="text-xl font-bold text-gray-900">現地調査・立ち会い関連</h2>
+                    <h2 class="text-xl font-bold text-gray-900">現地調査</h2>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">立ち会い可否</label>
                         <select class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all appearance-none bg-white">
                             <option value="">選択してください</option>
-                            <option value="可能">可能</option>
+                            <option value="調整可能" selected>調整可能</option>
                             <option value="不可能">不可能</option>
                             <option value="要相談">要相談</option>
                             <option value="立ち会いなし・見積もり手渡し">立ち会いなし・見積もり手渡し</option>
@@ -999,7 +999,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">立ち会い者関係性</label>
                         <select class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all appearance-none bg-white">
                             <option value="">選択してください</option>
-                            <option value="本人">本人</option>
+                            <option value="本人" selected>本人</option>
                             <option value="配偶者">配偶者</option>
                             <option value="親">親</option>
                             <option value="子">子</option>
@@ -1015,34 +1015,34 @@
                     <div class="mb-3">
                         <div class="text-xs text-gray-500 mb-2 font-medium">曜日・時間帯を選択:</div>
                         <div class="flex flex-wrap gap-2">
-                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">月曜_午前</button>
-                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">月曜_午後</button>
-                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">火曜_午前</button>
-                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">火曜_午後</button>
-                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">水曜_午前</button>
-                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">水曜_午後</button>
-                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">木曜_午前</button>
-                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">木曜_午後</button>
-                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">金曜_午前</button>
-                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">金曜_午後</button>
-                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">土曜_午前</button>
-                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">土曜_午後</button>
-                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">日曜_午前</button>
-                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">日曜_午後</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">月曜 午前</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">月曜 午後</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">火曜 午前</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">火曜 午後</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">水曜 午前</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">水曜 午後</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">木曜 午前</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">木曜 午後</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">金曜 午前</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">金曜 午後</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">土曜 午前</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">土曜 午後</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">日曜 午前</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">日曜 午後</button>
                             <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">未定</button>
                         </div>
                     </div>
-                    <input type="text" id="surveyDateTime" placeholder="手入力も可能です" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
+                    <input type="text" id="surveyDateTime" placeholder="その他詳細" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
                 </div>
             </div>
 
-            <!-- ✉️ 連絡方法・その他 -->
+            <!-- ✉️ 連絡方法 -->
             <div class="form-section bg-gradient-to-br from-indigo-50 to-white rounded-xl shadow-sm border border-indigo-100 p-6 mb-6">
                 <div class="flex items-center mb-5">
                     <svg class="w-6 h-6 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                    <h2 class="text-xl font-bold text-gray-900">連絡方法・その他</h2>
+                    <h2 class="text-xl font-bold text-gray-900">連絡方法</h2>
                 </div>
 
                 <div class="mb-6">
@@ -1099,7 +1099,7 @@
 
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 mb-2">流入検索ワード</label>
-                    <input type="text" placeholder="例: 外壁塗装 東京" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                    <input type="text" id="searchKeywordInput" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
                 </div>
             </div>
 
@@ -1111,10 +1111,17 @@
                     </svg>
                     <h2 class="text-xl font-bold text-gray-900">案件メモ</h2>
                 </div>
-                <textarea rows="4" placeholder="顧客からの要望や特記事項を入力..." class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all resize-none mb-4"></textarea>
+                <div class="relative mb-4">
+                    <textarea id="caseMemoTextarea" rows="4" placeholder="顧客からの要望や特記事項を入力..." class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all resize-none"></textarea>
+                    <button type="button" onclick="startVoiceInput()" class="absolute bottom-3 right-3 p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors" title="音声入力">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                        </svg>
+                    </button>
+                </div>
                 <div class="flex justify-end">
-                    <button type="button" class="px-6 py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg hover:from-yellow-600 hover:to-yellow-700 transition-all font-medium shadow-md hover:shadow-lg">
-                        ✨ AI全項目添削
+                    <button type="button" onclick="aiCorrectCaseMemo()" class="px-6 py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg hover:from-yellow-600 hover:to-yellow-700 transition-all font-medium shadow-md hover:shadow-lg">
+                        ✨ AI添削
                     </button>
                 </div>
             </div>
@@ -1129,11 +1136,8 @@
                 </div>
 
                 <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-3">特殊要件・対応条件（複数選択可）</label>
                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight">遮熱・断熱塗料</button>
-                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight">立ち会いなし</button>
-                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight">見積もり郵送</button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight">エクステリア</button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight">太陽光パネル脱着</button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight">提携ローン有</button>
@@ -1142,6 +1146,7 @@
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight">助成金サポート</button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight">光触媒塗料</button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight">分割払いプラン</button>
+                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight">建築許可証</button>
                     </div>
                 </div>
             </div>
@@ -1302,6 +1307,70 @@ function copyFieldValue(fieldId) {
         console.error('[copyFieldValue] コピー失敗:', err);
         showNotification('コピーに失敗しました', 'error');
     });
+}
+
+// 音声入力開始
+function startVoiceInput() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        showNotification('お使いのブラウザは音声入力に対応していません', 'error');
+        return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'ja-JP';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    const textarea = document.getElementById('caseMemoTextarea');
+
+    recognition.onstart = function() {
+        showNotification('音声入力開始...', 'info');
+    };
+
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        // 既存のテキストに追記
+        textarea.value = textarea.value ? textarea.value + ' ' + transcript : transcript;
+        showNotification('音声入力完了', 'success');
+    };
+
+    recognition.onerror = function(event) {
+        console.error('[startVoiceInput] エラー:', event.error);
+        showNotification('音声入力エラー: ' + event.error, 'error');
+    };
+
+    recognition.start();
+}
+
+// AI添削（DeepSeek使用）
+async function aiCorrectCaseMemo() {
+    const textarea = document.getElementById('caseMemoTextarea');
+    const memoText = textarea.value;
+
+    if (!memoText || memoText.trim() === '') {
+        showNotification('案件メモが空です', 'error');
+        return;
+    }
+
+    showNotification('AI添削中...', 'info');
+
+    try {
+        // DeepSeek APIを呼び出し（GAS経由）
+        const response = await window.apiClient.postRequest('aiCorrectMemo', {
+            memo: memoText
+        });
+
+        if (response && response.success && response.correctedMemo) {
+            textarea.value = response.correctedMemo;
+            showNotification('AI添削完了', 'success');
+        } else {
+            throw new Error(response?.error || 'AI添削失敗');
+        }
+    } catch (error) {
+        console.error('[aiCorrectCaseMemo] エラー:', error);
+        showNotification('AI添削エラー: ' + error.message, 'error');
+    }
 }
 
 // 2人目情報セクション トグル
@@ -3982,11 +4051,23 @@ window.addEventListener('beforeunload', function(e) {
             const nameInput = document.getElementById('crmNameInput');
             if (nameInput) {
                 nameInput.value = data.name || data['氏名'] || '';
+                // 値が入った場合は即座に赤枠を解除
+                if (nameInput.value && nameInput.value.trim() !== '') {
+                    nameInput.classList.remove('border-red-500');
+                    nameInput.classList.add('border-gray-300');
+                    nameInput.style.borderWidth = '';
+                }
             }
 
             const kanaInput = document.getElementById('crmKanaInput');
             if (kanaInput) {
                 kanaInput.value = data.nameKana || data['フリガナ'] || '';
+                // 値が入った場合は即座に赤枠を解除
+                if (kanaInput.value && kanaInput.value.trim() !== '') {
+                    kanaInput.classList.remove('border-red-500');
+                    kanaInput.classList.add('border-gray-300');
+                    kanaInput.style.borderWidth = '';
+                }
             }
 
             // 性別（ボタン形式 - hidden inputに値を設定し、対応するボタンを選択状態にする）
@@ -4199,6 +4280,12 @@ window.addEventListener('beforeunload', function(e) {
                 }
             }
 
+            // 流入検索ワード（BF列: searchKeyword）
+            const searchKeywordInput = document.getElementById('searchKeywordInput');
+            if (searchKeywordInput) {
+                searchKeywordInput.value = data.searchKeyword || '';
+            }
+
             // 見積もり・工事セクションのフィールド
             // 希望工事内容から見積もり希望箇所を選択
             const workExterior = data['Q9_希望工事内容_外壁'] || '';
@@ -4297,6 +4384,16 @@ window.addEventListener('beforeunload', function(e) {
 
             fields.forEach(field => {
                 const isEmpty = !field.value || field.value.trim() === '' || field.value === '選択してください';
+
+                // デバッグ: crmKanaInputの状態をログ出力
+                if (field.id === 'crmKanaInput') {
+                    console.log('[validateEmptyFields] crmKanaInput状態:', {
+                        id: field.id,
+                        value: field.value,
+                        isEmpty: isEmpty,
+                        classList: field.classList.toString()
+                    });
+                }
 
                 if (isEmpty) {
                     // 空欄の場合は赤枠を追加
