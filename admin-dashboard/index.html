@@ -605,19 +605,18 @@
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-3">年齢</label>
                         <div class="grid grid-cols-5 gap-1.5" id="ageButtonGroup" data-single-select="true">
-                            <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="〜30代">〜30代</button>
+                            <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="30代">30代</button>
                             <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="40代">40代</button>
                             <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="50代">50代</button>
                             <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="60代">60代</button>
-                            <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="70代〜">70代〜</button>
+                            <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="70代">70代</button>
                         </div>
                         <input type="hidden" id="ageSelect" value="">
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">関係性</label>
                         <select id="relationSelect" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
-                            <option value="">選択してください</option>
-                            <option value="本人">本人</option>
+                            <option value="本人" selected>本人</option>
                             <option value="配偶者">配偶者</option>
                             <option value="親">親</option>
                             <option value="子">子</option>
@@ -3808,7 +3807,10 @@ window.addEventListener('beforeunload', function(e) {
 
             // 年齢（ボタン形式 - hidden inputに値を設定し、対応するボタンを選択状態にする）
             const ageSelect = document.getElementById('ageSelect');
-            const ageValue = data.age || data['年齢'] || '';
+            let ageValue = data.age || data['年齢'] || '';
+            // 古い値を新しい値に正規化（〜30代→30代、70代〜→70代）
+            if (ageValue === '〜30代') ageValue = '30代';
+            if (ageValue === '70代〜') ageValue = '70代';
             if (ageSelect) {
                 ageSelect.value = ageValue;
                 // 対応するボタンに selected クラスと色を追加
@@ -3840,20 +3842,36 @@ window.addEventListener('beforeunload', function(e) {
             const emailInput = crmContent.querySelector('input[type="email"]');
             if (emailInput) emailInput.value = data.email || data['メールアドレス'] || '';
 
-            // 物件プロフィール（CSVの通常フィールドを優先してQ*フィールドにフォールバック）
-            setInputOrDatalistValue('依頼物件種別', data.propertyType || data['物件種別'] || data['Q1_物件種別']);
-            setInputOrDatalistValue('階数', data.floors || data['階数'] || data['Q2_階数']);
-            setInputOrDatalistValue('築年数', data.buildingAge || data['築年数'] || data['Q3_築年数']);
-            setInputOrDatalistValue('延べ床面積', data.floorArea || data['建物面積']);
-            setInputOrDatalistValue('施工回数', data.constructionCount || data['Q4_工事歴']);
-            setInputOrDatalistValue('前回施工時期', data.previousConstructionTime || data['Q5_前回施工時期']);
-            setInputOrDatalistValue('外壁材質', data.wallMaterial || data['Q6_外壁材質']);
-            setInputOrDatalistValue('屋根材質', data.roofMaterial || data['Q7_屋根材質']);
+            // 物件プロフィール（IDベースで直接設定 - CSVの通常フィールドを優先してQ*フィールドにフォールバック）
+            const propertyTypeInput = document.getElementById('propertyTypeSelect');
+            if (propertyTypeInput) propertyTypeInput.value = data.propertyType || data['物件種別'] || data['Q1_物件種別'] || '';
+
+            const floorsInput = document.getElementById('floorsSelect');
+            if (floorsInput) floorsInput.value = data.floors || data['階数'] || data['Q2_階数'] || '';
+
+            const buildingAgeInput = document.getElementById('buildingAgeSelect');
+            if (buildingAgeInput) buildingAgeInput.value = data.buildingAge || data['築年数'] || data['Q3_築年数'] || '';
+
+            const floorAreaInput = document.getElementById('floorAreaSelect');
+            if (floorAreaInput) floorAreaInput.value = data.floorArea || data['建物面積'] || '';
+
+            const constructionCountInput = document.getElementById('constructionCountSelect');
+            if (constructionCountInput) constructionCountInput.value = data.constructionCount || data['Q4_工事歴'] || '';
+
+            const previousConstructionInput = document.getElementById('previousConstructionSelect');
+            if (previousConstructionInput) previousConstructionInput.value = data.previousConstructionTime || data['Q5_前回施工時期'] || '';
+
+            const wallMaterialInput = document.getElementById('wallMaterialSelect');
+            if (wallMaterialInput) wallMaterialInput.value = data.wallMaterial || data['Q6_外壁材質'] || '';
+
+            const roofMaterialInput = document.getElementById('roofMaterialSelect');
+            if (roofMaterialInput) roofMaterialInput.value = data.roofMaterial || data['Q7_屋根材質'] || '';
 
             console.log('[populateForm] 物件プロフィール反映:', {
                 物件種別: data['物件種別'],
                 階数: data['階数'],
                 築年数: data['築年数'],
+                建物面積: data['建物面積'],
                 Q4_工事歴: data['Q4_工事歴'],
                 Q5_前回施工時期: data['Q5_前回施工時期'],
                 Q6_外壁材質: data['Q6_外壁材質'],
@@ -5128,15 +5146,30 @@ window.addEventListener('beforeunload', function(e) {
             const addressInput = document.getElementById('addressInput');
             if (addressInput) data.address = addressInput.value;
 
-            // 物件プロフィール（datalist対応）
-            data.propertyType = getInputOrSelectValue('依頼物件種別');
-            data.floors = getInputOrSelectValue('階数');
-            data.buildingAge = getInputOrSelectValue('築年数');
-            data.floorArea = getInputOrSelectValue('延べ床面積');
-            data.previousConstructionTime = getInputOrSelectValue('前回施工時期');
-            data.constructionCount = getInputOrSelectValue('施工回数');
-            data.wallMaterial = getInputOrSelectValue('外壁材質');
-            data.roofMaterial = getInputOrSelectValue('屋根材質');
+            // 物件プロフィール（IDベースで直接取得）
+            const propertyTypeInput = document.getElementById('propertyTypeSelect');
+            if (propertyTypeInput) data.propertyType = propertyTypeInput.value;
+
+            const floorsInput = document.getElementById('floorsSelect');
+            if (floorsInput) data.floors = floorsInput.value;
+
+            const buildingAgeInput = document.getElementById('buildingAgeSelect');
+            if (buildingAgeInput) data.buildingAge = buildingAgeInput.value;
+
+            const floorAreaInput = document.getElementById('floorAreaSelect');
+            if (floorAreaInput) data.floorArea = floorAreaInput.value;
+
+            const constructionCountInput = document.getElementById('constructionCountSelect');
+            if (constructionCountInput) data.constructionCount = constructionCountInput.value;
+
+            const previousConstructionInput = document.getElementById('previousConstructionSelect');
+            if (previousConstructionInput) data.previousConstructionTime = previousConstructionInput.value;
+
+            const wallMaterialInput = document.getElementById('wallMaterialSelect');
+            if (wallMaterialInput) data.wallMaterial = wallMaterialInput.value;
+
+            const roofMaterialInput = document.getElementById('roofMaterialSelect');
+            if (roofMaterialInput) data.roofMaterial = roofMaterialInput.value;
 
             // Google Mapsリンク
             const mapLinkInput = document.getElementById('mapLinkInput');
