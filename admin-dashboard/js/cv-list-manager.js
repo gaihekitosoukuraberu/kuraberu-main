@@ -87,6 +87,11 @@ const CVListManager = {
       if (index === 0) {
         console.log('[CVListManager] GASから返ってきたcvオブジェクトの構造:', cv);
         console.log('[CVListManager] 利用可能なキー一覧:', Object.keys(cv));
+        console.log('[CVListManager] botAnswers詳細:', cv.botAnswers);
+        console.log('[CVListManager] q9_wallWorkType:', cv.botAnswers?.q9_wallWorkType);
+        console.log('[CVListManager] q10_roofWorkType:', cv.botAnswers?.q10_roofWorkType);
+        console.log('[CVListManager] q11_quoteCount:', cv.botAnswers?.q11_quoteCount);
+        console.log('[CVListManager] q12_quoteSource:', cv.botAnswers?.q12_quoteSource);
       }
 
       // CV IDをキーとして使用
