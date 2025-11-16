@@ -704,7 +704,7 @@
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">郵便番号<span class="text-red-500 ml-1">*</span></label>
                         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                            <input type="text" placeholder="150-0001" class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                            <input type="text" id="zipInput" placeholder="150-0001" class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
                             <button type="button" onclick="fetchAddress()" class="px-4 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors whitespace-nowrap text-sm font-medium">
                                 住所取得
                             </button>
@@ -712,7 +712,7 @@
                     </div>
                     <div class="relative sm:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">対象物件住所<span class="text-red-500 ml-1">*</span></label>
-                        <input type="text" placeholder="例: 東京都渋谷区神宮前1-1-1" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                        <input type="text" id="addressInput" placeholder="例: 東京都渋谷区神宮前1-1-1" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
                     </div>
                     <div class="relative sm:col-span-2 lg:col-span-3">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">物件情報リンク（Google Mapストリートビュー）</label>
@@ -3483,24 +3483,25 @@ document.addEventListener('DOMContentLoaded', function() {
             setSelectValue('関係性', data.relation);
             
             // 電話番号とメール
-            document.querySelector('input[type="tel"]').value = data.phone;
-            document.querySelector('input[type="email"]').value = data.email;
-            
+            const telInput = crmContent.querySelector('input[type="tel"]');
+            if (telInput) telInput.value = data.phone || '';
+
+            const emailInput = crmContent.querySelector('input[type="email"]');
+            if (emailInput) emailInput.value = data.email || '';
+
             // 物件プロフィール
             setSelectValue('依頼物件種別', data.propertyType);
             setSelectValue('階数', data.floors);
-            document.querySelector('input[value*="15年"], input[value*="8年"], input[value*="25年"]').value = data.age;
-            document.querySelector('input[value*="120㎡"], input[value*="85㎡"], input[value*="150㎡"]').value = data.area;
             setSelectValue('施工回数', data.constructionCount);
             setSelectValue('外壁材質', data.wallMaterial);
             setSelectValue('屋根材質', data.roofMaterial);
-            
-            // 郵便番号と住所
-            document.querySelector('input[value*="150-0001"], input[value*="160-0022"], input[value*="140-0013"]').value = data.postalCode;
-            document.querySelector('input[value*="東京都"]').value = data.address;
-            
-            // 流入検索ワード
-            document.querySelector('input[value*="外壁塗装 東京"], input[value*="外壁塗装 マンション"], input[value*="屋根替え 外壁工事"]').value = data.searchKeyword;
+
+            // 郵便番号と住所（IDベースで取得）
+            const zipInput = document.getElementById('zipInput');
+            if (zipInput) zipInput.value = data.postalCode || '';
+
+            const addressInput = document.getElementById('addressInput');
+            if (addressInput) addressInput.value = data.address || '';
             
             // 見積もり希望箇所と特殊要件のボタンを選択状態にする
             if (crmContent && data.workItems && Array.isArray(data.workItems)) {
@@ -3918,18 +3919,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return caseDate >= oneMonthAgo;
             }).length;
             document.getElementById('absentCount').textContent = absentCount;
-            
-            // 予測金額（現在表示されている案件の合計）
-            let totalAmount = 0;
-            const visibleRows = document.querySelectorAll('#casesListBody tr:not([style*="display: none"])');
-            visibleRows.forEach(row => {
-                const amountCell = row.querySelector('td:nth-last-child(3)');
-                if (amountCell) {
-                    const amountText = amountCell.textContent.replace('¥', '').replace('K', '000');
-                    totalAmount += parseInt(amountText) || 0;
-                }
-            });
-            document.getElementById('predictedAmount').textContent = '¥' + Math.round(totalAmount / 1000) + 'K';
         }
 
         // キャンセル申請処理モーダル
