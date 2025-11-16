@@ -1385,6 +1385,86 @@ const CVSheetSystem = {
         }
       }
 
+      // AI添削（DeepSeek API使用）
+      if (action === 'aiCorrectMemo') {
+        try {
+          const memo = params.memo;
+          if (!memo || memo.trim() === '') {
+            return {
+              success: false,
+              error: 'メモが空です'
+            };
+          }
+
+          console.log('[CVSheetSystem] AI添削リクエスト:', memo.substring(0, 50) + '...');
+
+          // プロパティからDeepSeek APIキーを取得
+          const apiKey = PropertiesService.getScriptProperties().getProperty('DEEPSEEK_API_KEY');
+          if (!apiKey) {
+            return {
+              success: false,
+              error: 'DeepSeek APIキーが設定されていません'
+            };
+          }
+
+          // DeepSeek API呼び出し
+          const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+          const requestBody = {
+            model: 'deepseek-chat',
+            messages: [
+              {
+                role: 'system',
+                content: 'あなたは建築・リフォーム業界の専門家です。案件メモを読みやすく、分かりやすく整理してください。重要な情報は残し、冗長な表現は簡潔にしてください。箇条書きを使って整理し、ビジネス文書として適切な形式にしてください。'
+              },
+              {
+                role: 'user',
+                content: '以下の案件メモを整理して、読みやすく分かりやすくしてください：\n\n' + memo
+              }
+            ],
+            temperature: 0.3,
+            max_tokens: 1000
+          };
+
+          const response = UrlFetchApp.fetch(apiUrl, {
+            method: 'post',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + apiKey
+            },
+            payload: JSON.stringify(requestBody),
+            muteHttpExceptions: true
+          });
+
+          const responseCode = response.getResponseCode();
+          const responseText = response.getContentText();
+
+          if (responseCode !== 200) {
+            console.error('[CVSheetSystem] DeepSeek APIエラー:', responseCode, responseText);
+            return {
+              success: false,
+              error: 'AI添削に失敗しました: ' + responseText
+            };
+          }
+
+          const result = JSON.parse(responseText);
+          const correctedMemo = result.choices[0].message.content;
+
+          console.log('[CVSheetSystem] AI添削成功');
+
+          return {
+            success: true,
+            correctedMemo: correctedMemo
+          };
+
+        } catch (error) {
+          console.error('[CVSheetSystem] AI添削エラー:', error);
+          return {
+            success: false,
+            error: 'AI添削エラー: ' + error.toString()
+          };
+        }
+      }
+
       return {
         success: false,
         error: 'Unknown CV action: ' + action

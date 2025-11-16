@@ -607,6 +607,16 @@
                         <input type="tel" placeholder="例: 090-1234-5678" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                     </div>
                     <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">関係性</label>
+                        <select id="relationSelect" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
+                            <option value="本人" selected>本人</option>
+                            <option value="配偶者">配偶者</option>
+                            <option value="親">親</option>
+                            <option value="子">子</option>
+                            <option value="その他">その他</option>
+                        </select>
+                    </div>
+                    <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-3">性別</label>
                         <div class="grid grid-cols-2 gap-2" id="genderButtonGroup" data-single-select="true">
                             <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-sm font-medium text-gray-700" data-gender="男性">男性</button>
@@ -624,16 +634,6 @@
                             <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="70代">70代</button>
                         </div>
                         <input type="hidden" id="ageSelect" value="">
-                    </div>
-                    <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">関係性</label>
-                        <select id="relationSelect" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
-                            <option value="本人" selected>本人</option>
-                            <option value="配偶者">配偶者</option>
-                            <option value="親">親</option>
-                            <option value="子">子</option>
-                            <option value="その他">その他</option>
-                        </select>
                     </div>
                     <div class="relative sm:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">メールアドレス</label>
@@ -661,7 +661,14 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">関係性（2人目）</label>
-                                <input type="text" id="relationship2Input" placeholder="例: 妻" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                <select id="relationship2Select" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
+                                    <option value="">選択してください</option>
+                                    <option value="本人">本人</option>
+                                    <option value="配偶者">配偶者</option>
+                                    <option value="親">親</option>
+                                    <option value="子">子</option>
+                                    <option value="その他">その他</option>
+                                </select>
                             </div>
                             <div class="sm:col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">メモ（2人目）</label>
@@ -684,7 +691,7 @@
                     <div class="relative">
                         <label class="flex justify-between items-center text-sm font-medium text-gray-700 mb-1.5">
                             <span>階数</span>
-                            <button type="button" onclick="copyFieldValue('floorsSelect')" class="copy-btn ml-2 p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="コピー">
+                            <button type="button" onclick="copyFieldValue(event, 'floorsSelect')" class="copy-btn ml-2 p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="コピー">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                 </svg>
@@ -708,7 +715,7 @@
                     <div class="relative">
                         <label class="flex justify-between items-center text-sm font-medium text-gray-700 mb-1.5">
                             <span>物件種別<span class="text-red-500 ml-1">*</span></span>
-                            <button type="button" onclick="copyFieldValue('propertyTypeSelect')" class="copy-btn ml-2 p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="コピー">
+                            <button type="button" onclick="copyFieldValue(event, 'propertyTypeSelect')" class="copy-btn ml-2 p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="コピー">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                 </svg>
@@ -726,7 +733,7 @@
                     <div class="relative">
                         <label class="flex justify-between items-center text-sm font-medium text-gray-700 mb-1.5">
                             <span>築年数</span>
-                            <button type="button" onclick="copyFieldValue('buildingAgeSelect')" class="copy-btn ml-2 p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="コピー">
+                            <button type="button" onclick="copyFieldValue(event, 'buildingAgeSelect')" class="copy-btn ml-2 p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="コピー">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                 </svg>
@@ -743,8 +750,24 @@
                     </div>
                     <div class="relative">
                         <label class="flex justify-between items-center text-sm font-medium text-gray-700 mb-1.5">
+                            <span>施工回数</span>
+                            <button type="button" onclick="copyFieldValue(event, 'constructionCountSelect')" class="copy-btn ml-2 p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="コピー">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                            </button>
+                        </label>
+                        <input type="text" id="constructionCountSelect" list="constructionCountList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" onfocus="this.select()">
+                        <datalist id="constructionCountList">
+                            <option value="今回が初めて">
+                            <option value="2回目">
+                            <option value="3回目以上">
+                        </datalist>
+                    </div>
+                    <div class="relative">
+                        <label class="flex justify-between items-center text-sm font-medium text-gray-700 mb-1.5">
                             <span>前回施工時期</span>
-                            <button type="button" onclick="copyFieldValue('previousConstructionSelect')" class="copy-btn ml-2 p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="コピー">
+                            <button type="button" onclick="copyFieldValue(event, 'previousConstructionSelect')" class="copy-btn ml-2 p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="コピー">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                 </svg>
@@ -758,22 +781,6 @@
                             <option value="16〜20年前">
                             <option value="20年以上前">
                             <option value="不明">
-                        </datalist>
-                    </div>
-                    <div class="relative">
-                        <label class="flex justify-between items-center text-sm font-medium text-gray-700 mb-1.5">
-                            <span>施工回数</span>
-                            <button type="button" onclick="copyFieldValue('constructionCountSelect')" class="copy-btn ml-2 p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="コピー">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                                </svg>
-                            </button>
-                        </label>
-                        <input type="text" id="constructionCountSelect" list="constructionCountList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" onfocus="this.select()">
-                        <datalist id="constructionCountList">
-                            <option value="今回が初めて">
-                            <option value="2回目">
-                            <option value="3回目以上">
                         </datalist>
                     </div>
                     <div class="relative">
@@ -832,7 +839,7 @@
                     <div class="relative">
                         <label class="flex justify-between items-center text-sm font-medium text-gray-700 mb-1.5">
                             <span>外壁材質</span>
-                            <button type="button" onclick="copyFieldValue('wallMaterialSelect')" class="copy-btn ml-2 p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="コピー">
+                            <button type="button" onclick="copyFieldValue(event, 'wallMaterialSelect')" class="copy-btn ml-2 p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="コピー">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                 </svg>
@@ -852,7 +859,7 @@
                     <div class="relative">
                         <label class="flex justify-between items-center text-sm font-medium text-gray-700 mb-1.5">
                             <span>屋根材質</span>
-                            <button type="button" onclick="copyFieldValue('roofMaterialSelect')" class="copy-btn ml-2 p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="コピー">
+                            <button type="button" onclick="copyFieldValue(event, 'roofMaterialSelect')" class="copy-btn ml-2 p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="コピー">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                 </svg>
@@ -935,7 +942,7 @@
                     <div>
                         <label class="flex justify-between items-center text-sm font-medium text-gray-700 mb-1.5">
                             <span>見積もり取得先</span>
-                            <button type="button" onclick="copyFieldValue('quoteSourceInput')" class="copy-btn ml-2 p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="コピー">
+                            <button type="button" onclick="copyFieldValue(event, 'quoteSourceInput')" class="copy-btn ml-2 p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="コピー">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                 </svg>
@@ -1277,7 +1284,7 @@
 
 <script>
 // フィールド値をコピー
-function copyFieldValue(fieldId) {
+function copyFieldValue(event, fieldId) {
     const field = document.getElementById(fieldId);
     if (!field) {
         console.error('[copyFieldValue] フィールドが見つかりません:', fieldId);
@@ -4433,6 +4440,25 @@ window.addEventListener('beforeunload', function(e) {
                 }
             }
 
+            // 他社見積もり数が「なし」の場合、見積もり取得先と訪問業者の状況の赤枠を解除
+            const quoteCountSelect = document.getElementById('quoteCountSelect');
+            if (quoteCountSelect && quoteCountSelect.value === 'なし') {
+                const quoteSourceInput = document.getElementById('quoteSourceInput');
+                const doorSalesVisitSelect = document.getElementById('doorSalesVisitSelect');
+
+                if (quoteSourceInput) {
+                    quoteSourceInput.classList.remove('border-red-500');
+                    quoteSourceInput.classList.add('border-gray-300');
+                    quoteSourceInput.style.borderWidth = '';
+                }
+
+                if (doorSalesVisitSelect) {
+                    doorSalesVisitSelect.classList.remove('border-red-500');
+                    doorSalesVisitSelect.classList.add('border-gray-300');
+                    doorSalesVisitSelect.style.borderWidth = '';
+                }
+            }
+
             console.log('[validateEmptyFields] 未入力フィールドのチェック完了');
         }
 
@@ -6443,6 +6469,13 @@ window.addEventListener('beforeunload', function(e) {
             });
 
             console.log('[CRM] フォーム変更監視を設定:', caseId);
+        }
+
+        // 保存ボタンの状態を更新（ダミー関数）
+        function updateSaveButtonState() {
+            // 未保存変更がある場合はボタンを有効化するなどの処理
+            // 現在は特に処理なし
+            console.log('[CRM] 保存ボタン状態更新:', unsavedChanges.size, '件の未保存変更');
         }
 
         // 変更を追跡
