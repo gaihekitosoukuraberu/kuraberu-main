@@ -45,6 +45,16 @@
             border-color: #3b82f6 !important;
             font-weight: 600 !important;
         }
+        /* selectのplaceholder（デフォルトオプション）を薄いグレーに */
+        select option[value=""] {
+            color: #d1d5db;
+        }
+        select:invalid {
+            color: #d1d5db;
+        }
+        select option {
+            color: #374151;
+        }
         .time-slots {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
@@ -923,7 +933,14 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">見積もり取得先</label>
+                        <label class="flex justify-between items-center text-sm font-medium text-gray-700 mb-1.5">
+                            <span>見積もり取得先</span>
+                            <button type="button" onclick="copyFieldValue('quoteSourceInput')" class="copy-btn ml-2 p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="コピー">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                            </button>
+                        </label>
                         <input id="quoteSourceInput" type="text" list="quoteSourceList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
                         <datalist id="quoteSourceList">
                             <option value="訪問営業">
@@ -1254,6 +1271,39 @@
             </div><!-- originalFormContent終了 -->
 
 <script>
+// フィールド値をコピー
+function copyFieldValue(fieldId) {
+    const field = document.getElementById(fieldId);
+    if (!field) {
+        console.error('[copyFieldValue] フィールドが見つかりません:', fieldId);
+        return;
+    }
+
+    const value = field.value;
+    if (!value || value.trim() === '') {
+        showNotification('コピーする値がありません', 'error');
+        return;
+    }
+
+    // クリップボードにコピー
+    navigator.clipboard.writeText(value).then(() => {
+        // コピー成功のフィードバック
+        showNotification('コピーしました: ' + value, 'success');
+
+        // コピーボタンを一時的に青色にする
+        const button = event.target.closest('button');
+        if (button) {
+            button.classList.add('text-blue-500');
+            setTimeout(() => {
+                button.classList.remove('text-blue-500');
+            }, 300);
+        }
+    }).catch(err => {
+        console.error('[copyFieldValue] コピー失敗:', err);
+        showNotification('コピーに失敗しました', 'error');
+    });
+}
+
 // 2人目情報セクション トグル
 function toggleSecondPerson() {
     const section = document.getElementById('secondPersonSection');
