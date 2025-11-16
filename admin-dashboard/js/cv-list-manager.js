@@ -115,17 +115,18 @@ const CVListManager = {
         phone: cv.phone || '',
         email: cv.email || '',
 
-        // 物件情報（botAnswersから優先的に取得、次にcvのトップレベルフィールド）
-        propertyType: cv.botAnswers?.q1_propertyType || cv.propertyType || '',
-        floors: cv.botAnswers?.q2_floors || cv.floors || '',
-        buildingAge: cv.botAnswers?.q3_buildingAge || cv.buildingAge || '',
+        // 物件情報（cvの直接フィールドのみ使用 - botAnswersは使用しない）
+        propertyType: cv.propertyType || '',
+        floors: cv.floors || '',
+        buildingAge: cv.buildingAge || '',
         area: cv.area || '',
+        floorArea: cv.floorArea || cv.area || '',
 
-        // 工事詳細
-        constructionCount: cv.botAnswers?.q4_constructionHistory || '',
-        previousConstructionTime: cv.botAnswers?.q5_previousConstructionTime || '',
-        wallMaterial: cv.botAnswers?.q6_wallMaterial || '',
-        roofMaterial: cv.botAnswers?.q7_roofMaterial || '',
+        // 工事詳細（cvの直接フィールドのみ使用）
+        constructionCount: cv.constructionCount || '',
+        previousConstructionTime: cv.previousConstructionTime || '',
+        wallMaterial: cv.wallMaterial || '',
+        roofMaterial: cv.roofMaterial || '',
 
         // 住所
         postalCode: cv.postalCode || '',
