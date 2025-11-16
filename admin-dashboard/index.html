@@ -3362,44 +3362,31 @@ window.addEventListener('beforeunload', function(e) {
         }
 
         // Google Mapリンク生成機能
-        async function generateGoogleMapLink() {
+        function generateGoogleMapLink() {
             const addressInput = document.getElementById('addressInput');
             const mapLinkInput = document.getElementById('mapLinkInput');
 
             if (addressInput && addressInput.value.trim()) {
                 const address = addressInput.value.trim();
-                // Google Maps ストリートビューのURL
+                // Google Maps URLを直接生成
                 const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
-                // 短縮URLを生成（is.gd API使用）
-                try {
-                    const shortUrl = await fetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(googleMapsUrl)}`)
-                        .then(response => response.text());
-
-                    if (mapLinkInput) {
-                        mapLinkInput.value = shortUrl;
-                    }
-                    return shortUrl;
-                } catch (error) {
-                    console.error('短縮URL生成エラー:', error);
-                    // エラー時は元のURLを使用
-                    if (mapLinkInput) {
-                        mapLinkInput.value = googleMapsUrl;
-                    }
-                    return googleMapsUrl;
+                if (mapLinkInput) {
+                    mapLinkInput.value = googleMapsUrl;
                 }
+                return googleMapsUrl;
             }
             return '';
         }
 
         // Mapリンクを開く
-        async function openMapLink() {
+        function openMapLink() {
             const mapLinkInput = document.getElementById('mapLinkInput');
             if (mapLinkInput && mapLinkInput.value.trim()) {
                 window.open(mapLinkInput.value.trim(), '_blank');
             } else {
                 // リンクがない場合は生成してから開く
-                const url = await generateGoogleMapLink();
+                const url = generateGoogleMapLink();
                 if (url) {
                     window.open(url, '_blank');
                 } else {
