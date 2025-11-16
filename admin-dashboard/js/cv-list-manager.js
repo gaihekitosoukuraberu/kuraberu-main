@@ -83,8 +83,14 @@ const CVListManager = {
     const casesData = {};
 
     cvList.forEach((cv, index) => {
-      // CV IDをキーとして使用（CSVの日本語フィールド名を優先）
-      const caseId = cv['CV ID'] || cv.cvId || `CV${index + 1}`;
+      // デバッグ：最初の1件のみデータ構造をログ出力
+      if (index === 0) {
+        console.log('[CVListManager] GASから返ってきたcvオブジェクトの構造:', cv);
+        console.log('[CVListManager] 利用可能なキー一覧:', Object.keys(cv));
+      }
+
+      // CV IDをキーとして使用
+      const caseId = cv.cvId || `CV${index + 1}`;
 
       // 工事内容を配列に変換
       const workItems = [];
@@ -100,37 +106,37 @@ const CVListManager = {
       const calculatedFee = window.FeeCalculator.calculate({
         q9_wallWorkType: cv.botAnswers?.q9_wallWorkType || '',
         q10_roofWorkType: cv.botAnswers?.q10_roofWorkType || '',
-        propertyType: cv['物件種別'] || cv.propertyType || '',
-        floors: cv['階数'] || cv.floors || ''
+        propertyType: cv.propertyType || '',
+        floors: cv.floors || ''
       }, companiesCount);
 
       // casesData形式に変換
       casesData[caseId] = {
-        // 基本情報（CSVの日本語フィールド名を優先）
-        name: cv['氏名'] || cv.name || '',
-        nameKana: cv['フリガナ'] || cv.nameKana || '',
-        gender: cv['性別'] || cv.gender || '',
-        age: cv['年齢'] || cv.age || '',
-        relation: cv['続柄'] || cv.relation || '',
-        phone: cv['電話番号'] || cv.phone || '',
-        email: cv['メールアドレス'] || cv.email || '',
+        // 基本情報（GASから返されるフィールド名を使用）
+        name: cv.name || '',
+        nameKana: cv.nameKana || '',
+        gender: cv.gender || '',
+        age: cv.age || '',
+        relation: cv.relation || '',
+        phone: cv.phone || '',
+        email: cv.email || '',
 
-        // 物件情報（CSVの日本語フィールド名を使用）
-        propertyType: cv['物件種別'] || cv.propertyType || '',
-        floors: cv['階数'] || cv.floors || '',
-        buildingAge: cv['築年数'] || cv.buildingAge || '',
-        area: cv['建物面積'] || cv.area || '',
-        floorArea: cv['建物面積'] || cv.area || '',
+        // 物件情報（GASから返されるフィールド名を使用）
+        propertyType: cv.propertyType || '',        // V列: 物件種別
+        floors: cv.floors || '',                    // Y列: 階数
+        buildingAge: cv.buildingAge || '',          // W列: 築年数
+        area: cv.area || '',                        // X列: 建物面積
+        floorArea: cv.area || '',                   // X列: 建物面積
 
-        // 工事詳細（CSVのQ*フィールドを使用）
-        constructionCount: cv['Q4_工事歴'] || cv.constructionCount || '',
-        previousConstructionTime: cv['Q5_前回施工時期'] || cv.previousConstructionTime || '',
-        wallMaterial: cv['Q6_外壁材質'] || cv.wallMaterial || '',
-        roofMaterial: cv['Q7_屋根材質'] || cv.roofMaterial || '',
+        // 工事詳細（botAnswersオブジェクトから取得）
+        constructionCount: cv.botAnswers?.q4_constructionHistory || '',        // AC: Q4_工事歴
+        previousConstructionTime: cv.botAnswers?.q5_lastConstructionTime || '', // AD: Q5_前回施工時期
+        wallMaterial: cv.botAnswers?.q6_wallMaterial || '',                    // AE: Q6_外壁材質
+        roofMaterial: cv.botAnswers?.q7_roofMaterial || '',                    // AF: Q7_屋根材質
 
-        // 住所（CSVの日本語フィールド名を優先）
-        postalCode: cv['郵便番号（物件）'] || cv.postalCode || '',
-        address: cv['住所詳細（物件）'] || this.formatAddress(cv),
+        // 住所（GASから返されるフィールド名を使用）
+        postalCode: cv.postalCode || '',
+        address: this.formatAddress(cv),
 
         // 工事内容・検索
         searchKeyword: cv.searchKeyword || '',
