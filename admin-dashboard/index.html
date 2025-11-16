@@ -3361,32 +3361,52 @@ window.addEventListener('beforeunload', function(e) {
             });
         }
 
-        // Google Mapリンク生成機能
-        function generateGoogleMapLink() {
+        // Google Mapリンク生成機能（短縮URL版）
+        async function generateGoogleMapLink() {
             const addressInput = document.getElementById('addressInput');
             const mapLinkInput = document.getElementById('mapLinkInput');
 
             if (addressInput && addressInput.value.trim()) {
                 const address = addressInput.value.trim();
-                // Google Maps URLを直接生成
+                // Google Maps URLを生成
                 const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
-                if (mapLinkInput) {
-                    mapLinkInput.value = googleMapsUrl;
+                try {
+                    // GAS経由で短縮URL取得
+                    const response = await window.apiClient.postRequest('shortenUrl', { url: googleMapsUrl });
+
+                    if (response && response.success && response.shortUrl) {
+                        if (mapLinkInput) {
+                            mapLinkInput.value = response.shortUrl;
+                        }
+                        return response.shortUrl;
+                    } else {
+                        // 短縮失敗時は元のURLを使用
+                        if (mapLinkInput) {
+                            mapLinkInput.value = googleMapsUrl;
+                        }
+                        return googleMapsUrl;
+                    }
+                } catch (error) {
+                    console.error('短縮URL生成エラー:', error);
+                    // エラー時は元のURLを使用
+                    if (mapLinkInput) {
+                        mapLinkInput.value = googleMapsUrl;
+                    }
+                    return googleMapsUrl;
                 }
-                return googleMapsUrl;
             }
             return '';
         }
 
         // Mapリンクを開く
-        function openMapLink() {
+        async function openMapLink() {
             const mapLinkInput = document.getElementById('mapLinkInput');
             if (mapLinkInput && mapLinkInput.value.trim()) {
                 window.open(mapLinkInput.value.trim(), '_blank');
             } else {
                 // リンクがない場合は生成してから開く
-                const url = generateGoogleMapLink();
+                const url = await generateGoogleMapLink();
                 if (url) {
                     window.open(url, '_blank');
                 } else {

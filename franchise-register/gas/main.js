@@ -98,6 +98,14 @@ const SystemRouter = {
       ]
     },
 
+    // URL短縮（管理ダッシュボード用）
+    'shortenUrl': {
+      system: 'UrlShortener',
+      description: 'URL短縮',
+      prefix: false,
+      actions: ['shortenUrl']
+    },
+
     // AI検索
     'ai_': {
       system: 'AISearchSystem',

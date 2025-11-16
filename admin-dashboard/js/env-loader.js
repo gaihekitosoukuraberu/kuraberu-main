@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1788 - 2025-11-16 - Google Maps短縮URL削除）
-  CACHE_BUSTER: '1763300000000'
+  // キャッシュバスター（V1789 - 2025-11-16 - Google Maps短縮URL実装（GAS経由）
+  CACHE_BUSTER: '1763305000000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
