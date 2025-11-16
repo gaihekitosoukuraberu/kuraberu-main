@@ -5448,9 +5448,14 @@
 
     </script>
 
-    <!-- 外部JSファイル読み込み (V1760) - env-loader.jsとapi-client.jsは動的ロード済み -->
-    <script src="js/cv-data-handler.js?v=1763256223264"></script>
-    <script src="js/fee-calculator.js?v=1763256223264"></script>
-    <script src="js/cv-list-manager.js?v=1763256223264"></script>
+    <!-- 外部JSファイル読み込み (V1760) - 動的ロード -->
+    <script>
+    (function() {
+        const cacheBuster = new Date().getTime();
+        document.write('<script src="js/cv-data-handler.js?v=' + cacheBuster + '"><\/script>');
+        document.write('<script src="js/fee-calculator.js?v=' + cacheBuster + '"><\/script>');
+        document.write('<script src="js/cv-list-manager.js?v=' + cacheBuster + '"><\/script>');
+    })();
+    </script>
 </body>
 </html><!-- Test auto-deploy Fri Oct 31 16:40:05 JST 2025 -->
