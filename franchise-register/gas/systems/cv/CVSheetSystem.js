@@ -1136,6 +1136,36 @@ const CVSheetSystem = {
   },
 
   /**
+   * 名前をカタカナに変換（アドミンダッシュボード用）
+   * @param {Object} params - { name }
+   * @return {Object} - { success, kana }
+   */
+  convertNameToKana(params) {
+    try {
+      const { name } = params;
+
+      if (!name) {
+        return {
+          success: false,
+          error: '名前が指定されていません'
+        };
+      }
+
+      // NameToKanaConverterを使用
+      const result = NameToKanaConverter.convertToKana(name);
+
+      return result;
+
+    } catch (error) {
+      console.error('[CVSheetSystem] convertNameToKana エラー:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
    * ハンドラー（main.jsから呼ばれる）
    */
   handle(params) {
@@ -1194,6 +1224,11 @@ const CVSheetSystem = {
       // CVステータス更新（アドミンダッシュボード用）
       if (action === 'updateCVStatus') {
         return this.updateCVStatus(params);
+      }
+
+      // 名前→カナ変換（アドミンダッシュボード用）
+      if (action === 'convertNameToKana') {
+        return this.convertNameToKana(params);
       }
 
       return {
