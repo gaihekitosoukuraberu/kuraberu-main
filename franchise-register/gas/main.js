@@ -119,7 +119,7 @@ const SystemRouter = {
       system: 'CVSheetSystem',
       description: 'CV送信',
       prefix: true,
-      actions: ['cv1_submit', 'cv2_update', 'getCVList', 'updateCVStatus', 'convertNameToKana', 'updateCVData']
+      actions: ['cv1_submit', 'cv2_update', 'getCVList', 'updateCVStatus', 'convertNameToKana', 'updateCVData', 'debugSpreadsheetStructure']
     },
 
     // CVハートビートシステム（V1754）

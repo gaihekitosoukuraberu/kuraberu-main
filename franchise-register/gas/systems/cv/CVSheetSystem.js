@@ -1336,6 +1336,55 @@ const CVSheetSystem = {
         return this.updateCVData(params);
       }
 
+      // デバッグ：実際のスプレッドシート構造を確認（一時的）
+      if (action === 'debugSpreadsheetStructure') {
+        try {
+          const ssId = this.getSpreadsheetId();
+          const ss = SpreadsheetApp.openById(ssId);
+          const sheet = ss.getSheetByName('ユーザー登録');
+
+          if (!sheet) {
+            return {
+              success: false,
+              error: 'ユーザー登録シートが見つかりません'
+            };
+          }
+
+          // ヘッダー行を取得
+          const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+          // 最初のデータ行を取得（あれば）
+          let firstDataRow = null;
+          if (sheet.getLastRow() > 1) {
+            firstDataRow = sheet.getRange(2, 1, 1, sheet.getLastColumn()).getValues()[0];
+          }
+
+          // V, W, X, Y列の情報を明示的に取得
+          const vColumn = { index: 21, header: headers[21], value: firstDataRow ? firstDataRow[21] : null };
+          const wColumn = { index: 22, header: headers[22], value: firstDataRow ? firstDataRow[22] : null };
+          const xColumn = { index: 23, header: headers[23], value: firstDataRow ? firstDataRow[23] : null };
+          const yColumn = { index: 24, header: headers[24], value: firstDataRow ? firstDataRow[24] : null };
+
+          return {
+            success: true,
+            totalColumns: headers.length,
+            headers: headers,
+            firstDataRow: firstDataRow,
+            vwxyColumns: {
+              V: vColumn,
+              W: wColumn,
+              X: xColumn,
+              Y: yColumn
+            }
+          };
+        } catch (error) {
+          return {
+            success: false,
+            error: error.toString()
+          };
+        }
+      }
+
       return {
         success: false,
         error: 'Unknown CV action: ' + action

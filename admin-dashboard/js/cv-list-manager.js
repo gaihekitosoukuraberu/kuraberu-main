@@ -251,6 +251,44 @@ const CVListManager = {
   },
 
   /**
+   * デバッグ：実際のスプレッドシート構造を確認
+   */
+  async debugSpreadsheetStructure() {
+    try {
+      console.log('[CVListManager] スプレッドシート構造デバッグ開始...');
+
+      const response = await window.apiClient.getRequest('debugSpreadsheetStructure');
+
+      if (!response || !response.success) {
+        throw new Error(response?.error || 'デバッグ失敗');
+      }
+
+      console.log('========================================');
+      console.log('[CVListManager] スプレッドシート構造デバッグ結果');
+      console.log('========================================');
+      console.log('総列数:', response.totalColumns);
+      console.log('');
+      console.log('【V, W, X, Y列の情報】');
+      console.log('V列（index 21）:', response.vwxyColumns.V.header, '=', response.vwxyColumns.V.value);
+      console.log('W列（index 22）:', response.vwxyColumns.W.header, '=', response.vwxyColumns.W.value);
+      console.log('X列（index 23）:', response.vwxyColumns.X.header, '=', response.vwxyColumns.X.value);
+      console.log('Y列（index 24）:', response.vwxyColumns.Y.header, '=', response.vwxyColumns.Y.value);
+      console.log('');
+      console.log('【全ヘッダー】');
+      response.headers.forEach((header, index) => {
+        console.log(`[${index}] ${header}`);
+      });
+      console.log('========================================');
+
+      return response;
+
+    } catch (error) {
+      console.error('[CVListManager] デバッグエラー:', error);
+      throw error;
+    }
+  },
+
+  /**
    * CV一覧を取得してcasesDataに反映
    * @returns {Promise<Object>} casesData
    */
