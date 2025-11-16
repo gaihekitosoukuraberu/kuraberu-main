@@ -4192,10 +4192,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (currentStatusFilter) {
                 allCases = allCases.filter(([_, caseData]) => caseData.status === currentStatusFilter);
             }
-            
+
             // 全データを取得
             // const allCases = Object.entries(casesData);
             const totalItems = allCases.length;
+
+            // 現在表示中のケースIDリストを更新（CRMナビゲーション用）
+            currentDisplayedCaseIds = allCases.map(([caseId, _]) => caseId);
             
             // ページネーション計算
             const startIndex = (currentPage - 1) * itemsPerPage;
@@ -4670,7 +4673,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // ビュー切り替え
         let currentView = 'list';
-        let currentCaseId = '001';
+        let currentCaseId = null;
+        let currentDisplayedCaseIds = []; // 現在表示中のリスト順序を保持
         
         function switchView(view) {
             console.log('switchView called with view:', view);
@@ -4696,13 +4700,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 // CRM表示時は選択件数を非表示
                 document.getElementById('selectionCountDisplay').classList.add('hidden');
 
-                // currentCaseIdが未設定の場合は最初の案件を自動選択
-                if (!currentCaseId && Object.keys(casesData).length > 0) {
-                    currentCaseId = Object.keys(casesData)[0];
-                    console.log('CRM表示: 最初の案件を自動選択', currentCaseId);
+                // currentCaseIdが未設定、または表示中リストにない場合は最初の案件を自動選択
+                if (!currentCaseId || !currentDisplayedCaseIds.includes(currentCaseId)) {
+                    if (currentDisplayedCaseIds.length > 0) {
+                        currentCaseId = currentDisplayedCaseIds[0];
+                        console.log('CRM表示: リストの最初の案件を自動選択', currentCaseId);
+                    }
                 }
 
-                loadCRMContent(currentCaseId);
+                if (currentCaseId) {
+                    loadCRMContent(currentCaseId);
+                    updateNavigationButtons();
+                }
             }
         }
 
@@ -4832,6 +4841,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('フォームデータの反映でエラー:', e);
                 }
             }
+
+            // ナビゲーションボタンの状態を更新
+            updateNavigationButtons();
         }
 
         // クイックアクション（リスト用）
@@ -4889,24 +4901,52 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 次の案件へ
         function nextCase() {
-            const caseIds = Object.keys(casesData);
-            const currentIndex = caseIds.indexOf(currentCaseId);
-            if (currentIndex < caseIds.length - 1) {
-                currentCaseId = caseIds[currentIndex + 1];
+            const currentIndex = currentDisplayedCaseIds.indexOf(currentCaseId);
+            if (currentIndex !== -1 && currentIndex < currentDisplayedCaseIds.length - 1) {
+                currentCaseId = currentDisplayedCaseIds[currentIndex + 1];
                 loadCRMContent(currentCaseId);
+                updateNavigationButtons();
             }
         }
 
         // 前の案件へ
         function previousCase() {
-            const caseIds = Object.keys(casesData);
-            const currentIndex = caseIds.indexOf(currentCaseId);
+            const currentIndex = currentDisplayedCaseIds.indexOf(currentCaseId);
             if (currentIndex > 0) {
-                currentCaseId = caseIds[currentIndex - 1];
+                currentCaseId = currentDisplayedCaseIds[currentIndex - 1];
                 loadCRMContent(currentCaseId);
-            } else if (currentIndex === 0) {
-                // 1件目の場合はリストビューに戻る
-                switchView('list');
+                updateNavigationButtons();
+            }
+        }
+
+        // ナビゲーションボタンの有効/無効を更新
+        function updateNavigationButtons() {
+            const currentIndex = currentDisplayedCaseIds.indexOf(currentCaseId);
+            const prevButton = document.querySelector('button[onclick="previousCase()"]');
+            const nextButton = document.querySelector('button[onclick="nextCase()"]');
+
+            if (prevButton) {
+                if (currentIndex <= 0) {
+                    prevButton.disabled = true;
+                    prevButton.classList.add('opacity-50', 'cursor-not-allowed');
+                    prevButton.classList.remove('hover:bg-gray-50');
+                } else {
+                    prevButton.disabled = false;
+                    prevButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    prevButton.classList.add('hover:bg-gray-50');
+                }
+            }
+
+            if (nextButton) {
+                if (currentIndex === -1 || currentIndex >= currentDisplayedCaseIds.length - 1) {
+                    nextButton.disabled = true;
+                    nextButton.classList.add('opacity-50', 'cursor-not-allowed');
+                    nextButton.classList.remove('hover:bg-gray-50');
+                } else {
+                    nextButton.disabled = false;
+                    nextButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    nextButton.classList.add('hover:bg-gray-50');
+                }
             }
         }
         
