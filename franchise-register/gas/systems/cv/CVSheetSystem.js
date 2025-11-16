@@ -966,77 +966,77 @@ const CVSheetSystem = {
           },
 
           // V-Y: 物件詳細（BOT回答から自動抽出される）
-          propertyType: row[21] || '',                  // V: 物件種別
-          buildingAge: row[22] || '',                   // W: 築年数
-          area: row[23] || '',                          // X: 建物面積
-          floors: row[24] || '',                        // Y: 階数
+          propertyType: row[22] || '',                  // V: 物件種別（修正：row[22]）
+          buildingAge: row[23] || '',                   // W: 築年数（修正：row[23]）
+          area: row[24] || '',                          // X: 建物面積（修正：row[24]）
+          floors: row[25] || '',                        // Y: 階数（修正：row[25]）
 
           // Z-AP: BOT質問回答（Q1〜Q17）
           botAnswers: {
-            q1_propertyType: row[25] || '',             // Z: Q1_物件種別
-            q2_floors: row[26] || '',                   // AA: Q2_階数
-            q3_buildingAge: row[27] || '',              // AB: Q3_築年数
-            q4_constructionHistory: row[28] || '',      // AC: Q4_工事歴
-            q5_lastConstructionTime: row[29] || '',     // AD: Q5_前回施工時期
-            q6_wallMaterial: row[30] || '',             // AE: Q6_外壁材質
-            q7_roofMaterial: row[31] || '',             // AF: Q7_屋根材質
-            q8_concernedArea: row[32] || '',            // AG: Q8_気になる箇所
-            q9_wallWorkType: row[33] || '',             // AH: Q9_希望工事内容_外壁
-            q10_roofWorkType: row[34] || '',            // AI: Q10_希望工事内容_屋根
-            q11_quoteCount: row[35] || '',              // AJ: Q11_見積もり保有数
-            q12_quoteSource: row[36] || '',             // AK: Q12_見積もり取得先
-            q13_doorSalesVisit: row[37] || '',          // AL: Q13_訪問業者有無
-            q14_comparisonIntention: row[38] || '',     // AM: Q14_比較意向
-            q15_doorSalesCompany: row[39] || '',        // AN: Q15_訪問業者名
-            q16_deteriorationStatus: row[40] || '',     // AO: Q16_現在の劣化状況
-            q17_selectionCriteria: row[41] || ''        // AP: Q17_業者選定条件
+            q1_propertyType: row[26] || '',             // Z: Q1_物件種別（修正：row[26]）
+            q2_floors: row[27] || '',                   // AA: Q2_階数（修正：row[27]）
+            q3_buildingAge: row[28] || '',              // AB: Q3_築年数（修正：row[28]）
+            q4_constructionHistory: row[29] || '',      // AC: Q4_工事歴（修正：row[29]）
+            q5_lastConstructionTime: row[30] || '',     // AD: Q5_前回施工時期（修正：row[30]）
+            q6_wallMaterial: row[31] || '',             // AE: Q6_外壁材質（修正：row[31]）
+            q7_roofMaterial: row[32] || '',             // AF: Q7_屋根材質（修正：row[32]）
+            q8_concernedArea: row[33] || '',            // AG: Q8_気になる箇所（修正：row[33]）
+            q9_wallWorkType: row[34] || '',             // AH: Q9_希望工事内容_外壁（修正：row[34]）
+            q10_roofWorkType: row[35] || '',            // AI: Q10_希望工事内容_屋根（修正：row[35]）
+            q11_quoteCount: row[36] || '',              // AJ: Q11_見積もり保有数（修正：row[36]）
+            q12_quoteSource: row[37] || '',             // AK: Q12_見積もり取得先（修正：row[37]）
+            q13_doorSalesVisit: row[38] || '',          // AL: Q13_訪問業者有無（修正：row[38]）
+            q14_comparisonIntention: row[39] || '',     // AM: Q14_比較意向（修正：row[39]）
+            q15_doorSalesCompany: row[40] || '',        // AN: Q15_訪問業者名（修正：row[40]）
+            q16_deteriorationStatus: row[41] || '',     // AO: Q16_現在の劣化状況（修正：row[41]）
+            q17_selectionCriteria: row[42] || ''        // AP: Q17_業者選定条件（修正：row[42]）
           },
 
           // AQ-AW: CV2入力項目・運用項目
-          surveyDatePreference: row[42] || '',          // AQ: 現地調査希望日時
-          franchiseSelectionHistory: row[43] || '',     // AR: 業者選定履歴
-          caseMemo: row[44] || '',                      // AS: 案件メモ
-          contactTimePreference: row[45] || '',         // AT: 連絡時間帯
-          estimateDeliveryAddress: row[46] || '',       // AU: 見積もり送付先
-          wordLinkAnswer: row[47] || '',                // AV: ワードリンク回答
+          surveyDatePreference: row[43] || '',          // AQ: 現地調査希望日時（修正：row[43]）
+          franchiseSelectionHistory: row[44] || '',     // AR: 業者選定履歴（修正：row[44]）
+          caseMemo: row[45] || '',                      // AS: 案件メモ（修正：row[45]）
+          contactTimePreference: row[46] || '',         // AT: 連絡時間帯（修正：row[46]）
+          estimateDeliveryAddress: row[47] || '',       // AU: 見積もり送付先（修正：row[47]）
+          wordLinkAnswer: row[48] || '',                // AV: ワードリンク回答（修正：row[48]）
 
           // AW-BC: 配信・成約管理
-          deliveryStatus: row[48] || '',                // AW: 配信ステータス
-          companiesCount: row[49] || 0,                 // AX: 配信先加盟店数
-          deliveryDate: row[50] || '',                  // AY: 配信日時
-          contractFlag: row[51] === 'TRUE',             // AZ: 成約フラグ
-          contractDate: row[52] || '',                  // BA: 成約日時
-          contractFranchiseId: row[53] || '',           // BB: 成約加盟店ID
-          contractAmount: row[54] || '',                // BC: 成約金額
+          deliveryStatus: row[49] || '',                // AW: 配信ステータス（修正：row[49]）
+          companiesCount: row[50] || 0,                 // AX: 配信先加盟店数（修正：row[50]）
+          deliveryDate: row[51] || '',                  // AY: 配信日時（修正：row[51]）
+          contractFlag: row[52] === 'TRUE',             // AZ: 成約フラグ（修正：row[52]）
+          contractDate: row[53] || '',                  // BA: 成約日時（修正：row[53]）
+          contractFranchiseId: row[54] || '',           // BB: 成約加盟店ID（修正：row[54]）
+          contractAmount: row[55] || '',                // BC: 成約金額（修正：row[55]）
 
           // BD-BF: 流入トラッキング
-          referrer: row[55] || '',                      // BD: 流入元URL
-          searchKeyword: row[56] || '',                 // BE: 検索キーワード
-          utmParams: row[57] || '',                     // BF: UTMパラメータ
+          referrer: row[56] || '',                      // BD: 流入元URL（修正：row[56]）
+          searchKeyword: row[57] || '',                 // BE: 検索キーワード（修正：row[57]）
+          utmParams: row[58] || '',                     // BF: UTMパラメータ（修正：row[58]）
 
           // BG-BI: 不正対策
-          visitCount: row[58] || 0,                     // BG: 訪問回数
-          lastVisitDate: row[59] || '',                 // BH: 最終訪問日時
-          isBlocked: row[60] === 'TRUE',                // BI: ブロックフラグ
+          visitCount: row[59] || 0,                     // BG: 訪問回数（修正：row[59]）
+          lastVisitDate: row[60] || '',                 // BH: 最終訪問日時（修正：row[60]）
+          isBlocked: row[61] === 'TRUE',                // BI: ブロックフラグ（修正：row[61]）
 
           // BJ-BT: フォローアップ履歴・管理用フィールド
-          callHistory: row[61] || '',                   // BJ: 架電履歴
-          nextCallDate: row[62] || '',                  // BK: 次回架電日時
-          memo: row[63] || '',                          // BL: メモ
-          status: row[64] || '新規',                     // BM: 管理ステータス
-          franchiseStatuses: row[65] || '',             // BN: 加盟店別ステータス（JSON）
-          firstCallDate: row[66] || '',                 // BO: 初回架電日時
-          lastUpdateDate: row[67] || '',                // BP: 最終更新日時
-          scheduledDeliveryDate: row[68] || '',         // BQ: 配信予定日時
-          assignedTo: row[69] || '',                    // BR: 担当者名
-          lastCallDate: row[70] || '',                  // BS: 最終架電日時
-          deliveredMerchants: row[71] || '',            // BT: 配信先業者一覧
+          callHistory: row[62] || '',                   // BJ: 架電履歴（修正：row[62]）
+          nextCallDate: row[63] || '',                  // BK: 次回架電日時（修正：row[63]）
+          memo: row[64] || '',                          // BL: メモ（修正：row[64]）
+          status: row[65] || '新規',                     // BM: 管理ステータス（修正：row[65]）
+          franchiseStatuses: row[66] || '',             // BN: 加盟店別ステータス（JSON）（修正：row[66]）
+          firstCallDate: row[67] || '',                 // BO: 初回架電日時（修正：row[67]）
+          lastUpdateDate: row[68] || '',                // BP: 最終更新日時（修正：row[68]）
+          scheduledDeliveryDate: row[69] || '',         // BQ: 配信予定日時（修正：row[69]）
+          assignedTo: row[70] || '',                    // BR: 担当者名（修正：row[70]）
+          lastCallDate: row[71] || '',                  // BS: 最終架電日時（修正：row[71]）
+          deliveredMerchants: row[72] || '',            // BT: 配信先業者一覧（修正：row[72]）
 
           // BU-BX: ハートビート＆行動トラッキング（V1754, V1755）
-          lastHeartbeat: row[73] || '',                 // BU: 最終ハートビート時刻
-          siteStayDuration: row[74] || 0,               // BV: サイト滞在時間（秒）
-          cv1ToCV2Duration: row[75] || 0,               // BW: CV1→CV2時間差（秒）
-          deviceType: row[76] || ''                     // BX: デバイス種別
+          lastHeartbeat: row[74] || '',                 // BU: 最終ハートビート時刻（修正：row[74]）
+          siteStayDuration: row[75] || 0,               // BV: サイト滞在時間（秒）（修正：row[75]）
+          cv1ToCV2Duration: row[76] || 0,               // BW: CV1→CV2時間差（秒）（修正：row[76]）
+          deviceType: row[77] || ''                     // BX: デバイス種別（修正：row[77]）
         };
       }).filter(cv => cv !== null); // 空行を除外
 
@@ -1100,22 +1100,22 @@ const CVSheetSystem = {
         };
       }
 
-      // BN列(66): 管理ステータスを更新
-      sheet.getRange(targetRow, 66).setValue(status);
+      // BN列(67): 管理ステータスを更新（修正：row 67）
+      sheet.getRange(targetRow, 67).setValue(status);
 
-      // メモがあればBM列(65)に追記
+      // メモがあればBM列(66)に追記（修正：row 66）
       if (memo) {
-        const currentMemo = sheet.getRange(targetRow, 65).getValue() || '';
+        const currentMemo = sheet.getRange(targetRow, 66).getValue() || '';
         const timestamp = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
         const newMemo = currentMemo
           ? `${currentMemo}\n[${timestamp}] ${memo}`
           : `[${timestamp}] ${memo}`;
-        sheet.getRange(targetRow, 65).setValue(newMemo);
+        sheet.getRange(targetRow, 66).setValue(newMemo);
       }
 
-      // BQ列(69): 最終更新日時を更新
+      // BQ列(70): 最終更新日時を更新（修正：row 70）
       const now = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
-      sheet.getRange(targetRow, 69).setValue(now);
+      sheet.getRange(targetRow, 70).setValue(now);
 
       console.log(`[CVSheetSystem] ステータス更新完了: ${cvId} → ${status}`);
 
@@ -1224,29 +1224,29 @@ const CVSheetSystem = {
       if (data.address !== undefined) sheet.getRange(targetRow, 17).setValue(data.address); // Q列: 住所詳細（物件）
 
       // 物件情報
-      if (data.propertyType !== undefined) sheet.getRange(targetRow, 23).setValue(data.propertyType); // W列: 物件種別
-      if (data.floors !== undefined) sheet.getRange(targetRow, 26).setValue(data.floors); // Z列: 階数
+      if (data.propertyType !== undefined) sheet.getRange(targetRow, 24).setValue(data.propertyType); // W列: 物件種別（修正：row 24）
+      if (data.floors !== undefined) sheet.getRange(targetRow, 27).setValue(data.floors); // Z列: 階数（修正：row 27）
 
       // 工事希望箇所（配列の場合は結合）
       if (data.workItems !== undefined) {
         const workItemsStr = Array.isArray(data.workItems) ? data.workItems.join('、') : data.workItems;
-        sheet.getRange(targetRow, 46).setValue(workItemsStr); // AT列: 案件メモ
+        sheet.getRange(targetRow, 47).setValue(workItemsStr); // AT列: 案件メモ（修正：row 47）
       }
 
       // 管理情報
-      if (data.status !== undefined) sheet.getRange(targetRow, 66).setValue(data.status); // BN列: 管理ステータス
+      if (data.status !== undefined) sheet.getRange(targetRow, 67).setValue(data.status); // BN列: 管理ステータス（修正：row 67）
       if (data.memo !== undefined) {
-        const currentMemo = sheet.getRange(targetRow, 65).getValue() || '';
+        const currentMemo = sheet.getRange(targetRow, 66).getValue() || '';
         const timestamp = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
         const newMemo = currentMemo
           ? `${currentMemo}\n[${timestamp}] ${data.memo}`
           : `[${timestamp}] ${data.memo}`;
-        sheet.getRange(targetRow, 65).setValue(newMemo); // BM列: メモ
+        sheet.getRange(targetRow, 66).setValue(newMemo); // BM列: メモ（修正：row 66）
       }
 
       // 最終更新日時を更新
       const now = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
-      sheet.getRange(targetRow, 69).setValue(now); // BQ列: 最終更新日時
+      sheet.getRange(targetRow, 70).setValue(now); // BQ列: 最終更新日時（修正：row 70）
 
       console.log(`[CVSheetSystem] CV全項目更新完了: ${cvId}`);
 
