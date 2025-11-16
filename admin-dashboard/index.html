@@ -908,7 +908,7 @@
                     </svg>
                     <h2 class="text-xl font-bold text-gray-900">現地調査・立ち会い関連</h2>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">立ち会い可否</label>
                         <select class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all appearance-none bg-white">
@@ -932,6 +932,32 @@
                             <option value="その他">その他</option>
                         </select>
                     </div>
+                </div>
+
+                <!-- 現地調査希望日時 -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">現地調査希望日時</label>
+                    <div class="mb-3">
+                        <div class="text-xs text-gray-500 mb-2 font-medium">曜日・時間帯を選択:</div>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">月曜_午前</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">月曜_午後</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">火曜_午前</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">火曜_午後</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">水曜_午前</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">水曜_午後</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">木曜_午前</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">木曜_午後</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">金曜_午前</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">金曜_午後</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">土曜_午前</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">土曜_午後</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">日曜_午前</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">日曜_午後</button>
+                            <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">未定</button>
+                        </div>
+                    </div>
+                    <input type="text" id="surveyDateTime" placeholder="手入力も可能です" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
                 </div>
             </div>
 
@@ -3673,55 +3699,100 @@ window.addEventListener('beforeunload', function(e) {
         function populateForm(caseId) {
             const data = casesData[caseId];
             if (!data) return;
-            
+
+            console.log('[populateForm] データを反映します:', caseId, data);
+
             // CRMコンテンツ内の入力フィールドを取得
             const crmContent = document.getElementById('crmContent');
             if (!crmContent) return;
-            
+
             // ご本人さま情報（最初の入力フィールドを使用）
             const nameInput = crmContent.querySelector('input[type="text"]');
             if (nameInput) {
-                nameInput.value = data.name;
+                nameInput.value = data.name || data['氏名'] || '';
             }
-            
+
             const kanaInput = crmContent.querySelectorAll('input[type="text"]')[1];
             if (kanaInput) {
-                kanaInput.value = data.nameKana || '';
+                kanaInput.value = data.nameKana || data['フリガナ'] || '';
             }
-            
-            // セレクトボックスの値を設定
-            setSelectValue('性別', data.gender);
-            setSelectValue('年齢', data.age);
-            setSelectValue('関係性', data.relation);
-            
+
+            // 性別（ボタングループ）
+            const genderValue = data.gender || data['性別'] || '';
+            const genderHiddenInput = document.getElementById('genderValue');
+            if (genderHiddenInput && genderValue) {
+                genderHiddenInput.value = genderValue;
+                // ボタンも選択状態にする
+                crmContent.querySelectorAll('.button-group .option-button').forEach(btn => {
+                    if (btn.textContent.trim() === genderValue) {
+                        btn.classList.add('selected');
+                    } else {
+                        btn.classList.remove('selected');
+                    }
+                });
+            }
+
+            // 年齢（セレクト）
+            setSelectValue('年齢', data.age || data['年齢']);
+
+            // 関係性（datalist対応）
+            setInputOrDatalistValue('関係性', data.relation || data['続柄']);
+
             // 電話番号とメール
             const telInput = crmContent.querySelector('input[type="tel"]');
-            if (telInput) telInput.value = data.phone || '';
+            if (telInput) telInput.value = data.phone || data['電話番号'] || '';
 
             const emailInput = crmContent.querySelector('input[type="email"]');
-            if (emailInput) emailInput.value = data.email || '';
+            if (emailInput) emailInput.value = data.email || data['メールアドレス'] || '';
 
             // 物件プロフィール
-            setSelectValue('依頼物件種別', data.propertyType);
-            setSelectValue('階数', data.floors);
-            setSelectValue('施工回数', data.constructionCount);
-            setSelectValue('外壁材質', data.wallMaterial);
-            setSelectValue('屋根材質', data.roofMaterial);
+            setInputOrDatalistValue('依頼物件種別', data.propertyType || data['物件種別']);
+            setInputOrDatalistValue('階数', data.floors || data['階数']);
+            setInputOrDatalistValue('築年数', data.buildingAge || data['築年数']);
+            setInputOrDatalistValue('延べ床面積', data.floorArea || data['建物面積']);
+            setInputOrDatalistValue('前回施工時期', data.previousConstructionTime || data['Q5_前回施工時期']);
+            setInputOrDatalistValue('施工回数', data.constructionCount || data['Q4_工事歴']);
+            setInputOrDatalistValue('外壁材質', data.wallMaterial || data['Q6_外壁材質']);
+            setInputOrDatalistValue('屋根材質', data.roofMaterial || data['Q7_屋根材質']);
 
             // 郵便番号と住所（IDベースで取得）
             const zipInput = document.getElementById('zipInput');
-            if (zipInput) zipInput.value = data.postalCode || '';
+            if (zipInput) zipInput.value = data.postalCode || data['郵便番号'] || '';
 
             const addressInput = document.getElementById('addressInput');
-            if (addressInput) addressInput.value = data.address || '';
-            
+            if (addressInput) {
+                addressInput.value = data.address || data['住所詳細（物件）'] || '';
+                // 住所があればGoogle Mapsリンクを自動生成
+                if (addressInput.value) {
+                    setTimeout(() => generateGoogleMapLink(), 100);
+                }
+            }
+
+            // 物件情報リンク（Google Maps）
+            const mapLinkInput = document.getElementById('mapLinkInput');
+            if (mapLinkInput && data.mapLink) {
+                mapLinkInput.value = data.mapLink;
+            }
+
+            // 見積もり取得先
+            setInputOrDatalistValue('見積もり取得先', data.quoteSource || data['Q12_見積もり取得先']);
+
+            // 施工時期
+            setSelectValue('施工時期', data.constructionTiming || data['施工時期']);
+
+            // 現地調査希望日時
+            const surveyDateTimeInput = document.getElementById('surveyDateTime');
+            if (surveyDateTimeInput) {
+                surveyDateTimeInput.value = data.surveyDateTime || data['現地調査希望日時'] || '';
+            }
+
             // 見積もり希望箇所と特殊要件のボタンを選択状態にする
             if (crmContent && data.workItems && Array.isArray(data.workItems)) {
                 // まず全てのボタンの選択を解除
                 crmContent.querySelectorAll('.option-button').forEach(button => {
                     button.classList.remove('selected');
                 });
-                
+
                 // データに基づいてボタンを選択
                 data.workItems.forEach(item => {
                     crmContent.querySelectorAll('.option-button').forEach(button => {
@@ -3751,22 +3822,63 @@ window.addEventListener('beforeunload', function(e) {
                     });
                 });
             }
+
+            console.log('[populateForm] データ反映完了');
         }
 
 
         // セレクトボックスの値を設定するヘルパー関数
         function setSelectValue(labelText, value) {
+            if (!value) return; // 値がない場合はスキップ
+
             const labels = document.querySelectorAll('label');
             for (let label of labels) {
                 if (label.textContent.includes(labelText)) {
                     const select = label.parentElement.querySelector('select');
                     if (select) {
                         for (let option of select.options) {
-                            if (option.text === value) {
+                            if (option.text === value || option.value === value) {
                                 option.selected = true;
                                 break;
                             }
                         }
+                    }
+                    break;
+                }
+            }
+        }
+
+        // datalist付きinput（またはselect）の値を設定するヘルパー関数
+        function setInputOrDatalistValue(labelText, value) {
+            if (!value) return; // 値がない場合はスキップ
+
+            const labels = document.querySelectorAll('label');
+            for (let label of labels) {
+                if (label.textContent.includes(labelText)) {
+                    // datalist付きinputを探す
+                    const input = label.parentElement.querySelector('input[list]');
+                    if (input) {
+                        input.value = value;
+                        return;
+                    }
+
+                    // 通常のinputを探す
+                    const textInput = label.parentElement.querySelector('input[type="text"]');
+                    if (textInput) {
+                        textInput.value = value;
+                        return;
+                    }
+
+                    // selectも探す（フォールバック）
+                    const select = label.parentElement.querySelector('select');
+                    if (select) {
+                        for (let option of select.options) {
+                            if (option.text === value || option.value === value) {
+                                option.selected = true;
+                                break;
+                            }
+                        }
+                        return;
                     }
                     break;
                 }
@@ -4782,6 +4894,63 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
+        // 性別選択ボタン
+        function selectGender(button, value) {
+            // 全てのボタンから selected クラスを削除
+            const buttons = button.parentElement.querySelectorAll('.option-button');
+            buttons.forEach(btn => btn.classList.remove('selected'));
+
+            // クリックされたボタンに selected クラスを追加
+            button.classList.add('selected');
+
+            // hidden input に値を設定
+            document.getElementById('genderValue').value = value;
+
+            // 変更を記録
+            if (currentCaseId) {
+                unsavedChanges.add(currentCaseId);
+                updateSaveButton();
+            }
+        }
+
+        // 現地調査希望日時の選択ボタン
+        function selectSurveyDateTime(button) {
+            // 既に選択されている場合は解除
+            if (button.classList.contains('selected')) {
+                button.classList.remove('selected');
+            } else {
+                button.classList.add('selected');
+            }
+
+            // 選択された全ての値を取得
+            const surveyInput = document.getElementById('surveyDateTime');
+            if (surveyInput) {
+                const selectedButtons = button.parentElement.querySelectorAll('.option-button.selected');
+                const selectedValues = Array.from(selectedButtons).map(btn => btn.textContent.trim());
+                surveyInput.value = selectedValues.join(', ');
+
+                // 変更を記録
+                if (currentCaseId) {
+                    unsavedChanges.add(currentCaseId);
+                    updateSaveButton();
+                }
+            }
+        }
+
+        // キーボードショートカット（Cmd+S / Ctrl+S で保存）
+        document.addEventListener('keydown', function(e) {
+            // Cmd+S (Mac) または Ctrl+S (Windows/Linux)
+            if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+                e.preventDefault(); // ブラウザのデフォルト保存を防ぐ
+                console.log('[キーボードショートカット] Cmd+S / Ctrl+S が押されました');
+
+                // 未保存の変更があれば保存
+                if (unsavedChanges.size > 0 && !isSaving) {
+                    saveAllData();
+                }
+            }
+        });
+
         // 全未保存変更を保存
         // CRMフォームから全データを取得
         function getCRMFormData() {
@@ -4803,10 +4972,13 @@ window.addEventListener('beforeunload', function(e) {
             const emailInput = crmContent.querySelector('input[type="email"]');
             if (emailInput) data.email = emailInput.value;
 
-            // セレクト項目
-            data.gender = getSelectValue('性別');
-            data.age = getSelectValue('年齢');
-            data.relation = getSelectValue('関係性');
+            // 性別（hidden inputから取得）
+            const genderHidden = document.getElementById('genderValue');
+            if (genderHidden) data.gender = genderHidden.value;
+
+            // セレクト・datalist項目
+            data.age = getInputOrSelectValue('年齢');
+            data.relation = getInputOrSelectValue('関係性');
 
             // 住所
             const zipInput = document.getElementById('zipInput');
@@ -4815,9 +4987,29 @@ window.addEventListener('beforeunload', function(e) {
             const addressInput = document.getElementById('addressInput');
             if (addressInput) data.address = addressInput.value;
 
-            // 物件情報
-            data.propertyType = getSelectValue('依頼物件種別');
-            data.floors = getSelectValue('階数');
+            // 物件プロフィール（datalist対応）
+            data.propertyType = getInputOrSelectValue('依頼物件種別');
+            data.floors = getInputOrSelectValue('階数');
+            data.buildingAge = getInputOrSelectValue('築年数');
+            data.floorArea = getInputOrSelectValue('延べ床面積');
+            data.previousConstructionTime = getInputOrSelectValue('前回施工時期');
+            data.constructionCount = getInputOrSelectValue('施工回数');
+            data.wallMaterial = getInputOrSelectValue('外壁材質');
+            data.roofMaterial = getInputOrSelectValue('屋根材質');
+
+            // Google Mapsリンク
+            const mapLinkInput = document.getElementById('mapLinkInput');
+            if (mapLinkInput) data.mapLink = mapLinkInput.value;
+
+            // 見積もり取得先
+            data.quoteSource = getInputOrSelectValue('見積もり取得先');
+
+            // 施工時期
+            data.constructionTiming = getInputOrSelectValue('施工時期');
+
+            // 現地調査希望日時
+            const surveyDateTimeInput = document.getElementById('surveyDateTime');
+            if (surveyDateTimeInput) data.surveyDateTime = surveyDateTimeInput.value;
 
             // 工事希望箇所（選択されたボタンを配列で取得）
             const selectedButtons = Array.from(crmContent.querySelectorAll('.option-button.selected'));
@@ -4829,24 +5021,37 @@ window.addEventListener('beforeunload', function(e) {
                 data.status = statusBadge.textContent.trim();
             }
 
+            console.log('[getCRMFormData] フォームデータ取得:', data);
             return data;
         }
 
-        // セレクトボックスの値を取得するヘルパー関数
-        function getSelectValue(labelText) {
+        // input（datalist付き）またはselectの値を取得するヘルパー関数
+        function getInputOrSelectValue(labelText) {
             const crmContent = document.getElementById('crmContent');
             if (!crmContent) return '';
 
             const labels = crmContent.querySelectorAll('label');
             for (const label of labels) {
                 if (label.textContent.includes(labelText)) {
-                    const select = label.nextElementSibling;
-                    if (select && select.tagName === 'SELECT') {
-                        return select.value;
-                    }
+                    // datalist付きinputを探す
+                    const input = label.parentElement.querySelector('input[list]');
+                    if (input) return input.value || '';
+
+                    // 通常のinputを探す
+                    const textInput = label.parentElement.querySelector('input[type="text"]');
+                    if (textInput) return textInput.value || '';
+
+                    // selectを探す
+                    const select = label.parentElement.querySelector('select');
+                    if (select) return select.value || '';
                 }
             }
             return '';
+        }
+
+        // セレクトボックスの値を取得するヘルパー関数（後方互換性のため残す）
+        function getSelectValue(labelText) {
+            return getInputOrSelectValue(labelText);
         }
 
         async function saveAllData() {
@@ -4924,11 +5129,11 @@ window.addEventListener('beforeunload', function(e) {
 
             // 保存完了表示
             hideSavingIndicator();
-            if (failCount === 0) {
-                showNotification(`✓ ${successCount} 件の変更を保存しました`, 'success');
-            } else {
-                showNotification(`⚠ ${successCount} 件保存、${failCount} 件失敗`, 'warning');
+            // 失敗時のみトースト通知を表示（右上）
+            if (failCount > 0) {
+                showNotification(`⚠ 保存失敗: ${failCount} 件のエラーが発生しました`, 'error');
             }
+            // 成功時は通知を表示しない（ユーザー要望）
 
             // 保存ボタンを更新
             updateSaveButton();
@@ -4964,15 +5169,15 @@ window.addEventListener('beforeunload', function(e) {
                 clearInterval(autoSaveTimer);
             }
 
-            // 30秒ごとにオートセーブ
+            // 60秒ごとにオートセーブ
             autoSaveTimer = setInterval(async () => {
                 if (unsavedChanges.size > 0 && !isSaving) {
                     console.log('[AutoSave] 自動保存を実行します');
                     await saveAllData();
                 }
-            }, 30000); // 30秒
+            }, 60000); // 60秒
 
-            console.log('[AutoSave] オートセーブタイマー開始（30秒間隔）');
+            console.log('[AutoSave] オートセーブタイマー開始（60秒間隔）');
         }
 
         // ページ離脱時の確認
@@ -5292,37 +5497,7 @@ window.addEventListener('beforeunload', function(e) {
             `).join('');
         }
         
-        // データを保存
-        function saveAllData() {
-            // ローカルストレージに保存（実際はサーバーに送信）
-            try {
-                localStorage.setItem('casesData', JSON.stringify(casesData));
-                
-                // 保存成功のフィードバック
-                const button = event.currentTarget;
-                const originalText = button.innerHTML;
-                button.innerHTML = `
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    保存済み
-                `;
-                button.classList.remove('bg-pink-400', 'hover:bg-pink-500');
-                button.classList.add('bg-gray-600');
-
-                // 2秒後に元に戻す
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.classList.remove('bg-gray-600');
-                    button.classList.add('bg-pink-400', 'hover:bg-pink-500');
-                }, 2000);
-                
-                console.log('データを保存しました');
-            } catch (error) {
-                console.error('保存エラー:', error);
-                alert('保存に失敗しました');
-            }
-        }
+        // 古いsaveAllData関数は削除（4878行目の非同期版を使用）
         
         // 物件タイプのアイコンを取得
         function getPropertyIcon(propertyType) {
