@@ -2050,10 +2050,15 @@ window.addEventListener('beforeunload', function(e) {
                 if (window.originalAssignmentContent) {
                     mainContent.innerHTML = window.originalAssignmentContent;
                 }
-                // 案件管理の初期化処理が必要であれば実行
-                if (typeof initializeAssignment === 'function') {
-                    initializeAssignment();
-                }
+
+                // リストビューを自動表示
+                setTimeout(() => {
+                    if (typeof switchView === 'function') {
+                        switchView('list');
+                        console.log('[Assignment] 案件管理に戻りました - リストビューを表示');
+                    }
+                }, 100); // DOM更新を待つため少し遅延
+
             } else if (sectionName === 'dashboard') {
                 // 現在のコンテンツを非表示
                 const mainContent = document.querySelector('main');
@@ -3202,6 +3207,16 @@ window.addEventListener('beforeunload', function(e) {
             const hash = window.location.hash.slice(1);
             if (hash === 'dashboard') {
                 showSection('dashboard');
+            } else if (hash === 'assignment') {
+                showSection('assignment');
+            } else if (hash === 'franchise') {
+                showSection('franchise');
+            } else if (hash === 'registrationRequests') {
+                showSection('registrationRequests');
+            } else if (hash === 'cancelRequests') {
+                showSection('cancelRequests');
+            } else if (hash === 'ranking') {
+                showSection('ranking');
             }
         });
 
