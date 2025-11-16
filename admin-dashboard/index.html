@@ -4197,11 +4197,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 allCases = allCases.filter(([_, caseData]) => caseData.status === currentStatusFilter);
             }
 
+            // ソート処理
+            const sortOption = document.getElementById('sortSelect')?.value || 'date-desc';
+            allCases.sort(([idA, dataA], [idB, dataB]) => {
+                if (sortOption === 'date-desc') {
+                    // 新着順（IDの降順、または登録日時の降順）
+                    const dateA = dataA.createdAt || dataA.date || idA;
+                    const dateB = dataB.createdAt || dataB.date || idB;
+                    return dateB > dateA ? 1 : -1;
+                } else if (sortOption === 'date-asc') {
+                    // 古い順（IDの昇順、または登録日時の昇順）
+                    const dateA = dataA.createdAt || dataA.date || idA;
+                    const dateB = dataB.createdAt || dataB.date || idB;
+                    return dateA > dateB ? 1 : -1;
+                } else if (sortOption === 'amount-desc') {
+                    // 金額順（金額の降順）
+                    const amountA = parseInt(dataA.amount?.replace(/[¥K,]/g, '') || 0);
+                    const amountB = parseInt(dataB.amount?.replace(/[¥K,]/g, '') || 0);
+                    return amountB - amountA;
+                }
+                return 0;
+            });
+
             // 全データを取得
             // const allCases = Object.entries(casesData);
             const totalItems = allCases.length;
 
             // 現在表示中のケースIDリストを更新（CRMナビゲーション用）
+            // ソート＆フィルタ後の順序を保持
             currentDisplayedCaseIds = allCases.map(([caseId, _]) => caseId);
             
             // ページネーション計算
