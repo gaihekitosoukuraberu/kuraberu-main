@@ -595,11 +595,11 @@
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">性別</label>
-                        <select class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
-                            <option value="">選択してください</option>
-                            <option value="男性">男性</option>
-                            <option value="女性">女性</option>
-                        </select>
+                        <div class="button-group">
+                            <button type="button" class="option-button" onclick="selectGender(this, '男性')">男性</button>
+                            <button type="button" class="option-button" onclick="selectGender(this, '女性')">女性</button>
+                        </div>
+                        <input type="hidden" id="genderValue" value="">
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">年齢</label>
@@ -614,14 +614,14 @@
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">関係性</label>
-                        <select class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
-                            <option value="">選択してください</option>
-                            <option value="本人">本人</option>
-                            <option value="配偶者">配偶者</option>
-                            <option value="親">親</option>
-                            <option value="子">子</option>
-                            <option value="その他">その他</option>
-                        </select>
+                        <input type="text" list="relationList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        <datalist id="relationList">
+                            <option value="本人">
+                            <option value="配偶者">
+                            <option value="親">
+                            <option value="子">
+                            <option value="その他">
+                        </datalist>
                     </div>
                     <div class="relative sm:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">メールアドレス</label>
@@ -671,15 +671,15 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">依頼物件種別<span class="text-red-500 ml-1">*</span></label>
-                        <select id="propertyTypeSelect" onchange="updateFloorsOptions()" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all appearance-none bg-white">
-                            <option value="">選択してください</option>
-                            <option value="戸建て">戸建て</option>
-                            <option value="マンション">マンション</option>
-                            <option value="アパート">アパート</option>
-                            <option value="店舗・事務所">店舗・事務所</option>
-                            <option value="工場・倉庫">工場・倉庫</option>
-                            <option value="その他">その他</option>
-                        </select>
+                        <input type="text" id="propertyTypeSelect" list="propertyTypeList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                        <datalist id="propertyTypeList">
+                            <option value="戸建て">
+                            <option value="マンション">
+                            <option value="アパート">
+                            <option value="店舗・事務所">
+                            <option value="工場・倉庫">
+                            <option value="その他">
+                        </datalist>
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">階数</label>
@@ -699,7 +699,10 @@
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">築年数</label>
-                        <input type="text" placeholder="例: 15年" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                        <input type="text" list="buildingAgeList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                        <datalist id="buildingAgeList">
+                            <option value="1"><option value="2"><option value="3"><option value="4"><option value="5"><option value="6"><option value="7"><option value="8"><option value="9"><option value="10"><option value="11"><option value="12"><option value="13"><option value="14"><option value="15"><option value="16"><option value="17"><option value="18"><option value="19"><option value="20"><option value="21"><option value="22"><option value="23"><option value="24"><option value="25"><option value="26"><option value="27"><option value="28"><option value="29"><option value="30"><option value="31"><option value="32"><option value="33"><option value="34"><option value="35"><option value="36"><option value="37"><option value="38"><option value="39"><option value="40"><option value="41"><option value="42"><option value="43"><option value="44"><option value="45"><option value="46"><option value="47"><option value="48"><option value="49"><option value="50">
+                        </datalist>
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">延べ床面積</label>
@@ -716,16 +719,19 @@
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">施工回数</label>
-                        <select class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all appearance-none bg-white">
-                            <option value="">選択してください</option>
-                            <option value="初回">初回</option>
-                            <option value="2回目">2回目</option>
-                            <option value="3回目以上">3回目以上</option>
-                        </select>
+                        <input type="text" list="constructionCountList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                        <datalist id="constructionCountList">
+                            <option value="初回">
+                            <option value="2回目">
+                            <option value="3回目以上">
+                        </datalist>
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">前回施工時期</label>
-                        <input type="text" placeholder="例: 10年前" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                        <input type="text" list="previousConstructionList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                        <datalist id="previousConstructionList">
+                            <option value="1"><option value="2"><option value="3"><option value="4"><option value="5"><option value="6"><option value="7"><option value="8"><option value="9"><option value="10"><option value="11"><option value="12"><option value="13"><option value="14"><option value="15"><option value="16"><option value="17"><option value="18"><option value="19"><option value="20"><option value="21"><option value="22"><option value="23"><option value="24"><option value="25"><option value="26"><option value="27"><option value="28"><option value="29"><option value="30">
+                        </datalist>
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">外壁材質</label>
@@ -849,25 +855,25 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">希望社数</label>
-                        <select class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all appearance-none bg-white">
-                            <option value="">選択してください</option>
-                            <option value="1社">1社</option>
-                            <option value="2社">2社</option>
-                            <option value="3社">3社</option>
-                            <option value="4社">4社</option>
-                            <option value="5社以上">5社以上</option>
-                        </select>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">見積もり取得先</label>
+                        <input type="text" list="quoteSourceList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                        <datalist id="quoteSourceList">
+                            <option value="訪問営業">
+                            <option value="ポータルサイト（ネットでの比較サービス）">
+                            <option value="近所の業者">
+                            <option value="前回施工業者">
+                            <option value="知人や家族の紹介">
+                            <option value="建てたところ（ハウスメーカー等）">
+                        </datalist>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">施工時期</label>
                         <select class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all appearance-none bg-white">
                             <option value="">選択してください</option>
                             <option value="すぐに">すぐに</option>
-                            <option value="1ヶ月以内">1ヶ月以内</option>
+                            <option value="そろそろ">そろそろ</option>
                             <option value="3ヶ月以内">3ヶ月以内</option>
                             <option value="半年以内">半年以内</option>
-                            <option value="1年以内">1年以内</option>
                             <option value="未定">未定</option>
                         </select>
                     </div>
@@ -1137,6 +1143,19 @@
             </div><!-- originalFormContent終了 -->
 
 <script>
+// 性別選択ボタン
+function selectGender(button, value) {
+    // 全てのボタンから selected クラスを削除
+    const buttons = button.parentElement.querySelectorAll('.option-button');
+    buttons.forEach(btn => btn.classList.remove('selected'));
+
+    // クリックされたボタンに selected クラスを追加
+    button.classList.add('selected');
+
+    // hidden input に値を設定
+    document.getElementById('genderValue').value = value;
+}
+
 // 2人目情報セクション トグル
 function toggleSecondPerson() {
     const section = document.getElementById('secondPersonSection');
@@ -3256,23 +3275,62 @@ window.addEventListener('beforeunload', function(e) {
         }
 
         // Google Mapリンク生成機能
-        function generateGoogleMapLink(postalCode) {
-            if (postalCode) {
-                // 郵便番号から住所を取得するAPIを呼び出し（実装例）
-                console.log('郵便番号: ' + postalCode + ' の住所を取得中...');
-            } else {
-                const address = document.querySelector('input[value*="東京都"]').value;
+        function generateGoogleMapLink() {
+            const addressInput = document.getElementById('addressInput');
+            const mapLinkInput = document.getElementById('mapLinkInput');
+
+            if (addressInput && addressInput.value.trim()) {
+                const address = addressInput.value.trim();
+                // Google Maps ストリートビューのURL
                 const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-                window.open(googleMapsUrl, '_blank');
+
+                if (mapLinkInput) {
+                    mapLinkInput.value = googleMapsUrl;
+                }
+                return googleMapsUrl;
             }
+            return '';
         }
 
         // Mapリンクを開く
         function openMapLink() {
-            const address = document.querySelector('input[value*="東京都"]').value;
-            const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-            window.open(googleMapsUrl, '_blank');
+            const mapLinkInput = document.getElementById('mapLinkInput');
+            if (mapLinkInput && mapLinkInput.value.trim()) {
+                window.open(mapLinkInput.value.trim(), '_blank');
+            } else {
+                // リンクがない場合は生成してから開く
+                const url = generateGoogleMapLink();
+                if (url) {
+                    window.open(url, '_blank');
+                } else {
+                    alert('住所を入力してください');
+                }
+            }
         }
+
+        // 住所入力時に自動的にマップリンクを生成
+        function autoGenerateMapLink() {
+            const addressInput = document.getElementById('addressInput');
+            if (addressInput) {
+                addressInput.addEventListener('blur', function() {
+                    if (this.value.trim()) {
+                        generateGoogleMapLink();
+                    }
+                });
+                addressInput.addEventListener('input', function() {
+                    if (this.value.trim()) {
+                        setTimeout(() => {
+                            generateGoogleMapLink();
+                        }, 500); // 0.5秒後に自動生成
+                    }
+                });
+            }
+        }
+
+        // ページ読み込み時に実行
+        document.addEventListener('DOMContentLoaded', function() {
+            autoGenerateMapLink();
+        });
 
         // オプションボタンの選択機能（イベント委任を使用）
         document.addEventListener('click', function(e) {
