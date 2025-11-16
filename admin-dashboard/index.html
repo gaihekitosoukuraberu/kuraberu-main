@@ -1228,6 +1228,24 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // オートセーブシステム開始
+    if (typeof startAutoSave === 'function') {
+        startAutoSave();
+        console.log('[Admin] オートセーブシステムを起動しました');
+    }
+
+    // 保存ボタンの初期状態を設定
+    if (typeof updateSaveButton === 'function') {
+        updateSaveButton();
+    }
+});
+
+// ページ離脱時の未保存変更確認
+window.addEventListener('beforeunload', function(e) {
+    if (typeof checkUnsavedBeforeUnload === 'function') {
+        return checkUnsavedBeforeUnload(e);
+    }
 });
 </script>
     </main>
@@ -3260,6 +3278,11 @@ document.addEventListener('DOMContentLoaded', function() {
         let selectedItems = new Set();
         let currentStatusFilter = '';
 
+        // オートセーブ関連
+        let unsavedChanges = new Map(); // { cvId: { status, timestamp } }
+        let autoSaveTimer = null;
+        let isSaving = false;
+
         // 案件データベース
         // 案件データ（実データ）
         let casesData = {}; // 初期値は空、loadCasesData()で取得
@@ -3706,26 +3729,24 @@ document.addEventListener('DOMContentLoaded', function() {
             initializeListView();
         }
         
-        // 見込みソート（見込み→再架電の順）
+        // 見込みソート（見込みのみ）
         function filterByProspect() {
             // リストビューに切り替え
             if (currentView !== 'list') {
                 switchView('list');
             }
-            
-            const today = new Date().toDateString();
+
             const tbody = document.getElementById('casesListBody');
             tbody.innerHTML = '';
-            
-            // 見込みと再架電の案件をフィルタリング
+
+            // 見込み案件のみフィルタリング
             const filteredCases = Object.entries(casesData)
                 .filter(([_, caseData]) => {
-                    return caseData.status === '見込み' || caseData.status === '再架電';
+                    return caseData.status === '見込み';
                 })
                 .sort((a, b) => {
-                    // 見込み→再架電の順
-                    const priority = {'見込み': 1, '再架電': 2};
-                    return priority[a[1].status] - priority[b[1].status];
+                    // 新しい順に並べる
+                    return new Date(b[1].date || Date.now()) - new Date(a[1].date || Date.now());
                 });
             
             // フィルタリングした案件を表示
@@ -3998,8 +4019,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const newCount = Object.values(casesData).filter(c => c.status === '新規').length;
             document.getElementById('newCount').textContent = newCount;
             
-            // 見込み＋再架電件数
-            const prospectCount = Object.values(casesData).filter(c => c.status === '見込み' || c.status === '再架電').length;
+            // 見込み件数（再架電は除外）
+            const prospectCount = Object.values(casesData).filter(c => c.status === '見込み').length;
             document.getElementById('prospectCount').textContent = prospectCount;
             
             // 直近1ヶ月の不在・再架電件数（流入日から起算）
@@ -4610,17 +4631,212 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function changeStatus(caseId, newStatus) {
             casesData[caseId].status = newStatus;
-            // 必要に応じてサーバーに保存
-            console.log(`案件 ${caseId} のステータスを ${newStatus} に変更`);
+
+            // 未保存変更を記録
+            unsavedChanges.set(caseId, {
+                status: newStatus,
+                timestamp: Date.now()
+            });
+
+            // 保存ボタンを更新
+            updateSaveButton();
+
+            console.log(`案件 ${caseId} のステータスを ${newStatus} に変更（未保存）`);
         }
         
         // CRMステータス変更
         function changeCRMStatus(newStatus) {
             if (!currentCaseId) return;
             casesData[currentCaseId].status = newStatus;
-            console.log(`案件 ${currentCaseId} のステータスを ${newStatus} に変更`);
+
+            // 未保存変更を記録
+            unsavedChanges.set(currentCaseId, {
+                status: newStatus,
+                timestamp: Date.now()
+            });
+
+            // 保存ボタンを更新
+            updateSaveButton();
+
+            console.log(`案件 ${currentCaseId} のステータスを ${newStatus} に変更（未保存）`);
             updateCRMStatusBadge(newStatus);
         }
+
+        // ========================================
+        // オートセーブシステム
+        // ========================================
+
+        // 保存ボタンの表示を更新
+        function updateSaveButton() {
+            const saveBtn = document.querySelector('button[onclick="saveAllData()"]');
+            if (!saveBtn) return;
+
+            if (unsavedChanges.size > 0) {
+                // 未保存変更あり：ピンク色で目立たせる + パルス効果
+                saveBtn.className = 'bg-gradient-to-r from-pink-500 to-pink-600 text-white p-2.5 md:px-5 md:py-2.5 rounded-xl font-semibold hover:from-pink-600 hover:to-pink-700 transition-all flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 animate-pulse';
+                saveBtn.querySelector('span').textContent = `保存 (${unsavedChanges.size})`;
+            } else {
+                // 未保存変更なし：グレー色で控えめに
+                saveBtn.className = 'bg-gray-300 text-gray-600 p-2.5 md:px-5 md:py-2.5 rounded-xl font-semibold transition-all flex items-center gap-2 shadow-md opacity-60 cursor-not-allowed';
+                saveBtn.querySelector('span').textContent = '保存';
+            }
+        }
+
+        // 全未保存変更を保存
+        async function saveAllData() {
+            if (unsavedChanges.size === 0) {
+                console.log('[AutoSave] 未保存の変更はありません');
+                return;
+            }
+
+            if (isSaving) {
+                console.log('[AutoSave] 保存処理実行中...');
+                return;
+            }
+
+            isSaving = true;
+            const changesToSave = Array.from(unsavedChanges.entries());
+            console.log(`[AutoSave] ${changesToSave.length} 件の変更を保存中...`);
+
+            // 保存中インジケーター表示
+            showSavingIndicator();
+
+            let successCount = 0;
+            let failCount = 0;
+
+            for (const [cvId, data] of changesToSave) {
+                try {
+                    const result = await window.apiClient.postRequest('updateCVStatus', {
+                        cvId: cvId,
+                        status: data.status
+                    });
+
+                    if (result.success) {
+                        successCount++;
+                        unsavedChanges.delete(cvId);
+                        console.log(`[AutoSave] 成功: ${cvId} → ${data.status}`);
+                    } else {
+                        failCount++;
+                        console.error(`[AutoSave] 失敗: ${cvId}`, result.error);
+                    }
+                } catch (error) {
+                    failCount++;
+                    console.error(`[AutoSave] エラー: ${cvId}`, error);
+                }
+            }
+
+            isSaving = false;
+
+            // 保存完了表示
+            hideSavingIndicator();
+            if (failCount === 0) {
+                showNotification(`✓ ${successCount} 件の変更を保存しました`, 'success');
+            } else {
+                showNotification(`⚠ ${successCount} 件保存、${failCount} 件失敗`, 'warning');
+            }
+
+            // 保存ボタンを更新
+            updateSaveButton();
+        }
+
+        // 保存中インジケーター表示
+        function showSavingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.id = 'savingIndicator';
+            indicator.className = 'fixed top-20 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-50';
+            indicator.innerHTML = `
+                <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>保存中...</span>
+            `;
+            document.body.appendChild(indicator);
+        }
+
+        // 保存中インジケーター非表示
+        function hideSavingIndicator() {
+            const indicator = document.getElementById('savingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        // オートセーブタイマー開始（30秒間隔）
+        function startAutoSave() {
+            // 既存のタイマーをクリア
+            if (autoSaveTimer) {
+                clearInterval(autoSaveTimer);
+            }
+
+            // 30秒ごとにオートセーブ
+            autoSaveTimer = setInterval(async () => {
+                if (unsavedChanges.size > 0 && !isSaving) {
+                    console.log('[AutoSave] 自動保存を実行します');
+                    await saveAllData();
+                }
+            }, 30000); // 30秒
+
+            console.log('[AutoSave] オートセーブタイマー開始（30秒間隔）');
+        }
+
+        // ページ離脱時の確認
+        function checkUnsavedBeforeUnload(e) {
+            if (unsavedChanges.size > 0) {
+                e.preventDefault();
+                e.returnValue = ''; // Chromeでは空文字を設定
+
+                // カスタムモーダル表示
+                showUnsavedChangesModal();
+            }
+        }
+
+        // 未保存変更モーダル表示
+        function showUnsavedChangesModal() {
+            const modal = document.createElement('div');
+            modal.id = 'unsavedChangesModal';
+            modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 relative">
+                    <button onclick="closeUnsavedChangesModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <div class="text-center">
+                        <div class="mb-4">
+                            <svg class="w-16 h-16 mx-auto text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">未保存の変更があります</h3>
+                        <p class="text-gray-600 mb-6">${unsavedChanges.size} 件の変更が保存されていません。<br>保存しますか？</p>
+                        <button onclick="saveAndClose()" class="w-full px-6 py-3 bg-pink-500 text-white rounded-lg font-semibold hover:bg-pink-600 transition-all shadow-lg hover:shadow-xl">
+                            保存する
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // 未保存変更モーダルを閉じる
+        function closeUnsavedChangesModal() {
+            const modal = document.getElementById('unsavedChangesModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // 保存してモーダルを閉じる
+        async function saveAndClose() {
+            await saveAllData();
+            closeUnsavedChangesModal();
+        }
+
+        // ========================================
+        // オートセーブシステム ここまで
+        // ========================================
 
         // ステータスモーダルのトグル
         function toggleStatusModal() {

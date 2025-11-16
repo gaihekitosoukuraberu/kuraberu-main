@@ -1058,6 +1058,84 @@ const CVSheetSystem = {
   },
 
   /**
+   * CVステータス更新（アドミンダッシュボード用）
+   * @param {Object} params - { cvId, status, memo }
+   * @return {Object} - { success, message }
+   */
+  updateCVStatus(params) {
+    try {
+      const { cvId, status, memo } = params;
+
+      if (!cvId || !status) {
+        return {
+          success: false,
+          error: 'cvId と status は必須です'
+        };
+      }
+
+      const ssId = this.getSpreadsheetId();
+      const ss = SpreadsheetApp.openById(ssId);
+      const sheet = ss.getSheetByName('ユーザー登録');
+
+      if (!sheet) {
+        throw new Error('ユーザー登録シートが見つかりません');
+      }
+
+      // CV IDで行を検索
+      const dataRange = sheet.getDataRange();
+      const values = dataRange.getValues();
+      let targetRow = -1;
+
+      for (let i = 1; i < values.length; i++) {
+        if (values[i][0] === cvId) { // A列: CV ID
+          targetRow = i + 1; // シート行番号（1始まり）
+          break;
+        }
+      }
+
+      if (targetRow === -1) {
+        return {
+          success: false,
+          error: `CV ID ${cvId} が見つかりません`
+        };
+      }
+
+      // BM列(65): 管理ステータスを更新
+      sheet.getRange(targetRow, 65).setValue(status);
+
+      // メモがあればBL列(64)に追記
+      if (memo) {
+        const currentMemo = sheet.getRange(targetRow, 64).getValue() || '';
+        const timestamp = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
+        const newMemo = currentMemo
+          ? `${currentMemo}\n[${timestamp}] ${memo}`
+          : `[${timestamp}] ${memo}`;
+        sheet.getRange(targetRow, 64).setValue(newMemo);
+      }
+
+      // BP列(68): 最終更新日時を更新
+      const now = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
+      sheet.getRange(targetRow, 68).setValue(now);
+
+      console.log(`[CVSheetSystem] ステータス更新完了: ${cvId} → ${status}`);
+
+      return {
+        success: true,
+        message: 'ステータス更新完了',
+        cvId: cvId,
+        newStatus: status
+      };
+
+    } catch (error) {
+      console.error('[CVSheetSystem] updateCVStatus エラー:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
    * ハンドラー（main.jsから呼ばれる）
    */
   handle(params) {
@@ -1111,6 +1189,11 @@ const CVSheetSystem = {
       // 全CV取得（アドミンダッシュボード用）
       if (action === 'getCVList') {
         return this.getAllCVs();
+      }
+
+      // CVステータス更新（アドミンダッシュボード用）
+      if (action === 'updateCVStatus') {
+        return this.updateCVStatus(params);
       }
 
       return {
