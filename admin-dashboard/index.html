@@ -3745,13 +3745,13 @@ window.addEventListener('beforeunload', function(e) {
             const emailInput = crmContent.querySelector('input[type="email"]');
             if (emailInput) emailInput.value = data.email || data['メールアドレス'] || '';
 
-            // 物件プロフィール
-            setInputOrDatalistValue('依頼物件種別', data.propertyType || data['物件種別']);
-            setInputOrDatalistValue('階数', data.floors || data['階数']);
-            setInputOrDatalistValue('築年数', data.buildingAge || data['築年数']);
+            // 物件プロフィール（CSVフィールド名を優先）
+            setInputOrDatalistValue('依頼物件種別', data.propertyType || data['Q1_物件種別'] || data['物件種別']);
+            setInputOrDatalistValue('階数', data.floors || data['Q2_階数'] || data['階数']);
+            setInputOrDatalistValue('築年数', data.buildingAge || data['Q3_築年数'] || data['築年数']);
             setInputOrDatalistValue('延べ床面積', data.floorArea || data['建物面積']);
-            setInputOrDatalistValue('前回施工時期', data.previousConstructionTime || data['Q5_前回施工時期']);
             setInputOrDatalistValue('施工回数', data.constructionCount || data['Q4_工事歴']);
+            setInputOrDatalistValue('前回施工時期', data.previousConstructionTime || data['Q5_前回施工時期']);
             setInputOrDatalistValue('外壁材質', data.wallMaterial || data['Q6_外壁材質']);
             setInputOrDatalistValue('屋根材質', data.roofMaterial || data['Q7_屋根材質']);
 
@@ -3784,46 +3784,97 @@ window.addEventListener('beforeunload', function(e) {
             const surveyDateTimeInput = document.getElementById('surveyDateTime');
             if (surveyDateTimeInput) {
                 surveyDateTimeInput.value = data.surveyDateTime || data['現地調査希望日時'] || '';
-            }
-
-            // 見積もり希望箇所と特殊要件のボタンを選択状態にする
-            if (crmContent && data.workItems && Array.isArray(data.workItems)) {
-                // まず全てのボタンの選択を解除
-                crmContent.querySelectorAll('.option-button').forEach(button => {
-                    button.classList.remove('selected');
-                });
-
-                // データに基づいてボタンを選択
-                data.workItems.forEach(item => {
-                    crmContent.querySelectorAll('.option-button').forEach(button => {
-                        const buttonText = button.textContent.trim();
-                        // 完全一致または部分一致でチェック
-                        if (buttonText === '外壁塗装' && item.includes('外壁塗装')) {
-                            button.classList.add('selected');
-                        } else if (buttonText === '屋根塗装' && item.includes('屋根塗装')) {
-                            button.classList.add('selected');
-                        } else if (buttonText === '屋上防水' && item.includes('屋上防水')) {
-                            button.classList.add('selected');
-                        } else if (buttonText === '屋根葺き替え・張り替え（スレート・ガルバリウム等）' && item.includes('屋根葺き替え')) {
-                            button.classList.add('selected');
-                        } else if (buttonText === '屋根葺き替え・張り替え（瓦）' && item.includes('屋根葺き替え') && item.includes('瓦')) {
-                            button.classList.add('selected');
-                        } else if (buttonText === '屋根カバー工法' && item.includes('屋根カバー')) {
-                            button.classList.add('selected');
-                        } else if (buttonText === '外壁補修' && item.includes('外壁補修')) {
-                            button.classList.add('selected');
-                        } else if (buttonText === '屋根補修' && item.includes('屋根補修')) {
-                            button.classList.add('selected');
-                        } else if (buttonText === 'ベランダ防水' && item.includes('ベランダ防水')) {
-                            button.classList.add('selected');
-                        } else if (buttonText === '内装水回り（バス・キッチン・トイレ）' && item.includes('内装水回り')) {
-                            button.classList.add('selected');
+                // 現地調査希望日時のボタンも選択状態にする
+                if (data['現地調査希望日時']) {
+                    const selectedTimes = data['現地調査希望日時'].split(', ');
+                    crmContent.querySelectorAll('.option-button').forEach(btn => {
+                        if (selectedTimes.includes(btn.textContent.trim())) {
+                            btn.classList.add('selected');
                         }
                     });
-                });
+                }
             }
 
-            console.log('[populateForm] データ反映完了');
+            // 見積もり・工事セクションのフィールド
+            // 希望工事内容から見積もり希望箇所を選択
+            const workExterior = data['Q9_希望工事内容_外壁'] || '';
+            const workRoof = data['Q10_希望工事内容_屋根'] || '';
+            const estimateCount = data['Q11_見積もり保有数'] || '';
+            const deterioration = data['Q16_現在の劣化状況'] || '';
+            const selectionCriteria = data['Q17_業者選定条件'] || '';
+
+            // 見積もり希望箇所のマッピング
+            const workMapping = {
+                '塗装': ['外壁塗装', '屋根塗装'],
+                '葺き替え・カバー工法': ['屋根葺き替え・張り替え（スレート・ガルバリウム等）', '屋根カバー工法'],
+                '外壁と屋根': ['外壁塗装', '屋根塗装']
+            };
+
+            // 見積もり希望箇所のボタンを選択（CSVデータを優先）
+            if (workExterior || workRoof || (data.workItems && Array.isArray(data.workItems))) {
+                // 見積もりセクション内のボタンのみを対象
+                const estimateSection = crmContent.querySelector('.form-section.bg-gradient-to-br.from-purple-50');
+                if (estimateSection) {
+                    const estimateButtons = estimateSection.querySelectorAll('.option-button');
+
+                    // CSVデータから見積もり希望箇所を選択
+                    if (workExterior === '塗装') {
+                        estimateButtons.forEach(btn => {
+                            if (btn.textContent.trim() === '外壁塗装') btn.classList.add('selected');
+                        });
+                    }
+                    if (workRoof === '塗装') {
+                        estimateButtons.forEach(btn => {
+                            if (btn.textContent.trim() === '屋根塗装') btn.classList.add('selected');
+                        });
+                    }
+                    if (workRoof === '葺き替え・カバー工法') {
+                        estimateButtons.forEach(btn => {
+                            const text = btn.textContent.trim();
+                            if (text.includes('屋根葺き替え') || text.includes('屋根カバー工法')) {
+                                btn.classList.add('selected');
+                            }
+                        });
+                    }
+
+                    // 既存のworkItemsデータも処理（後方互換性）
+                    if (data.workItems && Array.isArray(data.workItems)) {
+                        data.workItems.forEach(item => {
+                            estimateButtons.forEach(button => {
+                                const buttonText = button.textContent.trim();
+                                // 完全一致または部分一致でチェック
+                                if (buttonText === '外壁塗装' && item.includes('外壁塗装')) {
+                                    button.classList.add('selected');
+                                } else if (buttonText === '屋根塗装' && item.includes('屋根塗装')) {
+                                    button.classList.add('selected');
+                                } else if (buttonText === '屋上防水' && item.includes('屋上防水')) {
+                                    button.classList.add('selected');
+                                } else if (buttonText.includes('屋根葺き替え') && item.includes('屋根葺き替え')) {
+                                    button.classList.add('selected');
+                                } else if (buttonText === '屋根カバー工法' && item.includes('屋根カバー')) {
+                                    button.classList.add('selected');
+                                } else if (buttonText === '外壁補修' && item.includes('外壁補修')) {
+                                    button.classList.add('selected');
+                                } else if (buttonText === '屋根補修' && item.includes('屋根補修')) {
+                                    button.classList.add('selected');
+                                } else if (buttonText === 'ベランダ防水' && item.includes('ベランダ防水')) {
+                                    button.classList.add('selected');
+                                } else if (buttonText === '内装水回り（バス・キッチン・トイレ）' && item.includes('内装水回り')) {
+                                    button.classList.add('selected');
+                                }
+                            });
+                        });
+                    }
+                }
+            }
+
+            console.log('[populateForm] データ反映完了:', {
+                workExterior,
+                workRoof,
+                estimateCount,
+                deterioration,
+                selectionCriteria
+            });
         }
 
 
@@ -4906,9 +4957,9 @@ window.addEventListener('beforeunload', function(e) {
             // hidden input に値を設定
             document.getElementById('genderValue').value = value;
 
-            // 変更を記録
+            // 変更を記録（Mapなのでsetを使用）
             if (currentCaseId) {
-                unsavedChanges.add(currentCaseId);
+                unsavedChanges.set(currentCaseId, { type: 'form' });
                 updateSaveButton();
             }
         }
@@ -4929,9 +4980,9 @@ window.addEventListener('beforeunload', function(e) {
                 const selectedValues = Array.from(selectedButtons).map(btn => btn.textContent.trim());
                 surveyInput.value = selectedValues.join(', ');
 
-                // 変更を記録
+                // 変更を記録（Mapなのでsetを使用）
                 if (currentCaseId) {
-                    unsavedChanges.add(currentCaseId);
+                    unsavedChanges.set(currentCaseId, { type: 'form' });
                     updateSaveButton();
                 }
             }
