@@ -1100,22 +1100,22 @@ const CVSheetSystem = {
         };
       }
 
-      // BM列(65): 管理ステータスを更新
-      sheet.getRange(targetRow, 65).setValue(status);
+      // BN列(66): 管理ステータスを更新
+      sheet.getRange(targetRow, 66).setValue(status);
 
-      // メモがあればBL列(64)に追記
+      // メモがあればBM列(65)に追記
       if (memo) {
-        const currentMemo = sheet.getRange(targetRow, 64).getValue() || '';
+        const currentMemo = sheet.getRange(targetRow, 65).getValue() || '';
         const timestamp = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
         const newMemo = currentMemo
           ? `${currentMemo}\n[${timestamp}] ${memo}`
           : `[${timestamp}] ${memo}`;
-        sheet.getRange(targetRow, 64).setValue(newMemo);
+        sheet.getRange(targetRow, 65).setValue(newMemo);
       }
 
-      // BP列(68): 最終更新日時を更新
+      // BQ列(69): 最終更新日時を更新
       const now = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
-      sheet.getRange(targetRow, 68).setValue(now);
+      sheet.getRange(targetRow, 69).setValue(now);
 
       console.log(`[CVSheetSystem] ステータス更新完了: ${cvId} → ${status}`);
 
@@ -1158,6 +1158,106 @@ const CVSheetSystem = {
 
     } catch (error) {
       console.error('[CVSheetSystem] convertNameToKana エラー:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * CV全項目データ更新（アドミンダッシュボード用）
+   * @param {Object} params - { cvId, data }
+   * @return {Object} - { success, message }
+   */
+  updateCVData(params) {
+    try {
+      const { cvId, data } = params;
+
+      if (!cvId) {
+        return {
+          success: false,
+          error: 'cvId は必須です'
+        };
+      }
+
+      const ssId = this.getSpreadsheetId();
+      const ss = SpreadsheetApp.openById(ssId);
+      const sheet = ss.getSheetByName('ユーザー登録');
+
+      if (!sheet) {
+        throw new Error('ユーザー登録シートが見つかりません');
+      }
+
+      // CV IDで行を検索
+      const dataRange = sheet.getDataRange();
+      const values = dataRange.getValues();
+      let targetRow = -1;
+
+      for (let i = 1; i < values.length; i++) {
+        if (values[i][0] === cvId) {
+          targetRow = i + 1;
+          break;
+        }
+      }
+
+      if (targetRow === -1) {
+        return {
+          success: false,
+          error: `CV ID ${cvId} が見つかりません`
+        };
+      }
+
+      // 各項目を更新（値が存在する場合のみ）
+      if (data.name !== undefined) sheet.getRange(targetRow, 3).setValue(data.name); // C列: 氏名
+      if (data.nameKana !== undefined) sheet.getRange(targetRow, 4).setValue(data.nameKana); // D列: フリガナ
+      if (data.gender !== undefined) sheet.getRange(targetRow, 5).setValue(data.gender); // E列: 性別
+      if (data.age !== undefined) sheet.getRange(targetRow, 6).setValue(data.age); // F列: 年齢
+      if (data.phone !== undefined) sheet.getRange(targetRow, 7).setValue(data.phone); // G列: 電話番号
+      if (data.email !== undefined) sheet.getRange(targetRow, 8).setValue(data.email); // H列: メールアドレス
+      if (data.relation !== undefined) sheet.getRange(targetRow, 9).setValue(data.relation); // I列: 続柄
+
+      // 住所（物件）
+      if (data.postalCode !== undefined) sheet.getRange(targetRow, 14).setValue(data.postalCode); // N列: 郵便番号（物件）
+      if (data.prefecture !== undefined) sheet.getRange(targetRow, 15).setValue(data.prefecture); // O列: 都道府県（物件）
+      if (data.city !== undefined) sheet.getRange(targetRow, 16).setValue(data.city); // P列: 市区町村（物件）
+      if (data.address !== undefined) sheet.getRange(targetRow, 17).setValue(data.address); // Q列: 住所詳細（物件）
+
+      // 物件情報
+      if (data.propertyType !== undefined) sheet.getRange(targetRow, 23).setValue(data.propertyType); // W列: 物件種別
+      if (data.floors !== undefined) sheet.getRange(targetRow, 26).setValue(data.floors); // Z列: 階数
+
+      // 工事希望箇所（配列の場合は結合）
+      if (data.workItems !== undefined) {
+        const workItemsStr = Array.isArray(data.workItems) ? data.workItems.join('、') : data.workItems;
+        sheet.getRange(targetRow, 46).setValue(workItemsStr); // AT列: 案件メモ
+      }
+
+      // 管理情報
+      if (data.status !== undefined) sheet.getRange(targetRow, 66).setValue(data.status); // BN列: 管理ステータス
+      if (data.memo !== undefined) {
+        const currentMemo = sheet.getRange(targetRow, 65).getValue() || '';
+        const timestamp = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
+        const newMemo = currentMemo
+          ? `${currentMemo}\n[${timestamp}] ${data.memo}`
+          : `[${timestamp}] ${data.memo}`;
+        sheet.getRange(targetRow, 65).setValue(newMemo); // BM列: メモ
+      }
+
+      // 最終更新日時を更新
+      const now = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
+      sheet.getRange(targetRow, 69).setValue(now); // BQ列: 最終更新日時
+
+      console.log(`[CVSheetSystem] CV全項目更新完了: ${cvId}`);
+
+      return {
+        success: true,
+        message: 'CV全項目更新完了',
+        cvId: cvId
+      };
+
+    } catch (error) {
+      console.error('[CVSheetSystem] updateCVData エラー:', error);
       return {
         success: false,
         error: error.toString()
@@ -1229,6 +1329,11 @@ const CVSheetSystem = {
       // 名前→カナ変換（アドミンダッシュボード用）
       if (action === 'convertNameToKana') {
         return this.convertNameToKana(params);
+      }
+
+      // CV全項目データ更新（アドミンダッシュボード用）
+      if (action === 'updateCVData') {
+        return this.updateCVData(params);
       }
 
       return {

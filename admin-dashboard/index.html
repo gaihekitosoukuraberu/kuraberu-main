@@ -4713,6 +4713,72 @@ window.addEventListener('beforeunload', function(e) {
         }
 
         // 全未保存変更を保存
+        // CRMフォームから全データを取得
+        function getCRMFormData() {
+            const crmContent = document.getElementById('crmContent');
+            if (!crmContent) return null;
+
+            const data = {};
+
+            // 基本情報
+            const nameInput = crmContent.querySelector('input[type="text"]');
+            if (nameInput) data.name = nameInput.value;
+
+            const kanaInput = crmContent.querySelectorAll('input[type="text"]')[1];
+            if (kanaInput) data.nameKana = kanaInput.value;
+
+            const telInput = crmContent.querySelector('input[type="tel"]');
+            if (telInput) data.phone = telInput.value;
+
+            const emailInput = crmContent.querySelector('input[type="email"]');
+            if (emailInput) data.email = emailInput.value;
+
+            // セレクト項目
+            data.gender = getSelectValue('性別');
+            data.age = getSelectValue('年齢');
+            data.relation = getSelectValue('関係性');
+
+            // 住所
+            const zipInput = document.getElementById('zipInput');
+            if (zipInput) data.postalCode = zipInput.value;
+
+            const addressInput = document.getElementById('addressInput');
+            if (addressInput) data.address = addressInput.value;
+
+            // 物件情報
+            data.propertyType = getSelectValue('依頼物件種別');
+            data.floors = getSelectValue('階数');
+
+            // 工事希望箇所（選択されたボタンを配列で取得）
+            const selectedButtons = Array.from(crmContent.querySelectorAll('.option-button.selected'));
+            data.workItems = selectedButtons.map(btn => btn.textContent.trim());
+
+            // ステータス
+            const statusBadge = document.getElementById('crmStatusBadge');
+            if (statusBadge) {
+                data.status = statusBadge.textContent.trim();
+            }
+
+            return data;
+        }
+
+        // セレクトボックスの値を取得するヘルパー関数
+        function getSelectValue(labelText) {
+            const crmContent = document.getElementById('crmContent');
+            if (!crmContent) return '';
+
+            const labels = crmContent.querySelectorAll('label');
+            for (const label of labels) {
+                if (label.textContent.includes(labelText)) {
+                    const select = label.nextElementSibling;
+                    if (select && select.tagName === 'SELECT') {
+                        return select.value;
+                    }
+                }
+            }
+            return '';
+        }
+
         async function saveAllData() {
             if (unsavedChanges.size === 0) {
                 console.log('[AutoSave] 未保存の変更はありません');
@@ -4734,20 +4800,49 @@ window.addEventListener('beforeunload', function(e) {
             let successCount = 0;
             let failCount = 0;
 
-            for (const [cvId, data] of changesToSave) {
+            for (const [cvId, changeType] of changesToSave) {
                 try {
-                    const result = await window.apiClient.postRequest('updateCVStatus', {
-                        cvId: cvId,
-                        status: data.status
-                    });
+                    // 現在表示中のCRMデータか確認
+                    if (cvId === currentCaseId && currentView === 'crm') {
+                        // CRMフォームから全データを取得して保存
+                        const formData = getCRMFormData();
+                        if (formData) {
+                            const result = await window.apiClient.postRequest('updateCVData', {
+                                cvId: cvId,
+                                data: formData
+                            });
 
-                    if (result.success) {
-                        successCount++;
-                        unsavedChanges.delete(cvId);
-                        console.log(`[AutoSave] 成功: ${cvId} → ${data.status}`);
+                            if (result.success) {
+                                successCount++;
+                                unsavedChanges.delete(cvId);
+                                // ローカルデータも更新
+                                if (casesData[cvId]) {
+                                    Object.assign(casesData[cvId], formData);
+                                }
+                                console.log(`[AutoSave] 全項目保存成功: ${cvId}`);
+                            } else {
+                                failCount++;
+                                console.error(`[AutoSave] 失敗: ${cvId}`, result.error);
+                            }
+                        }
                     } else {
-                        failCount++;
-                        console.error(`[AutoSave] 失敗: ${cvId}`, result.error);
+                        // リストビューなどからのステータス変更のみ保存
+                        const caseData = casesData[cvId];
+                        if (caseData) {
+                            const result = await window.apiClient.postRequest('updateCVStatus', {
+                                cvId: cvId,
+                                status: caseData.status
+                            });
+
+                            if (result.success) {
+                                successCount++;
+                                unsavedChanges.delete(cvId);
+                                console.log(`[AutoSave] ステータス保存成功: ${cvId} → ${caseData.status}`);
+                            } else {
+                                failCount++;
+                                console.error(`[AutoSave] 失敗: ${cvId}`, result.error);
+                            }
+                        }
                     }
                 } catch (error) {
                     failCount++;
@@ -5463,6 +5558,45 @@ window.addEventListener('beforeunload', function(e) {
             updateNavigationButtons();
             // 案件位置表示を更新
             updateCasePosition();
+
+            // CRMフォームの入力変更を監視
+            setupCRMFormChangeListeners(caseId);
+        }
+
+        // CRMフォームの入力変更を監視するイベントリスナーを設定
+        function setupCRMFormChangeListeners(caseId) {
+            const crmContent = document.getElementById('crmContent');
+            if (!crmContent) return;
+
+            // すべての入力フィールドに変更イベントを設定
+            const inputs = crmContent.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    trackChange(caseId);
+                });
+                input.addEventListener('change', () => {
+                    trackChange(caseId);
+                });
+            });
+
+            // オプションボタンのクリックも監視
+            const optionButtons = crmContent.querySelectorAll('.option-button');
+            optionButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    trackChange(caseId);
+                });
+            });
+
+            console.log('[CRM] フォーム変更監視を設定:', caseId);
+        }
+
+        // 変更を追跡
+        function trackChange(caseId) {
+            if (!unsavedChanges.has(caseId)) {
+                unsavedChanges.set(caseId, { type: 'form' });
+                updateSaveButtonState();
+                console.log('[CRM] 変更を記録:', caseId);
+            }
         }
 
         // クイックアクション（リスト用）
