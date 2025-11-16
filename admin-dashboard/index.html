@@ -920,6 +920,39 @@
                         </select>
                     </div>
                 </div>
+
+                <!-- 追加：BOTで取得した詳細情報 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">訪問業者の状況</label>
+                        <select id="doorSalesVisitSelect" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all appearance-none bg-white">
+                            <option value="">選択してください</option>
+                            <option value="最近来たが見積書はまだ手元にない">最近来たが見積書はまだ手元にない</option>
+                            <option value="最近来て見積書をもらったが未契約">最近来て見積書をもらったが未契約</option>
+                            <option value="最近来て契約した">最近来て契約した</option>
+                            <option value="来ていない">来ていない</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">比較意向</label>
+                        <select id="comparisonIntentionSelect" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all appearance-none bg-white">
+                            <option value="">選択してください</option>
+                            <option value="急ぎで比較したい">急ぎで比較したい</option>
+                            <option value="焦ってはないが比較はしたい">焦ってはないが比較はしたい</option>
+                            <option value="このまま契約するつもりだが比較は気になる">このまま契約するつもりだが比較は気になる</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">現在の劣化状況</label>
+                        <select id="deteriorationStatusSelect" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all appearance-none bg-white">
+                            <option value="">選択してください</option>
+                            <option value="ヒビや割れがある">ヒビや割れがある</option>
+                            <option value="色褪せや汚れが目立つ">色褪せや汚れが目立つ</option>
+                            <option value="雨漏りがある">雨漏りがある</option>
+                            <option value="大きな劣化は感じない">大きな劣化は感じない</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
             <!-- 📞 現地調査・立ち会い関連 -->
@@ -3979,6 +4012,30 @@ window.addEventListener('beforeunload', function(e) {
             if (quoteCountSelect) {
                 const quoteCount = data.quoteCount || data['Q11_見積もり保有数'] || '';
                 quoteCountSelect.value = quoteCount;
+            }
+
+            // 訪問業者の状況
+            const doorSalesVisitSelect = document.getElementById('doorSalesVisitSelect');
+            if (doorSalesVisitSelect) {
+                doorSalesVisitSelect.value = data.doorSalesVisit || '';
+            }
+
+            // 比較意向（「比較は不要」の場合は空欄表示）
+            const comparisonIntentionSelect = document.getElementById('comparisonIntentionSelect');
+            if (comparisonIntentionSelect) {
+                const comparisonValue = data.comparisonIntention || '';
+                // 「比較は不要」の場合は業者に見せないため空欄にする
+                if (comparisonValue === '比較は不要') {
+                    comparisonIntentionSelect.value = '';
+                } else {
+                    comparisonIntentionSelect.value = comparisonValue;
+                }
+            }
+
+            // 現在の劣化状況
+            const deteriorationStatusSelect = document.getElementById('deteriorationStatusSelect');
+            if (deteriorationStatusSelect) {
+                deteriorationStatusSelect.value = data.deteriorationStatus || '';
             }
 
             // 現地調査希望日時

@@ -200,9 +200,14 @@ const CVListManager = {
 
         // 見積もり・工事に関するご要望
         quoteSource: cv.botAnswers?.q12_quoteSource || '',           // Q12: 見積もり取得先
-        constructionTiming: '',                                        // TODO: 施工時期（データソース確認が必要）
-        quoteStatus: '',                                               // TODO: 他社見積もり状況（データソース確認が必要）
+        constructionTiming: '',                                        // TODO: 施工時期（BOTで未質問）
+        quoteStatus: '',                                               // TODO: 他社見積もり状況（BOTで未質問）
         quoteCount: cv.botAnswers?.q11_quoteCount || '',              // Q11: 見積もり保有数
+        doorSalesVisit: cv.botAnswers?.q13_doorSalesVisit || '',      // Q13: 訪問業者の状況
+        comparisonIntention: cv.botAnswers?.q14_comparisonIntention || '',  // Q14: 比較意向
+        doorSalesCompany: cv.botAnswers?.q15_doorSalesCompany || '',  // Q15: 訪問業者名
+        deteriorationStatus: cv.botAnswers?.q16_deteriorationStatus || '',   // Q16: 劣化状況
+        selectionCriteria: cv.botAnswers?.q17_selectionCriteria || '',       // Q17: 業者選定条件
 
         // 配信・成約
         companiesCount: companiesCount,
@@ -219,7 +224,7 @@ const CVListManager = {
 
         // メモ・その他
         memo: cv.memo || '',
-        caseMemo: cv.caseMemo || '',
+        caseMemo: this.buildCaseMemo(cv),
 
         // 元データを保持（詳細表示用）
         _rawData: cv
@@ -310,6 +315,45 @@ const CVListManager = {
       console.warn('[CVListManager] 架電履歴パース失敗:', callHistoryStr);
       return [];
     }
+  },
+
+  /**
+   * 案件メモを構築（既存メモ + BOTデータ自動追記）
+   * @param {Object} cv - CVデータ
+   * @returns {string} 案件メモ
+   */
+  buildCaseMemo(cv) {
+    const memoLines = [];
+
+    // 既存の案件メモがあれば最初に追加
+    if (cv.caseMemo) {
+      memoLines.push(cv.caseMemo);
+    }
+
+    // BOTデータの自動追記部分（区切り線で分ける）
+    const botDataLines = [];
+
+    // 訪問業者名（Q15）
+    if (cv.botAnswers?.q15_doorSalesCompany) {
+      botDataLines.push(`【訪問業者名】${cv.botAnswers.q15_doorSalesCompany}`);
+    }
+
+    // 業者選定条件（Q17）
+    if (cv.botAnswers?.q17_selectionCriteria) {
+      botDataLines.push(`【業者選定条件】${cv.botAnswers.q17_selectionCriteria}`);
+    }
+
+    // BOTデータがあれば区切り線と共に追加
+    if (botDataLines.length > 0) {
+      if (memoLines.length > 0) {
+        memoLines.push(''); // 空行
+        memoLines.push('─────────────────────');
+        memoLines.push('【BOT取得情報】');
+      }
+      memoLines.push(...botDataLines);
+    }
+
+    return memoLines.join('\n');
   },
 
   /**
