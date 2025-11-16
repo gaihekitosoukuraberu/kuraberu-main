@@ -1286,7 +1286,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const isSingleSelect = parent && parent.dataset.singleSelect === 'true';
 
             if (isSingleSelect) {
-                // 単一選択：他のボタンから selected を削除
+                // 単一選択：既に選択されている場合は何もしない（選択解除を防ぐ）
+                if (this.classList.contains('selected')) {
+                    return;
+                }
+
+                // 他のボタンから selected を削除
                 parent.querySelectorAll('.option-button').forEach(btn => {
                     btn.classList.remove('selected', 'bg-purple-500', 'border-purple-500', 'text-white', 'shadow-md');
                     btn.classList.add('bg-white', 'border-gray-300', 'text-gray-700');
@@ -3829,10 +3834,10 @@ window.addEventListener('beforeunload', function(e) {
                 }
             }
 
-            // 関係性（セレクト - IDで直接アクセス）
+            // 関係性（セレクト - IDで直接アクセス、デフォルトは「本人」）
             const relationSelect = document.getElementById('relationSelect');
             if (relationSelect) {
-                relationSelect.value = data.relation || data['続柄'] || '';
+                relationSelect.value = data.relation || data['続柄'] || '本人';
             }
 
             // 電話番号とメール
