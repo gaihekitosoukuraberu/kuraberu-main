@@ -5118,6 +5118,10 @@ window.addEventListener('beforeunload', function(e) {
                 document.getElementById('casePositionDisplay').classList.remove('hidden');
 
                 // currentCaseIdが未設定、または表示中リストにない場合は最初の案件を自動選択
+                console.log('[switchView] currentCaseId:', currentCaseId);
+                console.log('[switchView] currentDisplayedCaseIds:', currentDisplayedCaseIds);
+                console.log('[switchView] includes check:', currentDisplayedCaseIds.includes(currentCaseId));
+
                 if (!currentCaseId || !currentDisplayedCaseIds.includes(currentCaseId)) {
                     if (currentDisplayedCaseIds.length > 0) {
                         currentCaseId = currentDisplayedCaseIds[0];
@@ -5125,65 +5129,54 @@ window.addEventListener('beforeunload', function(e) {
                     }
                 }
 
+                console.log('[switchView] Final currentCaseId before load:', currentCaseId);
                 if (currentCaseId) {
+                    console.log('[switchView] Calling loadCRMContent with:', currentCaseId);
                     loadCRMContent(currentCaseId);
                     updateNavigationButtons();
                     updateCasePosition();
+                } else {
+                    console.log('[switchView] currentCaseIdがないためloadCRMContentをスキップ');
                 }
             }
         }
 
-        // 名前→カナの自動変換機能（イベント委譲を使用）
-        document.addEventListener('blur', async function(e) {
-            // 名前入力フィールドからのblurイベントのみ処理
-            if (e.target && e.target.id === 'crmNameInput') {
-                const nameInput = e.target;
-                const kanaInput = document.getElementById('crmKanaInput');
-
-                if (!kanaInput) {
-                    console.log('[KanaConversion] カナフィールドが見つかりません');
-                    return;
-                }
-
-                const name = nameInput.value.trim();
-                const currentKana = kanaInput.value.trim();
-
-                // 名前が入力されていて、カナが未入力の場合のみ実行
-                if (name && currentKana === '') {
-                    console.log('[KanaConversion] API呼び出し開始:', name);
-
-                    // ローディング表示
-                    kanaInput.placeholder = '変換中...';
-                    kanaInput.disabled = true;
-
-                    try {
-                        const result = await window.apiClient.postRequest('convertNameToKana', {
-                            name: name
-                        });
-
-                        if (result.success && result.kana) {
-                            kanaInput.value = result.kana;
-                            console.log('[KanaConversion] 変換成功:', result.kana);
-                        } else {
-                            console.error('[KanaConversion] 変換失敗:', result.error);
-                        }
-                    } catch (error) {
-                        console.error('[KanaConversion] APIエラー:', error);
-                    } finally {
-                        // ローディング解除
-                        kanaInput.placeholder = '例: タナカタロウ';
-                        kanaInput.disabled = false;
-                    }
-                } else if (currentKana !== '') {
-                    console.log('[KanaConversion] カナが既に入力されています:', currentKana);
-                }
+        // 名前→カナの自動変換機能
+        async function autoConvertNameToKana(name, kanaInput) {
+            if (!name || name.trim() === '') {
+                console.log('[KanaConversion] 名前が空のためスキップ');
+                return;
             }
-        }, true); // useCapture=true でキャプチャフェーズで処理
 
-        console.log('[KanaConversion] イベント委譲設定完了');
+            console.log('[KanaConversion] 自動変換開始:', name);
+
+            // ローディング表示
+            const originalPlaceholder = kanaInput.placeholder;
+            kanaInput.placeholder = '変換中...';
+
+            try {
+                const result = await window.apiClient.postRequest('convertNameToKana', {
+                    name: name
+                });
+
+                if (result.success && result.kana) {
+                    kanaInput.value = result.kana;
+                    console.log('[KanaConversion] 変換成功:', result.kana);
+                } else {
+                    console.error('[KanaConversion] 変換失敗:', result.error);
+                }
+            } catch (error) {
+                console.error('[KanaConversion] APIエラー:', error);
+            } finally {
+                // ローディング解除
+                kanaInput.placeholder = originalPlaceholder;
+            }
+        }
 
         // CRMコンテンツをロード
         function loadCRMContent(caseId) {
+            console.log('[loadCRMContent] Called with caseId:', caseId);
+
             const crmContent = document.getElementById('crmContent');
             const originalForm = document.getElementById('originalFormContent');
 
@@ -5202,15 +5195,42 @@ window.addEventListener('beforeunload', function(e) {
                 return;
             }
 
+            console.log('[loadCRMContent] Data:', {
+                name: data.name,
+                nameKana: data.nameKana,
+                status: data.status
+            });
+
             // フォームにデータを設定
             const nameInput = document.getElementById('crmNameInput');
             const kanaInput = document.getElementById('crmKanaInput');
+
+            console.log('[loadCRMContent] Input elements:', {
+                nameInput: nameInput ? 'found' : 'NOT FOUND',
+                kanaInput: kanaInput ? 'found' : 'NOT FOUND'
+            });
 
             if (nameInput) nameInput.value = data.name || '';
             if (kanaInput) kanaInput.value = data.nameKana || '';
 
             // ステータスバッジを更新
             updateCRMStatusBadge(data.status || '新規');
+
+            // 名前があってカナが空なら自動変換
+            console.log('[loadCRMContent] Checking conversion condition:', {
+                hasName: data.name && data.name.trim() !== '',
+                kanaEmpty: !data.nameKana || data.nameKana.trim() === '',
+                willConvert: (data.name && data.name.trim() !== '' && (!data.nameKana || data.nameKana.trim() === ''))
+            });
+
+            if (data.name && data.name.trim() !== '' && (!data.nameKana || data.nameKana.trim() === '')) {
+                console.log('[loadCRMContent] 条件合致 - 変換実行します');
+                setTimeout(() => {
+                    autoConvertNameToKana(data.name, kanaInput);
+                }, 200); // DOM更新後に実行
+            } else {
+                console.log('[loadCRMContent] 条件不一致 - 変換スキップ');
+            }
 
             console.log('[CRM] コンテンツをロードしました:', caseId);
         }
