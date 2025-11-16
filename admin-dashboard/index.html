@@ -599,19 +599,17 @@
                             <option value="">選択してください</option>
                             <option value="男性">男性</option>
                             <option value="女性">女性</option>
-                            <option value="回答しない">回答しない</option>
                         </select>
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">年齢</label>
                         <select class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
                             <option value="">選択してください</option>
-                            <option value="20代">20代</option>
-                            <option value="30代">30代</option>
+                            <option value="〜30代">〜30代</option>
                             <option value="40代">40代</option>
                             <option value="50代">50代</option>
                             <option value="60代">60代</option>
-                            <option value="70代以上">70代以上</option>
+                            <option value="70代〜">70代〜</option>
                         </select>
                     </div>
                     <div class="relative">
@@ -685,13 +683,19 @@
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">階数</label>
-                        <select id="floorsSelect" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all appearance-none bg-white">
-                            <option value="">選択してください</option>
-                            <option value="平屋">平屋</option>
-                            <option value="2階建て">2階建て</option>
-                            <option value="3階建て">3階建て</option>
-                            <option value="4階建て以上">4階建て以上</option>
-                        </select>
+                        <input type="text" id="floorsSelect" list="floorsList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                        <datalist id="floorsList">
+                            <option value="1F">
+                            <option value="2F">
+                            <option value="3F">
+                            <option value="4F">
+                            <option value="5F">
+                            <option value="6F">
+                            <option value="7F">
+                            <option value="8F">
+                            <option value="9F">
+                            <option value="10F〜">
+                        </datalist>
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">築年数</label>
@@ -699,7 +703,16 @@
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">延べ床面積</label>
-                        <input type="text" placeholder="例: 120㎡" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                        <select class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all appearance-none bg-white">
+                            <option value="">選択してください</option>
+                            <option value="〜50㎡">〜50㎡</option>
+                            <option value="51〜100㎡">51〜100㎡</option>
+                            <option value="101〜150㎡">101〜150㎡</option>
+                            <option value="151〜200㎡">151〜200㎡</option>
+                            <option value="201〜250㎡">201〜250㎡</option>
+                            <option value="251〜300㎡">251〜300㎡</option>
+                            <option value="301㎡〜">301㎡〜</option>
+                        </select>
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">施工回数</label>
@@ -716,27 +729,26 @@
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">外壁材質</label>
-                        <select class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all appearance-none bg-white">
-                            <option value="">選択してください</option>
-                            <option value="サイディング">サイディング</option>
-                            <option value="モルタル">モルタル</option>
-                            <option value="ALC">ALC</option>
-                            <option value="タイル">タイル</option>
-                            <option value="RC（鉄筋コンクリート）">RC（鉄筋コンクリート）</option>
-                            <option value="その他">その他</option>
-                        </select>
+                        <input type="text" list="exteriorMaterialList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                        <datalist id="exteriorMaterialList">
+                            <option value="サイディング">
+                            <option value="モルタル">
+                            <option value="ガルバリウム">
+                            <option value="ALC">
+                            <option value="タイル">
+                            <option value="RC">
+                        </datalist>
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">屋根材質</label>
-                        <select class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all appearance-none bg-white">
-                            <option value="">選択してください</option>
-                            <option value="スレート">スレート</option>
-                            <option value="瓦">瓦</option>
-                            <option value="金属">金属</option>
-                            <option value="アスファルトシングル">アスファルトシングル</option>
-                            <option value="陸屋根（防水）">陸屋根（防水）</option>
-                            <option value="その他">その他</option>
-                        </select>
+                        <input type="text" list="roofMaterialList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                        <datalist id="roofMaterialList">
+                            <option value="スレート">
+                            <option value="ガルバリウム">
+                            <option value="屋上">
+                            <option value="瓦">
+                            <option value="トタン">
+                        </datalist>
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">郵便番号<span class="text-red-500 ml-1">*</span></label>
