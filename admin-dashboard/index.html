@@ -603,15 +603,15 @@
                         <input type="hidden" id="genderSelect" value="">
                     </div>
                     <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">年齢</label>
-                        <select class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
-                            <option value="">選択してください</option>
-                            <option value="〜30代">〜30代</option>
-                            <option value="40代">40代</option>
-                            <option value="50代">50代</option>
-                            <option value="60代">60代</option>
-                            <option value="70代〜">70代〜</option>
-                        </select>
+                        <label class="block text-sm font-medium text-gray-700 mb-3">年齢</label>
+                        <div class="grid grid-cols-5 gap-1.5" id="ageButtonGroup" data-single-select="true">
+                            <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="〜30代">〜30代</button>
+                            <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="40代">40代</button>
+                            <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="50代">50代</button>
+                            <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="60代">60代</button>
+                            <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="70代〜">70代〜</button>
+                        </div>
+                        <input type="hidden" id="ageSelect" value="">
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">関係性</label>
@@ -1293,6 +1293,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     const genderSelect = document.getElementById('genderSelect');
                     if (genderSelect) {
                         genderSelect.value = this.dataset.gender;
+                        // 未保存の変更としてマーク
+                        if (typeof currentCaseId !== 'undefined' && currentCaseId && typeof unsavedChanges !== 'undefined') {
+                            unsavedChanges.set(currentCaseId, { type: 'form' });
+                            if (typeof updateSaveButton === 'function') {
+                                updateSaveButton();
+                            }
+                        }
+                    }
+                }
+
+                // 年齢ボタンの場合、hidden inputに値を設定
+                if (this.dataset.age) {
+                    const ageSelect = document.getElementById('ageSelect');
+                    if (ageSelect) {
+                        ageSelect.value = this.dataset.age;
                         // 未保存の変更としてマーク
                         if (typeof currentCaseId !== 'undefined' && currentCaseId && typeof unsavedChanges !== 'undefined') {
                             unsavedChanges.set(currentCaseId, { type: 'form' });
@@ -3769,8 +3784,26 @@ window.addEventListener('beforeunload', function(e) {
                 }
             }
 
-            // 年齢（セレクト）
-            setSelectValue('年齢', data.age || data['年齢']);
+            // 年齢（ボタン形式 - hidden inputに値を設定し、対応するボタンを選択状態にする）
+            const ageSelect = document.getElementById('ageSelect');
+            const ageValue = data.age || data['年齢'] || '';
+            if (ageSelect) {
+                ageSelect.value = ageValue;
+                // 対応するボタンに selected クラスと色を追加
+                const ageButtonGroup = document.getElementById('ageButtonGroup');
+                if (ageButtonGroup && ageValue) {
+                    ageButtonGroup.querySelectorAll('.option-button').forEach(btn => {
+                        if (btn.textContent.trim() === ageValue) {
+                            btn.classList.add('selected');
+                            btn.classList.remove('bg-white', 'border-gray-300', 'text-gray-700');
+                            btn.classList.add('bg-purple-500', 'border-purple-500', 'text-white', 'shadow-md');
+                        } else {
+                            btn.classList.remove('selected', 'bg-purple-500', 'border-purple-500', 'text-white', 'shadow-md');
+                            btn.classList.add('bg-white', 'border-gray-300', 'text-gray-700');
+                        }
+                    });
+                }
+            }
 
             // 関係性（セレクト - IDで直接アクセス）
             const relationSelect = document.getElementById('relationSelect');
@@ -5054,12 +5087,13 @@ window.addEventListener('beforeunload', function(e) {
             const emailInput = crmContent.querySelector('input[type="email"]');
             if (emailInput) data.email = emailInput.value;
 
-            // 性別（datalist対応）
+            // 性別（ボタン形式 - hidden inputから取得）
             const genderSelect = document.getElementById('genderSelect');
             if (genderSelect) data.gender = genderSelect.value;
 
-            // セレクト・datalist項目
-            data.age = getInputOrSelectValue('年齢');
+            // 年齢（ボタン形式 - hidden inputから取得）
+            const ageSelect = document.getElementById('ageSelect');
+            if (ageSelect) data.age = ageSelect.value;
 
             // 関係性（セレクトから取得）
             const relationSelect = document.getElementById('relationSelect');
