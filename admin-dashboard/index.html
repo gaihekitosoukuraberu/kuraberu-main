@@ -672,17 +672,6 @@
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">依頼物件種別<span class="text-red-500 ml-1">*</span></label>
-                        <input type="text" id="propertyTypeSelect" list="propertyTypeList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" onfocus="this.select()">
-                        <datalist id="propertyTypeList">
-                            <option value="戸建て">
-                            <option value="アパート・マンション">
-                            <option value="店舗・事務所">
-                            <option value="工場・倉庫">
-                            <option value="その他">
-                        </datalist>
-                    </div>
-                    <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">階数</label>
                         <input type="text" id="floorsSelect" list="floorsList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" onfocus="this.select()">
                         <datalist id="floorsList">
@@ -700,6 +689,17 @@
                         </datalist>
                     </div>
                     <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">物件種別<span class="text-red-500 ml-1">*</span></label>
+                        <input type="text" id="propertyTypeSelect" list="propertyTypeList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" onfocus="this.select()">
+                        <datalist id="propertyTypeList">
+                            <option value="戸建て">
+                            <option value="アパート・マンション">
+                            <option value="店舗・事務所">
+                            <option value="工場・倉庫">
+                            <option value="その他">
+                        </datalist>
+                    </div>
+                    <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">築年数</label>
                         <input type="text" id="buildingAgeSelect" list="buildingAgeList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" onfocus="this.select()">
                         <datalist id="buildingAgeList">
@@ -708,28 +708,6 @@
                             <option value="10〜15年">
                             <option value="15〜30年">
                             <option value="30年以上">
-                        </datalist>
-                    </div>
-                    <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">延べ床面積</label>
-                        <input type="text" id="floorAreaSelect" list="floorAreaList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" onfocus="this.select()">
-                        <datalist id="floorAreaList">
-                            <option value="〜50㎡">
-                            <option value="51〜100㎡">
-                            <option value="101〜150㎡">
-                            <option value="151〜200㎡">
-                            <option value="201〜250㎡">
-                            <option value="251〜300㎡">
-                            <option value="301㎡〜">
-                        </datalist>
-                    </div>
-                    <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">施工回数</label>
-                        <input type="text" id="constructionCountSelect" list="constructionCountList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" onfocus="this.select()">
-                        <datalist id="constructionCountList">
-                            <option value="今回が初めて">
-                            <option value="2回目">
-                            <option value="3回目以上">
                         </datalist>
                     </div>
                     <div class="relative">
@@ -745,29 +723,12 @@
                         </datalist>
                     </div>
                     <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">外壁材質</label>
-                        <input type="text" id="wallMaterialSelect" list="wallMaterialList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" onfocus="this.select()">
-                        <datalist id="wallMaterialList">
-                            <option value="サイディング">
-                            <option value="モルタル">
-                            <option value="ガルバリウム">
-                            <option value="ALC">
-                            <option value="タイル">
-                            <option value="その他">
-                            <option value="不明">
-                        </datalist>
-                    </div>
-                    <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">屋根材質</label>
-                        <input type="text" id="roofMaterialSelect" list="roofMaterialList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" onfocus="this.select()">
-                        <datalist id="roofMaterialList">
-                            <option value="スレート">
-                            <option value="ガルバリウム">
-                            <option value="屋上">
-                            <option value="瓦">
-                            <option value="トタン">
-                            <option value="その他">
-                            <option value="不明">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">施工回数</label>
+                        <input type="text" id="constructionCountSelect" list="constructionCountList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" onfocus="this.select()">
+                        <datalist id="constructionCountList">
+                            <option value="今回が初めて">
+                            <option value="2回目">
+                            <option value="3回目以上">
                         </datalist>
                     </div>
                     <div class="relative">
@@ -820,19 +781,49 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- 外壁材質・屋根材質 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">外壁材質</label>
+                        <input type="text" id="wallMaterialSelect" list="wallMaterialList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" onfocus="this.select()">
+                        <datalist id="wallMaterialList">
+                            <option value="サイディング">
+                            <option value="モルタル">
+                            <option value="ガルバリウム">
+                            <option value="ALC">
+                            <option value="タイル">
+                            <option value="その他">
+                            <option value="不明">
+                        </datalist>
+                    </div>
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">屋根材質</label>
+                        <input type="text" id="roofMaterialSelect" list="roofMaterialList" placeholder="選択または入力してください" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" onfocus="this.select()">
+                        <datalist id="roofMaterialList">
+                            <option value="スレート">
+                            <option value="ガルバリウム">
+                            <option value="屋上">
+                            <option value="瓦">
+                            <option value="トタン">
+                            <option value="その他">
+                            <option value="不明">
+                        </datalist>
+                    </div>
+                </div>
             </div>
 
-            <!-- 📋 見積もり・工事に関するご要望 -->
+            <!-- 📋 見積もり詳細 -->
             <div class="form-section bg-gradient-to-br from-purple-50 to-white rounded-xl shadow-sm border border-purple-100 p-6 mb-6">
                 <div class="flex items-center mb-5">
                     <svg class="w-6 h-6 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                     </svg>
-                    <h2 class="text-xl font-bold text-gray-900">見積もり・工事に関するご要望</h2>
+                    <h2 class="text-xl font-bold text-gray-900">見積もり詳細</h2>
                 </div>
 
                 <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-3">見積もり希望箇所（複数選択可）</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">見積もり希望箇所</label>
                     <div id="workItemsButtons" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight" data-value="外壁塗装">外壁塗装</button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight" data-value="外壁カバー工法">外壁カバー工法</button>
