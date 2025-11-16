@@ -792,9 +792,13 @@
                             </button>
                         </div>
                     </div>
-                    <div class="relative sm:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">対象物件住所<span class="text-red-500 ml-1">*</span></label>
-                        <input type="text" id="addressInput" placeholder="例: 東京都渋谷区神宮前1-1-1" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">住所<span class="text-red-500 ml-1">*</span></label>
+                        <input type="text" id="addressInput" placeholder="例: 東京都渋谷区神宮前" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                    </div>
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">番地<span class="text-red-500 ml-1">*</span></label>
+                        <input type="text" id="addressNumberInput" placeholder="例: 1-1-1" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
                     </div>
                     <div class="relative sm:col-span-2 lg:col-span-3">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Googleマップ</label>
@@ -1018,10 +1022,9 @@
 
                 <!-- 現地調査希望日時 -->
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">現地調査希望日時</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">現調日時</label>
                     <div class="mb-3">
-                        <div class="text-xs text-gray-500 mb-2 font-medium">曜日・時間帯を選択:</div>
-                        <div class="flex flex-wrap gap-2">
+                        <div id="surveyDateTimeButtonGroup" class="flex flex-wrap gap-2 p-3 rounded-lg">
                             <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">月曜 午前</button>
                             <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">月曜 午後</button>
                             <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">火曜 午前</button>
@@ -3555,9 +3558,10 @@ window.addEventListener('beforeunload', function(e) {
         async function generateGoogleMapLink() {
             const zipInput = document.getElementById('zipInput');
             const addressInput = document.getElementById('addressInput');
+            const addressNumberInput = document.getElementById('addressNumberInput');
             const mapLinkInput = document.getElementById('mapLinkInput');
 
-            // 住所を組み立て（郵便番号、住所詳細を結合）
+            // 住所を組み立て（郵便番号、住所、番地を結合）
             let fullAddress = '';
 
             if (zipInput && zipInput.value.trim()) {
@@ -3566,6 +3570,10 @@ window.addEventListener('beforeunload', function(e) {
 
             if (addressInput && addressInput.value.trim()) {
                 fullAddress += (fullAddress ? ' ' : '') + addressInput.value.trim();
+            }
+
+            if (addressNumberInput && addressNumberInput.value.trim()) {
+                fullAddress += addressNumberInput.value.trim();
             }
 
             if (fullAddress) {
@@ -3631,6 +3639,8 @@ window.addEventListener('beforeunload', function(e) {
         // 住所入力時に自動的にマップリンクを生成
         function autoGenerateMapLink() {
             const addressInput = document.getElementById('addressInput');
+            const addressNumberInput = document.getElementById('addressNumberInput');
+
             if (addressInput) {
                 addressInput.addEventListener('blur', function() {
                     if (this.value.trim()) {
@@ -3638,6 +3648,21 @@ window.addEventListener('beforeunload', function(e) {
                     }
                 });
                 addressInput.addEventListener('input', function() {
+                    if (this.value.trim()) {
+                        setTimeout(() => {
+                            generateGoogleMapLink();
+                        }, 500); // 0.5秒後に自動生成
+                    }
+                });
+            }
+
+            if (addressNumberInput) {
+                addressNumberInput.addEventListener('blur', function() {
+                    if (this.value.trim()) {
+                        generateGoogleMapLink();
+                    }
+                });
+                addressNumberInput.addEventListener('input', function() {
                     if (this.value.trim()) {
                         setTimeout(() => {
                             generateGoogleMapLink();
@@ -4456,6 +4481,32 @@ window.addEventListener('beforeunload', function(e) {
                     doorSalesVisitSelect.classList.remove('border-red-500');
                     doorSalesVisitSelect.classList.add('border-gray-300');
                     doorSalesVisitSelect.style.borderWidth = '';
+                }
+            }
+
+            // 施工回数が「今回が初めて」の場合、前回施工時期の赤枠を解除
+            const constructionCountSelect = document.getElementById('constructionCountSelect');
+            if (constructionCountSelect && constructionCountSelect.value === '今回が初めて') {
+                const previousConstructionSelect = document.getElementById('previousConstructionSelect');
+
+                if (previousConstructionSelect) {
+                    previousConstructionSelect.classList.remove('border-red-500');
+                    previousConstructionSelect.classList.add('border-gray-300');
+                    previousConstructionSelect.style.borderWidth = '';
+                }
+            }
+
+            // 現調日時（ボタングループ）
+            const surveyDateTimeButtonGroup = document.getElementById('surveyDateTimeButtonGroup');
+            if (surveyDateTimeButtonGroup) {
+                const selectedButtons = surveyDateTimeButtonGroup.querySelectorAll('.option-button.selected');
+                if (selectedButtons.length === 0) {
+                    // 未選択の場合は赤枠
+                    surveyDateTimeButtonGroup.style.border = '2px solid #ef4444';
+                    surveyDateTimeButtonGroup.style.borderRadius = '0.5rem';
+                } else {
+                    // 選択済みの場合は赤枠を解除
+                    surveyDateTimeButtonGroup.style.border = '';
                 }
             }
 
@@ -5535,23 +5586,22 @@ window.addEventListener('beforeunload', function(e) {
             // 既に選択されている場合は解除
             if (button.classList.contains('selected')) {
                 button.classList.remove('selected');
+                button.classList.remove('bg-orange-500', 'border-orange-500', 'text-white');
+                button.classList.add('bg-white', 'border-gray-300', 'text-gray-700');
             } else {
                 button.classList.add('selected');
+                button.classList.remove('bg-white', 'border-gray-300', 'text-gray-700');
+                button.classList.add('bg-orange-500', 'border-orange-500', 'text-white');
             }
 
-            // 選択された全ての値を取得
-            const surveyInput = document.getElementById('surveyDateTime');
-            if (surveyInput) {
-                const selectedButtons = button.parentElement.querySelectorAll('.option-button.selected');
-                const selectedValues = Array.from(selectedButtons).map(btn => btn.textContent.trim());
-                surveyInput.value = selectedValues.join(', ');
-
-                // 変更を記録（Mapなのでsetを使用）
-                if (currentCaseId) {
-                    unsavedChanges.set(currentCaseId, { type: 'form' });
-                    updateSaveButton();
-                }
+            // 変更を記録（Mapなのでsetを使用）
+            if (currentCaseId) {
+                unsavedChanges.set(currentCaseId, { type: 'form' });
+                updateSaveButton();
             }
+
+            // バリデーション状態を更新
+            validateEmptyFields();
         }
 
         // キーボードショートカット（Cmd+S / Ctrl+S で保存）
@@ -6267,6 +6317,9 @@ window.addEventListener('beforeunload', function(e) {
                 if (result.success && result.kana) {
                     kanaInput.value = result.kana;
                     console.log('[KanaConversion] 変換成功:', result.kana);
+
+                    // 値設定後にinputイベントを発火させて赤枠を解除
+                    kanaInput.dispatchEvent(new Event('input', { bubbles: true }));
                 } else {
                     console.error('[KanaConversion] 変換失敗:', result.error);
                 }
