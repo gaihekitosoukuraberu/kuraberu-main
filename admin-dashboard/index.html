@@ -3847,40 +3847,60 @@ window.addEventListener('beforeunload', function(e) {
             const emailInput = crmContent.querySelector('input[type="email"]');
             if (emailInput) emailInput.value = data.email || data['メールアドレス'] || '';
 
-            // 物件プロフィール（IDベースで直接設定 - CSVの通常フィールドを優先してQ*フィールドにフォールバック）
+            // 物件プロフィール（_rawDataから直接取得 - CSVの通常フィールドを優先してQ*フィールドにフォールバック）
+            const raw = data._rawData || {};
+
+            console.log('[populateForm] _rawDataを確認:', raw);
+
             const propertyTypeInput = document.getElementById('propertyTypeSelect');
-            if (propertyTypeInput) propertyTypeInput.value = data.propertyType || data['物件種別'] || data['Q1_物件種別'] || '';
+            if (propertyTypeInput) {
+                propertyTypeInput.value = data.propertyType || raw.propertyType || raw['物件種別'] || (raw.botAnswers && raw.botAnswers.q1_propertyType) || '';
+            }
 
             const floorsInput = document.getElementById('floorsSelect');
-            if (floorsInput) floorsInput.value = data.floors || data['階数'] || data['Q2_階数'] || '';
+            if (floorsInput) {
+                floorsInput.value = data.floors || raw.floors || raw['階数'] || (raw.botAnswers && raw.botAnswers.q2_floors) || '';
+            }
 
             const buildingAgeInput = document.getElementById('buildingAgeSelect');
-            if (buildingAgeInput) buildingAgeInput.value = data.buildingAge || data['築年数'] || data['Q3_築年数'] || '';
+            if (buildingAgeInput) {
+                buildingAgeInput.value = data.buildingAge || raw.buildingAge || raw['築年数'] || (raw.botAnswers && raw.botAnswers.q3_buildingAge) || '';
+            }
 
             const floorAreaInput = document.getElementById('floorAreaSelect');
-            if (floorAreaInput) floorAreaInput.value = data.floorArea || data['建物面積'] || '';
+            if (floorAreaInput) {
+                floorAreaInput.value = data.area || raw.area || raw['建物面積'] || '';
+            }
 
             const constructionCountInput = document.getElementById('constructionCountSelect');
-            if (constructionCountInput) constructionCountInput.value = data.constructionCount || data['Q4_工事歴'] || '';
+            if (constructionCountInput) {
+                constructionCountInput.value = data.constructionCount || (raw.botAnswers && raw.botAnswers.q4_constructionHistory) || raw['Q4_工事歴'] || '';
+            }
 
             const previousConstructionInput = document.getElementById('previousConstructionSelect');
-            if (previousConstructionInput) previousConstructionInput.value = data.previousConstructionTime || data['Q5_前回施工時期'] || '';
+            if (previousConstructionInput) {
+                previousConstructionInput.value = data.previousConstructionTime || (raw.botAnswers && raw.botAnswers.q5_previousConstructionTime) || raw['Q5_前回施工時期'] || '';
+            }
 
             const wallMaterialInput = document.getElementById('wallMaterialSelect');
-            if (wallMaterialInput) wallMaterialInput.value = data.wallMaterial || data['Q6_外壁材質'] || '';
+            if (wallMaterialInput) {
+                wallMaterialInput.value = data.wallMaterial || (raw.botAnswers && raw.botAnswers.q6_wallMaterial) || raw['Q6_外壁材質'] || '';
+            }
 
             const roofMaterialInput = document.getElementById('roofMaterialSelect');
-            if (roofMaterialInput) roofMaterialInput.value = data.roofMaterial || data['Q7_屋根材質'] || '';
+            if (roofMaterialInput) {
+                roofMaterialInput.value = data.roofMaterial || (raw.botAnswers && raw.botAnswers.q7_roofMaterial) || raw['Q7_屋根材質'] || '';
+            }
 
             console.log('[populateForm] 物件プロフィール反映:', {
-                物件種別: data['物件種別'],
-                階数: data['階数'],
-                築年数: data['築年数'],
-                建物面積: data['建物面積'],
-                Q4_工事歴: data['Q4_工事歴'],
-                Q5_前回施工時期: data['Q5_前回施工時期'],
-                Q6_外壁材質: data['Q6_外壁材質'],
-                Q7_屋根材質: data['Q7_屋根材質']
+                propertyType: propertyTypeInput?.value,
+                floors: floorsInput?.value,
+                buildingAge: buildingAgeInput?.value,
+                floorArea: floorAreaInput?.value,
+                constructionCount: constructionCountInput?.value,
+                previousConstructionTime: previousConstructionInput?.value,
+                wallMaterial: wallMaterialInput?.value,
+                roofMaterial: roofMaterialInput?.value
             });
 
             // 郵便番号と住所（IDベースで取得）
