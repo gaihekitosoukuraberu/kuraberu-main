@@ -7,7 +7,7 @@
  * CORS制限回避のためGAS経由で処理
  */
 
-const UrlShortener = {
+var UrlShortener = {
   /**
    * URL短縮処理
    * @param {Object} params - { url: string }
