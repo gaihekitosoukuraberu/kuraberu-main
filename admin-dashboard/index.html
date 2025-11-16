@@ -397,17 +397,23 @@
                                 CRM
                             </button>
                         </div>
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-3">
+                            <!-- リスト表示時の件数表示 -->
+                            <div class="text-sm text-gray-600 hidden" id="listCountDisplay">
+                                全<span class="font-semibold text-gray-900" id="topTotalCount">0</span>件中
+                                <span class="font-semibold text-blue-600" id="topShowingFrom">0</span>-<span class="font-semibold text-blue-600" id="topShowingTo">0</span>件を表示
+                            </div>
                             <!-- 選択件数表示（リスト表示時） -->
                             <div class="text-sm text-gray-600 hidden" id="selectionCountDisplay">
                                 選択: <span class="font-semibold text-blue-600" id="selectedCount">0</span> / <span class="font-semibold" id="currentPageCount">0</span> 件
                             </div>
-                            <!-- 案件位置表示（CRM表示時） -->
-                            <div class="text-sm font-semibold text-gray-700 hidden" id="casePositionDisplay">
-                                <span class="text-blue-600" id="currentPosition">1</span> / <span id="totalCases">0</span>
+                            <!-- CRM表示時の案件位置表示 -->
+                            <div class="text-sm text-gray-600 hidden" id="casePositionDisplay">
+                                全<span class="font-semibold text-gray-900" id="totalCases">0</span>件中
+                                <span class="font-semibold text-blue-600" id="currentPosition">1</span>件目を表示
                             </div>
                             <!-- 表示件数切り替え（リスト表示時のみ） -->
-                            <select id="itemsPerPage" class="text-sm border border-gray-300 rounded px-2 py-1" onchange="changeItemsPerPage()">
+                            <select id="itemsPerPage" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" onchange="changeItemsPerPage()">
                                 <option value="30">30件</option>
                                 <option value="50">50件</option>
                                 <option value="100">100件</option>
@@ -460,19 +466,20 @@
                     </div>
 
                     <!-- ページネーション -->
-                    <div class="flex justify-between items-center mt-4 px-4 py-3 bg-gray-50 border-t">
-                        <div class="text-sm text-gray-700">
-                            全<span id="totalCount">0</span>件中 <span id="showingFrom">0</span>-<span id="showingTo">0</span>件を表示
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-3 mt-4 px-4 py-3 bg-gradient-to-r from-gray-50 to-white border-t border-gray-200">
+                        <div class="text-sm text-gray-600">
+                            全<span class="font-semibold text-gray-900" id="totalCount">0</span>件中
+                            <span class="font-semibold text-blue-600" id="showingFrom">0</span>-<span class="font-semibold text-blue-600" id="showingTo">0</span>件を表示
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="previousPage()" id="prevBtn" class="px-3 py-1 text-sm bg-white border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                                前へ
+                        <div class="flex gap-2 items-center">
+                            <button onclick="previousPage()" id="prevBtn" class="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
+                                ← 前へ
                             </button>
                             <div class="flex items-center gap-1" id="pageNumbers">
                                 <!-- ページ番号が動的に生成される -->
                             </div>
-                            <button onclick="nextPage()" id="nextBtn" class="px-3 py-1 text-sm bg-white border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                                次へ
+                            <button onclick="nextPage()" id="nextBtn" class="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
+                                次へ →
                             </button>
                         </div>
                     </div>
@@ -4407,10 +4414,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // ページネーション情報の更新
         function updatePaginationInfo(total, from, to) {
+            // 下部のページネーション情報を更新
             document.getElementById('totalCount').textContent = total;
             document.getElementById('showingFrom').textContent = from + 1;
             document.getElementById('showingTo').textContent = to;
             document.getElementById('currentPageCount').textContent = to - from;
+
+            // 上部の件数表示も更新
+            document.getElementById('topTotalCount').textContent = total;
+            document.getElementById('topShowingFrom').textContent = from + 1;
+            document.getElementById('topShowingTo').textContent = to;
             
             // ページ番号の生成
             const totalPages = Math.ceil(total / itemsPerPage);
@@ -4429,9 +4442,9 @@ document.addEventListener('DOMContentLoaded', function() {
             for (let i = startPage; i <= endPage; i++) {
                 const btn = document.createElement('button');
                 btn.textContent = i;
-                btn.className = i === currentPage 
-                    ? 'px-3 py-1 text-sm bg-blue-500 text-white rounded'
-                    : 'px-3 py-1 text-sm bg-white border rounded hover:bg-gray-50';
+                btn.className = i === currentPage
+                    ? 'px-3 py-1.5 text-sm bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold shadow-md'
+                    : 'px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm';
                 btn.onclick = () => goToPage(i);
                 pageNumbers.appendChild(btn);
             }
@@ -4716,6 +4729,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // リスト表示時のUI要素表示
                 document.getElementById('itemsPerPage').classList.remove('hidden');
+                document.getElementById('listCountDisplay').classList.remove('hidden');
                 document.getElementById('casePositionDisplay').classList.add('hidden');
 
                 initializeListView();
@@ -4733,6 +4747,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // CRM表示時のUI要素表示
                 document.getElementById('selectionCountDisplay').classList.add('hidden');
                 document.getElementById('itemsPerPage').classList.add('hidden');
+                document.getElementById('listCountDisplay').classList.add('hidden');
                 document.getElementById('casePositionDisplay').classList.remove('hidden');
 
                 // currentCaseIdが未設定、または表示中リストにない場合は最初の案件を自動選択
@@ -4999,8 +5014,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const totalCasesEl = document.getElementById('totalCases');
 
             if (currentPositionEl && totalCasesEl) {
-                currentPositionEl.textContent = currentIndex >= 0 ? (currentIndex + 1) : 0;
+                // 「全155件中 5件目を表示」形式
                 totalCasesEl.textContent = totalCases;
+                currentPositionEl.textContent = currentIndex >= 0 ? (currentIndex + 1) : 0;
             }
         }
 
