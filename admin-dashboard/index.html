@@ -4145,6 +4145,39 @@ window.addEventListener('beforeunload', function(e) {
                 deterioration,
                 selectionCriteria
             });
+
+            // 未入力フィールドの赤枠表示を更新
+            validateEmptyFields();
+        }
+
+        /**
+         * 未入力フィールドを赤枠でハイライト表示
+         * 空欄のinput/selectフィールドに赤いボーダーを動的に適用
+         */
+        function validateEmptyFields() {
+            const crmContent = document.getElementById('crmContent');
+            if (!crmContent) return;
+
+            // 対象フィールド: input[type="text"], input[type="tel"], input[type="email"], select
+            const fields = crmContent.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], select');
+
+            fields.forEach(field => {
+                const isEmpty = !field.value || field.value.trim() === '' || field.value === '選択してください';
+
+                if (isEmpty) {
+                    // 空欄の場合は赤枠を追加
+                    field.classList.remove('border-gray-300', 'border-blue-300');
+                    field.classList.add('border-red-500');
+                    field.style.borderWidth = '2px';
+                } else {
+                    // 入力済みの場合は通常のボーダーに戻す
+                    field.classList.remove('border-red-500');
+                    field.classList.add('border-gray-300');
+                    field.style.borderWidth = '';
+                }
+            });
+
+            console.log('[validateEmptyFields] 未入力フィールドのチェック完了');
         }
 
 
@@ -6645,7 +6678,28 @@ window.addEventListener('beforeunload', function(e) {
                 //     initializeSwipeGesture();
                 //     console.log('✓ initializeSwipeGesture 実行完了');
                 // }
-                
+
+                // 未入力フィールドの赤枠表示（リアルタイム更新）
+                const crmContent = document.getElementById('crmContent');
+                if (crmContent) {
+                    // イベント委譲を使用して動的にバリデーション
+                    crmContent.addEventListener('input', function(e) {
+                        const target = e.target;
+                        if (target.matches('input[type="text"], input[type="tel"], input[type="email"]')) {
+                            validateEmptyFields();
+                        }
+                    });
+
+                    crmContent.addEventListener('change', function(e) {
+                        const target = e.target;
+                        if (target.matches('select')) {
+                            validateEmptyFields();
+                        }
+                    });
+
+                    console.log('✓ 未入力フィールド検証の初期化完了');
+                }
+
                 console.log('=== 初期化完了 ===');
             } catch(e) {
                 console.error('初期化エラー:', e);
