@@ -5129,45 +5129,27 @@ window.addEventListener('beforeunload', function(e) {
                     loadCRMContent(currentCaseId);
                     updateNavigationButtons();
                     updateCasePosition();
-
-                    // 名前→カナの自動変換機能を初期化（最初の一回のみ）
-                    setTimeout(() => {
-                        initializeKanaConversion();
-                    }, 100);
                 }
             }
         }
 
-        // 名前→カナの自動変換機能（最初の一回のみ）
-        let kanaConversionInitialized = false;
+        // 名前→カナの自動変換機能（イベント委譲を使用）
+        document.addEventListener('blur', async function(e) {
+            // 名前入力フィールドからのblurイベントのみ処理
+            if (e.target && e.target.id === 'crmNameInput') {
+                const nameInput = e.target;
+                const kanaInput = document.getElementById('crmKanaInput');
 
-        function initializeKanaConversion() {
-            // 既に初期化済みの場合はスキップ
-            if (kanaConversionInitialized) {
-                return;
-            }
+                if (!kanaInput) {
+                    console.log('[KanaConversion] カナフィールドが見つかりません');
+                    return;
+                }
 
-            const nameInput = document.getElementById('crmNameInput');
-            const kanaInput = document.getElementById('crmKanaInput');
-
-            if (!nameInput || !kanaInput) {
-                console.log('[KanaConversion] フィールドが見つかりません');
-                return;
-            }
-
-            // カナフィールドが既に入力されている場合はスキップ
-            if (kanaInput.value && kanaInput.value.trim() !== '') {
-                console.log('[KanaConversion] カナが既に入力されています');
-                kanaConversionInitialized = true;
-                return;
-            }
-
-            // 名前フィールドからフォーカスが外れた時にAPI呼び出し
-            nameInput.addEventListener('blur', async function() {
                 const name = nameInput.value.trim();
+                const currentKana = kanaInput.value.trim();
 
                 // 名前が入力されていて、カナが未入力の場合のみ実行
-                if (name && kanaInput.value.trim() === '') {
+                if (name && currentKana === '') {
                     console.log('[KanaConversion] API呼び出し開始:', name);
 
                     // ローディング表示
@@ -5182,9 +5164,6 @@ window.addEventListener('beforeunload', function(e) {
                         if (result.success && result.kana) {
                             kanaInput.value = result.kana;
                             console.log('[KanaConversion] 変換成功:', result.kana);
-
-                            // 一度だけ実行するフラグを立てる
-                            kanaConversionInitialized = true;
                         } else {
                             console.error('[KanaConversion] 変換失敗:', result.error);
                         }
@@ -5195,11 +5174,13 @@ window.addEventListener('beforeunload', function(e) {
                         kanaInput.placeholder = '例: タナカタロウ';
                         kanaInput.disabled = false;
                     }
+                } else if (currentKana !== '') {
+                    console.log('[KanaConversion] カナが既に入力されています:', currentKana);
                 }
-            }, { once: false });
+            }
+        }, true); // useCapture=true でキャプチャフェーズで処理
 
-            console.log('[KanaConversion] 初期化完了');
-        }
+        console.log('[KanaConversion] イベント委譲設定完了');
 
         // CRMコンテンツをロード
         function loadCRMContent(caseId) {
@@ -5227,15 +5208,6 @@ window.addEventListener('beforeunload', function(e) {
 
             if (nameInput) nameInput.value = data.name || '';
             if (kanaInput) kanaInput.value = data.nameKana || '';
-
-            // カナが既に入力されている場合は、カナ変換フラグをtrueに設定
-            // （この案件では自動変換を無効化）
-            if (data.nameKana && data.nameKana.trim() !== '') {
-                kanaConversionInitialized = true;
-            } else {
-                // カナが未入力の場合はフラグをリセット（自動変換を有効化）
-                kanaConversionInitialized = false;
-            }
 
             // ステータスバッジを更新
             updateCRMStatusBadge(data.status || '新規');
