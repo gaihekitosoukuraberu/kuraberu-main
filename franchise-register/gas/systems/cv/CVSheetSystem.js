@@ -1030,7 +1030,13 @@ const CVSheetSystem = {
           scheduledDeliveryDate: row[68] || '',         // BQ: 配信予定日時
           assignedTo: row[69] || '',                    // BR: 担当者名
           lastCallDate: row[70] || '',                  // BS: 最終架電日時
-          deliveredMerchants: row[71] || ''             // BT: 配信先業者一覧
+          deliveredMerchants: row[71] || '',            // BT: 配信先業者一覧
+
+          // BU-BX: ハートビート＆行動トラッキング（V1754, V1755）
+          lastHeartbeat: row[73] || '',                 // BU: 最終ハートビート時刻
+          siteStayDuration: row[74] || 0,               // BV: サイト滞在時間（秒）
+          cv1ToCV2Duration: row[75] || 0,               // BW: CV1→CV2時間差（秒）
+          deviceType: row[76] || ''                     // BX: デバイス種別
         };
       }).filter(cv => cv !== null); // 空行を除外
 
