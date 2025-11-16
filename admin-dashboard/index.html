@@ -3749,15 +3749,25 @@ window.addEventListener('beforeunload', function(e) {
             const emailInput = crmContent.querySelector('input[type="email"]');
             if (emailInput) emailInput.value = data.email || data['メールアドレス'] || '';
 
-            // 物件プロフィール（CSVフィールド名を優先）
-            setInputOrDatalistValue('依頼物件種別', data.propertyType || data['Q1_物件種別'] || data['物件種別']);
-            setInputOrDatalistValue('階数', data.floors || data['Q2_階数'] || data['階数']);
-            setInputOrDatalistValue('築年数', data.buildingAge || data['Q3_築年数'] || data['築年数']);
+            // 物件プロフィール（CSVの通常フィールドを優先してQ*フィールドにフォールバック）
+            setInputOrDatalistValue('依頼物件種別', data.propertyType || data['物件種別'] || data['Q1_物件種別']);
+            setInputOrDatalistValue('階数', data.floors || data['階数'] || data['Q2_階数']);
+            setInputOrDatalistValue('築年数', data.buildingAge || data['築年数'] || data['Q3_築年数']);
             setInputOrDatalistValue('延べ床面積', data.floorArea || data['建物面積']);
             setInputOrDatalistValue('施工回数', data.constructionCount || data['Q4_工事歴']);
             setInputOrDatalistValue('前回施工時期', data.previousConstructionTime || data['Q5_前回施工時期']);
             setInputOrDatalistValue('外壁材質', data.wallMaterial || data['Q6_外壁材質']);
             setInputOrDatalistValue('屋根材質', data.roofMaterial || data['Q7_屋根材質']);
+
+            console.log('[populateForm] 物件プロフィール反映:', {
+                物件種別: data['物件種別'],
+                階数: data['階数'],
+                築年数: data['築年数'],
+                Q4_工事歴: data['Q4_工事歴'],
+                Q5_前回施工時期: data['Q5_前回施工時期'],
+                Q6_外壁材質: data['Q6_外壁材質'],
+                Q7_屋根材質: data['Q7_屋根材質']
+            });
 
             // 郵便番号と住所（IDベースで取得）
             const zipInput = document.getElementById('zipInput');
