@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1791 - 2025-11-16 - UrlShortener GAS修正：var宣言に変更）
-  CACHE_BUSTER: '1763315000000'
+  // キャッシュバスター（V1792 - 2025-11-16 - UrlShortener handle()メソッド追加）
+  CACHE_BUSTER: '1763316000000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

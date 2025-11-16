@@ -9,11 +9,30 @@
 
 var UrlShortener = {
   /**
+   * ハンドラー（main.jsから呼ばれる）
+   * @param {Object} params - リクエストパラメータ
+   * @returns {Object} レスポンス
+   */
+  handle: function(params) {
+    const action = params.action;
+    console.log('[UrlShortener] handle called, action:', action);
+
+    if (action === 'shortenUrl') {
+      return this.shortenUrl(params);
+    }
+
+    return {
+      success: false,
+      error: 'Unknown action: ' + action
+    };
+  },
+
+  /**
    * URL短縮処理
    * @param {Object} params - { url: string }
    * @returns {Object} { success: boolean, shortUrl: string }
    */
-  handlePost: function(params) {
+  shortenUrl: function(params) {
     try {
       console.log('[UrlShortener] URL短縮リクエスト:', params);
 
