@@ -398,11 +398,15 @@
                             </button>
                         </div>
                         <div class="flex items-center gap-4">
-                            <!-- 選択件数表示 -->
+                            <!-- 選択件数表示（リスト表示時） -->
                             <div class="text-sm text-gray-600 hidden" id="selectionCountDisplay">
                                 選択: <span class="font-semibold text-blue-600" id="selectedCount">0</span> / <span class="font-semibold" id="currentPageCount">0</span> 件
                             </div>
-                            <!-- 表示件数切り替え -->
+                            <!-- 案件位置表示（CRM表示時） -->
+                            <div class="text-sm font-semibold text-gray-700 hidden" id="casePositionDisplay">
+                                <span class="text-blue-600" id="currentPosition">1</span> / <span id="totalCases">0</span>
+                            </div>
+                            <!-- 表示件数切り替え（リスト表示時のみ） -->
                             <select id="itemsPerPage" class="text-sm border border-gray-300 rounded px-2 py-1" onchange="changeItemsPerPage()">
                                 <option value="30">30件</option>
                                 <option value="50">50件</option>
@@ -4686,6 +4690,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('crmViewBtn').classList.remove('bg-white', 'text-gray-900');
                 document.getElementById('crmViewBtn').classList.add('text-gray-600');
                 currentView = 'list';
+
+                // リスト表示時のUI要素表示
+                document.getElementById('itemsPerPage').classList.remove('hidden');
+                document.getElementById('casePositionDisplay').classList.add('hidden');
+
                 initializeListView();
                 // リスト表示時は選択件数の表示を更新
                 updateSelectedCount();
@@ -4697,8 +4706,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('listViewBtn').classList.remove('bg-white', 'text-gray-900');
                 document.getElementById('listViewBtn').classList.add('text-gray-600');
                 currentView = 'crm';
-                // CRM表示時は選択件数を非表示
+
+                // CRM表示時のUI要素表示
                 document.getElementById('selectionCountDisplay').classList.add('hidden');
+                document.getElementById('itemsPerPage').classList.add('hidden');
+                document.getElementById('casePositionDisplay').classList.remove('hidden');
 
                 // currentCaseIdが未設定、または表示中リストにない場合は最初の案件を自動選択
                 if (!currentCaseId || !currentDisplayedCaseIds.includes(currentCaseId)) {
@@ -4711,6 +4723,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (currentCaseId) {
                     loadCRMContent(currentCaseId);
                     updateNavigationButtons();
+                    updateCasePosition();
                 }
             }
         }
@@ -4844,6 +4857,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // ナビゲーションボタンの状態を更新
             updateNavigationButtons();
+            // 案件位置表示を更新
+            updateCasePosition();
         }
 
         // クイックアクション（リスト用）
@@ -4906,6 +4921,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentCaseId = currentDisplayedCaseIds[currentIndex + 1];
                 loadCRMContent(currentCaseId);
                 updateNavigationButtons();
+                updateCasePosition();
             }
         }
 
@@ -4916,6 +4932,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentCaseId = currentDisplayedCaseIds[currentIndex - 1];
                 loadCRMContent(currentCaseId);
                 updateNavigationButtons();
+                updateCasePosition();
             }
         }
 
@@ -4949,7 +4966,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
-        
+
+        // 案件位置の表示を更新（CRM表示時）
+        function updateCasePosition() {
+            const currentIndex = currentDisplayedCaseIds.indexOf(currentCaseId);
+            const totalCases = currentDisplayedCaseIds.length;
+
+            const currentPositionEl = document.getElementById('currentPosition');
+            const totalCasesEl = document.getElementById('totalCases');
+
+            if (currentPositionEl && totalCasesEl) {
+                currentPositionEl.textContent = currentIndex >= 0 ? (currentIndex + 1) : 0;
+                totalCasesEl.textContent = totalCases;
+            }
+        }
+
         // 連絡時間帯のスタンプ追加機能
         function addTimeStamp(text) {
             const input = document.getElementById('contactTimeInput');
