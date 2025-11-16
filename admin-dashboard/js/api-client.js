@@ -138,6 +138,17 @@ class ApiClient {
   }
 
   /**
+   * GET リクエスト（JSONP経由 - CORS回避）
+   * @param {string} action - アクション名
+   * @param {Object} params - パラメータ
+   * @returns {Promise<Object>} レスポンス
+   */
+  async getRequest(action, params = {}) {
+    console.log(`[ApiClient] GET (via JSONP): ${action}`);
+    return this.jsonpRequest(action, params);
+  }
+
+  /**
    * POST リクエスト（JSONP経由 - CORS回避）
    * @param {string} action - アクション名
    * @param {Object} data - 送信データ
