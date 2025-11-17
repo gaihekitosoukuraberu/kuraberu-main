@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Deployment: V1553-20251103 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <!-- Deployment: V1818-20251118 -->
     <title>本部管理画面 - 案件割り振りシステム</title>
     <link rel="icon" type="image/png" href="images/7.png">
     <link rel="apple-touch-icon" href="images/7.png">
@@ -627,11 +630,11 @@
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-3">年齢</label>
                         <div class="grid grid-cols-5 gap-1.5" id="ageButtonGroup" data-single-select="true">
-                            <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="30代">30代</button>
-                            <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="40代">40代</button>
-                            <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="50代">50代</button>
-                            <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="60代">60代</button>
-                            <button type="button" class="option-button px-2 py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs font-medium text-gray-700" data-age="70代">70代</button>
+                            <button type="button" class="option-button px-1 py-1 sm:px-2 sm:py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-[10px] sm:text-xs font-medium text-gray-700" data-age="30代">30代</button>
+                            <button type="button" class="option-button px-1 py-1 sm:px-2 sm:py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-[10px] sm:text-xs font-medium text-gray-700" data-age="40代">40代</button>
+                            <button type="button" class="option-button px-1 py-1 sm:px-2 sm:py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-[10px] sm:text-xs font-medium text-gray-700" data-age="50代">50代</button>
+                            <button type="button" class="option-button px-1 py-1 sm:px-2 sm:py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-[10px] sm:text-xs font-medium text-gray-700" data-age="60代">60代</button>
+                            <button type="button" class="option-button px-1 py-1 sm:px-2 sm:py-1.5 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-[10px] sm:text-xs font-medium text-gray-700" data-age="70代">70代</button>
                         </div>
                         <input type="hidden" id="ageSelect" value="">
                     </div>
@@ -897,7 +900,10 @@
                     <label class="block text-sm font-medium text-gray-700 mb-3">見積もり希望箇所</label>
                     <div id="workItemsButtons" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight" data-value="外壁塗装">外壁塗装</button>
-                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight" data-value="外壁カバー工法">外壁カバー工法</button>
+                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight" data-value="外壁カバー工法">
+                            <span class="sm:hidden">外壁カバー</span>
+                            <span class="hidden sm:inline">外壁カバー工法</span>
+                        </button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight" data-value="外壁張替え">外壁張替え</button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight" data-value="屋根塗装">屋根塗装</button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight" data-value="屋上防水">屋上防水</button>
@@ -909,7 +915,10 @@
                             <span class="sm:hidden">屋根葺き（瓦）</span>
                             <span class="hidden sm:inline">屋根葺き替え（瓦）</span>
                         </button>
-                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight" data-value="屋根カバー工法">屋根カバー工法</button>
+                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight" data-value="屋根カバー工法">
+                            <span class="sm:hidden">屋根カバー</span>
+                            <span class="hidden sm:inline">屋根カバー工法</span>
+                        </button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight" data-value="外壁補修">外壁補修</button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight" data-value="屋根補修">屋根補修</button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight" data-value="外壁不明">外壁不明</button>
@@ -917,7 +926,7 @@
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight" data-value="ベランダ防水">ベランダ防水</button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight" data-value="内装水回り">内装水回り</button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 whitespace-normal leading-tight" data-value="内装（床・クロス等）">
-                            <span class="sm:hidden">内装（床クロス等）</span>
+                            <span class="sm:hidden">内装（室内）</span>
                             <span class="hidden sm:inline">内装（床・クロス等）</span>
                         </button>
                     </div>
@@ -6355,6 +6364,16 @@ window.addEventListener('beforeunload', function(e) {
 
                     // 値設定後にinputイベントを発火させて赤枠を解除
                     kanaInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+                    // 赤枠を即座に解除
+                    kanaInput.classList.remove('border-red-500');
+                    kanaInput.classList.add('border-gray-300');
+                    kanaInput.style.borderWidth = '';
+
+                    // バリデーション再実行
+                    if (typeof validateEmptyFields === 'function') {
+                        validateEmptyFields();
+                    }
                 } else {
                     console.error('[KanaConversion] 変換失敗:', result.error);
                 }
