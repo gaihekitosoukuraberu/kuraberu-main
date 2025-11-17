@@ -1,20 +1,19 @@
-// Auto-synced: 2025-11-13T00:00:00.000Z - Deployment: AKfycbwZUVAvM6NPTvFpozEvY6Hm7xy4XmvLFYwLcqbxCm92sjalOjajNhIjJROYd25IcTrrww
+// Auto-synced: 2025-11-17T22:22:00.000Z - Deployment: AKfycbzAoTXkkw6vltB2uNAsEsFUQ_sToWKOuraH7Zr3d9yZeaV_ncrEWbIjUtVJ7DqQg93FQw
 /**
- * 環境変数ローダー（全システム共通）- 🔥マスターファイル🔥
+ * 環境変数ローダー（全システム共通）
  * .envファイルの代わりにJavaScriptで定数管理
  *
- * 🔥 重要：CACHE_BUSTERを変更するだけで全JSファイルが更新されます 🔥
- * マスター場所：shared/env-loader.js
+ * 🔥 重要：GASデプロイ時に自動的に最新URLに更新されます 🔥
  *
- * 自動同期先（GitHub Actions）：
- * - franchise-dashboard/dist/merchant-portal/env-loader.js
- * - franchise-dashboard/dist/js/env-loader.js
- * - franchise-register/dist/js/env-loader.js
- * - admin-dashboard/dist/js/env-loader.js
- * - estimate-keep-system/dist/js/env-loader.js
+ * 自動同期先（GitHub Actions - gas-cicd.yml）：
+ * - admin-dashboard/js/env-loader.js
+ * - franchise-register/js/env-loader.js
+ * - franchise-dashboard/merchant-portal/env-loader.js
+ * - estimate-keep-system/js/env-loader.js
+ * - lp/js/env-loader.js
  *
- * @file-version V1748-CV-FETCH-MAPPING-FIX-2025-11-15T18:00:00
- * @last-update 2025-11-15T18:00:00
+ * @file-version V1816
+ * @last-update 2025-11-17T22:22:00
  */
 
 const ENV = {
