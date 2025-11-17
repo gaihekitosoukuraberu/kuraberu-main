@@ -119,6 +119,49 @@ files.forEach(file => {
   }
 });
 
+// ============================================
+// フォールバックURL更新（cv-api.js, utils.js）
+// ============================================
+console.log('\n🔄 フォールバックURL更新中...\n');
+
+const fallbackFiles = [
+  {
+    path: path.join(__dirname, 'lp/js/cv-api.js'),
+    name: 'LP CV-API (fallback)'
+  },
+  {
+    path: path.join(__dirname, 'lp/js/utils.js'),
+    name: 'LP Utils (fallback)'
+  }
+];
+
+fallbackFiles.forEach(file => {
+  try {
+    if (!fs.existsSync(file.path)) {
+      console.warn(`⚠️  ${file.name}: ファイルが存在しません`);
+      return;
+    }
+
+    let content = fs.readFileSync(file.path, 'utf8');
+
+    // フォールバックURLパターンを更新
+    const fallbackPattern = /\|\|\s*['"]https:\/\/script\.google\.com\/macros\/s\/[^'"]+\/exec['"]/g;
+
+    if (fallbackPattern.test(content)) {
+      content = content.replace(fallbackPattern, `|| '${NEW_GAS_URL}'`);
+      fs.writeFileSync(file.path, content, 'utf8');
+      console.log(`✅ ${file.name}`);
+      console.log(`   ${file.path}`);
+      successCount++;
+    } else {
+      console.warn(`⚠️  ${file.name}: フォールバックURLパターンが見つかりません`);
+    }
+  } catch (err) {
+    console.error(`❌ ${file.name}: ${err.message}`);
+    errorCount++;
+  }
+});
+
 console.log('\n' + '='.repeat(50));
 console.log(`✅ 成功: ${successCount}件`);
 console.log(`⚠️  警告: ${errorCount}件（存在しないファイル）`);
