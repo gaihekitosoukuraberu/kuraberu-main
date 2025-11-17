@@ -3,7 +3,9 @@ name: Google Drive to Xserver FTP Sync
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/15 * * * *"
+    # 💰 2025-12以降：無料枠節約のため1時間おきに変更（15分→60分）
+    # 月間実行時間: 24回/日 × 30日 × 1分 = 720分 < 2,000分（無料枠）
+    - cron: "0 * * * *"  # 毎時0分に実行（1時間おき）
 
 jobs:
   sync:
