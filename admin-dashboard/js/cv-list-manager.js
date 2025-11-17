@@ -193,6 +193,7 @@ const CVListManager = {
         // 住所（GASから返されるフィールド名を使用）
         postalCode: cv.postalCode || '',
         address: this.formatAddress(cv),
+        addressKana: cv.addressKana || '',
 
         // 工事内容・検索
         searchKeyword: cv.searchKeyword || '',

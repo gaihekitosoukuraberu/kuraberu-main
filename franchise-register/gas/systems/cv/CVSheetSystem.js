@@ -956,13 +956,14 @@ const CVSheetSystem = {
           prefecture: row[14] || '',                    // O: 都道府県（物件）
           city: row[15] || '',                          // P: 市区町村（物件）
           propertyStreet: row[16] || '',                // Q: 住所詳細（物件）
+          addressKana: row[17] || '',                   // R: 住所フリガナ（物件）
 
-          // R-U: 自宅住所
-          isDifferentHome: row[17] === 'TRUE',          // R: 自宅住所フラグ
+          // S-V: 自宅住所
+          isDifferentHome: row[18] === 'TRUE',          // S: 自宅住所フラグ
           homeAddress: {
-            postalCode: row[18] || '',                  // S: 郵便番号（自宅）
-            prefecture: row[19] || '',                  // T: 都道府県（自宅）
-            street: row[20] || ''                       // U: 住所詳細（自宅）
+            postalCode: row[19] || '',                  // T: 郵便番号（自宅）
+            prefecture: row[20] || '',                  // U: 都道府県（自宅）
+            street: row[21] || ''                       // V: 住所詳細（自宅）
           },
 
           // W-Z: 物件詳細（BOT回答から自動抽出される）
@@ -1033,10 +1034,10 @@ const CVSheetSystem = {
           deliveredMerchants: row[72] || '',            // BU: 配信先業者一覧（index 72）
 
           // BV-BY: ハートビート＆行動トラッキング（V1754, V1755）
-          lastHeartbeat: row[74] || '',                 // BV: 最終ハートビート時刻（index 74）
-          siteStayDuration: row[75] || 0,               // BW: サイト滞在時間（秒）（index 75）
-          cv1ToCV2Duration: row[76] || 0,               // BX: CV1→CV2時間差（秒）（index 76）
-          deviceType: row[77] || ''                     // BY: デバイス種別（index 77）
+          lastHeartbeat: row[73] || '',                 // BV: 最終ハートビート時刻（index 73）
+          siteStayDuration: row[74] || 0,               // BW: サイト滞在時間（秒）（index 74）
+          cv1ToCV2Duration: row[75] || 0,               // BX: CV1→CV2時間差（秒）（index 75）
+          deviceType: row[76] || ''                     // BY: デバイス種別（index 76）
         };
       }).filter(cv => cv !== null); // 空行を除外
 
