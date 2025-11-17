@@ -1455,10 +1455,10 @@ function generateBranchMapsHtml(branchNames, branchAddresses, googleMapsApiKey) 
             </svg>
             ${address}
         </p>
-        ${googleMapsApiKey ? `
+        ${googleMapsApiKey && address ? `
         <div class="w-full h-64 bg-gray-200 rounded-lg overflow-hidden">
             <iframe width="100%" height="100%" frameborder="0" style="border:0"
-                src="https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=${encodedAddress}&center=${encodedAddress}&zoom=16"
+                src="https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=${encodedAddress}&zoom=16"
                 allowfullscreen="">
             </iframe>
         </div>
