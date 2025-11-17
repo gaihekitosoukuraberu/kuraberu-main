@@ -22,8 +22,8 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V1750: RankingSystem追加 - @HEAD 常に最新版
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/exec',
+  // プライマリGAS URL（メイン運用）- V1816: 最新デプロイ - @HEAD 常に最新版
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbzAoTXkkw6vltB2uNAsEsFUQ_sToWKOuraH7Zr3d9yZeaV_ncrEWbIjUtVJ7DqQg93FQw/exec',
 
   // フォールバックGAS URL（バックアップ）- @1660
   FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzUu1nHQ6J1vHD-DuuZ4eClkPj5K1YfHnMB3nr9qIY50bvJn75jTVYkCQSerkfk5lNArg/exec',
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1815 - 2025-11-17 - スマホログインデバッグ）
-  CACHE_BUSTER: '1763383833000'
+  // キャッシュバスター（V1816 - 2025-11-17T22:22 - 最新GAS_URL適用）
+  CACHE_BUSTER: '1731855720000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

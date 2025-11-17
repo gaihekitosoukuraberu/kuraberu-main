@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>デプロイ確認ツール - Admin Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .check-item {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #ccc;
+        }
+        .check-item.success {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        .check-item.error {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+        .check-item.info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+        }
+        .check-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .check-detail {
+            font-size: 0.9em;
+            color: #666;
+            word-break: break-all;
+        }
+        .actions {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .code-block {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 0.85em;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Admin Dashboard デプロイ確認</h1>
+
+        <div id="results">
+            <p>チェック中...</p>
+        </div>
+
+        <div class="actions">
+            <button class="button" onclick="runCheck()">再チェック</button>
+            <button class="button" onclick="location.reload()">リロード</button>
+            <a href="index.html" class="button">ダッシュボードへ</a>
+        </div>
+    </div>
+
+    <script src="js/env-loader.js"></script>
+    <script>
+        // 期待される正しい値
+        const EXPECTED_VALUES = {
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbzAoTXkkw6vltB2uNAsEsFUQ_sToWKOuraH7Zr3d9yZeaV_ncrEWbIjUtVJ7DqQg93FQw/exec',
+            CACHE_BUSTER: '1731855720000',
+            VERSION: 'V1816'
+        };
+
+        // 問題のある古いURL一覧
+        const OLD_URLS = [
+            'AKfycbxGBYjSiaHmFj',  // 切れているURL
+            'AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj',  // 旧バージョン
+            'AKfycbwBOj5KN_lIXxopGqRukr9GqHbPmxbENMttY0FTfZgc'  // 更に古いバージョン
+        ];
+
+        function runCheck() {
+            const results = document.getElementById('results');
+            results.innerHTML = '';
+
+            let allGood = true;
+
+            // 1. ENV読み込みチェック
+            if (!window.ENV) {
+                results.innerHTML += createCheckItem(
+                    'error',
+                    '❌ ENV未読み込み',
+                    'window.ENVが存在しません。env-loader.jsが正しく読み込まれていません。'
+                );
+                allGood = false;
+                return;
+            } else {
+                results.innerHTML += createCheckItem(
+                    'success',
+                    '✅ ENV読み込み成功',
+                    'window.ENVが正しく読み込まれています'
+                );
+            }
+
+            // 2. GAS_URLチェック
+            const currentUrl = window.ENV.GAS_URL;
+            if (!currentUrl) {
+                results.innerHTML += createCheckItem(
+                    'error',
+                    '❌ GAS_URL未設定',
+                    'GAS_URLが設定されていません'
+                );
+                allGood = false;
+            } else if (currentUrl === EXPECTED_VALUES.GAS_URL) {
+                results.innerHTML += createCheckItem(
+                    'success',
+                    '✅ GAS_URL正常',
+                    `正しいURLが設定されています：<div class="code-block">${currentUrl}</div>`
+                );
+            } else if (OLD_URLS.some(oldUrl => currentUrl.includes(oldUrl))) {
+                results.innerHTML += createCheckItem(
+                    'error',
+                    '❌ GAS_URLが古い',
+                    `<strong>これが問題の原因です！</strong><br>` +
+                    `現在のURL：<div class="code-block">${currentUrl}</div>` +
+                    `正しいURL：<div class="code-block">${EXPECTED_VALUES.GAS_URL}</div>` +
+                    `<strong>対処方法：</strong><br>` +
+                    `1. ローカルの admin-dashboard/js/env-loader.js をサーバーに再アップロード<br>` +
+                    `2. サーバー上の古いファイルを削除してから新しいファイルをアップロード<br>` +
+                    `3. ブラウザのキャッシュをクリア`
+                );
+                allGood = false;
+            } else {
+                results.innerHTML += createCheckItem(
+                    'error',
+                    '❌ GAS_URLが不正',
+                    `現在のURL：<div class="code-block">${currentUrl}</div>` +
+                    `期待されるURL：<div class="code-block">${EXPECTED_VALUES.GAS_URL}</div>`
+                );
+                allGood = false;
+            }
+
+            // 3. CACHE_BUSTERチェック
+            const currentCacheBuster = window.ENV.CACHE_BUSTER;
+            if (currentCacheBuster === EXPECTED_VALUES.CACHE_BUSTER) {
+                results.innerHTML += createCheckItem(
+                    'success',
+                    '✅ CACHE_BUSTER最新',
+                    `バージョン: ${EXPECTED_VALUES.VERSION} (${currentCacheBuster})`
+                );
+            } else {
+                results.innerHTML += createCheckItem(
+                    'error',
+                    '❌ CACHE_BUSTERが古い',
+                    `現在: ${currentCacheBuster}<br>最新: ${EXPECTED_VALUES.CACHE_BUSTER}`
+                );
+                allGood = false;
+            }
+
+            // 4. その他のURLチェック
+            results.innerHTML += createCheckItem(
+                'info',
+                'ℹ️ その他のURL設定',
+                `フォールバックURL: <div class="code-block">${window.ENV.FALLBACK_GAS_URL || '未設定'}</div>` +
+                `緊急時URL: <div class="code-block">${window.ENV.EMERGENCY_GAS_URL || '未設定'}</div>`
+            );
+
+            // 5. 総合判定
+            if (allGood) {
+                results.innerHTML += createCheckItem(
+                    'success',
+                    '🎉 すべて正常',
+                    'デプロイは正しく完了しています。スマホからログインできるはずです。<br>' +
+                    'それでもログインできない場合は、iPhoneのSafariで：<br>' +
+                    '1. 設定 > Safari > 履歴とWebサイトデータを消去<br>' +
+                    '2. Safariアプリを完全終了（マルチタスク画面から上にスワイプ）<br>' +
+                    '3. Safari再起動してログイン'
+                );
+            } else {
+                results.innerHTML += createCheckItem(
+                    'error',
+                    '⚠️ デプロイに問題あり',
+                    '上記のエラーを修正してください。特にGAS_URLの問題を優先的に解決してください。'
+                );
+            }
+
+            // デバッグ情報
+            results.innerHTML += createCheckItem(
+                'info',
+                '🔧 デバッグ情報',
+                `ブラウザ: ${navigator.userAgent}<br>` +
+                `現在時刻: ${new Date().toLocaleString('ja-JP')}<br>` +
+                `ENV全体:<div class="code-block">${JSON.stringify(window.ENV, null, 2)}</div>`
+            );
+        }
+
+        function createCheckItem(type, title, detail) {
+            return `
+                <div class="check-item ${type}">
+                    <div class="check-title">${title}</div>
+                    <div class="check-detail">${detail}</div>
+                </div>
+            `;
+        }
+
+        // ページ読み込み時に自動実行
+        window.addEventListener('load', () => {
+            setTimeout(runCheck, 500);
+        });
+    </script>
+</body>
+</html>
