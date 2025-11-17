@@ -127,11 +127,15 @@ console.log('\n🔄 フォールバックURL更新中...\n');
 const fallbackFiles = [
   {
     path: path.join(__dirname, 'lp/js/cv-api.js'),
-    name: 'LP CV-API (fallback)'
+    name: 'LP CV-API (fallback)',
+    pattern: /\|\|\s*['"]https:\/\/script\.google\.com\/macros\/s\/[^'"]+\/exec['"]/g,
+    replacement: `|| '${NEW_GAS_URL}'`
   },
   {
     path: path.join(__dirname, 'lp/js/utils.js'),
-    name: 'LP Utils (fallback)'
+    name: 'LP Utils (fallback)',
+    pattern: /\|\|\s*['"]https:\/\/script\.google\.com\/macros\/s\/[^'"]+\/exec['"]/g,
+    replacement: `|| '${NEW_GAS_URL}'`
   }
 ];
 
@@ -144,17 +148,52 @@ fallbackFiles.forEach(file => {
 
     let content = fs.readFileSync(file.path, 'utf8');
 
-    // フォールバックURLパターンを更新
-    const fallbackPattern = /\|\|\s*['"]https:\/\/script\.google\.com\/macros\/s\/[^'"]+\/exec['"]/g;
-
-    if (fallbackPattern.test(content)) {
-      content = content.replace(fallbackPattern, `|| '${NEW_GAS_URL}'`);
+    if (file.pattern.test(content)) {
+      content = content.replace(file.pattern, file.replacement);
       fs.writeFileSync(file.path, content, 'utf8');
       console.log(`✅ ${file.name}`);
       console.log(`   ${file.path}`);
       successCount++;
     } else {
       console.warn(`⚠️  ${file.name}: フォールバックURLパターンが見つかりません`);
+    }
+  } catch (err) {
+    console.error(`❌ ${file.name}: ${err.message}`);
+    errorCount++;
+  }
+});
+
+// ============================================
+// PHPファイルURL更新（mail.php）
+// ============================================
+console.log('\n🔄 PHPファイルURL更新中...\n');
+
+const phpFiles = [
+  {
+    path: path.join(__dirname, 'lp/mail.php'),
+    name: 'LP Mail PHP',
+    pattern: /\$gasUrl\s*=\s*['"]https:\/\/script\.google\.com\/macros\/s\/[^'"]+\/exec['"];/g,
+    replacement: `$gasUrl = '${NEW_GAS_URL}';`
+  }
+];
+
+phpFiles.forEach(file => {
+  try {
+    if (!fs.existsSync(file.path)) {
+      console.warn(`⚠️  ${file.name}: ファイルが存在しません`);
+      return;
+    }
+
+    let content = fs.readFileSync(file.path, 'utf8');
+
+    if (file.pattern.test(content)) {
+      content = content.replace(file.pattern, file.replacement);
+      fs.writeFileSync(file.path, content, 'utf8');
+      console.log(`✅ ${file.name}`);
+      console.log(`   ${file.path}`);
+      successCount++;
+    } else {
+      console.warn(`⚠️  ${file.name}: PHPのGAS URLパターンが見つかりません`);
     }
   } catch (err) {
     console.error(`❌ ${file.name}: ${err.message}`);
