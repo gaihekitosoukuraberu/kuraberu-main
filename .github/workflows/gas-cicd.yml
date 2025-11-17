@@ -165,14 +165,18 @@ jobs:
           git add estimate-keep-system/js/env-loader.js || true
           git add lp/js/env-loader.js || true
 
+          # LPフォールバックURLファイルもステージング
+          git add lp/js/cv-api.js || true
+          git add lp/js/utils.js || true
+
           # 変更があればコミット
           if git diff --staged --quiet; then
-            echo "📝 env-loader.jsに変更なし"
+            echo "📝 GAS URL更新ファイルに変更なし"
           else
-            git commit -m "auto: env-loader.js同期 - GAS ${{ steps.deploy.outputs.deployment_id }}"
+            git commit -m "auto: GAS URL同期 (env-loader & fallback) - ${{ steps.deploy.outputs.deployment_id }}"
             git pull --rebase origin main
             git push
-            echo "✅ env-loader.js更新をpushしました"
+            echo "✅ GAS URL更新をpushしました"
           fi
 
   rollback:
