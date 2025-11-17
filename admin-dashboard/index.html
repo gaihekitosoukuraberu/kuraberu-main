@@ -7279,6 +7279,17 @@ window.addEventListener('beforeunload', function(e) {
 
                 const client = await waitForApiClient();
 
+                // デバッグ：環境変数とGAS URLを確認
+                console.log('[Login] ENV:', window.ENV);
+                console.log('[Login] GAS_URL:', window.ENV?.GAS_URL);
+                console.log('[Login] ApiClient baseUrl:', client.baseUrl);
+
+                // スマホデバッグ用：環境情報をアラート表示
+                if (!window.ENV || !window.ENV.GAS_URL) {
+                    alert('環境変数エラー\nENV: ' + (window.ENV ? 'OK' : 'NG') + '\nGAS_URL: ' + (window.ENV?.GAS_URL || 'undefined'));
+                    throw new Error('環境変数が正しく読み込まれていません');
+                }
+
                 // GAS APIで認証（JSONP方式）
                 const result = await client.jsonpRequest('verifyAdminLogin', {
                     userId: userId,

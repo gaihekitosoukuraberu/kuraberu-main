@@ -101,8 +101,16 @@ class ApiClient {
           console.log(`[ApiClient] リクエスト: ${action}`, finalUrl);
 
           script.src = finalUrl;
-          script.onerror = () => {
+          script.onerror = (errorEvent) => {
             cleanup();
+
+            // エラー詳細をログ出力
+            console.error(`[ApiClient] スクリプト読み込みエラー:`, {
+              action: action,
+              url: finalUrl,
+              baseUrl: this.baseUrl,
+              errorEvent: errorEvent
+            });
 
             // リトライ処理
             if (retryCount < this.maxRetries) {
@@ -113,7 +121,10 @@ class ApiClient {
                   .catch(reject);
               }, this.retryDelay);
             } else {
-              reject(new Error(`ネットワークエラー: ${action}`));
+              // スマホデバッグ用：詳細なエラーメッセージ
+              const errorMsg = `ネットワークエラー: ${action}\nURL: ${this.baseUrl}\n\n設定を確認:\n1. ブラウザキャッシュをクリア\n2. プライベートモードで試す\n3. WiFi/モバイルデータを切り替える`;
+              console.error('[ApiClient] 最終エラー:', errorMsg);
+              reject(new Error(errorMsg));
             }
           };
 
