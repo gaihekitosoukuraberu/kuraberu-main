@@ -58,7 +58,7 @@ jobs:
               print(f"✅ フォルダ検出: {folders[0]['name']} (ID: {folder_id})")
               return folder_id
 
-          def get_recent_html_files(service, folder_id, minutes=1440):
+          def get_recent_html_files(service, folder_id, minutes=43200):  # 30日間
               cutoff_time = datetime.utcnow() - timedelta(minutes=minutes)
               cutoff_iso = cutoff_time.isoformat() + 'Z'
               query = f"'{folder_id}' in parents and name contains '.html' and modifiedTime > '{cutoff_iso}'"
