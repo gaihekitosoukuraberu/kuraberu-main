@@ -6113,6 +6113,12 @@ window.addEventListener('beforeunload', function(e) {
             await saveAllData();
             closeInternalNavigationModal();
             performViewSwitch(targetView);
+
+            // 検索フィルタが有効な場合は再適用
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput && searchInput.value.trim()) {
+                searchRegistrations();
+            }
         }
 
         // 保存せずに遷移
@@ -6122,6 +6128,12 @@ window.addEventListener('beforeunload', function(e) {
             updateSaveButtonState();
             closeInternalNavigationModal();
             performViewSwitch(targetView);
+
+            // 検索フィルタが有効な場合は再適用
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput && searchInput.value.trim()) {
+                searchRegistrations();
+            }
         }
 
         // セクション遷移時の保存確認モーダル（案件管理→ダッシュボード等）
@@ -6420,10 +6432,16 @@ window.addEventListener('beforeunload', function(e) {
                 document.getElementById('listCountDisplay').classList.remove('hidden');
                 document.getElementById('casePositionDisplay').classList.add('hidden');
 
+                // 検索フィルタが有効か確認（initializeListViewの前に保存）
+                const searchInput = document.getElementById('searchInput');
+                const hasSearchFilter = searchInput && searchInput.value.trim();
+                const savedDisplayedCaseIds = hasSearchFilter ? [...currentDisplayedCaseIds] : [];
+
                 initializeListView();
 
-                // 検索フィルタが有効な場合は適用
-                if (currentDisplayedCaseIds.length > 0 && currentDisplayedCaseIds.length < Object.keys(casesData || {}).length) {
+                // 検索フィルタが有効な場合は再適用
+                if (hasSearchFilter && savedDisplayedCaseIds.length > 0) {
+                    currentDisplayedCaseIds = savedDisplayedCaseIds;
                     filterListViewByCaseIds(currentDisplayedCaseIds);
                 }
 
