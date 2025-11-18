@@ -2369,13 +2369,13 @@ window.addEventListener('beforeunload', function(e) {
             if (isActive) {
                 // アクティブな場合は非アクティブに戻す（白背景＋グレー枠線）
                 button.classList.remove(
-                    'border-pink-400',
-                    'border-purple-400',
-                    'border-blue-400',
-                    'border-orange-400',
-                    'border-green-400'
+                    'border-pink-400', 'bg-pink-50',
+                    'border-purple-400', 'bg-purple-50',
+                    'border-blue-400', 'bg-blue-50',
+                    'border-orange-400', 'bg-orange-50',
+                    'border-green-400', 'bg-green-50'
                 );
-                button.classList.add('border-gray-200');
+                button.classList.add('border-gray-200', 'bg-white');
 
                 // ラベルをクリア
                 const labelDisplay = document.getElementById('sortLabelDisplay');
@@ -2383,22 +2383,22 @@ window.addEventListener('beforeunload', function(e) {
                     labelDisplay.textContent = '';
                 }
             } else {
-                // 非アクティブな場合はアクティブにする（白背景のまま枠線の色だけ変更）
-                button.classList.remove('border-gray-200');
+                // 非アクティブな場合はアクティブにする（パステル背景＋色付き枠線）
+                button.classList.remove('border-gray-200', 'bg-white');
 
-                // ソートタイプに応じて適切な枠線色を適用
+                // ソートタイプに応じて適切なパステル色を適用
                 if (sortType === 'selected') {
-                    button.classList.add('border-pink-400');
+                    button.classList.add('border-pink-400', 'bg-pink-50');
                 } else if (sortType === 'distance') {
-                    button.classList.add('border-purple-400');
+                    button.classList.add('border-purple-400', 'bg-purple-50');
                 } else if (sortType === 'recommend') {
-                    button.classList.add('border-blue-400');
+                    button.classList.add('border-blue-400', 'bg-blue-50');
                 } else if (sortType === 'price') {
-                    button.classList.add('border-orange-400');
+                    button.classList.add('border-orange-400', 'bg-orange-50');
                 } else if (sortType === 'review') {
-                    button.classList.add('border-green-400');
+                    button.classList.add('border-green-400', 'bg-green-50');
                 } else if (sortType === 'quality') {
-                    button.classList.add('border-purple-400');
+                    button.classList.add('border-purple-400', 'bg-purple-50');
                 }
 
                 // ラベルを表示
