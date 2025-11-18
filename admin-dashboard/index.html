@@ -1176,21 +1176,21 @@
                 <div class="space-y-2 mb-6">
                     <!-- 上段：ユーザー選択 & 距離順 -->
                     <div class="grid grid-cols-2 gap-2">
-                        <button type="button" onclick="sortFranchises('selected')" class="franchise-sort-btn px-3 py-3 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-xl text-xs sm:text-sm font-semibold hover:from-pink-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg transform hover:scale-105" data-sort="selected">
+                        <button type="button" onclick="sortFranchises('selected')" class="franchise-sort-btn px-3 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl text-xs sm:text-sm font-semibold hover:border-pink-400 hover:bg-pink-50 transition-all shadow-sm" data-sort="selected" data-label="ユーザー選択">
                             <span class="flex items-center justify-center gap-1.5">
-                                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
                                     <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                                 </svg>
-                                ユーザー選択
+                                <span class="btn-label">ユーザー選択</span>
                             </span>
                         </button>
-                        <button type="button" onclick="sortFranchises('distance')" class="franchise-sort-btn px-3 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl text-xs sm:text-sm font-semibold hover:from-purple-600 hover:to-purple-700 transition-all shadow-md hover:shadow-lg transform hover:scale-105" data-sort="distance">
+                        <button type="button" onclick="sortFranchises('distance')" class="franchise-sort-btn px-3 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl text-xs sm:text-sm font-semibold hover:border-purple-400 hover:bg-purple-50 transition-all shadow-sm" data-sort="distance" data-label="距離順">
                             <span class="flex items-center justify-center gap-1.5">
-                                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
                                 </svg>
-                                距離順
+                                <span class="btn-label">距離順</span>
                             </span>
                         </button>
                     </div>
@@ -2353,54 +2353,44 @@ window.addEventListener('beforeunload', function(e) {
             const button = event.target.closest('button');
             const label = button.getAttribute('data-label');
 
-            // 下段4項目ボタンのアクティブ状態を更新
+            console.log('sortFranchises called:', sortType, label); // デバッグ用
+
+            // 全てのボタンを非アクティブ状態にリセット
             document.querySelectorAll('.franchise-sort-btn').forEach(btn => {
-                if (btn.getAttribute('data-label')) {
-                    btn.classList.remove('border-blue-500', 'border-orange-500', 'border-green-500', 'border-purple-500', 'bg-blue-50', 'bg-orange-50', 'bg-green-50', 'bg-purple-50');
-                    btn.classList.add('border-gray-200');
-                }
+                btn.classList.remove(
+                    'border-pink-500', 'bg-pink-50',
+                    'border-purple-500', 'bg-purple-50',
+                    'border-blue-500', 'bg-blue-50',
+                    'border-orange-500', 'bg-orange-50',
+                    'border-green-500', 'bg-green-50'
+                );
+                btn.classList.add('border-gray-200', 'bg-white');
             });
 
             // クリックされたボタンをアクティブに
-            if (label) {
-                button.classList.remove('border-gray-200');
-                // 色に応じて適切なアクティブスタイルを適用
-                if (sortType === 'recommend') {
-                    button.classList.add('border-blue-500', 'bg-blue-50');
-                } else if (sortType === 'price') {
-                    button.classList.add('border-orange-500', 'bg-orange-50');
-                } else if (sortType === 'review') {
-                    button.classList.add('border-green-500', 'bg-green-50');
-                } else if (sortType === 'quality') {
-                    button.classList.add('border-purple-500', 'bg-purple-50');
-                }
+            button.classList.remove('border-gray-200', 'bg-white');
 
-                // ラベルを表示
-                const labelDisplay = document.getElementById('sortLabelDisplay');
-                if (labelDisplay) {
-                    labelDisplay.textContent = label;
-                }
+            // ソートタイプに応じて適切なアクティブスタイルを適用
+            if (sortType === 'selected') {
+                button.classList.add('border-pink-500', 'bg-pink-50');
+            } else if (sortType === 'distance') {
+                button.classList.add('border-purple-500', 'bg-purple-50');
+            } else if (sortType === 'recommend') {
+                button.classList.add('border-blue-500', 'bg-blue-50');
+            } else if (sortType === 'price') {
+                button.classList.add('border-orange-500', 'bg-orange-50');
+            } else if (sortType === 'review') {
+                button.classList.add('border-green-500', 'bg-green-50');
+            } else if (sortType === 'quality') {
+                button.classList.add('border-purple-500', 'bg-purple-50');
             }
 
-            const currentOrder = button.getAttribute('data-order');
-            const newOrder = currentOrder === 'desc' ? 'asc' : 'desc';
-
-            // ボタンのアクティブ状態を更新（上段2項目用）
-            document.querySelectorAll('.sort-btn').forEach(btn => {
-                btn.classList.remove('bg-blue-600', 'text-white', 'border-blue-600');
-                btn.classList.add('border-gray-300');
-                // アイコンをリセット
-                const icon = btn.querySelector('.sort-icon');
-                if (icon) icon.textContent = '↓';
-            });
-
-            button.classList.remove('border-gray-300');
-            button.classList.add('bg-blue-600', 'text-white', 'border-blue-600');
-
-            // ソート方向を更新
-            button.setAttribute('data-order', newOrder);
-            const icon = button.querySelector('.sort-icon');
-            if (icon) icon.textContent = newOrder === 'desc' ? '↓' : '↑';
+            // ラベルを表示
+            const labelDisplay = document.getElementById('sortLabelDisplay');
+            if (labelDisplay && label) {
+                labelDisplay.textContent = label;
+                console.log('Label displayed:', label); // デバッグ用
+            }
 
             // ソート処理のメッセージ
             const sortLabels = {
