@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <!-- Deployment: V1820-20251118-04:00 - 距離順→黄色 / ラジオボタン動作 / デフォルト=ユーザー選択 -->
+    <!-- Deployment: V1821-20251118-05:00 - オーダー転送機能実装（モーダル+配信管理シート連携） -->
     <title>本部管理画面 - 案件割り振りシステム</title>
     <link rel="icon" type="image/png" href="images/7.png">
     <link rel="apple-touch-icon" href="images/7.png">
@@ -7896,6 +7896,171 @@ window.addEventListener('beforeunload', function(e) {
                 }
             }
         });
+
+        // ========================================
+        // オーダー転送機能
+        // ========================================
+
+        // オーダー転送モーダルを表示
+        function showOrderTransferModal() {
+            // チェック済み加盟店を取得
+            const selectedFranchises = [];
+            document.querySelectorAll('.franchise-item').forEach((item, index) => {
+                // チェックボックスがあればそれを確認、なければselectedクラスで判定
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                const isSelected = checkbox ? checkbox.checked : item.classList.contains('selected');
+
+                if (isSelected) {
+                    const franchiseId = item.getAttribute('data-franchise-id');
+                    const franchiseName = item.querySelector('.font-semibold')?.textContent || 'Unknown';
+                    const rank = index + 1;
+
+                    selectedFranchises.push({
+                        id: franchiseId,
+                        name: franchiseName,
+                        rank: rank
+                    });
+                }
+            });
+
+            // 最大4社まで
+            if (selectedFranchises.length === 0) {
+                alert('転送する加盟店を選択してください');
+                return;
+            }
+
+            if (selectedFranchises.length > 4) {
+                alert('最大4社まで選択できます');
+                return;
+            }
+
+            // CV情報を取得（仮データ。実際はcurrentCaseIdから取得）
+            const caseInfo = {
+                cvId: currentCaseId || 'CV1234567890',
+                name: document.getElementById('customerName')?.value || '山田太郎',
+                phone: document.getElementById('phone')?.value || '090-1234-5678',
+                address: document.getElementById('propertyAddress')?.value || '東京都渋谷区',
+                propertyType: document.getElementById('propertyType')?.value || '戸建て',
+                workArea: document.getElementById('workArea')?.value || '外壁・屋根',
+                constructionTiming: document.getElementById('constructionTiming')?.value || '3ヶ月以内'
+            };
+
+            // 案件情報を表示
+            const caseInfoHtml = `
+                <div><strong>CV ID:</strong> ${caseInfo.cvId}</div>
+                <div><strong>お名前:</strong> ${caseInfo.name}</div>
+                <div><strong>電話番号:</strong> ${caseInfo.phone}</div>
+                <div><strong>住所:</strong> ${caseInfo.address}</div>
+                <div><strong>物件種別:</strong> ${caseInfo.propertyType}</div>
+                <div><strong>施工箇所:</strong> ${caseInfo.workArea}</div>
+                <div><strong>施工時期:</strong> ${caseInfo.constructionTiming}</div>
+            `;
+            document.getElementById('orderCaseInfo').innerHTML = caseInfoHtml;
+
+            // 転送先加盟店を表示
+            const franchiseListHtml = selectedFranchises.map((f, i) => `
+                <div class="flex items-center gap-2 p-2 bg-white rounded border border-orange-300">
+                    <span class="font-bold text-orange-600">${i + 1}位</span>
+                    <span>${f.name}</span>
+                    <span class="text-xs text-gray-500">(${f.id})</span>
+                </div>
+            `).join('');
+            document.getElementById('orderFranchiseList').innerHTML = franchiseListHtml;
+
+            // 転送文を生成
+            const transferMessage = `
+【新規案件のお知らせ】
+
+以下の案件が配信されました。
+
+■ お客様情報
+・氏名: ${caseInfo.name}
+・電話番号: ${caseInfo.phone}
+・住所: ${caseInfo.address}
+
+■ 物件情報
+・物件種別: ${caseInfo.propertyType}
+・施工箇所: ${caseInfo.workArea}
+・施工時期: ${caseInfo.constructionTiming}
+
+■ 配信順位
+${selectedFranchises.map((f, i) => `${i + 1}位: ${f.name}`).join('\n')}
+
+速やかにお客様へご連絡をお願いいたします。
+`.trim();
+            document.getElementById('orderTransferMessage').value = transferMessage;
+
+            // モーダルを表示
+            const modal = document.getElementById('orderTransferModal');
+            modal.style.display = 'flex';
+            modal.classList.remove('hidden');
+
+            // モーダルデータを保存
+            window.currentOrderTransferData = {
+                caseInfo: caseInfo,
+                selectedFranchises: selectedFranchises,
+                transferMessage: transferMessage
+            };
+        }
+
+        // オーダー転送モーダルを閉じる
+        function closeOrderTransferModal() {
+            const modal = document.getElementById('orderTransferModal');
+            modal.style.display = 'none';
+            modal.classList.add('hidden');
+            window.currentOrderTransferData = null;
+        }
+
+        // オーダー転送を実行
+        async function sendOrderTransfer() {
+            if (!window.currentOrderTransferData) {
+                alert('転送データがありません');
+                return;
+            }
+
+            const button = event.target;
+            button.disabled = true;
+            button.textContent = '転送中...';
+
+            try {
+                const { caseInfo, selectedFranchises, transferMessage } = window.currentOrderTransferData;
+
+                // GASにデータを送信
+                const response = await fetch(ENV.GAS_URL + '?action=sendOrderTransfer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        cvId: caseInfo.cvId,
+                        franchises: selectedFranchises.map(f => ({
+                            franchiseId: f.id,
+                            rank: f.rank
+                        })),
+                        transferMessage: transferMessage,
+                        caseData: caseInfo
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`✅ オーダー転送完了\n${selectedFranchises.length}社に転送しました`);
+                    closeOrderTransferModal();
+
+                    // チェックボックスをリセット（オプション）
+                    // document.querySelectorAll('.franchise-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+                } else {
+                    throw new Error(result.error || '転送に失敗しました');
+                }
+            } catch (error) {
+                console.error('オーダー転送エラー:', error);
+                alert('❌ 転送に失敗しました\n' + error.message);
+            } finally {
+                button.disabled = false;
+                button.textContent = '転送実行';
+            }
+        }
 
     </script>
 

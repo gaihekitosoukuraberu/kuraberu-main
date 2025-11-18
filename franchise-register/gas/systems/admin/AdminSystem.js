@@ -73,6 +73,9 @@ const AdminSystem = {
         case 'revertRegistration':
           return this.revertRegistration(params);
 
+        case 'sendOrderTransfer':
+          return this.sendOrderTransfer(params);
+
         default:
           return {
             success: false,
@@ -2083,6 +2086,118 @@ const AdminSystem = {
     } catch (error) {
       console.error('[_getRatingFromEvaluationData] エラー:', error);
       return 0;
+    }
+  },
+
+  /**
+   * オーダー転送処理（配信管理シートに書き込み）
+   * V1820新規実装
+   */
+  sendOrderTransfer: function(params) {
+    try {
+      console.log('[sendOrderTransfer] 開始:', params);
+
+      const { cvId, franchises, transferMessage, caseData } = params.parsedData || params;
+
+      if (!cvId || !franchises || franchises.length === 0) {
+        return {
+          success: false,
+          error: 'CV IDまたは加盟店情報が不足しています'
+        };
+      }
+
+      // 最大4社チェック
+      if (franchises.length > 4) {
+        return {
+          success: false,
+          error: '最大4社まで選択できます'
+        };
+      }
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const deliverySheet = ss.getSheetByName('配信管理');
+
+      if (!deliverySheet) {
+        return {
+          success: false,
+          error: '配信管理シートが見つかりません'
+        };
+      }
+
+      const now = new Date();
+      const timestamp = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
+      const dateOnly = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd');
+
+      // 各加盟店に対してレコードを作成
+      const records = franchises.map((franchise, index) => {
+        const recordId = `DL${Utilities.formatDate(now, 'Asia/Tokyo', 'yyMMddHHmmss')}${String(Math.random()).slice(2, 7)}`;
+
+        return [
+          recordId,                    // レコードID
+          cvId,                        // CV ID
+          franchise.franchiseId,       // 加盟店ID
+          dateOnly,                    // 配信日時
+          franchise.rank,              // 配信順位
+          '配信済み',                   // 配信ステータス
+          '未対応',                     // 詳細ステータス
+          timestamp,                   // ステータス更新日時
+          timestamp,                   // 最終更新日時
+          0,                           // 電話回数
+          0,                           // SMS回数
+          0,                           // メール送信回数
+          0,                           // 訪問回数
+          '',                          // 最終連絡日時
+          '',                          // 次回連絡予定日時
+          '',                          // アポ予定日時
+          '',                          // 訪問予定日時
+          '',                          // 見積提出予定日
+          '[]',                        // 連絡履歴JSON
+          '',                          // 連絡履歴サマリー
+          '[]',                        // リマインド設定JSON
+          '[]',                        // 通知履歴JSON
+          '',                          // AI生成SMS文
+          '',                          // AI生成メール文
+          '',                          // 営業メモ
+          '',                          // 社内メモ
+          '',                          // 顧客反応スコア
+          '',                          // 見積金額
+          '',                          // 見積提出日時
+          '',                          // 成約日時
+          '',                          // 成約金額
+          '',                          // 辞退理由
+          '',                          // 辞退日時
+          '',                          // キャンセル申請ID
+          '',                          // 期限延長申請ID
+          'FALSE'                      // お断りメール送信済みフラグ
+        ];
+      });
+
+      // シートに追記
+      if (records.length > 0) {
+        const lastRow = deliverySheet.getLastRow();
+        deliverySheet.getRange(lastRow + 1, 1, records.length, records[0].length).setValues(records);
+      }
+
+      console.log('[sendOrderTransfer] 成功:', records.length, '件');
+
+      return {
+        success: true,
+        message: `${records.length}社に転送しました`,
+        recordCount: records.length,
+        records: records.map(r => ({
+          recordId: r[0],
+          franchiseId: r[2],
+          rank: r[4]
+        }))
+      };
+
+    } catch (error) {
+      console.error('[sendOrderTransfer] エラー:', error);
+      return {
+        success: false,
+        error: error.message || 'オーダー転送に失敗しました'
+      };
     }
   }
 };
