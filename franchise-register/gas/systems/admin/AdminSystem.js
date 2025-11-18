@@ -76,6 +76,12 @@ const AdminSystem = {
         case 'sendOrderTransfer':
           return this.sendOrderTransfer(params);
 
+        case 'updateCVData':
+          return this.updateCVData(params);
+
+        case 'updateCVStatus':
+          return this.updateCVStatus(params);
+
         default:
           return {
             success: false,
@@ -2197,6 +2203,188 @@ const AdminSystem = {
       return {
         success: false,
         error: error.message || 'オーダー転送に失敗しました'
+      };
+    }
+  },
+
+  /**
+   * CV情報を更新（ユーザー登録シート）
+   * V1822新規実装
+   */
+  updateCVData: function(params) {
+    try {
+      console.log('[updateCVData] 開始:', params);
+
+      const { cvId, data } = params.parsedData || params;
+
+      if (!cvId) {
+        return {
+          success: false,
+          error: 'CV IDが指定されていません'
+        };
+      }
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const userSheet = ss.getSheetByName('ユーザー登録');
+
+      if (!userSheet) {
+        return {
+          success: false,
+          error: 'ユーザー登録シートが見つかりません'
+        };
+      }
+
+      // ヘッダー行を取得
+      const headers = userSheet.getRange(1, 1, 1, userSheet.getLastColumn()).getValues()[0];
+      const cvIdCol = headers.indexOf('CV ID');
+
+      if (cvIdCol === -1) {
+        return {
+          success: false,
+          error: 'CV ID列が見つかりません'
+        };
+      }
+
+      // CV IDでレコードを検索
+      const allData = userSheet.getDataRange().getValues();
+      let targetRow = -1;
+
+      for (let i = 1; i < allData.length; i++) {
+        if (allData[i][cvIdCol] === cvId) {
+          targetRow = i + 1; // シートの行番号（1-indexed）
+          break;
+        }
+      }
+
+      if (targetRow === -1) {
+        return {
+          success: false,
+          error: 'CV IDが見つかりません: ' + cvId
+        };
+      }
+
+      // 更新するデータをマッピング
+      const timestamp = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
+      const updates = [];
+
+      // 各フィールドを対応する列に更新
+      for (const key in data) {
+        const colIndex = headers.indexOf(key);
+        if (colIndex !== -1) {
+          updates.push({ col: colIndex + 1, value: data[key] });
+        }
+      }
+
+      // 最終更新日時を更新
+      const lastUpdateCol = headers.indexOf('最終更新日時');
+      if (lastUpdateCol !== -1) {
+        updates.push({ col: lastUpdateCol + 1, value: timestamp });
+      }
+
+      // 更新実行
+      updates.forEach(update => {
+        userSheet.getRange(targetRow, update.col).setValue(update.value);
+      });
+
+      console.log('[updateCVData] 成功:', updates.length, '件更新');
+
+      return {
+        success: true,
+        message: `${updates.length}フィールドを更新しました`,
+        updatedFields: updates.length
+      };
+
+    } catch (error) {
+      console.error('[updateCVData] エラー:', error);
+      return {
+        success: false,
+        error: error.message || 'CV情報の更新に失敗しました'
+      };
+    }
+  },
+
+  /**
+   * CVステータスを更新（ユーザー登録シート）
+   * V1822新規実装
+   */
+  updateCVStatus: function(params) {
+    try {
+      console.log('[updateCVStatus] 開始:', params);
+
+      const { cvId, status } = params.parsedData || params;
+
+      if (!cvId || !status) {
+        return {
+          success: false,
+          error: 'CV IDまたはステータスが指定されていません'
+        };
+      }
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const userSheet = ss.getSheetByName('ユーザー登録');
+
+      if (!userSheet) {
+        return {
+          success: false,
+          error: 'ユーザー登録シートが見つかりません'
+        };
+      }
+
+      // ヘッダー行を取得
+      const headers = userSheet.getRange(1, 1, 1, userSheet.getLastColumn()).getValues()[0];
+      const cvIdCol = headers.indexOf('CV ID');
+      const statusCol = headers.indexOf('管理ステータス');
+
+      if (cvIdCol === -1 || statusCol === -1) {
+        return {
+          success: false,
+          error: '必要な列が見つかりません'
+        };
+      }
+
+      // CV IDでレコードを検索
+      const allData = userSheet.getDataRange().getValues();
+      let targetRow = -1;
+
+      for (let i = 1; i < allData.length; i++) {
+        if (allData[i][cvIdCol] === cvId) {
+          targetRow = i + 1;
+          break;
+        }
+      }
+
+      if (targetRow === -1) {
+        return {
+          success: false,
+          error: 'CV IDが見つかりません: ' + cvId
+        };
+      }
+
+      // ステータスと最終更新日時を更新
+      const timestamp = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
+      userSheet.getRange(targetRow, statusCol + 1).setValue(status);
+
+      const lastUpdateCol = headers.indexOf('最終更新日時');
+      if (lastUpdateCol !== -1) {
+        userSheet.getRange(targetRow, lastUpdateCol + 1).setValue(timestamp);
+      }
+
+      console.log('[updateCVStatus] 成功:', cvId, '→', status);
+
+      return {
+        success: true,
+        message: 'ステータスを更新しました',
+        cvId: cvId,
+        status: status
+      };
+
+    } catch (error) {
+      console.error('[updateCVStatus] エラー:', error);
+      return {
+        success: false,
+        error: error.message || 'ステータスの更新に失敗しました'
       };
     }
   }
