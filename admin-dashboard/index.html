@@ -6086,9 +6086,14 @@ window.addEventListener('beforeunload', function(e) {
                         </div>
                         <h3 class="text-xl font-bold text-gray-900 mb-2">未保存の変更があります</h3>
                         <p class="text-gray-600 mb-6">${unsavedChanges.size} 件の変更が保存されていません。<br>保存しますか？</p>
-                        <button onclick="saveAndNavigate('${targetView}')" class="w-full px-6 py-3 bg-pink-500 text-white rounded-lg font-semibold hover:bg-pink-600 transition-all shadow-lg hover:shadow-xl">
-                            保存する
-                        </button>
+                        <div class="flex flex-col gap-3">
+                            <button onclick="saveAndNavigate('${targetView}')" class="w-full px-6 py-3 bg-pink-500 text-white rounded-lg font-semibold hover:bg-pink-600 transition-all shadow-lg hover:shadow-xl">
+                                保存する
+                            </button>
+                            <button onclick="navigateWithoutSaving('${targetView}')" class="w-full px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all">
+                                保存せずに続行
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -6139,9 +6144,14 @@ window.addEventListener('beforeunload', function(e) {
                         </div>
                         <h3 class="text-xl font-bold text-gray-900 mb-2">未保存の変更があります</h3>
                         <p class="text-gray-600 mb-6">${unsavedChanges.size} 件の変更が保存されていません。<br>保存しますか？</p>
-                        <button onclick="saveAndNavigateSection('${targetSection}')" class="w-full px-6 py-3 bg-pink-500 text-white rounded-lg font-semibold hover:bg-pink-600 transition-all shadow-lg hover:shadow-xl">
-                            保存する
-                        </button>
+                        <div class="flex flex-col gap-3">
+                            <button onclick="saveAndNavigateSection('${targetSection}')" class="w-full px-6 py-3 bg-pink-500 text-white rounded-lg font-semibold hover:bg-pink-600 transition-all shadow-lg hover:shadow-xl">
+                                保存する
+                            </button>
+                            <button onclick="navigateWithoutSavingSection('${targetSection}')" class="w-full px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all">
+                                保存せずに続行
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -6163,6 +6173,15 @@ window.addEventListener('beforeunload', function(e) {
             // 未保存変更をクリアしてから遷移
             unsavedChanges.clear();
             updateSaveButtonState();
+            showSection(targetSection);
+        }
+
+        // 保存せずにセクション遷移
+        function navigateWithoutSavingSection(targetSection) {
+            // 未保存変更をクリア
+            unsavedChanges.clear();
+            updateSaveButtonState();
+            closeSectionNavigationModal();
             showSection(targetSection);
         }
 
@@ -6402,6 +6421,12 @@ window.addEventListener('beforeunload', function(e) {
                 document.getElementById('casePositionDisplay').classList.add('hidden');
 
                 initializeListView();
+
+                // 検索フィルタが有効な場合は適用
+                if (currentDisplayedCaseIds.length > 0 && currentDisplayedCaseIds.length < Object.keys(casesData || {}).length) {
+                    filterListViewByCaseIds(currentDisplayedCaseIds);
+                }
+
                 // リスト表示時は選択件数の表示を更新
                 updateSelectedCount();
             } else {
