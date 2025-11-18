@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <!-- Deployment: V1818-20251118-02:45 - iPhone UI Fix -->
+    <!-- Deployment: V1819-20251118-03:15 - Color Fix: Pink/White Only -->
     <title>本部管理画面 - 案件割り振りシステム</title>
     <link rel="icon" type="image/png" href="images/7.png">
     <link rel="apple-touch-icon" href="images/7.png">
@@ -2367,7 +2367,8 @@ window.addEventListener('beforeunload', function(e) {
                            button.classList.contains('border-green-400');
 
             if (isActive) {
-                // アクティブな場合は非アクティブに戻す（白背景＋グレー枠線）
+                // アクティブな場合は非アクティブに戻す
+                // ⚠️ 未選択時：白背景（bg-white）＋グレー枠線（border-gray-200）のみ
                 button.classList.remove(
                     'border-pink-400', 'bg-pink-50',
                     'border-indigo-400', 'bg-indigo-50',
@@ -2387,18 +2388,24 @@ window.addEventListener('beforeunload', function(e) {
                 // 非アクティブな場合はアクティブにする（パステル背景＋色付き枠線）
                 button.classList.remove('border-gray-200', 'bg-white');
 
-                // ソートタイプに応じて適切なパステル色を適用
+                // ⚠️ 重要：各ボタン固有のパステル色を適用（青やグレーは使わない）
                 if (sortType === 'selected') {
+                    // ユーザー選択：ピンク（絶対に青にしない！）
                     button.classList.add('border-pink-400', 'bg-pink-50');
                 } else if (sortType === 'distance') {
+                    // 距離順：インディゴ
                     button.classList.add('border-indigo-400', 'bg-indigo-50');
                 } else if (sortType === 'recommend') {
+                    // おすすめ順：青
                     button.classList.add('border-blue-400', 'bg-blue-50');
                 } else if (sortType === 'price') {
+                    // 安い順：オレンジ
                     button.classList.add('border-orange-400', 'bg-orange-50');
                 } else if (sortType === 'review') {
+                    // 口コミ順：緑
                     button.classList.add('border-green-400', 'bg-green-50');
                 } else if (sortType === 'quality') {
+                    // 高品質順：紫
                     button.classList.add('border-purple-400', 'bg-purple-50');
                 }
 
