@@ -6354,7 +6354,7 @@ window.addEventListener('beforeunload', function(e) {
             kanaInput.placeholder = '変換中...';
 
             try {
-                const result = await window.apiClient.postRequest('convertNameToKana', {
+                const result = await window.apiClient.postRequest('cv_convertNameToKana', {
                     name: name
                 });
 
