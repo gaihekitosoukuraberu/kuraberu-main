@@ -1176,7 +1176,7 @@
                 <div class="space-y-2 mb-6">
                     <!-- 上段：ユーザー選択 & 距離順 -->
                     <div class="grid grid-cols-2 gap-2">
-                        <button type="button" onclick="sortFranchises('selected')" class="franchise-sort-btn px-3 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl text-xs sm:text-sm font-semibold hover:border-pink-400 hover:bg-pink-50 transition-all shadow-sm" data-sort="selected" data-label="ユーザー選択">
+                        <button type="button" onclick="sortFranchises('selected')" class="franchise-sort-btn px-3 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl text-xs sm:text-sm font-semibold shadow-sm hover:shadow-md hover:scale-105 transition-all" data-sort="selected" data-label="ユーザー選択">
                             <span class="flex items-center justify-center gap-1.5">
                                 <svg class="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
@@ -1185,7 +1185,7 @@
                                 <span class="btn-label">ユーザー選択</span>
                             </span>
                         </button>
-                        <button type="button" onclick="sortFranchises('distance')" class="franchise-sort-btn px-3 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl text-xs sm:text-sm font-semibold hover:border-purple-400 hover:bg-purple-50 transition-all shadow-sm" data-sort="distance" data-label="距離順">
+                        <button type="button" onclick="sortFranchises('distance')" class="franchise-sort-btn px-3 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl text-xs sm:text-sm font-semibold shadow-sm hover:shadow-md hover:scale-105 transition-all" data-sort="distance" data-label="距離順">
                             <span class="flex items-center justify-center gap-1.5">
                                 <svg class="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
@@ -1198,14 +1198,14 @@
                     <!-- 下段：並び替え4項目（アイコンのみ） -->
                     <div class="space-y-1">
                         <div class="grid grid-cols-4 gap-2">
-                            <button type="button" onclick="sortFranchises('recommend')" class="franchise-sort-btn p-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all shadow-sm" data-sort="recommend" data-label="おすすめ順">
+                            <button type="button" onclick="sortFranchises('recommend')" class="franchise-sort-btn p-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl shadow-sm hover:shadow-md hover:scale-105 transition-all" data-sort="recommend" data-label="おすすめ順">
                                 <div class="flex items-center justify-center">
                                     <svg class="w-6 h-6 sm:w-7 sm:h-7 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                                     </svg>
                                 </div>
                             </button>
-                            <button type="button" onclick="sortFranchises('price')" class="franchise-sort-btn p-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 transition-all shadow-sm" data-sort="price" data-label="安い順">
+                            <button type="button" onclick="sortFranchises('price')" class="franchise-sort-btn p-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl shadow-sm hover:shadow-md hover:scale-105 transition-all" data-sort="price" data-label="安い順">
                                 <div class="flex items-center justify-center">
                                     <svg class="w-6 h-6 sm:w-7 sm:h-7 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"></path>
@@ -1213,14 +1213,14 @@
                                     </svg>
                                 </div>
                             </button>
-                            <button type="button" onclick="sortFranchises('review')" class="franchise-sort-btn p-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-green-400 hover:bg-green-50 transition-all shadow-sm" data-sort="review" data-label="口コミ順">
+                            <button type="button" onclick="sortFranchises('review')" class="franchise-sort-btn p-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl shadow-sm hover:shadow-md hover:scale-105 transition-all" data-sort="review" data-label="口コミ順">
                                 <div class="flex items-center justify-center">
                                     <svg class="w-6 h-6 sm:w-7 sm:h-7 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"></path>
                                     </svg>
                                 </div>
                             </button>
-                            <button type="button" onclick="sortFranchises('quality')" class="franchise-sort-btn p-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-purple-400 hover:bg-purple-50 transition-all shadow-sm" data-sort="quality" data-label="高品質順">
+                            <button type="button" onclick="sortFranchises('quality')" class="franchise-sort-btn p-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl shadow-sm hover:shadow-md hover:scale-105 transition-all" data-sort="quality" data-label="高品質順">
                                 <div class="flex items-center justify-center">
                                     <svg class="w-6 h-6 sm:w-7 sm:h-7 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
@@ -2363,15 +2363,15 @@ window.addEventListener('beforeunload', function(e) {
                            button.classList.contains('border-green-400');
 
             if (isActive) {
-                // アクティブな場合は非アクティブに戻す
+                // アクティブな場合は非アクティブに戻す（白背景＋グレー枠線）
                 button.classList.remove(
-                    'border-pink-400', 'bg-pink-50',
-                    'border-purple-400', 'bg-purple-50',
-                    'border-blue-400', 'bg-blue-50',
-                    'border-orange-400', 'bg-orange-50',
-                    'border-green-400', 'bg-green-50'
+                    'border-pink-400',
+                    'border-purple-400',
+                    'border-blue-400',
+                    'border-orange-400',
+                    'border-green-400'
                 );
-                button.classList.add('border-gray-200', 'bg-white');
+                button.classList.add('border-gray-200');
 
                 // ラベルをクリア
                 const labelDisplay = document.getElementById('sortLabelDisplay');
@@ -2379,22 +2379,22 @@ window.addEventListener('beforeunload', function(e) {
                     labelDisplay.textContent = '';
                 }
             } else {
-                // 非アクティブな場合はアクティブにする（hover時と同じ色）
-                button.classList.remove('border-gray-200', 'bg-white');
+                // 非アクティブな場合はアクティブにする（白背景のまま枠線の色だけ変更）
+                button.classList.remove('border-gray-200');
 
-                // ソートタイプに応じて適切なアクティブスタイルを適用
+                // ソートタイプに応じて適切な枠線色を適用
                 if (sortType === 'selected') {
-                    button.classList.add('border-pink-400', 'bg-pink-50');
+                    button.classList.add('border-pink-400');
                 } else if (sortType === 'distance') {
-                    button.classList.add('border-purple-400', 'bg-purple-50');
+                    button.classList.add('border-purple-400');
                 } else if (sortType === 'recommend') {
-                    button.classList.add('border-blue-400', 'bg-blue-50');
+                    button.classList.add('border-blue-400');
                 } else if (sortType === 'price') {
-                    button.classList.add('border-orange-400', 'bg-orange-50');
+                    button.classList.add('border-orange-400');
                 } else if (sortType === 'review') {
-                    button.classList.add('border-green-400', 'bg-green-50');
+                    button.classList.add('border-green-400');
                 } else if (sortType === 'quality') {
-                    button.classList.add('border-purple-400', 'bg-purple-50');
+                    button.classList.add('border-purple-400');
                 }
 
                 // ラベルを表示
