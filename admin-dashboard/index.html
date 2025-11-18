@@ -7333,6 +7333,10 @@ window.addEventListener('beforeunload', function(e) {
                         currentDisplayedCaseIds = [];
                         if (currentView === 'list') {
                             filterListViewByCaseIds([]);
+                        } else if (currentView === 'crm') {
+                            // CRMビューの場合も位置を更新（0/0表示）
+                            updateCasePosition();
+                            updateNavigationButtons();
                         }
                     }
                 } else {
@@ -7402,6 +7406,30 @@ window.addEventListener('beforeunload', function(e) {
                     card.style.display = 'none';
                 }
             });
+
+            // リストビュー表示件数カウンターを更新
+            updateListViewCounter(caseIds.length);
+        }
+
+        // リストビュー表示件数カウンターを更新
+        function updateListViewCounter(displayedCount) {
+            const totalCount = Object.keys(casesData || {}).length;
+            const topShowingFromEl = document.getElementById('topShowingFrom');
+            const topShowingToEl = document.getElementById('topShowingTo');
+            const topTotalCountEl = document.getElementById('topTotalCount');
+
+            if (topShowingFromEl && topShowingToEl && topTotalCountEl) {
+                if (displayedCount === 0) {
+                    // 検索結果0件の場合
+                    topShowingFromEl.textContent = '0';
+                    topShowingToEl.textContent = '0';
+                } else {
+                    // 検索結果がある場合
+                    topShowingFromEl.textContent = '1';
+                    topShowingToEl.textContent = displayedCount;
+                }
+                topTotalCountEl.textContent = displayedCount;
+            }
         }
 
         // 通知表示関数
