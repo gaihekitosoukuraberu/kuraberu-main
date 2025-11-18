@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <!-- Deployment: V1819-20251118-03:15 - Color Fix: Pink/White Only -->
+    <!-- Deployment: V1820-20251118-04:00 - 距離順→黄色 / ラジオボタン動作 / デフォルト=ユーザー選択 -->
     <title>本部管理画面 - 案件割り振りシステム</title>
     <link rel="icon" type="image/png" href="images/7.png">
     <link rel="apple-touch-icon" href="images/7.png">
@@ -1186,7 +1186,7 @@
                         </button>
                         <button type="button" onclick="sortFranchises('distance')" class="franchise-sort-btn px-3 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl text-xs sm:text-sm font-semibold shadow-sm hover:shadow-md hover:scale-105 transition-all" data-sort="distance" data-label="距離順">
                             <span class="flex items-center justify-center gap-1.5">
-                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 </svg>
@@ -2358,63 +2358,48 @@ window.addEventListener('beforeunload', function(e) {
 
             console.log('sortFranchises called:', sortType, label); // デバッグ用
 
-            // クリックされたボタンのアクティブ状態をトグル
-            const isActive = button.classList.contains('border-pink-400') ||
-                           button.classList.contains('border-indigo-400') ||
-                           button.classList.contains('border-purple-400') ||
-                           button.classList.contains('border-blue-400') ||
-                           button.classList.contains('border-orange-400') ||
-                           button.classList.contains('border-green-400');
-
-            if (isActive) {
-                // アクティブな場合は非アクティブに戻す
-                // ⚠️ 未選択時：白背景（bg-white）＋グレー枠線（border-gray-200）のみ
-                button.classList.remove(
+            // ラジオボタン動作：全てのボタンを非選択状態に戻す
+            document.querySelectorAll('.franchise-sort-btn').forEach(btn => {
+                btn.classList.remove(
                     'border-pink-400', 'bg-pink-50',
-                    'border-indigo-400', 'bg-indigo-50',
+                    'border-yellow-400', 'bg-yellow-50',
                     'border-purple-400', 'bg-purple-50',
                     'border-blue-400', 'bg-blue-50',
                     'border-orange-400', 'bg-orange-50',
                     'border-green-400', 'bg-green-50'
                 );
-                button.classList.add('border-gray-200', 'bg-white');
+                btn.classList.add('border-gray-200', 'bg-white');
+            });
 
-                // ラベルをクリア
-                const labelDisplay = document.getElementById('sortLabelDisplay');
-                if (labelDisplay) {
-                    labelDisplay.textContent = '';
-                }
-            } else {
-                // 非アクティブな場合はアクティブにする（パステル背景＋色付き枠線）
-                button.classList.remove('border-gray-200', 'bg-white');
+            // クリックされたボタンのみ選択状態にする
+            button.classList.remove('border-gray-200', 'bg-white');
 
-                // ⚠️ 重要：各ボタン固有のパステル色を適用（青やグレーは使わない）
-                if (sortType === 'selected') {
-                    // ユーザー選択：ピンク（絶対に青にしない！）
-                    button.classList.add('border-pink-400', 'bg-pink-50');
-                } else if (sortType === 'distance') {
-                    // 距離順：インディゴ
-                    button.classList.add('border-indigo-400', 'bg-indigo-50');
-                } else if (sortType === 'recommend') {
-                    // おすすめ順：青
-                    button.classList.add('border-blue-400', 'bg-blue-50');
-                } else if (sortType === 'price') {
-                    // 安い順：オレンジ
-                    button.classList.add('border-orange-400', 'bg-orange-50');
-                } else if (sortType === 'review') {
-                    // 口コミ順：緑
-                    button.classList.add('border-green-400', 'bg-green-50');
-                } else if (sortType === 'quality') {
-                    // 高品質順：紫
-                    button.classList.add('border-purple-400', 'bg-purple-50');
-                }
+            // ⚠️ 重要：各ボタン固有のパステル色を適用
+            if (sortType === 'selected') {
+                // ユーザー選択：ピンク
+                button.classList.add('border-pink-400', 'bg-pink-50');
+            } else if (sortType === 'distance') {
+                // 距離順：黄色
+                button.classList.add('border-yellow-400', 'bg-yellow-50');
+            } else if (sortType === 'recommend') {
+                // おすすめ順：青
+                button.classList.add('border-blue-400', 'bg-blue-50');
+            } else if (sortType === 'price') {
+                // 安い順：オレンジ
+                button.classList.add('border-orange-400', 'bg-orange-50');
+            } else if (sortType === 'review') {
+                // 口コミ順：緑
+                button.classList.add('border-green-400', 'bg-green-50');
+            } else if (sortType === 'quality') {
+                // 高品質順：紫
+                button.classList.add('border-purple-400', 'bg-purple-50');
+            }
 
-                // ラベルを表示
-                const labelDisplay = document.getElementById('sortLabelDisplay');
-                if (labelDisplay && label) {
-                    labelDisplay.textContent = label;
-                    console.log('Label displayed:', label); // デバッグ用
-                }
+            // ラベルを表示
+            const labelDisplay = document.getElementById('sortLabelDisplay');
+            if (labelDisplay && label) {
+                labelDisplay.textContent = label;
+                console.log('Label displayed:', label); // デバッグ用
             }
 
             // ソート処理のメッセージ
@@ -2433,6 +2418,23 @@ window.addEventListener('beforeunload', function(e) {
             // 実際のソート処理はここで実装
             // APIコールまたはクライアント側のソートロジック
         }
+
+        // ページ読み込み時にユーザー選択ボタンをデフォルトで選択状態にする
+        document.addEventListener('DOMContentLoaded', function() {
+            const userSelectBtn = document.querySelector('[data-sort="selected"]');
+            if (userSelectBtn) {
+                userSelectBtn.classList.remove('border-gray-200', 'bg-white');
+                userSelectBtn.classList.add('border-pink-400', 'bg-pink-50');
+
+                // モバイル用ラベル表示
+                const labelDisplay = document.getElementById('sortLabelDisplay');
+                if (labelDisplay) {
+                    labelDisplay.textContent = 'ユーザー選択';
+                }
+
+                console.log('デフォルトソート: ユーザー選択');
+            }
+        });
 
         // セクション切り替え機能
         // 現在のセクションを追跡
