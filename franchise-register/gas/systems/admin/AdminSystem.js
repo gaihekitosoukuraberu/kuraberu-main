@@ -2103,7 +2103,11 @@ const AdminSystem = {
     try {
       console.log('[sendOrderTransfer] 開始:', params);
 
-      const { cvId, franchises, transferMessage, caseData } = params.parsedData || params;
+      // paramsから直接取得（main.jsでパース済み）
+      const cvId = params.cvId;
+      const franchises = params.franchises;
+      const transferMessage = params.transferMessage;
+      const caseData = params.caseData;
 
       if (!cvId || !franchises || franchises.length === 0) {
         return {
@@ -2215,7 +2219,9 @@ const AdminSystem = {
     try {
       console.log('[updateCVData] 開始:', params);
 
-      const { cvId, data } = params.parsedData || params;
+      // paramsから直接取得（main.jsでパース済み）
+      const cvId = params.cvId;
+      const data = params.data;
 
       if (!cvId) {
         return {

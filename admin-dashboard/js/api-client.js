@@ -168,7 +168,20 @@ class ApiClient {
   async postRequest(action, data = {}) {
     // POSTの場合もJSONPを使用（GASはGETでも動作する）
     console.log(`[ApiClient] POST (via JSONP): ${action}`);
-    return this.jsonpRequest(action, data);
+
+    // 複雑なオブジェクトをJSON文字列化してシリアライズ
+    const serializedData = {};
+    for (const key in data) {
+      const value = data[key];
+      // オブジェクトまたは配列の場合はJSON.stringify
+      if (typeof value === 'object' && value !== null) {
+        serializedData[key] = JSON.stringify(value);
+      } else {
+        serializedData[key] = value;
+      }
+    }
+
+    return this.jsonpRequest(action, serializedData);
   }
 
 

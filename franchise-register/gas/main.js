@@ -127,7 +127,27 @@ const SystemRouter = {
       system: 'CVSheetSystem',
       description: 'CV送信',
       prefix: true,
-      actions: ['cv1_submit', 'cv2_update', 'getCVList', 'updateCVStatus', 'convertNameToKana', 'updateCVData', 'debugSpreadsheetStructure', 'aiCorrectMemo']
+      actions: ['cv1_submit', 'cv2_update', 'getCVList', 'convertNameToKana', 'debugSpreadsheetStructure', 'aiCorrectMemo']
+    },
+
+    // CV更新・ステータス管理（Admin用 V1823）
+    'updateCVData': {
+      system: 'AdminSystem',
+      description: 'CV情報更新',
+      prefix: false,
+      actions: ['updateCVData']
+    },
+    'updateCVStatus': {
+      system: 'AdminSystem',
+      description: 'CVステータス更新',
+      prefix: false,
+      actions: ['updateCVStatus']
+    },
+    'sendOrderTransfer': {
+      system: 'AdminSystem',
+      description: 'オーダー転送',
+      prefix: false,
+      actions: ['sendOrderTransfer']
     },
 
     // CVハートビートシステム（V1754）
@@ -423,6 +443,31 @@ function doGet(e) {
             console.log('[main.js] Parsed data from GET:', e.parameter.parsedData);
           } catch (err) {
             console.error('[main.js] Failed to parse data parameter:', err);
+          }
+        }
+
+        // updateCVDataの場合、dataパラメータをJSONパース (V1823)
+        if (action === 'updateCVData' && e.parameter.data) {
+          try {
+            e.parameter.data = JSON.parse(e.parameter.data);
+            console.log('[main.js] Parsed updateCVData data:', e.parameter.data);
+          } catch (err) {
+            console.error('[main.js] Failed to parse updateCVData data parameter:', err);
+          }
+        }
+
+        // sendOrderTransferの場合、複数パラメータをJSONパース (V1823)
+        if (action === 'sendOrderTransfer') {
+          try {
+            if (e.parameter.franchises) {
+              e.parameter.franchises = JSON.parse(e.parameter.franchises);
+            }
+            if (e.parameter.caseData) {
+              e.parameter.caseData = JSON.parse(e.parameter.caseData);
+            }
+            console.log('[main.js] Parsed sendOrderTransfer params');
+          } catch (err) {
+            console.error('[main.js] Failed to parse sendOrderTransfer parameters:', err);
           }
         }
 
