@@ -7284,28 +7284,76 @@ window.addEventListener('beforeunload', function(e) {
             // クリアボタンの表示/非表示
             clearBtn.style.display = searchInput.value ? 'block' : 'none';
 
-            // 承認待ちと承認済みの両方のテーブルを検索
+            // 案件管理ビューの場合（casesDataが存在する場合）
+            if (typeof casesData !== 'undefined' && Object.keys(casesData).length > 0) {
+                // 検索条件に該当する案件を抽出
+                const matchedCaseIds = [];
+
+                if (searchTerm) {
+                    // 検索条件がある場合
+                    Object.entries(casesData).forEach(([caseId, caseData]) => {
+                        // 案件データを文字列化して正規化
+                        const searchableText = normalizeText(
+                            JSON.stringify([
+                                caseData.name || '',
+                                caseData.kana || '',
+                                caseData.phone || '',
+                                caseData.address || '',
+                                caseData.postalCode || '',
+                                caseData.prefecture || '',
+                                caseData.city || '',
+                                caseData.status || ''
+                            ])
+                        );
+
+                        if (searchableText.includes(searchTerm)) {
+                            matchedCaseIds.push(caseId);
+                        }
+                    });
+
+                    // 該当案件が見つかった場合
+                    if (matchedCaseIds.length > 0) {
+                        // currentDisplayedCaseIdsを該当案件のみに更新
+                        currentDisplayedCaseIds = matchedCaseIds;
+
+                        // CRMビューの場合、最初の該当案件を表示
+                        if (currentView === 'crm') {
+                            const firstMatchedId = matchedCaseIds[0];
+                            if (currentCaseId !== firstMatchedId) {
+                                openCRM(firstMatchedId);
+                            }
+                            updateCasePosition();
+                            updateNavigationButtons();
+                        } else {
+                            // リストビューの場合、行/カードの表示を制御
+                            filterListViewByCaseIds(matchedCaseIds);
+                        }
+                    } else {
+                        // 該当案件がない場合
+                        currentDisplayedCaseIds = [];
+                        if (currentView === 'list') {
+                            filterListViewByCaseIds([]);
+                        }
+                    }
+                } else {
+                    // 検索条件がない場合は全件表示
+                    currentDisplayedCaseIds = Object.keys(casesData);
+                    if (currentView === 'list') {
+                        filterListViewByCaseIds(currentDisplayedCaseIds);
+                    }
+                    if (currentView === 'crm') {
+                        updateCasePosition();
+                        updateNavigationButtons();
+                    }
+                }
+
+                return; // 案件管理ビューの処理を終了
+            }
+
+            // 以下は加盟店登録申請ビューの処理
             const pendingRows = document.querySelectorAll('#pending-table tbody tr');
             const approvedRows = document.querySelectorAll('#approved-table tbody tr');
             const franchiseMobileCards = document.querySelectorAll('#pending-mobile > div, #approved-mobile > div');
-
-            // 案件リスト（CRMリストビュー）- PC用テーブル行の検索
-            const caseRows = document.querySelectorAll('#casesListBody tr');
-            if (caseRows.length > 0) {
-                caseRows.forEach(row => {
-                    const text = normalizeText(row.textContent);
-                    row.style.display = text.includes(searchTerm) ? '' : 'none';
-                });
-            }
-
-            // 案件リスト（CRMリストビュー）- モバイル用カードの検索
-            const caseMobileCards = document.querySelectorAll('#casesListMobile > div');
-            if (caseMobileCards.length > 0) {
-                caseMobileCards.forEach(card => {
-                    const text = normalizeText(card.textContent);
-                    card.style.display = text.includes(searchTerm) ? '' : 'none';
-                });
-            }
 
             // 承認待ちテーブルのフィルタリング
             pendingRows.forEach(row => {
@@ -7323,6 +7371,34 @@ window.addEventListener('beforeunload', function(e) {
             franchiseMobileCards.forEach(card => {
                 const text = normalizeText(card.textContent);
                 card.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+
+        // リストビューの案件表示をフィルタリング
+        function filterListViewByCaseIds(caseIds) {
+            // PC用テーブル行のフィルタリング
+            const caseRows = document.querySelectorAll('#casesListBody tr');
+            caseRows.forEach(row => {
+                const checkbox = row.querySelector('.case-checkbox');
+                if (checkbox) {
+                    const caseId = checkbox.getAttribute('data-case-id');
+                    row.style.display = caseIds.length === 0 || caseIds.includes(caseId) ? '' : 'none';
+                } else {
+                    row.style.display = caseIds.length === 0 ? '' : 'none';
+                }
+            });
+
+            // モバイル用カードのフィルタリング
+            const caseMobileCards = document.querySelectorAll('#casesListMobile > div');
+            caseMobileCards.forEach(card => {
+                const cardText = card.textContent;
+                const match = cardText.match(/#(CV[^#\s]+)/);
+                if (match) {
+                    const caseId = match[1];
+                    card.style.display = caseIds.length === 0 || caseIds.includes(caseId) ? '' : 'none';
+                } else {
+                    card.style.display = caseIds.length === 0 ? '' : 'none';
+                }
             });
         }
 
