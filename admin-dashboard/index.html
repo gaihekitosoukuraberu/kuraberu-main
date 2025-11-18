@@ -1057,7 +1057,6 @@
                             <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-xs sm:text-sm font-medium text-gray-700" onclick="selectSurveyDateTime(this)">未定</button>
                         </div>
                     </div>
-                    <input type="text" id="surveyDateTime" placeholder="その他詳細" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
                 </div>
             </div>
 
@@ -4370,19 +4369,19 @@ window.addEventListener('beforeunload', function(e) {
                 deteriorationStatusSelect.value = data.deteriorationStatus || '';
             }
 
-            // 現地調査希望日時
-            const surveyDateTimeInput = document.getElementById('surveyDateTime');
-            if (surveyDateTimeInput) {
-                surveyDateTimeInput.value = data.surveyDateTime || data['現地調査希望日時'] || '';
-                // 現地調査希望日時のボタンも選択状態にする
-                if (data['現地調査希望日時']) {
-                    const selectedTimes = data['現地調査希望日時'].split(', ');
-                    crmContent.querySelectorAll('.option-button').forEach(btn => {
+            // 現地調査希望日時（AQ列: 現地調査希望日時）
+            // ボタンを選択状態にする
+            if (data['現地調査希望日時']) {
+                const selectedTimes = data['現地調査希望日時'].split(', ');
+                const surveyButtonGroup = document.getElementById('surveyDateTimeButtonGroup');
+                if (surveyButtonGroup) {
+                    surveyButtonGroup.querySelectorAll('.option-button').forEach(btn => {
                         if (selectedTimes.includes(btn.textContent.trim())) {
                             btn.classList.add('selected');
                         }
                     });
                 }
+                console.log('[populateForm] 現地調査希望日時読み込み:', data['現地調査希望日時']);
             }
 
             // 流入検索ワード（BF列: searchKeyword）
@@ -4471,6 +4470,13 @@ window.addEventListener('beforeunload', function(e) {
                 deterioration,
                 selectionCriteria
             });
+
+            // 案件メモを読み込み（AS列: 案件メモ）
+            const caseMemoTextarea = document.getElementById('caseMemoTextarea');
+            if (caseMemoTextarea) {
+                caseMemoTextarea.value = data['案件メモ'] || data.caseMemo || '';
+                console.log('[populateForm] 案件メモ読み込み:', data['案件メモ'] || data.caseMemo || '(空)');
+            }
 
             // 未入力フィールドの赤枠表示を更新（即座に実行）
             validateEmptyFields();
@@ -5865,9 +5871,13 @@ window.addEventListener('beforeunload', function(e) {
             // 施工時期
             data.constructionTiming = getInputOrSelectValue('施工時期');
 
-            // 現地調査希望日時
-            const surveyDateTimeInput = document.getElementById('surveyDateTime');
-            if (surveyDateTimeInput) data.surveyDateTime = surveyDateTimeInput.value;
+            // 現地調査希望日時（選択されたボタンから取得）
+            const surveyButtonGroup = document.getElementById('surveyDateTimeButtonGroup');
+            if (surveyButtonGroup) {
+                const selectedSurveyTimes = Array.from(surveyButtonGroup.querySelectorAll('.option-button.selected'))
+                    .map(btn => btn.textContent.trim());
+                data['現地調査希望日時'] = selectedSurveyTimes.join(', ');
+            }
 
             // 工事希望箇所（選択されたボタンを配列で取得）
             const selectedButtons = Array.from(crmContent.querySelectorAll('.option-button.selected'));
@@ -5877,6 +5887,12 @@ window.addEventListener('beforeunload', function(e) {
             const statusBadge = document.getElementById('crmStatusBadge');
             if (statusBadge) {
                 data.status = statusBadge.textContent.trim();
+            }
+
+            // 案件メモ（AS列: 案件メモ）
+            const caseMemoTextarea = document.getElementById('caseMemoTextarea');
+            if (caseMemoTextarea) {
+                data['案件メモ'] = caseMemoTextarea.value || '';
             }
 
             console.log('[getCRMFormData] フォームデータ取得:', data);
