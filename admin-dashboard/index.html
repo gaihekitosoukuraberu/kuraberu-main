@@ -7382,9 +7382,10 @@ window.addEventListener('beforeunload', function(e) {
                 const checkbox = row.querySelector('.case-checkbox');
                 if (checkbox) {
                     const caseId = checkbox.getAttribute('data-case-id');
-                    row.style.display = caseIds.length === 0 || caseIds.includes(caseId) ? '' : 'none';
+                    row.style.display = caseIds.includes(caseId) ? '' : 'none';
                 } else {
-                    row.style.display = caseIds.length === 0 ? '' : 'none';
+                    // チェックボックスがない行（ヘッダーなど）は非表示
+                    row.style.display = 'none';
                 }
             });
 
@@ -7395,9 +7396,10 @@ window.addEventListener('beforeunload', function(e) {
                 const match = cardText.match(/#(CV[^#\s]+)/);
                 if (match) {
                     const caseId = match[1];
-                    card.style.display = caseIds.length === 0 || caseIds.includes(caseId) ? '' : 'none';
+                    card.style.display = caseIds.includes(caseId) ? '' : 'none';
                 } else {
-                    card.style.display = caseIds.length === 0 ? '' : 'none';
+                    // 案件IDがないカードは非表示
+                    card.style.display = 'none';
                 }
             });
         }
