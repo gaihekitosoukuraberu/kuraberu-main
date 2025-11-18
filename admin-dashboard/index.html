@@ -7287,14 +7287,23 @@ window.addEventListener('beforeunload', function(e) {
             // 承認待ちと承認済みの両方のテーブルを検索
             const pendingRows = document.querySelectorAll('#pending-table tbody tr');
             const approvedRows = document.querySelectorAll('#approved-table tbody tr');
-            const mobileCards = document.querySelectorAll('#pending-mobile > div, #approved-mobile > div');
+            const franchiseMobileCards = document.querySelectorAll('#pending-mobile > div, #approved-mobile > div');
 
-            // 案件リスト（CRMリストビュー）の検索
+            // 案件リスト（CRMリストビュー）- PC用テーブル行の検索
             const caseRows = document.querySelectorAll('#casesListBody tr');
             if (caseRows.length > 0) {
                 caseRows.forEach(row => {
                     const text = normalizeText(row.textContent);
                     row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            }
+
+            // 案件リスト（CRMリストビュー）- モバイル用カードの検索
+            const caseMobileCards = document.querySelectorAll('#casesListMobile > div');
+            if (caseMobileCards.length > 0) {
+                caseMobileCards.forEach(card => {
+                    const text = normalizeText(card.textContent);
+                    card.style.display = text.includes(searchTerm) ? '' : 'none';
                 });
             }
 
@@ -7310,8 +7319,8 @@ window.addEventListener('beforeunload', function(e) {
                 row.style.display = text.includes(searchTerm) ? '' : 'none';
             });
 
-            // モバイルカードのフィルタリング
-            mobileCards.forEach(card => {
+            // 加盟店モバイルカードのフィルタリング
+            franchiseMobileCards.forEach(card => {
                 const text = normalizeText(card.textContent);
                 card.style.display = text.includes(searchTerm) ? '' : 'none';
             });
