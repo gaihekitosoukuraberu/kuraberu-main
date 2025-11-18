@@ -2355,41 +2355,54 @@ window.addEventListener('beforeunload', function(e) {
 
             console.log('sortFranchises called:', sortType, label); // デバッグ用
 
-            // 全てのボタンを非アクティブ状態にリセット
-            document.querySelectorAll('.franchise-sort-btn').forEach(btn => {
-                btn.classList.remove(
+            // クリックされたボタンのアクティブ状態をトグル
+            const isActive = button.classList.contains('border-pink-500') ||
+                           button.classList.contains('border-purple-500') ||
+                           button.classList.contains('border-blue-500') ||
+                           button.classList.contains('border-orange-500') ||
+                           button.classList.contains('border-green-500');
+
+            if (isActive) {
+                // アクティブな場合は非アクティブに戻す
+                button.classList.remove(
                     'border-pink-500', 'bg-pink-50',
                     'border-purple-500', 'bg-purple-50',
                     'border-blue-500', 'bg-blue-50',
                     'border-orange-500', 'bg-orange-50',
                     'border-green-500', 'bg-green-50'
                 );
-                btn.classList.add('border-gray-200', 'bg-white');
-            });
+                button.classList.add('border-gray-200', 'bg-white');
 
-            // クリックされたボタンをアクティブに
-            button.classList.remove('border-gray-200', 'bg-white');
+                // ラベルをクリア
+                const labelDisplay = document.getElementById('sortLabelDisplay');
+                if (labelDisplay) {
+                    labelDisplay.textContent = '';
+                }
+            } else {
+                // 非アクティブな場合はアクティブにする
+                button.classList.remove('border-gray-200', 'bg-white');
 
-            // ソートタイプに応じて適切なアクティブスタイルを適用
-            if (sortType === 'selected') {
-                button.classList.add('border-pink-500', 'bg-pink-50');
-            } else if (sortType === 'distance') {
-                button.classList.add('border-purple-500', 'bg-purple-50');
-            } else if (sortType === 'recommend') {
-                button.classList.add('border-blue-500', 'bg-blue-50');
-            } else if (sortType === 'price') {
-                button.classList.add('border-orange-500', 'bg-orange-50');
-            } else if (sortType === 'review') {
-                button.classList.add('border-green-500', 'bg-green-50');
-            } else if (sortType === 'quality') {
-                button.classList.add('border-purple-500', 'bg-purple-50');
-            }
+                // ソートタイプに応じて適切なアクティブスタイルを適用
+                if (sortType === 'selected') {
+                    button.classList.add('border-pink-500', 'bg-pink-50');
+                } else if (sortType === 'distance') {
+                    button.classList.add('border-purple-500', 'bg-purple-50');
+                } else if (sortType === 'recommend') {
+                    button.classList.add('border-blue-500', 'bg-blue-50');
+                } else if (sortType === 'price') {
+                    button.classList.add('border-orange-500', 'bg-orange-50');
+                } else if (sortType === 'review') {
+                    button.classList.add('border-green-500', 'bg-green-50');
+                } else if (sortType === 'quality') {
+                    button.classList.add('border-purple-500', 'bg-purple-50');
+                }
 
-            // ラベルを表示
-            const labelDisplay = document.getElementById('sortLabelDisplay');
-            if (labelDisplay && label) {
-                labelDisplay.textContent = label;
-                console.log('Label displayed:', label); // デバッグ用
+                // ラベルを表示
+                const labelDisplay = document.getElementById('sortLabelDisplay');
+                if (labelDisplay && label) {
+                    labelDisplay.textContent = label;
+                    console.log('Label displayed:', label); // デバッグ用
+                }
             }
 
             // ソート処理のメッセージ
