@@ -6977,26 +6977,9 @@ window.addEventListener('beforeunload', function(e) {
                 }
             }
         }
-        
-        // 業者のソート機能
-        function sortFranchises(sortType) {
-            // ソートボタンのスタイル更新
-            document.querySelectorAll('.franchise-sort-btn').forEach(btn => {
-                btn.classList.remove('bg-blue-600', 'text-white');
-                btn.classList.add('bg-gray-200', 'text-gray-700');
-            });
-            
-            const activeBtn = document.querySelector(`[data-sort="${sortType}"]`);
-            if (activeBtn) {
-                activeBtn.classList.remove('bg-gray-200', 'text-gray-700');
-                activeBtn.classList.add('bg-blue-600', 'text-white');
-            }
-            
-            // ここで実際のソート処理を実装
-            console.log('Sorting by:', sortType);
-            // TODO: 実際のソート処理
-        }
-        
+
+        // ⚠️ 古いソート関数は削除しました（行2355付近に新しい関数があります）
+
         // 業者検索機能
         function searchFranchise(searchText) {
             const container = document.getElementById('franchiseListContainer');
