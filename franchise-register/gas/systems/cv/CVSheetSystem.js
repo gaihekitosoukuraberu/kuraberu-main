@@ -1273,12 +1273,17 @@ const CVSheetSystem = {
     console.log('[CVSheetSystem] handle called');
     console.log('[CVSheetSystem] params:', JSON.stringify(params));
 
-    const action = params.action;
+    // cv_プレフィックスを削除（SystemRouterからcv_付きで来る場合があるため）
+    let action = params.action;
+    if (action && action.startsWith('cv_')) {
+      action = action.substring(3); // 'cv_' を削除
+      console.log('[CVSheetSystem] Removed cv_ prefix, new action:', action);
+    }
     console.log('[CVSheetSystem] action:', action);
 
     try {
       // スプレッドシート初期化・作成
-      if (action === 'cv_init') {
+      if (action === 'init') {
         const ssId = this.createSpreadsheet();
         return {
           success: true,
@@ -1298,17 +1303,17 @@ const CVSheetSystem = {
       }
 
       // ユーザー登録追加（旧API：互換性維持）
-      if (action === 'cv_add_user') {
+      if (action === 'add_user') {
         return this.addUserRegistration(params);
       }
 
       // 不正対策ログ追加
-      if (action === 'cv_add_fraud_log') {
+      if (action === 'add_fraud_log') {
         return this.addFraudLog(params);
       }
 
       // CV ID指定でデータ取得
-      if (action === 'cv_get_user') {
+      if (action === 'get_user') {
         const cvId = params.cvId;
         // TODO: 実装
         return {
