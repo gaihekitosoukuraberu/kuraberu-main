@@ -5330,19 +5330,45 @@ window.addEventListener('beforeunload', function(e) {
             console.log('initializeListView called');
             console.log('casesData:', casesData);
             console.log('casesData keys:', Object.keys(casesData));
-            
+
             const tbody = document.getElementById('casesListBody');
             if (!tbody) {
                 console.error('casesListBody element not found!');
                 return;
             }
             tbody.innerHTML = '';
-            
-            // フィルタリング
+
+            // 1. 検索フィルタを最初に適用
             let allCases = Object.entries(casesData);
-            console.log('Total cases:', allCases.length);
+            console.log('Total cases before filters:', allCases.length);
+
+            const searchInput = document.getElementById('searchInput');
+            const searchTerm = normalizeText(searchInput?.value || '');
+
+            if (searchTerm) {
+                // 検索条件でフィルタリング
+                allCases = allCases.filter(([caseId, caseData]) => {
+                    const searchableText = normalizeText(
+                        JSON.stringify([
+                            caseData.name || '',
+                            caseData.kana || '',
+                            caseData.phone || '',
+                            caseData.address || '',
+                            caseData.postalCode || '',
+                            caseData.prefecture || '',
+                            caseData.city || '',
+                            caseData.status || ''
+                        ])
+                    );
+                    return searchableText.includes(searchTerm);
+                });
+                console.log('Total cases after search filter:', allCases.length);
+            }
+
+            // 2. ステータスフィルタを適用
             if (currentStatusFilter) {
                 allCases = allCases.filter(([_, caseData]) => caseData.status === currentStatusFilter);
+                console.log('Total cases after status filter:', allCases.length);
             }
 
             // ソート処理
@@ -6113,12 +6139,6 @@ window.addEventListener('beforeunload', function(e) {
             await saveAllData();
             closeInternalNavigationModal();
             performViewSwitch(targetView);
-
-            // 検索フィルタが有効な場合は再適用
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput && searchInput.value.trim()) {
-                searchRegistrations();
-            }
         }
 
         // 保存せずに遷移
@@ -6128,12 +6148,6 @@ window.addEventListener('beforeunload', function(e) {
             updateSaveButtonState();
             closeInternalNavigationModal();
             performViewSwitch(targetView);
-
-            // 検索フィルタが有効な場合は再適用
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput && searchInput.value.trim()) {
-                searchRegistrations();
-            }
         }
 
         // セクション遷移時の保存確認モーダル（案件管理→ダッシュボード等）
@@ -6432,18 +6446,8 @@ window.addEventListener('beforeunload', function(e) {
                 document.getElementById('listCountDisplay').classList.remove('hidden');
                 document.getElementById('casePositionDisplay').classList.add('hidden');
 
-                // 検索フィルタが有効か確認（initializeListViewの前に保存）
-                const searchInput = document.getElementById('searchInput');
-                const hasSearchFilter = searchInput && searchInput.value.trim();
-                const savedDisplayedCaseIds = hasSearchFilter ? [...currentDisplayedCaseIds] : [];
-
+                // initializeListView() が検索フィルタを自動適用
                 initializeListView();
-
-                // 検索フィルタが有効な場合は再適用
-                if (hasSearchFilter && savedDisplayedCaseIds.length > 0) {
-                    currentDisplayedCaseIds = savedDisplayedCaseIds;
-                    filterListViewByCaseIds(currentDisplayedCaseIds);
-                }
 
                 // リスト表示時は選択件数の表示を更新
                 updateSelectedCount();
@@ -7329,7 +7333,14 @@ window.addEventListener('beforeunload', function(e) {
 
             // 案件管理ビューの場合（casesDataが存在する場合）
             if (typeof casesData !== 'undefined' && Object.keys(casesData).length > 0) {
-                // 検索条件に該当する案件を抽出
+                // リストビューの場合は initializeListView() を呼び直すだけ
+                // （検索フィルタは initializeListView() 内で自動適用される）
+                if (currentView === 'list') {
+                    initializeListView();
+                    return;
+                }
+
+                // CRMビューの場合は currentDisplayedCaseIds を更新
                 const matchedCaseIds = [];
 
                 if (searchTerm) {
@@ -7359,39 +7370,24 @@ window.addEventListener('beforeunload', function(e) {
                         // currentDisplayedCaseIdsを該当案件のみに更新
                         currentDisplayedCaseIds = matchedCaseIds;
 
-                        // CRMビューの場合、最初の該当案件を表示
-                        if (currentView === 'crm') {
-                            const firstMatchedId = matchedCaseIds[0];
-                            if (currentCaseId !== firstMatchedId) {
-                                openCRM(firstMatchedId);
-                            }
-                            updateCasePosition();
-                            updateNavigationButtons();
-                        } else {
-                            // リストビューの場合、行/カードの表示を制御
-                            filterListViewByCaseIds(matchedCaseIds);
+                        // 最初の該当案件を表示
+                        const firstMatchedId = matchedCaseIds[0];
+                        if (currentCaseId !== firstMatchedId) {
+                            openCRM(firstMatchedId);
                         }
+                        updateCasePosition();
+                        updateNavigationButtons();
                     } else {
                         // 該当案件がない場合
                         currentDisplayedCaseIds = [];
-                        if (currentView === 'list') {
-                            filterListViewByCaseIds([]);
-                        } else if (currentView === 'crm') {
-                            // CRMビューの場合も位置を更新（0/0表示）
-                            updateCasePosition();
-                            updateNavigationButtons();
-                        }
+                        updateCasePosition();
+                        updateNavigationButtons();
                     }
                 } else {
                     // 検索条件がない場合は全件表示
                     currentDisplayedCaseIds = Object.keys(casesData);
-                    if (currentView === 'list') {
-                        filterListViewByCaseIds(currentDisplayedCaseIds);
-                    }
-                    if (currentView === 'crm') {
-                        updateCasePosition();
-                        updateNavigationButtons();
-                    }
+                    updateCasePosition();
+                    updateNavigationButtons();
                 }
 
                 return; // 案件管理ビューの処理を終了
