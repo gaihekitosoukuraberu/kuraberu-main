@@ -4494,92 +4494,41 @@ window.addEventListener('beforeunload', function(e) {
                 contactMethodInput.value = data['連絡時間帯'] || data.contactMethod || '';
             }
 
-            // 希望社数（Q11_希望社数）
+            // 希望社数
             const franchiseCountSelect = document.getElementById('franchiseCount');
             if (franchiseCountSelect) {
-                franchiseCountSelect.value = data.companiesCount || data['Q11_希望社数'] || '';
+                franchiseCountSelect.value = data.companiesCount || data['希望社数'] || '';
             }
 
-            // 見積もり・工事セクションのフィールド
-            // 希望工事内容から見積もり希望箇所を選択
-            const workExterior = data['Q9_希望工事内容_外壁'] || '';
-            const workRoof = data['Q10_希望工事内容_屋根'] || '';
-            const estimateCount = data['Q11_見積もり保有数'] || '';
-            const deterioration = data['Q16_現在の劣化状況'] || '';
-            const selectionCriteria = data['Q17_業者選定条件'] || '';
+            // 見積もり希望箇所（新カラム「見積もり希望箇所」から直接読み取り）
+            const workItemsButtons = document.getElementById('workItemsButtons');
+            if (workItemsButtons) {
+                // data.workItemsが配列の場合、または文字列（カンマ区切り）の場合
+                let workItemsArray = [];
 
-            // 見積もり希望箇所のマッピング
-            const workMapping = {
-                '塗装': ['外壁塗装', '屋根塗装'],
-                '葺き替え・カバー工法': ['屋根葺き替え・張り替え（スレート・ガルバリウム等）', '屋根カバー工法'],
-                '外壁と屋根': ['外壁塗装', '屋根塗装']
-            };
-
-            // 見積もり希望箇所のボタンを選択（CSVデータを優先）
-            if (workExterior || workRoof || (data.workItems && Array.isArray(data.workItems))) {
-                // 見積もりセクション内のボタンのみを対象
-                const estimateSection = crmContent.querySelector('.form-section.bg-gradient-to-br.from-purple-50');
-                if (estimateSection) {
-                    const estimateButtons = estimateSection.querySelectorAll('.option-button');
-
-                    // CSVデータから見積もり希望箇所を選択
-                    if (workExterior === '塗装') {
-                        estimateButtons.forEach(btn => {
-                            if (btn.textContent.trim() === '外壁塗装') btn.classList.add('selected');
-                        });
-                    }
-                    if (workRoof === '塗装') {
-                        estimateButtons.forEach(btn => {
-                            if (btn.textContent.trim() === '屋根塗装') btn.classList.add('selected');
-                        });
-                    }
-                    if (workRoof === '葺き替え・カバー工法') {
-                        estimateButtons.forEach(btn => {
-                            const text = btn.textContent.trim();
-                            if (text.includes('屋根葺き替え') || text.includes('屋根カバー工法')) {
-                                btn.classList.add('selected');
-                            }
-                        });
-                    }
-
-                    // 既存のworkItemsデータも処理（後方互換性）
-                    if (data.workItems && Array.isArray(data.workItems)) {
-                        data.workItems.forEach(item => {
-                            estimateButtons.forEach(button => {
-                                const buttonText = button.textContent.trim();
-                                // 完全一致または部分一致でチェック
-                                if (buttonText === '外壁塗装' && item.includes('外壁塗装')) {
-                                    button.classList.add('selected');
-                                } else if (buttonText === '屋根塗装' && item.includes('屋根塗装')) {
-                                    button.classList.add('selected');
-                                } else if (buttonText === '屋上防水' && item.includes('屋上防水')) {
-                                    button.classList.add('selected');
-                                } else if (buttonText.includes('屋根葺き替え') && item.includes('屋根葺き替え')) {
-                                    button.classList.add('selected');
-                                } else if (buttonText === '屋根カバー工法' && item.includes('屋根カバー')) {
-                                    button.classList.add('selected');
-                                } else if (buttonText === '外壁補修' && item.includes('外壁補修')) {
-                                    button.classList.add('selected');
-                                } else if (buttonText === '屋根補修' && item.includes('屋根補修')) {
-                                    button.classList.add('selected');
-                                } else if (buttonText === 'ベランダ防水' && item.includes('ベランダ防水')) {
-                                    button.classList.add('selected');
-                                } else if (buttonText === '内装水回り（バス・キッチン・トイレ）' && item.includes('内装水回り')) {
-                                    button.classList.add('selected');
-                                }
-                            });
-                        });
-                    }
+                if (Array.isArray(data.workItems)) {
+                    workItemsArray = data.workItems;
+                } else if (data.workItems && typeof data.workItems === 'string') {
+                    workItemsArray = data.workItems.split(', ').map(item => item.trim());
+                } else if (data['見積もり希望箇所']) {
+                    // スプシから直接読み取った場合（文字列）
+                    workItemsArray = data['見積もり希望箇所'].split(', ').map(item => item.trim());
                 }
-            }
 
-            console.log('[populateForm] データ反映完了:', {
-                workExterior,
-                workRoof,
-                estimateCount,
-                deterioration,
-                selectionCriteria
-            });
+                console.log('[populateForm] 見積もり希望箇所読み込み:', workItemsArray);
+
+                // ボタンを選択状態にする
+                workItemsArray.forEach(item => {
+                    workItemsButtons.querySelectorAll('.option-button').forEach(button => {
+                        const buttonText = button.textContent.trim();
+                        // 完全一致または部分一致でチェック
+                        if (buttonText === item || buttonText.includes(item) || item.includes(buttonText)) {
+                            button.classList.add('selected', 'bg-purple-500', 'border-purple-500', 'text-white', 'shadow-md');
+                            button.classList.remove('bg-white', 'border-gray-300', 'text-gray-700');
+                        }
+                    });
+                });
+            }
 
             // 案件メモを読み込み（AS列: 案件メモ）
             const caseMemoTextarea = document.getElementById('caseMemoTextarea');

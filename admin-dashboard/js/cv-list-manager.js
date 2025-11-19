@@ -97,68 +97,78 @@ const CVListManager = {
       // CV IDをキーとして使用
       const caseId = cv.cvId || `CV${index + 1}`;
 
-      // 工事内容を配列に変換（Q9: 外壁, Q10: 屋根）
-      const workItems = [];
-      if (cv.botAnswers && cv.botAnswers.q9_wallWorkType) {
-        const wallWork = cv.botAnswers.q9_wallWorkType;
-        // 外壁工事種別のマッピング
-        switch (wallWork) {
-          case '塗装':
-            workItems.push('外壁塗装');
-            break;
-          case '張替え':
-            workItems.push('外壁張替え');
-            break;
-          case 'カバー工法':
-            workItems.push('外壁カバー工法');
-            break;
-          case '補修':
-            workItems.push('外壁補修');
-            break;
-          case '不明':
-            workItems.push('外壁不明');
-            break;
-          default:
-            // その他の値はそのまま
-            workItems.push(wallWork);
+      // 工事内容を配列に変換
+      // V1827: 新カラム「見積もり希望箇所」を優先、なければQ9/Q10から変換
+      let workItems = [];
+
+      if (cv.workItems && typeof cv.workItems === 'string') {
+        // 新カラムから読み取り（カンマ区切り文字列を配列に変換）
+        workItems = cv.workItems.split(', ').map(item => item.trim()).filter(item => item);
+        if (index === 0) {
+          console.log('[CVListManager] 見積もり希望箇所（新カラム）:', workItems);
         }
-      }
-      if (cv.botAnswers && cv.botAnswers.q10_roofWorkType) {
-        const roofWork = cv.botAnswers.q10_roofWorkType;
-        // 屋根工事種別のマッピング
-        switch (roofWork) {
-          case '塗装':
-            workItems.push('屋根塗装');
-            break;
-          case '葺き替え':
-            // 屋根材質に基づいて判断（デフォルトはスレート）
-            const roofMaterial = cv.botAnswers?.q7_roofMaterial || '';
-            if (roofMaterial === '瓦') {
-              workItems.push('屋根葺き替え（瓦）');
-            } else {
-              workItems.push('屋根葺き替え（スレート）');
-            }
-            break;
-          case 'カバー工法':
-            workItems.push('屋根カバー工法');
-            break;
-          case '補修':
-            workItems.push('屋根補修');
-            break;
-          case '屋上防水':
-            workItems.push('屋上防水');
-            break;
-          case '不明':
-            workItems.push('屋根不明');
-            break;
-          default:
-            // その他の値はそのまま
-            workItems.push(roofWork);
+      } else if (cv.botAnswers && (cv.botAnswers.q9_wallWorkType || cv.botAnswers.q10_roofWorkType)) {
+        // 後方互換性: Q9/Q10から変換
+        if (cv.botAnswers.q9_wallWorkType) {
+          const wallWork = cv.botAnswers.q9_wallWorkType;
+          switch (wallWork) {
+            case '塗装':
+              workItems.push('外壁塗装');
+              break;
+            case '張替え':
+              workItems.push('外壁張替え');
+              break;
+            case 'カバー工法':
+              workItems.push('外壁カバー工法');
+              break;
+            case '補修':
+              workItems.push('外壁補修');
+              break;
+            case '不明':
+              workItems.push('外壁不明');
+              break;
+            default:
+              workItems.push(wallWork);
+          }
+        }
+        if (cv.botAnswers.q10_roofWorkType) {
+          const roofWork = cv.botAnswers.q10_roofWorkType;
+          switch (roofWork) {
+            case '塗装':
+              workItems.push('屋根塗装');
+              break;
+            case '葺き替え':
+              const roofMaterial = cv.botAnswers?.q7_roofMaterial || '';
+              if (roofMaterial === '瓦') {
+                workItems.push('屋根葺き替え（瓦）');
+              } else {
+                workItems.push('屋根葺き替え（スレート）');
+              }
+              break;
+            case 'カバー工法':
+              workItems.push('屋根カバー工法');
+              break;
+            case '補修':
+              workItems.push('屋根補修');
+              break;
+            case '屋上防水':
+              workItems.push('屋上防水');
+              break;
+            case '不明':
+              workItems.push('屋根不明');
+              break;
+            default:
+              workItems.push(roofWork);
+          }
+        }
+        if (index === 0) {
+          console.log('[CVListManager] 見積もり希望箇所（Q9/Q10から変換）:', workItems);
         }
       }
 
       // 紹介料を計算
-      const companiesCount = cv.companiesCount || 1;
+      // V1827: 新カラム「希望社数」を優先、なければcompaniesCount
+      const companiesCount = cv.companiesCountNew || cv.companiesCount || 1;
       const calculatedFee = window.FeeCalculator.calculate({
         q9_wallWorkType: cv.botAnswers?.q9_wallWorkType || '',
         q10_roofWorkType: cv.botAnswers?.q10_roofWorkType || '',
@@ -201,7 +211,7 @@ const CVListManager = {
 
         // 見積もり・工事に関するご要望
         quoteSource: cv.botAnswers?.q12_quoteSource || '',           // Q12: 見積もり取得先
-        constructionTiming: '',                                        // TODO: 施工時期（BOTで未質問）
+        constructionTiming: cv.constructionTiming || '',               // V1827: 施工時期（新カラム）
         quoteStatus: '',                                               // TODO: 他社見積もり状況（BOTで未質問）
         quoteCount: cv.botAnswers?.q11_quoteCount || '',              // Q11: 見積もり保有数
         doorSalesVisit: cv.botAnswers?.q13_doorSalesVisit || '',      // Q13: 訪問業者の状況
@@ -209,6 +219,11 @@ const CVListManager = {
         doorSalesCompany: cv.botAnswers?.q15_doorSalesCompany || '',  // Q15: 訪問業者名
         deteriorationStatus: cv.botAnswers?.q16_deteriorationStatus || '',   // Q16: 劣化状況
         selectionCriteria: cv.botAnswers?.q17_selectionCriteria || '',       // Q17: 業者選定条件
+
+        // V1827: 新規フィールド
+        surveyAttendance: cv.surveyAttendance || '',                   // 立ち会い可否
+        attendanceRelation: cv.attendanceRelation || '',               // 立ち会い者関係性
+        specialItems: cv.specialItems ? cv.specialItems.split(', ').map(item => item.trim()).filter(item => item) : [], // 特殊項目（配列）
 
         // 配信・成約
         companiesCount: companiesCount,

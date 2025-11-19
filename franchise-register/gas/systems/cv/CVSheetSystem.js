@@ -1037,7 +1037,16 @@ const CVSheetSystem = {
           lastHeartbeat: row[73] || '',                 // BV: 最終ハートビート時刻（index 73）
           siteStayDuration: row[74] || 0,               // BW: サイト滞在時間（秒）（index 74）
           cv1ToCV2Duration: row[75] || 0,               // BX: CV1→CV2時間差（秒）（index 75）
-          deviceType: row[76] || ''                     // BY: デバイス種別（index 76）
+          deviceType: row[76] || '',                    // BY: デバイス種別（index 76）
+
+          // BZ-CF: 新規フィールド（V1827）
+          // BZ列（index 77）は将来の拡張用として空けておく
+          workItems: row[77] || '',                     // CA: 見積もり希望箇所（index 77）
+          constructionTiming: row[78] || '',            // CB: 施工時期（index 78）
+          companiesCountNew: row[79] || '',             // CC: 希望社数（index 79）
+          surveyAttendance: row[80] || '',              // CD: 立ち会い可否（index 80）
+          attendanceRelation: row[81] || '',            // CE: 立ち会い者関係性（index 81）
+          specialItems: row[82] || ''                   // CF: 特殊項目（index 82）
         };
       }).filter(cv => cv !== null); // 空行を除外
 
