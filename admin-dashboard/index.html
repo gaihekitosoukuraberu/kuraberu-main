@@ -5846,15 +5846,19 @@ window.addEventListener('beforeunload', function(e) {
 
         // 現地調査希望日時の選択ボタン
         function selectSurveyDateTime(button) {
-            // 既に選択されている場合は解除
+            // 既に選択されている場合は解除（トグル動作）
             if (button.classList.contains('selected')) {
+                // 選択解除
                 button.classList.remove('selected');
-                button.classList.remove('bg-orange-500', 'border-orange-500', 'text-white');
+                button.classList.remove('bg-orange-500', 'border-orange-500', 'text-white', 'shadow-md');
                 button.classList.add('bg-white', 'border-gray-300', 'text-gray-700');
+                console.log('[現調日時] 選択解除:', button.textContent);
             } else {
+                // 選択
                 button.classList.add('selected');
                 button.classList.remove('bg-white', 'border-gray-300', 'text-gray-700');
-                button.classList.add('bg-orange-500', 'border-orange-500', 'text-white');
+                button.classList.add('bg-orange-500', 'border-orange-500', 'text-white', 'shadow-md');
+                console.log('[現調日時] 選択:', button.textContent);
             }
 
             // 変更を記録（Mapなのでsetを使用）
