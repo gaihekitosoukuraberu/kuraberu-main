@@ -114,6 +114,22 @@ jobs:
         working-directory: ${{ env.GAS_DIR }}
         run: clasp push --force
 
+      - name: Cleanup old deployments
+        working-directory: ${{ env.GAS_DIR }}
+        run: |
+          echo "🗑️  古いデプロイメントを削除中..."
+
+          # 全デプロイメントを取得（@HEADを除く）
+          DEPLOYMENTS=$(clasp deployments | grep "@[0-9]" | awk '{print $2}' | tail -n +11)
+
+          # 10個より古いデプロイメントを削除（最新10個は保持）
+          for DEPLOYMENT_ID in $DEPLOYMENTS; do
+            echo "削除中: $DEPLOYMENT_ID"
+            clasp undeploy "$DEPLOYMENT_ID" || echo "⚠️  削除失敗（既に削除済み）: $DEPLOYMENT_ID"
+          done
+
+          echo "✅ 古いデプロイメント削除完了"
+
       - name: Create deployment
         id: deploy
         working-directory: ${{ env.GAS_DIR }}
