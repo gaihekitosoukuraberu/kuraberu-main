@@ -1016,7 +1016,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">立ち会い可否</label>
-                        <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all appearance-none bg-white">
+                        <select id="surveyAttendanceSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all appearance-none bg-white">
                             <option value="">選択してください</option>
                             <option value="調整可能" selected>調整可能</option>
                             <option value="不可能">不可能</option>
@@ -1027,7 +1027,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">立ち会い者関係性</label>
-                        <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all appearance-none bg-white">
+                        <select id="attendanceRelationSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all appearance-none bg-white">
                             <option value="">選択してください</option>
                             <option value="本人" selected>本人</option>
                             <option value="配偶者">配偶者</option>
@@ -1112,7 +1112,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                    <div id="specialItemsButtons" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight">遮熱断熱塗料</button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight">エクステリア</button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight">
@@ -4470,6 +4470,18 @@ window.addEventListener('beforeunload', function(e) {
                 console.log('[populateForm] 現地調査希望日時読み込み:', data['現地調査希望日時']);
             }
 
+            // 立ち会い可否
+            const surveyAttendanceSelect = document.getElementById('surveyAttendanceSelect');
+            if (surveyAttendanceSelect) {
+                surveyAttendanceSelect.value = data.surveyAttendance || data['立ち会い可否'] || '';
+            }
+
+            // 立ち会い者関係性
+            const attendanceRelationSelect = document.getElementById('attendanceRelationSelect');
+            if (attendanceRelationSelect) {
+                attendanceRelationSelect.value = data.attendanceRelation || data['立ち会い者関係性'] || '';
+            }
+
             // 流入検索ワード（BF列: searchKeyword）
             const searchKeywordInput = document.getElementById('searchKeywordInput');
             if (searchKeywordInput) {
@@ -4480,6 +4492,12 @@ window.addEventListener('beforeunload', function(e) {
             const contactMethodInput = document.getElementById('contactMethodInput');
             if (contactMethodInput) {
                 contactMethodInput.value = data['連絡時間帯'] || data.contactMethod || '';
+            }
+
+            // 希望社数（Q11_希望社数）
+            const franchiseCountSelect = document.getElementById('franchiseCount');
+            if (franchiseCountSelect) {
+                franchiseCountSelect.value = data.companiesCount || data['Q11_希望社数'] || '';
             }
 
             // 見積もり・工事セクションのフィールド
@@ -4568,6 +4586,24 @@ window.addEventListener('beforeunload', function(e) {
             if (caseMemoTextarea) {
                 caseMemoTextarea.value = data['案件メモ'] || data.caseMemo || '';
                 console.log('[populateForm] 案件メモ読み込み:', data['案件メモ'] || data.caseMemo || '(空)');
+            }
+
+            // 特殊項目（選択されたボタンを復元）
+            if (data.specialItems && Array.isArray(data.specialItems)) {
+                const specialItemsButtons = document.getElementById('specialItemsButtons');
+                if (specialItemsButtons) {
+                    data.specialItems.forEach(item => {
+                        specialItemsButtons.querySelectorAll('.option-button').forEach(button => {
+                            const buttonText = button.textContent.trim();
+                            // 部分一致でチェック（モバイル表示とデスクトップ表示の違いを考慮）
+                            if (buttonText === item || buttonText.includes(item) || item.includes(buttonText)) {
+                                button.classList.add('selected', 'bg-gray-500', 'border-gray-500', 'text-white', 'shadow-md');
+                                button.classList.remove('bg-white', 'border-gray-300', 'text-gray-700');
+                            }
+                        });
+                    });
+                }
+                console.log('[populateForm] 特殊項目読み込み:', data.specialItems);
             }
 
             // 未入力フィールドの赤枠表示を更新（即座に実行）
@@ -5973,9 +6009,26 @@ window.addEventListener('beforeunload', function(e) {
                 data['現地調査希望日時'] = selectedSurveyTimes.join(', ');
             }
 
-            // 工事希望箇所（選択されたボタンを配列で取得）
-            const selectedButtons = Array.from(crmContent.querySelectorAll('.option-button.selected'));
-            data.workItems = selectedButtons.map(btn => btn.textContent.trim());
+            // 立ち会い可否
+            const surveyAttendanceSelect = document.getElementById('surveyAttendanceSelect');
+            if (surveyAttendanceSelect) {
+                data.surveyAttendance = surveyAttendanceSelect.value || '';
+            }
+
+            // 立ち会い者関係性
+            const attendanceRelationSelect = document.getElementById('attendanceRelationSelect');
+            if (attendanceRelationSelect) {
+                data.attendanceRelation = attendanceRelationSelect.value || '';
+            }
+
+            // 工事希望箇所（選択されたボタンを配列で取得 - workItemsButtonsのみ）
+            const workItemsButtons = document.getElementById('workItemsButtons');
+            if (workItemsButtons) {
+                const selectedButtons = Array.from(workItemsButtons.querySelectorAll('.option-button.selected'));
+                data.workItems = selectedButtons.map(btn => btn.textContent.trim());
+            } else {
+                data.workItems = [];
+            }
 
             // ステータス
             const statusBadge = document.getElementById('crmStatusBadge');
@@ -5999,6 +6052,21 @@ window.addEventListener('beforeunload', function(e) {
             const contactMethodInput = document.getElementById('contactMethodInput');
             if (contactMethodInput) {
                 data['連絡時間帯'] = contactMethodInput.value || '';
+            }
+
+            // 希望社数（Q11_希望社数）
+            const franchiseCountSelect = document.getElementById('franchiseCount');
+            if (franchiseCountSelect) {
+                data.companiesCount = franchiseCountSelect.value || '';
+            }
+
+            // 特殊項目（選択されたボタンを配列で取得 - specialItemsButtonsのみ）
+            const specialItemsButtons = document.getElementById('specialItemsButtons');
+            if (specialItemsButtons) {
+                const selectedSpecialItems = Array.from(specialItemsButtons.querySelectorAll('.option-button.selected'));
+                data.specialItems = selectedSpecialItems.map(btn => btn.textContent.trim());
+            } else {
+                data.specialItems = [];
             }
 
             console.log('[getCRMFormData] フォームデータ取得:', data);
