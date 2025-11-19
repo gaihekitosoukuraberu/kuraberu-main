@@ -446,7 +446,12 @@ const CVAPI = {
                 zipcode: params.zipcode,
                 workTypes: Array.isArray(params.workTypes) ? params.workTypes.join(',') : (params.workTypes || ''),
                 buildingAgeMin: params.buildingAgeMin || '',
-                buildingAgeMax: params.buildingAgeMax || ''
+                buildingAgeMax: params.buildingAgeMax || '',
+                wallMaterial: params.wallMaterial || '',
+                roofMaterial: params.roofMaterial || '',
+                wallWorkType: params.wallWorkType || '',
+                roofWorkType: params.roofWorkType || '',
+                concernedArea: params.concernedArea || ''
             };
 
             console.log('📤 ランキングリクエスト:', data);

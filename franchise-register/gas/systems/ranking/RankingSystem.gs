@@ -40,8 +40,12 @@ const RankingSystem = {
       const roofWorkType = params.roofWorkType || '';
       const buildingAgeMin = params.buildingAgeMin || 0;
       const buildingAgeMax = params.buildingAgeMax || 100;
+
+      // V1830: 気になる箇所（単品 vs 複合工事判定用）
+      const concernedArea = params.concernedArea || '';
       console.log('[RankingSystem] 材質・工事内容:', { wallMaterial, roofMaterial, wallWorkType, roofWorkType });
       console.log('[RankingSystem] 築年数:', { buildingAgeMin, buildingAgeMax });
+      console.log('[RankingSystem] 気になる箇所:', concernedArea);
 
       // 加盟店マスタから取得（V1694）
       const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');

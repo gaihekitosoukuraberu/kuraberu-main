@@ -89,6 +89,9 @@ async function fetchRankingFromGAS() {
     const wallWorkType = answers.Q009 && answers.Q009.choice ? answers.Q009.choice : '';
     const roofWorkType = answers.Q010 && answers.Q010.choice ? answers.Q010.choice : '';
 
+    // V1830: 気になる箇所（単品 vs 複合工事判定用）
+    const concernedArea = answers.Q004B && answers.Q004B.choice ? answers.Q004B.choice : '';
+
     const params = {
       zipcode: zipcode,
       workTypes: workTypes,
@@ -97,7 +100,8 @@ async function fetchRankingFromGAS() {
       wallMaterial: wallMaterial,
       roofMaterial: roofMaterial,
       wallWorkType: wallWorkType,
-      roofWorkType: roofWorkType
+      roofWorkType: roofWorkType,
+      concernedArea: concernedArea
     };
 
     console.log('📤 ランキングリクエストパラメータ:', params);
