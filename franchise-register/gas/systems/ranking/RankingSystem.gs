@@ -205,69 +205,106 @@ const RankingSystem = {
           continue;
         }
 
-        // 工事種別チェック（V1828 - 正しい選択肢に修正）
-        // constructionTypesには「外壁塗装,屋根塗装,防水工事」のようにカンマ区切りで格納
+        // V1830: 工事種別チェック（単品 vs 複合工事対応）
+        // constructionTypesには「外壁塗装,屋根塗装（外壁工事含む）,屋根塗装単品」のようにカンマ区切りで格納
         let constructionTypeMatch = true;
 
+        // 単品か複合工事かを判定
+        const isCombinedWork = concernedArea === '外壁と屋根';
+        const isWallOnly = concernedArea === '外壁';
+        const isRoofOnly = concernedArea === '屋根';
+
         // 外壁工事内容チェック（Q9）
-        if (wallWorkType && constructionTypes && constructionTypeMatch) {
+        // concernedArea="屋根"の場合は外壁工事チェックをスキップ
+        if (wallWorkType && constructionTypes && constructionTypeMatch && !isRoofOnly) {
+          let requiredType = '';
+
           if (wallWorkType.indexOf('塗装') !== -1) {
-            if (constructionTypes.indexOf('外壁塗装') === -1) {
-              constructionTypeMatch = false;
-            }
+            // 外壁塗装は常に標準版（単品なし）
+            requiredType = '外壁塗装';
           } else if (wallWorkType.indexOf('張替え') !== -1 || wallWorkType.indexOf('張り替え') !== -1) {
-            if (constructionTypes.indexOf('外壁張替え') === -1) {
-              constructionTypeMatch = false;
-            }
+            // 外壁張替えは常に標準版（単品なし）
+            requiredType = '外壁張替え';
           } else if (wallWorkType.indexOf('カバー工法') !== -1) {
-            if (constructionTypes.indexOf('外壁カバー工法') === -1) {
-              constructionTypeMatch = false;
-            }
+            // 外壁カバー工法は常に標準版（単品なし）
+            requiredType = '外壁カバー工法';
           } else if (wallWorkType.indexOf('補修') !== -1) {
-            if (constructionTypes.indexOf('外壁補修') === -1) {
-              constructionTypeMatch = false;
+            // 外壁補修: 複合工事なら（外壁工事含む）、単品なら単品
+            if (isCombinedWork) {
+              requiredType = '外壁補修（外壁工事含む）';
+            } else {
+              requiredType = '外壁補修単品';
             }
           } else if (wallWorkType.indexOf('不明') !== -1) {
-            if (constructionTypes.indexOf('外壁不明') === -1) {
-              constructionTypeMatch = false;
-            }
+            requiredType = '外壁不明';
+          }
+
+          if (requiredType && constructionTypes.indexOf(requiredType) === -1) {
+            constructionTypeMatch = false;
           }
         }
 
         // 屋根工事内容チェック（Q10）
-        if (roofWorkType && constructionTypes && constructionTypeMatch) {
+        // concernedArea="外壁"の場合は屋根工事チェックをスキップ
+        if (roofWorkType && constructionTypes && constructionTypeMatch && !isWallOnly) {
+          let requiredType = '';
+
           if (roofWorkType.indexOf('塗装') !== -1) {
-            if (constructionTypes.indexOf('屋根塗装') === -1) {
-              constructionTypeMatch = false;
+            // 屋根塗装: 複合工事なら（外壁工事含む）、屋根のみなら単品
+            if (isCombinedWork) {
+              requiredType = '屋根塗装（外壁工事含む）';
+            } else if (isRoofOnly) {
+              requiredType = '屋根塗装単品';
+            } else {
+              // concernedArea="その他"の場合は両方チェック
+              if (constructionTypes.indexOf('屋根塗装（外壁工事含む）') === -1 &&
+                  constructionTypes.indexOf('屋根塗装単品') === -1) {
+                constructionTypeMatch = false;
+              }
             }
           } else if (roofWorkType.indexOf('葺き替え') !== -1 || roofWorkType.indexOf('葺替え') !== -1) {
+            // 屋根葺き替えは常に標準版（単品なし、「含む」なし）
             // Q7の屋根材質で判定（瓦 or スレート等）
             if (roofMaterial && roofMaterial.indexOf('瓦') !== -1) {
-              if (constructionTypes.indexOf('屋根葺き替え（瓦）') === -1) {
-                constructionTypeMatch = false;
-              }
+              requiredType = '屋根葺き替え・張り替え※現状が瓦';
             } else {
-              // スレート、ガルバリウム、その他
-              if (constructionTypes.indexOf('屋根葺き替え（スレート）') === -1) {
-                constructionTypeMatch = false;
-              }
+              requiredType = '屋根葺き替え・張り替え※現状がスレート・ガルバリウム等';
             }
           } else if (roofWorkType.indexOf('カバー工法') !== -1) {
-            if (constructionTypes.indexOf('屋根カバー工法') === -1) {
-              constructionTypeMatch = false;
-            }
+            // 屋根カバー工法は常に標準版（単品なし、「含む」なし）
+            requiredType = '屋根カバー工法';
           } else if (roofWorkType.indexOf('補修') !== -1) {
-            if (constructionTypes.indexOf('屋根補修') === -1) {
-              constructionTypeMatch = false;
+            // 屋根補修: 複合工事なら（外壁工事含む）、屋根のみなら単品
+            if (isCombinedWork) {
+              requiredType = '屋根補修（外壁工事含む）';
+            } else if (isRoofOnly) {
+              requiredType = '屋根補修単品';
+            } else {
+              // concernedArea="その他"の場合は両方チェック
+              if (constructionTypes.indexOf('屋根補修（外壁工事含む）') === -1 &&
+                  constructionTypes.indexOf('屋根補修単品') === -1) {
+                constructionTypeMatch = false;
+              }
             }
           } else if (roofWorkType.indexOf('屋上防水') !== -1) {
-            if (constructionTypes.indexOf('屋上防水') === -1) {
-              constructionTypeMatch = false;
+            // 屋上防水: 複合工事なら（外壁工事含む）、屋根のみなら単品
+            if (isCombinedWork) {
+              requiredType = '屋上防水（外壁工事含む）';
+            } else if (isRoofOnly) {
+              requiredType = '屋上防水単品';
+            } else {
+              // concernedArea="その他"の場合は両方チェック
+              if (constructionTypes.indexOf('屋上防水（外壁工事含む）') === -1 &&
+                  constructionTypes.indexOf('屋上防水単品') === -1) {
+                constructionTypeMatch = false;
+              }
             }
           } else if (roofWorkType.indexOf('不明') !== -1) {
-            if (constructionTypes.indexOf('屋根不明') === -1) {
-              constructionTypeMatch = false;
-            }
+            requiredType = '屋根不明';
+          }
+
+          if (requiredType && constructionTypes.indexOf(requiredType) === -1) {
+            constructionTypeMatch = false;
           }
         }
 
