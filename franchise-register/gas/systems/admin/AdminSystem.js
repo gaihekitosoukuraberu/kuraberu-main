@@ -2277,31 +2277,32 @@ const AdminSystem = {
         };
       }
 
-      // 英語キー → 日本語ヘッダー マッピング（V1824）
+      // 英語キー → 日本語ヘッダー マッピング（V1825 - CSVヘッダーと完全一致）
       const fieldMapping = {
         'name': '氏名',
-        'nameKana': '氏名（カナ）',
+        'nameKana': 'フリガナ',
         'phone': '電話番号',
         'email': 'メールアドレス',
         'gender': '性別',
         'age': '年齢',
-        'relation': '関係性',
-        'postalCode': '郵便番号',
-        'address': '住所',
+        'relation': '続柄',
+        'postalCode': '郵便番号（物件）',
+        'address': '住所詳細（物件）',
         'propertyType': '物件種別',
         'floors': '階数',
         'buildingAge': '築年数',
-        'floorArea': '延床面積',
-        'constructionCount': '施工回数',
-        'previousConstructionTime': '前回施工時期',
-        'wallMaterial': '外壁材質',
-        'roofMaterial': '屋根材質',
-        'mapLink': 'Google Mapsリンク',
-        'quoteSource': '見積もり取得先',
-        'constructionTiming': '施工時期',
-        'workItems': '工事希望箇所',
+        'floorArea': '建物面積',
+        'constructionCount': 'Q4_工事歴',
+        'previousConstructionTime': 'Q5_前回施工時期',
+        'wallMaterial': 'Q6_外壁材質',
+        'roofMaterial': 'Q7_屋根材質',
+        'quoteSource': 'Q12_見積もり取得先',
+        'workItems': 'Q8_気になる箇所',
         'status': '管理ステータス',
-        'searchKeyword': '流入検索ワード'
+        'searchKeyword': '検索キーワード',
+        '案件メモ': '案件メモ',
+        '連絡時間帯': '連絡時間帯',
+        '現地調査希望日時': '現地調査希望日時'
       };
 
       // 更新するデータをマッピング
