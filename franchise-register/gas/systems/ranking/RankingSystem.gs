@@ -201,51 +201,69 @@ const RankingSystem = {
           continue;
         }
 
-        // 工事種別チェック（V1705追加 - BOT回答に基づくマッチング）
+        // 工事種別チェック（V1828 - 正しい選択肢に修正）
         // constructionTypesには「外壁塗装,屋根塗装,防水工事」のようにカンマ区切りで格納
         let constructionTypeMatch = true;
 
-        // 外壁材質チェック（Q6）
-        if (wallMaterial && constructionTypes) {
-          // 材質に応じた工事種別が含まれているかチェック
-          // 例: サイディング → 外壁塗装, モルタル → 外壁塗装, など
-          if (wallMaterial.indexOf('サイディング') !== -1 || wallMaterial.indexOf('モルタル') !== -1) {
-            if (constructionTypes.indexOf('外壁塗装') === -1 && constructionTypes.indexOf('外壁リフォーム') === -1) {
-              constructionTypeMatch = false;
-            }
-          }
-        }
-
-        // 屋根材質チェック（Q7）
-        if (roofMaterial && constructionTypes && constructionTypeMatch) {
-          // 材質に応じた工事種別が含まれているかチェック
-          // 例: スレート → 屋根塗装, 瓦 → 屋根葺き替え, など
-          if (roofMaterial.indexOf('スレート') !== -1 || roofMaterial.indexOf('コロニアル') !== -1) {
-            if (constructionTypes.indexOf('屋根塗装') === -1 && constructionTypes.indexOf('屋根リフォーム') === -1) {
-              constructionTypeMatch = false;
-            }
-          } else if (roofMaterial.indexOf('瓦') !== -1) {
-            if (constructionTypes.indexOf('屋根葺き替え') === -1 && constructionTypes.indexOf('屋根リフォーム') === -1) {
-              constructionTypeMatch = false;
-            }
-          }
-        }
-
         // 外壁工事内容チェック（Q9）
         if (wallWorkType && constructionTypes && constructionTypeMatch) {
-          if (wallWorkType.indexOf('塗装') !== -1 && constructionTypes.indexOf('外壁塗装') === -1) {
-            constructionTypeMatch = false;
-          } else if (wallWorkType.indexOf('張り替え') !== -1 && constructionTypes.indexOf('外壁リフォーム') === -1) {
-            constructionTypeMatch = false;
+          if (wallWorkType.indexOf('塗装') !== -1) {
+            if (constructionTypes.indexOf('外壁塗装') === -1) {
+              constructionTypeMatch = false;
+            }
+          } else if (wallWorkType.indexOf('張替え') !== -1 || wallWorkType.indexOf('張り替え') !== -1) {
+            if (constructionTypes.indexOf('外壁張替え') === -1) {
+              constructionTypeMatch = false;
+            }
+          } else if (wallWorkType.indexOf('カバー工法') !== -1) {
+            if (constructionTypes.indexOf('外壁カバー工法') === -1) {
+              constructionTypeMatch = false;
+            }
+          } else if (wallWorkType.indexOf('補修') !== -1) {
+            if (constructionTypes.indexOf('外壁補修') === -1) {
+              constructionTypeMatch = false;
+            }
+          } else if (wallWorkType.indexOf('不明') !== -1) {
+            if (constructionTypes.indexOf('外壁不明') === -1) {
+              constructionTypeMatch = false;
+            }
           }
         }
 
         // 屋根工事内容チェック（Q10）
         if (roofWorkType && constructionTypes && constructionTypeMatch) {
-          if (roofWorkType.indexOf('塗装') !== -1 && constructionTypes.indexOf('屋根塗装') === -1) {
-            constructionTypeMatch = false;
-          } else if (roofWorkType.indexOf('葺き替え') !== -1 && constructionTypes.indexOf('屋根葺き替え') === -1 && constructionTypes.indexOf('屋根リフォーム') === -1) {
-            constructionTypeMatch = false;
+          if (roofWorkType.indexOf('塗装') !== -1) {
+            if (constructionTypes.indexOf('屋根塗装') === -1) {
+              constructionTypeMatch = false;
+            }
+          } else if (roofWorkType.indexOf('葺き替え') !== -1 || roofWorkType.indexOf('葺替え') !== -1) {
+            // Q7の屋根材質で判定（瓦 or スレート等）
+            if (roofMaterial && roofMaterial.indexOf('瓦') !== -1) {
+              if (constructionTypes.indexOf('屋根葺き替え（瓦）') === -1) {
+                constructionTypeMatch = false;
+              }
+            } else {
+              // スレート、ガルバリウム、その他
+              if (constructionTypes.indexOf('屋根葺き替え（スレート）') === -1) {
+                constructionTypeMatch = false;
+              }
+            }
+          } else if (roofWorkType.indexOf('カバー工法') !== -1) {
+            if (constructionTypes.indexOf('屋根カバー工法') === -1) {
+              constructionTypeMatch = false;
+            }
+          } else if (roofWorkType.indexOf('補修') !== -1) {
+            if (constructionTypes.indexOf('屋根補修') === -1) {
+              constructionTypeMatch = false;
+            }
+          } else if (roofWorkType.indexOf('屋上防水') !== -1) {
+            if (constructionTypes.indexOf('屋上防水') === -1) {
+              constructionTypeMatch = false;
+            }
+          } else if (roofWorkType.indexOf('不明') !== -1) {
+            if (constructionTypes.indexOf('屋根不明') === -1) {
+              constructionTypeMatch = false;
+            }
           }
         }
 
@@ -366,12 +384,12 @@ const RankingSystem = {
 
       console.log('[RankingSystem] フィルタ後: ' + filtered.length + '件');
 
-      // 4つのソート順で並べ替え（V1751: 距離ボーナス・ローテーション・供給数ボーナス追加）
+      // 4つのソート順で並べ替え（V1828: 優先エリア3箇所選択式に修正）
       const rankings = {
-        cheap: this.applyRankBonus(this.sortByPrice(filtered.slice(), city)).slice(0, 8),
-        recommended: this.applyRankBonus(this.sortByMatchScore(filtered.slice(), city)).slice(0, 8),
-        review: this.applyRankBonus(this.sortByReview(filtered.slice(), city)).slice(0, 8),
-        premium: this.applyRankBonus(this.sortByRating(filtered.slice(), city)).slice(0, 8)
+        cheap: this.applyRankBonus(this.sortByPrice(filtered.slice(), city), city).slice(0, 8),
+        recommended: this.applyRankBonus(this.sortByMatchScore(filtered.slice(), city), city).slice(0, 8),
+        review: this.applyRankBonus(this.sortByReview(filtered.slice(), city), city).slice(0, 8),
+        premium: this.applyRankBonus(this.sortByRating(filtered.slice(), city), city).slice(0, 8)
       };
 
       return {
@@ -905,21 +923,27 @@ const RankingSystem = {
   },
 
   /**
-   * V1713: ボーナス調整（ランク位置調整方式）
+   * V1828: ボーナス調整（ランク位置調整方式）
    * ソート後の配列に対して、優先エリア・デポジット・ハンデに基づいてランク位置を調整
    * @param {Array} companies - ソート済み業者配列
+   * @param {string} userCity - ユーザーの市区町村
    * @return {Array} ボーナス調整後の業者配列
    */
-  applyRankBonus: function(companies) {
+  applyRankBonus: function(companies, userCity) {
     if (!companies || companies.length === 0) return companies;
 
     // 各業者に元の順位とボーナス値を付与
     const companiesWithBonus = companies.map(function(company, index) {
       var bonus = 0;
 
-      // 優先エリア: +1ランク
-      if (company.priorityArea === 'TRUE' || company.priorityArea === true) {
-        bonus += 1;
+      // 優先エリア: 3箇所選択式（市区町村と一致したら+1ランク）
+      if (company.priorityArea && userCity) {
+        const priorityAreas = company.priorityArea.toString().split(',').map(function(area) {
+          return area.trim();
+        });
+        if (priorityAreas.indexOf(userCity) !== -1) {
+          bonus += 1;
+        }
       }
 
       // デポジット前金: +1ランク
