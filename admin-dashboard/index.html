@@ -5924,11 +5924,10 @@ window.addEventListener('beforeunload', function(e) {
 
             const addressInput = document.getElementById('addressInput');
             const addressNumberInput = document.getElementById('addressNumberInput');
-            if (addressInput && addressNumberInput) {
-                // 住所と番地を結合して保存
-                data.address = (addressInput.value + addressNumberInput.value).trim();
-            } else if (addressInput) {
-                data.address = addressInput.value;
+            // 住所詳細（物件）には番地のみを保存
+            // 都道府県・市区町村は別フィールドとして既に存在
+            if (addressNumberInput) {
+                data.address = addressNumberInput.value || '';
             }
 
             // 物件プロフィール（IDベースで直接取得）
