@@ -2230,6 +2230,13 @@ const AdminSystem = {
         };
       }
 
+      if (!data || typeof data !== 'object') {
+        return {
+          success: false,
+          error: 'データが不正です'
+        };
+      }
+
       const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
       const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       const userSheet = ss.getSheetByName('ユーザー登録');
@@ -2270,27 +2277,67 @@ const AdminSystem = {
         };
       }
 
+      // 英語キー → 日本語ヘッダー マッピング（V1824）
+      const fieldMapping = {
+        'name': '氏名',
+        'nameKana': '氏名（カナ）',
+        'phone': '電話番号',
+        'email': 'メールアドレス',
+        'gender': '性別',
+        'age': '年齢',
+        'relation': '関係性',
+        'postalCode': '郵便番号',
+        'address': '住所',
+        'propertyType': '物件種別',
+        'floors': '階数',
+        'buildingAge': '築年数',
+        'floorArea': '延床面積',
+        'constructionCount': '施工回数',
+        'previousConstructionTime': '前回施工時期',
+        'wallMaterial': '外壁材質',
+        'roofMaterial': '屋根材質',
+        'mapLink': 'Google Mapsリンク',
+        'quoteSource': '見積もり取得先',
+        'constructionTiming': '施工時期',
+        'workItems': '工事希望箇所',
+        'status': '管理ステータス',
+        'searchKeyword': '流入検索ワード'
+      };
+
       // 更新するデータをマッピング
       const timestamp = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
       const updates = [];
 
       // 各フィールドを対応する列に更新
       for (const key in data) {
-        const colIndex = headers.indexOf(key);
+        // 英語キーを日本語ヘッダーに変換
+        const headerName = fieldMapping[key] || key;
+        const colIndex = headers.indexOf(headerName);
+
         if (colIndex !== -1) {
-          updates.push({ col: colIndex + 1, value: data[key] });
+          let value = data[key];
+
+          // 配列の場合はカンマ区切り文字列に変換
+          if (Array.isArray(value)) {
+            value = value.join(', ');
+          }
+
+          updates.push({ col: colIndex + 1, value: value, key: key, header: headerName });
+        } else {
+          console.log('[updateCVData] ヘッダーが見つかりません:', key, '→', headerName);
         }
       }
 
       // 最終更新日時を更新
       const lastUpdateCol = headers.indexOf('最終更新日時');
       if (lastUpdateCol !== -1) {
-        updates.push({ col: lastUpdateCol + 1, value: timestamp });
+        updates.push({ col: lastUpdateCol + 1, value: timestamp, key: '最終更新日時', header: '最終更新日時' });
       }
 
       // 更新実行
       updates.forEach(update => {
         userSheet.getRange(targetRow, update.col).setValue(update.value);
+        console.log(`[updateCVData] ${update.header} (${update.key}) = ${update.value}`);
       });
 
       console.log('[updateCVData] 成功:', updates.length, '件更新');
@@ -2298,14 +2345,16 @@ const AdminSystem = {
       return {
         success: true,
         message: `${updates.length}フィールドを更新しました`,
-        updatedFields: updates.length
+        updatedFields: updates.length,
+        cvId: cvId
       };
 
     } catch (error) {
       console.error('[updateCVData] エラー:', error);
       return {
         success: false,
-        error: error.message || 'CV情報の更新に失敗しました'
+        error: error.message || 'CV情報の更新に失敗しました',
+        stack: error.stack
       };
     }
   },
