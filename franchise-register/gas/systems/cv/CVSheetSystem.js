@@ -281,10 +281,19 @@ const CVSheetSystem = {
       '配信先業者一覧',      // BT
 
       // BU-BX: ハートビート＆行動トラッキング（V1754, V1755）
-      '最終ハートビート時刻', // BU(74)
-      'サイト滞在時間（秒）',  // BV(75)
-      'CV1→CV2時間差（秒）',  // BW(76)
-      'デバイス種別'          // BX(77)
+      '最終ハートビート時刻', // BU
+      'サイト滞在時間（秒）',  // BV
+      'CV1→CV2時間差（秒）',  // BW
+      'デバイス種別',         // BX
+
+      // BY-CF: V1828 新規フィールド
+      '',                     // BY (reserved)
+      '見積もり希望箇所',      // BZ
+      '施工時期',             // CA
+      '希望社数',             // CB
+      '立ち会い可否',         // CC
+      '立ち会い者関係性',      // CD
+      '特殊項目'              // CE
     ];
 
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
@@ -304,7 +313,7 @@ const CVSheetSystem = {
     // フリーズ（ヘッダー行固定）
     sheet.setFrozenRows(1);
 
-    console.log('[CVSheetSystem] ユーザー登録シート作成完了 (47列)');
+    console.log('[CVSheetSystem] ユーザー登録シート作成完了 (83列: A-CE, V1828)');
   },
 
   /**
@@ -702,7 +711,17 @@ const CVSheetSystem = {
         timestamp,                               // BU(74): 最終ハートビート時刻（V1754）
         params.siteStayDuration || 0,            // BV(75): サイト滞在時間（秒）（V1755）
         0,                                       // BW(76): CV1→CV2時間差（秒）（V1755）
-        params.deviceType || ''                  // BX(77): デバイス種別（V1755）
+        params.deviceType || '',                 // BX(77): デバイス種別（V1755）
+
+        // BY(78)-CE(84): V1828 新規フィールド
+        '',                                      // BY(78): (reserved)
+        // BZ(79): 見積もり希望箇所 - Q9とQ10を結合
+        [params.Q9_exteriorWork, params.Q10_roofWork].filter(v => v).join('、') || '',
+        params.constructionTiming || '',         // CA(80): 施工時期
+        params.companiesCount || '',             // CB(81): 希望社数
+        params.surveyAttendance || '',           // CC(82): 立ち会い可否
+        params.attendanceRelation || '',         // CD(83): 立ち会い者関係性
+        params.specialItems || ''                // CE(84): 特殊項目
       ];
 
       // 最終行に追加
@@ -1033,20 +1052,20 @@ const CVSheetSystem = {
           lastCallDate: row[71] || '',                  // BT: 最終架電日時（index 71）
           deliveredMerchants: row[72] || '',            // BU: 配信先業者一覧（index 72）
 
-          // BV-BY: ハートビート＆行動トラッキング（V1754, V1755）
-          lastHeartbeat: row[73] || '',                 // BV: 最終ハートビート時刻（index 73）
-          siteStayDuration: row[74] || 0,               // BW: サイト滞在時間（秒）（index 74）
-          cv1ToCV2Duration: row[75] || 0,               // BX: CV1→CV2時間差（秒）（index 75）
-          deviceType: row[76] || '',                    // BY: デバイス種別（index 76）
+          // BU-BX: ハートビート＆行動トラッキング（V1754, V1755）
+          lastHeartbeat: row[73] || '',                 // BU: 最終ハートビート時刻（index 73）
+          siteStayDuration: row[74] || 0,               // BV: サイト滞在時間（秒）（index 74）
+          cv1ToCV2Duration: row[75] || 0,               // BW: CV1→CV2時間差（秒）（index 75）
+          deviceType: row[76] || '',                    // BX: デバイス種別（index 76）
 
-          // BZ-CF: 新規フィールド（V1827）
-          // BZ列（index 77）は将来の拡張用として空けておく
-          workItems: row[77] || '',                     // CA: 見積もり希望箇所（index 77）
-          constructionTiming: row[78] || '',            // CB: 施工時期（index 78）
-          companiesCountNew: row[79] || '',             // CC: 希望社数（index 79）
-          surveyAttendance: row[80] || '',              // CD: 立ち会い可否（index 80）
-          attendanceRelation: row[81] || '',            // CE: 立ち会い者関係性（index 81）
-          specialItems: row[82] || ''                   // CF: 特殊項目（index 82）
+          // BY-CE: 新規フィールド（V1828）
+          // BY列（index 76）は将来の拡張用として空けておく
+          workItems: row[77] || '',                     // BZ: 見積もり希望箇所（index 77）
+          constructionTiming: row[78] || '',            // CA: 施工時期（index 78）
+          companiesCountNew: row[79] || '',             // CB: 希望社数（index 79）
+          surveyAttendance: row[80] || '',              // CC: 立ち会い可否（index 80）
+          attendanceRelation: row[81] || '',            // CD: 立ち会い者関係性（index 81）
+          specialItems: row[82] || ''                   // CE: 特殊項目（index 82）
         };
       }).filter(cv => cv !== null); // 空行を除外
 
@@ -1237,10 +1256,20 @@ const CVSheetSystem = {
       if (data.propertyType !== undefined) sheet.getRange(targetRow, 23).setValue(data.propertyType); // W列: 物件種別（index 23）
       if (data.floors !== undefined) sheet.getRange(targetRow, 26).setValue(data.floors); // Z列: 階数（index 26）
 
-      // 工事希望箇所（配列の場合は結合）
+      // 工事希望箇所（配列の場合は結合） - V1828: BZ列に修正
       if (data.workItems !== undefined) {
         const workItemsStr = Array.isArray(data.workItems) ? data.workItems.join('、') : data.workItems;
-        sheet.getRange(targetRow, 46).setValue(workItemsStr); // AT列: 案件メモ（index 46）
+        sheet.getRange(targetRow, 79).setValue(workItemsStr); // BZ列: 見積もり希望箇所（column 79）
+      }
+
+      // V1828: 新規フィールド
+      if (data.constructionTiming !== undefined) sheet.getRange(targetRow, 80).setValue(data.constructionTiming); // CA列: 施工時期
+      if (data.companiesCount !== undefined) sheet.getRange(targetRow, 81).setValue(data.companiesCount); // CB列: 希望社数
+      if (data.surveyAttendance !== undefined) sheet.getRange(targetRow, 82).setValue(data.surveyAttendance); // CC列: 立ち会い可否
+      if (data.attendanceRelation !== undefined) sheet.getRange(targetRow, 83).setValue(data.attendanceRelation); // CD列: 立ち会い者関係性
+      if (data.specialItems !== undefined) {
+        const specialItemsStr = Array.isArray(data.specialItems) ? data.specialItems.join('、') : data.specialItems;
+        sheet.getRange(targetRow, 84).setValue(specialItemsStr); // CE列: 特殊項目
       }
 
       // 管理情報
