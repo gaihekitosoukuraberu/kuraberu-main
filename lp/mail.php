@@ -652,7 +652,7 @@ function copyright(){
 //GASにお問い合わせデータを送信
 function sendToGAS($formData){
 	// GAS Web App URL
-	$gasUrl = 'https://script.google.com/macros/s/AKfycbxE70953wmomkHmNvxD7IG2yF5Xf5daqBhHPCKMJXgRV4FTTspy4HFSoQXVFERVAWuoTg/exec';
+	$gasUrl = 'https://script.google.com/macros/s/AKfycbzVH1nPpl1xNHAglIkBliT2yVzjK9E5XoICnywwQsiWFi939P8AhEIZ4T3yGo7U42GJiQ/exec';
 
 	// デバッグログ: 受信データ
 	error_log('===== LP問い合わせフォーム GAS送信開始 =====');
