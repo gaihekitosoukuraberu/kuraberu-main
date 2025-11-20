@@ -591,19 +591,20 @@ function displayRanking() {
           ` : ''}
         </div>
 
-        <!-- 見積もり価格 & ボタン -->
-        <div class="flex items-center justify-between pt-3 border-t border-gray-100">
-          <div>
-            <span class="text-sm font-black ${isFirst ? 'text-yellow-900' : 'text-gray-900'}">💰 ${company.price}</span>
-          </div>
-          <div class="flex gap-2">
-            <button onclick="showCompanyDetail(${company.rank})" class="detail-btn bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md hover:shadow-lg transition-all duration-200 w-[90px]">
-              詳細
-            </button>
-            <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn px-4 py-2 rounded-lg font-bold text-sm shadow-md hover:shadow-lg transition-all duration-200 w-[90px]">
-              <span class="keep-text">キープ</span>
-            </button>
-          </div>
+        <!-- 動画プレースホルダー（将来実装予定） -->
+        <div class="flex items-center justify-center gap-2 py-2 bg-gray-50 rounded-lg mb-3">
+          <span class="text-2xl">🎬</span>
+          <span class="text-xs font-semibold text-gray-500">施工動画（準備中）</span>
+        </div>
+
+        <!-- アクションボタン -->
+        <div class="flex gap-3 pt-3 border-t border-gray-100">
+          <button onclick="showCompanyDetail(${company.rank})" class="detail-btn flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-black text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+            📋 詳細を見る
+          </button>
+          <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn flex-1 px-6 py-3 rounded-xl font-black text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+            <span class="keep-text">💾 キープ</span>
+          </button>
         </div>
       </div>
     `;

@@ -515,7 +515,10 @@ const BotQuestions = {
                     const loadingDiv = document.createElement('div');
                     loadingDiv.innerHTML = loadingHtml;
                     chatMessages.appendChild(loadingDiv.firstElementChild);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    chatMessages.scrollTo({
+                        top: chatMessages.scrollHeight,
+                        behavior: 'smooth'
+                    });
                 }
 
                 // PHONE分岐
