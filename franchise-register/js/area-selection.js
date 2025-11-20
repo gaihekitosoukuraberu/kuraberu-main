@@ -230,7 +230,7 @@ function displayAreaSelection() {
         <div id="priorityArea" class="hidden mb-6">
             <div id="priorityAreaSection" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <div class="flex justify-between items-center mb-3">
-                    <h4 class="font-semibold">STEP 3: 優先エリア設定 (最大3件)</h4>
+                    <h4 class="font-semibold">優先エリア設定</h4>
                     <span class="text-orange-500 font-semibold">0 / 3 選択中</span>
                 </div>
                 <p class="text-sm text-gray-600 mb-3">注力エリアを最大3件選択</p>
@@ -457,29 +457,41 @@ function updatePriorityArea() {
     });
 
     container.innerHTML = `
-        <div class="bg-white border-2 border-yellow-200 rounded-lg p-4 max-h-96 overflow-y-auto scrollable-area">
-            <div class="mb-3 sticky top-0 bg-white pb-2 border-b">
-                <span class="text-sm font-semibold">選択可能エリア (全${availableAreas.length}件)</span>
-            </div>
-            ${Object.entries(groupedAreas).map(([prefecture, areas]) => `
-                <div class="mb-4">
-                    <h4 class="font-semibold text-sm text-gray-700 mb-2 bg-gray-50 p-2 rounded sticky top-12 z-10">
-                        📍 ${prefecture}
-                    </h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        ${areas.map(area => `
-                            <label class="flex items-center p-2 bg-white border border-gray-200 rounded-lg hover:border-yellow-400 hover:bg-yellow-50 cursor-pointer transition-all ${areaData.priorities.includes(area.key) ? 'border-yellow-400 bg-yellow-50' : ''}">
-                                <input type="checkbox"
-                                       value="${area.key}"
-                                       ${areaData.priorities.includes(area.key) ? 'checked' : ''}
-                                       onchange="togglePriority('${area.key}', this.checked)"
-                                       class="mr-2">
-                                <span class="text-sm ${areaData.priorities.includes(area.key) ? 'font-semibold text-yellow-700' : ''}">${area.city}</span>
-                            </label>
-                        `).join('')}
-                    </div>
+        <div class="bg-white border-2 border-yellow-200 rounded-lg overflow-hidden">
+            <!-- 検索ボックス（固定ヘッダー） -->
+            <div class="sticky top-0 bg-white z-20 p-4 border-b border-yellow-200">
+                <div class="mb-2">
+                    <span class="text-sm font-semibold">選択可能エリア (全${availableAreas.length}件)</span>
                 </div>
-            `).join('')}
+                <input type="text"
+                       id="priorityAreaSearch"
+                       placeholder="エリア名で絞り込み（例: 横浜）"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                       oninput="filterPriorityAreas(this.value)">
+            </div>
+
+            <!-- エリアリスト -->
+            <div class="max-h-96 overflow-y-auto scrollable-area p-4" id="priorityAreasListContent">
+                ${Object.entries(groupedAreas).map(([prefecture, areas]) => `
+                    <div class="mb-4 priority-area-group" data-prefecture="${prefecture}">
+                        <h4 class="font-semibold text-sm text-gray-700 mb-2 bg-white p-2 rounded sticky top-0 z-10 border-b border-gray-200">
+                            📍 ${prefecture}
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            ${areas.map(area => `
+                                <label class="flex items-center p-2 bg-white border border-gray-200 rounded-lg hover:border-yellow-400 hover:bg-yellow-50 cursor-pointer transition-all priority-area-item ${areaData.priorities.includes(area.key) ? 'border-yellow-400 bg-yellow-50' : ''}" data-area-label="${area.label.toLowerCase()}">
+                                    <input type="checkbox"
+                                           value="${area.key}"
+                                           ${areaData.priorities.includes(area.key) ? 'checked' : ''}
+                                           onchange="togglePriority('${area.key}', this.checked)"
+                                           class="mr-2">
+                                    <span class="text-sm ${areaData.priorities.includes(area.key) ? 'font-semibold text-yellow-700' : ''}">${area.city}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
         </div>
     `;
 
@@ -520,6 +532,34 @@ function updatePriorityCount() {
     if (counterElement) {
         counterElement.textContent = `${count} / 3 選択中`;
     }
+}
+
+// 優先エリア検索フィルター
+function filterPriorityAreas(searchText) {
+    const normalizedSearch = searchText.toLowerCase().trim();
+    const groups = document.querySelectorAll('.priority-area-group');
+
+    groups.forEach(group => {
+        const items = group.querySelectorAll('.priority-area-item');
+        let hasVisibleItems = false;
+
+        items.forEach(item => {
+            const areaLabel = item.getAttribute('data-area-label') || '';
+            if (normalizedSearch === '' || areaLabel.includes(normalizedSearch)) {
+                item.style.display = '';
+                hasVisibleItems = true;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        // 都道府県グループ全体の表示/非表示
+        if (hasVisibleItems) {
+            group.style.display = '';
+        } else {
+            group.style.display = 'none';
+        }
+    });
 }
 
 // 選択済みエリア詳細更新
