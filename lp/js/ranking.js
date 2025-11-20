@@ -626,18 +626,16 @@ function displayRanking() {
 
     return `
       <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white ${company.rank <= 3 ? 'medal-card' : ''}">
-        <div class="flex items-start justify-between mb-2">
-          <div class="flex items-center gap-2">
-            ${medalHtml ? `<div class="medal-wrapper">${medalHtml}</div>` : ''}
-            <span class="${rankColorClass} text-lg font-bold ${medalHtml ? 'ml-1' : ''}">${company.rank}</span>
-            <h3 class="text-xl font-bold">${companyName}</h3>
-          </div>
-          <div class="flex items-center gap-1">
-            ${starsHtml}
-          </div>
+        <div class="flex items-center gap-2 mb-2">
+          ${medalHtml ? `<div class="medal-wrapper">${medalHtml}</div>` : ''}
+          <span class="${rankColorClass} text-lg font-bold ${medalHtml ? 'ml-1' : ''}">${company.rank}</span>
+          <h3 class="text-xl font-bold">${companyName}</h3>
         </div>
         ${badgeHtml}
-        <div class="flex items-center justify-end gap-2 ${badgeHtml ? '' : 'mt-2'}">
+        <div class="flex items-center gap-1 mb-2">
+          ${starsHtml}
+        </div>
+        <div class="flex items-center justify-end gap-2">
           <button onclick="showCompanyDetail(${company.rank})" class="detail-btn bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105">
             📋 詳細
           </button>
