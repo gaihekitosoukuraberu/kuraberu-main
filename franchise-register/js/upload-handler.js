@@ -90,6 +90,14 @@ function updateDocumentSlots(docType) {
 
     window.registrationData.verificationDocs = [];
     checkVerificationComplete();
+
+    // 書類選択後、最下部までスムーズスクロール
+    setTimeout(() => {
+        window.scrollTo({
+            top: document.body.scrollHeight,
+            behavior: 'smooth'
+        });
+    }, 100);
 }
 
 // ドラッグアンドドロップハンドラ
