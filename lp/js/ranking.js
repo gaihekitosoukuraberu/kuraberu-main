@@ -402,9 +402,9 @@ const keepManager = {
     const textElement = buttonElement.querySelector('.keep-text');
 
     if (isKept) {
-      // キープ中はオレンジ色（グラデーション）
-      buttonElement.className = 'keep-btn bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 flex items-center justify-center';
-      if (textElement) textElement.textContent = '❤️ キープ中';
+      // キープ中はオレンジ色（グラデーション・無料見積もりボタンと同じ色）
+      buttonElement.className = 'keep-btn bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 flex items-center justify-center';
+      if (textElement) textElement.textContent = '💖 キープ中';
     } else {
       // 未キープは黄色（グラデーション）
       buttonElement.className = 'keep-btn bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 flex items-center justify-center';
