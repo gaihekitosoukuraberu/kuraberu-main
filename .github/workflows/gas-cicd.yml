@@ -137,11 +137,12 @@ jobs:
           VERSION="V$(date +%Y%m%d-%H%M%S)"
           clasp deploy -d "$VERSION: Auto-deployment via GitHub Actions"
 
-          # @HEADのDeployment IDを取得（常に最新を指す）
-          DEPLOYMENT_ID=$(clasp deployments | grep "@HEAD" | awk '{print $2}' | tr -d '-')
+          # 最新のバージョン付きデプロイメントIDを取得（Web UIで権限設定可能）
+          DEPLOYMENT_ID=$(clasp deployments | grep "@[0-9]" | head -1 | awk '{print $2}' | tr -d '-')
+          VERSION_NUM=$(clasp deployments | grep "@[0-9]" | head -1 | awk '{print $3}' | tr -d '@')
           echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "📦 @HEAD Deployment ID: $DEPLOYMENT_ID"
+          echo "📦 Latest Versioned Deployment ID: $DEPLOYMENT_ID (@$VERSION_NUM)"
 
       - name: Health check
         run: |
