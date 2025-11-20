@@ -201,6 +201,14 @@ async function processCapture(input) {
             });
 
             checkVerificationComplete();
+
+            // アップロード完了後、最下部までスムーズスクロール
+            setTimeout(() => {
+                window.scrollTo({
+                    top: document.body.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 100);
         }
     };
     reader.readAsDataURL(compressedFile);
