@@ -4387,25 +4387,6 @@ window.addEventListener('beforeunload', function(e) {
 
             // 見積もり・工事に関するご要望セクション
 
-            // 見積もり希望箇所（workItemsから選択状態にする）
-            const workItemsButtons = document.getElementById('workItemsButtons');
-            if (workItemsButtons && data.workItems && Array.isArray(data.workItems)) {
-                // まず全ボタンの選択状態をリセット
-                workItemsButtons.querySelectorAll('.option-button').forEach(btn => {
-                    btn.classList.remove('selected', 'bg-purple-500', 'border-purple-500', 'text-white', 'shadow-md');
-                    btn.classList.add('bg-white', 'border-gray-300', 'text-gray-700');
-                });
-
-                // workItemsに含まれるボタンを選択状態にする
-                data.workItems.forEach(item => {
-                    const btn = workItemsButtons.querySelector(`[data-value="${item}"]`);
-                    if (btn) {
-                        btn.classList.remove('bg-white', 'border-gray-300', 'text-gray-700');
-                        btn.classList.add('selected', 'bg-purple-500', 'border-purple-500', 'text-white', 'shadow-md');
-                    }
-                });
-            }
-
             // 見積もり取得先
             const quoteSourceInput = document.getElementById('quoteSourceInput');
             if (quoteSourceInput) {
