@@ -324,7 +324,7 @@ const keepManager = {
     }
   },
 
-  // ボタンの表示を更新（V1752: 大型ボタン対応）
+  // ボタンの表示を更新（V1753: 元のサイズ・控えめデザイン）
   updateButton(buttonElement, companyName) {
     if (!buttonElement) return;
 
@@ -332,12 +332,12 @@ const keepManager = {
     const textElement = buttonElement.querySelector('.keep-text');
 
     if (isKept) {
-      // キープ中はオレンジ色（グラデーション）
-      buttonElement.className = 'keep-btn flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-3 rounded-xl font-black text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105';
-      if (textElement) textElement.textContent = '✅ キープ中！';
+      // キープ中はオレンジ色
+      buttonElement.className = 'keep-btn bg-orange-400 hover:bg-orange-500 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap';
+      if (textElement) textElement.textContent = '✅ キープ中';
     } else {
-      // 未キープは黄色（グラデーション）
-      buttonElement.className = 'keep-btn flex-1 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white px-6 py-3 rounded-xl font-black text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105';
+      // 未キープは黄色
+      buttonElement.className = 'keep-btn bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap';
       if (textElement) textElement.textContent = '💾 キープ';
     }
   },
@@ -438,7 +438,7 @@ async function showRankingSection() {
   }
 }
 
-// 星レーティング生成関数（5つ星 - V1752: 0.3+で半星表示）
+// 星レーティング生成関数（5つ星 - V1753: 0.3+で半星表示・小数点1桁表示）
 function generateStarRating(rating) {
   const fullStars = Math.floor(rating);
   const decimal = rating - fullStars;
@@ -462,7 +462,9 @@ function generateStarRating(rating) {
     starsHtml += '<span style="color: #d1d5db;">⭐</span>';
   }
 
-  return `<span class="text-sm">${starsHtml}</span><span class="text-xs ml-1 font-bold">${rating}</span>`;
+  // 小数点1桁表示（4.3 → "4.3"）
+  const ratingText = rating.toFixed(1);
+  return `<span class="text-sm">${starsHtml}</span><span class="text-xs ml-1 font-bold">${ratingText}</span>`;
 }
 
 // ランキング表示（V1713-FIX: 動的更新対応）
@@ -505,7 +507,7 @@ function displayRanking() {
   // 表示する会社数を決定（初期4社、もっと見るで5~8位まで）
   const companiesToShow = showingAll ? allCompanies : allCompanies.slice(0, 4);
 
-  // ランキングカードを動的生成（V1752: 価格削除・動画プレースホルダー・大型ボタン）
+  // ランキングカードを動的生成（V1753: 価格削除・控えめデザイン）
   rankingList.innerHTML = companiesToShow.map(company => {
     // GASから取得した実名を使用（イニシャルではなく実名表示）
     const companyName = company.name;
@@ -513,53 +515,44 @@ function displayRanking() {
     // 1位は青、2位以降はグレー
     let rankColorClass = company.rank === 1 ? 'text-blue-600' : 'text-gray-600';
 
-    // 星評価（半星対応）
+    // 星評価（半星対応・小数点表示）
     const starsHtml = generateStarRating(company.rating);
 
     return `
-      <div class="ranking-item border-2 border-gray-200 rounded-xl p-4 bg-white shadow-md hover:shadow-lg transition-shadow duration-200">
-        <!-- ランクと業者名 -->
-        <div class="flex items-start justify-between mb-3">
-          <div class="flex items-center gap-3">
-            <span class="${rankColorClass} text-2xl font-black">${company.rank}</span>
-            <h3 class="text-lg font-black text-gray-800">${companyName}</h3>
+      <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
+        <div class="flex items-start justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="${rankColorClass} text-lg font-bold">${company.rank}</span>
+            <h3 class="text-base font-bold">${companyName}</h3>
           </div>
           <div class="flex items-center gap-1">
             ${starsHtml}
           </div>
         </div>
-
-        <!-- 特徴タグと施工実績 -->
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex gap-1.5 flex-wrap">
+        <div class="flex items-center justify-between mb-1">
+          <div class="flex gap-1">
             ${company.features.slice(0, 3).map((feature, idx) => {
               const colors = [
-                'bg-blue-100 text-blue-700 border border-blue-300',
-                'bg-green-100 text-green-700 border border-green-300',
-                'bg-red-100 text-red-700 border border-red-300'
+                'bg-blue-200 text-blue-800',
+                'bg-green-200 text-green-800',
+                'bg-red-200 text-red-800'
               ];
-              return `<span class="${colors[idx % 3]} text-xs px-2 py-1 rounded-md font-semibold">${feature}</span>`;
+              return `<span class="${colors[idx % 3]} text-xs px-1.5 py-0.5 rounded">${feature}</span>`;
             }).join('')}
           </div>
-          <div class="text-gray-600 text-xs font-medium">
+          <div class="text-gray-600 text-xs">
             施工実績: ${company.reviews || 0}件
           </div>
         </div>
-
-        <!-- 動画プレースホルダー（将来実装予定） -->
-        <div class="flex items-center justify-center gap-2 py-3 bg-gray-50 rounded-lg mb-3 border border-gray-200">
-          <span class="text-2xl">🎬</span>
-          <span class="text-xs font-bold text-gray-500">施工動画（準備中）</span>
-        </div>
-
-        <!-- アクションボタン -->
-        <div class="flex gap-3 pt-3 border-t border-gray-100">
-          <button onclick="showCompanyDetail(${company.rank})" class="detail-btn flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-black text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
-            📋 詳細を見る
-          </button>
-          <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn flex-1 px-6 py-3 rounded-xl font-black text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
-            <span class="keep-text">💾 キープ</span>
-          </button>
+        <div class="flex items-center justify-between">
+          <div class="flex gap-1">
+            <button onclick="showCompanyDetail(${company.rank})" class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium w-[90px] whitespace-nowrap">
+              📋 詳細
+            </button>
+            <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap">
+              <span class="keep-text">💾 キープ</span>
+            </button>
+          </div>
         </div>
       </div>
     `;
