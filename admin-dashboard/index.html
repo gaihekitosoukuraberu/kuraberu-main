@@ -5963,8 +5963,13 @@ window.addEventListener('beforeunload', function(e) {
             if (workItemsButtons) {
                 const selectedButtons = Array.from(workItemsButtons.querySelectorAll('.option-button.selected'));
                 data.workItems = selectedButtons.map(btn => btn.getAttribute('data-value') || btn.textContent.trim());
+                console.log('[getCRMFormData] workItems取得:', {
+                    selectedCount: selectedButtons.length,
+                    workItems: data.workItems
+                });
             } else {
                 data.workItems = [];
+                console.warn('[getCRMFormData] workItemsButtons要素が見つかりません');
             }
 
             // ステータス
@@ -6002,8 +6007,13 @@ window.addEventListener('beforeunload', function(e) {
             if (specialItemsButtons) {
                 const selectedSpecialItems = Array.from(specialItemsButtons.querySelectorAll('.option-button.selected'));
                 data.specialItems = selectedSpecialItems.map(btn => btn.getAttribute('data-value') || btn.textContent.trim());
+                console.log('[getCRMFormData] specialItems取得:', {
+                    selectedCount: selectedSpecialItems.length,
+                    specialItems: data.specialItems
+                });
             } else {
                 data.specialItems = [];
+                console.warn('[getCRMFormData] specialItemsButtons要素が見つかりません');
             }
 
             console.log('[getCRMFormData] フォームデータ取得:', data);
