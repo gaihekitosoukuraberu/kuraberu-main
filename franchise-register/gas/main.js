@@ -450,6 +450,15 @@ function doGet(e) {
         if (action === 'updateCVData' && e.parameter.data) {
           try {
             e.parameter.data = JSON.parse(e.parameter.data);
+
+            // data内の配列フィールドもパース（api-client.jsで二重にJSON.stringifyされている）
+            if (e.parameter.data.workItems && typeof e.parameter.data.workItems === 'string') {
+              e.parameter.data.workItems = JSON.parse(e.parameter.data.workItems);
+            }
+            if (e.parameter.data.specialItems && typeof e.parameter.data.specialItems === 'string') {
+              e.parameter.data.specialItems = JSON.parse(e.parameter.data.specialItems);
+            }
+
             console.log('[main.js] Parsed updateCVData data:', e.parameter.data);
           } catch (err) {
             console.error('[main.js] Failed to parse updateCVData data parameter:', err);
