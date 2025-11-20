@@ -2218,6 +2218,14 @@ const AdminSystem = {
   updateCVData: function(params) {
     try {
       console.log('[updateCVData] 開始:', params);
+      console.log('[updateCVData] params.cvId:', params.cvId);
+      console.log('[updateCVData] params.data:', params.data);
+      console.log('[updateCVData] params.data.workItems type:', typeof params.data?.workItems);
+      console.log('[updateCVData] params.data.workItems isArray:', Array.isArray(params.data?.workItems));
+      console.log('[updateCVData] params.data.workItems value:', params.data?.workItems);
+      console.log('[updateCVData] params.data.specialItems type:', typeof params.data?.specialItems);
+      console.log('[updateCVData] params.data.specialItems isArray:', Array.isArray(params.data?.specialItems));
+      console.log('[updateCVData] params.data.specialItems value:', params.data?.specialItems);
 
       // paramsから直接取得（main.jsでパース済み）
       const cvId = params.cvId;
@@ -2323,9 +2331,14 @@ const AdminSystem = {
         if (colIndex !== -1) {
           let value = data[key];
 
+          // デバッグ: 元の値のタイプと値をログ
+          console.log(`[updateCVData] ${key}: type=${typeof value}, isArray=${Array.isArray(value)}, value=`, value);
+
           // 配列の場合はカンマ区切り文字列に変換
           if (Array.isArray(value)) {
+            const originalValue = value;
             value = value.join(', ');
+            console.log(`[updateCVData] 配列変換: ${key}: [${originalValue.join(', ')}] → "${value}"`);
           }
 
           updates.push({ col: colIndex + 1, value: value, key: key, header: headerName });
