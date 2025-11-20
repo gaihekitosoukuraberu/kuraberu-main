@@ -5934,8 +5934,11 @@ window.addEventListener('beforeunload', function(e) {
             // 見積もり取得先
             data.quoteSource = getInputOrSelectValue('見積もり取得先');
 
-            // 施工時期
-            data.constructionTiming = getInputOrSelectValue('施工時期');
+            // 施工時期（V1832: 直接ID指定で確実に取得）
+            const constructionTimingSelect = document.getElementById('constructionTimingSelect');
+            if (constructionTimingSelect) {
+                data.constructionTiming = constructionTimingSelect.value || '';
+            }
 
             // 現在の劣化状況（V1832）
             const deteriorationStatusSelect = document.getElementById('deteriorationStatusSelect');
