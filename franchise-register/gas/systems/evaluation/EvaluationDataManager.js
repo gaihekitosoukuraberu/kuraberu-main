@@ -706,15 +706,18 @@ const EvaluationDataManager = {
       console.log('[EvaluationData] ヘッダー:', JSON.stringify(evaluationHeaders));
 
       // 会社名と総合スコアのマッピング作成
+      // CSV構造: 列0=会社名, 列4=総合スコア (列名に依存しない直接参照)
       const evaluationMap = {};
-      const companyNameColIndex = evaluationHeaders.indexOf('会社名');
-      const overallScoreColIndex = evaluationHeaders.indexOf('総合スコア');
+      const companyNameColIndex = 0;  // A列: 会社名
+      const overallScoreColIndex = 4; // E列: 総合スコア
 
-      console.log('[EvaluationData] 評価データ列インデックス - 会社名:', companyNameColIndex, '総合スコア:', overallScoreColIndex);
+      console.log('[EvaluationData] 評価データ列インデックス(固定) - 会社名:', companyNameColIndex, '総合スコア:', overallScoreColIndex);
 
       for (let i = 1; i < evaluationData.length; i++) {
         const companyName = evaluationData[i][companyNameColIndex];
         const overallScore = evaluationData[i][overallScoreColIndex];
+
+        console.log('[EvaluationData] 行', i, ':', companyName, '→', overallScore);
 
         if (companyName && overallScore) {
           evaluationMap[companyName] = overallScore;
