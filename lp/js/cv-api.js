@@ -11,7 +11,7 @@
 const CVAPI = {
     // GAS Web App URL（ENV経由で取得、フォールバック付き）
     get GAS_URL() {
-        return window.ENV?.GAS_URL || 'https://script.google.com/macros/s/AKfycbz8DfawbFvZ2ZA1iXBWC0scO3VOcGX_IYRXvIRuhUVxc8Duvn0PePSL-Qe6AGwsi-j35g/exec';
+        return window.ENV?.GAS_URL || 'https://script.google.com/macros/s/AKfycbw8W4twm4M-hv7tcfzZEduiPikCSXKo7fTLs6VJaS-yk-ojzpEo1YM9Y-as-ZM9yTpWIQ/exec';
     },
 
     // ============================================
