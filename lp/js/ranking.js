@@ -267,10 +267,10 @@ function getCrossRankingBadges(companyName, currentSortType) {
 
   const badges = [];
   const rankingTypes = [
-    { key: 'recommended', label: 'おすすめ', icon: '👑', sortType: 'recommended' },
+    { key: 'recommended', label: 'おすすめ', icon: '⭐', sortType: 'recommended' },
     { key: 'cheap', label: '安い順', icon: '💰', sortType: 'cheap' },
     { key: 'review', label: 'クチコミ', icon: '💬', sortType: 'review' },
-    { key: 'premium', label: '高品質', icon: '💎', sortType: 'premium' }
+    { key: 'premium', label: '高品質', icon: '🏅', sortType: 'premium' }
   ];
 
   rankingTypes.forEach(rankingType => {
@@ -403,11 +403,11 @@ const keepManager = {
 
     if (isKept) {
       // キープ中はオレンジ色（グラデーション）
-      buttonElement.className = 'keep-btn bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105';
-      if (textElement) textElement.textContent = '✅ キープ中';
+      buttonElement.className = 'keep-btn bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 flex items-center justify-center';
+      if (textElement) textElement.textContent = '❤️ キープ中';
     } else {
       // 未キープは黄色（グラデーション）
-      buttonElement.className = 'keep-btn bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105';
+      buttonElement.className = 'keep-btn bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 flex items-center justify-center';
       if (textElement) textElement.textContent = '💾 キープ';
     }
   },
@@ -630,7 +630,7 @@ function displayRanking() {
           <div class="flex items-center gap-2">
             ${medalHtml ? `<div class="medal-wrapper">${medalHtml}</div>` : ''}
             <span class="${rankColorClass} text-lg font-bold ${medalHtml ? 'ml-1' : ''}">${company.rank}</span>
-            <h3 class="text-lg font-bold">${companyName}</h3>
+            <h3 class="text-xl font-bold">${companyName}</h3>
           </div>
           <div class="flex items-center gap-1">
             ${starsHtml}
@@ -737,52 +737,56 @@ function updateKeepCountBadge() {
   }
 }
 
-// 会社詳細表示（V1704: 実データのみ使用）
+// 会社詳細表示（V1766: プレビューHP埋め込み）
 function showCompanyDetail(companyRank) {
   const company = allCompanies.find(c => c.rank === companyRank);
   if (!company) return;
 
   const companyName = company.name;
-  
+  const previewHP = company._original?.previewHP || '';
+
+  // プレビューHPがない場合は表示しない
+  if (!previewHP) {
+    console.warn(`[V1766] プレビューHPが設定されていません: ${companyName}`);
+    return;
+  }
+
   // モーダル作成
   const modal = document.createElement('div');
   modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
   modal.innerHTML = `
-    <div class="bg-white rounded-lg p-6 max-w-md w-full">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-bold">${companyName}</h3>
+    <div class="bg-white rounded-lg p-4 max-w-5xl w-full h-[90vh] flex flex-col">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-lg font-bold">${companyName} のプレビュー</h3>
         <button id="closeModal" class="text-gray-500 hover:text-gray-700">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         </button>
       </div>
-      <div class="space-y-3">
-        <div><strong>料金:</strong> ${company.price}</div>
-        <div><strong>評価:</strong> ${company.rating} (${company.reviews}件)</div>
-        <div><strong>特徴:</strong> ${company.features.join(', ')}</div>
-        <div class="bg-gray-50 p-3 rounded">
-          <p class="text-sm text-gray-600">この業者の詳細情報や口コミをご確認いただけます。</p>
-        </div>
+      <div class="flex-1 overflow-hidden">
+        <iframe
+          src="${previewHP}"
+          class="w-full h-full border border-gray-200 rounded"
+          sandbox="allow-scripts allow-same-origin allow-forms"
+          loading="lazy"
+        ></iframe>
       </div>
-      <div class="mt-4 flex gap-2">
-        <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded flex-1">
-          見積もり依頼
-        </button>
+      <div class="mt-3 flex gap-2">
         <button id="closeModalBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded flex-1">
           閉じる
         </button>
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(modal);
-  
+
   // モーダル閉じるイベント
   const closeModal = () => {
     document.body.removeChild(modal);
   };
-  
+
   document.getElementById('closeModal').addEventListener('click', closeModal);
   document.getElementById('closeModalBtn').addEventListener('click', closeModal);
   modal.addEventListener('click', function(e) {
