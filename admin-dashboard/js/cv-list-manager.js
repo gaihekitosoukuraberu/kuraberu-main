@@ -335,6 +335,7 @@ const CVListManager = {
 
   /**
    * 案件メモを構築（既存メモ + BOTデータ自動追記）
+   * V1832: 重複防止のため、既にBOT取得情報が含まれている場合は追加しない
    * @param {Object} cv - CVデータ
    * @returns {string} 案件メモ
    */
@@ -344,6 +345,11 @@ const CVListManager = {
     // 既存の案件メモがあれば最初に追加
     if (cv.caseMemo) {
       memoLines.push(cv.caseMemo);
+
+      // 既にBOT取得情報が含まれている場合は、それ以上追加しない（重複防止）
+      if (cv.caseMemo.includes('【BOT取得情報】')) {
+        return cv.caseMemo;
+      }
     }
 
     // BOTデータの自動追記部分（区切り線で分ける）
