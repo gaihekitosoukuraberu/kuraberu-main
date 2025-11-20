@@ -425,6 +425,131 @@ const RankingSystem = {
 
       console.log('[RankingSystem] フィルタ後: ' + filtered.length + '件');
 
+      // V1833: フォールバック処理 - 0件の場合は条件を緩めて再取得
+      if (filtered.length === 0 && (city || prefecture)) {
+        console.warn('[RankingSystem] ⚠️ フィルタ結果が0件 - フォールバック処理開始');
+
+        // ステップ1: 市区町村条件を外して都道府県のみでフィルタ
+        if (city) {
+          console.log('[RankingSystem] 🔄 ステップ1: 市区町村条件を外して都道府県のみで再検索');
+          filtered = allData.filter(function(row) {
+            const merchantPrefecture = row[colIndex.prefecture] || '';
+            const approvalStatus = row[colIndex.approvalStatus] || '';
+            const deliveryStatus = row[colIndex.deliveryStatus] || '';
+            const silentFlag = row[colIndex.silentFlag] || '';
+
+            // 基本条件のみチェック
+            if (approvalStatus !== '承認済み') return false;
+            if (deliveryStatus === '配信停止' || deliveryStatus === '強制停止') return false;
+            if (silentFlag === 'TRUE' || silentFlag === true) return false;
+            if (prefecture && merchantPrefecture !== prefecture) return false;
+
+            return true;
+          }).map(function(row) {
+            const companyName = row[colIndex.companyName] || '';
+            const pastDataMetrics = getPastDataMetrics(companyName);
+            const priorityArea = row[colIndex.priorityArea] || '';
+            const handicap = parseInt(row[colIndex.handicap]) || 0;
+            const depositAdvance = row[colIndex.depositAdvance] || '';
+            const prioritySupplyFlag = row[colIndex.prioritySupplyFlag] || '';
+            const recent3MonthRevenue = parseNumber(row[colIndex.recent3MonthRevenue]);
+            const recent3MonthInquiryCount = parseNumber(row[colIndex.recent3MonthInquiryCount]);
+            const recent3MonthContractCount = parseNumber(row[colIndex.contractCount]);
+            const recent3MonthAvgAmount = parseNumber(row[colIndex.avgContractAmount]);
+            const recent3MonthConversionRate = recent3MonthInquiryCount > 0
+              ? (recent3MonthContractCount / recent3MonthInquiryCount)
+              : 0;
+
+            return {
+              companyName: companyName,
+              avgContractAmount: recent3MonthAvgAmount,
+              rating: row[colIndex.rating] || 0,
+              reviewCount: row[colIndex.reviewCount] || 0,
+              prefecture: row[colIndex.prefecture] || '',
+              city: row[colIndex.cities] ? row[colIndex.cities].split(',')[0].trim() : '',
+              constructionTypes: row[colIndex.constructionTypes] || '',
+              priorityArea: priorityArea,
+              handicap: handicap,
+              depositAdvance: depositAdvance,
+              prioritySupplyFlag: prioritySupplyFlag,
+              contractCount: recent3MonthContractCount,
+              recent3MonthRevenue: recent3MonthRevenue,
+              recent3MonthInquiryCount: recent3MonthInquiryCount,
+              recent3MonthConversionRate: recent3MonthConversionRate,
+              pastRank: pastDataMetrics.rank,
+              pastGrossUnitAfterReturn: pastDataMetrics.grossUnitAfterReturn,
+              pastReturnRate: pastDataMetrics.returnRate,
+              pastConversionRate: pastDataMetrics.conversionRate,
+              pastContractCount: pastDataMetrics.contractCount,
+              riskScore: pastDataMetrics.riskScore,
+              isCompleteMatch: false,
+              buildingAgeMatchScore: 0,
+              joinDate: row[colIndex.joinDate] || ''
+            };
+          });
+          console.log('[RankingSystem] 🔄 ステップ1結果: ' + filtered.length + '件');
+        }
+
+        // ステップ2: それでも0件なら都道府県条件も外して全国から取得
+        if (filtered.length === 0) {
+          console.log('[RankingSystem] 🔄 ステップ2: 都道府県条件も外して全国から評価順で取得');
+          filtered = allData.filter(function(row) {
+            const approvalStatus = row[colIndex.approvalStatus] || '';
+            const deliveryStatus = row[colIndex.deliveryStatus] || '';
+            const silentFlag = row[colIndex.silentFlag] || '';
+
+            // 基本条件のみチェック
+            if (approvalStatus !== '承認済み') return false;
+            if (deliveryStatus === '配信停止' || deliveryStatus === '強制停止') return false;
+            if (silentFlag === 'TRUE' || silentFlag === true) return false;
+
+            return true;
+          }).map(function(row) {
+            const companyName = row[colIndex.companyName] || '';
+            const pastDataMetrics = getPastDataMetrics(companyName);
+            const priorityArea = row[colIndex.priorityArea] || '';
+            const handicap = parseInt(row[colIndex.handicap]) || 0;
+            const depositAdvance = row[colIndex.depositAdvance] || '';
+            const prioritySupplyFlag = row[colIndex.prioritySupplyFlag] || '';
+            const recent3MonthRevenue = parseNumber(row[colIndex.recent3MonthRevenue]);
+            const recent3MonthInquiryCount = parseNumber(row[colIndex.recent3MonthInquiryCount]);
+            const recent3MonthContractCount = parseNumber(row[colIndex.contractCount]);
+            const recent3MonthAvgAmount = parseNumber(row[colIndex.avgContractAmount]);
+            const recent3MonthConversionRate = recent3MonthInquiryCount > 0
+              ? (recent3MonthContractCount / recent3MonthInquiryCount)
+              : 0;
+
+            return {
+              companyName: companyName,
+              avgContractAmount: recent3MonthAvgAmount,
+              rating: row[colIndex.rating] || 0,
+              reviewCount: row[colIndex.reviewCount] || 0,
+              prefecture: row[colIndex.prefecture] || '',
+              city: row[colIndex.cities] ? row[colIndex.cities].split(',')[0].trim() : '',
+              constructionTypes: row[colIndex.constructionTypes] || '',
+              priorityArea: priorityArea,
+              handicap: handicap,
+              depositAdvance: depositAdvance,
+              prioritySupplyFlag: prioritySupplyFlag,
+              contractCount: recent3MonthContractCount,
+              recent3MonthRevenue: recent3MonthRevenue,
+              recent3MonthInquiryCount: recent3MonthInquiryCount,
+              recent3MonthConversionRate: recent3MonthConversionRate,
+              pastRank: pastDataMetrics.rank,
+              pastGrossUnitAfterReturn: pastDataMetrics.grossUnitAfterReturn,
+              pastReturnRate: pastDataMetrics.returnRate,
+              pastConversionRate: pastDataMetrics.conversionRate,
+              pastContractCount: pastDataMetrics.contractCount,
+              riskScore: pastDataMetrics.riskScore,
+              isCompleteMatch: false,
+              buildingAgeMatchScore: 0,
+              joinDate: row[colIndex.joinDate] || ''
+            };
+          });
+          console.log('[RankingSystem] 🔄 ステップ2結果: ' + filtered.length + '件（全国から取得）');
+        }
+      }
+
       // 4つのソート順で並べ替え（V1828: 優先エリア3箇所選択式に修正）
       const rankings = {
         cheap: this.applyRankBonus(this.sortByPrice(filtered.slice(), city), city).slice(0, 8),
