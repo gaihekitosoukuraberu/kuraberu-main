@@ -4501,11 +4501,23 @@ window.addEventListener('beforeunload', function(e) {
             }
 
 
-            // 案件メモを読み込み（AS列: 案件メモ）
+            // 案件メモを読み込み（AS列: 案件メモ）- V1832: 重複削除処理追加
             const caseMemoTextarea = document.getElementById('caseMemoTextarea');
             if (caseMemoTextarea) {
-                caseMemoTextarea.value = data['案件メモ'] || data.caseMemo || '';
-                console.log('[populateForm] 案件メモ読み込み:', data['案件メモ'] || data.caseMemo || '(空)');
+                let memoValue = data['案件メモ'] || data.caseMemo || '';
+
+                // 重複した「BOT取得情報」セクションを削除（同じパターンが繰り返されている場合）
+                const sections = memoValue.split('─────────────────────');
+                if (sections.length > 2) {
+                    // 最初のセクション + 最初のBOT取得情報セクションのみを残す
+                    const firstSection = sections[0];
+                    const botSection = sections.length > 1 ? '─────────────────────' + sections[1] : '';
+                    memoValue = (firstSection + botSection).trim();
+                    console.log('[populateForm] 案件メモの重複を削除:', sections.length - 2, '個のセクションを削除');
+                }
+
+                caseMemoTextarea.value = memoValue;
+                console.log('[populateForm] 案件メモ読み込み:', memoValue || '(空)');
             }
 
             // 特殊項目（選択されたボタンを復元）
@@ -5983,10 +5995,22 @@ window.addEventListener('beforeunload', function(e) {
                 data.status = statusBadge.textContent.trim();
             }
 
-            // 案件メモ（AS列: 案件メモ）
+            // 案件メモ（AS列: 案件メモ）- V1832: 重複削除処理追加
             const caseMemoTextarea = document.getElementById('caseMemoTextarea');
             if (caseMemoTextarea) {
-                data['案件メモ'] = caseMemoTextarea.value || '';
+                let memoValue = caseMemoTextarea.value || '';
+
+                // 重複した「BOT取得情報」セクションを削除（同じパターンが繰り返されている場合）
+                const sections = memoValue.split('─────────────────────');
+                if (sections.length > 2) {
+                    // 最初のセクション + 最初のBOT取得情報セクションのみを残す
+                    const firstSection = sections[0];
+                    const botSection = sections.length > 1 ? '─────────────────────' + sections[1] : '';
+                    memoValue = (firstSection + botSection).trim();
+                    console.log('[getCRMFormData] 案件メモの重複を削除:', sections.length - 2, '個のセクションを削除');
+                }
+
+                data['案件メモ'] = memoValue;
             }
 
             // 流入検索ワード（BF列: searchKeyword）
