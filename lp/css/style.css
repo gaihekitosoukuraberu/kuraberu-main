@@ -1981,8 +1981,8 @@ button {
 .badge-item {
   display: inline-block;
   padding: 1px 2px;
-  border-radius: 6px;
-  font-size: 2px;
+  border-radius: 4px;
+  font-size: 9px;
   font-weight: 600;
   white-space: nowrap;
 }
