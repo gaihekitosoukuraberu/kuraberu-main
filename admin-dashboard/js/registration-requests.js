@@ -445,10 +445,10 @@ function createRegistrationRow(item, type) {
     // アクションボタン
     const actionButtons = type === 'pending'
         ? `<button onclick="viewRegistrationDetails('${item.registrationId}')" class="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 mr-2">詳細</button>
-           <button id="approve-btn-${item.registrationId}" onclick="approveRegistration('${item.registrationId}')" class="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 mr-2 relative">
+           <button id="approve-btn-${item.registrationId}" onclick="approveRegistration('${item.registrationId}')" class="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 mr-2 relative inline-flex items-center justify-center">
                <span class="btn-text">承認</span>
-               <span class="btn-spinner hidden">
-                   <svg class="animate-spin h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+               <span class="btn-spinner hidden absolute inset-0 flex items-center justify-center">
+                   <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                    </svg>
@@ -640,10 +640,10 @@ function createRegistrationCard(item, type) {
                 <button onclick="viewRegistrationDetails('${item.registrationId}')" class="flex-1 px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600">
                     詳細
                 </button>
-                <button id="approve-btn-mobile-${item.registrationId}" onclick="approveRegistration('${item.registrationId}')" class="flex-1 px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600 relative">
+                <button id="approve-btn-mobile-${item.registrationId}" onclick="approveRegistration('${item.registrationId}')" class="flex-1 px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600 relative inline-flex items-center justify-center">
                     <span class="btn-text">承認</span>
-                    <span class="btn-spinner hidden">
-                        <svg class="animate-spin h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <span class="btn-spinner hidden absolute inset-0 flex items-center justify-center">
+                        <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
