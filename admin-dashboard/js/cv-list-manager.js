@@ -167,8 +167,8 @@ const CVListManager = {
       }
 
       // 紹介料を計算
-      // V1827: 新カラム「希望社数」を優先、なければcompaniesCount
-      const companiesCount = cv.companiesCountNew || cv.companiesCount || 1;
+      // V1832: companiesCount に統一（CVSheetSystem.js と整合）
+      const companiesCount = cv.companiesCount || 1;
       const calculatedFee = window.FeeCalculator.calculate({
         q9_wallWorkType: cv.botAnswers?.q9_wallWorkType || '',
         q10_roofWorkType: cv.botAnswers?.q10_roofWorkType || '',

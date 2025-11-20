@@ -1070,7 +1070,7 @@ const CVSheetSystem = {
           // BY列（index 76）は将来の拡張用として空けておく
           workItems: row[77] || '',                     // BZ: 見積もり希望箇所（index 77）
           constructionTiming: row[78] || '',            // CA: 施工時期（index 78）
-          companiesCountNew: row[79] || '',             // CB: 希望社数（index 79）
+          companiesCount: row[79] || '',                // CB: 希望社数（index 79）
           surveyAttendance: row[80] || '',              // CC: 立ち会い可否（index 80）
           attendanceRelation: row[81] || '',            // CD: 立ち会い者関係性（index 81）
           specialItems: row[82] || ''                   // CE: 特殊項目（index 82）
