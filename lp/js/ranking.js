@@ -632,16 +632,18 @@ function displayRanking() {
           <h3 class="text-xl font-bold">${companyName}</h3>
         </div>
         ${badgeHtml}
-        <div class="flex items-center gap-1 mb-2">
-          ${starsHtml}
-        </div>
-        <div class="flex items-center justify-end gap-2">
-          <button onclick="showCompanyDetail(${company.rank})" class="detail-btn bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105">
-            📋 詳細
-          </button>
-          <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105">
-            <span class="keep-text">💾 キープ</span>
-          </button>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1">
+            ${starsHtml}
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="showCompanyDetail(${company.rank})" class="detail-btn bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105">
+              📋 詳細
+            </button>
+            <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105">
+              <span class="keep-text">💾 キープ</span>
+            </button>
+          </div>
         </div>
       </div>
     `;
