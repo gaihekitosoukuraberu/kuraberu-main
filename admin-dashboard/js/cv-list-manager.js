@@ -335,24 +335,29 @@ const CVListManager = {
 
   /**
    * 案件メモを構築（既存メモ + BOTデータ自動追記）
-   * V1832: 重複防止のため、既にBOT取得情報が含まれている場合は追加しない
+   * V1832: 毎回上書き - 既存のBOT取得情報を削除して最新情報で置き換え
    * @param {Object} cv - CVデータ
    * @returns {string} 案件メモ
    */
   buildCaseMemo(cv) {
     const memoLines = [];
 
-    // 既存の案件メモがあれば最初に追加
+    // 既存の案件メモがある場合、BOT取得情報の前までを抽出
     if (cv.caseMemo) {
-      memoLines.push(cv.caseMemo);
-
-      // 既にBOT取得情報が含まれている場合は、それ以上追加しない（重複防止）
-      if (cv.caseMemo.includes('【BOT取得情報】')) {
-        return cv.caseMemo;
+      const botInfoIndex = cv.caseMemo.indexOf('─────────────────────');
+      if (botInfoIndex !== -1) {
+        // BOT取得情報の前までを保持（手動で書いたメモ部分）
+        const manualMemo = cv.caseMemo.substring(0, botInfoIndex).trim();
+        if (manualMemo) {
+          memoLines.push(manualMemo);
+        }
+      } else {
+        // BOT取得情報がない場合は全体を保持
+        memoLines.push(cv.caseMemo);
       }
     }
 
-    // BOTデータの自動追記部分（区切り線で分ける）
+    // BOTデータの自動追記部分（毎回上書き）
     const botDataLines = [];
 
     // 訪問業者名（Q15）
@@ -365,7 +370,7 @@ const CVListManager = {
       botDataLines.push(`【業者選定条件】${cv.botAnswers.q17_selectionCriteria}`);
     }
 
-    // BOTデータがあれば区切り線と共に追加
+    // BOTデータがあれば区切り線と共に追加（毎回新しく生成）
     if (botDataLines.length > 0) {
       if (memoLines.length > 0) {
         memoLines.push(''); // 空行
