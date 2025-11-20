@@ -630,7 +630,7 @@ function displayRanking() {
           <div class="flex items-center gap-2">
             ${medalHtml ? `<div class="medal-wrapper">${medalHtml}</div>` : ''}
             <span class="${rankColorClass} text-lg font-bold ${medalHtml ? 'ml-1' : ''}">${company.rank}</span>
-            <h3 class="text-3xl font-bold">${companyName}</h3>
+            <h3 class="text-xl font-bold">${companyName}</h3>
           </div>
           <div class="flex items-center gap-1">
             ${starsHtml}
