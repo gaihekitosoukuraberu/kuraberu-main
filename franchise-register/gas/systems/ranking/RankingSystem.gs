@@ -490,18 +490,22 @@ const RankingSystem = {
           console.log('[RankingSystem] 🔄 ステップ1結果: ' + filtered.length + '件');
         }
 
-        // ステップ2: それでも0件なら都道府県条件も外して全国から取得
-        if (filtered.length === 0) {
-          console.log('[RankingSystem] 🔄 ステップ2: 都道府県条件も外して全国から評価順で取得');
+        // ステップ2: それでも0件なら全国ではなくエリア未設定の業者を含める
+        if (filtered.length === 0 && prefecture) {
+          console.log('[RankingSystem] 🔄 ステップ2: 都道府県内で工事種別条件を外して再検索');
           filtered = allData.filter(function(row) {
+            const merchantPrefecture = row[colIndex.prefecture] || '';
             const approvalStatus = row[colIndex.approvalStatus] || '';
             const deliveryStatus = row[colIndex.deliveryStatus] || '';
             const silentFlag = row[colIndex.silentFlag] || '';
 
-            // 基本条件のみチェック
+            // 基本条件のみチェック（都道府県は維持）
             if (approvalStatus !== '承認済み') return false;
             if (deliveryStatus === '配信停止' || deliveryStatus === '強制停止') return false;
             if (silentFlag === 'TRUE' || silentFlag === true) return false;
+
+            // 都道府県が一致するか、空（全国対応）の業者
+            if (merchantPrefecture && merchantPrefecture !== prefecture) return false;
 
             return true;
           }).map(function(row) {
@@ -546,7 +550,7 @@ const RankingSystem = {
               joinDate: row[colIndex.joinDate] || ''
             };
           });
-          console.log('[RankingSystem] 🔄 ステップ2結果: ' + filtered.length + '件（全国から取得）');
+          console.log('[RankingSystem] 🔄 ステップ2結果: ' + filtered.length + '件（都道府県内・工事種別条件なし）');
         }
       }
 
