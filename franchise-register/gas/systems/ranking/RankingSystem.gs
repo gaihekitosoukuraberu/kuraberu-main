@@ -144,7 +144,7 @@ const RankingSystem = {
       }
 
       // フィルタリング（承認済み + 配信中 + 都道府県マッチ + 市区町村マッチ + 工事種別マッチ）（V1705拡張）
-      const filtered = [];
+      let filtered = [];  // V1833-FIX: フォールバック処理で再代入するためletに変更
 
       // V1713-DEBUG: フィルタリング統計
       const filterStats = {

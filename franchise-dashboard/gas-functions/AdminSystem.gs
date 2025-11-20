@@ -437,6 +437,7 @@ var AdminSystem = {
       const idIndex = headers.indexOf('登録ID');
       const approvalStatusIndex = headers.indexOf('承認ステータス');
       const statusIndex = headers.indexOf('ステータス');
+      const deliveryStatusIndex = headers.indexOf('配信ステータス');  // V1833: 配信ステータス追加
       const approvalDateIndex = headers.indexOf('承認日');
       const approverIndex = headers.indexOf('承認者');
 
@@ -473,7 +474,16 @@ var AdminSystem = {
         // 承認処理（該当行に対して一括更新）
         const t5 = Date.now();
         sheet.getRange(targetRowNumber, approvalStatusIndex + 1).setValue('承認済み');
-        sheet.getRange(targetRowNumber, statusIndex + 1).setValue('休止');
+
+        // V1833: ステータスを「アクティブ」に設定（配信ステータスはonEditトリガーで自動連動）
+        sheet.getRange(targetRowNumber, statusIndex + 1).setValue('アクティブ');
+
+        // V1833: 配信ステータスも明示的に「アクティブ」に設定（onEditトリガー前の保険）
+        if (deliveryStatusIndex !== -1) {
+          sheet.getRange(targetRowNumber, deliveryStatusIndex + 1).setValue('アクティブ');
+          console.log('[AdminSystem] 配信ステータスを「アクティブ」に設定');
+        }
+
         sheet.getRange(targetRowNumber, approverIndex + 1).setValue('ryutayamauchi');
 
         if (approvalDateIndex !== -1) {
@@ -490,26 +500,20 @@ var AdminSystem = {
           );
         }
 
-        // 一時停止関連の初期値を設定（AO/AP/AQ列）
+        // V1833: 一時停止関連の初期値設定を削除（承認直後はアクティブ状態）
+        // 一時停止は管理者が手動で設定する想定
         const pauseFlagIndex = headers.indexOf('一時停止フラグ');
-        const pauseStartIndex = headers.indexOf('一時停止開始日');
-        const pauseEndIndex = headers.indexOf('一時停止再開予定日');
 
-        // 一時停止フラグをTRUE（承認直後は休止状態）
+        // 一時停止フラグをFALSE（承認直後はアクティブ状態）
         if (pauseFlagIndex !== -1) {
-          sheet.getRange(targetRowNumber, pauseFlagIndex + 1).setValue(true);
+          sheet.getRange(targetRowNumber, pauseFlagIndex + 1).setValue(false);
         }
 
-        // 一時停止開始日を今日
-        if (pauseStartIndex !== -1) {
-          sheet.getRange(targetRowNumber, pauseStartIndex + 1).setValue(
-            Utilities.formatDate(new Date(), 'JST', 'yyyy-MM-dd')
-          );
-        }
-
-        // 一時停止再開予定日は空（未定）
-        if (pauseEndIndex !== -1) {
-          sheet.getRange(targetRowNumber, pauseEndIndex + 1).setValue('');
+        // V1833: 支払い遅延フラグも一律FALSE（承認時にリセット）
+        const paymentDelayIndex = headers.indexOf('支払い遅延');
+        if (paymentDelayIndex !== -1) {
+          sheet.getRange(targetRowNumber, paymentDelayIndex + 1).setValue(false);
+          console.log('[AdminSystem] 支払い遅延フラグをFALSEに設定');
         }
 
         console.log('[AdminSystem] ⏱️ シート更新:', (Date.now() - t5) + 'ms');

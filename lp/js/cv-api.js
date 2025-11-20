@@ -434,27 +434,46 @@ const CVAPI = {
     async getRanking(params) {
         try {
             console.log('🏆 ランキング取得開始:', params);
+            console.log('🔍 params型チェック:', {
+                zipcode: typeof params.zipcode,
+                workTypes: typeof params.workTypes,
+                isArray: Array.isArray(params.workTypes)
+            });
 
             // パラメータ検証
             if (!params.zipcode) {
                 throw new Error('郵便番号が指定されていません');
             }
 
+            // workTypesの変換（配列→文字列）
+            let workTypesStr = '';
+            if (params.workTypes) {
+                if (Array.isArray(params.workTypes)) {
+                    workTypesStr = params.workTypes.join(',');
+                } else if (typeof params.workTypes === 'string') {
+                    workTypesStr = params.workTypes;
+                } else {
+                    console.warn('⚠️ workTypesが想定外の型:', typeof params.workTypes, params.workTypes);
+                    workTypesStr = String(params.workTypes || '');
+                }
+            }
+
             // 送信データ構築
             const data = {
                 action: 'getRanking',
-                zipcode: params.zipcode,
-                workTypes: Array.isArray(params.workTypes) ? params.workTypes.join(',') : (params.workTypes || ''),
-                buildingAgeMin: params.buildingAgeMin || '',
-                buildingAgeMax: params.buildingAgeMax || '',
-                wallMaterial: params.wallMaterial || '',
-                roofMaterial: params.roofMaterial || '',
-                wallWorkType: params.wallWorkType || '',
-                roofWorkType: params.roofWorkType || '',
-                concernedArea: params.concernedArea || ''
+                zipcode: String(params.zipcode || ''),
+                workTypes: workTypesStr,
+                buildingAgeMin: String(params.buildingAgeMin || ''),
+                buildingAgeMax: String(params.buildingAgeMax || ''),
+                wallMaterial: String(params.wallMaterial || ''),
+                roofMaterial: String(params.roofMaterial || ''),
+                wallWorkType: String(params.wallWorkType || ''),
+                roofWorkType: String(params.roofWorkType || ''),
+                concernedArea: String(params.concernedArea || '')
             };
 
             console.log('📤 ランキングリクエスト:', data);
+            console.log('📤 データ型確認:', Object.keys(data).map(k => `${k}: ${typeof data[k]}`));
 
             // JSONP送信（既存メソッド利用）
             const result = await this.sendJSONP(data);

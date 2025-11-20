@@ -69,28 +69,45 @@ async function fetchRankingFromGAS() {
     let buildingAgeMin = 0;
     let buildingAgeMax = 100;
 
-    // Q008: 気になる箇所
-    if (answers.Q008 && answers.Q008.choice) {
-      workTypes.push(answers.Q008.choice);
-    }
-
-    // Q003: 築年数
+    // 築年数：Q003 (例: "18")
     if (answers.Q003 && answers.Q003.choice) {
-      const ageRange = parseAgeRange(answers.Q003.choice);
-      if (ageRange) {
-        buildingAgeMin = ageRange.min;
-        buildingAgeMax = ageRange.max;
+      const ageStr = String(answers.Q003.choice);
+      // 数値のみの場合（例: "18"）
+      if (/^\d+$/.test(ageStr)) {
+        const age = parseInt(ageStr);
+        buildingAgeMin = age;
+        buildingAgeMax = age;
+      } else {
+        // 範囲表記の場合（例: "10-20年"）
+        const ageRange = parseAgeRange(ageStr);
+        if (ageRange) {
+          buildingAgeMin = ageRange.min;
+          buildingAgeMax = ageRange.max;
+        }
       }
     }
 
-    // V1705: 材質・工事内容追加
+    console.log('📋 築年数:', { buildingAgeMin, buildingAgeMax, raw: answers.Q003?.choice });
+
+    // 材質：Q006=外壁材質（例: "サイディング"）、Q007=屋根材質（例: "スレート"）
     const wallMaterial = answers.Q006 && answers.Q006.choice ? answers.Q006.choice : '';
     const roofMaterial = answers.Q007 && answers.Q007.choice ? answers.Q007.choice : '';
+
+    // 工事内容：Q009=外壁工事（例: "塗装"）、Q010=屋根工事（例: "塗装"）
     const wallWorkType = answers.Q009 && answers.Q009.choice ? answers.Q009.choice : '';
     const roofWorkType = answers.Q010 && answers.Q010.choice ? answers.Q010.choice : '';
 
-    // V1830: 気になる箇所（単品 vs 複合工事判定用）
-    const concernedArea = answers.Q004B && answers.Q004B.choice ? answers.Q004B.choice : '';
+    console.log('📋 材質・工事内容:', { wallMaterial, roofMaterial, wallWorkType, roofWorkType });
+
+    // 気になる箇所：Q008（例: "外壁と屋根"）
+    const concernedArea = answers.Q008 && answers.Q008.choice ? answers.Q008.choice : '';
+
+    // workTypesは現在未使用だが、将来的に施工種別として使用する可能性あり
+    if (concernedArea) {
+      workTypes.push(concernedArea);
+    }
+
+    console.log('📋 気になる箇所:', concernedArea);
 
     const params = {
       zipcode: zipcode,
