@@ -264,8 +264,11 @@ const BotUI = {
         const chatSection = this.elements.chatSection;
         if (!chatSection) return;
 
-        // チャットセクション内のスクロール
-        chatSection.scrollTop = chatSection.scrollHeight;
+        // チャットセクション内のスクロール（滑らかに）
+        chatSection.scrollTo({
+            top: chatSection.scrollHeight,
+            behavior: 'smooth'
+        });
 
         // スマホの場合は、ページ全体もスクロール
         if (window.innerWidth < 768) {
