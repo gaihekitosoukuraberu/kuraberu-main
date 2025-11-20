@@ -700,6 +700,11 @@ const EvaluationDataManager = {
       const evaluationData = evaluationSheet.getDataRange().getValues();
       const evaluationHeaders = evaluationData[0];
 
+      // デバッグ: 実際のヘッダー情報を出力
+      console.log('[EvaluationData] シート名:', evaluationSheet.getName());
+      console.log('[EvaluationData] データ行数:', evaluationData.length);
+      console.log('[EvaluationData] ヘッダー:', JSON.stringify(evaluationHeaders));
+
       // 会社名と総合スコアのマッピング作成
       const evaluationMap = {};
       const companyNameColIndex = evaluationHeaders.indexOf('会社名');
