@@ -208,16 +208,21 @@ function updateAllCompaniesFromDynamic(sortType) {
   console.log(`📊 ${sortType}順のランキングを適用 (${rankingList.length}件)`);
 
   // GASレスポンスをallCompanies形式に変換
-  allCompanies = rankingList.map((company, index) => ({
-    rank: index + 1,
-    name: company.companyName || `${index + 1}位業者`,
-    price: company.avgContractAmount ? `${Math.floor(company.avgContractAmount / 10000)}万円〜` : '見積もり必要',
-    rating: company.rating || 4.0,
-    reviews: company.reviewCount || 0,
-    features: extractFeatures(company),
-    // 元データも保持
-    _original: company
-  }));
+  allCompanies = rankingList.map((company, index) => {
+    // V1765: rating値のデバッグログ
+    console.log(`[V1765-DEBUG] ${company.companyName}: rating=${company.rating} (型: ${typeof company.rating})`);
+
+    return {
+      rank: index + 1,
+      name: company.companyName || `${index + 1}位業者`,
+      price: company.avgContractAmount ? `${Math.floor(company.avgContractAmount / 10000)}万円〜` : '見積もり必要',
+      rating: company.rating || 4.0,
+      reviews: company.reviewCount || 0,
+      features: extractFeatures(company),
+      // 元データも保持
+      _original: company
+    };
+  });
 
   console.log('✅ allCompanies更新完了:', allCompanies.length, '件');
 }
@@ -225,29 +230,40 @@ function updateAllCompaniesFromDynamic(sortType) {
 // V1704: sortDefaultData関数削除 - デフォルトデータなし、実データのみ使用
 
 // ============================================
-// 会社データから特徴を抽出
+// 会社データから特徴を抽出（V1765: PR項目改善）
 // ============================================
 function extractFeatures(company) {
   const features = [];
 
-  // 対応都道府県
+  // 1. 総合評価が高い場合（4.3以上）
+  if (company.rating && company.rating >= 4.3) {
+    features.push(`⭐高評価${company.rating.toFixed(1)}`);
+  }
+
+  // 2. 成約率が高い場合（60%以上）
+  if (company.recent3MonthConversionRate && company.recent3MonthConversionRate >= 0.6) {
+    const rate = Math.round(company.recent3MonthConversionRate * 100);
+    features.push(`成約率${rate}%`);
+  }
+
+  // 3. 問合せ件数が多い場合（10件以上）
+  if (company.recent3MonthInquiryCount && company.recent3MonthInquiryCount >= 10) {
+    features.push(`人気（問合せ${company.recent3MonthInquiryCount}件）`);
+  }
+
+  // 4. 対応都道府県
   if (company.prefecture) {
     features.push(`${company.prefecture}対応`);
   }
 
-  // 最大対応階数
-  if (company.maxFloors) {
-    features.push(`${company.maxFloors}階建対応`);
-  }
-
-  // 特殊対応項目
-  if (company.specialSupport && company.specialSupport.length > 0) {
-    features.push(...company.specialSupport.slice(0, 2));
-  }
-
-  // 施工実績
-  if (company.contractCount) {
+  // 5. 施工実績（成約件数）
+  if (company.contractCount && company.contractCount > 0) {
     features.push(`実績${company.contractCount}件`);
+  }
+
+  // 6. 口コミ件数
+  if (company.reviewCount && company.reviewCount > 0) {
+    features.push(`口コミ${company.reviewCount}件`);
   }
 
   // 最大3つまで
