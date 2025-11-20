@@ -532,7 +532,7 @@ function generateStarRating(rating) {
 
   // 小数点1桁表示（4.3 → "4.3"）
   const ratingText = rating.toFixed(1);
-  return `<span class="text-sm">${starsHtml}</span><span class="text-xs ml-1 font-bold">${ratingText}</span>`;
+  return `<div class="flex items-center gap-1"><span class="text-sm leading-none">${starsHtml}</span><span class="text-xs font-bold leading-none">${ratingText}</span></div>`;
 }
 
 // ランキング表示（V1713-FIX: 動的更新対応）
@@ -633,9 +633,7 @@ function displayRanking() {
         </div>
         ${badgeHtml}
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-1">
-            ${starsHtml}
-          </div>
+          ${starsHtml}
           <div class="flex items-center gap-2">
             <button onclick="showCompanyDetail(${company.rank})" class="detail-btn bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105">
               📋 詳細
