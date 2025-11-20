@@ -4387,6 +4387,25 @@ window.addEventListener('beforeunload', function(e) {
 
             // 見積もり・工事に関するご要望セクション
 
+            // 見積もり希望箇所（workItemsから選択状態にする）
+            const workItemsButtons = document.getElementById('workItemsButtons');
+            if (workItemsButtons && data.workItems && Array.isArray(data.workItems)) {
+                // まず全ボタンの選択状態をリセット
+                workItemsButtons.querySelectorAll('.option-button').forEach(btn => {
+                    btn.classList.remove('selected', 'bg-purple-500', 'border-purple-500', 'text-white', 'shadow-md');
+                    btn.classList.add('bg-white', 'border-gray-300', 'text-gray-700');
+                });
+
+                // workItemsに含まれるボタンを選択状態にする
+                data.workItems.forEach(item => {
+                    const btn = workItemsButtons.querySelector(`[data-value="${item}"]`);
+                    if (btn) {
+                        btn.classList.remove('bg-white', 'border-gray-300', 'text-gray-700');
+                        btn.classList.add('selected', 'bg-purple-500', 'border-purple-500', 'text-white', 'shadow-md');
+                    }
+                });
+            }
+
             // 見積もり取得先
             const quoteSourceInput = document.getElementById('quoteSourceInput');
             if (quoteSourceInput) {
@@ -4481,38 +4500,6 @@ window.addEventListener('beforeunload', function(e) {
                 franchiseCountSelect.value = data.companiesCount || data['希望社数'] || '';
             }
 
-            // 見積もり希望箇所（新カラム「見積もり希望箇所」から直接読み取り）
-            const workItemsButtons = document.getElementById('workItemsButtons');
-            if (workItemsButtons) {
-                // data.workItemsが配列の場合、または文字列（カンマ区切り）の場合
-                let workItemsArray = [];
-
-                if (Array.isArray(data.workItems)) {
-                    workItemsArray = data.workItems;
-                } else if (data.workItems && typeof data.workItems === 'string') {
-                    workItemsArray = data.workItems.split(', ').map(item => item.trim());
-                } else if (data['見積もり希望箇所']) {
-                    // スプシから直接読み取った場合（文字列）
-                    workItemsArray = data['見積もり希望箇所'].split(', ').map(item => item.trim());
-                }
-
-                console.log('[populateForm] 見積もり希望箇所読み込み:', workItemsArray);
-
-                // まず全ボタンの選択状態をリセット
-                workItemsButtons.querySelectorAll('.option-button').forEach(btn => {
-                    btn.classList.remove('selected', 'bg-purple-500', 'border-purple-500', 'text-white', 'shadow-md');
-                    btn.classList.add('bg-white', 'border-gray-300', 'text-gray-700');
-                });
-
-                // workItemsに含まれるボタンを選択状態にする（data-value属性でマッチ）
-                workItemsArray.forEach(item => {
-                    const btn = workItemsButtons.querySelector(`[data-value="${item}"]`);
-                    if (btn) {
-                        btn.classList.remove('bg-white', 'border-gray-300', 'text-gray-700');
-                        btn.classList.add('selected', 'bg-purple-500', 'border-purple-500', 'text-white', 'shadow-md');
-                    }
-                });
-            }
 
             // 案件メモを読み込み（AS列: 案件メモ）
             const caseMemoTextarea = document.getElementById('caseMemoTextarea');
