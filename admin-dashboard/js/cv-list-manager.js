@@ -209,20 +209,20 @@ const CVListManager = {
         searchKeyword: cv.searchKeyword || '',
         workItems: workItems,
 
-        // 見積もり・工事に関するご要望
-        quoteSource: cv.botAnswers?.q12_quoteSource || '',           // Q12: 見積もり取得先
-        constructionTiming: cv.constructionTiming || '',               // V1827: 施工時期（新カラム）
+        // 見積もり・工事に関するご要望（V1832: ?? 演算子で空文字列も保持）
+        quoteSource: cv.quoteSource ?? cv.botAnswers?.q12_quoteSource ?? '',           // Q12: 見積もり取得先
+        constructionTiming: cv.constructionTiming ?? '',               // V1827: 施工時期（新カラム）
         quoteStatus: '',                                               // TODO: 他社見積もり状況（BOTで未質問）
-        quoteCount: cv.botAnswers?.q11_quoteCount || '',              // Q11: 見積もり保有数
-        doorSalesVisit: cv.botAnswers?.q13_doorSalesVisit || '',      // Q13: 訪問業者の状況
-        comparisonIntention: cv.botAnswers?.q14_comparisonIntention || '',  // Q14: 比較意向
-        doorSalesCompany: cv.botAnswers?.q15_doorSalesCompany || '',  // Q15: 訪問業者名
-        deteriorationStatus: cv.botAnswers?.q16_deteriorationStatus || '',   // Q16: 劣化状況
-        selectionCriteria: cv.botAnswers?.q17_selectionCriteria || '',       // Q17: 業者選定条件
+        quoteCount: cv.quoteCount ?? cv.botAnswers?.q11_quoteCount ?? '',              // Q11: 見積もり保有数
+        doorSalesVisit: cv.doorSalesVisit ?? cv.botAnswers?.q13_doorSalesVisit ?? '',      // Q13: 訪問業者の状況
+        comparisonIntention: cv.comparisonIntention ?? cv.botAnswers?.q14_comparisonIntention ?? '',  // Q14: 比較意向
+        doorSalesCompany: cv.doorSalesCompany ?? cv.botAnswers?.q15_doorSalesCompany ?? '',  // Q15: 訪問業者名
+        deteriorationStatus: cv.deteriorationStatus ?? cv.botAnswers?.q16_deteriorationStatus ?? '',   // Q16: 劣化状況
+        selectionCriteria: cv.selectionCriteria ?? cv.botAnswers?.q17_selectionCriteria ?? '',       // Q17: 業者選定条件
 
-        // V1827: 新規フィールド
-        surveyAttendance: cv.surveyAttendance || '',                   // 立ち会い可否
-        attendanceRelation: cv.attendanceRelation || '',               // 立ち会い者関係性
+        // V1827: 新規フィールド（V1832: ?? 演算子で空文字列も保持）
+        surveyAttendance: cv.surveyAttendance ?? '',                   // 立ち会い可否
+        attendanceRelation: cv.attendanceRelation ?? '',               // 立ち会い者関係性
         specialItems: cv.specialItems ? cv.specialItems.split(', ').map(item => item.trim()).filter(item => item) : [], // 特殊項目（配列）
 
         // 配信・成約

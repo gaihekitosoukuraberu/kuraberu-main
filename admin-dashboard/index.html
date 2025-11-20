@@ -4406,41 +4406,41 @@ window.addEventListener('beforeunload', function(e) {
                 });
             }
 
-            // 見積もり取得先
+            // 見積もり取得先（V1832: ?? 演算子で空文字列も保持）
             const quoteSourceInput = document.getElementById('quoteSourceInput');
             if (quoteSourceInput) {
-                quoteSourceInput.value = data.quoteSource || data['Q12_見積もり取得先'] || '';
+                quoteSourceInput.value = data.quoteSource ?? data['Q12_見積もり取得先'] ?? '';
             }
 
-            // 施工時期
+            // 施工時期（V1832: ?? 演算子で空文字列も保持）
             const constructionTimingSelect = document.getElementById('constructionTimingSelect');
             if (constructionTimingSelect) {
-                constructionTimingSelect.value = data.constructionTiming || data['施工時期'] || '';
+                constructionTimingSelect.value = data.constructionTiming ?? data['施工時期'] ?? '';
             }
 
             // 他社見積もり状況
             const quoteStatusSelect = document.getElementById('quoteStatusSelect');
             if (quoteStatusSelect) {
-                quoteStatusSelect.value = data.quoteStatus || '';
+                quoteStatusSelect.value = data.quoteStatus ?? '';
             }
 
-            // 他社見積もり数（V1832: botAnswers フォールバック追加）
+            // 他社見積もり数（V1832: ?? 演算子で空文字列も保持）
             const quoteCountSelect = document.getElementById('quoteCountSelect');
             if (quoteCountSelect) {
-                const quoteCount = data.quoteCount || data.botAnswers?.q11_quoteCount || data['Q11_見積もり保有数'] || '';
+                const quoteCount = data.quoteCount ?? data.botAnswers?.q11_quoteCount ?? data['Q11_見積もり保有数'] ?? '';
                 quoteCountSelect.value = quoteCount;
             }
 
-            // 訪問業者の状況（V1832: botAnswers フォールバック追加）
+            // 訪問業者の状況（V1832: ?? 演算子で空文字列も保持）
             const doorSalesVisitSelect = document.getElementById('doorSalesVisitSelect');
             if (doorSalesVisitSelect) {
-                doorSalesVisitSelect.value = data.doorSalesVisit || data.botAnswers?.q13_doorSalesVisit || '';
+                doorSalesVisitSelect.value = data.doorSalesVisit ?? data.botAnswers?.q13_doorSalesVisit ?? '';
             }
 
-            // 比較意向（「比較は不要」の場合は空欄表示）
+            // 比較意向（「比較は不要」の場合は空欄表示）（V1832: ?? 演算子で空文字列も保持）
             const comparisonIntentionSelect = document.getElementById('comparisonIntentionSelect');
             if (comparisonIntentionSelect) {
-                const comparisonValue = data.comparisonIntention || data.botAnswers?.q14_comparisonIntention || '';
+                const comparisonValue = data.comparisonIntention ?? data.botAnswers?.q14_comparisonIntention ?? '';
                 // 「比較は不要」の場合は業者に見せないため空欄にする
                 if (comparisonValue === '比較は不要') {
                     comparisonIntentionSelect.value = '';
@@ -4449,10 +4449,10 @@ window.addEventListener('beforeunload', function(e) {
                 }
             }
 
-            // 現在の劣化状況（V1832: botAnswers フォールバック追加）
+            // 現在の劣化状況（V1832: ?? 演算子で空文字列も保持）
             const deteriorationStatusSelect = document.getElementById('deteriorationStatusSelect');
             if (deteriorationStatusSelect) {
-                deteriorationStatusSelect.value = data.deteriorationStatus || data.botAnswers?.q16_deteriorationStatus || '';
+                deteriorationStatusSelect.value = data.deteriorationStatus ?? data.botAnswers?.q16_deteriorationStatus ?? '';
             }
 
             // 現地調査希望日時（AQ列: 現地調査希望日時）
@@ -4470,16 +4470,16 @@ window.addEventListener('beforeunload', function(e) {
                 console.log('[populateForm] 現地調査希望日時読み込み:', data['現地調査希望日時']);
             }
 
-            // 立ち会い可否
+            // 立ち会い可否（V1832: ?? 演算子で空文字列も保持）
             const surveyAttendanceSelect = document.getElementById('surveyAttendanceSelect');
             if (surveyAttendanceSelect) {
-                surveyAttendanceSelect.value = data.surveyAttendance || data['立ち会い可否'] || '';
+                surveyAttendanceSelect.value = data.surveyAttendance ?? data['立ち会い可否'] ?? '';
             }
 
-            // 立ち会い者関係性
+            // 立ち会い者関係性（V1832: ?? 演算子で空文字列も保持）
             const attendanceRelationSelect = document.getElementById('attendanceRelationSelect');
             if (attendanceRelationSelect) {
-                attendanceRelationSelect.value = data.attendanceRelation || data['立ち会い者関係性'] || '';
+                attendanceRelationSelect.value = data.attendanceRelation ?? data['立ち会い者関係性'] ?? '';
             }
 
             // 流入検索ワード（BF列: searchKeyword）

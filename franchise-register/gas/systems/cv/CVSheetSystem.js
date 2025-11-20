@@ -1073,7 +1073,16 @@ const CVSheetSystem = {
           companiesCount: row[79] || '',                // CB: 希望社数（index 79）
           surveyAttendance: row[80] || '',              // CC: 立ち会い可否（index 80）
           attendanceRelation: row[81] || '',            // CD: 立ち会い者関係性（index 81）
-          specialItems: row[82] || ''                   // CE: 特殊項目（index 82）
+          specialItems: row[82] || '',                  // CE: 特殊項目（index 82）
+
+          // V1832: BOT回答カラムを直接フィールドとしても読み込み（空文字列保持のため）
+          quoteCount: row[36] || '',                    // AK: Q11_見積もり保有数（index 36）
+          quoteSource: row[37] || '',                   // AL: Q12_見積もり取得先（index 37）
+          doorSalesVisit: row[38] || '',                // AM: Q13_訪問業者有無（index 38）
+          deteriorationStatus: row[41] || '',           // AP: Q16_現在の劣化状況（index 41）
+          comparisonIntention: row[39] || '',           // AN: Q14_比較意向（index 39）
+          doorSalesCompany: row[40] || '',              // AO: Q15_訪問業者名（index 40）
+          selectionCriteria: row[42] || ''              // AQ: Q17_業者選定条件（index 42）
         };
       }).filter(cv => cv !== null); // 空行を除外
 
