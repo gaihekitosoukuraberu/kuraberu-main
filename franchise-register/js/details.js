@@ -26,8 +26,7 @@ function displayDetailsForm() {
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <label for="salesEmail">営業用メールアドレス <span class="required">*</span></label>
                         <button type="button" id="sameAsBilling" onclick="toggleSameAsBilling()" style="padding: 0.5rem 1rem; font-size: 0.75rem; color: #374151; background: linear-gradient(135deg, #f8fafc, #e2e8f0); border: 2px solid #cbd5e0; border-radius: 0.5rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-weight: 500;">
-                            <span class="hidden md:inline">請求用と同じ場合はここをクリック</span>
-                            <span class="md:hidden">請求用と同じ場合は<br>ここをタップ</span>
+                            請求用と同じ
                         </button>
                     </div>
                     <input type="email" id="salesEmail" required placeholder="sales@company.co.jp" value="${savedData.salesEmail || ''}">
@@ -36,8 +35,7 @@ function displayDetailsForm() {
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <label for="salesPersonName">営業担当者氏名 <span class="required">*</span></label>
                         <button type="button" id="sameAsRepresentative" onclick="toggleSameAsRepresentative()" style="padding: 0.5rem 1rem; font-size: 0.75rem; color: #374151; background: linear-gradient(135deg, #f8fafc, #e2e8f0); border: 2px solid #cbd5e0; border-radius: 0.5rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-weight: 500;">
-                            <span class="hidden md:inline">代表者と同じ場合はここをクリック</span>
-                            <span class="md:hidden">代表者と同じ場合は<br>ここをタップ</span>
+                            代表者と同じ
                         </button>
                     </div>
                     <input type="text" id="salesPersonName" required placeholder="営業担当者の氏名を入力" value="${savedData.salesPersonName || ''}">
@@ -85,7 +83,7 @@ function displayDetailsForm() {
                 <!-- 対応可能物件 -->
                 <div class="mb-6">
                     <label class="block text-sm font-semibold text-gray-700 mb-3">
-                        対応可能物件<span class="text-red-500">*</span>（最大対応階数）
+                        対応可能物件<span class="text-red-500">*</span> (最大階数)
                     </label>
                     <div class="space-y-3">
                         <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-gray-300">
