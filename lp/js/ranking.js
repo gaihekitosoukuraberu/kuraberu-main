@@ -506,7 +506,7 @@ async function showRankingSection() {
   }
 }
 
-// 星レーティング生成関数（5つ星 - V1753: 0.3+で半星表示・小数点1桁表示）
+// 星レーティング生成関数（5つ星 - V1834: 白抜き星で半星表示・小数点1桁表示）
 function generateStarRating(rating) {
   const fullStars = Math.floor(rating);
   const decimal = rating - fullStars;
@@ -520,14 +520,14 @@ function generateStarRating(rating) {
     starsHtml += '⭐';
   }
 
-  // 半分の星（CSSで表現）
+  // 半分の星（白抜き星で表現）
   if (hasHalfStar) {
-    starsHtml += '<span style="display: inline-block; position: relative; width: 1em;"><span style="overflow: hidden; position: absolute; width: 0.5em;">⭐</span><span style="color: #d1d5db;">⭐</span></span>';
+    starsHtml += '<span style="color: #FCD34D; font-size: 1.1em;">☆</span>';
   }
 
   // 空の星
   for (let i = 0; i < emptyStars; i++) {
-    starsHtml += '<span style="color: #d1d5db;">⭐</span>';
+    starsHtml += '<span style="color: #d1d5db;">☆</span>';
   }
 
   // 小数点1桁表示（4.3 → "4.3"）
