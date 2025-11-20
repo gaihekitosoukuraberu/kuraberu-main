@@ -640,7 +640,7 @@ function displayRanking() {
             <button onclick="showCompanyDetail(${company.rank})" class="detail-btn bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105">
               📋 詳細
             </button>
-            <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105">
+            <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 flex items-center justify-center">
               <span class="keep-text">💾 キープ</span>
             </button>
           </div>
@@ -740,14 +740,26 @@ function updateKeepCountBadge() {
 // 会社詳細表示（V1766: プレビューHP埋め込み）
 function showCompanyDetail(companyRank) {
   const company = allCompanies.find(c => c.rank === companyRank);
-  if (!company) return;
+  if (!company) {
+    console.error(`[V1774] ランク${companyRank}の会社が見つかりません`);
+    return;
+  }
 
   const companyName = company.name;
   const previewHP = company._original?.previewHP || '';
 
-  // プレビューHPがない場合は表示しない
+  // デバッグログ
+  console.log('[V1774-DEBUG] 会社詳細表示:', {
+    rank: companyRank,
+    companyName: companyName,
+    previewHP: previewHP,
+    _original: company._original
+  });
+
+  // プレビューHPがない場合はアラート表示
   if (!previewHP) {
-    console.warn(`[V1766] プレビューHPが設定されていません: ${companyName}`);
+    console.warn(`[V1774] プレビューHPが設定されていません: ${companyName}`);
+    alert(`${companyName}のプレビューHPが設定されていません。\n管理者に連絡してください。`);
     return;
   }
 
