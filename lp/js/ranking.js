@@ -69,45 +69,28 @@ async function fetchRankingFromGAS() {
     let buildingAgeMin = 0;
     let buildingAgeMax = 100;
 
-    // 築年数：Q003 (例: "18")
+    // Q008: 気になる箇所
+    if (answers.Q008 && answers.Q008.choice) {
+      workTypes.push(answers.Q008.choice);
+    }
+
+    // Q003: 築年数
     if (answers.Q003 && answers.Q003.choice) {
-      const ageStr = String(answers.Q003.choice);
-      // 数値のみの場合（例: "18"）
-      if (/^\d+$/.test(ageStr)) {
-        const age = parseInt(ageStr);
-        buildingAgeMin = age;
-        buildingAgeMax = age;
-      } else {
-        // 範囲表記の場合（例: "10-20年"）
-        const ageRange = parseAgeRange(ageStr);
-        if (ageRange) {
-          buildingAgeMin = ageRange.min;
-          buildingAgeMax = ageRange.max;
-        }
+      const ageRange = parseAgeRange(answers.Q003.choice);
+      if (ageRange) {
+        buildingAgeMin = ageRange.min;
+        buildingAgeMax = ageRange.max;
       }
     }
 
-    console.log('📋 築年数:', { buildingAgeMin, buildingAgeMax, raw: answers.Q003?.choice });
-
-    // 材質：Q006=外壁材質（例: "サイディング"）、Q007=屋根材質（例: "スレート"）
+    // V1705: 材質・工事内容追加
     const wallMaterial = answers.Q006 && answers.Q006.choice ? answers.Q006.choice : '';
     const roofMaterial = answers.Q007 && answers.Q007.choice ? answers.Q007.choice : '';
-
-    // 工事内容：Q009=外壁工事（例: "塗装"）、Q010=屋根工事（例: "塗装"）
     const wallWorkType = answers.Q009 && answers.Q009.choice ? answers.Q009.choice : '';
     const roofWorkType = answers.Q010 && answers.Q010.choice ? answers.Q010.choice : '';
 
-    console.log('📋 材質・工事内容:', { wallMaterial, roofMaterial, wallWorkType, roofWorkType });
-
-    // 気になる箇所：Q008（例: "外壁と屋根"）
-    const concernedArea = answers.Q008 && answers.Q008.choice ? answers.Q008.choice : '';
-
-    // workTypesは現在未使用だが、将来的に施工種別として使用する可能性あり
-    if (concernedArea) {
-      workTypes.push(concernedArea);
-    }
-
-    console.log('📋 気になる箇所:', concernedArea);
+    // V1830: 気になる箇所（単品 vs 複合工事判定用）
+    const concernedArea = answers.Q004B && answers.Q004B.choice ? answers.Q004B.choice : '';
 
     const params = {
       zipcode: zipcode,
@@ -520,91 +503,58 @@ function displayRanking() {
   // 表示する会社数を決定（初期4社、もっと見るで5~8位まで）
   const companiesToShow = showingAll ? allCompanies : allCompanies.slice(0, 4);
 
-  // ランキングカードを動的生成（超格好良いデザイン）
+  // ランキングカードを動的生成（samplesフォーマット）
   rankingList.innerHTML = companiesToShow.map(company => {
     // GASから取得した実名を使用（イニシャルではなく実名表示）
     const companyName = company.name;
 
-    // 評価スコアを小数点1桁まで表示（4.5など）
-    const ratingScore = typeof company.rating === 'number' ? company.rating.toFixed(1) : '4.0';
-    const ratingNum = parseFloat(ratingScore);
+    // 1位は青、2位以降はグレー
+    let rankColorClass = company.rank === 1 ? 'text-blue-600' : 'text-gray-600';
 
-    // 星評価（半分の星も表示 - CSSで実装）4.3から半分表示
-    const fullStars = Math.floor(ratingNum);
-    const hasHalfStar = (ratingNum % 1) >= 0.3;
-    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-
-    let starsHtml = '';
-    // 満点の星
-    for (let i = 0; i < fullStars; i++) {
-      starsHtml += '⭐';
-    }
-    // 半分の星（CSSで右半分を隠す）
-    if (hasHalfStar) {
-      starsHtml += '<span class="half-star">⭐</span>';
-    }
-    // 空の星
-    for (let i = 0; i < emptyStars; i++) {
-      starsHtml += '☆';
-    }
-
-    // 1位は特別なゴールドデザイン
-    const isFirst = company.rank === 1;
-    const cardBg = isFirst ? 'bg-gradient-to-br from-yellow-50 via-white to-yellow-50' : 'bg-white';
-    const cardBorder = isFirst ? 'border-2 border-yellow-400 shadow-xl shadow-yellow-100' : 'border border-gray-200 shadow-lg';
-    const rankBadge = isFirst
-      ? `<span class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-600 text-white text-lg font-black rounded-full shadow-md">👑</span>`
-      : `<span class="flex items-center justify-center w-7 h-7 bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 text-base font-bold rounded-full">${company.rank}</span>`;
+    // 星評価（5つ星表示）
+    const fullStars = Math.floor(company.rating);
+    const emptyStars = 5 - fullStars;
+    const starsHtml = '⭐'.repeat(fullStars) + '☆'.repeat(emptyStars);
 
     return `
-      <div class="ranking-item ${cardBg} ${cardBorder} rounded-xl p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl">
-        <!-- ヘッダー：ランク・会社名・評価 -->
-        <div class="flex items-start justify-between mb-3">
-          <div class="flex items-center gap-3">
-            ${rankBadge}
-            <div>
-              <h3 class="text-lg font-black ${isFirst ? 'text-yellow-900' : 'text-gray-900'}">${companyName}</h3>
-              <div class="flex items-center gap-1 mt-1">
-                <span class="text-yellow-500 text-lg leading-none">${starsHtml}</span>
-                <span class="text-2xl font-black ${isFirst ? 'text-yellow-600' : 'text-gray-800'} ml-1">${ratingScore}</span>
-              </div>
-            </div>
+      <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
+        <div class="flex items-start justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="${rankColorClass} text-lg font-bold">${company.rank}</span>
+            <h3 class="text-base font-bold">${companyName}</h3>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-yellow-500 text-sm">${starsHtml}</span>
+            <span class="font-bold text-sm">${company.rating}</span>
           </div>
         </div>
-
-        <!-- バッジ（特徴）& 施工実績 -->
-        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <div class="flex gap-1.5 flex-wrap">
+        <div class="flex items-center justify-between mb-1">
+          <div class="flex gap-1">
             ${company.features.slice(0, 3).map((feature, idx) => {
-              const gradients = [
-                'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm shadow-blue-200',
-                'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-sm shadow-green-200',
-                'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-sm shadow-purple-200'
+              const colors = [
+                'bg-blue-200 text-blue-800',
+                'bg-green-200 text-green-800',
+                'bg-red-200 text-red-800'
               ];
-              return `<span class="${gradients[idx % 3]} text-xs font-semibold px-2.5 py-1 rounded-full">${feature}</span>`;
+              return `<span class="${colors[idx % 3]} text-xs px-1.5 py-0.5 rounded">${feature}</span>`;
             }).join('')}
           </div>
-          ${company.reviews > 0 ? `
-            <div class="flex items-center gap-1 bg-gray-100 px-2.5 py-1 rounded-full">
-              <span class="text-gray-600 text-xs font-semibold">実績${company.reviews}件</span>
-            </div>
-          ` : ''}
+          <div class="text-gray-600 text-xs">
+            施工実績: ${company.reviews || 0}件
+          </div>
         </div>
-
-        <!-- 動画プレースホルダー（将来実装予定） -->
-        <div class="flex items-center justify-center gap-2 py-2 bg-gray-50 rounded-lg mb-3">
-          <span class="text-2xl">🎬</span>
-          <span class="text-xs font-semibold text-gray-500">施工動画（準備中）</span>
-        </div>
-
-        <!-- アクションボタン -->
-        <div class="flex gap-3 pt-3 border-t border-gray-100">
-          <button onclick="showCompanyDetail(${company.rank})" class="detail-btn flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-black text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
-            📋 詳細を見る
-          </button>
-          <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn flex-1 px-6 py-3 rounded-xl font-black text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
-            <span class="keep-text">💾 キープ</span>
-          </button>
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-xs font-bold text-gray-700">見積もり価格: ${company.price}</span>
+          </div>
+          <div class="flex gap-1">
+            <button onclick="showCompanyDetail(${company.rank})" class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium w-[90px] whitespace-nowrap">
+              詳細
+            </button>
+            <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap">
+              <span class="keep-text">キープ</span>
+            </button>
+          </div>
         </div>
       </div>
     `;
