@@ -4457,7 +4457,10 @@ window.addEventListener('beforeunload', function(e) {
 
             // 現地調査希望日時（AR列: 現地調査希望日時, V1833: surveyDatePreferenceキー使用）
             // ボタンを選択状態にする（V1832: スタイルも適用, V1833: survey-datetime-button class使用）
+            console.log('[populateForm V1833] 現地調査希望日時処理開始');
+            console.log('[populateForm V1833] data.surveyDatePreference:', data.surveyDatePreference);
             const surveyButtonGroup = document.getElementById('surveyDateTimeButtonGroup');
+            console.log('[populateForm V1833] surveyButtonGroup要素:', surveyButtonGroup);
             if (surveyButtonGroup) {
                 // V1833 DEBUG: データの確認
                 console.log('[populateForm DEBUG] surveyDatePreference:', data.surveyDatePreference);
@@ -4657,10 +4660,10 @@ window.addEventListener('beforeunload', function(e) {
                 }
             }
 
-            // 現調日時（ボタングループ）
+            // 現調日時（ボタングループ）- V1833: survey-datetime-button class使用
             const surveyDateTimeButtonGroup = document.getElementById('surveyDateTimeButtonGroup');
             if (surveyDateTimeButtonGroup) {
-                const selectedButtons = surveyDateTimeButtonGroup.querySelectorAll('.option-button.selected');
+                const selectedButtons = surveyDateTimeButtonGroup.querySelectorAll('.survey-datetime-button.selected');
                 if (selectedButtons.length === 0) {
                     // 未選択の場合は赤枠
                     surveyDateTimeButtonGroup.style.border = '2px solid #ef4444';
@@ -6841,11 +6844,14 @@ window.addEventListener('beforeunload', function(e) {
             }
 
             // 新規作成の場合はフォームをクリア、それ以外は既存データを反映
+            console.log('[loadCRMContent V1833] caseData.isNew:', caseData.isNew, 'caseId:', caseId);
             if (caseData.isNew) {
+                console.log('[loadCRMContent V1833] 新規作成モード - clearCRMForm実行');
                 clearCRMForm();
                 // 新規作成フラグを削除
                 delete caseData.isNew;
             } else {
+                console.log('[loadCRMContent V1833] 既存データモード - populateForm実行');
                 // フォームに案件データを反映（エラーハンドリング付き）
                 try {
                     populateForm(caseId);
