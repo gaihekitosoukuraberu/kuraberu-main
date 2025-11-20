@@ -4456,18 +4456,26 @@ window.addEventListener('beforeunload', function(e) {
             }
 
             // 現地調査希望日時（AQ列: 現地調査希望日時）
-            // ボタンを選択状態にする
-            if (data['現地調査希望日時']) {
-                const selectedTimes = data['現地調査希望日時'].split(', ');
-                const surveyButtonGroup = document.getElementById('surveyDateTimeButtonGroup');
-                if (surveyButtonGroup) {
-                    surveyButtonGroup.querySelectorAll('.option-button').forEach(btn => {
-                        if (selectedTimes.includes(btn.textContent.trim())) {
-                            btn.classList.add('selected');
-                        }
-                    });
+            // ボタンを選択状態にする（V1832: スタイルも適用）
+            const surveyButtonGroup = document.getElementById('surveyDateTimeButtonGroup');
+            if (surveyButtonGroup) {
+                const selectedTimes = data['現地調査希望日時'] ? data['現地調査希望日時'].split(', ') : [];
+                surveyButtonGroup.querySelectorAll('.option-button').forEach(btn => {
+                    const btnText = btn.textContent.trim();
+                    // 選択状態のボタンにスタイルを適用
+                    if (selectedTimes.includes(btnText)) {
+                        btn.classList.add('selected');
+                        btn.classList.remove('bg-white', 'border-gray-300', 'text-gray-700');
+                        btn.classList.add('bg-orange-500', 'border-orange-500', 'text-white', 'shadow-md');
+                    } else {
+                        // 未選択状態のボタンは初期スタイルを確実に適用
+                        btn.classList.remove('selected', 'bg-orange-500', 'border-orange-500', 'text-white', 'shadow-md');
+                        btn.classList.add('bg-white', 'border-gray-300', 'text-gray-700');
+                    }
+                });
+                if (data['現地調査希望日時']) {
+                    console.log('[populateForm] 現地調査希望日時読み込み:', data['現地調査希望日時']);
                 }
-                console.log('[populateForm] 現地調査希望日時読み込み:', data['現地調査希望日時']);
             }
 
             // 立ち会い可否（V1832: ?? 演算子で空文字列も保持）
@@ -5816,8 +5824,8 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
-        // 現地調査希望日時の選択ボタン
-        function selectSurveyDateTime(button) {
+        // 現地調査希望日時の選択ボタン（V1832: グローバルスコープに公開）
+        window.selectSurveyDateTime = function(button) {
             // 既に選択されている場合は解除（トグル動作）
             if (button.classList.contains('selected')) {
                 // 選択解除
@@ -5841,7 +5849,7 @@ window.addEventListener('beforeunload', function(e) {
 
             // バリデーション状態を更新
             validateEmptyFields();
-        }
+        };
 
         // キーボードショートカット（Cmd+S / Ctrl+S で保存）
         document.addEventListener('keydown', function(e) {
