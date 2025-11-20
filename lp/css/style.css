@@ -1825,8 +1825,6 @@ button {
     align-items: flex-start;
     justify-content: flex-start;
     min-width: 0;
-    position: relative;
-    z-index: 10;
   }
 
   .mv .mv__before__tit {
@@ -1862,6 +1860,8 @@ button {
     margin: 0;
     cursor: pointer;
     order: 3;
+    position: relative;
+    z-index: 50;
   }
 
   .mv .mv__before__img img {
