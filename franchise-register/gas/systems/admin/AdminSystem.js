@@ -2313,12 +2313,13 @@ const AdminSystem = {
         'companiesCount': '希望社数',
         'surveyAttendance': '立ち会い可否',
         'attendanceRelation': '立ち会い者関係性',
+        'surveyDatePreference': '現地調査希望日時',
         'specialItems': '特殊項目',
         'status': '管理ステータス',
         'searchKeyword': '検索キーワード',
         '案件メモ': '案件メモ',
         '連絡時間帯': '連絡時間帯',
-        '現地調査希望日時': '現地調査希望日時'
+        '現地調査希望日時': '現地調査希望日時'  // V1833: 後方互換性のため残す
       };
 
       // 更新するデータをマッピング

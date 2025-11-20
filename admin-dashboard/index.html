@@ -5966,12 +5966,12 @@ window.addEventListener('beforeunload', function(e) {
                 data.doorSalesVisit = doorSalesVisitSelect.value || '';
             }
 
-            // 現地調査希望日時（選択されたボタンから取得, V1833: survey-datetime-button class使用）
+            // 現地調査希望日時（選択されたボタンから取得, V1833: survey-datetime-button class使用, surveyDatePreferenceキー使用）
             const surveyButtonGroup = document.getElementById('surveyDateTimeButtonGroup');
             if (surveyButtonGroup) {
                 const selectedSurveyTimes = Array.from(surveyButtonGroup.querySelectorAll('.survey-datetime-button.selected'))
                     .map(btn => btn.textContent.trim());
-                data['現地調査希望日時'] = selectedSurveyTimes.join(', ');
+                data.surveyDatePreference = selectedSurveyTimes.join(', ');
             }
 
             // 立ち会い可否
