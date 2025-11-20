@@ -675,6 +675,93 @@ const EvaluationDataManager = {
       responseSpeed: Math.round(responseSpeed * 10) / 10,
       customerSatisfaction: Math.round(customerSatisfaction * 10) / 10
     };
+  },
+
+  /**
+   * 評価データシートから加盟店マスタのAC列（総合スコア）に同期
+   * V1754: 評価データシート → 加盟店マスタ自動同期
+   */
+  syncRatingsToMaster: function() {
+    console.log('[EvaluationData] 総合スコアを加盟店マスタに同期開始');
+
+    try {
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+      const evaluationSheet = this.getEvaluationSheet();
+      const masterSheet = ss.getSheetByName('加盟店マスタ');
+
+      if (!masterSheet) {
+        console.error('[EvaluationData] 加盟店マスタシートが見つかりません');
+        return { success: false, error: '加盟店マスタシートが見つかりません' };
+      }
+
+      // 評価データシートからデータ取得
+      const evaluationData = evaluationSheet.getDataRange().getValues();
+      const evaluationHeaders = evaluationData[0];
+
+      // 会社名と総合スコアのマッピング作成
+      const evaluationMap = {};
+      const companyNameColIndex = evaluationHeaders.indexOf('会社名');
+      const overallScoreColIndex = evaluationHeaders.indexOf('総合スコア');
+
+      console.log('[EvaluationData] 評価データ列インデックス - 会社名:', companyNameColIndex, '総合スコア:', overallScoreColIndex);
+
+      for (let i = 1; i < evaluationData.length; i++) {
+        const companyName = evaluationData[i][companyNameColIndex];
+        const overallScore = evaluationData[i][overallScoreColIndex];
+
+        if (companyName && overallScore) {
+          evaluationMap[companyName] = overallScore;
+        }
+      }
+
+      console.log('[EvaluationData] 評価データマップ作成完了:', Object.keys(evaluationMap).length + '件');
+
+      // 加盟店マスタのヘッダー取得
+      const masterHeaders = masterSheet.getRange(1, 1, 1, masterSheet.getLastColumn()).getValues()[0];
+      const masterCompanyNameColIndex = masterHeaders.indexOf('会社名');
+      const masterRatingColIndex = masterHeaders.indexOf('総合スコア');
+
+      console.log('[EvaluationData] 加盟店マスタ列インデックス - 会社名:', masterCompanyNameColIndex, '総合スコア:', masterRatingColIndex);
+
+      if (masterRatingColIndex === -1) {
+        console.error('[EvaluationData] 加盟店マスタに「総合スコア」列が見つかりません');
+        return { success: false, error: '加盟店マスタに「総合スコア」列が見つかりません' };
+      }
+
+      // 加盟店マスタを更新
+      const masterLastRow = masterSheet.getLastRow();
+      let updatedCount = 0;
+      let notFoundCount = 0;
+
+      for (let i = 2; i <= masterLastRow; i++) {
+        const companyName = masterSheet.getRange(i, masterCompanyNameColIndex + 1).getValue();
+
+        if (companyName && evaluationMap[companyName] !== undefined) {
+          // 評価データが存在する場合は同期
+          masterSheet.getRange(i, masterRatingColIndex + 1).setValue(evaluationMap[companyName]);
+          updatedCount++;
+        } else if (companyName) {
+          // 評価データが存在しない場合はデフォルト値4.2を設定
+          masterSheet.getRange(i, masterRatingColIndex + 1).setValue(4.2);
+          notFoundCount++;
+        }
+      }
+
+      console.log('[EvaluationData] 同期完了 - 更新:', updatedCount + '件、デフォルト設定:', notFoundCount + '件');
+
+      return {
+        success: true,
+        updatedCount: updatedCount,
+        notFoundCount: notFoundCount,
+        totalEvaluations: Object.keys(evaluationMap).length
+      };
+
+    } catch (error) {
+      console.error('[EvaluationData] 同期エラー:', error);
+      return { success: false, error: error.toString() };
+    }
   }
 
 };

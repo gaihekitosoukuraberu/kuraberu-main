@@ -324,7 +324,7 @@ const keepManager = {
     }
   },
 
-  // ボタンの表示を更新（V1753: 元のサイズ・控えめデザイン）
+  // ボタンの表示を更新（V1754: グラデーションデザイン・元のサイズ）
   updateButton(buttonElement, companyName) {
     if (!buttonElement) return;
 
@@ -332,12 +332,12 @@ const keepManager = {
     const textElement = buttonElement.querySelector('.keep-text');
 
     if (isKept) {
-      // キープ中はオレンジ色
-      buttonElement.className = 'keep-btn bg-orange-400 hover:bg-orange-500 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap';
+      // キープ中はオレンジ色（グラデーション）
+      buttonElement.className = 'keep-btn bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105';
       if (textElement) textElement.textContent = '✅ キープ中';
     } else {
-      // 未キープは黄色
-      buttonElement.className = 'keep-btn bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap';
+      // 未キープは黄色（グラデーション）
+      buttonElement.className = 'keep-btn bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105';
       if (textElement) textElement.textContent = '💾 キープ';
     }
   },
@@ -544,15 +544,13 @@ function displayRanking() {
             施工実績: ${company.reviews || 0}件
           </div>
         </div>
-        <div class="flex items-center justify-between">
-          <div class="flex gap-1">
-            <button onclick="showCompanyDetail(${company.rank})" class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium w-[90px] whitespace-nowrap">
-              📋 詳細
-            </button>
-            <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap">
-              <span class="keep-text">💾 キープ</span>
-            </button>
-          </div>
+        <div class="flex items-center justify-end gap-2">
+          <button onclick="showCompanyDetail(${company.rank})" class="detail-btn bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105">
+            📋 詳細
+          </button>
+          <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105">
+            <span class="keep-text">💾 キープ</span>
+          </button>
         </div>
       </div>
     `;

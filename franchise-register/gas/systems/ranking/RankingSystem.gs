@@ -91,7 +91,7 @@ const RankingSystem = {
       // V1713-FIX: onEditトリガーで加盟店登録→加盟店マスタが自動同期されるため、
       // マスタシートだけを読めばOK（高速化）
 
-      // カラムインデックス取得（V1707: 対応築年数追加 / V1713: ボーナス・フラグ追加 / V1750: 3ヶ月データ追加 / V1751: 加盟日追加）
+      // カラムインデックス取得（V1707: 対応築年数追加 / V1713: ボーナス・フラグ追加 / V1750: 3ヶ月データ追加 / V1751: 加盟日追加 / V1754: 総合スコア追加）
       const colIndex = {
         companyName: masterHeaders.indexOf('会社名'),
         prefecture: masterHeaders.indexOf('対応都道府県'),
@@ -99,7 +99,7 @@ const RankingSystem = {
         approvalStatus: masterHeaders.indexOf('承認ステータス'),
         deliveryStatus: masterHeaders.indexOf('配信ステータス'),
         avgContractAmount: masterHeaders.indexOf('直近3ヶ月_平均成約金額'),
-        rating: masterHeaders.indexOf('評価'),
+        rating: masterHeaders.indexOf('総合スコア'),
         reviewCount: masterHeaders.indexOf('口コミ件数'),
         contractCount: masterHeaders.indexOf('直近3ヶ月_成約件数'),
         constructionTypes: masterHeaders.indexOf('対応工事種別'),

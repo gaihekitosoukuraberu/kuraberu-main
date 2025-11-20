@@ -114,12 +114,12 @@ const SystemRouter = {
       actions: ['searchCompany']
     },
 
-    // 評価データ管理
+    // 評価データ管理（V1754: syncRatingsToMaster追加）
     'evaluation_': {
       system: 'EvaluationDataManager',
       description: '評価データ管理',
       prefix: true,
-      actions: ['getRatingsFromSheet', 'updateCompanyRatings']
+      actions: ['getRatingsFromSheet', 'updateCompanyRatings', 'syncRatingsToMaster']
     },
 
     // CVデータ管理システム
@@ -944,5 +944,37 @@ function handleGetConstructionExamples(postData) {
       error: error.toString()
     };
   }
-}// Test trigger 20251031-171429
+}
+
+/**
+ * ====================================
+ * 手動実行用: 評価データ同期
+ * ====================================
+ * V1754: 評価データシート → 加盟店マスタAC列（総合スコア）同期
+ *
+ * 使い方: GASエディタで「実行」→「syncRatingsToMasterManual」
+ */
+function syncRatingsToMasterManual() {
+  console.log('========================================');
+  console.log('評価データ同期を手動実行中...');
+  console.log('========================================');
+
+  const result = EvaluationDataManager.syncRatingsToMaster();
+
+  console.log('結果:', JSON.stringify(result, null, 2));
+  console.log('========================================');
+
+  if (result.success) {
+    console.log('✅ 同期成功');
+    console.log('  - 更新:', result.updatedCount, '件');
+    console.log('  - デフォルト設定:', result.notFoundCount, '件');
+    console.log('  - 評価データ総数:', result.totalEvaluations, '件');
+  } else {
+    console.error('❌ 同期失敗:', result.error);
+  }
+
+  return result;
+}
+
+// Test trigger 20251031-171429
 // Timestamp: 2025-11-04 02:26:19
