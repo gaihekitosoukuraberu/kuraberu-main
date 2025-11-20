@@ -176,22 +176,26 @@ function displayAreaSelection() {
     let html = `
         <!-- 選択状況サマリー -->
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
-            <div class="flex justify-between items-center gap-2">
-                <div class="flex items-center gap-1">
-                    <span class="text-xs text-gray-600 whitespace-nowrap">都道府県:</span>
-                    <span id="selectedPrefCount" class="font-bold text-base">0</span>
-                    <span class="text-xs text-gray-600">/ ${window.CONFIG.MAX_PREFECTURES}</span>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; text-align: center;">
+                <div>
+                    <div style="font-size: 0.75rem; color: #4b5563; margin-bottom: 0.25rem;">都道府県</div>
+                    <div style="font-weight: bold; font-size: 1.125rem;">
+                        <span id="selectedPrefCount">0</span>
+                        <span style="font-size: 0.75rem; color: #6b7280; font-weight: normal;"> / ${window.CONFIG.MAX_PREFECTURES}</span>
+                    </div>
                 </div>
-                <div class="flex items-center gap-1">
-                    <span class="text-xs text-gray-600 whitespace-nowrap">市区町村:</span>
-                    <span id="selectedCityCount" class="font-bold text-base">0</span>
+                <div>
+                    <div style="font-size: 0.75rem; color: #4b5563; margin-bottom: 0.25rem;">市区町村</div>
+                    <div style="font-weight: bold; font-size: 1.125rem;">
+                        <span id="selectedCityCount">0</span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- 都道府県選択 -->
         <div class="border rounded-lg p-4 mb-6">
-            <h4 class="font-semibold mb-3">STEP 1: 都道府県を選択 (最大${window.CONFIG.MAX_PREFECTURES}件)</h4>
+            <h4 class="font-semibold mb-3">STEP 1: 都道府県を選択<br class="mobile-break"> (最大${window.CONFIG.MAX_PREFECTURES}件)</h4>
             <div class="area-grid" id="areaGrid">
     `;
     // 都道府県を全て表示

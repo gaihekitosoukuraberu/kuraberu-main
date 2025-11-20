@@ -672,8 +672,18 @@ input[type="checkbox"][name="propertyType"] {
     max-height: 350px;
 }
 
+/* モバイル専用改行（デフォルトは非表示） */
+.mobile-break {
+    display: none;
+}
+
 /* レスポンシブ対応 */
 @media (max-width: 640px) {
+    /* モバイルでのみ改行を表示 */
+    .mobile-break {
+        display: block;
+    }
+
     .step-label {
         display: none;
     }

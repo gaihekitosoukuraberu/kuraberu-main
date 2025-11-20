@@ -445,7 +445,15 @@ function createRegistrationRow(item, type) {
     // アクションボタン
     const actionButtons = type === 'pending'
         ? `<button onclick="viewRegistrationDetails('${item.registrationId}')" class="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 mr-2">詳細</button>
-           <button onclick="approveRegistration('${item.registrationId}')" class="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 mr-2">承認</button>
+           <button id="approve-btn-${item.registrationId}" onclick="approveRegistration('${item.registrationId}')" class="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 mr-2 relative">
+               <span class="btn-text">承認</span>
+               <span class="btn-spinner hidden">
+                   <svg class="animate-spin h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                   </svg>
+               </span>
+           </button>
            <button onclick="rejectRegistration('${item.registrationId}')" class="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600">却下</button>`
         : `<button onclick="viewRegistrationDetails('${item.registrationId}')" class="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 mr-2">詳細</button>
            <button onclick="revertRegistration('${item.registrationId}')" class="px-3 py-1 bg-orange-500 text-white text-sm rounded hover:bg-orange-600">差し戻し</button>`;
@@ -632,8 +640,14 @@ function createRegistrationCard(item, type) {
                 <button onclick="viewRegistrationDetails('${item.registrationId}')" class="flex-1 px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600">
                     詳細
                 </button>
-                <button onclick="approveRegistration('${item.registrationId}')" class="flex-1 px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600">
-                    承認
+                <button id="approve-btn-mobile-${item.registrationId}" onclick="approveRegistration('${item.registrationId}')" class="flex-1 px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600 relative">
+                    <span class="btn-text">承認</span>
+                    <span class="btn-spinner hidden">
+                        <svg class="animate-spin h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </span>
                 </button>
                 <button onclick="rejectRegistration('${item.registrationId}')" class="flex-1 px-3 py-2 bg-red-500 text-white text-sm rounded hover:bg-red-600">
                     却下
@@ -694,6 +708,21 @@ async function approveRegistration(registrationId) {
 
     if (!confirm('この申請を承認しますか？\n\n承認後、初回ログインメールが送信されます。')) return;
 
+    // ローディングスピナーを表示
+    const desktopBtn = document.getElementById(`approve-btn-${registrationId}`);
+    const mobileBtn = document.getElementById(`approve-btn-mobile-${registrationId}`);
+
+    const buttons = [desktopBtn, mobileBtn].filter(btn => btn !== null);
+
+    buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.classList.add('opacity-75', 'cursor-not-allowed');
+        const btnText = btn.querySelector('.btn-text');
+        const btnSpinner = btn.querySelector('.btn-spinner');
+        if (btnText) btnText.classList.add('hidden');
+        if (btnSpinner) btnSpinner.classList.remove('hidden');
+    });
+
     try {
         console.log('[approveRegistration] JSONPリクエスト送信中...');
         // JSONP方式でGETリクエスト（POST権限問題を回避）
@@ -722,6 +751,16 @@ async function approveRegistration(registrationId) {
     } catch (error) {
         console.error('[RegistrationRequests] 承認エラー:', error);
         alert('エラーが発生しました: ' + error.message);
+
+        // エラー時はボタンを元に戻す
+        buttons.forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            const btnText = btn.querySelector('.btn-text');
+            const btnSpinner = btn.querySelector('.btn-spinner');
+            if (btnText) btnText.classList.remove('hidden');
+            if (btnSpinner) btnSpinner.classList.add('hidden');
+        });
     }
 }
 
