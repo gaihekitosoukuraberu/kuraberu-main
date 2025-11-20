@@ -121,6 +121,10 @@ const RankingSystem = {
       // V1713-DEBUG: カラムインデックス検証
       console.log('[V1713-DEBUG] カラムインデックス:', JSON.stringify(colIndex));
 
+      // V1765: 総合スコア列の確認
+      console.log('[V1765-DEBUG] 総合スコア列インデックス:', colIndex.rating);
+      console.log('[V1765-DEBUG] ヘッダー配列:', JSON.stringify(masterHeaders));
+
       // V1713-DEBUG: 必須カラムチェック
       const missingColumns = [];
       if (colIndex.companyName === -1) missingColumns.push('会社名');
@@ -371,12 +375,16 @@ const RankingSystem = {
         // V1751: 加盟日取得（データ移行システム用）
         const joinDate = row[colIndex.joinDate] || '';
 
+        // V1765: 総合スコア取得デバッグ
+        const ratingValue = row[colIndex.rating];
+        console.log('[V1765-DEBUG] 会社:', companyName, '/ colIndex.rating:', colIndex.rating, '/ AC列の値:', ratingValue, '/ 型:', typeof ratingValue);
+
         // すべての条件を満たした業者を追加（V1751: 加盟日 + データ移行システム）
         filterStats.passed++;
         filtered.push({
           companyName: companyName,
           avgContractAmount: recent3MonthAvgAmount,
-          rating: row[colIndex.rating] || 0,
+          rating: ratingValue || 0,
           reviewCount: row[colIndex.reviewCount] || 0,
           prefecture: prefecture,
           city: city,
