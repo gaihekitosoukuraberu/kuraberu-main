@@ -2361,6 +2361,18 @@ const AdminSystem = {
 
       console.log('[updateCVData] 成功:', updates.length, '件更新');
 
+      // デバッグ: 保存後に実際のセル値を読み取って確認
+      const workItemsCol = headers.indexOf('見積もり希望箇所');
+      if (workItemsCol !== -1) {
+        const savedValue = userSheet.getRange(targetRow, workItemsCol + 1).getValue();
+        console.log(`[updateCVData] 保存後の「見積もり希望箇所」セル値確認: "${savedValue}"`);
+      }
+      const specialItemsCol = headers.indexOf('特殊項目');
+      if (specialItemsCol !== -1) {
+        const savedValue = userSheet.getRange(targetRow, specialItemsCol + 1).getValue();
+        console.log(`[updateCVData] 保存後の「特殊項目」セル値確認: "${savedValue}"`);
+      }
+
       return {
         success: true,
         message: `${updates.length}フィールドを更新しました`,

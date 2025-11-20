@@ -950,6 +950,14 @@ const CVSheetSystem = {
         // 空行をスキップ
         if (!row[0]) return null;
 
+        // デバッグ: CV-KW000138の生データをログ出力
+        if (row[0] === 'CV-KW000138') {
+          console.log('[getAllCVs] CV-KW000138 生データ確認:');
+          console.log('  workItems (index 77):', row[77]);
+          console.log('  specialItems (index 82):', row[82]);
+          console.log('  name (index 2):', row[2]);
+        }
+
         return {
           // A-I: 基本個人情報
           cvId: row[0] || '',                           // A: CV ID
