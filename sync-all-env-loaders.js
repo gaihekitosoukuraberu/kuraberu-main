@@ -68,17 +68,23 @@ files.forEach(file => {
 
     let content = fs.readFileSync(file.path, 'utf8');
 
-    // GAS_URLを更新（複数のパターンに対応）
-    const urlPatterns = [
+    // GAS_URLを更新（メインURL）
+    content = content.replace(
       /GAS_URL:\s*['"]https:\/\/script\.google\.com\/macros\/s\/[^'"]+\/exec['"]/g,
-      /const\s+GAS_URL\s*=\s*['"]https:\/\/script\.google\.com\/macros\/s\/[^'"]+\/exec['"]/g
-    ];
+      `GAS_URL: '${NEW_GAS_URL}'`
+    );
 
-    urlPatterns.forEach(pattern => {
-      if (pattern.test(content)) {
-        content = content.replace(pattern, `GAS_URL: '${NEW_GAS_URL}'`);
-      }
-    });
+    // FALLBACK_GAS_URLを更新
+    content = content.replace(
+      /FALLBACK_GAS_URL:\s*['"]https:\/\/script\.google\.com\/macros\/s\/[^'"]+\/exec['"]/g,
+      `FALLBACK_GAS_URL: '${NEW_GAS_URL}'`
+    );
+
+    // EMERGENCY_GAS_URLを更新
+    content = content.replace(
+      /EMERGENCY_GAS_URL:\s*['"]https:\/\/script\.google\.com\/macros\/s\/[^'"]+\/exec['"]/g,
+      `EMERGENCY_GAS_URL: '${NEW_GAS_URL}'`
+    );
 
     // キャッシュバスターを更新（動的に生成）
     const cacheBusterPatterns = [
