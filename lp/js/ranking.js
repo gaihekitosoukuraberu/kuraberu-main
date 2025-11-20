@@ -230,6 +230,36 @@ function updateAllCompaniesFromDynamic(sortType) {
 // V1704: sortDefaultData関数削除 - デフォルトデータなし、実データのみ使用
 
 // ============================================
+// V1765: カスタムスムーススクロール（ふわっとしたアニメーション）
+// ============================================
+function smoothScrollTo(targetY, duration = 800) {
+  const startY = window.pageYOffset;
+  const distance = targetY - startY;
+  const startTime = performance.now();
+
+  // イージング関数（ease-in-out）
+  function easeInOutCubic(t) {
+    return t < 0.5
+      ? 4 * t * t * t
+      : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function animation(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const ease = easeInOutCubic(progress);
+
+    window.scrollTo(0, startY + distance * ease);
+
+    if (progress < 1) {
+      requestAnimationFrame(animation);
+    }
+  }
+
+  requestAnimationFrame(animation);
+}
+
+// ============================================
 // 会社データから特徴を抽出（V1765: PR項目改善）
 // ============================================
 function extractFeatures(company) {
@@ -434,23 +464,21 @@ async function showRankingSection() {
     if (sortingSection) sortingSection.classList.add('mosaic-blur');
     if (toggleButton) toggleButton.parentElement.classList.add('mosaic-blur');
 
-    // スマホ版の場合はランキングセクションにスクロール（1秒後）
-    if (window.innerWidth < 768) {
-      setTimeout(() => {
-        rankingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 1000);
-    } else {
-      // PC版は相場セクションまでスクロール
-      const areaPrice = document.getElementById('areaPrice');
-      if (areaPrice) {
-        // 相場カードの上部に少し余白が見えるようにスクロール調整
-        const offsetPosition = areaPrice.offsetTop + 10;
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: 'smooth'
-        });
+    // V1765: ふわっとしたスクロール（遅延を短く・カスタムイージング使用）
+    setTimeout(() => {
+      if (window.innerWidth < 768) {
+        // スマホ版: ランキングセクションにスクロール
+        const targetY = rankingSection.offsetTop - 20;
+        smoothScrollTo(targetY, 1000); // 1秒かけてふわっと
+      } else {
+        // PC版: 相場セクションまでスクロール
+        const areaPrice = document.getElementById('areaPrice');
+        if (areaPrice) {
+          const targetY = areaPrice.offsetTop + 10;
+          smoothScrollTo(targetY, 1000); // 1秒かけてふわっと
+        }
       }
-    }
+    }, 600); // 遅延を1秒→600msに短縮
   }
 }
 
