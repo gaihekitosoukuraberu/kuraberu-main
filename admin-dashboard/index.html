@@ -4459,26 +4459,33 @@ window.addEventListener('beforeunload', function(e) {
             // ボタンを選択状態にする（V1832: スタイルも適用, V1833: survey-datetime-button class使用）
             const surveyButtonGroup = document.getElementById('surveyDateTimeButtonGroup');
             if (surveyButtonGroup) {
+                // V1833 DEBUG: データの確認
+                console.log('[populateForm DEBUG] surveyDatePreference:', data.surveyDatePreference);
+                console.log('[populateForm DEBUG] 全データキー:', Object.keys(data));
+
                 // V1833: 既存データ互換性のため「金曜_午後」→「金曜 午後」変換（新規データはスペース区切り）
                 const selectedTimes = data.surveyDatePreference
                     ? data.surveyDatePreference.split(', ').map(t => t.replace(/_/g, ' '))
                     : [];
+
+                console.log('[populateForm DEBUG] 変換後selectedTimes:', selectedTimes);
+
                 surveyButtonGroup.querySelectorAll('.survey-datetime-button').forEach(btn => {
                     const btnText = btn.textContent.trim();
+                    console.log('[populateForm DEBUG] ボタンテキスト:', btnText, 'マッチ:', selectedTimes.includes(btnText));
+
                     // 選択状態のボタンにスタイルを適用
                     if (selectedTimes.includes(btnText)) {
                         btn.classList.add('selected');
                         btn.classList.remove('bg-white', 'border-gray-300', 'text-gray-700');
                         btn.classList.add('bg-orange-500', 'border-orange-500', 'text-white', 'shadow-md');
+                        console.log('[populateForm DEBUG] ボタン選択:', btnText);
                     } else {
                         // 未選択状態のボタンは初期スタイルを確実に適用
                         btn.classList.remove('selected', 'bg-orange-500', 'border-orange-500', 'text-white', 'shadow-md');
                         btn.classList.add('bg-white', 'border-gray-300', 'text-gray-700');
                     }
                 });
-                if (data.surveyDatePreference) {
-                    console.log('[populateForm] 現地調査希望日時読み込み:', data.surveyDatePreference, '→変換後:', selectedTimes);
-                }
             }
 
             // 立ち会い可否（V1832: ?? 演算子で空文字列も保持）
