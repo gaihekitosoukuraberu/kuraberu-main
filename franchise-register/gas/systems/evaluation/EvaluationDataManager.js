@@ -714,7 +714,7 @@ const EvaluationDataManager = {
       console.log('[EvaluationData] 評価データ列インデックス(固定) - 会社名:', companyNameColIndex, '総合スコア:', overallScoreColIndex);
 
       for (let i = 1; i < evaluationData.length; i++) {
-        const companyName = evaluationData[i][companyNameColIndex];
+        const companyName = String(evaluationData[i][companyNameColIndex] || '').trim();
         const overallScore = evaluationData[i][overallScoreColIndex];
 
         console.log('[EvaluationData] 行', i, ':', companyName, '→', overallScore);
@@ -725,6 +725,7 @@ const EvaluationDataManager = {
       }
 
       console.log('[EvaluationData] 評価データマップ作成完了:', Object.keys(evaluationMap).length + '件');
+      console.log('[EvaluationData] 評価データマップのキー:', JSON.stringify(Object.keys(evaluationMap)));
 
       // 加盟店マスタのヘッダー取得
       const masterHeaders = masterSheet.getRange(1, 1, 1, masterSheet.getLastColumn()).getValues()[0];
@@ -744,14 +745,19 @@ const EvaluationDataManager = {
       let notFoundCount = 0;
 
       for (let i = 2; i <= masterLastRow; i++) {
-        const companyName = masterSheet.getRange(i, masterCompanyNameColIndex + 1).getValue();
+        const companyName = String(masterSheet.getRange(i, masterCompanyNameColIndex + 1).getValue() || '').trim();
+
+        console.log('[EvaluationData] マスタ行', i, '- 会社名:', companyName);
 
         if (companyName && evaluationMap[companyName] !== undefined) {
           // 評価データが存在する場合は同期
-          masterSheet.getRange(i, masterRatingColIndex + 1).setValue(evaluationMap[companyName]);
+          const score = evaluationMap[companyName];
+          console.log('[EvaluationData] ✅ マッチ:', companyName, '→', score);
+          masterSheet.getRange(i, masterRatingColIndex + 1).setValue(score);
           updatedCount++;
         } else if (companyName) {
           // 評価データが存在しない場合はデフォルト値4.2を設定
+          console.log('[EvaluationData] ❌ マッチなし:', companyName, '→ デフォルト4.2');
           masterSheet.getRange(i, masterRatingColIndex + 1).setValue(4.2);
           notFoundCount++;
         }
