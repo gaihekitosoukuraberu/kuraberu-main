@@ -175,23 +175,23 @@ function displayAreaSelection() {
     
     let html = `
         <!-- 選択状況サマリー -->
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <div class="flex justify-between items-center">
-                <div>
-                    <span class="text-sm text-gray-600">選択済み都道府県:</span>
-                    <span id="selectedPrefCount" class="font-bold text-lg ml-2">0</span>
-                    <span class="text-sm text-gray-600">/ ${window.CONFIG.MAX_PREFECTURES}</span>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+            <div class="flex justify-between items-center gap-2">
+                <div class="flex items-center gap-1">
+                    <span class="text-xs text-gray-600 whitespace-nowrap">都道府県:</span>
+                    <span id="selectedPrefCount" class="font-bold text-base">0</span>
+                    <span class="text-xs text-gray-600">/ ${window.CONFIG.MAX_PREFECTURES}</span>
                 </div>
-                <div>
-                    <span class="text-sm text-gray-600">選択済み市区町村:</span>
-                    <span id="selectedCityCount" class="font-bold text-lg ml-2">0</span>
+                <div class="flex items-center gap-1">
+                    <span class="text-xs text-gray-600 whitespace-nowrap">市区町村:</span>
+                    <span id="selectedCityCount" class="font-bold text-base">0</span>
                 </div>
             </div>
         </div>
 
         <!-- 都道府県選択 -->
         <div class="border rounded-lg p-4 mb-6">
-            <h4 class="font-semibold mb-3">STEP 1: 都道府県を選択（最大${window.CONFIG.MAX_PREFECTURES}都道府県）</h4>
+            <h4 class="font-semibold mb-3">STEP 1: 都道府県を選択 (最大${window.CONFIG.MAX_PREFECTURES}件)</h4>
             <div class="area-grid" id="areaGrid">
     `;
     // 都道府県を全て表示
@@ -216,7 +216,7 @@ function displayAreaSelection() {
         <div id="citySelectionArea" class="hidden mb-6">
             <div class="border rounded-lg p-4">
                 <h4 class="font-semibold mb-3">STEP 2: 市区町村を選択</h4>
-                <div id="cityListContainer" class="space-y-4">
+                <div id="cityListContainer" class="space-y-4 overflow-y-auto scrollable-area">
                     <!-- 各都道府県の市区町村リストが縦に表示される -->
                 </div>
             </div>
@@ -226,10 +226,10 @@ function displayAreaSelection() {
         <div id="priorityArea" class="hidden mb-6">
             <div id="priorityAreaSection" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <div class="flex justify-between items-center mb-3">
-                    <h4 class="font-semibold">STEP 3: 優先エリアを設定（最大3エリア）</h4>
+                    <h4 class="font-semibold">STEP 3: 優先エリア設定 (最大3件)</h4>
                     <span class="text-orange-500 font-semibold">0 / 3 選択中</span>
                 </div>
-                <p class="text-sm text-gray-600 mb-3">特に注力したいエリアを最大3つまで選択できます</p>
+                <p class="text-sm text-gray-600 mb-3">注力エリアを最大3件選択</p>
                 <div id="prioritySelectionList">
                     <!-- 優先エリア選択リストがここに生成される -->
                 </div>
@@ -453,9 +453,9 @@ function updatePriorityArea() {
     });
 
     container.innerHTML = `
-        <div class="bg-white border-2 border-yellow-200 rounded-lg p-4 max-h-96 overflow-y-auto">
+        <div class="bg-white border-2 border-yellow-200 rounded-lg p-4 max-h-96 overflow-y-auto scrollable-area">
             <div class="mb-3 sticky top-0 bg-white pb-2 border-b">
-                <span class="text-sm font-semibold">選択可能なエリア（全${availableAreas.length}エリア）</span>
+                <span class="text-sm font-semibold">選択可能エリア (全${availableAreas.length}件)</span>
             </div>
             ${Object.entries(groupedAreas).map(([prefecture, areas]) => `
                 <div class="mb-4">
