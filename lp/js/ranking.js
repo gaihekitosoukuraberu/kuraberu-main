@@ -260,40 +260,29 @@ function smoothScrollTo(targetY, duration = 800) {
 }
 
 // ============================================
-// 会社データから特徴を抽出（V1765: PR項目改善）
+// 会社データから特徴を抽出
 // ============================================
 function extractFeatures(company) {
   const features = [];
 
-  // 1. 総合評価が高い場合（4.3以上）
-  if (company.rating && company.rating >= 4.3) {
-    features.push(`⭐高評価${company.rating.toFixed(1)}`);
-  }
-
-  // 2. 成約率が高い場合（60%以上）
-  if (company.recent3MonthConversionRate && company.recent3MonthConversionRate >= 0.6) {
-    const rate = Math.round(company.recent3MonthConversionRate * 100);
-    features.push(`成約率${rate}%`);
-  }
-
-  // 3. 問合せ件数が多い場合（10件以上）
-  if (company.recent3MonthInquiryCount && company.recent3MonthInquiryCount >= 10) {
-    features.push(`人気（問合せ${company.recent3MonthInquiryCount}件）`);
-  }
-
-  // 4. 対応都道府県
+  // 対応都道府県
   if (company.prefecture) {
     features.push(`${company.prefecture}対応`);
   }
 
-  // 5. 施工実績（成約件数）
-  if (company.contractCount && company.contractCount > 0) {
-    features.push(`実績${company.contractCount}件`);
+  // 最大対応階数
+  if (company.maxFloors) {
+    features.push(`${company.maxFloors}階建対応`);
   }
 
-  // 6. 口コミ件数
-  if (company.reviewCount && company.reviewCount > 0) {
-    features.push(`口コミ${company.reviewCount}件`);
+  // 特殊対応項目
+  if (company.specialSupport && company.specialSupport.length > 0) {
+    features.push(...company.specialSupport.slice(0, 2));
+  }
+
+  // 施工実績
+  if (company.contractCount) {
+    features.push(`実績${company.contractCount}件`);
   }
 
   // 最大3つまで
