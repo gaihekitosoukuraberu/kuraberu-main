@@ -4459,7 +4459,10 @@ window.addEventListener('beforeunload', function(e) {
             // ボタンを選択状態にする（V1832: スタイルも適用, V1833: survey-datetime-button class使用）
             const surveyButtonGroup = document.getElementById('surveyDateTimeButtonGroup');
             if (surveyButtonGroup) {
-                const selectedTimes = data.surveyDatePreference ? data.surveyDatePreference.split(', ') : [];
+                // V1833: スプレッドシートの形式「金曜_午後」→ボタンテキスト「金曜 午後」に変換
+                const selectedTimes = data.surveyDatePreference
+                    ? data.surveyDatePreference.split(', ').map(t => t.replace(/_/g, ' '))
+                    : [];
                 surveyButtonGroup.querySelectorAll('.survey-datetime-button').forEach(btn => {
                     const btnText = btn.textContent.trim();
                     // 選択状態のボタンにスタイルを適用
@@ -4474,7 +4477,7 @@ window.addEventListener('beforeunload', function(e) {
                     }
                 });
                 if (data.surveyDatePreference) {
-                    console.log('[populateForm] 現地調査希望日時読み込み:', data.surveyDatePreference);
+                    console.log('[populateForm] 現地調査希望日時読み込み:', data.surveyDatePreference, '→変換後:', selectedTimes);
                 }
             }
 
@@ -5969,8 +5972,9 @@ window.addEventListener('beforeunload', function(e) {
             // 現地調査希望日時（選択されたボタンから取得, V1833: survey-datetime-button class使用, surveyDatePreferenceキー使用）
             const surveyButtonGroup = document.getElementById('surveyDateTimeButtonGroup');
             if (surveyButtonGroup) {
+                // V1833: ボタンテキスト「金曜 午後」→スプレッドシート形式「金曜_午後」に変換
                 const selectedSurveyTimes = Array.from(surveyButtonGroup.querySelectorAll('.survey-datetime-button.selected'))
-                    .map(btn => btn.textContent.trim());
+                    .map(btn => btn.textContent.trim().replace(/ /g, '_'));
                 data.surveyDatePreference = selectedSurveyTimes.join(', ');
             }
 
