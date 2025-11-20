@@ -1750,8 +1750,18 @@
     <!--java script-->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <!-- <script src="js/delay_anim.js"></script> -->
-    <script src="js/function.js?v=1763632805684"></script>
-    <script src="js/validate.js?v=1763632805684"></script>
+    <script>
+    // function.js と validate.js を動的にロード（ENV.CACHE_BUSTERを使用）
+    (function() {
+        const cacheBuster = (window.ENV && window.ENV.CACHE_BUSTER) || Date.now();
+        const scripts = ['js/function.js', 'js/validate.js'];
+        scripts.forEach(src => {
+            const script = document.createElement('script');
+            script.src = src + '?v=' + cacheBuster;
+            document.head.appendChild(script);
+        });
+    })();
+    </script>
     <!--//java script-->
 
     <!-- BOT用ヘルパー関数 -->
