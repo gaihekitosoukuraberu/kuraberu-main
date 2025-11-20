@@ -1,5 +1,5 @@
 @charset "UTF-8";
-/* V1762: postalFormの!important z-index追加 */
+/* V1763: z-index修正を全てリバート - 動作していた状態に戻す */
 /* --------------------------------------------------------------
    共通
 -------------------------------------------------------------- */
@@ -86,7 +86,7 @@ button {
   width: 100%;
   padding: 0.3rem 1.84rem 0.3rem 0.46rem;
   position: absolute;
-  z-index: 10000;
+  z-index: 10;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -337,8 +337,6 @@ button {
   cursor: pointer;
   -webkit-transition: opacity 0.4s;
   transition: opacity 0.4s;
-  position: relative;
-  z-index: 999;
 }
 
 .mv .mv__before__img:hover {
@@ -409,7 +407,7 @@ button {
   display: -ms-flexbox;
   display: flex;
   position: fixed;
-  z-index: 9999;
+  z-index: 100;
   left: 0;
   top: 0;
   width: 100%;
@@ -1828,8 +1826,6 @@ button {
     align-items: flex-start;
     justify-content: flex-start;
     min-width: 0;
-    position: relative;
-    z-index: 999;
   }
 
   .mv .mv__before__tit {
@@ -1863,10 +1859,9 @@ button {
   .mv .mv__before__img {
     width: 100%;
     margin: 0;
+    z-index: 1;
     cursor: pointer;
     order: 3;
-    position: relative;
-    z-index: 999;
   }
 
   .mv .mv__before__img img {
@@ -1901,7 +1896,7 @@ button {
     grid-column: 2;
     grid-row: 2;
     margin-top: 0;
-    z-index: 1;
+    z-index: 10;
     min-width: 0;
     transform: scale(1.15);
     transform-origin: top center;
