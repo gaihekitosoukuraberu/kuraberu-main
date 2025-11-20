@@ -625,13 +625,49 @@ input[type="checkbox"][name="propertyType"] {
     .step-label {
         display: none;
     }
-    
+
     .capture-buttons {
         flex-direction: column;
     }
-    
+
     .document-selector {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* iPhone SE最適化 */
+    .step-circle {
+        width: 1.75rem;
+        height: 1.75rem;
+        font-size: 0.75rem;
+    }
+
+    /* ボタンのタッチ領域確保 */
+    .primary-btn,
+    .secondary-btn {
+        min-height: 44px;
+        font-size: 0.875rem;
+        padding: 0.625rem 1rem;
+    }
+
+    /* 利用規約テキストサイズ調整 */
+    .agreement-content {
+        font-size: 0.8125rem !important;
+        line-height: 1.5 !important;
+    }
+
+    /* メインコンテナのパディング調整 */
+    #mainContainer {
+        padding: 1rem !important;
+    }
+
+    /* Step 2: 利用規約の高さ調整 */
+    .agreement-content {
+        max-height: 250px !important;
+    }
+
+    /* チェックボックスラベルのフォントサイズ */
+    .checkbox-label {
+        font-size: 0.875rem;
     }
 }
 

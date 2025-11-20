@@ -11,6 +11,16 @@ function checkAgreement() {
 
     if (termsAgree && agreeBtn) {
         agreeBtn.disabled = !termsAgree.checked;
+
+        // チェックされたら最下部までスムーズスクロール
+        if (termsAgree.checked) {
+            setTimeout(() => {
+                window.scrollTo({
+                    top: document.body.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 100);
+        }
     }
 }
 
