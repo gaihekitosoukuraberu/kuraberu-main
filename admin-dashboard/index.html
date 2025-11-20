@@ -4424,23 +4424,23 @@ window.addEventListener('beforeunload', function(e) {
                 quoteStatusSelect.value = data.quoteStatus || '';
             }
 
-            // 他社見積もり数
+            // 他社見積もり数（V1832: botAnswers フォールバック追加）
             const quoteCountSelect = document.getElementById('quoteCountSelect');
             if (quoteCountSelect) {
-                const quoteCount = data.quoteCount || data['Q11_見積もり保有数'] || '';
+                const quoteCount = data.quoteCount || data.botAnswers?.q11_quoteCount || data['Q11_見積もり保有数'] || '';
                 quoteCountSelect.value = quoteCount;
             }
 
-            // 訪問業者の状況
+            // 訪問業者の状況（V1832: botAnswers フォールバック追加）
             const doorSalesVisitSelect = document.getElementById('doorSalesVisitSelect');
             if (doorSalesVisitSelect) {
-                doorSalesVisitSelect.value = data.doorSalesVisit || '';
+                doorSalesVisitSelect.value = data.doorSalesVisit || data.botAnswers?.q13_doorSalesVisit || '';
             }
 
             // 比較意向（「比較は不要」の場合は空欄表示）
             const comparisonIntentionSelect = document.getElementById('comparisonIntentionSelect');
             if (comparisonIntentionSelect) {
-                const comparisonValue = data.comparisonIntention || '';
+                const comparisonValue = data.comparisonIntention || data.botAnswers?.q14_comparisonIntention || '';
                 // 「比較は不要」の場合は業者に見せないため空欄にする
                 if (comparisonValue === '比較は不要') {
                     comparisonIntentionSelect.value = '';
@@ -4449,10 +4449,10 @@ window.addEventListener('beforeunload', function(e) {
                 }
             }
 
-            // 現在の劣化状況
+            // 現在の劣化状況（V1832: botAnswers フォールバック追加）
             const deteriorationStatusSelect = document.getElementById('deteriorationStatusSelect');
             if (deteriorationStatusSelect) {
-                deteriorationStatusSelect.value = data.deteriorationStatus || '';
+                deteriorationStatusSelect.value = data.deteriorationStatus || data.botAnswers?.q16_deteriorationStatus || '';
             }
 
             // 現地調査希望日時（AQ列: 現地調査希望日時）
@@ -5924,6 +5924,24 @@ window.addEventListener('beforeunload', function(e) {
 
             // 施工時期
             data.constructionTiming = getInputOrSelectValue('施工時期');
+
+            // 現在の劣化状況（V1832）
+            const deteriorationStatusSelect = document.getElementById('deteriorationStatusSelect');
+            if (deteriorationStatusSelect) {
+                data.deteriorationStatus = deteriorationStatusSelect.value || '';
+            }
+
+            // 他社見積もり数（V1832）
+            const quoteCountSelect = document.getElementById('quoteCountSelect');
+            if (quoteCountSelect) {
+                data.quoteCount = quoteCountSelect.value || '';
+            }
+
+            // 訪問業者の状況（V1832）
+            const doorSalesVisitSelect = document.getElementById('doorSalesVisitSelect');
+            if (doorSalesVisitSelect) {
+                data.doorSalesVisit = doorSalesVisitSelect.value || '';
+            }
 
             // 現地調査希望日時（選択されたボタンから取得）
             const surveyButtonGroup = document.getElementById('surveyDateTimeButtonGroup');
