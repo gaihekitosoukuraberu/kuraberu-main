@@ -85,7 +85,7 @@ button {
   width: 100%;
   padding: 0.3rem 1.84rem 0.3rem 0.46rem;
   position: absolute;
-  z-index: 200;
+  z-index: 10000;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -336,6 +336,8 @@ button {
   cursor: pointer;
   -webkit-transition: opacity 0.4s;
   transition: opacity 0.4s;
+  position: relative;
+  z-index: 999;
 }
 
 .mv .mv__before__img:hover {
@@ -406,7 +408,7 @@ button {
   display: -ms-flexbox;
   display: flex;
   position: fixed;
-  z-index: 100;
+  z-index: 9999;
   left: 0;
   top: 0;
   width: 100%;
@@ -1826,7 +1828,7 @@ button {
     justify-content: flex-start;
     min-width: 0;
     position: relative;
-    z-index: 50;
+    z-index: 999;
   }
 
   .mv .mv__before__tit {
@@ -1863,7 +1865,7 @@ button {
     cursor: pointer;
     order: 3;
     position: relative;
-    z-index: 50;
+    z-index: 999;
   }
 
   .mv .mv__before__img img {
@@ -1898,7 +1900,7 @@ button {
     grid-column: 2;
     grid-row: 2;
     margin-top: 0;
-    z-index: 5;
+    z-index: 1;
     min-width: 0;
     transform: scale(1.15);
     transform-origin: top center;
