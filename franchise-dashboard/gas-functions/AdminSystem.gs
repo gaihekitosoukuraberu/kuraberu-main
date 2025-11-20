@@ -475,13 +475,25 @@ var AdminSystem = {
         const t5 = Date.now();
         sheet.getRange(targetRowNumber, approvalStatusIndex + 1).setValue('承認済み');
 
-        // V1833: ステータスを「アクティブ」に設定（配信ステータスはonEditトリガーで自動連動）
-        sheet.getRange(targetRowNumber, statusIndex + 1).setValue('アクティブ');
+        // V1833: 加盟店登録のステータスを取得（動的同期）
+        const currentStatus = rowData[statusIndex] || '休止';
+        console.log('[AdminSystem] 現在のステータス:', currentStatus);
 
-        // V1833: 配信ステータスも明示的に「アクティブ」に設定（onEditトリガー前の保険）
+        // ステータスはそのまま維持（加盟店が手動で変更するまで休止のまま）
+        // 変更なし - 加盟店登録の現在値を維持
+
+        // V1833: 配信ステータスをステータスに連動させて設定
         if (deliveryStatusIndex !== -1) {
-          sheet.getRange(targetRowNumber, deliveryStatusIndex + 1).setValue('アクティブ');
-          console.log('[AdminSystem] 配信ステータスを「アクティブ」に設定');
+          let deliveryStatus = 'ストップ'; // デフォルト
+          if (currentStatus === 'アクティブ') {
+            deliveryStatus = 'アクティブ';
+          } else if (currentStatus === '休止') {
+            deliveryStatus = 'ストップ';
+          } else {
+            deliveryStatus = 'ストップ'; // その他は全てストップ
+          }
+          sheet.getRange(targetRowNumber, deliveryStatusIndex + 1).setValue(deliveryStatus);
+          console.log('[AdminSystem] 配信ステータスを設定:', deliveryStatus, '(ステータス:', currentStatus, ')');
         }
 
         sheet.getRange(targetRowNumber, approverIndex + 1).setValue('ryutayamauchi');
@@ -500,13 +512,12 @@ var AdminSystem = {
           );
         }
 
-        // V1833: 一時停止関連の初期値設定を削除（承認直後はアクティブ状態）
-        // 一時停止は管理者が手動で設定する想定
+        // V1833: 一時停止フラグをステータスに連動（休止ならTRUE、アクティブならFALSE）
         const pauseFlagIndex = headers.indexOf('一時停止フラグ');
-
-        // 一時停止フラグをFALSE（承認直後はアクティブ状態）
         if (pauseFlagIndex !== -1) {
-          sheet.getRange(targetRowNumber, pauseFlagIndex + 1).setValue(false);
+          const pauseFlag = (currentStatus === '休止' || currentStatus === '一時停止');
+          sheet.getRange(targetRowNumber, pauseFlagIndex + 1).setValue(pauseFlag);
+          console.log('[AdminSystem] 一時停止フラグを設定:', pauseFlag, '(ステータス:', currentStatus, ')');
         }
 
         // V1833: 支払い遅延フラグも一律FALSE（承認時にリセット）

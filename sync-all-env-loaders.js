@@ -207,6 +207,56 @@ phpFiles.forEach(file => {
   }
 });
 
+// ============================================
+// HTMLファイル内のキャッシュバスター更新（index.html）
+// ============================================
+console.log('\n🔄 HTMLファイル内のキャッシュバスター更新中...\n');
+
+const htmlFiles = [
+  {
+    path: path.join(__dirname, 'lp/index.html'),
+    name: 'LP Index HTML',
+    patterns: [
+      // env-loader.jsのキャッシュバスター
+      /(<script\s+src=["']js\/env-loader\.js\?v=)(\d+)(["'])/g,
+      // gaiheki-bot-loader.jsのキャッシュバスター
+      /(<script\s+src=["']gaiheki-bot-loader\.js\?v=)(\d+)(["'])/g
+    ]
+  }
+];
+
+htmlFiles.forEach(file => {
+  try {
+    if (!fs.existsSync(file.path)) {
+      console.warn(`⚠️  ${file.name}: ファイルが存在しません`);
+      return;
+    }
+
+    let content = fs.readFileSync(file.path, 'utf8');
+    let updated = false;
+
+    file.patterns.forEach(pattern => {
+      if (pattern.test(content)) {
+        content = content.replace(pattern, `$1${CACHE_BUSTER}$3`);
+        updated = true;
+      }
+    });
+
+    if (updated) {
+      fs.writeFileSync(file.path, content, 'utf8');
+      console.log(`✅ ${file.name}`);
+      console.log(`   ${file.path}`);
+      console.log(`   キャッシュバスター更新: ${CACHE_BUSTER}`);
+      successCount++;
+    } else {
+      console.warn(`⚠️  ${file.name}: キャッシュバスターパターンが見つかりません`);
+    }
+  } catch (err) {
+    console.error(`❌ ${file.name}: ${err.message}`);
+    errorCount++;
+  }
+});
+
 console.log('\n' + '='.repeat(50));
 console.log(`✅ 成功: ${successCount}件`);
 console.log(`⚠️  警告: ${errorCount}件（存在しないファイル）`);

@@ -192,11 +192,14 @@ jobs:
           # LPメールPHPファイルもステージング
           git add lp/mail.php || true
 
+          # LP index.htmlのキャッシュバスターもステージング
+          git add lp/index.html || true
+
           # 変更があればコミット
           if git diff --staged --quiet; then
             echo "📝 GAS URL更新ファイルに変更なし"
           else
-            git commit -m "auto: GAS URL同期 (env-loader & fallback & PHP) - ${{ steps.deploy.outputs.deployment_id }}"
+            git commit -m "auto: GAS URL同期 (env-loader & fallback & PHP & HTML cache-buster) - ${{ steps.deploy.outputs.deployment_id }}"
             git pull --rebase origin main
             git push
             echo "✅ GAS URL更新をpushしました"
