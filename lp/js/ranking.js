@@ -520,55 +520,87 @@ function displayRanking() {
   // 表示する会社数を決定（初期4社、もっと見るで5~8位まで）
   const companiesToShow = showingAll ? allCompanies : allCompanies.slice(0, 4);
 
-  // ランキングカードを動的生成（samplesフォーマット）
+  // ランキングカードを動的生成（超格好良いデザイン）
   rankingList.innerHTML = companiesToShow.map(company => {
     // GASから取得した実名を使用（イニシャルではなく実名表示）
     const companyName = company.name;
 
-    // 1位は青、2位以降はグレー
-    let rankColorClass = company.rank === 1 ? 'text-blue-600' : 'text-gray-600';
+    // 評価スコアを小数点1桁まで表示（4.5など）
+    const ratingScore = typeof company.rating === 'number' ? company.rating.toFixed(1) : '4.0';
+    const ratingNum = parseFloat(ratingScore);
 
-    // 星評価（5つ星表示）
-    const fullStars = Math.floor(company.rating);
-    const emptyStars = 5 - fullStars;
-    const starsHtml = '⭐'.repeat(fullStars) + '☆'.repeat(emptyStars);
+    // 星評価（半分の星も表示 - CSSで実装）4.3から半分表示
+    const fullStars = Math.floor(ratingNum);
+    const hasHalfStar = (ratingNum % 1) >= 0.3;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    let starsHtml = '';
+    // 満点の星
+    for (let i = 0; i < fullStars; i++) {
+      starsHtml += '⭐';
+    }
+    // 半分の星（CSSで右半分を隠す）
+    if (hasHalfStar) {
+      starsHtml += '<span class="half-star">⭐</span>';
+    }
+    // 空の星
+    for (let i = 0; i < emptyStars; i++) {
+      starsHtml += '☆';
+    }
+
+    // 1位は特別なゴールドデザイン
+    const isFirst = company.rank === 1;
+    const cardBg = isFirst ? 'bg-gradient-to-br from-yellow-50 via-white to-yellow-50' : 'bg-white';
+    const cardBorder = isFirst ? 'border-2 border-yellow-400 shadow-xl shadow-yellow-100' : 'border border-gray-200 shadow-lg';
+    const rankBadge = isFirst
+      ? `<span class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-600 text-white text-lg font-black rounded-full shadow-md">👑</span>`
+      : `<span class="flex items-center justify-center w-7 h-7 bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 text-base font-bold rounded-full">${company.rank}</span>`;
 
     return `
-      <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
-        <div class="flex items-start justify-between mb-2">
-          <div class="flex items-center gap-2">
-            <span class="${rankColorClass} text-lg font-bold">${company.rank}</span>
-            <h3 class="text-base font-bold">${companyName}</h3>
-          </div>
-          <div class="flex items-center gap-1">
-            <span class="text-yellow-500 text-sm">${starsHtml}</span>
-            <span class="font-bold text-sm">${company.rating}</span>
+      <div class="ranking-item ${cardBg} ${cardBorder} rounded-xl p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl">
+        <!-- ヘッダー：ランク・会社名・評価 -->
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex items-center gap-3">
+            ${rankBadge}
+            <div>
+              <h3 class="text-lg font-black ${isFirst ? 'text-yellow-900' : 'text-gray-900'}">${companyName}</h3>
+              <div class="flex items-center gap-1 mt-1">
+                <span class="text-yellow-500 text-lg leading-none">${starsHtml}</span>
+                <span class="text-2xl font-black ${isFirst ? 'text-yellow-600' : 'text-gray-800'} ml-1">${ratingScore}</span>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="flex items-center justify-between mb-1">
-          <div class="flex gap-1">
+
+        <!-- バッジ（特徴）& 施工実績 -->
+        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <div class="flex gap-1.5 flex-wrap">
             ${company.features.slice(0, 3).map((feature, idx) => {
-              const colors = [
-                'bg-blue-200 text-blue-800',
-                'bg-green-200 text-green-800',
-                'bg-red-200 text-red-800'
+              const gradients = [
+                'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm shadow-blue-200',
+                'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-sm shadow-green-200',
+                'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-sm shadow-purple-200'
               ];
-              return `<span class="${colors[idx % 3]} text-xs px-1.5 py-0.5 rounded">${feature}</span>`;
+              return `<span class="${gradients[idx % 3]} text-xs font-semibold px-2.5 py-1 rounded-full">${feature}</span>`;
             }).join('')}
           </div>
-          <div class="text-gray-600 text-xs">
-            施工実績: ${company.reviews || 0}件
-          </div>
+          ${company.reviews > 0 ? `
+            <div class="flex items-center gap-1 bg-gray-100 px-2.5 py-1 rounded-full">
+              <span class="text-gray-600 text-xs font-semibold">実績${company.reviews}件</span>
+            </div>
+          ` : ''}
         </div>
-        <div class="flex items-center justify-between">
+
+        <!-- 見積もり価格 & ボタン -->
+        <div class="flex items-center justify-between pt-3 border-t border-gray-100">
           <div>
-            <span class="text-xs font-bold text-gray-700">見積もり価格: ${company.price}</span>
+            <span class="text-sm font-black ${isFirst ? 'text-yellow-900' : 'text-gray-900'}">💰 ${company.price}</span>
           </div>
-          <div class="flex gap-1">
-            <button onclick="showCompanyDetail(${company.rank})" class="detail-btn bg-blue-200 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-300 text-xs font-medium w-[90px] whitespace-nowrap">
+          <div class="flex gap-2">
+            <button onclick="showCompanyDetail(${company.rank})" class="detail-btn bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md hover:shadow-lg transition-all duration-200 w-[90px]">
               詳細
             </button>
-            <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap">
+            <button onclick="keepManager.toggle('${company.rank}', '${companyName}', this)" class="keep-btn px-4 py-2 rounded-lg font-bold text-sm shadow-md hover:shadow-lg transition-all duration-200 w-[90px]">
               <span class="keep-text">キープ</span>
             </button>
           </div>
