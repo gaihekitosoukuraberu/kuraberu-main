@@ -29,7 +29,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./admin-dashboard/
-          server-dir: /gaihekikuraberu.com/public_html/admin-dashboard/
+          server-dir: gaihekikuraberu.com/public_html/admin-dashboard/
           dangerous-clean-slate: false
 
       - name: Verify deployment
@@ -54,7 +54,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./franchise-dashboard/
-          server-dir: /gaihekikuraberu.com/public_html/franchise-dashboard/
+          server-dir: gaihekikuraberu.com/public_html/franchise-dashboard/
           dangerous-clean-slate: false
 
       - name: Verify deployment
@@ -79,7 +79,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./franchise-register/
-          server-dir: /gaihekikuraberu.com/public_html/franchise-register/
+          server-dir: gaihekikuraberu.com/public_html/franchise-register/
           exclude: |
             **/.git*
             **/.git*/**
@@ -110,7 +110,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./estimate-keep-system/
-          server-dir: /gaihekikuraberu.com/public_html/estimate-keep-system/
+          server-dir: gaihekikuraberu.com/public_html/estimate-keep-system/
           dangerous-clean-slate: false
 
       - name: Verify deployment
@@ -134,8 +134,9 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./lp/
-          server-dir: /gaihekikuraberu.com/public_html/lp/
+          server-dir: gaihekikuraberu.com/public_html/lp/
           dangerous-clean-slate: false
+          log-level: verbose
 
       - name: Verify deployment
         run: |
