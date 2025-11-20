@@ -115,7 +115,9 @@ const RankingSystem = {
         recent3MonthRevenue: masterHeaders.indexOf('直近3ヶ月_総売上'),
         recent3MonthInquiryCount: masterHeaders.indexOf('直近3ヶ月_問合せ件数'),
         // V1751: 加盟日追加（データ移行システム用）
-        joinDate: masterHeaders.indexOf('加盟日')
+        joinDate: masterHeaders.indexOf('加盟日'),
+        // V1766: プレビューHP追加（詳細モーダル用）
+        previewHP: masterHeaders.indexOf('プレビューHP')
       };
 
       // V1713-DEBUG: カラムインデックス検証
@@ -416,7 +418,9 @@ const RankingSystem = {
           pastConversionRate: pastDataMetrics.conversionRate,
           pastContractCount: pastDataMetrics.contractCount, // V1751: 過去データ件数追加
           // V1751: 加盟日追加
-          joinDate: joinDate
+          joinDate: joinDate,
+          // V1766: プレビューHP追加
+          previewHP: row[colIndex.previewHP] || ''
         });
       }
 
