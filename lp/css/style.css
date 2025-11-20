@@ -1977,80 +1977,14 @@ button {
   transform: translateY(-2px);
 }
 
-/* バッジコンテナ */
-.badge-single {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  height: 24px;
-  overflow: visible;
-}
-
-.badge-carousel {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  height: 24px;
-  overflow: hidden;
-  position: relative;
-}
-
-.badge-container {
-  display: flex;
-  position: relative;
-  width: 100%;
-}
-
 /* バッジアイテム */
 .badge-item {
   display: inline-block;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
   padding: 3px 8px;
-  border-radius: 12px;
+  border-radius: 4px;
   font-size: 11px;
-  font-weight: bold;
+  font-weight: 600;
   white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* バッジスライドアニメーション（複数バッジがある場合） */
-.badge-slide {
-  position: absolute;
-  left: 0;
-  top: 0;
-  opacity: 0;
-  animation: badgeSlide 6s ease-in-out infinite;
-}
-
-@keyframes badgeSlide {
-  0%, 100% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  5%, 45% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  50%, 95% {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-}
-
-/* 1つ目のバッジは遅延なしで開始 */
-.badge-slide:nth-child(1) {
-  animation-delay: 0s !important;
-}
-
-/* 2つ目のバッジは3秒遅延 */
-.badge-slide:nth-child(2) {
-  animation-delay: 3s !important;
-}
-
-/* 3つ目のバッジは6秒遅延（まれなケース） */
-.badge-slide:nth-child(3) {
-  animation-delay: 6s !important;
 }
 
 /* メダルラッパー */
@@ -2060,4 +1994,3 @@ button {
   justify-content: center;
   margin-right: 4px;
 }
-

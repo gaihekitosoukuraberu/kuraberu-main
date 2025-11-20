@@ -599,19 +599,27 @@ function displayRanking() {
     // V1766: クロスランキングバッジ取得
     const crossBadges = getCrossRankingBadges(companyName, currentSortType);
 
-    // バッジHTML生成（複数ある場合は自動スライド）
+    // バッジHTML生成（控えめなタグ風デザイン）
     let badgeHtml = '';
     if (crossBadges.length > 0) {
-      const badgeClass = crossBadges.length > 1 ? 'badge-carousel' : 'badge-single';
-      const badgeItems = crossBadges.map((badge, idx) =>
-        `<div class="badge-item ${crossBadges.length > 1 ? 'badge-slide' : ''}" style="${crossBadges.length > 1 ? `animation-delay: ${idx * 3}s;` : ''}">${badge.label}</div>`
+      // バッジカラーマッピング（薄めの色で控えめに）
+      const getBadgeColor = (type) => {
+        switch(type) {
+          case 'recommended': return 'bg-blue-100 text-blue-700';
+          case 'cheap': return 'bg-yellow-100 text-yellow-700';
+          case 'review': return 'bg-green-100 text-green-700';
+          case 'premium': return 'bg-purple-100 text-purple-700';
+          default: return 'bg-gray-100 text-gray-700';
+        }
+      };
+
+      const badgeItems = crossBadges.map((badge) =>
+        `<span class="badge-item ${getBadgeColor(badge.type)}">${badge.label}</span>`
       ).join('');
 
       badgeHtml = `
-        <div class="${badgeClass} mb-2">
-          <div class="badge-container">
-            ${badgeItems}
-          </div>
+        <div class="flex gap-1 mb-2">
+          ${badgeItems}
         </div>
       `;
     }
@@ -622,26 +630,14 @@ function displayRanking() {
           <div class="flex items-center gap-2">
             ${medalHtml ? `<div class="medal-wrapper">${medalHtml}</div>` : ''}
             <span class="${rankColorClass} text-lg font-bold ${medalHtml ? 'ml-1' : ''}">${company.rank}</span>
-            <h3 class="text-base font-bold">${companyName}</h3>
+            <h3 class="text-lg font-bold">${companyName}</h3>
           </div>
           <div class="flex items-center gap-1">
             ${starsHtml}
           </div>
         </div>
         ${badgeHtml}
-        <div class="flex items-center justify-start mb-1">
-          <div class="flex gap-1">
-            ${company.features.slice(0, 3).map((feature, idx) => {
-              const colors = [
-                'bg-blue-200 text-blue-800',
-                'bg-green-200 text-green-800',
-                'bg-red-200 text-red-800'
-              ];
-              return `<span class="${colors[idx % 3]} text-xs px-1.5 py-0.5 rounded">${feature}</span>`;
-            }).join('')}
-          </div>
-        </div>
-        <div class="flex items-center justify-end gap-2">
+        <div class="flex items-center justify-end gap-2 ${badgeHtml ? '' : 'mt-2'}">
           <button onclick="showCompanyDetail(${company.rank})" class="detail-btn bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-2 py-1 rounded-lg text-xs font-medium w-[90px] whitespace-nowrap shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105">
             📋 詳細
           </button>
