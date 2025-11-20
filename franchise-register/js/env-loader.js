@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-20T00:38:31.985Z - Deployment: AKfycbw4gk8LYNj84UJFjwFEP-dH5NmmpfTvstojsPCGKgeBPeiIkDQCCGOEQ-SHmnjs685qcA
+// Auto-synced: 2025-11-20T00:42:19.519Z - Deployment: AKfycbxCESmWp9O8i6dONR7OGqhU7yseE0M0OyXPIG9Jh0RnmDeo35IINs5ztDGHPrjx0w0phw
 /**
  * 環境変数ローダー（全システム共通）- 🔥マスターファイル🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -23,13 +23,13 @@ const ENV = {
   // ============================================
 
   // プライマリGAS URL（メイン運用）- V1757: Add handle function to MerchantContractReport
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbw4gk8LYNj84UJFjwFEP-dH5NmmpfTvstojsPCGKgeBPeiIkDQCCGOEQ-SHmnjs685qcA/exec',
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbxCESmWp9O8i6dONR7OGqhU7yseE0M0OyXPIG9Jh0RnmDeo35IINs5ztDGHPrjx0w0phw/exec',
 
   // フォールバックGAS URL（バックアップ）- @1620
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbw4gk8LYNj84UJFjwFEP-dH5NmmpfTvstojsPCGKgeBPeiIkDQCCGOEQ-SHmnjs685qcA/exec',
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxCESmWp9O8i6dONR7OGqhU7yseE0M0OyXPIG9Jh0RnmDeo35IINs5ztDGHPrjx0w0phw/exec',
 
   // 緊急時URL（最終フォールバック）- @1620
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbw4gk8LYNj84UJFjwFEP-dH5NmmpfTvstojsPCGKgeBPeiIkDQCCGOEQ-SHmnjs685qcA/exec',
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxCESmWp9O8i6dONR7OGqhU7yseE0M0OyXPIG9Jh0RnmDeo35IINs5ztDGHPrjx0w0phw/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -46,7 +46,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1757 - 2025-11-15 - テストデータ管理API完成）
-  CACHE_BUSTER: '1763599111985'
+  CACHE_BUSTER: '1763599339519'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
