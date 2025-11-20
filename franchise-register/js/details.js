@@ -676,11 +676,15 @@ function confirmDetailsInfo() {
     // 必須フィールドチェック
     const requiredFields = document.querySelectorAll('#detailsForm [required]');
     let isValid = true;
+    let firstErrorField = null;
 
     requiredFields.forEach(field => {
         if (!field.value.trim()) {
             isValid = false;
             field.classList.add('error');
+            if (!firstErrorField) {
+                firstErrorField = field;
+            }
         } else {
             field.classList.remove('error');
         }
@@ -691,6 +695,11 @@ function confirmDetailsInfo() {
     if (propertyTypes.length === 0) {
         isValid = false;
         window.showError('対応可能物件を選択してください');
+        // 物件種別セクションまでスクロール
+        const propertySection = document.querySelector('input[name="propertyType"]');
+        if (propertySection) {
+            propertySection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return;
     }
 
@@ -699,11 +708,21 @@ function confirmDetailsInfo() {
     if (constructionTypes.length === 0) {
         isValid = false;
         window.showError('施工箇所を選択してください');
+        // 施工箇所セクションまでスクロール
+        const constructionSection = document.querySelector('input[name="constructionTypes"]');
+        if (constructionSection) {
+            constructionSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return;
     }
 
     if (!isValid) {
         window.showError('必須項目を入力してください');
+        // 最初のエラーフィールドまでスクロール
+        if (firstErrorField) {
+            firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstErrorField.focus();
+        }
         return;
     }
 

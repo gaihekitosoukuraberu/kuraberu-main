@@ -303,11 +303,15 @@ function confirmCompanyInfo() {
     // 必須フィールドチェック
     const requiredFields = form.querySelectorAll('[required]');
     let isValid = true;
+    let firstErrorField = null;
 
     requiredFields.forEach(field => {
         if (!field.value.trim()) {
             isValid = false;
             field.classList.add('error');
+            if (!firstErrorField) {
+                firstErrorField = field;
+            }
         } else {
             field.classList.remove('error');
         }
@@ -315,6 +319,11 @@ function confirmCompanyInfo() {
 
     if (!isValid) {
         window.showError('必須項目を入力してください');
+        // 最初のエラーフィールドまでスクロール
+        if (firstErrorField) {
+            firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstErrorField.focus();
+        }
         return;
     }
 
