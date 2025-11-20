@@ -171,6 +171,14 @@ const SystemRouter = {
       actions: ['getRanking']
     },
 
+    // プレビューHP同期（V1833: 加盟店登録→加盟店マスタ同期）
+    'syncPreviewHP': {
+      system: 'RankingSystem',
+      description: 'プレビューHP同期',
+      prefix: false,
+      actions: ['syncPreviewHP']
+    },
+
     // Slack連携
     'slack_': {
       system: 'SlackApprovalSystem',
