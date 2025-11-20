@@ -600,7 +600,11 @@ function updateConstructionFee() {
     const checked10k = document.querySelectorAll('input[name="constructionTypes10k"]:checked');
     const checked5k = document.querySelectorAll('input[name="constructionTypes5k"]:checked');
     const total = (checked20k.length * 20000) + (checked10k.length * 10000) + (checked5k.length * 5000);
-    document.getElementById('totalConstructionFee').textContent = total.toLocaleString();
+
+    const totalElement = document.getElementById('totalConstructionFee');
+    if (totalElement) {
+        totalElement.textContent = total.toLocaleString();
+    }
 }
 
 // 単品項目チェックボックスの変更処理
