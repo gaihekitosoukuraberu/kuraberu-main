@@ -1339,6 +1339,108 @@ const RankingSystem = {
   },
 
   /**
+   * V1833: プレビューHPを加盟店登録から加盟店マスタに同期
+   * 加盟店登録シートのAX列（プレビューHP）→ 加盟店マスタのAD列（プレビューHP）
+   */
+  syncPreviewHPToMaster: function() {
+    console.log('[RankingSystem] プレビューHP同期開始');
+
+    try {
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+      // 加盟店登録シート取得
+      const registerSheet = ss.getSheetByName('加盟店登録');
+      if (!registerSheet) {
+        console.error('[RankingSystem] 加盟店登録シートが見つかりません');
+        return { success: false, error: '加盟店登録シートが見つかりません' };
+      }
+
+      // 加盟店マスタシート取得
+      const masterSheet = ss.getSheetByName('加盟店マスタ');
+      if (!masterSheet) {
+        console.error('[RankingSystem] 加盟店マスタシートが見つかりません');
+        return { success: false, error: '加盟店マスタシートが見つかりません' };
+      }
+
+      // 加盟店登録シートからデータ取得
+      const registerData = registerSheet.getDataRange().getValues();
+      const registerHeaders = registerData[0];
+
+      // 会社名とプレビューHPのマッピング作成
+      // AX列（50列目、インデックス49）= プレビューHP
+      const previewHPMap = {};
+      const companyNameColIndex = registerHeaders.indexOf('会社名');
+      const previewHPColIndex = 49; // AX列（A=0, Z=25, AA=26, AX=49）
+
+      console.log('[RankingSystem] 加盟店登録 - 会社名列:', companyNameColIndex, 'プレビューHP列(AX):', previewHPColIndex);
+
+      if (companyNameColIndex === -1) {
+        console.error('[RankingSystem] 加盟店登録シートに「会社名」列が見つかりません');
+        return { success: false, error: '加盟店登録シートに「会社名」列が見つかりません' };
+      }
+
+      // プレビューHPマップ作成
+      for (let i = 1; i < registerData.length; i++) {
+        const companyName = String(registerData[i][companyNameColIndex] || '').trim();
+        const previewHP = String(registerData[i][previewHPColIndex] || '').trim();
+
+        if (companyName && previewHP) {
+          previewHPMap[companyName] = previewHP;
+          console.log('[RankingSystem] マップ追加:', companyName, '→', previewHP);
+        }
+      }
+
+      console.log('[RankingSystem] プレビューHPマップ作成完了:', Object.keys(previewHPMap).length + '件');
+
+      // 加盟店マスタのヘッダー取得
+      const masterHeaders = masterSheet.getRange(1, 1, 1, masterSheet.getLastColumn()).getValues()[0];
+      const masterCompanyNameColIndex = masterHeaders.indexOf('会社名');
+      const masterPreviewHPColIndex = masterHeaders.indexOf('プレビューHP');
+
+      console.log('[RankingSystem] 加盟店マスタ - 会社名列:', masterCompanyNameColIndex, 'プレビューHP列(AD):', masterPreviewHPColIndex);
+
+      if (masterPreviewHPColIndex === -1) {
+        console.error('[RankingSystem] 加盟店マスタに「プレビューHP」列が見つかりません');
+        return { success: false, error: '加盟店マスタに「プレビューHP」列が見つかりません' };
+      }
+
+      // 加盟店マスタを更新
+      const masterLastRow = masterSheet.getLastRow();
+      let updatedCount = 0;
+      let notFoundCount = 0;
+
+      for (let i = 2; i <= masterLastRow; i++) {
+        const companyName = String(masterSheet.getRange(i, masterCompanyNameColIndex + 1).getValue() || '').trim();
+
+        if (companyName && previewHPMap[companyName]) {
+          // プレビューHPが存在する場合は同期
+          const previewHP = previewHPMap[companyName];
+          console.log('[RankingSystem] ✅ 同期:', companyName, '→', previewHP);
+          masterSheet.getRange(i, masterPreviewHPColIndex + 1).setValue(previewHP);
+          updatedCount++;
+        } else if (companyName) {
+          console.log('[RankingSystem] ⚠️ プレビューHPなし:', companyName);
+          notFoundCount++;
+        }
+      }
+
+      console.log('[RankingSystem] 同期完了 - 更新:', updatedCount + '件、未設定:', notFoundCount + '件');
+
+      return {
+        success: true,
+        updatedCount: updatedCount,
+        notFoundCount: notFoundCount,
+        totalPreviewHPs: Object.keys(previewHPMap).length
+      };
+
+    } catch (error) {
+      console.error('[RankingSystem] 同期エラー:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
    * GETリクエストハンドラー（main.jsから呼ばれる）
    * @param {Object} params - リクエストパラメータ
    * @return {Object} レスポンス
@@ -1352,6 +1454,11 @@ const RankingSystem = {
 
     if (action === 'getRanking') {
       return this.getRanking(params);
+    }
+
+    // V1833: プレビューHP同期エンドポイント
+    if (action === 'syncPreviewHP') {
+      return this.syncPreviewHPToMaster();
     }
 
     return {
