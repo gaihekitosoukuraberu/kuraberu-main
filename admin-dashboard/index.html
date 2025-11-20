@@ -4455,11 +4455,11 @@ window.addEventListener('beforeunload', function(e) {
                 deteriorationStatusSelect.value = data.deteriorationStatus ?? data.botAnswers?.q16_deteriorationStatus ?? '';
             }
 
-            // 現地調査希望日時（AQ列: 現地調査希望日時）
+            // 現地調査希望日時（AR列: 現地調査希望日時, V1833: surveyDatePreferenceキー使用）
             // ボタンを選択状態にする（V1832: スタイルも適用, V1833: survey-datetime-button class使用）
             const surveyButtonGroup = document.getElementById('surveyDateTimeButtonGroup');
             if (surveyButtonGroup) {
-                const selectedTimes = data['現地調査希望日時'] ? data['現地調査希望日時'].split(', ') : [];
+                const selectedTimes = data.surveyDatePreference ? data.surveyDatePreference.split(', ') : [];
                 surveyButtonGroup.querySelectorAll('.survey-datetime-button').forEach(btn => {
                     const btnText = btn.textContent.trim();
                     // 選択状態のボタンにスタイルを適用
@@ -4473,8 +4473,8 @@ window.addEventListener('beforeunload', function(e) {
                         btn.classList.add('bg-white', 'border-gray-300', 'text-gray-700');
                     }
                 });
-                if (data['現地調査希望日時']) {
-                    console.log('[populateForm] 現地調査希望日時読み込み:', data['現地調査希望日時']);
+                if (data.surveyDatePreference) {
+                    console.log('[populateForm] 現地調査希望日時読み込み:', data.surveyDatePreference);
                 }
             }
 
