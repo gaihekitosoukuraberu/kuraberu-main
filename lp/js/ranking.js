@@ -260,6 +260,41 @@ function smoothScrollTo(targetY, duration = 800) {
 }
 
 // ============================================
+// V1766: クロスランキング判定（他のランキングでの順位を取得）
+// ============================================
+function getCrossRankingBadges(companyName, currentSortType) {
+  if (!dynamicRankings) return [];
+
+  const badges = [];
+  const rankingTypes = [
+    { key: 'recommended', label: 'おすすめ', icon: '👑', sortType: 'recommended' },
+    { key: 'cheap', label: '安い順', icon: '💰', sortType: 'cheap' },
+    { key: 'review', label: 'クチコミ', icon: '💬', sortType: 'review' },
+    { key: 'premium', label: '高品質', icon: '💎', sortType: 'premium' }
+  ];
+
+  rankingTypes.forEach(rankingType => {
+    // 現在のソートタイプはスキップ（メダルで表示するため）
+    if (rankingType.sortType === currentSortType) return;
+
+    const rankingList = dynamicRankings[rankingType.key] || [];
+    const position = rankingList.findIndex(company => company.companyName === companyName);
+
+    // トップ3に入っている場合のみバッジ表示
+    if (position >= 0 && position < 3) {
+      badges.push({
+        label: `${rankingType.icon} ${rankingType.label}${position + 1}位`,
+        icon: rankingType.icon,
+        rank: position + 1,
+        type: rankingType.key
+      });
+    }
+  });
+
+  return badges;
+}
+
+// ============================================
 // 会社データから特徴を抽出
 // ============================================
 function extractFeatures(company) {
@@ -540,10 +575,20 @@ function displayRanking() {
   // 表示する会社数を決定（初期4社、もっと見るで5~8位まで）
   const companiesToShow = showingAll ? allCompanies : allCompanies.slice(0, 4);
 
-  // ランキングカードを動的生成（V1753: 価格削除・控えめデザイン）
+  // ランキングカードを動的生成（V1766: メダル&バッジシステム追加）
   rankingList.innerHTML = companiesToShow.map(company => {
     // GASから取得した実名を使用（イニシャルではなく実名表示）
     const companyName = company.name;
+
+    // V1766: メダル表示（トップ3のみ）
+    let medalHtml = '';
+    if (company.rank === 1) {
+      medalHtml = '<span class="medal-icon text-2xl">🥇</span>';
+    } else if (company.rank === 2) {
+      medalHtml = '<span class="medal-icon text-2xl">🥈</span>';
+    } else if (company.rank === 3) {
+      medalHtml = '<span class="medal-icon text-2xl">🥉</span>';
+    }
 
     // 1位は青、2位以降はグレー
     let rankColorClass = company.rank === 1 ? 'text-blue-600' : 'text-gray-600';
@@ -551,18 +596,40 @@ function displayRanking() {
     // 星評価（半星対応・小数点表示）
     const starsHtml = generateStarRating(company.rating);
 
+    // V1766: クロスランキングバッジ取得
+    const crossBadges = getCrossRankingBadges(companyName, currentSortType);
+
+    // バッジHTML生成（複数ある場合は自動スライド）
+    let badgeHtml = '';
+    if (crossBadges.length > 0) {
+      const badgeClass = crossBadges.length > 1 ? 'badge-carousel' : 'badge-single';
+      const badgeItems = crossBadges.map((badge, idx) =>
+        `<div class="badge-item ${crossBadges.length > 1 ? 'badge-slide' : ''}" style="${crossBadges.length > 1 ? `animation-delay: ${idx * 3}s;` : ''}">${badge.label}</div>`
+      ).join('');
+
+      badgeHtml = `
+        <div class="${badgeClass} mb-2">
+          <div class="badge-container">
+            ${badgeItems}
+          </div>
+        </div>
+      `;
+    }
+
     return `
-      <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white">
+      <div class="ranking-item border border-gray-300 rounded-lg p-2 bg-white ${company.rank <= 3 ? 'medal-card' : ''}">
         <div class="flex items-start justify-between mb-2">
           <div class="flex items-center gap-2">
-            <span class="${rankColorClass} text-lg font-bold">${company.rank}</span>
+            ${medalHtml ? `<div class="medal-wrapper">${medalHtml}</div>` : ''}
+            <span class="${rankColorClass} text-lg font-bold ${medalHtml ? 'ml-1' : ''}">${company.rank}</span>
             <h3 class="text-base font-bold">${companyName}</h3>
           </div>
           <div class="flex items-center gap-1">
             ${starsHtml}
           </div>
         </div>
-        <div class="flex items-center justify-between mb-1">
+        ${badgeHtml}
+        <div class="flex items-center justify-start mb-1">
           <div class="flex gap-1">
             ${company.features.slice(0, 3).map((feature, idx) => {
               const colors = [
@@ -572,9 +639,6 @@ function displayRanking() {
               ];
               return `<span class="${colors[idx % 3]} text-xs px-1.5 py-0.5 rounded">${feature}</span>`;
             }).join('')}
-          </div>
-          <div class="text-gray-600 text-xs">
-            施工実績: ${company.reviews || 0}件
           </div>
         </div>
         <div class="flex items-center justify-end gap-2">
