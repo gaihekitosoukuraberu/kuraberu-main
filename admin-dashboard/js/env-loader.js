@@ -44,7 +44,7 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1823 - 2025-11-19 - 保存機能修正）
+  // キャッシュバスター（V1831 - 2025-11-20 - デプロイ確認）
   CACHE_BUSTER: Date.now().toString()
 };
 
