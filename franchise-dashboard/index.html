@@ -7510,9 +7510,14 @@
             console.log('[resumeAutoDelivery] 一時停止解除開始');
 
             try {
+                // V1838: updatePauseSettingsアクションを使用
                 const requestData = {
-                    action: 'resumeAutoDelivery',
-                    merchantId: window.merchantId
+                    action: 'updatePauseSettings',
+                    merchantId: window.merchantId,
+                    pauseFlag: 'false',
+                    pauseStartDate: '',
+                    pauseEndDate: '',
+                    status: 'アクティブ'
                 };
 
                 console.log('[resumeAutoDelivery] Sending request:', requestData);
@@ -7530,7 +7535,7 @@
                 console.log('[resumeAutoDelivery] Response:', result);
 
                 if (result.success) {
-                    showToast('運用ステータスをアクティブに変更しました', 'success');
+                    showToast('運用ステータスをアクティブに変更しました（加盟店マスタも自動同期済み）', 'success');
 
                     // V1703-FIX2: localStorageから一時停止設定をクリア
                     if (window.merchantId) {
