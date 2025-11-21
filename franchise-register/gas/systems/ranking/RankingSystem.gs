@@ -429,6 +429,11 @@ const RankingSystem = {
           // V1766: プレビューHP追加
           previewHP: row[colIndex.previewHP] || ''
         });
+
+        // V1834-DEBUG: 最初の3社のプレビューHP値をログ出力
+        if (filtered.length <= 3) {
+          console.log('[V1834-DEBUG] 会社:', companyName, '/ colIndex.previewHP:', colIndex.previewHP, '/ row長:', row.length, '/ row[29]:', row[29], '/ previewHP値:', row[colIndex.previewHP]);
+        }
       }
 
       // V1713-DEBUG: フィルタリング統計を出力
