@@ -1104,7 +1104,21 @@ const MerchantSystem = {
         console.error('[MerchantSystem] 加盟店が見つかりません:', merchantId);
         return {
           success: false,
-          error: '加盟店が見つかりません'
+          error: '加盟店が見つかりません',
+          debug: {
+            merchantId,
+            merchantIdType: typeof merchantId,
+            merchantIdCol,
+            totalRows: allData.length,
+            sampleIds: allData.slice(1, Math.min(4, allData.length)).map((row, idx) => ({
+              row: idx + 2,
+              id: row[merchantIdCol - 1],
+              type: typeof row[merchantIdCol - 1],
+              match: row[merchantIdCol - 1] === merchantId,
+              strictMatch: row[merchantIdCol - 1] === merchantId,
+              looseMatch: String(row[merchantIdCol - 1]) === String(merchantId)
+            }))
+          }
         };
       }
 

@@ -7566,6 +7566,10 @@
                     }
 
                 } else {
+                    // デバッグ情報があれば出力
+                    if (result.debug) {
+                        console.error('[resumeAutoDelivery] Debug info:', JSON.stringify(result.debug, null, 2));
+                    }
                     throw new Error(result.error || '一時停止の解除に失敗しました');
                 }
 
