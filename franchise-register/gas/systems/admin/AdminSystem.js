@@ -1817,6 +1817,9 @@ const AdminSystem = {
       const depositAdvanceFromReg = latestRowData[latestHeaders.indexOf('デポジット前金')] || 'FALSE';
       const prioritySupplyFlagFromReg = latestRowData[latestHeaders.indexOf('最優先供給フラグ')] || 'FALSE';
 
+      // V1843: プレビューHP取得（加盟店登録のAX列から）
+      const previewHPFromReg = latestRowData[latestHeaders.indexOf('プレビューHP')] || '';
+
       // 本社都道府県を住所から抽出
       let headquarterPrefecture = '';
       if (address) {
@@ -1961,6 +1964,10 @@ const AdminSystem = {
           case '最優先供給フラグ':
             // V1713: 最優先供給フラグを加盟店登録から取得
             masterRow.push(prioritySupplyFlagFromReg || 'FALSE');
+            break;
+          case 'プレビューHP':
+            // V1843: プレビューHPを加盟店登録から取得
+            masterRow.push(previewHPFromReg || '');
             break;
           default:
             masterRow.push('');
