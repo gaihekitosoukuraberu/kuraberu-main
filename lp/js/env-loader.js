@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-21T06:33:44.914Z - Deployment: AKfycbxbG224ldBf6nbUGXt7EtNZ2JXTxZZyCUzhvX631W7zW7fg1BVjzZk6nuyOuN3fTVn5Bg
+// Auto-synced: 2025-11-21T06:41:59.040Z - Deployment: AKfycbxbG224ldBf6nbUGXt7EtNZ2JXTxZZyCUzhvX631W7zW7fg1BVjzZk6nuyOuN3fTVn5Bg
 /**
  * 環境変数ローダー（全システム共通）- 🔥マスターファイル🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -46,7 +46,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1837 - 2025-11-21 - ranking.js質問ID修正 - GAS @1729）
-  CACHE_BUSTER: '1763706824914'
+  CACHE_BUSTER: '1763707319040'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
