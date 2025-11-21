@@ -198,11 +198,54 @@ jobs:
           # 変更があればコミット
           if git diff --staged --quiet; then
             echo "📝 GAS URL更新ファイルに変更なし"
+            echo "ENV_UPDATED=false" >> $GITHUB_ENV
           else
             git commit -m "auto: GAS URL同期 (env-loader & fallback & PHP & HTML cache-buster) - ${{ steps.deploy.outputs.deployment_id }}"
             git pull --rebase origin main
             git push
             echo "✅ GAS URL更新をpushしました"
+            echo "ENV_UPDATED=true" >> $GITHUB_ENV
+          fi
+
+      # ======================================================================
+      # 🚀 env-loader.js更新後、全フロントエンドを本番サーバーに自動デプロイ
+      # ======================================================================
+      - name: Deploy updated env-loader.js to production servers
+        if: env.ENV_UPDATED == 'true'
+        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./
+          server-dir: gaihekikuraberu.com/public_html/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/gas/**
+            **/node_modules/**
+            **/.DS_Store
+            **/vendor/**
+            **/*.md
+            **/.github/**
+          dangerous-clean-slate: false
+          log-level: minimal
+
+      - name: Verify production deployment
+        if: env.ENV_UPDATED == 'true'
+        run: |
+          echo "🔍 本番サーバーのenv-loader.js更新を確認中..."
+          sleep 10
+
+          # franchise-register env-loader.jsを確認
+          PROD_DEPLOYMENT=$(curl -s "https://gaihekikuraberu.com/franchise-register/js/env-loader.js?$(date +%s)" | grep "Deployment:" | head -1)
+          echo "本番サーバー: $PROD_DEPLOYMENT"
+          echo "期待値: Deployment: ${{ steps.deploy.outputs.deployment_id }}"
+
+          if echo "$PROD_DEPLOYMENT" | grep -q "${{ steps.deploy.outputs.deployment_id }}"; then
+            echo "✅ 本番サーバーに正常にデプロイされました"
+          else
+            echo "⚠️ 本番サーバーの更新確認失敗（キャッシュの可能性があります）"
           fi
 
   rollback:
