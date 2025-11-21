@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-21T10:20:41.013Z - Deployment: AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj
+// Auto-synced: 2025-11-21T11:05:00.000Z - Deployment: AKfycbyd4UlBN4wocmP5Go-umYOP9qfVSa-PIxD-3g56FF2dlVOVwm2U55ePsUC63WpJLbQK9g
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -12,8 +12,8 @@
  * 参照方法（PHP）:
  * このファイルを読み込んでGAS_URLを抽出
  *
- * @file-version V1843-MASTER-SINGLE-SOURCE-2025-11-21T16:50:00
- * @last-update 2025-11-21T16:50:00
+ * @file-version V1848-MASTER-@HEAD-2025-11-21T20:05:00
+ * @last-update 2025-11-21T20:05:00
  */
 
 const ENV = {
@@ -21,14 +21,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V1843（支払遅延FALSE + 配信ステータス完全同期 + mail.php対応）
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/exec',
+  // プライマリGAS URL（メイン運用）- V1848 @HEAD（全員アクセス可能 + LPContactSystem対応）
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbyd4UlBN4wocmP5Go-umYOP9qfVSa-PIxD-3g56FF2dlVOVwm2U55ePsUC63WpJLbQK9g/exec',
 
-  // フォールバックGAS URL（バックアップ）- V1843
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/exec',
+  // フォールバックGAS URL（バックアップ）- V1848 @HEAD
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbyd4UlBN4wocmP5Go-umYOP9qfVSa-PIxD-3g56FF2dlVOVwm2U55ePsUC63WpJLbQK9g/exec',
 
-  // 緊急時URL（最終フォールバック）- V1843
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/exec',
+  // 緊急時URL（最終フォールバック）- V1848 @HEAD
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbyd4UlBN4wocmP5Go-umYOP9qfVSa-PIxD-3g56FF2dlVOVwm2U55ePsUC63WpJLbQK9g/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1843 - 2025-11-21 - 動的参照対応）
-  CACHE_BUSTER: '1763720441014'
+  // キャッシュバスター（V1848 @HEAD - 2025-11-21 - 動的参照対応）
+  CACHE_BUSTER: '1732186500000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
