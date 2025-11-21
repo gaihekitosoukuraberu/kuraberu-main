@@ -110,39 +110,18 @@ jobs:
           cat .clasp.json
           echo "🔑 .clasprc.json exists: $(test -f ~/.clasprc.json && echo 'YES' || echo 'NO')"
 
-      - name: Push to GAS
-        working-directory: ${{ env.GAS_DIR }}
-        run: clasp push --force
-
-      - name: Cleanup old deployments
-        working-directory: ${{ env.GAS_DIR }}
-        run: |
-          echo "🗑️  古いデプロイメントを削除中..."
-
-          # 全デプロイメントを取得（@HEADを除く）
-          DEPLOYMENTS=$(clasp deployments | grep "@[0-9]" | awk '{print $2}' | tail -n +11)
-
-          # 10個より古いデプロイメントを削除（最新10個は保持）
-          for DEPLOYMENT_ID in $DEPLOYMENTS; do
-            echo "削除中: $DEPLOYMENT_ID"
-            clasp undeploy "$DEPLOYMENT_ID" || echo "⚠️  削除失敗（既に削除済み）: $DEPLOYMENT_ID"
-          done
-
-          echo "✅ 古いデプロイメント削除完了"
-
-      - name: Create deployment
+      - name: Push to GAS and get @HEAD deployment
         id: deploy
         working-directory: ${{ env.GAS_DIR }}
         run: |
-          VERSION="V$(date +%Y%m%d-%H%M%S)"
-          clasp deploy -d "$VERSION: Auto-deployment via GitHub Actions"
+          echo "🚀 GASにコードをプッシュ中..."
+          clasp push --force
 
-          # 最新のバージョン付きデプロイメントIDを取得（Web UIで権限設定可能）
-          DEPLOYMENT_ID=$(clasp deployments | grep "@[0-9]" | head -1 | awk '{print $2}' | tr -d '-')
-          VERSION_NUM=$(clasp deployments | grep "@[0-9]" | head -1 | awk '{print $3}' | tr -d '@')
+          echo "📍 @HEADデプロイメントIDを取得中..."
+          # @HEADのデプロイメントIDを取得
+          DEPLOYMENT_ID=$(clasp deployments | grep "@HEAD" | awk '{print $2}' | tr -d '-')
           echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "📦 Latest Versioned Deployment ID: $DEPLOYMENT_ID (@$VERSION_NUM)"
+          echo "✅ @HEAD Deployment ID: $DEPLOYMENT_ID"
 
       - name: Health check
         run: |
