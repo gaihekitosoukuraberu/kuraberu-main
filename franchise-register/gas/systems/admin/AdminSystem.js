@@ -1936,8 +1936,9 @@ const AdminSystem = {
             masterRow.push(depositAdvanceFromReg || 'FALSE');
             break;
           case '支払遅延':
-            // V1697修正: デフォルトはFALSE
-            masterRow.push(performanceData.paymentDelay || 'FALSE');
+            // V1840: 過去データに関係なく一律FALSE（実際の運営で遅延が出た時のみ手動でTRUE）
+            // Slack通知のみで過去データの遅延情報を使用、スプシには反映しない
+            masterRow.push('FALSE');
             break;
           case '配信ステータス':
             // V1699修正：「休止」「一時停止」→「ストップ」、それ以外→「アクティブ」

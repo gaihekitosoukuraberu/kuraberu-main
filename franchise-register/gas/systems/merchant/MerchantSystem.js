@@ -1085,6 +1085,37 @@ const MerchantSystem = {
 
         sheet.getRange(sheetRowIndex, statusCol).setValue(statusValue);
         console.log('[MerchantSystem] Status updated to:', statusValue);
+
+        // V1840: 加盟店マスタの配信ステータスも直接更新（onEditはスクリプト実行では発火しないため）
+        try {
+          const masterSheet = ss.getSheetByName('加盟店マスタ');
+
+          if (masterSheet) {
+            const masterData = masterSheet.getDataRange().getValues();
+            const masterHeaders = masterData[0];
+            const masterRows = masterData.slice(1);
+
+            const masterIdIdx = masterHeaders.indexOf('加盟店ID');
+            const masterDeliveryStatusIdx = masterHeaders.indexOf('配信ステータス');
+
+            if (masterIdIdx !== -1 && masterDeliveryStatusIdx !== -1) {
+              // 加盟店IDで検索
+              const masterRowIndex = masterRows.findIndex(row => row[masterIdIdx] === merchantId);
+
+              if (masterRowIndex !== -1) {
+                const masterSheetRowIndex = masterRowIndex + 2; // +2 (ヘッダー1行 + 0-indexed)
+                // ステータス → 配信ステータス変換: アクティブ→アクティブ、一時停止/休止→ストップ
+                const deliveryStatus = (statusValue === 'アクティブ') ? 'アクティブ' : 'ストップ';
+                masterSheet.getRange(masterSheetRowIndex, masterDeliveryStatusIdx + 1).setValue(deliveryStatus);
+                console.log('[MerchantSystem] 加盟店マスタの配信ステータスも「' + deliveryStatus + '」に更新しました');
+              } else {
+                console.log('[MerchantSystem] 加盟店マスタに該当業者が見つかりません（承認前の可能性）');
+              }
+            }
+          }
+        } catch (error) {
+          console.error('[MerchantSystem] 加盟店マスタ更新エラー（処理は継続）:', error.message);
+        }
       }
 
       console.log('[MerchantSystem] updatePauseSettings - Updated row:', sheetRowIndex);
@@ -1179,6 +1210,36 @@ const MerchantSystem = {
       if (statusCol > 0) {
         sheet.getRange(sheetRowIndex, statusCol).setValue('アクティブ');
         console.log('[MerchantSystem] Status set to アクティブ');
+      }
+
+      // V1840: 加盟店マスタの配信ステータスも直接更新（onEditはスクリプト実行では発火しないため）
+      try {
+        const ss = DataAccessLayer.getSpreadsheet();
+        const masterSheet = ss.getSheetByName('加盟店マスタ');
+
+        if (masterSheet) {
+          const masterData = masterSheet.getDataRange().getValues();
+          const masterHeaders = masterData[0];
+          const masterRows = masterData.slice(1);
+
+          const masterIdIdx = masterHeaders.indexOf('加盟店ID');
+          const masterDeliveryStatusIdx = masterHeaders.indexOf('配信ステータス');
+
+          if (masterIdIdx !== -1 && masterDeliveryStatusIdx !== -1) {
+            // 加盟店IDで検索
+            const masterRowIndex = masterRows.findIndex(row => row[masterIdIdx] === merchantId);
+
+            if (masterRowIndex !== -1) {
+              const masterSheetRowIndex = masterRowIndex + 2; // +2 (ヘッダー1行 + 0-indexed)
+              masterSheet.getRange(masterSheetRowIndex, masterDeliveryStatusIdx + 1).setValue('アクティブ');
+              console.log('[MerchantSystem] 加盟店マスタの配信ステータスも「アクティブ」に更新しました');
+            } else {
+              console.log('[MerchantSystem] 加盟店マスタに該当業者が見つかりません（承認前の可能性）');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('[MerchantSystem] 加盟店マスタ更新エラー（処理は継続）:', error.message);
       }
 
       console.log('[MerchantSystem] resumeAutoDelivery - Successfully resumed row:', sheetRowIndex);
