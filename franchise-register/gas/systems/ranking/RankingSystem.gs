@@ -127,6 +127,13 @@ const RankingSystem = {
       console.log('[V1765-DEBUG] 総合スコア列インデックス:', colIndex.rating);
       console.log('[V1765-DEBUG] ヘッダー配列:', JSON.stringify(masterHeaders));
 
+      // V1834-DEBUG: プレビューHP列の詳細デバッグ
+      console.log('[V1834-DEBUG] プレビューHP列インデックス:', colIndex.previewHP);
+      console.log('[V1834-DEBUG] マスターヘッダー配列長:', masterHeaders.length);
+      console.log('[V1834-DEBUG] getLastColumn():', masterSheet.getLastColumn());
+      console.log('[V1834-DEBUG] AD列(index 29)のヘッダー:', masterHeaders[29]);
+      console.log('[V1834-DEBUG] 列25-35のヘッダー:', JSON.stringify(masterHeaders.slice(25, 35)));
+
       // V1713-DEBUG: 必須カラムチェック
       const missingColumns = [];
       if (colIndex.companyName === -1) missingColumns.push('会社名');
