@@ -83,7 +83,7 @@ function generateStaticHTML(data) {
     const email = 'info@gaihekikuraberu.com';
     const address = data['住所'] || '';
     const websiteUrl = data['ウェブサイトURL'] || '';
-    const kuraberuScore = parseFloat(data['くらべるスコア'] || '4.2');
+    let kuraberuScore = parseFloat(data['くらべるスコア'] || '4.2'); // V1836: 初期値、後で6項目平均で上書き
 
     // 🔥 メインビジュアルURLは「加盟店登録」シートから取得し、thumbnail形式に変換
     const mainVisualUrl = convertToThumbnailUrl(data['メインビジュアル'] || '', 'w1200');
@@ -199,6 +199,21 @@ function generateStaticHTML(data) {
     } catch (error) {
       console.error('[generateStaticHTML] 評価データ取得エラー:', error);
       finalRatings = calculateRatings(data);
+    }
+
+    // V1836: 総合評価を6項目の平均値で上書き
+    if (finalRatings) {
+      const ratingsArray = [
+        finalRatings.pricing,        // コストバランス
+        finalRatings.communication,  // 人柄・対応力
+        finalRatings.technology,     // 技術・品質
+        finalRatings.schedule,       // 対応スピード
+        finalRatings.service,        // アフターサポート
+        finalRatings.quality         // 顧客満足度
+      ];
+      const sum = ratingsArray.reduce((acc, val) => acc + val, 0);
+      kuraberuScore = Math.round((sum / ratingsArray.length) * 10) / 10; // 小数点1桁
+      console.log('[V1836] 総合評価（6項目平均）:', kuraberuScore, '項目:', ratingsArray);
     }
 
     // 会社名表示形式の決定（プレビュー設定に基づく）
@@ -937,8 +952,8 @@ function generateContactHtml(phone, email) {
                     </div>
                     <div class="overflow-hidden min-w-0">
                         <p class="text-sm text-gray-600">メールでのお問い合わせ</p>
-                        <a href="mailto:${email}" class="text-sm sm:text-base font-semibold text-blue-600 hover:text-blue-800 break-all cursor-pointer transition-colors">${email}</a>
-                        <p class="text-xs text-gray-500">24時間受付中</p>
+                        <a href="javascript:void(0);" onclick="showContactFormModal()" class="text-sm sm:text-base font-semibold text-blue-600 hover:text-blue-800 break-all cursor-pointer transition-colors">${email}</a>
+                        <p class="text-xs text-gray-500">24時間受付中（フォームからお問い合わせ）</p>
                     </div>
                 </div>
             </div>
