@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-20T14:46:38.359Z - Deployment: AKfycbwr5gGykMFZUZIXgGYjJGd9SqFYN_k1xmmZXo4acoBjgQZX4hyYkfmoPny_Yh1dE6U6Fg
+// Auto-synced: 2025-11-20T14:46:38.359Z - Deployment: AKfycbxOps7eKSQVRzuWc74YBOE1_xI6Y1ry29tymJlixHREtf9akybSabw0jdA_wMr4w8uDsg
 /**
  * 環境変数ローダー（全システム共通）- マスターファイル
  * .envファイルの代わりにJavaScriptで定数管理
@@ -22,14 +22,14 @@ const ENV = {
   // URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- @1715 最新バージョン
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbwr5gGykMFZUZIXgGYjJGd9SqFYN_k1xmmZXo4acoBjgQZX4hyYkfmoPny_Yh1dE6U6Fg/exec',
+  // プライマリGAS URL（メイン運用）- @1730 V1838 最新バージョン
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbxOps7eKSQVRzuWc74YBOE1_xI6Y1ry29tymJlixHREtf9akybSabw0jdA_wMr4w8uDsg/exec',
 
-  // フォールバックGAS URL（バックアップ）- @1715
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbwr5gGykMFZUZIXgGYjJGd9SqFYN_k1xmmZXo4acoBjgQZX4hyYkfmoPny_Yh1dE6U6Fg/exec',
+  // フォールバックGAS URL（バックアップ）- @1730 V1838
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxOps7eKSQVRzuWc74YBOE1_xI6Y1ry29tymJlixHREtf9akybSabw0jdA_wMr4w8uDsg/exec',
 
-  // 緊急時URL（最終フォールバック）- @1715
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbwr5gGykMFZUZIXgGYjJGd9SqFYN_k1xmmZXo4acoBjgQZX4hyYkfmoPny_Yh1dE6U6Fg/exec',
+  // 緊急時URL（最終フォールバック）- @1730 V1838
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxOps7eKSQVRzuWc74YBOE1_xI6Y1ry29tymJlixHREtf9akybSabw0jdA_wMr4w8uDsg/exec',
 
   // ============================================
   // システム設定
@@ -45,8 +45,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1757 - 2025-11-15 - テストデータ管理API完成）
-  CACHE_BUSTER: '1763649998360'
+  // キャッシュバスター（V1838 - 2025-11-21 - 加盟店登録⇔加盟店マスタ完全同期）
+  CACHE_BUSTER: '1763718420000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
