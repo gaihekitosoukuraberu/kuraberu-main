@@ -22,7 +22,9 @@ const LPContactSystem = {
   /**
    * スプレッドシートID（環境変数から取得）
    */
-  SPREADSHEET_ID: '1jGsHEsM3hKJN5Z6CkMNJwAM2CgjV5m0bBJx4NNp-V0E',
+  get SPREADSHEET_ID() {
+    return PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  },
 
   /**
    * POSTリクエスト処理
