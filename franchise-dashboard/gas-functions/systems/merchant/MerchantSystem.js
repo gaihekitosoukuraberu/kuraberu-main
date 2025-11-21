@@ -1048,8 +1048,8 @@ const MerchantSystem = {
       // - アクティブ: pauseFlag = false
       // - 一時停止: pauseFlag = true + 再開予定日あり
       // - 休止: pauseFlag = true + 再開予定日なし（未定）
+      let statusValue = 'アクティブ';
       if (statusCol > 0) {
-        let statusValue = 'アクティブ';
         const isPaused = (pauseFlag === 'true' || pauseFlag === true);
 
         if (isPaused) {
@@ -1062,6 +1062,44 @@ const MerchantSystem = {
 
         sheet.getRange(sheetRowIndex, statusCol).setValue(statusValue);
         console.log('[MerchantSystem] Status updated to:', statusValue);
+      }
+
+      // V1838: 加盟店マスタの「配信ステータス」も同時更新
+      // ステータス → 配信ステータス変換ルール
+      // アクティブ → アクティブ
+      // 一時停止/休止 → ストップ
+      let deliveryStatus = 'アクティブ';
+      if (statusValue === '一時停止' || statusValue === '休止') {
+        deliveryStatus = 'ストップ';
+      }
+
+      const masterSheet = ss.getSheetByName('加盟店マスタ');
+      if (masterSheet) {
+        const masterData = masterSheet.getDataRange().getValues();
+        const masterHeaders = masterData[0];
+        const masterRows = masterData.slice(1);
+
+        const masterIdIdx = masterHeaders.indexOf('加盟店ID');
+        const masterDeliveryStatusIdx = masterHeaders.indexOf('配信ステータス');
+
+        if (masterIdIdx !== -1 && masterDeliveryStatusIdx !== -1) {
+          // 加盟店IDで検索
+          for (let i = 0; i < masterRows.length; i++) {
+            const masterId = masterRows[i][masterIdIdx];
+            if (masterId === merchantId) {
+              const masterRowNumber = i + 2; // ヘッダー行を考慮
+              const currentDeliveryStatus = masterRows[i][masterDeliveryStatusIdx];
+
+              if (currentDeliveryStatus !== deliveryStatus) {
+                masterSheet.getRange(masterRowNumber, masterDeliveryStatusIdx + 1).setValue(deliveryStatus);
+                console.log('[MerchantSystem] ✅ 加盟店マスタ 配信ステータス更新:', currentDeliveryStatus, '→', deliveryStatus);
+              } else {
+                console.log('[MerchantSystem] 加盟店マスタ 配信ステータス: すでに', deliveryStatus);
+              }
+              break;
+            }
+          }
+        }
       }
 
       console.log('[MerchantSystem] updatePauseSettings - Updated row:', sheetRowIndex);
