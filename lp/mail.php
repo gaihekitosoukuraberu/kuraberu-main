@@ -648,8 +648,8 @@ function refererCheck($Referer_check,$Referer_check_domain){
 }
 //env-loader.jsからGAS URLを動的取得する関数
 function getGasUrlFromEnvLoader(){
-	// マスターenv-loader.jsのパス（相対パス）
-	$envLoaderPath = __DIR__ . '/js/env-loader.js';
+	// マスターenv-loader.jsのパス（/js/env-loader.js）
+	$envLoaderPath = __DIR__ . '/../js/env-loader.js';
 
 	// フォールバックURL（ファイル読み込み失敗時）- V1847 @HEAD
 	$fallbackUrl = 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/exec';

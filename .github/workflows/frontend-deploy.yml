@@ -10,6 +10,7 @@ on:
       - 'franchise-register/**'
       - 'estimate-keep-system/**'
       - 'lp/**'
+      - 'js/**'
   workflow_dispatch: # 手動実行も可能
 
 jobs:
