@@ -221,3 +221,28 @@ const LPContactSystem = {
     }
   }
 };
+
+/**
+ * テスト関数: LPContactSystemをGASエディタから直接テスト
+ */
+function testLPContactSystem() {
+  console.log('===== LPContactSystem Test Start =====');
+
+  const testData = {
+    action: 'lp_contact_submit',
+    name: 'テスト太郎',
+    email: 'test@example.com',
+    phone: '090-1234-5678',
+    postalCode: '123-4567',
+    inquiryContent: 'これはテストです'
+  };
+
+  console.log('Test data:', JSON.stringify(testData));
+
+  const result = LPContactSystem.handlePost({parameter: testData}, testData);
+
+  console.log('Result:', JSON.stringify(result));
+  console.log('===== LPContactSystem Test End =====');
+
+  return result;
+}

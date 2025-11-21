@@ -546,17 +546,29 @@ function doGet(e) {
  */
 function doPost(e) {
   try {
-    // 🔍 詳細ロギング開始
-    console.log('[main.js] ========== POST REQUEST START ==========');
-    console.log('[main.js] Timestamp:', new Date().toISOString());
+    // 🔍 詳細ロギング開始（console.log + Logger.log 両方使用）
+    const logMsg = '[main.js] ========== POST REQUEST START ==========';
+    console.log(logMsg);
+    Logger.log(logMsg);
+
+    const timestamp = new Date().toISOString();
+    console.log('[main.js] Timestamp:', timestamp);
+    Logger.log('[main.js] Timestamp: ' + timestamp);
+
     console.log('[main.js] Content Type:', e.contentType);
+    Logger.log('[main.js] Content Type: ' + e.contentType);
+
     console.log('[main.js] PostData Type:', e.postData ? e.postData.type : 'No postData');
-    console.log('[main.js] PostData Length:', e.postData ? e.postData.length : 0);
-    console.log('[main.js] PostData Contents (first 500 chars):',
-      e.postData ? e.postData.contents.substring(0, 500) : 'No postData');
+    Logger.log('[main.js] PostData Type: ' + (e.postData ? e.postData.type : 'No postData'));
+
     console.log('[main.js] Parameter keys:', Object.keys(e.parameter || {}));
+    Logger.log('[main.js] Parameter keys: ' + Object.keys(e.parameter || {}).join(', '));
+
     console.log('[main.js] Parameters:', JSON.stringify(e.parameter));
+    Logger.log('[main.js] Parameters: ' + JSON.stringify(e.parameter));
+
     console.log('[main.js] Has payload param:', !!e.parameter.payload);
+    Logger.log('[main.js] Has payload param: ' + (!!e.parameter.payload));
 
     // Slackインタラクション専用処理（payloadがある場合）
     if (e.parameter.payload) {
@@ -598,9 +610,11 @@ function doPost(e) {
     // actionをPOSTデータまたはパラメータから取得
     const action = postData.action || e.parameter.action;
     console.log('[main.js] Action:', action);
+    Logger.log('[main.js] Action: ' + action);
 
     // アクションが未指定の場合
     if (!action) {
+      Logger.log('[main.js] ERROR: No action parameter');
       return createJsonResponse({
         success: false,
         error: 'Action parameter is required'
@@ -611,10 +625,12 @@ function doPost(e) {
 
     // SystemRouterを使ってシステムを特定
     const { system, route } = SystemRouter.getSystemForAction(action);
+    Logger.log('[main.js] SystemRouter result - system: ' + system + ', route: ' + (route ? route.description : 'null'));
 
     if (!system) {
       // 不明なアクション
       console.warn('[main.js] Unknown action:', action);
+      Logger.log('[main.js] WARNING: Unknown action: ' + action);
       result = {
         success: false,
         error: `Unknown action: ${action}`,
@@ -623,14 +639,20 @@ function doPost(e) {
     } else {
       // システムハンドラーを取得して実行
       console.log('[main.js] Routing POST to:', system, '(', route.description, ')');
+      Logger.log('[main.js] Routing POST to: ' + system + ' (' + route.description + ')');
 
       const handler = SystemRouter.getHandler(system, 'POST');
+      Logger.log('[main.js] Handler found: ' + (!!handler));
+
       if (!handler) {
         console.warn('[main.js] No POST handler for:', system);
+        Logger.log('[main.js] WARNING: No POST handler for: ' + system);
         // フォールバック: レガシーハンドラーを試行
         result = handleLegacyPostAction(action, e, postData);
       } else {
+        Logger.log('[main.js] Calling handler for: ' + system);
         result = handler(e, postData);
+        Logger.log('[main.js] Handler returned, success: ' + result.success);
       }
     }
 
