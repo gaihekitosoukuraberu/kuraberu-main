@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-21T06:11:25.858Z - Deployment: AKfycbxbG224ldBf6nbUGXt7EtNZ2JXTxZZyCUzhvX631W7zW7fg1BVjzZk6nuyOuN3fTVn5Bg
+// Auto-synced: 2025-11-21T06:33:44.914Z - Deployment: AKfycbxbG224ldBf6nbUGXt7EtNZ2JXTxZZyCUzhvX631W7zW7fg1BVjzZk6nuyOuN3fTVn5Bg
 /**
  * 環境変数ローダー（全システム共通）- マスターファイル
  * .envファイルの代わりにJavaScriptで定数管理
@@ -46,7 +46,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1839 - 2025-11-21 - 加盟店マスタ同期機能実装）
-  CACHE_BUSTER: '1763705485858'
+  CACHE_BUSTER: '1763706824914'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
