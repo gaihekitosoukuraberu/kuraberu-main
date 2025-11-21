@@ -374,6 +374,108 @@ function generateStaticHTML(data) {
                 goToExample(currentExampleIndex + 1);
             }
         }
+
+        // V1835: 二重挙動ロジック（モーダル内 vs 独立HP）
+        const COMPANY_NAME = '${companyName}';
+
+        function handleEstimateRequest() {
+            console.log('[EstimateRequest] 見積もり依頼:', COMPANY_NAME);
+
+            // iframe内かどうかを判定
+            const isInIframe = window.parent !== window;
+            console.log('[EstimateRequest] iframe内:', isInIframe);
+
+            if (isInIframe && window.parent.keepManager) {
+                // モーダル内 → キープに追加
+                console.log('[EstimateRequest] モーダル内検出 - キープに追加');
+                try {
+                    if (window.parent.keepManager.addByName(COMPANY_NAME)) {
+                        alert('✅ キープリストに追加されました！\\nモーダルを閉じるとキープ一覧で確認できます。');
+                        // 親ウィンドウのモーダル閉じる
+                        const modal = window.parent.document.querySelector('.fixed.inset-0.bg-black');
+                        if (modal) modal.remove();
+                    } else {
+                        alert('キープリストへの追加に失敗しました。');
+                    }
+                } catch (error) {
+                    console.error('[EstimateRequest] キープ追加エラー:', error);
+                    alert('エラーが発生しました。');
+                }
+            } else {
+                // 独立HP → フォームモーダル表示
+                console.log('[EstimateRequest] 独立HP検出 - フォームモーダル表示');
+                showContactFormModal();
+            }
+        }
+
+        function showContactFormModal() {
+            // モーダル作成
+            const modal = document.createElement('div');
+            modal.id = 'contact-form-modal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = \`
+                <div class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-2xl font-bold">無料見積もり依頼</h3>
+                        <button onclick="closeContactFormModal()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <form class="km_form" method="post" action="https://gaihekikuraberu.com/lp/mail.php">
+                        <dl class="space-y-4">
+                            <dt class="font-bold">お名前<span class="text-red-500 text-sm ml-2">必須</span></dt>
+                            <dd><input class="w-full border border-gray-300 rounded px-3 py-2" type="text" name="お名前" placeholder="山田 太郎" required /></dd>
+
+                            <dt class="font-bold">メールアドレス<span class="text-red-500 text-sm ml-2">必須</span></dt>
+                            <dd><input class="w-full border border-gray-300 rounded px-3 py-2" type="email" name="メールアドレス" placeholder="aaa@gmail.co.jp" required /></dd>
+
+                            <dt class="font-bold">電話番号<span class="text-red-500 text-sm ml-2">必須</span></dt>
+                            <dd><input class="w-full border border-gray-300 rounded px-3 py-2" type="tel" name="電話番号" placeholder="000-0000-0000" required /></dd>
+
+                            <dt class="font-bold">郵便番号<span class="text-gray-500 text-sm ml-2">任意</span></dt>
+                            <dd><input class="w-full border border-gray-300 rounded px-3 py-2" type="text" name="郵便番号" placeholder="100-0001" /></dd>
+
+                            <dt class="font-bold">お問い合わせ内容（複数回答可）<span class="text-red-500 text-sm ml-2">必須</span></dt>
+                            <dd class="space-y-2">
+                                <label class="flex items-center"><input type="checkbox" name="お問い合わせ内容[]" value="助成金が利用できるか知りたい" class="mr-2" /> 助成金が利用できるか知りたい</label>
+                                <label class="flex items-center"><input type="checkbox" name="お問い合わせ内容[]" value="自分に合った業者をすぐに知りたい" class="mr-2" /> 自分に合った業者をすぐに知りたい</label>
+                                <label class="flex items-center"><input type="checkbox" name="お問い合わせ内容[]" value="とりあえず色々相談したい" class="mr-2" /> とりあえず色々相談したい</label>
+                                <label class="flex items-center"><input type="checkbox" name="お問い合わせ内容[]" value="その他" class="mr-2" /> その他</label>
+                            </dd>
+                        </dl>
+
+                        <div class="mt-4">
+                            <label class="flex items-start">
+                                <input type="checkbox" name="当社規定のプライバシーポリシーへの同意します。" value="はい" required class="mt-1 mr-2" />
+                                <span class="text-sm">当社規定のプライバシーポリシーへの同意します。</span>
+                            </label>
+                        </div>
+
+                        <div class="mt-6 flex gap-3">
+                            <button type="button" onclick="closeContactFormModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-3 rounded-lg font-bold">キャンセル</button>
+                            <button type="submit" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-lg font-bold">送信する</button>
+                        </div>
+                        <input type="hidden" name="希望業者" value="\${COMPANY_NAME}" />
+                    </form>
+                </div>
+            \`;
+
+            document.body.appendChild(modal);
+
+            // 背景スクロール防止
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeContactFormModal() {
+            const modal = document.getElementById('contact-form-modal');
+            if (modal) {
+                modal.remove();
+                document.body.style.overflow = '';
+            }
+        }
     </script>
 </body>
 </html>`;
@@ -960,7 +1062,7 @@ function generateNineBenefitsHtml() {
 
         <!-- CTA -->
         <div class="text-center">
-            <button class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors shadow-lg">
+            <button id="estimate-btn" onclick="handleEstimateRequest()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors shadow-lg">
                 今すぐ無料見積もりを依頼
             </button>
         </div>
