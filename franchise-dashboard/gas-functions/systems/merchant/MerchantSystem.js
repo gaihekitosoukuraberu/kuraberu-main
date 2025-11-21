@@ -1094,7 +1094,8 @@ const MerchantSystem = {
       });
 
       for (let i = 1; i < allData.length; i++) {
-        if (allData[i][merchantIdCol - 1] === merchantId) {
+        // V1842: 型変換して比較（string/number の不一致を解消）
+        if (String(allData[i][merchantIdCol - 1]) === String(merchantId)) {
           sheetRowIndex = i + 1;
           break;
         }
