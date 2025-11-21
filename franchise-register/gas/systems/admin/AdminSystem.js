@@ -1850,23 +1850,11 @@ const AdminSystem = {
         }
       }
 
-      // V1713-FIX: 配信ステータスの決定ロジック
-      // 1. 「配信ステータス」カラム（AJ列）が存在する場合はそれを優先
-      // 2. なければ「ステータス」カラムから変換（V1699互換）
-      let deliveryStatus = 'アクティブ';
-
-      if (deliveryStatusFromReg) {
-        // V1713: 配信ステータスカラムが存在する場合はそのまま使用
-        deliveryStatus = deliveryStatusFromReg;
-        console.log('[copyToFranchiseMaster] 配信ステータス（AJ列）:', deliveryStatusFromReg);
-      } else {
-        // V1699: 配信ステータスカラムがない場合は「ステータス」から変換
-        // 「休止」「一時停止」→「ストップ」、それ以外→「アクティブ」
-        if (status === '休止' || status === '一時停止') {
-          deliveryStatus = 'ストップ';
-        }
-        console.log('[copyToFranchiseMaster] ステータス変換:', status, '→', deliveryStatus);
-      }
+      // V1841: 配信ステータスの決定ロジック（完全同期）
+      // 「配信ステータス」カラム（AJ列）がある場合はそれを優先、なければ「ステータス」をそのまま使用
+      // 変換なし - 将来のステータス追加に柔軟に対応
+      let deliveryStatus = deliveryStatusFromReg || status || 'アクティブ';
+      console.log('[copyToFranchiseMaster] 配信ステータス:', deliveryStatus, '（変換なし・完全同期）');
 
       // 過去データシートから運用実績を取得
       const performanceData = this._getPerformanceFromPastData(companyName);

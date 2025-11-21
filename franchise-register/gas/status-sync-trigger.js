@@ -118,20 +118,16 @@ function syncStatusToMaster(ss, registrationSheet, editedRow, headers) {
     const status = rowData[statusIdx];
     const registrationId = rowData[registrationIdIdx];
 
-    // V1713-FIX: ステータス → 配信ステータス変換
-    // アクティブ → アクティブ
-    // 一時停止/休止 → ストップ
-    let newDeliveryStatus = 'アクティブ';
-    if (status === '一時停止' || status === '休止') {
-      newDeliveryStatus = 'ストップ';
-    }
+    // V1841: 配信ステータス完全同期（変換なし）- 将来のステータス追加に対応
+    // ステータスをそのまま配信ステータスにコピー
+    const newDeliveryStatus = status || 'アクティブ'; // ステータスが空の場合のみデフォルト値
 
     if (!companyName) {
       console.log('[StatusSyncTrigger] 会社名が空のためスキップ');
       return;
     }
 
-    console.log('[StatusSyncTrigger] 同期開始:', companyName, 'ステータス:', status, '→ 配信ステータス:', newDeliveryStatus);
+    console.log('[StatusSyncTrigger] 同期開始:', companyName, 'ステータス:', status, '→ 配信ステータス:', newDeliveryStatus, '（完全同期）');
 
     // 加盟店マスタシート取得
     const masterSheet = ss.getSheetByName('加盟店マスタ');

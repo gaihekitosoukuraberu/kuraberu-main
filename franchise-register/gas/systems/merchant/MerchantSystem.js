@@ -1104,10 +1104,10 @@ const MerchantSystem = {
 
               if (masterRowIndex !== -1) {
                 const masterSheetRowIndex = masterRowIndex + 2; // +2 (ヘッダー1行 + 0-indexed)
-                // ステータス → 配信ステータス変換: アクティブ→アクティブ、一時停止/休止→ストップ
-                const deliveryStatus = (statusValue === 'アクティブ') ? 'アクティブ' : 'ストップ';
+                // V1841: 配信ステータス完全同期（変換なし）- 将来のステータス追加に対応
+                const deliveryStatus = statusValue; // ステータスをそのまま配信ステータスにコピー
                 masterSheet.getRange(masterSheetRowIndex, masterDeliveryStatusIdx + 1).setValue(deliveryStatus);
-                console.log('[MerchantSystem] 加盟店マスタの配信ステータスも「' + deliveryStatus + '」に更新しました');
+                console.log('[MerchantSystem] 加盟店マスタの配信ステータスも「' + deliveryStatus + '」に更新しました（完全同期）');
               } else {
                 console.log('[MerchantSystem] 加盟店マスタに該当業者が見つかりません（承認前の可能性）');
               }
