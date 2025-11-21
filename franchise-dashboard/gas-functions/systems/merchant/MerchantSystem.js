@@ -693,6 +693,46 @@ const MerchantSystem = {
 
       console.log('[MerchantSystem] updateMerchantStatus - Updated row:', sheetRowIndex, 'to:', sheetStatus);
 
+      // V1838: 加盟店マスタの「配信ステータス」も同時更新
+      // ステータス → 配信ステータス変換ルール
+      // アクティブ → アクティブ
+      // 一時停止/休止 → ストップ
+      let deliveryStatus = 'アクティブ';
+      if (sheetStatus === '一時停止' || sheetStatus === '休止') {
+        deliveryStatus = 'ストップ';
+      }
+
+      const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(spreadsheetId);
+      const masterSheet = ss.getSheetByName('加盟店マスタ');
+      if (masterSheet) {
+        const masterData = masterSheet.getDataRange().getValues();
+        const masterHeaders = masterData[0];
+        const masterRows = masterData.slice(1);
+
+        const masterIdIdx = masterHeaders.indexOf('加盟店ID');
+        const masterDeliveryStatusIdx = masterHeaders.indexOf('配信ステータス');
+
+        if (masterIdIdx !== -1 && masterDeliveryStatusIdx !== -1) {
+          // 加盟店IDで検索
+          for (let i = 0; i < masterRows.length; i++) {
+            const masterId = masterRows[i][masterIdIdx];
+            if (masterId === merchantId) {
+              const masterRowNumber = i + 2; // ヘッダー行を考慮
+              const currentDeliveryStatus = masterRows[i][masterDeliveryStatusIdx];
+
+              if (currentDeliveryStatus !== deliveryStatus) {
+                masterSheet.getRange(masterRowNumber, masterDeliveryStatusIdx + 1).setValue(deliveryStatus);
+                console.log('[MerchantSystem] ✅ 加盟店マスタ 配信ステータス更新:', currentDeliveryStatus, '→', deliveryStatus);
+              } else {
+                console.log('[MerchantSystem] 加盟店マスタ 配信ステータス: すでに', deliveryStatus);
+              }
+              break;
+            }
+          }
+        }
+      }
+
       return {
         success: true,
         message: 'ステータスを更新しました'
@@ -950,6 +990,46 @@ const MerchantSystem = {
       if (statusCol > 0 && status !== undefined) {
         sheet.getRange(sheetRowIndex, statusCol).setValue(status);
         console.log('[MerchantSystem] Status updated to:', status);
+
+        // V1838: 加盟店マスタの「配信ステータス」も同時更新
+        // ステータス → 配信ステータス変換ルール
+        // アクティブ → アクティブ
+        // 一時停止/休止 → ストップ
+        let deliveryStatus = 'アクティブ';
+        if (status === '一時停止' || status === '休止') {
+          deliveryStatus = 'ストップ';
+        }
+
+        const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+        const ss = SpreadsheetApp.openById(spreadsheetId);
+        const masterSheet = ss.getSheetByName('加盟店マスタ');
+        if (masterSheet) {
+          const masterData = masterSheet.getDataRange().getValues();
+          const masterHeaders = masterData[0];
+          const masterRows = masterData.slice(1);
+
+          const masterIdIdx = masterHeaders.indexOf('加盟店ID');
+          const masterDeliveryStatusIdx = masterHeaders.indexOf('配信ステータス');
+
+          if (masterIdIdx !== -1 && masterDeliveryStatusIdx !== -1) {
+            // 加盟店IDで検索
+            for (let i = 0; i < masterRows.length; i++) {
+              const masterId = masterRows[i][masterIdIdx];
+              if (masterId === merchantId) {
+                const masterRowNumber = i + 2; // ヘッダー行を考慮
+                const currentDeliveryStatus = masterRows[i][masterDeliveryStatusIdx];
+
+                if (currentDeliveryStatus !== deliveryStatus) {
+                  masterSheet.getRange(masterRowNumber, masterDeliveryStatusIdx + 1).setValue(deliveryStatus);
+                  console.log('[MerchantSystem] ✅ 加盟店マスタ 配信ステータス更新:', currentDeliveryStatus, '→', deliveryStatus);
+                } else {
+                  console.log('[MerchantSystem] 加盟店マスタ 配信ステータス: すでに', deliveryStatus);
+                }
+                break;
+              }
+            }
+          }
+        }
       }
 
       console.log('[MerchantSystem] updateAutoDeliverySettings - Updated row:', sheetRowIndex);
