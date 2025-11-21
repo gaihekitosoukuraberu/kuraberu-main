@@ -646,13 +646,45 @@ function refererCheck($Referer_check,$Referer_check_domain){
 		}
 	}
 }
+//env-loader.jsからGAS URLを動的取得する関数
+function getGasUrlFromEnvLoader(){
+	// マスターenv-loader.jsのパス（相対パス）
+	$envLoaderPath = __DIR__ . '/../js/env-loader.js';
+
+	// フォールバックURL（ファイル読み込み失敗時）
+	$fallbackUrl = 'https://script.google.com/macros/s/AKfycbx8zH0Af6u0BkbPgxTSqg3eG7O24Wnev3kr1ro8nsGsl7Nkajls4JIf6gRFdd82v4no1Q/exec';
+
+	// ファイルが存在しない場合はフォールバック
+	if(!file_exists($envLoaderPath)){
+		error_log('[getGasUrlFromEnvLoader] env-loader.js not found at: ' . $envLoaderPath);
+		return $fallbackUrl;
+	}
+
+	// ファイルを読み込み
+	$content = file_get_contents($envLoaderPath);
+	if($content === false){
+		error_log('[getGasUrlFromEnvLoader] Failed to read env-loader.js');
+		return $fallbackUrl;
+	}
+
+	// GAS_URLを抽出（正規表現）
+	if(preg_match("/GAS_URL:\s*['\"]([^'\"]+)['\"]/", $content, $matches)){
+		$gasUrl = $matches[1];
+		error_log('[getGasUrlFromEnvLoader] GAS URL loaded from env-loader.js: ' . $gasUrl);
+		return $gasUrl;
+	}
+
+	// 抽出失敗時はフォールバック
+	error_log('[getGasUrlFromEnvLoader] Failed to extract GAS_URL from env-loader.js');
+	return $fallbackUrl;
+}
 function copyright(){
 	echo '<a style="display:block;text-align:center;margin:15px 0;font-size:11px;color:#aaa;text-decoration:none" href="http://www.php-factory.net/" target="_blank">- PHP工房 -</a>';
 }
 //GASにお問い合わせデータを送信
 function sendToGAS($formData){
-	// GAS Web App URL - V1842 再デプロイ（V1840支払遅延FALSE + V1841完全同期）
-	$gasUrl = 'https://script.google.com/macros/s/AKfycbx8zH0Af6u0BkbPgxTSqg3eG7O24Wnev3kr1ro8nsGsl7Nkajls4JIf6gRFdd82v4no1Q/exec';
+	// GAS Web App URL - V1843 動的参照（/js/env-loader.jsから取得）
+	$gasUrl = getGasUrlFromEnvLoader();
 
 	// デバッグログ: 受信データ
 	error_log('===== LP問い合わせフォーム GAS送信開始 =====');

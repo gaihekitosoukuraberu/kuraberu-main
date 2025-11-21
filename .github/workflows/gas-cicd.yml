@@ -127,43 +127,33 @@ jobs:
           echo "Version: ${{ steps.deploy.outputs.version }}"
           echo "Deployment ID: ${{ steps.deploy.outputs.deployment_id }}"
 
-      - name: Sync all env-loader.js files
+      - name: Sync master env-loader.js (Single Source)
         run: |
-          echo "🔄 全env-loader.jsを最新GAS URLに同期中..."
+          echo "🔄 マスターenv-loader.jsを最新GAS URLに同期中..."
           DEPLOYMENT_ID="${{ steps.deploy.outputs.deployment_id }}"
-          node sync-all-env-loaders.js "$DEPLOYMENT_ID"
+          node sync-master-env-loader.js "$DEPLOYMENT_ID"
 
       - name: Commit and push env-loader updates
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-          # 全env-loader.jsファイルをステージング
-          git add admin-dashboard/js/env-loader.js || true
-          git add franchise-register/js/env-loader.js || true
-          git add franchise-dashboard/merchant-portal/env-loader.js || true
-          git add estimate-keep-system/js/env-loader.js || true
-          git add lp/js/env-loader.js || true
+          # マスターenv-loader.jsをステージング
+          git add js/env-loader.js || true
 
           # LPフォールバックURLファイルもステージング
           git add lp/js/cv-api.js || true
           git add lp/js/utils.js || true
 
-          # LPメールPHPファイルもステージング
-          git add lp/mail.php || true
-
-          # LP index.htmlのキャッシュバスターもステージング
-          git add lp/index.html || true
-
           # 変更があればコミット
           if git diff --staged --quiet; then
-            echo "📝 GAS URL更新ファイルに変更なし"
+            echo "📝 マスターenv-loader.js更新なし"
             echo "ENV_UPDATED=false" >> $GITHUB_ENV
           else
-            git commit -m "auto: GAS URL同期 (env-loader & fallback & PHP & HTML cache-buster) - ${{ steps.deploy.outputs.deployment_id }}"
+            git commit -m "auto: GAS URL同期 (master env-loader & fallback) - ${{ steps.deploy.outputs.deployment_id }}"
             git pull --rebase origin main
             git push
-            echo "✅ GAS URL更新をpushしました"
+            echo "✅ マスターenv-loader.js更新をpushしました"
             echo "ENV_UPDATED=true" >> $GITHUB_ENV
           fi
 
@@ -194,11 +184,11 @@ jobs:
       - name: Verify production deployment
         if: env.ENV_UPDATED == 'true'
         run: |
-          echo "🔍 本番サーバーのenv-loader.js更新を確認中..."
+          echo "🔍 本番サーバーのマスターenv-loader.js更新を確認中..."
           sleep 10
 
-          # franchise-register env-loader.jsを確認
-          PROD_DEPLOYMENT=$(curl -s "https://gaihekikuraberu.com/franchise-register/js/env-loader.js?$(date +%s)" | grep "Deployment:" | head -1)
+          # マスターenv-loader.jsを確認
+          PROD_DEPLOYMENT=$(curl -s "https://gaihekikuraberu.com/js/env-loader.js?$(date +%s)" | grep "Deployment:" | head -1)
           echo "本番サーバー: $PROD_DEPLOYMENT"
           echo "期待値: Deployment: ${{ steps.deploy.outputs.deployment_id }}"
 
