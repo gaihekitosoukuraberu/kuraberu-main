@@ -1081,6 +1081,18 @@ const MerchantSystem = {
       const allData = sheet.getDataRange().getValues();
       let sheetRowIndex = -1;
 
+      console.log('[MerchantSystem] 検索中:', {
+        merchantId,
+        merchantIdType: typeof merchantId,
+        merchantIdCol,
+        totalRows: allData.length,
+        sampleIds: allData.slice(1, 4).map((row, idx) => ({
+          row: idx + 2,
+          id: row[merchantIdCol - 1],
+          type: typeof row[merchantIdCol - 1]
+        }))
+      });
+
       for (let i = 1; i < allData.length; i++) {
         if (allData[i][merchantIdCol - 1] === merchantId) {
           sheetRowIndex = i + 1;
@@ -1089,6 +1101,7 @@ const MerchantSystem = {
       }
 
       if (sheetRowIndex === -1) {
+        console.error('[MerchantSystem] 加盟店が見つかりません:', merchantId);
         return {
           success: false,
           error: '加盟店が見つかりません'
