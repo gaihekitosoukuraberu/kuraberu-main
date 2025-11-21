@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-21T11:05:00.000Z - Deployment: AKfycbyd4UlBN4wocmP5Go-umYOP9qfVSa-PIxD-3g56FF2dlVOVwm2U55ePsUC63WpJLbQK9g
+// Auto-synced: 2025-11-21T20:45:00.000Z - Deployment: AKfycbzSQpTrrnCpwoxCOXE6-qjyGneSIJJdR2GePNONDJzZ4kVTp3XHcgxTm4dW1Ai4bkX4
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
