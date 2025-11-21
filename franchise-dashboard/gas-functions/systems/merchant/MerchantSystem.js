@@ -1065,8 +1065,9 @@ const MerchantSystem = {
       }
 
       // スプレッドシートを取得
-      const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
-      const sheet = ss.getSheetByName(CONFIG.SHEETS.FRANCHISE_MERCHANTS);
+      const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(spreadsheetId);
+      const sheet = ss.getSheetByName('加盟店登録');
 
       if (!sheet) {
         throw new Error('加盟店シートが見つかりません');
@@ -1206,8 +1207,9 @@ const MerchantSystem = {
     try {
       console.log('[MerchantSystem] checkAndResumePausedMerchants - Start');
 
-      const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
-      const sheet = ss.getSheetByName(CONFIG.SHEETS.FRANCHISE_MERCHANTS);
+      const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(spreadsheetId);
+      const sheet = ss.getSheetByName('加盟店登録');
 
       if (!sheet) {
         throw new Error('加盟店シートが見つかりません');
@@ -1320,8 +1322,9 @@ const MerchantSystem = {
       console.log('[MerchantSystem] checkUpdate - merchantId:', merchantId, 'lastUpdate:', new Date(lastUpdate));
 
       // スプレッドシート取得
-      const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
-      const sheet = ss.getSheetByName(CONFIG.MERCHANT_SHEET_NAME);
+      const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(spreadsheetId);
+      const sheet = ss.getSheetByName('加盟店登録');
 
       if (!sheet) {
         return {
