@@ -27,6 +27,11 @@
  * 【V1843】 2025-11-21 16:45 - mail.php GAS URL更新
  * - 加盟店詳細ページからのフォーム送信でもスプシ反映＆Slack通知が来るように修正
  * - lp/mail.php の GAS URL を新デプロイメントIDに更新
+ *
+ * 【V1844】 2025-11-21 17:00 - env-loader動的参照対応
+ * - マスターenv-loader.js作成（/js/env-loader.js）- 単一ソース化
+ * - lp/mail.phpを動的参照に変更（ハードコード削除）
+ * - GitHub Actions ワークフロー更新（sync-master-env-loader.js使用）
  */
 
 /**
