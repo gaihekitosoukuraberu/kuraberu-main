@@ -3429,13 +3429,11 @@
     </script>
 
     <!-- 外壁塗装くらべる BOTシステム -->
-    <!-- 環境変数を最初にロード（GAS URL設定） - V1837: ranking.js質問ID修正 -->
-    <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="js/env-loader.js?v=1763707319040"></script>
+    <!-- 🔥 環境変数マスターファイル（Single Source of Truth） -->
+    <script src="/js/env-loader.js"></script>
 
-    <!-- BOTローダー（タイミング問題のため静的ロード必須） -->
-    <!-- ⚠️ env-loader.js更新時は ?v= の値も手動で変更すること -->
-    <script src="gaiheki-bot-loader.js?v=1763707319040"></script>
+    <!-- BOTローダー（動的スクリプトロード + キャッシュバスター自動適用） -->
+    <script src="gaiheki-bot-loader.js"></script>
 
     <!-- V1713-FIX: 無料見積もりボタン（body直下・viewport基準で完全固定） -->
     <div id="estimateBtnContainer" style="display: none !important; position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 999999 !important; background: white !important; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 200px 0 200px white !important; border-top: 1px solid #e5e7eb !important; padding: 1rem 0 !important; padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important; pointer-events: auto !important;">
