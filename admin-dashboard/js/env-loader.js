@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-21T06:41:59.040Z - Deployment: AKfycbxbG224ldBf6nbUGXt7EtNZ2JXTxZZyCUzhvX631W7zW7fg1BVjzZk6nuyOuN3fTVn5Bg
+// Auto-synced: 2025-11-21T16:30:00.000Z - Deployment: AKfycbx8zH0Af6u0BkbPgxTSqg3eG7O24Wnev3kr1ro8nsGsl7Nkajls4JIf6gRFdd82v4no1Q
 /**
  * 環境変数ローダー（全システム共通）
  * .envファイルの代わりにJavaScriptで定数管理
@@ -12,8 +12,8 @@
  * - estimate-keep-system/js/env-loader.js
  * - lp/js/env-loader.js
  *
- * @file-version V1816
- * @last-update 2025-11-17T22:22:00
+ * @file-version V1842-REDEPLOY-2025-11-21T16:30:00
+ * @last-update 2025-11-21T16:30:00
  */
 
 const ENV = {
@@ -21,14 +21,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- @1715 最新デプロイ
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxbG224ldBf6nbUGXt7EtNZ2JXTxZZyCUzhvX631W7zW7fg1BVjzZk6nuyOuN3fTVn5Bg/exec',
+  // プライマリGAS URL（メイン運用）- V1842 再デプロイ（V1840支払遅延FALSE + V1841完全同期）
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbx8zH0Af6u0BkbPgxTSqg3eG7O24Wnev3kr1ro8nsGsl7Nkajls4JIf6gRFdd82v4no1Q/exec',
 
-  // フォールバックGAS URL（バックアップ）- @1715
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxbG224ldBf6nbUGXt7EtNZ2JXTxZZyCUzhvX631W7zW7fg1BVjzZk6nuyOuN3fTVn5Bg/exec',
+  // フォールバックGAS URL（バックアップ）- V1842
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbx8zH0Af6u0BkbPgxTSqg3eG7O24Wnev3kr1ro8nsGsl7Nkajls4JIf6gRFdd82v4no1Q/exec',
 
-  // 緊急時URL（最終フォールバック）- @1715
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxbG224ldBf6nbUGXt7EtNZ2JXTxZZyCUzhvX631W7zW7fg1BVjzZk6nuyOuN3fTVn5Bg/exec',
+  // 緊急時URL（最終フォールバック）- V1842
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbx8zH0Af6u0BkbPgxTSqg3eG7O24Wnev3kr1ro8nsGsl7Nkajls4JIf6gRFdd82v4no1Q/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1831 - 2025-11-20 - デプロイ確認）
-  CACHE_BUSTER: Date.now().toString()
+  // キャッシュバスター（V1842 - 2025-11-21 - GAS再デプロイ V1840+V1841）
+  CACHE_BUSTER: '1732197000000'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
