@@ -32,6 +32,12 @@
  * - マスターenv-loader.js作成（/js/env-loader.js）- 単一ソース化
  * - lp/mail.phpを動的参照に変更（ハードコード削除）
  * - GitHub Actions ワークフロー更新（sync-master-env-loader.js使用）
+ *
+ * 【V1845】 2025-11-21 17:30 - LP問い合わせフォーム処理追加
+ * - LPContactSystem作成（lp_contact_submit アクション対応）
+ * - ユーザー登録シートへの書き込み機能
+ * - Slack通知機能実装
+ * - thanks.htmlボタンリンク修正（/lp/へ遷移）
  */
 
 /**
@@ -317,6 +323,14 @@ const SystemRouter = {
       description: 'テストデータ完全削除',
       prefix: false,
       actions: ['cleanupAllTestData']
+    },
+
+    // LP問い合わせフォーム（V1845）
+    'lp_contact_submit': {
+      system: 'LPContactSystem',
+      description: 'LP問い合わせフォーム送信',
+      prefix: false,
+      actions: ['lp_contact_submit']
     }
   },
 
