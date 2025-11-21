@@ -432,6 +432,61 @@ const keepManager = {
   // キープリストを取得（V1671 - モーダル表示用）
   getList() {
     return keepList;
+  },
+
+  // V1835: 業者名だけでキープに追加（プレビューHP内から使用）
+  addByName(companyName) {
+    if (!companyName) {
+      console.error('❌ addByName: 業者名が指定されていません');
+      return false;
+    }
+
+    // 既にキープ済みかチェック
+    if (this.isKept(companyName)) {
+      console.log('✅ 既にキープ済み:', companyName);
+      return true;
+    }
+
+    // allCompaniesから会社情報を検索
+    const company = allCompanies.find(c => c.name === companyName);
+    if (!company) {
+      console.error('❌ addByName: 業者が見つかりません:', companyName);
+      return false;
+    }
+
+    // キープリストに追加
+    keepList.push({
+      id: company.rank.toString(),
+      name: companyName,
+      rank: company.rank
+    });
+    console.log('✅ キープ追加:', companyName);
+
+    // localStorageに保存
+    localStorage.setItem('keepList', JSON.stringify(keepList));
+
+    // 全ボタンの表示を更新
+    this.updateAllButtons();
+
+    // キープ数バッジを更新
+    updateKeepCountBadge();
+
+    // V1713-UX: 無料見積もりボタンの表示制御
+    const estimateBtnContainer = document.getElementById('estimateBtnContainer');
+    if (estimateBtnContainer) {
+      if (keepList.length > 0) {
+        estimateBtnContainer.style.display = 'block';
+        console.log('✅ 無料見積もりボタン表示（固定位置）');
+      }
+    }
+
+    // キープボタンの表示制御
+    const keepButton = document.getElementById('keepButton');
+    if (keepButton && keepList.length > 0) {
+      keepButton.classList.remove('hidden');
+    }
+
+    return true;
   }
 };
 
@@ -776,9 +831,10 @@ function showCompanyDetail(companyRank) {
       </div>
       <div class="flex-1 overflow-hidden">
         <iframe
+          id="preview-iframe"
           src="${previewHP}"
           class="w-full h-full border border-gray-200 rounded"
-          sandbox="allow-scripts allow-same-origin allow-forms"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
           loading="lazy"
         ></iframe>
       </div>
