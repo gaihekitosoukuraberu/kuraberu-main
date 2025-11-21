@@ -83,11 +83,11 @@ async function fetchRankingFromGAS() {
       }
     }
 
-    // V1705: 材質・工事内容追加
-    const wallMaterial = answers.Q006 && answers.Q006.choice ? answers.Q006.choice : '';
-    const roofMaterial = answers.Q007 && answers.Q007.choice ? answers.Q007.choice : '';
-    const wallWorkType = answers.Q009 && answers.Q009.choice ? answers.Q009.choice : '';
-    const roofWorkType = answers.Q010 && answers.Q010.choice ? answers.Q010.choice : '';
+    // V1705: 材質・工事内容追加（V1837: 質問ID修正 - bot-config.jsのマッピングに合わせる）
+    const wallMaterial = answers.Q004 && answers.Q004.choice ? answers.Q004.choice : '';
+    const roofMaterial = answers.Q004A && answers.Q004A.choice ? answers.Q004A.choice : '';
+    const wallWorkType = answers.Q005 && answers.Q005.choice ? answers.Q005.choice : '';
+    const roofWorkType = answers.Q006 && answers.Q006.choice ? answers.Q006.choice : '';
 
     // V1830: 気になる箇所（単品 vs 複合工事判定用）
     const concernedArea = answers.Q004B && answers.Q004B.choice ? answers.Q004B.choice : '';
