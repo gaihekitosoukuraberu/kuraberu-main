@@ -1,7 +1,7 @@
 /**
  * ====================================
  * メインエントリーポイント
- * V1851: LPContactSystem実装完了 + CI/CD修正
+ * V1852: AdminSystem action undefined 修正
  * ====================================
  *
  * 【重要ルール】
@@ -11,22 +11,17 @@
  * 4. HTMLは絶対に返さない
  * 5. 共通関数は極力最小限にする（main.jsに集約）
  *
- * 【再デプロイ】 2025-11-20 19:36 - GAS URL無効化のため再デプロイ
+ * 【V1852】 2025-11-26 01:15 - "Unknown admin action: undefined" 修正
+ * - main.js:574 - handler(e, null) → handler(e.parameter, null)
+ * - AdminSystemがparams.actionを正しく受け取れるように修正
+ * - CV一覧・登録申請リスト読み込みエラー解消
  *
- * 【V1754】 2025-11-20 21:20 - 評価データ同期機能追加
- * - syncRatingsToMaster: 評価データシート → 加盟店マスタAC列（総合スコア）
- * - 注意: この機能が不要になったら削除すること
- *
- * 【V1841】 2025-11-21 15:09 - 配信ステータス完全同期実装
  * 【V1842】 2025-11-26 01:06 - clasp push緊急回避 + FTPデプロイ
- * - ステータス変換ロジック削除、完全同期に変更
- * - admin-dashboard casesListBody エラー修正（セクション切り替えDOM競合解消）
+ * - admin-dashboard casesListBody エラー修正
  * - GitHub Actions: clasp pushエラー無視、FTPデプロイ優先
  *
- * 【V1842】 2025-11-21 16:00 - @HEAD運用ワークフローで再デプロイ
- * - V1840: 支払遅延を一律FALSEに変更
- * - V1841: 配信ステータス完全同期
- * - 権限問題修正: バージョン付きデプロイメント廃止、@HEADのみ使用
+ * 【V1841】 2025-11-21 15:09 - 配信ステータス完全同期実装
+ * - ステータス変換ロジック削除、完全同期に変更
  *
  * 【V1843】 2025-11-21 16:45 - mail.php GAS URL更新
  * - 加盟店詳細ページからのフォーム送信でもスプシ反映＆Slack通知が来るように修正
@@ -571,7 +566,7 @@ function doGet(e) {
           }
         }
 
-        result = handler(e, null);
+        result = handler(e.parameter, null);
       }
     }
 
