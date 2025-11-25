@@ -10,6 +10,39 @@
 
 ---
 
+## ⚠️ 【重要】clasp の制限について
+
+### claspで作成されるのは「Code deployment」のみ
+
+**重要:** `clasp deploy` では **Web App deployment を作成できません**。これはGASの仕様です。
+
+```bash
+# これは Code deployment を作成する（GETのみ、ライブラリ用）
+clasp deploy --description "V1234: 〇〇機能追加"
+```
+
+#### Code deployment と Web App deployment の違い
+
+| 種類 | 作成方法 | GET対応 | POST対応 | 用途 |
+|------|---------|--------|---------|------|
+| **Code deployment** | `clasp deploy` | ✅ | ❌ | ライブラリとして他のGASから呼び出し |
+| **Web App deployment** | GAS UI で手動作成 | ✅ | ✅ | 外部からのHTTPリクエスト受付 |
+
+#### POSTが404エラーになる原因
+
+以下のコマンドで表示されるdeploymentは、**Code deployment**です:
+
+```bash
+clasp deployments
+# 出力例:
+# - AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj @HEAD
+# - AKfycbwHlJ12PvmgkmVTsoEzfFGCDk_jm8PxbUYYeXxsKh0mnPblxui-43m4279aO4j9B2kF2A @1753
+```
+
+**これらのURLにPOSTリクエストを送ると、「ページが見つかりません」エラーが返されます。**
+
+---
+
 ## ⚠️ 【重要】初回セットアップ（1度だけ必要）
 
 GASでは`clasp`でWeb Appの権限設定ができないため、**初回1度だけGAS UIで手動設定が必要です**。
@@ -175,21 +208,58 @@ systems/
 
 ## ⚠️ トラブルシューティング
 
-### POSTが404エラーになる
+### POSTが「ページが見つかりません」エラーになる
 
-**原因**: Web Appが「全員」に設定されていない
+**症状**:
+- GETリクエストは成功する ✅
+- POSTリクエストが404エラー/「ページが見つかりません」を返す ❌
+- doPostの実行ログは存在するが、詳細が見れない
+
+**原因**: `clasp deploy`で作成したdeploymentは**Code deployment**であり、**Web App deployment**ではない
+
+**確認方法**:
+```bash
+clasp deployments
+# 出力例:
+# - AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj @HEAD
+# - AKfycbwHlJ12PvmgkmVTsoEzfFGCDk_jm8PxbUYYeXxsKh0mnPblxui-43m4279aO4j9B2kF2A @1753
+```
+
+↑ これらは**Code deployment**なので、POSTは動きません。
+
+**POSTリクエストテスト**:
+```bash
+# Code deploymentにPOSTすると「ページが見つかりません」エラーが返る
+curl -X POST 'https://script.google.com/macros/s/AKfycb.../exec' \
+  -d 'action=health' -L
+# 結果: <!DOCTYPE html>...<title>ページが見つかりません</title>...
+```
+
+**解決策**:
+1. **GAS UIで「デプロイ」→「デプロイを管理」を開く**
+2. **「ウェブアプリ」タイプのdeploymentが存在するか確認**
+   - 存在する → その「ウェブアプリ URL」を使用
+   - 存在しない → 次のステップへ
+3. **「新しいデプロイ」→「種類を選択」→「ウェブアプリ」を選択**
+   - 説明: `LPContactSystem Web App`
+   - 次のユーザーとして実行: **自分（メールアドレス）**
+   - アクセスできるユーザー: **全員（匿名ユーザーを含む）** ← 重要！
+   - 「デプロイ」ボタンをクリック
+4. **表示された「ウェブアプリ URL」をコピーして使用**
+
+**重要**: clasp では Web App deployment を作成できません。GAS UI での手動作成が必須です。
+
+### GETは動くがPOSTが動かない（権限エラー）
+
+**原因**: Web App の権限設定が「全員（Googleアカウント必須）」になっている
 
 **解決策**:
 1. GASエディタで「デプロイ」→「デプロイを管理」
-2. @HEADの編集（鉛筆アイコン）
-3. 「アクセスできるユーザー」を「全員（匿名ユーザーを含む）」に変更
-4. 「デプロイ」をクリック
-
-### GETは動くがPOSTが動かない
-
-**原因**: claspで作成したdeploymentはCode deploymentであり、Web App deploymentではない
-
-**解決策**: 本ドキュメントの「初回セットアップ」を実行
+2. Web App deploymentの編集（鉛筆アイコン）
+3. 「アクセスできるユーザー」を確認:
+   - ❌ 「全員」（Googleアカウント必須） ← これだとPOSTに認証が必要
+   - ✅ 「全員（匿名ユーザーを含む）」 ← これが正しい
+4. 「新しいバージョンとして保存」をクリック
 
 ### env-loader.jsのURLが古い
 
