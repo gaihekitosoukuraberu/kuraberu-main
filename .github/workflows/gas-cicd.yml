@@ -171,6 +171,7 @@ jobs:
       # ======================================================================
       - name: Deploy all frontend files to production servers
         if: success()
+        id: ftp_deploy
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
         with:
           server: ${{ secrets.FTP_HOST }}
@@ -188,23 +189,37 @@ jobs:
             **/*.md
             **/.github/**
           dangerous-clean-slate: false
-          log-level: minimal
+          log-level: verbose
 
       - name: Verify production deployment
-        if: env.ENV_UPDATED == 'true'
+        if: success()
         run: |
           echo "🔍 本番サーバーのマスターenv-loader.js更新を確認中..."
-          sleep 10
+          echo "⏳ FTPデプロイ反映まで15秒待機..."
+          sleep 15
 
           # マスターenv-loader.jsを確認
-          PROD_DEPLOYMENT=$(curl -s "https://gaihekikuraberu.com/js/env-loader.js?$(date +%s)" | grep "Deployment:" | head -1)
-          echo "本番サーバー: $PROD_DEPLOYMENT"
-          echo "期待値: Deployment: ${{ steps.deploy.outputs.deployment_id }}"
+          PROD_CONTENT=$(curl -sL "https://gaihekikuraberu.com/js/env-loader.js?nocache=$(date +%s)")
+
+          if [ -z "$PROD_CONTENT" ]; then
+            echo "❌ 致命的エラー: 本番サーバーのenv-loader.jsが404またはempty"
+            echo "FTPデプロイが失敗している可能性が高いです"
+            exit 1
+          fi
+
+          PROD_DEPLOYMENT=$(echo "$PROD_CONTENT" | grep "Deployment:" | head -1)
+          PROD_CACHE_BUSTER=$(echo "$PROD_CONTENT" | grep "CACHE_BUSTER:" | head -1)
+
+          echo "本番サーバー Deployment: $PROD_DEPLOYMENT"
+          echo "本番サーバー Cache Buster: $PROD_CACHE_BUSTER"
+          echo "期待値 Deployment: ${{ steps.deploy.outputs.deployment_id }}"
 
           if echo "$PROD_DEPLOYMENT" | grep -q "${{ steps.deploy.outputs.deployment_id }}"; then
             echo "✅ 本番サーバーに正常にデプロイされました"
           else
-            echo "⚠️ 本番サーバーの更新確認失敗（キャッシュの可能性があります）"
+            echo "⚠️ 本番サーバーの更新確認失敗"
+            echo "デプロイメントIDが一致しません - FTPデプロイ確認が必要です"
+            exit 1
           fi
 
   rollback:
