@@ -97,7 +97,8 @@ jobs:
 
           echo "🔄 Web App deploymentを最新コードに更新中..."
           # 既存のWeb App deploymentを更新（@HEAD相当）
-          clasp deploy --deploymentId "$DEPLOYMENT_ID" --description "auto: V$(date +%s) - GitHub Actions" || echo "⚠️ clasp deployスキップ（手動更新が必要な場合があります）"
+          # エラー時はワークフロー全体を失敗させる（|| echo削除）
+          clasp deploy --deploymentId "$DEPLOYMENT_ID" --description "auto: V$(date +%s) - GitHub Actions"
 
           echo "✅ GASプッシュ＆デプロイ完了"
           echo "📍 Deployment ID (固定): $DEPLOYMENT_ID"
