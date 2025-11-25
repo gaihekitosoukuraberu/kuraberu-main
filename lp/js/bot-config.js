@@ -249,11 +249,17 @@ const BotConfig = {
         const mapped = {};
 
         // 基本情報列（V, W, X, Y列: 物件種別、築年数、建物面積、階数）
-        // 物件種別: Q001が「はい」なら「戸建て2階建て」、Q002の回答
+        // 物件種別: Q001が「はい」なら「戸建て2階建て」、Q002の回答を適切にマッピング
         if (answers.Q001 && answers.Q001.choice === 'はい') {
             mapped.propertyType = '戸建て2階建て';
         } else if (answers.Q002) {
-            mapped.propertyType = answers.Q002.choice || '';
+            const choice = answers.Q002.choice || '';
+            // 実家・別荘・所有物件は戸建てとして扱う
+            if (choice === '実家・別荘・所有物件' || choice === '2階建て以外の自宅') {
+                mapped.propertyType = '戸建て';
+            } else {
+                mapped.propertyType = choice;
+            }
         }
 
         // 築年数: Q008
@@ -273,11 +279,17 @@ const BotConfig = {
             mapped.floors = answers.Q003B.choice || '';
         }
 
-        // Q1_物件種別（AA列）: Q001が「はい」なら「戸建て2階建て」、Q002の回答
+        // Q1_物件種別（AA列）: Q001が「はい」なら「戸建て2階建て」、Q002の回答を適切にマッピング
         if (answers.Q001 && answers.Q001.choice === 'はい') {
             mapped.Q1_propertyType = '戸建て2階建て';
         } else if (answers.Q002) {
-            mapped.Q1_propertyType = answers.Q002.choice || '';
+            const choice = answers.Q002.choice || '';
+            // 実家・別荘・所有物件は戸建てとして扱う
+            if (choice === '実家・別荘・所有物件' || choice === '2階建て以外の自宅') {
+                mapped.Q1_propertyType = '戸建て';
+            } else {
+                mapped.Q1_propertyType = choice;
+            }
         }
 
         // Q2_階数（AB列）: Q003, Q003A, Q003B
