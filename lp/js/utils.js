@@ -430,7 +430,7 @@ function getAreaFromPostalCode(postalCode) {
 async function getAddressFromPostalCode(postalCode) {
   try {
     // 統一されたGASエンドポイントのURL（ENV経由で取得、フォールバック付き）
-    const gasUrl = window.ENV?.GAS_URL || 'https://script.google.com/macros/s/AKfycbzOq9GXF6NupWGap_cUe3KRL1iETrobiFe5ujtE6lPzssqM3BqIwgApNuPPtwtxS3j4uQ/exec';
+    const gasUrl = window.ENV?.GAS_URL || 'https://script.google.com/macros/s/AKfycbzQm6pRFH1EuzZntZ-uQXL1-O9IrDH6TQvX5R3j76NKShPY0NgP1rJ6i2HpzVDwCfzGFw/exec';
     
     console.log('🔍 郵便番号検索:', postalCode);
     
