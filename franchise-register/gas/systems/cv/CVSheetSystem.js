@@ -620,8 +620,8 @@ const CVSheetSystem = {
       const row = [
         cvId,                                    // A(1): CV ID
         timestamp,                               // B(2): 登録日時
-        params.name || '',                       // C(3): 氏名（V1753: CV1フォールバック対応）
-        '',                                      // D(4): フリガナ
+        params.name || '未入力',                  // C(3): 氏名（デフォルト値設定）
+        params.nameKana || '',                   // D(4): フリガナ
         '',                                      // E(5): 性別
         '',                                      // F(6): 年齢
         params.phone ? "'" + params.phone : '',  // G(7): 電話番号（'を先頭に付けて文字列化）
@@ -670,9 +670,9 @@ const CVSheetSystem = {
         params.Q16_degradation || '',            // AP(42): Q16_現在の劣化状況
         params.Q17_selectionCriteria || '',      // AQ(43): Q17_業者選定条件
 
-        params.surveyDatePreference || '',       // AR(44): 現地調査希望日時（V1753: CV1フォールバック対応）
-        params.selectionHistory || '',           // AS(45): 業者選定履歴（V1753: CV1フォールバック対応）
-        params.requests || '',                   // AT(46): 案件メモ（V1753: CV1フォールバック対応）
+        params.surveyDatePreference || '未定',    // AR(44): 現地調査希望日時（デフォルト値）
+        params.selectionHistory || this.generateSelectionHistory(params), // AS(45): 業者選定履歴（自動生成）
+        params.requests || this.generateCaseMemo(params),  // AT(46): 案件メモ（自動生成）
         params.contactTimeSlot || '',            // AU(47): 連絡時間帯（V1753: CV1フォールバック対応）
         params.quoteDestination || '',           // AV(48): 見積もり送付先（V1753: CV1フォールバック対応）
         params.wordLinkAnswer || '',             // AW(49): ワードリンク回答
@@ -1538,6 +1538,134 @@ const CVSheetSystem = {
         error: error.toString()
       };
     }
+  },
+
+  /**
+   * 業者選定履歴を自動生成（AS列用）
+   * ランキング選択やソート条件から生成
+   */
+  generateSelectionHistory(params) {
+    const history = [];
+
+    // ランキングから選択した業者がある場合
+    if (params.selectedMerchants) {
+      try {
+        const merchants = JSON.parse(params.selectedMerchants);
+        if (Array.isArray(merchants) && merchants.length > 0) {
+          history.push(`ランキングから${merchants.length}社選択`);
+          merchants.forEach(m => {
+            if (m.name) history.push(`- ${m.name}`);
+          });
+        }
+      } catch (e) {
+        console.log('[generateSelectionHistory] selectedMerchants parse error:', e);
+      }
+    }
+
+    // ソート条件がある場合
+    if (params.sortPreference) {
+      const sortMap = {
+        'price': '価格重視',
+        'quality': '品質重視',
+        'speed': '工期重視',
+        'reputation': '評判重視',
+        'distance': '距離重視'
+      };
+      const sortText = sortMap[params.sortPreference] || params.sortPreference;
+      history.push(`選定基準: ${sortText}`);
+    }
+
+    // Q17_業者選定条件
+    if (params.Q17_selectionCriteria) {
+      history.push(`重視項目: ${params.Q17_selectionCriteria}`);
+    }
+
+    // Q14_比較意向
+    if (params.Q14_comparison) {
+      if (params.Q14_comparison.includes('比較')) {
+        history.push('複数社比較希望');
+      }
+    }
+
+    // 希望社数
+    if (params.companiesCount) {
+      history.push(`希望社数: ${params.companiesCount}`);
+    }
+
+    return history.length > 0 ? history.join('\n') : '未選択';
+  },
+
+  /**
+   * 案件メモを自動生成（AT列用）
+   * BOT回答と劣化状況から生成
+   */
+  generateCaseMemo(params) {
+    const memo = [];
+
+    // 物件情報
+    if (params.Q1_propertyType) {
+      memo.push(`物件: ${params.Q1_propertyType}`);
+    }
+    if (params.Q2_floors) {
+      memo.push(`階数: ${params.Q2_floors}`);
+    }
+    if (params.Q3_buildingAge) {
+      memo.push(`築年数: ${params.Q3_buildingAge}`);
+    }
+
+    // 工事内容
+    const workTypes = [];
+    if (params.Q9_exteriorWork) workTypes.push(`外壁(${params.Q9_exteriorWork})`);
+    if (params.Q10_roofWork) workTypes.push(`屋根(${params.Q10_roofWork})`);
+    if (workTypes.length > 0) {
+      memo.push(`希望工事: ${workTypes.join('、')}`);
+    }
+
+    // 劣化状況（重要）
+    if (params.Q16_degradation) {
+      memo.push(`【劣化状況】${params.Q16_degradation}`);
+    }
+
+    // 気になる箇所
+    if (params.Q8_concernedArea) {
+      memo.push(`気になる箇所: ${params.Q8_concernedArea}`);
+    }
+
+    // 訪問業者情報
+    if (params.Q13_doorSales === 'はい' && params.Q15_doorSalesCompany) {
+      memo.push(`訪問業者あり: ${params.Q15_doorSalesCompany}`);
+    }
+
+    // 見積もり状況
+    if (params.Q11_quoteCount) {
+      memo.push(`見積もり: ${params.Q11_quoteCount}`);
+      if (params.Q12_quoteSource) {
+        memo.push(`取得先: ${params.Q12_quoteSource}`);
+      }
+    }
+
+    // 施工時期
+    if (params.constructionTiming) {
+      memo.push(`施工時期: ${params.constructionTiming}`);
+    }
+
+    // 立ち会い
+    if (params.surveyAttendance) {
+      memo.push(`立ち会い: ${params.surveyAttendance}`);
+      if (params.attendanceRelation) {
+        memo.push(`立会者: ${params.attendanceRelation}`);
+      }
+    }
+
+    // 特殊要望
+    if (params.requests) {
+      memo.push(`【要望】${params.requests}`);
+    }
+    if (params.specialItems) {
+      memo.push(`【特記】${params.specialItems}`);
+    }
+
+    return memo.length > 0 ? memo.join(' / ') : '';
   }
 };
 
