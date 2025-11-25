@@ -11,6 +11,12 @@
  * 4. HTMLは絶対に返さない
  * 5. 共通関数は極力最小限にする（main.jsに集約）
  *
+ * 【V1869】 2025-11-26 13:36 - GitHub Actions自動デプロイ戦略変更（組織アカウント対応）
+ * - clasp deploy --deploymentId（更新）から clasp deploy（新規作成）に変更
+ * - 組織アカウントではWeb Appデプロイメント更新不可の制約を回避
+ * - 新規デプロイメントIDを自動抽出してenv-loader.jsに反映
+ * - 完全自動化により手動デプロイ不要に
+ *
  * 【V1868】 2025-11-26 04:50 - GitHub Actions FTPデプロイ診断機能追加
  * - FTPログレベルをverboseに変更（minimal → verbose）
  * - 本番サーバーデプロイ検証を強化（404検出 + exit 1）

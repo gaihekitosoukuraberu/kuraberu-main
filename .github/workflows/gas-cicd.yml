@@ -56,10 +56,11 @@ jobs:
 
   # ======================================================================
   # 🚀 GASデプロイ + 全env-loader自動更新 + FTP本番反映
-  # gasフォルダ更新時、必ず全システムに最新デプロイメントが反映されます
+  # gasフォルダ更新時、新しいWeb Appデプロイメントを作成し、
+  # 全システムに最新デプロイメントIDを自動反映します
   # ======================================================================
   deploy:
-    name: Deploy to GAS (Auto-update all env-loaders)
+    name: Deploy to GAS (Create new deployment & auto-update)
     runs-on: ubuntu-latest
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -85,23 +86,30 @@ jobs:
           echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
           # .clasp.jsonはリポジトリのものを使用（上書きしない）
 
-      - name: Push to GAS and update fixed Web App deployment
+      - name: Push to GAS and create new Web App deployment
         id: deploy
         working-directory: ${{ env.GAS_DIR }}
         run: |
           echo "📤 GASにコードをプッシュ中..."
           clasp push --force
 
-          # 固定デプロイメントID（常に1個のみ運用）
-          DEPLOYMENT_ID="AKfycbwaOsSudVqD8TViYymdbRmmbu6RS8k3NVfKbiswka-GHunJ4DtDTrFzHRw2AZ0OLzrkYA"
+          echo "🚀 新しいWeb App deploymentを作成中..."
+          # 新規デプロイメントを作成（組織アカウントで確実に動作）
+          DEPLOY_OUTPUT=$(clasp deploy --description "auto: V$(date +%s) - GitHub Actions" 2>&1)
+          echo "$DEPLOY_OUTPUT"
 
-          echo "🔄 Web App deploymentを最新コードに更新中..."
-          # 既存のWeb App deploymentを更新（@HEAD相当）
-          # エラー時はワークフロー全体を失敗させる（|| echo削除）
-          clasp deploy --deploymentId "$DEPLOYMENT_ID" --description "auto: V$(date +%s) - GitHub Actions"
+          # デプロイメントIDを抽出（AKfycb で始まる44文字の文字列）
+          DEPLOYMENT_ID=$(echo "$DEPLOY_OUTPUT" | grep -oE 'AKfycb[A-Za-z0-9_-]{38,}' | head -1)
+
+          if [ -z "$DEPLOYMENT_ID" ]; then
+            echo "❌ ERROR: デプロイメントIDの抽出に失敗"
+            echo "Deploy output:"
+            echo "$DEPLOY_OUTPUT"
+            exit 1
+          fi
 
           echo "✅ GASプッシュ＆デプロイ完了"
-          echo "📍 Deployment ID (固定): $DEPLOYMENT_ID"
+          echo "📍 新しいDeployment ID: $DEPLOYMENT_ID"
           echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
 
       - name: Health check
