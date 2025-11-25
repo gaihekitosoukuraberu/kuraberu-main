@@ -54,8 +54,10 @@ jobs:
           test -d systems || (echo "❌ systems ディレクトリが見つかりません" && exit 1)
           echo "✅ 必須ファイル確認完了"
 
+  # 【重要】@HEAD固定運用 - バージョン付きデプロイメントは作成しない
+  # 詳細: franchise-register/gas/DEPLOYMENT_CHECKLIST.md 参照
   deploy:
-    name: Deploy to GAS
+    name: Deploy to GAS (@HEAD only)
     runs-on: ubuntu-latest
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
