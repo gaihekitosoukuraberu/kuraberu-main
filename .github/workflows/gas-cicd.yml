@@ -172,10 +172,11 @@ jobs:
           fi
 
       # ======================================================================
-      # 🚀 env-loader.js更新後、全フロントエンドを本番サーバーに自動デプロイ
+      # 🚀 gasフォルダ変更時、全フロントエンドを本番サーバーに自動デプロイ
+      # env-loader.js, HTML, CSS, JS など全ファイルを確実にデプロイ
       # ======================================================================
-      - name: Deploy updated env-loader.js to production servers
-        if: env.ENV_UPDATED == 'true'
+      - name: Deploy all frontend files to production servers
+        if: success()
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
         with:
           server: ${{ secrets.FTP_HOST }}
