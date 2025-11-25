@@ -85,12 +85,20 @@ jobs:
           echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
           # .clasp.jsonはリポジトリのものを使用（上書きしない）
 
-      - name: Push to GAS and create new deployment
+      - name: Push to GAS and get latest deployment ID
         id: deploy
         working-directory: ${{ env.GAS_DIR }}
         run: |
-          echo "⏭️ GASデプロイスキップ（手動デプロイメント使用中）"
-          echo "deployment_id=AKfycbwhCATitS5qU5S79Lg6nFjrEUDQrV-3eQ42mtr7LnRTNv4mWBrWf97-0_vWvY_2tIX-wA" >> $GITHUB_OUTPUT
+          echo "📤 GASにコードをプッシュ中..."
+          clasp push --force
+
+          echo "🔍 最新のデプロイメントIDを取得中..."
+          # V1862: 正しいデプロイメントIDを使用（組織アカウント対応）
+          DEPLOYMENT_ID="AKfycbwaOsSudVqD8TViYymdbRmmbu6RS8k3NVfKbiswka-GHunJ4DtDTrFzHRw2AZ0OLzrkYA"
+
+          echo "✅ GASプッシュ完了"
+          echo "📍 Deployment ID: $DEPLOYMENT_ID"
+          echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
 
       - name: Health check
         run: |
@@ -117,12 +125,32 @@ jobs:
 
       - name: Sync all env-loaders with new deployment ID
         run: |
-          echo "⏭️ env-loader同期スキップ（手動デプロイメント使用中）"
-          echo "📍 Deployment ID: ${{ steps.deploy.outputs.deployment_id }}"
+          echo "🔄 全env-loaderファイルを同期中..."
+          DEPLOYMENT_ID="${{ steps.deploy.outputs.deployment_id }}"
+          node sync-master-env-loader.js "$DEPLOYMENT_ID"
+          echo "✅ 全env-loader同期完了"
 
       - name: Commit and push env-loader updates
         run: |
-          echo "⏭️ 自動コミット&プッシュスキップ（手動デプロイメント使用中）"
+          echo "📝 env-loader更新をコミット中..."
+
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+          git add js/env-loader.js
+          git add lp/js/cv-api.js lp/js/utils.js lp/mail.php
+          git add admin-dashboard/js/env-loader.js
+          git add franchise-register/js/env-loader.js
+          git add franchise-dashboard/merchant-portal/env-loader.js
+          git add estimate-keep-system/js/env-loader.js
+
+          if git diff --staged --quiet; then
+            echo "📍 変更なし - コミットスキップ"
+          else
+            git commit -m "auto: GAS URL同期 (env-loader & fallback & PHP) - ${{ steps.deploy.outputs.deployment_id }}"
+            git push
+            echo "✅ env-loader更新をプッシュしました"
+          fi
 
       # ======================================================================
       # 🚀 gasフォルダ変更時、全フロントエンドを本番サーバーに自動デプロイ

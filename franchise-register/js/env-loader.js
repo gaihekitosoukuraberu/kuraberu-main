@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-25T18:06:54.241Z - Deployment: AKfycbwhCATitS5qU5S79Lg6nFjrEUDQrV-3eQ42mtr7LnRTNv4mWBrWf97-0_vWvY_2tIX-wA
+// Auto-synced: 2025-11-25T18:58:11.336Z - Deployment: AKfycbwaOsSudVqD8TViYymdbRmmbu6RS8k3NVfKbiswka-GHunJ4DtDTrFzHRw2AZ0OLzrkYA
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -12,8 +12,8 @@
  * 参照方法（PHP）:
  * このファイルを読み込んでGAS_URLを抽出
  *
- * @file-version V1848-MASTER-@HEAD-2025-11-21T20:05:00
- * @last-update 2025-11-21T20:05:00
+ * @file-version V1862-MASTER-@HEAD-2025-11-26T03:10:40
+ * @last-update 2025-11-26T03:10:40
  */
 
 const ENV = {
@@ -21,14 +21,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V1851 @1749（全員アクセス可能 + LPContactSystem対応）
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbwhCATitS5qU5S79Lg6nFjrEUDQrV-3eQ42mtr7LnRTNv4mWBrWf97-0_vWvY_2tIX-wA/exec',
+  // プライマリGAS URL（メイン運用）- V1862 最新デプロイメント（全員アクセス可能 + LPContactSystem対応）
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwaOsSudVqD8TViYymdbRmmbu6RS8k3NVfKbiswka-GHunJ4DtDTrFzHRw2AZ0OLzrkYA/exec',
 
-  // フォールバックGAS URL（バックアップ）- V1851 @1749
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbwhCATitS5qU5S79Lg6nFjrEUDQrV-3eQ42mtr7LnRTNv4mWBrWf97-0_vWvY_2tIX-wA/exec',
+  // フォールバックGAS URL（バックアップ）- V1862 最新デプロイメント
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbwaOsSudVqD8TViYymdbRmmbu6RS8k3NVfKbiswka-GHunJ4DtDTrFzHRw2AZ0OLzrkYA/exec',
 
-  // 緊急時URL（最終フォールバック）- V1851 @1749
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbwhCATitS5qU5S79Lg6nFjrEUDQrV-3eQ42mtr7LnRTNv4mWBrWf97-0_vWvY_2tIX-wA/exec',
+  // 緊急時URL（最終フォールバック）- V1862 最新デプロイメント
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbwaOsSudVqD8TViYymdbRmmbu6RS8k3NVfKbiswka-GHunJ4DtDTrFzHRw2AZ0OLzrkYA/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1848 @HEAD - 2025-11-21 - 動的参照対応）
-  CACHE_BUSTER: '1764094014244'
+  // キャッシュバスター（V1862 - 2025-11-26T03:10:40 - デプロイメントID更新）
+  CACHE_BUSTER: '1764097091339'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
