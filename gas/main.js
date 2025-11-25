@@ -11,11 +11,15 @@
  * 4. HTMLは絶対に返さない
  * 5. 共通関数は極力最小限にする（main.jsに集約）
  *
+ * 【V1862】 2025-11-26 03:11 - 全env-loader最新デプロイメントID同期
+ * - 正しいデプロイメントID: AKfycbwaOsSudVqD8TViYymdbRmmbu6RS8k3NVfKbiswka-GHunJ4DtDTrFzHRw2AZ0OLzrkYA
+ * - LPContactSystem 73列対応 (CVID生成, Yahoo API, 電話番号保持)
+ * - GitHub Actions自動同期有効化
+ *
  * 【V1854】 2025-11-26 02:30 - "Unknown CV action: undefined" 修正
  * - CVSheetSystem.handle: 引数名を e → params に変更
  * - main.jsから handler(e.parameter, null) で呼ばれるため、直接 params として受け取る
  * - LPでのCV1送信エラー解消
- * - 手動デプロイメント使用: AKfycbwhCATitS5qU5S79Lg6nFjrEUDQrV-3eQ42mtr7LnRTNv4mWBrWf97-0_vWvY_2tIX-wA
  *
  * 【V1853】 2025-11-26 02:05 - 評価データシート加盟店ID先頭構造に完全対応
  * - getEvaluationSheet: 既存シートでもフォーマット設定適用（K列日付化防止）
