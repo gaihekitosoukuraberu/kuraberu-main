@@ -98,7 +98,14 @@ jobs:
         working-directory: ${{ env.GAS_DIR }}
         run: |
           echo "🚀 GASにコードをプッシュ中..."
+          echo "📍 デバッグ: Current directory: $(pwd)"
+          echo "📍 デバッグ: Files to push:"
+          ls -la | head -20
+          echo "📍 デバッグ: clasp version:"
+          clasp --version
+          echo "📍 デバッグ: Starting clasp push..."
           clasp push --force
+          echo "📍 デバッグ: clasp push completed!"
 
           echo "📍 V1758デプロイメント使用（組織アカウント制限のため@HEAD不可）"
           # V1758の固定デプロイメントIDを使用
