@@ -265,9 +265,24 @@ const LPContactSystem = {
         const feature = result.Feature[0];
         const property = feature.Property;
 
+        // AddressElementから都道府県と市区町村を分離
+        let prefecture = '';
+        let city = '';
+        if (property.AddressElement && Array.isArray(property.AddressElement)) {
+          property.AddressElement.forEach(element => {
+            if (element.Level === 'prefecture') {
+              prefecture = element.Name;
+            } else if (element.Level === 'city') {
+              city = element.Name;
+            }
+          });
+        }
+
+        console.log('[LPContactSystem] Parsed address:', { prefecture, city });
+
         return {
-          prefecture: property.Address || '',
-          city: property.City || '',
+          prefecture: prefecture,
+          city: city,
           kana: property.Kana || ''
         };
       }
