@@ -2515,11 +2515,17 @@ window.addEventListener('beforeunload', function(e) {
                     mainContent.innerHTML = window.originalAssignmentContent;
                 }
 
-                // リストビューを自動表示
+                // リストビューを自動表示 + データ再読み込み
                 setTimeout(() => {
                     if (typeof switchView === 'function') {
                         switchView('list');
                         console.log('[Assignment] 案件管理に戻りました - リストビューを表示');
+                    }
+
+                    // CV一覧データが未読み込みの場合は読み込む
+                    if (Object.keys(casesData).length === 0 && typeof loadCasesData === 'function') {
+                        console.log('[Assignment] CV一覧データ読み込み開始');
+                        loadCasesData();
                     }
                 }, 100); // DOM更新を待つため少し遅延
 
@@ -7369,41 +7375,63 @@ window.addEventListener('beforeunload', function(e) {
                 }
             }
             
-            // CV一覧を非同期で読み込み
-            loadCasesData();
             console.log('=== DOMContentLoaded - 初期化開始 ===');
             console.log('casesData:', casesData);
             console.log('Total cases:', Object.keys(casesData).length);
-
-            // 初期の案件管理コンテンツを保存（現在表示されているのが案件管理）
-            window.originalAssignmentContent = document.querySelector('main').innerHTML;
 
             // ハッシュ処理
             const hash = window.location.hash.slice(1);
 
             // URLにハッシュがない場合、またはfranchiseの場合は加盟店管理を表示
             if (!hash || hash === 'franchise') {
+                // 初期の案件管理コンテンツを保存（後で復元できるように）
+                window.originalAssignmentContent = document.querySelector('main').innerHTML;
+
                 setTimeout(() => {
                     showSection('franchise');
                 }, 100);
             } else if (hash === 'assignment') {
-                // 案件管理の場合は何もしない（既に表示されている）
-                console.log('案件管理を表示中');
+                // 案件管理の場合: 初期の案件管理コンテンツを保存
+                window.originalAssignmentContent = document.querySelector('main').innerHTML;
+
+                // CV一覧を非同期で読み込み
+                loadCasesData();
+                console.log('案件管理を表示中 - CV一覧読み込み開始');
             } else {
                 // その他のセクションを表示
+                window.originalAssignmentContent = document.querySelector('main').innerHTML;
+
                 setTimeout(() => {
                     showSection(hash);
                 }, 100);
             }
-            
-            // 関数の初期化
+
+            // 関数の初期化（案件管理セクションの場合のみ）
+            if (hash === 'assignment') {
+                try {
+                    // リストビューを初期化
+                    if (typeof initializeListView === 'function') {
+                        initializeListView();
+                        console.log('✓ initializeListView 実行完了');
+                    } else {
+                        console.error('✗ initializeListView is not defined');
+                    }
+                } catch (error) {
+                    console.error('✗ initializeListView エラー:', error);
+                }
+            } else {
+                // 案件管理以外のセクションではリストビュー初期化をスキップ
+                console.log('✓ 案件管理以外のセクション - リストビュー初期化スキップ');
+            }
+
+            // 以下は削除（重複のため）
             try {
                 // リストビューを初期化
-                if (typeof initializeListView === 'function') {
+                if (false && typeof initializeListView === 'function') {
                     initializeListView();
                     console.log('✓ initializeListView 実行完了');
                 } else {
-                    console.error('✗ initializeListView is not defined');
+                    // console.error('✗ initializeListView is not defined');
                 }
                 
                 // 検索とフィルターを初期化
