@@ -54,10 +54,12 @@ jobs:
           test -d systems || (echo "❌ systems ディレクトリが見つかりません" && exit 1)
           echo "✅ 必須ファイル確認完了"
 
-  # 【重要】V1758固定運用 - 組織アカウント制限で@HEAD不可
-  # 詳細: gas/DEPLOYMENT_CHECKLIST.md 参照
+  # ======================================================================
+  # 🚀 GASデプロイ + 全env-loader自動更新 + FTP本番反映
+  # gasフォルダ更新時、必ず全システムに最新デプロイメントが反映されます
+  # ======================================================================
   deploy:
-    name: Deploy to GAS (V1758 fixed)
+    name: Deploy to GAS (Auto-update all env-loaders)
     runs-on: ubuntu-latest
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -83,36 +85,28 @@ jobs:
           echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
           # .clasp.jsonはリポジトリのものを使用（上書きしない）
 
-      - name: Debug - Check files
-        working-directory: ${{ env.GAS_DIR }}
-        run: |
-          echo "📍 Current directory: $(pwd)"
-          echo "📁 Files in current directory:"
-          ls -la
-          echo "📄 .clasp.json content:"
-          cat .clasp.json
-          echo "🔑 .clasprc.json exists: $(test -f ~/.clasprc.json && echo 'YES' || echo 'NO')"
-
-      - name: Push to GAS and use V1758 deployment
+      - name: Push to GAS and create new deployment
         id: deploy
-        continue-on-error: true
         working-directory: ${{ env.GAS_DIR }}
         run: |
           echo "🚀 GASにコードをプッシュ中..."
-          echo "📍 デバッグ: Current directory: $(pwd)"
-          echo "📍 デバッグ: Files to push:"
-          ls -la | head -20
-          echo "📍 デバッグ: clasp version:"
-          clasp --version
-          echo "📍 デバッグ: Starting clasp push..."
           clasp push --force
-          echo "📍 デバッグ: clasp push completed!"
+          echo "✅ clasp push完了"
 
-          echo "📍 V1758デプロイメント使用（組織アカウント制限のため@HEAD不可）"
-          # V1758の固定デプロイメントIDを使用
-          DEPLOYMENT_ID="AKfycbzzFPNZ3uO9InJlzXGaWIT3y0uALwVHY9miqtQKuMsWQNRTUw2KQAGynf5X5C-Nk42jvQ"
+          echo "🆕 新しいデプロイメント作成中..."
+          DEPLOY_OUTPUT=$(clasp deploy -d "Auto-deploy from GitHub Actions - $(date +%Y%m%d-%H%M%S)")
+          echo "$DEPLOY_OUTPUT"
+
+          # デプロイメントIDを抽出（例: "Deployed AKfycbz... @1234"）
+          DEPLOYMENT_ID=$(echo "$DEPLOY_OUTPUT" | grep -oE 'AKfycb[a-zA-Z0-9_-]+')
+
+          if [ -z "$DEPLOYMENT_ID" ]; then
+            echo "❌ デプロイメントID取得失敗"
+            exit 1
+          fi
+
           echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
-          echo "✅ V1758 Deployment ID: $DEPLOYMENT_ID"
+          echo "✅ 新規デプロイメント作成: $DEPLOYMENT_ID"
 
       - name: Health check
         run: |
@@ -137,46 +131,43 @@ jobs:
           echo "Version: ${{ steps.deploy.outputs.version }}"
           echo "Deployment ID: ${{ steps.deploy.outputs.deployment_id }}"
 
-      - name: Update cache buster only (V1758 fixed URL)
+      - name: Sync all env-loaders with new deployment ID
         run: |
-          echo "🔄 キャッシュバスター更新中（URLはV1758固定）..."
-          # URLは変わらないのでキャッシュバスターだけ更新
-          CACHE_BUSTER=$(date +%s)
-          for file in js/env-loader.js admin-dashboard/js/env-loader.js franchise-register/js/env-loader.js franchise-dashboard/merchant-portal/env-loader.js estimate-keep-system/js/env-loader.js; do
-            if [ -f "$file" ]; then
-              sed -i "s/CACHE_BUSTER: '[0-9]*'/CACHE_BUSTER: '$CACHE_BUSTER'/" "$file"
-              echo "✅ $file のキャッシュバスター更新: $CACHE_BUSTER"
-            fi
-          done
+          DEPLOYMENT_ID="${{ steps.deploy.outputs.deployment_id }}"
+          echo "🔄 全env-loaderファイルを新デプロイメントIDで自動更新中..."
+          echo "📍 Deployment ID: $DEPLOYMENT_ID"
+
+          # Node.jsスクリプトで全env-loaderを同期
+          node sync-master-env-loader.js "$DEPLOYMENT_ID"
+
+          echo "✅ 全env-loaderファイル更新完了"
 
       - name: Commit and push env-loader updates
         run: |
+          DEPLOYMENT_ID="${{ steps.deploy.outputs.deployment_id }}"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-          # マスターenv-loader.jsをステージング
+          # 全env-loaderファイルをステージング
           git add js/env-loader.js || true
-
-          # 各ディレクトリのenv-loader.jsもステージング
           git add admin-dashboard/js/env-loader.js || true
           git add franchise-register/js/env-loader.js || true
           git add franchise-dashboard/merchant-portal/env-loader.js || true
           git add estimate-keep-system/js/env-loader.js || true
 
-          # LPフォールバックURLファイルもステージング
+          # LPフォールバックファイルもステージング
           git add lp/js/cv-api.js || true
           git add lp/js/utils.js || true
+          git add lp/mail.php || true
 
           # 変更があればコミット
           if git diff --staged --quiet; then
-            echo "📝 キャッシュバスター更新なし"
-            echo "ENV_UPDATED=false" >> $GITHUB_ENV
+            echo "📝 env-loader更新なし"
           else
-            git commit -m "auto: キャッシュバスター更新 (V1758固定運用) - $(date +%s)"
+            git commit -m "auto: GAS URL同期 (env-loader & fallback & PHP) - @${DEPLOYMENT_ID:0:15}..."
             git pull --rebase origin main
             git push
-            echo "✅ キャッシュバスター更新をpushしました"
-            echo "ENV_UPDATED=true" >> $GITHUB_ENV
+            echo "✅ 全env-loaderファイルをpushしました"
           fi
 
       # ======================================================================
