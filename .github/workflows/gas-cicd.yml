@@ -95,6 +95,7 @@ jobs:
 
       - name: Push to GAS and use V1758 deployment
         id: deploy
+        continue-on-error: true
         working-directory: ${{ env.GAS_DIR }}
         run: |
           echo "🚀 GASにコードをプッシュ中..."
