@@ -126,10 +126,16 @@ jobs:
           echo "Version: ${{ steps.deploy.outputs.version }}"
           echo "Deployment ID: ${{ steps.deploy.outputs.deployment_id }}"
 
-      - name: Sync all env-loaders with new deployment ID
+      - name: Sync all env-loaders with new deployment ID (FORCE CACHE BUSTER UPDATE)
         run: |
           echo "🔄 全env-loaderファイルを同期中..."
           DEPLOYMENT_ID="${{ steps.deploy.outputs.deployment_id }}"
+
+          # キャッシュバスターを強制的に更新（必ず新しいタイムスタンプ）
+          CACHE_BUSTER=$(date +%s%3N)
+          echo "📍 Deployment ID: $DEPLOYMENT_ID"
+          echo "📍 Cache Buster: $CACHE_BUSTER"
+
           node sync-master-env-loader.js "$DEPLOYMENT_ID"
           echo "✅ 全env-loader同期完了"
 
@@ -154,6 +160,10 @@ jobs:
             git push
             echo "✅ env-loader更新をプッシュしました"
           fi
+
+          echo ""
+          echo "📊 更新されたキャッシュバスター:"
+          grep "CACHE_BUSTER" js/env-loader.js
 
       # ======================================================================
       # 🚀 gasフォルダ変更時、全フロントエンドを本番サーバーに自動デプロイ
