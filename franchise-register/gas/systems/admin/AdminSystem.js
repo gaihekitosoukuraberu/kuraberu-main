@@ -1814,6 +1814,7 @@ const AdminSystem = {
       // 「加盟店登録」からデータを抽出
       const companyName = latestRowData[latestHeaders.indexOf('会社名')] || '';
       const address = latestRowData[latestHeaders.indexOf('住所')] || '';
+      const zipcode = latestRowData[latestHeaders.indexOf('郵便番号')] || '';  // V1765: 郵便番号取得
       const prefectures = latestRowData[latestHeaders.indexOf('対応都道府県')] || '';
       const cities = latestRowData[latestHeaders.indexOf('対応市区町村')] || '';
       const priorityAreas = latestRowData[latestHeaders.indexOf('優先エリア')] || '';
@@ -1834,13 +1835,63 @@ const AdminSystem = {
       // V1843: プレビューHP取得（加盟店登録のAX列から）
       const previewHPFromReg = latestRowData[latestHeaders.indexOf('プレビューHP')] || '';
 
-      // 本社都道府県を住所から抽出
+      // V1765: Yahoo APIを使って郵便番号から都道府県を取得
       let headquarterPrefecture = '';
-      if (address) {
+      if (zipcode) {
+        console.log('[copyToFranchiseMaster] 郵便番号から都道府県取得 - 郵便番号:', zipcode);
+
+        try {
+          const appId = PropertiesService.getScriptProperties().getProperty('YAHOO_APP_ID');
+          if (appId) {
+            // 郵便番号を適切な形式に整形（ハイフンなしで7桁）
+            const cleanZipcode = zipcode.toString().replace(/[^0-9]/g, '');
+
+            if (cleanZipcode.length === 7) {
+              const url = 'https://map.yahooapis.jp/search/zip/V1/zipCodeSearch?appid=' + appId
+                        + '&query=' + cleanZipcode.substring(0, 3) + '-' + cleanZipcode.substring(3)
+                        + '&output=json';
+
+              const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+
+              if (response.getResponseCode() === 200) {
+                const data = JSON.parse(response.getContentText());
+
+                if (data.Feature && data.Feature.length > 0) {
+                  const address = data.Feature[0].Property.Address;
+
+                  // 都道府県名を抽出（最初の都道府県部分）
+                  const prefMatch = address.match(/^(北海道|.+?[都道府県])/);
+                  if (prefMatch) {
+                    headquarterPrefecture = prefMatch[1];
+                    console.log('[copyToFranchiseMaster] Yahoo API成功:', cleanZipcode, '→', headquarterPrefecture);
+                  }
+                }
+              } else {
+                console.warn('[copyToFranchiseMaster] Yahoo API HTTPエラー:', response.getResponseCode());
+              }
+            } else {
+              console.warn('[copyToFranchiseMaster] 郵便番号形式エラー:', cleanZipcode);
+            }
+          } else {
+            console.warn('[copyToFranchiseMaster] YAHOO_APP_ID未設定');
+          }
+        } catch (error) {
+          console.error('[copyToFranchiseMaster] Yahoo APIエラー:', error);
+        }
+      }
+
+      // フォールバック：住所から都道府県を抽出
+      if (!headquarterPrefecture && address) {
+        console.log('[copyToFranchiseMaster] フォールバック: 住所から抽出 - 住所:', address);
         const prefMatch = address.match(/^(北海道|.+?[都道府県])/);
         if (prefMatch) {
           headquarterPrefecture = prefMatch[1];
+          console.log('[copyToFranchiseMaster] 住所から抽出成功:', headquarterPrefecture);
         }
+      }
+
+      if (!headquarterPrefecture) {
+        console.warn('[copyToFranchiseMaster] 都道府県取得失敗 - 郵便番号:', zipcode, '住所:', address);
       }
 
       // V1699: 築年数範囲をパース（JSON形式にも対応）
@@ -1925,6 +1976,12 @@ const AdminSystem = {
             break;
           case '評価':
             masterRow.push(performanceData.rating || 0);
+            break;
+          case '総合スコア':
+            // V1765: 評価データから総合スコアを取得（AC列用）
+            const score = this._getRatingFromEvaluationData(companyName) || 4.2;
+            masterRow.push(score);
+            console.log('[copyToFranchiseMaster] 総合スコア設定:', companyName, '→', score);
             break;
           case '口コミ件数':
             masterRow.push(performanceData.reviewCount || 0);
