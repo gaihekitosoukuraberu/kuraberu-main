@@ -91,27 +91,49 @@ const LPContactSystem = {
       // タイムスタンプ
       const timestamp = new Date();
 
+      // CVID生成（LP + タイムスタンプ）
+      const cvId = 'LP' + timestamp.getTime();
+      console.log('[LPContactSystem] Generated CVID:', cvId);
+
+      // 郵便番号から住所を取得（Yahoo API）
+      let prefecture = '';
+      let city = '';
+      let addressKana = '';
+
+      if (data.postalCode) {
+        const addressInfo = this.getAddressFromPostalCode(data.postalCode);
+        if (addressInfo) {
+          prefecture = addressInfo.prefecture || '';
+          city = addressInfo.city || '';
+          addressKana = addressInfo.kana || '';
+          console.log('[LPContactSystem] Address from postal code:', addressInfo);
+        }
+      }
+
+      // 電話番号フォーマット（0が抜けないように文字列として扱う）
+      const phoneStr = "'" + (data.phone || '');  // 先頭にシングルクォートを付けて文字列として扱う
+
       // 行データを準備（CSVカラム順に合わせる）
       // CV ID,登録日時,氏名,フリガナ,性別,年齢,電話番号,メールアドレス,続柄,氏名（2人目）,電話番号（2人目）,続柄（2人目）,備考（2人目）,郵便番号（物件）,都道府県（物件）,市区町村（物件）,住所詳細（物件）,住所フリガナ,...
       const rowData = [
-        '',                           // CV ID（空）
+        cvId,                         // CV ID
         timestamp,                    // 登録日時
         data.name || '',              // 氏名
         '',                           // フリガナ（空）
         '',                           // 性別（空）
         '',                           // 年齢（空）
-        data.phone || '',             // 電話番号
+        phoneStr,                     // 電話番号（文字列）
         data.email || '',             // メールアドレス
         '',                           // 続柄（空）
         '',                           // 氏名（2人目）（空）
         '',                           // 電話番号（2人目）（空）
         '',                           // 続柄（2人目）（空）
         '',                           // 備考（2人目）（空）
-        data.postalCode || '',        // 郵便番号（物件）
-        '',                           // 都道府県（物件）（空）
-        '',                           // 市区町村（物件）（空）
-        '',                           // 住所詳細（物件）（空）
-        '',                           // 住所フリガナ（空）
+        data.postalCode || '',        // N列: 郵便番号（物件）
+        prefecture,                   // O列: 都道府県（物件）
+        city,                         // P列: 市区町村（物件）
+        '',                           // Q列: 住所詳細（物件）（空）
+        addressKana,                  // R列: 住所フリガナ
         '',                           // 自宅住所フラグ（空）
         '',                           // 郵便番号（自宅）（空）
         '',                           // 都道府県（自宅）（空）
@@ -170,11 +192,12 @@ const LPContactSystem = {
       console.log('[LPContactSystem] Row appended successfully');
 
       // Slack通知送信
-      this.sendSlackNotification(data);
+      this.sendSlackNotification(Object.assign({}, data, { cvId: cvId, prefecture: prefecture, city: city }));
 
       return {
         success: true,
         message: 'LP問い合わせデータを保存しました',
+        cvId: cvId,
         timestamp: timestamp.toISOString()
       };
 
@@ -185,6 +208,49 @@ const LPContactSystem = {
         error: error.toString(),
         stack: error.stack
       };
+    }
+  },
+
+  /**
+   * 郵便番号から住所を取得（Yahoo API）
+   * @param {string} postalCode - 郵便番号
+   * @return {Object} { prefecture, city, kana }
+   */
+  getAddressFromPostalCode: function(postalCode) {
+    try {
+      // 郵便番号のハイフンを削除
+      const cleanPostalCode = postalCode.replace(/-/g, '');
+
+      // Yahoo APIのApp ID
+      const appId = PropertiesService.getScriptProperties().getProperty('YAHOO_APP_ID');
+      if (!appId) {
+        console.warn('[LPContactSystem] YAHOO_APP_ID not set');
+        return null;
+      }
+
+      // Yahoo ジオコーダAPI
+      const url = `https://map.yahooapis.jp/search/zip/V1/zipCodeSearch?appid=${appId}&query=${cleanPostalCode}&output=json`;
+
+      const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+      const result = JSON.parse(response.getContentText());
+
+      if (result.ResultInfo && result.ResultInfo.Count > 0 && result.Feature && result.Feature.length > 0) {
+        const feature = result.Feature[0];
+        const property = feature.Property;
+
+        return {
+          prefecture: property.Address || '',
+          city: property.City || '',
+          kana: property.Kana || ''
+        };
+      }
+
+      console.warn('[LPContactSystem] No address found for postal code:', postalCode);
+      return null;
+
+    } catch (error) {
+      console.error('[LPContactSystem] getAddressFromPostalCode error:', error);
+      return null;
     }
   },
 
@@ -203,6 +269,8 @@ const LPContactSystem = {
         console.error('[LPContactSystem] SLACK_WEBHOOK_URLが設定されていません');
         return;
       }
+
+      const areaText = data.prefecture && data.city ? `${data.prefecture}${data.city}` : (data.postalCode || '未入力');
 
       const message = {
         text: '📝 LP問い合わせが届きました',
@@ -232,7 +300,11 @@ const LPContactSystem = {
               },
               {
                 type: 'mrkdwn',
-                text: `*郵便番号:*\n${data.postalCode || ''}`
+                text: `*📍 エリア:*\n${areaText}`
+              },
+              {
+                type: 'mrkdwn',
+                text: `*CV ID:*\n${data.cvId || ''}`
               }
             ]
           },
@@ -241,6 +313,13 @@ const LPContactSystem = {
             text: {
               type: 'mrkdwn',
               text: `*お問い合わせ内容:*\n${data.inquiryContent || ''}`
+            }
+          },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `👉 *<https://gaihekikuraberu.com/admin-dashboard/#assignment|案件管理画面へ>*`
             }
           },
           {
