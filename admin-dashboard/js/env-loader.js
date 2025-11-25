@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-25T19:09:43.561Z - Deployment: AKfycbwaOsSudVqD8TViYymdbRmmbu6RS8k3NVfKbiswka-GHunJ4DtDTrFzHRw2AZ0OLzrkYA
+// Auto-synced: 2025-11-25T19:12:41.492Z - Deployment: AKfycbwaOsSudVqD8TViYymdbRmmbu6RS8k3NVfKbiswka-GHunJ4DtDTrFzHRw2AZ0OLzrkYA
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1862 - 2025-11-26T03:10:40 - デプロイメントID更新）
-  CACHE_BUSTER: '1764097783565'
+  CACHE_BUSTER: '1764097961496'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
