@@ -89,24 +89,8 @@ jobs:
         id: deploy
         working-directory: ${{ env.GAS_DIR }}
         run: |
-          echo "🚀 GASにコードをプッシュ中..."
-          clasp push --force
-          echo "✅ clasp push完了"
-
-          echo "🆕 新しいデプロイメント作成中..."
-          DEPLOY_OUTPUT=$(clasp deploy -d "Auto-deploy from GitHub Actions - $(date +%Y%m%d-%H%M%S)")
-          echo "$DEPLOY_OUTPUT"
-
-          # デプロイメントIDを抽出（例: "Deployed AKfycbz... @1234"）
-          DEPLOYMENT_ID=$(echo "$DEPLOY_OUTPUT" | grep -oE 'AKfycb[a-zA-Z0-9_-]+')
-
-          if [ -z "$DEPLOYMENT_ID" ]; then
-            echo "❌ デプロイメントID取得失敗"
-            exit 1
-          fi
-
-          echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
-          echo "✅ 新規デプロイメント作成: $DEPLOYMENT_ID"
+          echo "⏭️ GASデプロイスキップ（手動デプロイメント使用中）"
+          echo "deployment_id=AKfycbwhCATitS5qU5S79Lg6nFjrEUDQrV-3eQ42mtr7LnRTNv4mWBrWf97-0_vWvY_2tIX-wA" >> $GITHUB_OUTPUT
 
       - name: Health check
         run: |
@@ -133,42 +117,12 @@ jobs:
 
       - name: Sync all env-loaders with new deployment ID
         run: |
-          DEPLOYMENT_ID="${{ steps.deploy.outputs.deployment_id }}"
-          echo "🔄 全env-loaderファイルを新デプロイメントIDで自動更新中..."
-          echo "📍 Deployment ID: $DEPLOYMENT_ID"
-
-          # Node.jsスクリプトで全env-loaderを同期
-          node sync-master-env-loader.js "$DEPLOYMENT_ID"
-
-          echo "✅ 全env-loaderファイル更新完了"
+          echo "⏭️ env-loader同期スキップ（手動デプロイメント使用中）"
+          echo "📍 Deployment ID: ${{ steps.deploy.outputs.deployment_id }}"
 
       - name: Commit and push env-loader updates
         run: |
-          DEPLOYMENT_ID="${{ steps.deploy.outputs.deployment_id }}"
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-
-          # 全env-loaderファイルをステージング
-          git add js/env-loader.js || true
-          git add admin-dashboard/js/env-loader.js || true
-          git add franchise-register/js/env-loader.js || true
-          git add franchise-dashboard/merchant-portal/env-loader.js || true
-          git add estimate-keep-system/js/env-loader.js || true
-
-          # LPフォールバックファイルもステージング
-          git add lp/js/cv-api.js || true
-          git add lp/js/utils.js || true
-          git add lp/mail.php || true
-
-          # 変更があればコミット
-          if git diff --staged --quiet; then
-            echo "📝 env-loader更新なし"
-          else
-            git commit -m "auto: GAS URL同期 (env-loader & fallback & PHP) - @${DEPLOYMENT_ID:0:15}..."
-            git pull --rebase origin main
-            git push
-            echo "✅ 全env-loaderファイルをpushしました"
-          fi
+          echo "⏭️ 自動コミット&プッシュスキップ（手動デプロイメント使用中）"
 
       # ======================================================================
       # 🚀 gasフォルダ変更時、全フロントエンドを本番サーバーに自動デプロイ
