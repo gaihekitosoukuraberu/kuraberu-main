@@ -136,6 +136,38 @@ if (fs.existsSync(MAIL_PHP_PATH)) {
   console.log('ℹ️ lp/mail.php は存在しません（スキップ）');
 }
 
+// ============================================
+// 4️⃣ 各ディレクトリのenv-loader.jsをマスターからコピー
+// ============================================
+const ENV_LOADER_COPIES = [
+  'admin-dashboard/js/env-loader.js',
+  'franchise-register/js/env-loader.js',
+  'franchise-dashboard/merchant-portal/env-loader.js',
+  'estimate-keep-system/js/env-loader.js'
+];
+
+console.log('');
+console.log('📋 各ディレクトリのenv-loader.jsを同期中...');
+
+ENV_LOADER_COPIES.forEach(relativePath => {
+  const destPath = path.join(__dirname, relativePath);
+  const destDir = path.dirname(destPath);
+
+  try {
+    // ディレクトリが存在しない場合は作成
+    if (!fs.existsSync(destDir)) {
+      fs.mkdirSync(destDir, { recursive: true });
+    }
+
+    // マスターファイルをコピー
+    const masterContent = fs.readFileSync(MASTER_ENV_LOADER_PATH, 'utf8');
+    fs.writeFileSync(destPath, masterContent, 'utf8');
+    console.log(`✅ ${relativePath} 同期完了`);
+  } catch (error) {
+    console.error(`❌ ${relativePath} 同期失敗:`, error.message);
+  }
+});
+
 console.log('');
 console.log('🎉 全ての同期が完了しました');
 console.log(`📍 GAS URL: ${GAS_URL}`);

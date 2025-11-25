@@ -143,6 +143,12 @@ jobs:
           # マスターenv-loader.jsをステージング
           git add js/env-loader.js || true
 
+          # 各ディレクトリのenv-loader.jsもステージング
+          git add admin-dashboard/js/env-loader.js || true
+          git add franchise-register/js/env-loader.js || true
+          git add franchise-dashboard/merchant-portal/env-loader.js || true
+          git add estimate-keep-system/js/env-loader.js || true
+
           # LPフォールバックURLファイルもステージング
           git add lp/js/cv-api.js || true
           git add lp/js/utils.js || true
