@@ -60,8 +60,10 @@ try {
     `EMERGENCY_GAS_URL: '${GAS_URL}'`
   );
 
-  // CACHE_BUSTER を更新
-  const cacheBuster = Date.now().toString();
+  // CACHE_BUSTER を更新（タイムスタンプ + ランダム文字列で強制リロード）
+  const timestamp = Date.now();
+  const randomStr = Math.random().toString(36).substring(2, 8);
+  const cacheBuster = `v${timestamp}-${randomStr}`;
   content = content.replace(
     /CACHE_BUSTER: '[^']+'/,
     `CACHE_BUSTER: '${cacheBuster}'`
