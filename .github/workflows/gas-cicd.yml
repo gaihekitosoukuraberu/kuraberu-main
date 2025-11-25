@@ -6,20 +6,20 @@ on:
       - main
       - develop
     paths:
-      - 'franchise-register/gas/**'
+      - 'gas/**'
   pull_request:
     branches:
       - main
       - develop
     paths:
-      - 'franchise-register/gas/**'
+      - 'gas/**'
   workflow_dispatch: # 手動実行も可能
 
 permissions:
   contents: write
 
 env:
-  GAS_DIR: franchise-register/gas
+  GAS_DIR: gas
 
 jobs:
   test:
@@ -55,7 +55,7 @@ jobs:
           echo "✅ 必須ファイル確認完了"
 
   # 【重要】V1758固定運用 - 組織アカウント制限で@HEAD不可
-  # 詳細: franchise-register/gas/DEPLOYMENT_CHECKLIST.md 参照
+  # 詳細: gas/DEPLOYMENT_CHECKLIST.md 参照
   deploy:
     name: Deploy to GAS (V1758 fixed)
     runs-on: ubuntu-latest
