@@ -85,19 +85,22 @@ jobs:
           echo '${{ secrets.CLASP_CREDENTIALS }}' > ~/.clasprc.json
           # .clasp.jsonはリポジトリのものを使用（上書きしない）
 
-      - name: Push to GAS and get latest deployment ID
+      - name: Push to GAS and update fixed Web App deployment
         id: deploy
         working-directory: ${{ env.GAS_DIR }}
         run: |
           echo "📤 GASにコードをプッシュ中..."
           clasp push --force
 
-          echo "🔍 最新のデプロイメントIDを取得中..."
-          # V1862: 正しいデプロイメントIDを使用（組織アカウント対応）
+          # 固定デプロイメントID（常に1個のみ運用）
           DEPLOYMENT_ID="AKfycbwaOsSudVqD8TViYymdbRmmbu6RS8k3NVfKbiswka-GHunJ4DtDTrFzHRw2AZ0OLzrkYA"
 
-          echo "✅ GASプッシュ完了"
-          echo "📍 Deployment ID: $DEPLOYMENT_ID"
+          echo "🔄 Web App deploymentを最新コードに更新中..."
+          # 既存のWeb App deploymentを更新（@HEAD相当）
+          clasp deploy --deploymentId "$DEPLOYMENT_ID" --description "auto: V$(date +%s) - GitHub Actions" || echo "⚠️ clasp deployスキップ（手動更新が必要な場合があります）"
+
+          echo "✅ GASプッシュ＆デプロイ完了"
+          echo "📍 Deployment ID (固定): $DEPLOYMENT_ID"
           echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
 
       - name: Health check

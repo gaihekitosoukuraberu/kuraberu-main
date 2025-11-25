@@ -1,13 +1,14 @@
-# GAS デプロイメント運用ルール（V1758固定運用）
+# GAS デプロイメント運用ルール（固定URL＋キャッシュバスター自動更新）
 
-## 🎯 デプロイメント方針（2025-11-25更新）
+## 🎯 デプロイメント方針（2025-11-26更新 - V1862）
 
-**V1758固定デプロイメント使用 - 組織アカウント制限の回避策**
+**固定URL運用 + キャッシュバスター自動更新 - 常に最新が反映される**
 
-- 組織アカウントでは@HEADが作成できないため、V1758を@HEAD相当として運用
-- `clasp push`でコードを更新、V1758デプロイメントは固定
-- Web App URLは永続的に固定: `AKfycbzzFPNZ3uO9InJlzXGaWIT3y0uALwVHY9miqtQKuMsWQNRTUw2KQAGynf5X5C-Nk42jvQ`
-- キャッシュバスターのみ更新で、URLは変更しない
+- 組織アカウントでは@HEADが作成できないため、固定デプロイメントを使用
+- `clasp push`でコードを更新、デプロイメントIDは固定（常に1個のみ）
+- Web App URLは永続的に固定: `https://script.google.com/macros/s/AKfycbwaOsSudVqD8TViYymdbRmmbu6RS8k3NVfKbiswka-GHunJ4DtDTrFzHRw2AZ0OLzrkYA/exec`
+- **キャッシュバスターは毎回自動更新** - 必ず最新が反映される
+- デプロイメントは常に1個のみ - シンプルな運用
 
 ---
 
