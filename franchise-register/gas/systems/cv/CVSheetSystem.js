@@ -1324,8 +1324,25 @@ const CVSheetSystem = {
   /**
    * ハンドラー（main.jsから呼ばれる）
    */
-  handle(params) {
+  handle(e, postData) {
     console.log('[CVSheetSystem] handle called');
+
+    // パラメータ取得（GET/POSTの両方に対応）
+    let params = {};
+    if (e && e.parameter) {
+      // GETリクエストまたはPOSTシミュレーション
+      params = e.parameter;
+    }
+    if (postData) {
+      try {
+        // POSTデータがある場合はマージ
+        const postParams = JSON.parse(postData.contents || '{}');
+        params = Object.assign(params, postParams);
+      } catch (error) {
+        console.log('[CVSheetSystem] POST data parse error:', error);
+      }
+    }
+
     console.log('[CVSheetSystem] params:', JSON.stringify(params));
 
     // cv_プレフィックスを削除（SystemRouterからcv_付きで来る場合があるため）
