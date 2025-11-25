@@ -1326,24 +1326,25 @@ const CVSheetSystem = {
    */
   handle(e, postData) {
     console.log('[CVSheetSystem] handle called');
+    console.log('[CVSheetSystem] e.parameter:', e ? JSON.stringify(e.parameter) : 'e is null');
+    console.log('[CVSheetSystem] postData:', JSON.stringify(postData));
 
     // パラメータ取得（GET/POSTの両方に対応）
     let params = {};
     if (e && e.parameter) {
       // GETリクエストまたはPOSTシミュレーション
-      params = e.parameter;
+      params = Object.assign({}, e.parameter);
     }
     if (postData) {
-      try {
-        // POSTデータがある場合はマージ
-        const postParams = JSON.parse(postData.contents || '{}');
-        params = Object.assign(params, postParams);
-      } catch (error) {
-        console.log('[CVSheetSystem] POST data parse error:', error);
+      // postDataは既にパース済みのオブジェクト（main.jsで処理済み）
+      if (typeof postData === 'object') {
+        params = Object.assign(params, postData);
+      } else {
+        console.log('[CVSheetSystem] Unexpected postData format:', typeof postData);
       }
     }
 
-    console.log('[CVSheetSystem] params:', JSON.stringify(params));
+    console.log('[CVSheetSystem] merged params:', JSON.stringify(params));
 
     // cv_プレフィックスを削除（SystemRouterからcv_付きで来る場合があるため）
     let action = params.action;
