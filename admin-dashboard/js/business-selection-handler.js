@@ -10,8 +10,9 @@
  * - AS列のパース（カンマ区切り業者名）
  * - 希望社数の自動計算と表示
  * - 業者カードの動的生成（1-2枠: AS列、3-4枠: マッチ率高）
- * - マッチ率優先ソート
- * - チェックボックス自動選択
+ * - マッチ率計算（エリア40% + 工事種別60% = 100%）
+ * - マッチ率優先ソート（AS列は表示順序のみに影響）
+ * - チェックボックス自動選択（100%マッチのみ）
  */
 
 const BusinessSelectionHandler = {
@@ -131,7 +132,7 @@ const BusinessSelectionHandler = {
   /**
    * マッチ率を計算
    * @param {Array} franchises - 加盟店リスト
-   * @param {Array<string>} selectedCompanies - AS列の業者名
+   * @param {Array<string>} selectedCompanies - AS列の業者名（表示順序のみに使用）
    * @param {object} caseData - 案件データ（都道府県などマッチング条件）
    * @returns {Array} マッチ率付き加盟店リスト
    */
@@ -139,33 +140,29 @@ const BusinessSelectionHandler = {
     return franchises.map(franchise => {
       let matchRate = 0;
 
-      // 1. AS列に含まれている → 100%マッチ
+      // AS列選択フラグ（表示順序用、マッチ率計算には使わない）
       const isSelected = selectedCompanies.some(companyName => {
         return franchise.companyName && franchise.companyName.includes(companyName) ||
                companyName.includes(franchise.companyName || '') ||
-               franchise.franchiseId === companyName; // コードマッチ
+               franchise.franchiseId === companyName;
       });
 
-      if (isSelected) {
-        matchRate = 100;
-      } else {
-        // 2. 地域マッチング（都道府県）
-        const casePrefecture = caseData['都道府県（物件）'] || caseData.prefecture || '';
-        const franchiseAreas = franchise.serviceAreas || [];
+      // 1. エリアマッチング（都道府県）: 40%
+      const casePrefecture = caseData['都道府県（物件）'] || caseData.prefecture || '';
+      const franchiseAreas = franchise.serviceAreas || [];
 
-        if (casePrefecture && franchiseAreas.includes(casePrefecture)) {
-          matchRate += 50;
-        }
+      if (casePrefecture && franchiseAreas.includes(casePrefecture)) {
+        matchRate += 40;
+      }
 
-        // 3. 工事種別マッチング
-        const caseWorkTypes = caseData.workTypes || [];
-        const franchiseWorkTypes = franchise.workTypes || [];
+      // 2. 工事種別マッチング: 60%（全種別一致で満点）
+      const caseWorkTypes = this.extractWorkTypes(caseData);
+      const franchiseWorkTypes = franchise.workTypes || [];
 
-        const workTypeMatches = caseWorkTypes.filter(w => franchiseWorkTypes.includes(w));
-        matchRate += workTypeMatches.length * 10;
-
-        // 最大100%
-        matchRate = Math.min(matchRate, 100);
+      if (caseWorkTypes.length > 0 && franchiseWorkTypes.length > 0) {
+        const matchingTypes = caseWorkTypes.filter(w => franchiseWorkTypes.includes(w));
+        const matchRatio = matchingTypes.length / caseWorkTypes.length;
+        matchRate += Math.round(matchRatio * 60);
       }
 
       return {
@@ -174,6 +171,34 @@ const BusinessSelectionHandler = {
         isUserSelected: isSelected
       };
     });
+  },
+
+  /**
+   * 案件データから工事種別を抽出
+   * @param {object} caseData - 案件データ
+   * @returns {Array<string>} 工事種別の配列
+   */
+  extractWorkTypes(caseData) {
+    const workTypes = [];
+
+    // Q9_希望工事内容_外壁
+    const exteriorWork = caseData['Q9_希望工事内容_外壁'] || caseData.exteriorWork || '';
+    if (exteriorWork) {
+      workTypes.push(`外壁${exteriorWork}`);
+    }
+
+    // Q10_希望工事内容_屋根
+    const roofWork = caseData['Q10_希望工事内容_屋根'] || caseData.roofWork || '';
+    if (roofWork) {
+      workTypes.push(`屋根${roofWork}`);
+    }
+
+    // フォールバック: workTypes配列が直接渡されている場合
+    if (caseData.workTypes && Array.isArray(caseData.workTypes)) {
+      workTypes.push(...caseData.workTypes);
+    }
+
+    return [...new Set(workTypes)]; // 重複除去
   },
 
   /**
@@ -186,7 +211,7 @@ const BusinessSelectionHandler = {
 
     // マッチ率でソート（降順）
     const sortedFranchises = [...allFranchises].sort((a, b) => {
-      // ユーザー選択を最優先
+      // ユーザー選択を最優先（表示順序のみ）
       if (a.isUserSelected && !b.isUserSelected) return -1;
       if (!a.isUserSelected && b.isUserSelected) return 1;
 
@@ -197,13 +222,11 @@ const BusinessSelectionHandler = {
     // 上位4件を取得
     const topFranchises = sortedFranchises.slice(0, 4);
 
-    // 希望社数を数値に変換
-    const desiredCountNum = parseInt(desiredCount) || 0;
-
     // カード生成
     return topFranchises.map((franchise, index) => {
       const rank = index + 1;
-      const shouldCheck = rank <= desiredCountNum;
+      // 100%マッチの業者のみチェック
+      const shouldCheck = franchise.matchRate === 100;
 
       return {
         rank,
