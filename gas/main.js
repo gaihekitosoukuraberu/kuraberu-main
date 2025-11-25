@@ -1,7 +1,7 @@
 /**
  * ====================================
  * メインエントリーポイント
- * V1852: AdminSystem action undefined 修正
+ * V1853: 評価データシート加盟店ID先頭構造対応
  * ====================================
  *
  * 【重要ルール】
@@ -10,6 +10,12 @@
  * 3. エラーは必ずJSONP形式で返す
  * 4. HTMLは絶対に返さない
  * 5. 共通関数は極力最小限にする（main.jsに集約）
+ *
+ * 【V1853】 2025-11-26 02:05 - 評価データシート加盟店ID先頭構造に完全対応
+ * - getEvaluationSheet: 既存シートでもフォーマット設定適用（K列日付化防止）
+ * - getRatingsForCompany: 会社名検索を列0→列1に変更
+ * - syncRatingsToMaster: 列インデックス修正（会社名=列1, 総合スコア=列5）
+ * - K列（顧客満足度）が日付フォーマットになる問題を解決
  *
  * 【V1852】 2025-11-26 01:15 - "Unknown admin action: undefined" 修正
  * - main.js:574 - handler(e, null) → handler(e.parameter, null)

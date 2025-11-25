@@ -46,11 +46,28 @@ const EvaluationDataManager = {
       console.log('[EvaluationData] 評価データシート作成完了');
     }
 
+    // 既存シートでも常にフォーマット設定を適用（K列の日付化を防ぐ）
+    const lastRow = Math.max(sheet.getLastRow(), 1000);
+
+    // C-F列（Google評価〜総合スコア）: 数値フォーマット "0.0"
+    sheet.getRange(2, 3, lastRow, 4).setNumberFormat('0.0');
+    // G-L列（コストバランス〜顧客満足度）: 数値フォーマット "0.0"
+    sheet.getRange(2, 7, lastRow, 6).setNumberFormat('0.0');
+    // M列（最終更新日）: 日時フォーマット
+    sheet.getRange(2, 13, lastRow, 1).setNumberFormat('yyyy-mm-dd hh:mm:ss');
+    // N列（データソース）: テキストフォーマット
+    sheet.getRange(2, 14, lastRow, 1).setNumberFormat('@');
+    // O列（AI評価）: テキストフォーマット
+    sheet.getRange(2, 15, lastRow, 1).setNumberFormat('@');
+
+    console.log('[EvaluationData] フォーマット設定完了（K列=数値）');
+
     return sheet;
   },
 
   /**
    * 会社の評価データを取得
+   * V1853: 加盟店ID先頭構造に対応
    */
   getRatingsForCompany: function(companyName) {
     console.log('[EvaluationData] 評価データ取得:', companyName);
@@ -60,24 +77,25 @@ const EvaluationDataManager = {
       const data = sheet.getDataRange().getValues();
       const headers = data[0];
 
-      // 会社名で検索
+      // 会社名で検索（列1: 会社名）
       for (let i = 1; i < data.length; i++) {
-        if (data[i][0] === companyName) {
+        if (data[i][1] === companyName) {
           const ratings = {
-            companyName: data[i][0],
-            googleRating: data[i][1] || 0,
-            nurikaeRating: data[i][2] || 0,
-            reshopnaviRating: data[i][3] || 0,
-            overallScore: data[i][4] || 4.2,
-            costBalance: data[i][5] || 4.2,
-            personality: data[i][6] || 4.3,
-            technology: data[i][7] || 4.2,
-            afterSupport: data[i][8] || 4.1,
-            responseSpeed: data[i][9] || 4.3,
-            customerSatisfaction: data[i][10] || 4.2,
-            lastUpdated: data[i][11] || '',
-            dataSource: data[i][12] || 'デフォルト',
-            aiEvaluation: data[i][13] || ''
+            merchantId: data[i][0],           // 列0: 加盟店ID
+            companyName: data[i][1],          // 列1: 会社名
+            googleRating: data[i][2] || 0,    // 列2: Google評価
+            nurikaeRating: data[i][3] || 0,   // 列3: ヌリカエ評価
+            reshopnaviRating: data[i][4] || 0, // 列4: リショップナビ評価
+            overallScore: data[i][5] || 4.2,  // 列5: 総合スコア
+            costBalance: data[i][6] || 4.2,   // 列6: コストバランス
+            personality: data[i][7] || 4.3,   // 列7: 人柄・対応力
+            technology: data[i][8] || 4.2,    // 列8: 技術・品質
+            afterSupport: data[i][9] || 4.1,  // 列9: アフターサポート
+            responseSpeed: data[i][10] || 4.3, // 列10: 対応スピード
+            customerSatisfaction: data[i][11] || 4.2, // 列11: 顧客満足度
+            lastUpdated: data[i][12] || '',   // 列12: 最終更新日
+            dataSource: data[i][13] || 'デフォルト', // 列13: データソース
+            aiEvaluation: data[i][14] || ''   // 列14: AI評価
           };
 
           console.log('[EvaluationData] 評価データ取得成功:', ratings);
@@ -682,6 +700,7 @@ const EvaluationDataManager = {
   /**
    * 評価データシートから加盟店マスタのAC列（総合スコア）に同期
    * V1754: 評価データシート → 加盟店マスタ自動同期
+   * V1853: 加盟店ID先頭構造に対応
    */
   syncRatingsToMaster: function() {
     console.log('[EvaluationData] 総合スコアを加盟店マスタに同期開始');
@@ -708,12 +727,12 @@ const EvaluationDataManager = {
       console.log('[EvaluationData] ヘッダー:', JSON.stringify(evaluationHeaders));
 
       // 会社名と総合スコアのマッピング作成
-      // CSV構造: 列0=会社名, 列4=総合スコア (列名に依存しない直接参照)
+      // V1853対応: 列0=加盟店ID, 列1=会社名, 列5=総合スコア
       const evaluationMap = {};
-      const companyNameColIndex = 0;  // A列: 会社名
-      const overallScoreColIndex = 4; // E列: 総合スコア
+      const companyNameColIndex = 1;  // B列: 会社名（加盟店ID先頭構造）
+      const overallScoreColIndex = 5; // F列: 総合スコア（加盟店ID先頭構造）
 
-      console.log('[EvaluationData] 評価データ列インデックス(固定) - 会社名:', companyNameColIndex, '総合スコア:', overallScoreColIndex);
+      console.log('[EvaluationData] 評価データ列インデックス(V1853) - 会社名:', companyNameColIndex, '総合スコア:', overallScoreColIndex);
 
       for (let i = 1; i < evaluationData.length; i++) {
         const companyName = String(evaluationData[i][companyNameColIndex] || '').trim();
