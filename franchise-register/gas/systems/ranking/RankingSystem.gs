@@ -388,12 +388,15 @@ const RankingSystem = {
         const ratingValue = row[colIndex.rating];
         console.log('[V1765-DEBUG] 会社:', companyName, '/ colIndex.rating:', colIndex.rating, '/ AC列の値:', ratingValue, '/ 型:', typeof ratingValue);
 
+        // 値が空の場合デフォルト値を設定
+        const finalRating = ratingValue || 4.2;
+
         // すべての条件を満たした業者を追加（V1751: 加盟日 + データ移行システム）
         filterStats.passed++;
         filtered.push({
           companyName: companyName,
           avgContractAmount: recent3MonthAvgAmount,
-          rating: ratingValue || 0,
+          rating: finalRating,
           reviewCount: row[colIndex.reviewCount] || 0,
           prefecture: prefecture,
           city: city,
@@ -488,7 +491,7 @@ const RankingSystem = {
             return {
               companyName: companyName,
               avgContractAmount: recent3MonthAvgAmount,
-              rating: row[colIndex.rating] || 0,
+              rating: row[colIndex.rating] || 4.2,
               reviewCount: row[colIndex.reviewCount] || 0,
               prefecture: row[colIndex.prefecture] || '',
               city: row[colIndex.cities] ? row[colIndex.cities].split(',')[0].trim() : '',
@@ -551,7 +554,7 @@ const RankingSystem = {
             return {
               companyName: companyName,
               avgContractAmount: recent3MonthAvgAmount,
-              rating: row[colIndex.rating] || 0,
+              rating: row[colIndex.rating] || 4.2,
               reviewCount: row[colIndex.reviewCount] || 0,
               prefecture: row[colIndex.prefecture] || '',
               city: row[colIndex.cities] ? row[colIndex.cities].split(',')[0].trim() : '',

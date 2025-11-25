@@ -216,7 +216,7 @@ function updateAllCompaniesFromDynamic(sortType) {
       rank: index + 1,
       name: company.companyName || `${index + 1}位業者`,
       price: company.avgContractAmount ? `${Math.floor(company.avgContractAmount / 10000)}万円〜` : '見積もり必要',
-      rating: company.rating || 4.0,
+      rating: company.rating || 4.2,
       reviews: company.reviewCount || 0,
       features: extractFeatures(company),
       // 元データも保持

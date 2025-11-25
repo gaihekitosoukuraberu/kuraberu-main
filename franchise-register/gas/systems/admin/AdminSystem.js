@@ -536,6 +536,20 @@ const AdminSystem = {
           }
           console.log('[AdminSystem] ===== 評価データ収集終了 =====');
 
+          // V1765: 評価データを加盟店マスタAC列に同期
+          try {
+            console.log('[AdminSystem] 評価データを加盟店マスタに同期開始');
+            const syncResult = EvaluationDataManager.syncRatingsToMaster();
+            if (syncResult.success) {
+              console.log('[AdminSystem] ✅ 評価データ同期成功 - 更新:', syncResult.updatedCount + '件');
+            } else {
+              console.error('[AdminSystem] ❌ 評価データ同期失敗:', syncResult.error);
+            }
+          } catch (syncError) {
+            console.error('[AdminSystem] 評価データ同期エラー:', syncError);
+            // エラーは無視して処理を続行
+          }
+
           // URLスラッグ自動生成とプレビューHP生成処理
           try {
             console.log('[AdminSystem] URLスラッグ・HP自動生成開始:', registrationId);
