@@ -6,6 +6,8 @@
  * プレビューHTML構造を一字一句完全コピー
  * スプレッドシートデータ動的バインディング対応
  * レスポンシブ挙動まで完全一致
+ *
+ * V1865: プレビューHP問い合わせモーダル - ローディング表示 + 二重送信防止 (2025-11-26)
  */
 
 /**
@@ -439,7 +441,7 @@ function generateStaticHTML(data) {
                         </button>
                     </div>
 
-                    <form class="km_form" method="post" action="https://gaihekikuraberu.com/lp/mail.php">
+                    <form id="contact-form" class="km_form" method="post" action="https://gaihekikuraberu.com/lp/mail.php" onsubmit="return handleContactFormSubmit(event)">
                         <dl class="space-y-4">
                             <dt class="font-bold">お名前<span class="text-red-500 text-sm ml-2">必須</span></dt>
                             <dd><input class="w-full border border-gray-300 rounded px-3 py-2" type="text" name="お名前" placeholder="山田 太郎" required /></dd>
@@ -471,7 +473,7 @@ function generateStaticHTML(data) {
 
                         <div class="mt-6 flex gap-3">
                             <button type="button" onclick="closeContactFormModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-3 rounded-lg font-bold">キャンセル</button>
-                            <button type="submit" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-lg font-bold">送信する</button>
+                            <button type="submit" id="contact-form-submit-btn" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-lg font-bold">送信する</button>
                         </div>
                         <input type="hidden" name="希望業者" value="\${COMPANY_NAME}" />
                     </form>
@@ -482,6 +484,35 @@ function generateStaticHTML(data) {
 
             // 背景スクロール防止
             document.body.style.overflow = 'hidden';
+        }
+
+        function handleContactFormSubmit(event) {
+            event.preventDefault();
+
+            const submitBtn = document.getElementById('contact-form-submit-btn');
+            const form = document.getElementById('contact-form');
+
+            // 二重送信防止: ボタンを無効化
+            if (submitBtn.disabled) {
+                return false;
+            }
+
+            // ローディング表示
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = \`
+                <div class="flex items-center justify-center gap-2">
+                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>送信中...</span>
+                </div>
+            \`;
+
+            // フォーム送信
+            form.submit();
+
+            return false;
         }
 
         function closeContactFormModal() {
