@@ -2144,6 +2144,18 @@ const AdminSystem = {
       const evalData = evaluationSheet.getDataRange().getValues();
       const evalHeaders = evalData[0];
 
+      // デバッグ: ヘッダー確認
+      console.log('[_getRatingFromEvaluationData] 評価データシートヘッダー:', JSON.stringify(evalHeaders));
+      console.log('[_getRatingFromEvaluationData] データ行数:', evalData.length - 1);
+
+      // 加盟店IDカラムの存在確認
+      const merchantIdIndex = evalHeaders.indexOf('加盟店ID');
+      console.log('[_getRatingFromEvaluationData] 加盟店IDカラムindex:', merchantIdIndex);
+
+      // 総合スコアカラムの存在確認
+      const totalScoreIndex = evalHeaders.indexOf('総合スコア');
+      console.log('[_getRatingFromEvaluationData] 総合スコアカラムindex:', totalScoreIndex);
+
       // 加盟店IDでマッチング（優先）
       if (merchantId) {
         for (let i = 1; i < evalData.length; i++) {
