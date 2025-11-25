@@ -11,6 +11,11 @@
  * 4. HTMLは絶対に返さない
  * 5. 共通関数は極力最小限にする（main.jsに集約）
  *
+ * 【V1864】 2025-11-26 03:20 - Yahoo API住所分離修正
+ * - AddressElementから都道府県と市区町村を正しく分離
+ * - Level: 'prefecture' → 都道府県（物件）
+ * - Level: 'city' → 市区町村（物件）
+ *
  * 【V1863】 2025-11-26 03:15 - 固定URL＋キャッシュバスター自動更新運用
  * - デプロイメントURL固定（常に1個のみ）: AKfycbwaOsSudVqD8TViYymdbRmmbu6RS8k3NVfKbiswka-GHunJ4DtDTrFzHRw2AZ0OLzrkYA
  * - キャッシュバスターは毎回自動更新 - 必ず最新が反映される
