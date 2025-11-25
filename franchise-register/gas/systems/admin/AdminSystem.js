@@ -511,14 +511,15 @@ const AdminSystem = {
           console.log('[AdminSystem] ===== 評価データ収集開始 =====');
           try {
             const rowData = data[i];
+            const merchantId = rowData[idIndex] || registrationId; // 登録ID
             const companyName = rowData[2] || ''; // C列: 会社名
             const address = rowData[9] || ''; // J列: 住所
 
             if (companyName) {
-              console.log('[AdminSystem] 評価データ収集対象 - 会社名:', companyName, 'Address:', address);
+              console.log('[AdminSystem] 評価データ収集対象 - ID:', merchantId, '会社名:', companyName, 'Address:', address);
 
-              // EvaluationDataManager呼び出し
-              const ratingsResult = EvaluationDataManager.collectRatingsFromAPIs(companyName, address);
+              // EvaluationDataManager呼び出し（加盟店ID付き）
+              const ratingsResult = EvaluationDataManager.collectRatingsFromAPIs(merchantId, companyName, address);
               console.log('[AdminSystem] 評価データ収集結果:', JSON.stringify(ratingsResult));
 
               if (ratingsResult.success) {
@@ -1851,7 +1852,9 @@ const AdminSystem = {
                         + '&query=' + cleanZipcode.substring(0, 3) + '-' + cleanZipcode.substring(3)
                         + '&output=json';
 
+              console.log('[copyToFranchiseMaster] Yahoo API呼び出し中...', url);
               const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+              console.log('[copyToFranchiseMaster] Yahoo API レスポンスコード:', response.getResponseCode());
 
               if (response.getResponseCode() === 200) {
                 const data = JSON.parse(response.getContentText());
@@ -1978,10 +1981,10 @@ const AdminSystem = {
             masterRow.push(performanceData.rating || 0);
             break;
           case '総合スコア':
-            // V1765: 評価データから総合スコアを取得（AC列用）
-            const score = this._getRatingFromEvaluationData(companyName) || 4.2;
+            // V1765: 評価データから総合スコアを取得（AC列用、IDマッチング対応）
+            const score = this._getRatingFromEvaluationData(registrationId, companyName) || 4.2;
             masterRow.push(score);
-            console.log('[copyToFranchiseMaster] 総合スコア設定:', companyName, '→', score);
+            console.log('[copyToFranchiseMaster] 総合スコア設定:', registrationId, companyName, '→', score);
             break;
           case '口コミ件数':
             masterRow.push(performanceData.reviewCount || 0);
@@ -2093,8 +2096,8 @@ const AdminSystem = {
           const delayDays = row[pastHeaders.indexOf('遅延日数合計')] || 0;
           const hasPaymentDelay = delayDays > 0 ? 'TRUE' : 'FALSE';
 
-          // 評価データシートから評価を取得
-          const rating = this._getRatingFromEvaluationData(companyName);
+          // 評価データシートから評価を取得（IDなしでフォールバック）
+          const rating = this._getRatingFromEvaluationData(null, companyName);
 
           return {
             contractCount: row[pastHeaders.indexOf('成約件数')] || 0,
@@ -2123,11 +2126,11 @@ const AdminSystem = {
   },
 
   /**
-   * 評価データシートから評価を取得（V1697新規）
+   * 評価データシートから評価を取得（IDマッチング対応）
    */
-  _getRatingFromEvaluationData: function(companyName) {
+  _getRatingFromEvaluationData: function(merchantId, companyName) {
     try {
-      console.log('[_getRatingFromEvaluationData] 会社名:', companyName);
+      console.log('[_getRatingFromEvaluationData] 加盟店ID:', merchantId, '会社名:', companyName);
 
       const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
       const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -2141,19 +2144,33 @@ const AdminSystem = {
       const evalData = evaluationSheet.getDataRange().getValues();
       const evalHeaders = evalData[0];
 
-      // 会社名でマッチング
+      // 加盟店IDでマッチング（優先）
+      if (merchantId) {
+        for (let i = 1; i < evalData.length; i++) {
+          const row = evalData[i];
+          const sheetMerchantId = row[evalHeaders.indexOf('加盟店ID')] || '';
+
+          if (sheetMerchantId === merchantId) {
+            const totalScore = row[evalHeaders.indexOf('総合スコア')] || 0;
+            console.log('[_getRatingFromEvaluationData] ✅ 評価取得成功(ID一致):', merchantId, '→', totalScore);
+            return totalScore;
+          }
+        }
+      }
+
+      // IDでマッチしない場合は会社名でフォールバック（後方互換性のため）
       for (let i = 1; i < evalData.length; i++) {
         const row = evalData[i];
         const businessName = row[evalHeaders.indexOf('会社名')] || '';
 
         if (businessName === companyName) {
           const totalScore = row[evalHeaders.indexOf('総合スコア')] || 0;
-          console.log('[_getRatingFromEvaluationData] ✅ 評価取得成功:', totalScore);
+          console.log('[_getRatingFromEvaluationData] ✅ 評価取得成功(会社名一致):', businessName, '→', totalScore);
           return totalScore;
         }
       }
 
-      console.warn('[_getRatingFromEvaluationData] 評価データなし:', companyName);
+      console.warn('[_getRatingFromEvaluationData] 評価データなし - ID:', merchantId, '会社名:', companyName);
       return 0;
 
     } catch (error) {

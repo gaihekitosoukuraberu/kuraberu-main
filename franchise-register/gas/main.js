@@ -745,6 +745,7 @@ function handleLegacyPostAction(action, e, postData) {
     }
     else if (action === 'updateCompanyRatings') {
       return EvaluationDataManager.collectRatingsFromAPIs(
+        postData.merchantId || '',
         postData.companyName,
         postData.address || ''
       );

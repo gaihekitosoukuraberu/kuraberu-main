@@ -22,6 +22,7 @@ const EvaluationDataManager = {
 
       // ヘッダー設定
       const headers = [
+        '加盟店ID',
         '会社名',
         'Google評価',
         'ヌリカエ評価',
@@ -94,10 +95,10 @@ const EvaluationDataManager = {
   },
 
   /**
-   * 評価データを保存・更新
+   * 評価データを保存・更新（加盟店ID付き）
    */
-  saveRatings: function(companyName, ratingsData) {
-    console.log('[EvaluationData] 評価データ保存:', companyName);
+  saveRatings: function(merchantId, companyName, ratingsData) {
+    console.log('[EvaluationData] 評価データ保存:', merchantId, companyName);
 
     try {
       const sheet = this.getEvaluationSheet();
@@ -105,8 +106,9 @@ const EvaluationDataManager = {
 
       const now = Utilities.formatDate(new Date(), 'JST', 'yyyy-MM-dd HH:mm:ss');
 
-      // 新しい行データ
+      // 新しい行データ（加盟店ID付き）
       const newRow = [
+        merchantId || '',
         companyName,
         ratingsData.googleRating || 0,
         ratingsData.nurikaeRating || 0,
@@ -123,20 +125,20 @@ const EvaluationDataManager = {
         ratingsData.aiEvaluation || ''
       ];
 
-      // 既存データを検索して更新、なければ追加
+      // 既存データを検索して更新、なければ追加（加盟店IDで検索）
       let updated = false;
       for (let i = 1; i < data.length; i++) {
-        if (data[i][0] === companyName) {
+        if (merchantId && data[i][0] === merchantId) {
           sheet.getRange(i + 1, 1, 1, newRow.length).setValues([newRow]);
           updated = true;
-          console.log('[EvaluationData] 評価データ更新完了:', companyName);
+          console.log('[EvaluationData] 評価データ更新完了 (ID一致):', merchantId, companyName);
           break;
         }
       }
 
       if (!updated) {
         sheet.appendRow(newRow);
-        console.log('[EvaluationData] 評価データ追加完了:', companyName);
+        console.log('[EvaluationData] 評価データ追加完了:', merchantId, companyName);
       }
 
       return { success: true, message: '評価データ保存完了' };
@@ -148,10 +150,10 @@ const EvaluationDataManager = {
   },
 
   /**
-   * 外部APIから評価データを収集
+   * 外部APIから評価データを収集（加盟店ID付き）
    */
-  collectRatingsFromAPIs: function(companyName, address = '') {
-    console.log('[EvaluationData] API評価収集開始:', companyName);
+  collectRatingsFromAPIs: function(merchantId, companyName, address = '') {
+    console.log('[EvaluationData] API評価収集開始:', merchantId, companyName);
 
     try {
       // 3つの評価源から評価取得（詳細項目付き）
@@ -182,8 +184,8 @@ const EvaluationDataManager = {
         aiEvaluation: aiEvaluation
       };
 
-      // 保存
-      this.saveRatings(companyName, ratingsData);
+      // 保存（加盟店ID付き）
+      this.saveRatings(merchantId, companyName, ratingsData);
 
       console.log('[EvaluationData] 評価収集完了:', ratingsData);
       return { success: true, ratings: ratingsData };
