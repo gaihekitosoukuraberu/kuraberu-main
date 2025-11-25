@@ -139,6 +139,10 @@ const BusinessSelectionHandler = {
   calculateMatchRates(franchises, selectedCompanies, caseData) {
     return franchises.map(franchise => {
       let matchRate = 0;
+      const matchDetails = {
+        area: { matched: false, required: '', available: [], score: 0, maxScore: 40 },
+        workTypes: { matched: [], unmatched: [], score: 0, maxScore: 60 }
+      };
 
       // AS列選択フラグ（表示順序用、マッチ率計算には使わない）
       const isSelected = selectedCompanies.some(companyName => {
@@ -150,9 +154,13 @@ const BusinessSelectionHandler = {
       // 1. エリアマッチング（都道府県）: 40%
       const casePrefecture = caseData['都道府県（物件）'] || caseData.prefecture || '';
       const franchiseAreas = franchise.serviceAreas || [];
+      matchDetails.area.required = casePrefecture;
+      matchDetails.area.available = franchiseAreas;
 
       if (casePrefecture && franchiseAreas.includes(casePrefecture)) {
         matchRate += 40;
+        matchDetails.area.matched = true;
+        matchDetails.area.score = 40;
       }
 
       // 2. 工事種別マッチング: 60%（全種別一致で満点）
@@ -161,14 +169,21 @@ const BusinessSelectionHandler = {
 
       if (caseWorkTypes.length > 0 && franchiseWorkTypes.length > 0) {
         const matchingTypes = caseWorkTypes.filter(w => franchiseWorkTypes.includes(w));
+        const unmatchedTypes = caseWorkTypes.filter(w => !franchiseWorkTypes.includes(w));
         const matchRatio = matchingTypes.length / caseWorkTypes.length;
-        matchRate += Math.round(matchRatio * 60);
+        const workTypeScore = Math.round(matchRatio * 60);
+
+        matchRate += workTypeScore;
+        matchDetails.workTypes.matched = matchingTypes;
+        matchDetails.workTypes.unmatched = unmatchedTypes;
+        matchDetails.workTypes.score = workTypeScore;
       }
 
       return {
         ...franchise,
         matchRate,
-        isUserSelected: isSelected
+        isUserSelected: isSelected,
+        matchDetails
       };
     });
   },
@@ -235,6 +250,7 @@ const BusinessSelectionHandler = {
         serviceAreas: franchise.serviceAreas || [],
         matchRate: franchise.matchRate || 0,
         isUserSelected: franchise.isUserSelected || false,
+        matchDetails: franchise.matchDetails || null,
         shouldCheck
       };
     });
@@ -290,8 +306,17 @@ const BusinessSelectionHandler = {
     div.setAttribute('data-match-rate', card.matchRate);
     div.setAttribute('data-user-selected', card.isUserSelected ? 'true' : 'false');
 
+    // matchDetailsをJSON文字列として保存
+    if (card.matchDetails) {
+      div.setAttribute('data-match-details', JSON.stringify(card.matchDetails));
+    }
+
     // サービスエリア表示（都道府県）
     const areasText = card.serviceAreas.slice(0, 3).join(' ') || '全国対応';
+
+    // マッチ率の色を決定（100% = 緑、それ以外 = オレンジ）
+    const matchRateColor = card.matchRate === 100 ? 'bg-green-500 text-white' : 'bg-orange-500 text-white';
+    const matchRateId = `match-rate-${card.franchiseId}`;
 
     div.innerHTML = `
       <div class="flex items-center justify-between">
@@ -305,12 +330,115 @@ const BusinessSelectionHandler = {
         <div class="text-right ml-2 sm:ml-4 flex-shrink-0">
           <div class="text-xs sm:text-sm text-gray-600 hidden sm:block">${areasText}</div>
           ${card.isUserSelected ? '<div class="text-pink-600 text-xs sm:text-sm font-semibold">ユーザー選択</div>' : ''}
-          <div class="text-xs text-gray-500">${card.matchRate}% マッチ</div>
+          <div id="${matchRateId}" class="inline-block px-2 py-1 rounded-full text-xs sm:text-sm font-bold cursor-pointer hover:shadow-lg transition-shadow ${matchRateColor}"
+               onclick="event.stopPropagation();"
+               title="クリックで詳細を表示">
+            ${card.matchRate}% マッチ
+          </div>
         </div>
       </div>
     `;
 
+    // マッチ率バッジにクリックイベントを追加
+    setTimeout(() => {
+      const matchRateBadge = document.getElementById(matchRateId);
+      if (matchRateBadge && card.matchDetails) {
+        matchRateBadge.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.showMatchDetailsModal(card.matchDetails, card.companyName, card.matchRate);
+        });
+      }
+    }, 0);
+
     return div;
+  },
+
+  /**
+   * マッチ度詳細モーダルを表示
+   * @param {object} matchDetails - マッチ詳細情報
+   * @param {string} companyName - 業者名
+   * @param {number} matchRate - マッチ率
+   */
+  showMatchDetailsModal(matchDetails, companyName, matchRate) {
+    if (!matchDetails) return;
+
+    const modalHTML = `
+      <div id="matchDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) this.remove()">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4" onclick="event.stopPropagation()">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-900">${companyName}</h3>
+            <button onclick="document.getElementById('matchDetailsModal').remove()" class="text-gray-500 hover:text-gray-700">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+
+          <div class="mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-2xl font-bold ${matchRate === 100 ? 'text-green-600' : 'text-orange-600'}">${matchRate}%</span>
+              ${matchRate === 100
+                ? '<span class="text-sm text-green-600 font-semibold">✓ 自動転送可能</span>'
+                : '<span class="text-sm text-red-600 font-semibold">✗ 自動転送不可</span>'}
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <!-- エリアマッチング -->
+            <div class="border-l-4 ${matchDetails.area.matched ? 'border-green-500' : 'border-red-500'} pl-3">
+              <div class="flex items-center justify-between mb-1">
+                <span class="font-semibold text-gray-700">エリア適合</span>
+                <span class="text-sm ${matchDetails.area.matched ? 'text-green-600' : 'text-red-600'}">
+                  ${matchDetails.area.score} / ${matchDetails.area.maxScore}点
+                </span>
+              </div>
+              <div class="text-sm text-gray-600">
+                <div>必要エリア: <span class="font-medium">${matchDetails.area.required || '未設定'}</span></div>
+                <div>対応エリア: <span class="font-medium">${matchDetails.area.available.length > 0 ? matchDetails.area.available.join(', ') : '未設定'}</span></div>
+                ${!matchDetails.area.matched ? '<div class="text-red-600 mt-1">⚠ エリア不一致</div>' : ''}
+              </div>
+            </div>
+
+            <!-- 工事種別マッチング -->
+            <div class="border-l-4 ${matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0 ? 'border-green-500' : 'border-orange-500'} pl-3">
+              <div class="flex items-center justify-between mb-1">
+                <span class="font-semibold text-gray-700">工事種別適合</span>
+                <span class="text-sm ${matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0 ? 'text-green-600' : 'text-orange-600'}">
+                  ${matchDetails.workTypes.score} / ${matchDetails.workTypes.maxScore}点
+                </span>
+              </div>
+              <div class="text-sm text-gray-600">
+                ${matchDetails.workTypes.matched.length > 0 ? `
+                  <div class="mb-1">
+                    <span class="text-green-600">✓ 対応可能:</span> ${matchDetails.workTypes.matched.join(', ')}
+                  </div>
+                ` : ''}
+                ${matchDetails.workTypes.unmatched.length > 0 ? `
+                  <div class="text-red-600">
+                    ✗ 対応不可: ${matchDetails.workTypes.unmatched.join(', ')}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 text-center">
+            <button onclick="document.getElementById('matchDetailsModal').remove()" class="bg-pink-600 text-white px-6 py-2 rounded-lg hover:bg-pink-700 transition-colors">
+              閉じる
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // 既存のモーダルを削除
+    const existingModal = document.getElementById('matchDetailsModal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+
+    // 新しいモーダルを追加
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
   },
 
   /**
