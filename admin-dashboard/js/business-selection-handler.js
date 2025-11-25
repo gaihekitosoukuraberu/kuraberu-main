@@ -83,6 +83,10 @@ const BusinessSelectionHandler = {
 
       // デバッグ: currentCaseDataの全キーを出力
       console.log('[BusinessSelection] currentCaseDataのキー一覧:', Object.keys(currentCaseData));
+      console.log('[BusinessSelection] 全45個のキー名を個別に出力:');
+      Object.keys(currentCaseData).forEach((key, index) => {
+        console.log(`  ${index + 1}. ${key}: ${currentCaseData[key]}`);
+      });
       console.log('[BusinessSelection] currentCaseData全体:', currentCaseData);
 
       // AS列から業者名を取得（複数の可能なフィールド名をチェック）
