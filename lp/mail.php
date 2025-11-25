@@ -708,20 +708,22 @@ function sendToGAS($formData){
 		'phone' => isset($formData['電話番号']) ? $formData['電話番号'] : '',
 		'postalCode' => isset($formData['郵便番号']) ? $formData['郵便番号'] : '',
 		'inquiryContent' => $inquiryContent,
-		'timestamp' => date('Y-m-d H:i:s')
+		'timestamp' => date('Y-m-d H:i:s'),
+		'method' => 'POST'  // V1858: POST simulation via GET (組織アカウント対応)
 	);
 
 	error_log('送信データ: ' . print_r($postData, true));
 	error_log('送信先URL: ' . $gasUrl);
 
-	// cURLでGASに送信
+	// V1858: GETリクエストでPOSTをシミュレート（組織アカウント制限対応）
 	$queryString = http_build_query($postData);
-	error_log('URLエンコード後: ' . $queryString);
+	$fullUrl = $gasUrl . '?' . $queryString;
+	error_log('完全URL: ' . substr($fullUrl, 0, 200) . '...');
 
 	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, $gasUrl);
-	curl_setopt($ch, CURLOPT_POST, true);
-	curl_setopt($ch, CURLOPT_POSTFIELDS, $queryString);
+	curl_setopt($ch, CURLOPT_URL, $fullUrl);
+	// curl_setopt($ch, CURLOPT_POST, true);  // ← GETリクエストに変更
+	// curl_setopt($ch, CURLOPT_POSTFIELDS, $queryString);  // ← URLパラメータに移動
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
