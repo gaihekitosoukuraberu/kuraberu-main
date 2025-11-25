@@ -11,6 +11,11 @@
  * 4. HTMLは絶対に返さない
  * 5. 共通関数は極力最小限にする（main.jsに集約）
  *
+ * 【V1863】 2025-11-26 03:15 - 固定URL＋キャッシュバスター自動更新運用
+ * - デプロイメントURL固定（常に1個のみ）: AKfycbwaOsSudVqD8TViYymdbRmmbu6RS8k3NVfKbiswka-GHunJ4DtDTrFzHRw2AZ0OLzrkYA
+ * - キャッシュバスターは毎回自動更新 - 必ず最新が反映される
+ * - clasp deploy --deploymentId で既存Web App deployment自動更新
+ *
  * 【V1862】 2025-11-26 03:11 - 全env-loader最新デプロイメントID同期
  * - 正しいデプロイメントID: AKfycbwaOsSudVqD8TViYymdbRmmbu6RS8k3NVfKbiswka-GHunJ4DtDTrFzHRw2AZ0OLzrkYA
  * - LPContactSystem 73列対応 (CVID生成, Yahoo API, 電話番号保持)
