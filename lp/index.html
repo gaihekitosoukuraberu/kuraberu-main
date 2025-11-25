@@ -2090,6 +2090,13 @@
         function showKeepModal() {
             const modal = document.getElementById('keepModal');
             const keepList = document.getElementById('keepList');
+
+            // 要素が存在しない場合は処理を中断（古い生成ページ対応）
+            if (!modal || !keepList) {
+                console.warn('keepModal or keepList element not found - possibly old generated page');
+                return;
+            }
+
             const keeps = keepManager.getList();
 
             // キ���プリストを表示
