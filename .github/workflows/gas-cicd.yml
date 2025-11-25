@@ -129,11 +129,17 @@ jobs:
           echo "Version: ${{ steps.deploy.outputs.version }}"
           echo "Deployment ID: ${{ steps.deploy.outputs.deployment_id }}"
 
-      - name: Sync master env-loader.js (Single Source)
+      - name: Update cache buster only (V1758 fixed URL)
         run: |
-          echo "🔄 マスターenv-loader.jsを最新GAS URLに同期中..."
-          DEPLOYMENT_ID="${{ steps.deploy.outputs.deployment_id }}"
-          node sync-master-env-loader.js "$DEPLOYMENT_ID"
+          echo "🔄 キャッシュバスター更新中（URLはV1758固定）..."
+          # URLは変わらないのでキャッシュバスターだけ更新
+          CACHE_BUSTER=$(date +%s)
+          for file in js/env-loader.js admin-dashboard/js/env-loader.js franchise-register/js/env-loader.js franchise-dashboard/merchant-portal/env-loader.js estimate-keep-system/js/env-loader.js; do
+            if [ -f "$file" ]; then
+              sed -i "s/CACHE_BUSTER: '[0-9]*'/CACHE_BUSTER: '$CACHE_BUSTER'/" "$file"
+              echo "✅ $file のキャッシュバスター更新: $CACHE_BUSTER"
+            fi
+          done
 
       - name: Commit and push env-loader updates
         run: |
@@ -155,13 +161,13 @@ jobs:
 
           # 変更があればコミット
           if git diff --staged --quiet; then
-            echo "📝 マスターenv-loader.js更新なし"
+            echo "📝 キャッシュバスター更新なし"
             echo "ENV_UPDATED=false" >> $GITHUB_ENV
           else
-            git commit -m "auto: GAS URL同期 (master env-loader & fallback) - ${{ steps.deploy.outputs.deployment_id }}"
+            git commit -m "auto: キャッシュバスター更新 (V1758固定運用) - $(date +%s)"
             git pull --rebase origin main
             git push
-            echo "✅ マスターenv-loader.js更新をpushしました"
+            echo "✅ キャッシュバスター更新をpushしました"
             echo "ENV_UPDATED=true" >> $GITHUB_ENV
           fi
 
