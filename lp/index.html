@@ -1844,6 +1844,9 @@
             submitBtn.addEventListener('click', function() {
                 const phone = phoneInput.value;
                 if (validatePhone(phone)) {
+                    // 二重送信防止：ボタンを無効化
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = '送信中...';
                     submitPhoneNumber(phone);
                 }
             });
