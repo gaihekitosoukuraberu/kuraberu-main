@@ -431,9 +431,52 @@ const SystemRouter = {
 
 /**
  * GETリクエスト処理（必ずここだけ）
+ * V1858: POST simulation via GET - 組織アカウント制限により匿名POSTができないため、GETでPOSTをシミュレート
  */
 function doGet(e) {
   try {
+    // POST simulation check (V1858)
+    // 組織Googleアカウントでは「全員（匿名ユーザーを含む）」オプションが存在しないため、
+    // POST requestが404エラーになる問題への対応
+    if (e.parameter.method === 'POST' || e.parameter._method === 'POST') {
+      console.log('[main.js] POST simulation via GET detected');
+
+      // GETパラメータからPOSTイベント構造を作成
+      const simulatedPostEvent = {
+        parameter: Object.assign({}, e.parameter),
+        postData: {
+          contents: JSON.stringify(e.parameter),
+          type: 'application/json'
+        }
+      };
+
+      // method/methodパラメータを削除（実際のデータには不要）
+      delete simulatedPostEvent.parameter.method;
+      delete simulatedPostEvent.parameter._method;
+      const callback = simulatedPostEvent.parameter.callback;
+      const dataVar = simulatedPostEvent.parameter.dataVar;
+      delete simulatedPostEvent.parameter.callback;
+      delete simulatedPostEvent.parameter.dataVar;
+
+      console.log('[main.js] Calling doPost with simulated event');
+
+      // doPostを呼び出し
+      const postResult = doPost(simulatedPostEvent);
+
+      // JSONP対応: callbackまたはdataVarが指定されている場合
+      if (callback || dataVar) {
+        try {
+          const jsonData = JSON.parse(postResult.getContent());
+          return createJsonpResponse(jsonData, callback, dataVar);
+        } catch (err) {
+          console.error('[main.js] Failed to parse POST result for JSONP:', err);
+          return postResult;
+        }
+      }
+
+      return postResult;
+    }
+
     const action = e.parameter.action;
     const callback = e.parameter.callback;
     const dataVar = e.parameter.dataVar;  // V1713-FIX: グローバル変数方式対応
