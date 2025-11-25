@@ -11,6 +11,13 @@
  * 4. HTMLは絶対に返さない
  * 5. 共通関数は極力最小限にする（main.jsに集約）
  *
+ * 【V1872】 2025-11-26 16:10 - LPContactSystem住所解析強化 - 都道府県と市区町村を完全分離
+ * - Yahoo API AddressElement分離 + property.Address正規表現解析
+ * - AddressElementがある場合: 都道府県（O列）と市区町村（P列）に正しく分離
+ * - AddressElementがない場合: property.Addressを正規表現で解析し、都道府県と市区町村に分離
+ * - 正規表現: /^(北海道|東京都|京都府|大阪府|.+?[都道府県])(.*)/
+ * - これにより必ず都道府県（O列）と市区町村（P列）に分離されることを保証
+ *
  * 【V1871】 2025-11-26 16:00 - LPContactSystem住所取得フォールバック実装
  * - Yahoo API AddressElement分離 + property.Addressフォールバック
  * - AddressElementがある場合: 都道府県（O列）と市区町村（P列）に正しく分離

@@ -278,11 +278,24 @@ const LPContactSystem = {
           });
         }
 
-        // フォールバック: AddressElementが空の場合、property.Addressを都道府県に使用
+        // フォールバック: AddressElementが空の場合、property.Addressを解析して分離
         // これにより最低限、住所が表示される（V1870以前の動作互換性）
         if (!prefecture && property.Address) {
-          prefecture = property.Address;
-          console.log('[LPContactSystem] AddressElement not available, using fallback Address:', property.Address);
+          const fullAddress = property.Address;
+          console.log('[LPContactSystem] AddressElement not available, parsing fallback Address:', fullAddress);
+
+          // 日本の住所フォーマットから都道府県と市区町村を分離
+          // 例: "東京都千代田区丸の内1-1-1" → 都道府県="東京都", 市区町村="千代田区丸の内1-1-1"
+          const match = fullAddress.match(/^(北海道|東京都|京都府|大阪府|.+?[都道府県])(.*)/);
+          if (match) {
+            prefecture = match[1];  // 都道府県部分
+            city = match[2];        // 市区町村以降
+            console.log('[LPContactSystem] Parsed from fallback:', { prefecture, city });
+          } else {
+            // パースに失敗した場合は全部都道府県に入れる（後方互換）
+            prefecture = fullAddress;
+            console.log('[LPContactSystem] Failed to parse, using full address as prefecture');
+          }
         }
 
         console.log('[LPContactSystem] Parsed address:', { prefecture, city, hasAddressElement: !!(property.AddressElement && property.AddressElement.length) });
