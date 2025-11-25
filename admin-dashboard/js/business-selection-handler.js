@@ -94,33 +94,37 @@ const BusinessSelectionHandler = {
       // 希望社数を計算
       const desiredCount = this.calculateDesiredCount(selectedCompanies);
 
-      // 全加盟店データを取得（GASから）
-      let allFranchises = [];
-      try {
-        const response = await window.apiClient.jsonpRequest('getFranchiseManagementData', {
-          status: 'approved' // 承認済み加盟店のみ
-        });
-
-        if (response.success && response.data) {
-          allFranchises = response.data;
+      // AS列の業者名から簡易的な業者リストを生成
+      const allFranchises = selectedCompanies.map((companyName, index) => ({
+        franchiseId: `FRANCHISE_${String(index + 1).padStart(3, '0')}`,
+        companyName: companyName,
+        serviceAreas: [currentCaseData['都道府県（物件）'] || '全国'], // 物件と同じエリアを仮設定
+        workTypes: [], // 工事種別は未設定
+        matchRate: 100, // AS列選択なので100%
+        isUserSelected: true,
+        matchDetails: {
+          area: {
+            matched: true,
+            required: currentCaseData['都道府県（物件）'] || '',
+            available: [currentCaseData['都道府県（物件）'] || '全国'],
+            score: 40,
+            maxScore: 40
+          },
+          workTypes: {
+            matched: [],
+            unmatched: [],
+            score: 60,
+            maxScore: 60
+          }
         }
-      } catch (error) {
-        console.warn('[BusinessSelection] 加盟店データ取得失敗、サンプルデータ使用:', error);
-        // フォールバック: サンプルデータ
-        allFranchises = this.getSampleFranchises();
-      }
+      }));
 
-      // マッチ率を計算
-      const franchisesWithMatch = this.calculateMatchRates(
-        allFranchises,
-        selectedCompanies,
-        currentCaseData
-      );
+      console.log('[BusinessSelection] 生成された業者リスト:', allFranchises);
 
       return {
         desiredCount,
         selectedCompanies,
-        allFranchises: franchisesWithMatch
+        allFranchises
       };
 
     } catch (error) {
