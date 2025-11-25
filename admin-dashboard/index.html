@@ -2443,19 +2443,23 @@ window.addEventListener('beforeunload', function(e) {
 
             // ソート処理のメッセージ
             const sortLabels = {
-                'sales': '売上',
-                'conversion': '成約率',
-                'activity': '最終活動',
-                'cospa': 'コスパ',
-                'cases': '案件数',
-                'newest': '新着'
+                'selected': 'ユーザー選択',
+                'distance': '距離',
+                'recommend': 'おすすめ',
+                'price': '価格',
+                'review': '口コミ',
+                'quality': '高品質'
             };
 
-            const orderLabel = newOrder === 'desc' ? '降順' : '昇順';
-            console.log(`${sortLabels[sortType]}を${orderLabel}でソートしました`);
+            console.log(`${sortLabels[sortType] || sortType}でソートしました`);
 
-            // 実際のソート処理はここで実装
-            // APIコールまたはクライアント側のソートロジック
+            // V1873: BusinessSelectionHandlerを使用した実際のソート処理
+            if (window.BusinessSelectionHandler) {
+                window.BusinessSelectionHandler.sortFranchises(sortType);
+                console.log('[V1873] BusinessSelectionHandler.sortFranchises() 実行完了');
+            } else {
+                console.warn('[V1873] BusinessSelectionHandlerが読み込まれていません');
+            }
         }
 
         // ページ読み込み時にユーザー選択ボタンをデフォルトで選択状態にする
@@ -6902,6 +6906,31 @@ window.addEventListener('beforeunload', function(e) {
 
             // CRMフォームの入力変更を監視
             setupCRMFormChangeListeners(caseId);
+
+            // 業者選択セクションを動的に読み込み (V1873)
+            if (window.BusinessSelectionHandler && !caseData.isNew) {
+                setTimeout(async () => {
+                    try {
+                        console.log('[V1873] 業者選択データ読み込み開始:', caseId);
+
+                        const selectionData = await window.BusinessSelectionHandler.loadBusinessSelectionData(
+                            caseId,
+                            caseData
+                        );
+
+                        const businessCards = window.BusinessSelectionHandler.generateBusinessCards(selectionData);
+
+                        window.BusinessSelectionHandler.updateUI(businessCards, selectionData.desiredCount);
+
+                        console.log('[V1873] 業者選択データ読み込み完了:', {
+                            desiredCount: selectionData.desiredCount,
+                            cards: businessCards.length
+                        });
+                    } catch (error) {
+                        console.error('[V1873] 業者選択データ読み込みエラー:', error);
+                    }
+                }, 300); // DOM更新後に実行
+            }
         }
 
         // CRMフォームの入力変更を監視するイベントリスナーを設定
@@ -8004,6 +8033,7 @@ window.addEventListener('beforeunload', function(e) {
     <script src="js/data-formatter.js?v=V1402-JSONP-ONLY"></script>
     <script src="js/registration-requests.js?v=V1402-JSONP-ONLY"></script>
     <script src="js/franchise-management.js?v=V1553-20251103"></script>
+    <script src="js/business-selection-handler.js?v=V1873-20251126"></script>
     <!-- 旧システム（無効化） -->
     <!-- <script src="js/gas-config.js?v=20250926_1800"></script> -->
     <!-- <script src="js/dashboard-api.js?v=20250926_1800"></script> -->
