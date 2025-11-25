@@ -568,7 +568,7 @@ function doGet(e) {
           }
         }
 
-        result = handler(e.parameter);
+        result = handler(e, null);
       }
     }
 
