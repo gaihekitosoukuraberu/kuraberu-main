@@ -11,6 +11,12 @@
  * 4. HTMLは絶対に返さない
  * 5. 共通関数は極力最小限にする（main.jsに集約）
  *
+ * 【V1871】 2025-11-26 16:00 - LPContactSystem住所取得フォールバック実装
+ * - Yahoo API AddressElement分離 + property.Addressフォールバック
+ * - AddressElementがある場合: 都道府県（O列）と市区町村（P列）に正しく分離
+ * - AddressElementがない場合: property.Addressを都道府県（O列）に格納（V1870以前の互換動作）
+ * - これにより最低限、住所が必ず表示されることを保証
+ *
  * 【V1870】 2025-11-26 14:50 - LPContactSystem住所分離修正デプロイ
  * - V1864で修正済みのYahoo API住所分離ロジックを確実にデプロイ
  * - AddressElementから都道府県（O列）と市区町村（P列）を正しく分離

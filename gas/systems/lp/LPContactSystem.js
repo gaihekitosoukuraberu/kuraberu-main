@@ -265,7 +265,7 @@ const LPContactSystem = {
         const feature = result.Feature[0];
         const property = feature.Property;
 
-        // AddressElementから都道府県と市区町村を分離
+        // AddressElementから都道府県と市区町村を分離（推奨）
         let prefecture = '';
         let city = '';
         if (property.AddressElement && Array.isArray(property.AddressElement)) {
@@ -278,7 +278,14 @@ const LPContactSystem = {
           });
         }
 
-        console.log('[LPContactSystem] Parsed address:', { prefecture, city });
+        // フォールバック: AddressElementが空の場合、property.Addressを都道府県に使用
+        // これにより最低限、住所が表示される（V1870以前の動作互換性）
+        if (!prefecture && property.Address) {
+          prefecture = property.Address;
+          console.log('[LPContactSystem] AddressElement not available, using fallback Address:', property.Address);
+        }
+
+        console.log('[LPContactSystem] Parsed address:', { prefecture, city, hasAddressElement: !!(property.AddressElement && property.AddressElement.length) });
 
         return {
           prefecture: prefecture,
