@@ -891,9 +891,23 @@ const BusinessSelectionHandler = {
   showMatchDetailsModal(matchDetails, companyName, matchRate) {
     if (!matchDetails) return;
 
+    // 案件データから詳細情報を取得
+    const casePrefecture = this.currentCaseData?.prefecture || this.currentCaseData?._rawData?.prefecture || '';
+    const caseCity = this.currentCaseData?.city || this.currentCaseData?._rawData?.city || '';
+    const caseAddress = this.currentCaseData?.address || '';
+    const rawData = this.currentCaseData?._rawData || {};
+    const botAnswers = rawData.botAnswers || {};
+
+    // ユーザーの希望工事内容を取得
+    const userWallWork = botAnswers.q9_wallWorkType || '';
+    const userRoofWork = botAnswers.q10_roofWorkType || '';
+    const userWorkTypes = [];
+    if (userWallWork) userWorkTypes.push(`外壁${userWallWork}`);
+    if (userRoofWork) userWorkTypes.push(`屋根${userRoofWork}`);
+
     const modalHTML = `
       <div id="matchDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) this.remove()">
-        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4" onclick="event.stopPropagation()">
+        <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
           <div class="flex justify-between items-center mb-4">
             <h3 class="text-xl font-bold text-gray-900">${companyName}</h3>
             <button onclick="document.getElementById('matchDetailsModal').remove()" class="text-gray-500 hover:text-gray-700">
@@ -930,39 +944,88 @@ const BusinessSelectionHandler = {
           <div class="space-y-4">
             <!-- エリアマッチング -->
             <div class="border-l-4 ${matchDetails.area.matched ? 'border-green-500' : 'border-red-500'} pl-3">
-              <div class="flex items-center justify-between mb-1">
+              <div class="flex items-center justify-between mb-2">
                 <span class="font-semibold text-gray-700">エリア適合</span>
                 <span class="text-sm ${matchDetails.area.matched ? 'text-green-600' : 'text-red-600'}">
                   ${matchDetails.area.score} / ${matchDetails.area.maxScore}点
                 </span>
               </div>
-              <div class="text-sm text-gray-600">
-                <div><span class="text-gray-500">案件エリア:</span> <span class="font-medium text-gray-900">${matchDetails.area.required || '未設定'}</span></div>
-                <div><span class="text-gray-500">業者の対応エリア:</span> <span class="font-medium ${matchDetails.area.matched ? 'text-green-600' : 'text-gray-900'}">${matchDetails.area.available.length > 0 ? matchDetails.area.available.join(', ') : '未設定'}</span></div>
-                ${!matchDetails.area.matched ? '<div class="text-red-600 font-semibold mt-1">→ 業者に ${matchDetails.area.required} への対応追加を依頼</div>' : ''}
+              <div class="text-sm space-y-2">
+                <!-- 案件エリア詳細 -->
+                <div class="bg-blue-50 p-2 rounded">
+                  <div class="font-semibold text-blue-900 mb-1">📍 案件エリア（お客様）</div>
+                  ${casePrefecture ? `<div class="text-blue-800">• 都道府県: <span class="font-medium">${casePrefecture}</span></div>` : ''}
+                  ${caseCity ? `<div class="text-blue-800">• 市区町村: <span class="font-medium">${caseCity}</span></div>` : ''}
+                  ${caseAddress ? `<div class="text-blue-700 text-xs mt-1">住所: ${caseAddress}</div>` : ''}
+                </div>
+                <!-- 業者対応エリア詳細 -->
+                <div class="bg-gray-50 p-2 rounded">
+                  <div class="font-semibold text-gray-900 mb-1">🏢 業者の対応エリア</div>
+                  <div class="${matchDetails.area.matched ? 'text-green-700' : 'text-gray-700'}">
+                    ${matchDetails.area.available.length > 0 ? matchDetails.area.available.map(area => `• ${area}`).join('<br>') : '未設定'}
+                  </div>
+                </div>
+                ${matchDetails.area.matched ? `
+                  <div class="text-green-600 font-semibold flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                    ✓ エリアマッチ完了
+                  </div>
+                ` : `
+                  <div class="text-red-600 font-semibold">→ 業者に ${matchDetails.area.required} への対応追加を依頼</div>
+                `}
               </div>
             </div>
 
             <!-- 工事種別マッチング -->
             <div class="border-l-4 ${matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0 ? 'border-green-500' : 'border-orange-500'} pl-3">
-              <div class="flex items-center justify-between mb-1">
+              <div class="flex items-center justify-between mb-2">
                 <span class="font-semibold text-gray-700">工事種別適合</span>
                 <span class="text-sm ${matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0 ? 'text-green-600' : 'text-orange-600'}">
                   ${matchDetails.workTypes.score} / ${matchDetails.workTypes.maxScore}点
                 </span>
               </div>
               <div class="text-sm space-y-2">
+                <!-- お客様の希望工事 -->
+                <div class="bg-blue-50 p-2 rounded">
+                  <div class="font-semibold text-blue-900 mb-1">📋 お客様の見積もり希望箇所</div>
+                  ${userWorkTypes.length > 0 ? userWorkTypes.map(work => `
+                    <div class="text-blue-800">• ${work}</div>
+                  `).join('') : '<div class="text-gray-500">未設定</div>'}
+                </div>
+
                 ${matchDetails.workTypes.matched.length > 0 ? `
-                  <div>
-                    <div class="text-green-600 font-semibold">✓ 対応可能 (現在の登録)</div>
-                    <div class="text-gray-700 ml-3">${matchDetails.workTypes.matched.join(', ')}</div>
+                  <!-- マッチしている工事 -->
+                  <div class="bg-green-50 p-2 rounded">
+                    <div class="text-green-700 font-semibold mb-1 flex items-center gap-1">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                      ✓ 対応可能（業者が登録済み）
+                    </div>
+                    ${matchDetails.workTypes.matched.map(work => `
+                      <div class="text-green-700">• ${work}</div>
+                    `).join('')}
                   </div>
                 ` : ''}
+
                 ${matchDetails.workTypes.unmatched.length > 0 ? `
-                  <div>
-                    <div class="text-red-600 font-semibold">✗ 対応不可 (案件に必要)</div>
-                    <div class="text-red-700 ml-3 font-medium">${matchDetails.workTypes.unmatched.join(', ')}</div>
-                    <div class="text-red-600 font-semibold mt-1">→ 業者にこれらの工事種別の追加を依頼</div>
+                  <!-- マッチしていない工事（不足） -->
+                  <div class="bg-red-50 p-2 rounded border border-red-200">
+                    <div class="text-red-700 font-semibold mb-1 flex items-center gap-1">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+                      ✗ 対応不可（業者に追加依頼が必要）
+                    </div>
+                    ${matchDetails.workTypes.unmatched.map(work => `
+                      <div class="text-red-700 font-medium">• ${work}</div>
+                    `).join('')}
+                    <div class="text-red-600 font-semibold mt-2 text-xs bg-red-100 p-2 rounded">
+                      → 業者にこれらの工事種別の追加を依頼してください
+                    </div>
+                  </div>
+                ` : ''}
+
+                ${matchDetails.workTypes.matched.length > 0 && matchDetails.workTypes.unmatched.length === 0 ? `
+                  <div class="text-green-600 font-semibold flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                    ✓ すべての希望工事に対応可能
                   </div>
                 ` : ''}
               </div>
