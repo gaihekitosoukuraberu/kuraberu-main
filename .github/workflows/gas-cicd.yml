@@ -93,18 +93,27 @@ jobs:
           echo "📤 GASにコードをプッシュ中..."
           clasp push --force
 
-          echo "🗑️ 古いデプロイメントを削除中..."
-          # 20個のデプロイメント制限を回避するため、古いものを削除
-          DEPLOYMENTS=$(clasp deployments 2>&1 | grep "AKfycb" | head -5)
-          if [ ! -z "$DEPLOYMENTS" ]; then
-            echo "$DEPLOYMENTS" | while read -r line; do
-              DEPLOY_ID=$(echo "$line" | grep -oE 'AKfycb[A-Za-z0-9_-]{38,}' | head -1)
-              if [ ! -z "$DEPLOY_ID" ]; then
-                echo "削除: $DEPLOY_ID"
-                clasp undeploy "$DEPLOY_ID" 2>&1 || true
-              fi
-            done
-            echo "✅ 古いデプロイメント削除完了"
+          echo "🗑️ デプロイメント数を確認中..."
+          # 20個のデプロイメント制限を回避するため、15個以上の場合は古いものを削除
+          DEPLOY_COUNT=$(clasp deployments 2>&1 | grep -c "AKfycb" || echo "0")
+          echo "現在のデプロイメント数: $DEPLOY_COUNT"
+
+          if [ "$DEPLOY_COUNT" -ge 15 ]; then
+            echo "🗑️ 古いデプロイメントを削除中（15個以上検出）..."
+            # @HEADと最新2個を除いた古い5個を削除
+            DEPLOYMENTS=$(clasp deployments 2>&1 | grep "AKfycb" | grep -v "@HEAD" | tail -n +3 | head -5)
+            if [ ! -z "$DEPLOYMENTS" ]; then
+              echo "$DEPLOYMENTS" | while read -r line; do
+                DEPLOY_ID=$(echo "$line" | grep -oE 'AKfycb[A-Za-z0-9_-]{38,}' | head -1)
+                if [ ! -z "$DEPLOY_ID" ]; then
+                  echo "削除: $DEPLOY_ID"
+                  clasp undeploy "$DEPLOY_ID" 2>&1 || true
+                fi
+              done
+              echo "✅ 古いデプロイメント削除完了"
+            fi
+          else
+            echo "ℹ️ デプロイメント数が15未満のため削除をスキップ"
           fi
 
           echo "🚀 新しいWeb App deploymentを作成中..."
