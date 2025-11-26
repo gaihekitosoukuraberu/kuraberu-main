@@ -2110,7 +2110,7 @@ const RankingSystem = {
         companyNameKana: masterHeaders.indexOf('会社名カナ')
       };
 
-      // アクティブ加盟店のみフィルタリング（承認済み + 配信中 + サイレントフラグOFF）
+      // アクティブ加盟店のみフィルタリング（承認済み + 配信停止以外 + サイレントフラグOFF）
       const activeFranchises = [];
       for (let i = 0; i < allData.length; i++) {
         const row = allData[i];
@@ -2118,8 +2118,8 @@ const RankingSystem = {
         const deliveryStatus = row[colIndex.deliveryStatus] || '';
         const silentFlag = row[colIndex.silentFlag] || 'FALSE';
 
-        // 承認済み + 配信中 + サイレントフラグOFFのみ
-        if (approvalStatus === '承認' && deliveryStatus === '配信中' && silentFlag !== 'TRUE') {
+        // 承認済み + 配信停止以外 + サイレントフラグOFFのみ（getRankingと同じ条件）
+        if (approvalStatus === '承認済み' && deliveryStatus !== '配信停止' && deliveryStatus !== '強制停止' && silentFlag !== 'TRUE') {
           const companyName = row[colIndex.companyName] || '';
           const prefectures = row[colIndex.prefecture] || '';
           const cities = row[colIndex.cities] || '';
