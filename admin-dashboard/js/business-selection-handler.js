@@ -577,7 +577,7 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * 業者カードを生成（V1880: 新実装）
+   * 業者カードを生成（V1909: 検索・ソート修正）
    * @param {object} selectionData - { desiredCount, selectedCompanies, allFranchises }
    * @param {string} sortType - ソート順
    * @param {boolean} showAll - もっと見る状態
@@ -587,17 +587,31 @@ const BusinessSelectionHandler = {
   generateBusinessCards(selectionData, sortType = 'user', showAll = false, searchQuery = '') {
     const { allFranchises } = selectionData;
 
-    // ソート（AS列業者が上位に来る）
-    let sorted = this.sortFranchises(sortType, allFranchises);
+    let displayFranchises = [];
 
-    // 検索（AS列業者は常に表示、それ以外をフィルタ）
+    // V1909: 検索時は全加盟店から検索
     if (searchQuery) {
-      sorted = this.filterBySearch(searchQuery, sorted);
+      // ユーザー選択業者を固定
+      const userSelected = allFranchises.filter(f => this.isUserSelected(f.companyName));
+
+      // 全加盟店から検索（ユーザー選択業者を除く）
+      const searchResults = allFranchises.filter(f => {
+        if (this.isUserSelected(f.companyName)) return false; // 既にuserSelectedに含まれている
+        const companyName = f.companyName || '';
+        return companyName.includes(searchQuery);
+      });
+
+      // ユーザー選択業者 + 検索結果を表示
+      displayFranchises = [...userSelected, ...searchResults];
+    } else {
+      // V1909: 通常時はソート順で表示
+      // ソート（ユーザー選択業者が上位、その他はソート順）
+      displayFranchises = this.sortFranchises(sortType, allFranchises);
     }
 
     // 表示件数を制限
     const limit = showAll ? 8 : 4;
-    const topFranchises = sorted.slice(0, limit);
+    const topFranchises = displayFranchises.slice(0, limit);
 
     // カード生成
     return topFranchises.map((franchise, index) => {
