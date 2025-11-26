@@ -396,7 +396,28 @@ const RankingSystem = {
         // 値が空の場合デフォルト値を設定
         const finalRating = ratingValue || 4.2;
 
-        // すべての条件を満たした業者を追加（V1751: 加盟日 + データ移行システム）
+        // V1896: マッチ度計算（LP用 - リクエストパラメータから計算）
+        const userParams = {
+          prefecture: prefecture,
+          city: city,
+          wallWorkType: wallWorkType,
+          roofWorkType: roofWorkType,
+          concernedArea: concernedArea,
+          buildingAgeMin: buildingAgeMin,
+          buildingAgeMax: buildingAgeMax
+          // propertyTypeとfloorsはLPで収集していないため省略（calculateMatchRate内でデフォルト満点処理）
+        };
+        const matchRate = this.calculateMatchRate({
+          prefecture: prefectures,
+          cities: cities,
+          constructionTypes: constructionTypes,
+          buildingAgeMin: merchantAgeMin,
+          buildingAgeMax: merchantAgeMax,
+          buildingAgeRange: row[colIndex.buildingAgeRange] || '',
+          maxFloors: row[colIndex.maxFloors] || ''
+        }, userParams);
+
+        // すべての条件を満たした業者を追加（V1751: 加盟日 + データ移行システム / V1896: マッチ度追加）
         filterStats.passed++;
         filtered.push({
           companyName: companyName,
@@ -423,6 +444,7 @@ const RankingSystem = {
           specialSupport: row[colIndex.specialSupport] || '',
           maxFloors: row[colIndex.maxFloors] || '', // V1895: 最大対応階数（物件種別と階数を含む）
           buildingAgeRange: row[colIndex.buildingAgeRange] || '', // V1895: 築年数対応範囲
+          matchRate: matchRate, // V1896: マッチ度（0-100）
           contractCount: recent3MonthContractCount,
           // V1750: 3ヶ月データ追加
           recent3MonthRevenue: recent3MonthRevenue,
@@ -467,6 +489,7 @@ const RankingSystem = {
         // ステップ1: 市区町村条件を外して都道府県のみでフィルタ
         if (city) {
           console.log('[RankingSystem] 🔄 ステップ1: 市区町村条件を外して都道府県のみで再検索');
+          const self = this; // V1896: calculateMatchRate用
           filtered = allData.filter(function(row) {
             const merchantPrefecture = row[colIndex.prefecture] || '';
             const approvalStatus = row[colIndex.approvalStatus] || '';
@@ -495,6 +518,26 @@ const RankingSystem = {
               ? (recent3MonthContractCount / recent3MonthInquiryCount)
               : 0;
 
+            // V1896: マッチ度計算（フォールバックステップ1）
+            const userParams = {
+              prefecture: prefecture,
+              city: city,
+              wallWorkType: wallWorkType,
+              roofWorkType: roofWorkType,
+              concernedArea: concernedArea,
+              buildingAgeMin: buildingAgeMin,
+              buildingAgeMax: buildingAgeMax
+            };
+            const matchRate = self.calculateMatchRate({
+              prefecture: row[colIndex.prefecture] || '',
+              cities: row[colIndex.cities] || '',
+              constructionTypes: row[colIndex.constructionTypes] || '',
+              buildingAgeMin: row[colIndex.buildingAgeMin] || 0,
+              buildingAgeMax: row[colIndex.buildingAgeMax] || 100,
+              buildingAgeRange: row[colIndex.buildingAgeRange] || '',
+              maxFloors: row[colIndex.maxFloors] || ''
+            }, userParams);
+
             return {
               companyName: companyName,
               avgContractAmount: recent3MonthAvgAmount,
@@ -507,6 +550,7 @@ const RankingSystem = {
               specialSupport: row[colIndex.specialSupport] || '', // V1894: 特殊対応項目を追加
               maxFloors: row[colIndex.maxFloors] || '', // V1895: 最大対応階数（物件種別と階数を含む）
               buildingAgeRange: row[colIndex.buildingAgeRange] || '', // V1895: 築年数対応範囲
+              matchRate: matchRate, // V1896: マッチ度（0-100）
               priorityArea: priorityArea,
               handicap: handicap,
               depositAdvance: depositAdvance,
@@ -856,6 +900,198 @@ const RankingSystem = {
       recentWeight: finalRecentWeight,
       historicalWeight: finalHistoricalWeight
     };
+  },
+
+  /**
+   * V1896: マッチ度計算（LP用 - 100点満点）
+   * @param {Object} franchise - 業者オブジェクト
+   * @param {Object} userParams - ユーザーパラメータ（prefecture, city, wallWorkType, roofWorkType, concernedArea, buildingAgeMin, buildingAgeMax, propertyType, floors）
+   * @return {number} マッチ度スコア（0-100）
+   */
+  calculateMatchRate: function(franchise, userParams) {
+    let totalScore = 0;
+
+    // 1. エリアマッチ（20点）
+    let areaScore = 0;
+    if (userParams.prefecture && franchise.prefecture) {
+      const prefectures = franchise.prefecture.split(',').map(function(p) { return p.trim(); });
+      if (prefectures.indexOf(userParams.prefecture) !== -1) {
+        areaScore = 10; // 都道府県一致で10点
+
+        // 市区町村も一致する場合は+10点
+        if (userParams.city && franchise.cities) {
+          const cities = franchise.cities.split(',').map(function(c) { return c.trim(); });
+          if (cities.indexOf(userParams.city) !== -1) {
+            areaScore = 20; // 都道府県+市区町村一致で20点
+          }
+        }
+      }
+    }
+    totalScore += areaScore;
+
+    // 2. 工事種別マッチ（40点）
+    let workScore = 0;
+    if (franchise.constructionTypes) {
+      const constructionTypes = franchise.constructionTypes;
+      let matchCount = 0;
+      let totalChecks = 0;
+
+      // 外壁工事チェック
+      if (userParams.wallWorkType) {
+        totalChecks++;
+        if (constructionTypes.indexOf(userParams.wallWorkType) !== -1 ||
+            constructionTypes.indexOf('外壁塗装') !== -1 ||
+            constructionTypes.indexOf('外壁張替え') !== -1 ||
+            constructionTypes.indexOf('外壁カバー工法') !== -1 ||
+            constructionTypes.indexOf('外壁補修') !== -1) {
+          matchCount++;
+        }
+      }
+
+      // 屋根工事チェック
+      if (userParams.roofWorkType) {
+        totalChecks++;
+        if (constructionTypes.indexOf(userParams.roofWorkType) !== -1 ||
+            constructionTypes.indexOf('屋根塗装') !== -1 ||
+            constructionTypes.indexOf('屋根葺き替え') !== -1 ||
+            constructionTypes.indexOf('屋根カバー工法') !== -1 ||
+            constructionTypes.indexOf('屋根補修') !== -1 ||
+            constructionTypes.indexOf('屋上防水') !== -1) {
+          matchCount++;
+        }
+      }
+
+      // マッチ率を計算（工事種別は最大40点）
+      if (totalChecks > 0) {
+        workScore = Math.floor((matchCount / totalChecks) * 40);
+      }
+    }
+    totalScore += workScore;
+
+    // 3. 築年数マッチ（15点）
+    let ageScore = 0;
+    if (userParams.buildingAgeMin !== undefined && userParams.buildingAgeMax !== undefined) {
+      // 新しいbuildingAgeRange形式を優先的にチェック
+      if (franchise.buildingAgeRange) {
+        const range = this.parseBuildingAgeRange(franchise.buildingAgeRange);
+        const franchiseMin = range.min;
+        const franchiseMax = range.max;
+
+        // 範囲の重複チェック
+        const overlapMin = Math.max(userParams.buildingAgeMin, franchiseMin);
+        const overlapMax = Math.min(userParams.buildingAgeMax, franchiseMax);
+
+        if (overlapMin <= overlapMax) {
+          // 重複あり: 重複範囲 / ユーザー範囲 で割合を計算
+          const overlapSize = overlapMax - overlapMin;
+          const userRangeSize = userParams.buildingAgeMax - userParams.buildingAgeMin;
+          const matchRatio = userRangeSize > 0 ? (overlapSize / userRangeSize) : 1;
+          ageScore = Math.floor(matchRatio * 15);
+        }
+      } else if (franchise.buildingAgeMin !== undefined && franchise.buildingAgeMax !== undefined) {
+        // 旧形式の築年数範囲
+        const franchiseMin = franchise.buildingAgeMin;
+        const franchiseMax = franchise.buildingAgeMax;
+
+        const overlapMin = Math.max(userParams.buildingAgeMin, franchiseMin);
+        const overlapMax = Math.min(userParams.buildingAgeMax, franchiseMax);
+
+        if (overlapMin <= overlapMax) {
+          const overlapSize = overlapMax - overlapMin;
+          const userRangeSize = userParams.buildingAgeMax - userParams.buildingAgeMin;
+          const matchRatio = userRangeSize > 0 ? (overlapSize / userRangeSize) : 1;
+          ageScore = Math.floor(matchRatio * 15);
+        }
+      }
+    }
+    totalScore += ageScore;
+
+    // 4. 物件種別マッチ（15点）
+    // LPでは物件種別を収集していないため、データがある場合のみチェック
+    let propertyScore = 15; // デフォルトは満点（データなし = マッチとみなす）
+    if (userParams.propertyType && franchise.maxFloors) {
+      const parsed = this.parseMaxFloorsData(franchise.maxFloors);
+      if (parsed.propertyTypes.indexOf(userParams.propertyType) !== -1) {
+        propertyScore = 15;
+      } else {
+        propertyScore = 0;
+      }
+    }
+    totalScore += propertyScore;
+
+    // 5. 階数マッチ（10点）
+    // LPでは階数を収集していないため、データがある場合のみチェック
+    let floorsScore = 10; // デフォルトは満点（データなし = マッチとみなす）
+    if (userParams.floors && userParams.propertyType && franchise.maxFloors) {
+      const parsed = this.parseMaxFloorsData(franchise.maxFloors);
+      const maxFloors = parsed.floorsMap[userParams.propertyType];
+      if (maxFloors !== undefined && userParams.floors <= maxFloors) {
+        floorsScore = 10;
+      } else if (maxFloors === undefined) {
+        floorsScore = 10; // 物件種別の階数制限なし = マッチ
+      } else {
+        floorsScore = 0;
+      }
+    }
+    totalScore += floorsScore;
+
+    return totalScore;
+  },
+
+  /**
+   * V1896: 築年数範囲パース（buildingAgeRange形式）
+   * @param {string} range - "{min=0, max=95}" 形式
+   * @return {Object} { min, max }
+   */
+  parseBuildingAgeRange: function(range) {
+    if (!range) return { min: 0, max: 100 };
+
+    const minMatch = range.match(/min=(\d+)/);
+    const maxMatch = range.match(/max=(\d+)/);
+
+    return {
+      min: minMatch ? parseInt(minMatch[1]) : 0,
+      max: maxMatch ? parseInt(maxMatch[1]) : 100
+    };
+  },
+
+  /**
+   * V1896: 最大対応階数パース（maxFloors形式）
+   * @param {string} maxFloorsStr - "戸建て住宅(4階以上まで),アパート・マンション(3階まで)" 形式
+   * @return {Object} { propertyTypes: [], floorsMap: {} }
+   */
+  parseMaxFloorsData: function(maxFloorsStr) {
+    const propertyTypes = [];
+    const floorsMap = {};
+
+    if (!maxFloorsStr) return { propertyTypes: propertyTypes, floorsMap: floorsMap };
+
+    const items = maxFloorsStr.split(',').map(function(item) { return item.trim(); });
+
+    for (var i = 0; i < items.length; i++) {
+      const item = items[i];
+      const match = item.match(/^(.+?)\((.+?)\)$/);
+      if (match) {
+        const propertyType = match[1].trim();
+        const floorsText = match[2].trim();
+        propertyTypes.push(propertyType);
+
+        // "4階以上まで" or "3階まで" のパース
+        const floorsMatch = floorsText.match(/(\d+)階/);
+        if (floorsMatch) {
+          const floors = parseInt(floorsMatch[1]);
+          if (floorsText.indexOf('以上') !== -1) {
+            // "4階以上まで" = 4階以上対応可能
+            floorsMap[propertyType] = 999; // 制限なし
+          } else {
+            // "3階まで" = 3階まで対応可能
+            floorsMap[propertyType] = floors;
+          }
+        }
+      }
+    }
+
+    return { propertyTypes: propertyTypes, floorsMap: floorsMap };
   },
 
   /**
