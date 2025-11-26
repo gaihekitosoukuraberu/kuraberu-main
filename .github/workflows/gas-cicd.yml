@@ -93,6 +93,20 @@ jobs:
           echo "📤 GASにコードをプッシュ中..."
           clasp push --force
 
+          echo "🗑️ 古いデプロイメントを削除中..."
+          # 20個のデプロイメント制限を回避するため、古いものを削除
+          DEPLOYMENTS=$(clasp deployments 2>&1 | grep "AKfycb" | head -5)
+          if [ ! -z "$DEPLOYMENTS" ]; then
+            echo "$DEPLOYMENTS" | while read -r line; do
+              DEPLOY_ID=$(echo "$line" | grep -oE 'AKfycb[A-Za-z0-9_-]{38,}' | head -1)
+              if [ ! -z "$DEPLOY_ID" ]; then
+                echo "削除: $DEPLOY_ID"
+                clasp undeploy "$DEPLOY_ID" 2>&1 || true
+              fi
+            done
+            echo "✅ 古いデプロイメント削除完了"
+          fi
+
           echo "🚀 新しいWeb App deploymentを作成中..."
           # 新規デプロイメントを作成（組織アカウントで確実に動作）
           DEPLOY_OUTPUT=$(clasp deploy --description "auto: V$(date +%s) - GitHub Actions" 2>&1)
