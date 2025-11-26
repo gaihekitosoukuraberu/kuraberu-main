@@ -400,8 +400,9 @@ const RankingSystem = {
           avgContractAmount: recent3MonthAvgAmount,
           rating: finalRating,
           reviewCount: row[colIndex.reviewCount] || 0,
-          prefecture: prefecture,
-          city: city,
+          prefecture: prefectures, // V1894: 業者の対応都道府県（元データ）を追加
+          city: city, // V1894: リクエストから計算された市区町村
+          cities: cities, // V1894: 業者の対応市区町村（元データ、カンマ区切り）を追加
           constructionTypes: constructionTypes,
           wallMaterial: wallMaterial,
           roofMaterial: roofMaterial,
@@ -497,7 +498,9 @@ const RankingSystem = {
               reviewCount: row[colIndex.reviewCount] || 0,
               prefecture: row[colIndex.prefecture] || '',
               city: row[colIndex.cities] ? row[colIndex.cities].split(',')[0].trim() : '',
+              cities: row[colIndex.cities] || '', // V1894: 対応市区町村（カンマ区切り）を追加
               constructionTypes: row[colIndex.constructionTypes] || '',
+              specialSupport: row[colIndex.specialSupport] || '', // V1894: 特殊対応項目を追加
               priorityArea: priorityArea,
               handicap: handicap,
               depositAdvance: depositAdvance,
@@ -514,7 +517,8 @@ const RankingSystem = {
               riskScore: pastDataMetrics.riskScore,
               isCompleteMatch: false,
               buildingAgeMatchScore: 0,
-              joinDate: row[colIndex.joinDate] || ''
+              joinDate: row[colIndex.joinDate] || '',
+              previewHP: row[colIndex.previewHP] || '' // V1894: プレビューHPを追加
             };
           });
           console.log('[RankingSystem] 🔄 ステップ1結果: ' + filtered.length + '件');
@@ -560,7 +564,9 @@ const RankingSystem = {
               reviewCount: row[colIndex.reviewCount] || 0,
               prefecture: row[colIndex.prefecture] || '',
               city: row[colIndex.cities] ? row[colIndex.cities].split(',')[0].trim() : '',
+              cities: row[colIndex.cities] || '', // V1894: 対応市区町村（カンマ区切り）を追加
               constructionTypes: row[colIndex.constructionTypes] || '',
+              specialSupport: row[colIndex.specialSupport] || '', // V1894: 特殊対応項目を追加
               priorityArea: priorityArea,
               handicap: handicap,
               depositAdvance: depositAdvance,
@@ -577,7 +583,8 @@ const RankingSystem = {
               riskScore: pastDataMetrics.riskScore,
               isCompleteMatch: false,
               buildingAgeMatchScore: 0,
-              joinDate: row[colIndex.joinDate] || ''
+              joinDate: row[colIndex.joinDate] || '',
+              previewHP: row[colIndex.previewHP] || '' // V1894: プレビューHPを追加
             };
           });
           console.log('[RankingSystem] 🔄 ステップ2結果: ' + filtered.length + '件（都道府県内・工事種別条件なし）');
