@@ -577,6 +577,7 @@ const RankingSystem = {
         // ステップ2: それでも0件なら全国ではなくエリア未設定の業者を含める
         if (filtered.length === 0 && prefecture) {
           console.log('[RankingSystem] 🔄 ステップ2: 都道府県内で工事種別条件を外して再検索');
+          const self = this; // V1896: calculateMatchRate用
           filtered = allData.filter(function(row) {
             const merchantPrefecture = row[colIndex.prefecture] || '';
             const approvalStatus = row[colIndex.approvalStatus] || '';
@@ -607,6 +608,26 @@ const RankingSystem = {
               ? (recent3MonthContractCount / recent3MonthInquiryCount)
               : 0;
 
+            // V1896: マッチ度計算（フォールバックステップ2）
+            const userParams = {
+              prefecture: prefecture,
+              city: city,
+              wallWorkType: wallWorkType,
+              roofWorkType: roofWorkType,
+              concernedArea: concernedArea,
+              buildingAgeMin: buildingAgeMin,
+              buildingAgeMax: buildingAgeMax
+            };
+            const matchRate = self.calculateMatchRate({
+              prefecture: row[colIndex.prefecture] || '',
+              cities: row[colIndex.cities] || '',
+              constructionTypes: row[colIndex.constructionTypes] || '',
+              buildingAgeMin: row[colIndex.buildingAgeMin] || 0,
+              buildingAgeMax: row[colIndex.buildingAgeMax] || 100,
+              buildingAgeRange: row[colIndex.buildingAgeRange] || '',
+              maxFloors: row[colIndex.maxFloors] || ''
+            }, userParams);
+
             return {
               companyName: companyName,
               avgContractAmount: recent3MonthAvgAmount,
@@ -619,6 +640,7 @@ const RankingSystem = {
               specialSupport: row[colIndex.specialSupport] || '', // V1894: 特殊対応項目を追加
               maxFloors: row[colIndex.maxFloors] || '', // V1895: 最大対応階数（物件種別と階数を含む）
               buildingAgeRange: row[colIndex.buildingAgeRange] || '', // V1895: 築年数対応範囲
+              matchRate: matchRate, // V1896: マッチ度（0-100）
               priorityArea: priorityArea,
               handicap: handicap,
               depositAdvance: depositAdvance,
@@ -1202,8 +1224,12 @@ const RankingSystem = {
       const scoreA = calculateRevenueScore(a);
       const scoreB = calculateRevenueScore(b);
 
-      // 売上スコアで降順ソート（高い方が上位）
-      return scoreB.score - scoreA.score;
+      // V1896: 売上スコアで降順ソート（高い方が上位）、同スコアの場合はマッチ度で降順
+      if (scoreB.score !== scoreA.score) {
+        return scoreB.score - scoreA.score;
+      }
+      // 同じスコアの場合はマッチ度で降順ソート
+      return (b.matchRate || 0) - (a.matchRate || 0);
     });
   },
 
@@ -1256,8 +1282,12 @@ const RankingSystem = {
       const scoreA = calculatePriceScore(a);
       const scoreB = calculatePriceScore(b);
 
-      // 価格スコアで昇順ソート（安い方が上位）
-      return scoreA.score - scoreB.score;
+      // V1896: 価格スコアで昇順ソート（安い方が上位）、同スコアの場合はマッチ度で降順
+      if (scoreA.score !== scoreB.score) {
+        return scoreA.score - scoreB.score;
+      }
+      // 同じスコアの場合はマッチ度で降順ソート
+      return (b.matchRate || 0) - (a.matchRate || 0);
     });
   },
 
@@ -1313,8 +1343,12 @@ const RankingSystem = {
       const scoreA = calculateConversionScore(a);
       const scoreB = calculateConversionScore(b);
 
-      // 成約率スコアで降順ソート（高い方が上位）
-      return scoreB.score - scoreA.score;
+      // V1896: 成約率スコアで降順ソート（高い方が上位）、同スコアの場合はマッチ度で降順
+      if (scoreB.score !== scoreA.score) {
+        return scoreB.score - scoreA.score;
+      }
+      // 同じスコアの場合はマッチ度で降順ソート
+      return (b.matchRate || 0) - (a.matchRate || 0);
     });
   },
 
@@ -1368,8 +1402,12 @@ const RankingSystem = {
       const scoreA = calculatePremiumScore(a);
       const scoreB = calculatePremiumScore(b);
 
-      // 高品質スコアで降順ソート（高い方が上位）
-      return scoreB.score - scoreA.score;
+      // V1896: 高品質スコアで降順ソート（高い方が上位）、同スコアの場合はマッチ度で降順
+      if (scoreB.score !== scoreA.score) {
+        return scoreB.score - scoreA.score;
+      }
+      // 同じスコアの場合はマッチ度で降順ソート
+      return (b.matchRate || 0) - (a.matchRate || 0);
     });
   },
 
