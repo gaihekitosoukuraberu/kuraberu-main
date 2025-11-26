@@ -257,10 +257,10 @@ const BusinessSelectionHandler = {
       citiesArray: (business.cities || '').split(',').map(c => c.trim()).filter(c => c),
       workTypes: (business.constructionTypes || '').split(',').map(t => t.trim()).filter(t => t),
       specialSupport: business.specialSupport || '',
-      propertyTypes: (business.propertyTypes || '').split(',').map(p => p.trim()).filter(p => p), // V1895: 対応可能物件種別
-      maxFloors: business.maxFloors || '', // V1895: 最大対応階数
-      buildingAgeMin: business.buildingAgeMin || 0, // V1895: 対応築年数_最小
-      buildingAgeMax: business.buildingAgeMax || 100, // V1895: 対応築年数_最大
+      maxFloors: business.maxFloors || '', // V1895: 最大対応階数（物件種別と階数を含む）
+      buildingAgeRange: business.buildingAgeRange || '', // V1895: 築年数対応範囲 {min=0, max=95}
+      buildingAgeMin: business.buildingAgeMin || 0, // V1895: 互換性のため残す
+      buildingAgeMax: business.buildingAgeMax || 100, // V1895: 互換性のため残す
       avgContractAmount: business.avgContractAmount || 0,
       rating: business.rating || 4.2,
       reviewCount: business.reviewCount || 0,
@@ -639,8 +639,11 @@ const BusinessSelectionHandler = {
     // 築年数マッチング（15点）
     const rawData = this.currentCaseData?._rawData || {};
     const caseBuildingAge = parseInt(this.currentCaseData?.buildingAge || rawData.buildingAge || 0);
-    const franchiseBuildingAgeMin = franchise.buildingAgeMin || 0;
-    const franchiseBuildingAgeMax = franchise.buildingAgeMax || 100;
+
+    // 築年数対応範囲をパース（{min=0, max=95}形式）
+    const buildingAgeRangeParsed = this.parseBuildingAgeRange(franchise.buildingAgeRange);
+    const franchiseBuildingAgeMin = buildingAgeRangeParsed.min;
+    const franchiseBuildingAgeMax = buildingAgeRangeParsed.max;
 
     details.buildingAge.caseAge = caseBuildingAge;
     details.buildingAge.franchiseMin = franchiseBuildingAgeMin;
@@ -652,39 +655,45 @@ const BusinessSelectionHandler = {
       details.buildingAge.score = 15;
     }
 
-    // 物件種別マッチング（15点）
+    // 物件種別と階数の統合マッチング（25点: 物件種別15点 + 階数10点）
+    // maxFloorsから物件種別と階数情報を解析: 「戸建て住宅(4階以上まで),アパート・マンション(3階まで)」
     const botAnswers = rawData.botAnswers || {};
     const casePropertyType = botAnswers.q1_propertyType || this.currentCaseData?.propertyType || '';
-    const franchisePropertyTypes = franchise.propertyTypes || [];
+    const caseFloors = parseInt(botAnswers.q2_floors || this.currentCaseData?.floors || 0);
+
+    const maxFloorsData = this.parseMaxFloorsData(franchise.maxFloors);
+    const franchisePropertyTypes = maxFloorsData.propertyTypes;
 
     details.propertyType.caseType = casePropertyType;
     details.propertyType.franchiseTypes = franchisePropertyTypes;
+    details.floors.caseFloors = caseFloors;
+    details.floors.franchiseMax = franchise.maxFloors;
 
+    // 物件種別マッチング（15点）
     if (casePropertyType && franchisePropertyTypes.length > 0) {
-      const isPropertyMatch = franchisePropertyTypes.some(type => {
+      const matchedPropertyType = franchisePropertyTypes.find(type => {
         return type.includes(casePropertyType) || casePropertyType.includes(type);
       });
-      if (isPropertyMatch) {
+
+      if (matchedPropertyType) {
         total += 15;
         details.propertyType.matched = true;
         details.propertyType.score = 15;
-      }
-    }
 
-    // 階数マッチング（10点）
-    const caseFloors = parseInt(botAnswers.q2_floors || this.currentCaseData?.floors || 0);
-    const franchiseMaxFloors = franchise.maxFloors || '';
-
-    details.floors.caseFloors = caseFloors;
-    details.floors.franchiseMax = franchiseMaxFloors;
-
-    if (caseFloors > 0 && franchiseMaxFloors) {
-      // 「3階以上」などの文字列を解析
-      const maxFloorsNum = this.parseMaxFloors(franchiseMaxFloors);
-      if (maxFloorsNum >= caseFloors) {
-        total += 10;
-        details.floors.matched = true;
-        details.floors.score = 10;
+        // 階数マッチング（10点）- マッチした物件種別の階数制限をチェック
+        if (caseFloors > 0) {
+          const maxFloorsForType = maxFloorsData.floorsMap[matchedPropertyType];
+          if (maxFloorsForType && maxFloorsForType >= caseFloors) {
+            total += 10;
+            details.floors.matched = true;
+            details.floors.score = 10;
+          }
+        } else {
+          // 階数情報がない場合は満点
+          total += 10;
+          details.floors.matched = true;
+          details.floors.score = 10;
+        }
       }
     }
 
@@ -692,21 +701,67 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * 最大対応階数の文字列を数値に変換
-   * @param {string} maxFloors - 「3階以上」「2階まで」などの文字列
-   * @returns {number} 最大階数
+   * 築年数対応範囲をパース
+   * @param {string} range - 「{min=0, max=95}」形式の文字列
+   * @returns {object} { min: number, max: number }
    */
-  parseMaxFloors(maxFloors) {
-    if (!maxFloors) return 0;
+  parseBuildingAgeRange(range) {
+    if (!range) return { min: 0, max: 100 };
 
-    // 「3階以上」「高層対応」などの場合は十分大きい数を返す
-    if (maxFloors.includes('以上') || maxFloors.includes('高層')) {
-      return 999;
+    try {
+      // {min=0, max=95} 形式をパース
+      const minMatch = range.match(/min=(\d+)/);
+      const maxMatch = range.match(/max=(\d+)/);
+
+      return {
+        min: minMatch ? parseInt(minMatch[1]) : 0,
+        max: maxMatch ? parseInt(maxMatch[1]) : 100
+      };
+    } catch (e) {
+      return { min: 0, max: 100 };
+    }
+  },
+
+  /**
+   * 最大対応階数データをパース（物件種別と階数を含む）
+   * @param {string} maxFloorsStr - 「戸建て住宅(4階以上まで),アパート・マンション(3階まで)」形式
+   * @returns {object} { propertyTypes: string[], floorsMap: object }
+   */
+  parseMaxFloorsData(maxFloorsStr) {
+    if (!maxFloorsStr) return { propertyTypes: [], floorsMap: {} };
+
+    const propertyTypes = [];
+    const floorsMap = {};
+
+    try {
+      // カンマ区切りで分割
+      const items = maxFloorsStr.split(',').map(item => item.trim());
+
+      items.forEach(item => {
+        // 「戸建て住宅(4階以上まで)」→ propertyType=戸建て住宅, maxFloors=999
+        // 「アパート・マンション(3階まで)」→ propertyType=アパート・マンション, maxFloors=3
+        const match = item.match(/^(.+?)\((.+?)\)$/);
+
+        if (match) {
+          const propertyType = match[1].trim();
+          const floorsText = match[2].trim();
+
+          propertyTypes.push(propertyType);
+
+          // 階数を数値に変換
+          if (floorsText.includes('以上') || floorsText.includes('高層')) {
+            floorsMap[propertyType] = 999;
+          } else {
+            const numMatch = floorsText.match(/(\d+)/);
+            floorsMap[propertyType] = numMatch ? parseInt(numMatch[1]) : 999;
+          }
+        }
+      });
+    } catch (e) {
+      console.error('[BusinessSelection] maxFloorsパースエラー:', e);
     }
 
-    // 数字を抽出
-    const match = maxFloors.match(/(\d+)/);
-    return match ? parseInt(match[1]) : 0;
+    return { propertyTypes, floorsMap };
   },
 
   /**
@@ -1124,6 +1179,90 @@ const BusinessSelectionHandler = {
                     すべての希望工事に対応可能
                   </div>
                 ` : ''}
+              </div>
+            </div>
+
+            <!-- 築年数マッチング -->
+            <div class="border-l-4 ${matchDetails.buildingAge.matched ? 'border-green-500' : 'border-yellow-500'} pl-3">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-semibold text-gray-700">築年数適合</span>
+                <span class="text-sm ${matchDetails.buildingAge.matched ? 'text-green-600' : 'text-yellow-600'}">
+                  ${matchDetails.buildingAge.score} / ${matchDetails.buildingAge.maxScore}点
+                </span>
+              </div>
+              <div class="text-sm space-y-2">
+                <div class="bg-blue-50 p-2 rounded">
+                  <div class="font-semibold text-blue-900 mb-1">🏠 お客様の物件築年数</div>
+                  <div class="text-blue-800">${matchDetails.buildingAge.caseAge}年</div>
+                </div>
+                <div class="bg-gray-50 p-2 rounded">
+                  <div class="font-semibold text-gray-900 mb-1">🏢 業者の対応築年数範囲</div>
+                  <div class="text-gray-700">${matchDetails.buildingAge.franchiseMin}年 〜 ${matchDetails.buildingAge.franchiseMax}年</div>
+                </div>
+                ${matchDetails.buildingAge.matched ? `
+                  <div class="text-green-600 font-semibold flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                    築年数マッチ完了
+                  </div>
+                ` : `
+                  <div class="text-yellow-600 font-semibold">→ 業者に築年数範囲の拡大を依頼</div>
+                `}
+              </div>
+            </div>
+
+            <!-- 物件種別マッチング -->
+            <div class="border-l-4 ${matchDetails.propertyType.matched ? 'border-green-500' : 'border-yellow-500'} pl-3">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-semibold text-gray-700">物件種別適合</span>
+                <span class="text-sm ${matchDetails.propertyType.matched ? 'text-green-600' : 'text-yellow-600'}">
+                  ${matchDetails.propertyType.score} / ${matchDetails.propertyType.maxScore}点
+                </span>
+              </div>
+              <div class="text-sm space-y-2">
+                <div class="bg-blue-50 p-2 rounded">
+                  <div class="font-semibold text-blue-900 mb-1">🏠 お客様の物件種別</div>
+                  <div class="text-blue-800">${matchDetails.propertyType.caseType || '未設定'}</div>
+                </div>
+                <div class="bg-gray-50 p-2 rounded">
+                  <div class="font-semibold text-gray-900 mb-1">🏢 業者の対応可能物件種別</div>
+                  <div class="text-gray-700">${matchDetails.propertyType.franchiseTypes.length > 0 ? matchDetails.propertyType.franchiseTypes.join(', ') : '未設定'}</div>
+                </div>
+                ${matchDetails.propertyType.matched ? `
+                  <div class="text-green-600 font-semibold flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                    物件種別マッチ完了
+                  </div>
+                ` : `
+                  <div class="text-yellow-600 font-semibold">→ 業者に物件種別の追加を依頼</div>
+                `}
+              </div>
+            </div>
+
+            <!-- 階数マッチング -->
+            <div class="border-l-4 ${matchDetails.floors.matched ? 'border-green-500' : 'border-yellow-500'} pl-3">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-semibold text-gray-700">階数適合</span>
+                <span class="text-sm ${matchDetails.floors.matched ? 'text-green-600' : 'text-yellow-600'}">
+                  ${matchDetails.floors.score} / ${matchDetails.floors.maxScore}点
+                </span>
+              </div>
+              <div class="text-sm space-y-2">
+                <div class="bg-blue-50 p-2 rounded">
+                  <div class="font-semibold text-blue-900 mb-1">🏠 お客様の物件階数</div>
+                  <div class="text-blue-800">${matchDetails.floors.caseFloors}階</div>
+                </div>
+                <div class="bg-gray-50 p-2 rounded">
+                  <div class="font-semibold text-gray-900 mb-1">🏢 業者の対応可能階数</div>
+                  <div class="text-gray-700 text-xs">${matchDetails.floors.franchiseMax || '未設定'}</div>
+                </div>
+                ${matchDetails.floors.matched ? `
+                  <div class="text-green-600 font-semibold flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                    階数マッチ完了
+                  </div>
+                ` : `
+                  <div class="text-yellow-600 font-semibold">→ 業者に階数対応の拡大を依頼</div>
+                `}
               </div>
             </div>
           </div>

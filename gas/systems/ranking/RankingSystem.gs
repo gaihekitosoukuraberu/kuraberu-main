@@ -120,9 +120,9 @@ const RankingSystem = {
         previewHP: masterHeaders.indexOf('プレビューHP'),
         // V1891: 特殊対応項目追加（Admin Dashboardマッチ度計算用）
         specialSupport: masterHeaders.indexOf('特殊対応項目'),
-        // V1895: 物件種別・階数追加（マッチ度計算強化）
-        propertyTypes: masterHeaders.indexOf('対応可能物件種別'),
-        maxFloors: masterHeaders.indexOf('最大対応階数')
+        // V1895: 物件種別・階数・築年数対応範囲追加（マッチ度計算強化）
+        maxFloors: masterHeaders.indexOf('最大対応階数'),
+        buildingAgeRange: masterHeaders.indexOf('築年数対応範囲')
       };
 
       // V1713-DEBUG: カラムインデックス検証
@@ -421,8 +421,8 @@ const RankingSystem = {
           depositAdvance: depositAdvance,
           prioritySupplyFlag: prioritySupplyFlag,
           specialSupport: row[colIndex.specialSupport] || '',
-          propertyTypes: row[colIndex.propertyTypes] || '', // V1895: 対応可能物件種別
-          maxFloors: row[colIndex.maxFloors] || '', // V1895: 最大対応階数
+          maxFloors: row[colIndex.maxFloors] || '', // V1895: 最大対応階数（物件種別と階数を含む）
+          buildingAgeRange: row[colIndex.buildingAgeRange] || '', // V1895: 築年数対応範囲
           contractCount: recent3MonthContractCount,
           // V1750: 3ヶ月データ追加
           recent3MonthRevenue: recent3MonthRevenue,
@@ -505,8 +505,8 @@ const RankingSystem = {
               cities: row[colIndex.cities] || '', // V1894: 対応市区町村（カンマ区切り）を追加
               constructionTypes: row[colIndex.constructionTypes] || '',
               specialSupport: row[colIndex.specialSupport] || '', // V1894: 特殊対応項目を追加
-              propertyTypes: row[colIndex.propertyTypes] || '', // V1895: 対応可能物件種別
-              maxFloors: row[colIndex.maxFloors] || '', // V1895: 最大対応階数
+              maxFloors: row[colIndex.maxFloors] || '', // V1895: 最大対応階数（物件種別と階数を含む）
+              buildingAgeRange: row[colIndex.buildingAgeRange] || '', // V1895: 築年数対応範囲
               priorityArea: priorityArea,
               handicap: handicap,
               depositAdvance: depositAdvance,
@@ -573,8 +573,8 @@ const RankingSystem = {
               cities: row[colIndex.cities] || '', // V1894: 対応市区町村（カンマ区切り）を追加
               constructionTypes: row[colIndex.constructionTypes] || '',
               specialSupport: row[colIndex.specialSupport] || '', // V1894: 特殊対応項目を追加
-              propertyTypes: row[colIndex.propertyTypes] || '', // V1895: 対応可能物件種別
-              maxFloors: row[colIndex.maxFloors] || '', // V1895: 最大対応階数
+              maxFloors: row[colIndex.maxFloors] || '', // V1895: 最大対応階数（物件種別と階数を含む）
+              buildingAgeRange: row[colIndex.buildingAgeRange] || '', // V1895: 築年数対応範囲
               priorityArea: priorityArea,
               handicap: handicap,
               depositAdvance: depositAdvance,
