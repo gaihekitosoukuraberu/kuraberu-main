@@ -143,11 +143,8 @@ const BusinessSelectionHandler = {
 
       console.log('[BusinessSelection] getRanking APIリクエスト:', params);
 
-      // RankingSystemのgetRankingを呼び出し
-      const response = await window.apiClient.jsonpRequest({
-        action: 'getRanking',
-        ...params
-      });
+      // RankingSystemのgetRankingを呼び出し（V1900修正: 引数を正しく渡す）
+      const response = await window.apiClient.jsonpRequest('getRanking', params);
 
       if (!response || !response.success) {
         throw new Error(response?.error || 'ランキング取得失敗');
