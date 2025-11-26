@@ -653,15 +653,72 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * 業者カードDOMを生成（V1880: 距離・価格・評価情報追加）
+   * 業者カードの色を決定（V1881: カラーコーディング実装）
+   * @param {boolean} isUserSelected - AS列業者かどうか
+   * @param {number} matchRate - マッチ率
+   * @param {boolean} isChecked - チェック状態
+   * @returns {object} { borderClass, bgClass, hoverClass }
+   */
+  getCardColor(isUserSelected, matchRate, isChecked) {
+    let borderClass, bgClass;
+
+    if (isUserSelected && matchRate === 100) {
+      // 1. 100%マッチ + ユーザー選択（AS列）→ 赤
+      borderClass = isChecked ? 'border-red-600' : 'border-red-500';
+      bgClass = isChecked ? 'bg-red-100' : 'bg-red-50';
+    } else if (isUserSelected && matchRate < 100) {
+      // 2. ユーザー選択だがマッチ度不足 → ピンク
+      borderClass = isChecked ? 'border-pink-600' : 'border-pink-500';
+      bgClass = isChecked ? 'bg-pink-100' : 'bg-pink-50';
+    } else if (!isUserSelected && matchRate === 100) {
+      // 3. 100%マッチだが非ユーザー選択 → オレンジ
+      borderClass = isChecked ? 'border-orange-600' : 'border-orange-500';
+      bgClass = isChecked ? 'bg-orange-100' : 'bg-orange-50';
+    } else if (!isUserSelected && matchRate > 70) {
+      // 4. 高マッチ (>70%) → 黄色
+      borderClass = isChecked ? 'border-yellow-600' : 'border-yellow-500';
+      bgClass = isChecked ? 'bg-yellow-100' : 'bg-yellow-50';
+    } else if (!isUserSelected && matchRate >= 50) {
+      // 5. 中マッチ (50-70%) → 黄緑
+      borderClass = isChecked ? 'border-lime-600' : 'border-lime-500';
+      bgClass = isChecked ? 'bg-lime-100' : 'bg-lime-50';
+    } else {
+      // 6. 低マッチ (<50%) → 水色
+      borderClass = isChecked ? 'border-sky-600' : 'border-sky-500';
+      bgClass = isChecked ? 'bg-sky-100' : 'bg-sky-50';
+    }
+
+    // ホバー時の色 (常に同系統の少し濃い色)
+    const hoverColorMap = {
+      'red': 'hover:bg-red-100',
+      'pink': 'hover:bg-pink-100',
+      'orange': 'hover:bg-orange-100',
+      'yellow': 'hover:bg-yellow-100',
+      'lime': 'hover:bg-lime-100',
+      'sky': 'hover:bg-sky-100'
+    };
+    const colorKey = borderClass.split('-')[1]; // 'red', 'pink', etc.
+    const hoverClass = hoverColorMap[colorKey] || 'hover:bg-gray-100';
+
+    return { borderClass, bgClass, hoverClass };
+  },
+
+  /**
+   * 業者カードDOMを生成（V1881: カラーコーディング実装）
    * @param {object} card - 業者カード情報
    * @returns {HTMLElement} カードDOM
    */
   createFranchiseCardElement(card) {
     const div = document.createElement('div');
-    div.className = `franchise-item ${card.shouldCheck ? 'selected' : ''} cursor-pointer border-2 ${
-      card.shouldCheck ? 'border-pink-400 bg-pink-50' : 'border-gray-200 bg-white'
-    } rounded-lg p-2 sm:p-4 hover:bg-pink-100 transition-all`;
+
+    // カラーコーディング（V1881: 新実装）
+    const { borderClass, bgClass, hoverClass } = this.getCardColor(
+      card.isUserSelected,
+      card.matchRate,
+      card.shouldCheck
+    );
+
+    div.className = `franchise-item ${card.shouldCheck ? 'selected' : ''} cursor-pointer border-2 ${borderClass} ${bgClass} rounded-lg p-2 sm:p-4 ${hoverClass} transition-all`;
     div.setAttribute('onclick', 'toggleFranchise(this)');
     div.setAttribute('data-franchise-id', card.franchiseId);
     div.setAttribute('data-match-rate', card.matchRate);
