@@ -751,6 +751,9 @@ const BusinessSelectionHandler = {
     const matchRateColor = card.matchRate === 100 ? 'bg-green-500 text-white' : 'bg-orange-500 text-white';
     const matchRateId = `match-rate-${card.franchiseId}`;
 
+    // 住所情報（マップアイコン用）
+    const fullAddress = `${card.serviceAreas[0] || ''}${card.city || ''}`;
+
     // 追加情報（価格・評価・距離）
     let additionalInfo = '';
     if (card.avgContractAmount > 0) {
@@ -772,6 +775,12 @@ const BusinessSelectionHandler = {
             <div class="flex items-center gap-2 flex-wrap">
               <div class="font-semibold text-gray-900 text-sm sm:text-lg">${card.companyName}</div>
               ${card.isUserSelected ? '<span class="inline-block px-2 py-0.5 bg-pink-600 text-white text-sm font-bold rounded">👤</span>' : ''}
+              ${fullAddress ? `<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
+                🗺
+                <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">
+                  ${fullAddress}
+                </span>
+              </span>` : ''}
             </div>
             ${additionalInfo}
           </div>
