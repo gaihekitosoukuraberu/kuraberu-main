@@ -81,21 +81,8 @@ const BusinessSelectionHandler = {
         throw new Error('BusinessSelection初期化失敗');
       }
 
-      // デバッグ: currentCaseDataの全キーを出力
-      console.log('[BusinessSelection] currentCaseDataのキー一覧:', Object.keys(currentCaseData));
-      console.log('[BusinessSelection] 全45個のキー名を個別に出力:');
-      Object.keys(currentCaseData).forEach((key, index) => {
-        console.log(`  ${index + 1}. ${key}: ${currentCaseData[key]}`);
-      });
-      console.log('[BusinessSelection] currentCaseData全体:', currentCaseData);
-
-      // AS列から業者名を取得（複数の可能なフィールド名をチェック）
-      const businessHistory = currentCaseData['業者選定履歴']
-        || currentCaseData['業者選定']
-        || currentCaseData['AS列']
-        || currentCaseData.businessHistory
-        || currentCaseData['案件メモ']
-        || '';
+      // AS列から業者名を取得（V1879: cv-list-manager.jsで businessHistory としてマッピング済み）
+      const businessHistory = currentCaseData.businessHistory || '';
 
       const selectedCompanies = this.parseBusinessHistory(businessHistory);
 

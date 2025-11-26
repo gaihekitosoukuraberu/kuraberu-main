@@ -233,6 +233,9 @@ const CVListManager = {
         amount: window.FeeCalculator.formatFee(calculatedFee),
         franchiseStatuses: this.parseFranchiseStatuses(cv.franchiseStatuses),
 
+        // 業者選定履歴（AS列）V1879
+        businessHistory: cv.franchiseSelectionHistory || '',
+
         // 架電履歴
         callHistory: this.parseCallHistory(cv.callHistory),
         nextCallDate: cv.nextCallDate || '',
