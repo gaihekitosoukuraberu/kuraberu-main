@@ -579,6 +579,23 @@ const BusinessSelectionHandler = {
   },
 
   /**
+   * V1911-FIX: 現在チェックされている業者名を取得（UI上のチェックボックスから）
+   * @returns {Array<string>} チェック済み業者名の配列
+   */
+  getCheckedCompanies() {
+    const checked = [];
+    const checkboxes = document.querySelectorAll('.franchise-item input[type="checkbox"]:checked');
+    checkboxes.forEach(checkbox => {
+      const card = checkbox.closest('.franchise-item');
+      if (card) {
+        const companyName = card.getAttribute('data-franchise-id'); // franchiseIdに会社名が入っている
+        if (companyName) checked.push(companyName);
+      }
+    });
+    return checked;
+  },
+
+  /**
    * 検索フィルタリング（V1880: 修正版 - チェックボックスは転送候補選択用）
    * @param {string} query - 検索クエリ
    * @param {Array} franchises - 業者リスト
@@ -625,22 +642,27 @@ const BusinessSelectionHandler = {
 
     let displayFranchises = [];
 
-    // V1909: 検索時は全加盟店から検索
+    // V1911-FIX: 検索時は全加盟店から検索、チェック済み業者を固定表示
     if (searchQuery) {
-      // ユーザー選択業者を固定
-      const userSelected = allFranchises.filter(f => this.isUserSelected(f.companyName));
+      // チェックされている業者を取得（UI上のチェックボックスから）
+      const checkedCompanies = this.getCheckedCompanies();
 
-      // V1911: 全加盟店から検索（ユーザー選択業者を除く、かな検索対応）
+      // チェック済み業者を最初に表示
+      const checkedFranchises = allFranchises.filter(f =>
+        checkedCompanies.includes(f.companyName)
+      );
+
+      // 全加盟店から検索（チェック済み業者を除く、かな検索対応）
       const searchResults = allFranchises.filter(f => {
-        if (this.isUserSelected(f.companyName)) return false; // 既にuserSelectedに含まれている
+        if (checkedCompanies.includes(f.companyName)) return false; // 既にcheckedに含まれている
         const companyName = f.companyName || '';
         const companyNameKana = f.companyNameKana || '';
         // 会社名（漢字）またはカナで部分一致
         return companyName.includes(searchQuery) || companyNameKana.includes(searchQuery);
       });
 
-      // ユーザー選択業者 + 検索結果を表示
-      displayFranchises = [...userSelected, ...searchResults];
+      // チェック済み業者 + 検索結果を表示
+      displayFranchises = [...checkedFranchises, ...searchResults];
     } else {
       // V1909: 通常時はソート順で表示
       // ソート（ユーザー選択業者が上位、その他はソート順）
