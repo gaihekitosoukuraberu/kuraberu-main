@@ -640,10 +640,16 @@ const BusinessSelectionHandler = {
     const rawData = this.currentCaseData?._rawData || {};
     const caseBuildingAge = parseInt(this.currentCaseData?.buildingAge || rawData.buildingAge || 0);
 
-    // 築年数対応範囲をパース（{min=0, max=95}形式）
-    const buildingAgeRangeParsed = this.parseBuildingAgeRange(franchise.buildingAgeRange);
-    const franchiseBuildingAgeMin = buildingAgeRangeParsed.min;
-    const franchiseBuildingAgeMax = buildingAgeRangeParsed.max;
+    // 築年数対応範囲を取得（buildingAgeMin/Max優先、なければbuildingAgeRangeをパース）
+    let franchiseBuildingAgeMin = franchise.buildingAgeMin || 0;
+    let franchiseBuildingAgeMax = franchise.buildingAgeMax || 100;
+
+    // buildingAgeRangeが存在する場合はそちらを優先
+    if (franchise.buildingAgeRange && !franchise.buildingAgeMin && !franchise.buildingAgeMax) {
+      const parsed = this.parseBuildingAgeRange(franchise.buildingAgeRange);
+      franchiseBuildingAgeMin = parsed.min;
+      franchiseBuildingAgeMax = parsed.max;
+    }
 
     details.buildingAge.caseAge = caseBuildingAge;
     details.buildingAge.franchiseMin = franchiseBuildingAgeMin;
@@ -671,8 +677,21 @@ const BusinessSelectionHandler = {
 
     // 物件種別マッチング（15点）
     if (casePropertyType && franchisePropertyTypes.length > 0) {
+      // 物件種別を正規化して比較（「戸建て」=「戸建て住宅」、「アパート」=「アパート・マンション」）
+      const normalizePropertyType = (type) => {
+        if (!type) return '';
+        type = type.trim();
+        if (type.includes('戸建て') || type.includes('戸建')) return '戸建て';
+        if (type.includes('アパート') || type.includes('マンション')) return 'アパート・マンション';
+        return type;
+      };
+
+      const normalizedCase = normalizePropertyType(casePropertyType);
       const matchedPropertyType = franchisePropertyTypes.find(type => {
-        return type.includes(casePropertyType) || casePropertyType.includes(type);
+        const normalizedFranchise = normalizePropertyType(type);
+        return normalizedCase === normalizedFranchise ||
+               type.includes(casePropertyType) ||
+               casePropertyType.includes(type);
       });
 
       if (matchedPropertyType) {
