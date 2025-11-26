@@ -852,6 +852,21 @@ const BusinessSelectionHandler = {
             </div>
           </div>
 
+          ${matchRate < 100 ? `
+            <!-- 不足項目サマリー -->
+            <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <h4 class="font-bold text-red-700 mb-2">⚠ 業者へ連絡が必要な不足項目</h4>
+              <div class="text-sm text-red-800 space-y-1">
+                ${!matchDetails.area.matched ? `
+                  <div>• <span class="font-semibold">エリア不足:</span> ${matchDetails.area.required} への対応が必要です</div>
+                ` : ''}
+                ${matchDetails.workTypes.unmatched.length > 0 ? `
+                  <div>• <span class="font-semibold">工事種別不足:</span> ${matchDetails.workTypes.unmatched.join(', ')} への対応が必要です</div>
+                ` : ''}
+              </div>
+            </div>
+          ` : ''}
+
           <div class="space-y-4">
             <!-- エリアマッチング -->
             <div class="border-l-4 ${matchDetails.area.matched ? 'border-green-500' : 'border-red-500'} pl-3">
@@ -862,9 +877,9 @@ const BusinessSelectionHandler = {
                 </span>
               </div>
               <div class="text-sm text-gray-600">
-                <div>必要エリア: <span class="font-medium">${matchDetails.area.required || '未設定'}</span></div>
-                <div>対応エリア: <span class="font-medium">${matchDetails.area.available.length > 0 ? matchDetails.area.available.join(', ') : '未設定'}</span></div>
-                ${!matchDetails.area.matched ? '<div class="text-red-600 mt-1">⚠ エリア不一致</div>' : ''}
+                <div><span class="text-gray-500">案件エリア:</span> <span class="font-medium text-gray-900">${matchDetails.area.required || '未設定'}</span></div>
+                <div><span class="text-gray-500">業者の対応エリア:</span> <span class="font-medium ${matchDetails.area.matched ? 'text-green-600' : 'text-gray-900'}">${matchDetails.area.available.length > 0 ? matchDetails.area.available.join(', ') : '未設定'}</span></div>
+                ${!matchDetails.area.matched ? '<div class="text-red-600 font-semibold mt-1">→ 業者に ${matchDetails.area.required} への対応追加を依頼</div>' : ''}
               </div>
             </div>
 
@@ -876,15 +891,18 @@ const BusinessSelectionHandler = {
                   ${matchDetails.workTypes.score} / ${matchDetails.workTypes.maxScore}点
                 </span>
               </div>
-              <div class="text-sm text-gray-600">
+              <div class="text-sm space-y-2">
                 ${matchDetails.workTypes.matched.length > 0 ? `
-                  <div class="mb-1">
-                    <span class="text-green-600">✓ 対応可能:</span> ${matchDetails.workTypes.matched.join(', ')}
+                  <div>
+                    <div class="text-green-600 font-semibold">✓ 対応可能 (現在の登録)</div>
+                    <div class="text-gray-700 ml-3">${matchDetails.workTypes.matched.join(', ')}</div>
                   </div>
                 ` : ''}
                 ${matchDetails.workTypes.unmatched.length > 0 ? `
-                  <div class="text-red-600">
-                    ✗ 対応不可: ${matchDetails.workTypes.unmatched.join(', ')}
+                  <div>
+                    <div class="text-red-600 font-semibold">✗ 対応不可 (案件に必要)</div>
+                    <div class="text-red-700 ml-3 font-medium">${matchDetails.workTypes.unmatched.join(', ')}</div>
+                    <div class="text-red-600 font-semibold mt-1">→ 業者にこれらの工事種別の追加を依頼</div>
                   </div>
                 ` : ''}
               </div>
