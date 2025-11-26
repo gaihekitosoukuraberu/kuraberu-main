@@ -1583,7 +1583,7 @@ const BusinessSelectionHandler = {
                 </div>
                 <div class="${matchDetails.buildingAge.matched ? 'bg-green-50' : 'bg-red-50'} p-2 rounded">
                   <div class="font-semibold ${matchDetails.buildingAge.matched ? 'text-green-900' : 'text-red-900'} mb-1">🏢 業者の対応築年数範囲</div>
-                  <div class="${matchDetails.buildingAge.matched ? 'text-green-700' : 'text-red-700'}">${matchDetails.buildingAge.franchiseMin}年 〜 ${matchDetails.buildingAge.franchiseMax}年</div>
+                  <div class="${matchDetails.buildingAge.matched ? 'text-green-700' : 'text-red-700'} font-semibold">${matchDetails.buildingAge.franchiseMin}年 〜 ${matchDetails.buildingAge.franchiseMax}年</div>
                 </div>
                 ${!matchDetails.buildingAge.matched ? `
                   <div class="text-red-600 font-semibold">→ 業者に築年数範囲の拡大を依頼</div>
@@ -1606,7 +1606,7 @@ const BusinessSelectionHandler = {
                 </div>
                 <div class="${matchDetails.propertyType.matched ? 'bg-green-50' : 'bg-red-50'} p-2 rounded">
                   <div class="font-semibold ${matchDetails.propertyType.matched ? 'text-green-900' : 'text-red-900'} mb-1">🏢 業者の対応可能物件種別</div>
-                  <div class="${matchDetails.propertyType.matched ? 'text-green-700' : 'text-red-700'}">${matchDetails.propertyType.franchiseTypes.length > 0 ? matchDetails.propertyType.franchiseTypes.join(', ') : '未設定'}</div>
+                  <div class="${matchDetails.propertyType.matched ? 'text-green-700' : 'text-red-700'} font-semibold">${matchDetails.propertyType.franchiseTypes.length > 0 ? matchDetails.propertyType.franchiseTypes.join(', ') : '未設定'}</div>
                 </div>
                 ${!matchDetails.propertyType.matched ? `
                   <div class="text-red-600 font-semibold">→ 業者に物件種別の追加を依頼</div>
@@ -1629,7 +1629,7 @@ const BusinessSelectionHandler = {
                 </div>
                 <div class="${matchDetails.floors.matched ? 'bg-green-50' : 'bg-red-50'} p-2 rounded">
                   <div class="font-semibold ${matchDetails.floors.matched ? 'text-green-900' : 'text-red-900'} mb-1">🏢 業者の対応可能階数</div>
-                  <div class="${matchDetails.floors.matched ? 'text-green-700' : 'text-red-700'} text-xs">${matchDetails.floors.franchiseMax || '未設定'}</div>
+                  <div class="${matchDetails.floors.matched ? 'text-green-700' : 'text-red-700'} font-semibold text-xs">${matchDetails.floors.franchiseMax || '未設定'}</div>
                 </div>
                 ${!matchDetails.floors.matched ? `
                   <div class="text-red-600 font-semibold">→ 業者に階数対応の拡大を依頼</div>
