@@ -957,9 +957,15 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * V1903: 紹介料金を計算
-   * @param {number} franchiseCount - 紹介業者数（1社の場合は全て¥20,000固定）
-   * @returns {number} 紹介料金（最高料金、1社の場合は¥20,000固定）
+   * V1904: 紹介料金を計算（動的ルール対応）
+   * @param {number} franchiseCount - 紹介業者数
+   * @returns {number} 紹介料金
+   *
+   * ルール:
+   * 1. 1社紹介 → ¥20,000 固定（単品も含む全て）
+   * 2. 複数社 + 3F以上 + 戸建て以外 → ¥30,000（ただし単品のみの場合は除外）
+   * 3. 複数社 + (戸建てまたは2F以下) → 工事種別の最高料金
+   * 4. 複数社 + 単品のみ → 単品料金（¥5,000 or ¥10,000）
    */
   calculateReferralPrice(franchiseCount) {
     // 1社紹介の場合は必ず¥20,000
@@ -967,12 +973,38 @@ const BusinessSelectionHandler = {
       return 20000;
     }
 
-    // 複数社紹介の場合は最高料金を返す
+    // 工事種別を取得
     const caseWorkTypes = this.extractWorkTypes();
     if (caseWorkTypes.length === 0) {
       return 20000; // デフォルト
     }
 
+    // 単品工事種別（7種類）
+    const SINGLE_ITEM_WORKS = [
+      '屋根塗装単品',
+      '屋上防水単品',
+      '外壁補修単品',
+      '屋根補修単品',
+      'ベランダ防水単品',
+      '外壁雨漏り修繕単品',
+      '屋根雨漏り修繕単品'
+    ];
+
+    // 全て単品かチェック
+    const allSingleItems = caseWorkTypes.every(work => SINGLE_ITEM_WORKS.includes(work));
+
+    // 物件種別と階数を取得
+    const botAnswers = this.currentCaseData?._rawData?.botAnswers || {};
+    const propertyType = botAnswers.q1_propertyType || this.currentCaseData?.propertyType || '';
+    const floors = parseInt(botAnswers.q2_floors || this.currentCaseData?.floors || 0);
+
+    // 複数社紹介 + 3階以上 + 戸建て以外 の場合は¥30,000（ただし単品のみは除外）
+    if (franchiseCount > 1 && floors >= 3 && propertyType !== '戸建て' && !allSingleItems) {
+      console.log('[V1904-PRICE] 3F以上 非戸建て（単品以外）→ ¥30,000');
+      return 30000;
+    }
+
+    // 通常ケース: 最高料金を返す
     let maxPrice = 0;
     caseWorkTypes.forEach(workType => {
       const price = WORK_TYPE_PRICES[workType] || 20000;
@@ -981,6 +1013,7 @@ const BusinessSelectionHandler = {
       }
     });
 
+    console.log('[V1904-PRICE] 通常料金（最高額）→ ¥' + maxPrice);
     return maxPrice;
   },
 
