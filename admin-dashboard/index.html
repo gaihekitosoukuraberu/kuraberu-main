@@ -7363,9 +7363,17 @@ window.addEventListener('beforeunload', function(e) {
                 // 案件管理の場合: 初期の案件管理コンテンツを保存
                 window.originalAssignmentContent = document.querySelector('main').innerHTML;
 
-                // CV一覧を非同期で読み込み
-                loadCasesData();
-                console.log('案件管理を表示中 - CV一覧読み込み開始');
+                // CV一覧を非同期で読み込み（完了を待つ）
+                loadCasesData().then(() => {
+                    // データ読み込み完了後、リストビューを表示
+                    console.log('案件管理を表示中 - CV一覧読み込み完了、リストビュー表示');
+                    if (currentView === 'list') {
+                        const listView = document.getElementById('listView');
+                        if (listView) {
+                            listView.classList.remove('hidden');
+                        }
+                    }
+                });
             } else {
                 // その他のセクションを表示
                 window.originalAssignmentContent = document.querySelector('main').innerHTML;
