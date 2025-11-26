@@ -670,7 +670,10 @@ const RankingSystem = {
         success: true,
         rankings: rankings,
         totalCount: allData.length,
-        filteredCount: filtered.length
+        filteredCount: filtered.length,
+        debug: {
+          filterStats: filterStats
+        }
       };
 
     } catch (error) {
