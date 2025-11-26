@@ -6866,7 +6866,7 @@ window.addEventListener('beforeunload', function(e) {
                             caseData
                         );
 
-                        const businessCards = window.BusinessSelectionHandler.generateBusinessCards(selectionData);
+                        const businessCards = await window.BusinessSelectionHandler.generateBusinessCards(selectionData);
 
                         window.BusinessSelectionHandler.updateUI(businessCards, selectionData.desiredCount);
 
