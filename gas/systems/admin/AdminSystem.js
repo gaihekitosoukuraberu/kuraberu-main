@@ -638,6 +638,21 @@ const AdminSystem = {
           }
           console.log('[AdminSystem] ===== 評価データ同期終了 =====');
 
+          // V1897: マッチ項目同期（特殊対応項目・最大対応階数・築年数対応範囲）
+          try {
+            console.log('[AdminSystem] ===== マッチ項目同期開始（加盟店マスタ構築後） =====');
+            const matchSyncResult = RankingSystem.syncMatchFieldsToMaster();
+            if (matchSyncResult.success) {
+              console.log('[AdminSystem] ✅ マッチ項目同期成功 - 更新:', matchSyncResult.updatedCount + '件');
+            } else {
+              console.error('[AdminSystem] ❌ マッチ項目同期失敗:', matchSyncResult.error);
+            }
+          } catch (matchSyncError) {
+            console.error('[AdminSystem] マッチ項目同期エラー:', matchSyncError);
+            // エラーは無視して処理を続行
+          }
+          console.log('[AdminSystem] ===== マッチ項目同期終了 =====');
+
           return {
             success: true,
             message: '承認処理が完了しました'
