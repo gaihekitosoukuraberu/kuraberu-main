@@ -536,10 +536,13 @@ const BusinessSelectionHandler = {
       workTypes: { matched: [], unmatched: [], score: 0, maxScore: 60 }
     };
 
-    // エリアマッチング（40%）- 都道府県対応
+    // エリアマッチング（40%）- 都道府県 OR 市区町村対応
     const casePrefecture = this.currentCaseData?.prefecture || this.currentCaseData?._rawData?.prefecture || '';
+    const caseCity = this.currentCaseData?.city || this.currentCaseData?._rawData?.city || '';
     const franchiseAreas = franchise.serviceAreas || [];
-    details.area.required = casePrefecture;
+    const franchiseCities = franchise.citiesArray || [];
+
+    details.area.required = caseCity || casePrefecture;
     details.area.available = franchiseAreas;
 
     // 都道府県の接尾辞を除外して比較
@@ -548,11 +551,21 @@ const BusinessSelectionHandler = {
       return pref.replace(/[都道府県]$/, '');
     };
 
+    // 都道府県マッチング
     const normalizedCase = normalizePrefecture(casePrefecture);
-    const isAreaMatch = casePrefecture && franchiseAreas.some(area => {
+    const isPrefectureMatch = casePrefecture && franchiseAreas.some(area => {
       const normalizedArea = normalizePrefecture(area);
       return normalizedCase === normalizedArea;
     });
+
+    // 市区町村マッチング（E列「対応市区町村」との照合）
+    const isCityMatch = caseCity && franchiseCities.length > 0 && franchiseCities.some(city => {
+      // 完全一致 または 部分一致（横浜市西区 vs 横浜市西区 or 西区 vs 横浜市西区）
+      return city.includes(caseCity) || caseCity.includes(city);
+    });
+
+    // エリアマッチ = 都道府県マッチ OR 市区町村マッチ
+    const isAreaMatch = isPrefectureMatch || isCityMatch;
 
     if (isAreaMatch) {
       total += 40;
