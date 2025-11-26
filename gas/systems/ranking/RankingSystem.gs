@@ -197,12 +197,12 @@ const RankingSystem = {
           console.log('  対応市区町村: ' + cities);
         }
 
-        // ステータスチェック（承認済み + アクティブ + サイレントフラグOFF）（V1705修正）
+        // ステータスチェック（承認済み + アクティブ/配信中 + サイレントフラグOFF）（V1891修正）
         if (approvalStatus !== '承認済み') {
           filterStats.rejectedByApproval++;
           continue;
         }
-        if (deliveryStatus !== 'アクティブ') {
+        if (deliveryStatus !== 'アクティブ' && deliveryStatus !== '配信中') {
           filterStats.rejectedByDelivery++;
           continue;
         }
