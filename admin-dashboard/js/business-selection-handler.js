@@ -257,6 +257,10 @@ const BusinessSelectionHandler = {
       citiesArray: (business.cities || '').split(',').map(c => c.trim()).filter(c => c),
       workTypes: (business.constructionTypes || '').split(',').map(t => t.trim()).filter(t => t),
       specialSupport: business.specialSupport || '',
+      propertyTypes: (business.propertyTypes || '').split(',').map(p => p.trim()).filter(p => p), // V1895: 対応可能物件種別
+      maxFloors: business.maxFloors || '', // V1895: 最大対応階数
+      buildingAgeMin: business.buildingAgeMin || 0, // V1895: 対応築年数_最小
+      buildingAgeMax: business.buildingAgeMax || 100, // V1895: 対応築年数_最大
       avgContractAmount: business.avgContractAmount || 0,
       rating: business.rating || 4.2,
       reviewCount: business.reviewCount || 0,
@@ -565,18 +569,21 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * マッチ率を計算（V1880: 新実装）
+   * マッチ率を計算（V1895: 5項目に拡張 - エリア20点、工事40点、築年数15点、物件種別15点、階数10点）
    * @param {object} franchise - 業者データ
    * @returns {object} { total: number, details: object }
    */
   calculateMatchRate(franchise) {
     let total = 0;
     const details = {
-      area: { matched: false, required: '', available: [], score: 0, maxScore: 40 },
-      workTypes: { matched: [], unmatched: [], score: 0, maxScore: 60 }
+      area: { matched: false, required: '', available: [], score: 0, maxScore: 20 },
+      workTypes: { matched: [], unmatched: [], score: 0, maxScore: 40 },
+      buildingAge: { matched: false, caseAge: 0, franchiseMin: 0, franchiseMax: 0, score: 0, maxScore: 15 },
+      propertyType: { matched: false, caseType: '', franchiseTypes: [], score: 0, maxScore: 15 },
+      floors: { matched: false, caseFloors: 0, franchiseMax: '', score: 0, maxScore: 10 }
     };
 
-    // エリアマッチング（40%）- 都道府県 OR 市区町村対応
+    // エリアマッチング（20点）- 都道府県 OR 市区町村対応
     const casePrefecture = this.currentCaseData?.prefecture || this.currentCaseData?._rawData?.prefecture || '';
     const caseCity = this.currentCaseData?.city || this.currentCaseData?._rawData?.city || '';
     const franchiseAreas = franchise.serviceAreas || [];
@@ -608,12 +615,12 @@ const BusinessSelectionHandler = {
     const isAreaMatch = isPrefectureMatch || isCityMatch;
 
     if (isAreaMatch) {
-      total += 40;
+      total += 20;
       details.area.matched = true;
-      details.area.score = 40;
+      details.area.score = 20;
     }
 
-    // 工事種別マッチング（60%）
+    // 工事種別マッチング（40点）
     const caseWorkTypes = this.extractWorkTypes();
     const franchiseWorkTypes = franchise.workTypes || [];
 
@@ -621,7 +628,7 @@ const BusinessSelectionHandler = {
       const matched = caseWorkTypes.filter(w => franchiseWorkTypes.includes(w));
       const unmatched = caseWorkTypes.filter(w => !franchiseWorkTypes.includes(w));
       const matchRatio = matched.length / caseWorkTypes.length;
-      const score = Math.round(matchRatio * 60);
+      const score = Math.round(matchRatio * 40);
 
       total += score;
       details.workTypes.matched = matched;
@@ -629,7 +636,77 @@ const BusinessSelectionHandler = {
       details.workTypes.score = score;
     }
 
+    // 築年数マッチング（15点）
+    const rawData = this.currentCaseData?._rawData || {};
+    const caseBuildingAge = parseInt(this.currentCaseData?.buildingAge || rawData.buildingAge || 0);
+    const franchiseBuildingAgeMin = franchise.buildingAgeMin || 0;
+    const franchiseBuildingAgeMax = franchise.buildingAgeMax || 100;
+
+    details.buildingAge.caseAge = caseBuildingAge;
+    details.buildingAge.franchiseMin = franchiseBuildingAgeMin;
+    details.buildingAge.franchiseMax = franchiseBuildingAgeMax;
+
+    if (caseBuildingAge >= franchiseBuildingAgeMin && caseBuildingAge <= franchiseBuildingAgeMax) {
+      total += 15;
+      details.buildingAge.matched = true;
+      details.buildingAge.score = 15;
+    }
+
+    // 物件種別マッチング（15点）
+    const botAnswers = rawData.botAnswers || {};
+    const casePropertyType = botAnswers.q1_propertyType || this.currentCaseData?.propertyType || '';
+    const franchisePropertyTypes = franchise.propertyTypes || [];
+
+    details.propertyType.caseType = casePropertyType;
+    details.propertyType.franchiseTypes = franchisePropertyTypes;
+
+    if (casePropertyType && franchisePropertyTypes.length > 0) {
+      const isPropertyMatch = franchisePropertyTypes.some(type => {
+        return type.includes(casePropertyType) || casePropertyType.includes(type);
+      });
+      if (isPropertyMatch) {
+        total += 15;
+        details.propertyType.matched = true;
+        details.propertyType.score = 15;
+      }
+    }
+
+    // 階数マッチング（10点）
+    const caseFloors = parseInt(botAnswers.q2_floors || this.currentCaseData?.floors || 0);
+    const franchiseMaxFloors = franchise.maxFloors || '';
+
+    details.floors.caseFloors = caseFloors;
+    details.floors.franchiseMax = franchiseMaxFloors;
+
+    if (caseFloors > 0 && franchiseMaxFloors) {
+      // 「3階以上」などの文字列を解析
+      const maxFloorsNum = this.parseMaxFloors(franchiseMaxFloors);
+      if (maxFloorsNum >= caseFloors) {
+        total += 10;
+        details.floors.matched = true;
+        details.floors.score = 10;
+      }
+    }
+
     return { total, details };
+  },
+
+  /**
+   * 最大対応階数の文字列を数値に変換
+   * @param {string} maxFloors - 「3階以上」「2階まで」などの文字列
+   * @returns {number} 最大階数
+   */
+  parseMaxFloors(maxFloors) {
+    if (!maxFloors) return 0;
+
+    // 「3階以上」「高層対応」などの場合は十分大きい数を返す
+    if (maxFloors.includes('以上') || maxFloors.includes('高層')) {
+      return 999;
+    }
+
+    // 数字を抽出
+    const match = maxFloors.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 0;
   },
 
   /**
