@@ -638,7 +638,8 @@ const AdminSystem = {
           }
           console.log('[AdminSystem] ===== 評価データ同期終了 =====');
 
-          // V1897: マッチ項目同期（特殊対応項目・最大対応階数・築年数対応範囲）
+          // V1899: マッチ項目同期（特殊対応項目・最大対応階数）
+          // 注：築年数はcopyToFranchiseMasterで対応築年数_最小/_最大に分割同期済み
           try {
             console.log('[AdminSystem] ===== マッチ項目同期開始（加盟店マスタ構築後） =====');
             const matchSyncResult = RankingSystem.syncMatchFieldsToMaster();

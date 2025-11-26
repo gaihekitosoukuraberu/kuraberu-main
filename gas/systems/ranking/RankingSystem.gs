@@ -1645,11 +1645,11 @@ const RankingSystem = {
   },
 
   /**
-   * V1897: 特殊対応項目・最大対応階数・築年数対応範囲を加盟店登録から加盟店マスタに同期
+   * V1899: 特殊対応項目・最大対応階数を加盟店登録から加盟店マスタに同期
    * 加盟店登録シート → 加盟店マスタ
    * - 特殊対応項目 → AE列
    * - 最大対応階数 → AF列
-   * - 築年数対応範囲 → AG列
+   * 注：築年数はcopyToFranchiseMasterで対応築年数_最小/_最大に分割同期済み（AG列削除）
    */
   syncMatchFieldsToMaster: function() {
     console.log('[RankingSystem] マッチ項目同期開始');
@@ -1680,13 +1680,11 @@ const RankingSystem = {
       const companyNameColIndex = registerHeaders.indexOf('会社名');
       const specialSupportColIndex = registerHeaders.indexOf('特殊対応項目');
       const maxFloorsColIndex = registerHeaders.indexOf('最大対応階数');
-      const buildingAgeRangeColIndex = registerHeaders.indexOf('築年数対応範囲');
 
-      console.log('[V1897-DEBUG] 加盟店登録シート - 列インデックス:', {
+      console.log('[V1899-DEBUG] 加盟店登録シート - 列インデックス:', {
         companyName: companyNameColIndex,
         specialSupport: specialSupportColIndex,
-        maxFloors: maxFloorsColIndex,
-        buildingAgeRange: buildingAgeRangeColIndex
+        maxFloors: maxFloorsColIndex
       });
 
       if (companyNameColIndex === -1) {
@@ -1702,15 +1700,13 @@ const RankingSystem = {
 
         const specialSupport = specialSupportColIndex !== -1 ? String(registerData[i][specialSupportColIndex] || '').trim() : '';
         const maxFloors = maxFloorsColIndex !== -1 ? String(registerData[i][maxFloorsColIndex] || '').trim() : '';
-        const buildingAgeRange = buildingAgeRangeColIndex !== -1 ? String(registerData[i][buildingAgeRangeColIndex] || '').trim() : '';
 
         dataMap[companyName] = {
           specialSupport: specialSupport,
-          maxFloors: maxFloors,
-          buildingAgeRange: buildingAgeRange
+          maxFloors: maxFloors
         };
 
-        console.log('[V1897-DEBUG] 加盟店登録データ:', companyName, '特殊対応:', specialSupport || '(空)', '階数:', maxFloors || '(空)', '築年数:', buildingAgeRange || '(空)');
+        console.log('[V1899-DEBUG] 加盟店登録データ:', companyName, '特殊対応:', specialSupport || '(空)', '階数:', maxFloors || '(空)');
       }
 
       console.log('[RankingSystem] データマップ作成完了:', Object.keys(dataMap).length + '件');
@@ -1720,13 +1716,11 @@ const RankingSystem = {
       const masterCompanyNameColIndex = masterHeaders.indexOf('会社名');
       const masterSpecialSupportColIndex = masterHeaders.indexOf('特殊対応項目');
       const masterMaxFloorsColIndex = masterHeaders.indexOf('最大対応階数');
-      const masterBuildingAgeRangeColIndex = masterHeaders.indexOf('築年数対応範囲');
 
-      console.log('[V1897-DEBUG] 加盟店マスタ - 列インデックス:', {
+      console.log('[V1899-DEBUG] 加盟店マスタ - 列インデックス:', {
         companyName: masterCompanyNameColIndex,
         specialSupport: masterSpecialSupportColIndex,
-        maxFloors: masterMaxFloorsColIndex,
-        buildingAgeRange: masterBuildingAgeRangeColIndex
+        maxFloors: masterMaxFloorsColIndex
       });
 
       if (masterCompanyNameColIndex === -1) {
@@ -1755,15 +1749,9 @@ const RankingSystem = {
             masterSheet.getRange(i, masterMaxFloorsColIndex + 1).setValue(data.maxFloors);
           }
 
-          // 築年数対応範囲を同期
-          if (masterBuildingAgeRangeColIndex !== -1) {
-            masterSheet.getRange(i, masterBuildingAgeRangeColIndex + 1).setValue(data.buildingAgeRange);
-          }
-
-          console.log('[V1897-DEBUG] ✅ マスタ更新:', companyName, '→',
+          console.log('[V1899-DEBUG] ✅ マスタ更新:', companyName, '→',
                       '特殊対応:', (data.specialSupport || '(空)'),
-                      '階数:', (data.maxFloors || '(空)'),
-                      '築年数:', (data.buildingAgeRange || '(空)'));
+                      '階数:', (data.maxFloors || '(空)'));
           updatedCount++;
         } else if (companyName) {
           console.log('[RankingSystem] ⚠️ 加盟店登録に存在しない:', companyName);
@@ -1914,9 +1902,113 @@ const RankingSystem = {
       return this.syncMatchFieldsToMaster();
     }
 
+    // V1898: デバッグ用 - 加盟店登録シートのヘッダーとデータ確認
+    if (action === 'debugRegisterSheet') {
+      return this.debugRegisterSheetData(params.companyName);
+    }
+
     return {
       success: false,
       error: 'Unknown action: ' + action
     };
+  },
+
+  /**
+   * V1899: 加盟店登録シートのヘッダーと指定会社のデータを返す（デバッグ用）
+   * 注：築年数はマスタでは対応築年数_最小/_最大に分割されている
+   */
+  debugRegisterSheetData: function(companyName) {
+    try {
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const registerSheet = ss.getSheetByName('加盟店登録');
+      const masterSheet = ss.getSheetByName('加盟店マスタ');
+
+      if (!registerSheet || !masterSheet) {
+        return { success: false, error: 'シートが見つかりません' };
+      }
+
+      // 加盟店登録シートのヘッダー
+      const registerData = registerSheet.getDataRange().getValues();
+      const registerHeaders = registerData[0];
+
+      // 加盟店マスタのヘッダー
+      const masterData = masterSheet.getDataRange().getValues();
+      const masterHeaders = masterData[0];
+
+      // 列インデックス
+      const regCompanyIdx = registerHeaders.indexOf('会社名');
+      const regCitiesIdx = registerHeaders.indexOf('対応市区町村');
+      const regSpecialIdx = registerHeaders.indexOf('特殊対応項目');
+      const regMaxFloorsIdx = registerHeaders.indexOf('最大対応階数');
+      const regBuildingAgeIdx = registerHeaders.indexOf('築年数対応範囲');
+
+      const mstCompanyIdx = masterHeaders.indexOf('会社名');
+      const mstCitiesIdx = masterHeaders.indexOf('対応市区町村');
+      const mstSpecialIdx = masterHeaders.indexOf('特殊対応項目');
+      const mstMaxFloorsIdx = masterHeaders.indexOf('最大対応階数');
+      const mstAgeMinIdx = masterHeaders.indexOf('対応築年数_最小');
+      const mstAgeMaxIdx = masterHeaders.indexOf('対応築年数_最大');
+
+      let registerRow = null;
+      let masterRow = null;
+
+      // 指定会社のデータを検索
+      if (companyName) {
+        for (let i = 1; i < registerData.length; i++) {
+          if (String(registerData[i][regCompanyIdx] || '').trim() === companyName) {
+            registerRow = {
+              companyName: registerData[i][regCompanyIdx],
+              cities: registerData[i][regCitiesIdx] || '(空)',
+              specialSupport: registerData[i][regSpecialIdx] || '(空)',
+              maxFloors: registerData[i][regMaxFloorsIdx] || '(空)',
+              buildingAgeRange: registerData[i][regBuildingAgeIdx] || '(空)'
+            };
+            break;
+          }
+        }
+
+        for (let i = 1; i < masterData.length; i++) {
+          if (String(masterData[i][mstCompanyIdx] || '').trim() === companyName) {
+            masterRow = {
+              companyName: masterData[i][mstCompanyIdx],
+              cities: masterData[i][mstCitiesIdx] || '(空)',
+              specialSupport: masterData[i][mstSpecialIdx] || '(空)',
+              maxFloors: masterData[i][mstMaxFloorsIdx] || '(空)',
+              buildingAgeMin: masterData[i][mstAgeMinIdx] || '(空)',
+              buildingAgeMax: masterData[i][mstAgeMaxIdx] || '(空)'
+            };
+            break;
+          }
+        }
+      }
+
+      return {
+        success: true,
+        registerHeaders: registerHeaders,
+        masterHeaders: masterHeaders,
+        columnIndexes: {
+          register: {
+            companyName: regCompanyIdx,
+            cities: regCitiesIdx,
+            specialSupport: regSpecialIdx,
+            maxFloors: regMaxFloorsIdx,
+            buildingAgeRange: regBuildingAgeIdx
+          },
+          master: {
+            companyName: mstCompanyIdx,
+            cities: mstCitiesIdx,
+            specialSupport: mstSpecialIdx,
+            maxFloors: mstMaxFloorsIdx,
+            buildingAgeMin: mstAgeMinIdx,
+            buildingAgeMax: mstAgeMaxIdx
+          }
+        },
+        registerRow: registerRow,
+        masterRow: masterRow
+      };
+    } catch (error) {
+      return { success: false, error: error.toString() };
+    }
   }
 };
