@@ -279,6 +279,14 @@ const SystemRouter = {
       actions: ['syncMatchFields']
     },
 
+    // 会社名カナ同期（V1912: 加盟店登録D列→加盟店マスタAG列）
+    'syncCompanyNameKana': {
+      system: 'RankingSystem',
+      description: '会社名カナ同期',
+      prefix: false,
+      actions: ['syncCompanyNameKana']
+    },
+
     // 距離計算（V1882: Google Maps Distance Matrix API）
     'calculateDistances': {
       system: 'DistanceCalculator',

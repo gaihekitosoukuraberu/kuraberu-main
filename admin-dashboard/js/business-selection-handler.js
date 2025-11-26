@@ -642,7 +642,7 @@ const BusinessSelectionHandler = {
 
     let displayFranchises = [];
 
-    // V1911-FIX: 検索時は全加盟店から検索、チェック済み業者を固定表示
+    // V1912: 検索時は全加盟店から検索（件数制限なし）、チェック済み業者を固定表示
     if (searchQuery) {
       // チェックされている業者を取得（UI上のチェックボックスから）
       const checkedCompanies = this.getCheckedCompanies();
@@ -652,7 +652,7 @@ const BusinessSelectionHandler = {
         checkedCompanies.includes(f.companyName)
       );
 
-      // 全加盟店から検索（チェック済み業者を除く、かな検索対応）
+      // 全加盟店から検索（チェック済み業者を除く、かな部分一致対応）
       const searchResults = allFranchises.filter(f => {
         if (checkedCompanies.includes(f.companyName)) return false; // 既にcheckedに含まれている
         const companyName = f.companyName || '';
@@ -661,7 +661,7 @@ const BusinessSelectionHandler = {
         return companyName.includes(searchQuery) || companyNameKana.includes(searchQuery);
       });
 
-      // チェック済み業者 + 検索結果を表示
+      // チェック済み業者 + 検索結果を表示（件数制限なし）
       displayFranchises = [...checkedFranchises, ...searchResults];
     } else {
       // V1909: 通常時はソート順で表示
@@ -669,8 +669,8 @@ const BusinessSelectionHandler = {
       displayFranchises = this.sortFranchises(sortType, allFranchises);
     }
 
-    // 表示件数を制限
-    const limit = showAll ? 8 : 4;
+    // V1912: 検索時は制限なし、通常時は4件 or 8件
+    const limit = searchQuery ? displayFranchises.length : (showAll ? 8 : 4);
     const topFranchises = displayFranchises.slice(0, limit);
 
     // カード生成
