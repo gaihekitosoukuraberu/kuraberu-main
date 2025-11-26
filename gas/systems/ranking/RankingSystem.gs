@@ -1790,6 +1790,127 @@ const RankingSystem = {
    * 加盟店登録シートのD列（会社名カナ）→ 加盟店マスタのAG列（会社名カナ）
    * 承認時に自動実行される
    */
+  /**
+   * V1913: 住所を加盟店登録から加盟店マスタに同期
+   */
+  syncAddressToMaster: function() {
+    console.log('[RankingSystem] 住所同期開始');
+
+    try {
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+      // 加盟店登録シート取得
+      const registerSheet = ss.getSheetByName('加盟店登録');
+      if (!registerSheet) {
+        console.error('[RankingSystem] 加盟店登録シートが見つかりません');
+        return { success: false, error: '加盟店登録シートが見つかりません' };
+      }
+
+      // 加盟店マスタシート取得
+      const masterSheet = ss.getSheetByName('加盟店マスタ');
+      if (!masterSheet) {
+        console.error('[RankingSystem] 加盟店マスタシートが見つかりません');
+        return { success: false, error: '加盟店マスタシートが見つかりません' };
+      }
+
+      // 加盟店登録シートからデータ取得
+      const registerData = registerSheet.getDataRange().getValues();
+      const registerHeaders = registerData[0];
+
+      // ヘッダーから列インデックスを取得
+      const companyNameColIndex = registerHeaders.indexOf('会社名');
+      const addressColIndex = registerHeaders.indexOf('住所');
+
+      console.log('[V1913-DEBUG] 加盟店登録シート - 列インデックス:', {
+        companyName: companyNameColIndex,
+        address: addressColIndex
+      });
+
+      if (companyNameColIndex === -1) {
+        console.error('[RankingSystem] 加盟店登録シートに「会社名」列が見つかりません');
+        return { success: false, error: '加盟店登録シートに「会社名」列が見つかりません' };
+      }
+
+      if (addressColIndex === -1) {
+        console.error('[RankingSystem] 加盟店登録シートに「住所」列が見つかりません');
+        return { success: false, error: '加盟店登録シートに「住所」列が見つかりません' };
+      }
+
+      // データマップ作成
+      const dataMap = {};
+      for (let i = 1; i < registerData.length; i++) {
+        const companyName = String(registerData[i][companyNameColIndex] || '').trim();
+        if (!companyName) continue;
+
+        const address = String(registerData[i][addressColIndex] || '').trim();
+
+        dataMap[companyName] = {
+          address: address
+        };
+
+        console.log('[V1913-DEBUG] 加盟店登録データ:', companyName, '住所:', address || '(空)');
+      }
+
+      console.log('[RankingSystem] データマップ作成完了:', Object.keys(dataMap).length + '件');
+
+      // 加盟店マスタのヘッダー取得
+      const masterHeaders = masterSheet.getRange(1, 1, 1, masterSheet.getLastColumn()).getValues()[0];
+      const masterCompanyNameColIndex = masterHeaders.indexOf('会社名');
+      const masterAddressColIndex = masterHeaders.indexOf('住所');
+
+      console.log('[V1913-DEBUG] 加盟店マスタ - 列インデックス:', {
+        companyName: masterCompanyNameColIndex,
+        address: masterAddressColIndex
+      });
+
+      if (masterCompanyNameColIndex === -1) {
+        console.error('[RankingSystem] 加盟店マスタに「会社名」列が見つかりません');
+        return { success: false, error: '加盟店マスタに「会社名」列が見つかりません' };
+      }
+
+      if (masterAddressColIndex === -1) {
+        console.error('[RankingSystem] 加盟店マスタに「住所」列が見つかりません');
+        return { success: false, error: '加盟店マスタに「住所」列が見つかりません' };
+      }
+
+      // 加盟店マスタを更新
+      const masterLastRow = masterSheet.getLastRow();
+      let updatedCount = 0;
+      let notFoundCount = 0;
+
+      for (let i = 2; i <= masterLastRow; i++) {
+        const companyName = String(masterSheet.getRange(i, masterCompanyNameColIndex + 1).getValue() || '').trim();
+
+        if (companyName && dataMap[companyName]) {
+          const data = dataMap[companyName];
+
+          // 住所を同期
+          masterSheet.getRange(i, masterAddressColIndex + 1).setValue(data.address);
+
+          console.log('[V1913-DEBUG] ✅ マスタ更新:', companyName, '→ 住所:', (data.address || '(空)'));
+          updatedCount++;
+        } else if (companyName) {
+          console.log('[RankingSystem] ⚠️ 加盟店登録に存在しない:', companyName);
+          notFoundCount++;
+        }
+      }
+
+      console.log('[RankingSystem] 同期完了 - 更新:', updatedCount + '件、未設定:', notFoundCount + '件');
+
+      return {
+        success: true,
+        updatedCount: updatedCount,
+        notFoundCount: notFoundCount,
+        totalCompanies: Object.keys(dataMap).length
+      };
+
+    } catch (error) {
+      console.error('[RankingSystem] 同期エラー:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
   syncCompanyNameKanaToMaster: function() {
     console.log('[RankingSystem] 会社名カナ同期開始');
 
@@ -2039,6 +2160,11 @@ const RankingSystem = {
     // V1912: 会社名カナ同期エンドポイント
     if (action === 'syncCompanyNameKana') {
       return this.syncCompanyNameKanaToMaster();
+    }
+
+    // V1913: 住所同期エンドポイント
+    if (action === 'syncAddress') {
+      return this.syncAddressToMaster();
     }
 
     // V1913: 全アクティブ加盟店取得（Admin Dashboard検索用）

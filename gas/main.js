@@ -287,6 +287,14 @@ const SystemRouter = {
       actions: ['syncCompanyNameKana']
     },
 
+    // 住所同期（V1913: 加盟店登録J列→加盟店マスタAH列）
+    'syncAddress': {
+      system: 'RankingSystem',
+      description: '住所同期',
+      prefix: false,
+      actions: ['syncAddress']
+    },
+
     // 全アクティブ加盟店取得（V1913: Admin Dashboard検索用）
     'getAllActiveFranchises': {
       system: 'RankingSystem',
