@@ -698,52 +698,60 @@ const BusinessSelectionHandler = {
           matched.push(caseWork);
           isMatched = true;
         } else {
-          // V1902: イレギュラーパターンの柔軟マッチング（外壁工事含む・屋根工事含む・単品）
+          // V1903: イレギュラーパターンの厳格マッチング（外壁主要工事・屋根主要工事ベース）
           for (const franchiseWork of franchiseWorkTypes) {
             // パターン1: 「X（外壁工事含む）」
-            // 条件: お客様が外壁工事を依頼している + 業者が該当する外壁工事種別を持っている
+            // 条件: お客様が外壁主要工事（外壁塗装/カバー工法/張替え）を依頼 + 業者がその外壁主要工事を持っている
             // 例: 業者["外壁塗装", "屋根塗装（外壁工事含む）"] + お客様["外壁塗装", "屋根塗装"] → 両方マッチ
-            // 逆例: 業者["外壁張り替え", "屋根塗装（外壁工事含む）"] + お客様["外壁塗装", "屋根塗装"] → 屋根塗装はNG
+            // 逆例: 業者["外壁張替え", "屋根塗装（外壁工事含む）"] + お客様["外壁塗装", "屋根塗装"] → 屋根塗装はNG
             if (franchiseWork.includes('（外壁工事含む）')) {
               const baseWork = franchiseWork.replace('（外壁工事含む）', '').trim();
-              if (baseWork === caseWork && caseWallWorks.length > 0) {
-                // 業者が外壁工事種別を少なくとも1つ持っているかチェック
-                const franchiseHasMatchingWallWork = caseWallWorks.some(wallWork =>
-                  franchiseWorkTypes.includes(wallWork)
-                );
-                if (franchiseHasMatchingWallWork) {
-                  matched.push(caseWork);
-                  isMatched = true;
-                  break;
+              if (baseWork === caseWork) {
+                // お客様が外壁主要工事を依頼しているかチェック
+                const caseMajorWallWorks = caseWorkTypes.filter(w => MAJOR_WALL_WORKS.includes(w));
+                if (caseMajorWallWorks.length > 0) {
+                  // 業者がお客様の希望する外壁主要工事を持っているかチェック
+                  const franchiseHasMajorWallWork = caseMajorWallWorks.some(majorWork =>
+                    franchiseWorkTypes.includes(majorWork)
+                  );
+                  if (franchiseHasMajorWallWork) {
+                    matched.push(caseWork);
+                    isMatched = true;
+                    break;
+                  }
                 }
               }
             }
 
             // パターン2: 「X（屋根工事含む）」
-            // 条件: お客様が屋根工事を依頼している + 業者が該当する屋根工事種別を持っている
-            // 例: 業者["屋根塗装", "屋根雨漏り修繕（屋根工事含む）"] + お客様["屋根塗装", "屋根雨漏り修繕"] → 両方マッチ
+            // 条件: お客様が屋根主要工事（屋根葺き替え/カバー工法）を依頼 + 業者がその屋根主要工事を持っている
+            // 例: 業者["屋根カバー工法", "屋根雨漏り修繕（屋根工事含む）"] + お客様["屋根カバー工法", "屋根雨漏り修繕"] → 両方マッチ
             if (franchiseWork.includes('（屋根工事含む）')) {
               const baseWork = franchiseWork.replace('（屋根工事含む）', '').trim();
-              if (baseWork === caseWork && caseRoofWorks.length > 0) {
-                // 業者が屋根工事種別を少なくとも1つ持っているかチェック
-                const franchiseHasMatchingRoofWork = caseRoofWorks.some(roofWork =>
-                  franchiseWorkTypes.includes(roofWork)
-                );
-                if (franchiseHasMatchingRoofWork) {
-                  matched.push(caseWork);
-                  isMatched = true;
-                  break;
+              if (baseWork === caseWork) {
+                // お客様が屋根主要工事を依頼しているかチェック
+                const caseMajorRoofWorks = caseWorkTypes.filter(w => MAJOR_ROOF_WORKS.includes(w));
+                if (caseMajorRoofWorks.length > 0) {
+                  // 業者がお客様の希望する屋根主要工事を持っているかチェック
+                  const franchiseHasMajorRoofWork = caseMajorRoofWorks.some(majorWork =>
+                    franchiseWorkTypes.includes(majorWork)
+                  );
+                  if (franchiseHasMajorRoofWork) {
+                    matched.push(caseWork);
+                    isMatched = true;
+                    break;
+                  }
                 }
               }
             }
 
-            // パターン3: 「X単品」は単独依頼時にXをカバー
+            // パターン3: 「X単品」は単独カテゴリ依頼時にXをカバー
             // 正式名称は「屋根塗装単品」「外壁補修単品」など（括弧なし）
-            // 条件: お客様がそのカテゴリのみを依頼している
+            // 条件: お客様がそのカテゴリ（外壁 or 屋根）のみを依頼している
             if (franchiseWork.endsWith('単品')) {
               const baseWork = franchiseWork.replace('単品', '').trim();
               if (baseWork === caseWork) {
-                // 外壁単品 → 外壁のみ依頼、屋根単品 → 屋根のみ依頼
+                // 外壁系単品 → 外壁のみ依頼、屋根系単品 → 屋根のみ依頼
                 const isWallWork = caseWork.startsWith('外壁');
                 const isRoofWork = caseWork.startsWith('屋根');
 
@@ -1196,6 +1204,9 @@ const BusinessSelectionHandler = {
                onclick="event.stopPropagation();"
                title="クリックで詳細を表示">
             ${card.matchRate}% マッチ
+          </div>
+          <div class="mt-1 text-sm font-bold text-green-600">
+            ${formattedPrice}
           </div>
         </div>
       </div>
