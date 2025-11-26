@@ -691,7 +691,7 @@ const BusinessSelectionHandler = {
       const caseWallWorks = caseWorkTypes.filter(w => w.startsWith('外壁'));
       const caseRoofWorks = caseWorkTypes.filter(w => w.startsWith('屋根'));
 
-      const matched = [];
+      const matched = []; // V1908: 業者が持っているマッチした工事種別（業者側の正式名称）
       const unmatched = [];
 
       // 各工事種別を個別にチェック
@@ -700,7 +700,7 @@ const BusinessSelectionHandler = {
 
         // 完全一致チェック
         if (franchiseWorkTypes.includes(caseWork)) {
-          matched.push(caseWork);
+          matched.push(caseWork); // 完全一致の場合は同じ名称
           isMatched = true;
         } else {
           // V1903: イレギュラーパターンの厳格マッチング（外壁主要工事・屋根主要工事ベース）
@@ -720,7 +720,7 @@ const BusinessSelectionHandler = {
                     franchiseWorkTypes.includes(majorWork)
                   );
                   if (franchiseHasMajorWallWork) {
-                    matched.push(caseWork);
+                    matched.push(franchiseWork); // V1908: 業者��の正式名称を追加
                     isMatched = true;
                     break;
                   }
@@ -742,7 +742,7 @@ const BusinessSelectionHandler = {
                     franchiseWorkTypes.includes(majorWork)
                   );
                   if (franchiseHasMajorRoofWork) {
-                    matched.push(caseWork);
+                    matched.push(franchiseWork); // V1908: 業者側の正式名称を追加
                     isMatched = true;
                     break;
                   }
@@ -762,12 +762,12 @@ const BusinessSelectionHandler = {
 
                 if (isWallWork && caseWallWorks.length > 0 && caseRoofWorks.length === 0) {
                   // 外壁のみ依頼
-                  matched.push(caseWork);
+                  matched.push(franchiseWork); // V1908: 業者側の正式名称を追加
                   isMatched = true;
                   break;
                 } else if (isRoofWork && caseRoofWorks.length > 0 && caseWallWorks.length === 0) {
                   // 屋根のみ依頼
-                  matched.push(caseWork);
+                  matched.push(franchiseWork); // V1908: 業者側の正式名称を追加
                   isMatched = true;
                   break;
                 }
