@@ -254,7 +254,9 @@ const BusinessSelectionHandler = {
       companyName: business.companyName,
       serviceAreas: [business.prefecture].filter(p => p),
       city: business.city || '',
+      citiesArray: (business.cities || '').split(',').map(c => c.trim()).filter(c => c),
       workTypes: (business.constructionTypes || '').split(',').map(t => t.trim()).filter(t => t),
+      specialSupport: business.specialSupport || '',
       avgContractAmount: business.avgContractAmount || 0,
       rating: business.rating || 4.2,
       reviewCount: business.reviewCount || 0,
@@ -897,9 +899,7 @@ const BusinessSelectionHandler = {
     if (!matchDetails) return;
 
     // 案件データから詳細情報を取得
-    const casePrefecture = this.currentCaseData?.prefecture || this.currentCaseData?._rawData?.prefecture || '';
     const caseCity = this.currentCaseData?.city || this.currentCaseData?._rawData?.city || '';
-    const caseAddress = this.currentCaseData?.address || '';
     const rawData = this.currentCaseData?._rawData || {};
     const botAnswers = rawData.botAnswers || {};
 
@@ -909,6 +909,12 @@ const BusinessSelectionHandler = {
     const userWorkTypes = [];
     if (userWallWork) userWorkTypes.push(`外壁${userWallWork}`);
     if (userRoofWork) userWorkTypes.push(`屋根${userRoofWork}`);
+
+    // 業者データを取得（業者の全工事種別と特殊対応を取得）
+    const franchise = this.allFranchises.find(f => f.companyName === companyName);
+    const allFranchiseWorkTypes = franchise?.workTypes || [];
+    const specialSupport = franchise?.specialSupport || '';
+    const franchiseCities = franchise?.citiesArray || [];
 
     const modalHTML = `
       <div id="matchDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) this.remove()">
@@ -959,19 +965,19 @@ const BusinessSelectionHandler = {
                 <!-- 案件エリア詳細 -->
                 <div class="bg-blue-50 p-2 rounded">
                   <div class="font-semibold text-blue-900 mb-1">📍 案件エリア（お客様）</div>
-                  ${caseAddress ? `<div class="text-blue-800">住所: <span class="font-medium">${caseAddress}</span></div>` : `${casePrefecture ? `<div class="text-blue-800">• 都道府県: <span class="font-medium">${casePrefecture}</span></div>` : ''}${caseCity ? `<div class="text-blue-800">• 市区町村: <span class="font-medium">${caseCity}</span></div>` : ''}`}
+                  ${caseCity ? `<div class="text-blue-800">市区町村: <span class="font-medium">${caseCity}</span></div>` : '<div class="text-gray-500">未設定</div>'}
                 </div>
                 <!-- 業者対応エリア詳細 -->
                 <div class="bg-gray-50 p-2 rounded">
-                  <div class="font-semibold text-gray-900 mb-1">🏢 業者の対応エリア</div>
+                  <div class="font-semibold text-gray-900 mb-1">🏢 業者の対応エリア（市区町村）</div>
                   <div class="${matchDetails.area.matched ? 'text-green-700' : 'text-gray-700'}">
-                    ${matchDetails.area.available.length > 0 ? matchDetails.area.available.map(area => `• ${area}`).join('<br>') : '未設定'}
+                    ${franchiseCities.length > 0 ? franchiseCities.sort().map(city => `• ${city}`).join('<br>') : '未設定'}
                   </div>
                 </div>
                 ${matchDetails.area.matched ? `
                   <div class="text-green-600 font-semibold flex items-center gap-1">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                    ✓ エリアマッチ完了
+                    エリアマッチ完了
                   </div>
                 ` : `
                   <div class="text-red-600 font-semibold">→ 業者に ${matchDetails.area.required} への対応追加を依頼</div>
