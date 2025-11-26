@@ -644,10 +644,9 @@ const BusinessSelectionHandler = {
     const franchiseWorkTypes = franchise.workTypes || [];
 
     if (caseWorkTypes.length > 0 && franchiseWorkTypes.length > 0) {
-      // V1901: お客様が外壁と屋根の両方を依頼しているかチェック
+      // V1902: お客様が依頼している外壁・屋根工事を抽出
       const caseWallWorks = caseWorkTypes.filter(w => w.startsWith('外壁'));
       const caseRoofWorks = caseWorkTypes.filter(w => w.startsWith('屋根'));
-      const requestsBothWallAndRoof = caseWallWorks.length > 0 && caseRoofWorks.length > 0;
 
       const matched = [];
       const unmatched = [];
@@ -661,17 +660,15 @@ const BusinessSelectionHandler = {
           matched.push(caseWork);
           isMatched = true;
         } else {
-          // V1901: イレギュラーパターンの柔軟マッチング
+          // V1902: イレギュラーパターンの柔軟マッチング（外壁工事含む・屋根工事含む・単品）
           for (const franchiseWork of franchiseWorkTypes) {
-            // パターン1: 「X（外壁工事含む）」は厳格条件でXにマッチ
-            // 条件: (1) 外壁+屋根セット依頼、(2) 業者が外壁工事種別を持っている
-            // 例: 業者が["外壁塗装", "屋根塗装（外壁工事含む）"]を持ち、
-            //     お客様が["外壁塗装", "屋根塗装"]を依頼 → 両方マッチ
-            // 逆例: 業者が["外壁張り替え", "屋根塗装（外壁工事含む）"]のみで、
-            //       お客様が["外壁塗装", "屋根塗装"]を依頼 → 屋根塗装はNG
+            // パターン1: 「X（外壁工事含む）」
+            // 条件: お客様が外壁工事を依頼している + 業者が該当する外壁工事種別を持っている
+            // 例: 業者["外壁塗装", "屋根塗装（外壁工事含む）"] + お客様["外壁塗装", "屋根塗装"] → 両方マッチ
+            // 逆例: 業者["外壁張り替え", "屋根塗装（外壁工事含む）"] + お客様["外壁塗装", "屋根塗装"] → 屋根塗装はNG
             if (franchiseWork.includes('（外壁工事含む）')) {
               const baseWork = franchiseWork.replace('（外壁工事含む）', '').trim();
-              if (baseWork === caseWork && requestsBothWallAndRoof) {
+              if (baseWork === caseWork && caseWallWorks.length > 0) {
                 // 業者が外壁工事種別を少なくとも1つ持っているかチェック
                 const franchiseHasMatchingWallWork = caseWallWorks.some(wallWork =>
                   franchiseWorkTypes.includes(wallWork)
@@ -684,13 +681,45 @@ const BusinessSelectionHandler = {
               }
             }
 
-            // パターン2: 「屋根塗装（単品）」は屋根のみ依頼時に「屋根塗装」をカバー
-            if (franchiseWork.includes('（単品）')) {
-              const baseWork = franchiseWork.replace('（単品）', '').trim();
-              if (baseWork === caseWork && !requestsBothWallAndRoof) {
-                matched.push(caseWork);
-                isMatched = true;
-                break;
+            // パターン2: 「X（屋根工事含む）」
+            // 条件: お客様が屋根工事を依頼している + 業者が該当する屋根工事種別を持っている
+            // 例: 業者["屋根塗装", "屋根雨漏り修繕（屋根工事含む）"] + お客様["屋根塗装", "屋根雨漏り修繕"] → 両方マッチ
+            if (franchiseWork.includes('（屋根工事含む）')) {
+              const baseWork = franchiseWork.replace('（屋根工事含む）', '').trim();
+              if (baseWork === caseWork && caseRoofWorks.length > 0) {
+                // 業者が屋根工事種別を少なくとも1つ持っているかチェック
+                const franchiseHasMatchingRoofWork = caseRoofWorks.some(roofWork =>
+                  franchiseWorkTypes.includes(roofWork)
+                );
+                if (franchiseHasMatchingRoofWork) {
+                  matched.push(caseWork);
+                  isMatched = true;
+                  break;
+                }
+              }
+            }
+
+            // パターン3: 「X単品」は単独依頼時にXをカバー
+            // 正式名称は「屋根塗装単品」「外壁補修単品」など（括弧なし）
+            // 条件: お客様がそのカテゴリのみを依頼している
+            if (franchiseWork.endsWith('単品')) {
+              const baseWork = franchiseWork.replace('単品', '').trim();
+              if (baseWork === caseWork) {
+                // 外壁単品 → 外壁のみ依頼、屋根単品 → 屋根のみ依頼
+                const isWallWork = caseWork.startsWith('外壁');
+                const isRoofWork = caseWork.startsWith('屋根');
+
+                if (isWallWork && caseWallWorks.length > 0 && caseRoofWorks.length === 0) {
+                  // 外壁のみ依頼
+                  matched.push(caseWork);
+                  isMatched = true;
+                  break;
+                } else if (isRoofWork && caseRoofWorks.length > 0 && caseWallWorks.length === 0) {
+                  // 屋根のみ依頼
+                  matched.push(caseWork);
+                  isMatched = true;
+                  break;
+                }
               }
             }
           }
