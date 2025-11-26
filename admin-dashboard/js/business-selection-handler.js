@@ -536,13 +536,25 @@ const BusinessSelectionHandler = {
       workTypes: { matched: [], unmatched: [], score: 0, maxScore: 60 }
     };
 
-    // エリアマッチング（40%）
+    // エリアマッチング（40%）- 都道府県対応
     const casePrefecture = this.currentCaseData?.prefecture || this.currentCaseData?._rawData?.prefecture || '';
     const franchiseAreas = franchise.serviceAreas || [];
     details.area.required = casePrefecture;
     details.area.available = franchiseAreas;
 
-    if (casePrefecture && franchiseAreas.includes(casePrefecture)) {
+    // 都道府県の接尾辞を除外して比較
+    const normalizePrefecture = (pref) => {
+      if (!pref) return '';
+      return pref.replace(/[都道府県]$/, '');
+    };
+
+    const normalizedCase = normalizePrefecture(casePrefecture);
+    const isAreaMatch = casePrefecture && franchiseAreas.some(area => {
+      const normalizedArea = normalizePrefecture(area);
+      return normalizedCase === normalizedArea;
+    });
+
+    if (isAreaMatch) {
       total += 40;
       details.area.matched = true;
       details.area.score = 40;
@@ -754,11 +766,8 @@ const BusinessSelectionHandler = {
     // 住所情報（マップアイコン用）
     const fullAddress = `${card.serviceAreas[0] || ''}${card.city || ''}`;
 
-    // 追加情報（価格・評価・距離）
+    // 追加情報（評価・距離）
     let additionalInfo = '';
-    if (card.avgContractAmount > 0) {
-      additionalInfo += `<div class="text-xs text-gray-600">平均: ${this.formatPrice(card.avgContractAmount)}</div>`;
-    }
     if (card.rating > 0) {
       additionalInfo += `<div class="text-xs text-yellow-600">★${card.rating}</div>`;
     }
@@ -774,9 +783,9 @@ const BusinessSelectionHandler = {
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <div class="font-semibold text-gray-900 text-sm sm:text-lg">${card.companyName}</div>
-              ${card.isUserSelected ? '<span class="inline-block px-2 py-0.5 bg-pink-600 text-white text-sm font-bold rounded">👤</span>' : ''}
+              ${card.isUserSelected ? '<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();"><span class="inline-block px-2 py-0.5 bg-pink-600 text-white text-sm font-bold rounded">📋</span><span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">ユーザー選択</span></span>' : ''}
               ${fullAddress ? `<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
-                🗺
+                📍
                 <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">
                   ${fullAddress}
                 </span>
