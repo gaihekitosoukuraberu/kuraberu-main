@@ -639,13 +639,68 @@ const BusinessSelectionHandler = {
       details.area.score = 20;
     }
 
-    // 工事種別マッチング（40点）
+    // 工事種別マッチング（40点）- V1901: イレギュラーパターン対応
     const caseWorkTypes = this.extractWorkTypes();
     const franchiseWorkTypes = franchise.workTypes || [];
 
     if (caseWorkTypes.length > 0 && franchiseWorkTypes.length > 0) {
-      const matched = caseWorkTypes.filter(w => franchiseWorkTypes.includes(w));
-      const unmatched = caseWorkTypes.filter(w => !franchiseWorkTypes.includes(w));
+      // V1901: お客様が外壁と屋根の両方を依頼しているかチェック
+      const caseWallWorks = caseWorkTypes.filter(w => w.startsWith('外壁'));
+      const caseRoofWorks = caseWorkTypes.filter(w => w.startsWith('屋根'));
+      const requestsBothWallAndRoof = caseWallWorks.length > 0 && caseRoofWorks.length > 0;
+
+      const matched = [];
+      const unmatched = [];
+
+      // 各工事種別を個別にチェック
+      caseWorkTypes.forEach(caseWork => {
+        let isMatched = false;
+
+        // 完全一致チェック
+        if (franchiseWorkTypes.includes(caseWork)) {
+          matched.push(caseWork);
+          isMatched = true;
+        } else {
+          // V1901: イレギュラーパターンの柔軟マッチング
+          for (const franchiseWork of franchiseWorkTypes) {
+            // パターン1: 「X（外壁工事含む）」は厳格条件でXにマッチ
+            // 条件: (1) 外壁+屋根セット依頼、(2) 業者が外壁工事種別を持っている
+            // 例: 業者が["外壁塗装", "屋根塗装（外壁工事含む）"]を持ち、
+            //     お客様が["外壁塗装", "屋根塗装"]を依頼 → 両方マッチ
+            // 逆例: 業者が["外壁張り替え", "屋根塗装（外壁工事含む）"]のみで、
+            //       お客様が["外壁塗装", "屋根塗装"]を依頼 → 屋根塗装はNG
+            if (franchiseWork.includes('（外壁工事含む）')) {
+              const baseWork = franchiseWork.replace('（外壁工事含む）', '').trim();
+              if (baseWork === caseWork && requestsBothWallAndRoof) {
+                // 業者が外壁工事種別を少なくとも1つ持っているかチェック
+                const franchiseHasMatchingWallWork = caseWallWorks.some(wallWork =>
+                  franchiseWorkTypes.includes(wallWork)
+                );
+                if (franchiseHasMatchingWallWork) {
+                  matched.push(caseWork);
+                  isMatched = true;
+                  break;
+                }
+              }
+            }
+
+            // パターン2: 「屋根塗装（単品）」は屋根のみ依頼時に「屋根塗装」をカバー
+            if (franchiseWork.includes('（単品）')) {
+              const baseWork = franchiseWork.replace('（単品）', '').trim();
+              if (baseWork === caseWork && !requestsBothWallAndRoof) {
+                matched.push(caseWork);
+                isMatched = true;
+                break;
+              }
+            }
+          }
+        }
+
+        if (!isMatched) {
+          unmatched.push(caseWork);
+        }
+      });
+
       const matchRatio = matched.length / caseWorkTypes.length;
       const score = Math.round(matchRatio * 40);
 
