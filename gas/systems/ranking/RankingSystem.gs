@@ -117,7 +117,9 @@ const RankingSystem = {
         // V1751: 加盟日追加（データ移行システム用）
         joinDate: masterHeaders.indexOf('加盟日'),
         // V1766: プレビューHP追加（詳細モーダル用）
-        previewHP: masterHeaders.indexOf('プレビューHP')
+        previewHP: masterHeaders.indexOf('プレビューHP'),
+        // V1891: 特殊対応項目追加（Admin Dashboardマッチ度計算用）
+        specialSupport: masterHeaders.indexOf('特殊対応項目')
       };
 
       // V1713-DEBUG: カラムインデックス検証
@@ -414,7 +416,7 @@ const RankingSystem = {
           handicap: handicap,
           depositAdvance: depositAdvance,
           prioritySupplyFlag: prioritySupplyFlag,
-          specialSupport: '',
+          specialSupport: row[colIndex.specialSupport] || '',
           maxFloors: '',
           contractCount: recent3MonthContractCount,
           // V1750: 3ヶ月データ追加
