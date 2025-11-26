@@ -20,7 +20,7 @@ const RankingSystem = {
     try {
       console.log('[RankingSystem] getRanking開始:', params);
 
-      // V1713-FIX: 郵便番号なし = 全国版ランキング
+      // V1900: zipcodeから推定 OR 直接指定された prefecture/city を使用
       const zipcode = params.zipcode || '';
       let prefecture = '';
       let city = '';
@@ -31,7 +31,14 @@ const RankingSystem = {
         city = this.getCityFromZipcode(zipcode);
         console.log('[RankingSystem] 郵便番号 ' + zipcode + ' → 都道府県: ' + prefecture + ', 市区町村: ' + city);
       } else {
-        console.log('[RankingSystem] 全国版ランキング取得（郵便番号なし）');
+        // V1900: zipcodeがない場合は直接指定された prefecture/city を使用（Admin Dashboard対応）
+        prefecture = params.prefecture || '';
+        city = params.city || '';
+        if (prefecture || city) {
+          console.log('[RankingSystem] 直接指定の都道府県・市区町村を使用: ' + prefecture + ', ' + city);
+        } else {
+          console.log('[RankingSystem] 全国版ランキング取得（郵便番号・都道府県なし）');
+        }
       }
 
       // V1705/V1707: BOT回答データ取得

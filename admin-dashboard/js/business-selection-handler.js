@@ -182,6 +182,10 @@ const BusinessSelectionHandler = {
     // 郵便番号（zipcode）
     const zipcode = caseData.postalCode || rawData.postalCode || '';
 
+    // V1900: 都道府県・市区町村を直接抽出（zipcodeが無い場合の fallback）
+    const prefecture = caseData.prefecture || rawData.prefecture || '';
+    const city = caseData.city || rawData.city || '';
+
     // 外壁・屋根の材質と工事内容
     const wallMaterial = caseData.wallMaterial || botAnswers.q6_wallMaterial || '';
     const roofMaterial = caseData.roofMaterial || botAnswers.q7_roofMaterial || '';
@@ -205,6 +209,8 @@ const BusinessSelectionHandler = {
 
     return {
       zipcode,
+      prefecture, // V1900: 追加
+      city, // V1900: 追加
       wallMaterial,
       roofMaterial,
       wallWorkType,
