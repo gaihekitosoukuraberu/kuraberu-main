@@ -2110,6 +2110,13 @@ const RankingSystem = {
         companyNameKana: masterHeaders.indexOf('会社名カナ')
       };
 
+      // V1913: デバッグ - 住所列確認
+      console.log('[V1913-DEBUG] 住所 index:', colIndex.address);
+      console.log('[V1913-DEBUG] 支店住所 index:', colIndex.branchAddress);
+      console.log('[V1913-DEBUG] Total columns:', masterHeaders.length);
+      console.log('[V1913-DEBUG] Column 34 (AH) header:', masterHeaders[33]); // AH列は34列目（0-indexed: 33）
+      console.log('[V1913-DEBUG] Headers 30-40:', masterHeaders.slice(30, 40));
+
       // アクティブ加盟店のみフィルタリング（承認済み + 配信停止以外 + サイレントフラグOFF）
       const activeFranchises = [];
       for (let i = 0; i < allData.length; i++) {
@@ -2151,7 +2158,14 @@ const RankingSystem = {
       return {
         success: true,
         franchises: activeFranchises,
-        count: activeFranchises.length
+        count: activeFranchises.length,
+        debug: {
+          addressIndex: colIndex.address,
+          branchAddressIndex: colIndex.branchAddress,
+          totalColumns: masterHeaders.length,
+          columnAH: masterHeaders[33],
+          headers30to40: masterHeaders.slice(30, 40)
+        }
       };
 
     } catch (error) {

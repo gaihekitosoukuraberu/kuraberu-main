@@ -2070,6 +2070,14 @@ const AdminSystem = {
             // V1843: プレビューHPを加盟店登録から取得
             masterRow.push(previewHPFromReg || '');
             break;
+          case '住所':
+            // V1913: 住所を加盟店登録から取得（AH列）
+            masterRow.push(address || '');
+            break;
+          case '支店住所':
+            // V1913: 支店住所を加盟店登録から取得
+            masterRow.push(branches || '');
+            break;
           default:
             masterRow.push('');
         }
