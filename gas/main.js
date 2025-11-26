@@ -287,6 +287,14 @@ const SystemRouter = {
       actions: ['syncCompanyNameKana']
     },
 
+    // 全アクティブ加盟店取得（V1913: Admin Dashboard検索用）
+    'getAllActiveFranchises': {
+      system: 'RankingSystem',
+      description: '全アクティブ加盟店取得',
+      prefix: false,
+      actions: ['getAllActiveFranchises']
+    },
+
     // 距離計算（V1882: Google Maps Distance Matrix API）
     'calculateDistances': {
       system: 'DistanceCalculator',

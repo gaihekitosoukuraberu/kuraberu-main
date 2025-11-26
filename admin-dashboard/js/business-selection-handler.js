@@ -596,6 +596,39 @@ const BusinessSelectionHandler = {
   },
 
   /**
+   * V1913: ひらがなをカタカナに変換
+   * @param {string} str - 変換する文字列
+   * @returns {string} カタカナに変換された文字列
+   */
+  hiraganaToKatakana(str) {
+    return str.replace(/[\u3041-\u3096]/g, ch =>
+      String.fromCharCode(ch.charCodeAt(0) + 0x60)
+    );
+  },
+
+  /**
+   * V1913: 全アクティブ加盟店を取得（検索用）
+   * @returns {Promise<Array>} 全アクティブ加盟店配列
+   */
+  async getAllActiveFranchises() {
+    try {
+      console.log('[BusinessSelection] 全アクティブ加盟店取得開始');
+      const response = await window.apiClient.jsonpRequest('getAllActiveFranchises', {});
+
+      if (!response || !response.success) {
+        throw new Error(response?.error || '全加盟店取得失敗');
+      }
+
+      console.log('[BusinessSelection] 全アクティブ加盟店数:', response.count);
+      return response.franchises || [];
+
+    } catch (error) {
+      console.error('[BusinessSelection] 全アクティブ加盟店取得エラー:', error);
+      return [];
+    }
+  },
+
+  /**
    * 検索フィルタリング（V1880: 修正版 - チェックボックスは転送候補選択用）
    * @param {string} query - 検索クエリ
    * @param {Array} franchises - 業者リスト

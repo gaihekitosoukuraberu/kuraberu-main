@@ -2041,6 +2041,11 @@ const RankingSystem = {
       return this.syncCompanyNameKanaToMaster();
     }
 
+    // V1913: 全アクティブ加盟店取得（Admin Dashboard検索用）
+    if (action === 'getAllActiveFranchises') {
+      return this.getAllActiveFranchises();
+    }
+
     // V1898: デバッグ用 - 加盟店登録シートのヘッダーとデータ確認
     if (action === 'debugRegisterSheet') {
       return this.debugRegisterSheetData(params.companyName);
@@ -2050,6 +2055,112 @@ const RankingSystem = {
       success: false,
       error: 'Unknown action: ' + action
     };
+  },
+
+  /**
+   * V1913: 全アクティブ加盟店を取得（Admin Dashboard検索用）
+   * 承認済み + 配信中 の全業者を返す（地域・工事種別フィルタなし）
+   */
+  getAllActiveFranchises: function() {
+    try {
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const masterSheet = ss.getSheetByName('加盟店マスタ');
+
+      if (!masterSheet) {
+        return {
+          success: false,
+          error: '加盟店マスタシートが見つかりません'
+        };
+      }
+
+      const lastRow = masterSheet.getLastRow();
+      if (lastRow < 2) {
+        return {
+          success: true,
+          franchises: [],
+          count: 0
+        };
+      }
+
+      // ヘッダー取得
+      const masterHeaders = masterSheet.getRange(1, 1, 1, masterSheet.getLastColumn()).getValues()[0];
+      const allData = masterSheet.getRange(2, 1, lastRow - 1, masterSheet.getLastColumn()).getValues();
+
+      // カラムインデックス取得
+      const colIndex = {
+        companyName: masterHeaders.indexOf('会社名'),
+        prefecture: masterHeaders.indexOf('対応都道府県'),
+        cities: masterHeaders.indexOf('対応市区町村'),
+        approvalStatus: masterHeaders.indexOf('承認ステータス'),
+        deliveryStatus: masterHeaders.indexOf('配信ステータス'),
+        avgContractAmount: masterHeaders.indexOf('直近3ヶ月_平均成約金額'),
+        rating: masterHeaders.indexOf('総合スコア'),
+        reviewCount: masterHeaders.indexOf('口コミ件数'),
+        contractCount: masterHeaders.indexOf('直近3ヶ月_成約件数'),
+        constructionTypes: masterHeaders.indexOf('対応工事種別'),
+        buildingAgeMin: masterHeaders.indexOf('対応築年数_最小'),
+        buildingAgeMax: masterHeaders.indexOf('対応築年数_最大'),
+        silentFlag: masterHeaders.indexOf('サイレントフラグ'),
+        previewHP: masterHeaders.indexOf('プレビューHP'),
+        specialSupport: masterHeaders.indexOf('特殊対応項目'),
+        maxFloors: masterHeaders.indexOf('最大対応階数'),
+        address: masterHeaders.indexOf('住所'),
+        branchAddress: masterHeaders.indexOf('支店住所'),
+        companyNameKana: masterHeaders.indexOf('会社名カナ')
+      };
+
+      // アクティブ加盟店のみフィルタリング（承認済み + 配信中 + サイレントフラグOFF）
+      const activeFranchises = [];
+      for (let i = 0; i < allData.length; i++) {
+        const row = allData[i];
+        const approvalStatus = row[colIndex.approvalStatus] || '';
+        const deliveryStatus = row[colIndex.deliveryStatus] || '';
+        const silentFlag = row[colIndex.silentFlag] || 'FALSE';
+
+        // 承認済み + 配信中 + サイレントフラグOFFのみ
+        if (approvalStatus === '承認' && deliveryStatus === '配信中' && silentFlag !== 'TRUE') {
+          const companyName = row[colIndex.companyName] || '';
+          const prefectures = row[colIndex.prefecture] || '';
+          const cities = row[colIndex.cities] || '';
+
+          activeFranchises.push({
+            companyName: companyName,
+            serviceAreas: prefectures,
+            city: cities.split('\n')[0] || '',
+            citiesArray: cities ? cities.split('\n').filter(c => c) : [],
+            avgContractAmount: row[colIndex.avgContractAmount] || 0,
+            rating: row[colIndex.rating] || 0,
+            reviewCount: row[colIndex.reviewCount] || 0,
+            contractCount: row[colIndex.contractCount] || 0,
+            constructionTypes: row[colIndex.constructionTypes] || '',
+            buildingAgeMin: row[colIndex.buildingAgeMin] || 0,
+            buildingAgeMax: row[colIndex.buildingAgeMax] || 0,
+            previewHP: row[colIndex.previewHP] || '',
+            specialSupport: row[colIndex.specialSupport] || '',
+            maxFloors: row[colIndex.maxFloors] || 0,
+            address: row[colIndex.address] || '',
+            branchAddress: row[colIndex.branchAddress] || '',
+            companyNameKana: row[colIndex.companyNameKana] || ''
+          });
+        }
+      }
+
+      console.log('[RankingSystem] getAllActiveFranchises: ' + activeFranchises.length + '件');
+
+      return {
+        success: true,
+        franchises: activeFranchises,
+        count: activeFranchises.length
+      };
+
+    } catch (error) {
+      console.error('[RankingSystem] getAllActiveFranchises ERROR:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
   },
 
   /**
