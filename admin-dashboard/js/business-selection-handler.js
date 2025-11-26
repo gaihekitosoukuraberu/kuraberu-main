@@ -834,9 +834,14 @@ const BusinessSelectionHandler = {
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <div class="font-semibold text-gray-900 text-sm sm:text-lg">${card.companyName}</div>
-              ${card.isUserSelected ? '<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();"><span class="inline-block px-2 py-0.5 bg-pink-600 text-white text-sm font-bold rounded">📋</span><span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">ユーザー選択</span></span>' : ''}
+              ${card.isUserSelected ? '<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();"><span class="inline-flex items-center justify-center w-6 h-6 bg-pink-600 text-white rounded"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg></span><span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">ユーザー選択</span></span>' : ''}
               ${fullAddress ? `<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
-                📍
+                <span class="inline-flex items-center justify-center w-6 h-6 text-yellow-500">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                </span>
                 <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">
                   ${fullAddress}
                 </span>
@@ -954,9 +959,7 @@ const BusinessSelectionHandler = {
                 <!-- 案件エリア詳細 -->
                 <div class="bg-blue-50 p-2 rounded">
                   <div class="font-semibold text-blue-900 mb-1">📍 案件エリア（お客様）</div>
-                  ${casePrefecture ? `<div class="text-blue-800">• 都道府県: <span class="font-medium">${casePrefecture}</span></div>` : ''}
-                  ${caseCity ? `<div class="text-blue-800">• 市区町村: <span class="font-medium">${caseCity}</span></div>` : ''}
-                  ${caseAddress ? `<div class="text-blue-700 text-xs mt-1">住所: ${caseAddress}</div>` : ''}
+                  ${caseAddress ? `<div class="text-blue-800">住所: <span class="font-medium">${caseAddress}</span></div>` : `${casePrefecture ? `<div class="text-blue-800">• 都道府県: <span class="font-medium">${casePrefecture}</span></div>` : ''}${caseCity ? `<div class="text-blue-800">• 市区町村: <span class="font-medium">${caseCity}</span></div>` : ''}`}
                 </div>
                 <!-- 業者対応エリア詳細 -->
                 <div class="bg-gray-50 p-2 rounded">
