@@ -128,7 +128,11 @@ const RankingSystem = {
         // V1891: 特殊対応項目追加（Admin Dashboardマッチ度計算用）
         specialSupport: masterHeaders.indexOf('特殊対応項目'),
         // V1899: 物件種別・階数追加（マッチ度計算強化）
-        maxFloors: masterHeaders.indexOf('最大対応階数')
+        maxFloors: masterHeaders.indexOf('最大対応階数'),
+        // V1911: 住所・支店住所追加（地図ピンツールチップ用）
+        address: masterHeaders.indexOf('住所'),
+        branchAddress: masterHeaders.indexOf('支店住所'),
+        companyNameKana: masterHeaders.indexOf('会社名カナ')
       };
 
       // V1713-DEBUG: カラムインデックス検証
@@ -463,7 +467,11 @@ const RankingSystem = {
           // V1751: 加盟日追加
           joinDate: joinDate,
           // V1766: プレビューHP追加
-          previewHP: row[colIndex.previewHP] || ''
+          previewHP: row[colIndex.previewHP] || '',
+          // V1911: 住所・支店住所・会社名カナ追加（地図ピンツールチップ・かな検索用）
+          address: row[colIndex.address] || '',
+          branchAddress: row[colIndex.branchAddress] || '',
+          companyNameKana: row[colIndex.companyNameKana] || ''
         });
 
         // V1834-DEBUG: 最初の3社のプレビューHP値をログ出力

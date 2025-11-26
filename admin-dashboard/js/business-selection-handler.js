@@ -321,7 +321,11 @@ const BusinessSelectionHandler = {
       distance: null,  // 後で計算
       distanceText: '',
       // V1880: previewHP
-      previewHP: business.previewHP || ''
+      previewHP: business.previewHP || '',
+      // V1911: 住所・支店住所・会社名カナ追加
+      address: business.address || '',
+      branchAddress: business.branchAddress || '',
+      companyNameKana: business.companyNameKana || ''
     };
 
     // V1900: 変換デバッグログ
@@ -596,11 +600,12 @@ const BusinessSelectionHandler = {
       }
     });
 
-    // 検索クエリでフィルタリング（AS列以外の業者）
+    // V1911: 検索クエリでフィルタリング（AS列以外の業者、かな検索対応）
     const filtered = others.filter(f => {
       const companyName = f.companyName || '';
-      // 漢字/ひらがな部分一致
-      return companyName.includes(query);
+      const companyNameKana = f.companyNameKana || '';
+      // 会社名（漢字）またはカナで部分一致
+      return companyName.includes(query) || companyNameKana.includes(query);
     });
 
     // AS列業者を最初に配置（検索中でも常に表示）
@@ -625,11 +630,13 @@ const BusinessSelectionHandler = {
       // ユーザー選択業者を固定
       const userSelected = allFranchises.filter(f => this.isUserSelected(f.companyName));
 
-      // 全加盟店から検索（ユーザー選択業者を除く）
+      // V1911: 全加盟店から検索（ユーザー選択業者を除く、かな検索対応）
       const searchResults = allFranchises.filter(f => {
         if (this.isUserSelected(f.companyName)) return false; // 既にuserSelectedに含まれている
         const companyName = f.companyName || '';
-        return companyName.includes(searchQuery);
+        const companyNameKana = f.companyNameKana || '';
+        // 会社名（漢字）またはカナで部分一致
+        return companyName.includes(searchQuery) || companyNameKana.includes(searchQuery);
       });
 
       // ユーザー選択業者 + 検索結果を表示
@@ -670,7 +677,11 @@ const BusinessSelectionHandler = {
         reviewCount: franchise.reviewCount,
         distance: franchise.distance,
         distanceText: franchise.distanceText,
-        durationText: franchise.durationText
+        durationText: franchise.durationText,
+        // V1911: 住所情報追加
+        address: franchise.address,
+        branchAddress: franchise.branchAddress,
+        companyNameKana: franchise.companyNameKana
       };
     });
   },
@@ -1275,15 +1286,16 @@ const BusinessSelectionHandler = {
       div.setAttribute('data-match-details', JSON.stringify(card.matchDetails));
     }
 
-    // サービスエリア表示（都道府県）
-    const areasText = card.serviceAreas.slice(0, 3).join(' ') || '全国対応';
-
+    // V1911: 都道府県表示削除、住所をツールチップに表示
     // マッチ率の色を決定（100% = 緑、それ以外 = オレンジ）
     const matchRateColor = card.matchRate === 100 ? 'bg-green-500 text-white' : 'bg-orange-500 text-white';
     const matchRateId = `match-rate-${card.franchiseId}`;
 
-    // 住所情報（マップアイコン用）
-    const fullAddress = `${card.serviceAreas[0] || ''}${card.city || ''}`;
+    // V1911: 住所情報（マップアイコンツールチップ用）
+    const addressLines = [];
+    if (card.address) addressLines.push(`本社: ${card.address}`);
+    if (card.branchAddress) addressLines.push(`支店: ${card.branchAddress}`);
+    const addressTooltip = addressLines.length > 0 ? addressLines.join('<br>') : '住所未登録';
 
     // 追加情報（評価・距離）
     let additionalInfo = '';
@@ -1303,23 +1315,22 @@ const BusinessSelectionHandler = {
             <div class="flex items-center gap-2 flex-wrap">
               <div class="font-semibold text-gray-900 text-sm sm:text-lg">${card.companyName}</div>
               ${card.isUserSelected ? '<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();"><span class="inline-flex items-center justify-center w-6 h-6 bg-pink-600 text-white rounded"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg></span><span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">ユーザー選択</span></span>' : ''}
-              ${fullAddress ? `<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
+              <span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
                 <span class="inline-flex items-center justify-center w-6 h-6 text-yellow-500">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                   </svg>
                 </span>
-                <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">
-                  ${fullAddress}
+                <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded transition-opacity duration-200 z-50 pointer-events-none">
+                  ${addressTooltip}
                 </span>
-              </span>` : ''}
+              </span>
             </div>
             ${additionalInfo}
           </div>
         </div>
         <div class="text-right ml-2 sm:ml-4 flex-shrink-0">
-          <div class="text-xs sm:text-sm text-gray-600 hidden sm:block">${areasText}</div>
           <div id="${matchRateId}" class="inline-block px-2 py-1 rounded-full text-xs sm:text-sm font-bold cursor-pointer hover:shadow-lg transition-shadow ${matchRateColor}"
                onclick="event.stopPropagation();"
                title="クリックで詳細を表示">
