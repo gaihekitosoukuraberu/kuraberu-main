@@ -271,6 +271,14 @@ const SystemRouter = {
       actions: ['syncPreviewHP']
     },
 
+    // マッチ項目同期（V1897: 特殊対応項目・最大対応階数・築年数対応範囲を同期）
+    'syncMatchFields': {
+      system: 'RankingSystem',
+      description: 'マッチ項目同期',
+      prefix: false,
+      actions: ['syncMatchFields']
+    },
+
     // 距離計算（V1882: Google Maps Distance Matrix API）
     'calculateDistances': {
       system: 'DistanceCalculator',
