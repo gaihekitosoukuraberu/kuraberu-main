@@ -1,6 +1,6 @@
 /**
  * ============================================
- * 業者選択ハンドラー V1881
+ * 業者選択ハンドラー V1903
  * ============================================
  *
  * 目的: RankingSystemと統合した動的業者選定システム
@@ -22,7 +22,45 @@
  *   - 黄緑: 中マッチ（50-70%）
  *   - 水色: 低マッチ（<50%）
  *   - チェック時は濃い色に変化
+ * - V1903: 工事種別料金計算（1社紹介時 ¥20,000固定、複数社時は最高料金）
  */
+
+// ============================================
+// V1903: 工事種別料金マッピング（ハードコード）
+// ============================================
+const WORK_TYPE_PRICES = {
+  // 通常料金 ¥20,000（15種類）
+  '外壁塗装': 20000,
+  '外壁カバー工法': 20000,
+  '外壁張替え': 20000,
+  '屋根塗装（外壁工事含む）': 20000,
+  '屋上防水（外壁工事含む）': 20000,
+  '屋根葺き替え・張り替え※スレート・ガルバリウム等': 20000,
+  '屋根葺き替え・張り替え※瓦': 20000,
+  '屋根カバー工法': 20000,
+  '外壁補修（外壁工事含む）': 20000,
+  '屋根補修（外壁工事含む）': 20000,
+  'ベランダ防水（外壁工事含む）': 20000,
+  '内装水回り（バス・キッチン・トイレ）（外壁工事含む）': 20000,
+  '内装（フローリングや畳などの床・クロス等）（外壁工事含む）': 20000,
+  '外壁雨漏り修繕（外壁工事含む）': 20000,
+  '屋根雨漏り修繕（屋根工事含む）': 20000,
+
+  // 単品料金（7種類）
+  '屋根塗装単品': 10000,
+  '屋上防水単品': 10000,
+  '外壁補修単品': 5000,
+  '屋根補修単品': 5000,
+  'ベランダ防水単品': 5000,
+  '外壁雨漏り修繕単品': 5000,
+  '屋根雨漏り修繕単品': 5000
+};
+
+// ============================================
+// V1903: 工事種別分類（マッチング用）
+// ============================================
+const MAJOR_WALL_WORKS = ['外壁塗装', '外壁カバー工法', '外壁張替え'];
+const MAJOR_ROOF_WORKS = ['屋根葺き替え・張り替え※スレート・ガルバリウム等', '屋根葺き替え・張り替え※瓦', '屋根カバー工法'];
 
 const BusinessSelectionHandler = {
 
@@ -911,6 +949,43 @@ const BusinessSelectionHandler = {
   },
 
   /**
+   * V1903: 紹介料金を計算
+   * @param {number} franchiseCount - 紹介業者数（1社の場合は全て¥20,000固定）
+   * @returns {number} 紹介料金（最高料金、1社の場合は¥20,000固定）
+   */
+  calculateReferralPrice(franchiseCount) {
+    // 1社紹介の場合は必ず¥20,000
+    if (franchiseCount === 1) {
+      return 20000;
+    }
+
+    // 複数社紹介の場合は最高料金を返す
+    const caseWorkTypes = this.extractWorkTypes();
+    if (caseWorkTypes.length === 0) {
+      return 20000; // デフォルト
+    }
+
+    let maxPrice = 0;
+    caseWorkTypes.forEach(workType => {
+      const price = WORK_TYPE_PRICES[workType] || 20000;
+      if (price > maxPrice) {
+        maxPrice = price;
+      }
+    });
+
+    return maxPrice;
+  },
+
+  /**
+   * 料金をフォーマット（例: 20000 → "¥20,000"）
+   * @param {number} price - 料金
+   * @returns {string} フォーマット済み料金
+   */
+  formatReferralPrice(price) {
+    return `¥${price.toLocaleString()}`;
+  },
+
+  /**
    * チェック済み業者IDを取得
    * @returns {Array<string>}
    */
@@ -947,9 +1022,12 @@ const BusinessSelectionHandler = {
     // 3. 既存の業者カードをクリア
     container.innerHTML = '';
 
+    // V1903: 紹介業者数を計算（料金計算に使用）
+    const franchiseCount = desiredCount;
+
     // 4. 新しい業者カードを生成
     businessCards.forEach(card => {
-      const cardElement = this.createFranchiseCardElement(card);
+      const cardElement = this.createFranchiseCardElement(card, franchiseCount);
       container.appendChild(cardElement);
     });
 
@@ -1037,11 +1115,12 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * 業者カードDOMを生成（V1881: カラーコーディング + ホバー効果）
+   * 業者カードDOMを生成（V1903: 料金表示追加）
    * @param {object} card - 業者カード情報
+   * @param {number} franchiseCount - 紹介業者数
    * @returns {HTMLElement} カードDOM
    */
-  createFranchiseCardElement(card) {
+  createFranchiseCardElement(card, franchiseCount = 1) {
     const div = document.createElement('div');
 
     // カラーコーディング（V1881: 新実装）
@@ -1051,12 +1130,17 @@ const BusinessSelectionHandler = {
       card.shouldCheck
     );
 
+    // V1903: 紹介料金を計算
+    const referralPrice = this.calculateReferralPrice(franchiseCount);
+    const formattedPrice = this.formatReferralPrice(referralPrice);
+
     // ホバー効果: 光る外枠 + 拡大 + 影 + クリック時縮小
     div.className = `franchise-item ${card.shouldCheck ? 'selected' : ''} cursor-pointer border-2 ${borderClass} ${bgClass} rounded-lg p-2 sm:p-4 ${hoverClass} hover:ring-4 ${ringClass} ring-offset-2 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 ease-in-out`;
     div.setAttribute('onclick', 'toggleFranchise(this)');
     div.setAttribute('data-franchise-id', card.franchiseId);
     div.setAttribute('data-match-rate', card.matchRate);
     div.setAttribute('data-user-selected', card.isUserSelected ? 'true' : 'false');
+    div.setAttribute('data-referral-price', referralPrice); // V1903: 料金を属性として保存
 
     // matchDetailsをJSON文字列として保存
     if (card.matchDetails) {
