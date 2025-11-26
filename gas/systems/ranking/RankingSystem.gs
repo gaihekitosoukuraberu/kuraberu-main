@@ -120,9 +120,8 @@ const RankingSystem = {
         previewHP: masterHeaders.indexOf('プレビューHP'),
         // V1891: 特殊対応項目追加（Admin Dashboardマッチ度計算用）
         specialSupport: masterHeaders.indexOf('特殊対応項目'),
-        // V1895: 物件種別・階数・築年数対応範囲追加（マッチ度計算強化）
-        maxFloors: masterHeaders.indexOf('最大対応階数'),
-        buildingAgeRange: masterHeaders.indexOf('築年数対応範囲')
+        // V1899: 物件種別・階数追加（マッチ度計算強化）
+        maxFloors: masterHeaders.indexOf('最大対応階数')
       };
 
       // V1713-DEBUG: カラムインデックス検証
@@ -413,7 +412,6 @@ const RankingSystem = {
           constructionTypes: constructionTypes,
           buildingAgeMin: merchantAgeMin,
           buildingAgeMax: merchantAgeMax,
-          buildingAgeRange: row[colIndex.buildingAgeRange] || '',
           maxFloors: row[colIndex.maxFloors] || ''
         }, userParams);
 
@@ -443,7 +441,6 @@ const RankingSystem = {
           prioritySupplyFlag: prioritySupplyFlag,
           specialSupport: row[colIndex.specialSupport] || '',
           maxFloors: row[colIndex.maxFloors] || '', // V1895: 最大対応階数（物件種別と階数を含む）
-          buildingAgeRange: row[colIndex.buildingAgeRange] || '', // V1895: 築年数対応範囲
           matchRate: matchRate, // V1896: マッチ度（0-100）
           contractCount: recent3MonthContractCount,
           // V1750: 3ヶ月データ追加
@@ -534,7 +531,6 @@ const RankingSystem = {
               constructionTypes: row[colIndex.constructionTypes] || '',
               buildingAgeMin: row[colIndex.buildingAgeMin] || 0,
               buildingAgeMax: row[colIndex.buildingAgeMax] || 100,
-              buildingAgeRange: row[colIndex.buildingAgeRange] || '',
               maxFloors: row[colIndex.maxFloors] || ''
             }, userParams);
 
@@ -549,7 +545,6 @@ const RankingSystem = {
               constructionTypes: row[colIndex.constructionTypes] || '',
               specialSupport: row[colIndex.specialSupport] || '', // V1894: 特殊対応項目を追加
               maxFloors: row[colIndex.maxFloors] || '', // V1895: 最大対応階数（物件種別と階数を含む）
-              buildingAgeRange: row[colIndex.buildingAgeRange] || '', // V1895: 築年数対応範囲
               matchRate: matchRate, // V1896: マッチ度（0-100）
               priorityArea: priorityArea,
               handicap: handicap,
@@ -624,7 +619,6 @@ const RankingSystem = {
               constructionTypes: row[colIndex.constructionTypes] || '',
               buildingAgeMin: row[colIndex.buildingAgeMin] || 0,
               buildingAgeMax: row[colIndex.buildingAgeMax] || 100,
-              buildingAgeRange: row[colIndex.buildingAgeRange] || '',
               maxFloors: row[colIndex.maxFloors] || ''
             }, userParams);
 
@@ -639,7 +633,6 @@ const RankingSystem = {
               constructionTypes: row[colIndex.constructionTypes] || '',
               specialSupport: row[colIndex.specialSupport] || '', // V1894: 特殊対応項目を追加
               maxFloors: row[colIndex.maxFloors] || '', // V1895: 最大対応階数（物件種別と階数を含む）
-              buildingAgeRange: row[colIndex.buildingAgeRange] || '', // V1895: 築年数対応範囲
               matchRate: matchRate, // V1896: マッチ度（0-100）
               priorityArea: priorityArea,
               handicap: handicap,
@@ -1941,7 +1934,6 @@ const RankingSystem = {
       const regCitiesIdx = registerHeaders.indexOf('対応市区町村');
       const regSpecialIdx = registerHeaders.indexOf('特殊対応項目');
       const regMaxFloorsIdx = registerHeaders.indexOf('最大対応階数');
-      const regBuildingAgeIdx = registerHeaders.indexOf('築年数対応範囲');
 
       const mstCompanyIdx = masterHeaders.indexOf('会社名');
       const mstCitiesIdx = masterHeaders.indexOf('対応市区町村');
@@ -1961,8 +1953,7 @@ const RankingSystem = {
               companyName: registerData[i][regCompanyIdx],
               cities: registerData[i][regCitiesIdx] || '(空)',
               specialSupport: registerData[i][regSpecialIdx] || '(空)',
-              maxFloors: registerData[i][regMaxFloorsIdx] || '(空)',
-              buildingAgeRange: registerData[i][regBuildingAgeIdx] || '(空)'
+              maxFloors: registerData[i][regMaxFloorsIdx] || '(空)'
             };
             break;
           }
@@ -1992,8 +1983,7 @@ const RankingSystem = {
             companyName: regCompanyIdx,
             cities: regCitiesIdx,
             specialSupport: regSpecialIdx,
-            maxFloors: regMaxFloorsIdx,
-            buildingAgeRange: regBuildingAgeIdx
+            maxFloors: regMaxFloorsIdx
           },
           master: {
             companyName: mstCompanyIdx,
