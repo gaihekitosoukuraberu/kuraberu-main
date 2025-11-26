@@ -1238,73 +1238,7 @@
 
                 <!-- 業者リスト -->
                 <div id="franchiseListContainer" class="space-y-2">
-                    <div class="franchise-item selected cursor-pointer border-2 border-pink-400 bg-pink-50 rounded-lg p-2 sm:p-4 hover:bg-pink-100 transition-all" onclick="toggleFranchise(this)" data-franchise-id="FRANCHISE_001">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center flex-1 min-w-0">
-                                <div class="text-base sm:text-lg font-semibold mr-2 sm:mr-3 text-pink-600 flex-shrink-0">1</div>
-                                <input type="checkbox" checked class="mr-2 sm:mr-4 w-4 h-4 sm:w-5 sm:h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()">
-                                <div class="flex-1 min-w-0">
-                                    <div class="font-semibold text-gray-900 text-sm sm:text-lg">東京都市部塗装</div>
-                                </div>
-                            </div>
-                            <div class="text-right ml-2 sm:ml-4 flex-shrink-0">
-                                <div class="text-xs sm:text-sm text-gray-600 hidden sm:block">東京都 神奈川県</div>
-                                <div class="text-pink-600 text-xs sm:text-sm font-semibold">選択候補</div>
-                                <div class="text-xs text-gray-500">100% マッチ</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="franchise-item selected cursor-pointer border-2 border-pink-400 bg-pink-50 rounded-lg p-2 sm:p-4 hover:bg-pink-100 transition-all" onclick="toggleFranchise(this)" data-franchise-id="FRANCHISE_002">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center flex-1 min-w-0">
-                                <div class="text-base sm:text-lg font-semibold mr-2 sm:mr-3 text-pink-600 flex-shrink-0">2</div>
-                                <input type="checkbox" checked class="mr-2 sm:mr-4 w-4 h-4 sm:w-5 sm:h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()">
-                                <div class="flex-1 min-w-0">
-                                    <div class="font-semibold text-gray-900 text-sm sm:text-lg">神奈川県央建設</div>
-                                </div>
-                            </div>
-                            <div class="text-right ml-2 sm:ml-4 flex-shrink-0">
-                                <div class="text-xs sm:text-sm text-gray-600 hidden sm:block">神奈川県 東京都</div>
-                                <div class="text-pink-600 text-xs sm:text-sm font-semibold">選択候補</div>
-                                <div class="text-xs text-gray-500">100% マッチ</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="franchise-item selected cursor-pointer border-2 border-pink-400 bg-pink-50 rounded-lg p-2 sm:p-4 hover:bg-pink-100 transition-all" onclick="toggleFranchise(this)" data-franchise-id="FRANCHISE_003">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center flex-1 min-w-0">
-                                <div class="text-base sm:text-lg font-semibold mr-2 sm:mr-3 text-pink-600 flex-shrink-0">3</div>
-                                <input type="checkbox" checked class="mr-2 sm:mr-4 w-4 h-4 sm:w-5 sm:h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()">
-                                <div class="flex-1 min-w-0">
-                                    <div class="font-semibold text-gray-900 text-sm sm:text-lg">千葉外装工業</div>
-                                </div>
-                            </div>
-                            <div class="text-right ml-2 sm:ml-4 flex-shrink-0">
-                                <div class="text-xs sm:text-sm text-gray-600 hidden sm:block">千葉県 東京都</div>
-                                <div class="text-pink-600 text-xs sm:text-sm font-semibold">選択候補</div>
-                                <div class="text-xs text-gray-500">100% マッチ</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="franchise-item cursor-pointer border-2 border-gray-200 bg-white rounded-lg p-2 sm:p-4 hover:bg-gray-50 hover:border-gray-300 transition-all" onclick="toggleFranchise(this)" data-franchise-id="FRANCHISE_004">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center flex-1 min-w-0">
-                                <div class="text-base sm:text-lg font-semibold mr-2 sm:mr-3 text-gray-400 flex-shrink-0">4</div>
-                                <input type="checkbox" class="mr-2 sm:mr-4 w-4 h-4 sm:w-5 sm:h-5 rounded flex-shrink-0" onclick="event.stopPropagation()">
-                                <div class="flex-1 min-w-0">
-                                    <div class="font-semibold text-gray-900 text-sm sm:text-lg">埼玉リフォーム</div>
-                                </div>
-                            </div>
-                            <div class="text-right ml-2 sm:ml-4 flex-shrink-0">
-                                <div class="text-xs sm:text-sm text-gray-600 hidden sm:block">埼玉県 東京都</div>
-                                <div class="text-blue-600 text-xs sm:text-sm font-semibold">追加候補</div>
-                                <div class="text-xs text-gray-500">95% マッチ</div>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- 動的に生成される業者リスト -->
                 </div>
 
                 <!-- アクションボタン -->
@@ -5431,6 +5365,12 @@ window.addEventListener('beforeunload', function(e) {
             console.log('initializeListView called');
             console.log('casesData:', casesData);
             console.log('casesData keys:', Object.keys(casesData));
+
+            // データが空の場合は何もしない（初期状態で一瞬表示されるのを防ぐ）
+            if (!casesData || Object.keys(casesData).length === 0) {
+                console.log('initializeListView: データが空のためスキップ');
+                return;
+            }
 
             const tbody = document.getElementById('casesListBody');
             if (!tbody) {
