@@ -380,7 +380,38 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * 業者リストをソート（V1880: 5種類のソート対応 - 修正版）
+   * V1910: ソート順を変更してUIを再描画
+   * @param {string} sortType - 'user', 'cheap', 'review', 'premium', 'distance'
+   */
+  applySortAndRender(sortType) {
+    // ソート順を保存
+    this.currentSortType = sortType;
+
+    // 現在のデータでカードを再生成
+    const selectionData = {
+      desiredCount: this.calculateDesiredCount(this.userSelectedCompanies),
+      selectedCompanies: this.userSelectedCompanies,
+      allFranchises: this.allFranchises
+    };
+
+    const businessCards = this.generateBusinessCards(
+      selectionData,
+      this.currentSortType,
+      this.showAll,
+      this.searchQuery
+    );
+
+    // UIを更新
+    this.updateUI(businessCards, selectionData.desiredCount);
+
+    console.log('[V1910] ソート順変更:', {
+      sortType: this.currentSortType,
+      cardsCount: businessCards.length
+    });
+  },
+
+  /**
+   * 業者リストをソート（V1890: マッチ度優先 → 同率内でソート条件適用）
    * @param {string} sortType - 'user', 'cheap', 'review', 'premium', 'distance'
    * @param {Array} franchises - 業者リスト
    * @returns {Array} ソート済み業者リスト
@@ -408,7 +439,7 @@ const BusinessSelectionHandler = {
       };
     });
 
-    // V1890: 三段階ソート実装（マッチ度優先 → ソート条件）
+    // V1890: 三段階ソート実装（ユーザー選択 > マッチ度 > ソート条件）
     let sortedOthers = [...othersWithMatchRate];
 
     // 第一段階: マッチ度でソート（降順 = 高い方が優先）
