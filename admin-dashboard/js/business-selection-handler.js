@@ -1398,10 +1398,10 @@ const BusinessSelectionHandler = {
           ` : ''}
 
           <div class="space-y-4">
-            <!-- V1905: エリアマッチング -->
+            <!-- V1907: エリアマッチング（記号追加 + 色統一） -->
             <div class="border-l-4 ${matchDetails.area.matched ? 'border-green-500' : 'border-red-500'} pl-3">
               <div class="flex items-center justify-between mb-2">
-                <span class="font-semibold ${matchDetails.area.matched ? 'text-green-600' : 'text-red-600'}">${matchDetails.area.matched ? 'エリアマッチ' : 'エリア非マッチ'}</span>
+                <span class="font-semibold ${matchDetails.area.matched ? 'text-green-600' : 'text-red-600'}">${matchDetails.area.matched ? '◎エリアマッチ' : '✗エリア非マッチ'}</span>
                 <span class="text-sm ${matchDetails.area.matched ? 'text-green-600' : 'text-red-600'}">
                   ${matchDetails.area.score} / ${matchDetails.area.maxScore}点
                 </span>
@@ -1413,9 +1413,9 @@ const BusinessSelectionHandler = {
                   ${caseCity ? `<div class="text-blue-800">市区町村: <span class="font-medium">${caseCity}</span></div>` : '<div class="text-gray-500">未設定</div>'}
                 </div>
                 <!-- 業者対応エリア詳細 -->
-                <div class="bg-gray-50 p-2 rounded">
-                  <div class="font-semibold text-gray-900 mb-1">🏢 業者の対応エリア（市区町村）</div>
-                  <div class="${matchDetails.area.matched ? 'text-green-700' : 'text-gray-700'}">
+                <div class="${matchDetails.area.matched ? 'bg-green-50' : 'bg-red-50'} p-2 rounded">
+                  <div class="font-semibold ${matchDetails.area.matched ? 'text-green-900' : 'text-red-900'} mb-1">🏢 業者の対応エリア（市区町村）</div>
+                  <div class="${matchDetails.area.matched ? 'text-green-700' : 'text-red-700'}">
                     ${(() => {
                       if (franchiseCities.length === 0) return '未設定';
 
@@ -1446,11 +1446,35 @@ const BusinessSelectionHandler = {
               </div>
             </div>
 
-            <!-- V1905: 工事種別マッチング -->
-            <div class="border-l-4 ${matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0 ? 'border-green-500' : 'border-orange-500'} pl-3">
+            <!-- V1907: 工事種別マッチング（記号追加 + 色統一） -->
+            <div class="border-l-4 ${
+              matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0
+                ? 'border-green-500'
+                : matchDetails.workTypes.matched.length > 0 && matchDetails.workTypes.unmatched.length > 0
+                  ? 'border-yellow-500'
+                  : 'border-red-500'
+            } pl-3">
               <div class="flex items-center justify-between mb-2">
-                <span class="font-semibold ${matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0 ? 'text-green-600' : 'text-orange-600'}">${matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0 ? '工事種別マッチ' : '工事種別非マッチ'}</span>
-                <span class="text-sm ${matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0 ? 'text-green-600' : 'text-orange-600'}">
+                <span class="font-semibold ${
+                  matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0
+                    ? 'text-green-600'
+                    : matchDetails.workTypes.matched.length > 0 && matchDetails.workTypes.unmatched.length > 0
+                      ? 'text-yellow-600'
+                      : 'text-red-600'
+                }">${
+                  matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0
+                    ? '◎工事種別マッチ'
+                    : matchDetails.workTypes.matched.length > 0 && matchDetails.workTypes.unmatched.length > 0
+                      ? '△工事種別一部マッチ'
+                      : '✗工事種別非マッチ'
+                }</span>
+                <span class="text-sm ${
+                  matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0
+                    ? 'text-green-600'
+                    : matchDetails.workTypes.matched.length > 0 && matchDetails.workTypes.unmatched.length > 0
+                      ? 'text-yellow-600'
+                      : 'text-red-600'
+                }">
                   ${matchDetails.workTypes.score} / ${matchDetails.workTypes.maxScore}点
                 </span>
               </div>
@@ -1463,9 +1487,21 @@ const BusinessSelectionHandler = {
                   `).join('') : '<div class="text-gray-500">未設定</div>'}
                 </div>
 
-                <!-- V1905: 業者の対応可能な工事種別（マッチ2つ + 折りたたみ） -->
-                <div class="bg-green-50 p-2 rounded">
-                  <div class="text-green-700 font-semibold mb-1 flex items-center gap-1">
+                <!-- V1907: 業者の対応可能な工事種別（色統一） -->
+                <div class="${
+                  matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0
+                    ? 'bg-green-50'
+                    : matchDetails.workTypes.matched.length > 0 && matchDetails.workTypes.unmatched.length > 0
+                      ? 'bg-yellow-50'
+                      : 'bg-red-50'
+                } p-2 rounded">
+                  <div class="${
+                    matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0
+                      ? 'text-green-900'
+                      : matchDetails.workTypes.matched.length > 0 && matchDetails.workTypes.unmatched.length > 0
+                        ? 'text-yellow-900'
+                        : 'text-red-900'
+                  } font-semibold mb-1 flex items-center gap-1">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
                     対応可能な工事種別（業者登録済み）
                   </div>
@@ -1477,8 +1513,14 @@ const BusinessSelectionHandler = {
                     const otherWorks = allFranchiseWorkTypes.filter(work => !matchDetails.workTypes.matched.includes(work));
 
                     // マッチした工事種別を全て表示（制限なし）
+                    const textColor = matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0
+                      ? 'text-green-700'
+                      : matchDetails.workTypes.matched.length > 0 && matchDetails.workTypes.unmatched.length > 0
+                        ? 'text-yellow-700'
+                        : 'text-red-700';
+
                     let html = matchedWorks.map(work =>
-                      '<div class="text-green-700 font-semibold">• ' + work + ' ✓</div>'
+                      '<div class="' + textColor + ' font-semibold">• ' + work + ' ✓</div>'
                     ).join('');
 
                     // 非マッチ項目があれば折りたたみボタン
@@ -1488,7 +1530,7 @@ const BusinessSelectionHandler = {
                         'その他 (+' + otherWorks.length + '工事種別)' +
                       '</button>';
                       html += '<div id="' + otherId + '" class="hidden mt-2 text-sm space-y-1">' + otherWorks.map(work =>
-                        '<div class="text-green-600">• ' + work + '</div>'
+                        '<div class="' + textColor + '">• ' + work + '</div>'
                       ).join('') + '</div>';
                     }
 
@@ -1526,10 +1568,10 @@ const BusinessSelectionHandler = {
               </div>
             </div>
 
-            <!-- V1905: 築年数マッチング -->
+            <!-- V1907: 築年数マッチング（記号追加 + 色統一） -->
             <div class="border-l-4 ${matchDetails.buildingAge.matched ? 'border-green-500' : 'border-red-500'} pl-3">
               <div class="flex items-center justify-between mb-2">
-                <span class="font-semibold ${matchDetails.buildingAge.matched ? 'text-green-600' : 'text-red-600'}">${matchDetails.buildingAge.matched ? '築年数マッチ' : '築年数非マッチ'}</span>
+                <span class="font-semibold ${matchDetails.buildingAge.matched ? 'text-green-600' : 'text-red-600'}">${matchDetails.buildingAge.matched ? '◎築年数マッチ' : '✗築年数非マッチ'}</span>
                 <span class="text-sm ${matchDetails.buildingAge.matched ? 'text-green-600' : 'text-red-600'}">
                   ${matchDetails.buildingAge.score} / ${matchDetails.buildingAge.maxScore}点
                 </span>
@@ -1539,9 +1581,9 @@ const BusinessSelectionHandler = {
                   <div class="font-semibold text-blue-900 mb-1">🏠 お客様の物件築年数</div>
                   <div class="text-blue-800">${matchDetails.buildingAge.caseAge}年</div>
                 </div>
-                <div class="bg-gray-50 p-2 rounded">
-                  <div class="font-semibold text-gray-900 mb-1">🏢 業者の対応築年数範囲</div>
-                  <div class="text-gray-700">${matchDetails.buildingAge.franchiseMin}年 〜 ${matchDetails.buildingAge.franchiseMax}年</div>
+                <div class="${matchDetails.buildingAge.matched ? 'bg-green-50' : 'bg-red-50'} p-2 rounded">
+                  <div class="font-semibold ${matchDetails.buildingAge.matched ? 'text-green-900' : 'text-red-900'} mb-1">🏢 業者の対応築年数範囲</div>
+                  <div class="${matchDetails.buildingAge.matched ? 'text-green-700' : 'text-red-700'}">${matchDetails.buildingAge.franchiseMin}年 〜 ${matchDetails.buildingAge.franchiseMax}年</div>
                 </div>
                 ${!matchDetails.buildingAge.matched ? `
                   <div class="text-red-600 font-semibold">→ 業者に築年数範囲の拡大を依頼</div>
@@ -1549,10 +1591,10 @@ const BusinessSelectionHandler = {
               </div>
             </div>
 
-            <!-- V1905: 物件種別マッチング -->
+            <!-- V1907: 物件種別マッチング（記号追加 + 色統一） -->
             <div class="border-l-4 ${matchDetails.propertyType.matched ? 'border-green-500' : 'border-red-500'} pl-3">
               <div class="flex items-center justify-between mb-2">
-                <span class="font-semibold ${matchDetails.propertyType.matched ? 'text-green-600' : 'text-red-600'}">${matchDetails.propertyType.matched ? '物件種別マッチ' : '物件種別非マッチ'}</span>
+                <span class="font-semibold ${matchDetails.propertyType.matched ? 'text-green-600' : 'text-red-600'}">${matchDetails.propertyType.matched ? '◎物件種別マッチ' : '✗物件種別非マッチ'}</span>
                 <span class="text-sm ${matchDetails.propertyType.matched ? 'text-green-600' : 'text-red-600'}">
                   ${matchDetails.propertyType.score} / ${matchDetails.propertyType.maxScore}点
                 </span>
@@ -1562,9 +1604,9 @@ const BusinessSelectionHandler = {
                   <div class="font-semibold text-blue-900 mb-1">🏠 お客様の物件種別</div>
                   <div class="text-blue-800">${matchDetails.propertyType.caseType || '未設定'}</div>
                 </div>
-                <div class="bg-gray-50 p-2 rounded">
-                  <div class="font-semibold text-gray-900 mb-1">🏢 業者の対応可能物件種別</div>
-                  <div class="text-gray-700">${matchDetails.propertyType.franchiseTypes.length > 0 ? matchDetails.propertyType.franchiseTypes.join(', ') : '未設定'}</div>
+                <div class="${matchDetails.propertyType.matched ? 'bg-green-50' : 'bg-red-50'} p-2 rounded">
+                  <div class="font-semibold ${matchDetails.propertyType.matched ? 'text-green-900' : 'text-red-900'} mb-1">🏢 業者の対応可能物件種別</div>
+                  <div class="${matchDetails.propertyType.matched ? 'text-green-700' : 'text-red-700'}">${matchDetails.propertyType.franchiseTypes.length > 0 ? matchDetails.propertyType.franchiseTypes.join(', ') : '未設定'}</div>
                 </div>
                 ${!matchDetails.propertyType.matched ? `
                   <div class="text-red-600 font-semibold">→ 業者に物件種別の追加を依頼</div>
@@ -1572,10 +1614,10 @@ const BusinessSelectionHandler = {
               </div>
             </div>
 
-            <!-- V1905: 階数マッチング -->
+            <!-- V1907: 階数マッチング（記号追加 + 色統一） -->
             <div class="border-l-4 ${matchDetails.floors.matched ? 'border-green-500' : 'border-red-500'} pl-3">
               <div class="flex items-center justify-between mb-2">
-                <span class="font-semibold ${matchDetails.floors.matched ? 'text-green-600' : 'text-red-600'}">${matchDetails.floors.matched ? '階数マッチ' : '階数非マッチ'}</span>
+                <span class="font-semibold ${matchDetails.floors.matched ? 'text-green-600' : 'text-red-600'}">${matchDetails.floors.matched ? '◎階数マッチ' : '✗階数非マッチ'}</span>
                 <span class="text-sm ${matchDetails.floors.matched ? 'text-green-600' : 'text-red-600'}">
                   ${matchDetails.floors.score} / ${matchDetails.floors.maxScore}点
                 </span>
@@ -1585,9 +1627,9 @@ const BusinessSelectionHandler = {
                   <div class="font-semibold text-blue-900 mb-1">🏠 お客様の物件階数</div>
                   <div class="text-blue-800">${matchDetails.floors.caseFloors}階</div>
                 </div>
-                <div class="bg-gray-50 p-2 rounded">
-                  <div class="font-semibold text-gray-900 mb-1">🏢 業者の対応可能階数</div>
-                  <div class="text-gray-700 text-xs">${matchDetails.floors.franchiseMax || '未設定'}</div>
+                <div class="${matchDetails.floors.matched ? 'bg-green-50' : 'bg-red-50'} p-2 rounded">
+                  <div class="font-semibold ${matchDetails.floors.matched ? 'text-green-900' : 'text-red-900'} mb-1">🏢 業者の対応可能階数</div>
+                  <div class="${matchDetails.floors.matched ? 'text-green-700' : 'text-red-700'} text-xs">${matchDetails.floors.franchiseMax || '未設定'}</div>
                 </div>
                 ${!matchDetails.floors.matched ? `
                   <div class="text-red-600 font-semibold">→ 業者に階数対応の拡大を依頼</div>
