@@ -384,10 +384,10 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * V1910: ソート順を変更してUIを再描画
+   * V1913: ソート順を変更してUIを再描画（async対応）
    * @param {string} sortType - 'user', 'cheap', 'review', 'premium', 'distance'
    */
-  applySortAndRender(sortType) {
+  async applySortAndRender(sortType) {
     // ソート順を保存
     this.currentSortType = sortType;
 
@@ -398,7 +398,7 @@ const BusinessSelectionHandler = {
       allFranchises: this.allFranchises
     };
 
-    const businessCards = this.generateBusinessCards(
+    const businessCards = await this.generateBusinessCards(
       selectionData,
       this.currentSortType,
       this.showAll,
@@ -408,7 +408,7 @@ const BusinessSelectionHandler = {
     // UIを更新
     this.updateUI(businessCards, selectionData.desiredCount);
 
-    console.log('[V1910] ソート順変更:', {
+    console.log('[V1913] ソート順変更:', {
       sortType: this.currentSortType,
       cardsCount: businessCards.length
     });
@@ -663,36 +663,52 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * 業者カードを生成（V1909: 検索・ソート修正）
+   * 業者カードを生成（V1913: 全加盟店検索 + ひらがな対応）
    * @param {object} selectionData - { desiredCount, selectedCompanies, allFranchises }
    * @param {string} sortType - ソート順
    * @param {boolean} showAll - もっと見る状態
    * @param {string} searchQuery - 検索クエリ
    * @returns {Array} 表示用業者カード配列
    */
-  generateBusinessCards(selectionData, sortType = 'user', showAll = false, searchQuery = '') {
+  async generateBusinessCards(selectionData, sortType = 'user', showAll = false, searchQuery = '') {
     const { allFranchises } = selectionData;
 
     let displayFranchises = [];
 
-    // V1912: 検索時は全加盟店から検索（件数制限なし）、チェック済み業者を固定表示
+    // V1913: 検索時は全アクティブ加盟店から検索（ひらがな→カタカナ変換対応）
     if (searchQuery) {
       // チェックされている業者を取得（UI上のチェックボックスから）
       const checkedCompanies = this.getCheckedCompanies();
 
-      // チェック済み業者を最初に表示
-      const checkedFranchises = allFranchises.filter(f =>
+      // 全アクティブ加盟店を取得（検索用）
+      const allActiveFranchises = await this.getAllActiveFranchises();
+      console.log('[V1913] 全アクティブ加盟店数:', allActiveFranchises.length);
+      console.log('[V1913] 検索クエリ:', searchQuery);
+
+      // ひらがな→カタカナ変換（「ふぁい」→「ファイ」）
+      const katakanaQuery = this.hiraganaToKatakana(searchQuery);
+      console.log('[V1913] カタカナ変換後:', katakanaQuery);
+
+      // チェック済み業者を最初に表示（allActiveFranchisesから取得）
+      const checkedFranchises = allActiveFranchises.filter(f =>
         checkedCompanies.includes(f.companyName)
       );
 
-      // 全加盟店から検索（チェック済み業者を除く、かな部分一致対応）
-      const searchResults = allFranchises.filter(f => {
+      // 全加盟店から検索（チェック済み業者を除く、ひらがな・カタカナ・漢字全対応）
+      const searchResults = allActiveFranchises.filter(f => {
         if (checkedCompanies.includes(f.companyName)) return false; // 既にcheckedに含まれている
         const companyName = f.companyName || '';
         const companyNameKana = f.companyNameKana || '';
-        // 会社名（漢字）またはカナで部分一致
-        return companyName.includes(searchQuery) || companyNameKana.includes(searchQuery);
+
+        // 会社名（漢字）、元のクエリ、カタカナ変換後クエリで部分一致
+        return companyName.includes(searchQuery) ||
+               companyName.includes(katakanaQuery) ||
+               companyNameKana.includes(searchQuery) ||
+               companyNameKana.includes(katakanaQuery);
       });
+
+      console.log('[V1913] チェック済み業者数:', checkedFranchises.length);
+      console.log('[V1913] 検索結果数:', searchResults.length);
 
       // チェック済み業者 + 検索結果を表示（件数制限なし）
       displayFranchises = [...checkedFranchises, ...searchResults];
@@ -1769,7 +1785,7 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * ソート順を変更（V1880: 新実装）
+   * ソート順を変更（V1913: async対応）
    * @param {string} sortType - ソート順 ('user', 'cheap', 'review', 'premium', 'distance')
    */
   async changeSortOrder(sortType) {
@@ -1786,7 +1802,7 @@ const BusinessSelectionHandler = {
     }
 
     // カードを再生成して表示
-    const businessCards = this.generateBusinessCards({
+    const businessCards = await this.generateBusinessCards({
       allFranchises: this.allFranchises
     }, sortType, this.showAll, this.searchQuery);
 
@@ -1794,13 +1810,13 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * もっと見る切り替え（V1880: 新実装）
+   * もっと見る切り替え（V1913: async対応）
    */
-  toggleShowMore() {
+  async toggleShowMore() {
     this.showAll = !this.showAll;
 
     // カードを再生成して表示
-    const businessCards = this.generateBusinessCards({
+    const businessCards = await this.generateBusinessCards({
       allFranchises: this.allFranchises
     }, this.currentSortType, this.showAll, this.searchQuery);
 
@@ -1808,14 +1824,14 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * 検索実行（V1880: 新実装）
+   * 検索実行（V1913: async対応 + 全加盟店検索）
    * @param {string} query - 検索クエリ
    */
-  searchFranchises(query) {
+  async searchFranchises(query) {
     this.searchQuery = query;
 
     // カードを再生成して表示
-    const businessCards = this.generateBusinessCards({
+    const businessCards = await this.generateBusinessCards({
       allFranchises: this.allFranchises
     }, this.currentSortType, this.showAll, query);
 
