@@ -331,35 +331,73 @@ const BusinessSelectionHandler = {
       }
     });
 
-    // sortTypeに応じてothersをソート
-    let sortedOthers = others;
+    // V1890: マッチ度を計算して各業者に付与
+    const othersWithMatchRate = others.map(f => {
+      const matchResult = this.calculateMatchRate(f);
+      return {
+        ...f,
+        _matchRate: matchResult.total
+      };
+    });
 
-    switch (sortType) {
-      case 'user':
-        // ユーザー選択（おすすめ順）: 売上高順
-        sortedOthers = this.sortByRevenue(others);
-        break;
-      case 'cheap':
-        // 安い順: 価格昇順
-        sortedOthers = this.sortByPrice(others);
-        break;
-      case 'review':
-        // 口コミ順: レビュー評価順
-        sortedOthers = this.sortByReview(others);
-        break;
-      case 'premium':
-        // 高品質順: 高額順
-        sortedOthers = this.sortByPremium(others);
-        break;
-      case 'distance':
-        // 距離順: 距離昇順
-        sortedOthers = this.sortByDistance(others);
-        break;
-      default:
-        sortedOthers = others;
-    }
+    // V1890: 三段階ソート実装（マッチ度優先 → ソート条件）
+    let sortedOthers = [...othersWithMatchRate];
+
+    // 第一段階: マッチ度でソート（降順 = 高い方が優先）
+    sortedOthers.sort((a, b) => {
+      return (b._matchRate || 0) - (a._matchRate || 0);
+    });
+
+    // 第二段階: マッチ度が同じ場合、ソート条件を適用
+    // Stable sortを実現するため、同じマッチ度のグループごとにソート
+    const groupedByMatchRate = {};
+    sortedOthers.forEach(f => {
+      const rate = f._matchRate || 0;
+      if (!groupedByMatchRate[rate]) {
+        groupedByMatchRate[rate] = [];
+      }
+      groupedByMatchRate[rate].push(f);
+    });
+
+    // 各マッチ度グループ内でソート条件を適用
+    sortedOthers = [];
+    Object.keys(groupedByMatchRate)
+      .sort((a, b) => parseFloat(b) - parseFloat(a)) // マッチ度降順
+      .forEach(rate => {
+        let group = groupedByMatchRate[rate];
+
+        // sortTypeに応じてグループ内をソート
+        switch (sortType) {
+          case 'user':
+            // ユーザー選択（おすすめ順）: 売上高順
+            group = this.sortByRevenue(group);
+            break;
+          case 'cheap':
+            // 安い順: 価格昇順
+            group = this.sortByPrice(group);
+            break;
+          case 'review':
+            // 口コミ順: レビュー評価順
+            group = this.sortByReview(group);
+            break;
+          case 'premium':
+            // 高品質順: 高額順
+            group = this.sortByPremium(group);
+            break;
+          case 'distance':
+            // 距離順: 距離昇順
+            group = this.sortByDistance(group);
+            break;
+          default:
+            // デフォルトはマッチ度順のまま
+            break;
+        }
+
+        sortedOthers.push(...group);
+      });
 
     // AS列業者を最初に配置（希望社数分の枠を占有）
+    // V1890: ユーザー選択 > マッチ度 > ソート条件 の三段階ソート完成
     return [...userSelected, ...sortedOthers];
   },
 
