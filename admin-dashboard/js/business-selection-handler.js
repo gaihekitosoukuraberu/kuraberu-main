@@ -1,21 +1,32 @@
 /**
  * ============================================
- * 業者選択ハンドラー
+ * 業者選択ハンドラー V1880
  * ============================================
  *
- * 目的: 業者選定履歴（AS列）から動的に業者リストを生成
- * 依存: ApiClient（api-client.js）
+ * 目的: RankingSystemと統合した動的業者選定システム
+ * 依存: ApiClient（api-client.js）, RankingSystem (GAS)
  *
  * 主な機能:
- * - AS列のパース（カンマ区切り業者名）
- * - 希望社数の自動計算と表示
- * - 業者カードの動的生成（1-2枠: AS列、3-4枠: マッチ率高）
- * - マッチ率計算（エリア40% + 工事種別60% = 100%）
- * - マッチ率優先ソート（AS列は表示順序のみに影響）
- * - チェックボックス自動選択（100%マッチのみ）
+ * - RankingSystemから業者データ取得（LP と同じデータソース）
+ * - AS列業者を常に上位に表示（「ユーザー選択」ラベル付き）
+ * - 5種類のソート順（ユーザー選択/安い順/口コミ順/高品質順/距離順）
+ * - Google Maps Distance Matrix API による距離順ソート
+ * - 業者検索機能（漢字/ひらがな部分一致）
+ * - もっと見る機能（4社 → 8社）
+ * - チェックボックス転送候補選択機能（デフォルト: AS列 + 100%マッチのみ）
  */
 
 const BusinessSelectionHandler = {
+
+  /**
+   * 現在のデータキャッシュ
+   */
+  currentCaseData: null,
+  allFranchises: [],          // RankingSystemから取得した全業者
+  userSelectedCompanies: [],  // AS列の業者名配列
+  currentSortType: 'user',    // 現在のソート順
+  showAll: false,             // もっと見る状態
+  searchQuery: '',            // 検索クエリ
 
   /**
    * 初期化
@@ -33,11 +44,6 @@ const BusinessSelectionHandler = {
    * AS列（業者選定履歴）をパースして業者名配列を取得
    * @param {string} businessHistoryText - AS列のテキスト
    * @returns {Array<string>} 業者名の配列
-   *
-   * 対応フォーマット:
-   * 1. フルネーム: "田中ホームテクノ株式会社, 株式会社湘南ウィンクル"
-   * 2. 略称付き: "S社:おすすめ順:1位,K社:おすすめ順:2位"
-   * 3. コード付き: "F001:おすすめ順:1位,F003:おすすめ順:2位"
    */
   parseBusinessHistory(businessHistoryText) {
     if (!businessHistoryText || typeof businessHistoryText !== 'string') {
@@ -70,7 +76,7 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * 業者データを希望社数・ソート順に応じてロード
+   * 業者データをRankingSystemから取得（V1880: 新実装）
    * @param {string} caseId - 案件ID
    * @param {object} currentCaseData - 現在の案件データ（AS列含む）
    * @returns {Promise<object>} { desiredCount, selectedCompanies, allFranchises }
@@ -81,10 +87,13 @@ const BusinessSelectionHandler = {
         throw new Error('BusinessSelection初期化失敗');
       }
 
-      // AS列から業者名を取得（V1879: cv-list-manager.jsで businessHistory としてマッピング済み）
-      const businessHistory = currentCaseData.businessHistory || '';
+      // キャッシュに保存
+      this.currentCaseData = currentCaseData;
 
+      // AS列から業者名を取得
+      const businessHistory = currentCaseData.businessHistory || '';
       const selectedCompanies = this.parseBusinessHistory(businessHistory);
+      this.userSelectedCompanies = selectedCompanies;
 
       console.log('[BusinessSelection] AS列パース結果:', {
         raw: businessHistory,
@@ -95,37 +104,17 @@ const BusinessSelectionHandler = {
       // 希望社数を計算
       const desiredCount = this.calculateDesiredCount(selectedCompanies);
 
-      // AS列の業者名から簡易的な業者リストを生成
-      const allFranchises = selectedCompanies.map((companyName, index) => ({
-        franchiseId: `FRANCHISE_${String(index + 1).padStart(3, '0')}`,
-        companyName: companyName,
-        serviceAreas: [currentCaseData['都道府県（物件）'] || '全国'], // 物件と同じエリアを仮設定
-        workTypes: [], // 工事種別は未設定
-        matchRate: 100, // AS列選択なので100%
-        isUserSelected: true,
-        matchDetails: {
-          area: {
-            matched: true,
-            required: currentCaseData['都道府県（物件）'] || '',
-            available: [currentCaseData['都道府県（物件）'] || '全国'],
-            score: 40,
-            maxScore: 40
-          },
-          workTypes: {
-            matched: [],
-            unmatched: [],
-            score: 60,
-            maxScore: 60
-          }
-        }
-      }));
+      // RankingSystemから業者リストを取得（V1880: 新実装）
+      console.log('[BusinessSelection] RankingSystemから業者データ取得開始...');
+      const franchises = await this.fetchRankingData(currentCaseData);
+      this.allFranchises = franchises;
 
-      console.log('[BusinessSelection] 生成された業者リスト:', allFranchises);
+      console.log('[BusinessSelection] 業者データ取得完了:', franchises.length, '件');
 
       return {
         desiredCount,
         selectedCompanies,
-        allFranchises
+        allFranchises: franchises
       };
 
     } catch (error) {
@@ -135,134 +124,481 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * マッチ率を計算
-   * @param {Array} franchises - 加盟店リスト
-   * @param {Array<string>} selectedCompanies - AS列の業者名（表示順序のみに使用）
-   * @param {object} caseData - 案件データ（都道府県などマッチング条件）
-   * @returns {Array} マッチ率付き加盟店リスト
+   * RankingSystemから業者データを取得（V1880: 新実装）
+   * @param {object} caseData - 案件データ
+   * @returns {Promise<Array>} 業者リスト
    */
-  calculateMatchRates(franchises, selectedCompanies, caseData) {
-    return franchises.map(franchise => {
-      let matchRate = 0;
-      const matchDetails = {
-        area: { matched: false, required: '', available: [], score: 0, maxScore: 40 },
-        workTypes: { matched: [], unmatched: [], score: 0, maxScore: 60 }
-      };
+  async fetchRankingData(caseData) {
+    try {
+      // 案件データから必要なパラメータを抽出
+      const params = this.extractRankingParams(caseData);
 
-      // AS列選択フラグ（表示順序用、マッチ率計算には使わない）
-      const isSelected = selectedCompanies.some(companyName => {
-        return franchise.companyName && franchise.companyName.includes(companyName) ||
-               companyName.includes(franchise.companyName || '') ||
-               franchise.franchiseId === companyName;
+      console.log('[BusinessSelection] getRanking APIリクエスト:', params);
+
+      // RankingSystemのgetRankingを呼び出し
+      const response = await window.apiClient.jsonpRequest({
+        action: 'getRanking',
+        ...params
       });
 
-      // 1. エリアマッチング（都道府県）: 40%
-      const casePrefecture = caseData['都道府県（物件）'] || caseData.prefecture || '';
-      const franchiseAreas = franchise.serviceAreas || [];
-      matchDetails.area.required = casePrefecture;
-      matchDetails.area.available = franchiseAreas;
-
-      if (casePrefecture && franchiseAreas.includes(casePrefecture)) {
-        matchRate += 40;
-        matchDetails.area.matched = true;
-        matchDetails.area.score = 40;
+      if (!response || !response.success) {
+        throw new Error(response?.error || 'ランキング取得失敗');
       }
 
-      // 2. 工事種別マッチング: 60%（全種別一致で満点）
-      const caseWorkTypes = this.extractWorkTypes(caseData);
-      const franchiseWorkTypes = franchise.workTypes || [];
+      console.log('[BusinessSelection] getRanking APIレスポンス:', response);
 
-      if (caseWorkTypes.length > 0 && franchiseWorkTypes.length > 0) {
-        const matchingTypes = caseWorkTypes.filter(w => franchiseWorkTypes.includes(w));
-        const unmatchedTypes = caseWorkTypes.filter(w => !franchiseWorkTypes.includes(w));
-        const matchRatio = matchingTypes.length / caseWorkTypes.length;
-        const workTypeScore = Math.round(matchRatio * 60);
+      // ランキングデータを統合（recommended, cheap, review, premiumから重複除去してマージ）
+      const allFranchises = this.mergeRankingData(response.rankings);
 
-        matchRate += workTypeScore;
-        matchDetails.workTypes.matched = matchingTypes;
-        matchDetails.workTypes.unmatched = unmatchedTypes;
-        matchDetails.workTypes.score = workTypeScore;
-      }
+      console.log('[BusinessSelection] 統合後の業者数:', allFranchises.length);
 
-      return {
-        ...franchise,
-        matchRate,
-        isUserSelected: isSelected,
-        matchDetails
-      };
-    });
+      return allFranchises;
+
+    } catch (error) {
+      console.error('[BusinessSelection] RankingSystem取得エラー:', error);
+      // フォールバック: サンプルデータを返す
+      console.warn('[BusinessSelection] フォールバック: サンプルデータを使用');
+      return this.getSampleFranchises();
+    }
   },
 
   /**
-   * 案件データから工事種別を抽出
+   * 案件データからgetRankingのパラメータを抽出（V1880: 新実装）
    * @param {object} caseData - 案件データ
-   * @returns {Array<string>} 工事種別の配列
+   * @returns {object} getRankingパラメータ
    */
-  extractWorkTypes(caseData) {
-    const workTypes = [];
+  extractRankingParams(caseData) {
+    const rawData = caseData._rawData || {};
+    const botAnswers = rawData.botAnswers || {};
 
-    // Q9_希望工事内容_外壁
-    const exteriorWork = caseData['Q9_希望工事内容_外壁'] || caseData.exteriorWork || '';
-    if (exteriorWork) {
-      workTypes.push(`外壁${exteriorWork}`);
+    // 郵便番号（zipcode）
+    const zipcode = caseData.postalCode || rawData.postalCode || '';
+
+    // 外壁・屋根の材質と工事内容
+    const wallMaterial = caseData.wallMaterial || botAnswers.q6_wallMaterial || '';
+    const roofMaterial = caseData.roofMaterial || botAnswers.q7_roofMaterial || '';
+    const wallWorkType = botAnswers.q9_wallWorkType || '';
+    const roofWorkType = botAnswers.q10_roofWorkType || '';
+
+    // 築年数の範囲を計算
+    const buildingAge = parseInt(caseData.buildingAge || rawData.buildingAge || 0);
+    const buildingAgeMin = Math.max(0, buildingAge - 5);
+    const buildingAgeMax = buildingAge + 5;
+
+    // 気になる箇所（単品 vs 複合工事の判定用）
+    let concernedArea = '';
+    if (wallWorkType && roofWorkType) {
+      concernedArea = '外壁と屋根';
+    } else if (wallWorkType) {
+      concernedArea = '外壁';
+    } else if (roofWorkType) {
+      concernedArea = '屋根';
     }
 
-    // Q10_希望工事内容_屋根
-    const roofWork = caseData['Q10_希望工事内容_屋根'] || caseData.roofWork || '';
-    if (roofWork) {
-      workTypes.push(`屋根${roofWork}`);
-    }
-
-    // フォールバック: workTypes配列が直接渡されている場合
-    if (caseData.workTypes && Array.isArray(caseData.workTypes)) {
-      workTypes.push(...caseData.workTypes);
-    }
-
-    return [...new Set(workTypes)]; // 重複除去
+    return {
+      zipcode,
+      wallMaterial,
+      roofMaterial,
+      wallWorkType,
+      roofWorkType,
+      buildingAgeMin,
+      buildingAgeMax,
+      concernedArea
+    };
   },
 
   /**
-   * 業者カードを生成
-   * @param {object} selectionData - { desiredCount, selectedCompanies, allFranchises }
-   * @returns {Array} 表示用業者カード配列（最大4件）
+   * ランキングデータをマージして重複を除去（V1880: 新実装）
+   * @param {object} rankings - { recommended: [], cheap: [], review: [], premium: [] }
+   * @returns {Array} マージ済み業者リスト
    */
-  generateBusinessCards(selectionData) {
-    const { desiredCount, selectedCompanies, allFranchises } = selectionData;
+  mergeRankingData(rankings) {
+    const merged = [];
+    const seen = new Set();
 
-    // マッチ率でソート（降順）
-    const sortedFranchises = [...allFranchises].sort((a, b) => {
-      // ユーザー選択を最優先（表示順序のみ）
-      if (a.isUserSelected && !b.isUserSelected) return -1;
-      if (!a.isUserSelected && b.isUserSelected) return 1;
+    // recommendedランキングを基準にマージ
+    const lists = [
+      ...(rankings.recommended || []),
+      ...(rankings.cheap || []),
+      ...(rankings.review || []),
+      ...(rankings.premium || [])
+    ];
 
-      // 次にマッチ率
-      return b.matchRate - a.matchRate;
+    lists.forEach(business => {
+      const key = business.companyName;
+      if (!seen.has(key)) {
+        seen.add(key);
+        merged.push(this.convertToFranchiseFormat(business));
+      }
     });
 
-    // 上位4件を取得
-    const topFranchises = sortedFranchises.slice(0, 4);
+    return merged;
+  },
+
+  /**
+   * RankingSystemの業者データをフランチャイズ形式に変換（V1880: 新実装）
+   * @param {object} business - RankingSystemの業者オブジェクト
+   * @returns {object} フランチャイズ形式のオブジェクト
+   */
+  convertToFranchiseFormat(business) {
+    return {
+      franchiseId: business.companyName, // IDの代わりに会社名を使用
+      companyName: business.companyName,
+      serviceAreas: [business.prefecture].filter(p => p),
+      city: business.city || '',
+      workTypes: (business.constructionTypes || '').split(',').map(t => t.trim()).filter(t => t),
+      avgContractAmount: business.avgContractAmount || 0,
+      rating: business.rating || 4.2,
+      reviewCount: business.reviewCount || 0,
+      contractCount: business.contractCount || 0,
+      // V1880: 距離ソート用のデータ
+      distance: null,  // 後で計算
+      distanceText: '',
+      // V1880: previewHP
+      previewHP: business.previewHP || ''
+    };
+  },
+
+  /**
+   * Google Maps Distance Matrix APIで距離を計算（V1880: 新実装）
+   * @param {string} originAddress - 起点住所（物件）
+   * @param {Array} franchises - 業者リスト
+   * @returns {Promise<Array>} 距離情報付き業者リスト
+   */
+  async calculateDistances(originAddress, franchises) {
+    try {
+      console.log('[BusinessSelection] 距離計算開始:', originAddress);
+
+      // GASに距離計算を依頼
+      const response = await window.apiClient.jsonpRequest({
+        action: 'calculateDistances',
+        origin: originAddress,
+        destinations: franchises.map(f => {
+          // 支店住所があれば支店、なければ本社住所を使用
+          return f.city ? `${f.serviceAreas[0]}${f.city}` : f.serviceAreas[0];
+        })
+      });
+
+      if (!response || !response.success) {
+        console.warn('[BusinessSelection] 距離計算失敗:', response?.error);
+        return franchises; // 距離情報なしで返す
+      }
+
+      // 距離情報を業者リストに追加
+      const distances = response.distances || [];
+      franchises.forEach((franchise, index) => {
+        if (distances[index]) {
+          franchise.distance = distances[index].distanceValue || 999999; // メートル単位
+          franchise.distanceText = distances[index].distanceText || '';
+          franchise.durationText = distances[index].durationText || '';
+        }
+      });
+
+      console.log('[BusinessSelection] 距離計算完了');
+      return franchises;
+
+    } catch (error) {
+      console.error('[BusinessSelection] 距離計算エラー:', error);
+      return franchises; // エラー時も距離情報なしで返す
+    }
+  },
+
+  /**
+   * 業者リストをソート（V1880: 5種類のソート対応 - 修正版）
+   * @param {string} sortType - 'user', 'cheap', 'review', 'premium', 'distance'
+   * @param {Array} franchises - 業者リスト
+   * @returns {Array} ソート済み業者リスト
+   */
+  sortFranchises(sortType, franchises) {
+    // AS列業者とそれ以外に分離
+    const userSelected = [];
+    const others = [];
+
+    franchises.forEach(f => {
+      const isUserSelected = this.isUserSelected(f.companyName);
+      if (isUserSelected) {
+        userSelected.push(f);
+      } else {
+        others.push(f);
+      }
+    });
+
+    // sortTypeに応じてothersをソート
+    let sortedOthers = others;
+
+    switch (sortType) {
+      case 'user':
+        // ユーザー選択（おすすめ順）: 売上高順
+        sortedOthers = this.sortByRevenue(others);
+        break;
+      case 'cheap':
+        // 安い順: 価格昇順
+        sortedOthers = this.sortByPrice(others);
+        break;
+      case 'review':
+        // 口コミ順: レビュー評価順
+        sortedOthers = this.sortByReview(others);
+        break;
+      case 'premium':
+        // 高品質順: 高額順
+        sortedOthers = this.sortByPremium(others);
+        break;
+      case 'distance':
+        // 距離順: 距離昇順
+        sortedOthers = this.sortByDistance(others);
+        break;
+      default:
+        sortedOthers = others;
+    }
+
+    // AS列業者を最初に配置（希望社数分の枠を占有）
+    return [...userSelected, ...sortedOthers];
+  },
+
+  /**
+   * AS列業者かどうかを判定
+   * @param {string} companyName - 会社名
+   * @returns {boolean}
+   */
+  isUserSelected(companyName) {
+    return this.userSelectedCompanies.some(selected => {
+      return companyName && companyName.includes(selected) ||
+             selected.includes(companyName || '');
+    });
+  },
+
+  /**
+   * 売上高順ソート（おすすめ順）
+   * @param {Array} franchises - 業者リスト
+   * @returns {Array} ソート済みリスト
+   */
+  sortByRevenue(franchises) {
+    return [...franchises].sort((a, b) => {
+      // 売上高 = 平均成約金額 × 成約件数
+      const revenueA = (a.avgContractAmount || 0) * (a.contractCount || 0);
+      const revenueB = (b.avgContractAmount || 0) * (b.contractCount || 0);
+      return revenueB - revenueA;
+    });
+  },
+
+  /**
+   * 価格昇順ソート（安い順）
+   * @param {Array} franchises - 業者リスト
+   * @returns {Array} ソート済みリスト
+   */
+  sortByPrice(franchises) {
+    return [...franchises].sort((a, b) => {
+      return (a.avgContractAmount || 999999) - (b.avgContractAmount || 999999);
+    });
+  },
+
+  /**
+   * 口コミ順ソート
+   * @param {Array} franchises - 業者リスト
+   * @returns {Array} ソート済みリスト
+   */
+  sortByReview(franchises) {
+    return [...franchises].sort((a, b) => {
+      // 評価 → 口コミ件数の順
+      if (b.rating !== a.rating) {
+        return (b.rating || 0) - (a.rating || 0);
+      }
+      return (b.reviewCount || 0) - (a.reviewCount || 0);
+    });
+  },
+
+  /**
+   * 高品質順ソート（高額順）
+   * @param {Array} franchises - 業者リスト
+   * @returns {Array} ソート済みリスト
+   */
+  sortByPremium(franchises) {
+    return [...franchises].sort((a, b) => {
+      return (b.avgContractAmount || 0) - (a.avgContractAmount || 0);
+    });
+  },
+
+  /**
+   * 距離順ソート
+   * @param {Array} franchises - 業者リスト
+   * @returns {Array} ソート済みリスト
+   */
+  sortByDistance(franchises) {
+    return [...franchises].sort((a, b) => {
+      return (a.distance || 999999) - (b.distance || 999999);
+    });
+  },
+
+  /**
+   * 検索フィルタリング（V1880: 修正版 - チェックボックスは転送候補選択用）
+   * @param {string} query - 検索クエリ
+   * @param {Array} franchises - 業者リスト
+   * @returns {Array} フィルタ済みリスト
+   */
+  filterBySearch(query, franchises) {
+    if (!query) return franchises;
+
+    // AS列業者とそれ以外に分離
+    const userSelected = [];
+    const others = [];
+
+    franchises.forEach(f => {
+      const isUserSelected = this.isUserSelected(f.companyName);
+      if (isUserSelected) {
+        userSelected.push(f);
+      } else {
+        others.push(f);
+      }
+    });
+
+    // 検索クエリでフィルタリング（AS列以外の業者）
+    const filtered = others.filter(f => {
+      const companyName = f.companyName || '';
+      // 漢字/ひらがな部分一致
+      return companyName.includes(query);
+    });
+
+    // AS列業者を最初に配置（検索中でも常に表示）
+    return [...userSelected, ...filtered];
+  },
+
+  /**
+   * 業者カードを生成（V1880: 新実装）
+   * @param {object} selectionData - { desiredCount, selectedCompanies, allFranchises }
+   * @param {string} sortType - ソート順
+   * @param {boolean} showAll - もっと見る状態
+   * @param {string} searchQuery - 検索クエリ
+   * @returns {Array} 表示用業者カード配列
+   */
+  generateBusinessCards(selectionData, sortType = 'user', showAll = false, searchQuery = '') {
+    const { allFranchises } = selectionData;
+
+    // ソート（AS列業者が上位に来る）
+    let sorted = this.sortFranchises(sortType, allFranchises);
+
+    // 検索（AS列業者は常に表示、それ以外をフィルタ）
+    if (searchQuery) {
+      sorted = this.filterBySearch(searchQuery, sorted);
+    }
+
+    // 表示件数を制限
+    const limit = showAll ? 8 : 4;
+    const topFranchises = sorted.slice(0, limit);
 
     // カード生成
     return topFranchises.map((franchise, index) => {
       const rank = index + 1;
-      // 100%マッチの業者のみチェック
-      const shouldCheck = franchise.matchRate === 100;
+      const isUserSelected = this.isUserSelected(franchise.companyName);
+
+      // マッチ率を計算
+      const matchRate = this.calculateMatchRate(franchise);
+
+      // デフォルトチェック条件: AS列業者 AND 100%マッチのみ
+      const shouldCheck = isUserSelected && matchRate.total === 100;
 
       return {
         rank,
-        franchiseId: franchise.franchiseId || `FRANCHISE_${String(rank).padStart(3, '0')}`,
-        companyName: franchise.companyName || '未設定',
-        serviceAreas: franchise.serviceAreas || [],
-        matchRate: franchise.matchRate || 0,
-        isUserSelected: franchise.isUserSelected || false,
-        matchDetails: franchise.matchDetails || null,
-        shouldCheck
+        franchiseId: franchise.franchiseId,
+        companyName: franchise.companyName,
+        serviceAreas: franchise.serviceAreas,
+        city: franchise.city,
+        matchRate: matchRate.total,
+        isUserSelected,
+        matchDetails: matchRate.details,
+        shouldCheck,
+        avgContractAmount: franchise.avgContractAmount,
+        rating: franchise.rating,
+        reviewCount: franchise.reviewCount,
+        distance: franchise.distance,
+        distanceText: franchise.distanceText,
+        durationText: franchise.durationText
       };
     });
   },
 
   /**
-   * UIを更新
+   * マッチ率を計算（V1880: 新実装）
+   * @param {object} franchise - 業者データ
+   * @returns {object} { total: number, details: object }
+   */
+  calculateMatchRate(franchise) {
+    let total = 0;
+    const details = {
+      area: { matched: false, required: '', available: [], score: 0, maxScore: 40 },
+      workTypes: { matched: [], unmatched: [], score: 0, maxScore: 60 }
+    };
+
+    // エリアマッチング（40%）
+    const casePrefecture = this.currentCaseData?.prefecture || this.currentCaseData?._rawData?.prefecture || '';
+    const franchiseAreas = franchise.serviceAreas || [];
+    details.area.required = casePrefecture;
+    details.area.available = franchiseAreas;
+
+    if (casePrefecture && franchiseAreas.includes(casePrefecture)) {
+      total += 40;
+      details.area.matched = true;
+      details.area.score = 40;
+    }
+
+    // 工事種別マッチング（60%）
+    const caseWorkTypes = this.extractWorkTypes();
+    const franchiseWorkTypes = franchise.workTypes || [];
+
+    if (caseWorkTypes.length > 0 && franchiseWorkTypes.length > 0) {
+      const matched = caseWorkTypes.filter(w => franchiseWorkTypes.includes(w));
+      const unmatched = caseWorkTypes.filter(w => !franchiseWorkTypes.includes(w));
+      const matchRatio = matched.length / caseWorkTypes.length;
+      const score = Math.round(matchRatio * 60);
+
+      total += score;
+      details.workTypes.matched = matched;
+      details.workTypes.unmatched = unmatched;
+      details.workTypes.score = score;
+    }
+
+    return { total, details };
+  },
+
+  /**
+   * 案件データから工事種別を抽出
+   * @returns {Array<string>} 工事種別の配列
+   */
+  extractWorkTypes() {
+    const rawData = this.currentCaseData?._rawData || {};
+    const botAnswers = rawData.botAnswers || {};
+    const workTypes = [];
+
+    // Q9_希望工事内容_外壁
+    const wallWorkType = botAnswers.q9_wallWorkType || '';
+    if (wallWorkType) {
+      workTypes.push(`外壁${wallWorkType}`);
+    }
+
+    // Q10_希望工事内容_屋根
+    const roofWorkType = botAnswers.q10_roofWorkType || '';
+    if (roofWorkType) {
+      workTypes.push(`屋根${roofWorkType}`);
+    }
+
+    return workTypes;
+  },
+
+  /**
+   * チェック済み業者IDを取得
+   * @returns {Array<string>}
+   */
+  getCheckedFranchiseIds() {
+    const container = document.getElementById('franchiseListContainer');
+    if (!container) return [];
+
+    const checked = container.querySelectorAll('.franchise-item input[type="checkbox"]:checked');
+    return Array.from(checked).map(checkbox => {
+      return checkbox.closest('.franchise-item').getAttribute('data-franchise-id');
+    }).filter(id => id);
+  },
+
+  /**
+   * UIを更新（V1880: 新実装）
    * @param {Array} businessCards - 業者カード配列
    * @param {string} desiredCount - 希望社数
    */
@@ -290,6 +626,9 @@ const BusinessSelectionHandler = {
       container.appendChild(cardElement);
     });
 
+    // 5. もっと見るボタンの更新
+    this.updateShowMoreButton(businessCards.length);
+
     console.log('[BusinessSelection] UI更新完了:', {
       desiredCount,
       cardsCount: businessCards.length
@@ -297,7 +636,24 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * 業者カードDOMを生成
+   * もっと見るボタンを更新（V1880: 新実装）
+   * @param {number} displayedCount - 表示中の業者数
+   */
+  updateShowMoreButton(displayedCount) {
+    const showMoreBtn = document.getElementById('showMoreFranchisesBtn');
+    if (!showMoreBtn) return;
+
+    if (displayedCount >= 8 || this.allFranchises.length <= 4) {
+      // 8社表示中 or 全体で4社以下の場合はボタンを非表示
+      showMoreBtn.style.display = 'none';
+    } else {
+      showMoreBtn.style.display = 'block';
+      showMoreBtn.textContent = this.showAll ? '閉じる' : 'もっと見る（+4社）';
+    }
+  },
+
+  /**
+   * 業者カードDOMを生成（V1880: 距離・価格・評価情報追加）
    * @param {object} card - 業者カード情報
    * @returns {HTMLElement} カードDOM
    */
@@ -323,6 +679,18 @@ const BusinessSelectionHandler = {
     const matchRateColor = card.matchRate === 100 ? 'bg-green-500 text-white' : 'bg-orange-500 text-white';
     const matchRateId = `match-rate-${card.franchiseId}`;
 
+    // 追加情報（価格・評価・距離）
+    let additionalInfo = '';
+    if (card.avgContractAmount > 0) {
+      additionalInfo += `<div class="text-xs text-gray-600">平均: ${this.formatPrice(card.avgContractAmount)}</div>`;
+    }
+    if (card.rating > 0) {
+      additionalInfo += `<div class="text-xs text-yellow-600">★${card.rating} (${card.reviewCount}件)</div>`;
+    }
+    if (card.distanceText) {
+      additionalInfo += `<div class="text-xs text-blue-600">${card.distanceText} / ${card.durationText}</div>`;
+    }
+
     div.innerHTML = `
       <div class="flex items-center justify-between">
         <div class="flex items-center flex-1 min-w-0">
@@ -330,6 +698,7 @@ const BusinessSelectionHandler = {
           <input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="mr-2 sm:mr-4 w-4 h-4 sm:w-5 sm:h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()">
           <div class="flex-1 min-w-0">
             <div class="font-semibold text-gray-900 text-sm sm:text-lg">${card.companyName}</div>
+            ${additionalInfo}
           </div>
         </div>
         <div class="text-right ml-2 sm:ml-4 flex-shrink-0">
@@ -356,6 +725,18 @@ const BusinessSelectionHandler = {
     }, 0);
 
     return div;
+  },
+
+  /**
+   * 価格をフォーマット
+   * @param {number} price - 価格
+   * @returns {string} フォーマット済み価格
+   */
+  formatPrice(price) {
+    if (price >= 10000) {
+      return `${Math.round(price / 10000)}万円`;
+    }
+    return `${price.toLocaleString()}円`;
   },
 
   /**
@@ -447,6 +828,60 @@ const BusinessSelectionHandler = {
   },
 
   /**
+   * ソート順を変更（V1880: 新実装）
+   * @param {string} sortType - ソート順 ('user', 'cheap', 'review', 'premium', 'distance')
+   */
+  async changeSortOrder(sortType) {
+    this.currentSortType = sortType;
+
+    // 距離順の場合は距離計算を実行
+    if (sortType === 'distance' && this.currentCaseData) {
+      const originAddress = this.currentCaseData.address ||
+                           `${this.currentCaseData.prefecture || ''}${this.currentCaseData.city || ''}`;
+
+      if (originAddress) {
+        this.allFranchises = await this.calculateDistances(originAddress, this.allFranchises);
+      }
+    }
+
+    // カードを再生成して表示
+    const businessCards = this.generateBusinessCards({
+      allFranchises: this.allFranchises
+    }, sortType, this.showAll, this.searchQuery);
+
+    this.updateUI(businessCards, this.calculateDesiredCount(this.userSelectedCompanies));
+  },
+
+  /**
+   * もっと見る切り替え（V1880: 新実装）
+   */
+  toggleShowMore() {
+    this.showAll = !this.showAll;
+
+    // カードを再生成して表示
+    const businessCards = this.generateBusinessCards({
+      allFranchises: this.allFranchises
+    }, this.currentSortType, this.showAll, this.searchQuery);
+
+    this.updateUI(businessCards, this.calculateDesiredCount(this.userSelectedCompanies));
+  },
+
+  /**
+   * 検索実行（V1880: 新実装）
+   * @param {string} query - 検索クエリ
+   */
+  searchFranchises(query) {
+    this.searchQuery = query;
+
+    // カードを再生成して表示
+    const businessCards = this.generateBusinessCards({
+      allFranchises: this.allFranchises
+    }, this.currentSortType, this.showAll, query);
+
+    this.updateUI(businessCards, this.calculateDesiredCount(this.userSelectedCompanies));
+  },
+
+  /**
    * サンプル加盟店データ（フォールバック用）
    */
   getSampleFranchises() {
@@ -455,99 +890,91 @@ const BusinessSelectionHandler = {
         franchiseId: 'FRANCHISE_001',
         companyName: '東京都市部塗装',
         serviceAreas: ['東京都', '神奈川県'],
-        workTypes: ['外壁塗装', '屋根塗装']
+        city: '渋谷区',
+        workTypes: ['外壁塗装', '屋根塗装'],
+        avgContractAmount: 1200000,
+        rating: 4.5,
+        reviewCount: 120,
+        contractCount: 50
       },
       {
         franchiseId: 'FRANCHISE_002',
         companyName: '神奈川県央建設',
         serviceAreas: ['神奈川県', '東京都'],
-        workTypes: ['外壁塗装', '屋根塗装', '防水工事']
+        city: '横浜市',
+        workTypes: ['外壁塗装', '屋根塗装', '防水工事'],
+        avgContractAmount: 1100000,
+        rating: 4.3,
+        reviewCount: 95,
+        contractCount: 42
       },
       {
         franchiseId: 'FRANCHISE_003',
         companyName: '千葉外装工業',
         serviceAreas: ['千葉県'],
-        workTypes: ['外壁塗装', '外壁カバー工法']
+        city: '千葉市',
+        workTypes: ['外壁塗装', '外壁カバー工法'],
+        avgContractAmount: 950000,
+        rating: 4.2,
+        reviewCount: 78,
+        contractCount: 35
       },
       {
         franchiseId: 'FRANCHISE_004',
         companyName: '埼玉リフォーム',
         serviceAreas: ['埼玉県'],
-        workTypes: ['外壁塗装', '屋根塗装', 'リフォーム']
+        city: 'さいたま市',
+        workTypes: ['外壁塗装', '屋根塗装', 'リフォーム'],
+        avgContractAmount: 1300000,
+        rating: 4.6,
+        reviewCount: 150,
+        contractCount: 60
       },
       {
         franchiseId: 'F001',
         companyName: '田中ホームテクノ株式会社',
         serviceAreas: ['神奈川県', '東京都'],
-        workTypes: ['外壁塗装', '屋根塗装']
+        city: '藤沢市',
+        workTypes: ['外壁塗装', '屋根塗装'],
+        avgContractAmount: 1150000,
+        rating: 4.4,
+        reviewCount: 110,
+        contractCount: 48
       },
       {
         franchiseId: 'F002',
         companyName: '株式会社湘南ウィンクル',
         serviceAreas: ['神奈川県'],
-        workTypes: ['外壁塗装', '屋根塗装', '防水工事']
+        city: '茅ヶ崎市',
+        workTypes: ['外壁塗装', '屋根塗装', '防水工事'],
+        avgContractAmount: 1050000,
+        rating: 4.3,
+        reviewCount: 88,
+        contractCount: 40
       },
       {
         franchiseId: 'F003',
         companyName: '株式会社39ホーム',
         serviceAreas: ['東京都', '神奈川県', '埼玉県'],
-        workTypes: ['外壁塗装', '屋根塗装']
+        city: '町田市',
+        workTypes: ['外壁塗装', '屋根塗装'],
+        avgContractAmount: 1280000,
+        rating: 4.5,
+        reviewCount: 135,
+        contractCount: 55
       },
       {
         franchiseId: 'F004',
         companyName: '株式会社やまもとくん',
         serviceAreas: ['神奈川県', '東京都'],
-        workTypes: ['外壁塗装', '屋根塗装', 'リフォーム']
+        city: '相模原市',
+        workTypes: ['外壁塗装', '屋根塗装', 'リフォーム'],
+        avgContractAmount: 1100000,
+        rating: 4.4,
+        reviewCount: 102,
+        contractCount: 45
       }
     ];
-  },
-
-  /**
-   * ソート機能（マッチ率優先 + セカンダリソート）
-   * @param {string} sortType - 'selected', 'distance', 'recommend', 'price', 'review', 'quality'
-   */
-  sortFranchises(sortType) {
-    const container = document.getElementById('franchiseListContainer');
-    if (!container) return;
-
-    const franchiseItems = Array.from(container.querySelectorAll('.franchise-item'));
-
-    // ソート関数
-    franchiseItems.sort((a, b) => {
-      // 1. ユーザー選択を最優先
-      const aUserSelected = a.getAttribute('data-user-selected') === 'true';
-      const bUserSelected = b.getAttribute('data-user-selected') === 'true';
-
-      if (aUserSelected && !bUserSelected) return -1;
-      if (!aUserSelected && bUserSelected) return 1;
-
-      // 2. マッチ率でソート（降順）
-      const aMatchRate = parseInt(a.getAttribute('data-match-rate')) || 0;
-      const bMatchRate = parseInt(a.getAttribute('data-match-rate')) || 0;
-
-      if (sortType !== 'selected') {
-        if (aMatchRate !== bMatchRate) {
-          return bMatchRate - aMatchRate;
-        }
-      }
-
-      // 3. セカンダリソート（sortTypeによる）
-      // TODO: 距離、価格、口コミなどのデータが追加されたら実装
-
-      return 0;
-    });
-
-    // DOMを再配置
-    franchiseItems.forEach((item, index) => {
-      // ランク番号を更新
-      const rankElement = item.querySelector('.text-pink-600');
-      if (rankElement) {
-        rankElement.textContent = index + 1;
-      }
-      container.appendChild(item);
-    });
-
-    console.log('[BusinessSelection] ソート完了:', sortType);
   }
 };
 
