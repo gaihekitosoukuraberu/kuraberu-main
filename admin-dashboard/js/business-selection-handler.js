@@ -769,13 +769,15 @@ const BusinessSelectionHandler = {
           <div class="text-base sm:text-lg font-semibold mr-2 sm:mr-3 text-pink-600 flex-shrink-0">${card.rank}</div>
           <input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="mr-2 sm:mr-4 w-4 h-4 sm:w-5 sm:h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()">
           <div class="flex-1 min-w-0">
-            <div class="font-semibold text-gray-900 text-sm sm:text-lg">${card.companyName}</div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <div class="font-semibold text-gray-900 text-sm sm:text-lg">${card.companyName}</div>
+              ${card.isUserSelected ? '<span class="inline-block px-2 py-0.5 bg-pink-600 text-white text-xs font-bold rounded">AS</span>' : ''}
+            </div>
             ${additionalInfo}
           </div>
         </div>
         <div class="text-right ml-2 sm:ml-4 flex-shrink-0">
           <div class="text-xs sm:text-sm text-gray-600 hidden sm:block">${areasText}</div>
-          ${card.isUserSelected ? '<div class="text-pink-600 text-xs sm:text-sm font-semibold">ユーザー選択</div>' : ''}
           <div id="${matchRateId}" class="inline-block px-2 py-1 rounded-full text-xs sm:text-sm font-bold cursor-pointer hover:shadow-lg transition-shadow ${matchRateColor}"
                onclick="event.stopPropagation();"
                title="クリックで詳細を表示">
