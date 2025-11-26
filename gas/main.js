@@ -11,6 +11,13 @@
  * 4. HTMLは絶対に返さない
  * 5. 共通関数は極力最小限にする（main.jsに集約）
  *
+ * 【V1882】 2025-11-26 08:30 - Google Maps Distance Matrix API統合
+ * - Admin Dashboard 業者選択「距離順」ソート対応
+ * - DistanceCalculator.gs作成: calculateDistances アクション実装
+ * - SystemRouterに calculateDistances アクション登録
+ * - 自動車ルートベースの距離・所要時間計算
+ * - APIキー: GOOGLE_MAPS_DISTANCE_KEY (Script Properties)
+ *
  * 【V1872】 2025-11-26 16:10 - LPContactSystem住所解析強化 - 都道府県と市区町村を完全分離
  * - Yahoo API AddressElement分離 + property.Address正規表現解析
  * - AddressElementがある場合: 都道府県（O列）と市区町村（P列）に正しく分離
@@ -262,6 +269,14 @@ const SystemRouter = {
       description: 'プレビューHP同期',
       prefix: false,
       actions: ['syncPreviewHP']
+    },
+
+    // 距離計算（V1882: Google Maps Distance Matrix API）
+    'calculateDistances': {
+      system: 'DistanceCalculator',
+      description: '距離計算（Google Maps API）',
+      prefix: false,
+      actions: ['calculateDistances']
     },
 
     // Slack連携
