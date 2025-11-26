@@ -771,7 +771,7 @@ const BusinessSelectionHandler = {
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <div class="font-semibold text-gray-900 text-sm sm:text-lg">${card.companyName}</div>
-              ${card.isUserSelected ? '<span class="inline-block px-2 py-0.5 bg-pink-600 text-white text-xs font-bold rounded">AS</span>' : ''}
+              ${card.isUserSelected ? '<span class="inline-block px-2 py-0.5 bg-pink-600 text-white text-sm font-bold rounded">👤</span>' : ''}
             </div>
             ${additionalInfo}
           </div>
