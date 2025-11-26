@@ -1134,7 +1134,28 @@ const BusinessSelectionHandler = {
                 <div class="bg-gray-50 p-2 rounded">
                   <div class="font-semibold text-gray-900 mb-1">🏢 業者の対応エリア（市区町村）</div>
                   <div class="${matchDetails.area.matched ? 'text-green-700' : 'text-gray-700'}">
-                    ${franchiseCities.length > 0 ? franchiseCities.sort().map(city => `• ${city}`).join('<br>') : '未設定'}
+                    ${(() => {
+                      if (franchiseCities.length === 0) return '未設定';
+
+                      // マッチした市区町村を先頭に表示
+                      const matchedCity = caseCity && franchiseCities.find(c => c.includes(caseCity) || caseCity.includes(c));
+                      const otherCities = franchiseCities.filter(c => c !== matchedCity);
+
+                      let html = '';
+                      if (matchedCity) {
+                        html += `<div class="font-semibold text-green-700">• ${matchedCity}</div>`;
+                      }
+
+                      if (otherCities.length > 0) {
+                        const otherId = 'other-cities-' + Math.random().toString(36).substring(2, 11);
+                        html += `<button onclick="document.getElementById('${otherId}').classList.toggle('hidden')" class="mt-1 text-sm text-blue-600 hover:text-blue-800 underline">
+                          その他 (+${otherCities.length}市区町村)
+                        </button>`;
+                        html += `<div id="${otherId}" class="hidden mt-2 text-sm">${otherCities.sort().map(c => `• ${c}`).join('<br>')}</div>`;
+                      }
+
+                      return html || '未設定';
+                    })()}
                   </div>
                 </div>
                 ${matchDetails.area.matched ? `
