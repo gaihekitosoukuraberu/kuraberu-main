@@ -1834,6 +1834,12 @@ const AdminSystem = {
       const zipcode = latestRowData[latestHeaders.indexOf('郵便番号')] || '';  // V1765: 郵便番号取得
       const prefectures = latestRowData[latestHeaders.indexOf('対応都道府県')] || '';
       const cities = latestRowData[latestHeaders.indexOf('対応市区町村')] || '';
+
+      console.log('[V1897-DEBUG] copyToFranchiseMaster - データ抽出:', {
+        companyName: companyName,
+        prefectures: prefectures || '(空)',
+        cities: cities || '(空)'
+      });
       const priorityAreas = latestRowData[latestHeaders.indexOf('優先エリア')] || '';
       const constructionTypes = latestRowData[latestHeaders.indexOf('施工箇所')] || '';
       const buildingAge = latestRowData[latestHeaders.indexOf('築年数対応範囲')] || '';

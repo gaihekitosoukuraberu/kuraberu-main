@@ -1700,11 +1700,17 @@ const RankingSystem = {
         const companyName = String(registerData[i][companyNameColIndex] || '').trim();
         if (!companyName) continue;
 
+        const specialSupport = specialSupportColIndex !== -1 ? String(registerData[i][specialSupportColIndex] || '').trim() : '';
+        const maxFloors = maxFloorsColIndex !== -1 ? String(registerData[i][maxFloorsColIndex] || '').trim() : '';
+        const buildingAgeRange = buildingAgeRangeColIndex !== -1 ? String(registerData[i][buildingAgeRangeColIndex] || '').trim() : '';
+
         dataMap[companyName] = {
-          specialSupport: specialSupportColIndex !== -1 ? String(registerData[i][specialSupportColIndex] || '').trim() : '',
-          maxFloors: maxFloorsColIndex !== -1 ? String(registerData[i][maxFloorsColIndex] || '').trim() : '',
-          buildingAgeRange: buildingAgeRangeColIndex !== -1 ? String(registerData[i][buildingAgeRangeColIndex] || '').trim() : ''
+          specialSupport: specialSupport,
+          maxFloors: maxFloors,
+          buildingAgeRange: buildingAgeRange
         };
+
+        console.log('[V1897-DEBUG] 加盟店登録データ:', companyName, '特殊対応:', specialSupport || '(空)', '階数:', maxFloors || '(空)', '築年数:', buildingAgeRange || '(空)');
       }
 
       console.log('[RankingSystem] データマップ作成完了:', Object.keys(dataMap).length + '件');
@@ -1754,7 +1760,10 @@ const RankingSystem = {
             masterSheet.getRange(i, masterBuildingAgeRangeColIndex + 1).setValue(data.buildingAgeRange);
           }
 
-          console.log('[RankingSystem] ✅ 同期:', companyName);
+          console.log('[V1897-DEBUG] ✅ マスタ更新:', companyName, '→',
+                      '特殊対応:', (data.specialSupport || '(空)'),
+                      '階数:', (data.maxFloors || '(空)'),
+                      '築年数:', (data.buildingAgeRange || '(空)'));
           updatedCount++;
         } else if (companyName) {
           console.log('[RankingSystem] ⚠️ 加盟店登録に存在しない:', companyName);
