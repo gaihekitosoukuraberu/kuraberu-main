@@ -1241,6 +1241,14 @@
                     <!-- 動的に生成される業者リスト -->
                 </div>
 
+                <!-- V1904: ローディングスピナー -->
+                <div id="franchiseLoadingSpinner" class="hidden flex justify-center items-center py-16">
+                    <div class="text-center">
+                        <div class="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-green-500"></div>
+                        <p class="mt-4 text-gray-600 font-medium">業者データを読み込み中...</p>
+                    </div>
+                </div>
+
                 <!-- アクションボタン -->
                 <div class="flex justify-center mt-8">
                     <button type="button" onclick="showOrderTransferModal()" class="px-8 py-3.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-lg hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105">
@@ -7981,7 +7989,7 @@ window.addEventListener('beforeunload', function(e) {
     <script src="js/data-formatter.js?v=V1402-JSONP-ONLY"></script>
     <script src="js/registration-requests.js?v=V1402-JSONP-ONLY"></script>
     <script src="js/franchise-management.js?v=V1553-20251103"></script>
-    <script src="js/business-selection-handler.js?v=V1904-DYNAMIC-PRICE"></script>
+    <script src="js/business-selection-handler.js?v=V1905-MATCH-LABELS"></script>
     <!-- 旧システム（無効化） -->
     <!-- <script src="js/gas-config.js?v=20250926_1800"></script> -->
     <!-- <script src="js/dashboard-api.js?v=20250926_1800"></script> -->

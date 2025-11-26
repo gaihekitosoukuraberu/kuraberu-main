@@ -129,6 +129,9 @@ const BusinessSelectionHandler = {
    */
   async loadBusinessSelectionData(caseId, currentCaseData) {
     try {
+      // V1904: ローディングスピナーを表示
+      this.showLoadingSpinner();
+
       if (!this.init()) {
         throw new Error('BusinessSelection初期化失敗');
       }
@@ -165,6 +168,8 @@ const BusinessSelectionHandler = {
 
     } catch (error) {
       console.error('[BusinessSelection] データ読み込みエラー:', error);
+      // V1904: エラー時もスピナーを非表示
+      this.hideLoadingSpinner();
       throw error;
     }
   },
@@ -1041,11 +1046,48 @@ const BusinessSelectionHandler = {
   },
 
   /**
+   * V1904: ローディングスピナーを表示
+   */
+  showLoadingSpinner() {
+    const spinner = document.getElementById('franchiseLoadingSpinner');
+    const container = document.getElementById('franchiseListContainer');
+
+    if (spinner) {
+      spinner.classList.remove('hidden');
+      spinner.classList.add('flex');
+    }
+
+    if (container) {
+      container.classList.add('hidden');
+    }
+  },
+
+  /**
+   * V1904: ローディングスピナーを非表示
+   */
+  hideLoadingSpinner() {
+    const spinner = document.getElementById('franchiseLoadingSpinner');
+    const container = document.getElementById('franchiseListContainer');
+
+    if (spinner) {
+      spinner.classList.add('hidden');
+      spinner.classList.remove('flex');
+    }
+
+    if (container) {
+      container.classList.remove('hidden');
+    }
+  },
+
+  /**
    * UIを更新（V1880: 新実装）
    * @param {Array} businessCards - 業者カード配列
    * @param {string} desiredCount - 希望社数
    */
   updateUI(businessCards, desiredCount) {
+    // V1904: ローディングスピナーを非表示
+    this.hideLoadingSpinner();
+
     // 1. 希望社数ドロップダウンを更新
     const franchiseCountSelect = document.getElementById('franchiseCount');
     if (franchiseCountSelect) {
@@ -1356,10 +1398,10 @@ const BusinessSelectionHandler = {
           ` : ''}
 
           <div class="space-y-4">
-            <!-- エリアマッチング -->
+            <!-- V1905: エリアマッチング -->
             <div class="border-l-4 ${matchDetails.area.matched ? 'border-green-500' : 'border-red-500'} pl-3">
               <div class="flex items-center justify-between mb-2">
-                <span class="font-semibold text-gray-700">エリア適合</span>
+                <span class="font-semibold ${matchDetails.area.matched ? 'text-green-600' : 'text-red-600'}">${matchDetails.area.matched ? 'エリアマッチ' : 'エリア非マッチ'}</span>
                 <span class="text-sm ${matchDetails.area.matched ? 'text-green-600' : 'text-red-600'}">
                   ${matchDetails.area.score} / ${matchDetails.area.maxScore}点
                 </span>
@@ -1398,21 +1440,16 @@ const BusinessSelectionHandler = {
                     })()}
                   </div>
                 </div>
-                ${matchDetails.area.matched ? `
-                  <div class="text-green-600 font-semibold flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                    エリアマッチ完了
-                  </div>
-                ` : `
+                ${!matchDetails.area.matched ? `
                   <div class="text-red-600 font-semibold">→ 業者に ${matchDetails.area.required} への対応追加を依頼</div>
-                `}
+                ` : ''}
               </div>
             </div>
 
-            <!-- 工事種別マッチング -->
+            <!-- V1905: 工事種別マッチング -->
             <div class="border-l-4 ${matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0 ? 'border-green-500' : 'border-orange-500'} pl-3">
               <div class="flex items-center justify-between mb-2">
-                <span class="font-semibold text-gray-700">工事種別適合</span>
+                <span class="font-semibold ${matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0 ? 'text-green-600' : 'text-orange-600'}">${matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0 ? '工事種別マッチ' : '工事種別非マッチ'}</span>
                 <span class="text-sm ${matchDetails.workTypes.unmatched.length === 0 && matchDetails.workTypes.matched.length > 0 ? 'text-green-600' : 'text-orange-600'}">
                   ${matchDetails.workTypes.score} / ${matchDetails.workTypes.maxScore}点
                 </span>
@@ -1426,16 +1463,42 @@ const BusinessSelectionHandler = {
                   `).join('') : '<div class="text-gray-500">未設定</div>'}
                 </div>
 
-                <!-- 業者の対応可能な工事種別（すべて表示） -->
+                <!-- V1905: 業者の対応可能な工事種別（マッチ2つ + 折りたたみ） -->
                 <div class="bg-green-50 p-2 rounded">
                   <div class="text-green-700 font-semibold mb-1 flex items-center gap-1">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
                     対応可能な工事種別（業者登録済み）
                   </div>
-                  ${allFranchiseWorkTypes.length > 0 ? allFranchiseWorkTypes.map(work => {
-                    const isMatched = matchDetails.workTypes.matched.includes(work);
-                    return `<div class="${isMatched ? 'text-green-700 font-semibold' : 'text-green-600'}">• ${work}${isMatched ? ' ✓' : ''}</div>`;
-                  }).join('') : '<div class="text-gray-500">未設定</div>'}
+                  ${(() => {
+                    if (allFranchiseWorkTypes.length === 0) return '<div class="text-gray-500">未設定</div>';
+
+                    // マッチした工事種別を取得
+                    const matchedWorks = allFranchiseWorkTypes.filter(work => matchDetails.workTypes.matched.includes(work));
+                    const otherWorks = allFranchiseWorkTypes.filter(work => !matchDetails.workTypes.matched.includes(work));
+
+                    // マッチした工事種別を最大2つまで表示
+                    const displayedMatched = matchedWorks.slice(0, 2);
+                    const remainingCount = matchedWorks.length - displayedMatched.length + otherWorks.length;
+
+                    let html = displayedMatched.map(work =>
+                      '<div class="text-green-700 font-semibold">• ' + work + ' ✓</div>'
+                    ).join('');
+
+                    // 残りがあれば折りたたみボタン
+                    if (remainingCount > 0) {
+                      const otherId = 'other-works-' + Math.random().toString(36).substring(2, 11);
+                      const allOtherWorks = [...matchedWorks.slice(2), ...otherWorks];
+                      html += '<button onclick="document.getElementById(\'' + otherId + '\').classList.toggle(\'hidden\')" class="mt-1 text-sm text-blue-600 hover:text-blue-800 underline">' +
+                        'その他 (+' + remainingCount + '工事種別)' +
+                      '</button>';
+                      html += '<div id="' + otherId + '" class="hidden mt-2 text-sm space-y-1">' + allOtherWorks.map(work => {
+                        const isMatched = matchDetails.workTypes.matched.includes(work);
+                        return '<div class="' + (isMatched ? 'text-green-700 font-semibold' : 'text-green-600') + '">• ' + work + (isMatched ? ' ✓' : '') + '</div>';
+                      }).join('') + '</div>';
+                    }
+
+                    return html;
+                  })()}
                 </div>
 
                 ${specialSupport ? `
@@ -1465,20 +1528,14 @@ const BusinessSelectionHandler = {
                   </div>
                 ` : ''}
 
-                ${matchDetails.workTypes.matched.length > 0 && matchDetails.workTypes.unmatched.length === 0 ? `
-                  <div class="text-green-600 font-semibold flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                    すべての希望工事に対応可能
-                  </div>
-                ` : ''}
               </div>
             </div>
 
-            <!-- 築年数マッチング -->
-            <div class="border-l-4 ${matchDetails.buildingAge.matched ? 'border-green-500' : 'border-yellow-500'} pl-3">
+            <!-- V1905: 築年数マッチング -->
+            <div class="border-l-4 ${matchDetails.buildingAge.matched ? 'border-green-500' : 'border-red-500'} pl-3">
               <div class="flex items-center justify-between mb-2">
-                <span class="font-semibold text-gray-700">築年数適合</span>
-                <span class="text-sm ${matchDetails.buildingAge.matched ? 'text-green-600' : 'text-yellow-600'}">
+                <span class="font-semibold ${matchDetails.buildingAge.matched ? 'text-green-600' : 'text-red-600'}">${matchDetails.buildingAge.matched ? '築年数マッチ' : '築年数非マッチ'}</span>
+                <span class="text-sm ${matchDetails.buildingAge.matched ? 'text-green-600' : 'text-red-600'}">
                   ${matchDetails.buildingAge.score} / ${matchDetails.buildingAge.maxScore}点
                 </span>
               </div>
@@ -1491,22 +1548,17 @@ const BusinessSelectionHandler = {
                   <div class="font-semibold text-gray-900 mb-1">🏢 業者の対応築年数範囲</div>
                   <div class="text-gray-700">${matchDetails.buildingAge.franchiseMin}年 〜 ${matchDetails.buildingAge.franchiseMax}年</div>
                 </div>
-                ${matchDetails.buildingAge.matched ? `
-                  <div class="text-green-600 font-semibold flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                    築年数マッチ完了
-                  </div>
-                ` : `
-                  <div class="text-yellow-600 font-semibold">→ 業者に築年数範囲の拡大を依頼</div>
-                `}
+                ${!matchDetails.buildingAge.matched ? `
+                  <div class="text-red-600 font-semibold">→ 業者に築年数範囲の拡大を依頼</div>
+                ` : ''}
               </div>
             </div>
 
-            <!-- 物件種別マッチング -->
-            <div class="border-l-4 ${matchDetails.propertyType.matched ? 'border-green-500' : 'border-yellow-500'} pl-3">
+            <!-- V1905: 物件種別マッチング -->
+            <div class="border-l-4 ${matchDetails.propertyType.matched ? 'border-green-500' : 'border-red-500'} pl-3">
               <div class="flex items-center justify-between mb-2">
-                <span class="font-semibold text-gray-700">物件種別適合</span>
-                <span class="text-sm ${matchDetails.propertyType.matched ? 'text-green-600' : 'text-yellow-600'}">
+                <span class="font-semibold ${matchDetails.propertyType.matched ? 'text-green-600' : 'text-red-600'}">${matchDetails.propertyType.matched ? '物件種別マッチ' : '物件種別非マッチ'}</span>
+                <span class="text-sm ${matchDetails.propertyType.matched ? 'text-green-600' : 'text-red-600'}">
                   ${matchDetails.propertyType.score} / ${matchDetails.propertyType.maxScore}点
                 </span>
               </div>
@@ -1519,22 +1571,17 @@ const BusinessSelectionHandler = {
                   <div class="font-semibold text-gray-900 mb-1">🏢 業者の対応可能物件種別</div>
                   <div class="text-gray-700">${matchDetails.propertyType.franchiseTypes.length > 0 ? matchDetails.propertyType.franchiseTypes.join(', ') : '未設定'}</div>
                 </div>
-                ${matchDetails.propertyType.matched ? `
-                  <div class="text-green-600 font-semibold flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                    物件種別マッチ完了
-                  </div>
-                ` : `
-                  <div class="text-yellow-600 font-semibold">→ 業者に物件種別の追加を依頼</div>
-                `}
+                ${!matchDetails.propertyType.matched ? `
+                  <div class="text-red-600 font-semibold">→ 業者に物件種別の追加を依頼</div>
+                ` : ''}
               </div>
             </div>
 
-            <!-- 階数マッチング -->
-            <div class="border-l-4 ${matchDetails.floors.matched ? 'border-green-500' : 'border-yellow-500'} pl-3">
+            <!-- V1905: 階数マッチング -->
+            <div class="border-l-4 ${matchDetails.floors.matched ? 'border-green-500' : 'border-red-500'} pl-3">
               <div class="flex items-center justify-between mb-2">
-                <span class="font-semibold text-gray-700">階数適合</span>
-                <span class="text-sm ${matchDetails.floors.matched ? 'text-green-600' : 'text-yellow-600'}">
+                <span class="font-semibold ${matchDetails.floors.matched ? 'text-green-600' : 'text-red-600'}">${matchDetails.floors.matched ? '階数マッチ' : '階数非マッチ'}</span>
+                <span class="text-sm ${matchDetails.floors.matched ? 'text-green-600' : 'text-red-600'}">
                   ${matchDetails.floors.score} / ${matchDetails.floors.maxScore}点
                 </span>
               </div>
@@ -1547,14 +1594,9 @@ const BusinessSelectionHandler = {
                   <div class="font-semibold text-gray-900 mb-1">🏢 業者の対応可能階数</div>
                   <div class="text-gray-700 text-xs">${matchDetails.floors.franchiseMax || '未設定'}</div>
                 </div>
-                ${matchDetails.floors.matched ? `
-                  <div class="text-green-600 font-semibold flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                    階数マッチ完了
-                  </div>
-                ` : `
-                  <div class="text-yellow-600 font-semibold">→ 業者に階数対応の拡大を依頼</div>
-                `}
+                ${!matchDetails.floors.matched ? `
+                  <div class="text-red-600 font-semibold">→ 業者に階数対応の拡大を依頼</div>
+                ` : ''}
               </div>
             </div>
           </div>
