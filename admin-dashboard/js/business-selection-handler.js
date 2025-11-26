@@ -757,7 +757,7 @@ const BusinessSelectionHandler = {
       additionalInfo += `<div class="text-xs text-gray-600">平均: ${this.formatPrice(card.avgContractAmount)}</div>`;
     }
     if (card.rating > 0) {
-      additionalInfo += `<div class="text-xs text-yellow-600">★${card.rating} (${card.reviewCount}件)</div>`;
+      additionalInfo += `<div class="text-xs text-yellow-600">★${card.rating}</div>`;
     }
     if (card.distanceText) {
       additionalInfo += `<div class="text-xs text-blue-600">${card.distanceText} / ${card.durationText}</div>`;
