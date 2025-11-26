@@ -1002,16 +1002,26 @@ const BusinessSelectionHandler = {
                   `).join('') : '<div class="text-gray-500">未設定</div>'}
                 </div>
 
-                ${matchDetails.workTypes.matched.length > 0 ? `
-                  <!-- マッチしている工事 -->
-                  <div class="bg-green-50 p-2 rounded">
-                    <div class="text-green-700 font-semibold mb-1 flex items-center gap-1">
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                      ✓ 対応可能（業者が登録済み）
+                <!-- 業者の対応可能な工事種別（すべて表示） -->
+                <div class="bg-green-50 p-2 rounded">
+                  <div class="text-green-700 font-semibold mb-1 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                    対応可能な工事種別（業者登録済み）
+                  </div>
+                  ${allFranchiseWorkTypes.length > 0 ? allFranchiseWorkTypes.map(work => {
+                    const isMatched = matchDetails.workTypes.matched.includes(work);
+                    return `<div class="${isMatched ? 'text-green-700 font-semibold' : 'text-green-600'}">• ${work}${isMatched ? ' ✓' : ''}</div>`;
+                  }).join('') : '<div class="text-gray-500">未設定</div>'}
+                </div>
+
+                ${specialSupport ? `
+                  <!-- 特殊対応項目 -->
+                  <div class="bg-purple-50 p-2 rounded border border-purple-200">
+                    <div class="text-purple-700 font-semibold mb-1 flex items-center gap-1">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path></svg>
+                      特殊対応項目
                     </div>
-                    ${matchDetails.workTypes.matched.map(work => `
-                      <div class="text-green-700">• ${work}</div>
-                    `).join('')}
+                    <div class="text-purple-700">${specialSupport}</div>
                   </div>
                 ` : ''}
 
@@ -1020,7 +1030,7 @@ const BusinessSelectionHandler = {
                   <div class="bg-red-50 p-2 rounded border border-red-200">
                     <div class="text-red-700 font-semibold mb-1 flex items-center gap-1">
                       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
-                      ✗ 対応不可（業者に追加依頼が必要）
+                      対応不可（業者に追加依頼が必要）
                     </div>
                     ${matchDetails.workTypes.unmatched.map(work => `
                       <div class="text-red-700 font-medium">• ${work}</div>
@@ -1034,7 +1044,7 @@ const BusinessSelectionHandler = {
                 ${matchDetails.workTypes.matched.length > 0 && matchDetails.workTypes.unmatched.length === 0 ? `
                   <div class="text-green-600 font-semibold flex items-center gap-1">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                    ✓ すべての希望工事に対応可能
+                    すべての希望工事に対応可能
                   </div>
                 ` : ''}
               </div>
