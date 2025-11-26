@@ -2395,12 +2395,12 @@ window.addEventListener('beforeunload', function(e) {
 
             console.log(`${sortLabels[sortType] || sortType}でソートしました`);
 
-            // V1873: BusinessSelectionHandlerを使用した実際のソート処理
+            // V1910: BusinessSelectionHandlerを使用した実際のソート処理（UI再描画）
             if (window.BusinessSelectionHandler) {
-                window.BusinessSelectionHandler.sortFranchises(sortType);
-                console.log('[V1873] BusinessSelectionHandler.sortFranchises() 実行完了');
+                window.BusinessSelectionHandler.applySortAndRender(sortType);
+                console.log('[V1910] BusinessSelectionHandler.applySortAndRender() 実行完了');
             } else {
-                console.warn('[V1873] BusinessSelectionHandlerが読み込まれていません');
+                console.warn('[V1910] BusinessSelectionHandlerが読み込まれていません');
             }
         }
 
@@ -7989,7 +7989,7 @@ window.addEventListener('beforeunload', function(e) {
     <script src="js/data-formatter.js?v=V1402-JSONP-ONLY"></script>
     <script src="js/registration-requests.js?v=V1402-JSONP-ONLY"></script>
     <script src="js/franchise-management.js?v=V1553-20251103"></script>
-    <script src="js/business-selection-handler.js?v=V1909-SEARCH-SORT"></script>
+    <script src="js/business-selection-handler.js?v=V1910-SORT-FIX"></script>
     <!-- 旧システム（無効化） -->
     <!-- <script src="js/gas-config.js?v=20250926_1800"></script> -->
     <!-- <script src="js/dashboard-api.js?v=20250926_1800"></script> -->
