@@ -2126,7 +2126,7 @@ const RankingSystem = {
 
           activeFranchises.push({
             companyName: companyName,
-            serviceAreas: prefectures,
+            serviceAreas: prefectures ? prefectures.split(/[、,\n]/).filter(p => p.trim()) : [],
             city: cities.split('\n')[0] || '',
             citiesArray: cities ? cities.split('\n').filter(c => c) : [],
             avgContractAmount: row[colIndex.avgContractAmount] || 0,
