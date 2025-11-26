@@ -1048,6 +1048,18 @@ const BusinessSelectionHandler = {
     const specialSupport = franchise?.specialSupport || '';
     const franchiseCities = franchise?.citiesArray || [];
 
+    // V1897: デバッグログ - データ取得状況確認
+    console.log('[V1897-DEBUG] モーダル表示データ:', {
+      companyName,
+      matchRate,
+      franchise: franchise,
+      citiesArray: franchise?.citiesArray,
+      cities: franchise?.cities,
+      maxFloors: franchise?.maxFloors,
+      buildingAgeRange: franchise?.buildingAgeRange,
+      specialSupport: franchise?.specialSupport
+    });
+
     const modalHTML = `
       <div id="matchDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) this.remove()">
         <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">

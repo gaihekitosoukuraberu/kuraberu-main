@@ -1645,6 +1645,139 @@ const RankingSystem = {
   },
 
   /**
+   * V1897: 特殊対応項目・最大対応階数・築年数対応範囲を加盟店登録から加盟店マスタに同期
+   * 加盟店登録シート → 加盟店マスタ
+   * - 特殊対応項目 → AE列
+   * - 最大対応階数 → AF列
+   * - 築年数対応範囲 → AG列
+   */
+  syncMatchFieldsToMaster: function() {
+    console.log('[RankingSystem] マッチ項目同期開始');
+
+    try {
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+      // 加盟店登録シート取得
+      const registerSheet = ss.getSheetByName('加盟店登録');
+      if (!registerSheet) {
+        console.error('[RankingSystem] 加盟店登録シートが見つかりません');
+        return { success: false, error: '加盟店登録シートが見つかりません' };
+      }
+
+      // 加盟店マスタシート取得
+      const masterSheet = ss.getSheetByName('加盟店マスタ');
+      if (!masterSheet) {
+        console.error('[RankingSystem] 加盟店マスタシートが見つかりません');
+        return { success: false, error: '加盟店マスタシートが見つかりません' };
+      }
+
+      // 加盟店登録シートからデータ取得
+      const registerData = registerSheet.getDataRange().getValues();
+      const registerHeaders = registerData[0];
+
+      // ヘッダーから列インデックスを取得
+      const companyNameColIndex = registerHeaders.indexOf('会社名');
+      const specialSupportColIndex = registerHeaders.indexOf('特殊対応項目');
+      const maxFloorsColIndex = registerHeaders.indexOf('最大対応階数');
+      const buildingAgeRangeColIndex = registerHeaders.indexOf('築年数対応範囲');
+
+      console.log('[V1897-DEBUG] 加盟店登録シート - 列インデックス:', {
+        companyName: companyNameColIndex,
+        specialSupport: specialSupportColIndex,
+        maxFloors: maxFloorsColIndex,
+        buildingAgeRange: buildingAgeRangeColIndex
+      });
+
+      if (companyNameColIndex === -1) {
+        console.error('[RankingSystem] 加盟店登録シートに「会社名」列が見つかりません');
+        return { success: false, error: '加盟店登録シートに「会社名」列が見つかりません' };
+      }
+
+      // データマップ作成
+      const dataMap = {};
+      for (let i = 1; i < registerData.length; i++) {
+        const companyName = String(registerData[i][companyNameColIndex] || '').trim();
+        if (!companyName) continue;
+
+        dataMap[companyName] = {
+          specialSupport: specialSupportColIndex !== -1 ? String(registerData[i][specialSupportColIndex] || '').trim() : '',
+          maxFloors: maxFloorsColIndex !== -1 ? String(registerData[i][maxFloorsColIndex] || '').trim() : '',
+          buildingAgeRange: buildingAgeRangeColIndex !== -1 ? String(registerData[i][buildingAgeRangeColIndex] || '').trim() : ''
+        };
+      }
+
+      console.log('[RankingSystem] データマップ作成完了:', Object.keys(dataMap).length + '件');
+
+      // 加盟店マスタのヘッダー取得
+      const masterHeaders = masterSheet.getRange(1, 1, 1, masterSheet.getLastColumn()).getValues()[0];
+      const masterCompanyNameColIndex = masterHeaders.indexOf('会社名');
+      const masterSpecialSupportColIndex = masterHeaders.indexOf('特殊対応項目');
+      const masterMaxFloorsColIndex = masterHeaders.indexOf('最大対応階数');
+      const masterBuildingAgeRangeColIndex = masterHeaders.indexOf('築年数対応範囲');
+
+      console.log('[V1897-DEBUG] 加盟店マスタ - 列インデックス:', {
+        companyName: masterCompanyNameColIndex,
+        specialSupport: masterSpecialSupportColIndex,
+        maxFloors: masterMaxFloorsColIndex,
+        buildingAgeRange: masterBuildingAgeRangeColIndex
+      });
+
+      if (masterCompanyNameColIndex === -1) {
+        console.error('[RankingSystem] 加盟店マスタに「会社名」列が見つかりません');
+        return { success: false, error: '加盟店マスタに「会社名」列が見つかりません' };
+      }
+
+      // 加盟店マスタを更新
+      const masterLastRow = masterSheet.getLastRow();
+      let updatedCount = 0;
+      let notFoundCount = 0;
+
+      for (let i = 2; i <= masterLastRow; i++) {
+        const companyName = String(masterSheet.getRange(i, masterCompanyNameColIndex + 1).getValue() || '').trim();
+
+        if (companyName && dataMap[companyName]) {
+          const data = dataMap[companyName];
+
+          // 特殊対応項目を同期
+          if (masterSpecialSupportColIndex !== -1) {
+            masterSheet.getRange(i, masterSpecialSupportColIndex + 1).setValue(data.specialSupport);
+          }
+
+          // 最大対応階数を同期
+          if (masterMaxFloorsColIndex !== -1) {
+            masterSheet.getRange(i, masterMaxFloorsColIndex + 1).setValue(data.maxFloors);
+          }
+
+          // 築年数対応範囲を同期
+          if (masterBuildingAgeRangeColIndex !== -1) {
+            masterSheet.getRange(i, masterBuildingAgeRangeColIndex + 1).setValue(data.buildingAgeRange);
+          }
+
+          console.log('[RankingSystem] ✅ 同期:', companyName);
+          updatedCount++;
+        } else if (companyName) {
+          console.log('[RankingSystem] ⚠️ 加盟店登録に存在しない:', companyName);
+          notFoundCount++;
+        }
+      }
+
+      console.log('[RankingSystem] 同期完了 - 更新:', updatedCount + '件、未設定:', notFoundCount + '件');
+
+      return {
+        success: true,
+        updatedCount: updatedCount,
+        notFoundCount: notFoundCount,
+        totalCompanies: Object.keys(dataMap).length
+      };
+
+    } catch (error) {
+      console.error('[RankingSystem] 同期エラー:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
    * V1833: プレビューHPを加盟店登録から加盟店マスタに同期
    * 加盟店登録シートのAX列（プレビューHP）→ 加盟店マスタのAD列（プレビューHP）
    */
@@ -1765,6 +1898,11 @@ const RankingSystem = {
     // V1833: プレビューHP同期エンドポイント
     if (action === 'syncPreviewHP') {
       return this.syncPreviewHPToMaster();
+    }
+
+    // V1897: マッチ項目同期エンドポイント
+    if (action === 'syncMatchFields') {
+      return this.syncMatchFieldsToMaster();
     }
 
     return {
