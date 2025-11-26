@@ -1472,29 +1472,24 @@ const BusinessSelectionHandler = {
                   ${(() => {
                     if (allFranchiseWorkTypes.length === 0) return '<div class="text-gray-500">未設定</div>';
 
-                    // マッチした工事種別を取得
+                    // V1906: マッチした工事種別は全て表示、非マッチのみ折りたたみ
                     const matchedWorks = allFranchiseWorkTypes.filter(work => matchDetails.workTypes.matched.includes(work));
                     const otherWorks = allFranchiseWorkTypes.filter(work => !matchDetails.workTypes.matched.includes(work));
 
-                    // マッチした工事種別を最大2つまで表示
-                    const displayedMatched = matchedWorks.slice(0, 2);
-                    const remainingCount = matchedWorks.length - displayedMatched.length + otherWorks.length;
-
-                    let html = displayedMatched.map(work =>
+                    // マッチした工事種別を全て表示（制限なし）
+                    let html = matchedWorks.map(work =>
                       '<div class="text-green-700 font-semibold">• ' + work + ' ✓</div>'
                     ).join('');
 
-                    // 残りがあれば折りたたみボタン
-                    if (remainingCount > 0) {
+                    // 非マッチ項目があれば折りたたみボタン
+                    if (otherWorks.length > 0) {
                       const otherId = 'other-works-' + Math.random().toString(36).substring(2, 11);
-                      const allOtherWorks = [...matchedWorks.slice(2), ...otherWorks];
                       html += '<button onclick="document.getElementById(\'' + otherId + '\').classList.toggle(\'hidden\')" class="mt-1 text-sm text-blue-600 hover:text-blue-800 underline">' +
-                        'その他 (+' + remainingCount + '工事種別)' +
+                        'その他 (+' + otherWorks.length + '工事種別)' +
                       '</button>';
-                      html += '<div id="' + otherId + '" class="hidden mt-2 text-sm space-y-1">' + allOtherWorks.map(work => {
-                        const isMatched = matchDetails.workTypes.matched.includes(work);
-                        return '<div class="' + (isMatched ? 'text-green-700 font-semibold' : 'text-green-600') + '">• ' + work + (isMatched ? ' ✓' : '') + '</div>';
-                      }).join('') + '</div>';
+                      html += '<div id="' + otherId + '" class="hidden mt-2 text-sm space-y-1">' + otherWorks.map(work =>
+                        '<div class="text-green-600">• ' + work + '</div>'
+                      ).join('') + '</div>';
                     }
 
                     return html;
