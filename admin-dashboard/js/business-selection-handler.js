@@ -158,7 +158,13 @@ const BusinessSelectionHandler = {
       // ランキングデータを統合（recommended, cheap, review, premiumから重複除去してマージ）
       const allFranchises = this.mergeRankingData(response.rankings);
 
-      console.log('[BusinessSelection] 統合後の業者数:', allFranchises.length);
+      console.log('[V1900-DEBUG] 統合後の業者数:', allFranchises.length);
+      console.log('[V1900-DEBUG] 統合後の業者一覧:', allFranchises.map(f => ({
+        name: f.companyName,
+        maxFloors: f.maxFloors,
+        citiesCount: f.citiesArray?.length,
+        buildingAge: `${f.buildingAgeMin}-${f.buildingAgeMax}`
+      })));
 
       return allFranchises;
 
@@ -255,7 +261,7 @@ const BusinessSelectionHandler = {
    * @returns {object} フランチャイズ形式のオブジェクト
    */
   convertToFranchiseFormat(business) {
-    return {
+    const converted = {
       franchiseId: business.companyName, // IDの代わりに会社名を使用
       companyName: business.companyName,
       serviceAreas: [business.prefecture].filter(p => p),
@@ -277,6 +283,16 @@ const BusinessSelectionHandler = {
       // V1880: previewHP
       previewHP: business.previewHP || ''
     };
+
+    // V1900: 変換デバッグログ
+    console.log('[V1900-CONVERT] ' + business.companyName + ':', {
+      inputMaxFloors: business.maxFloors,
+      inputCities: business.cities?.substring(0, 50),
+      outputMaxFloors: converted.maxFloors,
+      outputCitiesCount: converted.citiesArray.length
+    });
+
+    return converted;
   },
 
   /**
@@ -1073,17 +1089,26 @@ const BusinessSelectionHandler = {
     const specialSupport = franchise?.specialSupport || '';
     const franchiseCities = franchise?.citiesArray || [];
 
-    // V1897: デバッグログ - データ取得状況確認
-    console.log('[V1897-DEBUG] モーダル表示データ:', {
+    // V1900: 徹底デバッグログ - データ取得状況確認
+    console.log('[V1900-DEBUG] モーダル表示データ:', {
       companyName,
       matchRate,
+      allFranchisesCount: this.allFranchises.length,
+      allFranchisesCompanies: this.allFranchises.map(f => f.companyName),
       franchise: franchise,
       citiesArray: franchise?.citiesArray,
-      cities: franchise?.cities,
       maxFloors: franchise?.maxFloors,
-      buildingAgeRange: franchise?.buildingAgeRange,
+      buildingAgeMin: franchise?.buildingAgeMin,
+      buildingAgeMax: franchise?.buildingAgeMax,
       specialSupport: franchise?.specialSupport
     });
+
+    if (!franchise) {
+      console.error('[V1900-ERROR] franchise not found for:', companyName);
+      console.error('[V1900-ERROR] Available franchises:', this.allFranchises);
+    } else if (!franchise.maxFloors) {
+      console.error('[V1900-ERROR] maxFloors is empty for:', companyName, franchise);
+    }
 
     const modalHTML = `
       <div id="matchDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) this.remove()">
