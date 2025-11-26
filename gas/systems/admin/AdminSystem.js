@@ -654,6 +654,21 @@ const AdminSystem = {
           }
           console.log('[AdminSystem] ===== マッチ項目同期終了 =====');
 
+          // V1912: 会社名カナ同期（加盟店登録D列 → 加盟店マスタAG列）
+          try {
+            console.log('[AdminSystem] ===== 会社名カナ同期開始（加盟店マスタ構築後） =====');
+            const kanaSyncResult = RankingSystem.syncCompanyNameKanaToMaster();
+            if (kanaSyncResult.success) {
+              console.log('[AdminSystem] ✅ 会社名カナ同期成功 - 更新:', kanaSyncResult.updatedCount + '件');
+            } else {
+              console.error('[AdminSystem] ❌ 会社名カナ同期失敗:', kanaSyncResult.error);
+            }
+          } catch (kanaSyncError) {
+            console.error('[AdminSystem] 会社名カナ同期エラー:', kanaSyncError);
+            // エラーは無視して処理を続行
+          }
+          console.log('[AdminSystem] ===== 会社名カナ同期終了 =====');
+
           return {
             success: true,
             message: '承認処理が完了しました'
