@@ -1552,19 +1552,44 @@ const BusinessSelectionHandler = {
     const matchRateColor = card.matchRate === 100 ? 'bg-green-500 text-white' : 'bg-orange-500 text-white';
     const matchRateId = `match-rate-${card.franchiseId}`;
 
-    // V1913: 住所情報（マップアイコンツールチップ用）- 改行を修正
+    // V1943: 住所情報（横書き表示 + 支店箇条書き対応）
     const addressLines = [];
     if (card.address) addressLines.push(`本社: ${card.address}`);
     if (card.branchAddress) addressLines.push(`支店: ${card.branchAddress}`);
     const addressTooltip = addressLines.length > 0 ? addressLines.join('\n') : '住所未登録';
 
-    // 追加情報（評価・距離）
-    let additionalInfo = '';
-    if (card.rating > 0) {
-      additionalInfo += `<div class="text-xs text-yellow-600">★${card.rating}</div>`;
+    // V1943: 住所を横書きで表示（本社 + 支店を箇条書き）
+    let addressDisplay = '';
+    if (card.address || card.branchAddress) {
+      addressDisplay = '<div class="text-xs text-gray-600 mt-1" style="writing-mode: horizontal-tb;">';
+      if (card.address) {
+        addressDisplay += `<div>本社: ${card.address}</div>`;
+      }
+      if (card.branchAddress) {
+        // 支店が複数ある場合はカンマ区切りで分割して箇条書き
+        const branches = card.branchAddress.split(',').map(b => b.trim()).filter(b => b);
+        if (branches.length > 0) {
+          addressDisplay += '<div>支店:</div><ul class="list-disc ml-4">';
+          branches.forEach(branch => {
+            addressDisplay += `<li>${branch}</li>`;
+          });
+          addressDisplay += '</ul>';
+        }
+      }
+      addressDisplay += '</div>';
     }
-    if (card.distanceText) {
-      additionalInfo += `<div class="text-xs text-blue-600">${card.distanceText} / ${card.durationText}</div>`;
+
+    // V1943: 追加情報（評価と距離を同じ行に表示）
+    let additionalInfo = '';
+    if (card.rating > 0 || card.distanceText) {
+      additionalInfo += '<div class="flex items-center gap-2 text-xs mt-1">';
+      if (card.rating > 0) {
+        additionalInfo += `<span class="text-yellow-600">★${card.rating}</span>`;
+      }
+      if (card.distanceText) {
+        additionalInfo += `<span class="text-blue-600">📍 ${card.distanceText}</span>`;
+      }
+      additionalInfo += '</div>';
     }
 
     div.innerHTML = `
@@ -1589,6 +1614,7 @@ const BusinessSelectionHandler = {
               </span>
             </div>
             ${additionalInfo}
+            ${addressDisplay}
           </div>
         </div>
         <div class="text-right ml-2 sm:ml-4 flex-shrink-0">
