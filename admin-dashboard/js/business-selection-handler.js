@@ -54,10 +54,10 @@
  */
 
 // ============================================
-// 🔥 バージョン定数（V1932-COMPLETE）
+// 🔥 バージョン定数（V1934-EMERGENCY-DEPLOY）
 // ============================================
-const BUSINESS_SELECTION_HANDLER_VERSION = 1932;
-const EXPECTED_MIN_VERSION = 1932;
+const BUSINESS_SELECTION_HANDLER_VERSION = 1934;
+const EXPECTED_MIN_VERSION = 1934;
 
 // ============================================
 // 🔥 バージョン確認ログ（V1932-COMPLETE）
