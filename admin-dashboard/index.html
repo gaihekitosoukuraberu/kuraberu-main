@@ -7132,6 +7132,45 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
+        // V1922: チェックボックス変更時の処理（希望社数制限）
+        async function handleFranchiseCheck(checkbox, companyName) {
+            const isChecked = checkbox.checked;
+
+            if (isChecked) {
+                // チェックON: 希望社数チェック
+                const selectEl = document.getElementById('franchiseCount');
+                const desiredCountStr = selectEl?.value || '3社';
+                const desiredCount = parseInt(desiredCountStr);
+                const currentChecked = window.BusinessSelectionHandler.checkedCompanies.size;
+
+                if (currentChecked >= desiredCount) {
+                    // 希望社数を超える場合、確認モーダル
+                    const confirmed = confirm(`現在の希望社数は${desiredCount}社です。\n${desiredCount + 1}社に変更しますか？`);
+                    if (confirmed) {
+                        // 希望社数を自動更新
+                        if (selectEl) {
+                            selectEl.value = `${desiredCount + 1}社`;
+                        }
+                        window.BusinessSelectionHandler.checkedCompanies.add(companyName);
+                        console.log('[V1922] 希望社数を更新:', desiredCount + 1, '社');
+                    } else {
+                        // キャンセル: チェックを外す
+                        checkbox.checked = false;
+                        return;
+                    }
+                } else {
+                    window.BusinessSelectionHandler.checkedCompanies.add(companyName);
+                }
+            } else {
+                // チェックOFF
+                window.BusinessSelectionHandler.checkedCompanies.delete(companyName);
+            }
+
+            console.log('[V1922] Checked companies:', Array.from(window.BusinessSelectionHandler.checkedCompanies));
+            // UI再描画
+            await window.BusinessSelectionHandler.renderBusinessCards();
+        }
+
         // 物件の郵便番号から住所を取得
         async function fetchAddress() {
             const zipInput = document.getElementById('zipInput');

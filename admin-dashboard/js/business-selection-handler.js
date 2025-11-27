@@ -1414,7 +1414,7 @@ const BusinessSelectionHandler = {
       <div class="flex items-center justify-between">
         <div class="flex items-center flex-1 min-w-0">
           <div class="text-base sm:text-lg font-semibold mr-2 sm:mr-3 text-pink-600 flex-shrink-0">${card.rank}</div>
-          <input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="mr-2 sm:mr-4 w-4 h-4 sm:w-5 sm:h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()">
+          <input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="mr-2 sm:mr-4 w-4 h-4 sm:w-5 sm:h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <div class="font-semibold text-gray-900 text-sm sm:text-lg">${card.companyName}</div>
@@ -1447,52 +1447,8 @@ const BusinessSelectionHandler = {
       </div>
     `;
 
-    // V1921: チェックボックスにイベントリスナーを追加（希望社数制限）
+    // V1922: マッチ率バッジにクリックイベントを追加
     setTimeout(() => {
-      const checkbox = div.querySelector('input[type="checkbox"]');
-      if (checkbox) {
-        checkbox.addEventListener('change', async (e) => {
-          e.stopPropagation();
-          const companyName = card.companyName;
-          const isChecked = e.target.checked;
-
-          if (isChecked) {
-            // チェックON: 希望社数チェック
-            const selectEl = document.getElementById('franchiseCount');
-            const desiredCountStr = selectEl?.value || '3社';
-            const desiredCount = parseInt(desiredCountStr);
-            const currentChecked = this.checkedCompanies.size;
-
-            if (currentChecked >= desiredCount) {
-              // 希望社数を超える場合、確認モーダル
-              const confirmed = confirm(`現在の希望社数は${desiredCount}社です。\n${desiredCount + 1}社に変更しますか？`);
-              if (confirmed) {
-                // 希望社数を自動更新
-                if (selectEl) {
-                  selectEl.value = `${desiredCount + 1}社`;
-                }
-                this.checkedCompanies.add(companyName);
-                console.log('[V1921] 希望社数を更新:', desiredCount + 1, '社');
-              } else {
-                // キャンセル: チェックを外す
-                e.target.checked = false;
-                return;
-              }
-            } else {
-              this.checkedCompanies.add(companyName);
-            }
-          } else {
-            // チェックOFF
-            this.checkedCompanies.delete(companyName);
-          }
-
-          console.log('[V1921] Checked companies:', Array.from(this.checkedCompanies));
-          // UI再描画
-          await this.renderBusinessCards();
-        });
-      }
-
-      // マッチ率バッジにクリックイベントを追加
       const matchRateBadge = document.getElementById(matchRateId);
       if (matchRateBadge && card.matchDetails) {
         matchRateBadge.addEventListener('click', (e) => {
