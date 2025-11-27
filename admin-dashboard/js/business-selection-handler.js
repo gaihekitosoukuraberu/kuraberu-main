@@ -421,6 +421,11 @@ const BusinessSelectionHandler = {
     // ソート順を保存
     this.currentSortType = sortType;
 
+    // ========== V1925: デバッグログ追加 ==========
+    console.log('%c[V1925-DEBUG] applySortAndRender開始', 'color: #0000ff; font-weight: bold; font-size: 16px');
+    console.log('[V1925-DEBUG] 現在のcheckedCompanies:', Array.from(this.checkedCompanies));
+    console.log('[V1925-DEBUG] sortType:', sortType);
+
     // V1924: 現在の希望社数ドロップダウンの値を取得（ユーザー変更を尊重）
     const franchiseCountSelect = document.getElementById('franchiseCount');
     const currentDesiredCount = franchiseCountSelect?.value || '3社';
@@ -438,6 +443,12 @@ const BusinessSelectionHandler = {
       this.showAll,
       this.searchQuery
     );
+
+    // ========== V1925: デバッグログ追加 ==========
+    console.log('[V1925-DEBUG] 生成されたカード数:', businessCards.length);
+    businessCards.forEach(c => {
+      console.log(`[V1925-DEBUG] ${c.companyName}: shouldCheck=${c.shouldCheck}`);
+    });
 
     // UIを更新（V1924: 希望社数は上書きしない）
     this.updateUI(businessCards, currentDesiredCount, false);
