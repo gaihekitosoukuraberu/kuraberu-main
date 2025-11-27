@@ -7133,6 +7133,12 @@ window.addEventListener('beforeunload', function(e) {
 
         // V1922: チェックボックス変更時の処理（希望社数制限）
         async function handleFranchiseCheck(checkbox, companyName) {
+            // ========== V1925: デバッグログ追加 ==========
+            console.log('%c[V1925-DEBUG] handleFranchiseCheck 呼び出された！', 'color: #ff0000; font-weight: bold; font-size: 16px');
+            console.log('[V1925-DEBUG] companyName:', companyName);
+            console.log('[V1925-DEBUG] checked:', checkbox.checked);
+            console.log('[V1925-DEBUG] 現在のcheckedCompanies BEFORE:', Array.from(window.BusinessSelectionHandler.checkedCompanies));
+
             const isChecked = checkbox.checked;
 
             if (isChecked) {
