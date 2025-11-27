@@ -680,8 +680,9 @@ const BusinessSelectionHandler = {
       // チェックされている業者を取得（UI上のチェックボックスから）
       const checkedCompanies = this.getCheckedCompanies();
 
-      // 全アクティブ加盟店を取得（検索用）
-      const allActiveFranchises = await this.getAllActiveFranchises();
+      // 全アクティブ加盟店を取得（検索用）- V1916: convertToFranchiseFormat()で変換
+      const rawFranchises = await this.getAllActiveFranchises();
+      const allActiveFranchises = rawFranchises.map(f => this.convertToFranchiseFormat(f));
       console.log('[V1913] 全アクティブ加盟店数:', allActiveFranchises.length);
       console.log('[V1913] 検索クエリ:', searchQuery);
 
