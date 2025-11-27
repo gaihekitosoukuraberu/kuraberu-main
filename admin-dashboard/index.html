@@ -3841,21 +3841,9 @@ window.addEventListener('beforeunload', function(e) {
             });
         }
 
-        // チェックボックスの変更を監視（後で初期化）
-        function initializeCheckboxes() {
-            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    const franchiseItem = this.closest('.franchise-item');
-                    if (franchiseItem) {
-                        if (this.checked) {
-                            franchiseItem.classList.add('selected');
-                        } else {
-                            franchiseItem.classList.remove('selected');
-                        }
-                    }
-                });
-            });
-        }
+        // V1927: initializeCheckboxes削除 - inline onchange属性で処理するため不要
+        // 理由: この関数はhandleFranchiseCheckを呼ばず、CSSクラスの切り替えのみを行っていた
+        // inline onchange="handleFranchiseCheck(...)"で正しく処理されるため、この関数は不要
 
         // AI全項目添削ボタンのクリックイベント
         const aiButton = document.querySelector('.ai-button');
@@ -7556,13 +7544,11 @@ window.addEventListener('beforeunload', function(e) {
                     console.error('✗ updateStatistics is not defined');
                 }
                 
-                // タイムスロットとチェックボックスの初期化
+                // タイムスロットの初期化
                 if (typeof initializeTimeSlots === 'function') {
                     initializeTimeSlots();
                 }
-                if (typeof initializeCheckboxes === 'function') {
-                    initializeCheckboxes();
-                }
+                // V1927: initializeCheckboxes()呼び出し削除 - inline onchange属性で処理
                 
                 // スワイプ機能の初期化（無効化）
                 // if (typeof initializeSwipeGesture === 'function') {
@@ -8108,8 +8094,9 @@ window.addEventListener('beforeunload', function(e) {
     <!-- <script src="js/gas-config.js?v=20250926_1800"></script> -->
     <!-- <script src="js/dashboard-api.js?v=20250926_1800"></script> -->
     <script>
+        // V1927: initializeCheckboxes削除 - inline onchange属性のみで動作
+        console.log('%c[V1927] Admin Dashboard ロード完了 - チェックボックスイベントハンドラー最適化', 'color: #00ff00; font-weight: bold; font-size: 16px');
         // V1926: window.handleFranchiseCheck 明示的登録実装
-        console.log('%c[V1926] Admin Dashboard ロード完了 - handleFranchiseCheck グローバル登録済み', 'color: #00ff00; font-weight: bold; font-size: 16px');
 
         // ページ読み込み完了後にデータを取得
         document.addEventListener('DOMContentLoaded', function() {
