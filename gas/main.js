@@ -1200,3 +1200,4 @@ function syncRatingsToMasterManual() {
 // V1913 Deploy Trigger - 1764195989
 // V1913 Frontend Deploy - Address fix + Search fix - 1764211205
 // V1913 GAS Re-deploy - getAllActiveFranchises fix - 1764212400
+// V1924 Deploy Trigger - Checkbox state persistence fix - 1764227000
