@@ -1,7 +1,14 @@
 /**
  * ============================================
- * 業者選択ハンドラー V1903
+ * 業者選択ハンドラー V1924-CACHE-FIX
  * ============================================
+ *
+ * 🔥 V1924: チェックボックス状態永続化修正（2025-11-27 16:24 JST）
+ * - ソート変更時にチェックボックス状態が初期化される問題を修正
+ * - 希望社数ドロップダウンが自動リセットされる問題を修正
+ * - checkedCompanies Set を唯一のソースとして使用
+ * - applySortAndRender() で現在のドロップダウン値を保持
+ * - updateUI() に updateDesiredCount パラメータ追加
  *
  * 目的: RankingSystemと統合した動的業者選定システム
  * 依存: ApiClient（api-client.js）, RankingSystem (GAS)
@@ -24,6 +31,13 @@
  *   - チェック時は濃い色に変化
  * - V1903: 工事種別料金計算（1社紹介時 ¥20,000固定、複数社時は最高料金）
  */
+
+// ============================================
+// 🔥 バージョン確認ログ（V1924-CACHE-FIX）
+// ============================================
+console.log('%c[BusinessSelectionHandler] V1924-CACHE-FIX loaded successfully', 'color: #00ff00; font-weight: bold; font-size: 14px');
+console.log('[BusinessSelectionHandler] Timestamp: 2025-11-27 16:24 JST (1764228240842)');
+console.log('[BusinessSelectionHandler] Fixes: チェックボックス永続化 + 希望社数保持');
 
 // ============================================
 // V1903: 工事種別料金マッピング（ハードコード）
