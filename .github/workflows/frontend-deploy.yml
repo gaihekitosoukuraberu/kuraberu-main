@@ -184,18 +184,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Update cache busters in HTML files
-        run: |
-          echo "🔄 Updating cache busters in HTML files..."
-          CACHE_BUSTER="v$(date +%s)"
-          echo "Cache buster: $CACHE_BUSTER"
-
-          # lp/index.html のキャッシュバスターを更新
-          if [ -f "lp/index.html" ]; then
-            sed -i.bak -E "s/\.js\?v=[^\"]+/.js?v=$CACHE_BUSTER/g" lp/index.html
-            rm lp/index.html.bak
-            echo "✅ Updated lp/index.html"
-          fi
+      # キャッシュバスター自動更新を無効化（手動管理に変更）
+      # - name: Update cache busters in HTML files
+      #   run: |
+      #     echo "🔄 Updating cache busters in HTML files..."
+      #     CACHE_BUSTER="v$(date +%s)"
+      #     echo "Cache buster: $CACHE_BUSTER"
+      #
+      #     # lp/index.html のキャッシュバスターを更新
+      #     if [ -f "lp/index.html" ]; then
+      #       sed -i.bak -E "s/\.js\?v=[^\"]+/.js?v=$CACHE_BUSTER/g" lp/index.html
+      #       rm lp/index.html.bak
+      #       echo "✅ Updated lp/index.html"
+      #     fi
 
       - name: Deploy to Xserver via FTP
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
