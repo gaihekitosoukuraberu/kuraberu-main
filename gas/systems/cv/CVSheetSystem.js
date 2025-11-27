@@ -732,7 +732,8 @@ const CVSheetSystem = {
         params.surveyAttendance || '',           // CC(82): 立ち会い可否
         params.attendanceRelation || '',         // CD(83): 立ち会い者関係性
         params.specialItems || '',               // CE(84): 特殊項目
-        ''                                       // CF(85): 選択業者数（CV2）- V1923
+        // CF(85): 選択業者数（CV2）- V1923: CV1時にCB列の値をコピー
+        params.companiesCount ? parseInt(params.companiesCount) : ''
       ];
 
       // 最終行に追加
