@@ -675,22 +675,19 @@ const BusinessSelectionHandler = {
     const { allFranchises } = selectionData;
 
     let displayFranchises = [];
+    const currentCheckedCompanies = this.getCheckedCompanies();
 
-    // V1918: 検索時 vs 通常時の処理を完全分離
+    // V1920: 検索時 vs 通常時の処理を完全分離
     if (searchQuery) {
-      // === 検索モード: 全加盟店から検索（件数制限なし） ===
-      console.log('[V1918-SEARCH] 検索モード開始:', searchQuery);
-
-      // 全アクティブ加盟店を取得（検索用）
-      const rawFranchises = await this.getAllActiveFranchises();
-      const allActiveFranchises = rawFranchises.map(f => this.convertToFranchiseFormat(f));
+      // === 検索モード: allFranchises から検索（マッチ率保持） ===
+      console.log('[V1920-SEARCH] 検索モード開始:', searchQuery);
 
       // ひらがな→カタカナ変換
       const katakanaQuery = this.hiraganaToKatakana(searchQuery);
-      console.log('[V1918-SEARCH] カタカナ変換:', searchQuery, '→', katakanaQuery);
+      console.log('[V1920-SEARCH] カタカナ変換:', searchQuery, '→', katakanaQuery);
 
-      // 検索フィルタ（会社名・会社名カナで部分一致）
-      displayFranchises = allActiveFranchises.filter(f => {
+      // V1920: allFranchises から検索（マッチ率データが既に含まれている）
+      const matchedFranchises = allFranchises.filter(f => {
         const companyName = f.companyName || '';
         const companyNameKana = f.companyNameKana || '';
 
@@ -700,35 +697,36 @@ const BusinessSelectionHandler = {
                companyNameKana.includes(katakanaQuery);
       });
 
-      console.log('[V1918-SEARCH] 検索結果:', displayFranchises.length, '件');
+      // V1920: チェック済みを先頭にグループ化
+      const checkedMatched = matchedFranchises.filter(f =>
+        currentCheckedCompanies.includes(f.companyName)
+      );
+      const uncheckedMatched = matchedFranchises.filter(f =>
+        !currentCheckedCompanies.includes(f.companyName)
+      );
+
+      displayFranchises = [...checkedMatched, ...uncheckedMatched];
+      console.log('[V1920-SEARCH] 検索結果:', matchedFranchises.length, '件（✓', checkedMatched.length, '+ 未', uncheckedMatched.length, '）');
     } else {
       // === 通常モード: ソート順で表示 ===
       displayFranchises = this.sortFranchises(sortType, allFranchises);
 
-      // V1919: チェック済み業者は件数制限外、ただしソート順は維持
-      const currentCheckedCompanies = this.getCheckedCompanies();
+      // V1920: チェック済みを先頭にグループ化、各グループ内でソート順維持
       const limit = showAll ? 8 : 4;
 
       if (currentCheckedCompanies.length > 0) {
-        // ソート順を維持しつつ、チェック済みは全て表示、未チェックは制限まで
-        const result = [];
-        let uncheckedCount = 0;
+        // チェック済みグループ（ソート順維持、全件表示）
+        const checkedFranchises = displayFranchises.filter(f =>
+          currentCheckedCompanies.includes(f.companyName)
+        );
 
-        for (const franchise of displayFranchises) {
-          const isChecked = currentCheckedCompanies.includes(franchise.companyName);
+        // 未チェックグループ（ソート順維持、件数制限あり）
+        const uncheckedFranchises = displayFranchises.filter(f =>
+          !currentCheckedCompanies.includes(f.companyName)
+        ).slice(0, limit);
 
-          if (isChecked) {
-            // チェック済みは無条件で追加
-            result.push(franchise);
-          } else if (uncheckedCount < limit) {
-            // 未チェックは件数制限まで追加
-            result.push(franchise);
-            uncheckedCount++;
-          }
-        }
-
-        displayFranchises = result;
-        console.log('[V1919-NORMAL] ソート順維持: チェック済み', currentCheckedCompanies.length, '件 + 未チェック', uncheckedCount, '件');
+        displayFranchises = [...checkedFranchises, ...uncheckedFranchises];
+        console.log('[V1920-NORMAL] チェック済み先頭: ✓', checkedFranchises.length, '件 → 未', uncheckedFranchises.length, '件');
       } else {
         // チェックなし: 通常の件数制限
         displayFranchises = displayFranchises.slice(0, limit);
@@ -737,9 +735,7 @@ const BusinessSelectionHandler = {
 
     const topFranchises = displayFranchises;
 
-    // V1918: カード生成（チェックボックス状態を保持）
-    const currentCheckedCompanies = this.getCheckedCompanies();
-
+    // V1920: カード生成（チェックボックス状態を保持）
     return topFranchises.map((franchise, index) => {
       const rank = index + 1;
       const isUserSelected = this.isUserSelected(franchise.companyName);
