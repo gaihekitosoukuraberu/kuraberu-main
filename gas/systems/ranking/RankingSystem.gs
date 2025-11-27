@@ -132,7 +132,9 @@ const RankingSystem = {
         // V1911: 住所・支店住所追加（地図ピンツールチップ用）
         address: masterHeaders.indexOf('住所'),
         branchAddress: masterHeaders.indexOf('支店住所'),
-        companyNameKana: masterHeaders.indexOf('会社名カナ')
+        companyNameKana: masterHeaders.indexOf('会社名カナ'),
+        // V1947: 郵便番号追加（距離フィルタリング用）
+        postalCode: masterHeaders.indexOf('郵便番号')
       };
 
       // V1713-DEBUG: カラムインデックス検証
@@ -471,7 +473,9 @@ const RankingSystem = {
           // V1911: 住所・支店住所・会社名カナ追加（地図ピンツールチップ・かな検索用）
           address: row[colIndex.address] || '',
           branchAddress: row[colIndex.branchAddress] || '',
-          companyNameKana: row[colIndex.companyNameKana] || ''
+          companyNameKana: row[colIndex.companyNameKana] || '',
+          // V1947: 郵便番号追加（距離フィルタリング用）
+          postalCode: row[colIndex.postalCode] || ''
         });
 
         // V1834-DEBUG: 最初の3社のプレビューHP値をログ出力
@@ -2267,7 +2271,8 @@ const RankingSystem = {
             maxFloors: row[colIndex.maxFloors] || 0,
             address: row[colIndex.address] || '',
             branchAddress: row[colIndex.branchAddress] || '',
-            companyNameKana: row[colIndex.companyNameKana] || ''
+            companyNameKana: row[colIndex.companyNameKana] || '',
+            postalCode: row[colIndex.postalCode] || ''
           });
         }
       }
