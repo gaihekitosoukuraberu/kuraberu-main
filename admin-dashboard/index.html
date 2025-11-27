@@ -7088,15 +7088,15 @@ window.addEventListener('beforeunload', function(e) {
             console.log('[V1913] searchFranchise called:', searchText);
 
             // business-selection-handler.jsのsearchFranchises()を呼び出す
-            if (window.businessSelection && window.businessSelection.searchFranchises) {
+            if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.searchFranchises) {
                 try {
-                    await window.businessSelection.searchFranchises(searchText);
+                    await window.BusinessSelectionHandler.searchFranchises(searchText);
                     console.log('[V1913] searchFranchises 完了');
                 } catch (error) {
                     console.error('[V1913] searchFranchises エラー:', error);
                 }
             } else {
-                console.error('[V1913] businessSelection.searchFranchises が利用できません');
+                console.error('[V1913] BusinessSelectionHandler.searchFranchises が利用できません');
             }
         }
 

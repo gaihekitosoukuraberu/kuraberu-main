@@ -1393,7 +1393,7 @@ const BusinessSelectionHandler = {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                   </svg>
                 </span>
-                <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded whitespace-pre-line transition-opacity duration-200 z-50 pointer-events-none">
+                <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded whitespace-pre-line transition-opacity duration-200 z-50 pointer-events-none" style="writing-mode: horizontal-tb !important;">
                   ${addressTooltip}
                 </span>
               </span>
