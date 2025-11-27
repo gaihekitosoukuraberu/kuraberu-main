@@ -7180,6 +7180,10 @@ window.addEventListener('beforeunload', function(e) {
             await window.BusinessSelectionHandler.applySortAndRender(window.BusinessSelectionHandler.currentSortType);
         }
 
+        // V1926: handleFranchiseCheckをwindowオブジェクトに明示的にアタッチ
+        window.handleFranchiseCheck = handleFranchiseCheck;
+        console.log('[V1926] handleFranchiseCheck をwindowオブジェクトに登録完了');
+
         // V1923: 希望社数変更時の自動保存（CF列に保存）
         async function saveFranchiseCountChange(value) {
             const cvId = window.BusinessSelectionHandler?.currentCaseData?.cvId;
@@ -8099,11 +8103,14 @@ window.addEventListener('beforeunload', function(e) {
     <script src="js/registration-requests.js?v=V1402-JSONP-ONLY"></script>
     <script src="js/franchise-management.js?v=V1553-20251103"></script>
     <!-- V1924-CACHE-FIX: チェックボックス永続化修正 - 2025-11-27 16:24 JST -->
-    <script src="js/business-selection-handler.js?v=1764228240842"></script>
+    <script src="js/business-selection-handler.js?v=1764230622408"></script>
     <!-- 旧システム（無効化） -->
     <!-- <script src="js/gas-config.js?v=20250926_1800"></script> -->
     <!-- <script src="js/dashboard-api.js?v=20250926_1800"></script> -->
     <script>
+        // V1926: window.handleFranchiseCheck 明示的登録実装
+        console.log('%c[V1926] Admin Dashboard ロード完了 - handleFranchiseCheck グローバル登録済み', 'color: #00ff00; font-weight: bold; font-size: 16px');
+
         // ページ読み込み完了後にデータを取得
         document.addEventListener('DOMContentLoaded', function() {
             // ログイン後のみデータ取得
