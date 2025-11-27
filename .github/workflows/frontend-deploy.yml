@@ -55,14 +55,26 @@ jobs:
       - name: Update cache busters in HTML files
         run: |
           echo "🔄 Updating cache busters in HTML files..."
-          CACHE_BUSTER="v$(date +%s)"
-          echo "Cache buster: $CACHE_BUSTER"
+          echo "NEW_VERSION from previous step: ${NEW_VERSION}"
+
+          # business-selection-handler.js は NEW_VERSION を使用（JSバージョンと一致）
+          # 他の.jsファイルはタイムスタンプを使用
+          TIMESTAMP_CACHE_BUSTER="v$(date +%s)"
+          VERSION_CACHE_BUSTER="V${NEW_VERSION}"
+
+          echo "Timestamp cache buster: $TIMESTAMP_CACHE_BUSTER"
+          echo "Version cache buster: $VERSION_CACHE_BUSTER"
 
           # admin-dashboard/index.html のキャッシュバスターを更新
           if [ -f "admin-dashboard/index.html" ]; then
-            sed -i.bak -E "s/\.js\?v=[^\"]+/.js?v=$CACHE_BUSTER/g" admin-dashboard/index.html
-            rm admin-dashboard/index.html.bak
+            # まず全ての.jsファイルにタイムスタンプを適用
+            sed -i.bak -E "s|\.js\?v=[^\"]+|.js?v=$TIMESTAMP_CACHE_BUSTER|g" admin-dashboard/index.html
+            # 次に business-selection-handler.js のみバージョン番号で上書き
+            sed -i.bak -E "s|business-selection-handler\.js\?v=[^\"]+|business-selection-handler.js?v=$VERSION_CACHE_BUSTER|g" admin-dashboard/index.html
+            rm -f admin-dashboard/index.html.bak
             echo "✅ Updated admin-dashboard/index.html"
+            echo "  - business-selection-handler.js: $VERSION_CACHE_BUSTER"
+            echo "  - Other JS files: $TIMESTAMP_CACHE_BUSTER"
           fi
 
       - name: Commit and push version updates
