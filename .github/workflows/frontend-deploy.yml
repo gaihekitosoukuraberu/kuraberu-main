@@ -23,6 +23,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Auto-increment JS version numbers
+        run: |
+          echo "🔢 バージョン番号を自動インクリメント中..."
+          JS_FILE="admin-dashboard/js/business-selection-handler.js"
+
+          if [ -f "$JS_FILE" ]; then
+            # 現在のバージョン番号を取得
+            CURRENT_VERSION=$(grep -E "const BUSINESS_SELECTION_HANDLER_VERSION = [0-9]+" "$JS_FILE" | grep -oE "[0-9]+" | head -1)
+            echo "現在のバージョン: V$CURRENT_VERSION"
+
+            # バージョンをインクリメント
+            NEW_VERSION=$((CURRENT_VERSION + 1))
+            echo "新しいバージョン: V$NEW_VERSION"
+
+            # JSファイル内のバージョン番号を更新（2箇所）
+            sed -i.bak -E "s/const BUSINESS_SELECTION_HANDLER_VERSION = [0-9]+;/const BUSINESS_SELECTION_HANDLER_VERSION = $NEW_VERSION;/" "$JS_FILE"
+            sed -i.bak -E "s/const EXPECTED_MIN_VERSION = [0-9]+;/const EXPECTED_MIN_VERSION = $NEW_VERSION;/" "$JS_FILE"
+            rm "$JS_FILE.bak"
+
+            echo "✅ V$NEW_VERSION に更新完了"
+            echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          else
+            echo "⚠️ $JS_FILE が見つかりません"
+          fi
+
       - name: Update cache busters in HTML files
         run: |
           echo "🔄 Updating cache busters in HTML files..."
