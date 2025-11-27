@@ -1552,9 +1552,9 @@ const BusinessSelectionHandler = {
     const matchRateColor = card.matchRate === 100 ? 'bg-green-500 text-white' : 'bg-orange-500 text-white';
     const matchRateId = `match-rate-${card.franchiseId}`;
 
-    // V1944: 住所ツールチップ（横書き + 支店箇条書き + 距離表示）
+    // V1945: 住所ツールチップ（横書き + 支店箇条書きのみ、星・距離は除外）
     let addressTooltip = '';
-    if (card.address || card.branchAddress || card.distanceText) {
+    if (card.address || card.branchAddress) {
       addressTooltip = '<div class="text-left">';
 
       // 本社住所
@@ -1576,45 +1576,12 @@ const BusinessSelectionHandler = {
         }
       }
 
-      // 距離情報（星スコアの右に表示）
-      if (card.rating > 0 && card.distanceText) {
-        addressTooltip += `<div class="mt-2 flex items-center gap-2">`;
-        addressTooltip += `<span class="text-yellow-400">★${card.rating}</span>`;
-        addressTooltip += `<span class="text-blue-400">📍 ${card.distanceText}</span>`;
-        addressTooltip += `</div>`;
-      } else if (card.distanceText) {
-        addressTooltip += `<div class="mt-2 text-blue-400">📍 ${card.distanceText}</div>`;
-      } else if (card.rating > 0) {
-        addressTooltip += `<div class="mt-2 text-yellow-400">★${card.rating}</div>`;
-      }
-
       addressTooltip += '</div>';
     } else {
       addressTooltip = '<div>住所未登録</div>';
     }
 
-    // V1943: 住所を横書きで表示（本社 + 支店を箇条書き）
-    let addressDisplay = '';
-    if (card.address || card.branchAddress) {
-      addressDisplay = '<div class="text-xs text-gray-600 mt-1" style="writing-mode: horizontal-tb;">';
-      if (card.address) {
-        addressDisplay += `<div>本社: ${card.address}</div>`;
-      }
-      if (card.branchAddress) {
-        // 支店が複数ある場合はカンマ区切りで分割して箇条書き
-        const branches = card.branchAddress.split(',').map(b => b.trim()).filter(b => b);
-        if (branches.length > 0) {
-          addressDisplay += '<div>支店:</div><ul class="list-disc ml-4">';
-          branches.forEach(branch => {
-            addressDisplay += `<li>${branch}</li>`;
-          });
-          addressDisplay += '</ul>';
-        }
-      }
-      addressDisplay += '</div>';
-    }
-
-    // V1943: 追加情報（評価と距離を同じ行に表示）
+    // V1945: 追加情報（評価と距離を同じ行に表示 - 星の右に距離）
     let additionalInfo = '';
     if (card.rating > 0 || card.distanceText) {
       additionalInfo += '<div class="flex items-center gap-2 text-xs mt-1">';
@@ -1649,7 +1616,6 @@ const BusinessSelectionHandler = {
               </span>
             </div>
             ${additionalInfo}
-            ${addressDisplay}
           </div>
         </div>
         <div class="text-right ml-2 sm:ml-4 flex-shrink-0">
