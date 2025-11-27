@@ -1199,3 +1199,4 @@ function syncRatingsToMasterManual() {
 // Timestamp: 2025-11-27 06:48:00 - V1912 Frontend Deploy Trigger
 // V1913 Deploy Trigger - 1764195989
 // V1913 Frontend Deploy - Address fix + Search fix - 1764211205
+// V1913 GAS Re-deploy - getAllActiveFranchises fix - 1764212400
