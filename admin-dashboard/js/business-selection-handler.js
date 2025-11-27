@@ -1,14 +1,14 @@
 /**
  * ============================================
- * 業者選択ハンドラー V1924-CACHE-FIX
+ * 業者選択ハンドラー V1928-FINAL-FIX
  * ============================================
  *
- * 🔥 V1924: チェックボックス状態永続化修正（2025-11-27 16:24 JST）
- * - ソート変更時にチェックボックス状態が初期化される問題を修正
- * - 希望社数ドロップダウンが自動リセットされる問題を修正
- * - checkedCompanies Set を唯一のソースとして使用
- * - applySortAndRender() で現在のドロップダウン値を保持
- * - updateUI() に updateDesiredCount パラメータ追加
+ * 🔥 V1928: チェックボックス状態永続化 - 最終修正（2025-11-27 18:30 JST）
+ * - V1927: index.htmlから initializeCheckboxes() 削除（完了）
+ * - V1928: JSファイル側もV1927対応に更新、デバッグログクリーンアップ
+ * - checkedCompanies Set を唯一のソース（Single Source of Truth）
+ * - ソート変更時も handleFranchiseCheck 時もチェック状態完全保持
+ * - inline onchange 属性で正常動作（addEventListener 不使用）
  *
  * 目的: RankingSystemと統合した動的業者選定システム
  * 依存: ApiClient（api-client.js）, RankingSystem (GAS)
@@ -33,11 +33,11 @@
  */
 
 // ============================================
-// 🔥 バージョン確認ログ（V1924-CACHE-FIX）
+// 🔥 バージョン確認ログ（V1928-FINAL-FIX）
 // ============================================
-console.log('%c[BusinessSelectionHandler] V1924-CACHE-FIX loaded successfully', 'color: #00ff00; font-weight: bold; font-size: 14px');
-console.log('[BusinessSelectionHandler] Timestamp: 2025-11-27 16:24 JST (1764228240842)');
-console.log('[BusinessSelectionHandler] Fixes: チェックボックス永続化 + 希望社数保持');
+console.log('%c[BusinessSelectionHandler] V1928-FINAL-FIX loaded successfully', 'color: #00ff00; font-weight: bold; font-size: 14px');
+console.log('[BusinessSelectionHandler] Timestamp: 2025-11-27 18:30 JST');
+console.log('[BusinessSelectionHandler] Fixes: inline onchange 正常動作 + チェック状態完全保持');
 
 // ============================================
 // V1903: 工事種別料金マッピング（ハードコード）
