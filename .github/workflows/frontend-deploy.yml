@@ -119,6 +119,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+          fetch-depth: 0
 
       - name: Update cache busters in HTML files
         run: |
@@ -131,6 +135,23 @@ jobs:
             sed -i.bak -E "s/\.js\?v=[^\"]+/.js?v=$CACHE_BUSTER/g" franchise-dashboard/index.html
             rm franchise-dashboard/index.html.bak
             echo "✅ Updated franchise-dashboard/index.html"
+          fi
+
+      - name: Commit and push cache buster updates
+        run: |
+          echo "📝 キャッシュバスター更新をコミット中..."
+
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+          git add franchise-dashboard/index.html
+
+          if git diff --staged --quiet; then
+            echo "📍 変更なし - コミットスキップ"
+          else
+            git commit -m "auto: cache buster update - Franchise Dashboard"
+            git push
+            echo "✅ キャッシュバスター更新をプッシュしました"
           fi
 
       - name: Deploy to Xserver via FTP
@@ -157,6 +178,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+          fetch-depth: 0
 
       - name: Update cache busters in HTML files
         run: |
@@ -169,6 +194,23 @@ jobs:
             sed -i.bak -E "s/\.js\?v=[^\"]+/.js?v=$CACHE_BUSTER/g" franchise-register/index.html
             rm franchise-register/index.html.bak
             echo "✅ Updated franchise-register/index.html"
+          fi
+
+      - name: Commit and push cache buster updates
+        run: |
+          echo "📝 キャッシュバスター更新をコミット中..."
+
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+          git add franchise-register/index.html
+
+          if git diff --staged --quiet; then
+            echo "📍 変更なし - コミットスキップ"
+          else
+            git commit -m "auto: cache buster update - Franchise Register"
+            git push
+            echo "✅ キャッシュバスター更新をプッシュしました"
           fi
 
       - name: Deploy to Xserver via FTP
@@ -201,6 +243,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+          fetch-depth: 0
 
       - name: Update cache busters in HTML files
         run: |
@@ -213,6 +259,23 @@ jobs:
             sed -i.bak -E "s/\.js\?v=[^\"]+/.js?v=$CACHE_BUSTER/g" estimate-keep-system/index.html
             rm estimate-keep-system/index.html.bak
             echo "✅ Updated estimate-keep-system/index.html"
+          fi
+
+      - name: Commit and push cache buster updates
+        run: |
+          echo "📝 キャッシュバスター更新をコミット中..."
+
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+          git add estimate-keep-system/index.html
+
+          if git diff --staged --quiet; then
+            echo "📍 変更なし - コミットスキップ"
+          else
+            git commit -m "auto: cache buster update - Estimate System"
+            git push
+            echo "✅ キャッシュバスター更新をプッシュしました"
           fi
 
       - name: Deploy to Xserver via FTP
@@ -238,6 +301,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+          fetch-depth: 0
 
       - name: Update cache busters in HTML files
         run: |
@@ -250,6 +317,23 @@ jobs:
             sed -i.bak -E "s/\.js\?v=[^\"]+/.js?v=$CACHE_BUSTER/g" lp/index.html
             rm lp/index.html.bak
             echo "✅ Updated lp/index.html"
+          fi
+
+      - name: Commit and push cache buster updates
+        run: |
+          echo "📝 キャッシュバスター更新をコミット中..."
+
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+          git add lp/index.html
+
+          if git diff --staged --quiet; then
+            echo "📍 変更なし - コミットスキップ"
+          else
+            git commit -m "auto: cache buster update - LP"
+            git push
+            echo "✅ キャッシュバスター更新をプッシュしました"
           fi
 
       - name: Deploy to Xserver via FTP
