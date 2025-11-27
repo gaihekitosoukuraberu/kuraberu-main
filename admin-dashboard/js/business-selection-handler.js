@@ -609,8 +609,7 @@ const BusinessSelectionHandler = {
       console.log('[BusinessSelection] 距離計算開始:', originAddress);
 
       // GASに距離計算を依頼
-      const response = await window.apiClient.jsonpRequest({
-        action: 'calculateDistances',
+      const response = await window.apiClient.jsonpRequest('calculateDistances', {
         origin: originAddress,
         destinations: franchises.map(f => {
           // 支店住所があれば支店、なければ本社住所を使用
