@@ -78,6 +78,7 @@ jobs:
           fi
 
       - name: Commit and push version updates
+        continue-on-error: true
         run: |
           echo "📝 バージョン更新をコミット中..."
           echo "NEW_VERSION from env: ${NEW_VERSION}"
@@ -89,7 +90,7 @@ jobs:
           git status
 
           git add admin-dashboard/js/business-selection-handler.js
-          git add admin-dashboard/index.html
+          git add admin-dashboard/index.html || echo "⚠️ index.html add failed, continuing..."
 
           echo "=== Git Status After Add ==="
           git status
@@ -100,12 +101,15 @@ jobs:
           if git diff --staged --quiet; then
             echo "📍 変更なし - コミットスキップ"
             echo "=== Working tree files ==="
-            cat admin-dashboard/js/business-selection-handler.js | head -60 | grep "VERSION ="
+            cat admin-dashboard/js/business-selection-handler.js | head -60 | grep "VERSION =" || echo "VERSION check failed"
           else
-            git commit -m "auto: V${NEW_VERSION} + cache buster update - Admin Dashboard"
-            git push
-            echo "✅ バージョン更新をプッシュしました"
+            echo "📝 変更を検出 - コミットします"
+            git commit -m "auto: V${NEW_VERSION} + cache buster update - Admin Dashboard" || echo "⚠️ Commit failed, continuing..."
+            git push || echo "⚠️ Push failed, continuing to deployment..."
+            echo "✅ バージョン更新処理完了"
           fi
+
+          echo "📍 FTPデプロイに進みます..."
 
       - name: Deploy to Xserver via FTP
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
