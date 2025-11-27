@@ -305,13 +305,46 @@ const BusinessSelectionHandler = {
       // V1946: 距離情報を初期ロード時に計算（全ソートで表示可能にする）
       const originAddress = currentCaseData.address ||
                            `${currentCaseData.prefecture || ''}${currentCaseData.city || ''}`;
+      const originPostalCode = currentCaseData.postalCode || '';
 
       if (originAddress) {
-        console.log('[V1946] 距離情報を計算中... 起点:', originAddress);
-        this.allFranchises = await this.calculateDistances(originAddress, this.allFranchises);
-        console.log('[V1946] 距離情報計算完了');
+        console.log('[V1947] 距離情報を計算中... 起点:', originAddress);
+        console.log('[V1947] 起点郵便番号:', originPostalCode);
+
+        // V1947: 郵便番号フィルタリング（パフォーマンス最適化）
+        let franchisesForDistance = this.allFranchises;
+        if (originPostalCode && originPostalCode.length === 7 && this.allFranchises.length > 10) {
+          console.log('[V1947] 郵便番号フィルタリングを実行（業者数: ' + this.allFranchises.length + '）');
+          franchisesForDistance = this.filterByPostalCode(originPostalCode, this.allFranchises, 10);
+          console.log('[V1947] フィルタリング後の業者数: ' + franchisesForDistance.length);
+        } else {
+          console.log('[V1947] 郵便番号フィルタリングをスキップ（条件不適合）');
+        }
+
+        // 距離計算（フィルタリングされた業者のみ）
+        const franchisesWithDistance = await this.calculateDistances(originAddress, franchisesForDistance);
+
+        // フィルタリングされた業者の距離情報を元のリストにマージ
+        const distanceMap = new Map();
+        franchisesWithDistance.forEach(f => {
+          distanceMap.set(f.companyName, {
+            distance: f.distance,
+            distanceText: f.distanceText,
+            durationText: f.durationText
+          });
+        });
+
+        this.allFranchises = this.allFranchises.map(f => {
+          const distanceInfo = distanceMap.get(f.companyName);
+          if (distanceInfo) {
+            return { ...f, ...distanceInfo };
+          }
+          return f;
+        });
+
+        console.log('[V1947] 距離情報計算完了');
       } else {
-        console.warn('[V1946] 起点住所が取得できないため距離計算をスキップ');
+        console.warn('[V1947] 起点住所が取得できないため距離計算をスキップ');
       }
 
       return {
