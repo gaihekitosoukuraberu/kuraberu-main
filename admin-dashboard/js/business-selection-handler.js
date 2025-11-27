@@ -1362,11 +1362,11 @@ const BusinessSelectionHandler = {
     const matchRateColor = card.matchRate === 100 ? 'bg-green-500 text-white' : 'bg-orange-500 text-white';
     const matchRateId = `match-rate-${card.franchiseId}`;
 
-    // V1911: 住所情報（マップアイコンツールチップ用）
+    // V1913: 住所情報（マップアイコンツールチップ用）- 改行を修正
     const addressLines = [];
     if (card.address) addressLines.push(`本社: ${card.address}`);
     if (card.branchAddress) addressLines.push(`支店: ${card.branchAddress}`);
-    const addressTooltip = addressLines.length > 0 ? addressLines.join('<br>') : '住所未登録';
+    const addressTooltip = addressLines.length > 0 ? addressLines.join('\n') : '住所未登録';
 
     // 追加情報（評価・距離）
     let additionalInfo = '';
@@ -1393,7 +1393,7 @@ const BusinessSelectionHandler = {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                   </svg>
                 </span>
-                <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded transition-opacity duration-200 z-50 pointer-events-none">
+                <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded whitespace-pre-line transition-opacity duration-200 z-50 pointer-events-none">
                   ${addressTooltip}
                 </span>
               </span>
