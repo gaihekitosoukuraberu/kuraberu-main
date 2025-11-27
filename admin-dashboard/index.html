@@ -7081,7 +7081,13 @@ window.addEventListener('beforeunload', function(e) {
         function toggleFranchise(element) {
             const checkbox = element.querySelector('input[type="checkbox"]');
             if (checkbox) {
+                // Toggle checkbox
                 checkbox.checked = !checkbox.checked;
+
+                // Trigger change event to sync with checkedCompanies Set
+                checkbox.dispatchEvent(new Event('change'));
+
+                // Update visual state
                 if (checkbox.checked) {
                     element.classList.add('selected');
                 } else {
