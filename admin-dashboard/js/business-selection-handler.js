@@ -1,7 +1,13 @@
 /**
  * ============================================
- * 業者選択ハンドラー V1932-COMPLETE
+ * 業者選択ハンドラー V1936
  * ============================================
+ *
+ * 🔥 V1936: フォールバック処理削除（2025-11-27 21:50 JST）
+ * - 【根本原因修正】getSampleFranchises()フォールバックを完全削除
+ * - GAS API失敗時は空配列を返し、エラーメッセージを表示
+ * - サンプルデータによるチェックボックス誤動作を防止
+ * - 問題の2社（湘南ウィンクル、やまもとくん）がデフォルトチェックされるバグ修正
  *
  * 🔥 V1932: handleFranchiseCheck関数実装 - 根本修正（2025-11-27 20:35 JST）
  * - 【根本原因発見】handleFranchiseCheck関数が定義されていなかった！
@@ -54,19 +60,19 @@
  */
 
 // ============================================
-// 🔥 バージョン定数（V1934-EMERGENCY-DEPLOY）
+// 🔥 バージョン定数（V1936-FALLBACK-REMOVED）
 // ============================================
-const BUSINESS_SELECTION_HANDLER_VERSION = 1934;
-const EXPECTED_MIN_VERSION = 1934;
+const BUSINESS_SELECTION_HANDLER_VERSION = 1936;
+const EXPECTED_MIN_VERSION = 1936;
 
 // ============================================
-// 🔥 バージョン確認ログ（V1932-COMPLETE）
+// 🔥 バージョン確認ログ（V1936）
 // ============================================
-console.log('%c[BusinessSelectionHandler] V1932-COMPLETE loaded successfully', 'color: #00ff00; font-weight: bold; font-size: 18px');
+console.log('%c[BusinessSelectionHandler] V1936 loaded successfully', 'color: #00ff00; font-weight: bold; font-size: 18px');
 console.log('[BusinessSelectionHandler] Version: ' + BUSINESS_SELECTION_HANDLER_VERSION);
-console.log('[BusinessSelectionHandler] Timestamp: 2025-11-27 20:35 JST');
-console.log('[BusinessSelectionHandler] handleFranchiseCheck関数実装完了 - チェックボックス永続化機能が正常動作します');
-console.log('[BusinessSelectionHandler] V1932 Fixes: handleFranchiseCheck関数実装 - グローバル関数として定義');
+console.log('[BusinessSelectionHandler] Timestamp: 2025-11-27 21:50 JST');
+console.log('[BusinessSelectionHandler] フォールバック処理削除 - サンプルデータによる誤動作を防止');
+console.log('[BusinessSelectionHandler] V1936 Fixes: getSampleFranchises()関数削除 - API失敗時は空配列を返す');
 
 // ============================================
 // 🔥 V1929: バージョンチェック & キャッシュ警告バナー表示
@@ -345,10 +351,10 @@ const BusinessSelectionHandler = {
       return allFranchises;
 
     } catch (error) {
-      console.error('[BusinessSelection] RankingSystem取得エラー:', error);
-      // フォールバック: サンプルデータを返す
-      console.warn('[BusinessSelection] フォールバック: サンプルデータを使用');
-      return this.getSampleFranchises();
+      console.error('[V1936] RankingSystem取得エラー:', error);
+      console.error('[V1936] フォールバック削除 - 空配列を返します');
+      alert('業者データの取得に失敗しました。ページをリロードしてください。');
+      return [];
     }
   },
 
@@ -2037,106 +2043,7 @@ const BusinessSelectionHandler = {
     this.updateUI(businessCards, currentDesiredCount, false);
   },
 
-  /**
-   * サンプル加盟店データ（フォールバック用）
-   */
-  getSampleFranchises() {
-    return [
-      {
-        franchiseId: 'FRANCHISE_001',
-        companyName: '東京都市部塗装',
-        serviceAreas: ['東京都', '神奈川県'],
-        city: '渋谷区',
-        workTypes: ['外壁塗装', '屋根塗装'],
-        avgContractAmount: 1200000,
-        rating: 4.5,
-        reviewCount: 120,
-        contractCount: 50
-      },
-      {
-        franchiseId: 'FRANCHISE_002',
-        companyName: '神奈川県央建設',
-        serviceAreas: ['神奈川県', '東京都'],
-        city: '横浜市',
-        workTypes: ['外壁塗装', '屋根塗装', '防水工事'],
-        avgContractAmount: 1100000,
-        rating: 4.3,
-        reviewCount: 95,
-        contractCount: 42
-      },
-      {
-        franchiseId: 'FRANCHISE_003',
-        companyName: '千葉外装工業',
-        serviceAreas: ['千葉県'],
-        city: '千葉市',
-        workTypes: ['外壁塗装', '外壁カバー工法'],
-        avgContractAmount: 950000,
-        rating: 4.2,
-        reviewCount: 78,
-        contractCount: 35
-      },
-      {
-        franchiseId: 'FRANCHISE_004',
-        companyName: '埼玉リフォーム',
-        serviceAreas: ['埼玉県'],
-        city: 'さいたま市',
-        workTypes: ['外壁塗装', '屋根塗装', 'リフォーム'],
-        avgContractAmount: 1300000,
-        rating: 4.6,
-        reviewCount: 150,
-        contractCount: 60
-      },
-      {
-        franchiseId: 'F001',
-        companyName: '田中ホームテクノ株式会社',
-        serviceAreas: ['神奈川県', '東京都'],
-        city: '藤沢市',
-        workTypes: ['外壁塗装', '屋根塗装'],
-        avgContractAmount: 1150000,
-        rating: 4.4,
-        reviewCount: 110,
-        contractCount: 48
-      },
-      {
-        franchiseId: 'F002',
-        companyName: '株式会社湘南ウィンクル',
-        serviceAreas: ['神奈川県'],
-        city: '茅ヶ崎市',
-        citiesArray: ['横浜市青葉区', '横浜市緑区', '横浜市都筑区', '川崎市宮前区', '川崎市高津区', '茅ヶ崎市'],
-        workTypes: ['外壁塗装', '屋根塗装', '防水工事'],
-        specialSupport: '遮熱・断熱塗料提案可能,無機塗料対応可能,光触媒塗料対応可能',
-        maxFloors: '戸建て住宅(3階まで),アパート・マンション(3階まで)',
-        buildingAgeMin: 0,
-        buildingAgeMax: 94,
-        avgContractAmount: 1050000,
-        rating: 4.3,
-        reviewCount: 88,
-        contractCount: 40
-      },
-      {
-        franchiseId: 'F003',
-        companyName: '株式会社39ホーム',
-        serviceAreas: ['東京都', '神奈川県', '埼玉県'],
-        city: '町田市',
-        workTypes: ['外壁塗装', '屋根塗装'],
-        avgContractAmount: 1280000,
-        rating: 4.5,
-        reviewCount: 135,
-        contractCount: 55
-      },
-      {
-        franchiseId: 'F004',
-        companyName: '株式会社やまもとくん',
-        serviceAreas: ['神奈川県', '東京都'],
-        city: '相模原市',
-        workTypes: ['外壁塗装', '屋根塗装', 'リフォーム'],
-        avgContractAmount: 1100000,
-        rating: 4.4,
-        reviewCount: 102,
-        contractCount: 45
-      }
-    ];
-  }
+  // V1936: getSampleFranchises()削除 - フォールバック処理不要
 };
 
 // グローバルスコープに公開
