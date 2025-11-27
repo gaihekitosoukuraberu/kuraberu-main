@@ -626,6 +626,10 @@ function doGet(e) {
         timestamp: new Date().toString(),
         router: 'SystemRouter enabled'
       };
+    } else if (action === 'syncPostalCodes') {
+      // V1948: 郵便番号一括同期 (one-time migration)
+      console.log('[main.js] Running syncAllPostalCodes migration');
+      result = syncAllPostalCodes();
     } else {
       // システムハンドラーを取得して実行
       console.log('[main.js] Routing to:', system, '(', route.description, ')');
