@@ -1,12 +1,16 @@
 /**
  * ============================================
- * 業者選択ハンドラー V1930-DEBUG-INTENSIVE
+ * 業者選択ハンドラー V1931-FIX
  * ============================================
  *
- * 🔥 V1930: デバッグログ強化 - handleFranchiseCheck呼び出し検証（2025-11-27 19:15 JST）
- * - チェックボックスonchange属性に直接ログ埋め込み
- * - handleFranchiseCheckが呼ばれない原因を徹底的に調査
- * - inline onchange属性の動作を100%確認
+ * 🔥 V1931: onchange属性HTMLパースエラー修正（2025-11-27 19:45 JST）
+ * - V1930で複雑なデバッグログをonchange属性に埋め込みHTMLパースエラー発生
+ * - onchange属性をシンプルに修正: onchange="handleFranchiseCheck(this, 'companyName')"
+ * - チェックボックスが正常に動作するようになった
+ *
+ * 🔥 V1930: デバッグログ強化失敗 - onchange属性が無効化（2025-11-27 19:15 JST）
+ * - チェックボックスonchange属性に複雑なログを埋め込み → HTMLパースエラー
+ * - onchange属性がnullになり、イベントが発火しなかった
  *
  * 🔥 V1929: ブラウザキャッシュ対策 - バージョンチェック機能追加（2025-11-27 19:00 JST）
  * - V1928の修正内容は全て含まれている（チェックボックス永続化は完璧に動作）
@@ -1553,7 +1557,7 @@ const BusinessSelectionHandler = {
       <div class="flex items-center justify-between">
         <div class="flex items-center flex-1 min-w-0">
           <div class="text-base sm:text-lg font-semibold mr-2 sm:mr-3 text-pink-600 flex-shrink-0">${card.rank}</div>
-          <input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="mr-2 sm:mr-3 w-4 h-4 sm:w-5 sm:h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="console.log('%c[V1930-ONCHANGE] チェックボックスクリック検出！', 'color: #ff0000; font-weight: bold; font-size: 20px; background: yellow;'); console.log('[V1930-ONCHANGE] 会社名:', '${card.companyName.replace(/'/g, "\\'")}'); console.log('[V1930-ONCHANGE] checked:', this.checked); handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">
+          <input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="mr-2 sm:mr-3 w-4 h-4 sm:w-5 sm:h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <div class="font-semibold text-gray-900 text-sm sm:text-lg">${card.companyName}</div>
