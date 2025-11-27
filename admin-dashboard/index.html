@@ -1155,7 +1155,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">希望社数</label>
-                        <select id="franchiseCount" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all appearance-none bg-white">
+                        <select id="franchiseCount" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all appearance-none bg-white" onchange="saveFranchiseCountChange(this.value)">
                             <option value="1社">1社</option>
                             <option value="2社">2社</option>
                             <option value="3社" selected>3社</option>
@@ -7148,11 +7148,15 @@ window.addEventListener('beforeunload', function(e) {
                     const confirmed = confirm(`現在の希望社数は${desiredCount}社です。\n${desiredCount + 1}社に変更しますか？`);
                     if (confirmed) {
                         // 希望社数を自動更新
+                        const newCount = desiredCount + 1;
                         if (selectEl) {
-                            selectEl.value = `${desiredCount + 1}社`;
+                            selectEl.value = `${newCount}社`;
                         }
                         window.BusinessSelectionHandler.checkedCompanies.add(companyName);
-                        console.log('[V1922] 希望社数を更新:', desiredCount + 1, '社');
+                        console.log('[V1922] 希望社数を更新:', newCount, '社');
+
+                        // V1923: CF列に保存
+                        await saveFranchiseCountChange(`${newCount}社`);
                     } else {
                         // キャンセル: チェックを外す
                         checkbox.checked = false;
@@ -7169,6 +7173,39 @@ window.addEventListener('beforeunload', function(e) {
             console.log('[V1922] Checked companies:', Array.from(window.BusinessSelectionHandler.checkedCompanies));
             // UI再描画
             await window.BusinessSelectionHandler.renderBusinessCards();
+        }
+
+        // V1923: 希望社数変更時の自動保存（CF列に保存）
+        async function saveFranchiseCountChange(value) {
+            const cvId = window.BusinessSelectionHandler?.currentCaseData?.cvId;
+            if (!cvId) {
+                console.warn('[V1923] CV IDが取得できないため保存をスキップ');
+                return;
+            }
+
+            // "3社" → "3" に変換
+            const count = parseInt(value);
+            if (isNaN(count)) {
+                console.warn('[V1923] 不正な希望社数:', value);
+                return;
+            }
+
+            console.log('[V1923] 希望社数を保存中:', { cvId, count });
+
+            // GASに保存
+            try {
+                const result = await window.AdminAPI.updateCVData(cvId, {
+                    desiredCompanyCount: count
+                });
+
+                if (result.success) {
+                    console.log('[V1923] 希望社数をCF列に保存完了:', count);
+                } else {
+                    console.error('[V1923] 希望社数の保存に失敗:', result.error);
+                }
+            } catch (error) {
+                console.error('[V1923] 希望社数保存エラー:', error);
+            }
         }
 
         // 物件の郵便番号から住所を取得

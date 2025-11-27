@@ -302,7 +302,8 @@ const CVSheetSystem = {
       '希望社数',             // CB
       '立ち会い可否',         // CC
       '立ち会い者関係性',      // CD
-      '特殊項目'              // CE
+      '特殊項目',             // CE
+      '選択業者数（CV2）'      // CF (V1923: 実際に選択された業者数)
     ];
 
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
@@ -322,7 +323,7 @@ const CVSheetSystem = {
     // フリーズ（ヘッダー行固定）
     sheet.setFrozenRows(1);
 
-    console.log('[CVSheetSystem] ユーザー登録シート作成完了 (83列: A-CE, V1828)');
+    console.log('[CVSheetSystem] ユーザー登録シート作成完了 (84列: A-CF, V1923)');
   },
 
   /**
@@ -722,7 +723,7 @@ const CVSheetSystem = {
         0,                                       // BW(76): CV1→CV2時間差（秒）（V1755）
         params.deviceType || '',                 // BX(77): デバイス種別（V1755）
 
-        // BY(78)-CE(84): V1828 新規フィールド
+        // BY(78)-CF(85): V1828 新規フィールド + V1923 CF列追加
         '',                                      // BY(78): (reserved)
         // BZ(79): 見積もり希望箇所 - Q9とQ10を結合
         [params.Q9_exteriorWork, params.Q10_roofWork].filter(v => v).join('、') || '',
@@ -730,7 +731,8 @@ const CVSheetSystem = {
         params.companiesCount || '',             // CB(81): 希望社数
         params.surveyAttendance || '',           // CC(82): 立ち会い可否
         params.attendanceRelation || '',         // CD(83): 立ち会い者関係性
-        params.specialItems || ''                // CE(84): 特殊項目
+        params.specialItems || '',               // CE(84): 特殊項目
+        ''                                       // CF(85): 選択業者数（CV2）- V1923
       ];
 
       // 最終行に追加
@@ -868,6 +870,14 @@ const CVSheetSystem = {
       // V1755: CV1→CV2時間差を記録
       if (params.cv1ToCV2Duration !== undefined && params.cv1ToCV2Duration !== null) {
         sheet.getRange(targetRow, 76).setValue(params.cv1ToCV2Duration);           // BW(76): CV1→CV2時間差（秒）
+      }
+
+      // V1923: 選択業者数をCF列に保存（AS列からカウント）
+      if (params.selectionHistory) {
+        const companies = params.selectionHistory.split(',').map(s => s.trim()).filter(s => s);
+        const companyCount = companies.length;
+        sheet.getRange(targetRow, 85).setValue(companyCount);                      // CF(85): 選択業者数（CV2）
+        console.log('[CVSheetSystem] V1923: 選択業者数をCF列に保存:', companyCount);
       }
 
       console.log('[CVSheetSystem] CV2更新完了:', cvId);
@@ -1075,7 +1085,7 @@ const CVSheetSystem = {
           cv1ToCV2Duration: row[75] || 0,               // BW: CV1→CV2時間差（秒）（index 75）
           deviceType: row[76] || '',                    // BX: デバイス種別（index 76）
 
-          // BY-CE: 新規フィールド（V1828）
+          // BY-CF: 新規フィールド（V1828 + V1923）
           // BY列（index 76）は将来の拡張用として空けておく
           workItems: row[77] || '',                     // BZ: 見積もり希望箇所（index 77）
           constructionTiming: row[78] || '',            // CA: 施工時期（index 78）
@@ -1083,6 +1093,7 @@ const CVSheetSystem = {
           surveyAttendance: row[80] || '',              // CC: 立ち会い可否（index 80）
           attendanceRelation: row[81] || '',            // CD: 立ち会い者関係性（index 81）
           specialItems: row[82] || '',                  // CE: 特殊項目（index 82）
+          desiredCompanyCount: row[84] || '',           // CF: 選択業者数（CV2）（index 84）- V1923
 
           // V1832: BOT回答カラムを直接フィールドとしても読み込み（空文字列保持のため）
           quoteCount: row[36] || '',                    // AK: Q11_見積もり保有数（index 36）
@@ -1297,6 +1308,9 @@ const CVSheetSystem = {
         const specialItemsStr = Array.isArray(data.specialItems) ? data.specialItems.join('、') : data.specialItems;
         sheet.getRange(targetRow, 84).setValue(specialItemsStr); // CE列: 特殊項目
       }
+
+      // V1923: 選択業者数（CF列）
+      if (data.desiredCompanyCount !== undefined) sheet.getRange(targetRow, 85).setValue(data.desiredCompanyCount); // CF列: 選択業者数（CV2）
 
       // 管理情報
       if (data.status !== undefined) sheet.getRange(targetRow, 67).setValue(data.status); // BN列: 管理ステータス（index 67）

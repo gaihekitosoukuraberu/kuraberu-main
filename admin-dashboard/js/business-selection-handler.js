@@ -151,8 +151,18 @@ const BusinessSelectionHandler = {
         count: selectedCompanies.length
       });
 
-      // 希望社数を計算
-      const desiredCount = this.calculateDesiredCount(selectedCompanies);
+      // V1923: 希望社数をCF列から取得（フォールバック: AS列からカウント）
+      let desiredCount;
+      if (currentCaseData.desiredCompanyCount) {
+        // CF列に値がある場合はそれを使用（数値のみ抽出して"N社"フォーマットに変換）
+        const count = parseInt(currentCaseData.desiredCompanyCount);
+        desiredCount = isNaN(count) ? this.calculateDesiredCount(selectedCompanies) : `${count}社`;
+        console.log('[BusinessSelection] CF列から希望社数取得:', desiredCount);
+      } else {
+        // CF列が空の場合はAS列からカウント（後方互換性）
+        desiredCount = this.calculateDesiredCount(selectedCompanies);
+        console.log('[BusinessSelection] AS列から希望社数計算:', desiredCount);
+      }
 
       // RankingSystemから業者リストを取得（V1880: 新実装）
       console.log('[BusinessSelection] RankingSystemから業者データ取得開始...');
