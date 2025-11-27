@@ -55,9 +55,19 @@ function syncAllPostalCodes() {
     // 加盟店マスタからデータを取得
     const masterData = masterSheet.getDataRange().getValues();
     const masterHeaders = masterData[0];
-    const masterIdIndex = masterHeaders.indexOf('登録ID');
+
+    // デバッグ: 加盟店マスタのヘッダー行を全て出力
+    console.log('[V1948] 加盟店マスタのヘッダー行（全列）:', masterHeaders);
+    console.log('[V1948] ヘッダー数:', masterHeaders.length);
+
+    const masterIdIndex = masterHeaders.indexOf('加盟店ID');
     const masterCompanyIndex = masterHeaders.indexOf('会社名');
     const masterPostalIndex = masterHeaders.indexOf('郵便番号');
+
+    console.log('[V1948] 探している列の検索結果:');
+    console.log('[V1948]   - 加盟店ID:', masterIdIndex === -1 ? '❌ 見つかりません' : `✅ 列${masterIdIndex}`);
+    console.log('[V1948]   - 会社名:', masterCompanyIndex === -1 ? '❌ 見つかりません' : `✅ 列${masterCompanyIndex}`);
+    console.log('[V1948]   - 郵便番号:', masterPostalIndex === -1 ? '❌ 見つかりません' : `✅ 列${masterPostalIndex}`);
 
     if (masterIdIndex === -1 || masterCompanyIndex === -1 || masterPostalIndex === -1) {
       throw new Error('加盟店マスタに必要な列が見つかりません');
