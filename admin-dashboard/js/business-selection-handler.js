@@ -676,66 +676,63 @@ const BusinessSelectionHandler = {
 
     let displayFranchises = [];
 
-    // V1913: 検索時は全アクティブ加盟店から検索（ひらがな→カタカナ変換対応）
+    // V1918: 検索時 vs 通常時の処理を完全分離
     if (searchQuery) {
-      // チェックされている業者を取得（UI上のチェックボックスから）
-      const checkedCompanies = this.getCheckedCompanies();
+      // === 検索モード: 全加盟店から検索（件数制限なし） ===
+      console.log('[V1918-SEARCH] 検索モード開始:', searchQuery);
 
-      // 全アクティブ加盟店を取得（検索用）- V1916: convertToFranchiseFormat()で変換
+      // 全アクティブ加盟店を取得（検索用）
       const rawFranchises = await this.getAllActiveFranchises();
       const allActiveFranchises = rawFranchises.map(f => this.convertToFranchiseFormat(f));
-      console.log('[V1913] 全アクティブ加盟店数:', allActiveFranchises.length);
-      console.log('[V1913] 検索クエリ:', searchQuery);
 
-      // ひらがな→カタカナ変換（「ふぁい」→「ファイ」）
+      // ひらがな→カタカナ変換
       const katakanaQuery = this.hiraganaToKatakana(searchQuery);
-      console.log('[V1913] カタカナ変換後:', katakanaQuery);
+      console.log('[V1918-SEARCH] カタカナ変換:', searchQuery, '→', katakanaQuery);
 
-      // チェック済み業者を最初に表示（allActiveFranchisesから取得）
-      const checkedFranchises = allActiveFranchises.filter(f =>
-        checkedCompanies.includes(f.companyName)
-      );
-
-      // 全加盟店から検索（チェック済み業者を除く、ひらがな・カタカナ・漢字全対応）
-      const searchResults = allActiveFranchises.filter(f => {
-        if (checkedCompanies.includes(f.companyName)) return false; // 既にcheckedに含まれている
+      // 検索フィルタ（会社名・会社名カナで部分一致）
+      displayFranchises = allActiveFranchises.filter(f => {
         const companyName = f.companyName || '';
         const companyNameKana = f.companyNameKana || '';
 
-        // 会社名（漢字）、元のクエリ、カタカナ変換後クエリで部分一致
         return companyName.includes(searchQuery) ||
                companyName.includes(katakanaQuery) ||
                companyNameKana.includes(searchQuery) ||
                companyNameKana.includes(katakanaQuery);
       });
 
-      console.log('[V1913] チェック済み業者数:', checkedFranchises.length);
-      console.log('[V1913] 検索結果数:', searchResults.length);
-
-      // チェック済み業者 + 検索結果を表示（件数制限なし）
-      displayFranchises = [...checkedFranchises, ...searchResults];
+      console.log('[V1918-SEARCH] 検索結果:', displayFranchises.length, '件');
     } else {
-      // V1909: 通常時はソート順で表示
-      // ソート（ユーザー選択業者が上位、その他はソート順）
+      // === 通常モード: ソート順で表示 ===
       displayFranchises = this.sortFranchises(sortType, allFranchises);
+
+      // V1918: チェック済み業者を取得して優先表示
+      const currentCheckedCompanies = this.getCheckedCompanies();
+
+      if (currentCheckedCompanies.length > 0) {
+        const checkedFranchises = displayFranchises.filter(f =>
+          currentCheckedCompanies.includes(f.companyName)
+        );
+        const uncheckedFranchises = displayFranchises.filter(f =>
+          !currentCheckedCompanies.includes(f.companyName)
+        );
+
+        // チェック済み業者 + 未チェック業者（4件 or 8件まで）
+        const limit = showAll ? 8 : 4;
+        displayFranchises = [...checkedFranchises, ...uncheckedFranchises.slice(0, limit)];
+
+        console.log('[V1918-NORMAL] チェック済み:', checkedFranchises.length, '件 + 未チェック:', Math.min(uncheckedFranchises.length, limit), '件');
+      } else {
+        // チェックなし: 通常の件数制限
+        const limit = showAll ? 8 : 4;
+        displayFranchises = displayFranchises.slice(0, limit);
+      }
     }
 
-    // V1917: チェック済み業者を取得（チェックボックス状態を保持）
+    const topFranchises = displayFranchises;
+
+    // V1918: カード生成（チェックボックス状態を保持）
     const currentCheckedCompanies = this.getCheckedCompanies();
 
-    // V1917: チェック済み業者とそれ以外に分離
-    const checkedFranchises = displayFranchises.filter(f =>
-      currentCheckedCompanies.includes(f.companyName)
-    );
-    const uncheckedFranchises = displayFranchises.filter(f =>
-      !currentCheckedCompanies.includes(f.companyName)
-    );
-
-    // V1917: チェック済み業者 + 未チェック業者（制限付き）
-    const limit = searchQuery ? uncheckedFranchises.length : (showAll ? 8 : 4);
-    const topFranchises = [...checkedFranchises, ...uncheckedFranchises.slice(0, limit)];
-
-    // V1917: カード生成
     return topFranchises.map((franchise, index) => {
       const rank = index + 1;
       const isUserSelected = this.isUserSelected(franchise.companyName);
@@ -743,7 +740,7 @@ const BusinessSelectionHandler = {
       // マッチ率を計算
       const matchRate = this.calculateMatchRate(franchise);
 
-      // V1917: チェック条件 = ユーザーが手動でチェック OR (AS列業者 AND 100%マッチ)
+      // V1918: チェック条件 = ユーザーが手動でチェック OR (AS列業者 AND 100%マッチ)
       const isManuallyChecked = currentCheckedCompanies.includes(franchise.companyName);
       const shouldCheck = isManuallyChecked || (isUserSelected && matchRate.total === 100);
 
