@@ -1428,8 +1428,7 @@ const BusinessSelectionHandler = {
       <div class="flex items-center justify-between">
         <div class="flex items-center flex-1 min-w-0">
           <div class="text-base sm:text-lg font-semibold mr-2 sm:mr-3 text-pink-600 flex-shrink-0">${card.rank}</div>
-          <input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="mr-2 w-4 h-4 sm:w-5 sm:h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">
-          ${card.shouldCheck ? '<button onclick="event.stopPropagation(); removeFranchise(\'' + card.companyName.replace(/'/g, "\\'") + '\');" class="ml-1 mr-2 sm:mr-3 w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full text-sm sm:text-base font-bold transition-colors flex-shrink-0" title="選択解除">✗</button>' : '<span class="mr-2 sm:mr-4"></span>'}
+          <input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="mr-2 sm:mr-3 w-4 h-4 sm:w-5 sm:h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <div class="font-semibold text-gray-900 text-sm sm:text-lg">${card.companyName}</div>
