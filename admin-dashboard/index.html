@@ -1169,15 +1169,13 @@
                                    id="franchiseSearch"
                                    placeholder="業者名で検索"
                                    class="w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
-                                   oninput="searchFranchise(this.value)">
+                                   oninput="searchFranchise(this.value); updateClearSearchBtn();">
                             <button type="button"
                                     id="clearSearchBtn"
-                                    class="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+                                    class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors"
                                     style="display: none;"
                                     onclick="clearFranchiseSearch()">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
+                                ✗
                             </button>
                         </div>
                     </div>
@@ -7129,6 +7127,16 @@ window.addEventListener('beforeunload', function(e) {
 
             if (clearBtn) {
                 clearBtn.style.display = 'none';
+            }
+        }
+
+        // V1924: ✗ボタンの表示/非表示を切り替え
+        function updateClearSearchBtn() {
+            const searchInput = document.getElementById('franchiseSearch');
+            const clearBtn = document.getElementById('clearSearchBtn');
+
+            if (searchInput && clearBtn) {
+                clearBtn.style.display = searchInput.value.length > 0 ? 'flex' : 'none';
             }
         }
 
