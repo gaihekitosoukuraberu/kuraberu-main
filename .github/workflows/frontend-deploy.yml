@@ -25,6 +25,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
+          fetch-depth: 0
 
       - name: Auto-increment JS version numbers
         run: |
@@ -67,15 +68,27 @@ jobs:
       - name: Commit and push version updates
         run: |
           echo "📝 バージョン更新をコミット中..."
+          echo "NEW_VERSION from env: ${NEW_VERSION}"
 
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
 
+          echo "=== Git Status Before Add ==="
+          git status
+
           git add admin-dashboard/js/business-selection-handler.js
           git add admin-dashboard/index.html
 
+          echo "=== Git Status After Add ==="
+          git status
+
+          echo "=== Git Diff Staged ==="
+          git diff --staged --name-only
+
           if git diff --staged --quiet; then
             echo "📍 変更なし - コミットスキップ"
+            echo "=== Working tree files ==="
+            cat admin-dashboard/js/business-selection-handler.js | head -60 | grep "VERSION ="
           else
             git commit -m "auto: V${NEW_VERSION} + cache buster update - Admin Dashboard"
             git push
