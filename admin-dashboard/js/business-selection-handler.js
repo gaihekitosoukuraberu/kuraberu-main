@@ -1552,11 +1552,46 @@ const BusinessSelectionHandler = {
     const matchRateColor = card.matchRate === 100 ? 'bg-green-500 text-white' : 'bg-orange-500 text-white';
     const matchRateId = `match-rate-${card.franchiseId}`;
 
-    // V1943: 住所情報（横書き表示 + 支店箇条書き対応）
-    const addressLines = [];
-    if (card.address) addressLines.push(`本社: ${card.address}`);
-    if (card.branchAddress) addressLines.push(`支店: ${card.branchAddress}`);
-    const addressTooltip = addressLines.length > 0 ? addressLines.join('\n') : '住所未登録';
+    // V1944: 住所ツールチップ（横書き + 支店箇条書き + 距離表示）
+    let addressTooltip = '';
+    if (card.address || card.branchAddress || card.distanceText) {
+      addressTooltip = '<div class="text-left">';
+
+      // 本社住所
+      if (card.address) {
+        addressTooltip += `<div class="font-semibold">本社:</div>`;
+        addressTooltip += `<div class="ml-2 mb-1">${card.address}</div>`;
+      }
+
+      // 支店住所（箇条書き）
+      if (card.branchAddress) {
+        const branches = card.branchAddress.split(',').map(b => b.trim()).filter(b => b);
+        if (branches.length > 0) {
+          addressTooltip += `<div class="font-semibold mt-1">支店:</div>`;
+          addressTooltip += '<ul class="list-disc ml-4">';
+          branches.forEach(branch => {
+            addressTooltip += `<li class="mb-0.5">${branch}</li>`;
+          });
+          addressTooltip += '</ul>';
+        }
+      }
+
+      // 距離情報（星スコアの右に表示）
+      if (card.rating > 0 && card.distanceText) {
+        addressTooltip += `<div class="mt-2 flex items-center gap-2">`;
+        addressTooltip += `<span class="text-yellow-400">★${card.rating}</span>`;
+        addressTooltip += `<span class="text-blue-400">📍 ${card.distanceText}</span>`;
+        addressTooltip += `</div>`;
+      } else if (card.distanceText) {
+        addressTooltip += `<div class="mt-2 text-blue-400">📍 ${card.distanceText}</div>`;
+      } else if (card.rating > 0) {
+        addressTooltip += `<div class="mt-2 text-yellow-400">★${card.rating}</div>`;
+      }
+
+      addressTooltip += '</div>';
+    } else {
+      addressTooltip = '<div>住所未登録</div>';
+    }
 
     // V1943: 住所を横書きで表示（本社 + 支店を箇条書き）
     let addressDisplay = '';
@@ -1608,7 +1643,7 @@ const BusinessSelectionHandler = {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                   </svg>
                 </span>
-                <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded whitespace-pre-line transition-opacity duration-200 z-50 pointer-events-none" style="writing-mode: horizontal-tb !important;">
+                <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded transition-opacity duration-200 z-50 pointer-events-none min-w-max max-w-sm" style="writing-mode: horizontal-tb !important;">
                   ${addressTooltip}
                 </span>
               </span>
