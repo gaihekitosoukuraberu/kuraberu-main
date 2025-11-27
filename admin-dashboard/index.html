@@ -7087,16 +7087,16 @@ window.addEventListener('beforeunload', function(e) {
         async function searchFranchise(searchText) {
             console.log('[V1913] searchFranchise called:', searchText);
 
-            // business-selection-handler.jsのrenderBusinessCards()を呼び出す
-            if (window.businessSelection && window.businessSelection.renderBusinessCards) {
+            // business-selection-handler.jsのsearchFranchises()を呼び出す
+            if (window.businessSelection && window.businessSelection.searchFranchises) {
                 try {
-                    await window.businessSelection.renderBusinessCards(searchText);
-                    console.log('[V1913] renderBusinessCards 完了');
+                    await window.businessSelection.searchFranchises(searchText);
+                    console.log('[V1913] searchFranchises 完了');
                 } catch (error) {
-                    console.error('[V1913] renderBusinessCards エラー:', error);
+                    console.error('[V1913] searchFranchises エラー:', error);
                 }
             } else {
-                console.error('[V1913] businessSelection.renderBusinessCards が利用できません');
+                console.error('[V1913] businessSelection.searchFranchises が利用できません');
             }
         }
 
