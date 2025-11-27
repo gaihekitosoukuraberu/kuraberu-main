@@ -8088,8 +8088,16 @@ window.addEventListener('beforeunload', function(e) {
     <script src="js/data-formatter.js?v=V1402-JSONP-ONLY"></script>
     <script src="js/registration-requests.js?v=V1402-JSONP-ONLY"></script>
     <script src="js/franchise-management.js?v=V1553-20251103"></script>
-    <!-- V1936: フォールバック処理削除 - getSampleFranchises()完全削除 - 2025-11-27 JST -->
-    <script src="js/business-selection-handler.js?v=V1936"></script>
+    <!-- V1937: 動的キャッシュバスター実装 - 完全なキャッシュ回避 - 2025-11-27 JST -->
+    <script>
+    (function() {
+      const cacheBuster = new Date().getTime();
+      const script = document.createElement("script");
+      script.src = "js/business-selection-handler.js?v=V1936&cb=" + cacheBuster;
+      document.write("<script src=\"" + script.src + "\"><\/script>");
+      console.log('[V1937] Dynamic cache buster applied: ' + cacheBuster);
+    })();
+    </script>
     <!-- 旧システム（無効化） -->
     <!-- <script src="js/gas-config.js?v=20250926_1800"></script> -->
     <!-- <script src="js/dashboard-api.js?v=20250926_1800"></script> -->
