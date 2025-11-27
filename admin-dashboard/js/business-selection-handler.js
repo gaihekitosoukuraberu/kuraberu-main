@@ -1,7 +1,12 @@
 /**
  * ============================================
- * 業者選択ハンドラー V1929-CACHE-BUSTER
+ * 業者選択ハンドラー V1930-DEBUG-INTENSIVE
  * ============================================
+ *
+ * 🔥 V1930: デバッグログ強化 - handleFranchiseCheck呼び出し検証（2025-11-27 19:15 JST）
+ * - チェックボックスonchange属性に直接ログ埋め込み
+ * - handleFranchiseCheckが呼ばれない原因を徹底的に調査
+ * - inline onchange属性の動作を100%確認
  *
  * 🔥 V1929: ブラウザキャッシュ対策 - バージョンチェック機能追加（2025-11-27 19:00 JST）
  * - V1928の修正内容は全て含まれている（チェックボックス永続化は完璧に動作）
@@ -38,18 +43,18 @@
  */
 
 // ============================================
-// 🔥 バージョン定数（V1929-CACHE-BUSTER）
+// 🔥 バージョン定数（V1930-DEBUG-INTENSIVE）
 // ============================================
-const BUSINESS_SELECTION_HANDLER_VERSION = 1929;
-const EXPECTED_MIN_VERSION = 1929;
+const BUSINESS_SELECTION_HANDLER_VERSION = 1930;
+const EXPECTED_MIN_VERSION = 1930;
 
 // ============================================
-// 🔥 バージョン確認ログ（V1929-CACHE-BUSTER）
+// 🔥 バージョン確認ログ（V1930-DEBUG-INTENSIVE）
 // ============================================
-console.log('%c[BusinessSelectionHandler] V1929-CACHE-BUSTER loaded successfully', 'color: #00ff00; font-weight: bold; font-size: 16px');
+console.log('%c[BusinessSelectionHandler] V1930-DEBUG-INTENSIVE loaded successfully', 'color: #00ff00; font-weight: bold; font-size: 18px');
 console.log('[BusinessSelectionHandler] Version: ' + BUSINESS_SELECTION_HANDLER_VERSION);
-console.log('[BusinessSelectionHandler] Timestamp: 2025-11-27 19:00 JST');
-console.log('[BusinessSelectionHandler] Fixes: inline onchange 正常動作 + チェック状態完全保持 + キャッシュバスター機能');
+console.log('[BusinessSelectionHandler] Timestamp: 2025-11-27 19:15 JST');
+console.log('[BusinessSelectionHandler] Fixes: デバッグログ強化 - handleFranchiseCheck呼び出し検証');
 
 // ============================================
 // 🔥 V1929: バージョンチェック & キャッシュ警告バナー表示
@@ -1548,7 +1553,7 @@ const BusinessSelectionHandler = {
       <div class="flex items-center justify-between">
         <div class="flex items-center flex-1 min-w-0">
           <div class="text-base sm:text-lg font-semibold mr-2 sm:mr-3 text-pink-600 flex-shrink-0">${card.rank}</div>
-          <input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="mr-2 sm:mr-3 w-4 h-4 sm:w-5 sm:h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">
+          <input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="mr-2 sm:mr-3 w-4 h-4 sm:w-5 sm:h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="console.log('%c[V1930-ONCHANGE] チェックボックスクリック検出！', 'color: #ff0000; font-weight: bold; font-size: 20px; background: yellow;'); console.log('[V1930-ONCHANGE] 会社名:', '${card.companyName.replace(/'/g, "\\'")}'); console.log('[V1930-ONCHANGE] checked:', this.checked); handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <div class="font-semibold text-gray-900 text-sm sm:text-lg">${card.companyName}</div>
