@@ -776,14 +776,8 @@ const BusinessSelectionHandler = {
       // マッチ率を計算
       const matchRate = this.calculateMatchRate(franchise);
 
-      // V1921: チェック条件 = Set に含まれる OR (AS列業者 AND 100%マッチ)
-      const isInSet = this.checkedCompanies.has(franchise.companyName);
-      const shouldCheck = isInSet || (isUserSelected && matchRate.total === 100);
-
-      // V1921: 初期チェック時にSetに追加（AS列 + 100%マッチのデフォルトチェック）
-      if (shouldCheck && !isInSet) {
-        this.checkedCompanies.add(franchise.companyName);
-      }
+      // V1924: チェック条件 = Set に含まれるか（ユーザー操作を完全に尊重）
+      const shouldCheck = this.checkedCompanies.has(franchise.companyName);
 
       return {
         rank,

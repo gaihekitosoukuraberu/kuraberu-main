@@ -6876,6 +6876,15 @@ window.addEventListener('beforeunload', function(e) {
                             caseData
                         );
 
+                        // V1924: 初期チェック処理（AS列業者 + 100%マッチを自動チェック）
+                        selectionData.allFranchises.forEach(franchise => {
+                            const isUserSelected = selectionData.selectedCompanies.includes(franchise.companyName);
+                            const matchRate = window.BusinessSelectionHandler.calculateMatchRate(franchise);
+                            if (isUserSelected && matchRate.total === 100) {
+                                window.BusinessSelectionHandler.checkedCompanies.add(franchise.companyName);
+                            }
+                        });
+
                         const businessCards = await window.BusinessSelectionHandler.generateBusinessCards(selectionData);
 
                         window.BusinessSelectionHandler.updateUI(businessCards, selectionData.desiredCount);
