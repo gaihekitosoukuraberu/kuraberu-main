@@ -73,6 +73,7 @@ const BusinessSelectionHandler = {
   currentSortType: 'user',    // 現在のソート順
   showAll: false,             // もっと見る状態
   searchQuery: '',            // 検索クエリ
+  checkedCompanies: new Set(), // V1921: チェック済み業者名（グローバル管理）
 
   /**
    * 初期化
@@ -580,20 +581,33 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * V1911-FIX: 現在チェックされている業者名を取得（UI上のチェックボックスから）
+   * V1921: 現在チェックされている業者名を取得（グローバルSet管理）
    * @returns {Array<string>} チェック済み業者名の配列
    */
   getCheckedCompanies() {
-    const checked = [];
-    const checkboxes = document.querySelectorAll('.franchise-item input[type="checkbox"]:checked');
+    return Array.from(this.checkedCompanies);
+  },
+
+  /**
+   * V1921: チェック状態を同期（DOMとSetを同期）
+   */
+  syncCheckedState() {
+    // DOMの現在のチェック状態をSetに反映
+    const checkboxes = document.querySelectorAll('.franchise-item input[type="checkbox"]');
     checkboxes.forEach(checkbox => {
       const card = checkbox.closest('.franchise-item');
       if (card) {
-        const companyName = card.getAttribute('data-franchise-id'); // franchiseIdに会社名が入っている
-        if (companyName) checked.push(companyName);
+        const companyName = card.getAttribute('data-franchise-id');
+        if (companyName) {
+          if (checkbox.checked) {
+            this.checkedCompanies.add(companyName);
+          } else {
+            this.checkedCompanies.delete(companyName);
+          }
+        }
       }
     });
-    return checked;
+    console.log('[V1921] Synced checked state:', Array.from(this.checkedCompanies));
   },
 
   /**
@@ -743,9 +757,14 @@ const BusinessSelectionHandler = {
       // マッチ率を計算
       const matchRate = this.calculateMatchRate(franchise);
 
-      // V1918: チェック条件 = ユーザーが手動でチェック OR (AS列業者 AND 100%マッチ)
-      const isManuallyChecked = currentCheckedCompanies.includes(franchise.companyName);
-      const shouldCheck = isManuallyChecked || (isUserSelected && matchRate.total === 100);
+      // V1921: チェック条件 = Set に含まれる OR (AS列業者 AND 100%マッチ)
+      const isInSet = this.checkedCompanies.has(franchise.companyName);
+      const shouldCheck = isInSet || (isUserSelected && matchRate.total === 100);
+
+      // V1921: 初期チェック時にSetに追加（AS列 + 100%マッチのデフォルトチェック）
+      if (shouldCheck && !isInSet) {
+        this.checkedCompanies.add(franchise.companyName);
+      }
 
       return {
         rank,
@@ -1428,8 +1447,52 @@ const BusinessSelectionHandler = {
       </div>
     `;
 
-    // マッチ率バッジにクリックイベントを追加
+    // V1921: チェックボックスにイベントリスナーを追加（希望社数制限）
     setTimeout(() => {
+      const checkbox = div.querySelector('input[type="checkbox"]');
+      if (checkbox) {
+        checkbox.addEventListener('change', async (e) => {
+          e.stopPropagation();
+          const companyName = card.companyName;
+          const isChecked = e.target.checked;
+
+          if (isChecked) {
+            // チェックON: 希望社数チェック
+            const selectEl = document.getElementById('franchiseCount');
+            const desiredCountStr = selectEl?.value || '3社';
+            const desiredCount = parseInt(desiredCountStr);
+            const currentChecked = this.checkedCompanies.size;
+
+            if (currentChecked >= desiredCount) {
+              // 希望社数を超える場合、確認モーダル
+              const confirmed = confirm(`現在の希望社数は${desiredCount}社です。\n${desiredCount + 1}社に変更しますか？`);
+              if (confirmed) {
+                // 希望社数を自動更新
+                if (selectEl) {
+                  selectEl.value = `${desiredCount + 1}社`;
+                }
+                this.checkedCompanies.add(companyName);
+                console.log('[V1921] 希望社数を更新:', desiredCount + 1, '社');
+              } else {
+                // キャンセル: チェックを外す
+                e.target.checked = false;
+                return;
+              }
+            } else {
+              this.checkedCompanies.add(companyName);
+            }
+          } else {
+            // チェックOFF
+            this.checkedCompanies.delete(companyName);
+          }
+
+          console.log('[V1921] Checked companies:', Array.from(this.checkedCompanies));
+          // UI再描画
+          await this.renderBusinessCards();
+        });
+      }
+
+      // マッチ率バッジにクリックイベントを追加
       const matchRateBadge = document.getElementById(matchRateId);
       if (matchRateBadge && card.matchDetails) {
         matchRateBadge.addEventListener('click', (e) => {
