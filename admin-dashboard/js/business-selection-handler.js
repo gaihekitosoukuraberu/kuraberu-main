@@ -407,9 +407,13 @@ const BusinessSelectionHandler = {
     // ソート順を保存
     this.currentSortType = sortType;
 
+    // V1924: 現在の希望社数ドロップダウンの値を取得（ユーザー変更を尊重）
+    const franchiseCountSelect = document.getElementById('franchiseCount');
+    const currentDesiredCount = franchiseCountSelect?.value || '3社';
+
     // 現在のデータでカードを再生成
     const selectionData = {
-      desiredCount: this.calculateDesiredCount(this.userSelectedCompanies),
+      desiredCount: currentDesiredCount,
       selectedCompanies: this.userSelectedCompanies,
       allFranchises: this.allFranchises
     };
@@ -421,12 +425,13 @@ const BusinessSelectionHandler = {
       this.searchQuery
     );
 
-    // UIを更新
-    this.updateUI(businessCards, selectionData.desiredCount);
+    // UIを更新（V1924: 希望社数は上書きしない）
+    this.updateUI(businessCards, currentDesiredCount, false);
 
     console.log('[V1913] ソート順変更:', {
       sortType: this.currentSortType,
-      cardsCount: businessCards.length
+      cardsCount: businessCards.length,
+      desiredCount: currentDesiredCount
     });
   },
 
@@ -1257,19 +1262,22 @@ const BusinessSelectionHandler = {
    * UIを更新（V1880: 新実装）
    * @param {Array} businessCards - 業者カード配列
    * @param {string} desiredCount - 希望社数
+   * @param {boolean} updateDesiredCount - 希望社数を更新するか（V1924: デフォルトtrue）
    */
-  updateUI(businessCards, desiredCount) {
+  updateUI(businessCards, desiredCount, updateDesiredCount = true) {
     // V1904: ローディングスピナーを非表示
     this.hideLoadingSpinner();
 
-    // 1. 希望社数ドロップダウンを更新（V1924: checkedCompanies.sizeに基づく）
-    const franchiseCountSelect = document.getElementById('franchiseCount');
-    if (franchiseCountSelect) {
-      // V1924: 現在チェックされている数に基づいて希望社数を設定
-      const currentCheckedCount = this.checkedCompanies.size;
-      const finalDesiredCount = currentCheckedCount > 0 ? `${currentCheckedCount}社` : desiredCount;
-      franchiseCountSelect.value = finalDesiredCount;
-      console.log('[BusinessSelection] 希望社数設定:', finalDesiredCount, '(チェック数:', currentCheckedCount, ')');
+    // 1. 希望社数ドロップダウンを更新（V1924: updateDesiredCountがtrueの場合のみ）
+    if (updateDesiredCount) {
+      const franchiseCountSelect = document.getElementById('franchiseCount');
+      if (franchiseCountSelect) {
+        // V1924: 現在チェックされている数に基づいて希望社数を設定
+        const currentCheckedCount = this.checkedCompanies.size;
+        const finalDesiredCount = currentCheckedCount > 0 ? `${currentCheckedCount}社` : desiredCount;
+        franchiseCountSelect.value = finalDesiredCount;
+        console.log('[BusinessSelection] 希望社数設定:', finalDesiredCount, '(チェック数:', currentCheckedCount, ')');
+      }
     }
 
     // 2. 業者リストコンテナを取得
@@ -1851,12 +1859,17 @@ const BusinessSelectionHandler = {
       }
     }
 
+    // V1924: 現在の希望社数ドロップダウンの値を取得（ユーザー変更を尊重）
+    const franchiseCountSelect = document.getElementById('franchiseCount');
+    const currentDesiredCount = franchiseCountSelect?.value || '3社';
+
     // カードを再生成して表示
     const businessCards = await this.generateBusinessCards({
       allFranchises: this.allFranchises
     }, sortType, this.showAll, this.searchQuery);
 
-    this.updateUI(businessCards, this.calculateDesiredCount(this.userSelectedCompanies));
+    // V1924: 希望社数は上書きしない
+    this.updateUI(businessCards, currentDesiredCount, false);
   },
 
   /**
@@ -1865,12 +1878,17 @@ const BusinessSelectionHandler = {
   async toggleShowMore() {
     this.showAll = !this.showAll;
 
+    // V1924: 現在の希望社数ドロップダウンの値を取得（ユーザー変更を尊重）
+    const franchiseCountSelect = document.getElementById('franchiseCount');
+    const currentDesiredCount = franchiseCountSelect?.value || '3社';
+
     // カードを再生成して表示
     const businessCards = await this.generateBusinessCards({
       allFranchises: this.allFranchises
     }, this.currentSortType, this.showAll, this.searchQuery);
 
-    this.updateUI(businessCards, this.calculateDesiredCount(this.userSelectedCompanies));
+    // V1924: 希望社数は上書きしない
+    this.updateUI(businessCards, currentDesiredCount, false);
   },
 
   /**
@@ -1880,12 +1898,17 @@ const BusinessSelectionHandler = {
   async searchFranchises(query) {
     this.searchQuery = query;
 
+    // V1924: 現在の希望社数ドロップダウンの値を取得（ユーザー変更を尊重）
+    const franchiseCountSelect = document.getElementById('franchiseCount');
+    const currentDesiredCount = franchiseCountSelect?.value || '3社';
+
     // カードを再生成して表示
     const businessCards = await this.generateBusinessCards({
       allFranchises: this.allFranchises
     }, this.currentSortType, this.showAll, query);
 
-    this.updateUI(businessCards, this.calculateDesiredCount(this.userSelectedCompanies));
+    // V1924: 希望社数は上書きしない
+    this.updateUI(businessCards, currentDesiredCount, false);
   },
 
   /**
