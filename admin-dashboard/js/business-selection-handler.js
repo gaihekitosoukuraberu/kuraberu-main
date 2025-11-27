@@ -2194,4 +2194,4 @@ if (typeof window !== 'undefined') {
   };
 }
 
-// V1935 Deploy Trigger - Frontend workflow fixed to commit version updates - 20251127-1942
+// V1935 Deploy Trigger v2 - Workflow env var fix + fetch-depth - 20251127-2048
