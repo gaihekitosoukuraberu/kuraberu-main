@@ -1649,8 +1649,9 @@ const BusinessSelectionHandler = {
     const referralPrice = this.calculateReferralPrice(franchiseCount);
     const formattedPrice = this.formatReferralPrice(referralPrice);
 
+    // V1951: iPhone SE最適化 - padding調整 (p-3で統一)
     // ホバー効果: 光る外枠 + 拡大 + 影 + クリック時縮小
-    div.className = `franchise-item ${card.shouldCheck ? 'selected' : ''} cursor-pointer border-2 ${borderClass} ${bgClass} rounded-lg p-2 sm:p-4 ${hoverClass} hover:ring-4 ${ringClass} ring-offset-2 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 ease-in-out`;
+    div.className = `franchise-item ${card.shouldCheck ? 'selected' : ''} cursor-pointer border-2 ${borderClass} ${bgClass} rounded-lg p-3 sm:p-4 ${hoverClass} hover:ring-4 ${ringClass} ring-offset-2 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 ease-in-out`;
     div.setAttribute('onclick', 'toggleFranchise(this)');
     div.setAttribute('data-franchise-id', card.franchiseId);
     div.setAttribute('data-match-rate', card.matchRate);
@@ -1696,10 +1697,11 @@ const BusinessSelectionHandler = {
       addressTooltip = '<div>住所未登録</div>';
     }
 
+    // V1951: iPhone SE最適化 - text-xs → text-sm, gap-2 → gap-1.5
     // V1945: 追加情報（評価と距離を同じ行に表示 - 星の右に距離）
     let additionalInfo = '';
     if (card.rating > 0 || card.distanceText) {
-      additionalInfo += '<div class="flex items-center gap-2 text-xs mt-1">';
+      additionalInfo += '<div class="flex items-center gap-1.5 text-sm mt-1">';
       if (card.rating > 0) {
         additionalInfo += `<span class="text-yellow-600">★${card.rating}</span>`;
       }
@@ -1709,23 +1711,24 @@ const BusinessSelectionHandler = {
       additionalInfo += '</div>';
     }
 
+    // V1951: iPhone SE最適化版のHTML
     div.innerHTML = `
-      <div class="flex items-center justify-between">
-        <div class="flex items-center flex-1 min-w-0">
-          <div class="text-base sm:text-lg font-semibold mr-2 sm:mr-3 text-pink-600 flex-shrink-0">${card.rank}</div>
-          <input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="mr-2 sm:mr-3 w-4 h-4 sm:w-5 sm:h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center flex-1 min-w-0 gap-2">
+          <div class="text-lg font-semibold text-pink-600 flex-shrink-0 w-7">${card.rank}</div>
+          <input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="w-5 h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">
           <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 flex-wrap">
-              <div class="font-semibold text-gray-900 text-sm sm:text-lg">${card.companyName}</div>
-              ${card.isUserSelected ? '<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();"><span class="inline-flex items-center justify-center w-6 h-6 bg-pink-600 text-white rounded"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg></span><span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">ユーザー選択</span></span>' : ''}
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <div class="font-semibold text-gray-900 text-base leading-tight">${card.companyName}</div>
+              ${card.isUserSelected ? '<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();"><span class="inline-flex items-center justify-center w-5 h-5 bg-pink-600 text-white rounded"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg></span><span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">ユーザー選択</span></span>' : ''}
               <span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
-                <span class="inline-flex items-center justify-center w-6 h-6 text-yellow-500">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span class="inline-flex items-center justify-center w-5 h-5 text-yellow-500">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                   </svg>
                 </span>
-                <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded transition-opacity duration-200 z-50 pointer-events-none min-w-max max-w-sm" style="writing-mode: horizontal-tb !important;">
+                <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded transition-opacity duration-200 z-50 pointer-events-none min-w-max max-w-sm" style="writing-mode: horizontal-tb !important;">
                   ${addressTooltip}
                 </span>
               </span>
@@ -1733,13 +1736,13 @@ const BusinessSelectionHandler = {
             ${additionalInfo}
           </div>
         </div>
-        <div class="text-right ml-2 sm:ml-4 flex-shrink-0">
-          <div id="${matchRateId}" class="inline-block px-2 py-1 rounded-full text-xs sm:text-sm font-bold cursor-pointer hover:shadow-lg transition-shadow ${matchRateColor}"
+        <div class="text-right flex-shrink-0">
+          <div id="${matchRateId}" class="inline-block px-2 py-0.5 rounded-full text-xs font-bold cursor-pointer hover:shadow-lg transition-shadow ${matchRateColor}"
                onclick="event.stopPropagation();"
                title="クリックで詳細を表示">
-            ${card.matchRate}% マッチ
+            ${card.matchRate}%
           </div>
-          <div class="mt-1 text-sm font-bold text-green-600">
+          <div class="mt-1 text-sm font-bold text-green-600 whitespace-nowrap">
             ${formattedPrice}
           </div>
         </div>
