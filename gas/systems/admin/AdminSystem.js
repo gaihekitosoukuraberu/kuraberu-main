@@ -486,6 +486,23 @@ const AdminSystem = {
             sheet.getRange(i + 1, pauseEndDateIndex + 1).setValue('未定');
           }
 
+          // V1947: 郵便番号自動入力（住所から抽出）
+          const postalCodeIndex = headers.indexOf('郵便番号');
+          if (postalCodeIndex !== -1) {
+            const address = data[i][headers.indexOf('住所')] || '';
+            let postalCode = '';
+
+            // 住所から郵便番号を抽出（〒123-4567 または 1234567 形式）
+            const postalMatch = address.match(/〒?\s*(\d{3})-?(\d{4})/);
+            if (postalMatch) {
+              postalCode = postalMatch[1] + postalMatch[2]; // ハイフンなし7桁
+              console.log('[V1947] 郵便番号抽出成功:', postalCode, '住所:', address);
+              sheet.getRange(i + 1, postalCodeIndex + 1).setValue(postalCode);
+            } else {
+              console.log('[V1947] 郵便番号抽出失敗 - 住所:', address);
+            }
+          }
+
           // 初回ログインメール送信
           try {
             console.log('[AdminSystem] 初回ログインメール送信開始');
@@ -2077,6 +2094,10 @@ const AdminSystem = {
           case '支店住所':
             // V1913: 支店住所を加盟店登録から取得
             masterRow.push(branches || '');
+            break;
+          case '郵便番号':
+            // V1947: 郵便番号を加盟店登録から取得（AI列）
+            masterRow.push(zipcode || '');
             break;
           default:
             masterRow.push('');

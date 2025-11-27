@@ -60,19 +60,19 @@
  */
 
 // ============================================
-// 🔥 バージョン定数（V1936-FALLBACK-REMOVED）
+// 🔥 バージョン定数（V1947-POSTAL-CODE-FILTERING）
 // ============================================
-const BUSINESS_SELECTION_HANDLER_VERSION = 1936;
-const EXPECTED_MIN_VERSION = 1936;
+const BUSINESS_SELECTION_HANDLER_VERSION = 1947;
+const EXPECTED_MIN_VERSION = 1947;
 
 // ============================================
-// 🔥 バージョン確認ログ（V1936）
+// 🔥 バージョン確認ログ（V1947）
 // ============================================
-console.log('%c[BusinessSelectionHandler] V1936 loaded successfully', 'color: #00ff00; font-weight: bold; font-size: 18px');
+console.log('%c[BusinessSelectionHandler] V1947 loaded successfully', 'color: #00ff00; font-weight: bold; font-size: 18px');
 console.log('[BusinessSelectionHandler] Version: ' + BUSINESS_SELECTION_HANDLER_VERSION);
-console.log('[BusinessSelectionHandler] Timestamp: 2025-11-27 21:50 JST');
-console.log('[BusinessSelectionHandler] フォールバック処理削除 - サンプルデータによる誤動作を防止');
-console.log('[BusinessSelectionHandler] V1936 Fixes: getSampleFranchises()関数削除 - API失敗時は空配列を返す');
+console.log('[BusinessSelectionHandler] Timestamp: 2025-11-28 22:00 JST');
+console.log('[BusinessSelectionHandler] V1947 Features: 郵便番号フィルタリング最適化 - 距離計算前に郵便番号で8-10社に絞り込み');
+console.log('[BusinessSelectionHandler] V1947: Performance optimization for 1000+ franchises');
 
 // ============================================
 // 🔥 V1929: バージョンチェック & キャッシュ警告バナー表示
@@ -492,6 +492,77 @@ const BusinessSelectionHandler = {
     });
 
     return converted;
+  },
+
+  /**
+   * V1947: 郵便番号による業者フィルタリング（パフォーマンス最適化）
+   * @param {string} originPostalCode - 起点郵便番号（7桁）
+   * @param {Array} franchises - 業者リスト
+   * @param {number} limit - 抽出する業者数（デフォルト10）
+   * @returns {Array} フィルタリング後の業者リスト
+   */
+  filterByPostalCode(originPostalCode, franchises, limit = 10) {
+    console.log('[V1947] 郵便番号フィルタリング開始');
+    console.log('[V1947] 起点郵便番号:', originPostalCode);
+    console.log('[V1947] 対象業者数:', franchises.length);
+
+    // 郵便番号がない場合はフィルタリングしない
+    if (!originPostalCode || originPostalCode.length !== 7) {
+      console.warn('[V1947] 起点郵便番号が無効 - フィルタリングスキップ');
+      return franchises;
+    }
+
+    // 各業者に郵便番号マッチ度を計算
+    const scored = franchises.map(franchise => {
+      const postalCode = franchise.postalCode || '';
+
+      // 郵便番号がない業者はマッチ度0
+      if (!postalCode || postalCode.length !== 7) {
+        return {
+          franchise: franchise,
+          score: 0,
+          matchDigits: 0
+        };
+      }
+
+      // 左から何桁一致するかカウント
+      let matchDigits = 0;
+      for (let i = 0; i < 7; i++) {
+        if (originPostalCode[i] === postalCode[i]) {
+          matchDigits++;
+        } else {
+          break; // 不一致があったら終了
+        }
+      }
+
+      // スコア計算（左の桁ほど重要）
+      // 7桁一致: 1000点, 6桁一致: 100点, 5桁一致: 50点, 4桁一致: 10点, 3桁一致: 5点
+      const score = matchDigits >= 7 ? 1000 :
+                   matchDigits >= 6 ? 100 :
+                   matchDigits >= 5 ? 50 :
+                   matchDigits >= 4 ? 10 :
+                   matchDigits >= 3 ? 5 : 0;
+
+      return {
+        franchise: franchise,
+        score: score,
+        matchDigits: matchDigits
+      };
+    });
+
+    // スコアで降順ソート
+    scored.sort((a, b) => b.score - a.score);
+
+    // 上位limit件を抽出
+    const filtered = scored.slice(0, limit).map(item => item.franchise);
+
+    console.log('[V1947] フィルタリング結果:');
+    console.log('[V1947] - 抽出業者数:', filtered.length);
+    scored.slice(0, Math.min(10, scored.length)).forEach((item, index) => {
+      console.log(`[V1947] - ${index + 1}位: ${item.franchise.companyName} (${item.franchise.postalCode || '郵便番号なし'}) マッチ度: ${item.matchDigits}桁 スコア: ${item.score}`);
+    });
+
+    return filtered;
   },
 
   /**
