@@ -11,6 +11,11 @@
  * 4. HTMLは絶対に返さない
  * 5. 共通関数は極力最小限にする（main.jsに集約）
  *
+ * 【V1927】 2025-11-27 18:00 - Admin Dashboard チェックボックスイベントハンドラー修正デプロイトリガー
+ * - initializeCheckboxes()削除によるinline onchange動作保証
+ * - チェック状態のソート順変更時の永続化修正
+ * - GAS再デプロイにより最新環境でテスト可能に
+ *
  * 【V1882】 2025-11-26 08:30 - Google Maps Distance Matrix API統合
  * - Admin Dashboard 業者選択「距離順」ソート対応
  * - DistanceCalculator.gs作成: calculateDistances アクション実装
