@@ -7083,25 +7083,21 @@ window.addEventListener('beforeunload', function(e) {
 
         // ⚠️ 古いソート関数は削除しました（行2355付近に新しい関数があります）
 
-        // 業者検索機能
-        function searchFranchise(searchText) {
-            const container = document.getElementById('franchiseListContainer');
-            if (!container) return;
-            
-            const franchiseItems = container.querySelectorAll('.franchise-item');
-            
-            franchiseItems.forEach(item => {
-                const name = item.querySelector('.font-semibold').textContent;
-                const id = item.dataset.franchiseId;
-                
-                if (searchText === '' || 
-                    name.toLowerCase().includes(searchText.toLowerCase()) || 
-                    id.toLowerCase().includes(searchText.toLowerCase())) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
+        // V1913: 業者検索機能（全加盟店検索 + ひらがな→カタカナ変換対応）
+        async function searchFranchise(searchText) {
+            console.log('[V1913] searchFranchise called:', searchText);
+
+            // business-selection-handler.jsのrenderBusinessCards()を呼び出す
+            if (window.businessSelection && window.businessSelection.renderBusinessCards) {
+                try {
+                    await window.businessSelection.renderBusinessCards(searchText);
+                    console.log('[V1913] renderBusinessCards 完了');
+                } catch (error) {
+                    console.error('[V1913] renderBusinessCards エラー:', error);
                 }
-            });
+            } else {
+                console.error('[V1913] businessSelection.renderBusinessCards が利用できません');
+            }
         }
 
         // 物件の郵便番号から住所を取得
