@@ -151,15 +151,19 @@ const BusinessSelectionHandler = {
         count: selectedCompanies.length
       });
 
-      // V1923: 希望社数をCF列から取得（フォールバック: AS列からカウント）
+      // V1923: 希望社数をCF列から取得（フォールバック: CB列 → AS列）
       let desiredCount;
       if (currentCaseData.desiredCompanyCount) {
         // CF列に値がある場合はそれを使用（数値のみ抽出して"N社"フォーマットに変換）
         const count = parseInt(currentCaseData.desiredCompanyCount);
         desiredCount = isNaN(count) ? this.calculateDesiredCount(selectedCompanies) : `${count}社`;
         console.log('[BusinessSelection] CF列から希望社数取得:', desiredCount);
+      } else if (currentCaseData.companiesCount) {
+        // CF列が空でCB列に値がある場合（既存データ用フォールバック）
+        desiredCount = currentCaseData.companiesCount;
+        console.log('[BusinessSelection] CB列から希望社数取得:', desiredCount);
       } else {
-        // CF列が空の場合はAS列からカウント（後方互換性）
+        // 両方空の場合はAS列からカウント（最終フォールバック）
         desiredCount = this.calculateDesiredCount(selectedCompanies);
         console.log('[BusinessSelection] AS列から希望社数計算:', desiredCount);
       }
@@ -1424,7 +1428,8 @@ const BusinessSelectionHandler = {
       <div class="flex items-center justify-between">
         <div class="flex items-center flex-1 min-w-0">
           <div class="text-base sm:text-lg font-semibold mr-2 sm:mr-3 text-pink-600 flex-shrink-0">${card.rank}</div>
-          <input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="mr-2 sm:mr-4 w-4 h-4 sm:w-5 sm:h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">
+          <input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="mr-2 w-4 h-4 sm:w-5 sm:h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">
+          ${card.shouldCheck ? '<button onclick="event.stopPropagation(); removeFranchise(\'' + card.companyName.replace(/'/g, "\\'") + '\');" class="ml-1 mr-2 sm:mr-3 w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full text-sm sm:text-base font-bold transition-colors flex-shrink-0" title="選択解除">✗</button>' : '<span class="mr-2 sm:mr-4"></span>'}
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <div class="font-semibold text-gray-900 text-sm sm:text-lg">${card.companyName}</div>

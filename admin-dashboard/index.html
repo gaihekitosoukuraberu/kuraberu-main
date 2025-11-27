@@ -7175,6 +7175,17 @@ window.addEventListener('beforeunload', function(e) {
             await window.BusinessSelectionHandler.renderBusinessCards();
         }
 
+        // V1924: 業者選択解除（✗ボタン）
+        async function removeFranchise(companyName) {
+            console.log('[V1924] 業者選択解除:', companyName);
+
+            // チェック状態を削除
+            window.BusinessSelectionHandler.checkedCompanies.delete(companyName);
+
+            // UI再描画
+            await window.BusinessSelectionHandler.renderBusinessCards();
+        }
+
         // V1923: 希望社数変更時の自動保存（CF列に保存）
         async function saveFranchiseCountChange(value) {
             const cvId = window.BusinessSelectionHandler?.currentCaseData?.cvId;
