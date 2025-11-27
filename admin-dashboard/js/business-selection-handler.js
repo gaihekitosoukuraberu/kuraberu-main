@@ -302,10 +302,22 @@ const BusinessSelectionHandler = {
 
       console.log('[BusinessSelection] 業者データ取得完了:', franchises.length, '件');
 
+      // V1946: 距離情報を初期ロード時に計算（全ソートで表示可能にする）
+      const originAddress = currentCaseData.address ||
+                           `${currentCaseData.prefecture || ''}${currentCaseData.city || ''}`;
+
+      if (originAddress) {
+        console.log('[V1946] 距離情報を計算中... 起点:', originAddress);
+        this.allFranchises = await this.calculateDistances(originAddress, this.allFranchises);
+        console.log('[V1946] 距離情報計算完了');
+      } else {
+        console.warn('[V1946] 起点住所が取得できないため距離計算をスキップ');
+      }
+
       return {
         desiredCount,
         selectedCompanies,
-        allFranchises: franchises
+        allFranchises: this.allFranchises
       };
 
     } catch (error) {
@@ -2002,21 +2014,13 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * ソート順を変更（V1913: async対応）
+   * ソート順を変更（V1913: async対応、V1946: 距離計算は初期ロード時のみ）
    * @param {string} sortType - ソート順 ('user', 'cheap', 'review', 'premium', 'distance')
    */
   async changeSortOrder(sortType) {
     this.currentSortType = sortType;
 
-    // 距離順の場合は距離計算を実行
-    if (sortType === 'distance' && this.currentCaseData) {
-      const originAddress = this.currentCaseData.address ||
-                           `${this.currentCaseData.prefecture || ''}${this.currentCaseData.city || ''}`;
-
-      if (originAddress) {
-        this.allFranchises = await this.calculateDistances(originAddress, this.allFranchises);
-      }
-    }
+    // V1946: 距離情報は初期ロード時に計算済みのため、ここでの再計算は不要
 
     // V1924: 現在の希望社数ドロップダウンの値を取得（ユーザー変更を尊重）
     const franchiseCountSelect = document.getElementById('franchiseCount');
