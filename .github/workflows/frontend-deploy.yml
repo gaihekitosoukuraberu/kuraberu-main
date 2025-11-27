@@ -11,6 +11,7 @@ on:
       - 'estimate-keep-system/**'
       - 'lp/**'
       - 'js/**'
+      - '.github/workflows/**'
   workflow_dispatch: # 手動実行も可能
 
 jobs:
