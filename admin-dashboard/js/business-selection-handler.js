@@ -306,7 +306,8 @@ const BusinessSelectionHandler = {
       companyName: business.companyName,
       serviceAreas: [business.prefecture].filter(p => p),
       city: business.city || '',
-      citiesArray: (business.cities || '').split(',').map(c => c.trim()).filter(c => c),
+      // V1917: GASは改行区切り、getRankingはカンマ区切り → 両方対応
+      citiesArray: business.citiesArray || (business.cities || '').split(/[,\n]/).map(c => c.trim()).filter(c => c),
       workTypes: (business.constructionTypes || '').split(',').map(t => t.trim()).filter(t => t),
       specialSupport: business.specialSupport || '',
       maxFloors: business.maxFloors || '', // V1895: 最大対応階数（物件種別と階数を含む）
@@ -719,11 +720,22 @@ const BusinessSelectionHandler = {
       displayFranchises = this.sortFranchises(sortType, allFranchises);
     }
 
-    // V1912: 検索時は制限なし、通常時は4件 or 8件
-    const limit = searchQuery ? displayFranchises.length : (showAll ? 8 : 4);
-    const topFranchises = displayFranchises.slice(0, limit);
+    // V1917: チェック済み業者を取得（チェックボックス状態を保持）
+    const currentCheckedCompanies = this.getCheckedCompanies();
 
-    // カード生成
+    // V1917: チェック済み業者とそれ以外に分離
+    const checkedFranchises = displayFranchises.filter(f =>
+      currentCheckedCompanies.includes(f.companyName)
+    );
+    const uncheckedFranchises = displayFranchises.filter(f =>
+      !currentCheckedCompanies.includes(f.companyName)
+    );
+
+    // V1917: チェック済み業者 + 未チェック業者（制限付き）
+    const limit = searchQuery ? uncheckedFranchises.length : (showAll ? 8 : 4);
+    const topFranchises = [...checkedFranchises, ...uncheckedFranchises.slice(0, limit)];
+
+    // V1917: カード生成
     return topFranchises.map((franchise, index) => {
       const rank = index + 1;
       const isUserSelected = this.isUserSelected(franchise.companyName);
@@ -731,8 +743,9 @@ const BusinessSelectionHandler = {
       // マッチ率を計算
       const matchRate = this.calculateMatchRate(franchise);
 
-      // デフォルトチェック条件: AS列業者 AND 100%マッチのみ
-      const shouldCheck = isUserSelected && matchRate.total === 100;
+      // V1917: チェック条件 = ユーザーが手動でチェック OR (AS列業者 AND 100%マッチ)
+      const isManuallyChecked = currentCheckedCompanies.includes(franchise.companyName);
+      const shouldCheck = isManuallyChecked || (isUserSelected && matchRate.total === 100);
 
       return {
         rank,
