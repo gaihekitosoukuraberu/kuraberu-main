@@ -23,6 +23,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Update cache busters in HTML files
+        run: |
+          echo "🔄 Updating cache busters in HTML files..."
+          CACHE_BUSTER="v$(date +%s)"
+          echo "Cache buster: $CACHE_BUSTER"
+
+          # admin-dashboard/index.html のキャッシュバスターを更新
+          if [ -f "admin-dashboard/index.html" ]; then
+            sed -i.bak -E "s/\.js\?v=[^\"]+/.js?v=$CACHE_BUSTER/g" admin-dashboard/index.html
+            rm admin-dashboard/index.html.bak
+            echo "✅ Updated admin-dashboard/index.html"
+          fi
+
       - name: Deploy to Xserver via FTP
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
         with:
