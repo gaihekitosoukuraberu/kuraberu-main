@@ -1,7 +1,12 @@
 /**
  * ============================================
- * 業者選択ハンドラー V1928-FINAL-FIX
+ * 業者選択ハンドラー V1929-CACHE-BUSTER
  * ============================================
+ *
+ * 🔥 V1929: ブラウザキャッシュ対策 - バージョンチェック機能追加（2025-11-27 19:00 JST）
+ * - V1928の修正内容は全て含まれている（チェックボックス永続化は完璧に動作）
+ * - 古いキャッシュを検出して警告を表示する機能を追加
+ * - ユーザーに強制リフレッシュを促す
  *
  * 🔥 V1928: チェックボックス状態永続化 - 最終修正（2025-11-27 18:30 JST）
  * - V1927: index.htmlから initializeCheckboxes() 削除（完了）
@@ -33,11 +38,96 @@
  */
 
 // ============================================
-// 🔥 バージョン確認ログ（V1928-FINAL-FIX）
+// 🔥 バージョン定数（V1929-CACHE-BUSTER）
 // ============================================
-console.log('%c[BusinessSelectionHandler] V1928-FINAL-FIX loaded successfully', 'color: #00ff00; font-weight: bold; font-size: 14px');
-console.log('[BusinessSelectionHandler] Timestamp: 2025-11-27 18:30 JST');
-console.log('[BusinessSelectionHandler] Fixes: inline onchange 正常動作 + チェック状態完全保持');
+const BUSINESS_SELECTION_HANDLER_VERSION = 1929;
+const EXPECTED_MIN_VERSION = 1929;
+
+// ============================================
+// 🔥 バージョン確認ログ（V1929-CACHE-BUSTER）
+// ============================================
+console.log('%c[BusinessSelectionHandler] V1929-CACHE-BUSTER loaded successfully', 'color: #00ff00; font-weight: bold; font-size: 16px');
+console.log('[BusinessSelectionHandler] Version: ' + BUSINESS_SELECTION_HANDLER_VERSION);
+console.log('[BusinessSelectionHandler] Timestamp: 2025-11-27 19:00 JST');
+console.log('[BusinessSelectionHandler] Fixes: inline onchange 正常動作 + チェック状態完全保持 + キャッシュバスター機能');
+
+// ============================================
+// 🔥 V1929: バージョンチェック & キャッシュ警告バナー表示
+// ============================================
+window.BusinessSelectionHandlerVersion = BUSINESS_SELECTION_HANDLER_VERSION;
+window.ExpectedMinVersion = EXPECTED_MIN_VERSION;
+
+// DOMContentLoadedで警告バナーを表示（古いバージョンの場合）
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', function() {
+    const currentVersion = window.BusinessSelectionHandlerVersion || 0;
+    const minVersion = window.ExpectedMinVersion || 1929;
+
+    if (currentVersion < minVersion) {
+      console.error('%c[V1929] 古いバージョンが読み込まれています！ブラウザキャッシュをクリアしてください！', 'color: #ff0000; font-weight: bold; font-size: 20px; background: yellow;');
+      console.error('[V1929] 現在のバージョン:', currentVersion, '/ 必要なバージョン:', minVersion);
+
+      // 警告バナーを画面上部に表示
+      const banner = document.createElement('div');
+      banner.id = 'version-warning-banner';
+      banner.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #ff0000 0%, #ff6b6b 100%);
+        color: white;
+        padding: 20px;
+        text-align: center;
+        z-index: 999999;
+        font-size: 18px;
+        font-weight: bold;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        animation: pulse 2s infinite;
+      `;
+      banner.innerHTML = `
+        <div style="max-width: 1200px; margin: 0 auto;">
+          <div style="font-size: 24px; margin-bottom: 10px;">⚠️ 古いバージョンが読み込まれています ⚠️</div>
+          <div style="font-size: 16px; margin-bottom: 15px;">
+            チェックボックスの不具合を修正しましたが、ブラウザキャッシュが原因で古いコードが実行されています
+          </div>
+          <div style="font-size: 14px; margin-bottom: 15px;">
+            現在のバージョン: V${currentVersion} / 必要なバージョン: V${minVersion}
+          </div>
+          <div style="font-size: 16px; font-weight: bold; background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+            <strong>解決方法:</strong> Ctrl+Shift+R (Windows) または Cmd+Shift+R (Mac) でページを<strong>強制再読み込み</strong>してください
+          </div>
+          <button onclick="location.reload(true)" style="background: white; color: #ff0000; border: none; padding: 12px 30px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+            今すぐ再読み込み
+          </button>
+          <button onclick="document.getElementById('version-warning-banner').remove()" style="background: rgba(255,255,255,0.3); color: white; border: 2px solid white; padding: 12px 30px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-left: 10px;">
+            このまま続ける（非推奨）
+          </button>
+        </div>
+        <style>
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.9; }
+          }
+        </style>
+      `;
+
+      // ページの一番上に挿入
+      if (document.body) {
+        document.body.insertBefore(banner, document.body.firstChild);
+      } else {
+        // bodyがまだない場合は少し待つ
+        setTimeout(function() {
+          if (document.body) {
+            document.body.insertBefore(banner, document.body.firstChild);
+          }
+        }, 100);
+      }
+    } else {
+      console.log('%c[V1929] ✅ 最新バージョンが読み込まれています', 'color: #00ff00; font-weight: bold; font-size: 14px');
+    }
+  });
+}
 
 // ============================================
 // V1903: 工事種別料金マッピング（ハードコード）
