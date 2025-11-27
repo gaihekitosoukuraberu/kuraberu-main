@@ -7159,8 +7159,8 @@ window.addEventListener('beforeunload', function(e) {
             }
 
             console.log('[V1922] Checked companies:', Array.from(window.BusinessSelectionHandler.checkedCompanies));
-            // UI再描画
-            await window.BusinessSelectionHandler.renderBusinessCards();
+            // UI再描画（V1924: 現在のソート順を維持）
+            await window.BusinessSelectionHandler.applySortAndRender(window.BusinessSelectionHandler.currentSortType);
         }
 
         // V1923: 希望社数変更時の自動保存（CF列に保存）

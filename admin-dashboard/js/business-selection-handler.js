@@ -1262,11 +1262,14 @@ const BusinessSelectionHandler = {
     // V1904: ローディングスピナーを非表示
     this.hideLoadingSpinner();
 
-    // 1. 希望社数ドロップダウンを更新
+    // 1. 希望社数ドロップダウンを更新（V1924: checkedCompanies.sizeに基づく）
     const franchiseCountSelect = document.getElementById('franchiseCount');
     if (franchiseCountSelect) {
-      franchiseCountSelect.value = desiredCount;
-      console.log('[BusinessSelection] 希望社数設定:', desiredCount);
+      // V1924: 現在チェックされている数に基づいて希望社数を設定
+      const currentCheckedCount = this.checkedCompanies.size;
+      const finalDesiredCount = currentCheckedCount > 0 ? `${currentCheckedCount}社` : desiredCount;
+      franchiseCountSelect.value = finalDesiredCount;
+      console.log('[BusinessSelection] 希望社数設定:', finalDesiredCount, '(チェック数:', currentCheckedCount, ')');
     }
 
     // 2. 業者リストコンテナを取得
