@@ -7097,12 +7097,6 @@ window.addEventListener('beforeunload', function(e) {
         async function searchFranchise(searchText) {
             console.log('[V1920] searchFranchise called:', searchText);
 
-            // V1920: ✗ボタンの表示/非表示
-            const clearBtn = document.getElementById('clearSearchBtn');
-            if (clearBtn) {
-                clearBtn.style.display = searchText ? 'flex' : 'none';
-            }
-
             // business-selection-handler.jsのsearchFranchises()を呼び出す
             if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.searchFranchises) {
                 try {
@@ -7116,28 +7110,13 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
-        // V1920: 業者検索クリア機能
+        // V1920: 業者検索クリア機能（V1924: チェック状態保持）
         function clearFranchiseSearch() {
             const searchInput = document.getElementById('franchiseSearch');
-            const clearBtn = document.getElementById('clearSearchBtn');
 
             if (searchInput) {
                 searchInput.value = '';
-                searchFranchise(''); // 空文字で再検索→通常表示に戻る
-            }
-
-            if (clearBtn) {
-                clearBtn.style.display = 'none';
-            }
-        }
-
-        // V1924: ✗ボタンの表示/非表示を切り替え
-        function updateClearSearchBtn() {
-            const searchInput = document.getElementById('franchiseSearch');
-            const clearBtn = document.getElementById('clearSearchBtn');
-
-            if (searchInput && clearBtn) {
-                clearBtn.style.display = searchInput.value.length > 0 ? 'flex' : 'none';
+                searchFranchise(''); // 空文字で再検索→全件表示（チェック状態は保持）
             }
         }
 
