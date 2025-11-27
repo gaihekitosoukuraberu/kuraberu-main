@@ -6877,6 +6877,8 @@ window.addEventListener('beforeunload', function(e) {
                         );
 
                         // V1924: 初期チェック処理（AS列業者 + 100%マッチを自動チェック）
+                        // 古いチェック状態をクリア（新しいケースロード時）
+                        window.BusinessSelectionHandler.checkedCompanies.clear();
                         selectionData.allFranchises.forEach(franchise => {
                             const isUserSelected = selectionData.selectedCompanies.includes(franchise.companyName);
                             const matchRate = window.BusinessSelectionHandler.calculateMatchRate(franchise);
