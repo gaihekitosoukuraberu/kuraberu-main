@@ -1876,3 +1876,74 @@ function testCVMapping() {
     details: results
   };
 }
+
+/**
+ * ============================================
+ * V1923: CF列マイグレーション関数
+ * ============================================
+ *
+ * 既存のスプレッドシートにCF列「選択業者数（CV2）」を追加
+ * ⚠️ 1回だけ実行してください（GASエディタから手動実行）
+ *
+ * 実行方法:
+ * 1. GASエディタでこの関数を選択
+ * 2. ▶実行ボタンをクリック
+ * 3. ログを確認
+ */
+function migrateAddCFColumn() {
+  console.log('=== V1923: CF列マイグレーション開始 ===\n');
+
+  try {
+    const ssId = CVSheetSystem.getSpreadsheetId();
+    const ss = SpreadsheetApp.openById(ssId);
+    const sheet = ss.getSheetByName('ユーザー登録');
+
+    if (!sheet) {
+      throw new Error('ユーザー登録シートが見つかりません');
+    }
+
+    // 現在の列数を確認
+    const currentColumns = sheet.getLastColumn();
+    console.log('現在の列数:', currentColumns);
+
+    // CF列（85列目）が既に存在するか確認
+    if (currentColumns >= 85) {
+      const cfHeader = sheet.getRange(1, 85).getValue();
+      if (cfHeader === '選択業者数（CV2）') {
+        console.log('✅ CF列は既に存在します:', cfHeader);
+        return {
+          success: true,
+          message: 'CF列は既に存在します（マイグレーション不要）'
+        };
+      }
+    }
+
+    // CF列のヘッダーを追加（85列目）
+    sheet.getRange(1, 85).setValue('選択業者数（CV2）');
+
+    // ヘッダー行のスタイル設定を適用
+    const cfHeaderRange = sheet.getRange(1, 85);
+    cfHeaderRange.setBackground('#4285F4');
+    cfHeaderRange.setFontColor('#FFFFFF');
+    cfHeaderRange.setFontWeight('bold');
+    cfHeaderRange.setHorizontalAlignment('center');
+
+    // 列幅自動調整
+    sheet.autoResizeColumn(85);
+
+    console.log('✅ CF列「選択業者数（CV2）」を追加しました');
+    console.log('✅ マイグレーション完了');
+
+    return {
+      success: true,
+      message: 'CF列を正常に追加しました'
+    };
+
+  } catch (error) {
+    console.error('❌ マイグレーションエラー:', error);
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
