@@ -630,6 +630,10 @@ function doGet(e) {
       // V1948: 郵便番号一括同期 (one-time migration)
       console.log('[main.js] Running syncAllPostalCodes migration');
       result = syncAllPostalCodes();
+    } else if (action === 'calculateDistances') {
+      // V1949: 距離計算API (V1946: 距離順ソート対応)
+      console.log('[main.js] Routing to DistanceCalculator');
+      result = DistanceCalculator.handle(e.parameter, null);
     } else {
       // システムハンドラーを取得して実行
       console.log('[main.js] Routing to:', system, '(', route.description, ')');
