@@ -2079,14 +2079,34 @@ if (typeof window !== 'undefined') {
 
       console.log(`[V1932-handleFranchiseCheck] チェック数: ${checkedCount} / 希望社数: ${desiredCount}`);
 
-      // 希望社数を超えた場合の制御
+      // 希望社数を超えた場合の制御（確認モーダル + 自動インクリメント）
       if (checkbox.checked && checkedCount > desiredCount) {
-        console.warn(`[V1932-handleFranchiseCheck] ⚠️ 希望社数(${desiredCount}社)を超えています`);
-        // チェックを外す
-        checkbox.checked = false;
-        window.BusinessSelectionHandler.checkedCompanies.delete(companyName);
-        alert(`希望社数は${desiredCount}社までです。`);
-        return;
+        console.warn(`[V1942-handleFranchiseCheck] ⚠️ 希望社数(${desiredCount}社)を超えています`);
+
+        // 確認モーダル: 社数を増やすか確認
+        const confirmed = confirm(`現在の希望社数は${desiredCount}社です。\n${desiredCount + 1}社に変更しますか？`);
+
+        if (confirmed) {
+          // 希望社数を自動更新
+          const newCount = desiredCount + 1;
+          if (franchiseCountSelect) {
+            franchiseCountSelect.value = `${newCount}社`;
+          }
+          console.log(`[V1942-handleFranchiseCheck] ✅ 希望社数を ${desiredCount}社 → ${newCount}社 に更新`);
+
+          // CF列に保存（非同期）
+          if (typeof saveFranchiseCountChange === 'function') {
+            saveFranchiseCountChange(`${newCount}社`).catch(err => {
+              console.error('[V1942-handleFranchiseCheck] CF列保存エラー:', err);
+            });
+          }
+        } else {
+          // キャンセル: チェックを外す
+          checkbox.checked = false;
+          window.BusinessSelectionHandler.checkedCompanies.delete(companyName);
+          console.log(`[V1942-handleFranchiseCheck] ❌ ユーザーがキャンセル - チェックを外しました`);
+          return;
+        }
       }
 
       console.log('[V1932-handleFranchiseCheck] ✅ 処理完了:', {
