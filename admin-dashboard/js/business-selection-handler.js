@@ -1,12 +1,19 @@
 /**
  * ============================================
- * 業者選択ハンドラー V1931-FIX
+ * 業者選択ハンドラー V1932-COMPLETE
  * ============================================
+ *
+ * 🔥 V1932: handleFranchiseCheck関数実装 - 根本修正（2025-11-27 20:35 JST）
+ * - 【根本原因発見】handleFranchiseCheck関数が定義されていなかった！
+ * - window.handleFranchiseCheckをグローバル関数として実装
+ * - チェックボックスのonchange属性から正常に呼び出されるようになった
+ * - チェック状態をcheckedCompanies Setに確実に追加/削除
+ * - 希望社数制限機能も実装（超過時はアラート表示）
  *
  * 🔥 V1931: onchange属性HTMLパースエラー修正（2025-11-27 19:45 JST）
  * - V1930で複雑なデバッグログをonchange属性に埋め込みHTMLパースエラー発生
  * - onchange属性をシンプルに修正: onchange="handleFranchiseCheck(this, 'companyName')"
- * - チェックボックスが正常に動作するようになった
+ * - しかしhandleFranchiseCheck関数自体が存在しなかった（V1932で実装）
  *
  * 🔥 V1930: デバッグログ強化失敗 - onchange属性が無効化（2025-11-27 19:15 JST）
  * - チェックボックスonchange属性に複雑なログを埋め込み → HTMLパースエラー
@@ -47,18 +54,19 @@
  */
 
 // ============================================
-// 🔥 バージョン定数（V1930-DEBUG-INTENSIVE）
+// 🔥 バージョン定数（V1932-COMPLETE）
 // ============================================
-const BUSINESS_SELECTION_HANDLER_VERSION = 1930;
-const EXPECTED_MIN_VERSION = 1930;
+const BUSINESS_SELECTION_HANDLER_VERSION = 1932;
+const EXPECTED_MIN_VERSION = 1932;
 
 // ============================================
-// 🔥 バージョン確認ログ（V1930-DEBUG-INTENSIVE）
+// 🔥 バージョン確認ログ（V1932-COMPLETE）
 // ============================================
-console.log('%c[BusinessSelectionHandler] V1930-DEBUG-INTENSIVE loaded successfully', 'color: #00ff00; font-weight: bold; font-size: 18px');
+console.log('%c[BusinessSelectionHandler] V1932-COMPLETE loaded successfully', 'color: #00ff00; font-weight: bold; font-size: 18px');
 console.log('[BusinessSelectionHandler] Version: ' + BUSINESS_SELECTION_HANDLER_VERSION);
-console.log('[BusinessSelectionHandler] Timestamp: 2025-11-27 19:15 JST');
-console.log('[BusinessSelectionHandler] Fixes: デバッグログ強化 - handleFranchiseCheck呼び出し検証');
+console.log('[BusinessSelectionHandler] Timestamp: 2025-11-27 20:35 JST');
+console.log('[BusinessSelectionHandler] handleFranchiseCheck関数実装完了 - チェックボックス永続化機能が正常動作します');
+console.log('[BusinessSelectionHandler] V1932 Fixes: handleFranchiseCheck関数実装 - グローバル関数として定義');
 
 // ============================================
 // 🔥 V1929: バージョンチェック & キャッシュ警告バナー表示
@@ -2134,4 +2142,54 @@ const BusinessSelectionHandler = {
 // グローバルスコープに公開
 if (typeof window !== 'undefined') {
   window.BusinessSelectionHandler = BusinessSelectionHandler;
+
+  /**
+   * V1932: グローバル関数 - チェックボックス変更ハンドラー（必須実装）
+   * @param {HTMLInputElement} checkbox - チェックボックス要素
+   * @param {string} companyName - 業者名
+   */
+  window.handleFranchiseCheck = function(checkbox, companyName) {
+    console.log('[V1932-handleFranchiseCheck] チェックボックスクリック:', {
+      companyName: companyName,
+      checked: checkbox.checked,
+      現在のcheckedCompanies: Array.from(window.BusinessSelectionHandler.checkedCompanies)
+    });
+
+    try {
+      // チェック状態をグローバルSetに反映
+      if (checkbox.checked) {
+        window.BusinessSelectionHandler.checkedCompanies.add(companyName);
+        console.log(`[V1932-handleFranchiseCheck] ✅ ${companyName} を追加`);
+      } else {
+        window.BusinessSelectionHandler.checkedCompanies.delete(companyName);
+        console.log(`[V1932-handleFranchiseCheck] ❌ ${companyName} を削除`);
+      }
+
+      // 希望社数制限チェック
+      const franchiseCountSelect = document.getElementById('franchiseCount');
+      const desiredCount = franchiseCountSelect ? parseInt(franchiseCountSelect.value) : 3;
+      const checkedCount = window.BusinessSelectionHandler.checkedCompanies.size;
+
+      console.log(`[V1932-handleFranchiseCheck] チェック数: ${checkedCount} / 希望社数: ${desiredCount}`);
+
+      // 希望社数を超えた場合の制御
+      if (checkbox.checked && checkedCount > desiredCount) {
+        console.warn(`[V1932-handleFranchiseCheck] ⚠️ 希望社数(${desiredCount}社)を超えています`);
+        // チェックを外す
+        checkbox.checked = false;
+        window.BusinessSelectionHandler.checkedCompanies.delete(companyName);
+        alert(`希望社数は${desiredCount}社までです。`);
+        return;
+      }
+
+      console.log('[V1932-handleFranchiseCheck] ✅ 処理完了:', {
+        最終checkedCompanies: Array.from(window.BusinessSelectionHandler.checkedCompanies)
+      });
+
+    } catch (error) {
+      console.error('[V1932-handleFranchiseCheck] エラー:', error);
+      // エラー時はチェックを元に戻す
+      checkbox.checked = !checkbox.checked;
+    }
+  };
 }
