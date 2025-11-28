@@ -147,7 +147,8 @@
                 el.id !== 'gaiheki-zip-form-container' &&
                 el.id !== 'botParentContainer' &&
                 el.id !== 'estimateBtnContainer' &&
-                el.id !== 'mobileProgressBar') {
+                el.id !== 'mobileProgressBar' &&
+                el.id !== 'keepModal') {  // keepModalを保持
                 el.style.display = 'none';
             }
         });
