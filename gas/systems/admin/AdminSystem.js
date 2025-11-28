@@ -2482,7 +2482,10 @@ const AdminSystem = {
         'searchKeyword': '検索キーワード',
         '案件メモ': '案件メモ',
         '連絡時間帯': '連絡時間帯',
-        '現地調査希望日時': '現地調査希望日時'  // V1833: 後方互換性のため残す
+        '現地調査希望日時': '現地調査希望日時',  // V1833: 後方互換性のため残す
+        'callHistory': '架電履歴',      // BK列 - Call history tracking
+        'nextCallDate': '次回架電日時',  // BL列 - Next callback date
+        'memo': 'メモ'                  // BM列 - Internal CRM notes (shared with list view)
       };
 
       // 更新するデータをマッピング
