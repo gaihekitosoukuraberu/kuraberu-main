@@ -1167,16 +1167,17 @@ const BusinessSelectionHandler = {
    * @returns {object} { total: number, details: object }
    */
   calculateMatchRate(franchise) {
-    // V1903: フィルタ除外業者（AS列業者で工事種別等でフィルタされた業者）は0%固定
+    // V1903: フィルタ除外業者（AS列業者で工事種別等でフィルタされた業者）
+    // 工事種別の40点だけ減点、他はマッチと仮定して60点（60%）
     if (franchise._isFilteredOut) {
       return {
-        total: 0,
+        total: 60,
         details: {
-          area: { matched: false, required: '', available: [], score: 0, maxScore: 20 },
+          area: { matched: true, required: '', available: [], score: 20, maxScore: 20, note: 'AS列業者（仮定マッチ）' },
           workTypes: { matched: [], unmatched: [], score: 0, maxScore: 40, note: '工事種別不一致（フィルタ除外）' },
-          buildingAge: { matched: false, caseAge: 0, franchiseMin: 0, franchiseMax: 0, score: 0, maxScore: 15 },
-          propertyType: { matched: false, caseType: '', franchiseTypes: [], score: 0, maxScore: 15 },
-          floors: { matched: false, caseFloors: 0, franchiseMax: '', score: 0, maxScore: 10 }
+          buildingAge: { matched: true, caseAge: 0, franchiseMin: 0, franchiseMax: 0, score: 15, maxScore: 15, note: 'AS列業者（仮定マッチ）' },
+          propertyType: { matched: true, caseType: '', franchiseTypes: [], score: 15, maxScore: 15, note: 'AS列業者（仮定マッチ）' },
+          floors: { matched: true, caseFloors: 0, franchiseMax: '', score: 10, maxScore: 10, note: 'AS列業者（仮定マッチ）' }
         }
       };
     }
