@@ -1297,7 +1297,7 @@ const BusinessSelectionHandler = {
       details.workTypes.score = score;
     }
 
-    // 築年数マッチング（15点）
+    // V1904: 築年数マッチング（15点）- GAS側と統一：データなしは満点
     const rawData = this.currentCaseData?._rawData || {};
     const caseBuildingAge = parseInt(this.currentCaseData?.buildingAge || rawData.buildingAge || 0);
 
@@ -1316,7 +1316,12 @@ const BusinessSelectionHandler = {
     details.buildingAge.franchiseMin = franchiseBuildingAgeMin;
     details.buildingAge.franchiseMax = franchiseBuildingAgeMax;
 
-    if (caseBuildingAge >= franchiseBuildingAgeMin && caseBuildingAge <= franchiseBuildingAgeMax) {
+    // V1904: 築年数データがない場合（0）は満点とみなす
+    if (!caseBuildingAge || caseBuildingAge <= 0) {
+      total += 15;
+      details.buildingAge.matched = true;
+      details.buildingAge.score = 15;
+    } else if (caseBuildingAge >= franchiseBuildingAgeMin && caseBuildingAge <= franchiseBuildingAgeMax) {
       total += 15;
       details.buildingAge.matched = true;
       details.buildingAge.score = 15;
@@ -1336,7 +1341,7 @@ const BusinessSelectionHandler = {
     details.floors.caseFloors = caseFloors;
     details.floors.franchiseMax = franchise.maxFloors;
 
-    // 物件種別マッチング（15点）
+    // V1904: 物件種別マッチング（15点）- GAS側と統一：データなしは満点
     if (casePropertyType && franchisePropertyTypes.length > 0) {
       // 物件種別を正規化して比較（「戸建て」=「戸建て住宅」、「アパート」=「アパート・マンション」）
       const normalizePropertyType = (type) => {
@@ -1374,7 +1379,22 @@ const BusinessSelectionHandler = {
           details.floors.matched = true;
           details.floors.score = 10;
         }
+      } else {
+        // V1904: 物件種別マッチしない場合でも、階数データがなければ階数は満点
+        if (!caseFloors || caseFloors <= 0) {
+          total += 10;
+          details.floors.matched = true;
+          details.floors.score = 10;
+        }
       }
+    } else {
+      // V1904: データがない場合は満点（GAS側と統一）
+      total += 15;
+      details.propertyType.matched = true;
+      details.propertyType.score = 15;
+      total += 10;
+      details.floors.matched = true;
+      details.floors.score = 10;
     }
 
     return { total, details };
