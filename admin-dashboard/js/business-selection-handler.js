@@ -1,7 +1,13 @@
 /**
  * ============================================
- * 業者選択ハンドラー V1936
+ * 業者選択ハンドラー V1959
  * ============================================
+ *
+ * 🔥 V1959: 距離計算ロジック修正（2025-11-28 02:50 JST）
+ * - 【修正】起点住所: ユーザー登録シート N,O,P,Q列（郵便番号、都道府県、市区町村、住所詳細）を使用
+ * - 【修正】目的地住所: 加盟店マスタ AH列（住所）を使用
+ * - 郵便番号7桁左マッチでフィルタリング → 詳細住所で距離計算の2段階方式
+ * - デバッグログ追加で原因特定
  *
  * 🔥 V1936: フォールバック処理削除（2025-11-27 21:50 JST）
  * - 【根本原因修正】getSampleFranchises()フォールバックを完全削除
@@ -302,12 +308,25 @@ const BusinessSelectionHandler = {
 
       console.log('[BusinessSelection] 業者データ取得完了:', franchises.length, '件');
 
-      // V1946: 距離情報を初期ロード時に計算（全ソートで表示可能にする）
-      const originAddress = currentCaseData.address ||
-                           `${currentCaseData.prefecture || ''}${currentCaseData.city || ''}`;
-      const originPostalCode = currentCaseData.postalCode || '';
+      // V1959: 距離情報を初期ロード時に計算（全ソートで表示可能にする）
+      // N列(郵便番号)、O列(都道府県)、P列(市区町村)、Q列(住所詳細) を使用
+      const originPostalCode = currentCaseData.postalCode || ''; // N列: 郵便番号
+      const originPrefecture = currentCaseData.prefecture || '';  // O列: 都道府県
+      const originCity = currentCaseData.city || '';              // P列: 市区町村
+      const originDetail = currentCaseData.addressDetail || '';   // Q列: 住所詳細
+
+      // 起点住所を構築: 都道府県 + 市区町村 + 住所詳細
+      const originAddress = `${originPrefecture}${originCity}${originDetail}`.trim();
+
+      console.log('%c[V1959-距離計算チェック] 起点住所:', 'color: #ff00ff; font-weight: bold', originAddress);
+      console.log('%c[V1959-距離計算チェック] 郵便番号:', 'color: #ff00ff; font-weight: bold', originPostalCode);
+      console.log('%c[V1959-距離計算チェック] 都道府県:', 'color: #ff00ff; font-weight: bold', originPrefecture);
+      console.log('%c[V1959-距離計算チェック] 市区町村:', 'color: #ff00ff; font-weight: bold', originCity);
+      console.log('%c[V1959-距離計算チェック] 住所詳細:', 'color: #ff00ff; font-weight: bold', originDetail);
+      console.log('%c[V1959-距離計算チェック] originAddress判定:', 'color: #ff00ff; font-weight: bold', !!originAddress);
 
       if (originAddress) {
+        console.log('%c[V1959-距離計算開始] 起点住所が有効です:', 'color: #00ff00; font-weight: bold', originAddress);
         console.log('[V1947] 距離情報を計算中... 起点:', originAddress);
         console.log('[V1947] 起点郵便番号:', originPostalCode);
 
@@ -321,8 +340,16 @@ const BusinessSelectionHandler = {
           console.log('[V1947] 郵便番号フィルタリングをスキップ（条件不適合）');
         }
 
+        console.log('%c[V1959-API呼び出し前] 距離計算を開始します', 'color: #00ffff; font-weight: bold');
+        console.log('%c[V1959-API呼び出し前] originAddress:', 'color: #00ffff', originAddress);
+        console.log('%c[V1959-API呼び出し前] franchisesForDistance.length:', 'color: #00ffff', franchisesForDistance.length);
+
         // 距離計算（フィルタリングされた業者のみ）
         const franchisesWithDistance = await this.calculateDistances(originAddress, franchisesForDistance);
+
+        console.log('%c[V1959-API呼び出し後] 距離計算完了', 'color: #00ff00; font-weight: bold');
+        console.log('%c[V1959-API呼び出し後] franchisesWithDistance.length:', 'color: #00ff00', franchisesWithDistance.length);
+        console.log('%c[V1959-API呼び出し後] サンプル距離情報:', 'color: #00ff00', franchisesWithDistance[0]);
 
         // フィルタリングされた業者の距離情報を元のリストにマージ
         const distanceMap = new Map();
@@ -599,7 +626,7 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * Google Maps Distance Matrix APIで距離を計算（V1880: 新実装）
+   * Google Maps Distance Matrix APIで距離を計算（V1959: 修正）
    * @param {string} originAddress - 起点住所（物件）
    * @param {Array} franchises - 業者リスト
    * @returns {Promise<Array>} 距離情報付き業者リスト
@@ -608,10 +635,13 @@ const BusinessSelectionHandler = {
     try {
       console.log('[BusinessSelection] 距離計算開始:', originAddress);
 
-      // GASに距離計算を依頼
+      // V1959: 加盟店マスタ AH列（住所）を使用
       const destinationsArray = franchises.map(f => {
-        // 支店住所があれば支店、なければ本社住所を使用
-        return f.city ? `${f.serviceAreas[0]}${f.city}` : f.serviceAreas[0];
+        // AH列の「住所」フィールドを使用
+        // RankingSystemから返される franchise オブジェクトの address フィールド
+        const franchiseAddress = f.address || f.住所 || '';
+        console.log('[V1959-目的地住所] 会社名:', f.companyName, '住所:', franchiseAddress);
+        return franchiseAddress;
       });
 
       const response = await window.apiClient.jsonpRequest('calculateDistances', {
