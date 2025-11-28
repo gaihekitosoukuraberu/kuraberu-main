@@ -145,16 +145,15 @@ const FeeCalculator = {
    * @returns {number} 料金（円）
    */
   calculateBasicFee(propertyType, floors) {
-    // 特別料金対象かチェック
-    const isSpecialProperty = this.specialPropertyTypes.some(type =>
-      propertyType && propertyType.includes(type)
-    );
-
     // 3階以上かチェック
     const isHighFloor = this.isHighFloor(floors);
 
-    // アパート・マンション・店舗・工場の3階以上 → 30,000円
-    if (isSpecialProperty && isHighFloor) {
+    // V1953: 戸建て以外の３階建て以上は全部3万円
+    // 戸建てかどうかをチェック
+    const isDetachedHouse = propertyType && propertyType.includes('戸建て');
+
+    // 戸建て以外 かつ 3階以上 → 30,000円
+    if (!isDetachedHouse && isHighFloor) {
       return 30000;
     }
 
