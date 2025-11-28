@@ -1502,19 +1502,19 @@ const CVSheetSystem = {
 
           console.log('[CVSheetSystem] AI添削リクエスト:', memo.substring(0, 50) + '...');
 
-          // プロパティからDeepSeek APIキーを取得
-          const apiKey = PropertiesService.getScriptProperties().getProperty('DEEPSEEK_API_KEY');
+          // プロパティからOpenRouter APIキーを取得
+          const apiKey = PropertiesService.getScriptProperties().getProperty('OPENROUTER_API_KEY');
           if (!apiKey) {
             return {
               success: false,
-              error: 'DeepSeek APIキーが設定されていません'
+              error: 'OPENROUTER_API_KEY が設定されていません'
             };
           }
 
-          // DeepSeek API呼び出し
-          const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+          // OpenRouter API経由でDeepSeek呼び出し
+          const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
           const requestBody = {
-            model: 'deepseek-chat',
+            model: 'deepseek/deepseek-chat',
             messages: [
               {
                 role: 'system',
@@ -1533,7 +1533,9 @@ const CVSheetSystem = {
             method: 'post',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + apiKey
+              'Authorization': 'Bearer ' + apiKey,
+              'HTTP-Referer': 'https://gaihekikuraberu.com',
+              'X-Title': 'Kuraberu Admin Dashboard'
             },
             payload: JSON.stringify(requestBody),
             muteHttpExceptions: true
