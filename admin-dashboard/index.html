@@ -7057,7 +7057,7 @@ window.addEventListener('beforeunload', function(e) {
 
             // 現在の履歴を再構築して index に対応するエントリを取得
             const callHistory = casesData[currentCaseId]?.callHistory || [];
-            const caseMemo = casesData[currentCaseId]?.caseMemo || '';
+            const caseMemo = casesData[currentCaseId]?.memo || '';
 
             callHistory.forEach((item, originalIndex) => {
                 allHistory.push({
