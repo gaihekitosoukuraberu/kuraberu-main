@@ -731,9 +731,7 @@ const CVSheetSystem = {
         params.companiesCount || '',             // CB(81): 希望社数
         params.surveyAttendance || '',           // CC(82): 立ち会い可否
         params.attendanceRelation || '',         // CD(83): 立ち会い者関係性
-        params.specialItems || '',               // CE(84): 特殊項目
-        // CF(85): 選択業者数（CV2）- V1923: CV1時にCB列の値をコピー
-        params.companiesCount ? parseInt(params.companiesCount) : ''
+        params.specialItems || ''                // CE(84): 特殊項目
       ];
 
       // 最終行に追加
@@ -1094,7 +1092,6 @@ const CVSheetSystem = {
           surveyAttendance: row[80] || '',              // CC: 立ち会い可否（index 80）
           attendanceRelation: row[81] || '',            // CD: 立ち会い者関係性（index 81）
           specialItems: row[82] || '',                  // CE: 特殊項目（index 82）
-          desiredCompanyCount: row[84] || '',           // CF: 選択業者数（CV2）（index 84）- V1923
 
           // V1832: BOT回答カラムを直接フィールドとしても読み込み（空文字列保持のため）
           quoteCount: row[36] || '',                    // AK: Q11_見積もり保有数（index 36）
@@ -1309,9 +1306,6 @@ const CVSheetSystem = {
         const specialItemsStr = Array.isArray(data.specialItems) ? data.specialItems.join('、') : data.specialItems;
         sheet.getRange(targetRow, 84).setValue(specialItemsStr); // CE列: 特殊項目
       }
-
-      // V1923: 選択業者数（CF列）
-      if (data.desiredCompanyCount !== undefined) sheet.getRange(targetRow, 85).setValue(data.desiredCompanyCount); // CF列: 選択業者数（CV2）
 
       // 管理情報
       if (data.status !== undefined) sheet.getRange(targetRow, 67).setValue(data.status); // BN列: 管理ステータス（index 67）
