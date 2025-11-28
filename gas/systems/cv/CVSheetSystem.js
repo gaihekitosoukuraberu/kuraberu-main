@@ -146,6 +146,152 @@ const CVSheetSystem = {
   },
 
   /**
+   * V1900: 工事項目を正式名称に正規化 + 重複排除
+   * @param {string} workItemsStr - カンマ区切りの工事項目文字列
+   * @param {string} wallMaterial - 外壁材質
+   * @param {string} roofMaterial - 屋根材質
+   * @return {string} 正規化された工事項目（、区切り）
+   */
+  normalizeWorkItems(workItemsStr, wallMaterial, roofMaterial) {
+    if (!workItemsStr) return '';
+
+    // 正式名称マッピング（15項目）
+    const formalNames = {
+      '塗装': {
+        exterior: '外壁塗装',
+        roof: '屋根塗装'
+      },
+      'カバー工法': {
+        exterior: '外壁カバー工法',
+        roof: '屋根カバー工法'
+      },
+      '張替え': '外壁張替え',
+      '葺き替え': null,  // 材質により判定
+      '防水': {
+        roof: '屋上防水',
+        balcony: 'ベランダ防水'
+      },
+      '補修': {
+        exterior: '外壁補修',
+        roof: '屋根補修'
+      },
+      '不明': {
+        exterior: '外壁不明',
+        roof: '屋根不明'
+      },
+      '内装水回り': '内装水回り',
+      '内装': '内装（床・クロス等）'
+    };
+
+    // カンマまたは全角カンマで分割
+    const items = workItemsStr.split(/[,、]/).map(s => s.trim()).filter(s => s);
+    const normalized = new Set();
+
+    items.forEach(item => {
+      // 塗装
+      if (item.includes('塗装')) {
+        if (item.includes('外壁')) {
+          normalized.add('外壁塗装');
+        } else if (item.includes('屋根')) {
+          normalized.add('屋根塗装');
+        } else {
+          // 外壁・屋根の両方を追加
+          normalized.add('外壁塗装');
+          normalized.add('屋根塗装');
+        }
+      }
+
+      // カバー工法
+      else if (item.includes('カバー')) {
+        if (item.includes('外壁')) {
+          normalized.add('外壁カバー工法');
+        } else if (item.includes('屋根')) {
+          normalized.add('屋根カバー工法');
+        } else {
+          normalized.add('外壁カバー工法');
+          normalized.add('屋根カバー工法');
+        }
+      }
+
+      // 張替え
+      else if (item.includes('張替') || item.includes('張り替え')) {
+        normalized.add('外壁張替え');
+      }
+
+      // 葺き替え（材質により判定）
+      else if (item.includes('葺き替え') || item.includes('ふき替え')) {
+        if (roofMaterial && roofMaterial.includes('瓦')) {
+          normalized.add('屋根葺き替え（瓦）');
+        } else if (roofMaterial && (roofMaterial.includes('スレート') || roofMaterial.includes('コロニアル'))) {
+          normalized.add('屋根葺き替え（スレート）');
+        } else {
+          // 材質不明の場合は両方追加
+          normalized.add('屋根葺き替え（スレート）');
+          normalized.add('屋根葺き替え（瓦）');
+        }
+      }
+
+      // 防水
+      else if (item.includes('防水')) {
+        if (item.includes('屋上')) {
+          normalized.add('屋上防水');
+        } else if (item.includes('ベランダ') || item.includes('バルコニー')) {
+          normalized.add('ベランダ防水');
+        } else {
+          normalized.add('屋上防水');
+        }
+      }
+
+      // 補修
+      else if (item.includes('補修')) {
+        if (item.includes('外壁')) {
+          normalized.add('外壁補修');
+        } else if (item.includes('屋根')) {
+          normalized.add('屋根補修');
+        } else {
+          normalized.add('外壁補修');
+          normalized.add('屋根補修');
+        }
+      }
+
+      // 不明
+      else if (item.includes('不明')) {
+        if (item.includes('外壁')) {
+          normalized.add('外壁不明');
+        } else if (item.includes('屋根')) {
+          normalized.add('屋根不明');
+        } else {
+          normalized.add('外壁不明');
+          normalized.add('屋根不明');
+        }
+      }
+
+      // 内装水回り
+      else if (item.includes('内装') && (item.includes('水回り') || item.includes('水まわり'))) {
+        normalized.add('内装水回り');
+      }
+
+      // 内装（床・クロス等）
+      else if (item.includes('内装')) {
+        normalized.add('内装（床・クロス等）');
+      }
+    });
+
+    // Setを配列に変換し、「、」で結合
+    return Array.from(normalized).join('、');
+  },
+
+  /**
+   * V1900: 住所からGoogle Mapsリンクを生成
+   * @param {string} address - 完全な住所
+   * @return {string} Google Mapsリンク
+   */
+  generateGoogleMapsLink(address) {
+    if (!address) return '';
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+  },
+
+  /**
    * 既存スプレッドシートにシート追加
    * ユーザー登録シート + 不正対策ログシート
    */
@@ -295,7 +441,7 @@ const CVSheetSystem = {
       'CV1→CV2時間差（秒）',  // BW
       'デバイス種別',         // BX
 
-      // BY-CF: V1828 新規フィールド
+      // BY-CG: V1828 新規フィールド + V1900 Google Mapsリンク追加
       '',                     // BY (reserved)
       '見積もり希望箇所',      // BZ
       '施工時期',             // CA
@@ -303,7 +449,8 @@ const CVSheetSystem = {
       '立ち会い可否',         // CC
       '立ち会い者関係性',      // CD
       '特殊項目',             // CE
-      '選択業者数（CV2）'      // CF (V1923: 実際に選択された業者数)
+      '選択業者数（CV2）',     // CF (V1923: 実際に選択された業者数)
+      'Google Mapsリンク'      // CG (V1900: 住所から生成)
     ];
 
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
@@ -723,15 +870,17 @@ const CVSheetSystem = {
         0,                                       // BW(76): CV1→CV2時間差（秒）（V1755）
         params.deviceType || '',                 // BX(77): デバイス種別（V1755）
 
-        // BY(78)-CF(85): V1828 新規フィールド + V1923 CF列追加
+        // BY(78)-CG(86): V1828 新規フィールド + V1900 Google Mapsリンク追加
         '',                                      // BY(78): (reserved)
-        // BZ(79): 見積もり希望箇所 - Q9とQ10を結合
-        [params.Q9_exteriorWork, params.Q10_roofWork].filter(v => v).join('、') || '',
+        // BZ(79): 見積もり希望箇所 - V1900: 正式名称に正規化 + 重複排除
+        this.normalizeWorkItems(params.q1_workItems || '', params.q3_wallMaterial || '', params.q4_roofMaterial || ''),
         params.constructionTiming || '',         // CA(80): 施工時期
         params.companiesCount || '',             // CB(81): 希望社数
         params.surveyAttendance || '',           // CC(82): 立ち会い可否
         params.attendanceRelation || '',         // CD(83): 立ち会い者関係性
-        params.specialItems || ''                // CE(84): 特殊項目
+        params.specialItems || '',               // CE(84): 特殊項目
+        '',                                       // CF(85): 選択業者数（CV2） - TODO: CV2実装時に更新
+        this.generateGoogleMapsLink(fullAddress) // CG(86): Google Mapsリンク (V1900)
       ];
 
       // 最終行に追加
