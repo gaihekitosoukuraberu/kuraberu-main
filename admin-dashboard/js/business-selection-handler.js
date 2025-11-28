@@ -308,71 +308,8 @@ const BusinessSelectionHandler = {
 
       console.log('[BusinessSelection] 業者データ取得完了:', franchises.length, '件');
 
-      // V1959: 距離情報を初期ロード時に計算（全ソートで表示可能にする）
-      // N列(郵便番号)、O列(都道府県)、P列(市区町村)、Q列(住所詳細) を使用
-      const originPostalCode = currentCaseData.postalCode || ''; // N列: 郵便番号
-      const originPrefecture = currentCaseData.prefecture || '';  // O列: 都道府県
-      const originCity = currentCaseData.city || '';              // P列: 市区町村
-      const originDetail = currentCaseData.addressDetail || '';   // Q列: 住所詳細
-
-      // 起点住所を構築: 都道府県 + 市区町村 + 住所詳細
-      const originAddress = `${originPrefecture}${originCity}${originDetail}`.trim();
-
-      console.log('%c[V1959-距離計算チェック] 起点住所:', 'color: #ff00ff; font-weight: bold', originAddress);
-      console.log('%c[V1959-距離計算チェック] 郵便番号:', 'color: #ff00ff; font-weight: bold', originPostalCode);
-      console.log('%c[V1959-距離計算チェック] 都道府県:', 'color: #ff00ff; font-weight: bold', originPrefecture);
-      console.log('%c[V1959-距離計算チェック] 市区町村:', 'color: #ff00ff; font-weight: bold', originCity);
-      console.log('%c[V1959-距離計算チェック] 住所詳細:', 'color: #ff00ff; font-weight: bold', originDetail);
-      console.log('%c[V1959-距離計算チェック] originAddress判定:', 'color: #ff00ff; font-weight: bold', !!originAddress);
-
-      if (originAddress) {
-        console.log('%c[V1959-距離計算開始] 起点住所が有効です:', 'color: #00ff00; font-weight: bold', originAddress);
-        console.log('[V1947] 距離情報を計算中... 起点:', originAddress);
-        console.log('[V1947] 起点郵便番号:', originPostalCode);
-
-        // V1947: 郵便番号フィルタリング（パフォーマンス最適化）
-        let franchisesForDistance = this.allFranchises;
-        if (originPostalCode && originPostalCode.length === 7 && this.allFranchises.length > 10) {
-          console.log('[V1947] 郵便番号フィルタリングを実行（業者数: ' + this.allFranchises.length + '）');
-          franchisesForDistance = this.filterByPostalCode(originPostalCode, this.allFranchises, 10);
-          console.log('[V1947] フィルタリング後の業者数: ' + franchisesForDistance.length);
-        } else {
-          console.log('[V1947] 郵便番号フィルタリングをスキップ（条件不適合）');
-        }
-
-        console.log('%c[V1959-API呼び出し前] 距離計算を開始します', 'color: #00ffff; font-weight: bold');
-        console.log('%c[V1959-API呼び出し前] originAddress:', 'color: #00ffff', originAddress);
-        console.log('%c[V1959-API呼び出し前] franchisesForDistance.length:', 'color: #00ffff', franchisesForDistance.length);
-
-        // 距離計算（フィルタリングされた業者のみ）
-        const franchisesWithDistance = await this.calculateDistances(originAddress, franchisesForDistance);
-
-        console.log('%c[V1959-API呼び出し後] 距離計算完了', 'color: #00ff00; font-weight: bold');
-        console.log('%c[V1959-API呼び出し後] franchisesWithDistance.length:', 'color: #00ff00', franchisesWithDistance.length);
-        console.log('%c[V1959-API呼び出し後] サンプル距離情報:', 'color: #00ff00', franchisesWithDistance[0]);
-
-        // フィルタリングされた業者の距離情報を元のリストにマージ
-        const distanceMap = new Map();
-        franchisesWithDistance.forEach(f => {
-          distanceMap.set(f.companyName, {
-            distance: f.distance,
-            distanceText: f.distanceText,
-            durationText: f.durationText
-          });
-        });
-
-        this.allFranchises = this.allFranchises.map(f => {
-          const distanceInfo = distanceMap.get(f.companyName);
-          if (distanceInfo) {
-            return { ...f, ...distanceInfo };
-          }
-          return f;
-        });
-
-        console.log('[V1947] 距離情報計算完了');
-      } else {
-        console.warn('[V1947] 起点住所が取得できないため距離計算をスキップ');
-      }
+      // V1961: 距離計算を遅延実行（距離順ソート押下時のみ）
+      this.distancesCalculated = false;
 
       return {
         desiredCount,
@@ -674,12 +611,87 @@ const BusinessSelectionHandler = {
   },
 
   /**
+   * V1961: 距離計算を遅延実行（距離順ソート時のみ）
+   * 起点住所が取得できた場合のみ距離を計算
+   */
+  async ensureDistancesCalculated() {
+    // 既に計算済みの場合はスキップ
+    if (this.distancesCalculated) {
+      console.log('[V1961] 距離計算は既に完了しています');
+      return;
+    }
+
+    try {
+      console.log('[V1961] 距離計算を開始します');
+
+      // 現在の案件データから住所情報を取得
+      const currentCaseData = this.currentCaseData || {};
+      const originPostalCode = currentCaseData.postalCode || '';
+      const originPrefecture = currentCaseData.prefecture || '';
+      const originCity = currentCaseData.city || '';
+      const originDetail = currentCaseData.addressDetail || '';
+
+      // 起点住所を構築: 都道府県 + 市区町村 + 住所詳細
+      const originAddress = `${originPrefecture}${originCity}${originDetail}`.trim();
+
+      if (!originAddress) {
+        console.warn('[V1961] 起点住所が取得できないため距離計算をスキップ');
+        this.distancesCalculated = true; // 計算不可能なのでフラグを立てる
+        return;
+      }
+
+      console.log('[V1961] 起点住所:', originAddress);
+
+      // V1947: 郵便番号フィルタリング（パフォーマンス最適化）
+      let franchisesForDistance = this.allFranchises;
+      if (originPostalCode && originPostalCode.length === 7 && this.allFranchises.length > 10) {
+        console.log('[V1961] 郵便番号フィルタリングを実行（業者数: ' + this.allFranchises.length + '）');
+        franchisesForDistance = this.filterByPostalCode(originPostalCode, this.allFranchises, 10);
+        console.log('[V1961] フィルタリング後の業者数: ' + franchisesForDistance.length);
+      }
+
+      // 距離計算（フィルタリングされた業者のみ）
+      const franchisesWithDistance = await this.calculateDistances(originAddress, franchisesForDistance);
+
+      // フィルタリングされた業者の距離情報を元のリストにマージ
+      const distanceMap = new Map();
+      franchisesWithDistance.forEach(f => {
+        distanceMap.set(f.companyName, {
+          distance: f.distance,
+          distanceText: f.distanceText,
+          durationText: f.durationText
+        });
+      });
+
+      this.allFranchises = this.allFranchises.map(f => {
+        const distanceInfo = distanceMap.get(f.companyName);
+        if (distanceInfo) {
+          return { ...f, ...distanceInfo };
+        }
+        return f;
+      });
+
+      this.distancesCalculated = true;
+      console.log('[V1961] 距離情報計算完了');
+
+    } catch (error) {
+      console.error('[V1961] 距離計算エラー:', error);
+      this.distancesCalculated = true; // エラーが発生しても再試行しないようフラグを立てる
+    }
+  },
+
+  /**
    * V1913: ソート順を変更してUIを再描画（async対応）
    * @param {string} sortType - 'user', 'cheap', 'review', 'premium', 'distance'
    */
   async applySortAndRender(sortType) {
     // ソート順を保存
     this.currentSortType = sortType;
+
+    // V1961: 距離順ソート時のみ距離計算を実行
+    if (sortType === 'distance' && !this.distancesCalculated) {
+      await this.ensureDistancesCalculated();
+    }
 
     // ========== V1925: デバッグログ追加 ==========
     console.log('%c[V1925-DEBUG] applySortAndRender開始', 'color: #0000ff; font-weight: bold; font-size: 16px');
