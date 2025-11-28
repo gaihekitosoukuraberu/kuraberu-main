@@ -1,7 +1,12 @@
 /**
  * ============================================
- * 業者選択ハンドラー V1959
+ * 業者選択ハンドラー V1900
  * ============================================
+ *
+ * 🔥 V1900: AS列チェックボックス反映修正（2025-11-28 21:00 JST）
+ * - 【根本原因修正】AS列パース後に checkedCompanies Set を初期化
+ * - ケース読み込み時に AS列の業者名がチェックボックスに正しく反映されるようになった
+ * - CV-KW000138（4社選択）などのケースで正常にチェックマークが表示される
  *
  * 🔥 V1959: 距離計算ロジック修正（2025-11-28 02:50 JST）
  * - 【修正】起点住所: ユーザー登録シート N,O,P,Q列（郵便番号、都道府県、市区町村、住所詳細）を使用
@@ -278,25 +283,31 @@ const BusinessSelectionHandler = {
       const selectedCompanies = this.parseBusinessHistory(businessHistory);
       this.userSelectedCompanies = selectedCompanies;
 
+      // V1900: AS列の業者名でcheckedCompanies Setを初期化（チェックボックス状態を反映）
+      this.checkedCompanies.clear();
+      selectedCompanies.forEach(companyName => {
+        this.checkedCompanies.add(companyName);
+      });
+
       console.log('[BusinessSelection] AS列パース結果:', {
         raw: businessHistory,
         parsed: selectedCompanies,
         count: selectedCompanies.length
       });
 
-      // V1923: 希望社数をCF列から取得（フォールバック: CB列 → AS列）
+      console.log('[V1900] AS列からチェック状態を初期化:', {
+        checkedCompanies: Array.from(this.checkedCompanies),
+        count: this.checkedCompanies.size
+      });
+
+      // 希望社数をCB列から取得（フォールバック: AS列）
       let desiredCount;
-      if (currentCaseData.desiredCompanyCount) {
-        // CF列に値がある場合はそれを使用（数値のみ抽出して"N社"フォーマットに変換）
-        const count = parseInt(currentCaseData.desiredCompanyCount);
-        desiredCount = isNaN(count) ? this.calculateDesiredCount(selectedCompanies) : `${count}社`;
-        console.log('[BusinessSelection] CF列から希望社数取得:', desiredCount);
-      } else if (currentCaseData.companiesCount) {
-        // CF列が空でCB列に値がある場合（既存データ用フォールバック）
+      if (currentCaseData.companiesCount) {
+        // CB列から希望社数を取得
         desiredCount = currentCaseData.companiesCount;
         console.log('[BusinessSelection] CB列から希望社数取得:', desiredCount);
       } else {
-        // 両方空の場合はAS列からカウント（最終フォールバック）
+        // CB列が空の場合はAS列からカウント（フォールバック）
         desiredCount = this.calculateDesiredCount(selectedCompanies);
         console.log('[BusinessSelection] AS列から希望社数計算:', desiredCount);
       }
