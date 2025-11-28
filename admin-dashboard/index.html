@@ -6421,38 +6421,64 @@ window.addEventListener('beforeunload', function(e) {
         }
         
         // 架電履歴を追加
-        function addCallHistory() {
+        async function addCallHistory() {
             const note = document.getElementById('newCallNote').value;
             if (!note.trim()) return;
-            
+
             if (!casesData[currentCaseId].callHistory) {
                 casesData[currentCaseId].callHistory = [];
             }
-            
+
             const timestamp = new Date().toLocaleString('ja-JP');
             const nextCallDate = document.getElementById('nextCallDate').value;
-            
+
             casesData[currentCaseId].callHistory.unshift({
                 timestamp: timestamp,
                 note: note,
                 nextCallDate: nextCallDate
             });
-            
+
             // 次回架電日を保存
             if (nextCallDate) {
                 casesData[currentCaseId].nextCallDate = nextCallDate;
             }
-            
+
             // UIリセット
             document.getElementById('newCallNote').value = '';
             document.getElementById('nextCallDate').value = '';
-            
+
             // 履歴を再表示
             loadCallHistory();
-            
+
             // リスト表示も更新（メモの同期）
             if (currentView === 'list') {
                 initializeListView();
+            }
+
+            // 即座にGASへ保存（BM列: メモ、BL列: 次回架電日時）
+            try {
+                const updateData = {
+                    memo: note // BM列: メモ
+                };
+
+                // 次回架電日が入力されている場合はBL列も更新
+                if (nextCallDate) {
+                    updateData.nextCallDate = nextCallDate; // BL列: 次回架電日時
+                }
+
+                console.log('[Memo] スプレッドシートへ即座に保存中:', { caseId: currentCaseId, note, nextCallDate });
+
+                const result = await window.AdminAPI.updateCVData(currentCaseId, updateData);
+
+                if (result.success) {
+                    console.log('[Memo] スプレッドシートへの保存成功:', { caseId: currentCaseId, note });
+                } else {
+                    console.error('[Memo] スプレッドシートへの保存失敗:', result.error);
+                    alert('メモの保存に失敗しました: ' + (result.error || '不明なエラー'));
+                }
+            } catch (error) {
+                console.error('[Memo] スプレッドシート保存エラー:', error);
+                alert('メモの保存中にエラーが発生しました: ' + error.message);
             }
         }
         
