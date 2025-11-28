@@ -1749,14 +1749,14 @@ const BusinessSelectionHandler = {
           </div>
         </div>
 
-        <!-- 右側: マッチ率・金額（モバイル: 右下 / PC: 右端） -->
-        <div class="text-right flex-shrink-0 self-end md:self-center">
+        <!-- 右側: マッチ率・金額（モバイル: 横並び / PC: 縦並び） -->
+        <div class="text-right flex-shrink-0 self-end md:self-center flex items-center gap-2 md:flex-col md:gap-0">
           <div id="${matchRateId}" class="inline-block px-2 py-0.5 rounded-full text-xs font-bold cursor-pointer hover:shadow-lg transition-shadow ${matchRateColor}"
                onclick="event.stopPropagation();"
                title="クリックで詳細を表示">
             ${card.matchRate}%
           </div>
-          <div class="mt-1 text-sm font-bold text-green-600 whitespace-nowrap">
+          <div class="md:mt-1 text-sm font-bold text-green-600 whitespace-nowrap">
             ${formattedPrice}
           </div>
         </div>
