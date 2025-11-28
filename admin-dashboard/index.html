@@ -6148,6 +6148,27 @@ window.addEventListener('beforeunload', function(e) {
                 console.warn('[getCRMFormData] specialItemsButtons要素が見つかりません');
             }
 
+            // V1901: 業者選択データ収集（双方向同期）
+            // BusinessSelectionHandler.checkedCompanies Set からAS列とCB列のデータを取得
+            if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.checkedCompanies) {
+                const checkedCompanies = Array.from(window.BusinessSelectionHandler.checkedCompanies);
+
+                // AS列: 業者選定履歴（カンマ区切りの業者名）
+                data.businessHistory = checkedCompanies.join(', ');
+
+                // CB列: 希望社数（チェックされた業者の数）
+                // 既存のcompaniesCountを上書き（checkedCompanies Setが権威的な状態）
+                data.companiesCount = checkedCompanies.length;
+
+                console.log('[getCRMFormData] V1901: 業者選択データ収集:', {
+                    businessHistory: data.businessHistory,
+                    companiesCount: data.companiesCount,
+                    checkedCompanies: checkedCompanies
+                });
+            } else {
+                console.warn('[getCRMFormData] V1901: BusinessSelectionHandler未初期化 - 業者選択データをスキップ');
+            }
+
             console.log('[getCRMFormData] フォームデータ取得:', data);
             return data;
         }
