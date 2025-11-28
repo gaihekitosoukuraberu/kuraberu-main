@@ -230,10 +230,22 @@ const RankingSystem = {
           continue;
         }
 
-        // 市区町村チェック（V1705追加 - cityが取得できた場合のみ）
-        if (city && cities && cities.indexOf(city) === -1) {
-          filterStats.rejectedByCity++;
-          continue;
+        // 市区町村チェック（V1903修正: 逆方向マッチ - cityが市区町村リストのいずれかを含むかチェック）
+        // 例: city="横浜市青葉区市ケ尾町" で cities="横浜市青葉区,横浜市都筑区" なら
+        //     city.indexOf("横浜市青葉区") !== -1 でマッチ
+        if (city && cities) {
+          const cityList = cities.split(',').map(function(c) { return c.trim(); });
+          let cityMatch = false;
+          for (var j = 0; j < cityList.length; j++) {
+            if (city.indexOf(cityList[j]) !== -1 || cityList[j].indexOf(city) !== -1) {
+              cityMatch = true;
+              break;
+            }
+          }
+          if (!cityMatch) {
+            filterStats.rejectedByCity++;
+            continue;
+          }
         }
 
         // V1830: 工事種別チェック（単品 vs 複合工事対応）
