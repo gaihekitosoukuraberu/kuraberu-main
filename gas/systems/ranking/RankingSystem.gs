@@ -582,7 +582,11 @@ const RankingSystem = {
               isCompleteMatch: false,
               buildingAgeMatchScore: 0,
               joinDate: row[colIndex.joinDate] || '',
-              previewHP: row[colIndex.previewHP] || '' // V1894: プレビューHPを追加
+              previewHP: row[colIndex.previewHP] || '', // V1894: プレビューHPを追加
+              address: row[colIndex.address] || '', // V1960: 距離計算用に住所を追加
+              branchAddress: row[colIndex.branchAddress] || '',
+              companyNameKana: row[colIndex.companyNameKana] || '',
+              postalCode: row[colIndex.postalCode] || ''
             };
           });
           console.log('[RankingSystem] 🔄 ステップ1結果: ' + filtered.length + '件');
@@ -670,7 +674,11 @@ const RankingSystem = {
               isCompleteMatch: false,
               buildingAgeMatchScore: 0,
               joinDate: row[colIndex.joinDate] || '',
-              previewHP: row[colIndex.previewHP] || '' // V1894: プレビューHPを追加
+              previewHP: row[colIndex.previewHP] || '', // V1894: プレビューHPを追加
+              address: row[colIndex.address] || '', // V1960: 距離計算用に住所を追加
+              branchAddress: row[colIndex.branchAddress] || '',
+              companyNameKana: row[colIndex.companyNameKana] || '',
+              postalCode: row[colIndex.postalCode] || ''
             };
           });
           console.log('[RankingSystem] 🔄 ステップ2結果: ' + filtered.length + '件（都道府県内・工事種別条件なし）');
