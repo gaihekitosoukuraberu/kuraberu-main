@@ -4546,10 +4546,16 @@ window.addEventListener('beforeunload', function(e) {
                 contactMethodInput.value = data['連絡時間帯'] || data.contactMethod || '';
             }
 
-            // 希望社数（V1902: companiesCountPreference = 80列目の希望社数）
+            // 希望社数（V1903: companiesCountPreference = CB列80列目の希望社数）
+            // selectのoptionは「1社」「2社」等なので「社」を追加
             const franchiseCountSelect = document.getElementById('franchiseCount');
             if (franchiseCountSelect) {
-                franchiseCountSelect.value = data.companiesCountPreference || data.companiesCount || data['希望社数'] || '';
+                let countValue = data.companiesCountPreference || data.companiesCount || data['希望社数'] || '';
+                // 「4」→「4社」のようにフォーマット変換（既に「社」が付いている場合はそのまま）
+                if (countValue && !countValue.toString().endsWith('社')) {
+                    countValue = countValue + '社';
+                }
+                franchiseCountSelect.value = countValue;
             }
 
 

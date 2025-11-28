@@ -300,7 +300,7 @@ const BusinessSelectionHandler = {
         count: this.checkedCompanies.size
       });
 
-      // 希望社数をCB列から取得（V1902: companiesCountPreferenceキーもサポート, フォールバック: AS列）
+      // 希望社数をCB列から取得（V1903: companiesCountPreferenceキーもサポート, フォールバック: AS列）
       let desiredCount;
       if (currentCaseData.companiesCountPreference || currentCaseData.companiesCount) {
         // CB列から希望社数を取得
@@ -310,6 +310,11 @@ const BusinessSelectionHandler = {
         // CB列が空の場合はAS列からカウント（フォールバック）
         desiredCount = this.calculateDesiredCount(selectedCompanies);
         console.log('[BusinessSelection] AS列から希望社数計算:', desiredCount);
+      }
+
+      // V1903: selectのoptionは「1社」「2社」等なので「社」を追加
+      if (desiredCount && !desiredCount.toString().endsWith('社')) {
+        desiredCount = desiredCount + '社';
       }
 
       // RankingSystemから業者リストを取得（V1880: 新実装）
