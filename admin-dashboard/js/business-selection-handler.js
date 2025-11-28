@@ -320,6 +320,36 @@ const BusinessSelectionHandler = {
       // RankingSystemから業者リストを取得（V1880: 新実装）
       console.log('[BusinessSelection] RankingSystemから業者データ取得開始...');
       const franchises = await this.fetchRankingData(currentCaseData);
+
+      // V1903: AS列業者がランキング結果に含まれていない場合、強制追加
+      // （工事種別でフィルタされた業者も表示するため）
+      const franchiseNames = franchises.map(f => f.companyName);
+      const missingSelectedCompanies = selectedCompanies.filter(name => !franchiseNames.includes(name));
+
+      if (missingSelectedCompanies.length > 0) {
+        console.log('[V1903] AS列業者でランキングに含まれていない業者を追加:', missingSelectedCompanies);
+
+        missingSelectedCompanies.forEach(companyName => {
+          // 基本情報のみでダミーオブジェクトを作成（マッチ度は低く表示される）
+          franchises.push({
+            franchiseId: companyName,
+            companyName: companyName,
+            serviceAreas: [],
+            citiesArray: [],
+            workTypes: [],
+            specialSupport: '',
+            maxFloors: '',
+            buildingAgeMin: 0,
+            buildingAgeMax: 100,
+            rating: 0,
+            reviewCount: 0,
+            contractCount: 0,
+            // マッチ度計算用フラグ（フィルタ除外業者）
+            _isFilteredOut: true
+          });
+        });
+      }
+
       this.allFranchises = franchises;
 
       console.log('[BusinessSelection] 業者データ取得完了:', franchises.length, '件');
@@ -1137,6 +1167,20 @@ const BusinessSelectionHandler = {
    * @returns {object} { total: number, details: object }
    */
   calculateMatchRate(franchise) {
+    // V1903: フィルタ除外業者（AS列業者で工事種別等でフィルタされた業者）は0%固定
+    if (franchise._isFilteredOut) {
+      return {
+        total: 0,
+        details: {
+          area: { matched: false, required: '', available: [], score: 0, maxScore: 20 },
+          workTypes: { matched: [], unmatched: [], score: 0, maxScore: 40, note: '工事種別不一致（フィルタ除外）' },
+          buildingAge: { matched: false, caseAge: 0, franchiseMin: 0, franchiseMax: 0, score: 0, maxScore: 15 },
+          propertyType: { matched: false, caseType: '', franchiseTypes: [], score: 0, maxScore: 15 },
+          floors: { matched: false, caseFloors: 0, franchiseMax: '', score: 0, maxScore: 10 }
+        }
+      };
+    }
+
     let total = 0;
     const details = {
       area: { matched: false, required: '', available: [], score: 0, maxScore: 20 },
