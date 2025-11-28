@@ -148,9 +148,14 @@ const FeeCalculator = {
     // 3階以上かチェック
     const isHighFloor = this.isHighFloor(floors);
 
-    // V1953: 戸建て以外の３階建て以上は全部3万円
-    // 戸建てかどうかをチェック
-    const isDetachedHouse = propertyType && propertyType.includes('戸建て');
+    // V1954: 実際のスプレッドシート値に基づく戸建て判定
+    // 戸建て扱い: "2階建て以外の自宅", "実家・別荘・所有物件"
+    const isDetachedHouse = propertyType && (
+      propertyType.includes('自宅') ||
+      propertyType.includes('実家') ||
+      propertyType.includes('別荘') ||
+      propertyType.includes('所有物件')
+    );
 
     // 戸建て以外 かつ 3階以上 → 30,000円
     if (!isDetachedHouse && isHighFloor) {
