@@ -306,12 +306,12 @@ const RankingSystem = {
               }
             }
           } else if (roofWorkType.indexOf('葺き替え') !== -1 || roofWorkType.indexOf('葺替え') !== -1) {
-            // 屋根葺き替えは常に標準版（単品なし、「含む」なし）
+            // V1903修正: 屋根葺き替えは常に標準版（単品なし、「含む」なし）
             // Q7の屋根材質で判定（瓦 or スレート等）
             if (roofMaterial && roofMaterial.indexOf('瓦') !== -1) {
-              requiredType = '屋根葺き替え・張り替え※現状が瓦';
+              requiredType = '屋根葺き替え・張り替え※瓦';
             } else {
-              requiredType = '屋根葺き替え・張り替え※現状がスレート・ガルバリウム等';
+              requiredType = '屋根葺き替え・張り替え※スレート・ガルバリウム等';
             }
           } else if (roofWorkType.indexOf('カバー工法') !== -1) {
             // 屋根カバー工法は常に標準版（単品なし、「含む」なし）
