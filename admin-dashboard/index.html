@@ -6717,10 +6717,19 @@ window.addEventListener('beforeunload', function(e) {
                 initializeListView();
             }
 
-            // 即座にGASへ保存（BM列: メモ、BL列: 次回架電日時）
+            // 即座にGASへ保存（BK列: callHistory配列、BL列: 次回架電日時）
             try {
+                // callHistory配列をフォーマット（timestampをdateに変換）
+                const callHistoryFormatted = casesData[currentCaseId].callHistory.map(item => {
+                    return {
+                        date: item.date || item.timestamp || '',
+                        note: item.note || '',
+                        nextCallDate: item.nextCallDate || ''
+                    };
+                });
+
                 const updateData = {
-                    memo: note // BM列: メモ
+                    callHistory: JSON.stringify(callHistoryFormatted) // BK列: 架電履歴（JSON文字列）
                 };
 
                 // 次回架電日時が入力されている場合はBL列も更新
@@ -6728,7 +6737,11 @@ window.addEventListener('beforeunload', function(e) {
                     updateData.nextCallDate = nextCallDateTime; // BL列: 次回架電日時
                 }
 
-                console.log('[Memo] スプレッドシートへ即座に保存中:', { caseId: currentCaseId, note, nextCallDate: nextCallDateTime });
+                console.log('[CallHistory] スプレッドシートへ保存中:', {
+                    caseId: currentCaseId,
+                    historyCount: callHistoryFormatted.length,
+                    nextCallDate: nextCallDateTime
+                });
 
                 const result = await window.apiClient.postRequest('updateCVData', {
                     cvId: currentCaseId,
@@ -6736,14 +6749,17 @@ window.addEventListener('beforeunload', function(e) {
                 });
 
                 if (result.success) {
-                    console.log('[Memo] スプレッドシートへの保存成功:', { caseId: currentCaseId, note });
+                    console.log('[CallHistory] スプレッドシートへの保存成功:', {
+                        caseId: currentCaseId,
+                        historyCount: callHistoryFormatted.length
+                    });
                 } else {
-                    console.error('[Memo] スプレッドシートへの保存失敗:', result.error);
-                    alert('メモの保存に失敗しました: ' + (result.error || '不明なエラー'));
+                    console.error('[CallHistory] スプレッドシートへの保存失敗:', result.error);
+                    alert('履歴の保存に失敗しました: ' + (result.error || '不明なエラー'));
                 }
             } catch (error) {
-                console.error('[Memo] スプレッドシート保存エラー:', error);
-                alert('メモの保存中にエラーが発生しました: ' + error.message);
+                console.error('[CallHistory] スプレッドシート保存エラー:', error);
+                alert('履歴の保存中にエラーが発生しました: ' + error.message);
             }
         }
         
