@@ -6737,14 +6737,64 @@ window.addEventListener('beforeunload', function(e) {
         // 架電履歴を読み込み
         function loadCallHistory() {
             const historyList = document.getElementById('callHistoryList');
-            const history = casesData[currentCaseId]?.callHistory || [];
-            
-            if (history.length === 0) {
+            const callHistory = casesData[currentCaseId]?.callHistory || [];
+            const caseMemo = casesData[currentCaseId]?.caseMemo || '';
+
+            // 架電履歴とメモをマージ
+            const allHistory = [];
+
+            // 架電履歴エントリを追加 (parseCallHistoryは {date, note} 形式を返す)
+            callHistory.forEach(item => {
+                allHistory.push({
+                    timestamp: item.date || item.timestamp || '',
+                    note: item.note || '',
+                    nextCallDate: item.nextCallDate || ''
+                });
+            });
+
+            // メモがある場合、タイムスタンプ付きエントリとして追加
+            if (caseMemo && caseMemo.trim()) {
+                // メモが複数行の場合、各行を個別のエントリとして扱う
+                const memoLines = caseMemo.trim().split('\n');
+                memoLines.forEach(line => {
+                    if (line.trim()) {
+                        // "YYYY-MM-DD HH:MM: テキスト" 形式かチェック
+                        const match = line.match(/^([\d-]+\s+[\d:]+):\s*(.+)$/);
+                        if (match) {
+                            // タイムスタンプ付きメモ
+                            allHistory.push({
+                                timestamp: match[1],
+                                note: match[2],
+                                nextCallDate: ''
+                            });
+                        } else {
+                            // タイムスタンプなしのメモは現在時刻で追加
+                            const now = new Date();
+                            const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                            allHistory.push({
+                                timestamp: timestamp,
+                                note: `[メモ] ${line}`,
+                                nextCallDate: ''
+                            });
+                        }
+                    }
+                });
+            }
+
+            if (allHistory.length === 0) {
                 historyList.innerHTML = '<p class="text-gray-500 text-center">履歴がありません</p>';
                 return;
             }
-            
-            historyList.innerHTML = history.map(item => `
+
+            // タイムスタンプで降順ソート（新しい順）
+            allHistory.sort((a, b) => {
+                const timeA = a.timestamp || '';
+                const timeB = b.timestamp || '';
+                return timeB.localeCompare(timeA);
+            });
+
+            // 履歴を表示（max-h-64でスクロール可能に）
+            historyList.innerHTML = allHistory.map(item => `
                 <div class="border-l-4 border-blue-500 pl-4 py-2">
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
