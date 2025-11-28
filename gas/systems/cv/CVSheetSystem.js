@@ -892,24 +892,22 @@ const CVSheetSystem = {
         timestamp,                               // BU(74): 最終ハートビート時刻（V1754）
         params.siteStayDuration || 0,            // BV(75): サイト滞在時間（秒）（V1755）
         0,                                       // BW(76): CV1→CV2時間差（秒）（V1755）
-        params.deviceType || '',                 // BX(77): デバイス種別（V1755）
+        params.deviceType || '',                 // 77列目: デバイス種別（index 76）
 
-        // BY(78)-CG(86): V1828 新規フィールド + V1902 修正
-        '',                                      // BY(78): (reserved)
-        // BZ(79): 見積もり希望箇所 - V1902: Q9(外壁)+Q10(屋根)から正式名称に正規化
+        // 78列目〜84列目: V1902 CSVヘッダー準拠（84列構成）
+        // 78列目: 見積もり希望箇所 - V1902: Q9(外壁)+Q10(屋根)から正式名称に正規化
         this.normalizeWorkItems(
           params.Q9_exteriorWork || '',          // Q9_希望工事内容_外壁
           params.Q10_roofWork || '',             // Q10_希望工事内容_屋根
           params.Q6_exteriorMaterial || '',      // Q6_外壁材質
           params.Q7_roofMaterial || ''           // Q7_屋根材質
         ),
-        params.constructionTiming || '',         // CA(80): 施工時期
-        params.companiesCount || '',             // CB(81): 希望社数
-        params.surveyAttendance || '',           // CC(82): 立ち会い可否
-        params.attendanceRelation || '',         // CD(83): 立ち会い者関係性
-        params.specialItems || '',               // CE(84): 特殊項目
-        '',                                      // CF(85): 選択業者数（CV2）
-        // CG(86): Google Mapsリンク - V1902: 住所から生成
+        params.constructionTiming || '',         // 79列目: 施工時期（index 78）
+        params.companiesCount || '',             // 80列目: 希望社数（index 79）
+        params.surveyAttendance || '',           // 81列目: 立ち会い可否（index 80）
+        params.attendanceRelation || '',         // 82列目: 立ち会い者関係性（index 81）
+        params.specialItems || '',               // 83列目: 特殊項目（index 82）
+        // 84列目: Google Mapsリンク - V1902: 住所から生成
         this.generateGoogleMapsLink(
           [params.propertyPrefecture, params.propertyCity, params.propertyStreet].filter(v => v).join('')
         )
@@ -1052,16 +1050,15 @@ const CVSheetSystem = {
         sheet.getRange(targetRow, 76).setValue(params.cv1ToCV2Duration);           // BW(76): CV1→CV2時間差（秒）
       }
 
-      // V1902: 選択業者数をCB列（希望社数）に保存
+      // V1902: 選択業者数を80列目（希望社数）に保存
       if (params.selectionHistory) {
         const companies = params.selectionHistory.split(',').map(s => s.trim()).filter(s => s);
         const companyCount = companies.length;
-        sheet.getRange(targetRow, 80).setValue(companyCount);                      // CB(80): 希望社数
-        sheet.getRange(targetRow, 84).setValue(companyCount);                      // CF(84): 選択業者数（CV2）
-        console.log('[CVSheetSystem] V1902: 選択業者数をCB列・CF列に保存:', companyCount);
+        sheet.getRange(targetRow, 80).setValue(companyCount);                      // 80列目: 希望社数
+        console.log('[CVSheetSystem] V1902: 選択業者数を80列目（希望社数）に保存:', companyCount);
       }
 
-      // V1902: Google Mapsリンクを生成してCG列に保存
+      // V1902: Google Mapsリンクを生成して84列目に保存
       const fullAddress = [
         params.propertyPrefecture,
         params.propertyCity,
@@ -1069,7 +1066,7 @@ const CVSheetSystem = {
       ].filter(v => v).join('');
       if (fullAddress) {
         const googleMapsLink = this.generateGoogleMapsLink(fullAddress);
-        sheet.getRange(targetRow, 85).setValue(googleMapsLink);                    // CG(85): Google Mapsリンク
+        sheet.getRange(targetRow, 84).setValue(googleMapsLink);                    // 84列目: Google Mapsリンク
         console.log('[CVSheetSystem] V1902: Google Mapsリンクを生成:', googleMapsLink);
       }
 
@@ -1272,16 +1269,14 @@ const CVSheetSystem = {
           cv1ToCV2Duration: row[75] || 0,               // BW: CV1→CV2時間差（秒）（index 75）
           deviceType: row[76] || '',                    // BX: デバイス種別（index 76）
 
-          // BY-CG: 新規フィールド（V1828 + V1902）
-          // BY列（index 76）は将来の拡張用として空けておく
-          workItems: row[77] || '',                     // BZ: 見積もり希望箇所（index 77）
-          constructionTiming: row[78] || '',            // CA: 施工時期（index 78）
-          companiesCountPreference: row[79] || '',     // CB: 希望社数（index 79）
-          surveyAttendance: row[80] || '',              // CC: 立ち会い可否（index 80）
-          attendanceRelation: row[81] || '',            // CD: 立ち会い者関係性（index 81）
-          specialItems: row[82] || '',                  // CE: 特殊項目（index 82）
-          selectedCompaniesCount: row[83] || '',       // CF: 選択業者数（CV2）（index 83）
-          googleMapsLink: row[84] || '',               // CG: Google Mapsリンク（index 84）
+          // 78列目〜84列目: 新規フィールド（CSVヘッダー準拠）
+          workItems: row[77] || '',                     // 78列目: 見積もり希望箇所（index 77）
+          constructionTiming: row[78] || '',            // 79列目: 施工時期（index 78）
+          companiesCountPreference: row[79] || '',     // 80列目: 希望社数（index 79）
+          surveyAttendance: row[80] || '',              // 81列目: 立ち会い可否（index 80）
+          attendanceRelation: row[81] || '',            // 82列目: 立ち会い者関係性（index 81）
+          specialItems: row[82] || '',                  // 83列目: 特殊項目（index 82）
+          googleMapsLink: row[83] || '',               // 84列目: Google Mapsリンク（index 83）
 
           // V1832: BOT回答カラムを直接フィールドとしても読み込み（空文字列保持のため）
           quoteCount: row[36] || '',                    // AK: Q11_見積もり保有数（index 36）
