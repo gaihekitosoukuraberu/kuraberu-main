@@ -1280,6 +1280,16 @@ const BusinessSelectionHandler = {
                 }
               }
             }
+
+            // V1905: パターン4: 「屋根葺き替え」→「屋根葺き替え・張り替え※スレート・ガルバリウム等」or「屋根葺き替え・張り替え※瓦」
+            // 案件の希望が「屋根葺き替え」の場合、業者が素材指定版を持っていればマッチ
+            if (caseWork === '屋根葺き替え') {
+              if (franchiseWork.startsWith('屋根葺き替え・張り替え')) {
+                matched.push(franchiseWork);
+                isMatched = true;
+                break;
+              }
+            }
           }
         }
 
