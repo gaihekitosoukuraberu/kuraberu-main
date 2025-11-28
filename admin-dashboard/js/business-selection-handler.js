@@ -317,38 +317,9 @@ const BusinessSelectionHandler = {
         desiredCount = desiredCount + '社';
       }
 
-      // RankingSystemから業者リストを取得（V1880: 新実装）
+      // V1903: RankingSystemから業者リストを取得（AS列業者リストも渡す）
       console.log('[BusinessSelection] RankingSystemから業者データ取得開始...');
-      const franchises = await this.fetchRankingData(currentCaseData);
-
-      // V1903: AS列業者がランキング結果に含まれていない場合、強制追加
-      // （工事種別でフィルタされた業者も表示するため）
-      const franchiseNames = franchises.map(f => f.companyName);
-      const missingSelectedCompanies = selectedCompanies.filter(name => !franchiseNames.includes(name));
-
-      if (missingSelectedCompanies.length > 0) {
-        console.log('[V1903] AS列業者でランキングに含まれていない業者を追加:', missingSelectedCompanies);
-
-        missingSelectedCompanies.forEach(companyName => {
-          // 基本情報のみでダミーオブジェクトを作成（マッチ度は低く表示される）
-          franchises.push({
-            franchiseId: companyName,
-            companyName: companyName,
-            serviceAreas: [],
-            citiesArray: [],
-            workTypes: [],
-            specialSupport: '',
-            maxFloors: '',
-            buildingAgeMin: 0,
-            buildingAgeMax: 100,
-            rating: 0,
-            reviewCount: 0,
-            contractCount: 0,
-            // マッチ度計算用フラグ（フィルタ除外業者）
-            _isFilteredOut: true
-          });
-        });
-      }
+      const franchises = await this.fetchRankingData(currentCaseData, selectedCompanies);
 
       this.allFranchises = franchises;
 
@@ -376,10 +347,15 @@ const BusinessSelectionHandler = {
    * @param {object} caseData - 案件データ
    * @returns {Promise<Array>} 業者リスト
    */
-  async fetchRankingData(caseData) {
+  async fetchRankingData(caseData, requiredCompanies = []) {
     try {
       // 案件データから必要なパラメータを抽出
       const params = this.extractRankingParams(caseData);
+
+      // V1903: AS列業者リストをパラメータに追加（これらは工事種別フィルタで除外されても含める）
+      if (requiredCompanies.length > 0) {
+        params.requiredCompanies = requiredCompanies.join(',');
+      }
 
       console.log('[BusinessSelection] getRanking APIリクエスト:', params);
 
@@ -1167,21 +1143,6 @@ const BusinessSelectionHandler = {
    * @returns {object} { total: number, details: object }
    */
   calculateMatchRate(franchise) {
-    // V1903: フィルタ除外業者（AS列業者で工事種別等でフィルタされた業者）
-    // 工事種別の40点だけ減点、他はマッチと仮定して60点（60%）
-    if (franchise._isFilteredOut) {
-      return {
-        total: 60,
-        details: {
-          area: { matched: true, required: '', available: [], score: 20, maxScore: 20, note: 'AS列業者（仮定マッチ）' },
-          workTypes: { matched: [], unmatched: [], score: 0, maxScore: 40, note: '工事種別不一致（フィルタ除外）' },
-          buildingAge: { matched: true, caseAge: 0, franchiseMin: 0, franchiseMax: 0, score: 15, maxScore: 15, note: 'AS列業者（仮定マッチ）' },
-          propertyType: { matched: true, caseType: '', franchiseTypes: [], score: 15, maxScore: 15, note: 'AS列業者（仮定マッチ）' },
-          floors: { matched: true, caseFloors: 0, franchiseMax: '', score: 10, maxScore: 10, note: 'AS列業者（仮定マッチ）' }
-        }
-      };
-    }
-
     let total = 0;
     const details = {
       area: { matched: false, required: '', available: [], score: 0, maxScore: 20 },

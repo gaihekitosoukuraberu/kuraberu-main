@@ -55,6 +55,11 @@ const RankingSystem = {
       console.log('[RankingSystem] 築年数:', { buildingAgeMin, buildingAgeMax });
       console.log('[RankingSystem] 気になる箇所:', concernedArea);
 
+      // V1903: 必須業者リスト（AS列業者）- これらは工事種別フィルタで除外されても含める
+      const requiredCompaniesParam = params.requiredCompanies || '';
+      const requiredCompanies = requiredCompaniesParam ? requiredCompaniesParam.split(',').map(function(s) { return s.trim(); }) : [];
+      console.log('[RankingSystem] 必須業者リスト:', requiredCompanies);
+
       // 加盟店マスタから取得（V1694）
       const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
       const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -351,7 +356,9 @@ const RankingSystem = {
           }
         }
 
-        if (!constructionTypeMatch) {
+        // V1903: 必須業者（AS列業者）は工事種別フィルタで除外しない
+        const isRequiredCompany = requiredCompanies.indexOf(companyName) !== -1;
+        if (!constructionTypeMatch && !isRequiredCompany) {
           filterStats.rejectedByConstruction++;
           continue;
         }
