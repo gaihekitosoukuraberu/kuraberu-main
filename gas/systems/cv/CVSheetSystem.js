@@ -460,21 +460,19 @@ const CVSheetSystem = {
       '配信先業者一覧',      // BT
 
       // BU-BX: ハートビート＆行動トラッキング（V1754, V1755）
-      '最終ハートビート時刻', // BU
-      'サイト滞在時間（秒）',  // BV
-      'CV1→CV2時間差（秒）',  // BW
-      'デバイス種別',         // BX
+      '最終ハートビート時刻', // BU (74)
+      'サイト滞在時間',       // BV (75)
+      'CV1→CV2時間差',       // BW (76)
+      'デバイス種別',         // BX (77)
 
-      // BY-CG: V1828 新規フィールド + V1900 Google Mapsリンク追加
-      '',                     // BY (reserved)
-      '見積もり希望箇所',      // BZ
-      '施工時期',             // CA
-      '希望社数',             // CB
-      '立ち会い可否',         // CC
-      '立ち会い者関係性',      // CD
-      '特殊項目',             // CE
-      '選択業者数（CV2）',     // CF (V1923: 実際に選択された業者数)
-      'Google Mapsリンク'      // CG (V1900: 住所から生成)
+      // BY-CF: V1902 CSVヘッダー準拠84列
+      '見積もり希望箇所',      // BY (78)
+      '施工時期',             // BZ (79)
+      '希望社数',             // CA (80)
+      '立ち会い可否',         // CB (81)
+      '立ち会い者関係性',      // CC (82)
+      '特殊項目',             // CD (83)
+      'Google Mapsリンク'      // CE (84)
     ];
 
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
@@ -494,7 +492,7 @@ const CVSheetSystem = {
     // フリーズ（ヘッダー行固定）
     sheet.setFrozenRows(1);
 
-    console.log('[CVSheetSystem] ユーザー登録シート作成完了 (84列: A-CF, V1923)');
+    console.log('[CVSheetSystem] ユーザー登録シート作成完了 (84列: A-CE, V1902 CSVヘッダー準拠)');
   },
 
   /**
@@ -1476,23 +1474,23 @@ const CVSheetSystem = {
       if (data.propertyType !== undefined) sheet.getRange(targetRow, 23).setValue(data.propertyType); // W列: 物件種別（index 23）
       if (data.floors !== undefined) sheet.getRange(targetRow, 26).setValue(data.floors); // Z列: 階数（index 26）
 
-      // 工事希望箇所（配列の場合は結合） - V1828: BZ列に修正
+      // 工事希望箇所（配列の場合は結合） - V1902: CSVヘッダー準拠84列
       if (data.workItems !== undefined) {
         const workItemsStr = Array.isArray(data.workItems) ? data.workItems.join('、') : data.workItems;
-        sheet.getRange(targetRow, 79).setValue(workItemsStr); // BZ列: 見積もり希望箇所（column 79）
+        sheet.getRange(targetRow, 78).setValue(workItemsStr); // 78列目: 見積もり希望箇所（BZ）
       }
 
-      // V1828: 新規フィールド
-      if (data.constructionTiming !== undefined) sheet.getRange(targetRow, 80).setValue(data.constructionTiming); // CA列: 施工時期
-      if (data.companiesCount !== undefined) sheet.getRange(targetRow, 81).setValue(data.companiesCount); // CB列: 希望社数
-      if (data.surveyAttendance !== undefined) sheet.getRange(targetRow, 82).setValue(data.surveyAttendance); // CC列: 立ち会い可否
+      // V1902: CSVヘッダー準拠84列
+      if (data.constructionTiming !== undefined) sheet.getRange(targetRow, 79).setValue(data.constructionTiming); // 79列目: 施工時期（CA）
+      if (data.companiesCount !== undefined) sheet.getRange(targetRow, 80).setValue(data.companiesCount); // 80列目: 希望社数（CB）
+      if (data.surveyAttendance !== undefined) sheet.getRange(targetRow, 81).setValue(data.surveyAttendance); // 81列目: 立ち会い可否（CC）
 
       // V1901: 業者選択履歴（双方向同期）
       if (data.businessHistory !== undefined) sheet.getRange(targetRow, 45).setValue(data.businessHistory); // AS列: 業者選定履歴
-      if (data.attendanceRelation !== undefined) sheet.getRange(targetRow, 83).setValue(data.attendanceRelation); // CD列: 立ち会い者関係性
+      if (data.attendanceRelation !== undefined) sheet.getRange(targetRow, 82).setValue(data.attendanceRelation); // 82列目: 立ち会い者関係性（CD）
       if (data.specialItems !== undefined) {
         const specialItemsStr = Array.isArray(data.specialItems) ? data.specialItems.join('、') : data.specialItems;
-        sheet.getRange(targetRow, 84).setValue(specialItemsStr); // CE列: 特殊項目
+        sheet.getRange(targetRow, 83).setValue(specialItemsStr); // 83列目: 特殊項目（CE）
       }
 
       // 管理情報
@@ -2062,73 +2060,4 @@ function testCVMapping() {
   };
 }
 
-/**
- * ============================================
- * V1923: CF列マイグレーション関数
- * ============================================
- *
- * 既存のスプレッドシートにCF列「選択業者数（CV2）」を追加
- * ⚠️ 1回だけ実行してください（GASエディタから手動実行）
- *
- * 実行方法:
- * 1. GASエディタでこの関数を選択
- * 2. ▶実行ボタンをクリック
- * 3. ログを確認
- */
-function migrateAddCFColumn() {
-  console.log('=== V1923: CF列マイグレーション開始 ===\n');
-
-  try {
-    const ssId = CVSheetSystem.getSpreadsheetId();
-    const ss = SpreadsheetApp.openById(ssId);
-    const sheet = ss.getSheetByName('ユーザー登録');
-
-    if (!sheet) {
-      throw new Error('ユーザー登録シートが見つかりません');
-    }
-
-    // 現在の列数を確認
-    const currentColumns = sheet.getLastColumn();
-    console.log('現在の列数:', currentColumns);
-
-    // CF列（85列目）が既に存在するか確認
-    if (currentColumns >= 85) {
-      const cfHeader = sheet.getRange(1, 85).getValue();
-      if (cfHeader === '選択業者数（CV2）') {
-        console.log('✅ CF列は既に存在します:', cfHeader);
-        return {
-          success: true,
-          message: 'CF列は既に存在します（マイグレーション不要）'
-        };
-      }
-    }
-
-    // CF列のヘッダーを追加（85列目）
-    sheet.getRange(1, 85).setValue('選択業者数（CV2）');
-
-    // ヘッダー行のスタイル設定を適用
-    const cfHeaderRange = sheet.getRange(1, 85);
-    cfHeaderRange.setBackground('#4285F4');
-    cfHeaderRange.setFontColor('#FFFFFF');
-    cfHeaderRange.setFontWeight('bold');
-    cfHeaderRange.setHorizontalAlignment('center');
-
-    // 列幅自動調整
-    sheet.autoResizeColumn(85);
-
-    console.log('✅ CF列「選択業者数（CV2）」を追加しました');
-    console.log('✅ マイグレーション完了');
-
-    return {
-      success: true,
-      message: 'CF列を正常に追加しました'
-    };
-
-  } catch (error) {
-    console.error('❌ マイグレーションエラー:', error);
-    return {
-      success: false,
-      error: error.toString()
-    };
-  }
-}
+// V1902: migrateAddCFColumn関数は削除（CSVは84列構成、選択業者数列は存在しない）
