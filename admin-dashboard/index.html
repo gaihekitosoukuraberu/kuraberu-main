@@ -6943,7 +6943,7 @@ window.addEventListener('beforeunload', function(e) {
             allHistory.sort((a, b) => {
                 const timeA = a.timestamp || '';
                 const timeB = b.timestamp || '';
-                return timeB.localeCompare(timeA);
+                return timeA.localeCompare(timeB);
             });
 
             // 履歴を表示（max-h-64でスクロール可能に）
@@ -7047,7 +7047,7 @@ window.addEventListener('beforeunload', function(e) {
             allHistory.sort((a, b) => {
                 const timeA = a.timestamp || '';
                 const timeB = b.timestamp || '';
-                return timeB.localeCompare(timeA);
+                return timeA.localeCompare(timeB);
             });
 
             const entry = allHistory[index];
@@ -7166,7 +7166,7 @@ window.addEventListener('beforeunload', function(e) {
             allHistory.sort((a, b) => {
                 const timeA = a.timestamp || '';
                 const timeB = b.timestamp || '';
-                return timeB.localeCompare(timeA);
+                return timeA.localeCompare(timeB);
             });
 
             const entry = allHistory[index];
