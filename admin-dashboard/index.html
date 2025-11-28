@@ -5815,36 +5815,83 @@ window.addEventListener('beforeunload', function(e) {
             closeListStatusModal();
         }
 
-        function changeStatus(caseId, newStatus) {
+        async function changeStatus(caseId, newStatus) {
             casesData[caseId].status = newStatus;
 
-            // 未保存変更を記録
-            unsavedChanges.set(caseId, {
-                status: newStatus,
-                timestamp: Date.now()
-            });
+            // 即座にスプレッドシートに保存
+            try {
+                console.log(`[Auto-Save] 案件 ${caseId} のステータスを ${newStatus} に変更中...`);
+                const result = await window.apiClient.postRequest('updateCVData', {
+                    cvId: caseId,
+                    data: {
+                        status: newStatus
+                    }
+                });
 
-            // 保存ボタンを更新
-            updateSaveButton();
-
-            console.log(`案件 ${caseId} のステータスを ${newStatus} に変更（未保存）`);
+                if (result.success) {
+                    console.log(`[Auto-Save] 案件 ${caseId} のステータス保存完了: ${newStatus}`);
+                    // 保存成功したらunsavedChangesから削除
+                    unsavedChanges.delete(caseId);
+                    updateSaveButton();
+                } else {
+                    console.error(`[Auto-Save] ステータス保存失敗:`, result.error);
+                    // 保存失敗時はunsavedChangesに記録
+                    unsavedChanges.set(caseId, {
+                        status: newStatus,
+                        timestamp: Date.now()
+                    });
+                    updateSaveButton();
+                }
+            } catch (error) {
+                console.error(`[Auto-Save] ステータス保存エラー:`, error);
+                // エラー時はunsavedChangesに記録
+                unsavedChanges.set(caseId, {
+                    status: newStatus,
+                    timestamp: Date.now()
+                });
+                updateSaveButton();
+            }
         }
         
         // CRMステータス変更
-        function changeCRMStatus(newStatus) {
+        async function changeCRMStatus(newStatus) {
             if (!currentCaseId) return;
             casesData[currentCaseId].status = newStatus;
 
-            // 未保存変更を記録
-            unsavedChanges.set(currentCaseId, {
-                status: newStatus,
-                timestamp: Date.now()
-            });
+            // 即座にスプレッドシートに保存
+            try {
+                console.log(`[Auto-Save] 案件 ${currentCaseId} のステータスを ${newStatus} に変更中...`);
+                const result = await window.apiClient.postRequest('updateCVData', {
+                    cvId: currentCaseId,
+                    data: {
+                        status: newStatus
+                    }
+                });
 
-            // 保存ボタンを更新
-            updateSaveButton();
+                if (result.success) {
+                    console.log(`[Auto-Save] 案件 ${currentCaseId} のステータス保存完了: ${newStatus}`);
+                    // 保存成功したらunsavedChangesから削除
+                    unsavedChanges.delete(currentCaseId);
+                    updateSaveButton();
+                } else {
+                    console.error(`[Auto-Save] ステータス保存失敗:`, result.error);
+                    // 保存失敗時はunsavedChangesに記録
+                    unsavedChanges.set(currentCaseId, {
+                        status: newStatus,
+                        timestamp: Date.now()
+                    });
+                    updateSaveButton();
+                }
+            } catch (error) {
+                console.error(`[Auto-Save] ステータス保存エラー:`, error);
+                // エラー時はunsavedChangesに記録
+                unsavedChanges.set(currentCaseId, {
+                    status: newStatus,
+                    timestamp: Date.now()
+                });
+                updateSaveButton();
+            }
 
-            console.log(`案件 ${currentCaseId} のステータスを ${newStatus} に変更（未保存）`);
             updateCRMStatusBadge(newStatus);
         }
 
@@ -7650,14 +7697,76 @@ window.addEventListener('beforeunload', function(e) {
         }
 
         // クイックアクション（リスト用）
-        function quickActionList(action, caseId) {
+        async function quickActionList(action, caseId) {
             if (action === '不在') {
                 casesData[caseId].status = '不在';
-                // 架電履歴に追加
-                appendCallHistory(caseId, '不在');
+
+                // 架電履歴に追加（appendCallHistoryは既にGASに保存する）
+                await appendCallHistory(caseId, '不在');
+
+                // ステータスもGASに保存
+                try {
+                    console.log(`[Auto-Save] 案件 ${caseId} のステータスを ${action} に変更中...`);
+                    const result = await window.apiClient.postRequest('updateCVData', {
+                        cvId: caseId,
+                        data: {
+                            status: action
+                        }
+                    });
+
+                    if (result.success) {
+                        console.log(`[Auto-Save] 案件 ${caseId} のステータス保存完了: ${action}`);
+                    } else {
+                        console.error(`[Auto-Save] ステータス保存失敗:`, result.error);
+                    }
+                } catch (error) {
+                    console.error(`[Auto-Save] ステータス保存エラー:`, error);
+                }
             }
-            else if (action === '対応中') casesData[caseId].status = '配信中';
-            else if (action === '完了') casesData[caseId].status = '完了';
+            else if (action === '対応中') {
+                casesData[caseId].status = '配信中';
+
+                // ステータスをGASに保存
+                try {
+                    console.log(`[Auto-Save] 案件 ${caseId} のステータスを 配信中 に変更中...`);
+                    const result = await window.apiClient.postRequest('updateCVData', {
+                        cvId: caseId,
+                        data: {
+                            status: '配信中'
+                        }
+                    });
+
+                    if (result.success) {
+                        console.log(`[Auto-Save] 案件 ${caseId} のステータス保存完了: 配信中`);
+                    } else {
+                        console.error(`[Auto-Save] ステータス保存失敗:`, result.error);
+                    }
+                } catch (error) {
+                    console.error(`[Auto-Save] ステータス保存エラー:`, error);
+                }
+            }
+            else if (action === '完了') {
+                casesData[caseId].status = '完了';
+
+                // ステータスをGASに保存
+                try {
+                    console.log(`[Auto-Save] 案件 ${caseId} のステータスを 完了 に変更中...`);
+                    const result = await window.apiClient.postRequest('updateCVData', {
+                        cvId: caseId,
+                        data: {
+                            status: '完了'
+                        }
+                    });
+
+                    if (result.success) {
+                        console.log(`[Auto-Save] 案件 ${caseId} のステータス保存完了: 完了`);
+                    } else {
+                        console.error(`[Auto-Save] ステータス保存失敗:`, result.error);
+                    }
+                } catch (error) {
+                    console.error(`[Auto-Save] ステータス保存エラー:`, error);
+                }
+            }
 
             initializeListView();
         }
