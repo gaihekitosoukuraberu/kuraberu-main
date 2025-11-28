@@ -206,6 +206,9 @@ const CVListManager = {
 
         // 住所（GASから返されるフィールド名を使用）
         postalCode: cv.postalCode || '',
+        prefecture: cv.prefecture || '',        // V1963: 距離計算用に都道府県を追加
+        city: cv.city || '',                    // V1963: 距離計算用に市区町村を追加
+        propertyStreet: cv.propertyStreet || '', // V1963: 距離計算用に住所詳細を追加
         address: this.formatAddress(cv),
         addressKana: cv.addressKana || '',
 
