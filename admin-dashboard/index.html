@@ -6933,9 +6933,67 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
+        // 現在の日時を "YYYY-MM-DD HH:MM" 形式で取得
+        function getCurrentTimestamp() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hour = String(now.getHours()).padStart(2, '0');
+            const minute = String(now.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}`;
+        }
+
+        // callHistory配列を改行区切り文字列に変換（GAS保存用）
+        function formatCallHistoryForGAS(callHistoryArray) {
+            if (!callHistoryArray || callHistoryArray.length === 0) return '';
+            return callHistoryArray.map(entry => {
+                if (entry.date && entry.note) {
+                    return `${entry.date}: ${entry.note}`;
+                }
+                return entry.note || '';
+            }).join('\n');
+        }
+
+        // callHistoryに新しいエントリを追加してGASに保存
+        async function appendCallHistory(caseId, note) {
+            const timestamp = getCurrentTimestamp();
+
+            // callHistory配列を初期化または取得
+            if (!casesData[caseId].callHistory) {
+                casesData[caseId].callHistory = [];
+            }
+
+            // 新しいエントリを追加
+            casesData[caseId].callHistory.push({
+                date: timestamp,
+                note: note
+            });
+
+            // GASに保存
+            try {
+                const formattedHistory = formatCallHistoryForGAS(casesData[caseId].callHistory);
+                const result = await window.AdminAPI.updateCVData(caseId, {
+                    callHistory: formattedHistory
+                });
+
+                if (result.success) {
+                    console.log('[CallHistory] 架電履歴を保存しました:', { caseId, note, timestamp });
+                } else {
+                    console.error('[CallHistory] 架電履歴の保存に失敗:', result.error);
+                }
+            } catch (error) {
+                console.error('[CallHistory] 架電履歴保存エラー:', error);
+            }
+        }
+
         // クイックアクション（リスト用）
         function quickActionList(action, caseId) {
-            if (action === '不在') casesData[caseId].status = '不在';
+            if (action === '不在') {
+                casesData[caseId].status = '不在';
+                // 架電履歴に追加
+                appendCallHistory(caseId, '不在');
+            }
             else if (action === '対応中') casesData[caseId].status = '配信中';
             else if (action === '完了') casesData[caseId].status = '完了';
 
@@ -6968,9 +7026,14 @@ window.addEventListener('beforeunload', function(e) {
         // クイックアクション（CRM用）
         function quickActionCRM(status) {
             if (!currentCaseId) return;
-            
+
             casesData[currentCaseId].status = status;
-            
+
+            // 不在の場合は架電履歴に追加
+            if (status === '不在') {
+                appendCallHistory(currentCaseId, '不在');
+            }
+
             // 不在・再架電の場合は次の案件へ
             if (status === '不在' || status === '再架電') {
                 nextCase();
