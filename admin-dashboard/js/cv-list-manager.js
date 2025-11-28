@@ -102,8 +102,9 @@ const CVListManager = {
       let workItems = [];
 
       if (cv.workItems && typeof cv.workItems === 'string') {
-        // 新カラムから読み取り（カンマ区切り文字列を配列に変換）
-        workItems = cv.workItems.split(', ').map(item => item.trim()).filter(item => item);
+        // V1903: 新カラムから読み取り（「、」日本語読点区切り文字列を配列に変換）
+        // GASは「外壁張替え、屋根葺き替え（スレート）」のように「、」で区切って返す
+        workItems = cv.workItems.split('、').map(item => item.trim()).filter(item => item);
         if (index === 0) {
           console.log('[CVListManager] 見積もり希望箇所（新カラム）:', workItems);
         }
@@ -230,7 +231,7 @@ const CVListManager = {
         // V1827: 新規フィールド（V1832: ?? 演算子で空文字列も保持）
         surveyAttendance: cv.surveyAttendance ?? '',                   // 立ち会い可否
         attendanceRelation: cv.attendanceRelation ?? '',               // 立ち会い者関係性
-        specialItems: cv.specialItems ? cv.specialItems.split(', ').map(item => item.trim()).filter(item => item) : [], // 特殊項目（配列）
+        specialItems: cv.specialItems ? cv.specialItems.split('、').map(item => item.trim()).filter(item => item) : [], // V1903: 特殊項目（「、」区切り配列）
 
         // 配信・成約
         companiesCount: companiesCount,
@@ -242,6 +243,11 @@ const CVListManager = {
 
         // 業者選定履歴（AS列）V1879
         businessHistory: cv.franchiseSelectionHistory || '',
+        franchiseSelectionHistory: cv.franchiseSelectionHistory || '', // V1903: 別名キーも追加
+
+        // V1903: 現調希望日時・希望社数（CRM詳細バインディング用）
+        surveyDatePreference: cv.surveyDatePreference || '',           // AR列: 現調希望日時
+        companiesCountPreference: cv.companiesCountPreference || '',   // CB列: 希望社数
 
         // 架電履歴
         callHistory: this.parseCallHistory(cv.callHistory),
