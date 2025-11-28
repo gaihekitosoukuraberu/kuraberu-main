@@ -1281,13 +1281,28 @@ const BusinessSelectionHandler = {
               }
             }
 
-            // V1905: パターン4: 「屋根葺き替え」→「屋根葺き替え・張り替え※スレート・ガルバリウム等」or「屋根葺き替え・張り替え※瓦」
-            // 案件の希望が「屋根葺き替え」の場合、業者が素材指定版を持っていればマッチ
+            // V1905: パターン4: 「屋根葺き替え」→ 素材に応じてマッチ
+            // 瓦 → 「屋根葺き替え・張り替え※瓦」
+            // それ以外 → 「屋根葺き替え・張り替え※スレート・ガルバリウム等」
             if (caseWork === '屋根葺き替え') {
-              if (franchiseWork.startsWith('屋根葺き替え・張り替え')) {
-                matched.push(franchiseWork);
-                isMatched = true;
-                break;
+              const caseRoofMaterial = this.currentCaseData?.roofMaterial ||
+                                       this.currentCaseData?._rawData?.roofMaterial ||
+                                       this.currentCaseData?._rawData?.botAnswers?.q7_roofMaterial || '';
+
+              if (caseRoofMaterial.includes('瓦')) {
+                // 瓦の場合は「※瓦」にマッチ
+                if (franchiseWork === '屋根葺き替え・張り替え※瓦') {
+                  matched.push(franchiseWork);
+                  isMatched = true;
+                  break;
+                }
+              } else {
+                // スレート等の場合は「※スレート・ガルバリウム等」にマッチ
+                if (franchiseWork === '屋根葺き替え・張り替え※スレート・ガルバリウム等') {
+                  matched.push(franchiseWork);
+                  isMatched = true;
+                  break;
+                }
               }
             }
           }
