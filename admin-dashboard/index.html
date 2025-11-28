@@ -551,20 +551,10 @@
                                         </div>
                                     </div>
                                     <!-- 架電履歴ボタン -->
-                                    <div class="relative group inline-block">
-                                        <button onclick="openCallHistoryModal()" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all text-2xl" title="架電履歴">
+                                    <div class="inline-block">
+                                        <button onclick="openCallHistoryModal()" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all text-2xl" title="メモを開く">
                                             📝
                                         </button>
-                                        <!-- メモ履歴のホバー表示 -->
-                                        <div class="absolute top-full left-0 mt-2 hidden group-hover:block z-50 w-64">
-                                            <div class="bg-gray-900 text-white text-xs rounded-lg py-2 px-3">
-                                                <div class="font-semibold mb-1">メモ履歴:</div>
-                                                <div id="crmMemoPreview">メモはまだありません</div>
-                                                <div class="absolute bottom-full left-4 -mb-1">
-                                                    <div class="border-4 border-transparent border-b-gray-900"></div>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                                 <div class="flex space-x-2">
@@ -1595,7 +1585,7 @@ window.addEventListener('beforeunload', function(e) {
     <div id="callHistoryModal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/50" onclick="closeCallHistoryModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-lg shadow-xl p-4 sm:p-6 max-w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+            <div class="bg-white rounded-lg shadow-xl p-4 sm:p-6 max-w-[calc(100vw-2rem)] sm:max-w-4xl max-h-[80vh] overflow-y-auto">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-base sm:text-lg font-semibold text-gray-900">メモ</h3>
                     <button onclick="closeCallHistoryModal()" class="text-gray-400 hover:text-gray-600">
