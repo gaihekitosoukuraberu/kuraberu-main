@@ -278,8 +278,8 @@ const BusinessSelectionHandler = {
       // キャッシュに保存
       this.currentCaseData = currentCaseData;
 
-      // AS列から業者名を取得
-      const businessHistory = currentCaseData.businessHistory || '';
+      // AS列から業者名を取得（V1902: franchiseSelectionHistoryキーもサポート）
+      const businessHistory = currentCaseData.businessHistory || currentCaseData.franchiseSelectionHistory || '';
       const selectedCompanies = this.parseBusinessHistory(businessHistory);
       this.userSelectedCompanies = selectedCompanies;
 
@@ -300,11 +300,11 @@ const BusinessSelectionHandler = {
         count: this.checkedCompanies.size
       });
 
-      // 希望社数をCB列から取得（フォールバック: AS列）
+      // 希望社数をCB列から取得（V1902: companiesCountPreferenceキーもサポート, フォールバック: AS列）
       let desiredCount;
-      if (currentCaseData.companiesCount) {
+      if (currentCaseData.companiesCountPreference || currentCaseData.companiesCount) {
         // CB列から希望社数を取得
-        desiredCount = currentCaseData.companiesCount;
+        desiredCount = currentCaseData.companiesCountPreference || currentCaseData.companiesCount;
         console.log('[BusinessSelection] CB列から希望社数取得:', desiredCount);
       } else {
         // CB列が空の場合はAS列からカウント（フォールバック）
