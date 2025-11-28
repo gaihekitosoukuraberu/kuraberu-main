@@ -7047,10 +7047,15 @@ window.addEventListener('beforeunload', function(e) {
                     };
                 });
 
+                // V1895: 履歴が空の場合は空文字列を保存（[]ではなく）
+                const callHistoryValue = callHistoryFormatted.length > 0
+                    ? JSON.stringify(callHistoryFormatted)
+                    : '';
+
                 const result = await window.apiClient.postRequest('updateCVData', {
                     cvId: currentCaseId,
                     data: {
-                        callHistory: JSON.stringify(callHistoryFormatted)
+                        callHistory: callHistoryValue
                     }
                 });
 
@@ -7155,10 +7160,15 @@ window.addEventListener('beforeunload', function(e) {
                     };
                 });
 
+                // V1895: 履歴が空の場合は空文字列を保存（[]ではなく）
+                const callHistoryValue = callHistoryFormatted.length > 0
+                    ? JSON.stringify(callHistoryFormatted)
+                    : '';
+
                 const result = await window.apiClient.postRequest('updateCVData', {
                     cvId: currentCaseId,
                     data: {
-                        callHistory: JSON.stringify(callHistoryFormatted)
+                        callHistory: callHistoryValue
                     }
                 });
 
