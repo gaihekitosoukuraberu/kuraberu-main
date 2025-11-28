@@ -6863,11 +6863,13 @@ window.addEventListener('beforeunload', function(e) {
             const allHistory = [];
 
             // 架電履歴エントリを追加 (parseCallHistoryは {date, note} 形式を返す)
-            callHistory.forEach(item => {
+            callHistory.forEach((item, originalIndex) => {
                 allHistory.push({
                     timestamp: item.date || item.timestamp || '',
                     note: item.note || '',
-                    nextCallDate: item.nextCallDate || ''
+                    nextCallDate: item.nextCallDate || '',
+                    source: 'callHistory',
+                    originalIndex: originalIndex
                 });
             });
 
@@ -6884,7 +6886,8 @@ window.addEventListener('beforeunload', function(e) {
                             allHistory.push({
                                 timestamp: match[1],
                                 note: match[2],
-                                nextCallDate: ''
+                                nextCallDate: '',
+                                source: 'caseMemo'
                             });
                         } else {
                             // タイムスタンプなしのメモは現在時刻で追加
@@ -6893,7 +6896,8 @@ window.addEventListener('beforeunload', function(e) {
                             allHistory.push({
                                 timestamp: timestamp,
                                 note: line,
-                                nextCallDate: ''
+                                nextCallDate: '',
+                                source: 'caseMemo'
                             });
                         }
                     }
@@ -6913,21 +6917,259 @@ window.addEventListener('beforeunload', function(e) {
             });
 
             // 履歴を表示（max-h-64でスクロール可能に）
-            historyList.innerHTML = allHistory.map(item => `
-                <div class="border-l-4 border-blue-500 pl-4 py-2">
+            historyList.innerHTML = allHistory.map((item, index) => `
+                <div class="border-l-4 border-blue-500 pl-4 py-2 group" data-history-index="${index}">
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
                             <p class="text-sm text-gray-600">${item.timestamp}</p>
                             <p class="mt-1">${item.note}</p>
                             ${item.nextCallDate ? `<p class="text-sm text-blue-600 mt-1">次回架電: ${item.nextCallDate}</p>` : ''}
                         </div>
+                        <div class="flex gap-2 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                                onclick="editCallHistoryEntry(${index})"
+                                class="text-blue-600 hover:text-blue-800 text-sm px-2 py-1 rounded hover:bg-blue-50"
+                                title="編集"
+                            >
+                                編集
+                            </button>
+                            <button
+                                onclick="deleteCallHistoryEntry(${index})"
+                                class="text-red-600 hover:text-red-800 text-sm px-2 py-1 rounded hover:bg-red-50"
+                                title="削除"
+                            >
+                                削除
+                            </button>
+                        </div>
                     </div>
                 </div>
             `).join('');
         }
-        
+
+        // 架電履歴エントリを編集
+        async function editCallHistoryEntry(index) {
+            const historyList = document.getElementById('callHistoryList');
+            const allHistory = [];
+
+            // 現在の履歴を再構築して index に対応するエントリを取得
+            const callHistory = casesData[currentCaseId]?.callHistory || [];
+            const caseMemo = casesData[currentCaseId]?.caseMemo || '';
+
+            callHistory.forEach((item, originalIndex) => {
+                allHistory.push({
+                    timestamp: item.date || item.timestamp || '',
+                    note: item.note || '',
+                    nextCallDate: item.nextCallDate || '',
+                    source: 'callHistory',
+                    originalIndex: originalIndex
+                });
+            });
+
+            if (caseMemo && caseMemo.trim()) {
+                const memoLines = caseMemo.trim().split('\n');
+                memoLines.forEach(line => {
+                    if (line.trim()) {
+                        const match = line.match(/^([\d-]+\s+[\d:]+):\s*(.+)$/);
+                        if (match) {
+                            allHistory.push({
+                                timestamp: match[1],
+                                note: match[2],
+                                nextCallDate: '',
+                                source: 'caseMemo'
+                            });
+                        } else {
+                            const now = new Date();
+                            const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                            allHistory.push({
+                                timestamp: timestamp,
+                                note: line,
+                                nextCallDate: '',
+                                source: 'caseMemo'
+                            });
+                        }
+                    }
+                });
+            }
+
+            allHistory.sort((a, b) => {
+                const timeA = a.timestamp || '';
+                const timeB = b.timestamp || '';
+                return timeB.localeCompare(timeA);
+            });
+
+            const entry = allHistory[index];
+
+            if (!entry) {
+                alert('エントリが見つかりません');
+                return;
+            }
+
+            if (entry.source !== 'callHistory') {
+                alert('caseMemoエントリは編集できません。callHistoryエントリのみ編集可能です。');
+                return;
+            }
+
+            // 編集用のプロンプトを表示
+            const newNote = prompt('メモを編集:', entry.note);
+            if (newNote === null) return; // キャンセルされた
+
+            const newNextCallDate = prompt('次回架電日時 (YYYY-MM-DD HH:MM 形式、または空欄):', entry.nextCallDate || '');
+
+            // 元のcallHistoryを更新
+            if (!casesData[currentCaseId].callHistory) {
+                casesData[currentCaseId].callHistory = [];
+            }
+
+            const originalIndex = entry.originalIndex;
+            casesData[currentCaseId].callHistory[originalIndex].note = newNote.trim();
+            if (newNextCallDate && newNextCallDate.trim()) {
+                casesData[currentCaseId].callHistory[originalIndex].nextCallDate = newNextCallDate.trim();
+            } else {
+                casesData[currentCaseId].callHistory[originalIndex].nextCallDate = '';
+            }
+
+            // 履歴を再表示
+            loadCallHistory();
+
+            // GASへ保存
+            try {
+                const callHistoryFormatted = casesData[currentCaseId].callHistory.map(item => {
+                    return {
+                        date: item.date || item.timestamp || '',
+                        note: item.note || '',
+                        nextCallDate: item.nextCallDate || ''
+                    };
+                });
+
+                const result = await window.apiClient.postRequest('updateCVData', {
+                    cvId: currentCaseId,
+                    data: {
+                        callHistory: JSON.stringify(callHistoryFormatted)
+                    }
+                });
+
+                if (result.success) {
+                    console.log('[CallHistory] 編集をスプレッドシートに保存成功:', { caseId: currentCaseId });
+                } else {
+                    console.error('[CallHistory] 編集の保存失敗:', result.error);
+                    alert('履歴の更新に失敗しました: ' + (result.error || '不明なエラー'));
+                }
+            } catch (error) {
+                console.error('[CallHistory] 保存エラー:', error);
+                alert('履歴の保存中にエラーが発生しました: ' + error.message);
+            }
+        }
+
+        // 架電履歴エントリを削除
+        async function deleteCallHistoryEntry(index) {
+            const historyList = document.getElementById('callHistoryList');
+            const allHistory = [];
+
+            // 現在の履歴を再構築して index に対応するエントリを取得
+            const callHistory = casesData[currentCaseId]?.callHistory || [];
+            const caseMemo = casesData[currentCaseId]?.caseMemo || '';
+
+            callHistory.forEach((item, originalIndex) => {
+                allHistory.push({
+                    timestamp: item.date || item.timestamp || '',
+                    note: item.note || '',
+                    nextCallDate: item.nextCallDate || '',
+                    source: 'callHistory',
+                    originalIndex: originalIndex
+                });
+            });
+
+            if (caseMemo && caseMemo.trim()) {
+                const memoLines = caseMemo.trim().split('\n');
+                memoLines.forEach(line => {
+                    if (line.trim()) {
+                        const match = line.match(/^([\d-]+\s+[\d:]+):\s*(.+)$/);
+                        if (match) {
+                            allHistory.push({
+                                timestamp: match[1],
+                                note: match[2],
+                                nextCallDate: '',
+                                source: 'caseMemo'
+                            });
+                        } else {
+                            const now = new Date();
+                            const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                            allHistory.push({
+                                timestamp: timestamp,
+                                note: line,
+                                nextCallDate: '',
+                                source: 'caseMemo'
+                            });
+                        }
+                    }
+                });
+            }
+
+            allHistory.sort((a, b) => {
+                const timeA = a.timestamp || '';
+                const timeB = b.timestamp || '';
+                return timeB.localeCompare(timeA);
+            });
+
+            const entry = allHistory[index];
+
+            if (!entry) {
+                alert('エントリが見つかりません');
+                return;
+            }
+
+            if (entry.source !== 'callHistory') {
+                alert('caseMemoエントリは削除できません。callHistoryエントリのみ削除可能です。');
+                return;
+            }
+
+            // 削除確認
+            if (!confirm(`この履歴エントリを削除しますか？\n\n${entry.timestamp}\n${entry.note}`)) {
+                return;
+            }
+
+            // 元のcallHistoryから削除
+            if (!casesData[currentCaseId].callHistory) {
+                casesData[currentCaseId].callHistory = [];
+            }
+
+            const originalIndex = entry.originalIndex;
+            casesData[currentCaseId].callHistory.splice(originalIndex, 1);
+
+            // 履歴を再表示
+            loadCallHistory();
+
+            // GASへ保存
+            try {
+                const callHistoryFormatted = casesData[currentCaseId].callHistory.map(item => {
+                    return {
+                        date: item.date || item.timestamp || '',
+                        note: item.note || '',
+                        nextCallDate: item.nextCallDate || ''
+                    };
+                });
+
+                const result = await window.apiClient.postRequest('updateCVData', {
+                    cvId: currentCaseId,
+                    data: {
+                        callHistory: JSON.stringify(callHistoryFormatted)
+                    }
+                });
+
+                if (result.success) {
+                    console.log('[CallHistory] 削除をスプレッドシートに保存成功:', { caseId: currentCaseId });
+                } else {
+                    console.error('[CallHistory] 削除の保存失敗:', result.error);
+                    alert('履歴の削除に失敗しました: ' + (result.error || '不明なエラー'));
+                }
+            } catch (error) {
+                console.error('[CallHistory] 保存エラー:', error);
+                alert('履歴の削除中にエラーが発生しました: ' + error.message);
+            }
+        }
+
         // 古いsaveAllData関数は削除（4878行目の非同期版を使用）
-        
+
         // 物件タイプのアイコンを取得
         function getPropertyIcon(propertyType) {
             const icons = {
