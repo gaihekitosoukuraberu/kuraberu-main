@@ -1594,8 +1594,8 @@ window.addEventListener('beforeunload', function(e) {
     <!-- 架電履歴モーダル -->
     <div id="callHistoryModal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/50" onclick="closeCallHistoryModal()"></div>
-        <div class="fixed inset-0 flex items-center justify-center p-2 sm:p-4">
-            <div class="bg-white rounded-lg shadow-xl p-4 sm:p-6 max-w-full sm:max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[80vh] overflow-y-auto">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-base sm:text-lg font-semibold text-gray-900">メモ</h3>
                     <button onclick="closeCallHistoryModal()" class="text-gray-400 hover:text-gray-600">
@@ -6468,7 +6468,10 @@ window.addEventListener('beforeunload', function(e) {
 
                 console.log('[Memo] スプレッドシートへ即座に保存中:', { caseId: currentCaseId, note, nextCallDate });
 
-                const result = await window.AdminAPI.updateCVData(currentCaseId, updateData);
+                const result = await window.apiClient.postRequest('updateCVData', {
+                    cvId: currentCaseId,
+                    data: updateData
+                });
 
                 if (result.success) {
                     console.log('[Memo] スプレッドシートへの保存成功:', { caseId: currentCaseId, note });
@@ -6999,8 +7002,11 @@ window.addEventListener('beforeunload', function(e) {
             // GASに保存
             try {
                 const formattedHistory = formatCallHistoryForGAS(casesData[caseId].callHistory);
-                const result = await window.AdminAPI.updateCVData(caseId, {
-                    callHistory: formattedHistory
+                const result = await window.apiClient.postRequest('updateCVData', {
+                    cvId: caseId,
+                    data: {
+                        callHistory: formattedHistory
+                    }
                 });
 
                 if (result.success) {
