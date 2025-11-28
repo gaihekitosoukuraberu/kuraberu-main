@@ -443,12 +443,18 @@ const BusinessSelectionHandler = {
     const merged = [];
     const seen = new Set();
 
+    // V1903: デバッグログ - rankings構造を確認
+    console.log('[V1903-DEBUG] mergeRankingData受信:', rankings);
+    console.log('[V1903-DEBUG] rankings型:', typeof rankings);
+    console.log('[V1903-DEBUG] rankings.recommended:', rankings?.recommended?.length, '件');
+    console.log('[V1903-DEBUG] rankings.cheap:', rankings?.cheap?.length, '件');
+
     // recommendedランキングを基準にマージ
     const lists = [
-      ...(rankings.recommended || []),
-      ...(rankings.cheap || []),
-      ...(rankings.review || []),
-      ...(rankings.premium || [])
+      ...(rankings?.recommended || []),
+      ...(rankings?.cheap || []),
+      ...(rankings?.review || []),
+      ...(rankings?.premium || [])
     ];
 
     lists.forEach(business => {
