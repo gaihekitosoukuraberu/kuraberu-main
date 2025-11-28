@@ -612,42 +612,51 @@ const BusinessSelectionHandler = {
 
   /**
    * V1961: 距離計算を遅延実行（距離順ソート時のみ）
+   * V1962: propertyStreet フィールド名を修正 + デバッグログ強化
    * 起点住所が取得できた場合のみ距離を計算
    */
   async ensureDistancesCalculated() {
     // 既に計算済みの場合はスキップ
     if (this.distancesCalculated) {
-      console.log('[V1961] 距離計算は既に完了しています');
+      console.log('[V1962] 距離計算は既に完了しています');
       return;
     }
 
     try {
-      console.log('[V1961] 距離計算を開始します');
+      console.log('[V1962] 距離計算を開始します');
 
       // 現在の案件データから住所情報を取得
       const currentCaseData = this.currentCaseData || {};
       const originPostalCode = currentCaseData.postalCode || '';
       const originPrefecture = currentCaseData.prefecture || '';
       const originCity = currentCaseData.city || '';
-      const originDetail = currentCaseData.addressDetail || '';
+      const originDetail = currentCaseData.propertyStreet || ''; // V1962: addressDetail → propertyStreet に修正
+
+      // デバッグ: 住所パーツを出力
+      console.log('[V1962] 住所データ:', {
+        postalCode: originPostalCode,
+        prefecture: originPrefecture,
+        city: originCity,
+        propertyStreet: originDetail
+      });
 
       // 起点住所を構築: 都道府県 + 市区町村 + 住所詳細
       const originAddress = `${originPrefecture}${originCity}${originDetail}`.trim();
 
       if (!originAddress) {
-        console.warn('[V1961] 起点住所が取得できないため距離計算をスキップ');
+        console.warn('[V1962] 起点住所が取得できないため距離計算をスキップ');
         this.distancesCalculated = true; // 計算不可能なのでフラグを立てる
         return;
       }
 
-      console.log('[V1961] 起点住所:', originAddress);
+      console.log('[V1962] 起点住所:', originAddress);
 
       // V1947: 郵便番号フィルタリング（パフォーマンス最適化）
       let franchisesForDistance = this.allFranchises;
       if (originPostalCode && originPostalCode.length === 7 && this.allFranchises.length > 10) {
-        console.log('[V1961] 郵便番号フィルタリングを実行（業者数: ' + this.allFranchises.length + '）');
+        console.log('[V1962] 郵便番号フィルタリングを実行（業者数: ' + this.allFranchises.length + '）');
         franchisesForDistance = this.filterByPostalCode(originPostalCode, this.allFranchises, 10);
-        console.log('[V1961] フィルタリング後の業者数: ' + franchisesForDistance.length);
+        console.log('[V1962] フィルタリング後の業者数: ' + franchisesForDistance.length);
       }
 
       // 距離計算（フィルタリングされた業者のみ）
@@ -672,10 +681,10 @@ const BusinessSelectionHandler = {
       });
 
       this.distancesCalculated = true;
-      console.log('[V1961] 距離情報計算完了');
+      console.log('[V1962] 距離情報計算完了');
 
     } catch (error) {
-      console.error('[V1961] 距離計算エラー:', error);
+      console.error('[V1962] 距離計算エラー:', error);
       this.distancesCalculated = true; // エラーが発生しても再試行しないようフラグを立てる
     }
   },
