@@ -176,6 +176,10 @@ const CVListManager = {
         floors: cv.floors || ''
       }, companiesCount);
 
+      // V1952: 合計紹介料 = 1社あたり紹介料 × 希望社数
+      const totalFee = calculatedFee * companiesCount;
+      const formattedAmount = this.formatCompactFee(totalFee);
+
       // casesData形式に変換
       casesData[caseId] = {
         // 基本情報（GASから返されるフィールド名を使用）
@@ -230,7 +234,7 @@ const CVListManager = {
         status: cv.status || '新規',
         deliveryStatus: cv.deliveryStatus || '未配信',
         date: this.parseDate(cv.registeredAt),
-        amount: window.FeeCalculator.formatFee(calculatedFee),
+        amount: formattedAmount,
         franchiseStatuses: this.parseFranchiseStatuses(cv.franchiseStatuses),
 
         // 業者選定履歴（AS列）V1879
@@ -267,6 +271,27 @@ const CVListManager = {
     if (cv.propertyStreet) parts.push(cv.propertyStreet);
 
     return parts.join('');
+  },
+
+  /**
+   * 紹介料をコンパクト表記に変換
+   * V1952: ¥60,000 → ¥60K のように表示
+   * @param {number} fee - 紹介料（円）
+   * @returns {string} コンパクト表記（例: "¥60K", "¥15K"）
+   */
+  formatCompactFee(fee) {
+    if (fee === 0) return '¥0';
+
+    // 千円単位に変換
+    if (fee >= 1000) {
+      const kValue = fee / 1000;
+      // 整数の場合は小数点なし、小数の場合は小数点1桁まで表示
+      const formattedK = kValue % 1 === 0 ? kValue : kValue.toFixed(1);
+      return `¥${formattedK}K`;
+    }
+
+    // 1000円未満の場合はそのまま表示
+    return `¥${fee}`;
   },
 
   /**
