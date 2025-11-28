@@ -609,12 +609,14 @@ const BusinessSelectionHandler = {
       console.log('[BusinessSelection] 距離計算開始:', originAddress);
 
       // GASに距離計算を依頼
+      const destinationsArray = franchises.map(f => {
+        // 支店住所があれば支店、なければ本社住所を使用
+        return f.city ? `${f.serviceAreas[0]}${f.city}` : f.serviceAreas[0];
+      });
+
       const response = await window.apiClient.jsonpRequest('calculateDistances', {
         origin: originAddress,
-        destinations: franchises.map(f => {
-          // 支店住所があれば支店、なければ本社住所を使用
-          return f.city ? `${f.serviceAreas[0]}${f.city}` : f.serviceAreas[0];
-        })
+        destinations: JSON.stringify(destinationsArray) // V1958: 配列をJSON文字列化
       });
 
       if (!response || !response.success) {
