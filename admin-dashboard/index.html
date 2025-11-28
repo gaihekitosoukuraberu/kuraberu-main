@@ -6674,7 +6674,11 @@ window.addEventListener('beforeunload', function(e) {
 
             const timestamp = new Date().toLocaleString('ja-JP');
             const nextCallDate = document.getElementById('nextCallDate').value;
-            const nextCallTime = document.getElementById('nextCallTime').value;
+            const nextCallHour = document.getElementById('nextCallHour')?.value || '';
+            const nextCallMinute = document.getElementById('nextCallMinute')?.value || '';
+
+            // 時間を結合（両方入力されている場合）
+            const nextCallTime = (nextCallHour && nextCallMinute) ? `${nextCallHour}:${nextCallMinute}` : '';
 
             // 日付と時間を結合（両方入力されている場合）
             let nextCallDateTime = '';
@@ -6700,7 +6704,10 @@ window.addEventListener('beforeunload', function(e) {
             // UIリセット
             document.getElementById('newCallNote').value = '';
             document.getElementById('nextCallDate').value = '';
-            document.getElementById('nextCallTime').value = '';
+            const hourEl = document.getElementById('nextCallHour');
+            const minuteEl = document.getElementById('nextCallMinute');
+            if (hourEl) hourEl.value = '';
+            if (minuteEl) minuteEl.value = '';
 
             // 履歴を再表示
             loadCallHistory();
@@ -6786,6 +6793,25 @@ window.addEventListener('beforeunload', function(e) {
             ).join('');
         }
         
+        // 選択された履歴エントリのインデックス（モバイル用）
+        let selectedHistoryIndex = null;
+
+        // 履歴エントリの選択をトグル（モバイル用2段階タップ）
+        function toggleHistorySelection(index, event) {
+            event.stopPropagation();
+
+            if (selectedHistoryIndex === index) {
+                // 既に選択されている場合は選択解除
+                selectedHistoryIndex = null;
+            } else {
+                // 新しいエントリを選択
+                selectedHistoryIndex = index;
+            }
+
+            // 表示を更新
+            loadCallHistory();
+        }
+
         // 架電履歴を読み込み
         function loadCallHistory() {
             const historyList = document.getElementById('callHistoryList');
@@ -6808,33 +6834,41 @@ window.addEventListener('beforeunload', function(e) {
 
             // メモがある場合、タイムスタンプ付きエントリとして追加
             if (caseMemo && caseMemo.trim()) {
-                // メモが複数行の場合、各行を個別のエントリとして扱う
-                const memoLines = caseMemo.trim().split('\n');
-                memoLines.forEach(line => {
-                    if (line.trim()) {
-                        // "YYYY-MM-DD HH:MM: テキスト" 形式かチェック
-                        const match = line.match(/^([\d-]+\s+[\d:]+):\s*(.+)$/);
-                        if (match) {
-                            // タイムスタンプ付きメモ
-                            allHistory.push({
-                                timestamp: match[1],
-                                note: match[2],
-                                nextCallDate: '',
-                                source: 'caseMemo'
-                            });
-                        } else {
-                            // タイムスタンプなしのメモは現在時刻で追加
-                            const now = new Date();
-                            const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-                            allHistory.push({
-                                timestamp: timestamp,
-                                note: line,
-                                nextCallDate: '',
-                                source: 'caseMemo'
-                            });
+                // JSON形式かチェック（配列またはオブジェクト）
+                const trimmedMemo = caseMemo.trim();
+                if ((trimmedMemo.startsWith('[') && trimmedMemo.endsWith(']')) ||
+                    (trimmedMemo.startsWith('{') && trimmedMemo.endsWith('}'))) {
+                    // JSON形式の場合はスキップ（callHistoryとして既に処理されているはず）
+                    console.warn('[loadCallHistory] caseMemoにJSON形式のデータが含まれていますがスキップします:', trimmedMemo.substring(0, 100));
+                } else {
+                    // メモが複数行の場合、各行を個別のエントリとして扱う
+                    const memoLines = trimmedMemo.split('\n');
+                    memoLines.forEach(line => {
+                        if (line.trim()) {
+                            // "YYYY-MM-DD HH:MM: テキスト" 形式かチェック
+                            const match = line.match(/^([\d-]+\s+[\d:]+):\s*(.+)$/);
+                            if (match) {
+                                // タイムスタンプ付きメモ
+                                allHistory.push({
+                                    timestamp: match[1],
+                                    note: match[2],
+                                    nextCallDate: '',
+                                    source: 'caseMemo'
+                                });
+                            } else {
+                                // タイムスタンプなしのメモは現在時刻で追加
+                                const now = new Date();
+                                const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                                allHistory.push({
+                                    timestamp: timestamp,
+                                    note: line,
+                                    nextCallDate: '',
+                                    source: 'caseMemo'
+                                });
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
 
             if (allHistory.length === 0) {
@@ -6853,9 +6887,12 @@ window.addEventListener('beforeunload', function(e) {
             historyList.innerHTML = allHistory.map((item, index) => {
                 // callHistoryエントリのみ編集・削除可能（caseMemoは読み取り専用）
                 const isEditable = item.source === 'callHistory';
+                const isSelected = selectedHistoryIndex === index;
+                // 選択されているか、hoverの時にボタンを表示
+                const buttonVisibilityClass = isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100';
 
                 return `
-                    <div class="border-l-4 ${isEditable ? 'border-blue-500' : 'border-gray-400'} pl-4 py-2 group hover:bg-gray-50 rounded-r transition-all" data-history-index="${index}">
+                    <div class="border-l-4 ${isEditable ? 'border-blue-500' : 'border-gray-400'} pl-4 py-2 group hover:bg-gray-50 rounded-r transition-all ${isSelected ? 'bg-blue-50' : ''}" data-history-index="${index}" onclick="toggleHistorySelection(${index}, event)">
                         <div class="flex justify-between items-start gap-3">
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm text-gray-600">${item.timestamp}</p>
@@ -6863,16 +6900,16 @@ window.addEventListener('beforeunload', function(e) {
                                 ${item.nextCallDate ? `<p class="text-sm text-blue-600 mt-1">次回架電: ${item.nextCallDate}</p>` : ''}
                             </div>
                             ${isEditable ? `
-                                <div class="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0">
+                                <div class="flex gap-1.5 ${buttonVisibilityClass} transition-opacity duration-200 flex-shrink-0">
                                     <button
-                                        onclick="editCallHistoryEntry(${index})"
+                                        onclick="editCallHistoryEntry(${index}); event.stopPropagation();"
                                         class="text-blue-600 hover:text-white hover:bg-blue-600 text-xs px-2.5 py-1.5 rounded-md transition-all font-medium"
                                         title="編集"
                                     >
                                         編集
                                     </button>
                                     <button
-                                        onclick="deleteCallHistoryEntry(${index})"
+                                        onclick="deleteCallHistoryEntry(${index}); event.stopPropagation();"
                                         class="text-red-600 hover:text-white hover:bg-red-600 text-xs px-2.5 py-1.5 rounded-md transition-all font-medium"
                                         title="削除"
                                     >
@@ -6905,30 +6942,43 @@ window.addEventListener('beforeunload', function(e) {
                 });
             });
 
+            // メモがある場合、タイムスタンプ付きエントリとして追加
             if (caseMemo && caseMemo.trim()) {
-                const memoLines = caseMemo.trim().split('\n');
-                memoLines.forEach(line => {
-                    if (line.trim()) {
-                        const match = line.match(/^([\d-]+\s+[\d:]+):\s*(.+)$/);
-                        if (match) {
-                            allHistory.push({
-                                timestamp: match[1],
-                                note: match[2],
-                                nextCallDate: '',
-                                source: 'caseMemo'
-                            });
-                        } else {
-                            const now = new Date();
-                            const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-                            allHistory.push({
-                                timestamp: timestamp,
-                                note: line,
-                                nextCallDate: '',
-                                source: 'caseMemo'
-                            });
+                // JSON形式かチェック（配列またはオブジェクト）
+                const trimmedMemo = caseMemo.trim();
+                if ((trimmedMemo.startsWith('[') && trimmedMemo.endsWith(']')) ||
+                    (trimmedMemo.startsWith('{') && trimmedMemo.endsWith('}'))) {
+                    // JSON形式の場合はスキップ（callHistoryとして既に処理されているはず）
+                    console.warn('[editCallHistoryEntry] caseMemoにJSON形式のデータが含まれていますがスキップします:', trimmedMemo.substring(0, 100));
+                } else {
+                    // メモが複数行の場合、各行を個別のエントリとして扱う
+                    const memoLines = trimmedMemo.split('\n');
+                    memoLines.forEach(line => {
+                        if (line.trim()) {
+                            // "YYYY-MM-DD HH:MM: テキスト" 形式かチェック
+                            const match = line.match(/^([\d-]+\s+[\d:]+):\s*(.+)$/);
+                            if (match) {
+                                // タイムスタンプ付きメモ
+                                allHistory.push({
+                                    timestamp: match[1],
+                                    note: match[2],
+                                    nextCallDate: '',
+                                    source: 'caseMemo'
+                                });
+                            } else {
+                                // タイムスタンプなしのメモは現在時刻で追加
+                                const now = new Date();
+                                const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                                allHistory.push({
+                                    timestamp: timestamp,
+                                    note: line,
+                                    nextCallDate: '',
+                                    source: 'caseMemo'
+                                });
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
 
             allHistory.sort((a, b) => {
