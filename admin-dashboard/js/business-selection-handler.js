@@ -1711,47 +1711,53 @@ const BusinessSelectionHandler = {
       additionalInfo += '</div>';
     }
 
-    // V1955: iPhone SE最適化 - 会社名を最上部に配置（モバイル時）
+    // V1956: モバイル完全縦積みレイアウト - 左寄せ最適化
     div.innerHTML = `
-      <div>
-        <!-- モバイル: 会社名を最上部に表示 / PC: 横並びレイアウト -->
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-          <!-- 会社名セクション（モバイル: 最上部・横幅100% / PC: 左側に配置） -->
-          <div class="flex items-center gap-2 md:flex-1 md:min-w-0">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+        <!-- 左側コンテンツ（モバイル: 縦積み / PC: 横並び） -->
+        <div class="flex-1">
+          <!-- 1行目: 順位 + チェックボックス（モバイル: 左寄せ / PC: 会社名と同じ行） -->
+          <div class="flex items-center gap-2 mb-1.5 md:mb-0">
             <div class="text-lg font-semibold text-pink-600 flex-shrink-0 w-7">${card.rank}</div>
             <input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="w-5 h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">
-            <div class="flex-1 min-w-0">
-              <!-- 会社名 + アイコン -->
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <div class="font-semibold text-gray-900 text-base leading-tight">${card.companyName}</div>
-                ${card.isUserSelected ? '<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();"><span class="inline-flex items-center justify-center w-5 h-5 bg-pink-600 text-white rounded"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg></span><span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">ユーザー選択</span></span>' : ''}
-                <span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
-                  <span class="inline-flex items-center justify-center w-5 h-5 text-yellow-500">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
-                  </span>
-                  <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded transition-opacity duration-200 z-50 pointer-events-none min-w-max max-w-sm" style="writing-mode: horizontal-tb !important;">
-                    ${addressTooltip}
-                  </span>
-                </span>
-              </div>
-              <!-- 評価・距離情報（モバイル: 会社名の下 / PC: 会社名の下） -->
-              ${additionalInfo}
+            <!-- PC時のみ: 会社名を同じ行に表示 -->
+            <div class="hidden md:block flex-1 min-w-0">
+              <div class="font-semibold text-gray-900 text-base leading-tight">${card.companyName}</div>
             </div>
           </div>
 
-          <!-- マッチ率・金額セクション（モバイル: 2行目右端 / PC: 右端） -->
-          <div class="text-right flex-shrink-0 ml-auto pl-2">
-            <div id="${matchRateId}" class="inline-block px-2 py-0.5 rounded-full text-xs font-bold cursor-pointer hover:shadow-lg transition-shadow ${matchRateColor}"
-                 onclick="event.stopPropagation();"
-                 title="クリックで詳細を表示">
-              ${card.matchRate}%
-            </div>
-            <div class="mt-1 text-sm font-bold text-green-600 whitespace-nowrap">
-              ${formattedPrice}
-            </div>
+          <!-- 2行目: 会社名（モバイルのみ / PC: 非表示） -->
+          <div class="md:hidden mb-1.5">
+            <div class="font-semibold text-gray-900 text-base leading-tight">${card.companyName}</div>
+          </div>
+
+          <!-- 3行目: アイコン類（ユーザー選択、地図、星評価・距離） -->
+          <div class="flex items-center gap-2 flex-wrap">
+            ${card.isUserSelected ? '<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();"><span class="inline-flex items-center justify-center w-5 h-5 bg-pink-600 text-white rounded"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg></span><span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">ユーザー選択</span></span>' : ''}
+            <span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
+              <span class="inline-flex items-center justify-center w-5 h-5 text-yellow-500">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+              </span>
+              <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded transition-opacity duration-200 z-50 pointer-events-none min-w-max max-w-sm" style="writing-mode: horizontal-tb !important;">
+                ${addressTooltip}
+              </span>
+            </span>
+            ${additionalInfo}
+          </div>
+        </div>
+
+        <!-- 右側: マッチ率・金額（モバイル: 右下 / PC: 右端） -->
+        <div class="text-right flex-shrink-0 self-end md:self-center">
+          <div id="${matchRateId}" class="inline-block px-2 py-0.5 rounded-full text-xs font-bold cursor-pointer hover:shadow-lg transition-shadow ${matchRateColor}"
+               onclick="event.stopPropagation();"
+               title="クリックで詳細を表示">
+            ${card.matchRate}%
+          </div>
+          <div class="mt-1 text-sm font-bold text-green-600 whitespace-nowrap">
+            ${formattedPrice}
           </div>
         </div>
       </div>
