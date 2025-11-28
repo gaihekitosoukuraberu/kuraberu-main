@@ -338,7 +338,20 @@ const CVListManager = {
     if (!callHistoryStr) return [];
 
     try {
-      // 改行で分割
+      // Check if it's JSON format (new format from V1893+)
+      const trimmed = callHistoryStr.trim();
+      if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+        const parsed = JSON.parse(callHistoryStr);
+        // Ensure it's an array
+        const array = Array.isArray(parsed) ? parsed : [parsed];
+        return array.map(item => ({
+          date: item.date || item.timestamp || '',
+          note: item.note || '',
+          nextCallDate: item.nextCallDate || ''
+        }));
+      }
+
+      // Legacy format: newline-delimited text
       const lines = callHistoryStr.split('\n').filter(line => line.trim());
 
       return lines.map(line => {
@@ -348,14 +361,16 @@ const CVListManager = {
         if (match) {
           return {
             date: match[1],
-            note: match[2]
+            note: match[2],
+            nextCallDate: ''
           };
         }
 
         // フォーマットが異なる場合はそのまま
         return {
           date: '',
-          note: line
+          note: line,
+          nextCallDate: ''
         };
       });
     } catch (error) {
