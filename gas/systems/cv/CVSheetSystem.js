@@ -1301,6 +1301,9 @@ const CVSheetSystem = {
       if (data.constructionTiming !== undefined) sheet.getRange(targetRow, 80).setValue(data.constructionTiming); // CA列: 施工時期
       if (data.companiesCount !== undefined) sheet.getRange(targetRow, 81).setValue(data.companiesCount); // CB列: 希望社数
       if (data.surveyAttendance !== undefined) sheet.getRange(targetRow, 82).setValue(data.surveyAttendance); // CC列: 立ち会い可否
+
+      // V1901: 業者選択履歴（双方向同期）
+      if (data.businessHistory !== undefined) sheet.getRange(targetRow, 45).setValue(data.businessHistory); // AS列: 業者選定履歴
       if (data.attendanceRelation !== undefined) sheet.getRange(targetRow, 83).setValue(data.attendanceRelation); // CD列: 立ち会い者関係性
       if (data.specialItems !== undefined) {
         const specialItemsStr = Array.isArray(data.specialItems) ? data.specialItems.join('、') : data.specialItems;
