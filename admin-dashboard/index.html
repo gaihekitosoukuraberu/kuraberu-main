@@ -6558,10 +6558,27 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
+        // V1945: ステータスモーダルを表示のみ（トグルではない）
+        function showStatusModal() {
+            const modal = document.getElementById('statusModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                console.log('[showStatusModal] ステータスモーダル表示');
+            }
+        }
+
+        // V1945: ステータスモーダルを非表示のみ
+        function hideStatusModal() {
+            const modal = document.getElementById('statusModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
         // ステータスを選択
         function selectCRMStatus(status) {
             changeCRMStatus(status);
-            toggleStatusModal();
+            hideStatusModal();  // V1945: toggleではなくhide
 
             // V1941: 📞後のフローならメモモーダルを開く
             if (afterCallFlow) {
@@ -6769,16 +6786,23 @@ window.addEventListener('beforeunload', function(e) {
             alert('架電履歴を追加しました。リロードして確認してください。');
         }
 
-        // V1943: ブラウザ復帰時のモーダル表示（通話終了後）
+        // V1945: ブラウザ復帰時のモーダル表示（通話終了後）- 改善版
+        let visibilityChangeHandled = false;  // 重複発火防止フラグ
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible' && afterCallFlow) {
+            console.log('[visibilitychange] 状態:', document.visibilityState, 'afterCallFlow:', afterCallFlow, 'handled:', visibilityChangeHandled);
+
+            if (document.visibilityState === 'visible' && afterCallFlow && !visibilityChangeHandled) {
+                visibilityChangeHandled = true;  // 重複防止
+
                 // 少し遅延してから表示（ブラウザが完全にフォーカスを取得してから）
                 setTimeout(() => {
-                    if (afterCallFlow && currentCaseId) {
+                    if (currentCaseId) {
                         console.log('[visibilitychange] 通話終了、ステータスモーダル表示');
-                        toggleStatusModal();
+                        showStatusModal();  // toggleではなくshow
                     }
-                }, 500);
+                    // フラグをリセット（次の架電のため）
+                    visibilityChangeHandled = false;
+                }, 800);
             }
         });
 
