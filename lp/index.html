@@ -2969,7 +2969,19 @@
         // 見積もりフォーム関連（V1925: シンプル化）
         // ============================================
         function startEstimateForm() {
-            console.log('📝 見積もりフォーム開始');
+            console.log('📝 startEstimateForm() 開始');
+
+            // デバッグ: モーダル要素の存在確認
+            const estimateModal = document.getElementById('estimateFormModal');
+            const keepModal = document.getElementById('keepModal');
+            console.log('📋 estimateFormModal 存在:', !!estimateModal);
+            console.log('📋 keepModal 存在:', !!keepModal);
+
+            if (!estimateModal) {
+                console.error('❌ estimateFormModal が見つかりません！');
+                alert('エラー: 見積もりフォームが見つかりません。ページを再読み込みしてください。');
+                return;
+            }
 
             // モバイル進捗バーを非表示
             const mobileProgressBarContainer = document.getElementById('mobileProgressBar');
@@ -2977,17 +2989,18 @@
                 mobileProgressBarContainer.classList.add('hidden');
             }
 
-            // 無料見積もりボタンを非表示
-            const estimateBtnContainer = document.getElementById('estimateBtnContainer');
-            if (estimateBtnContainer) {
-                estimateBtnContainer.style.display = 'none';
+            // キープモーダルを閉じる（スクロールロック維持）
+            if (keepModal) {
+                keepModal.classList.add('hidden');
+                console.log('✅ keepModal を非表示にしました');
             }
 
-            // キープモーダルを閉じる（スクロールロック維持）
-            closeKeepModal(true);
+            // 見積もりフォームモーダルを表示
+            estimateModal.classList.remove('hidden');
+            console.log('✅ estimateFormModal を表示しました');
 
             // 郵便番号を自動入力
-            if (window.BotConfig && window.BotConfig.state.currentZipcode) {
+            if (window.BotConfig && window.BotConfig.state && window.BotConfig.state.currentZipcode) {
                 const propertyZipField = document.getElementById('propertyZip');
                 if (propertyZipField) {
                     const zipcode = window.BotConfig.state.currentZipcode;
@@ -3000,17 +3013,7 @@
                 }
             }
 
-            // 見積もりフォームモーダルを表示
-            const modal = document.getElementById('estimateFormModal');
-            if (modal) {
-                modal.classList.remove('hidden');
-                // V1925: スクロールは既にロック済み（lockScroll()不要）
-                console.log('✅ 見積もりフォーム表示');
-            } else {
-                console.error('❌ estimateFormModalが見つかりません');
-                // モーダルがない場合はスクロールをアンロック
-                unlockScroll();
-            }
+            console.log('✅ startEstimateForm() 完了');
         }
 
         // 完了画面を表示（V1674 - モーダルではなくフォーム内に表示）
