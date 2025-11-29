@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1954 - デバッグ強化）
-  CACHE_BUSTER: 'v1764414056-v1954'
+  // キャッシュバスター（V1955 - onclick内alert）
+  CACHE_BUSTER: 'v1764414056-v1955'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
