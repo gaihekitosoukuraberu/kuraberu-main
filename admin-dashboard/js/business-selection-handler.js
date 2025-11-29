@@ -1102,8 +1102,9 @@ const BusinessSelectionHandler = {
 
         displayFranchises = [...checkedFranchises, ...uncheckedUserSelected, ...others];
         console.log('[V1911-USER] 3段階グループ: ✓', checkedFranchises.length, '→ AS列', uncheckedUserSelected.length, '(', this.userSelectedCompanies, ') → 他', others.length);
-      } else if (currentCheckedCompanies.length > 0) {
-        // それ以外のソート: チェック済み → マッチ度/ソート条件順
+      } else {
+        // V1912: ユーザー選択以外のソート: チェック済み → マッチ度/ソート条件順
+        // AS列業者の優先なし（マッチ度優先）
         const checkedFranchises = displayFranchises.filter(f =>
           currentCheckedCompanies.includes(f.companyName)
         );
@@ -1112,10 +1113,7 @@ const BusinessSelectionHandler = {
         ).slice(0, limit);
 
         displayFranchises = [...checkedFranchises, ...uncheckedFranchises];
-        console.log('[V1909-OTHER] チェック済み先頭: ✓', checkedFranchises.length, '件 → 未', uncheckedFranchises.length, '件');
-      } else {
-        // チェックなし: 通常の件数制限
-        displayFranchises = displayFranchises.slice(0, limit);
+        console.log('[V1912-OTHER] sortType:', sortType, 'チェック済み:', checkedFranchises.length, '→ 未チェック（マッチ度順）:', uncheckedFranchises.map(f => f.companyName + '(' + (f._matchRate || '?') + '%)').join(', '));
       }
     }
 
