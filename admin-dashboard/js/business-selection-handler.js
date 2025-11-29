@@ -1079,6 +1079,9 @@ const BusinessSelectionHandler = {
       // === 通常モード: ソート順で表示 ===
       displayFranchises = this.sortFranchises(sortType, allFranchises);
 
+      // V1913: ソート後の順序をログ出力（デバッグ用）
+      console.log('[V1913-SORT] sortType:', sortType, '→ ソート後順序:', displayFranchises.slice(0, 6).map(f => f.companyName + '(距離:' + (f.distance || '?') + ',マッチ:' + (f._matchRate || '?') + '%)').join(' → '));
+
       // V1909: ソートタイプに応じたグループ化
       const limit = showAll ? 8 : 4;
 
