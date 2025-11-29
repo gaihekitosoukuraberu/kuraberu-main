@@ -802,7 +802,12 @@ const BusinessSelectionHandler = {
       return [...userSelected, ...others];
     }
 
-    // V1907: それ以外のソート（距離順、おすすめ順、安い順、口コミ順、高品質順）
+    // V1908: 距離順は純粋に距離でソート（マッチ度グループ化なし）
+    if (sortType === 'distance') {
+      return this.sortByDistance(allWithMatchRate);
+    }
+
+    // V1907: それ以外のソート（おすすめ順、安い順、口コミ順、高品質順）
     // マッチ度でグループ化し、各グループ内でソート条件を適用
     const groupedByMatchRate = {};
     allWithMatchRate.forEach(f => {
@@ -837,10 +842,6 @@ const BusinessSelectionHandler = {
           case 'premium':
             // 高品質順: 高額順
             group = this.sortByPremium(group);
-            break;
-          case 'distance':
-            // 距離順: 距離昇順
-            group = this.sortByDistance(group);
             break;
           default:
             // デフォルトはマッチ度順のまま
