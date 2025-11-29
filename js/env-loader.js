@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1862 - 2025-11-26T03:10:40 - デプロイメントID更新）
-  CACHE_BUSTER: 'v1764390212962-q2ee5r'
+  // キャッシュバスター（V1923 - LP modal fix）
+  CACHE_BUSTER: 'v1764391800-lp1923'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
