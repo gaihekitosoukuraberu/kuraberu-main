@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1973 - 次回架電日/流入日フィルタ統合）
-  CACHE_BUSTER: 'v1973-date-filter'
+  CACHE_BUSTER: 'v1764428671-fe11c524'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
