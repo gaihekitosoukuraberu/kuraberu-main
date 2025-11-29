@@ -5152,7 +5152,7 @@ window.addEventListener('beforeunload', function(e) {
             document.getElementById('sortModal').classList.add('hidden');
         }
 
-        // V1958: 逆順切替（件数表示をタップで切替）
+        // V1969: 逆順切替（件数表示をタップで切替）
         function toggleSortOrder() {
             isReversed = !isReversed;
 
@@ -5162,8 +5162,8 @@ window.addEventListener('beforeunload', function(e) {
                 indicator.textContent = isReversed ? '↑' : '↓';
             }
 
-            // リストを再読み込み
-            loadCVList();
+            // V1969: リストを再描画（initializeListViewを使用）
+            initializeListView();
 
             console.log('[toggleSortOrder] 逆順:', isReversed);
         }
