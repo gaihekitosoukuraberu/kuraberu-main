@@ -778,40 +778,34 @@ const BusinessSelectionHandler = {
    * @returns {Array} ソート済み業者リスト
    */
   sortFranchises(sortType, franchises) {
-    // AS列業者とそれ以外に分離
-    const userSelected = [];
-    const others = [];
+    // V1907: ユーザー選択ソート時のみAS列業者を上部固定
+    // それ以外のソートではマッチ度優先
 
-    franchises.forEach(f => {
-      const isUserSelected = this.isUserSelected(f.companyName);
-      if (isUserSelected) {
-        userSelected.push(f);
-      } else {
-        others.push(f);
-      }
-    });
-
-    // V1890: マッチ度を計算して各業者に付与
-    const othersWithMatchRate = others.map(f => {
+    // 全業者にマッチ度を付与
+    const allWithMatchRate = franchises.map(f => {
       const matchResult = this.calculateMatchRate(f);
       return {
         ...f,
-        _matchRate: matchResult.total
+        _matchRate: matchResult.total,
+        _isUserSelected: this.isUserSelected(f.companyName)
       };
     });
 
-    // V1890: 三段階ソート実装（ユーザー選択 > マッチ度 > ソート条件）
-    let sortedOthers = [...othersWithMatchRate];
+    // V1907: ユーザー選択ソート時のみAS列業者を先頭に
+    if (sortType === 'user') {
+      const userSelected = allWithMatchRate.filter(f => f._isUserSelected);
+      const others = allWithMatchRate.filter(f => !f._isUserSelected);
 
-    // 第一段階: マッチ度でソート（降順 = 高い方が優先）
-    sortedOthers.sort((a, b) => {
-      return (b._matchRate || 0) - (a._matchRate || 0);
-    });
+      // othersはマッチ度でソート
+      others.sort((a, b) => (b._matchRate || 0) - (a._matchRate || 0));
 
-    // 第二段階: マッチ度が同じ場合、ソート条件を適用
-    // Stable sortを実現するため、同じマッチ度のグループごとにソート
+      return [...userSelected, ...others];
+    }
+
+    // V1907: それ以外のソート（距離順、おすすめ順、安い順、口コミ順、高品質順）
+    // マッチ度でグループ化し、各グループ内でソート条件を適用
     const groupedByMatchRate = {};
-    sortedOthers.forEach(f => {
+    allWithMatchRate.forEach(f => {
       const rate = f._matchRate || 0;
       if (!groupedByMatchRate[rate]) {
         groupedByMatchRate[rate] = [];
@@ -820,7 +814,7 @@ const BusinessSelectionHandler = {
     });
 
     // 各マッチ度グループ内でソート条件を適用
-    sortedOthers = [];
+    let sortedAll = [];
     Object.keys(groupedByMatchRate)
       .sort((a, b) => parseFloat(b) - parseFloat(a)) // マッチ度降順
       .forEach(rate => {
@@ -828,8 +822,8 @@ const BusinessSelectionHandler = {
 
         // sortTypeに応じてグループ内をソート
         switch (sortType) {
-          case 'user':
-            // ユーザー選択（おすすめ順）: 売上高順
+          case 'recommended':
+            // おすすめ順: 売上高順
             group = this.sortByRevenue(group);
             break;
           case 'cheap':
@@ -853,12 +847,10 @@ const BusinessSelectionHandler = {
             break;
         }
 
-        sortedOthers.push(...group);
+        sortedAll.push(...group);
       });
 
-    // AS列業者を最初に配置（希望社数分の枠を占有）
-    // V1890: ユーザー選択 > マッチ度 > ソート条件 の三段階ソート完成
-    return [...userSelected, ...sortedOthers];
+    return sortedAll;
   },
 
   /**
