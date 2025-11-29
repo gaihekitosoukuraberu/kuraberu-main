@@ -5641,12 +5641,7 @@ window.addEventListener('beforeunload', function(e) {
 
                 pageCases.forEach(([caseId, caseData]) => {
                     const statusColor = getStatusColor(caseData.status);
-                    const fee = calculateIntroductionFee(
-                        caseData.workItems,
-                        caseData.propertyType,
-                        caseData.floors,
-                        caseData.companiesCount
-                    );
+                    // V1935: caseData.amountを直接使用（モバイルビュー）
 
                     const card = document.createElement('div');
                     card.className = 'bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-shadow';
@@ -5663,7 +5658,7 @@ window.addEventListener('beforeunload', function(e) {
                                 <div class="text-xs text-gray-500 mt-1">${caseData.address || '住所未設定'}</div>
                             </div>
                             <div class="text-right">
-                                <div class="text-sm font-semibold text-emerald-600">¥${Math.round(fee / 1000)}K</div>
+                                <div class="text-sm font-semibold text-emerald-600">${caseData.amount || '¥0'}</div>
                                 <div class="text-xs text-gray-500 mt-1">
                                     ${getPropertyIcon(caseData.propertyType)} ${getFloorDisplay(caseData.propertyType, caseData.floors)}
                                 </div>

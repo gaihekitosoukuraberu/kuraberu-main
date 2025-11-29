@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1935 - リスト表示でcaseData.amount使用）
-  CACHE_BUSTER: 'v1764403695-fe5ffa3a'
+  // キャッシュバスター（V1935b - モバイルビューも修正）
+  CACHE_BUSTER: 'v1764404000-v1935b'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
