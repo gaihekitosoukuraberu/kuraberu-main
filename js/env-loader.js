@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1980 - 転送メッセージに業者選定条件・連絡時間帯・特殊項目追加）
-  CACHE_BUSTER: 'v1980-transfer-extra-fields'
+  CACHE_BUSTER: 'v1764440070-fe666554'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
