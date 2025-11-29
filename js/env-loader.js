@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1923 - LP modal fix）
-  CACHE_BUSTER: 'v1764397707-fe107df1'
+  // キャッシュバスター（V1928 - companiesCountPreference fix）
+  CACHE_BUSTER: 'v1764397800-v1928fix'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
