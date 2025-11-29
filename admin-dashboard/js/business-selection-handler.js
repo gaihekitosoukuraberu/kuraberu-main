@@ -208,6 +208,7 @@ const BusinessSelectionHandler = {
   currentCaseData: null,
   allFranchises: [],          // RankingSystemから取得した全業者
   userSelectedCompanies: [],  // AS列の業者名配列
+  originalDesiredCount: '',   // V1911: スプシCB列からの希望社数（変更不可）
   currentSortType: 'user',    // 現在のソート順
   showAll: false,             // もっと見る状態
   searchQuery: '',            // 検索クエリ
@@ -318,6 +319,10 @@ const BusinessSelectionHandler = {
       if (desiredCount && !desiredCount.toString().endsWith('社')) {
         desiredCount = desiredCount + '社';
       }
+
+      // V1911: スプシからの希望社数を保持（ソート変更時も維持）
+      this.originalDesiredCount = desiredCount;
+      console.log('[BusinessSelection] originalDesiredCount保存:', desiredCount);
 
       // V1903: RankingSystemから業者リストを取得（AS列業者リストも渡す）
       console.log('[BusinessSelection] RankingSystemから業者データ取得開始...');
@@ -737,13 +742,12 @@ const BusinessSelectionHandler = {
     console.log('[V1925-DEBUG] 現在のcheckedCompanies:', Array.from(this.checkedCompanies));
     console.log('[V1925-DEBUG] sortType:', sortType);
 
-    // V1924: 現在の希望社数ドロップダウンの値を取得（ユーザー変更を尊重）
-    const franchiseCountSelect = document.getElementById('franchiseCount');
-    const currentDesiredCount = franchiseCountSelect?.value || '3社';
+    // V1911: スプシから取得した希望社数を使用（チェック数ではない）
+    const desiredCount = this.originalDesiredCount || '4社';
 
     // 現在のデータでカードを再生成
     const selectionData = {
-      desiredCount: currentDesiredCount,
+      desiredCount: desiredCount,
       selectedCompanies: this.userSelectedCompanies,
       allFranchises: this.allFranchises
     };
@@ -1079,25 +1083,25 @@ const BusinessSelectionHandler = {
       const limit = showAll ? 8 : 4;
 
       if (sortType === 'user') {
-        // V1910: ユーザー選択ソート時は3段階グループ化
+        // V1911: ユーザー選択ソート時は3段階グループ化
         // 1. チェック済み → 2. チェックなしAS列業者 → 3. それ以外（マッチ度順）
-        // _isUserSelectedはsortFranchisesで設定済み、なければ再判定
+        // 常にthis.isUserSelected()を使用（確実にAS列業者を判定）
         const checkedFranchises = displayFranchises.filter(f =>
           currentCheckedCompanies.includes(f.companyName)
         );
         const uncheckedUserSelected = displayFranchises.filter(f => {
           const isChecked = currentCheckedCompanies.includes(f.companyName);
-          const isUserSel = f._isUserSelected !== undefined ? f._isUserSelected : this.isUserSelected(f.companyName);
+          const isUserSel = this.isUserSelected(f.companyName);
           return !isChecked && isUserSel;
         });
         const others = displayFranchises.filter(f => {
           const isChecked = currentCheckedCompanies.includes(f.companyName);
-          const isUserSel = f._isUserSelected !== undefined ? f._isUserSelected : this.isUserSelected(f.companyName);
+          const isUserSel = this.isUserSelected(f.companyName);
           return !isChecked && !isUserSel;
         }).slice(0, limit);
 
         displayFranchises = [...checkedFranchises, ...uncheckedUserSelected, ...others];
-        console.log('[V1910-USER] 3段階グループ: ✓', checkedFranchises.length, '→ AS列', uncheckedUserSelected.length, '→ 他', others.length);
+        console.log('[V1911-USER] 3段階グループ: ✓', checkedFranchises.length, '→ AS列', uncheckedUserSelected.length, '(', this.userSelectedCompanies, ') → 他', others.length);
       } else if (currentCheckedCompanies.length > 0) {
         // それ以外のソート: チェック済み → マッチ度/ソート条件順
         const checkedFranchises = displayFranchises.filter(f =>
@@ -1656,15 +1660,12 @@ const BusinessSelectionHandler = {
     // V1904: ローディングスピナーを非表示
     this.hideLoadingSpinner();
 
-    // 1. 希望社数ドロップダウンを更新（V1924: updateDesiredCountがtrueの場合のみ）
+    // V1911: 希望社数ドロップダウンを更新（CB列の値を使用、チェック数ではない）
     if (updateDesiredCount) {
       const franchiseCountSelect = document.getElementById('franchiseCount');
-      if (franchiseCountSelect) {
-        // V1924: 現在チェックされている数に基づいて希望社数を設定
-        const currentCheckedCount = this.checkedCompanies.size;
-        const finalDesiredCount = currentCheckedCount > 0 ? `${currentCheckedCount}社` : desiredCount;
-        franchiseCountSelect.value = finalDesiredCount;
-        console.log('[BusinessSelection] 希望社数設定:', finalDesiredCount, '(チェック数:', currentCheckedCount, ')');
+      if (franchiseCountSelect && desiredCount) {
+        franchiseCountSelect.value = desiredCount;
+        console.log('[BusinessSelection] 希望社数設定:', desiredCount, '(CB列の値)');
       }
     }
 
