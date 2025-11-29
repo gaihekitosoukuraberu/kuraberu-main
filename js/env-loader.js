@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1978 - 並び順をボタン+モーダルに変更）
-  CACHE_BUSTER: 'v1764438259-fe28458a'
+  // キャッシュバスター（V1979 - オーダー転送確認画面リニューアル）
+  CACHE_BUSTER: 'v1979-order-transfer-modal'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
