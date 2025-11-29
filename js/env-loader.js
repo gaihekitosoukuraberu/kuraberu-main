@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1931 - BZ列workItems優先使用）
-  CACHE_BUSTER: 'v1764399301-v1931-bz'
+  CACHE_BUSTER: 'v1764399467-fee03b3d'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
