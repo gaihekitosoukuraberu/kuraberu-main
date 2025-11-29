@@ -169,13 +169,19 @@ const CVListManager = {
 
       // 紹介料を計算
       // V1927: companiesCountPreference（CB列・希望社数）を優先使用
-      // companiesCountPreferenceは "2社", "3社" などの文字列なので数値に変換
+      // V1928: 数値でも文字列でも対応（スプシは数字のみで保存）
       let desiredCompanyCount = 1;
-      const preferenceStr = cv.companiesCountPreference || '';
-      if (preferenceStr) {
-        const match = preferenceStr.match(/(\d+)/);
-        if (match) {
-          desiredCompanyCount = parseInt(match[1], 10);
+      const preferenceValue = cv.companiesCountPreference;
+      if (preferenceValue !== undefined && preferenceValue !== null && preferenceValue !== '') {
+        // 数値の場合はそのまま使用、文字列の場合は数字を抽出
+        if (typeof preferenceValue === 'number') {
+          desiredCompanyCount = preferenceValue;
+        } else {
+          const preferenceStr = String(preferenceValue);
+          const match = preferenceStr.match(/(\d+)/);
+          if (match) {
+            desiredCompanyCount = parseInt(match[1], 10);
+          }
         }
       }
       // フォールバック: companiesCountPreferenceがない場合はcompaniesCountを使用
