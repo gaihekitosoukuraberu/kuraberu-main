@@ -7041,7 +7041,17 @@ window.addEventListener('beforeunload', function(e) {
                 quickCallTime = 9;
             }
 
-            // ボタンをハイライト
+            // V1959: まず全ボタンをリセットしてから選択中をハイライト
+            document.querySelectorAll('.quick-time-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50');
+                btn.classList.add('border-gray-300');
+            });
+            document.querySelectorAll('.quick-day-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50');
+                btn.classList.add('border-gray-300');
+            });
+
+            // 選択中のボタンをハイライト
             document.querySelectorAll('.quick-time-btn').forEach(btn => {
                 if (btn.textContent.includes(quickCallTime + '時')) {
                     btn.classList.remove('border-gray-300');
