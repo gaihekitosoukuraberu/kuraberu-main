@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1971 - 古い順削除・金額順→紹介料順にリネーム）
-  CACHE_BUSTER: 'v1971-sort-cleanup'
+  CACHE_BUSTER: 'v1764425207-fe0ec70d'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
