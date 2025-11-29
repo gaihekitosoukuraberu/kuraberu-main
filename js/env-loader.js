@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1973 - 次回架電日/流入日フィルタ統合）
-  CACHE_BUSTER: 'v1764428671-fe11c524'
+  // キャッシュバスター（V1974 - 日付範囲+時間帯フィルタ）
+  CACHE_BUSTER: 'v1974-daterange-filter'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

@@ -393,22 +393,24 @@
                                 <button onclick="openSortModal()" class="px-4 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all hover:scale-105 transform whitespace-nowrap">
                                     絞込
                                 </button>
-                                <!-- V1973: 次回架電日 / 流入日フィルタ -->
-                                <select id="dateFilter" class="px-2 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 transition-all">
-                                    <option value="all">期間:全て</option>
-                                    <optgroup label="📅 次回架電日">
-                                        <option value="call-today">架電:今日</option>
-                                        <option value="call-tomorrow">架電:明日</option>
-                                        <option value="call-week">架電:7日以内</option>
-                                        <option value="call-overdue">架電:期限切れ</option>
-                                        <option value="call-none">架電:未設定</option>
-                                    </optgroup>
-                                    <optgroup label="📥 流入日">
-                                        <option value="reg-today">流入:今日</option>
-                                        <option value="reg-yesterday">流入:昨日</option>
-                                        <option value="reg-week">流入:7日以内</option>
-                                        <option value="reg-month">流入:30日以内</option>
-                                    </optgroup>
+                                <!-- V1974: 日付範囲フィルタ -->
+                                <select id="dateFilterType" class="px-2 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 transition-all">
+                                    <option value="none">期間</option>
+                                    <option value="call">架電日</option>
+                                    <option value="reg">流入日</option>
+                                </select>
+                                <input type="date" id="dateFilterFrom" class="px-2 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 w-28" disabled>
+                                <span class="text-gray-400 text-xs">〜</span>
+                                <input type="date" id="dateFilterTo" class="px-2 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 w-28" disabled>
+                                <!-- V1974: 時間帯フィルタ -->
+                                <select id="timeFilter" class="px-2 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 transition-all" disabled>
+                                    <option value="all">時間帯</option>
+                                    <option value="9">9時</option>
+                                    <option value="12">12時</option>
+                                    <option value="17">17時</option>
+                                    <option value="19">19時</option>
+                                    <option value="sat">土曜</option>
+                                    <option value="sun">日曜</option>
                                 </select>
                                 <select id="sortSelect" class="flex-1 px-3 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 transition-all">
                                     <option value="date-desc">新着順</option>
@@ -4083,7 +4085,10 @@ window.addEventListener('beforeunload', function(e) {
         let currentStatusFilter = '';
         let isReversed = false; // V1958: 逆順表示フラグ
         let deliveryFilter = 'pre'; // V1958: 配信前/後フィルタ（'pre', 'post', 'all'）
-        let dateFilter = 'all'; // V1973: 次回架電日/流入日フィルタ
+        let dateFilterType = 'none'; // V1974: 日付フィルタ種別（none/call/reg）
+        let dateFilterFrom = null; // V1974: 日付フィルタ開始日
+        let dateFilterTo = null; // V1974: 日付フィルタ終了日
+        let timeFilter = 'all'; // V1974: 時間帯フィルタ
 
         // オートセーブ関連
         let unsavedChanges = new Map(); // { cvId: { status, timestamp } }
@@ -4964,11 +4969,48 @@ window.addEventListener('beforeunload', function(e) {
                 });
             }
 
-            // V1973: 次回架電日/流入日フィルタ
-            const dateFilterSelect = document.getElementById('dateFilter');
-            if (dateFilterSelect) {
-                dateFilterSelect.addEventListener('change', function() {
-                    dateFilter = this.value;
+            // V1974: 日付範囲フィルタ
+            const dateFilterTypeSelect = document.getElementById('dateFilterType');
+            const dateFilterFromInput = document.getElementById('dateFilterFrom');
+            const dateFilterToInput = document.getElementById('dateFilterTo');
+            const timeFilterSelect = document.getElementById('timeFilter');
+
+            if (dateFilterTypeSelect) {
+                dateFilterTypeSelect.addEventListener('change', function() {
+                    dateFilterType = this.value;
+                    const isEnabled = this.value !== 'none';
+                    dateFilterFromInput.disabled = !isEnabled;
+                    dateFilterToInput.disabled = !isEnabled;
+                    // 時間帯は架電日の時のみ有効
+                    timeFilterSelect.disabled = this.value !== 'call';
+                    if (this.value !== 'call') {
+                        timeFilterSelect.value = 'all';
+                        timeFilter = 'all';
+                    }
+                    currentPage = 1;
+                    initializeListView();
+                });
+            }
+
+            if (dateFilterFromInput) {
+                dateFilterFromInput.addEventListener('change', function() {
+                    dateFilterFrom = this.value || null;
+                    currentPage = 1;
+                    initializeListView();
+                });
+            }
+
+            if (dateFilterToInput) {
+                dateFilterToInput.addEventListener('change', function() {
+                    dateFilterTo = this.value || null;
+                    currentPage = 1;
+                    initializeListView();
+                });
+            }
+
+            if (timeFilterSelect) {
+                timeFilterSelect.addEventListener('change', function() {
+                    timeFilter = this.value;
                     currentPage = 1;
                     initializeListView();
                 });
@@ -5714,66 +5756,54 @@ window.addEventListener('beforeunload', function(e) {
                 console.log('Total cases after delivery filter (post):', allCases.length);
             }
 
-            // V1973: 次回架電日/流入日フィルタを適用
-            if (dateFilter && dateFilter !== 'all') {
-                const now = new Date();
-                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                const yesterday = new Date(today);
-                yesterday.setDate(yesterday.getDate() - 1);
-                const tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                const weekLater = new Date(today);
-                weekLater.setDate(weekLater.getDate() + 7);
-                const weekAgo = new Date(today);
-                weekAgo.setDate(weekAgo.getDate() - 7);
-                const monthAgo = new Date(today);
-                monthAgo.setDate(monthAgo.getDate() - 30);
+            // V1974: 日付範囲フィルタを適用
+            if (dateFilterType !== 'none' && (dateFilterFrom || dateFilterTo)) {
+                const fromDate = dateFilterFrom ? new Date(dateFilterFrom + 'T00:00:00') : null;
+                const toDate = dateFilterTo ? new Date(dateFilterTo + 'T23:59:59') : null;
 
                 allCases = allCases.filter(([_, caseData]) => {
-                    // 次回架電日フィルタ（call-*）
-                    if (dateFilter.startsWith('call-')) {
-                        const nextCallDate = caseData.nextCallDate ? new Date(caseData.nextCallDate) : null;
+                    let targetDate = null;
 
-                        if (dateFilter === 'call-none') {
-                            return !nextCallDate;
-                        }
-                        if (!nextCallDate) return false;
-
-                        const nextCallDay = new Date(nextCallDate.getFullYear(), nextCallDate.getMonth(), nextCallDate.getDate());
-
-                        if (dateFilter === 'call-today') {
-                            return nextCallDay.getTime() === today.getTime();
-                        } else if (dateFilter === 'call-tomorrow') {
-                            return nextCallDay.getTime() === tomorrow.getTime();
-                        } else if (dateFilter === 'call-week') {
-                            return nextCallDay >= today && nextCallDay <= weekLater;
-                        } else if (dateFilter === 'call-overdue') {
-                            return nextCallDay < today;
-                        }
-                    }
-
-                    // 流入日フィルタ（reg-*）
-                    if (dateFilter.startsWith('reg-')) {
+                    if (dateFilterType === 'call') {
+                        // 架電日フィルタ
+                        if (!caseData.nextCallDate) return false;
+                        targetDate = new Date(caseData.nextCallDate);
+                    } else if (dateFilterType === 'reg') {
+                        // 流入日フィルタ
                         const regDate = caseData.createdAt || caseData.date;
                         if (!regDate) return false;
-
-                        const registeredDate = new Date(regDate);
-                        const regDay = new Date(registeredDate.getFullYear(), registeredDate.getMonth(), registeredDate.getDate());
-
-                        if (dateFilter === 'reg-today') {
-                            return regDay.getTime() === today.getTime();
-                        } else if (dateFilter === 'reg-yesterday') {
-                            return regDay.getTime() === yesterday.getTime();
-                        } else if (dateFilter === 'reg-week') {
-                            return regDay >= weekAgo && regDay <= today;
-                        } else if (dateFilter === 'reg-month') {
-                            return regDay >= monthAgo && regDay <= today;
-                        }
+                        targetDate = new Date(regDate);
                     }
+
+                    if (!targetDate) return false;
+
+                    // 日付範囲チェック
+                    if (fromDate && targetDate < fromDate) return false;
+                    if (toDate && targetDate > toDate) return false;
 
                     return true;
                 });
                 console.log('Total cases after date filter:', allCases.length);
+            }
+
+            // V1974: 時間帯フィルタを適用（架電日のみ）
+            if (dateFilterType === 'call' && timeFilter !== 'all') {
+                allCases = allCases.filter(([_, caseData]) => {
+                    if (!caseData.nextCallDate) return false;
+                    const nextCallDate = new Date(caseData.nextCallDate);
+                    const hour = nextCallDate.getHours();
+                    const dayOfWeek = nextCallDate.getDay(); // 0=日, 6=土
+
+                    if (timeFilter === 'sat') {
+                        return dayOfWeek === 6;
+                    } else if (timeFilter === 'sun') {
+                        return dayOfWeek === 0;
+                    } else {
+                        const filterHour = parseInt(timeFilter);
+                        return hour === filterHour;
+                    }
+                });
+                console.log('Total cases after time filter:', allCases.length);
             }
 
             // ソート処理
