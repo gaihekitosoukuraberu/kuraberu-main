@@ -1634,24 +1634,20 @@ window.addEventListener('beforeunload', function(e) {
                                 </svg>
                             </button>
                         </div>
-                        <div class="space-y-3 mt-4">
-                            <!-- V1946: iPhone SE最適化 -->
-                            <div class="grid grid-cols-2 gap-2 sm:gap-4">
-                                <div>
-                                    <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">次回架電日</label>
+                        <div class="space-y-2 mt-3">
+                            <!-- V1948: iPhone SE最適化 - 縦並び -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">次回架電日時</label>
+                                <div class="flex gap-1">
                                     <input
                                         type="date"
                                         id="nextCallDate"
-                                        class="w-full px-2 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-xs sm:text-base"
+                                        class="flex-1 min-w-0 px-2 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 transition-all text-xs"
                                     >
-                                </div>
-                                <div>
-                                    <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">時間</label>
-                                    <div class="grid grid-cols-2 gap-1 sm:gap-2">
-                                        <select
-                                            id="nextCallHour"
-                                            class="w-full px-1 sm:px-3 py-2 sm:py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-xs sm:text-base"
-                                        >
+                                    <select
+                                        id="nextCallHour"
+                                        class="w-14 px-1 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 transition-all text-xs"
+                                    >
                                             <option value="">時</option>
                                             <option value="00">00</option>
                                             <option value="01">01</option>
@@ -1678,17 +1674,16 @@ window.addEventListener('beforeunload', function(e) {
                                             <option value="22">22</option>
                                             <option value="23">23</option>
                                         </select>
-                                        <select
-                                            id="nextCallMinute"
-                                            class="w-full px-1 sm:px-3 py-2 sm:py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-xs sm:text-base"
-                                        >
-                                            <option value="">分</option>
-                                            <option value="00">00</option>
-                                            <option value="15">15</option>
-                                            <option value="30">30</option>
-                                            <option value="45">45</option>
-                                        </select>
-                                    </div>
+                                    <select
+                                        id="nextCallMinute"
+                                        class="w-14 px-1 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 transition-all text-xs"
+                                    >
+                                        <option value="">分</option>
+                                        <option value="00">00</option>
+                                        <option value="15">15</option>
+                                        <option value="30">30</option>
+                                        <option value="45">45</option>
+                                    </select>
                                 </div>
                             </div>
                             <button
@@ -6743,15 +6738,26 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
-        // V1947: 電話をかける（CRM/リスト両対応）- 発信前に全て準備
+        // V1948: 電話をかける（CRM/リスト両対応）- 発信前に全て準備
         function callCase(caseId) {
+            console.log('[callCase] 開始 caseId:', caseId, 'currentCaseId:', currentCaseId);
+
             const targetId = caseId || currentCaseId;
-            if (!targetId || !casesData[targetId]) {
-                console.warn('[callCase] 案件が選択されていません');
+            if (!targetId) {
+                console.error('[callCase] caseIdが指定されていません');
+                alert('案件が選択されていません');
                 return;
             }
 
-            const phone = casesData[targetId].phone;
+            // casesDataをチェック
+            if (!casesData || !casesData[targetId]) {
+                console.error('[callCase] casesDataに案件がありません:', targetId, Object.keys(casesData || {}).slice(0, 5));
+                alert('案件データが見つかりません。ページをリロードしてください。');
+                return;
+            }
+
+            const caseData = casesData[targetId];
+            const phone = caseData.phone;
             if (!phone) {
                 alert('電話番号が登録されていません');
                 return;
@@ -6772,6 +6778,9 @@ window.addEventListener('beforeunload', function(e) {
             console.log('[callCase] 電話発信:', phone);
             window.location.href = 'tel:' + phone;
         }
+
+        // グローバルに公開（リストのonclickから呼べるように）
+        window.callCase = callCase;
 
         // CRMから電話する（後方互換性）
         function callCurrentCase() {
