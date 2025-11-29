@@ -168,17 +168,30 @@ const CVListManager = {
       }
 
       // 紹介料を計算
-      // V1832: companiesCount に統一（CVSheetSystem.js と整合）
-      const companiesCount = cv.companiesCount || 1;
+      // V1927: companiesCountPreference（CB列・希望社数）を優先使用
+      // companiesCountPreferenceは "2社", "3社" などの文字列なので数値に変換
+      let desiredCompanyCount = 1;
+      const preferenceStr = cv.companiesCountPreference || '';
+      if (preferenceStr) {
+        const match = preferenceStr.match(/(\d+)/);
+        if (match) {
+          desiredCompanyCount = parseInt(match[1], 10);
+        }
+      }
+      // フォールバック: companiesCountPreferenceがない場合はcompaniesCountを使用
+      if (desiredCompanyCount <= 0) {
+        desiredCompanyCount = cv.companiesCount || 1;
+      }
+
       const calculatedFee = window.FeeCalculator.calculate({
         q9_wallWorkType: cv.botAnswers?.q9_wallWorkType || '',
         q10_roofWorkType: cv.botAnswers?.q10_roofWorkType || '',
         propertyType: cv.propertyType || '',
         floors: cv.floors || ''
-      }, companiesCount);
+      }, desiredCompanyCount);
 
-      // V1952: 合計紹介料 = 1社あたり紹介料 × 希望社数
-      const totalFee = calculatedFee * companiesCount;
+      // V1927: 合計紹介料 = 1社あたり紹介料 × 希望社数
+      const totalFee = calculatedFee * desiredCompanyCount;
       const formattedAmount = this.formatCompactFee(totalFee);
 
       // casesData形式に変換
@@ -234,7 +247,7 @@ const CVListManager = {
         specialItems: cv.specialItems ? cv.specialItems.split('、').map(item => item.trim()).filter(item => item) : [], // V1903: 特殊項目（「、」区切り配列）
 
         // 配信・成約
-        companiesCount: companiesCount,
+        companiesCount: desiredCompanyCount,  // V1927: 希望社数を使用
         status: cv.status || '新規',
         deliveryStatus: cv.deliveryStatus || '未配信',
         date: this.parseDate(cv.registeredAt),

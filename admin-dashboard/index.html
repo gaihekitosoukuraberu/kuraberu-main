@@ -5911,7 +5911,11 @@ window.addEventListener('beforeunload', function(e) {
         // オートセーブシステム
         // ========================================
 
+        // V1927: 保存状態フラグ（保存成功後にtrueになる）
+        let saveSucceeded = false;
+
         // 保存ボタンの表示を更新
+        // V1927: 緑（保存済み）→ グレー（変更なし）→ ピンク（未保存変更あり）
         function updateSaveButton() {
             const saveBtn = document.querySelector('button[onclick="saveAllData()"]');
             if (!saveBtn) return;
@@ -5919,10 +5923,15 @@ window.addEventListener('beforeunload', function(e) {
             if (unsavedChanges.size > 0) {
                 // 未保存変更あり：ピンク色で目立たせる + パルス効果
                 saveBtn.className = 'bg-gradient-to-r from-pink-500 to-pink-600 text-white p-2.5 md:px-5 md:py-2.5 rounded-xl font-semibold hover:from-pink-600 hover:to-pink-700 transition-all flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 animate-pulse';
-                saveBtn.querySelector('span').textContent = `保存 (${unsavedChanges.size})`;
-            } else {
-                // 未保存変更なし：緑色（他のボタンと馴染む色）
+                saveBtn.querySelector('span').textContent = '保存';
+                saveSucceeded = false;  // 変更があったらリセット
+            } else if (saveSucceeded) {
+                // 保存成功後：緑色
                 saveBtn.className = 'bg-gradient-to-r from-green-500 to-green-600 text-white p-2.5 md:px-5 md:py-2.5 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105';
+                saveBtn.querySelector('span').textContent = '保存済';
+            } else {
+                // 変更なし（初期状態）：グレー
+                saveBtn.className = 'bg-gradient-to-r from-gray-400 to-gray-500 text-white p-2.5 md:px-5 md:py-2.5 rounded-xl font-semibold hover:from-gray-500 hover:to-gray-600 transition-all flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105';
                 saveBtn.querySelector('span').textContent = '保存';
             }
         }
@@ -6294,6 +6303,11 @@ window.addEventListener('beforeunload', function(e) {
                 showNotification(`⚠ 保存失敗: ${failCount} 件のエラーが発生しました`, 'error');
             }
             // 成功時は通知を表示しない（ユーザー要望）
+
+            // V1927: 保存成功フラグを設定
+            if (successCount > 0 && unsavedChanges.size === 0) {
+                saveSucceeded = true;
+            }
 
             // 保存ボタンを更新
             updateSaveButton();
@@ -7401,10 +7415,8 @@ window.addEventListener('beforeunload', function(e) {
                     kanaInput.value = result.kana;
                     console.log('[KanaConversion] 変換成功:', result.kana);
 
-                    // 値設定後にinputイベントを発火させて赤枠を解除
-                    kanaInput.dispatchEvent(new Event('input', { bubbles: true }));
-
-                    // 赤枠を即座に解除
+                    // V1927: dispatchEventは削除 - unsavedChangesを不要にトリガーしていた
+                    // 赤枠を直接解除
                     kanaInput.classList.remove('border-red-500');
                     kanaInput.classList.add('border-gray-300');
                     kanaInput.style.borderWidth = '';
@@ -7658,8 +7670,8 @@ window.addEventListener('beforeunload', function(e) {
 
         // 保存ボタンの状態を更新（ダミー関数）
         function updateSaveButtonState() {
-            // 未保存変更がある場合はボタンを有効化するなどの処理
-            // 現在は特に処理なし
+            // V1927: updateSaveButton を呼び出す
+            updateSaveButton();
             console.log('[CRM] 保存ボタン状態更新:', unsavedChanges.size, '件の未保存変更');
         }
 
