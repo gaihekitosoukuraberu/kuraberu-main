@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1978 - 並び順をボタン+モーダルに変更）
-  CACHE_BUSTER: 'v1978-sort-order-modal'
+  CACHE_BUSTER: 'v1764438259-fe28458a'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
