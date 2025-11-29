@@ -1073,22 +1073,35 @@ const BusinessSelectionHandler = {
       // === 通常モード: ソート順で表示 ===
       displayFranchises = this.sortFranchises(sortType, allFranchises);
 
-      // V1920: チェック済みを先頭にグループ化、各グループ内でソート順維持
+      // V1909: ソートタイプに応じたグループ化
       const limit = showAll ? 8 : 4;
 
-      if (currentCheckedCompanies.length > 0) {
-        // チェック済みグループ（ソート順維持、全件表示）
+      if (sortType === 'user') {
+        // V1909: ユーザー選択ソート時は3段階グループ化
+        // 1. チェック済み → 2. チェックなしAS列業者 → 3. それ以外（マッチ度順）
         const checkedFranchises = displayFranchises.filter(f =>
           currentCheckedCompanies.includes(f.companyName)
         );
+        const uncheckedUserSelected = displayFranchises.filter(f =>
+          !currentCheckedCompanies.includes(f.companyName) && this.isUserSelected(f.companyName)
+        );
+        const others = displayFranchises.filter(f =>
+          !currentCheckedCompanies.includes(f.companyName) && !this.isUserSelected(f.companyName)
+        ).slice(0, limit);
 
-        // 未チェックグループ（ソート順維持、件数制限あり）
+        displayFranchises = [...checkedFranchises, ...uncheckedUserSelected, ...others];
+        console.log('[V1909-USER] 3段階グループ: ✓', checkedFranchises.length, '→ AS列', uncheckedUserSelected.length, '→ 他', others.length);
+      } else if (currentCheckedCompanies.length > 0) {
+        // それ以外のソート: チェック済み → マッチ度/ソート条件順
+        const checkedFranchises = displayFranchises.filter(f =>
+          currentCheckedCompanies.includes(f.companyName)
+        );
         const uncheckedFranchises = displayFranchises.filter(f =>
           !currentCheckedCompanies.includes(f.companyName)
         ).slice(0, limit);
 
         displayFranchises = [...checkedFranchises, ...uncheckedFranchises];
-        console.log('[V1920-NORMAL] チェック済み先頭: ✓', checkedFranchises.length, '件 → 未', uncheckedFranchises.length, '件');
+        console.log('[V1909-OTHER] チェック済み先頭: ✓', checkedFranchises.length, '件 → 未', uncheckedFranchises.length, '件');
       } else {
         // チェックなし: 通常の件数制限
         displayFranchises = displayFranchises.slice(0, limit);
