@@ -5190,7 +5190,7 @@ window.addEventListener('beforeunload', function(e) {
 
             // フィルタをリセットしてリスト再読み込み
             currentPage = 1;
-            loadCVList();
+            initializeListView();
 
             console.log('[setDeliveryFilter]', mode);
         }
@@ -7201,8 +7201,8 @@ window.addEventListener('beforeunload', function(e) {
             } else {
                 // 不在時はリストを更新して終了
                 afterCallFlow = false;
-                if (typeof loadCVList === 'function') {
-                    loadCVList();
+                if (typeof initializeListView === 'function') {
+                    initializeListView();
                 }
             }
         }
@@ -8045,7 +8045,7 @@ window.addEventListener('beforeunload', function(e) {
                     console.log('[setAsLabel] ラベル保存成功:', newLabel || '(解除)');
                     // リスト表示も更新
                     if (currentView === 'list') {
-                        loadCVList();
+                        initializeListView();
                     }
                 } else {
                     console.error('[setAsLabel] 保存失敗:', result.error);

@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1968 - 物件種別アイコン修正・q1PropertyType対応）
-  CACHE_BUSTER: 'v1764424553-feb99d98'
+  // キャッシュバスター（V1969 - 逆ソート修正・loadCVList→initializeListView）
+  CACHE_BUSTER: 'v1969-reversesort-fix'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
