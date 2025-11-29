@@ -7621,6 +7621,8 @@ window.addEventListener('beforeunload', function(e) {
                         caseId: currentCaseId,
                         historyCount: callHistoryFormatted.length
                     });
+                    // V1963: 保存成功後にモーダルを閉じる
+                    closeCallHistoryModal();
                 } else {
                     console.error('[CallHistory] スプレッドシートへの保存失敗:', result.error);
                     alert('履歴の保存に失敗しました: ' + (result.error || '不明なエラー'));
@@ -7767,21 +7769,19 @@ window.addEventListener('beforeunload', function(e) {
                 return timeA.localeCompare(timeB);
             });
 
-            // V1961: 履歴を表示（📋マーク付きでソース区別）
+            // V1963: 履歴を表示（アイコン削除）
             historyList.innerHTML = allHistory.map((item, index) => {
                 // callHistoryエントリのみ編集・削除可能（caseMemoは読み取り専用）
                 const isEditable = item.source === 'callHistory';
                 const isSelected = selectedHistoryIndex === index;
                 // 選択されている時のみボタンを表示（2タップ操作：1タップ目で選択→2タップ目でボタン押下）
                 const buttonVisibilityClass = isSelected ? 'opacity-100' : 'opacity-0';
-                // V1961: ソースに応じたアイコン（架電=📞、メモ=📋）
-                const sourceIcon = item.source === 'callHistory' ? '📞' : '📋';
 
                 return `
                     <div class="border-l-4 ${isEditable ? 'border-blue-500' : 'border-gray-400'} pl-4 py-2 group hover:bg-gray-50 rounded-r transition-all ${isSelected ? 'bg-blue-50' : ''}" data-history-index="${index}" onclick="toggleHistorySelection(${index}, event)">
                         <div class="flex justify-between items-start gap-3">
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm text-gray-600">${sourceIcon} ${item.timestamp}</p>
+                                <p class="text-sm text-gray-600">${item.timestamp}</p>
                                 <p class="mt-1 break-words">${item.note}</p>
                                 ${item.nextCallDate ? `<p class="text-sm text-blue-600 mt-1">次回架電: ${item.nextCallDate}</p>` : ''}
                             </div>
