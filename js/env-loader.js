@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1972 - 次回架電日フィルタ追加）
-  CACHE_BUSTER: 'v1972-nextcall-filter'
+  CACHE_BUSTER: 'v1764427256-fea68d58'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
