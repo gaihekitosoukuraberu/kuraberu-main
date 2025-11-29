@@ -6778,7 +6778,7 @@ window.addEventListener('beforeunload', function(e) {
 
         window.callCase = callCase;
 
-        // V1949: ページ復帰時の処理
+        // V1950: ページ復帰時の処理（CRMを開いてからモーダル表示）
         function checkAfterCallFlow() {
             const afterCall = localStorage.getItem('afterCallFlow');
             const caseId = localStorage.getItem('afterCallCaseId');
@@ -6795,20 +6795,29 @@ window.addEventListener('beforeunload', function(e) {
                 currentCaseId = caseId;
                 afterCallFlow = true;
 
-                // モーダル表示
-                setTimeout(() => {
-                    if (casesData[caseId]) {
-                        showStatusModal();
-                    }
-                }, 1000);
+                // CRMが開いているかチェック
+                const crmView = document.getElementById('crmView');
+                const isCRMOpen = crmView && !crmView.classList.contains('hidden');
+
+                if (isCRMOpen && casesData[caseId]) {
+                    // CRM開いてる→ステータスモーダル表示
+                    setTimeout(() => showStatusModal(), 500);
+                } else {
+                    // CRM閉じてる→CRMを開いてからモーダル表示
+                    console.log('[checkAfterCallFlow] CRMを開く:', caseId);
+                    setTimeout(() => {
+                        openCRM(caseId);
+                        setTimeout(() => showStatusModal(), 800);
+                    }, 500);
+                }
             }
         }
 
         // ページロード時とvisibilitychange時にチェック
-        document.addEventListener('DOMContentLoaded', () => setTimeout(checkAfterCallFlow, 1500));
+        document.addEventListener('DOMContentLoaded', () => setTimeout(checkAfterCallFlow, 2000));
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
-                checkAfterCallFlow();
+                setTimeout(checkAfterCallFlow, 500);
             }
         });
 
