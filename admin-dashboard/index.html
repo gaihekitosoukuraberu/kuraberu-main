@@ -557,12 +557,6 @@
                                             📞
                                         </button>
                                     </div>
-                                    <!-- V1944: デバッグ用テストボタン（電話せずに履歴追加テスト）-->
-                                    <div class="inline-block">
-                                        <button onclick="testCallRecord()" class="p-1 sm:p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-all text-xs" title="架電履歴テスト（電話なし）">
-                                            🧪
-                                        </button>
-                                    </div>
                                     <!-- V1941: 不在ボタン -->
                                     <div class="inline-block">
                                         <button onclick="markAbsentAndNext()" class="px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all" title="不在にして次へ">
@@ -4884,7 +4878,7 @@ window.addEventListener('beforeunload', function(e) {
                     </td>
                     <td class="px-4 py-4 text-center">
                         <div class="flex justify-center items-center space-x-2">
-                            <button onclick="event.stopPropagation(); window.location.href='tel:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="電話">
+                            <button onclick="event.stopPropagation(); callCase('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="電話（履歴自動追加）">
                                 📞
                             </button>
                             <button onclick="event.stopPropagation(); window.location.href='sms:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="SMS">
@@ -4976,7 +4970,7 @@ window.addEventListener('beforeunload', function(e) {
                     </td>
                     <td class="px-4 py-4 text-center">
                         <div class="flex justify-center items-center space-x-2">
-                            <button onclick="event.stopPropagation(); window.location.href='tel:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="電話">
+                            <button onclick="event.stopPropagation(); callCase('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="電話（履歴自動追加）">
                                 📞
                             </button>
                             <button onclick="event.stopPropagation(); window.location.href='sms:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="SMS">
@@ -5604,7 +5598,7 @@ window.addEventListener('beforeunload', function(e) {
                     </td>
                     <td class="px-4 py-4 text-center">
                         <div class="flex justify-center items-center space-x-2">
-                            <button onclick="event.stopPropagation(); window.location.href='tel:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="電話">
+                            <button onclick="event.stopPropagation(); callCase('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="電話（履歴自動追加）">
                                 📞
                             </button>
                             <button onclick="event.stopPropagation(); window.location.href='sms:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="SMS">
@@ -6748,45 +6742,44 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
-        // V1944: CRM画面から電話をかける（保存完了を待ってから発信）
-        async function callCurrentCase() {
-            if (!currentCaseId || !casesData[currentCaseId]) {
-                console.warn('[callCurrentCase] 案件が選択されていません');
+        // V1946: 電話をかける（CRM/リスト両対応）
+        function callCase(caseId) {
+            const targetId = caseId || currentCaseId;
+            if (!targetId || !casesData[targetId]) {
+                console.warn('[callCase] 案件が選択されていません');
                 return;
             }
-            const phone = casesData[currentCaseId].phone;
+
+            const phone = casesData[targetId].phone;
             if (!phone) {
                 alert('電話番号が登録されていません');
                 return;
             }
 
-            // 1. 架電履歴を自動追加（GAS保存完了を待つ）
-            console.log('[callCurrentCase] 架電履歴保存開始...');
-            await addAutoCallRecord();
-            console.log('[callCurrentCase] 架電履歴保存完了');
+            // CRMから呼ばれた場合はcurrentCaseIdを設定
+            if (caseId) {
+                currentCaseId = caseId;
+            }
+
+            // 1. 先に電話発信（即座に）
+            console.log('[callCase] 電話発信:', phone);
+            window.location.href = 'tel:' + phone;
 
             // 2. フラグセット（ブラウザ復帰時にモーダル表示）
             afterCallFlow = true;
 
-            // 3. 電話発信
-            window.open('tel:' + phone, '_blank');
+            // 3. 架電履歴を追加（バックグラウンド、待たない）
+            addAutoCallRecord();
 
-            // 4. CRMモーダルはそのまま開いておく（架電中に編集可能）
-            console.log('[callCurrentCase] 架電開始。CRMは編集可能。復帰時にステータス/メモモーダル表示');
+            console.log('[callCase] 架電開始。復帰時にステータス/メモモーダル表示');
         }
 
-        // V1944: テスト用 - 電話せずに架電記録をテスト
-        async function testCallRecord() {
-            if (!currentCaseId || !casesData[currentCaseId]) {
-                alert('CRMで案件を開いてからテストしてください');
-                return;
-            }
-            console.log('[testCallRecord] テスト開始:', currentCaseId);
-            await addAutoCallRecord();
-            alert('架電履歴を追加しました。リロードして確認してください。');
+        // CRMから電話する（後方互換性）
+        function callCurrentCase() {
+            callCase(currentCaseId);
         }
 
-        // V1945: ブラウザ復帰時のモーダル表示（通話終了後）- 改善版
+        // V1946: ブラウザ復帰時のモーダル表示（通話終了後）- 改善版
         let visibilityChangeHandled = false;  // 重複発火防止フラグ
         document.addEventListener('visibilitychange', () => {
             console.log('[visibilitychange] 状態:', document.visibilityState, 'afterCallFlow:', afterCallFlow, 'handled:', visibilityChangeHandled);
