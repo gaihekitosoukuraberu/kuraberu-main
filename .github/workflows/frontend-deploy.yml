@@ -71,15 +71,18 @@ jobs:
           echo "Version cache buster: $VERSION_CACHE_BUSTER"
 
           # admin-dashboard/index.html のキャッシュバスターを更新
+          # V1933: 動的ロード部分（' + cacheBuster + '）を破壊しないよう、静的パターンのみ置換
           if [ -f "admin-dashboard/index.html" ]; then
-            # まず全ての.jsファイルにタイムスタンプを適用
-            sed -i.bak -E "s|\.js\?v=[^\"]+|.js?v=$TIMESTAMP_CACHE_BUSTER|g" admin-dashboard/index.html
-            # 次に business-selection-handler.js のみバージョン番号で上書き
-            sed -i.bak -E "s|business-selection-handler\.js\?v=[^\"]+|business-selection-handler.js?v=$VERSION_CACHE_BUSTER|g" admin-dashboard/index.html
+            # 静的な .js?v=XXX" パターンのみ置換（動的ロードの ' + cacheBuster + ' を除外）
+            # パターン: .js?v= の後に英数字・ハイフン・アンダースコアのみ（+やシングルクォート含まない）
+            sed -i.bak -E "s|\.js\?v=[A-Za-z0-9_-]+\"|.js?v=$TIMESTAMP_CACHE_BUSTER\"|g" admin-dashboard/index.html
+            # business-selection-handler.js のみバージョン番号で上書き
+            sed -i.bak -E "s|business-selection-handler\.js\?v=[A-Za-z0-9_-]+\"|business-selection-handler.js?v=$VERSION_CACHE_BUSTER\"|g" admin-dashboard/index.html
             rm -f admin-dashboard/index.html.bak
             echo "✅ Updated admin-dashboard/index.html"
             echo "  - business-selection-handler.js: $VERSION_CACHE_BUSTER"
             echo "  - Other JS files: $TIMESTAMP_CACHE_BUSTER"
+            echo "  - Dynamic loading preserved (cv-list-manager.js, fee-calculator.js)"
           fi
 
       - name: Commit and push version updates
