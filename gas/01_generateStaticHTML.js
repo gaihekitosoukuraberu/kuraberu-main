@@ -407,16 +407,19 @@ function generateStaticHTML(data) {
                 console.log('[EstimateRequest] モーダル内検出 - キープに追加');
                 try {
                     if (window.parent.keepManager.addByName(COMPANY_NAME)) {
-                        alert('✅ キープリストに追加されました！\\nモーダルを閉じるとキープ一覧で確認できます。');
-                        // 親ウィンドウのモーダル閉じる
-                        const modal = window.parent.document.querySelector('.fixed.inset-0.bg-black');
-                        if (modal) modal.remove();
+                        console.log('[EstimateRequest] キープ追加成功 - モーダルを閉じます');
+                        // V1923: alert削除（タップスルー問題回避）- ボタン状態変更で十分
+                        // 親ウィンドウの業者詳細モーダルを閉じる（IDで特定）
+                        const previewModal = window.parent.document.querySelector('#preview-iframe')?.closest('.fixed.inset-0');
+                        if (previewModal) {
+                            previewModal.remove();
+                            console.log('[EstimateRequest] 業者詳細モーダルを閉じました');
+                        }
                     } else {
-                        alert('キープリストへの追加に失敗しました。');
+                        console.log('[EstimateRequest] 既にキープ済みまたは追加失敗');
                     }
                 } catch (error) {
                     console.error('[EstimateRequest] キープ追加エラー:', error);
-                    alert('エラーが発生しました。');
                 }
             } else {
                 // 独立HP → フォームモーダル表示
