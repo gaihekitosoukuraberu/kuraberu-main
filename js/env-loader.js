@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1971 - 古い順削除・金額順→紹介料順にリネーム）
-  CACHE_BUSTER: 'v1764425207-fe0ec70d'
+  // キャッシュバスター（V1972 - 次回架電日フィルタ追加）
+  CACHE_BUSTER: 'v1972-nextcall-filter'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

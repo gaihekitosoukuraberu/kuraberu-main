@@ -391,8 +391,17 @@
                             <!-- ソートボタンとオプション -->
                             <div class="flex items-center gap-2 w-full">
                                 <button onclick="openSortModal()" class="px-4 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all hover:scale-105 transform whitespace-nowrap">
-                                    ソート
+                                    絞込
                                 </button>
+                                <!-- V1972: 次回架電日フィルタ -->
+                                <select id="nextCallFilter" class="px-2 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 transition-all">
+                                    <option value="all">架電日:全て</option>
+                                    <option value="today">今日</option>
+                                    <option value="tomorrow">明日</option>
+                                    <option value="week">7日以内</option>
+                                    <option value="overdue">期限切れ</option>
+                                    <option value="none">未設定</option>
+                                </select>
                                 <select id="sortSelect" class="flex-1 px-3 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 transition-all">
                                     <option value="date-desc">新着順</option>
                                     <option value="amount-desc">紹介料順</option>
@@ -4066,6 +4075,7 @@ window.addEventListener('beforeunload', function(e) {
         let currentStatusFilter = '';
         let isReversed = false; // V1958: 逆順表示フラグ
         let deliveryFilter = 'pre'; // V1958: 配信前/後フィルタ（'pre', 'post', 'all'）
+        let nextCallFilter = 'all'; // V1972: 次回架電日フィルタ
 
         // オートセーブ関連
         let unsavedChanges = new Map(); // { cvId: { status, timestamp } }
@@ -4945,6 +4955,16 @@ window.addEventListener('beforeunload', function(e) {
                     initializeListView();
                 });
             }
+
+            // V1972: 次回架電日フィルタ
+            const nextCallFilterSelect = document.getElementById('nextCallFilter');
+            if (nextCallFilterSelect) {
+                nextCallFilterSelect.addEventListener('change', function() {
+                    nextCallFilter = this.value;
+                    currentPage = 1;
+                    initializeListView();
+                });
+            }
         }
         
         // ステータスでフィルタリング（統計クリック用）
@@ -5684,6 +5704,39 @@ window.addEventListener('beforeunload', function(e) {
             } else if (deliveryFilter === 'post') {
                 allCases = allCases.filter(([_, caseData]) => POST_DELIVERY_STATUSES.includes(caseData.status));
                 console.log('Total cases after delivery filter (post):', allCases.length);
+            }
+
+            // V1972: 次回架電日フィルタを適用
+            if (nextCallFilter && nextCallFilter !== 'all') {
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const weekLater = new Date(today);
+                weekLater.setDate(weekLater.getDate() + 7);
+
+                allCases = allCases.filter(([_, caseData]) => {
+                    const nextCallDate = caseData.nextCallDate ? new Date(caseData.nextCallDate) : null;
+
+                    if (nextCallFilter === 'none') {
+                        return !nextCallDate;
+                    }
+                    if (!nextCallDate) return false;
+
+                    const nextCallDay = new Date(nextCallDate.getFullYear(), nextCallDate.getMonth(), nextCallDate.getDate());
+
+                    if (nextCallFilter === 'today') {
+                        return nextCallDay.getTime() === today.getTime();
+                    } else if (nextCallFilter === 'tomorrow') {
+                        return nextCallDay.getTime() === tomorrow.getTime();
+                    } else if (nextCallFilter === 'week') {
+                        return nextCallDay >= today && nextCallDay <= weekLater;
+                    } else if (nextCallFilter === 'overdue') {
+                        return nextCallDay < today;
+                    }
+                    return true;
+                });
+                console.log('Total cases after nextCall filter:', allCases.length);
             }
 
             // ソート処理
