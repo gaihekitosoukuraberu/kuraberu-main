@@ -427,13 +427,14 @@ const RankingSystem = {
         // 値が空の場合デフォルト値を設定
         const finalRating = ratingValue || 4.2;
 
-        // V1896: マッチ度計算（LP用 - リクエストパラメータから計算）
+        // V1922: マッチ度計算（LP用 - リクエストパラメータから計算）
         const userParams = {
           prefecture: prefecture,
           city: city,
           wallWorkType: wallWorkType,
           roofWorkType: roofWorkType,
           concernedArea: concernedArea,
+          roofMaterial: roofMaterial,  // V1922: 屋根葺き替え素材判定用
           buildingAgeMin: buildingAgeMin,
           buildingAgeMax: buildingAgeMax
           // propertyTypeとfloorsはLPで収集していないため省略（calculateMatchRate内でデフォルト満点処理）
@@ -967,9 +968,9 @@ const RankingSystem = {
   },
 
   /**
-   * V1896: マッチ度計算（LP用 - 100点満点）
+   * V1922: マッチ度計算（LP用 - 100点満点）- Admin Dashboard版と同等の複雑なパターンマッチング
    * @param {Object} franchise - 業者オブジェクト
-   * @param {Object} userParams - ユーザーパラメータ（prefecture, city, wallWorkType, roofWorkType, concernedArea, buildingAgeMin, buildingAgeMax, propertyType, floors）
+   * @param {Object} userParams - ユーザーパラメータ（prefecture, city, wallWorkType, roofWorkType, concernedArea, roofMaterial, buildingAgeMin, buildingAgeMax, propertyType, floors）
    * @return {number} マッチ度スコア（0-100）
    */
   calculateMatchRate: function(franchise, userParams) {
@@ -993,41 +994,124 @@ const RankingSystem = {
     }
     totalScore += areaScore;
 
-    // 2. 工事種別マッチ（40点）
+    // 2. V1922: 工事種別マッチ（40点）- Admin Dashboard版と同等の複雑なパターンマッチング
     let workScore = 0;
     if (franchise.constructionTypes) {
       const constructionTypes = franchise.constructionTypes;
-      let matchCount = 0;
-      let totalChecks = 0;
+      const concernedArea = userParams.concernedArea || '';
+      const roofMaterial = userParams.roofMaterial || '';
 
-      // 外壁工事チェック
-      if (userParams.wallWorkType) {
-        totalChecks++;
-        if (constructionTypes.indexOf(userParams.wallWorkType) !== -1 ||
-            constructionTypes.indexOf('外壁塗装') !== -1 ||
-            constructionTypes.indexOf('外壁張替え') !== -1 ||
-            constructionTypes.indexOf('外壁カバー工法') !== -1 ||
-            constructionTypes.indexOf('外壁補修') !== -1) {
-          matchCount++;
-        }
-      }
+      // 単品 vs 複合工事判定
+      const isCombinedWork = concernedArea === '外壁と屋根';
+      const isWallOnly = concernedArea === '外壁';
+      const isRoofOnly = concernedArea === '屋根';
 
-      // 屋根工事チェック
-      if (userParams.roofWorkType) {
-        totalChecks++;
-        if (constructionTypes.indexOf(userParams.roofWorkType) !== -1 ||
-            constructionTypes.indexOf('屋根塗装') !== -1 ||
-            constructionTypes.indexOf('屋根葺き替え') !== -1 ||
-            constructionTypes.indexOf('屋根カバー工法') !== -1 ||
-            constructionTypes.indexOf('屋根補修') !== -1 ||
-            constructionTypes.indexOf('屋上防水') !== -1) {
-          matchCount++;
+      // 外壁主要工事・屋根主要工事の定義
+      const MAJOR_WALL_WORKS = ['外壁塗装', '外壁カバー工法', '外壁張替え'];
+      const MAJOR_ROOF_WORKS = ['屋根葺き替え', '屋根カバー工法'];
+
+      // ユーザーが依頼している工事を抽出
+      const caseWorkTypes = [];
+      if (userParams.wallWorkType) caseWorkTypes.push(userParams.wallWorkType);
+      if (userParams.roofWorkType) caseWorkTypes.push(userParams.roofWorkType);
+
+      const caseWallWorks = caseWorkTypes.filter(function(w) { return w.indexOf('外壁') !== -1; });
+      const caseRoofWorks = caseWorkTypes.filter(function(w) { return w.indexOf('屋根') !== -1 || w.indexOf('屋上') !== -1; });
+
+      let matchedCount = 0;
+
+      // 各工事種別を個別にチェック
+      caseWorkTypes.forEach(function(caseWork) {
+        let isMatched = false;
+
+        // 完全一致チェック
+        if (constructionTypes.indexOf(caseWork) !== -1) {
+          isMatched = true;
+        } else {
+          // パターン1: 「X（外壁工事含む）」
+          // 条件: お客様が外壁主要工事を依頼 + 業者がその外壁主要工事を持っている
+          var franchiseWorkTypes = constructionTypes.split(',');
+          for (var i = 0; i < franchiseWorkTypes.length; i++) {
+            var franchiseWork = franchiseWorkTypes[i].trim();
+
+            if (franchiseWork.indexOf('（外壁工事含む）') !== -1) {
+              var baseWork = franchiseWork.replace('（外壁工事含む）', '').trim();
+              if (baseWork === caseWork || caseWork.indexOf(baseWork) !== -1) {
+                // お客様が外壁主要工事を依頼しているかチェック
+                var hasMajorWallWork = false;
+                for (var j = 0; j < MAJOR_WALL_WORKS.length; j++) {
+                  if (caseWallWorks.length > 0 && constructionTypes.indexOf(MAJOR_WALL_WORKS[j]) !== -1) {
+                    hasMajorWallWork = true;
+                    break;
+                  }
+                }
+                if (hasMajorWallWork) {
+                  isMatched = true;
+                  break;
+                }
+              }
+            }
+
+            // パターン2: 「X（屋根工事含む）」
+            if (franchiseWork.indexOf('（屋根工事含む）') !== -1) {
+              var baseWork = franchiseWork.replace('（屋根工事含む）', '').trim();
+              if (baseWork === caseWork || caseWork.indexOf(baseWork) !== -1) {
+                var hasMajorRoofWork = false;
+                for (var j = 0; j < MAJOR_ROOF_WORKS.length; j++) {
+                  if (caseRoofWorks.length > 0 && constructionTypes.indexOf(MAJOR_ROOF_WORKS[j]) !== -1) {
+                    hasMajorRoofWork = true;
+                    break;
+                  }
+                }
+                if (hasMajorRoofWork) {
+                  isMatched = true;
+                  break;
+                }
+              }
+            }
+
+            // パターン3: 「X単品」- 単独カテゴリ依頼時のみマッチ
+            if (franchiseWork.indexOf('単品') !== -1) {
+              var baseWork = franchiseWork.replace('単品', '').trim();
+              if (baseWork === caseWork || caseWork.indexOf(baseWork) !== -1) {
+                var isWallWork = caseWork.indexOf('外壁') !== -1;
+                var isRoofWork = caseWork.indexOf('屋根') !== -1 || caseWork.indexOf('屋上') !== -1;
+
+                if (isWallWork && caseWallWorks.length > 0 && caseRoofWorks.length === 0) {
+                  isMatched = true;
+                  break;
+                } else if (isRoofWork && caseRoofWorks.length > 0 && caseWallWorks.length === 0) {
+                  isMatched = true;
+                  break;
+                }
+              }
+            }
+
+            // パターン4: 「屋根葺き替え」→ 素材に応じてマッチ
+            if (caseWork === '屋根葺き替え' || caseWork.indexOf('葺き替え') !== -1) {
+              if (roofMaterial && roofMaterial.indexOf('瓦') !== -1) {
+                if (franchiseWork === '屋根葺き替え・張り替え※瓦') {
+                  isMatched = true;
+                  break;
+                }
+              } else {
+                if (franchiseWork === '屋根葺き替え・張り替え※スレート・ガルバリウム等') {
+                  isMatched = true;
+                  break;
+                }
+              }
+            }
+          }
         }
-      }
+
+        if (isMatched) {
+          matchedCount++;
+        }
+      });
 
       // マッチ率を計算（工事種別は最大40点）
-      if (totalChecks > 0) {
-        workScore = Math.floor((matchCount / totalChecks) * 40);
+      if (caseWorkTypes.length > 0) {
+        workScore = Math.floor((matchedCount / caseWorkTypes.length) * 40);
       }
     }
     totalScore += workScore;
