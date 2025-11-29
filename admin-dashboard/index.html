@@ -4896,9 +4896,6 @@ window.addEventListener('beforeunload', function(e) {
                             <button onclick="event.stopPropagation(); window.location.href='sms:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="SMS">
                                 💬
                             </button>
-                            <button onclick="event.stopPropagation(); sendData('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="送信">
-                                📤
-                            </button>
                             <button onclick="event.stopPropagation(); quickActionList('不在', '${caseId}')" class="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600">
                                 不在
                             </button>
@@ -4987,9 +4984,6 @@ window.addEventListener('beforeunload', function(e) {
                             </button>
                             <button onclick="event.stopPropagation(); window.location.href='sms:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="SMS">
                                 💬
-                            </button>
-                            <button onclick="event.stopPropagation(); sendData('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="送信">
-                                📤
                             </button>
                             <button onclick="event.stopPropagation(); quickActionList('不在', '${caseId}')" class="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600">
                                 不在
@@ -5616,9 +5610,6 @@ window.addEventListener('beforeunload', function(e) {
                             <button onclick="event.stopPropagation(); window.location.href='sms:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="SMS">
                                 💬
                             </button>
-                            <button onclick="event.stopPropagation(); sendData('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="送信">
-                                📤
-                            </button>
                             <button onclick="event.stopPropagation(); quickActionList('不在', '${caseId}')" class="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600">
                                 不在
                             </button>
@@ -5697,7 +5688,6 @@ window.addEventListener('beforeunload', function(e) {
                                 <div class="flex space-x-2">
                                     <button onclick="callCase('${caseId}')" class="text-lg" title="電話">📞</button>
                                     <button onclick="window.location.href='sms:${caseData.phone}'" class="text-lg" title="SMS">💬</button>
-                                    <button onclick="sendData('${caseId}')" class="text-lg" title="送信">📤</button>
                                     <button onclick="openCallHistoryModal('${caseId}')" class="text-lg" title="メモ">📝</button>
                                 </div>
                                 <div class="flex space-x-2">
