@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1970 - ソート選択変更時initializeListView呼び出し）
-  CACHE_BUSTER: 'v1764425030-fe06653e'
+  // キャッシュバスター（V1971 - 古い順削除・金額順→紹介料順にリネーム）
+  CACHE_BUSTER: 'v1971-sort-cleanup'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
