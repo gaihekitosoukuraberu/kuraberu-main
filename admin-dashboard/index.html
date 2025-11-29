@@ -145,6 +145,17 @@
             min-width: auto !important;
             display: inline-block !important;
         }
+
+        /* V1977: selectの矢印を完全に削除 */
+        select.appearance-none {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: none !important;
+        }
+        select.appearance-none::-ms-expand {
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -348,12 +359,26 @@
             <!-- 案件一覧 -->
             <div class="form-section py-4">
                 
-                <!-- 検索・フィルターダッシュボード（レスポンシブ版） -->
+                <!-- V1977: 検索・フィルターダッシュボード（スマホ統一レイアウト） -->
                 <div class="bg-gradient-to-r from-gray-50 to-white rounded-xl p-4 mb-6 border border-gray-200 shadow-sm">
-                    <!-- モバイル: 縦並び、PC: すべて横一列 -->
-                    <div class="flex flex-wrap items-center gap-2 md:gap-3">
-                        <!-- V1977: 統計ボタン群（3等分） -->
-                        <div class="flex items-center gap-2 w-full lg:w-auto lg:min-w-[320px]">
+                    <div class="flex flex-col gap-2 w-full">
+                        <!-- 検索ボックス -->
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="名前・住所・電話番号・カナなど..." oninput="searchRegistrations()" autocomplete="off" class="w-full pl-10 pr-10 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all">
+                            <div class="absolute left-3 top-3">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <button onclick="clearSearch()" class="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors" id="clearSearchBtn" style="display: none;">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- 統計ボタン群（3等分） -->
+                        <div class="flex items-center gap-2 w-full">
                             <button onclick="filterByNewStatus()" class="flex-1 flex items-center justify-center gap-1 py-2.5 border-2 border-blue-500 bg-blue-100 text-blue-800 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
                                 <span class="text-base font-bold" id="newCount">15</span>
                                 <span class="text-xs font-medium">新規</span>
@@ -368,43 +393,24 @@
                             </button>
                         </div>
 
-                        <!-- PC用スペーサー（左寄せから右寄せに切り替え） -->
-                        <div class="hidden lg:block lg:flex-1"></div>
-
-                        <!-- 検索・ソートコントロール（縦並び） -->
-                        <div class="flex flex-col gap-2 w-full lg:w-auto lg:min-w-[320px]">
-                            <!-- 検索ボックス -->
-                            <div class="w-full">
-                                <div class="relative">
-                                    <input type="text" id="searchInput" placeholder="名前・住所・電話番号・カナなど..." oninput="searchRegistrations()" autocomplete="off" class="w-full pl-10 pr-10 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all">
-                                    <div class="absolute left-3 top-3">
-                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                        </svg>
-                                    </div>
-                                    <button onclick="clearSearch()" class="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors" id="clearSearchBtn" style="display: none;">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- V1976: ソートボタンとオプション（3等分） -->
-                            <div class="flex items-center gap-2 w-full">
-                                <button onclick="openSortModal()" class="flex-1 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center">
-                                    絞込
-                                </button>
-                                <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex-1 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center truncate">
-                                    <span id="dateFilterLabel">期間</span>
-                                </button>
-                                <select id="sortSelect" class="flex-1 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 transition-all text-center appearance-none">
-                                    <option value="date-desc">新着順</option>
-                                    <option value="amount-desc">紹介料順</option>
-                                    <option value="nextcall-asc">次回架電順</option>
-                                </select>
-                            </div>
+                        <!-- V1978: ソートボタン（3等分・すべてbutton） -->
+                        <div class="flex items-center gap-2 w-full">
+                            <button onclick="openSortModal()" class="flex-1 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center">
+                                絞込
+                            </button>
+                            <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex-1 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center truncate">
+                                <span id="dateFilterLabel">期間</span>
+                            </button>
+                            <button id="sortOrderBtn" onclick="openSortOrderModal()" class="flex-1 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center">
+                                <span id="sortOrderLabel">新着順</span>
+                            </button>
                         </div>
+                        <!-- 隠しselect（JS互換用） -->
+                        <select id="sortSelect" class="hidden">
+                            <option value="date-desc">新着順</option>
+                            <option value="amount-desc">紹介料順</option>
+                            <option value="nextcall-asc">次回架電順</option>
+                        </select>
                     </div>
                 </div>
                 
@@ -1862,6 +1868,28 @@ window.addEventListener('beforeunload', function(e) {
                 <button onclick="applyDateFilter()" class="w-full py-2.5 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-all">
                     適用
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- V1978: 並び順モーダル -->
+    <div id="sortOrderModal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-black/50" onclick="closeSortOrderModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-xl p-5 w-full max-w-xs">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">並び順</h3>
+                    <button onclick="closeSortOrderModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <button onclick="selectSortOrder('date-desc')" class="sort-order-btn py-3 px-4 rounded-lg border-2 border-blue-500 bg-blue-100 text-blue-800 font-semibold text-sm text-left" data-value="date-desc">新着順</button>
+                    <button onclick="selectSortOrder('amount-desc')" class="sort-order-btn py-3 px-4 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-semibold text-sm text-left" data-value="amount-desc">紹介料順</button>
+                    <button onclick="selectSortOrder('nextcall-asc')" class="sort-order-btn py-3 px-4 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-semibold text-sm text-left" data-value="nextcall-asc">次回架電順</button>
+                </div>
             </div>
         </div>
     </div>
@@ -5128,7 +5156,49 @@ window.addEventListener('beforeunload', function(e) {
                 btn.className = 'flex-1 py-2.5 bg-blue-500 text-white border border-blue-500 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center truncate';
             }
         }
-        
+
+        // V1978: 並び順モーダル関数
+        function openSortOrderModal() {
+            // 現在の選択状態を反映
+            updateSortOrderButtons();
+            document.getElementById('sortOrderModal').classList.remove('hidden');
+        }
+
+        function closeSortOrderModal() {
+            document.getElementById('sortOrderModal').classList.add('hidden');
+        }
+
+        function selectSortOrder(value) {
+            // 隠しselectを更新
+            document.getElementById('sortSelect').value = value;
+
+            // ボタンラベルを更新
+            const labels = {
+                'date-desc': '新着順',
+                'amount-desc': '紹介料順',
+                'nextcall-asc': '次回架電順'
+            };
+            document.getElementById('sortOrderLabel').textContent = labels[value] || '新着順';
+
+            // モーダルを閉じる
+            closeSortOrderModal();
+
+            // リスト更新
+            initializeListView();
+        }
+
+        function updateSortOrderButtons() {
+            const currentValue = document.getElementById('sortSelect').value;
+            document.querySelectorAll('.sort-order-btn').forEach(btn => {
+                const val = btn.dataset.value;
+                if (val === currentValue) {
+                    btn.className = 'sort-order-btn py-3 px-4 rounded-lg border-2 border-blue-500 bg-blue-100 text-blue-800 font-semibold text-sm text-left';
+                } else {
+                    btn.className = 'sort-order-btn py-3 px-4 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-semibold text-sm text-left';
+                }
+            });
+        }
+
         // ステータスでフィルタリング（統計クリック用）
         function filterByStatus(status) {
             // 新規案件のみ表示
@@ -5348,6 +5418,67 @@ window.addEventListener('beforeunload', function(e) {
             initializeListView();
 
             console.log('[toggleSortOrder] 逆順:', isReversed);
+        }
+
+        // V1977: CRMビュー用にソート/フィルタ済みのIDリストを更新（DOM描画なし）
+        function updateDisplayedCaseIds() {
+            const sortOption = document.getElementById('sortSelect')?.value || 'date-desc';
+            const searchQuery = document.getElementById('searchInput')?.value.toLowerCase() || '';
+
+            // 全件取得
+            let allCases = Object.entries(casesData);
+
+            // 検索フィルタ
+            if (searchQuery) {
+                allCases = allCases.filter(([caseId, caseData]) => {
+                    const name = (caseData.name || '').toLowerCase();
+                    const kana = (caseData.kana || '').toLowerCase();
+                    const phone = (caseData.phone || '').toLowerCase();
+                    const address = (caseData.address || '').toLowerCase();
+                    return name.includes(searchQuery) || kana.includes(searchQuery) ||
+                           phone.includes(searchQuery) || address.includes(searchQuery) ||
+                           caseId.toLowerCase().includes(searchQuery);
+                });
+            }
+
+            // ステータスフィルタ
+            if (selectedStatuses.length > 0) {
+                allCases = allCases.filter(([_, caseData]) => selectedStatuses.includes(caseData.status));
+            }
+
+            // 日付フィルタ
+            if (dateFilterType !== 'none' && dateFilterFrom && dateFilterTo) {
+                allCases = allCases.filter(([_, caseData]) => {
+                    let dateStr = dateFilterType === 'call' ? caseData.nextCallDate : caseData.registeredAt;
+                    if (!dateStr) return false;
+                    const dateOnly = dateStr.split(' ')[0];
+                    return dateOnly >= dateFilterFrom && dateOnly <= dateFilterTo;
+                });
+            }
+
+            // ソート
+            allCases.sort((a, b) => {
+                switch(sortOption) {
+                    case 'date-desc':
+                        return new Date(b[1].registeredAt || 0) - new Date(a[1].registeredAt || 0);
+                    case 'amount-desc':
+                        return (b[1].amount || 0) - (a[1].amount || 0);
+                    case 'nextcall-asc':
+                        const dateA = a[1].nextCallDate || '9999-12-31';
+                        const dateB = b[1].nextCallDate || '9999-12-31';
+                        return dateA.localeCompare(dateB);
+                    default:
+                        return 0;
+                }
+            });
+
+            // 逆順
+            if (isReversed) {
+                allCases.reverse();
+            }
+
+            currentDisplayedCaseIds = allCases.map(([caseId, _]) => caseId);
+            console.log('[updateDisplayedCaseIds] Updated with isReversed:', isReversed, 'count:', currentDisplayedCaseIds.length);
         }
 
         // V1958: 配信前/後フィルタを設定
@@ -8517,6 +8648,10 @@ window.addEventListener('beforeunload', function(e) {
                 document.getElementById('selectionCountDisplay').classList.add('hidden');
                 document.getElementById('listCountDisplay').classList.add('hidden');
                 document.getElementById('casePositionDisplay').classList.remove('hidden');
+
+                // V1977: CRMビューに切り替え時、現在のソート/フィルタ状態でcurrentDisplayedCaseIdsを更新
+                // initializeListViewを呼ばずに、ソート済みIDリストだけ更新
+                updateDisplayedCaseIds();
 
                 // currentCaseIdが未設定、または表示中リストにない場合は最初の案件を自動選択
                 console.log('[switchView] currentCaseId:', currentCaseId);

@@ -44,7 +44,7 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-// キャッシュバスター（V1978 - 並び順をボタン+モーダルに変更）
+  // キャッシュバスター（V1978 - 並び順をボタン+モーダルに変更）
   CACHE_BUSTER: 'v1978-sort-order-modal'
 };
 
