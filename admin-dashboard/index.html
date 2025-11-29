@@ -1402,7 +1402,7 @@
                             キャンセル
                         </button>
                         <button type="button" onclick="sendOrderTransfer()" id="orderTransferSubmitBtn" class="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-bold hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg flex items-center justify-center gap-2">
-                            <span>🚀</span> 転送実行
+                            <span>💾</span> 保存＆転送
                         </button>
                     </div>
                 </div>
@@ -10809,7 +10809,7 @@ ${d.memo || 'なし'}
             orderTransferEditSections = {};
         }
 
-        // オーダー転送を実行
+        // オーダー転送を実行（保存＆転送）
         async function sendOrderTransfer() {
             if (!window.currentOrderTransferData) {
                 alert('転送データがありません');
@@ -10818,12 +10818,47 @@ ${d.memo || 'なし'}
 
             const button = document.getElementById('orderTransferSubmitBtn');
             button.disabled = true;
-            button.innerHTML = '<span class="animate-spin">⏳</span> 転送中...';
+            button.innerHTML = '<span class="animate-spin">⏳</span> 保存＆転送中...';
 
             try {
                 const d = window.currentOrderTransferData;
 
-                // GASにデータを送信
+                // ローカルのcasesDataに編集内容を反映（保存）
+                if (casesData[d.cvId]) {
+                    Object.assign(casesData[d.cvId], {
+                        name: d.name,
+                        nameKana: d.nameKana,
+                        phone: d.phone,
+                        email: d.email,
+                        gender: d.gender,
+                        age: d.age,
+                        relation: d.relation,
+                        altPhone: d.altPhone,
+                        postalCode: d.postalCode,
+                        address: d.address,
+                        homeAddress: d.homeAddress,
+                        propertyType: d.propertyType,
+                        floors: d.floors,
+                        area: d.area,
+                        buildingAge: d.buildingAge,
+                        constructionCount: d.constructionCount,
+                        previousConstructionTime: d.previousConstructionTime,
+                        roofMaterial: d.roofMaterial,
+                        wallMaterial: d.wallMaterial,
+                        workItems: d.workItems,
+                        constructionTiming: d.constructionTiming,
+                        companiesCount: d.companiesCount,
+                        surveyAttendance: d.surveyAttendance,
+                        quoteCount: d.quoteCount,
+                        nextCallDate: d.nextCallDate,
+                        selectionCriteria: d.selectionCriteria,
+                        contactTimeSlot: d.contactTimeSlot,
+                        specialItems: d.specialItems,
+                        memo: d.memo
+                    });
+                }
+
+                // GASにデータを送信（保存＆転送）
                 const response = await window.apiClient.postRequest('sendOrderTransfer', {
                     cvId: d.cvId,
                     franchises: d.selectedFranchises.map((f, i) => ({
@@ -10832,21 +10867,42 @@ ${d.memo || 'なし'}
                         fee: f.fee
                     })),
                     transferMessage: d.transferMessage,
+                    // 全編集データを送信（スプシ保存用）
                     caseData: {
                         name: d.name,
                         nameKana: d.nameKana,
                         phone: d.phone,
                         email: d.email,
+                        gender: d.gender,
+                        age: d.age,
+                        relation: d.relation,
+                        altPhone: d.altPhone,
+                        postalCode: d.postalCode,
                         address: d.address,
+                        homeAddress: d.homeAddress,
                         propertyType: d.propertyType,
+                        floors: d.floors,
+                        area: d.area,
+                        buildingAge: d.buildingAge,
+                        constructionCount: d.constructionCount,
+                        previousConstructionTime: d.previousConstructionTime,
+                        roofMaterial: d.roofMaterial,
+                        wallMaterial: d.wallMaterial,
                         workItems: d.workItems,
                         constructionTiming: d.constructionTiming,
+                        companiesCount: d.companiesCount,
+                        surveyAttendance: d.surveyAttendance,
+                        quoteCount: d.quoteCount,
+                        nextCallDate: d.nextCallDate,
+                        selectionCriteria: d.selectionCriteria,
+                        contactTimeSlot: d.contactTimeSlot,
+                        specialItems: d.specialItems,
                         memo: d.memo
                     }
                 });
 
                 if (response.success) {
-                    showNotification(`✅ オーダー転送完了！${d.selectedFranchises.length}社に配信しました`, 'success');
+                    showNotification(`✅ 保存＆転送完了！${d.selectedFranchises.length}社に配信しました`, 'success');
                     closeOrderTransferModal();
 
                     // ステータスを「配信中」に更新
@@ -10864,10 +10920,10 @@ ${d.memo || 'なし'}
                 }
             } catch (error) {
                 console.error('オーダー転送エラー:', error);
-                alert('❌ 転送に失敗しました\n' + error.message);
+                alert('❌ 保存＆転送に失敗しました\n' + error.message);
             } finally {
                 button.disabled = false;
-                button.textContent = '転送実行';
+                button.textContent = '保存＆転送';
             }
         }
 
