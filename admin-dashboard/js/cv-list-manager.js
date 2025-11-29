@@ -200,6 +200,19 @@ const CVListManager = {
       const totalFee = calculatedFee * desiredCompanyCount;
       const formattedAmount = this.formatCompactFee(totalFee);
 
+      // V1929: デバッグログ（最初の5件のみ）
+      if (index < 5) {
+        console.log(`[FeeDebug] ${cv.name}:`, {
+          companiesCountPreference: cv.companiesCountPreference,
+          preferenceValue: preferenceValue,
+          desiredCompanyCount: desiredCompanyCount,
+          q9: cv.botAnswers?.q9_wallWorkType,
+          q10: cv.botAnswers?.q10_roofWorkType,
+          calculatedFee: calculatedFee,
+          totalFee: totalFee
+        });
+      }
+
       // casesData形式に変換
       casesData[caseId] = {
         // 基本情報（GASから返されるフィールド名を使用）
