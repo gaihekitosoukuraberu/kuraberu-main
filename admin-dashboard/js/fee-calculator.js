@@ -114,6 +114,51 @@ const FeeCalculator = {
   },
 
   /**
+   * V1930: 短い工事名をフルネームに正規化
+   * q9/q10の値（「塗装」「補修」等）を正式名称に変換
+   */
+  normalizeWorkItem(item) {
+    if (!item) return '';
+
+    // 既にフルネームならそのまま返す
+    if (this.basicItems.includes(item) || this.singleItems[item]) {
+      return item;
+    }
+
+    // 短い名前→フルネームのマッピング
+    const wallMappings = {
+      '塗装': '外壁塗装',
+      '張替え': '外壁張替え',
+      'カバー工法': '外壁カバー工法',
+      '補修': '外壁補修（外壁工事含む）',
+      '不明': '外壁塗装'  // 不明は外壁塗装扱い
+    };
+
+    const roofMappings = {
+      '塗装': '屋根塗装（外壁工事含む）',
+      '葺き替え': '屋根葺き替え・張り替え※スレート・ガルバリウム等',
+      'カバー工法': '屋根カバー工法',
+      '補修': '屋根補修（外壁工事含む）',
+      '防水': '屋上防水（外壁工事含む）',
+      '不明': '屋根塗装（外壁工事含む）'  // 不明は屋根塗装扱い
+    };
+
+    // itemが「外壁」を含むか「屋根」を含むかで判断
+    if (item.includes('外壁')) {
+      // 既に外壁が含まれているならbasicItemsから部分一致検索
+      const found = this.basicItems.find(bi => bi.includes(item) || item.includes(bi.replace(/（.*）/, '')));
+      return found || item;
+    }
+    if (item.includes('屋根') || item.includes('屋上')) {
+      const found = this.basicItems.find(bi => bi.includes(item) || item.includes(bi.replace(/（.*）/, '')));
+      return found || item;
+    }
+
+    // 短い名前の場合（外壁系として扱う、ただし後で屋根用にも使う）
+    return wallMappings[item] || item;
+  },
+
+  /**
    * 個別工事内容の料金を計算
    * @param {string} item - 工事内容
    * @param {number} companiesCount - 配信先加盟店数
@@ -122,19 +167,29 @@ const FeeCalculator = {
    * @returns {number} 料金（円）
    */
   calculateItemFee(item, companiesCount, propertyType, floors) {
+    // V1930: 短い名前を正規化
+    const normalizedItem = this.normalizeWorkItem(item);
+
     // 基本項目かチェック
-    if (this.basicItems.includes(item)) {
+    if (this.basicItems.includes(normalizedItem)) {
       return this.calculateBasicFee(propertyType, floors);
     }
 
     // 単品項目かチェック
-    if (this.singleItems[item]) {
-      const pricing = this.singleItems[item];
+    if (this.singleItems[normalizedItem]) {
+      const pricing = this.singleItems[normalizedItem];
       return companiesCount === 1 ? pricing.single : pricing.multi;
     }
 
+    // V1930: 部分一致でも基本項目として扱う（外壁塗装、屋根塗装等）
+    const isWallWork = item.includes('外壁') || item.includes('塗装') || item.includes('張替') || item.includes('カバー');
+    const isRoofWork = item.includes('屋根') || item.includes('葺き替え') || item.includes('防水');
+    if (isWallWork || isRoofWork) {
+      return this.calculateBasicFee(propertyType, floors);
+    }
+
     // 不明な項目
-    console.warn('[FeeCalculator] 不明な工事内容:', item);
+    console.warn('[FeeCalculator] 不明な工事内容:', item, '→', normalizedItem);
     return 0;
   },
 

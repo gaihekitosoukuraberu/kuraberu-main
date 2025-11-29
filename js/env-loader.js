@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1928 - companiesCountPreference fix）
-  CACHE_BUSTER: 'v1764398589-fe3843c8'
+  CACHE_BUSTER: 'v1764399118-v1930b'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
