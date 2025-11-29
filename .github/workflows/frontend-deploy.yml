@@ -18,6 +18,7 @@ jobs:
   deploy-admin:
     name: Deploy Admin Dashboard
     runs-on: ubuntu-latest
+    needs: [deploy-js]
     continue-on-error: true
 
     steps:
@@ -131,6 +132,7 @@ jobs:
   deploy-franchise-dashboard:
     name: Deploy Franchise Dashboard
     runs-on: ubuntu-latest
+    needs: [deploy-js]
     continue-on-error: true
 
     steps:
@@ -190,6 +192,7 @@ jobs:
   deploy-register:
     name: Deploy Franchise Register
     runs-on: ubuntu-latest
+    needs: [deploy-js]
     continue-on-error: true
 
     steps:
@@ -255,6 +258,7 @@ jobs:
   deploy-estimate:
     name: Deploy Estimate System
     runs-on: ubuntu-latest
+    needs: [deploy-js]
     continue-on-error: true
 
     steps:
@@ -314,6 +318,7 @@ jobs:
   deploy-lp:
     name: Deploy LP
     runs-on: ubuntu-latest
+    needs: [deploy-js]
 
     steps:
       - name: Checkout code
@@ -371,12 +376,49 @@ jobs:
           echo "✅ LP deployed successfully"
 
   deploy-js:
-    name: Deploy JS (env-loader)
+    name: Deploy JS (env-loader) - Updates cache buster for all frontend deploys
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Update env-loader.js CACHE_BUSTER
+        run: |
+          echo "🔄 Updating env-loader.js CACHE_BUSTER..."
+          CACHE_BUSTER="v$(date +%s)-fe$(echo $GITHUB_SHA | cut -c1-6)"
+          echo "Cache buster: $CACHE_BUSTER"
+
+          if [ -f "js/env-loader.js" ]; then
+            # CACHE_BUSTER の値を更新
+            sed -i.bak -E "s/CACHE_BUSTER: '[^']+'/CACHE_BUSTER: '$CACHE_BUSTER'/" js/env-loader.js
+            # コメントも更新
+            sed -i.bak -E "s|// キャッシュバスター\([^)]*\)|// キャッシュバスター（Frontend Auto-Deploy $(date +%Y-%m-%d)）|" js/env-loader.js
+            rm -f js/env-loader.js.bak
+            echo "✅ Updated js/env-loader.js with CACHE_BUSTER: $CACHE_BUSTER"
+            grep "CACHE_BUSTER" js/env-loader.js
+          fi
+
+      - name: Commit and push cache buster updates
+        run: |
+          echo "📝 env-loader.js キャッシュバスター更新をコミット中..."
+
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+          git add js/env-loader.js
+
+          if git diff --staged --quiet; then
+            echo "📍 変更なし - コミットスキップ"
+          else
+            git commit -m "auto: cache buster update - env-loader.js"
+            git push
+            echo "✅ キャッシュバスター更新をプッシュしました"
+          fi
 
       - name: Deploy to Xserver via FTP
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
