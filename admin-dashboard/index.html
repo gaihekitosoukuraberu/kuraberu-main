@@ -316,6 +316,15 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
+                    <!-- V1959: 配信前/後トグル（ヘッダーに移動） -->
+                    <div class="flex items-center border-2 border-gray-300 rounded-full overflow-hidden shadow-sm">
+                        <button id="preDeliveryBtn" onclick="setDeliveryFilter('pre')" class="px-2 md:px-3 py-1 md:py-1.5 text-xs font-medium bg-indigo-500 text-white transition-all">
+                            配信前
+                        </button>
+                        <button id="postDeliveryBtn" onclick="setDeliveryFilter('post')" class="px-2 md:px-3 py-1 md:py-1.5 text-xs font-medium bg-white text-gray-600 transition-all">
+                            配信後
+                        </button>
+                    </div>
                     <button onclick="createNewCase()" class="bg-gradient-to-r from-green-500 to-green-600 text-white p-2.5 md:px-5 md:py-2.5 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -357,16 +366,6 @@
                             <span class="text-xs font-medium">対応中</span>
                         </button>
 
-                        <!-- V1958: 配信前/後トグル -->
-                        <div class="flex items-center border-2 border-gray-300 rounded-full overflow-hidden shadow-sm flex-shrink-0">
-                            <button id="preDeliveryBtn" onclick="setDeliveryFilter('pre')" class="px-2.5 md:px-3 py-1 md:py-1.5 text-xs font-medium bg-indigo-500 text-white transition-all">
-                                配信前
-                            </button>
-                            <button id="postDeliveryBtn" onclick="setDeliveryFilter('post')" class="px-2.5 md:px-3 py-1 md:py-1.5 text-xs font-medium bg-white text-gray-600 transition-all">
-                                配信後
-                            </button>
-                        </div>
-
                         <!-- PC用スペーサー（左寄せから右寄せに切り替え） -->
                         <div class="hidden lg:block lg:flex-1"></div>
 
@@ -398,6 +397,7 @@
                                     <option value="date-desc">新着順</option>
                                     <option value="date-asc">古い順</option>
                                     <option value="amount-desc">金額順</option>
+                                    <option value="nextcall-asc">次回架電順</option>
                                 </select>
                             </div>
                         </div>
@@ -1799,27 +1799,29 @@ window.addEventListener('beforeunload', function(e) {
         </div>
     </div>
 
-    <!-- V1958: 電話後接続確認モーダル -->
+    <!-- V1959: 電話後接続確認モーダル（再設計） -->
     <div id="connectionModal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden max-h-[90vh] overflow-y-auto">
                 <div class="px-5 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
                     <h3 class="text-lg font-bold text-gray-900 text-center">通話結果</h3>
                 </div>
-                <div class="p-5 space-y-4">
-                    <!-- 接続ボタン -->
-                    <button onclick="handleCallConnected()" class="w-full py-4 text-xl font-bold bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3">
-                        <span class="text-2xl">📞</span>
-                        接続
-                    </button>
-                    <!-- 不在ボタン -->
-                    <button onclick="handleCallAbsent()" class="w-full py-4 text-xl font-bold bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3">
-                        <span class="text-2xl">📵</span>
-                        不在
-                    </button>
-                    <!-- 次回架電クイック設定（不在時用） -->
-                    <div id="nextCallQuickSettings" class="hidden mt-4 p-4 bg-gray-50 rounded-xl">
+                <div class="p-5 space-y-3">
+                    <!-- 接続/不在選択 -->
+                    <div class="flex gap-3">
+                        <button id="connectedBtn" onclick="selectConnectionStatus('connected')" class="flex-1 py-3 text-base font-bold bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                            <span class="text-xl">📞</span>
+                            接続
+                        </button>
+                        <button id="absentBtn" onclick="selectConnectionStatus('absent')" class="flex-1 py-3 text-base font-bold bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                            <span class="text-xl">📵</span>
+                            不在
+                        </button>
+                    </div>
+
+                    <!-- 次回架電クイック設定（共通） -->
+                    <div id="nextCallQuickSettings" class="hidden p-4 bg-gray-50 rounded-xl">
                         <h4 class="text-sm font-semibold text-gray-700 mb-3">次回架電を設定</h4>
                         <div class="grid grid-cols-4 gap-2 mb-3">
                             <button onclick="setQuickCallTime(9)" class="quick-time-btn px-2 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">9時</button>
@@ -1827,17 +1829,51 @@ window.addEventListener('beforeunload', function(e) {
                             <button onclick="setQuickCallTime(17)" class="quick-time-btn px-2 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">17時</button>
                             <button onclick="setQuickCallTime(19)" class="quick-time-btn px-2 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">19時</button>
                         </div>
-                        <div class="grid grid-cols-4 gap-2">
+                        <div class="grid grid-cols-4 gap-2 mb-3">
                             <button onclick="setQuickCallDay('today')" class="quick-day-btn px-2 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">当日</button>
                             <button onclick="setQuickCallDay('tomorrow')" class="quick-day-btn px-2 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">明日</button>
                             <button onclick="setQuickCallDay('saturday')" class="quick-day-btn px-2 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">土</button>
                             <button onclick="setQuickCallDay('sunday')" class="quick-day-btn px-2 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">日</button>
                         </div>
-                        <div id="selectedNextCall" class="mt-3 text-center text-sm text-blue-600 font-medium hidden"></div>
-                        <button onclick="confirmAbsentWithNextCall()" class="w-full mt-3 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all">
-                            確定して次へ
-                        </button>
+                        <div id="selectedNextCall" class="text-center text-sm text-blue-600 font-medium mb-3 hidden"></div>
+
+                        <!-- カスタム時間入力 -->
+                        <div id="customTimeSection" class="hidden mb-3 p-3 bg-white rounded-lg border border-gray-200">
+                            <div class="flex items-center gap-2">
+                                <input type="date" id="customCallDate" class="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm">
+                                <select id="customCallHour" class="px-2 py-1.5 border border-gray-300 rounded text-sm">
+                                    <option value="">時</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                    <option value="11">11</option>
+                                    <option value="12">12</option>
+                                    <option value="13">13</option>
+                                    <option value="14">14</option>
+                                    <option value="15">15</option>
+                                    <option value="16">16</option>
+                                    <option value="17">17</option>
+                                    <option value="18">18</option>
+                                    <option value="19">19</option>
+                                    <option value="20">20</option>
+                                </select>
+                                <span class="text-gray-500">:00</span>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button onclick="toggleCustomTime()" id="customTimeBtn" class="flex-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 text-gray-600 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
+                                カスタム
+                            </button>
+                            <button onclick="confirmConnectionResult()" class="flex-1 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all text-sm">
+                                確定
+                            </button>
+                        </div>
                     </div>
+
+                    <!-- スキップ（次回設定なし） -->
+                    <button onclick="skipNextCallSetting()" id="skipBtn" class="hidden w-full py-2 text-sm text-gray-500 hover:text-gray-700 transition-all">
+                        次回設定をスキップ →
+                    </button>
                 </div>
             </div>
         </div>
@@ -5651,6 +5687,19 @@ window.addEventListener('beforeunload', function(e) {
                     const amountA = parseAmount(dataA.amount);
                     const amountB = parseAmount(dataB.amount);
                     return amountB - amountA;
+                } else if (sortOption === 'nextcall-asc') {
+                    // V1959: 次回架電日順（早い順）
+                    const parseNextCall = (val) => {
+                        if (!val) return Infinity; // 未設定は最後
+                        try {
+                            return new Date(val).getTime();
+                        } catch {
+                            return Infinity;
+                        }
+                    };
+                    const nextA = parseNextCall(dataA.nextCallDate);
+                    const nextB = parseNextCall(dataB.nextCallDate);
+                    return nextA - nextB;
                 }
                 return 0;
             });
@@ -6921,19 +6970,38 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
-        // V1958: 接続確認モーダル表示
+        // V1959: 接続確認モーダル表示
         function showConnectionModal() {
             const modal = document.getElementById('connectionModal');
             if (modal) {
-                // リセット
-                document.getElementById('nextCallQuickSettings').classList.add('hidden');
-                document.getElementById('selectedNextCall').classList.add('hidden');
+                // 全てリセット
+                connectionStatus = null;
                 quickCallTime = null;
                 quickCallDay = null;
+                useCustomTime = false;
+
+                document.getElementById('nextCallQuickSettings').classList.add('hidden');
+                document.getElementById('selectedNextCall').classList.add('hidden');
+                document.getElementById('customTimeSection').classList.add('hidden');
+                document.getElementById('skipBtn').classList.add('hidden');
+
+                // ボタンのスタイルをリセット
+                const connectedBtn = document.getElementById('connectedBtn');
+                const absentBtn = document.getElementById('absentBtn');
+                const customBtn = document.getElementById('customTimeBtn');
+
+                connectedBtn.classList.remove('ring-4', 'ring-green-200');
+                connectedBtn.classList.add('from-green-500', 'to-green-600');
+                absentBtn.classList.remove('ring-4', 'ring-gray-200', 'from-gray-500', 'to-gray-600');
+                absentBtn.classList.add('from-gray-400', 'to-gray-500');
+                customBtn.classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-600');
+                customBtn.classList.add('border-gray-300', 'text-gray-600');
+
                 document.querySelectorAll('.quick-time-btn, .quick-day-btn').forEach(btn => {
                     btn.classList.remove('border-blue-500', 'bg-blue-50');
                     btn.classList.add('border-gray-300');
                 });
+
                 modal.classList.remove('hidden');
             }
         }
@@ -6945,25 +7013,158 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
-        // V1958: 接続時の処理→ステータスモーダル→メモモーダル
-        function handleCallConnected() {
-            console.log('[handleCallConnected] 接続');
-            hideConnectionModal();
-            // ステータスモーダルを表示（afterCallFlow=trueのままなのでメモモーダルにも遷移）
-            setTimeout(() => showStatusModal(), 200);
-        }
+        // V1959: 接続状態を記録する変数
+        let connectionStatus = null; // 'connected' or 'absent'
+        let quickCallTime = null;
+        let quickCallDay = null;
+        let useCustomTime = false;
 
-        // V1958: 不在時の処理→クイック設定を表示
-        function handleCallAbsent() {
-            console.log('[handleCallAbsent] 不在');
+        // V1959: 接続/不在を選択
+        function selectConnectionStatus(status) {
+            connectionStatus = status;
+
+            const connectedBtn = document.getElementById('connectedBtn');
+            const absentBtn = document.getElementById('absentBtn');
+            const skipBtn = document.getElementById('skipBtn');
+
+            if (status === 'connected') {
+                connectedBtn.classList.remove('from-gray-400', 'to-gray-500');
+                connectedBtn.classList.add('from-green-500', 'to-green-600', 'ring-4', 'ring-green-200');
+                absentBtn.classList.remove('from-gray-500', 'to-gray-600', 'ring-4', 'ring-gray-200');
+                absentBtn.classList.add('from-gray-400', 'to-gray-500');
+                skipBtn.classList.remove('hidden');
+            } else {
+                absentBtn.classList.remove('from-gray-400', 'to-gray-500');
+                absentBtn.classList.add('from-gray-500', 'to-gray-600', 'ring-4', 'ring-gray-200');
+                connectedBtn.classList.remove('from-green-500', 'to-green-600', 'ring-4', 'ring-green-200');
+                connectedBtn.classList.add('from-green-500', 'to-green-600');
+                skipBtn.classList.add('hidden');
+            }
+
+            // 次回架電設定を表示
             document.getElementById('nextCallQuickSettings').classList.remove('hidden');
-            // 自動で次回架電時間を計算してプリセット
             autoSetNextCallTime();
         }
 
-        // V1958: 次回架電のクイック設定用変数
-        let quickCallTime = null;
-        let quickCallDay = null;
+        // V1959: カスタム時間入力の切り替え
+        function toggleCustomTime() {
+            useCustomTime = !useCustomTime;
+            const customSection = document.getElementById('customTimeSection');
+            const customBtn = document.getElementById('customTimeBtn');
+
+            if (useCustomTime) {
+                customSection.classList.remove('hidden');
+                customBtn.classList.add('border-blue-500', 'bg-blue-50', 'text-blue-600');
+                customBtn.classList.remove('border-gray-300', 'text-gray-600');
+                // クイック選択をクリア
+                quickCallTime = null;
+                quickCallDay = null;
+                document.querySelectorAll('.quick-time-btn, .quick-day-btn').forEach(btn => {
+                    btn.classList.remove('border-blue-500', 'bg-blue-50');
+                    btn.classList.add('border-gray-300');
+                });
+                document.getElementById('selectedNextCall').classList.add('hidden');
+                // 今日の日付をセット
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('customCallDate').value = today;
+            } else {
+                customSection.classList.add('hidden');
+                customBtn.classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-600');
+                customBtn.classList.add('border-gray-300', 'text-gray-600');
+            }
+        }
+
+        // V1959: 確定ボタン
+        async function confirmConnectionResult() {
+            if (!connectionStatus) {
+                alert('接続/不在を選択してください');
+                return;
+            }
+
+            // 次回架電日時を計算
+            let nextCallDateTime = null;
+            if (useCustomTime) {
+                const date = document.getElementById('customCallDate').value;
+                const hour = document.getElementById('customCallHour').value;
+                if (date && hour) {
+                    const target = new Date(date);
+                    target.setHours(parseInt(hour), 0, 0, 0);
+                    nextCallDateTime = target.toLocaleString('ja-JP');
+                }
+            } else if (quickCallTime && quickCallDay) {
+                nextCallDateTime = calculateNextCallDateTime();
+            }
+
+            // 履歴を更新
+            if (currentCaseId && casesData[currentCaseId]) {
+                const lastRecord = casesData[currentCaseId].callHistory?.[0];
+                if (lastRecord && lastRecord.note === '📞 架電') {
+                    lastRecord.note = connectionStatus === 'connected' ? '📞 接続' : '📵 不在';
+                    if (nextCallDateTime) {
+                        lastRecord.nextCallDate = nextCallDateTime;
+                    }
+                }
+
+                // 次回架電日をデータに保存
+                if (nextCallDateTime) {
+                    casesData[currentCaseId].nextCallDate = nextCallDateTime;
+                }
+
+                // 不在時のステータス変更（新規→不在）
+                if (connectionStatus === 'absent') {
+                    const currentStatus = casesData[currentCaseId].status;
+                    if (currentStatus === '新規') {
+                        await changeCRMStatus('不在');
+                    }
+                }
+
+                // GASに保存
+                saveCallHistoryToGAS();
+            }
+
+            hideConnectionModal();
+
+            // 接続時はステータス→メモモーダルへ
+            if (connectionStatus === 'connected') {
+                setTimeout(() => showStatusModal(), 200);
+            } else {
+                // 不在時はリストを更新して終了
+                afterCallFlow = false;
+                if (typeof loadCVList === 'function') {
+                    loadCVList();
+                }
+            }
+        }
+
+        // V1959: スキップボタン（接続時のみ）
+        function skipNextCallSetting() {
+            hideConnectionModal();
+            setTimeout(() => showStatusModal(), 200);
+        }
+
+        // V1959: GASに履歴を保存
+        async function saveCallHistoryToGAS() {
+            if (!currentCaseId || !casesData[currentCaseId]) return;
+
+            const callHistoryFormatted = (casesData[currentCaseId].callHistory || []).map(item => ({
+                date: item.date || item.timestamp || '',
+                note: item.note || '',
+                nextCallDate: item.nextCallDate || ''
+            }));
+
+            try {
+                await window.apiClient.postRequest('updateCVData', {
+                    cvId: currentCaseId,
+                    data: {
+                        callHistory: JSON.stringify(callHistoryFormatted),
+                        nextCallDate: casesData[currentCaseId].nextCallDate || ''
+                    }
+                });
+                console.log('[saveCallHistoryToGAS] 保存成功');
+            } catch (err) {
+                console.error('[saveCallHistoryToGAS] 保存エラー:', err);
+            }
+        }
 
         // V1958: 時間を選択
         function setQuickCallTime(hour) {
@@ -7069,70 +7270,7 @@ window.addEventListener('beforeunload', function(e) {
             updateSelectedNextCallDisplay();
         }
 
-        // V1958: 不在確定→次回架電日を保存して次へ
-        async function confirmAbsentWithNextCall() {
-            if (!currentCaseId || !casesData[currentCaseId]) {
-                console.warn('[confirmAbsentWithNextCall] 案件が選択されていません');
-                return;
-            }
-
-            const caseData = casesData[currentCaseId];
-            const currentStatus = caseData.status;
-
-            // 次回架電日時を計算
-            const nextCallDateTime = calculateNextCallDateTime();
-
-            // 架電履歴に📵不在を追加（既存の📞架電は残す）
-            if (!casesData[currentCaseId].callHistory) {
-                casesData[currentCaseId].callHistory = [];
-            }
-
-            // 最新の架電記録を📵不在に更新
-            const lastRecord = casesData[currentCaseId].callHistory[0];
-            if (lastRecord && lastRecord.note === '📞 架電') {
-                lastRecord.note = '📵 不在';
-                lastRecord.nextCallDate = nextCallDateTime;
-            }
-
-            // ステータス分岐: 新規→不在、見込み/再架電→維持
-            if (currentStatus === '新規') {
-                await changeCRMStatus('不在');
-            }
-            // 見込み・再架電の場合はステータス維持（履歴のみ追加）
-
-            // 次回架電日をCRMデータに保存
-            casesData[currentCaseId].nextCallDate = nextCallDateTime;
-
-            // GASに保存
-            const callHistoryFormatted = casesData[currentCaseId].callHistory.map(item => ({
-                date: item.date || item.timestamp || '',
-                note: item.note || '',
-                nextCallDate: item.nextCallDate || ''
-            }));
-
-            try {
-                await window.apiClient.postRequest('updateCVData', {
-                    cvId: currentCaseId,
-                    data: {
-                        callHistory: JSON.stringify(callHistoryFormatted),
-                        nextCallDate: nextCallDateTime
-                    }
-                });
-                console.log('[confirmAbsentWithNextCall] 保存成功');
-            } catch (err) {
-                console.error('[confirmAbsentWithNextCall] 保存エラー:', err);
-            }
-
-            hideConnectionModal();
-            afterCallFlow = false;
-
-            // リスト更新
-            if (typeof loadCVList === 'function') {
-                loadCVList();
-            }
-        }
-
-        // V1958: 次回架電日時を計算
+        // V1959: 次回架電日時を計算
         function calculateNextCallDateTime() {
             const now = new Date();
             let target = new Date();
