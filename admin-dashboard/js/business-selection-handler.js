@@ -206,13 +206,20 @@ const BusinessSelectionHandler = {
    * 現在のデータキャッシュ
    */
   currentCaseData: null,
-  allFranchises: [],          // RankingSystemから取得した全業者
+  allFranchises: [],          // マージ済み全業者リスト（検索、マッチ度計算用）
+  rankings: {                 // V1917: GASの4つのランキングを個別保持（ソート順表示用）
+    cheap: [],
+    recommended: [],
+    review: [],
+    premium: []
+  },
   userSelectedCompanies: [],  // AS列の業者名配列
   originalDesiredCount: '',   // V1911: スプシCB列からの希望社数（変更不可）
   currentSortType: 'user',    // 現在のソート順
   showAll: false,             // もっと見る状態
   searchQuery: '',            // 検索クエリ
   checkedCompanies: new Set(), // V1921: チェック済み業者名（グローバル管理）
+  distancesCalculated: false, // 距離計算済みフラグ
 
   /**
    * 初期化
@@ -375,7 +382,22 @@ const BusinessSelectionHandler = {
 
       console.log('[BusinessSelection] getRanking APIレスポンス:', response);
 
-      // ランキングデータを統合（recommended, cheap, review, premiumから重複除去してマージ）
+      // V1917: GASの4つのランキングを個別に保持（ソート順表示用）
+      // 各ランキングをフランチャイズ形式に変換して保存
+      this.rankings = {
+        cheap: (response.rankings?.cheap || []).map(b => this.convertToFranchiseFormat(b)),
+        recommended: (response.rankings?.recommended || []).map(b => this.convertToFranchiseFormat(b)),
+        review: (response.rankings?.review || []).map(b => this.convertToFranchiseFormat(b)),
+        premium: (response.rankings?.premium || []).map(b => this.convertToFranchiseFormat(b))
+      };
+      console.log('[V1917] GASランキング個別保持:', {
+        cheap: this.rankings.cheap.length,
+        recommended: this.rankings.recommended.length,
+        review: this.rankings.review.length,
+        premium: this.rankings.premium.length
+      });
+
+      // マージ済み全業者リスト（検索、マッチ度計算用）
       const allFranchises = this.mergeRankingData(response.rankings);
 
       console.log('[V1900-DEBUG] 統合後の業者数:', allFranchises.length);
@@ -801,15 +823,22 @@ const BusinessSelectionHandler = {
       };
     });
 
-    // V1915: ユーザー選択ソート時 - AS列業者を先頭に（AS列内の順序は維持）
+    // V1920: ユーザー選択ソート時 - AS列業者を先頭に（AS列内の順序は維持）
     // チェック済みのグループ化はgenerateBusinessCardsで行う
     // 'user' または 'selected' の両方に対応
     if (sortType === 'user' || sortType === 'selected') {
       const userSelected = allWithMatchRate.filter(f => f._isUserSelected);
       const others = allWithMatchRate.filter(f => !f._isUserSelected);
 
-      // V1915: AS列業者はマッチ度関係なく先頭（順序はそのまま維持）
-      // othersはマッチ度でグループ化し、同率内はおすすめ順（売上高）
+      // V1920: GASのrecommendedランキング順序を取得（おすすめ順のフォールバック用）
+      const gasRecommended = this.rankings.recommended || [];
+      const recommendedOrder = new Map();
+      gasRecommended.forEach((item, index) => {
+        recommendedOrder.set(item.companyName, index);
+      });
+
+      // V1920: AS列業者はマッチ度関係なく先頭（順序はそのまま維持）
+      // othersはマッチ度でグループ化し、同率内はGASおすすめ順
       const groupedByMatchRate = {};
       others.forEach(f => {
         const rate = f._matchRate || 0;
@@ -824,12 +853,16 @@ const BusinessSelectionHandler = {
         .sort((a, b) => parseFloat(b) - parseFloat(a)) // マッチ度降順
         .forEach(rate => {
           let group = groupedByMatchRate[rate];
-          // 同率内はおすすめ順（売上高）
-          group = this.sortByRevenue(group);
+          // V1920: 同率内はGASおすすめ順（ランキングに含まれない業者は末尾）
+          group = [...group].sort((a, b) => {
+            const posA = recommendedOrder.has(a.companyName) ? recommendedOrder.get(a.companyName) : 9999;
+            const posB = recommendedOrder.has(b.companyName) ? recommendedOrder.get(b.companyName) : 9999;
+            return posA - posB;
+          });
           sortedOthers.push(...group);
         });
 
-      console.log('[V1915-SORT] user sort: AS列業者', userSelected.length, '社 → その他', sortedOthers.length, '社（マッチ度→おすすめ順）');
+      console.log('[V1920-SORT] user sort: AS列業者', userSelected.length, '社 → その他', sortedOthers.length, '社（マッチ度→GASおすすめ順）');
       return [...userSelected, ...sortedOthers];
     }
 
@@ -838,9 +871,32 @@ const BusinessSelectionHandler = {
       return this.sortByDistance(allWithMatchRate);
     }
 
-    // V1907: それ以外のソート（おすすめ順、安い順、口コミ順、高品質順）
-    // マッチ度でグループ化し、各グループ内でソート条件を適用
-    console.log('[V1916] ソート処理開始 - sortType:', sortType);
+    // V1920: それ以外のソート（おすすめ順、安い順、口コミ順、高品質順）
+    // GASの計算済みランキング順を使用（データミキシング、日替わりゆらぎ、配信数ボーナス等を反映）
+    // チェック優先 > マッチ度グループ化 > GASランキング順
+    console.log('[V1920] ソート処理開始 - sortType:', sortType);
+
+    // V1920: sortTypeをランキングキーにマッピング
+    const rankingKeyMap = {
+      'recommend': 'recommended',
+      'recommended': 'recommended',
+      'price': 'cheap',
+      'cheap': 'cheap',
+      'review': 'review',
+      'quality': 'premium',
+      'premium': 'premium'
+    };
+    const rankingKey = rankingKeyMap[sortType] || 'recommended';
+    const gasRanking = this.rankings[rankingKey] || [];
+
+    // GASランキングの順序をMapで保持（会社名 → 順位）
+    const rankingOrder = new Map();
+    gasRanking.forEach((item, index) => {
+      rankingOrder.set(item.companyName, index);
+    });
+    console.log('[V1920] GASランキング使用 - key:', rankingKey, ', 件数:', gasRanking.length, ', 順序:', gasRanking.map(f => f.companyName).join(' → '));
+
+    // マッチ度でグループ化
     const groupedByMatchRate = {};
     allWithMatchRate.forEach(f => {
       const rate = f._matchRate || 0;
@@ -850,44 +906,24 @@ const BusinessSelectionHandler = {
       groupedByMatchRate[rate].push(f);
     });
 
-    // 各マッチ度グループ内でソート条件を適用
+    // 各マッチ度グループ内でGASランキング順を適用
     let sortedAll = [];
     Object.keys(groupedByMatchRate)
       .sort((a, b) => parseFloat(b) - parseFloat(a)) // マッチ度降順
       .forEach(rate => {
         let group = groupedByMatchRate[rate];
 
-        // V1916: sortTypeに応じてグループ内をソート（正しいsortType値に修正）
-        const beforeSort = group.map(f => f.companyName).join(', ');
-        switch (sortType) {
-          case 'recommend':
-          case 'recommended':
-            // おすすめ順: 売上高順
-            group = this.sortByRevenue(group);
-            console.log('[V1916] おすすめ順(売上高)適用 - マッチ度', rate, '%:', group.map(f => `${f.companyName}(売上:${(f.avgContractAmount||0)*(f.contractCount||0)})`).join(', '));
-            break;
-          case 'price':
-          case 'cheap':
-            // 安い順: 価格昇順
-            group = this.sortByPrice(group);
-            console.log('[V1916] 安い順(価格昇順)適用 - マッチ度', rate, '%:', group.map(f => `${f.companyName}(価格:${f.avgContractAmount||'?'})`).join(', '));
-            break;
-          case 'review':
-            // 口コミ順: レビュー評価順
-            group = this.sortByReview(group);
-            console.log('[V1916] 口コミ順適用 - マッチ度', rate, '%:', group.map(f => `${f.companyName}(★${f.rating||0},${f.reviewCount||0}件)`).join(', '));
-            break;
-          case 'quality':
-          case 'premium':
-            // 高品質順: 高額順
-            group = this.sortByPremium(group);
-            console.log('[V1916] 高品質順(高額順)適用 - マッチ度', rate, '%:', group.map(f => `${f.companyName}(価格:${f.avgContractAmount||'?'})`).join(', '));
-            break;
-          default:
-            // デフォルトはマッチ度順のまま
-            console.log('[V1916] 未知のsortType:', sortType, '- マッチ度', rate, '%グループはそのまま');
-            break;
-        }
+        // V1920: GASランキング順でソート（ランキングに含まれない業者は末尾）
+        group = [...group].sort((a, b) => {
+          const posA = rankingOrder.has(a.companyName) ? rankingOrder.get(a.companyName) : 9999;
+          const posB = rankingOrder.has(b.companyName) ? rankingOrder.get(b.companyName) : 9999;
+          return posA - posB;
+        });
+
+        console.log('[V1920] GASランキング適用 - マッチ度', rate, '%:', group.map(f => {
+          const pos = rankingOrder.has(f.companyName) ? `#${rankingOrder.get(f.companyName)+1}` : '圏外';
+          return `${f.companyName}(${pos})`;
+        }).join(', '));
 
         sortedAll.push(...group);
       });
@@ -1177,7 +1213,7 @@ const BusinessSelectionHandler = {
           return !isChecked && !isUserSel;
         });
 
-        // V1915: othersをマッチ度でグループ化し、同率内はおすすめ順（売上高）でソート
+        // V1920: othersをマッチ度でグループ化し、同率内はGASおすすめ順
         const groupedByMatchRate = {};
         others.forEach(f => {
           const rate = f._matchRate || 0;
@@ -1187,23 +1223,34 @@ const BusinessSelectionHandler = {
           groupedByMatchRate[rate].push(f);
         });
 
-        // マッチ度降順で結合、同率内は売上高順
+        // V1920: GASのrecommendedランキング順序を取得
+        const gasRecommended = this.rankings.recommended || [];
+        const recommendedOrder = new Map();
+        gasRecommended.forEach((item, index) => {
+          recommendedOrder.set(item.companyName, index);
+        });
+
+        // マッチ度降順で結合、同率内はGASおすすめ順
         others = [];
         Object.keys(groupedByMatchRate)
           .sort((a, b) => parseFloat(b) - parseFloat(a))
           .forEach(rate => {
             let group = groupedByMatchRate[rate];
-            // 同率内はおすすめ順（売上高）でソート
-            group = this.sortByRevenue(group);
+            // V1920: 同率内はGASおすすめ順（ランキングに含まれない業者は末尾）
+            group = [...group].sort((a, b) => {
+              const posA = recommendedOrder.has(a.companyName) ? recommendedOrder.get(a.companyName) : 9999;
+              const posB = recommendedOrder.has(b.companyName) ? recommendedOrder.get(b.companyName) : 9999;
+              return posA - posB;
+            });
             others.push(...group);
           });
 
         others = others.slice(0, limit);
 
         displayFranchises = [...checkedFranchises, ...uncheckedUserSelected, ...others];
-        console.log('[V1915-USER] 3段階グループ: ✓', checkedFranchises.length,
+        console.log('[V1920-USER] 3段階グループ: ✓', checkedFranchises.length,
           '→ AS列', uncheckedUserSelected.length, uncheckedUserSelected.map(f => f.companyName),
-          '→ 他（マッチ度→おすすめ順）', others.length);
+          '→ 他（マッチ度→GASおすすめ順）', others.length);
       } else {
         // V1912: ユーザー選択以外のソート: チェック済み → マッチ度/ソート条件順
         // AS列業者の優先なし（マッチ度優先）
