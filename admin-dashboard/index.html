@@ -551,6 +551,12 @@
                                             📝
                                         </button>
                                     </div>
+                                    <!-- V1939: 電話発信ボタン -->
+                                    <div class="inline-block">
+                                        <button onclick="callCurrentCase()" class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-all text-2xl" title="電話をかける">
+                                            📞
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="flex space-x-2">
                                     <button onclick="previousCase()" class="px-4 py-2 bg-white text-gray-700 rounded-lg border hover:bg-gray-50 transition-all">
@@ -5564,8 +5570,9 @@ window.addEventListener('beforeunload', function(e) {
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900">${caseData.name}</div>
+                        <div class="text-xs text-gray-400 font-mono">${caseId}</div>
                         <div class="relative group">
-                            <div class="text-xs text-gray-500 cursor-pointer hover:text-blue-600" 
+                            <div class="text-xs text-gray-500 cursor-pointer hover:text-blue-600"
                                  onclick="event.stopPropagation(); toggleAddressTooltip('${caseId}')">
                                 📍 ${caseData.postalCode}
                             </div>
@@ -5650,6 +5657,7 @@ window.addEventListener('beforeunload', function(e) {
                                     </button>
                                 </div>
                                 <div class="font-semibold text-gray-900">${caseData.name}</div>
+                                <div class="text-xs text-gray-400 font-mono">${caseId}</div>
                                 <div class="text-sm text-gray-600 mt-1">📍 ${caseData.postalCode}</div>
                                 <div class="text-xs text-gray-500 mt-1">${caseData.address || '住所未設定'}</div>
                             </div>
@@ -6562,6 +6570,20 @@ window.addEventListener('beforeunload', function(e) {
         });
         
         // 架電履歴モーダルを開く（リストからもCRMからも使える）
+        // V1939: CRM画面から電話をかける
+        function callCurrentCase() {
+            if (!currentCaseId || !casesData[currentCaseId]) {
+                console.warn('[callCurrentCase] 案件が選択されていません');
+                return;
+            }
+            const phone = casesData[currentCaseId].phone;
+            if (!phone) {
+                alert('電話番号が登録されていません');
+                return;
+            }
+            window.location.href = 'tel:' + phone;
+        }
+
         function openCallHistoryModal(caseId) {
             // リストから開いた場合はcaseIdを設定
             if (caseId) {
