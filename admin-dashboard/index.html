@@ -352,19 +352,21 @@
                 <div class="bg-gradient-to-r from-gray-50 to-white rounded-xl p-4 mb-6 border border-gray-200 shadow-sm">
                     <!-- モバイル: 縦並び、PC: すべて横一列 -->
                     <div class="flex flex-wrap items-center gap-2 md:gap-3">
-                        <!-- 統計ボタン群（3つ横並び） -->
-                        <button onclick="filterByNewStatus()" class="flex items-center gap-1 md:gap-1.5 px-2.5 md:px-3 py-1 md:py-1.5 border-2 border-blue-500 bg-blue-100 text-blue-800 rounded-full shadow-md hover:shadow-lg transition-all cursor-pointer hover:scale-105 transform flex-shrink-0">
-                            <span class="text-base md:text-lg font-bold" id="newCount">15</span>
-                            <span class="text-xs font-medium">新規</span>
-                        </button>
-                        <button onclick="filterByProspect()" class="flex items-center gap-1 md:gap-1.5 px-2.5 md:px-3 py-1 md:py-1.5 border-2 border-orange-600 bg-orange-100 text-orange-800 rounded-full shadow-md hover:shadow-lg transition-all cursor-pointer hover:scale-105 transform flex-shrink-0">
-                            <span class="text-base md:text-lg font-bold" id="prospectCount">0</span>
-                            <span class="text-xs font-medium">見込み</span>
-                        </button>
-                        <button onclick="filterByAbsent()" class="flex items-center gap-1 md:gap-1.5 px-2.5 md:px-3 py-1 md:py-1.5 border-2 border-yellow-500 bg-yellow-100 text-yellow-800 rounded-full shadow-md hover:shadow-lg transition-all cursor-pointer hover:scale-105 transform flex-shrink-0">
-                            <span class="text-base md:text-lg font-bold" id="absentCount">0</span>
-                            <span class="text-xs font-medium">対応中</span>
-                        </button>
+                        <!-- V1977: 統計ボタン群（3等分） -->
+                        <div class="flex items-center gap-2 w-full lg:w-auto lg:min-w-[320px]">
+                            <button onclick="filterByNewStatus()" class="flex-1 flex items-center justify-center gap-1 py-2.5 border-2 border-blue-500 bg-blue-100 text-blue-800 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
+                                <span class="text-base font-bold" id="newCount">15</span>
+                                <span class="text-xs font-medium">新規</span>
+                            </button>
+                            <button onclick="filterByProspect()" class="flex-1 flex items-center justify-center gap-1 py-2.5 border-2 border-orange-600 bg-orange-100 text-orange-800 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
+                                <span class="text-base font-bold" id="prospectCount">0</span>
+                                <span class="text-xs font-medium">見込み</span>
+                            </button>
+                            <button onclick="filterByAbsent()" class="flex-1 flex items-center justify-center gap-1 py-2.5 border-2 border-yellow-500 bg-yellow-100 text-yellow-800 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
+                                <span class="text-base font-bold" id="absentCount">0</span>
+                                <span class="text-xs font-medium">対応中</span>
+                            </button>
+                        </div>
 
                         <!-- PC用スペーサー（左寄せから右寄せに切り替え） -->
                         <div class="hidden lg:block lg:flex-1"></div>
@@ -396,7 +398,7 @@
                                 <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex-1 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center truncate">
                                     <span id="dateFilterLabel">期間</span>
                                 </button>
-                                <select id="sortSelect" class="flex-1 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 transition-all text-center">
+                                <select id="sortSelect" class="flex-1 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 transition-all text-center appearance-none">
                                     <option value="date-desc">新着順</option>
                                     <option value="amount-desc">紹介料順</option>
                                     <option value="nextcall-asc">次回架電順</option>

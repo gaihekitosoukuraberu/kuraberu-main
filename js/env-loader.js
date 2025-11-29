@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1976 - 3等分レイアウト・架電日デフォルト今日）
-  CACHE_BUSTER: 'v1764437176-fec561b6'
+// キャッシュバスター（V1978 - 並び順をボタン+モーダルに変更）
+  CACHE_BUSTER: 'v1978-sort-order-modal'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
