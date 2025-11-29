@@ -557,6 +557,12 @@
                                             📞
                                         </button>
                                     </div>
+                                    <!-- V1941: 不在ボタン -->
+                                    <div class="inline-block">
+                                        <button onclick="markAbsentAndNext()" class="px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all" title="不在にして次へ">
+                                            不在
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="flex space-x-1 sm:space-x-2">
                                     <button onclick="previousCase()" class="px-2 py-1.5 sm:px-4 sm:py-2 bg-white text-gray-700 rounded-lg border hover:bg-gray-50 transition-all text-sm sm:text-base">
@@ -5570,7 +5576,10 @@ window.addEventListener('beforeunload', function(e) {
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900">${caseData.name}</div>
-                        <div class="text-xs text-gray-400 font-mono">${caseId}</div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-400 font-mono">${caseId}</span>
+                            ${getCallCountDisplay(caseData)}
+                        </div>
                         <div class="relative group">
                             <div class="text-xs text-gray-500 cursor-pointer hover:text-blue-600"
                                  onclick="event.stopPropagation(); toggleAddressTooltip('${caseId}')">
@@ -5657,7 +5666,10 @@ window.addEventListener('beforeunload', function(e) {
                                     </button>
                                 </div>
                                 <div class="font-semibold text-gray-900">${caseData.name}</div>
-                                <div class="text-xs text-gray-400 font-mono">${caseId}</div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-gray-400 font-mono">${caseId}</span>
+                                    ${getCallCountDisplay(caseData)}
+                                </div>
                                 <div class="text-sm text-gray-600 mt-1">📍 ${caseData.postalCode}</div>
                                 <div class="text-xs text-gray-500 mt-1">${caseData.address || '住所未設定'}</div>
                             </div>
@@ -6544,6 +6556,14 @@ window.addEventListener('beforeunload', function(e) {
         function selectCRMStatus(status) {
             changeCRMStatus(status);
             toggleStatusModal();
+
+            // V1941: 📞後のフローならメモモーダルを開く
+            if (afterCallFlow) {
+                afterCallFlow = false;
+                setTimeout(() => {
+                    openCallHistoryModal();
+                }, 300); // モーダル閉じアニメーション後に開く
+            }
         }
 
         // ステータスバッジの表示を更新
@@ -6569,8 +6589,112 @@ window.addEventListener('beforeunload', function(e) {
             }
         });
         
-        // 架電履歴モーダルを開く（リストからもCRMからも使える）
-        // V1939: CRM画面から電話をかける
+        // V1941: 📞押下後のフロー制御フラグ
+        let afterCallFlow = false;
+
+        // V1941: コール履歴の回数を取得（今日/計）
+        function getCallCounts(caseData) {
+            const history = caseData.callHistory || [];
+            const total = history.length;
+
+            // 今日の日付（yyyy/MM/dd形式）
+            const today = new Date().toLocaleDateString('ja-JP');
+
+            // 今日のコール回数をカウント
+            const todayCount = history.filter(item => {
+                const itemDate = item.date || item.timestamp || '';
+                return itemDate.startsWith(today);
+            }).length;
+
+            return { today: todayCount, total: total };
+        }
+
+        // V1941: コール履歴表示用のHTML生成
+        function getCallCountDisplay(caseData) {
+            const counts = getCallCounts(caseData);
+            if (counts.total === 0) return '';
+            return `<span class="text-xs text-gray-400">📞 今日${counts.today}/計${counts.total}</span>`;
+        }
+
+        // V1941: 不在ボタン押下→ステータス変更→次の案件へ
+        async function markAbsentAndNext() {
+            if (!currentCaseId) {
+                console.warn('[markAbsentAndNext] 案件が選択されていません');
+                return;
+            }
+
+            // 1. ステータスを「不在」に変更（GAS保存も実行）
+            await changeCRMStatus('不在');
+
+            // 2. 架電履歴に「不在」を追加
+            if (!casesData[currentCaseId].callHistory) {
+                casesData[currentCaseId].callHistory = [];
+            }
+            const timestamp = new Date().toLocaleString('ja-JP');
+            casesData[currentCaseId].callHistory.unshift({
+                timestamp: timestamp,
+                note: '📵 不在',
+                nextCallDate: ''
+            });
+
+            // バックグラウンドでGASに保存
+            const callHistoryFormatted = casesData[currentCaseId].callHistory.map(item => ({
+                date: item.date || item.timestamp || '',
+                note: item.note || '',
+                nextCallDate: item.nextCallDate || ''
+            }));
+            window.apiClient.postRequest('updateCVData', {
+                cvId: currentCaseId,
+                data: { callHistory: JSON.stringify(callHistoryFormatted) }
+            }).catch(err => console.error('[markAbsentAndNext] GAS保存エラー:', err));
+
+            console.log('[markAbsentAndNext] 不在にして次へ:', currentCaseId);
+
+            // 3. 次の案件へ移動
+            nextCase();
+        }
+
+        // V1941: 架電履歴を自動追加（電話ボタン押下時）
+        async function addAutoCallRecord() {
+            if (!currentCaseId || !casesData[currentCaseId]) return;
+
+            if (!casesData[currentCaseId].callHistory) {
+                casesData[currentCaseId].callHistory = [];
+            }
+
+            const timestamp = new Date().toLocaleString('ja-JP');
+
+            // 「架電」という記録を追加
+            casesData[currentCaseId].callHistory.unshift({
+                timestamp: timestamp,
+                note: '📞 架電',
+                nextCallDate: ''
+            });
+
+            console.log('[addAutoCallRecord] 架電履歴を自動追加:', currentCaseId);
+
+            // バックグラウンドでGASに保存（待たない）
+            const callHistoryFormatted = casesData[currentCaseId].callHistory.map(item => ({
+                date: item.date || item.timestamp || '',
+                note: item.note || '',
+                nextCallDate: item.nextCallDate || ''
+            }));
+
+            window.apiClient.postRequest('updateCVData', {
+                cvId: currentCaseId,
+                data: { callHistory: JSON.stringify(callHistoryFormatted) }
+            }).then(result => {
+                if (result.success) {
+                    console.log('[addAutoCallRecord] GAS保存成功');
+                } else {
+                    console.error('[addAutoCallRecord] GAS保存失敗:', result.error);
+                }
+            }).catch(err => {
+                console.error('[addAutoCallRecord] GAS保存エラー:', err);
+            });
+        }
+
+        // V1941: CRM画面から電話をかける（履歴自動追加+ステータスモーダル+メモモーダル）
         function callCurrentCase() {
             if (!currentCaseId || !casesData[currentCaseId]) {
                 console.warn('[callCurrentCase] 案件が選択されていません');
@@ -6581,7 +6705,18 @@ window.addEventListener('beforeunload', function(e) {
                 alert('電話番号が登録されていません');
                 return;
             }
+
+            // 1. 電話発信
             window.location.href = 'tel:' + phone;
+
+            // 2. 架電履歴を自動追加（バックグラウンドでGAS保存）
+            addAutoCallRecord();
+
+            // 3. フラグセット（ステータス選択後にメモモーダルを開く）
+            afterCallFlow = true;
+
+            // 4. ステータスモーダルを表示
+            toggleStatusModal();
         }
 
         function openCallHistoryModal(caseId) {
