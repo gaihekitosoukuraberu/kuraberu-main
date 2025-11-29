@@ -840,6 +840,7 @@ const BusinessSelectionHandler = {
 
     // V1907: それ以外のソート（おすすめ順、安い順、口コミ順、高品質順）
     // マッチ度でグループ化し、各グループ内でソート条件を適用
+    console.log('[V1916] ソート処理開始 - sortType:', sortType);
     const groupedByMatchRate = {};
     allWithMatchRate.forEach(f => {
       const rate = f._matchRate || 0;
@@ -856,26 +857,35 @@ const BusinessSelectionHandler = {
       .forEach(rate => {
         let group = groupedByMatchRate[rate];
 
-        // sortTypeに応じてグループ内をソート
+        // V1916: sortTypeに応じてグループ内をソート（正しいsortType値に修正）
+        const beforeSort = group.map(f => f.companyName).join(', ');
         switch (sortType) {
+          case 'recommend':
           case 'recommended':
             // おすすめ順: 売上高順
             group = this.sortByRevenue(group);
+            console.log('[V1916] おすすめ順(売上高)適用 - マッチ度', rate, '%:', group.map(f => `${f.companyName}(売上:${(f.avgContractAmount||0)*(f.contractCount||0)})`).join(', '));
             break;
+          case 'price':
           case 'cheap':
             // 安い順: 価格昇順
             group = this.sortByPrice(group);
+            console.log('[V1916] 安い順(価格昇順)適用 - マッチ度', rate, '%:', group.map(f => `${f.companyName}(価格:${f.avgContractAmount||'?'})`).join(', '));
             break;
           case 'review':
             // 口コミ順: レビュー評価順
             group = this.sortByReview(group);
+            console.log('[V1916] 口コミ順適用 - マッチ度', rate, '%:', group.map(f => `${f.companyName}(★${f.rating||0},${f.reviewCount||0}件)`).join(', '));
             break;
+          case 'quality':
           case 'premium':
             // 高品質順: 高額順
             group = this.sortByPremium(group);
+            console.log('[V1916] 高品質順(高額順)適用 - マッチ度', rate, '%:', group.map(f => `${f.companyName}(価格:${f.avgContractAmount||'?'})`).join(', '));
             break;
           default:
             // デフォルトはマッチ度順のまま
+            console.log('[V1916] 未知のsortType:', sortType, '- マッチ度', rate, '%グループはそのまま');
             break;
         }
 
