@@ -10810,6 +10810,7 @@ ${d.memo || 'なし'}
         }
 
         // オーダー転送を実行（保存＆転送）
+        // Step 1: スプシに保存 → Step 2: 転送メッセージ再生成 → Step 3: 転送実行
         async function sendOrderTransfer() {
             if (!window.currentOrderTransferData) {
                 alert('転送データがありません');
@@ -10818,90 +10819,77 @@ ${d.memo || 'なし'}
 
             const button = document.getElementById('orderTransferSubmitBtn');
             button.disabled = true;
-            button.innerHTML = '<span class="animate-spin">⏳</span> 保存＆転送中...';
+            button.innerHTML = '<span class="animate-spin">⏳</span> 保存中...';
 
             try {
                 const d = window.currentOrderTransferData;
 
-                // ローカルのcasesDataに編集内容を反映（保存）
-                if (casesData[d.cvId]) {
-                    Object.assign(casesData[d.cvId], {
-                        name: d.name,
-                        nameKana: d.nameKana,
-                        phone: d.phone,
-                        email: d.email,
-                        gender: d.gender,
-                        age: d.age,
-                        relation: d.relation,
-                        altPhone: d.altPhone,
-                        postalCode: d.postalCode,
-                        address: d.address,
-                        homeAddress: d.homeAddress,
-                        propertyType: d.propertyType,
-                        floors: d.floors,
-                        area: d.area,
-                        buildingAge: d.buildingAge,
-                        constructionCount: d.constructionCount,
-                        previousConstructionTime: d.previousConstructionTime,
-                        roofMaterial: d.roofMaterial,
-                        wallMaterial: d.wallMaterial,
-                        workItems: d.workItems,
-                        constructionTiming: d.constructionTiming,
-                        companiesCount: d.companiesCount,
-                        surveyAttendance: d.surveyAttendance,
-                        quoteCount: d.quoteCount,
-                        nextCallDate: d.nextCallDate,
-                        selectionCriteria: d.selectionCriteria,
-                        contactTimeSlot: d.contactTimeSlot,
-                        specialItems: d.specialItems,
-                        memo: d.memo
-                    });
+                // 全編集データをオブジェクトにまとめる
+                const caseDataToSave = {
+                    name: d.name,
+                    nameKana: d.nameKana,
+                    phone: d.phone,
+                    email: d.email,
+                    gender: d.gender,
+                    age: d.age,
+                    relation: d.relation,
+                    altPhone: d.altPhone,
+                    postalCode: d.postalCode,
+                    address: d.address,
+                    homeAddress: d.homeAddress,
+                    propertyType: d.propertyType,
+                    floors: d.floors,
+                    area: d.area,
+                    buildingAge: d.buildingAge,
+                    constructionCount: d.constructionCount,
+                    previousConstructionTime: d.previousConstructionTime,
+                    roofMaterial: d.roofMaterial,
+                    wallMaterial: d.wallMaterial,
+                    workItems: d.workItems,
+                    constructionTiming: d.constructionTiming,
+                    companiesCount: d.companiesCount,
+                    surveyAttendance: d.surveyAttendance,
+                    quoteCount: d.quoteCount,
+                    nextCallDate: d.nextCallDate,
+                    selectionCriteria: d.selectionCriteria,
+                    contactTimeSlot: d.contactTimeSlot,
+                    specialItems: d.specialItems,
+                    memo: d.memo
+                };
+
+                // Step 1: まずスプシに保存
+                const saveResponse = await window.apiClient.postRequest('saveCaseData', {
+                    cvId: d.cvId,
+                    caseData: caseDataToSave
+                });
+
+                if (!saveResponse.success) {
+                    throw new Error(saveResponse.error || 'データ保存に失敗しました');
                 }
 
-                // GASにデータを送信（保存＆転送）
-                const response = await window.apiClient.postRequest('sendOrderTransfer', {
+                // ローカルのcasesDataにも反映
+                if (casesData[d.cvId]) {
+                    Object.assign(casesData[d.cvId], caseDataToSave);
+                }
+
+                // Step 2: 保存完了後、最新データで転送メッセージを再生成
+                generateTransferMessage();
+
+                button.innerHTML = '<span class="animate-spin">⏳</span> 転送中...';
+
+                // Step 3: 転送実行
+                const transferResponse = await window.apiClient.postRequest('sendOrderTransfer', {
                     cvId: d.cvId,
                     franchises: d.selectedFranchises.map((f, i) => ({
                         franchiseId: f.id,
                         franchiseName: f.name,
                         fee: f.fee
                     })),
-                    transferMessage: d.transferMessage,
-                    // 全編集データを送信（スプシ保存用）
-                    caseData: {
-                        name: d.name,
-                        nameKana: d.nameKana,
-                        phone: d.phone,
-                        email: d.email,
-                        gender: d.gender,
-                        age: d.age,
-                        relation: d.relation,
-                        altPhone: d.altPhone,
-                        postalCode: d.postalCode,
-                        address: d.address,
-                        homeAddress: d.homeAddress,
-                        propertyType: d.propertyType,
-                        floors: d.floors,
-                        area: d.area,
-                        buildingAge: d.buildingAge,
-                        constructionCount: d.constructionCount,
-                        previousConstructionTime: d.previousConstructionTime,
-                        roofMaterial: d.roofMaterial,
-                        wallMaterial: d.wallMaterial,
-                        workItems: d.workItems,
-                        constructionTiming: d.constructionTiming,
-                        companiesCount: d.companiesCount,
-                        surveyAttendance: d.surveyAttendance,
-                        quoteCount: d.quoteCount,
-                        nextCallDate: d.nextCallDate,
-                        selectionCriteria: d.selectionCriteria,
-                        contactTimeSlot: d.contactTimeSlot,
-                        specialItems: d.specialItems,
-                        memo: d.memo
-                    }
+                    transferMessage: window.currentOrderTransferData.transferMessage,
+                    caseData: caseDataToSave
                 });
 
-                if (response.success) {
+                if (transferResponse.success) {
                     showNotification(`✅ 保存＆転送完了！${d.selectedFranchises.length}社に配信しました`, 'success');
                     closeOrderTransferModal();
 
@@ -10916,14 +10904,14 @@ ${d.memo || 'なし'}
                         loadCRMContent(currentCaseId);
                     }
                 } else {
-                    throw new Error(response.error || '転送に失敗しました');
+                    throw new Error(transferResponse.error || '転送に失敗しました');
                 }
             } catch (error) {
                 console.error('オーダー転送エラー:', error);
                 alert('❌ 保存＆転送に失敗しました\n' + error.message);
             } finally {
                 button.disabled = false;
-                button.textContent = '保存＆転送';
+                button.innerHTML = '<span>💾</span> 保存＆転送';
             }
         }
 
