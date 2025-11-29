@@ -169,9 +169,10 @@ const CVListManager = {
       // 紹介料を計算
       // V1927: companiesCountPreference（CB列・希望社数）を優先使用
       // V1928: 数値でも文字列でも対応（スプシは数字のみで保存）
-      let desiredCompanyCount = 1;
+      // V1932: フォールバック条件を修正
+      let desiredCompanyCount = 0;  // 初期値を0に（フォールバック判定用）
       const preferenceValue = cv.companiesCountPreference;
-      if (preferenceValue !== undefined && preferenceValue !== null && preferenceValue !== '') {
+      if (preferenceValue !== undefined && preferenceValue !== null && preferenceValue !== '' && preferenceValue !== 0) {
         // 数値の場合はそのまま使用、文字列の場合は数字を抽出
         if (typeof preferenceValue === 'number') {
           desiredCompanyCount = preferenceValue;
@@ -183,7 +184,7 @@ const CVListManager = {
           }
         }
       }
-      // フォールバック: companiesCountPreferenceがない場合はcompaniesCountを使用
+      // フォールバック: companiesCountPreferenceが無効な場合はcompaniesCountを使用
       if (desiredCompanyCount <= 0) {
         desiredCompanyCount = cv.companiesCount || 1;
       }
@@ -209,14 +210,17 @@ const CVListManager = {
       const totalFee = calculatedFee * desiredCompanyCount;
       const formattedAmount = this.formatCompactFee(totalFee);
 
-      // V1931: デバッグログ（最初の5件のみ）
+      // V1932: デバッグログ強化（最初の5件のみ）
       if (index < 5) {
         console.log(`[FeeDebug] ${cv.name}:`, {
-          workItems: feeWorkItems,
-          companiesCountPreference: cv.companiesCountPreference,
-          desiredCompanyCount: desiredCompanyCount,
-          calculatedFee: calculatedFee,
-          totalFee: totalFee
+          'BZ列workItems': feeWorkItems,
+          'CB列companiesCountPreference': cv.companiesCountPreference,
+          'AY列companiesCount': cv.companiesCount,
+          'parsed_desiredCompanyCount': desiredCompanyCount,
+          'calculatedFee(per社)': calculatedFee,
+          'totalFee(合計)': totalFee,
+          'propertyType': cv.propertyType,
+          'floors': cv.floors
         });
       }
 
