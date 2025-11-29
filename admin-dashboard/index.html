@@ -8172,41 +8172,48 @@ window.addEventListener('beforeunload', function(e) {
 
         // 古いsaveAllData関数は削除（4878行目の非同期版を使用）
 
-        // 物件タイプのアイコンを取得
-        // V1966: 物件種別アイコン（リデザイン）
+        // V1967: 物件種別アイコン
         function getPropertyIcon(propertyType) {
             if (!propertyType) return '❓';
-            const pt = propertyType.toLowerCase();
 
-            // 戸建て
-            if (pt.includes('戸建') || pt.includes('自宅') || pt.includes('2階建て')) return '🏠';
-            // アパート・マンション
-            if (pt.includes('アパート') || pt.includes('マンション')) return '🏢';
+            // 2階建て以下の自宅
+            if (propertyType.includes('2階建て') || propertyType.includes('自宅')) return '🏠';
             // 実家・別荘・所有物件
-            if (pt.includes('実家') || pt.includes('別荘') || pt.includes('所有物件')) return '🏡';
+            if (propertyType.includes('実家') || propertyType.includes('別荘') || propertyType.includes('所有物件')) return '🏡';
+            // アパート・マンション
+            if (propertyType.includes('アパート') || propertyType.includes('マンション')) return '🏢';
             // 店舗・事務所
-            if (pt.includes('店舗') || pt.includes('事務所')) return '🏪';
+            if (propertyType.includes('店舗') || propertyType.includes('事務所')) return '🏪';
             // 工場・倉庫
-            if (pt.includes('工場') || pt.includes('倉庫')) return '🏭';
+            if (propertyType.includes('工場') || propertyType.includes('倉庫')) return '🏭';
             // その他
             return '❓';
         }
 
-        // V1966: 階数表示を取得（1F〜10F+対応）
+        // V1967: 階数表示（物件種別に応じた表示）
+        // - 2階建て以下の自宅 → 階数なし（2F固定なので表示不要）
+        // - 実家・別荘・所有物件 → 〜4F+
+        // - アパート・マンション → 3F〜10F+
+        // - 店舗・事務所 → 〜10F+
+        // - 工場・倉庫 → 〜10F+
         function getFloorDisplay(propertyType, floors) {
             if (!floors) return '';
 
-            // 「10階建て以上」「10階以上」など
-            if (floors.includes('10') && (floors.includes('以上') || floors.includes('〜'))) return '10F+';
-            // 「4階以上」
+            // 2階建て以下の自宅は階数表示なし
+            if (propertyType && (propertyType.includes('2階建て') || propertyType.includes('自宅'))) {
+                return '';
+            }
+
+            // 「10階以上」→ 10F+
+            if (floors.includes('10')) return '10F+';
+            // 「4階以上」→ 4F+
             if (floors.includes('4') && floors.includes('以上')) return '4F+';
 
-            // 数字を抽出（1〜10）
+            // 数字を抽出（3〜9階）
             const match = floors.match(/(\d+)/);
             if (match) {
                 const num = parseInt(match[1]);
-                if (num >= 1 && num <= 10) return `${num}F`;
-                if (num > 10) return '10F+';
+                if (num >= 3 && num <= 9) return `${num}F`;
             }
 
             return '';
