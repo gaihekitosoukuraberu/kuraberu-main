@@ -6794,20 +6794,18 @@ window.addEventListener('beforeunload', function(e) {
 
         window.callCase = callCase;
 
-        // V1951: ページ復帰時の処理（fixedモーダルなのでCRM不要）
+        // V1952: ページ復帰時の処理（デバッグ用alert付き）
         function checkAfterCallFlow() {
-            console.log('[checkAfterCallFlow] チェック開始');
             const afterCall = localStorage.getItem('afterCallFlow');
             const caseId = localStorage.getItem('afterCallCaseId');
             const callTime = parseInt(localStorage.getItem('afterCallTime') || '0');
             const elapsed = Date.now() - callTime;
 
-            console.log('[checkAfterCallFlow] 状態:', { afterCall, caseId, elapsed });
+            // デバッグ用
+            // alert('checkAfterCallFlow: ' + afterCall + ', ' + caseId + ', ' + elapsed);
 
             // 5分以内の架電のみ有効
             if (afterCall === 'true' && caseId && elapsed < 300000) {
-                console.log('[checkAfterCallFlow] 架電後復帰 → モーダル表示:', caseId);
-
                 localStorage.removeItem('afterCallFlow');
                 localStorage.removeItem('afterCallCaseId');
                 localStorage.removeItem('afterCallTime');
@@ -6816,22 +6814,27 @@ window.addEventListener('beforeunload', function(e) {
                 afterCallFlow = true;
 
                 // fixedモーダルなので直接表示
-                setTimeout(() => {
-                    console.log('[checkAfterCallFlow] showStatusModal呼び出し');
-                    showStatusModal();
-                }, 500);
+                setTimeout(() => showStatusModal(), 300);
             }
         }
 
-        // ページロード時とvisibilitychange時にチェック
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('[DOMContentLoaded] checkAfterCallFlow予約');
-            setTimeout(checkAfterCallFlow, 2000);
+        // ページロード時にチェック
+        window.addEventListener('load', () => setTimeout(checkAfterCallFlow, 1000));
+
+        // フォーカス時にチェック（モバイル用）
+        window.addEventListener('focus', () => setTimeout(checkAfterCallFlow, 300));
+
+        // pageshow時にチェック（bfcache対策）
+        window.addEventListener('pageshow', (e) => {
+            if (e.persisted) {
+                setTimeout(checkAfterCallFlow, 300);
+            }
         });
+
+        // visibilitychange時にチェック
         document.addEventListener('visibilitychange', () => {
-            console.log('[visibilitychange] state:', document.visibilityState);
             if (document.visibilityState === 'visible') {
-                setTimeout(checkAfterCallFlow, 500);
+                setTimeout(checkAfterCallFlow, 300);
             }
         });
 
