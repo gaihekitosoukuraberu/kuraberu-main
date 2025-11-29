@@ -210,18 +210,9 @@ const CVListManager = {
       const totalFee = calculatedFee * desiredCompanyCount;
       const formattedAmount = this.formatCompactFee(totalFee);
 
-      // V1932: デバッグログ強化（最初の5件のみ）
-      if (index < 5) {
-        console.log(`[FeeDebug] ${cv.name}:`, {
-          'BZ列workItems': feeWorkItems,
-          'CB列companiesCountPreference': cv.companiesCountPreference,
-          'AY列companiesCount': cv.companiesCount,
-          'parsed_desiredCompanyCount': desiredCompanyCount,
-          'calculatedFee(per社)': calculatedFee,
-          'totalFee(合計)': totalFee,
-          'propertyType': cv.propertyType,
-          'floors': cv.floors
-        });
+      // V1934: 明確なデバッグログ
+      if (index < 10) {
+        console.log(`%c[紹介料計算] ${cv.name}: ¥${calculatedFee.toLocaleString()} × ${desiredCompanyCount}社 = ¥${totalFee.toLocaleString()} → ${formattedAmount}`, 'color: #00ff00; font-weight: bold');
       }
 
       // casesData形式に変換
