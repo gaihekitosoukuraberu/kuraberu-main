@@ -102,9 +102,8 @@ const CVListManager = {
       let workItems = [];
 
       if (cv.workItems && typeof cv.workItems === 'string') {
-        // V1903: 新カラムから読み取り（「、」日本語読点区切り文字列を配列に変換）
-        // GASは「外壁張替え、屋根葺き替え（スレート）」のように「、」で区切って返す
-        workItems = cv.workItems.split('、').map(item => item.trim()).filter(item => item);
+        // V1929: 半角カンマ,と読点、の両方に対応
+        workItems = cv.workItems.split(/[,、]/).map(item => item.trim()).filter(item => item);
         if (index === 0) {
           console.log('[CVListManager] 見積もり希望箇所（新カラム）:', workItems);
         }

@@ -4415,11 +4415,13 @@ window.addEventListener('beforeunload', function(e) {
             // 見積もり希望箇所（workItemsから選択状態にする）V1902: 文字列→配列変換対応
             const workItemsButtons = document.getElementById('workItemsButtons');
             if (workItemsButtons && data.workItems) {
-                // 文字列の場合は配列に変換（GASは「、」区切り文字列を返す）
+                // V1929: 文字列の場合は配列に変換（半角カンマ,と読点、の両方に対応）
                 let workItemsArray = data.workItems;
                 if (typeof workItemsArray === 'string') {
-                    workItemsArray = workItemsArray.split('、').map(item => item.trim()).filter(item => item);
+                    // 半角カンマまたは読点で分割
+                    workItemsArray = workItemsArray.split(/[,、]/).map(item => item.trim()).filter(item => item);
                 }
+                console.log('[populateForm] workItems変換:', data.workItems, '→', workItemsArray);
 
                 // まず全ボタンの選択状態をリセット
                 workItemsButtons.querySelectorAll('.option-button').forEach(btn => {
