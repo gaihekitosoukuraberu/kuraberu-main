@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1937 - workItemsボタンCSS競合修正）
-  CACHE_BUSTER: 'v1764404826-fe10fa6d'
+  // キャッシュバスター（V1938 - 見積もり希望箇所に「その他」ボタン追加）
+  CACHE_BUSTER: 'v1764404200-v1938'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
