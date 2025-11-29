@@ -943,56 +943,8 @@ const BusinessSelectionHandler = {
     });
   },
 
-  /**
-   * 売上高順ソート（おすすめ順）
-   * @param {Array} franchises - 業者リスト
-   * @returns {Array} ソート済みリスト
-   */
-  sortByRevenue(franchises) {
-    return [...franchises].sort((a, b) => {
-      // 売上高 = 平均成約金額 × 成約件数
-      const revenueA = (a.avgContractAmount || 0) * (a.contractCount || 0);
-      const revenueB = (b.avgContractAmount || 0) * (b.contractCount || 0);
-      return revenueB - revenueA;
-    });
-  },
-
-  /**
-   * 価格昇順ソート（安い順）
-   * @param {Array} franchises - 業者リスト
-   * @returns {Array} ソート済みリスト
-   */
-  sortByPrice(franchises) {
-    return [...franchises].sort((a, b) => {
-      return (a.avgContractAmount || 999999) - (b.avgContractAmount || 999999);
-    });
-  },
-
-  /**
-   * 口コミ順ソート
-   * @param {Array} franchises - 業者リスト
-   * @returns {Array} ソート済みリスト
-   */
-  sortByReview(franchises) {
-    return [...franchises].sort((a, b) => {
-      // 評価 → 口コミ件数の順
-      if (b.rating !== a.rating) {
-        return (b.rating || 0) - (a.rating || 0);
-      }
-      return (b.reviewCount || 0) - (a.reviewCount || 0);
-    });
-  },
-
-  /**
-   * 高品質順ソート（高額順）
-   * @param {Array} franchises - 業者リスト
-   * @returns {Array} ソート済みリスト
-   */
-  sortByPremium(franchises) {
-    return [...franchises].sort((a, b) => {
-      return (b.avgContractAmount || 0) - (a.avgContractAmount || 0);
-    });
-  },
+  // V1920: sortByRevenue, sortByPrice, sortByReview, sortByPremium を削除
+  // GASのRankingSystem.gsで計算済みのランキング順をそのまま使用するため不要
 
   /**
    * 距離順ソート
