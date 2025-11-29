@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1979 - オーダー転送確認画面リニューアル）
-  CACHE_BUSTER: 'v1979-order-transfer-modal'
+  CACHE_BUSTER: 'v1764439874-fe19ac87'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
