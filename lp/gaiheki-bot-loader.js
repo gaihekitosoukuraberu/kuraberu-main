@@ -140,15 +140,20 @@
             console.log('✅ LP wrapper を非表示');
         }
 
-        // body直下の最初の要素以外を非表示にする簡易実装
+        // V1926: body直下の要素を非表示（モーダル等は除外）
         const bodyChildren = Array.from(document.body.children);
+        const keepVisible = [
+            'gaiheki-bot-container',
+            'gaiheki-zip-form-container',
+            'botParentContainer',
+            'estimateBtnContainer',
+            'mobileProgressBar',
+            'keepModal',
+            'estimateFormModal',  // V1926: 追加
+            'completionModal'     // V1926: 追加
+        ];
         bodyChildren.forEach(el => {
-            if (el.id !== 'gaiheki-bot-container' &&
-                el.id !== 'gaiheki-zip-form-container' &&
-                el.id !== 'botParentContainer' &&
-                el.id !== 'estimateBtnContainer' &&
-                el.id !== 'mobileProgressBar' &&
-                el.id !== 'keepModal') {  // keepModalを保持
+            if (!keepVisible.includes(el.id)) {
                 el.style.display = 'none';
             }
         });
