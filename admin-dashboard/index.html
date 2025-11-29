@@ -5848,52 +5848,56 @@ window.addEventListener('beforeunload', function(e) {
             if (mobileContainer) {
                 mobileContainer.innerHTML = '';
 
+                // V1966: モバイルカードをリデザイン
                 pageCases.forEach(([caseId, caseData]) => {
                     const statusColor = getStatusColor(caseData.status);
-                    // V1935: caseData.amountを直接使用（モバイルビュー）
+                    const floorDisplay = getFloorDisplay(caseData.propertyType, caseData.floors);
 
                     const card = document.createElement('div');
-                    card.className = 'bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-shadow';
+                    card.className = 'bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-shadow';
                     card.innerHTML = `
-                        <div class="flex justify-between items-start mb-3">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <button class="px-4 py-1.5 ${statusColor} rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-xs font-semibold" onclick="event.stopPropagation(); openListStatusModal('${caseId}', this)">
-                                        ${caseData.status}
-                                    </button>
-                                </div>
-                                <div class="font-semibold text-gray-900">${caseData.name}</div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xs text-gray-400 font-mono">${caseId}</span>
-                                    ${getCallCountDisplay(caseData)}
-                                </div>
-                                <div class="relative">
-                                    <div class="text-sm text-gray-600 mt-1 cursor-pointer" onclick="event.stopPropagation(); toggleMobileAddressTooltip('${caseId}')">📍 ${caseData.postalCode || ''}</div>
-                                    <div id="mobile-tooltip-${caseId}" class="hidden absolute left-0 top-full mt-1 z-50 bg-gray-900 text-white text-xs rounded-lg py-2 px-3 max-w-xs">
-                                        ${caseData.address || '住所未設定'}
-                                    </div>
-                                </div>
+                        <!-- ヘッダー: ステータス + 金額 -->
+                        <div class="flex justify-between items-center mb-3">
+                            <button class="px-3 py-1 ${statusColor} rounded-full shadow-sm text-xs font-semibold" onclick="event.stopPropagation(); openListStatusModal('${caseId}', this)">
+                                ${caseData.status}
+                            </button>
+                            <div class="text-base font-bold text-emerald-600">${(caseData.amount || '¥0').replace('¥', '¥')}</div>
+                        </div>
+
+                        <!-- メイン: 名前 + 物件情報 -->
+                        <div class="mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base font-semibold text-gray-900">${caseData.name || '名前未設定'}</span>
+                                <span class="text-sm">${getPropertyIcon(caseData.propertyType)}${floorDisplay ? ' ' + floorDisplay : ''}</span>
                             </div>
-                            <div class="text-right">
-                                <div class="text-sm font-semibold text-emerald-600">${caseData.amount || '¥0'}</div>
-                                <div class="text-xs text-gray-500 mt-1">
-                                    ${getPropertyIcon(caseData.propertyType)} ${getFloorDisplay(caseData.propertyType, caseData.floors)}
-                                </div>
-                                ${caseData.nextCallDate ? `<div class="text-xs text-blue-600 mt-1">📅 ${formatNextCallDate(caseData.nextCallDate)}</div>` : ''}
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-xs text-gray-400 font-mono">${caseId}</span>
+                                ${getCallCountDisplay(caseData)}
                             </div>
                         </div>
-                        ${caseData.label ? `<div class="px-2 py-1 mb-2"><span class="inline-block px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs">🏷️ ${caseData.label}</span></div>` : ''}
-                        <div class="pt-3 border-t border-gray-200">
-                            <div class="flex justify-between items-center">
-                                <div class="flex space-x-2">
-                                    <button onclick="callCase('${caseId}')" class="text-lg" title="電話">📞</button>
-                                    <button onclick="window.location.href='sms:${caseData.phone}'" class="text-lg" title="SMS">💬</button>
-                                    <button onclick="openCallHistoryModal('${caseId}')" class="text-lg" title="メモ">📝</button>
-                                </div>
-                                <div class="flex space-x-2">
-                                    <button onclick="openCRM('${caseId}')" class="px-3 py-1 text-xs bg-blue-600 text-white rounded">詳細</button>
+
+                        <!-- サブ情報: 郵便番号 + 次回架電 -->
+                        <div class="flex items-center gap-4 text-xs text-gray-500 mb-2">
+                            <div class="relative">
+                                <span class="cursor-pointer hover:text-gray-700" onclick="event.stopPropagation(); toggleMobileAddressTooltip('${caseId}')">📍 ${caseData.postalCode || '-'}</span>
+                                <div id="mobile-tooltip-${caseId}" class="hidden absolute left-0 top-full mt-1 z-50 bg-gray-900 text-white text-xs rounded-lg py-2 px-3 max-w-[200px] whitespace-normal">
+                                    ${caseData.address || '住所未設定'}
                                 </div>
                             </div>
+                            ${caseData.nextCallDate ? `<span class="text-blue-600 font-medium">📅 ${formatNextCallDate(caseData.nextCallDate)}</span>` : ''}
+                        </div>
+
+                        <!-- ラベル -->
+                        ${caseData.label ? `<div class="mb-3"><span class="inline-block px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">🏷️ ${caseData.label}</span></div>` : ''}
+
+                        <!-- アクションバー -->
+                        <div class="flex justify-between items-center pt-3 border-t border-gray-100">
+                            <div class="flex items-center gap-4">
+                                <button onclick="callCase('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="電話">📞</button>
+                                <button onclick="window.location.href='sms:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="SMS">💬</button>
+                                <button onclick="openCallHistoryModal('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="メモ">📝</button>
+                            </div>
+                            <button onclick="openCRM('${caseId}')" class="px-4 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">詳細</button>
                         </div>
                     `;
                     mobileContainer.appendChild(card);
