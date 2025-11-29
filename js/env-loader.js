@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1953 - localStorage保存確実化）
-  CACHE_BUSTER: 'v1764413895-v1953'
+  CACHE_BUSTER: 'v1764414056-fe249a8c'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
