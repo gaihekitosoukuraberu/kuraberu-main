@@ -6801,8 +6801,8 @@ window.addEventListener('beforeunload', function(e) {
             const callTime = parseInt(localStorage.getItem('afterCallTime') || '0');
             const elapsed = Date.now() - callTime;
 
-            // デバッグ用
-            // alert('checkAfterCallFlow: ' + afterCall + ', ' + caseId + ', ' + elapsed);
+            // デバッグ用alert
+            alert('復帰チェック: ' + (afterCall || 'なし') + ' / ID:' + (caseId || 'なし'));
 
             // 5分以内の架電のみ有効
             if (afterCall === 'true' && caseId && elapsed < 300000) {
