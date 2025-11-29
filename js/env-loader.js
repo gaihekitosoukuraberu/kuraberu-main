@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1968 - 物件種別アイコン修正・q1PropertyType対応）
-  CACHE_BUSTER: 'v1968-propertyicon-fix'
+  CACHE_BUSTER: 'v1764424553-feb99d98'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
