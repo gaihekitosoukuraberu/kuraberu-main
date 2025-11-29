@@ -5554,12 +5554,8 @@ window.addEventListener('beforeunload', function(e) {
                 row.className = 'hover:bg-gray-50 cursor-pointer';
                 row.ondblclick = () => openCRM(caseId); // ダブルクリックでCRMを開く
                 const statusColor = getStatusColor(caseData.status);
-                const fee = calculateIntroductionFee(
-                    caseData.workItems, 
-                    caseData.propertyType, 
-                    caseData.floors, 
-                    caseData.companiesCount
-                );
+                // V1935: caseData.amountを直接使用（cv-list-managerで計算済み）
+                // const fee = calculateIntroductionFee(...) は削除
                 
                 row.innerHTML = `
                     <td class="px-3 py-4 whitespace-nowrap">
@@ -5625,7 +5621,7 @@ window.addEventListener('beforeunload', function(e) {
                         </div>
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-emerald-600">
-                        ¥${Math.round(fee / 1000)}K
+                        ${caseData.amount || '¥0'}
                     </td>
                     <td class="px-3 py-4 whitespace-nowrap text-center">
                         <button onclick="event.stopPropagation(); openCRM('${caseId}')" class="text-blue-600 hover:text-blue-800">
