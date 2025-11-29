@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1975 - 期間フィルタモーダル化）
-  CACHE_BUSTER: 'v1975-datefilter-modal'
+  CACHE_BUSTER: 'v1764436752-fe161063'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
