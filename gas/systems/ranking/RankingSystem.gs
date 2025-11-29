@@ -1216,14 +1216,22 @@ const RankingSystem = {
   },
 
   /**
-   * V1751: おすすめ順ソート（売上高順 - データ混合システム + 全ボーナス適用）
+   * V1921: おすすめ順ソート（マッチ度優先 → 同マッチ度内で売上高順）
+   * マッチ度でグループ化し、各グループ内で売上スコア順にソート
    */
   sortByMatchScore: function(companies, userCity) {
     const self = this;
     const DEFAULT_REVENUE = 500000; // デフォルト売上: 50万円
 
     return companies.sort(function(a, b) {
-      // V1751: 売上スコア計算（データ混合 + ボーナス）
+      // V1921: まずマッチ度で降順ソート（高マッチ度が上位）
+      const matchRateA = a.matchRate || 0;
+      const matchRateB = b.matchRate || 0;
+      if (matchRateB !== matchRateA) {
+        return matchRateB - matchRateA;
+      }
+
+      // V1921: 同マッチ度の場合は売上スコアで降順ソート
       const calculateRevenueScore = function(company) {
         // Step 1: データ混合スコア計算（過去データの売上 = 単価 × 成約件数）
         const historicalRevenue = company.pastGrossUnitAfterReturn * (company.pastContractCount || 1);
@@ -1235,7 +1243,7 @@ const RankingSystem = {
           {
             minThreshold: 0,
             returnPenalty: Math.max(0.7, 1.0 - (company.pastReturnRate * 0.3)),
-            historicalCount: company.pastContractCount || 0 // V1751: 過去データ件数を渡す
+            historicalCount: company.pastContractCount || 0
           }
         );
 
@@ -1253,30 +1261,18 @@ const RankingSystem = {
         const supplyBonus = self.calculateSupplyBonus(company.recent3MonthInquiryCount);
         finalScore *= supplyBonus;
 
-        return {
-          score: finalScore,
-          baseScore: mixedScore.score,
-          source: mixedScore.source,
-          distanceBonus: distanceBonus,
-          rotation: rotation,
-          supplyBonus: supplyBonus
-        };
+        return finalScore;
       };
 
       const scoreA = calculateRevenueScore(a);
       const scoreB = calculateRevenueScore(b);
 
-      // V1896: 売上スコアで降順ソート（高い方が上位）、同スコアの場合はマッチ度で降順
-      if (scoreB.score !== scoreA.score) {
-        return scoreB.score - scoreA.score;
-      }
-      // 同じスコアの場合はマッチ度で降順ソート
-      return (b.matchRate || 0) - (a.matchRate || 0);
+      return scoreB - scoreA;
     });
   },
 
   /**
-   * V1751: 価格順ソート（安い順 - データ混合システム + 全ボーナス適用）
+   * V1921: 価格順ソート（マッチ度優先 → 同マッチ度内で安い順）
    * 50万円以下除外
    */
   sortByPrice: function(companies, userCity) {
@@ -1285,9 +1281,15 @@ const RankingSystem = {
     const MIN_THRESHOLD = 500000; // 50万円以下除外
 
     return companies.sort(function(a, b) {
-      // V1751: 価格スコア計算（安い順なので昇順）
+      // V1921: まずマッチ度で降順ソート（高マッチ度が上位）
+      const matchRateA = a.matchRate || 0;
+      const matchRateB = b.matchRate || 0;
+      if (matchRateB !== matchRateA) {
+        return matchRateB - matchRateA;
+      }
+
+      // V1921: 同マッチ度の場合は価格スコアで昇順ソート（安い方が上位）
       const calculatePriceScore = function(company) {
-        // Step 1: データ混合スコア計算
         const mixedScore = self.calculateMixedScore(
           company,
           company.avgContractAmount,
@@ -1296,45 +1298,36 @@ const RankingSystem = {
           {
             minThreshold: MIN_THRESHOLD,
             returnPenalty: Math.max(0.7, 1.0 - (company.pastReturnRate * 0.3)),
-            historicalCount: company.pastContractCount || 0 // V1751: 過去データ件数を渡す
+            historicalCount: company.pastContractCount || 0
           }
         );
 
         let finalScore = mixedScore.score;
 
-        // Step 2: 距離ボーナス（15%）- 安い順なので割り算
+        // 距離ボーナス（15%）- 安い順なので割り算
         const distanceBonus = self.calculateDistanceBonus(company, userCity);
-        finalScore /= distanceBonus; // 安い方が上位なので逆算
+        finalScore /= distanceBonus;
 
-        // Step 3: 日替わりローテーション（±10%）
+        // 日替わりローテーション（±10%）
         const rotation = self.calculateDailyRotation(company.companyName);
         finalScore *= rotation;
 
-        // Step 4: 供給数ボーナス（安い順なので割り算）
+        // 供給数ボーナス（安い順なので割り算）
         const supplyBonus = self.calculateSupplyBonus(company.recent3MonthInquiryCount);
-        finalScore /= supplyBonus; // 安い方が上位なので逆算
+        finalScore /= supplyBonus;
 
-        return {
-          score: finalScore,
-          baseScore: mixedScore.score,
-          source: mixedScore.source
-        };
+        return finalScore;
       };
 
       const scoreA = calculatePriceScore(a);
       const scoreB = calculatePriceScore(b);
 
-      // V1896: 価格スコアで昇順ソート（安い方が上位）、同スコアの場合はマッチ度で降順
-      if (scoreA.score !== scoreB.score) {
-        return scoreA.score - scoreB.score;
-      }
-      // 同じスコアの場合はマッチ度で降順ソート
-      return (b.matchRate || 0) - (a.matchRate || 0);
+      return scoreA - scoreB; // 安い方が上位
     });
   },
 
   /**
-   * V1751: 口コミ順ソート（成約率順 - データ混合システム + 全ボーナス適用）
+   * V1921: 口コミ順ソート（マッチ度優先 → 同マッチ度内で成約率順）
    * 問合せ5件以上で信頼できるデータとする
    */
   sortByReview: function(companies, userCity) {
@@ -1342,12 +1335,18 @@ const RankingSystem = {
     const DEFAULT_CONVERSION = 0.20; // デフォルト成約率: 20%
 
     return companies.sort(function(a, b) {
-      // V1751: 成約率スコア計算
+      // V1921: まずマッチ度で降順ソート（高マッチ度が上位）
+      const matchRateA = a.matchRate || 0;
+      const matchRateB = b.matchRate || 0;
+      if (matchRateB !== matchRateA) {
+        return matchRateB - matchRateA;
+      }
+
+      // V1921: 同マッチ度の場合は成約率スコアで降順ソート
       const calculateConversionScore = function(company) {
-        // Step 1: データ混合スコア計算（問合せ5件以上で信頼できるデータ）
         const recentConversion = company.recent3MonthInquiryCount >= 5
           ? company.recent3MonthConversionRate
-          : 0; // 5件未満は使わない
+          : 0;
 
         const mixedScore = self.calculateMixedScore(
           company,
@@ -1356,46 +1355,37 @@ const RankingSystem = {
           DEFAULT_CONVERSION,
           {
             minThreshold: 0,
-            returnPenalty: 1.0, // 成約率には返品ペナルティ不要
-            historicalCount: company.pastContractCount || 0 // V1751: 過去データ件数を渡す
+            returnPenalty: 1.0,
+            historicalCount: company.pastContractCount || 0
           }
         );
 
         let finalScore = mixedScore.score;
 
-        // Step 2: 距離ボーナス（15%）
+        // 距離ボーナス（15%）
         const distanceBonus = self.calculateDistanceBonus(company, userCity);
         finalScore *= distanceBonus;
 
-        // Step 3: 日替わりローテーション（±10%）
+        // 日替わりローテーション（±10%）
         const rotation = self.calculateDailyRotation(company.companyName);
         finalScore *= rotation;
 
-        // Step 4: 供給数ボーナス
+        // 供給数ボーナス
         const supplyBonus = self.calculateSupplyBonus(company.recent3MonthInquiryCount);
         finalScore *= supplyBonus;
 
-        return {
-          score: finalScore,
-          baseScore: mixedScore.score,
-          source: mixedScore.source
-        };
+        return finalScore;
       };
 
       const scoreA = calculateConversionScore(a);
       const scoreB = calculateConversionScore(b);
 
-      // V1896: 成約率スコアで降順ソート（高い方が上位）、同スコアの場合はマッチ度で降順
-      if (scoreB.score !== scoreA.score) {
-        return scoreB.score - scoreA.score;
-      }
-      // 同じスコアの場合はマッチ度で降順ソート
-      return (b.matchRate || 0) - (a.matchRate || 0);
+      return scoreB - scoreA; // 高い方が上位
     });
   },
 
   /**
-   * V1751: 高品質順ソート（高額順 - データ混合システム + 全ボーナス適用）
+   * V1921: 高品質順ソート（マッチ度優先 → 同マッチ度内で高額順）
    * 50万円以下除外
    */
   sortByRating: function(companies, userCity) {
@@ -1404,9 +1394,15 @@ const RankingSystem = {
     const MIN_THRESHOLD = 500000; // 50万円以下除外
 
     return companies.sort(function(a, b) {
-      // V1751: 高品質スコア計算（高い順なので降順）
+      // V1921: まずマッチ度で降順ソート（高マッチ度が上位）
+      const matchRateA = a.matchRate || 0;
+      const matchRateB = b.matchRate || 0;
+      if (matchRateB !== matchRateA) {
+        return matchRateB - matchRateA;
+      }
+
+      // V1921: 同マッチ度の場合は高品質スコアで降順ソート
       const calculatePremiumScore = function(company) {
-        // Step 1: データ混合スコア計算
         const mixedScore = self.calculateMixedScore(
           company,
           company.avgContractAmount,
@@ -1415,41 +1411,32 @@ const RankingSystem = {
           {
             minThreshold: MIN_THRESHOLD,
             returnPenalty: Math.max(0.7, 1.0 - (company.pastReturnRate * 0.3)),
-            recentCount: company.contractCount || 0, // V1751: 実データ件数
-            historicalCount: company.pastContractCount || 0 // V1751: 過去データ件数
+            recentCount: company.contractCount || 0,
+            historicalCount: company.pastContractCount || 0
           }
         );
 
         let finalScore = mixedScore.score;
 
-        // Step 2: 距離ボーナス（15%）
+        // 距離ボーナス（15%）
         const distanceBonus = self.calculateDistanceBonus(company, userCity);
         finalScore *= distanceBonus;
 
-        // Step 3: 日替わりローテーション（±10%）
+        // 日替わりローテーション（±10%）
         const rotation = self.calculateDailyRotation(company.companyName);
         finalScore *= rotation;
 
-        // Step 4: 供給数ボーナス
+        // 供給数ボーナス
         const supplyBonus = self.calculateSupplyBonus(company.recent3MonthInquiryCount);
         finalScore *= supplyBonus;
 
-        return {
-          score: finalScore,
-          baseScore: mixedScore.score,
-          source: mixedScore.source
-        };
+        return finalScore;
       };
 
       const scoreA = calculatePremiumScore(a);
       const scoreB = calculatePremiumScore(b);
 
-      // V1896: 高品質スコアで降順ソート（高い方が上位）、同スコアの場合はマッチ度で降順
-      if (scoreB.score !== scoreA.score) {
-        return scoreB.score - scoreA.score;
-      }
-      // 同じスコアの場合はマッチ度で降順ソート
-      return (b.matchRate || 0) - (a.matchRate || 0);
+      return scoreB - scoreA; // 高い方が上位
     });
   },
 
