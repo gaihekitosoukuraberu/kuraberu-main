@@ -4890,7 +4890,7 @@ window.addEventListener('beforeunload', function(e) {
                     </td>
                     <td class="px-4 py-4 text-center">
                         <div class="flex justify-center items-center space-x-2">
-                            <button onclick="event.stopPropagation(); alert('📞:'+('${caseId}')); callCase('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="電話（履歴自動追加）">
+                            <button onclick="event.stopPropagation(); callCase('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="電話（履歴自動追加）">
                                 📞
                             </button>
                             <button onclick="event.stopPropagation(); window.location.href='sms:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="SMS">
@@ -4982,7 +4982,7 @@ window.addEventListener('beforeunload', function(e) {
                     </td>
                     <td class="px-4 py-4 text-center">
                         <div class="flex justify-center items-center space-x-2">
-                            <button onclick="event.stopPropagation(); alert('📞:'+('${caseId}')); callCase('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="電話（履歴自動追加）">
+                            <button onclick="event.stopPropagation(); callCase('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="電話（履歴自動追加）">
                                 📞
                             </button>
                             <button onclick="event.stopPropagation(); window.location.href='sms:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="SMS">
@@ -5610,7 +5610,7 @@ window.addEventListener('beforeunload', function(e) {
                     </td>
                     <td class="px-4 py-4 text-center">
                         <div class="flex justify-center items-center space-x-2">
-                            <button onclick="event.stopPropagation(); alert('📞:'+('${caseId}')); callCase('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="電話（履歴自動追加）">
+                            <button onclick="event.stopPropagation(); callCase('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="電話（履歴自動追加）">
                                 📞
                             </button>
                             <button onclick="event.stopPropagation(); window.location.href='sms:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="SMS">
@@ -5695,7 +5695,7 @@ window.addEventListener('beforeunload', function(e) {
                         <div class="pt-3 border-t border-gray-200">
                             <div class="flex justify-between items-center">
                                 <div class="flex space-x-2">
-                                    <button onclick="window.location.href='tel:${caseData.phone}'" class="text-lg" title="電話">📞</button>
+                                    <button onclick="callCase('${caseId}')" class="text-lg" title="電話">📞</button>
                                     <button onclick="window.location.href='sms:${caseData.phone}'" class="text-lg" title="SMS">💬</button>
                                     <button onclick="sendData('${caseId}')" class="text-lg" title="送信">📤</button>
                                     <button onclick="openCallHistoryModal('${caseId}')" class="text-lg" title="メモ">📝</button>
@@ -6754,9 +6754,9 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
-        // V1954: 電話をかける - デバッグ強化
+        // V1956: 電話をかける（モバイルカード対応）
         function callCase(caseId) {
-            alert('callCase開始: ' + caseId);
+            console.log('[callCase] 開始:', caseId);
 
             const targetId = caseId || currentCaseId;
             if (!targetId) {
@@ -6765,7 +6765,7 @@ window.addEventListener('beforeunload', function(e) {
             }
 
             if (!casesData || !casesData[targetId]) {
-                alert('案件データが見つかりません: ' + targetId);
+                alert('案件データが見つかりません');
                 return;
             }
 
@@ -6784,30 +6784,25 @@ window.addEventListener('beforeunload', function(e) {
             localStorage.setItem('afterCallCaseId', targetId);
             localStorage.setItem('afterCallTime', Date.now().toString());
 
-            alert('保存完了: ' + localStorage.getItem('afterCallCaseId'));
-
             // 3. 架電履歴を追加（バックグラウンド）
             addAutoCallRecord();
 
-            // 4. 電話発信
+            // 4. 電話発信（少し遅延）
             setTimeout(() => {
                 window.location.href = 'tel:' + phone;
-            }, 200);
+            }, 150);
         }
 
         window.callCase = callCase;
 
-        // V1954: ページ復帰時の処理
+        // V1956: ページ復帰時の処理
         function checkAfterCallFlow() {
             const afterCall = localStorage.getItem('afterCallFlow');
             const caseId = localStorage.getItem('afterCallCaseId');
             const callTime = parseInt(localStorage.getItem('afterCallTime') || '0');
             const elapsed = Date.now() - callTime;
 
-            // 値がある時だけalert
-            if (afterCall) {
-                alert('復帰: ' + afterCall + ' / ID:' + caseId);
-            }
+            console.log('[checkAfterCallFlow]', { afterCall, caseId, elapsed });
 
             // 5分以内の架電のみ有効
             if (afterCall === 'true' && caseId && elapsed < 300000) {

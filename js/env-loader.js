@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1955 - onclick内alert）
-  CACHE_BUSTER: 'v1764414232-v1955'
+  // キャッシュバスター（V1956 - モバイルカード📞修正）
+  CACHE_BUSTER: 'v1764414232-v1956'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
