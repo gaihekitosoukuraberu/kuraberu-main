@@ -357,6 +357,16 @@
                             <span class="text-xs font-medium">対応中</span>
                         </button>
 
+                        <!-- V1958: 配信前/後トグル -->
+                        <div class="flex items-center border-2 border-gray-300 rounded-full overflow-hidden shadow-sm flex-shrink-0">
+                            <button id="preDeliveryBtn" onclick="setDeliveryFilter('pre')" class="px-2.5 md:px-3 py-1 md:py-1.5 text-xs font-medium bg-indigo-500 text-white transition-all">
+                                配信前
+                            </button>
+                            <button id="postDeliveryBtn" onclick="setDeliveryFilter('post')" class="px-2.5 md:px-3 py-1 md:py-1.5 text-xs font-medium bg-white text-gray-600 transition-all">
+                                配信後
+                            </button>
+                        </div>
+
                         <!-- PC用スペーサー（左寄せから右寄せに切り替え） -->
                         <div class="hidden lg:block lg:flex-1"></div>
 
@@ -412,9 +422,10 @@
                             </button>
                         </div>
                         <div class="flex items-center gap-3">
-                            <!-- リスト表示時の件数表示 -->
-                            <div class="text-sm font-semibold text-gray-700 hidden" id="listCountDisplay">
+                            <!-- V1958: リスト表示時の件数表示（タップで逆順切替） -->
+                            <div class="text-sm font-semibold text-gray-700 hidden cursor-pointer hover:bg-blue-50 px-2 py-1 rounded-lg transition-all" id="listCountDisplay" onclick="toggleSortOrder()" title="タップで順序を反転">
                                 <span class="text-blue-600" id="topShowingFrom">0</span>-<span class="text-blue-600" id="topShowingTo">0</span> / <span class="text-gray-900" id="topTotalCount">0</span> 件
+                                <span id="sortDirectionIndicator" class="ml-1 text-gray-400">↓</span>
                             </div>
                             <!-- 選択件数表示（リスト表示時） -->
                             <div class="text-sm text-gray-600 hidden" id="selectionCountDisplay">
@@ -519,12 +530,6 @@
                                     <div class="inline-block">
                                         <button onclick="callCurrentCase()" class="p-1 sm:p-2 text-green-600 hover:bg-green-50 rounded-lg transition-all text-lg sm:text-2xl" title="電話をかける">
                                             📞
-                                        </button>
-                                    </div>
-                                    <!-- V1941: 不在ボタン -->
-                                    <div class="inline-block">
-                                        <button onclick="markAbsentAndNext()" class="px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all" title="不在にして次へ">
-                                            不在
                                         </button>
                                     </div>
                                 </div>
@@ -3997,6 +4002,8 @@ window.addEventListener('beforeunload', function(e) {
         let itemsPerPage = 30;
         let selectedItems = new Set();
         let currentStatusFilter = '';
+        let isReversed = false; // V1958: 逆順表示フラグ
+        let deliveryFilter = 'pre'; // V1958: 配信前/後フィルタ（'pre', 'post', 'all'）
 
         // オートセーブ関連
         let unsavedChanges = new Map(); // { cvId: { status, timestamp } }
@@ -4940,9 +4947,6 @@ window.addEventListener('beforeunload', function(e) {
                             <button onclick="event.stopPropagation(); window.location.href='sms:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="SMS">
                                 💬
                             </button>
-                            <button onclick="event.stopPropagation(); quickActionList('不在', '${caseId}')" class="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600">
-                                不在
-                            </button>
                             <button onclick="event.stopPropagation(); openCallHistoryModal('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="メモ">
                                 📝
                             </button>
@@ -5029,9 +5033,6 @@ window.addEventListener('beforeunload', function(e) {
                             <button onclick="event.stopPropagation(); window.location.href='sms:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="SMS">
                                 💬
                             </button>
-                            <button onclick="event.stopPropagation(); quickActionList('不在', '${caseId}')" class="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600">
-                                不在
-                            </button>
                             <button onclick="event.stopPropagation(); openCallHistoryModal('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="メモ">
                                 📝
                             </button>
@@ -5087,7 +5088,55 @@ window.addEventListener('beforeunload', function(e) {
         function closeSortModal() {
             document.getElementById('sortModal').classList.add('hidden');
         }
-        
+
+        // V1958: 逆順切替（件数表示をタップで切替）
+        function toggleSortOrder() {
+            isReversed = !isReversed;
+
+            // インジケータを更新
+            const indicator = document.getElementById('sortDirectionIndicator');
+            if (indicator) {
+                indicator.textContent = isReversed ? '↑' : '↓';
+            }
+
+            // リストを再読み込み
+            loadCVList();
+
+            console.log('[toggleSortOrder] 逆順:', isReversed);
+        }
+
+        // V1958: 配信前/後フィルタを設定
+        function setDeliveryFilter(mode) {
+            deliveryFilter = mode;
+
+            // ボタンのスタイルを更新
+            const preBtn = document.getElementById('preDeliveryBtn');
+            const postBtn = document.getElementById('postDeliveryBtn');
+
+            if (mode === 'pre') {
+                preBtn.classList.add('bg-indigo-500', 'text-white');
+                preBtn.classList.remove('bg-white', 'text-gray-600');
+                postBtn.classList.remove('bg-indigo-500', 'text-white');
+                postBtn.classList.add('bg-white', 'text-gray-600');
+            } else {
+                postBtn.classList.add('bg-indigo-500', 'text-white');
+                postBtn.classList.remove('bg-white', 'text-gray-600');
+                preBtn.classList.remove('bg-indigo-500', 'text-white');
+                preBtn.classList.add('bg-white', 'text-gray-600');
+            }
+
+            // フィルタをリセットしてリスト再読み込み
+            currentPage = 1;
+            loadCVList();
+
+            console.log('[setDeliveryFilter]', mode);
+        }
+
+        // V1958: 配信前ステータス一覧
+        const PRE_DELIVERY_STATUSES = ['新規', '不在', '再架電', '見込み', 'ロスト', '配信中', '配信済', '他社契約済', '無効', 'クレーム'];
+        // 配信後ステータス一覧
+        const POST_DELIVERY_STATUSES = ['アポ済', '現調済', '見積提出済', '入金予定', '入金完了', '完了', '紹介後キャンセル', '現調前キャンセル', '現調後ロスト'];
+
         // 選択中のステータス（複数選択対応）
         let selectedStatuses = [];
 
@@ -5565,6 +5614,15 @@ window.addEventListener('beforeunload', function(e) {
                 console.log('Total cases after status filter:', allCases.length);
             }
 
+            // V1958: 配信前/後フィルタを適用
+            if (deliveryFilter === 'pre') {
+                allCases = allCases.filter(([_, caseData]) => PRE_DELIVERY_STATUSES.includes(caseData.status));
+                console.log('Total cases after delivery filter (pre):', allCases.length);
+            } else if (deliveryFilter === 'post') {
+                allCases = allCases.filter(([_, caseData]) => POST_DELIVERY_STATUSES.includes(caseData.status));
+                console.log('Total cases after delivery filter (post):', allCases.length);
+            }
+
             // ソート処理
             const sortOption = document.getElementById('sortSelect')?.value || 'date-desc';
             allCases.sort(([idA, dataA], [idB, dataB]) => {
@@ -5579,13 +5637,28 @@ window.addEventListener('beforeunload', function(e) {
                     const dateB = dataB.createdAt || dataB.date || idB;
                     return dateA > dateB ? 1 : -1;
                 } else if (sortOption === 'amount-desc') {
-                    // 金額順（金額の降順）
-                    const amountA = parseInt(dataA.amount?.replace(/[¥K,]/g, '') || 0);
-                    const amountB = parseInt(dataB.amount?.replace(/[¥K,]/g, '') || 0);
+                    // V1958: 金額順（金額の降順）- 数値/文字列両対応
+                    const parseAmount = (val) => {
+                        if (!val) return 0;
+                        if (typeof val === 'number') return val;
+                        // ¥20,000 → 20000, ¥20K → 20000
+                        const str = String(val).replace(/[¥￥,]/g, '');
+                        if (str.includes('K')) {
+                            return parseInt(str.replace('K', '')) * 1000 || 0;
+                        }
+                        return parseInt(str) || 0;
+                    };
+                    const amountA = parseAmount(dataA.amount);
+                    const amountB = parseAmount(dataB.amount);
                     return amountB - amountA;
                 }
                 return 0;
             });
+
+            // V1958: 逆順フラグが有効なら配列を反転
+            if (isReversed) {
+                allCases.reverse();
+            }
 
             // 全データを取得
             // const allCases = Object.entries(casesData);
@@ -5653,9 +5726,6 @@ window.addEventListener('beforeunload', function(e) {
                             </button>
                             <button onclick="event.stopPropagation(); window.location.href='sms:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="SMS">
                                 💬
-                            </button>
-                            <button onclick="event.stopPropagation(); quickActionList('不在', '${caseId}')" class="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600">
-                                不在
                             </button>
                             <button onclick="event.stopPropagation(); openCallHistoryModal('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="メモ">
                                 📝
@@ -5735,7 +5805,6 @@ window.addEventListener('beforeunload', function(e) {
                                     <button onclick="openCallHistoryModal('${caseId}')" class="text-lg" title="メモ">📝</button>
                                 </div>
                                 <div class="flex space-x-2">
-                                    <button onclick="quickActionList('不在', '${caseId}')" class="px-2 py-1 text-xs bg-gray-500 text-white rounded">不在</button>
                                     <button onclick="openCRM('${caseId}')" class="px-3 py-1 text-xs bg-blue-600 text-white rounded">詳細</button>
                                 </div>
                             </div>
@@ -6829,7 +6898,7 @@ window.addEventListener('beforeunload', function(e) {
 
         window.callCase = callCase;
 
-        // V1956: ページ復帰時の処理
+        // V1958: ページ復帰時の処理（接続確認モーダルを表示）
         function checkAfterCallFlow() {
             const afterCall = localStorage.getItem('afterCallFlow');
             const caseId = localStorage.getItem('afterCallCaseId');
@@ -6847,9 +6916,235 @@ window.addEventListener('beforeunload', function(e) {
                 currentCaseId = caseId;
                 afterCallFlow = true;
 
-                // fixedモーダルなので直接表示
-                setTimeout(() => showStatusModal(), 300);
+                // V1958: 接続確認モーダルを表示
+                setTimeout(() => showConnectionModal(), 300);
             }
+        }
+
+        // V1958: 接続確認モーダル表示
+        function showConnectionModal() {
+            const modal = document.getElementById('connectionModal');
+            if (modal) {
+                // リセット
+                document.getElementById('nextCallQuickSettings').classList.add('hidden');
+                document.getElementById('selectedNextCall').classList.add('hidden');
+                quickCallTime = null;
+                quickCallDay = null;
+                document.querySelectorAll('.quick-time-btn, .quick-day-btn').forEach(btn => {
+                    btn.classList.remove('border-blue-500', 'bg-blue-50');
+                    btn.classList.add('border-gray-300');
+                });
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function hideConnectionModal() {
+            const modal = document.getElementById('connectionModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // V1958: 接続時の処理→ステータスモーダル→メモモーダル
+        function handleCallConnected() {
+            console.log('[handleCallConnected] 接続');
+            hideConnectionModal();
+            // ステータスモーダルを表示（afterCallFlow=trueのままなのでメモモーダルにも遷移）
+            setTimeout(() => showStatusModal(), 200);
+        }
+
+        // V1958: 不在時の処理→クイック設定を表示
+        function handleCallAbsent() {
+            console.log('[handleCallAbsent] 不在');
+            document.getElementById('nextCallQuickSettings').classList.remove('hidden');
+            // 自動で次回架電時間を計算してプリセット
+            autoSetNextCallTime();
+        }
+
+        // V1958: 次回架電のクイック設定用変数
+        let quickCallTime = null;
+        let quickCallDay = null;
+
+        // V1958: 時間を選択
+        function setQuickCallTime(hour) {
+            quickCallTime = hour;
+            document.querySelectorAll('.quick-time-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50');
+                btn.classList.add('border-gray-300');
+            });
+            event.target.classList.remove('border-gray-300');
+            event.target.classList.add('border-blue-500', 'bg-blue-50');
+            updateSelectedNextCallDisplay();
+        }
+
+        // V1958: 日を選択
+        function setQuickCallDay(day) {
+            quickCallDay = day;
+            document.querySelectorAll('.quick-day-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50');
+                btn.classList.add('border-gray-300');
+            });
+            event.target.classList.remove('border-gray-300');
+            event.target.classList.add('border-blue-500', 'bg-blue-50');
+            updateSelectedNextCallDisplay();
+        }
+
+        // V1958: 選択した次回架電日時を表示
+        function updateSelectedNextCallDisplay() {
+            if (!quickCallTime || !quickCallDay) return;
+            const dateStr = getQuickCallDate();
+            const display = document.getElementById('selectedNextCall');
+            display.textContent = `${dateStr} ${quickCallTime}:00`;
+            display.classList.remove('hidden');
+        }
+
+        // V1958: 日付を計算
+        function getQuickCallDate() {
+            const now = new Date();
+            let target = new Date();
+
+            switch(quickCallDay) {
+                case 'today':
+                    break;
+                case 'tomorrow':
+                    target.setDate(now.getDate() + 1);
+                    break;
+                case 'saturday':
+                    const daysUntilSat = (6 - now.getDay() + 7) % 7 || 7;
+                    target.setDate(now.getDate() + daysUntilSat);
+                    break;
+                case 'sunday':
+                    const daysUntilSun = (7 - now.getDay()) % 7 || 7;
+                    target.setDate(now.getDate() + daysUntilSun);
+                    break;
+            }
+
+            return target.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' });
+        }
+
+        // V1958: 次の9/12/17/19時を自動計算
+        function autoSetNextCallTime() {
+            const now = new Date();
+            const hour = now.getHours();
+            const slots = [9, 12, 17, 19];
+
+            // 今日の次のスロットを探す
+            let nextSlot = slots.find(s => s > hour);
+
+            if (nextSlot) {
+                // 今日の次のスロット
+                quickCallDay = 'today';
+                quickCallTime = nextSlot;
+            } else {
+                // 明日の9時
+                quickCallDay = 'tomorrow';
+                quickCallTime = 9;
+            }
+
+            // ボタンをハイライト
+            document.querySelectorAll('.quick-time-btn').forEach(btn => {
+                if (btn.textContent.includes(quickCallTime + '時')) {
+                    btn.classList.remove('border-gray-300');
+                    btn.classList.add('border-blue-500', 'bg-blue-50');
+                }
+            });
+            document.querySelectorAll('.quick-day-btn').forEach(btn => {
+                const dayMap = { 'today': '当日', 'tomorrow': '明日', 'saturday': '土', 'sunday': '日' };
+                if (btn.textContent === dayMap[quickCallDay]) {
+                    btn.classList.remove('border-gray-300');
+                    btn.classList.add('border-blue-500', 'bg-blue-50');
+                }
+            });
+
+            updateSelectedNextCallDisplay();
+        }
+
+        // V1958: 不在確定→次回架電日を保存して次へ
+        async function confirmAbsentWithNextCall() {
+            if (!currentCaseId || !casesData[currentCaseId]) {
+                console.warn('[confirmAbsentWithNextCall] 案件が選択されていません');
+                return;
+            }
+
+            const caseData = casesData[currentCaseId];
+            const currentStatus = caseData.status;
+
+            // 次回架電日時を計算
+            const nextCallDateTime = calculateNextCallDateTime();
+
+            // 架電履歴に📵不在を追加（既存の📞架電は残す）
+            if (!casesData[currentCaseId].callHistory) {
+                casesData[currentCaseId].callHistory = [];
+            }
+
+            // 最新の架電記録を📵不在に更新
+            const lastRecord = casesData[currentCaseId].callHistory[0];
+            if (lastRecord && lastRecord.note === '📞 架電') {
+                lastRecord.note = '📵 不在';
+                lastRecord.nextCallDate = nextCallDateTime;
+            }
+
+            // ステータス分岐: 新規→不在、見込み/再架電→維持
+            if (currentStatus === '新規') {
+                await changeCRMStatus('不在');
+            }
+            // 見込み・再架電の場合はステータス維持（履歴のみ追加）
+
+            // 次回架電日をCRMデータに保存
+            casesData[currentCaseId].nextCallDate = nextCallDateTime;
+
+            // GASに保存
+            const callHistoryFormatted = casesData[currentCaseId].callHistory.map(item => ({
+                date: item.date || item.timestamp || '',
+                note: item.note || '',
+                nextCallDate: item.nextCallDate || ''
+            }));
+
+            try {
+                await window.apiClient.postRequest('updateCVData', {
+                    cvId: currentCaseId,
+                    data: {
+                        callHistory: JSON.stringify(callHistoryFormatted),
+                        nextCallDate: nextCallDateTime
+                    }
+                });
+                console.log('[confirmAbsentWithNextCall] 保存成功');
+            } catch (err) {
+                console.error('[confirmAbsentWithNextCall] 保存エラー:', err);
+            }
+
+            hideConnectionModal();
+            afterCallFlow = false;
+
+            // リスト更新
+            if (typeof loadCVList === 'function') {
+                loadCVList();
+            }
+        }
+
+        // V1958: 次回架電日時を計算
+        function calculateNextCallDateTime() {
+            const now = new Date();
+            let target = new Date();
+
+            switch(quickCallDay) {
+                case 'today':
+                    break;
+                case 'tomorrow':
+                    target.setDate(now.getDate() + 1);
+                    break;
+                case 'saturday':
+                    const daysUntilSat = (6 - now.getDay() + 7) % 7 || 7;
+                    target.setDate(now.getDate() + daysUntilSat);
+                    break;
+                case 'sunday':
+                    const daysUntilSun = (7 - now.getDay()) % 7 || 7;
+                    target.setDate(now.getDate() + daysUntilSun);
+                    break;
+            }
+
+            target.setHours(quickCallTime, 0, 0, 0);
+            return target.toLocaleString('ja-JP');
         }
 
         // ページロード時にチェック
