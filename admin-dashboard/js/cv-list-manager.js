@@ -169,8 +169,8 @@ const CVListManager = {
       // 紹介料を計算
       // V1927: companiesCountPreference（CB列・希望社数）を優先使用
       // V1928: 数値でも文字列でも対応（スプシは数字のみで保存）
-      // V1932: フォールバック条件を修正
-      let desiredCompanyCount = 0;  // 初期値を0に（フォールバック判定用）
+      // V1936: 希望社数が0または未入力の場合は¥0（CV1のみ等は紹介料なし）
+      let desiredCompanyCount = 0;
       const preferenceValue = cv.companiesCountPreference;
       if (preferenceValue !== undefined && preferenceValue !== null && preferenceValue !== '' && preferenceValue !== 0) {
         // 数値の場合はそのまま使用、文字列の場合は数字を抽出
@@ -184,10 +184,8 @@ const CVListManager = {
           }
         }
       }
-      // フォールバック: companiesCountPreferenceが無効な場合はcompaniesCountを使用
-      if (desiredCompanyCount <= 0) {
-        desiredCompanyCount = cv.companiesCount || 1;
-      }
+      // V1936: フォールバックなし - 希望社数が0なら紹介料も0
+      // （CV1のみ等で希望社数が入っていない場合は紹介料を計算しない）
 
       // V1931: BZ列のworkItemsを優先使用（フルネームが入っている）
       // workItemsが空ならq9/q10にフォールバック
