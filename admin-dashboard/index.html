@@ -6706,17 +6706,19 @@ window.addEventListener('beforeunload', function(e) {
                 return;
             }
 
-            // 1. 電話発信
-            window.location.href = 'tel:' + phone;
-
-            // 2. 架電履歴を自動追加（バックグラウンドでGAS保存）
+            // 1. 架電履歴を自動追加（バックグラウンドでGAS保存）- 先に実行
             addAutoCallRecord();
 
-            // 3. フラグセット（ステータス選択後にメモモーダルを開く）
+            // 2. フラグセット（ステータス選択後にメモモーダルを開く）
             afterCallFlow = true;
 
-            // 4. ステータスモーダルを表示
-            toggleStatusModal();
+            // 3. 電話発信（別ウィンドウで開くことでページのフォーカスを維持）
+            window.open('tel:' + phone, '_blank');
+
+            // 4. ステータスモーダルを表示（遅延して確実に表示）
+            setTimeout(() => {
+                toggleStatusModal();
+            }, 300);
         }
 
         function openCallHistoryModal(caseId) {
