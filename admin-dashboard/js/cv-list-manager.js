@@ -188,25 +188,33 @@ const CVListManager = {
         desiredCompanyCount = cv.companiesCount || 1;
       }
 
-      const calculatedFee = window.FeeCalculator.calculate({
-        q9_wallWorkType: cv.botAnswers?.q9_wallWorkType || '',
-        q10_roofWorkType: cv.botAnswers?.q10_roofWorkType || '',
-        propertyType: cv.propertyType || '',
-        floors: cv.floors || ''
-      }, desiredCompanyCount);
+      // V1931: BZ列のworkItemsを優先使用（フルネームが入っている）
+      // workItemsが空ならq9/q10にフォールバック
+      let feeWorkItems = workItems;  // 既に上で変換済み（外壁塗装、屋根塗装等）
+      if (!feeWorkItems || feeWorkItems.length === 0) {
+        // フォールバック: q9/q10を使用
+        feeWorkItems = [];
+        if (cv.botAnswers?.q9_wallWorkType) feeWorkItems.push(cv.botAnswers.q9_wallWorkType);
+        if (cv.botAnswers?.q10_roofWorkType) feeWorkItems.push(cv.botAnswers.q10_roofWorkType);
+      }
+
+      const calculatedFee = window.FeeCalculator.calculateFromWorkItems(
+        feeWorkItems,
+        desiredCompanyCount,
+        cv.propertyType || '',
+        cv.floors || ''
+      );
 
       // V1927: 合計紹介料 = 1社あたり紹介料 × 希望社数
       const totalFee = calculatedFee * desiredCompanyCount;
       const formattedAmount = this.formatCompactFee(totalFee);
 
-      // V1929: デバッグログ（最初の5件のみ）
+      // V1931: デバッグログ（最初の5件のみ）
       if (index < 5) {
         console.log(`[FeeDebug] ${cv.name}:`, {
+          workItems: feeWorkItems,
           companiesCountPreference: cv.companiesCountPreference,
-          preferenceValue: preferenceValue,
           desiredCompanyCount: desiredCompanyCount,
-          q9: cv.botAnswers?.q9_wallWorkType,
-          q10: cv.botAnswers?.q10_roofWorkType,
           calculatedFee: calculatedFee,
           totalFee: totalFee
         });

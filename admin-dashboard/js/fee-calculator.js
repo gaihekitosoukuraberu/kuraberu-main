@@ -96,6 +96,46 @@ const FeeCalculator = {
   },
 
   /**
+   * V1931: workItems配列から直接計算（BZ列対応）
+   * @param {Array<string>} workItems - 工事内容配列（例: ['外壁塗装', '屋根塗装']）
+   * @param {number} companiesCount - 配信先加盟店数
+   * @param {string} propertyType - 物件種別
+   * @param {string} floors - 階数
+   * @returns {number} 紹介料（円）
+   */
+  calculateFromWorkItems(workItems, companiesCount = 1, propertyType = '', floors = '') {
+    try {
+      if (!workItems || workItems.length === 0) {
+        console.warn('[FeeCalculator] 工事内容が未設定');
+        return 0;
+      }
+
+      // 各工事内容の料金を計算
+      const fees = workItems.map(item => {
+        return this.calculateItemFee(item, companiesCount, propertyType, floors);
+      });
+
+      // 最高額を適用（足し算ではない）
+      const maxFee = Math.max(...fees, 0);
+
+      console.log('[FeeCalculator] 計算結果:', {
+        workItems,
+        fees,
+        maxFee,
+        companiesCount,
+        propertyType,
+        floors
+      });
+
+      return maxFee;
+
+    } catch (error) {
+      console.error('[FeeCalculator] 計算エラー:', error);
+      return 0;
+    }
+  },
+
+  /**
    * CV案件データから工事内容リストを取得
    * @param {Object} cvData - CV案件データ
    * @returns {Array<string>} 工事内容リスト
