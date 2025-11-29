@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1952b - デバッグalert）
-  CACHE_BUSTER: 'v1764413748-v1952b'
+  // キャッシュバスター（V1953 - localStorage保存確実化）
+  CACHE_BUSTER: 'v1764413748-v1953'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
