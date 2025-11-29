@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1947 - iPhone SE最適化+リスト履歴修正）
-  CACHE_BUSTER: 'v1764411113-v1947'
+  CACHE_BUSTER: 'v1764411785-fe9b2286'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
