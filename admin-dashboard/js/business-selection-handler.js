@@ -737,6 +737,12 @@ const BusinessSelectionHandler = {
       await this.ensureDistancesCalculated();
     }
 
+    // V1914: 距離計算後の確認
+    if (sortType === 'distance') {
+      const withDist = this.allFranchises.filter(f => f.distanceText).length;
+      console.log('[V1914-AFTER-CALC] 距離計算後 - 距離情報あり:', withDist, '/', this.allFranchises.length, 'distancesCalculated:', this.distancesCalculated);
+    }
+
     // ========== V1925: デバッグログ追加 ==========
     console.log('%c[V1925-DEBUG] applySortAndRender開始', 'color: #0000ff; font-weight: bold; font-size: 16px');
     console.log('[V1925-DEBUG] 現在のcheckedCompanies:', Array.from(this.checkedCompanies));
@@ -795,17 +801,36 @@ const BusinessSelectionHandler = {
       };
     });
 
-    // V1910: ユーザー選択ソート時のみAS列業者を先頭に（AS列内もマッチ度順）
-    if (sortType === 'user') {
+    // V1915: ユーザー選択ソート時 - AS列業者を先頭に（AS列内の順序は維持）
+    // チェック済みのグループ化はgenerateBusinessCardsで行う
+    // 'user' または 'selected' の両方に対応
+    if (sortType === 'user' || sortType === 'selected') {
       const userSelected = allWithMatchRate.filter(f => f._isUserSelected);
       const others = allWithMatchRate.filter(f => !f._isUserSelected);
 
-      // V1910: AS列業者もマッチ度でソート
-      userSelected.sort((a, b) => (b._matchRate || 0) - (a._matchRate || 0));
-      // othersはマッチ度でソート
-      others.sort((a, b) => (b._matchRate || 0) - (a._matchRate || 0));
+      // V1915: AS列業者はマッチ度関係なく先頭（順序はそのまま維持）
+      // othersはマッチ度でグループ化し、同率内はおすすめ順（売上高）
+      const groupedByMatchRate = {};
+      others.forEach(f => {
+        const rate = f._matchRate || 0;
+        if (!groupedByMatchRate[rate]) {
+          groupedByMatchRate[rate] = [];
+        }
+        groupedByMatchRate[rate].push(f);
+      });
 
-      return [...userSelected, ...others];
+      let sortedOthers = [];
+      Object.keys(groupedByMatchRate)
+        .sort((a, b) => parseFloat(b) - parseFloat(a)) // マッチ度降順
+        .forEach(rate => {
+          let group = groupedByMatchRate[rate];
+          // 同率内はおすすめ順（売上高）
+          group = this.sortByRevenue(group);
+          sortedOthers.push(...group);
+        });
+
+      console.log('[V1915-SORT] user sort: AS列業者', userSelected.length, '社 → その他', sortedOthers.length, '社（マッチ度→おすすめ順）');
+      return [...userSelected, ...sortedOthers];
     }
 
     // V1908: 距離順は純粋に距離でソート（マッチ度グループ化なし）
@@ -929,9 +954,20 @@ const BusinessSelectionHandler = {
    * @returns {Array} ソート済みリスト
    */
   sortByDistance(franchises) {
-    return [...franchises].sort((a, b) => {
+    // V1914: ソート前の距離情報をログ
+    const withDist = franchises.filter(f => f.distance && f.distance < 999999).length;
+    console.log('[V1914-sortByDistance] 入力業者数:', franchises.length, '距離情報あり:', withDist);
+
+    const sorted = [...franchises].sort((a, b) => {
       return (a.distance || 999999) - (b.distance || 999999);
     });
+
+    // V1914: ソート後の上位6社
+    console.log('[V1914-sortByDistance] ソート結果（上位6社）:',
+      sorted.slice(0, 6).map(f => `${f.companyName}(${f.distance || '?'}m)`).join(' → ')
+    );
+
+    return sorted;
   },
 
   /**
@@ -1042,6 +1078,12 @@ const BusinessSelectionHandler = {
   async generateBusinessCards(selectionData, sortType = 'user', showAll = false, searchQuery = '') {
     const { allFranchises } = selectionData;
 
+    // V1914: 入力データの距離情報をチェック
+    if (sortType === 'distance') {
+      const withDist = allFranchises.filter(f => f.distanceText).length;
+      console.log('[V1914-INPUT] 距離情報あり業者数:', withDist, '/', allFranchises.length);
+    }
+
     let displayFranchises = [];
     const currentCheckedCompanies = this.getCheckedCompanies();
 
@@ -1079,32 +1121,79 @@ const BusinessSelectionHandler = {
       // === 通常モード: ソート順で表示 ===
       displayFranchises = this.sortFranchises(sortType, allFranchises);
 
-      // V1913: ソート後の順序をログ出力（デバッグ用）
-      console.log('[V1913-SORT] sortType:', sortType, '→ ソート後順序:', displayFranchises.slice(0, 6).map(f => f.companyName + '(距離:' + (f.distance || '?') + ',マッチ:' + (f._matchRate || '?') + '%)').join(' → '));
+      // V1914: ソート後の順序をログ出力（デバッグ用）- 距離順時は距離値を詳細表示
+      if (sortType === 'distance') {
+        console.log('[V1914-SORT-DISTANCE] ソート結果:', displayFranchises.slice(0, 6).map(f =>
+          `${f.companyName}(${f.distanceText || '距離?'},${f.distance || '?'}m,${f._matchRate}%)`
+        ).join(' → '));
+      } else {
+        console.log('[V1913-SORT] sortType:', sortType, '→ ソート後順序:', displayFranchises.slice(0, 6).map(f => f.companyName + '(マッチ:' + (f._matchRate || '?') + '%)').join(' → '));
+      }
 
       // V1909: ソートタイプに応じたグループ化
       const limit = showAll ? 8 : 4;
 
-      if (sortType === 'user') {
-        // V1911: ユーザー選択ソート時は3段階グループ化
-        // 1. チェック済み → 2. チェックなしAS列業者 → 3. それ以外（マッチ度順）
+      // V1915: 'user' または 'selected' の両方に対応
+      if (sortType === 'user' || sortType === 'selected') {
+        // V1915: ユーザー選択ソート時は3段階グループ化
+        // 1. チェック済み → 2. チェックなしAS列業者（マッチ度関係なし） → 3. マッチ度順 → 同率内おすすめ順
         // 常にthis.isUserSelected()を使用（確実にAS列業者を判定）
+
+        // デバッグ: 各業者のisUserSelected判定をログ
+        console.log('[V1915-DEBUG] userSelectedCompanies:', this.userSelectedCompanies);
+        displayFranchises.forEach(f => {
+          const isSel = this.isUserSelected(f.companyName);
+          if (isSel) {
+            console.log('[V1915-DEBUG] AS列業者検出:', f.companyName, '→ isUserSelected:', isSel);
+          }
+        });
+
         const checkedFranchises = displayFranchises.filter(f =>
           currentCheckedCompanies.includes(f.companyName)
         );
+
+        // V1915: チェックなしAS列業者を抽出（_isUserSelectedフラグを優先使用）
         const uncheckedUserSelected = displayFranchises.filter(f => {
           const isChecked = currentCheckedCompanies.includes(f.companyName);
-          const isUserSel = this.isUserSelected(f.companyName);
+          // _isUserSelectedフラグがあればそれを使用、なければisUserSelected()を呼ぶ
+          const isUserSel = f._isUserSelected !== undefined ? f._isUserSelected : this.isUserSelected(f.companyName);
           return !isChecked && isUserSel;
         });
-        const others = displayFranchises.filter(f => {
+
+        // V1915: それ以外はマッチ度順→同率内おすすめ順でソート
+        let others = displayFranchises.filter(f => {
           const isChecked = currentCheckedCompanies.includes(f.companyName);
-          const isUserSel = this.isUserSelected(f.companyName);
+          const isUserSel = f._isUserSelected !== undefined ? f._isUserSelected : this.isUserSelected(f.companyName);
           return !isChecked && !isUserSel;
-        }).slice(0, limit);
+        });
+
+        // V1915: othersをマッチ度でグループ化し、同率内はおすすめ順（売上高）でソート
+        const groupedByMatchRate = {};
+        others.forEach(f => {
+          const rate = f._matchRate || 0;
+          if (!groupedByMatchRate[rate]) {
+            groupedByMatchRate[rate] = [];
+          }
+          groupedByMatchRate[rate].push(f);
+        });
+
+        // マッチ度降順で結合、同率内は売上高順
+        others = [];
+        Object.keys(groupedByMatchRate)
+          .sort((a, b) => parseFloat(b) - parseFloat(a))
+          .forEach(rate => {
+            let group = groupedByMatchRate[rate];
+            // 同率内はおすすめ順（売上高）でソート
+            group = this.sortByRevenue(group);
+            others.push(...group);
+          });
+
+        others = others.slice(0, limit);
 
         displayFranchises = [...checkedFranchises, ...uncheckedUserSelected, ...others];
-        console.log('[V1911-USER] 3段階グループ: ✓', checkedFranchises.length, '→ AS列', uncheckedUserSelected.length, '(', this.userSelectedCompanies, ') → 他', others.length);
+        console.log('[V1915-USER] 3段階グループ: ✓', checkedFranchises.length,
+          '→ AS列', uncheckedUserSelected.length, uncheckedUserSelected.map(f => f.companyName),
+          '→ 他（マッチ度→おすすめ順）', others.length);
       } else {
         // V1912: ユーザー選択以外のソート: チェック済み → マッチ度/ソート条件順
         // AS列業者の優先なし（マッチ度優先）
@@ -1116,7 +1205,12 @@ const BusinessSelectionHandler = {
         ).slice(0, limit);
 
         displayFranchises = [...checkedFranchises, ...uncheckedFranchises];
-        console.log('[V1912-OTHER] sortType:', sortType, 'チェック済み:', checkedFranchises.length, '→ 未チェック（マッチ度順）:', uncheckedFranchises.map(f => f.companyName + '(' + (f._matchRate || '?') + '%)').join(', '));
+        // V1914: 距離順の場合は距離値を表示、その他はマッチ度を表示
+        if (sortType === 'distance') {
+          console.log('[V1914-DISTANCE] チェック済み:', checkedFranchises.length, '→ 未チェック（距離順）:', uncheckedFranchises.map(f => f.companyName + '(距離:' + (f.distance || '?') + 'km,マッチ:' + (f._matchRate || '?') + '%)').join(', '));
+        } else {
+          console.log('[V1912-OTHER] sortType:', sortType, 'チェック済み:', checkedFranchises.length, '→ 未チェック（マッチ度優先）:', uncheckedFranchises.map(f => f.companyName + '(' + (f._matchRate || '?') + '%)').join(', '));
+        }
       }
     }
 
