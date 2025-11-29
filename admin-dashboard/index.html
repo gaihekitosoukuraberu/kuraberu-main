@@ -6754,9 +6754,9 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
-        // V1953: 電話をかける - localStorage保存を確実にしてから発信
+        // V1954: 電話をかける - デバッグ強化
         function callCase(caseId) {
-            console.log('[callCase] 開始 caseId:', caseId);
+            alert('callCase開始: ' + caseId);
 
             const targetId = caseId || currentCaseId;
             if (!targetId) {
@@ -6765,7 +6765,7 @@ window.addEventListener('beforeunload', function(e) {
             }
 
             if (!casesData || !casesData[targetId]) {
-                alert('案件データが見つかりません');
+                alert('案件データが見つかりません: ' + targetId);
                 return;
             }
 
@@ -6779,37 +6779,35 @@ window.addEventListener('beforeunload', function(e) {
             // 1. currentCaseIdを設定
             currentCaseId = targetId;
 
-            // 2. localStorageに状態保存（確実に保存）
-            try {
-                localStorage.setItem('afterCallFlow', 'true');
-                localStorage.setItem('afterCallCaseId', targetId);
-                localStorage.setItem('afterCallTime', Date.now().toString());
-                console.log('[callCase] localStorage保存完了:', targetId);
-            } catch(e) {
-                console.error('[callCase] localStorage保存失敗:', e);
-            }
+            // 2. localStorageに状態保存
+            localStorage.setItem('afterCallFlow', 'true');
+            localStorage.setItem('afterCallCaseId', targetId);
+            localStorage.setItem('afterCallTime', Date.now().toString());
+
+            alert('保存完了: ' + localStorage.getItem('afterCallCaseId'));
 
             // 3. 架電履歴を追加（バックグラウンド）
             addAutoCallRecord();
 
-            // 4. 電話発信（少し遅延させて保存を確実に）
+            // 4. 電話発信
             setTimeout(() => {
-                console.log('[callCase] 発信:', phone);
                 window.location.href = 'tel:' + phone;
-            }, 100);
+            }, 200);
         }
 
         window.callCase = callCase;
 
-        // V1952: ページ復帰時の処理（デバッグ用alert付き）
+        // V1954: ページ復帰時の処理
         function checkAfterCallFlow() {
             const afterCall = localStorage.getItem('afterCallFlow');
             const caseId = localStorage.getItem('afterCallCaseId');
             const callTime = parseInt(localStorage.getItem('afterCallTime') || '0');
             const elapsed = Date.now() - callTime;
 
-            // デバッグ用alert
-            alert('復帰チェック: ' + (afterCall || 'なし') + ' / ID:' + (caseId || 'なし'));
+            // 値がある時だけalert
+            if (afterCall) {
+                alert('復帰: ' + afterCall + ' / ID:' + caseId);
+            }
 
             // 5分以内の架電のみ有効
             if (afterCall === 'true' && caseId && elapsed < 300000) {
