@@ -225,11 +225,12 @@ const CVListManager = {
         email: cv.email || '',
 
         // 物件情報（GASから返されるフィールド名を使用）
-        propertyType: cv.propertyType || '',        // V列: 物件種別
-        floors: cv.floors || '',                    // Y列: 階数
-        buildingAge: cv.buildingAge || '',          // W列: 築年数
-        area: cv.area || '',                        // X列: 建物面積
-        floorArea: cv.area || '',                   // X列: 建物面積
+        propertyType: cv.propertyType || '',        // W列: 物件種別（変換後）
+        q1PropertyType: cv.botAnswers?.q1_propertyType || '',  // V1968: AA列: Q1_物件種別（BOT回答原文）
+        floors: cv.floors || '',                    // Z列: 階数
+        buildingAge: cv.buildingAge || '',          // X列: 築年数
+        area: cv.area || '',                        // Y列: 建物面積
+        floorArea: cv.area || '',                   // Y列: 建物面積
 
         // 工事詳細（botAnswersオブジェクトから取得）
         constructionCount: cv.botAnswers?.q4_constructionHistory || '',        // AC: Q4_工事歴

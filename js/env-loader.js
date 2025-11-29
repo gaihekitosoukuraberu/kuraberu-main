@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1961 - 分数対応・9/19時バグ修正・履歴📋マーク）
-  CACHE_BUSTER: 'v1764424050-febadce3'
+  // キャッシュバスター（V1968 - 物件種別アイコン修正・q1PropertyType対応）
+  CACHE_BUSTER: 'v1968-propertyicon-fix'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

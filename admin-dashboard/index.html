@@ -5018,7 +5018,7 @@ window.addEventListener('beforeunload', function(e) {
                     <td class="px-4 py-4 whitespace-nowrap text-gray-600">
                         <div class="relative group">
                             <div class="cursor-pointer" onclick="event.stopPropagation(); toggleWorkDetails('${caseId}')">
-                                ${getPropertyIcon(caseData.propertyType)} ${getFloorDisplay(caseData.propertyType, caseData.floors)}
+                                ${getPropertyIcon(caseData.propertyType, caseData.q1PropertyType)} ${getFloorDisplay(caseData.propertyType, caseData.floors, caseData.q1PropertyType)}
                             </div>
                             <!-- 施工内容の詳細表示 -->
                             <div id="work-details-${caseId}" class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50">
@@ -5104,7 +5104,7 @@ window.addEventListener('beforeunload', function(e) {
                     <td class="px-4 py-4 whitespace-nowrap text-gray-600">
                         <div class="relative group">
                             <div class="cursor-pointer" onclick="event.stopPropagation(); toggleWorkDetails('${caseId}')">
-                                ${getPropertyIcon(caseData.propertyType)} ${getFloorDisplay(caseData.propertyType, caseData.floors)}
+                                ${getPropertyIcon(caseData.propertyType, caseData.q1PropertyType)} ${getFloorDisplay(caseData.propertyType, caseData.floors, caseData.q1PropertyType)}
                             </div>
                             <!-- 施工内容の詳細表示 -->
                             <div id="work-details-${caseId}" class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50">
@@ -5811,7 +5811,7 @@ window.addEventListener('beforeunload', function(e) {
                     <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div class="relative group">
                             <div class="cursor-pointer" onclick="event.stopPropagation(); toggleWorkDetails('${caseId}')">
-                                ${getPropertyIcon(caseData.propertyType)} ${getFloorDisplay(caseData.propertyType, caseData.floors)}
+                                ${getPropertyIcon(caseData.propertyType, caseData.q1PropertyType)} ${getFloorDisplay(caseData.propertyType, caseData.floors, caseData.q1PropertyType)}
                             </div>
                             <!-- 施工内容の詳細表示 -->
                             <div id="work-details-${caseId}" class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50">
@@ -5851,7 +5851,7 @@ window.addEventListener('beforeunload', function(e) {
                 // V1966: モバイルカードをリデザイン
                 pageCases.forEach(([caseId, caseData]) => {
                     const statusColor = getStatusColor(caseData.status);
-                    const floorDisplay = getFloorDisplay(caseData.propertyType, caseData.floors);
+                    const floorDisplay = getFloorDisplay(caseData.propertyType, caseData.floors, caseData.q1PropertyType);
 
                     const card = document.createElement('div');
                     card.className = 'bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-shadow';
@@ -5868,7 +5868,7 @@ window.addEventListener('beforeunload', function(e) {
                         <div class="mb-3">
                             <div class="flex items-center gap-2">
                                 <span class="text-base font-semibold text-gray-900">${caseData.name || '名前未設定'}</span>
-                                <span class="text-sm">${getPropertyIcon(caseData.propertyType)}${floorDisplay ? ' ' + floorDisplay : ''}</span>
+                                <span class="text-sm">${getPropertyIcon(caseData.propertyType, caseData.q1PropertyType)}${floorDisplay ? ' ' + floorDisplay : ''}</span>
                             </div>
                             <div class="flex items-center gap-2 mt-1">
                                 <span class="text-xs text-gray-400 font-mono">${caseId}</span>
@@ -8172,14 +8172,21 @@ window.addEventListener('beforeunload', function(e) {
 
         // 古いsaveAllData関数は削除（4878行目の非同期版を使用）
 
-        // V1967: 物件種別アイコン
-        function getPropertyIcon(propertyType) {
+        // V1968: 物件種別アイコン（W列: propertyType変換後の値 + AA列: q1PropertyType元の値）
+        // W列には変換後の値（戸建て、アパート・マンション、店舗・事務所、工場・倉庫、その他）
+        // AA列（q1PropertyType）には元のBOT回答（2階建て以外の自宅、実家・別荘・所有物件など）
+        function getPropertyIcon(propertyType, q1PropertyType) {
             if (!propertyType) return '❓';
 
-            // 2階建て以下の自宅
-            if (propertyType.includes('2階建て') || propertyType.includes('自宅')) return '🏠';
-            // 実家・別荘・所有物件
-            if (propertyType.includes('実家') || propertyType.includes('別荘') || propertyType.includes('所有物件')) return '🏡';
+            // 戸建て系の細分化（AA列のBOT回答を参照）
+            if (propertyType === '戸建て') {
+                // 実家・別荘・所有物件は🏡
+                if (q1PropertyType && (q1PropertyType.includes('実家') || q1PropertyType.includes('別荘') || q1PropertyType.includes('所有物件'))) {
+                    return '🏡';
+                }
+                // その他の戸建て（2階建て以下の自宅など）は🏠
+                return '🏠';
+            }
             // アパート・マンション
             if (propertyType.includes('アパート') || propertyType.includes('マンション')) return '🏢';
             // 店舗・事務所
@@ -8190,17 +8197,29 @@ window.addEventListener('beforeunload', function(e) {
             return '❓';
         }
 
-        // V1967: 階数表示（物件種別に応じた表示）
-        // - 2階建て以下の自宅 → 階数なし（2F固定なので表示不要）
-        // - 実家・別荘・所有物件 → 〜4F+
+        // V1968: 階数表示（物件種別に応じた表示）
+        // - 戸建て（2階建て以下の自宅）→ 階数なし（2F固定なので表示不要）
+        // - 戸建て（実家・別荘・所有物件）→ 〜4F+
         // - アパート・マンション → 3F〜10F+
         // - 店舗・事務所 → 〜10F+
         // - 工場・倉庫 → 〜10F+
-        function getFloorDisplay(propertyType, floors) {
+        function getFloorDisplay(propertyType, floors, q1PropertyType) {
             if (!floors) return '';
 
-            // 2階建て以下の自宅は階数表示なし
-            if (propertyType && (propertyType.includes('2階建て') || propertyType.includes('自宅'))) {
+            // 戸建ての場合、元のBOT回答を確認
+            if (propertyType === '戸建て') {
+                // 実家・別荘・所有物件は階数表示あり（〜4F+）
+                if (q1PropertyType && (q1PropertyType.includes('実家') || q1PropertyType.includes('別荘') || q1PropertyType.includes('所有物件'))) {
+                    // 4階以上 → 4F+
+                    if (floors.includes('4') || floors.includes('以上')) return '4F+';
+                    const match = floors.match(/(\d+)/);
+                    if (match) {
+                        const num = parseInt(match[1]);
+                        if (num >= 3) return `${num}F`;
+                    }
+                    return '';
+                }
+                // 2階建て以下の自宅は階数表示なし
                 return '';
             }
 
