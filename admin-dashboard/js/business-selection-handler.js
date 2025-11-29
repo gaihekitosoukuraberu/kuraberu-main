@@ -791,11 +791,13 @@ const BusinessSelectionHandler = {
       };
     });
 
-    // V1907: ユーザー選択ソート時のみAS列業者を先頭に
+    // V1910: ユーザー選択ソート時のみAS列業者を先頭に（AS列内もマッチ度順）
     if (sortType === 'user') {
       const userSelected = allWithMatchRate.filter(f => f._isUserSelected);
       const others = allWithMatchRate.filter(f => !f._isUserSelected);
 
+      // V1910: AS列業者もマッチ度でソート
+      userSelected.sort((a, b) => (b._matchRate || 0) - (a._matchRate || 0));
       // othersはマッチ度でソート
       others.sort((a, b) => (b._matchRate || 0) - (a._matchRate || 0));
 
@@ -1077,20 +1079,25 @@ const BusinessSelectionHandler = {
       const limit = showAll ? 8 : 4;
 
       if (sortType === 'user') {
-        // V1909: ユーザー選択ソート時は3段階グループ化
+        // V1910: ユーザー選択ソート時は3段階グループ化
         // 1. チェック済み → 2. チェックなしAS列業者 → 3. それ以外（マッチ度順）
+        // _isUserSelectedはsortFranchisesで設定済み、なければ再判定
         const checkedFranchises = displayFranchises.filter(f =>
           currentCheckedCompanies.includes(f.companyName)
         );
-        const uncheckedUserSelected = displayFranchises.filter(f =>
-          !currentCheckedCompanies.includes(f.companyName) && this.isUserSelected(f.companyName)
-        );
-        const others = displayFranchises.filter(f =>
-          !currentCheckedCompanies.includes(f.companyName) && !this.isUserSelected(f.companyName)
-        ).slice(0, limit);
+        const uncheckedUserSelected = displayFranchises.filter(f => {
+          const isChecked = currentCheckedCompanies.includes(f.companyName);
+          const isUserSel = f._isUserSelected !== undefined ? f._isUserSelected : this.isUserSelected(f.companyName);
+          return !isChecked && isUserSel;
+        });
+        const others = displayFranchises.filter(f => {
+          const isChecked = currentCheckedCompanies.includes(f.companyName);
+          const isUserSel = f._isUserSelected !== undefined ? f._isUserSelected : this.isUserSelected(f.companyName);
+          return !isChecked && !isUserSel;
+        }).slice(0, limit);
 
         displayFranchises = [...checkedFranchises, ...uncheckedUserSelected, ...others];
-        console.log('[V1909-USER] 3段階グループ: ✓', checkedFranchises.length, '→ AS列', uncheckedUserSelected.length, '→ 他', others.length);
+        console.log('[V1910-USER] 3段階グループ: ✓', checkedFranchises.length, '→ AS列', uncheckedUserSelected.length, '→ 他', others.length);
       } else if (currentCheckedCompanies.length > 0) {
         // それ以外のソート: チェック済み → マッチ度/ソート条件順
         const checkedFranchises = displayFranchises.filter(f =>
