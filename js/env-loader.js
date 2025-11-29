@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1970 - ソート選択変更時initializeListView呼び出し）
-  CACHE_BUSTER: 'v1970-sort-fix'
+  CACHE_BUSTER: 'v1764425030-fe06653e'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
