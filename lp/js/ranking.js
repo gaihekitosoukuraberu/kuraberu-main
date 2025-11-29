@@ -834,7 +834,7 @@ function showCompanyDetail(companyRank) {
           id="preview-iframe"
           src="${previewHP}"
           class="w-full h-full border border-gray-200 rounded"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-modals"
           loading="lazy"
         ></iframe>
       </div>

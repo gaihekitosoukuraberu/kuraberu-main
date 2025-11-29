@@ -1434,8 +1434,10 @@
         <footer style="padding: 33px 0 16px; text-align: center; color: #fff; background: linear-gradient(135deg, #3B82F6, #2563EB);">
             <small style="font-size: 12px; display: block; font-weight: 400;">&copy;外壁塗装くらべる All Rights Reserved.</small>
         </footer>
+    </div>
 
-        <!-- キープ確認モーダル（V1714-UX: プロ仕様デザイン） -->
+    <!-- V1923: モーダルを gaiheki-bot-container の外に移動（BOTローダーのinnerHTML上書き対策） -->
+    <!-- キープ確認モーダル（V1714-UX: プロ仕様デザイン） -->
         <div id="keepModal" class="hidden fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all">
                 <!-- ヘッダー（グラデーション） -->
@@ -1746,7 +1748,6 @@
                 </div>
             </div>
         </div>
-    </div>
 
     <!--java script-->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
