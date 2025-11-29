@@ -499,13 +499,13 @@
                 <!-- CRMビュー（初期非表示） -->
                 <div id="crmView" class="hidden">
                     <div class="bg-white rounded-lg border border-gray-200">
-                        <!-- CRMヘッダー -->
-                        <div class="border-b px-6 py-4 bg-gray-50">
+                        <!-- CRMヘッダー V1940: スマホレスポンシブ改善 -->
+                        <div class="border-b px-3 sm:px-6 py-3 sm:py-4 bg-gray-50">
                             <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-1 sm:gap-3">
                                     <!-- ステータスバッジ（クリックで変更モーダル表示） -->
                                     <div class="relative inline-block">
-                                        <button id="crmStatusBadge" onclick="toggleStatusModal()" class="px-5 py-2 rounded-full font-semibold text-base transition-all hover:shadow-lg hover:scale-105 cursor-pointer bg-blue-400 text-white shadow-md">
+                                        <button id="crmStatusBadge" onclick="toggleStatusModal()" class="px-3 py-1.5 sm:px-5 sm:py-2 rounded-full font-semibold text-sm sm:text-base transition-all hover:shadow-lg hover:scale-105 cursor-pointer bg-blue-400 text-white shadow-md">
                                             新規
                                         </button>
                                         <!-- ステータス選択モーダル -->
@@ -547,25 +547,25 @@
                                     </div>
                                     <!-- 架電履歴ボタン -->
                                     <div class="inline-block">
-                                        <button onclick="openCallHistoryModal()" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all text-2xl" title="メモを開く">
+                                        <button onclick="openCallHistoryModal()" class="p-1 sm:p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all text-lg sm:text-2xl" title="メモを開く">
                                             📝
                                         </button>
                                     </div>
                                     <!-- V1939: 電話発信ボタン -->
                                     <div class="inline-block">
-                                        <button onclick="callCurrentCase()" class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-all text-2xl" title="電話をかける">
+                                        <button onclick="callCurrentCase()" class="p-1 sm:p-2 text-green-600 hover:bg-green-50 rounded-lg transition-all text-lg sm:text-2xl" title="電話をかける">
                                             📞
                                         </button>
                                     </div>
                                 </div>
-                                <div class="flex space-x-2">
-                                    <button onclick="previousCase()" class="px-4 py-2 bg-white text-gray-700 rounded-lg border hover:bg-gray-50 transition-all">
-                                        <span class="md:hidden">←</span>
-                                        <span class="hidden md:inline">← 前の案件</span>
+                                <div class="flex space-x-1 sm:space-x-2">
+                                    <button onclick="previousCase()" class="px-2 py-1.5 sm:px-4 sm:py-2 bg-white text-gray-700 rounded-lg border hover:bg-gray-50 transition-all text-sm sm:text-base">
+                                        <span class="sm:hidden">←</span>
+                                        <span class="hidden sm:inline">← 前</span>
                                     </button>
-                                    <button onclick="nextCase()" class="px-4 py-2 bg-white text-gray-700 rounded-lg border hover:bg-gray-50 transition-all">
-                                        <span class="md:hidden">→</span>
-                                        <span class="hidden md:inline">次の案件 →</span>
+                                    <button onclick="nextCase()" class="px-2 py-1.5 sm:px-4 sm:py-2 bg-white text-gray-700 rounded-lg border hover:bg-gray-50 transition-all text-sm sm:text-base">
+                                        <span class="sm:hidden">→</span>
+                                        <span class="hidden sm:inline">次 →</span>
                                     </button>
                                 </div>
                             </div>
