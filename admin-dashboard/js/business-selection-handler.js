@@ -765,13 +765,13 @@ const BusinessSelectionHandler = {
       console.log(`[V1925-DEBUG] ${c.companyName}: shouldCheck=${c.shouldCheck}`);
     });
 
-    // UIを更新（V1924: 希望社数は上書きしない）
-    this.updateUI(businessCards, currentDesiredCount, false);
+    // UIを更新（V1911: スプシの希望社数を使用）
+    this.updateUI(businessCards, desiredCount, false);
 
     console.log('[V1913] ソート順変更:', {
       sortType: this.currentSortType,
       cardsCount: businessCards.length,
-      desiredCount: currentDesiredCount
+      desiredCount: desiredCount
     });
   },
 
