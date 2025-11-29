@@ -465,6 +465,9 @@
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             紹介料
                                         </th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            次回/ラベル
+                                        </th>
                                         <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             詳細
                                         </th>
@@ -513,12 +516,16 @@
                         <!-- CRMヘッダー V1940: スマホレスポンシブ改善 -->
                         <div class="border-b px-3 sm:px-6 py-3 sm:py-4 bg-gray-50">
                             <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-1 sm:gap-3">
+                                <div class="flex items-center gap-1 sm:gap-3 flex-wrap">
                                     <!-- ステータスバッジ（クリックで変更モーダル表示） -->
                                     <div class="relative inline-block">
                                         <button id="crmStatusBadge" onclick="toggleStatusModal()" class="px-3 py-1.5 sm:px-5 sm:py-2 rounded-full font-semibold text-sm sm:text-base transition-all hover:shadow-lg hover:scale-105 cursor-pointer bg-blue-400 text-white shadow-md">
                                             新規
                                         </button>
+                                    </div>
+                                    <!-- V1965: ラベル表示 -->
+                                    <div id="crmLabelBadge" class="hidden">
+                                        <span class="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs sm:text-sm font-medium">🏷️ <span id="crmLabelText"></span></span>
                                     </div>
                                     <!-- 架電履歴ボタン -->
                                     <div class="inline-block">
@@ -5821,6 +5828,10 @@ window.addEventListener('beforeunload', function(e) {
                     <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-emerald-600">
                         ${caseData.amount || '¥0'}
                     </td>
+                    <td class="px-3 py-4 whitespace-nowrap text-xs">
+                        ${caseData.nextCallDate ? `<span class="text-blue-600">📅 ${formatNextCallDate(caseData.nextCallDate)}</span>` : '<span class="text-gray-400">-</span>'}
+                        ${caseData.label ? `<div class="mt-1"><span class="inline-block px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs">🏷️ ${caseData.label}</span></div>` : ''}
+                    </td>
                     <td class="px-3 py-4 whitespace-nowrap text-center">
                         <button onclick="event.stopPropagation(); openCRM('${caseId}')" class="text-blue-600 hover:text-blue-800">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -5856,16 +5867,22 @@ window.addEventListener('beforeunload', function(e) {
                                     <span class="text-xs text-gray-400 font-mono">${caseId}</span>
                                     ${getCallCountDisplay(caseData)}
                                 </div>
-                                <div class="text-sm text-gray-600 mt-1">📍 ${caseData.postalCode}</div>
-                                <div class="text-xs text-gray-500 mt-1">${caseData.address || '住所未設定'}</div>
+                                <div class="relative">
+                                    <div class="text-sm text-gray-600 mt-1 cursor-pointer" onclick="event.stopPropagation(); toggleMobileAddressTooltip('${caseId}')">📍 ${caseData.postalCode || ''}</div>
+                                    <div id="mobile-tooltip-${caseId}" class="hidden absolute left-0 top-full mt-1 z-50 bg-gray-900 text-white text-xs rounded-lg py-2 px-3 max-w-xs">
+                                        ${caseData.address || '住所未設定'}
+                                    </div>
+                                </div>
                             </div>
                             <div class="text-right">
                                 <div class="text-sm font-semibold text-emerald-600">${caseData.amount || '¥0'}</div>
                                 <div class="text-xs text-gray-500 mt-1">
                                     ${getPropertyIcon(caseData.propertyType)} ${getFloorDisplay(caseData.propertyType, caseData.floors)}
                                 </div>
+                                ${caseData.nextCallDate ? `<div class="text-xs text-blue-600 mt-1">📅 ${formatNextCallDate(caseData.nextCallDate)}</div>` : ''}
                             </div>
                         </div>
+                        ${caseData.label ? `<div class="px-2 py-1 mb-2"><span class="inline-block px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs">🏷️ ${caseData.label}</span></div>` : ''}
                         <div class="pt-3 border-t border-gray-200">
                             <div class="flex justify-between items-center">
                                 <div class="flex space-x-2">
@@ -6781,6 +6798,20 @@ window.addEventListener('beforeunload', function(e) {
             badge.textContent = status;
         }
 
+        // V1965: ラベルバッジの表示を更新
+        function updateCRMLabelBadge(label) {
+            const badge = document.getElementById('crmLabelBadge');
+            const text = document.getElementById('crmLabelText');
+            if (!badge || !text) return;
+
+            if (label && label.trim()) {
+                text.textContent = label;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
         // モーダル外クリックで閉じる
         document.addEventListener('click', function(event) {
             const modal = document.getElementById('statusModal');
@@ -6821,6 +6852,22 @@ window.addEventListener('beforeunload', function(e) {
                 callTotal: callRecords.length,
                 memoTotal: memoRecords.length
             };
+        }
+
+        // V1965: 次回架電日時をフォーマット（コンパクト表示）
+        function formatNextCallDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const date = new Date(dateStr);
+                if (isNaN(date.getTime())) return dateStr;
+                const month = date.getMonth() + 1;
+                const day = date.getDate();
+                const hour = date.getHours();
+                const minute = String(date.getMinutes()).padStart(2, '0');
+                return `${month}/${day} ${hour}:${minute}`;
+            } catch {
+                return dateStr;
+            }
         }
 
         // V1943: スタイリッシュな履歴表示（📞 今日1/計3 | 📝 5）
@@ -7638,9 +7685,23 @@ window.addEventListener('beforeunload', function(e) {
         }
         
         // 住所を表示（ツールチップまたはアラート）
-        // 住所ツールチップのトグル（スマホ用）
+        // 住所ツールチップのトグル（PC用）
         function toggleAddressTooltip(caseId) {
             const tooltip = document.getElementById(`tooltip-${caseId}`);
+            if (tooltip) {
+                tooltip.classList.toggle('hidden');
+                // 3秒後に自動で閉じる
+                if (!tooltip.classList.contains('hidden')) {
+                    setTimeout(() => {
+                        tooltip.classList.add('hidden');
+                    }, 3000);
+                }
+            }
+        }
+
+        // V1965: 住所ツールチップのトグル（モバイル用）
+        function toggleMobileAddressTooltip(caseId) {
+            const tooltip = document.getElementById(`mobile-tooltip-${caseId}`);
             if (tooltip) {
                 tooltip.classList.toggle('hidden');
                 // 3秒後に自動で閉じる
@@ -7781,16 +7842,26 @@ window.addEventListener('beforeunload', function(e) {
                 // 選択されている時のみボタンを表示（2タップ操作：1タップ目で選択→2タップ目でボタン押下）
                 const buttonVisibilityClass = isSelected ? 'opacity-100' : 'opacity-0';
 
+                // V1965: このエントリがラベルとして設定されているかチェック
+                const isLabel = casesData[currentCaseId]?.label === item.note;
+
                 return `
-                    <div class="border-l-4 ${isEditable ? 'border-blue-500' : 'border-gray-400'} pl-4 py-2 group hover:bg-gray-50 rounded-r transition-all ${isSelected ? 'bg-blue-50' : ''}" data-history-index="${index}" onclick="toggleHistorySelection(${index}, event)">
+                    <div class="border-l-4 ${isEditable ? 'border-blue-500' : 'border-gray-400'} pl-4 py-2 group hover:bg-gray-50 rounded-r transition-all ${isSelected ? 'bg-blue-50' : ''} ${isLabel ? 'bg-yellow-50' : ''}" data-history-index="${index}" onclick="toggleHistorySelection(${index}, event)">
                         <div class="flex justify-between items-start gap-3">
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm text-gray-600">${item.timestamp}</p>
+                                <p class="text-sm text-gray-600">${item.timestamp} ${isLabel ? '<span class="ml-1 px-1.5 py-0.5 bg-yellow-200 text-yellow-800 rounded text-xs">🏷️ラベル</span>' : ''}</p>
                                 <p class="mt-1 break-words">${item.note}</p>
                                 ${item.nextCallDate ? `<p class="text-sm text-blue-600 mt-1">次回架電: ${item.nextCallDate}</p>` : ''}
                             </div>
                             ${isEditable ? `
                                 <div class="flex gap-1.5 ${buttonVisibilityClass} transition-opacity duration-200 flex-shrink-0">
+                                    <button
+                                        onclick="setAsLabel(${index}, '${item.note.replace(/'/g, "\\'")}'); event.stopPropagation();"
+                                        class="${isLabel ? 'text-yellow-600 bg-yellow-100' : 'text-yellow-600 hover:text-white hover:bg-yellow-500'} text-xs px-2.5 py-1.5 rounded-md transition-all font-medium"
+                                        title="${isLabel ? 'ラベル解除' : 'ラベル設定'}"
+                                    >
+                                        ${isLabel ? '解除' : 'ラベル'}
+                                    </button>
                                     <button
                                         onclick="editCallHistoryEntry(${index}); event.stopPropagation();"
                                         class="text-blue-600 hover:text-white hover:bg-blue-600 text-xs px-2.5 py-1.5 rounded-md transition-all font-medium"
@@ -7942,6 +8013,43 @@ window.addEventListener('beforeunload', function(e) {
             } catch (error) {
                 console.error('[CallHistory] 保存エラー:', error);
                 alert('履歴の保存中にエラーが発生しました: ' + error.message);
+            }
+        }
+
+        // V1965: ラベルを設定/解除
+        async function setAsLabel(index, noteText) {
+            const currentLabel = casesData[currentCaseId]?.label;
+
+            // 既にラベルなら解除、そうでなければ設定
+            const newLabel = (currentLabel === noteText) ? '' : noteText;
+
+            // ローカルデータを更新
+            if (!casesData[currentCaseId]) casesData[currentCaseId] = {};
+            casesData[currentCaseId].label = newLabel;
+
+            // UIを更新
+            loadCallHistory();
+
+            // GASに保存
+            try {
+                const result = await window.apiClient.postRequest('updateCVData', {
+                    cvId: currentCaseId,
+                    data: { label: newLabel }
+                });
+
+                if (result.success) {
+                    console.log('[setAsLabel] ラベル保存成功:', newLabel || '(解除)');
+                    // リスト表示も更新
+                    if (currentView === 'list') {
+                        loadCVList();
+                    }
+                } else {
+                    console.error('[setAsLabel] 保存失敗:', result.error);
+                    alert('ラベルの保存に失敗しました');
+                }
+            } catch (error) {
+                console.error('[setAsLabel] 保存エラー:', error);
+                alert('ラベルの保存中にエラーが発生しました');
             }
         }
 
@@ -8316,6 +8424,9 @@ window.addEventListener('beforeunload', function(e) {
 
             // ステータスバッジを更新
             updateCRMStatusBadge(caseData.status);
+
+            // V1965: ラベル表示を更新
+            updateCRMLabelBadge(caseData.label);
 
             // CRMビューのメモプレビューを更新
             const crmMemoPreview = document.getElementById('crmMemoPreview');
