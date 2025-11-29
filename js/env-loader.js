@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1937 - workItemsボタンCSS競合修正）
-  CACHE_BUSTER: 'v1764404200-v1937'
+  CACHE_BUSTER: 'v1764404826-fe10fa6d'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
