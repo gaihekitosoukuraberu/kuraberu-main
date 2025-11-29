@@ -557,6 +557,12 @@
                                             📞
                                         </button>
                                     </div>
+                                    <!-- V1944: デバッグ用テストボタン（電話せずに履歴追加テスト）-->
+                                    <div class="inline-block">
+                                        <button onclick="testCallRecord()" class="p-1 sm:p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-all text-xs" title="架電履歴テスト（電話なし）">
+                                            🧪
+                                        </button>
+                                    </div>
                                     <!-- V1941: 不在ボタン -->
                                     <div class="inline-block">
                                         <button onclick="markAbsentAndNext()" class="px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all" title="不在にして次へ">
@@ -6675,9 +6681,12 @@ window.addEventListener('beforeunload', function(e) {
             nextCase();
         }
 
-        // V1941: 架電履歴を自動追加（電話ボタン押下時）
+        // V1944: 架電履歴を自動追加（電話ボタン押下時）- await可能
         async function addAutoCallRecord() {
-            if (!currentCaseId || !casesData[currentCaseId]) return;
+            if (!currentCaseId || !casesData[currentCaseId]) {
+                console.warn('[addAutoCallRecord] 案件が選択されていません');
+                return false;
+            }
 
             if (!casesData[currentCaseId].callHistory) {
                 casesData[currentCaseId].callHistory = [];
@@ -6692,31 +6701,38 @@ window.addEventListener('beforeunload', function(e) {
                 nextCallDate: ''
             });
 
-            console.log('[addAutoCallRecord] 架電履歴を自動追加:', currentCaseId);
+            console.log('[addAutoCallRecord] 架電履歴を自動追加:', currentCaseId, casesData[currentCaseId].callHistory);
 
-            // バックグラウンドでGASに保存（待たない）
+            // GASに保存（完了を待つ）
             const callHistoryFormatted = casesData[currentCaseId].callHistory.map(item => ({
                 date: item.date || item.timestamp || '',
                 note: item.note || '',
                 nextCallDate: item.nextCallDate || ''
             }));
 
-            window.apiClient.postRequest('updateCVData', {
-                cvId: currentCaseId,
-                data: { callHistory: JSON.stringify(callHistoryFormatted) }
-            }).then(result => {
+            console.log('[addAutoCallRecord] 保存するデータ:', JSON.stringify(callHistoryFormatted));
+
+            try {
+                const result = await window.apiClient.postRequest('updateCVData', {
+                    cvId: currentCaseId,
+                    data: { callHistory: JSON.stringify(callHistoryFormatted) }
+                });
+
                 if (result.success) {
-                    console.log('[addAutoCallRecord] GAS保存成功');
+                    console.log('[addAutoCallRecord] GAS保存成功:', result);
+                    return true;
                 } else {
                     console.error('[addAutoCallRecord] GAS保存失敗:', result.error);
+                    return false;
                 }
-            }).catch(err => {
+            } catch (err) {
                 console.error('[addAutoCallRecord] GAS保存エラー:', err);
-            });
+                return false;
+            }
         }
 
-        // V1943: CRM画面から電話をかける（架電中はCRM編集可能、復帰時にモーダル）
-        function callCurrentCase() {
+        // V1944: CRM画面から電話をかける（保存完了を待ってから発信）
+        async function callCurrentCase() {
             if (!currentCaseId || !casesData[currentCaseId]) {
                 console.warn('[callCurrentCase] 案件が選択されていません');
                 return;
@@ -6727,8 +6743,10 @@ window.addEventListener('beforeunload', function(e) {
                 return;
             }
 
-            // 1. 架電履歴を自動追加（バックグラウンドでGAS保存）
-            addAutoCallRecord();
+            // 1. 架電履歴を自動追加（GAS保存完了を待つ）
+            console.log('[callCurrentCase] 架電履歴保存開始...');
+            await addAutoCallRecord();
+            console.log('[callCurrentCase] 架電履歴保存完了');
 
             // 2. フラグセット（ブラウザ復帰時にモーダル表示）
             afterCallFlow = true;
@@ -6738,6 +6756,17 @@ window.addEventListener('beforeunload', function(e) {
 
             // 4. CRMモーダルはそのまま開いておく（架電中に編集可能）
             console.log('[callCurrentCase] 架電開始。CRMは編集可能。復帰時にステータス/メモモーダル表示');
+        }
+
+        // V1944: テスト用 - 電話せずに架電記録をテスト
+        async function testCallRecord() {
+            if (!currentCaseId || !casesData[currentCaseId]) {
+                alert('CRMで案件を開いてからテストしてください');
+                return;
+            }
+            console.log('[testCallRecord] テスト開始:', currentCaseId);
+            await addAutoCallRecord();
+            alert('架電履歴を追加しました。リロードして確認してください。');
         }
 
         // V1943: ブラウザ復帰時のモーダル表示（通話終了後）
