@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1974 - 日付範囲+時間帯フィルタ）
-  CACHE_BUSTER: 'v1764429365-fe84dac7'
+  // キャッシュバスター（V1975 - 期間フィルタモーダル化）
+  CACHE_BUSTER: 'v1975-datefilter-modal'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

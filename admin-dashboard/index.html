@@ -388,30 +388,15 @@
                                 </div>
                             </div>
 
-                            <!-- ソートボタンとオプション -->
+                            <!-- V1975: ソートボタンとオプション（スマホ対応） -->
                             <div class="flex items-center gap-2 w-full">
-                                <button onclick="openSortModal()" class="px-4 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all hover:scale-105 transform whitespace-nowrap">
+                                <button onclick="openSortModal()" class="px-3 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all whitespace-nowrap">
                                     絞込
                                 </button>
-                                <!-- V1974: 日付範囲フィルタ -->
-                                <select id="dateFilterType" class="px-2 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 transition-all">
-                                    <option value="none">期間</option>
-                                    <option value="call">架電日</option>
-                                    <option value="reg">流入日</option>
-                                </select>
-                                <input type="date" id="dateFilterFrom" class="px-2 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 w-28" disabled>
-                                <span class="text-gray-400 text-xs">〜</span>
-                                <input type="date" id="dateFilterTo" class="px-2 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 w-28" disabled>
-                                <!-- V1974: 時間帯フィルタ -->
-                                <select id="timeFilter" class="px-2 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 transition-all" disabled>
-                                    <option value="all">時間帯</option>
-                                    <option value="9">9時</option>
-                                    <option value="12">12時</option>
-                                    <option value="17">17時</option>
-                                    <option value="19">19時</option>
-                                    <option value="sat">土曜</option>
-                                    <option value="sun">日曜</option>
-                                </select>
+                                <!-- V1975: 期間フィルタボタン（タップでモーダル） -->
+                                <button id="dateFilterBtn" onclick="openDateFilterModal()" class="px-3 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all whitespace-nowrap">
+                                    <span id="dateFilterLabel">期間</span>
+                                </button>
                                 <select id="sortSelect" class="flex-1 px-3 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 transition-all">
                                     <option value="date-desc">新着順</option>
                                     <option value="amount-desc">紹介料順</option>
@@ -1820,6 +1805,62 @@ window.addEventListener('beforeunload', function(e) {
                         適用して閉じる
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- V1975: 期間フィルタモーダル -->
+    <div id="dateFilterModal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-black/50" onclick="closeDateFilterModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-xl p-5 w-full max-w-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">期間フィルタ</h3>
+                    <button onclick="closeDateFilterModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- フィルタ種別 -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">対象</label>
+                    <div class="flex gap-2">
+                        <button id="dateTypeNone" onclick="setDateFilterType('none')" class="flex-1 py-2 px-3 rounded-lg border-2 border-gray-300 bg-gray-100 text-gray-800 font-medium text-sm">なし</button>
+                        <button id="dateTypeCall" onclick="setDateFilterType('call')" class="flex-1 py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm">架電日</button>
+                        <button id="dateTypeReg" onclick="setDateFilterType('reg')" class="flex-1 py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm">流入日</button>
+                    </div>
+                </div>
+
+                <!-- 日付範囲 -->
+                <div id="dateRangeSection" class="mb-4 hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">日付範囲</label>
+                    <div class="flex items-center gap-2">
+                        <input type="date" id="modalDateFrom" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        <span class="text-gray-400">〜</span>
+                        <input type="date" id="modalDateTo" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    </div>
+                </div>
+
+                <!-- 時間帯（架電日のみ） -->
+                <div id="timeFilterSection" class="mb-4 hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">時間帯</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="setTimeFilter('all')" class="time-filter-btn py-2 px-3 rounded-lg border-2 border-gray-300 bg-gray-100 text-gray-800 font-medium text-sm" data-value="all">全て</button>
+                        <button onclick="setTimeFilter('9')" class="time-filter-btn py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm" data-value="9">9時</button>
+                        <button onclick="setTimeFilter('12')" class="time-filter-btn py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm" data-value="12">12時</button>
+                        <button onclick="setTimeFilter('17')" class="time-filter-btn py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm" data-value="17">17時</button>
+                        <button onclick="setTimeFilter('19')" class="time-filter-btn py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm" data-value="19">19時</button>
+                        <button onclick="setTimeFilter('sat')" class="time-filter-btn py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm" data-value="sat">土曜</button>
+                        <button onclick="setTimeFilter('sun')" class="time-filter-btn py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm" data-value="sun">日曜</button>
+                    </div>
+                </div>
+
+                <!-- 適用ボタン -->
+                <button onclick="applyDateFilter()" class="w-full py-2.5 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-all">
+                    適用
+                </button>
             </div>
         </div>
     </div>
@@ -4969,51 +5010,108 @@ window.addEventListener('beforeunload', function(e) {
                 });
             }
 
-            // V1974: 日付範囲フィルタ
-            const dateFilterTypeSelect = document.getElementById('dateFilterType');
-            const dateFilterFromInput = document.getElementById('dateFilterFrom');
-            const dateFilterToInput = document.getElementById('dateFilterTo');
-            const timeFilterSelect = document.getElementById('timeFilter');
+        }
 
-            if (dateFilterTypeSelect) {
-                dateFilterTypeSelect.addEventListener('change', function() {
-                    dateFilterType = this.value;
-                    const isEnabled = this.value !== 'none';
-                    dateFilterFromInput.disabled = !isEnabled;
-                    dateFilterToInput.disabled = !isEnabled;
-                    // 時間帯は架電日の時のみ有効
-                    timeFilterSelect.disabled = this.value !== 'call';
-                    if (this.value !== 'call') {
-                        timeFilterSelect.value = 'all';
-                        timeFilter = 'all';
+        // V1975: 期間フィルタモーダル関数
+        function openDateFilterModal() {
+            // モーダルの状態を現在のフィルタ値で初期化
+            updateDateFilterTypeButtons();
+            document.getElementById('modalDateFrom').value = dateFilterFrom || '';
+            document.getElementById('modalDateTo').value = dateFilterTo || '';
+            updateTimeFilterButtons();
+
+            // セクション表示/非表示
+            const isEnabled = dateFilterType !== 'none';
+            document.getElementById('dateRangeSection').classList.toggle('hidden', !isEnabled);
+            document.getElementById('timeFilterSection').classList.toggle('hidden', dateFilterType !== 'call');
+
+            document.getElementById('dateFilterModal').classList.remove('hidden');
+        }
+
+        function closeDateFilterModal() {
+            document.getElementById('dateFilterModal').classList.add('hidden');
+        }
+
+        function setDateFilterType(type) {
+            dateFilterType = type;
+            updateDateFilterTypeButtons();
+
+            // セクション表示/非表示
+            const isEnabled = type !== 'none';
+            document.getElementById('dateRangeSection').classList.toggle('hidden', !isEnabled);
+            document.getElementById('timeFilterSection').classList.toggle('hidden', type !== 'call');
+
+            // 架電日以外の時は時間帯リセット
+            if (type !== 'call') {
+                timeFilter = 'all';
+                updateTimeFilterButtons();
+            }
+        }
+
+        function updateDateFilterTypeButtons() {
+            const types = ['none', 'call', 'reg'];
+            types.forEach(t => {
+                const btn = document.getElementById('dateType' + t.charAt(0).toUpperCase() + t.slice(1));
+                if (btn) {
+                    if (t === dateFilterType) {
+                        btn.className = 'flex-1 py-2 px-3 rounded-lg border-2 border-blue-500 bg-blue-100 text-blue-800 font-medium text-sm';
+                    } else {
+                        btn.className = 'flex-1 py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm';
                     }
-                    currentPage = 1;
-                    initializeListView();
-                });
-            }
+                }
+            });
+        }
 
-            if (dateFilterFromInput) {
-                dateFilterFromInput.addEventListener('change', function() {
-                    dateFilterFrom = this.value || null;
-                    currentPage = 1;
-                    initializeListView();
-                });
-            }
+        function setTimeFilter(value) {
+            timeFilter = value;
+            updateTimeFilterButtons();
+        }
 
-            if (dateFilterToInput) {
-                dateFilterToInput.addEventListener('change', function() {
-                    dateFilterTo = this.value || null;
-                    currentPage = 1;
-                    initializeListView();
-                });
-            }
+        function updateTimeFilterButtons() {
+            document.querySelectorAll('.time-filter-btn').forEach(btn => {
+                const val = btn.dataset.value;
+                if (val === timeFilter) {
+                    btn.className = 'time-filter-btn py-2 px-3 rounded-lg border-2 border-blue-500 bg-blue-100 text-blue-800 font-medium text-sm';
+                } else {
+                    btn.className = 'time-filter-btn py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm';
+                }
+            });
+        }
 
-            if (timeFilterSelect) {
-                timeFilterSelect.addEventListener('change', function() {
-                    timeFilter = this.value;
-                    currentPage = 1;
-                    initializeListView();
-                });
+        function applyDateFilter() {
+            // 日付値を取得
+            dateFilterFrom = document.getElementById('modalDateFrom').value || null;
+            dateFilterTo = document.getElementById('modalDateTo').value || null;
+
+            // ボタンラベルを更新
+            updateDateFilterLabel();
+
+            // モーダルを閉じる
+            closeDateFilterModal();
+
+            // リスト更新
+            currentPage = 1;
+            initializeListView();
+        }
+
+        function updateDateFilterLabel() {
+            const label = document.getElementById('dateFilterLabel');
+            if (dateFilterType === 'none') {
+                label.textContent = '期間';
+                document.getElementById('dateFilterBtn').className = 'px-3 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all whitespace-nowrap';
+            } else {
+                const typeName = dateFilterType === 'call' ? '架電' : '流入';
+                let dateRange = '';
+                if (dateFilterFrom && dateFilterTo) {
+                    dateRange = `${dateFilterFrom.slice(5)}〜${dateFilterTo.slice(5)}`;
+                } else if (dateFilterFrom) {
+                    dateRange = `${dateFilterFrom.slice(5)}〜`;
+                } else if (dateFilterTo) {
+                    dateRange = `〜${dateFilterTo.slice(5)}`;
+                }
+                const timeLabel = timeFilter !== 'all' && dateFilterType === 'call' ? ` ${timeFilter === 'sat' ? '土' : timeFilter === 'sun' ? '日' : timeFilter + '時'}` : '';
+                label.textContent = `${typeName}${dateRange ? ':' + dateRange : ''}${timeLabel}`;
+                document.getElementById('dateFilterBtn').className = 'px-3 py-2.5 bg-blue-500 text-white border border-blue-500 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all whitespace-nowrap';
             }
         }
         
