@@ -8169,39 +8169,43 @@ window.addEventListener('beforeunload', function(e) {
         // 古いsaveAllData関数は削除（4878行目の非同期版を使用）
 
         // 物件タイプのアイコンを取得
+        // V1966: 物件種別アイコン（リデザイン）
         function getPropertyIcon(propertyType) {
-            const icons = {
-                '戸建て': '🏠',
-                'アパート': '🏢',
-                'マンション': '🏢',
-                '店舗': '🏪',
-                '事務所': '🏪',
-                '工場': '🏭',
-                '倉庫': '🏭'
-            };
-            return icons[propertyType] || '🏠';
+            if (!propertyType) return '❓';
+            const pt = propertyType.toLowerCase();
+
+            // 戸建て
+            if (pt.includes('戸建') || pt.includes('自宅') || pt.includes('2階建て')) return '🏠';
+            // アパート・マンション
+            if (pt.includes('アパート') || pt.includes('マンション')) return '🏢';
+            // 実家・別荘・所有物件
+            if (pt.includes('実家') || pt.includes('別荘') || pt.includes('所有物件')) return '🏡';
+            // 店舗・事務所
+            if (pt.includes('店舗') || pt.includes('事務所')) return '🏪';
+            // 工場・倉庫
+            if (pt.includes('工場') || pt.includes('倉庫')) return '🏭';
+            // その他
+            return '❓';
         }
-        
-        // 階数表示を取得
+
+        // V1966: 階数表示を取得（1F〜10F+対応）
         function getFloorDisplay(propertyType, floors) {
             if (!floors) return '';
-            
-            // アパート・マンションの場合
-            if (propertyType === 'アパート' || propertyType === 'マンション') {
-                if (floors === '10階建て以上') return '10F〜';
-                const match = floors.match(/(\d+)/);
-                if (match) return `${match[1]}F`;
-                return floors;
-            }
-            
-            // その他の物件タイプ
+
+            // 「10階建て以上」「10階以上」など
+            if (floors.includes('10') && (floors.includes('以上') || floors.includes('〜'))) return '10F+';
+            // 「4階以上」
+            if (floors.includes('4') && floors.includes('以上')) return '4F+';
+
+            // 数字を抽出（1〜10）
             const match = floors.match(/(\d+)/);
             if (match) {
                 const num = parseInt(match[1]);
-                if (num >= 4) return '4F〜';
-                return `${num}F`;
+                if (num >= 1 && num <= 10) return `${num}F`;
+                if (num > 10) return '10F+';
             }
-            return floors;
+
+            return '';
         }
 
         // ビュー切り替え
