@@ -388,16 +388,15 @@
                                 </div>
                             </div>
 
-                            <!-- V1975: ソートボタンとオプション（スマホ対応） -->
+                            <!-- V1976: ソートボタンとオプション（3等分） -->
                             <div class="flex items-center gap-2 w-full">
-                                <button onclick="openSortModal()" class="px-3 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all whitespace-nowrap">
+                                <button onclick="openSortModal()" class="flex-1 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center">
                                     絞込
                                 </button>
-                                <!-- V1975: 期間フィルタボタン（タップでモーダル） -->
-                                <button id="dateFilterBtn" onclick="openDateFilterModal()" class="px-3 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all whitespace-nowrap">
+                                <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex-1 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center truncate">
                                     <span id="dateFilterLabel">期間</span>
                                 </button>
-                                <select id="sortSelect" class="flex-1 px-3 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 transition-all">
+                                <select id="sortSelect" class="flex-1 py-2.5 border border-gray-300 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 transition-all text-center">
                                     <option value="date-desc">新着順</option>
                                     <option value="amount-desc">紹介料順</option>
                                     <option value="nextcall-asc">次回架電順</option>
@@ -5041,6 +5040,13 @@ window.addEventListener('beforeunload', function(e) {
             document.getElementById('dateRangeSection').classList.toggle('hidden', !isEnabled);
             document.getElementById('timeFilterSection').classList.toggle('hidden', type !== 'call');
 
+            // V1976: 架電日選択時は今日〜今日をデフォルト
+            if (type === 'call') {
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('modalDateFrom').value = today;
+                document.getElementById('modalDateTo').value = today;
+            }
+
             // 架電日以外の時は時間帯リセット
             if (type !== 'call') {
                 timeFilter = 'all';
@@ -5096,14 +5102,20 @@ window.addEventListener('beforeunload', function(e) {
 
         function updateDateFilterLabel() {
             const label = document.getElementById('dateFilterLabel');
+            const btn = document.getElementById('dateFilterBtn');
             if (dateFilterType === 'none') {
                 label.textContent = '期間';
-                document.getElementById('dateFilterBtn').className = 'px-3 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all whitespace-nowrap';
+                btn.className = 'flex-1 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center truncate';
             } else {
                 const typeName = dateFilterType === 'call' ? '架電' : '流入';
                 let dateRange = '';
                 if (dateFilterFrom && dateFilterTo) {
-                    dateRange = `${dateFilterFrom.slice(5)}〜${dateFilterTo.slice(5)}`;
+                    // 同じ日付なら1つだけ表示
+                    if (dateFilterFrom === dateFilterTo) {
+                        dateRange = dateFilterFrom.slice(5);
+                    } else {
+                        dateRange = `${dateFilterFrom.slice(5)}〜${dateFilterTo.slice(5)}`;
+                    }
                 } else if (dateFilterFrom) {
                     dateRange = `${dateFilterFrom.slice(5)}〜`;
                 } else if (dateFilterTo) {
@@ -5111,7 +5123,7 @@ window.addEventListener('beforeunload', function(e) {
                 }
                 const timeLabel = timeFilter !== 'all' && dateFilterType === 'call' ? ` ${timeFilter === 'sat' ? '土' : timeFilter === 'sun' ? '日' : timeFilter + '時'}` : '';
                 label.textContent = `${typeName}${dateRange ? ':' + dateRange : ''}${timeLabel}`;
-                document.getElementById('dateFilterBtn').className = 'px-3 py-2.5 bg-blue-500 text-white border border-blue-500 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all whitespace-nowrap';
+                btn.className = 'flex-1 py-2.5 bg-blue-500 text-white border border-blue-500 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center truncate';
             }
         }
         
