@@ -375,15 +375,7 @@
                     </div>
                 </div>
 
-                <!-- 見積もりボタン（固定位置） -->
-                <div id="estimateBtnContainer" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); padding: 16px; z-index: 9999;">
-                    <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
-                        <button onclick="showKeepModal();" style="background: #FB923C; color: white; font-weight: bold; padding: 16px 80px; border-radius: 9999px; font-size: 18px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(251,146,60,0.4); position: relative;">
-                            無料見積もり
-                            <span class="notification-badge" style="position: absolute; top: -12px; right: -12px; background: #EF4444; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold;">0</span>
-                        </button>
-                    </div>
-                </div>
+                <!-- V1925: estimateBtnContainer は index.html の body 直下に移動（BOT innerHTML上書き対策） -->
 
                 <!-- フッター -->
                 <footer style="padding: 33px 0 16px; text-align: center; color: #fff; background: linear-gradient(135deg, #3B82F6, #2563EB); margin-top: 40px;">

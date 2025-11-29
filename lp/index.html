@@ -2087,6 +2087,32 @@
 
         // V1669: 古いKeepManagerクラスを削除（ranking.jsのkeepManagerを使用）
 
+        // V1925: スクロールロック管理（シンプル化）
+        let isScrollLocked = false;
+        let savedScrollPosition = 0;
+
+        function lockScroll() {
+            if (isScrollLocked) return;
+            savedScrollPosition = window.scrollY || window.pageYOffset;
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${savedScrollPosition}px`;
+            document.body.style.width = '100%';
+            isScrollLocked = true;
+            console.log('🔒 スクロールロック:', savedScrollPosition);
+        }
+
+        function unlockScroll() {
+            if (!isScrollLocked) return;
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.width = '';
+            window.scrollTo(0, savedScrollPosition);
+            isScrollLocked = false;
+            console.log('🔓 スクロールアンロック:', savedScrollPosition);
+        }
+
         // モーダル表示
         function showKeepModal() {
             const modal = document.getElementById('keepModal');
@@ -2118,112 +2144,41 @@
                 </div>
             `).join('');
 
-            // モーダル表示（背景スクロール防止）
+            // モーダル表示
             modal.classList.remove('hidden');
 
-            // V1713-UX: 無料見積もりボタンを非表示（フォームが邪魔にならないように）
+            // 無料見積もりボタンを非表示
             const estimateBtnContainer = document.getElementById('estimateBtnContainer');
             if (estimateBtnContainer) {
                 estimateBtnContainer.style.display = 'none';
-                console.log('✅ 無料見積もりボタン非表示（モーダル表示）');
             }
 
-            // V1713-FIX: 背景スクロール完全防止（スクロール位置固定方式）
-            const scrollY = window.scrollY || window.pageYOffset;
-            window.modalScrollPosition = scrollY;
-
-            // モーダルを固定位置に表示
-            modal.style.position = 'fixed';
-            modal.style.top = '0';
-            modal.style.left = '0';
-            modal.style.right = '0';
-            modal.style.bottom = '0';
-            modal.style.height = '';
-
-            // bodyを固定してスクロール防止
-            document.body.style.position = 'fixed';
-            document.body.style.top = `-${scrollY}px`;
-            document.body.style.width = '100%';
-            document.body.style.overflow = 'hidden';
-            document.body.style.touchAction = 'none';
-
-            // gaiheki-bot-containerも固定
-            const botContainer = document.getElementById('gaiheki-bot-container');
-            if (botContainer) {
-                botContainer.style.position = 'fixed';
-                botContainer.style.top = '0';
-                botContainer.style.left = '0';
-                botContainer.style.right = '0';
-                botContainer.style.bottom = '0';
-                botContainer.style.overflow = 'hidden';
-            }
-
-            // モーダル背景のタッチムーブイベントを防止
-            modal.addEventListener('touchmove', function(e) {
-                if (e.target === modal) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
+            // V1925: スクロールロック（シンプル版）
+            lockScroll();
         }
 
-        // モーダルを閉じる
-        function closeKeepModal(skipButtonRestore = false) {
+        // モーダルを閉じる（V1925: シンプル化）
+        function closeKeepModal(goToEstimateForm = false) {
             const modal = document.getElementById('keepModal');
+            if (!modal) return;
+
             modal.classList.add('hidden');
 
-            // モーダルのスタイルをリセット
-            modal.style.position = '';
-            modal.style.top = '';
-            modal.style.left = '';
-            modal.style.right = '';
-            modal.style.bottom = '';
-            modal.style.height = '';
-
-            // V1713-FIX: 背景スクロールを復元（skipButtonRestore時はスキップ）
-            if (!skipButtonRestore) {
-                // bodyの固定を解除
-                document.body.style.position = '';
-                document.body.style.top = '';
-                document.body.style.width = '';
-                document.body.style.overflow = '';
-                document.body.style.touchAction = '';
-
-                // スクロール位置を復元
-                if (window.modalScrollPosition !== undefined) {
-                    window.scrollTo(0, window.modalScrollPosition);
-                    delete window.modalScrollPosition;
-                }
-
-                // gaiheki-bot-containerも復元
-                const botContainer = document.getElementById('gaiheki-bot-container');
-                if (botContainer) {
-                    botContainer.style.position = '';
-                    botContainer.style.top = '';
-                    botContainer.style.left = '';
-                    botContainer.style.right = '';
-                    botContainer.style.bottom = '';
-                    botContainer.style.overflow = '';
-                }
-            }
-
-            // V1713-UX: キープリストがあれば無料見積もりボタンを再表示
-            // skipButtonRestore=trueの場合は再表示しない（見積もりフォームを開く場合など）
-            if (skipButtonRestore) {
-                console.log('⚠️ ボタン再表示をスキップ（skipButtonRestore=true）');
+            // 見積もりフォームに進む場合はスクロールロックを維持
+            if (goToEstimateForm) {
+                console.log('📝 見積もりフォームへ遷移（スクロールロック維持）');
                 return;
             }
 
-            // ただし、見積もりフォームが開いている場合は再表示しない
-            const estimateFormModal = document.getElementById('estimateFormModal');
-            const isEstimateFormOpen = estimateFormModal && !estimateFormModal.classList.contains('hidden');
+            // V1925: スクロールアンロック
+            unlockScroll();
 
+            // キープリストがあれば無料見積もりボタンを再表示
             const keeps = keepManager.getList();
             const estimateBtnContainer = document.getElementById('estimateBtnContainer');
-            if (estimateBtnContainer && keeps.length > 0 && !isEstimateFormOpen) {
+            if (estimateBtnContainer && keeps.length > 0) {
                 estimateBtnContainer.style.display = 'block';
-                console.log('✅ 無料見積もりボタン再表示（モーダル閉じる）');
-            } else if (isEstimateFormOpen) {
-                console.log('⚠️ 見積もりフォームが開いているため、ボタン再表示をスキップ');
+                console.log('✅ 無料見積もりボタン再表示');
             }
         }
 
@@ -3011,48 +2966,36 @@
         }
 
         // ============================================
-        // 見積もりフォーム関連
+        // 見積もりフォーム関連（V1925: シンプル化）
         // ============================================
         function startEstimateForm() {
             console.log('📝 見積もりフォーム開始');
 
-            // V1734-FIX: モバイル進捗バーを非表示
+            // モバイル進捗バーを非表示
             const mobileProgressBarContainer = document.getElementById('mobileProgressBar');
             if (mobileProgressBarContainer) {
                 mobileProgressBarContainer.classList.add('hidden');
-                console.log('✅ モバイル進捗バー非表示（見積もりフォーム表示）');
             }
 
-            // V1713-UX: 無料見積もりボタンを非表示（フォームが邪魔にならないように）
+            // 無料見積もりボタンを非表示
             const estimateBtnContainer = document.getElementById('estimateBtnContainer');
             if (estimateBtnContainer) {
                 estimateBtnContainer.style.display = 'none';
-                console.log('✅ 無料見積もりボタン非表示（見積もりフォーム表示）');
             }
 
-            // キープモーダルを閉じる（ボタン再表示をスキップ）
+            // キープモーダルを閉じる（スクロールロック維持）
             closeKeepModal(true);
 
-            // ============================================
-            // BOTで取得済みの情報を自動入力
-            // ============================================
-
-            // V1753-FIX8: 郵便番号のみ自動入力（住所は郵便番号入力時にAPIで取得）
-            // 物件の郵便番号を自動入力
+            // 郵便番号を自動入力
             if (window.BotConfig && window.BotConfig.state.currentZipcode) {
                 const propertyZipField = document.getElementById('propertyZip');
                 if (propertyZipField) {
                     const zipcode = window.BotConfig.state.currentZipcode;
-                    // ハイフンを追加してフォーマット
                     const formattedZip = zipcode.length === 7 ?
                         zipcode.substring(0, 3) + '-' + zipcode.substring(3) : zipcode;
                     propertyZipField.value = formattedZip;
-                    console.log('✅ 物件郵便番号を自動入力:', formattedZip);
-
-                    // 郵便番号が入力されたら自動で住所を取得
                     setTimeout(() => {
-                        const event = new Event('blur');
-                        propertyZipField.dispatchEvent(event);
+                        propertyZipField.dispatchEvent(new Event('blur'));
                     }, 100);
                 }
             }
@@ -3061,61 +3004,12 @@
             const modal = document.getElementById('estimateFormModal');
             if (modal) {
                 modal.classList.remove('hidden');
-
-                // スマホの場合は現在のスクロール位置に表示
-                if (window.innerWidth < 768) {
-                    const scrollY = window.scrollY || window.pageYOffset;
-                    modal.style.position = 'absolute';
-                    modal.style.top = scrollY + 'px';
-                    modal.style.left = '0';
-                    modal.style.right = '0';
-                    modal.style.height = '100vh';
-                    modal.style.bottom = 'auto';
-                } else {
-                    // PCの場合は固定位置（画面中央）
-                    modal.style.position = 'fixed';
-                    modal.style.top = '0';
-                    modal.style.left = '0';
-                    modal.style.right = '0';
-                    modal.style.bottom = '0';
-                    modal.style.height = '';
-                }
-
-                // V1713-FIX: 背景スクロール完全防止（スクロール位置固定方式）
-                // 現在のスクロール位置を保存
-                const scrollY = window.scrollY || window.pageYOffset;
-                window.modalScrollPosition = scrollY;
-
-                // bodyを固定してスクロール防止
-                document.body.style.position = 'fixed';
-                document.body.style.top = `-${scrollY}px`;
-                document.body.style.width = '100%';
-                document.body.style.overflow = 'hidden';
-                document.body.style.touchAction = 'none';
-
-                // gaiheki-bot-containerも固定
-                const botContainer = document.getElementById('gaiheki-bot-container');
-                if (botContainer) {
-                    botContainer.style.position = 'fixed';
-                    botContainer.style.top = '0';
-                    botContainer.style.left = '0';
-                    botContainer.style.right = '0';
-                    botContainer.style.bottom = '0';
-                    botContainer.style.overflow = 'hidden';
-                }
-
-                // モーダル背景のタッチムーブイベントを防止
-                modal.addEventListener('touchmove', function(e) {
-                    // モーダル内部のスクロール可能エリア以外はスクロール防止
-                    if (e.target === modal) {
-                        e.preventDefault();
-                    }
-                }, { passive: false });
-
-                console.log('✅ 背景スクロール完全無効化（モーダル表示）');
+                // V1925: スクロールは既にロック済み（lockScroll()不要）
                 console.log('✅ 見積もりフォーム表示');
             } else {
                 console.error('❌ estimateFormModalが見つかりません');
+                // モーダルがない場合はスクロールをアンロック
+                unlockScroll();
             }
         }
 
@@ -3173,56 +3067,28 @@
             }, 100);
         }
 
+        // V1925: 見積もりフォームを閉じる（シンプル化）
         function closeEstimateForm() {
             console.log('📝 見積もりフォーム閉じる');
             const modal = document.getElementById('estimateFormModal');
             if (modal) {
                 modal.classList.add('hidden');
 
-                // モーダルのスタイルをリセット
-                modal.style.position = '';
-                modal.style.top = '';
-                modal.style.left = '';
-                modal.style.right = '';
-                modal.style.bottom = '';
-                modal.style.height = '';
-
-                // V1753-FIX7: 背景スクロールを復元（スクロール位置も復元）
-                document.body.style.position = '';
-                document.body.style.top = '';
-                document.body.style.width = '';
-                document.body.style.overflow = '';
-                document.body.style.touchAction = '';
-
-                // スクロール位置を復元
-                if (window.modalScrollPosition !== undefined) {
-                    window.scrollTo(0, window.modalScrollPosition);
-                    delete window.modalScrollPosition;
-                }
-
-                // gaiheki-bot-containerも復元
-                const botContainer = document.getElementById('gaiheki-bot-container');
-                if (botContainer) {
-                    botContainer.style.position = '';
-                    botContainer.style.top = '';
-                    botContainer.style.left = '';
-                    botContainer.style.right = '';
-                    botContainer.style.bottom = '';
-                    botContainer.style.overflow = '';
-                }
-
-                console.log('✅ 背景スクロール復元（モーダル閉じる）');
+                // V1925: スクロールアンロック
+                unlockScroll();
 
                 // ステップ1に戻す
-                document.getElementById('step1').classList.remove('hidden');
-                document.getElementById('step2').classList.add('hidden');
+                const step1 = document.getElementById('step1');
+                const step2 = document.getElementById('step2');
+                if (step1) step1.classList.remove('hidden');
+                if (step2) step2.classList.add('hidden');
 
-                // V1753-FIX7: キープリストがあれば無料見積もりボタンを再表示
+                // キープリストがあれば無料見積もりボタンを再表示
                 const keeps = keepManager.getList();
                 const estimateBtnContainer = document.getElementById('estimateBtnContainer');
                 if (estimateBtnContainer && keeps.length > 0) {
                     estimateBtnContainer.style.display = 'block';
-                    console.log('✅ 無料見積もりボタン再表示（フォーム閉じる）');
+                    console.log('✅ 無料見積もりボタン再表示');
                 }
             }
         }
@@ -3446,8 +3312,8 @@
     <!-- BOTローダー（動的スクリプトロード + キャッシュバスター自動適用） -->
     <script src="gaiheki-bot-loader.js"></script>
 
-    <!-- V1713-FIX: 無料見積もりボタン（body直下・viewport基準で完全固定） -->
-    <div id="estimateBtnContainer" style="display: none !important; position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 999999 !important; background: white !important; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 200px 0 200px white !important; border-top: 1px solid #e5e7eb !important; padding: 1rem 0 !important; padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important; pointer-events: auto !important;">
+    <!-- V1925: 無料見積もりボタン（シンプル化 - !important削除でJS制御可能に） -->
+    <div id="estimateBtnContainer" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 999999; background: white; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1); border-top: 1px solid #e5e7eb; padding: 1rem 0; padding-bottom: max(1rem, env(safe-area-inset-bottom));">
         <div style="max-width: 72rem; margin: 0 auto; padding: 0 1rem; text-align: center;">
             <button onclick="showKeepModal();" class="bg-orange-400 hover:bg-orange-500 text-white font-bold py-4 px-20 rounded-full text-lg transition-all relative inline-flex items-center justify-center shadow-lg">
                 無料見積もり
