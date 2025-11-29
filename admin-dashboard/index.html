@@ -4939,10 +4939,11 @@ window.addEventListener('beforeunload', function(e) {
                 });
             }
             
-            // ソート機能
+            // V1970: ソート機能（initializeListViewを呼んで正しくソート）
             if (sortSelect) {
                 sortSelect.addEventListener('change', function() {
-                    filterCases();
+                    currentPage = 1; // ページをリセット
+                    initializeListView();
                 });
             }
         }
