@@ -10521,6 +10521,10 @@ window.addEventListener('beforeunload', function(e) {
                 surveyAttendance: caseData.surveyAttendance || '',
                 quoteCount: caseData.quoteCount || '',
                 nextCallDate: caseData.nextCallDate || '',
+                // 追加情報
+                selectionCriteria: caseData.selectionCriteria || caseData.q17_selectionCriteria || '',  // 業者選定条件
+                contactTimeSlot: caseData.contactTimeSlot || '',  // 連絡時間帯
+                specialItems: caseData.specialItems || '',  // 特殊項目（遮熱断熱塗料、太陽光パネル脱着等）
                 // メモ
                 memo: caseData.memo || caseData.caseMemo || '',
                 // 転送先
@@ -10759,7 +10763,7 @@ ${mapLink ? `\n　📍 Googleマップ\n　${mapLink}\n` : ''}
 　希望社数　：${d.companiesCount ? d.companiesCount + '社' : '未設定'}
 　立会い　　：${d.surveyAttendance || '未設定'}
 　他社見積　：${d.quoteCount || '未設定'}
-${d.nextCallDate ? `　架電希望　：${d.nextCallDate}\n` : ''}
+${d.nextCallDate ? `　架電希望　：${d.nextCallDate}\n` : ''}${d.contactTimeSlot ? `　連絡時間帯：${d.contactTimeSlot}\n` : ''}${d.selectionCriteria ? `　業者選定　：${d.selectionCriteria}\n` : ''}${d.specialItems ? `　特殊項目　：${d.specialItems}\n` : ''}
 ────────────────────────────────────────
 📝 案件メモ（ヒアリング内容）
 ────────────────────────────────────────
