@@ -300,11 +300,13 @@ const BusinessSelectionHandler = {
         count: this.checkedCompanies.size
       });
 
-      // 希望社数をCB列から取得（V1903: companiesCountPreferenceキーもサポート, フォールバック: AS列）
+      // V1906: 希望社数をCB列から取得（companiesCountPreferenceを優先）
+      // companiesCountはAS列の業者数なので使用しない
       let desiredCount;
-      if (currentCaseData.companiesCountPreference || currentCaseData.companiesCount) {
+      const cbValue = currentCaseData.companiesCountPreference || currentCaseData._rawData?.companiesCountPreference || '';
+      if (cbValue && cbValue.toString().trim() !== '') {
         // CB列から希望社数を取得
-        desiredCount = currentCaseData.companiesCountPreference || currentCaseData.companiesCount;
+        desiredCount = cbValue;
         console.log('[BusinessSelection] CB列から希望社数取得:', desiredCount);
       } else {
         // CB列が空の場合はAS列からカウント（フォールバック）
