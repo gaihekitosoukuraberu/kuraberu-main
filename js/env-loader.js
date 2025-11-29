@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1976 - 3等分レイアウト・架電日デフォルト今日）
-  CACHE_BUSTER: 'v1976-filter-layout'
+  CACHE_BUSTER: 'v1764437176-fec561b6'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
