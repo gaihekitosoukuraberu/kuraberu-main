@@ -6738,21 +6738,18 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
-        // V1948: 電話をかける（CRM/リスト両対応）- 発信前に全て準備
+        // V1949: 電話をかける（CRM/リスト両対応）- localStorageで状態保持
         function callCase(caseId) {
-            console.log('[callCase] 開始 caseId:', caseId, 'currentCaseId:', currentCaseId);
+            console.log('[callCase] 開始 caseId:', caseId);
 
             const targetId = caseId || currentCaseId;
             if (!targetId) {
-                console.error('[callCase] caseIdが指定されていません');
                 alert('案件が選択されていません');
                 return;
             }
 
-            // casesDataをチェック
             if (!casesData || !casesData[targetId]) {
-                console.error('[callCase] casesDataに案件がありません:', targetId, Object.keys(casesData || {}).slice(0, 5));
-                alert('案件データが見つかりません。ページをリロードしてください。');
+                alert('案件データが見つかりません');
                 return;
             }
 
@@ -6763,49 +6760,63 @@ window.addEventListener('beforeunload', function(e) {
                 return;
             }
 
-            // 1. currentCaseIdを設定（リストから呼ばれた場合も対応）
+            // 1. currentCaseIdを設定
             currentCaseId = targetId;
-            console.log('[callCase] currentCaseId設定:', currentCaseId);
 
-            // 2. フラグセット（ブラウザ復帰時にモーダル表示）
-            afterCallFlow = true;
+            // 2. localStorageに状態保存（ページ中断対策）
+            localStorage.setItem('afterCallFlow', 'true');
+            localStorage.setItem('afterCallCaseId', targetId);
+            localStorage.setItem('afterCallTime', Date.now().toString());
 
-            // 3. 架電履歴を追加（発信前に開始、バックグラウンドで保存）
+            // 3. 架電履歴を追加
             addAutoCallRecord();
-            console.log('[callCase] 架電履歴追加開始');
 
-            // 4. 最後に電話発信（この後JSが中断する可能性あり）
-            console.log('[callCase] 電話発信:', phone);
+            // 4. 電話発信
+            console.log('[callCase] 発信:', phone);
             window.location.href = 'tel:' + phone;
         }
 
-        // グローバルに公開（リストのonclickから呼べるように）
         window.callCase = callCase;
+
+        // V1949: ページ復帰時の処理
+        function checkAfterCallFlow() {
+            const afterCall = localStorage.getItem('afterCallFlow');
+            const caseId = localStorage.getItem('afterCallCaseId');
+            const callTime = parseInt(localStorage.getItem('afterCallTime') || '0');
+
+            // 5分以内の架電のみ有効
+            if (afterCall === 'true' && caseId && (Date.now() - callTime) < 300000) {
+                console.log('[checkAfterCallFlow] 架電後復帰:', caseId);
+
+                localStorage.removeItem('afterCallFlow');
+                localStorage.removeItem('afterCallCaseId');
+                localStorage.removeItem('afterCallTime');
+
+                currentCaseId = caseId;
+                afterCallFlow = true;
+
+                // モーダル表示
+                setTimeout(() => {
+                    if (casesData[caseId]) {
+                        showStatusModal();
+                    }
+                }, 1000);
+            }
+        }
+
+        // ページロード時とvisibilitychange時にチェック
+        document.addEventListener('DOMContentLoaded', () => setTimeout(checkAfterCallFlow, 1500));
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                checkAfterCallFlow();
+            }
+        });
 
         // CRMから電話する（後方互換性）
         function callCurrentCase() {
             callCase(currentCaseId);
         }
 
-        // V1946: ブラウザ復帰時のモーダル表示（通話終了後）- 改善版
-        let visibilityChangeHandled = false;  // 重複発火防止フラグ
-        document.addEventListener('visibilitychange', () => {
-            console.log('[visibilitychange] 状態:', document.visibilityState, 'afterCallFlow:', afterCallFlow, 'handled:', visibilityChangeHandled);
-
-            if (document.visibilityState === 'visible' && afterCallFlow && !visibilityChangeHandled) {
-                visibilityChangeHandled = true;  // 重複防止
-
-                // 少し遅延してから表示（ブラウザが完全にフォーカスを取得してから）
-                setTimeout(() => {
-                    if (currentCaseId) {
-                        console.log('[visibilitychange] 通話終了、ステータスモーダル表示');
-                        showStatusModal();  // toggleではなくshow
-                    }
-                    // フラグをリセット（次の架電のため）
-                    visibilityChangeHandled = false;
-                }, 800);
-            }
-        });
 
         function openCallHistoryModal(caseId) {
             // リストから開いた場合はcaseIdを設定
