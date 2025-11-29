@@ -122,6 +122,15 @@ async function loadRegistrationRequestsData() {
             approvedRequests = enhanceData(result.approved) || [];
             rejectedRequests = enhanceData(result.rejected) || [];
 
+            // V1924: デバッグログ - 全データのregistrationIdと会社名の対応を確認
+            console.log('[RegistrationRequests] === V1924 データマッピング確認 ===');
+            console.log('[RegistrationRequests] 承認済み件数:', approvedRequests.length);
+            approvedRequests.forEach((item, idx) => {
+                const companyName = item['会社名（法人名）'] || item['会社名'] || item.businessName || '(名前なし)';
+                console.log(`  [${idx}] ${companyName} → registrationId: ${item.registrationId}`);
+            });
+            console.log('[RegistrationRequests] === マッピング確認終了 ===');
+
             // 統計情報を計算して更新（全データから計算）
             const stats = calculateRegistrationStats(currentRegistrationData);
             updateRegistrationStats(stats);
@@ -518,6 +527,12 @@ function createRegistrationRow(item, type) {
         console.log('[Registration Row] 会社名が見つかりません。候補キー:', actualCompanyKeys);
         console.log('[Registration Row] 全データ:', JSON.stringify(item, null, 2));
     }
+
+    // V1924: デバッグログ - 表示される会社名とregistrationIdの対応を確認
+    console.log(`[Registration Row DEBUG] 表示会社名: "${companyName}" → registrationId: "${item.registrationId}"`);
+    if (item['会社名（法人名）']) console.log(`  元データ会社名（法人名）: ${item['会社名（法人名）']}`);
+    if (item['会社名']) console.log(`  元データ会社名: ${item['会社名']}`);
+    if (item.businessName) console.log(`  元データbusinessName: ${item.businessName}`);
 
     tr.innerHTML = `
         <td class="px-6 py-4 text-sm text-gray-900">${dateStr}</td>
@@ -1204,7 +1219,25 @@ function viewRegistrationDetails(registrationId) {
  * 差し戻し処理
  */
 async function revertRegistration(registrationId) {
-    if (!confirm('この申請を未審査に差し戻しますか？')) return;
+    // V1924: デバッグログ - どのregistrationIdで差し戻しが呼ばれたか確認
+    console.log('[revertRegistration] 呼び出し - registrationId:', registrationId);
+
+    // 該当するデータを検索して会社名を表示
+    const allData = [...pendingRequests, ...approvedRequests, ...rejectedRequests];
+    const targetItem = allData.find(r => r.registrationId === registrationId);
+    if (targetItem) {
+        console.log('[revertRegistration] 対象データ:', {
+            registrationId: targetItem.registrationId,
+            '会社名（法人名）': targetItem['会社名（法人名）'],
+            '会社名': targetItem['会社名'],
+            businessName: targetItem.businessName,
+            representativeName: targetItem.representativeName
+        });
+    } else {
+        console.warn('[revertRegistration] 対象データが見つかりません');
+    }
+
+    if (!confirm(`この申請を未審査に差し戻しますか？\n\nregistrationId: ${registrationId}`)) return;
 
     try {
         const result = await window.apiClient.postRequest('revertRegistration', {
