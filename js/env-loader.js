@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1936 - 希望社数0なら紹介料0）
-  CACHE_BUSTER: 'v1764404198-fe1631e8'
+  // キャッシュバスター（V1937 - workItemsボタンCSS競合修正）
+  CACHE_BUSTER: 'v1764404200-v1937'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
