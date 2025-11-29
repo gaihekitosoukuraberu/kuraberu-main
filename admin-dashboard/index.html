@@ -6796,13 +6796,17 @@ window.addEventListener('beforeunload', function(e) {
 
         // V1951: ページ復帰時の処理（fixedモーダルなのでCRM不要）
         function checkAfterCallFlow() {
+            console.log('[checkAfterCallFlow] チェック開始');
             const afterCall = localStorage.getItem('afterCallFlow');
             const caseId = localStorage.getItem('afterCallCaseId');
             const callTime = parseInt(localStorage.getItem('afterCallTime') || '0');
+            const elapsed = Date.now() - callTime;
+
+            console.log('[checkAfterCallFlow] 状態:', { afterCall, caseId, elapsed });
 
             // 5分以内の架電のみ有効
-            if (afterCall === 'true' && caseId && (Date.now() - callTime) < 300000) {
-                console.log('[checkAfterCallFlow] 架電後復帰:', caseId);
+            if (afterCall === 'true' && caseId && elapsed < 300000) {
+                console.log('[checkAfterCallFlow] 架電後復帰 → モーダル表示:', caseId);
 
                 localStorage.removeItem('afterCallFlow');
                 localStorage.removeItem('afterCallCaseId');
@@ -6812,13 +6816,20 @@ window.addEventListener('beforeunload', function(e) {
                 afterCallFlow = true;
 
                 // fixedモーダルなので直接表示
-                setTimeout(() => showStatusModal(), 500);
+                setTimeout(() => {
+                    console.log('[checkAfterCallFlow] showStatusModal呼び出し');
+                    showStatusModal();
+                }, 500);
             }
         }
 
         // ページロード時とvisibilitychange時にチェック
-        document.addEventListener('DOMContentLoaded', () => setTimeout(checkAfterCallFlow, 2000));
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[DOMContentLoaded] checkAfterCallFlow予約');
+            setTimeout(checkAfterCallFlow, 2000);
+        });
         document.addEventListener('visibilitychange', () => {
+            console.log('[visibilitychange] state:', document.visibilityState);
             if (document.visibilityState === 'visible') {
                 setTimeout(checkAfterCallFlow, 500);
             }
