@@ -1299,7 +1299,7 @@
                             キャンセル
                         </button>
                         <button type="button" onclick="sendOrderTransfer()" id="orderTransferSubmitBtn" class="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-bold hover:from-green-700 hover:to-green-800 transition-all shadow-lg">
-                            保存して転送
+                            転送
                         </button>
                     </div>
                 </div>
@@ -10328,11 +10328,11 @@ window.addEventListener('beforeunload', function(e) {
                 return;
             }
 
-            // 保存処理を実行
+            // V1992: 保存処理を実行（サイレント - 失敗時もログのみで続行）
             try {
                 const formData = getCRMFormData();
                 if (formData && window.apiClient) {
-                    console.log('[V1990] オーダー転送前に自動保存を実行:', cvId);
+                    console.log('[V1992] オーダー転送前に自動保存を実行:', cvId);
                     const result = await window.apiClient.postRequest('updateCVData', {
                         cvId: cvId,
                         data: formData
@@ -10342,20 +10342,15 @@ window.addEventListener('beforeunload', function(e) {
                         if (casesData[cvId]) {
                             Object.assign(casesData[cvId], formData);
                         }
-                        console.log('[V1990] 自動保存完了');
+                        console.log('[V1992] 自動保存完了');
                     } else {
-                        console.warn('[V1990] 自動保存失敗:', result.message);
-                        // 保存失敗でも転送は続行（ユーザーに通知）
-                        if (!confirm('データの保存に失敗しました。現在の入力内容で転送を続行しますか？')) {
-                            return;
-                        }
+                        // 保存失敗してもサイレントで続行（ログのみ）
+                        console.warn('[V1992] 自動保存失敗（続行）:', result.message);
                     }
                 }
             } catch (error) {
-                console.error('[V1990] 自動保存エラー:', error);
-                if (!confirm('保存中にエラーが発生しました。現在の入力内容で転送を続行しますか？')) {
-                    return;
-                }
+                // エラー時もサイレントで続行（ログのみ）
+                console.error('[V1992] 自動保存エラー（続行）:', error);
             }
 
             // チェック済み加盟店を取得
@@ -10704,7 +10699,7 @@ info@gaihekikuraberu.com
             currentFranchiseIndex = 0;
         }
 
-        // オーダー転送を実行（保存＆転送）
+        // V1992: オーダー転送を実行（転送のみ - 保存はshowOrderTransferModal時に完了済み）
         async function sendOrderTransfer() {
             if (!window.currentOrderTransferData) {
                 alert('転送データがありません');
@@ -10713,71 +10708,20 @@ info@gaihekikuraberu.com
 
             const button = document.getElementById('orderTransferSubmitBtn');
             button.disabled = true;
-            button.textContent = '保存中...';
+            button.textContent = '転送中...';
 
             try {
                 const d = window.currentOrderTransferData;
 
-                // 案件データをまとめる
-                const caseDataToSave = {
-                    name: d.name,
-                    nameKana: d.nameKana,
-                    phone: d.phone,
-                    email: d.email,
-                    gender: d.gender,
-                    age: d.age,
-                    relation: d.relation,
-                    altPhone: d.altPhone,
-                    postalCode: d.postalCode,
-                    address: d.address,
-                    homeAddress: d.homeAddress,
-                    propertyType: d.propertyType,
-                    floors: d.floors,
-                    area: d.area,
-                    buildingAge: d.buildingAge,
-                    constructionCount: d.constructionCount,
-                    previousConstructionTime: d.previousConstructionTime,
-                    roofMaterial: d.roofMaterial,
-                    wallMaterial: d.wallMaterial,
-                    workItems: d.workItems,
-                    constructionTiming: d.constructionTiming,
-                    companiesCount: d.companiesCount,
-                    surveyAttendance: d.surveyAttendance,
-                    quoteCount: d.quoteCount,
-                    nextCallDate: d.nextCallDate,
-                    selectionCriteria: d.selectionCriteria,
-                    contactTimeSlot: d.contactTimeSlot,
-                    specialItems: d.specialItems,
-                    memo: d.memo
-                };
-
-                // Step 1: スプシに保存
-                const saveResponse = await window.apiClient.postRequest('saveCaseData', {
-                    cvId: d.cvId,
-                    caseData: caseDataToSave
-                });
-
-                if (!saveResponse.success) {
-                    throw new Error(saveResponse.error || 'データ保存に失敗しました');
-                }
-
-                // ローカルのcasesDataにも反映
-                if (casesData[d.cvId]) {
-                    Object.assign(casesData[d.cvId], caseDataToSave);
-                }
-
-                button.textContent = '転送中...';
-
-                // Step 2: 転送実行（各社ごとの転送文を送信）
+                // 転送実行（各社ごとの転送文を送信）
                 const transferResponse = await window.apiClient.postRequest('sendOrderTransfer', {
                     cvId: d.cvId,
                     franchises: d.selectedFranchises.map((f) => ({
                         franchiseId: f.id,
                         franchiseName: f.name,
                         fee: f.fee,
-                        transferMessage: f.transferMessage  // 各社ごとの転送文
-                    })),
-                    caseData: caseDataToSave
+                        transferMessage: f.transferMessage
+                    }))
                 });
 
                 if (transferResponse.success) {
@@ -10802,7 +10746,7 @@ info@gaihekikuraberu.com
                 alert('転送に失敗しました\n' + error.message);
             } finally {
                 button.disabled = false;
-                button.textContent = '保存して転送';
+                button.textContent = '転送';
             }
         }
 
