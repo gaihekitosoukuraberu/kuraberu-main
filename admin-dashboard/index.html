@@ -9004,6 +9004,45 @@ window.addEventListener('beforeunload', function(e) {
                     }
                 }, 300); // DOM更新後に実行
             }
+
+            // アクションボタンの状態を更新
+            updateActionButtons(caseData);
+        }
+
+        // アクションボタン（オーダー転送・案件メール）の状態を更新
+        function updateActionButtons(caseData) {
+            const orderTransferBtn = document.getElementById('orderTransferBtn');
+            const broadcastBtn = document.getElementById('broadcastBtn');
+
+            if (!orderTransferBtn || !broadcastBtn) return;
+
+            // 転送済みかどうか（配信管理に転送記録があるか）
+            const isTransferred = caseData.transferCount > 0 || caseData.status === '転送済み' || caseData.status === '転送完了';
+
+            // 案件メール配信済みかどうか
+            const isBroadcastSent = caseData.broadcastSent === true || caseData.broadcastSent === 'TRUE' || caseData['案件メール配信済み'] === true || caseData['案件メール配信済み'] === 'TRUE';
+
+            // オーダー転送ボタン
+            if (isTransferred) {
+                orderTransferBtn.disabled = true;
+                orderTransferBtn.innerHTML = '✅ オーダー転送済み';
+                orderTransferBtn.className = 'w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-gray-400 text-white rounded-xl font-bold text-base sm:text-lg cursor-not-allowed';
+            } else {
+                orderTransferBtn.disabled = false;
+                orderTransferBtn.innerHTML = '🚀 オーダー転送';
+                orderTransferBtn.className = 'w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-base sm:text-lg hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl active:scale-95 sm:hover:scale-105';
+            }
+
+            // 案件メールボタン
+            if (isBroadcastSent) {
+                broadcastBtn.disabled = true;
+                broadcastBtn.innerHTML = '✅ 案件メール配信済み';
+                broadcastBtn.className = 'w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-gray-400 text-white rounded-xl font-bold text-base sm:text-lg cursor-not-allowed';
+            } else {
+                broadcastBtn.disabled = false;
+                broadcastBtn.innerHTML = '📧 案件メール';
+                broadcastBtn.className = 'w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-bold text-base sm:text-lg hover:from-purple-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl active:scale-95 sm:hover:scale-105';
+            }
         }
 
         // CRMフォームの入力変更を監視するイベントリスナーを設定

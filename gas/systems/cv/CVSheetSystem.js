@@ -1287,6 +1287,9 @@ const CVSheetSystem = {
           specialItems: row[82] || '',                  // 83列目: 特殊項目（index 82）
           googleMapsLink: row[83] || '',               // 84列目: Google Mapsリンク（index 83）
 
+          // CG列: 案件メール配信済みフラグ（index 84）
+          broadcastSent: row[84] === true || row[84] === 'TRUE',
+
           // V1832: BOT回答カラムを直接フィールドとしても読み込み（空文字列保持のため）
           quoteCount: row[36] || '',                    // AK: Q11_見積もり保有数（index 36）
           quoteSource: row[37] || '',                   // AL: Q12_見積もり取得先（index 37）

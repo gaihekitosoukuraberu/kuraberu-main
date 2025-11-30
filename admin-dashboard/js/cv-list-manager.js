@@ -274,6 +274,11 @@ const CVListManager = {
         amount: formattedAmount,
         franchiseStatuses: this.parseFranchiseStatuses(cv.franchiseStatuses),
 
+        // 案件メール配信済みフラグ
+        broadcastSent: cv.broadcastSent === true || cv.broadcastSent === 'TRUE',
+        // 転送数（配信管理の転送記録数）
+        transferCount: cv.transferCount || 0,
+
         // 業者選定履歴（AS列）V1879
         businessHistory: cv.franchiseSelectionHistory || '',
         franchiseSelectionHistory: cv.franchiseSelectionHistory || '', // V1903: 別名キーも追加
