@@ -7336,7 +7336,7 @@ window.addEventListener('beforeunload', function(e) {
             const transferCount = caseData.transferCount || 0;
             const desiredCountStr = caseData.desiredCount || caseData.companiesCountPreference || '3社';
             const desiredCount = parseInt(desiredCountStr) || 3;
-            return `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-purple-50 text-purple-600 border border-purple-200 rounded text-xs font-medium">📞 ${transferCount}/${desiredCount}</span>`;
+            return `<span class="inline-flex items-center px-1.5 py-0.5 bg-purple-50 text-purple-600 border border-purple-200 rounded text-xs font-medium">${transferCount}/${desiredCount}社</span>`;
         }
 
         // V1941: 不在ボタン押下→ステータス変更→次の案件へ
