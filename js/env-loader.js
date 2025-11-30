@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1985 - 転送文に会社情報追加）
-  CACHE_BUSTER: 'v1985-company-info'
+  CACHE_BUSTER: 'v1764468463-fe22d57f'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
