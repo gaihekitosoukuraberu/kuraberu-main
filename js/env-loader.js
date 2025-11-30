@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1984 - Google Maps短縮URL優先対応）
-  CACHE_BUSTER: 'v1764468403-fe449f3c'
+  // キャッシュバスター（V1985 - 転送文に会社情報追加）
+  CACHE_BUSTER: 'v1985-company-info'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
