@@ -1252,13 +1252,13 @@
             </div>
             </div><!-- originalFormContent終了 -->
 
-            <!-- V1979: オーダー転送確認モーダル（リニューアル） -->
+            <!-- V1983: オーダー転送確認モーダル（プロ仕様リニューアル） -->
             <div id="orderTransferModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50" style="display: none;">
-                <div class="bg-gray-100 rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <div class="bg-gray-100 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                     <!-- ヘッダー -->
-                    <div class="sticky top-0 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-5 py-4 rounded-t-2xl z-10">
+                    <div class="sticky top-0 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-4 rounded-t-2xl z-10">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-lg font-bold flex items-center gap-2">🚀 オーダー転送確認</h3>
+                            <h3 class="text-lg font-bold">オーダー転送確認</h3>
                             <button onclick="closeOrderTransferModal()" class="text-white/80 hover:text-white p-1">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -1268,131 +1268,28 @@
                         <div class="text-sm text-white/80 mt-1" id="orderTransferCvId">CV-ID: ---</div>
                     </div>
 
-                    <div class="p-4 space-y-3">
-                        <!-- 配信情報 -->
-                        <div class="bg-white rounded-xl p-4 shadow-sm">
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="font-bold text-gray-800 flex items-center gap-2">📋 配信情報</h4>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2 text-sm">
-                                <div class="text-gray-500">配信日時</div>
-                                <div class="font-medium text-gray-800" id="otDeliveryDate">---</div>
-                                <div class="text-gray-500">紹介料</div>
-                                <div class="font-bold text-green-600" id="otFee">---</div>
-                            </div>
+                    <div class="p-4 space-y-4">
+                        <!-- 転送先業者（タップで各社の転送文表示） -->
+                        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                            <h4 class="font-bold text-gray-800 mb-3">転送先業者（タップで転送文確認）</h4>
+                            <div id="otFranchiseList" class="space-y-2"></div>
                         </div>
 
-                        <!-- お客様情報 -->
-                        <div class="bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:bg-gray-50 transition-all" onclick="toggleOrderSection('customer')">
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="font-bold text-gray-800 flex items-center gap-2">👤 お客様情報</h4>
-                                <span class="text-gray-400 text-xs">タップで編集</span>
-                            </div>
-                            <div id="otCustomerView" class="text-sm space-y-1">
-                                <div class="flex"><span class="text-gray-500 w-20 flex-shrink-0">氏名</span><span class="font-medium" id="otName">---</span></div>
-                                <div class="flex"><span class="text-gray-500 w-20 flex-shrink-0">電話番号</span><span class="font-medium" id="otPhone">---</span></div>
-                                <div class="flex" id="otAltPhoneRow" style="display:none;"><span class="text-gray-500 w-20 flex-shrink-0">別途連絡</span><span class="font-medium" id="otAltPhone">---</span></div>
-                                <div class="flex"><span class="text-gray-500 w-20 flex-shrink-0">メール</span><span class="font-medium" id="otEmail">---</span></div>
-                                <div class="flex"><span class="text-gray-500 w-20 flex-shrink-0">性別/年代</span><span class="font-medium" id="otGenderAge">---</span></div>
-                                <div class="flex"><span class="text-gray-500 w-20 flex-shrink-0">続柄</span><span class="font-medium" id="otRelation">---</span></div>
-                            </div>
-                            <div id="otCustomerEdit" class="hidden space-y-2 mt-2">
-                                <input type="text" id="otNameEdit" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="氏名">
-                                <input type="text" id="otKanaEdit" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="カナ">
-                                <input type="tel" id="otPhoneEdit" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="電話番号">
-                                <input type="tel" id="otAltPhoneEdit" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="別途連絡先（例: 奥様 090-xxxx-xxxx）">
-                                <input type="email" id="otEmailEdit" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="メール">
-                                <div class="flex gap-2">
-                                    <input type="text" id="otGenderEdit" class="flex-1 px-3 py-2 border rounded-lg text-sm" placeholder="性別">
-                                    <input type="text" id="otAgeEdit" class="flex-1 px-3 py-2 border rounded-lg text-sm" placeholder="年代">
-                                </div>
-                                <input type="text" id="otRelationEdit" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="続柄">
-                            </div>
-                        </div>
-
-                        <!-- 物件情報 -->
-                        <div class="bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:bg-gray-50 transition-all" onclick="toggleOrderSection('property')">
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="font-bold text-gray-800 flex items-center gap-2">🏡 物件情報</h4>
-                                <span class="text-gray-400 text-xs">タップで編集</span>
-                            </div>
-                            <div id="otPropertyView" class="text-sm space-y-1">
-                                <div class="flex"><span class="text-gray-500 w-20 flex-shrink-0">住所</span><span class="font-medium" id="otAddress">---</span></div>
-                                <div class="flex" id="otHomeAddressRow" style="display:none;"><span class="text-gray-500 w-20 flex-shrink-0">自宅住所</span><span class="font-medium" id="otHomeAddress">---</span></div>
-                                <div class="flex"><span class="text-gray-500 w-20 flex-shrink-0">物件種別</span><span class="font-medium" id="otPropertyType">---</span></div>
-                                <div class="flex"><span class="text-gray-500 w-20 flex-shrink-0">築年数</span><span class="font-medium" id="otBuildingAge">---</span></div>
-                                <div class="flex"><span class="text-gray-500 w-20 flex-shrink-0">塗装履歴</span><span class="font-medium" id="otPaintHistory">---</span></div>
-                                <div class="flex"><span class="text-gray-500 w-20 flex-shrink-0">屋根/外壁</span><span class="font-medium" id="otMaterials">---</span></div>
-                            </div>
-                            <div id="otPropertyEdit" class="hidden space-y-2 mt-2">
-                                <input type="text" id="otPostalCodeEdit" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="郵便番号">
-                                <input type="text" id="otAddressEdit" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="物件住所">
-                                <input type="text" id="otHomeAddressEdit" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="別途自宅住所（物件と異なる場合）">
-                                <div class="flex gap-2">
-                                    <input type="text" id="otPropertyTypeEdit" class="flex-1 px-3 py-2 border rounded-lg text-sm" placeholder="物件種別">
-                                    <input type="text" id="otFloorsEdit" class="w-20 px-3 py-2 border rounded-lg text-sm" placeholder="階数">
+                        <!-- 転送文プレビュー（メイン表示・編集可能） -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                            <div class="bg-slate-100 px-4 py-3 border-b flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-bold text-gray-800">転送文プレビュー</h4>
+                                    <p class="text-xs text-gray-500 mt-0.5" id="otPreviewTarget">選択中: ---</p>
                                 </div>
                                 <div class="flex gap-2">
-                                    <input type="text" id="otAreaEdit" class="flex-1 px-3 py-2 border rounded-lg text-sm" placeholder="延床面積">
-                                    <input type="text" id="otBuildingAgeEdit" class="flex-1 px-3 py-2 border rounded-lg text-sm" placeholder="築年数">
-                                </div>
-                                <input type="text" id="otConstructionCountEdit" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="塗装履歴">
-                                <div class="flex gap-2">
-                                    <input type="text" id="otRoofEdit" class="flex-1 px-3 py-2 border rounded-lg text-sm" placeholder="屋根材">
-                                    <input type="text" id="otWallEdit" class="flex-1 px-3 py-2 border rounded-lg text-sm" placeholder="外壁材">
+                                    <button onclick="copyTransferMessage()" class="text-xs bg-slate-600 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700 transition-all">コピー</button>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- 希望内容 -->
-                        <div class="bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:bg-gray-50 transition-all" onclick="toggleOrderSection('request')">
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="font-bold text-gray-800 flex items-center gap-2">🔧 ご希望内容</h4>
-                                <span class="text-gray-400 text-xs">タップで編集</span>
+                            <div class="p-4">
+                                <textarea id="otTransferPreview" class="w-full h-96 p-3 border border-gray-300 rounded-lg text-sm font-mono bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="転送文がここに表示されます"></textarea>
+                                <p class="text-xs text-gray-400 mt-2">※ 必要に応じて直接編集可能です。編集内容は選択中の業者に反映されます。</p>
                             </div>
-                            <div id="otRequestView" class="text-sm space-y-1">
-                                <div class="flex"><span class="text-gray-500 w-20 flex-shrink-0">施工箇所</span><span class="font-medium" id="otWorkItems">---</span></div>
-                                <div class="flex"><span class="text-gray-500 w-20 flex-shrink-0">施工時期</span><span class="font-medium" id="otTiming">---</span></div>
-                                <div class="flex"><span class="text-gray-500 w-20 flex-shrink-0">希望社数</span><span class="font-medium" id="otCompanyCount">---</span></div>
-                                <div class="flex"><span class="text-gray-500 w-20 flex-shrink-0">立会い</span><span class="font-medium" id="otAttendance">---</span></div>
-                                <div class="flex"><span class="text-gray-500 w-20 flex-shrink-0">他社見積</span><span class="font-medium" id="otQuoteStatus">---</span></div>
-                                <div class="flex" id="otCallDateRow" style="display:none;"><span class="text-gray-500 w-20 flex-shrink-0">架電希望</span><span class="font-medium" id="otCallDate">---</span></div>
-                            </div>
-                            <div id="otRequestEdit" class="hidden space-y-2 mt-2">
-                                <input type="text" id="otWorkItemsEdit" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="施工箇所">
-                                <input type="text" id="otTimingEdit" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="施工時期">
-                                <input type="text" id="otCompanyCountEdit" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="希望社数">
-                                <input type="text" id="otAttendanceEdit" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="立会い">
-                                <input type="text" id="otQuoteStatusEdit" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="他社見積">
-                                <input type="text" id="otCallDateEdit" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="架電連絡日時">
-                            </div>
-                        </div>
-
-                        <!-- 案件メモ -->
-                        <div class="bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:bg-gray-50 transition-all" onclick="toggleOrderSection('memo')">
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="font-bold text-gray-800 flex items-center gap-2">📝 案件メモ</h4>
-                                <span class="text-gray-400 text-xs">タップで編集</span>
-                            </div>
-                            <div id="otMemoView" class="text-sm text-gray-700 whitespace-pre-wrap" id="otMemo">---</div>
-                            <div id="otMemoEdit" class="hidden mt-2">
-                                <textarea id="otMemoEditText" class="w-full px-3 py-2 border rounded-lg text-sm" rows="4" placeholder="案件メモ"></textarea>
-                            </div>
-                        </div>
-
-                        <!-- 転送先業者 -->
-                        <div class="bg-orange-50 rounded-xl p-4 shadow-sm border-2 border-orange-200">
-                            <h4 class="font-bold text-orange-800 flex items-center gap-2 mb-3">🏢 転送先業者</h4>
-                            <div id="otFranchiseList" class="space-y-2 text-sm"></div>
-                        </div>
-
-                        <!-- 転送プレビュー -->
-                        <div class="bg-gray-800 rounded-xl p-4 shadow-sm">
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="font-bold text-white flex items-center gap-2">📨 転送文プレビュー</h4>
-                                <button onclick="copyTransferMessage()" class="text-xs bg-gray-700 text-gray-300 px-3 py-1 rounded-lg hover:bg-gray-600">コピー</button>
-                            </div>
-                            <pre id="otTransferPreview" class="text-xs text-gray-300 whitespace-pre-wrap font-mono bg-gray-900 p-3 rounded-lg max-h-48 overflow-y-auto"></pre>
                         </div>
                     </div>
 
@@ -1401,8 +1298,8 @@
                         <button type="button" onclick="closeOrderTransferModal()" class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300 transition-all">
                             キャンセル
                         </button>
-                        <button type="button" onclick="sendOrderTransfer()" id="orderTransferSubmitBtn" class="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-bold hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg flex items-center justify-center gap-2">
-                            <span>💾</span> 保存＆転送
+                        <button type="button" onclick="sendOrderTransfer()" id="orderTransferSubmitBtn" class="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-bold hover:from-green-700 hover:to-green-800 transition-all shadow-lg">
+                            保存して転送
                         </button>
                     </div>
                 </div>
@@ -10442,11 +10339,23 @@ window.addEventListener('beforeunload', function(e) {
         });
 
         // ========================================
-        // V1979: オーダー転送機能（リニューアル）
+        // V1983: オーダー転送機能（プロ仕様リニューアル）
         // ========================================
 
-        // 編集中セクションのトラッキング
-        let orderTransferEditSections = {};
+        // 現在選択中の業者インデックス
+        let currentFranchiseIndex = 0;
+
+        // 紹介料を数値に変換
+        function parseFee(feeStr) {
+            if (typeof feeStr === 'number') return feeStr;
+            const num = parseInt(String(feeStr).replace(/[^0-9]/g, ''), 10);
+            return isNaN(num) ? 20000 : num;
+        }
+
+        // 紹介料をフォーマット
+        function formatFee(num) {
+            return '¥' + num.toLocaleString('ja-JP');
+        }
 
         // オーダー転送モーダルを表示
         function showOrderTransferModal() {
@@ -10459,12 +10368,14 @@ window.addEventListener('beforeunload', function(e) {
                 if (isSelected) {
                     const franchiseId = item.getAttribute('data-franchise-id');
                     const franchiseName = item.querySelector('.font-semibold')?.textContent || 'Unknown';
-                    const fee = item.querySelector('.text-pink-600')?.textContent || '¥20,000';
+                    const feeText = item.querySelector('.text-pink-600')?.textContent || '¥20,000';
+                    const feeNum = parseFee(feeText);
 
                     selectedFranchises.push({
                         id: franchiseId,
                         name: franchiseName,
-                        fee: fee
+                        fee: feeNum,
+                        transferMessage: ''  // 各社ごとの転送文
                     });
                 }
             });
@@ -10482,16 +10393,12 @@ window.addEventListener('beforeunload', function(e) {
             // casesDataから現在の案件データを取得
             const caseData = casesData[currentCaseId] || {};
             const now = new Date();
-            const deliveryDate = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-
-            // 紹介料計算（1社あたり）
-            const feePerCompany = caseData.amount || '¥20K';
+            const deliveryDate = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
             // モーダルデータを作成
             window.currentOrderTransferData = {
                 cvId: currentCaseId,
                 deliveryDate: deliveryDate,
-                fee: feePerCompany,
                 // お客様情報
                 name: caseData.name || '',
                 nameKana: caseData.nameKana || '',
@@ -10511,9 +10418,8 @@ window.addEventListener('beforeunload', function(e) {
                 previousConstructionTime: caseData.previousConstructionTime || '',
                 roofMaterial: caseData.roofMaterial || '',
                 wallMaterial: caseData.wallMaterial || '',
-                homeAddress: caseData.homeAddress || '',  // 別途自宅住所
-                // お客様追加情報
-                altPhone: caseData.altPhone || '',  // 別途連絡先（例：奥様090-xxxx-xxxx）
+                homeAddress: caseData.homeAddress || '',
+                altPhone: caseData.altPhone || '',
                 // 希望内容
                 workItems: Array.isArray(caseData.workItems) ? caseData.workItems.join('、') : (caseData.workItems || ''),
                 constructionTiming: caseData.constructionTiming || '',
@@ -10521,27 +10427,139 @@ window.addEventListener('beforeunload', function(e) {
                 surveyAttendance: caseData.surveyAttendance || '',
                 quoteCount: caseData.quoteCount || '',
                 nextCallDate: caseData.nextCallDate || '',
-                // 追加情報
-                selectionCriteria: caseData.selectionCriteria || caseData.q17_selectionCriteria || '',  // 業者選定条件
-                contactTimeSlot: caseData.contactTimeSlot || '',  // 連絡時間帯
-                specialItems: caseData.specialItems || '',  // 特殊項目（遮熱断熱塗料、太陽光パネル脱着等）
-                // メモ
+                selectionCriteria: caseData.selectionCriteria || caseData.q17_selectionCriteria || '',
+                contactTimeSlot: caseData.contactTimeSlot || '',
+                specialItems: caseData.specialItems || '',
                 memo: caseData.memo || caseData.caseMemo || '',
                 // 転送先
                 selectedFranchises: selectedFranchises
             };
 
+            // 各社の転送文を生成
+            selectedFranchises.forEach((f, i) => {
+                f.transferMessage = generateTransferMessageForFranchise(i);
+            });
+
             // UI更新
+            currentFranchiseIndex = 0;
             populateOrderTransferModal();
-            generateTransferMessage();
 
             // モーダル表示
             const modal = document.getElementById('orderTransferModal');
             modal.style.display = 'flex';
             modal.classList.remove('hidden');
+        }
 
-            // 編集状態リセット
-            orderTransferEditSections = {};
+        // 各社向け転送メッセージ生成（プロフェッショナル版・絵文字なし）
+        function generateTransferMessageForFranchise(franchiseIndex) {
+            const d = window.currentOrderTransferData;
+            if (!d) return '';
+
+            const f = d.selectedFranchises[franchiseIndex];
+            if (!f) return '';
+
+            const mapLink = d.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}` : '';
+
+            let msg = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+外壁塗装くらべる 案件紹介のご連絡
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${f.name} 御中
+
+平素よりお世話になっております。
+外壁塗装くらべる運営事務局でございます。
+
+下記の通り案件をご紹介させていただきます。
+お客様へのご連絡、現地調査、お見積りのご提出を
+よろしくお願いいたします。
+
+-------------------------------------------
+【配信情報】
+-------------------------------------------
+配信日時: ${d.deliveryDate}
+紹介料: ${formatFee(f.fee)}（税別）
+管理番号: ${d.cvId}
+
+-------------------------------------------
+【お客様情報】
+-------------------------------------------
+氏名: ${d.name}${d.nameKana ? `（${d.nameKana}）` : ''}
+電話番号: ${d.phone}`;
+
+            if (d.altPhone) msg += `\n別途連絡先: ${d.altPhone}`;
+            if (d.email) msg += `\nメールアドレス: ${d.email}`;
+
+            const genderAge = [d.gender, d.age].filter(x=>x).join(' / ');
+            if (genderAge) msg += `\n性別/年代: ${genderAge}`;
+            if (d.relation) msg += `\n続柄: ${d.relation}`;
+
+            msg += `
+
+-------------------------------------------
+【物件情報】
+-------------------------------------------
+所在地: ${d.postalCode ? `〒${d.postalCode} ` : ''}${d.address || '未設定'}`;
+
+            if (d.homeAddress) msg += `\n自宅住所: ${d.homeAddress}`;
+
+            const propInfo = [d.propertyType, d.floors].filter(x=>x).join(' / ');
+            if (propInfo) msg += `\n物件種別: ${propInfo}`;
+            if (d.area) msg += `\n延床面積: ${d.area}`;
+            if (d.buildingAge) msg += `\n築年数: ${d.buildingAge}`;
+
+            let paintHistory = d.constructionCount || '';
+            if (d.previousConstructionTime) paintHistory += `（前回: ${d.previousConstructionTime}）`;
+            if (paintHistory) msg += `\n塗装履歴: ${paintHistory}`;
+
+            if (d.roofMaterial) msg += `\n屋根材: ${d.roofMaterial}`;
+            if (d.wallMaterial) msg += `\n外壁材: ${d.wallMaterial}`;
+
+            if (mapLink) msg += `\n\nGoogle Maps:\n${mapLink}`;
+
+            msg += `
+
+-------------------------------------------
+【ご希望内容】
+-------------------------------------------`;
+            if (d.workItems) msg += `\n施工箇所: ${d.workItems}`;
+            if (d.constructionTiming) msg += `\n施工時期: ${d.constructionTiming}`;
+            if (d.companiesCount) msg += `\n希望社数: ${d.companiesCount}社`;
+            if (d.surveyAttendance) msg += `\n立会い: ${d.surveyAttendance}`;
+            if (d.quoteCount) msg += `\n他社見積: ${d.quoteCount}`;
+            if (d.nextCallDate) msg += `\n連絡希望日時: ${d.nextCallDate}`;
+            if (d.contactTimeSlot) msg += `\n連絡時間帯: ${d.contactTimeSlot}`;
+            if (d.selectionCriteria) msg += `\n業者選定条件: ${d.selectionCriteria}`;
+            if (d.specialItems) msg += `\n特殊項目: ${d.specialItems}`;
+
+            if (d.memo) {
+                msg += `
+
+-------------------------------------------
+【案件メモ】
+-------------------------------------------
+${d.memo}`;
+            }
+
+            msg += `
+
+-------------------------------------------
+【重要事項】
+-------------------------------------------
+■ キャンセル期限
+転送日を含む7営業日以内（23:59まで）
+
+■ キャンセル申請
+https://gaihekikuraberu.com/franchise-dashboard/
+
+■ 成約報告義務
+成約後は速やかにご報告をお願いいたします。
+未申告の場合、契約に基づき罰則の対象となります。
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+外壁塗装くらべる 運営事務局
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+            return msg;
         }
 
         // モーダルにデータを反映
@@ -10552,250 +10570,79 @@ window.addEventListener('beforeunload', function(e) {
             // CV-ID
             document.getElementById('orderTransferCvId').textContent = `CV-ID: ${d.cvId}`;
 
-            // 配信情報
-            document.getElementById('otDeliveryDate').textContent = d.deliveryDate;
-            document.getElementById('otFee').textContent = d.fee + '（税別）';
-
-            // お客様情報
-            document.getElementById('otName').textContent = d.name + (d.nameKana ? `（${d.nameKana}）` : '');
-            document.getElementById('otPhone').textContent = d.phone || '未設定';
-            // 別途連絡先（あれば表示）
-            if (d.altPhone) {
-                document.getElementById('otAltPhoneRow').style.display = 'flex';
-                document.getElementById('otAltPhone').textContent = d.altPhone;
-            } else {
-                document.getElementById('otAltPhoneRow').style.display = 'none';
-            }
-            document.getElementById('otEmail').textContent = d.email || '未設定';
-            document.getElementById('otGenderAge').textContent = [d.gender, d.age].filter(x=>x).join(' / ') || '未設定';
-            document.getElementById('otRelation').textContent = d.relation || '未設定';
-
-            // 物件情報
-            const fullAddress = d.postalCode ? `〒${d.postalCode} ${d.address}` : d.address;
-            document.getElementById('otAddress').textContent = fullAddress || '未設定';
-            // 別途自宅住所（あれば表示）
-            if (d.homeAddress) {
-                document.getElementById('otHomeAddressRow').style.display = 'flex';
-                document.getElementById('otHomeAddress').textContent = d.homeAddress;
-            } else {
-                document.getElementById('otHomeAddressRow').style.display = 'none';
-            }
-            const propType = [d.propertyType, d.floors, d.area].filter(x=>x).join('・');
-            document.getElementById('otPropertyType').textContent = propType || '未設定';
-            document.getElementById('otBuildingAge').textContent = d.buildingAge || '未設定';
-            const paintHistory = [d.constructionCount, d.previousConstructionTime].filter(x=>x).join(' / ');
-            document.getElementById('otPaintHistory').textContent = paintHistory || '未設定';
-            const materials = [d.roofMaterial, d.wallMaterial].filter(x=>x).join(' / ');
-            document.getElementById('otMaterials').textContent = materials || '未設定';
-
-            // 希望内容
-            document.getElementById('otWorkItems').textContent = d.workItems || '未設定';
-            document.getElementById('otTiming').textContent = d.constructionTiming || '未設定';
-            document.getElementById('otCompanyCount').textContent = d.companiesCount ? `${d.companiesCount}社` : '未設定';
-            document.getElementById('otAttendance').textContent = d.surveyAttendance || '未設定';
-            document.getElementById('otQuoteStatus').textContent = d.quoteCount || '未設定';
-
-            // 架電連絡日時（あれば表示）
-            if (d.nextCallDate) {
-                document.getElementById('otCallDateRow').style.display = 'flex';
-                document.getElementById('otCallDate').textContent = d.nextCallDate;
-            } else {
-                document.getElementById('otCallDateRow').style.display = 'none';
-            }
-
-            // メモ
-            document.getElementById('otMemoView').textContent = d.memo || 'なし';
-
-            // 転送先業者
+            // 転送先業者リスト（タップで選択・紹介料編集可能）
             const franchiseHtml = d.selectedFranchises.map((f, i) => `
-                <div class="flex items-center justify-between p-2 bg-white rounded-lg border border-orange-300">
-                    <div class="flex items-center gap-2">
-                        <span class="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-bold">${i+1}</span>
-                        <span class="font-medium">${f.name}</span>
+                <div class="franchise-transfer-item flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${i === currentFranchiseIndex ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'}" onclick="selectFranchiseForPreview(${i})">
+                    <span class="w-8 h-8 ${i === currentFranchiseIndex ? 'bg-blue-600' : 'bg-gray-400'} text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">${i+1}</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-semibold text-gray-800 truncate">${f.name}</div>
                     </div>
-                    <span class="text-pink-600 font-bold">${f.fee}</span>
+                    <div class="flex items-center gap-1 flex-shrink-0" onclick="event.stopPropagation()">
+                        <select onchange="updateFranchiseFee(${i}, this.value)" class="text-sm border border-gray-300 rounded px-2 py-1 bg-white font-medium text-green-700">
+                            ${generateFeeOptions(f.fee)}
+                        </select>
+                    </div>
                 </div>
             `).join('');
             document.getElementById('otFranchiseList').innerHTML = franchiseHtml;
 
-            // 編集フィールドにも値をセット
-            document.getElementById('otNameEdit').value = d.name;
-            document.getElementById('otKanaEdit').value = d.nameKana;
-            document.getElementById('otPhoneEdit').value = d.phone;
-            document.getElementById('otAltPhoneEdit').value = d.altPhone;
-            document.getElementById('otEmailEdit').value = d.email;
-            document.getElementById('otGenderEdit').value = d.gender;
-            document.getElementById('otAgeEdit').value = d.age;
-            document.getElementById('otRelationEdit').value = d.relation;
-            document.getElementById('otPostalCodeEdit').value = d.postalCode;
-            document.getElementById('otAddressEdit').value = d.address;
-            document.getElementById('otHomeAddressEdit').value = d.homeAddress;
-            document.getElementById('otPropertyTypeEdit').value = d.propertyType;
-            document.getElementById('otFloorsEdit').value = d.floors;
-            document.getElementById('otAreaEdit').value = d.area;
-            document.getElementById('otBuildingAgeEdit').value = d.buildingAge;
-            document.getElementById('otConstructionCountEdit').value = d.constructionCount;
-            document.getElementById('otRoofEdit').value = d.roofMaterial;
-            document.getElementById('otWallEdit').value = d.wallMaterial;
-            document.getElementById('otWorkItemsEdit').value = d.workItems;
-            document.getElementById('otTimingEdit').value = d.constructionTiming;
-            document.getElementById('otCompanyCountEdit').value = d.companiesCount;
-            document.getElementById('otAttendanceEdit').value = d.surveyAttendance;
-            document.getElementById('otQuoteStatusEdit').value = d.quoteCount;
-            document.getElementById('otCallDateEdit').value = d.nextCallDate;
-            document.getElementById('otMemoEditText').value = d.memo;
+            // 選択中の業者名を表示
+            const currentFranchise = d.selectedFranchises[currentFranchiseIndex];
+            document.getElementById('otPreviewTarget').textContent = `選択中: ${currentFranchise?.name || '---'}`;
+
+            // 転送文プレビューを表示
+            const textarea = document.getElementById('otTransferPreview');
+            textarea.value = currentFranchise?.transferMessage || '';
+
+            // テキストエリアの変更をリアルタイム反映
+            textarea.onchange = function() {
+                if (d.selectedFranchises[currentFranchiseIndex]) {
+                    d.selectedFranchises[currentFranchiseIndex].transferMessage = this.value;
+                }
+            };
+            textarea.oninput = function() {
+                if (d.selectedFranchises[currentFranchiseIndex]) {
+                    d.selectedFranchises[currentFranchiseIndex].transferMessage = this.value;
+                }
+            };
         }
 
-        // セクションの編集切替
-        function toggleOrderSection(section) {
-            event.stopPropagation();
-
-            const viewEl = document.getElementById(`ot${section.charAt(0).toUpperCase() + section.slice(1)}View`);
-            const editEl = document.getElementById(`ot${section.charAt(0).toUpperCase() + section.slice(1)}Edit`);
-
-            if (!viewEl || !editEl) return;
-
-            const isEditing = orderTransferEditSections[section];
-
-            if (isEditing) {
-                // 編集終了 → 値を更新
-                saveOrderSectionEdits(section);
-                viewEl.classList.remove('hidden');
-                editEl.classList.add('hidden');
-                orderTransferEditSections[section] = false;
-            } else {
-                // 編集開始
-                viewEl.classList.add('hidden');
-                editEl.classList.remove('hidden');
-                orderTransferEditSections[section] = true;
+        // 紹介料選択肢を生成（0円〜100,000円、1,000円刻み）
+        function generateFeeOptions(currentFee) {
+            let html = '';
+            for (let fee = 0; fee <= 100000; fee += 1000) {
+                const selected = fee === currentFee ? 'selected' : '';
+                html += `<option value="${fee}" ${selected}>${formatFee(fee)}</option>`;
             }
+            return html;
         }
 
-        // 編集内容を保存
-        function saveOrderSectionEdits(section) {
+        // 業者の紹介料を更新
+        function updateFranchiseFee(index, newFee) {
             const d = window.currentOrderTransferData;
-            if (!d) return;
+            if (!d || !d.selectedFranchises[index]) return;
 
-            if (section === 'customer') {
-                d.name = document.getElementById('otNameEdit').value;
-                d.nameKana = document.getElementById('otKanaEdit').value;
-                d.phone = document.getElementById('otPhoneEdit').value;
-                d.altPhone = document.getElementById('otAltPhoneEdit').value;
-                d.email = document.getElementById('otEmailEdit').value;
-                d.gender = document.getElementById('otGenderEdit').value;
-                d.age = document.getElementById('otAgeEdit').value;
-                d.relation = document.getElementById('otRelationEdit').value;
-            } else if (section === 'property') {
-                d.postalCode = document.getElementById('otPostalCodeEdit').value;
-                d.address = document.getElementById('otAddressEdit').value;
-                d.homeAddress = document.getElementById('otHomeAddressEdit').value;
-                d.propertyType = document.getElementById('otPropertyTypeEdit').value;
-                d.floors = document.getElementById('otFloorsEdit').value;
-                d.area = document.getElementById('otAreaEdit').value;
-                d.buildingAge = document.getElementById('otBuildingAgeEdit').value;
-                d.constructionCount = document.getElementById('otConstructionCountEdit').value;
-                d.roofMaterial = document.getElementById('otRoofEdit').value;
-                d.wallMaterial = document.getElementById('otWallEdit').value;
-            } else if (section === 'request') {
-                d.workItems = document.getElementById('otWorkItemsEdit').value;
-                d.constructionTiming = document.getElementById('otTimingEdit').value;
-                d.companiesCount = document.getElementById('otCompanyCountEdit').value;
-                d.surveyAttendance = document.getElementById('otAttendanceEdit').value;
-                d.quoteCount = document.getElementById('otQuoteStatusEdit').value;
-                d.nextCallDate = document.getElementById('otCallDateEdit').value;
-            } else if (section === 'memo') {
-                d.memo = document.getElementById('otMemoEditText').value;
+            d.selectedFranchises[index].fee = parseInt(newFee, 10);
+            // 転送文を再生成
+            d.selectedFranchises[index].transferMessage = generateTransferMessageForFranchise(index);
+
+            // 現在選択中ならプレビュー更新
+            if (index === currentFranchiseIndex) {
+                document.getElementById('otTransferPreview').value = d.selectedFranchises[index].transferMessage;
             }
+        }
 
-            // 表示更新
+        // 業者を選択してプレビュー表示
+        function selectFranchiseForPreview(index) {
+            currentFranchiseIndex = index;
             populateOrderTransferModal();
-            generateTransferMessage();
-        }
-
-        // 転送メッセージ生成
-        function generateTransferMessage() {
-            const d = window.currentOrderTransferData;
-            if (!d) return;
-
-            // Googleマップリンク生成
-            const mapLink = d.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}` : '';
-
-            const msg = `════════════════════════════════════════
-🏠 【くらべる外壁塗装】ご紹介案件のご連絡
-════════════════════════════════════════
-
-この度は案件配信をさせていただきます。
-お客様へのご連絡・現地調査・お見積りご提示を
-よろしくお願いいたします。
-
-────────────────────────────────────────
-📋 配信情報
-────────────────────────────────────────
-　配信日時　：${d.deliveryDate}
-　紹介料　　：${d.fee}（税別）
-　CV-ID　　 ：${d.cvId}
-
-────────────────────────────────────────
-👤 お客様情報
-────────────────────────────────────────
-　氏名　　　：${d.name}${d.nameKana ? `（${d.nameKana}）` : ''}
-　電話番号　：${d.phone}
-${d.altPhone ? `　別途連絡　：${d.altPhone}\n` : ''}${d.email ? `　メール　　：${d.email}\n` : ''}　性別/年代 ：${[d.gender, d.age].filter(x=>x).join(' / ') || '未設定'}
-　続柄　　　：${d.relation || '未設定'}
-
-────────────────────────────────────────
-🏡 物件情報
-────────────────────────────────────────
-　住所　　　：${d.postalCode ? `〒${d.postalCode}\n　　　　　　　` : ''}${d.address}
-${d.homeAddress ? `　自宅住所　：${d.homeAddress}\n` : ''}　物件種別　：${[d.propertyType, d.floors].filter(x=>x).join('・') || '未設定'}
-${d.area ? `　延床面積　：${d.area}\n` : ''}　築年数　　：${d.buildingAge || '未設定'}
-　塗装履歴　：${d.constructionCount || '未設定'}${d.previousConstructionTime ? `（前回: ${d.previousConstructionTime}）` : ''}
-
-　▼ 現状
-　屋根材　　：${d.roofMaterial || '未設定'}
-　外壁材　　：${d.wallMaterial || '未設定'}
-${mapLink ? `\n　📍 Googleマップ\n　${mapLink}\n` : ''}
-────────────────────────────────────────
-🔧 ご希望内容
-────────────────────────────────────────
-　施工箇所　：${d.workItems || '未設定'}
-　施工時期　：${d.constructionTiming || '未設定'}
-　希望社数　：${d.companiesCount ? d.companiesCount + '社' : '未設定'}
-　立会い　　：${d.surveyAttendance || '未設定'}
-　他社見積　：${d.quoteCount || '未設定'}
-${d.nextCallDate ? `　架電希望　：${d.nextCallDate}\n` : ''}${d.contactTimeSlot ? `　連絡時間帯：${d.contactTimeSlot}\n` : ''}${d.selectionCriteria ? `　業者選定　：${d.selectionCriteria}\n` : ''}${d.specialItems ? `　特殊項目　：${d.specialItems}\n` : ''}
-────────────────────────────────────────
-📝 案件メモ（ヒアリング内容）
-────────────────────────────────────────
-${d.memo || 'なし'}
-
-────────────────────────────────────────
-⚠️ 重要事項（必ずご確認ください）
-────────────────────────────────────────
-【キャンセル期限】
-　転送日を含む7営業日以内（23:59まで）
-
-【キャンセル申請】
-　https://gaihekikuraberu.com/franchise-dashboard/
-
-【成約報告義務】
-　成約後は速やかにご報告ください。
-　未申告は契約に基づき最大300万円の
-　罰則対象となります。
-
-════════════════════════════════════════
-　　くらべる外壁塗装 運営事務局
-════════════════════════════════════════`;
-
-            document.getElementById('otTransferPreview').textContent = msg;
-            window.currentOrderTransferData.transferMessage = msg;
         }
 
         // 転送文コピー
         function copyTransferMessage() {
-            const msg = window.currentOrderTransferData?.transferMessage;
-            if (msg) {
-                navigator.clipboard.writeText(msg);
+            const textarea = document.getElementById('otTransferPreview');
+            if (textarea && textarea.value) {
+                navigator.clipboard.writeText(textarea.value);
                 showNotification('転送文をコピーしました', 'success');
             }
         }
@@ -10806,11 +10653,10 @@ ${d.memo || 'なし'}
             modal.style.display = 'none';
             modal.classList.add('hidden');
             window.currentOrderTransferData = null;
-            orderTransferEditSections = {};
+            currentFranchiseIndex = 0;
         }
 
         // オーダー転送を実行（保存＆転送）
-        // Step 1: スプシに保存 → Step 2: 転送メッセージ再生成 → Step 3: 転送実行
         async function sendOrderTransfer() {
             if (!window.currentOrderTransferData) {
                 alert('転送データがありません');
@@ -10819,12 +10665,12 @@ ${d.memo || 'なし'}
 
             const button = document.getElementById('orderTransferSubmitBtn');
             button.disabled = true;
-            button.innerHTML = '<span class="animate-spin">⏳</span> 保存中...';
+            button.textContent = '保存中...';
 
             try {
                 const d = window.currentOrderTransferData;
 
-                // 全編集データをオブジェクトにまとめる
+                // 案件データをまとめる
                 const caseDataToSave = {
                     name: d.name,
                     nameKana: d.nameKana,
@@ -10857,7 +10703,7 @@ ${d.memo || 'なし'}
                     memo: d.memo
                 };
 
-                // Step 1: まずスプシに保存
+                // Step 1: スプシに保存
                 const saveResponse = await window.apiClient.postRequest('saveCaseData', {
                     cvId: d.cvId,
                     caseData: caseDataToSave
@@ -10872,25 +10718,22 @@ ${d.memo || 'なし'}
                     Object.assign(casesData[d.cvId], caseDataToSave);
                 }
 
-                // Step 2: 保存完了後、最新データで転送メッセージを再生成
-                generateTransferMessage();
+                button.textContent = '転送中...';
 
-                button.innerHTML = '<span class="animate-spin">⏳</span> 転送中...';
-
-                // Step 3: 転送実行
+                // Step 2: 転送実行（各社ごとの転送文を送信）
                 const transferResponse = await window.apiClient.postRequest('sendOrderTransfer', {
                     cvId: d.cvId,
-                    franchises: d.selectedFranchises.map((f, i) => ({
+                    franchises: d.selectedFranchises.map((f) => ({
                         franchiseId: f.id,
                         franchiseName: f.name,
-                        fee: f.fee
+                        fee: f.fee,
+                        transferMessage: f.transferMessage  // 各社ごとの転送文
                     })),
-                    transferMessage: window.currentOrderTransferData.transferMessage,
                     caseData: caseDataToSave
                 });
 
                 if (transferResponse.success) {
-                    showNotification(`✅ 保存＆転送完了！${d.selectedFranchises.length}社に配信しました`, 'success');
+                    showNotification(`転送完了: ${d.selectedFranchises.length}社に配信しました`, 'success');
                     closeOrderTransferModal();
 
                     // ステータスを「配信中」に更新
@@ -10908,10 +10751,10 @@ ${d.memo || 'なし'}
                 }
             } catch (error) {
                 console.error('オーダー転送エラー:', error);
-                alert('❌ 保存＆転送に失敗しました\n' + error.message);
+                alert('転送に失敗しました\n' + error.message);
             } finally {
                 button.disabled = false;
-                button.innerHTML = '<span>💾</span> 保存＆転送';
+                button.textContent = '保存して転送';
             }
         }
 
