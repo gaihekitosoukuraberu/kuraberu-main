@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1995 - オーダー転送メール送信機能）
-  CACHE_BUSTER: 'v1995-order-transfer-email'
+  CACHE_BUSTER: 'v1764476955-fe28f1d3'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
