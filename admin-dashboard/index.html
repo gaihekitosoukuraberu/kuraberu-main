@@ -4166,8 +4166,9 @@ window.addEventListener('beforeunload', function(e) {
 
         // オプションボタンの選択機能（イベント委任を使用）
         document.addEventListener('click', function(e) {
-            if (e.target && e.target.classList.contains('option-button')) {
-                const button = e.target;
+            // V2015: span等の子要素クリック時も親buttonを取得
+            const button = e.target.closest('.option-button');
+            if (button) {
                 const parentGroup = button.closest('[data-single-select]');
 
                 if (parentGroup) {
@@ -4209,12 +4210,28 @@ window.addEventListener('beforeunload', function(e) {
                             validateEmptyFields();
                         }
                     } else {
-                        // マルチセレクトモードの場合（従来の動作）
+                        // マルチセレクトモードの場合
                         button.classList.toggle('selected');
+                        // V2015: 視覚的なスタイルも更新
+                        if (button.classList.contains('selected')) {
+                            button.classList.remove('bg-white', 'border-gray-300', 'text-gray-700');
+                            button.classList.add('bg-purple-500', 'border-purple-500', 'text-white', 'shadow-md');
+                        } else {
+                            button.classList.add('bg-white', 'border-gray-300', 'text-gray-700');
+                            button.classList.remove('bg-purple-500', 'border-purple-500', 'text-white', 'shadow-md');
+                        }
                     }
                 } else {
-                    // data-single-select属性がない場合（従来の動作）
+                    // data-single-select属性がない場合（マルチセレクト）
                     button.classList.toggle('selected');
+                    // V2015: 視覚的なスタイルも更新
+                    if (button.classList.contains('selected')) {
+                        button.classList.remove('bg-white', 'border-gray-300', 'text-gray-700');
+                        button.classList.add('bg-purple-500', 'border-purple-500', 'text-white', 'shadow-md');
+                    } else {
+                        button.classList.add('bg-white', 'border-gray-300', 'text-gray-700');
+                        button.classList.remove('bg-purple-500', 'border-purple-500', 'text-white', 'shadow-md');
+                    }
                 }
             }
         });
