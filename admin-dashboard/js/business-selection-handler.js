@@ -73,17 +73,17 @@
 // ============================================
 // 🔥 バージョン定数（V1947-POSTAL-CODE-FILTERING）
 // ============================================
-const BUSINESS_SELECTION_HANDLER_VERSION = 1947;
-const EXPECTED_MIN_VERSION = 1947;
+const BUSINESS_SELECTION_HANDLER_VERSION = 2005;
+const EXPECTED_MIN_VERSION = 2005;
 
 // ============================================
-// 🔥 バージョン確認ログ（V1947）
+// 🔥 バージョン確認ログ（V2005）
 // ============================================
-console.log('%c[BusinessSelectionHandler] V1947 loaded successfully', 'color: #00ff00; font-weight: bold; font-size: 18px');
+console.log('%c[BusinessSelectionHandler] V2005 loaded successfully', 'color: #00ff00; font-weight: bold; font-size: 18px');
 console.log('[BusinessSelectionHandler] Version: ' + BUSINESS_SELECTION_HANDLER_VERSION);
-console.log('[BusinessSelectionHandler] Timestamp: 2025-11-28 22:00 JST');
-console.log('[BusinessSelectionHandler] V1947 Features: 郵便番号フィルタリング最適化 - 距離計算前に郵便番号で8-10社に絞り込み');
-console.log('[BusinessSelectionHandler] V1947: Performance optimization for 1000+ franchises');
+console.log('[BusinessSelectionHandler] Timestamp: 2025-11-30 22:50 JST');
+console.log('[BusinessSelectionHandler] V2005 Features: 転送済みバッジ表示 - jsonpRequest API修正');
+console.log('[BusinessSelectionHandler] V2005: getDeliveredFranchises API working');
 
 // ============================================
 // 🔥 V1929: バージョンチェック & キャッシュ警告バナー表示
