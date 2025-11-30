@@ -2358,8 +2358,9 @@ const AdminSystem = {
         // 28:見積金額, 29:見積提出日時, 30:成約日時, 31:成約金額, 32:辞退理由, 33:辞退日時,
         // 34:キャンセル申請ID, 35:期限延長申請ID, 36:お断りメール送信済みフラグ, 37:配信金額
         // V1999: お断りメール送信済みフラグはチェックボックス→false（boolean）
+        // V2000: 配信ステータスは「配信済み」に統一
         return [recordId, cvId, franchise.franchiseId, timestamp, franchise.rank || (index + 1),
-          '配信済', '未対応', timestamp, timestamp, 0, 0, 0, 0, '', '', '', '', '', '[]', '', '[]', '[]', '', '', '', '', '', '', '', '', '', '', '', '', '', false, fee];
+          '配信済み', '未対応', timestamp, timestamp, 0, 0, 0, 0, '', '', '', '', '', '[]', '', '[]', '[]', '', '', '', '', '', '', '', '', '', '', '', '', '', false, fee];
       });
 
       // V2014: デバッグ - records配列の内容を確認
@@ -2572,21 +2573,23 @@ const AdminSystem = {
             const hopeCountStr = userData[i][userHopeIdx] || '3社';
             const hopeCount = parseInt(hopeCountStr) || 3;
 
-            // ステータス判定
-            // - 残り0社 → 配信中のまま or 元のステータスに戻す（新規など）
-            // - 残り1社以上で希望社数未満 → 配信中
-            // - 残り希望社数以上 → 配信済（通常ここには来ない）
+            // V2000: ステータス判定 - 配信ステータス列の入力規則に注意
+            // 入力規則: 配信済み, 成約, 失注, キャンセル承認済み（「配信中」「新規」は不可）
+            // - 残り0社 → 配信ステータスは更新しない（元のまま or クリア）
+            // - 残り1社以上で希望社数未満 → 配信ステータスは更新しない
+            // - 残り希望社数以上 → 配信済み
             if (remainingCount === 0) {
-              // 転送が0になった場合、「新規」に戻す（または配信中のまま）
-              newStatus = '新規';
+              // 転送が0になった場合、配信ステータスをクリア（入力規則で「新規」は不可）
+              newStatus = '';
             } else if (remainingCount < hopeCount) {
-              newStatus = '配信中';
+              // 配信中は入力規則にないのでスキップ
+              newStatus = null;
             } else {
-              newStatus = '配信済';
+              newStatus = '配信済み';
             }
 
-            // 現在のステータスと異なる場合のみ更新
-            if (currentStatus !== newStatus) {
+            // 現在のステータスと異なる場合のみ更新（nullの場合はスキップ）
+            if (newStatus !== null && currentStatus !== newStatus) {
               userSheet.getRange(i + 1, userStatusIdx + 1).setValue(newStatus);
               console.log('[cancelTransfer] ステータス更新:', currentStatus, '→', newStatus);
             }
@@ -2701,8 +2704,11 @@ const AdminSystem = {
       }
 
       // 希望社数に達したかどうかでステータスを決定
-      const statusToSet = totalTransferCount >= desiredCount ? '配信済' : '配信中';
-      console.log('[updateUserSheetDeliveryStatus] ステータス判定:', { existingCount, newFranchiseCount, totalTransferCount, desiredCount, statusToSet });
+      // V2000: スプレッドシートのデータ入力規則に合わせる（配信済み, 成約, 失注, キャンセル承認済み）
+      // 配信途中の場合は「未配信」を維持（入力規則に「配信中」がないため）
+      const deliveryStatusToSet = totalTransferCount >= desiredCount ? '配信済み' : null; // nullの場合は更新しない
+      const managementStatusToSet = totalTransferCount >= desiredCount ? '配信済み' : '案件メール配信中';
+      console.log('[updateUserSheetDeliveryStatus] ステータス判定:', { existingCount, newFranchiseCount, totalTransferCount, desiredCount, deliveryStatusToSet, managementStatusToSet });
 
       // 配信先業者一覧を作成（既存 + 新規）
       const existingList = targetRowData[franchiseListIdx] || '';
@@ -2723,8 +2729,9 @@ const AdminSystem = {
       const franchiseStatusJson = JSON.stringify(franchiseStatusObj);
 
       // 各カラムを更新（配信先加盟店数は更新しない - 配信管理シートが正）
-      if (deliveryStatusIdx !== -1) {
-        userSheet.getRange(targetRow, deliveryStatusIdx + 1).setValue(statusToSet);
+      // V2000: 配信ステータス列はデータ入力規則があるため、許可値のみ書き込む
+      if (deliveryStatusIdx !== -1 && deliveryStatusToSet !== null) {
+        userSheet.getRange(targetRow, deliveryStatusIdx + 1).setValue(deliveryStatusToSet);
       }
       if (deliveryDateIdx !== -1) {
         userSheet.getRange(targetRow, deliveryDateIdx + 1).setValue(timestamp);
@@ -2733,13 +2740,13 @@ const AdminSystem = {
         userSheet.getRange(targetRow, franchiseListIdx + 1).setValue(franchiseNames);
       }
       if (managementStatusIdx !== -1) {
-        userSheet.getRange(targetRow, managementStatusIdx + 1).setValue(statusToSet);
+        userSheet.getRange(targetRow, managementStatusIdx + 1).setValue(managementStatusToSet);
       }
       if (franchiseStatusIdx !== -1) {
         userSheet.getRange(targetRow, franchiseStatusIdx + 1).setValue(franchiseStatusJson);
       }
 
-      console.log('[updateUserSheetDeliveryStatus] 更新完了:', cvId, '配信先:', totalTransferCount, '/', desiredCount, '社', 'ステータス:', statusToSet);
+      console.log('[updateUserSheetDeliveryStatus] 更新完了:', cvId, '配信先:', totalTransferCount, '/', desiredCount, '社', 'deliveryStatus:', deliveryStatusToSet, 'managementStatus:', managementStatusToSet);
     } catch (e) {
       console.error('[updateUserSheetDeliveryStatus] エラー:', e);
     }
