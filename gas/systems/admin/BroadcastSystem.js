@@ -14,6 +14,39 @@
  * - 「一斉配信レスポンス」シート: 購入/気になるの応答履歴
  */
 
+// V1903: 工事種別料金マッピング
+var WORK_TYPE_PRICES = {
+  // 通常料金 ¥20,000
+  '外壁塗装': 20000,
+  '外壁カバー工法': 20000,
+  '外壁張替え': 20000,
+  '屋根塗装（外壁工事含む）': 20000,
+  '屋上防水（外壁工事含む）': 20000,
+  '屋根葺き替え・張り替え※スレート・ガルバリウム等': 20000,
+  '屋根葺き替え・張り替え※瓦': 20000,
+  '屋根カバー工法': 20000,
+  '外壁補修（外壁工事含む）': 20000,
+  '屋根補修（外壁工事含む）': 20000,
+  'ベランダ防水（外壁工事含む）': 20000,
+  '内装水回り（バス・キッチン・トイレ）（外壁工事含む）': 20000,
+  '内装（フローリングや畳などの床・クロス等）（外壁工事含む）': 20000,
+  '外壁雨漏り修繕（外壁工事含む）': 20000,
+  '屋根雨漏り修繕（屋根工事含む）': 20000,
+  // 単品料金
+  '屋根塗装単品': 10000,
+  '屋上防水単品': 10000,
+  '外壁補修単品': 5000,
+  '屋根補修単品': 5000,
+  'ベランダ防水単品': 5000,
+  '外壁雨漏り修繕単品': 5000,
+  '屋根雨漏り修繕単品': 5000
+};
+
+var SINGLE_ITEM_WORKS = [
+  '屋根塗装単品', '屋上防水単品', '外壁補修単品', '屋根補修単品',
+  'ベランダ防水単品', '外壁雨漏り修繕単品', '屋根雨漏り修繕単品'
+];
+
 var BroadcastSystem = {
   /**
    * GETリクエスト処理
@@ -143,6 +176,7 @@ var BroadcastSystem = {
       const buildingAge = cvData['築年数'] || '';
       const workItems = cvData['見積もり希望箇所'] || cvData['workItems'] || '';
       const maxCompanies = parseInt(cvData['companiesCount']) || 4;
+      const fee = this.calculateFee(cvData, maxCompanies);
 
       const previewText = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 【外壁塗装くらべる】案件のご案内
@@ -162,6 +196,7 @@ var BroadcastSystem = {
 物件種別: ${propertyType}
 築年数: ${buildingAge}年
 希望工事: ${workItems}
+紹介料: ¥${fee.toLocaleString()}（税別）
 残り枠: ${maxCompanies}社
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -275,8 +310,8 @@ var BroadcastSystem = {
       const broadcastId = 'BC' + Utilities.formatDate(now, 'Asia/Tokyo', 'yyMMddHHmmss');
       const timestamp = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
 
-      // 紹介料計算
-      const fee = this.calculateFee(cvData);
+      // 紹介料計算（残り枠数を使用）
+      const fee = this.calculateFee(cvData, remainingSlots);
 
       // GAS WebアプリURL取得
       const scriptUrl = ScriptApp.getService().getUrl();
@@ -691,18 +726,53 @@ var BroadcastSystem = {
   },
 
   /**
-   * 紹介料計算
+   * V1904: 紹介料計算（動的ルール対応）
+   * ルール:
+   * 1. 1社紹介 → ¥20,000 固定
+   * 2. 複数社 + 3F以上 + 戸建て以外 → ¥30,000（単品のみは除外）
+   * 3. 複数社 + (戸建てまたは2F以下) → 工事種別の最高料金
+   * 4. 複数社 + 単品のみ → 単品料金
    */
-  calculateFee: function(cvData) {
-    // 基本料金
-    let fee = 20000;
+  calculateFee: function(cvData, franchiseCount) {
+    franchiseCount = franchiseCount || 1;
 
-    // 工事内容による加算（簡易版）
-    const workItems = cvData['見積もり希望箇所'] || cvData['workItems'] || '';
-    if (workItems.includes('屋根')) fee += 5000;
-    if (workItems.includes('外壁') && workItems.includes('屋根')) fee += 5000;
+    // 1社紹介の場合は必ず¥20,000
+    if (franchiseCount === 1) {
+      return 20000;
+    }
 
-    return fee;
+    // 工事種別を取得
+    const workItemsStr = cvData['見積もり希望箇所'] || cvData['workItems'] || '';
+    const workTypes = workItemsStr.split(/[,、\n]/).map(function(s) { return s.trim(); }).filter(function(s) { return s; });
+
+    if (workTypes.length === 0) {
+      return 20000;
+    }
+
+    // 全て単品かチェック
+    var allSingleItems = workTypes.every(function(work) {
+      return SINGLE_ITEM_WORKS.indexOf(work) !== -1;
+    });
+
+    // 物件種別と階数を取得
+    var propertyType = cvData['依頼物件種別'] || cvData['物件種別'] || '';
+    var floors = parseInt(cvData['階数'] || cvData['floors'] || 0);
+
+    // 複数社紹介 + 3階以上 + 戸建て以外 → ¥30,000（単品のみは除外）
+    if (franchiseCount > 1 && floors >= 3 && propertyType !== '戸建て' && !allSingleItems) {
+      return 30000;
+    }
+
+    // 通常ケース: 最高料金を返す
+    var maxPrice = 0;
+    workTypes.forEach(function(workType) {
+      var price = WORK_TYPE_PRICES[workType] || 20000;
+      if (price > maxPrice) {
+        maxPrice = price;
+      }
+    });
+
+    return maxPrice || 20000;
   },
 
   /**
