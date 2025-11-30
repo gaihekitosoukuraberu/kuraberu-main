@@ -702,19 +702,33 @@ function doGet(e) {
         // updateCVDataの場合、dataパラメータをJSONパース (V1823)
         if (action === 'updateCVData' && e.parameter.data) {
           try {
+            // V2016: デバッグ - 受信した生データをログ
+            console.log('[main.js] V2016 updateCVData 受信: typeof data =', typeof e.parameter.data);
+            console.log('[main.js] V2016 updateCVData 受信: data(最初200文字) =', String(e.parameter.data).substring(0, 200));
+
             e.parameter.data = JSON.parse(e.parameter.data);
+            console.log('[main.js] V2016 パース後 data keys:', Object.keys(e.parameter.data || {}));
 
             // data内の配列フィールドもパース（api-client.jsで二重にJSON.stringifyされている）
-            if (e.parameter.data.workItems && typeof e.parameter.data.workItems === 'string') {
-              e.parameter.data.workItems = JSON.parse(e.parameter.data.workItems);
+            if (e.parameter.data.workItems) {
+              console.log('[main.js] V2016 workItems: typeof=', typeof e.parameter.data.workItems, ', value=', e.parameter.data.workItems);
+              if (typeof e.parameter.data.workItems === 'string') {
+                e.parameter.data.workItems = JSON.parse(e.parameter.data.workItems);
+                console.log('[main.js] V2016 workItems パース後:', e.parameter.data.workItems);
+              }
             }
-            if (e.parameter.data.specialItems && typeof e.parameter.data.specialItems === 'string') {
-              e.parameter.data.specialItems = JSON.parse(e.parameter.data.specialItems);
+            if (e.parameter.data.specialItems) {
+              console.log('[main.js] V2016 specialItems: typeof=', typeof e.parameter.data.specialItems, ', value=', e.parameter.data.specialItems);
+              if (typeof e.parameter.data.specialItems === 'string') {
+                e.parameter.data.specialItems = JSON.parse(e.parameter.data.specialItems);
+                console.log('[main.js] V2016 specialItems パース後:', e.parameter.data.specialItems);
+              }
             }
 
             console.log('[main.js] Parsed updateCVData data:', e.parameter.data);
           } catch (err) {
             console.error('[main.js] Failed to parse updateCVData data parameter:', err);
+            console.error('[main.js] 生データ:', e.parameter.data);
           }
         }
 

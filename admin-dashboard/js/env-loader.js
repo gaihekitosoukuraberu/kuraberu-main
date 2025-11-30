@@ -21,14 +21,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V2014 転送デバッグログ強化
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxdpXcva_6sRbKAJt0ufB8MUt2_g3LXfuSPsAT7YK63CEyfz1vVG5KgDiWStbjiUS8KRg/exec',
+  // プライマリGAS URL（メイン運用）- V2016 updateCVDataデバッグログ強化
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbzDBLAJZ_jvb78KDLzFh-e-Nx5o9P1NnSjdiSeangSCdPAcurS98nc8G_djW77AkUDVTQ/exec',
 
-  // フォールバックGAS URL（バックアップ）- V2014 転送デバッグログ強化
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxdpXcva_6sRbKAJt0ufB8MUt2_g3LXfuSPsAT7YK63CEyfz1vVG5KgDiWStbjiUS8KRg/exec',
+  // フォールバックGAS URL（バックアップ）- V2016 updateCVDataデバッグログ強化
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzDBLAJZ_jvb78KDLzFh-e-Nx5o9P1NnSjdiSeangSCdPAcurS98nc8G_djW77AkUDVTQ/exec',
 
-  // 緊急時URL（最終フォールバック）- V2014 転送デバッグログ強化
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxdpXcva_6sRbKAJt0ufB8MUt2_g3LXfuSPsAT7YK63CEyfz1vVG5KgDiWStbjiUS8KRg/exec',
+  // 緊急時URL（最終フォールバック）- V2016 updateCVDataデバッグログ強化
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbzDBLAJZ_jvb78KDLzFh-e-Nx5o9P1NnSjdiSeangSCdPAcurS98nc8G_djW77AkUDVTQ/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V2014 - 転送デバッグログ強化）
-  CACHE_BUSTER: 'v2014-' + Date.now()
+  // キャッシュバスター（V2016 - updateCVDataデバッグログ強化）
+  CACHE_BUSTER: 'v2016-' + Date.now()
 };
 
 // グローバルに公開（全てのファイルから参照可能）
