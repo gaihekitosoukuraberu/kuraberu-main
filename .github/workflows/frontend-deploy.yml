@@ -149,35 +149,9 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
-      - name: Update cache busters in HTML files
-        run: |
-          echo "🔄 Updating cache busters in HTML files..."
-          CACHE_BUSTER="v$(date +%s)"
-          echo "Cache buster: $CACHE_BUSTER"
-
-          # franchise-dashboard/index.html のキャッシュバスターを更新
-          if [ -f "franchise-dashboard/index.html" ]; then
-            sed -i.bak -E "s/\.js\?v=[^\"]+/.js?v=$CACHE_BUSTER/g" franchise-dashboard/index.html
-            rm franchise-dashboard/index.html.bak
-            echo "✅ Updated franchise-dashboard/index.html"
-          fi
-
-      - name: Commit and push cache buster updates
-        run: |
-          echo "📝 キャッシュバスター更新をコミット中..."
-
-          git config user.name "GitHub Actions Bot"
-          git config user.email "actions@github.com"
-
-          git add franchise-dashboard/index.html
-
-          if git diff --staged --quiet; then
-            echo "📍 変更なし - コミットスキップ"
-          else
-            git commit -m "auto: cache buster update - Franchise Dashboard"
-            git push
-            echo "✅ キャッシュバスター更新をプッシュしました"
-          fi
+      # キャッシュバスター更新はdeploy-jsで一括実行済み
+      - name: Pull latest changes
+        run: git pull origin main || true
 
       - name: Deploy to Xserver via FTP
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
@@ -209,35 +183,9 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
-      - name: Update cache busters in HTML files
-        run: |
-          echo "🔄 Updating cache busters in HTML files..."
-          CACHE_BUSTER="v$(date +%s)"
-          echo "Cache buster: $CACHE_BUSTER"
-
-          # franchise-register/index.html のキャッシュバスターを更新
-          if [ -f "franchise-register/index.html" ]; then
-            sed -i.bak -E "s/\.js\?v=[^\"]+/.js?v=$CACHE_BUSTER/g" franchise-register/index.html
-            rm franchise-register/index.html.bak
-            echo "✅ Updated franchise-register/index.html"
-          fi
-
-      - name: Commit and push cache buster updates
-        run: |
-          echo "📝 キャッシュバスター更新をコミット中..."
-
-          git config user.name "GitHub Actions Bot"
-          git config user.email "actions@github.com"
-
-          git add franchise-register/index.html
-
-          if git diff --staged --quiet; then
-            echo "📍 変更なし - コミットスキップ"
-          else
-            git commit -m "auto: cache buster update - Franchise Register"
-            git push
-            echo "✅ キャッシュバスター更新をプッシュしました"
-          fi
+      # キャッシュバスター更新はdeploy-jsで一括実行済み
+      - name: Pull latest changes
+        run: git pull origin main || true
 
       - name: Deploy to Xserver via FTP
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
@@ -275,36 +223,7 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
-      - name: Update cache busters in HTML files
-        run: |
-          echo "🔄 Updating cache busters in HTML files..."
-          CACHE_BUSTER="v$(date +%s)"
-          echo "Cache buster: $CACHE_BUSTER"
-
-          # estimate-keep-system/index.html のキャッシュバスターを更新
-          if [ -f "estimate-keep-system/index.html" ]; then
-            sed -i.bak -E "s/\.js\?v=[^\"]+/.js?v=$CACHE_BUSTER/g" estimate-keep-system/index.html
-            rm estimate-keep-system/index.html.bak
-            echo "✅ Updated estimate-keep-system/index.html"
-          fi
-
-      - name: Commit and push cache buster updates
-        run: |
-          echo "📝 キャッシュバスター更新をコミット中..."
-
-          git config user.name "GitHub Actions Bot"
-          git config user.email "actions@github.com"
-
-          git add estimate-keep-system/index.html
-
-          if git diff --staged --quiet; then
-            echo "📍 変更なし - コミットスキップ"
-          else
-            git commit -m "auto: cache buster update - Estimate System"
-            git push
-            echo "✅ キャッシュバスター更新をプッシュしました"
-          fi
-
+      # estimate-keep-systemにはindex.htmlがないためキャッシュバスター更新なし
       - name: Deploy to Xserver via FTP
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
         with:
@@ -334,37 +253,9 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
-      - name: Update cache busters in HTML files
-        run: |
-          echo "🔄 Updating cache busters in HTML files..."
-          CACHE_BUSTER="v$(date +%s)"
-          echo "Cache buster: $CACHE_BUSTER"
-
-          # lp/index.html のキャッシュバスターを更新
-          if [ -f "lp/index.html" ]; then
-            # JS/CSSの静的キャッシュバスター更新（?v=XXXX 形式）
-            sed -i.bak -E "s/\.js\?v=[0-9]+\"/.js?v=$CACHE_BUSTER\"/g" lp/index.html
-            sed -i.bak -E "s/\.css\?v=[0-9]+\"/.css?v=$CACHE_BUSTER\"/g" lp/index.html
-            rm -f lp/index.html.bak
-            echo "✅ Updated lp/index.html"
-          fi
-
-      - name: Commit and push cache buster updates
-        run: |
-          echo "📝 キャッシュバスター更新をコミット中..."
-
-          git config user.name "GitHub Actions Bot"
-          git config user.email "actions@github.com"
-
-          git add lp/index.html
-
-          if git diff --staged --quiet; then
-            echo "📍 変更なし - コミットスキップ"
-          else
-            git commit -m "auto: cache buster update - LP"
-            git push
-            echo "✅ キャッシュバスター更新をプッシュしました"
-          fi
+      # キャッシュバスター更新はdeploy-jsで一括実行済み
+      - name: Pull latest changes
+        run: git pull origin main || true
 
       - name: Deploy to Xserver via FTP
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
@@ -395,38 +286,70 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
-      - name: Update env-loader.js CACHE_BUSTER
+      - name: Update all cache busters (centralized)
         run: |
-          echo "🔄 Updating env-loader.js CACHE_BUSTER..."
-          CACHE_BUSTER="v$(date +%s)-fe$(echo $GITHUB_SHA | cut -c1-6)"
+          echo "🔄 全キャッシュバスター一括更新..."
+          CACHE_BUSTER="v$(date +%s)"
           echo "Cache buster: $CACHE_BUSTER"
 
+          # 1. マスターenv-loader.js
           if [ -f "js/env-loader.js" ]; then
-            # CACHE_BUSTER の値を更新
             sed -i.bak -E "s/CACHE_BUSTER: '[^']+'/CACHE_BUSTER: '$CACHE_BUSTER'/" js/env-loader.js
-            # コメントも更新
-            sed -i.bak -E "s|// キャッシュバスター\([^)]*\)|// キャッシュバスター（Frontend Auto-Deploy $(date +%Y-%m-%d)）|" js/env-loader.js
             rm -f js/env-loader.js.bak
-            echo "✅ Updated js/env-loader.js with CACHE_BUSTER: $CACHE_BUSTER"
-            grep "CACHE_BUSTER" js/env-loader.js
+            echo "✅ js/env-loader.js"
           fi
 
-      - name: Commit and push cache buster updates
+          # 2. LP (CSS/JS)
+          if [ -f "lp/index.html" ]; then
+            sed -i.bak -E "s/\.js\?v=[0-9]+\"/.js?v=$CACHE_BUSTER\"/g" lp/index.html
+            sed -i.bak -E "s/\.css\?v=[0-9]+\"/.css?v=$CACHE_BUSTER\"/g" lp/index.html
+            rm -f lp/index.html.bak
+            echo "✅ lp/index.html"
+          fi
+
+          # 3. Admin Dashboard
+          if [ -f "admin-dashboard/index.html" ]; then
+            sed -i.bak -E "s|\.js\?v=[A-Za-z0-9_-]+\"|.js?v=$CACHE_BUSTER\"|g" admin-dashboard/index.html
+            rm -f admin-dashboard/index.html.bak
+            echo "✅ admin-dashboard/index.html"
+          fi
+
+          # 4. Franchise Dashboard
+          if [ -f "franchise-dashboard/index.html" ]; then
+            sed -i.bak -E "s/\.js\?v=[^\"]+/.js?v=$CACHE_BUSTER/g" franchise-dashboard/index.html
+            rm -f franchise-dashboard/index.html.bak
+            echo "✅ franchise-dashboard/index.html"
+          fi
+
+          # 5. Franchise Register
+          if [ -f "franchise-register/index.html" ]; then
+            sed -i.bak -E "s/\.js\?v=[^\"]+/.js?v=$CACHE_BUSTER/g" franchise-register/index.html
+            rm -f franchise-register/index.html.bak
+            echo "✅ franchise-register/index.html"
+          fi
+
+          echo "✅ 全キャッシュバスター更新完了: $CACHE_BUSTER"
+
+      - name: Commit and push all cache buster updates
         run: |
-          echo "📝 env-loader.js キャッシュバスター更新をコミット中..."
+          echo "📝 全キャッシュバスター更新をコミット中..."
 
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
 
-          # マスターenv-loader.jsのみステージング（全システムが/js/env-loader.jsを参照）
-          git add js/env-loader.js
+          # 全ファイルをステージング
+          git add js/env-loader.js || true
+          git add lp/index.html || true
+          git add admin-dashboard/index.html || true
+          git add franchise-dashboard/index.html || true
+          git add franchise-register/index.html || true
 
           if git diff --staged --quiet; then
             echo "📍 変更なし - コミットスキップ"
           else
-            git commit -m "auto: cache buster update - /js/env-loader.js (master)"
+            git commit -m "auto: cache buster update - all frontend files"
             git push
-            echo "✅ マスターenv-loader.jsの更新をプッシュしました"
+            echo "✅ 全キャッシュバスター更新をプッシュしました"
           fi
 
       - name: Deploy to Xserver via FTP
