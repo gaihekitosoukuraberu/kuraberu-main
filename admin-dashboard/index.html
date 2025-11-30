@@ -808,23 +808,64 @@
                     </div>
                 </div>
 
-                <!-- 自宅住所セクション（トグル式） -->
+                <!-- 別住所セクション（トグル式・2つまで追加可能） -->
                 <div class="mt-6">
                     <button type="button" onclick="toggleHomeAddress()" class="flex items-center text-green-600 hover:text-green-700 font-medium transition-colors">
                         <svg id="homeAddressToggleIcon" class="w-5 h-5 mr-2 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
-                        <span id="homeAddressToggleText">自宅住所</span>
+                        <span id="homeAddressToggleText">別住所を追加</span>
                     </button>
                     <div id="homeAddressSection" class="hidden mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">郵便番号（自宅）</label>
-                                <input type="text" id="homeZipInput" placeholder="例: 150-0001" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                        <!-- 見積もり送付先選択 -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">見積もり送付先</label>
+                            <select id="quoteDestinationSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                                <option value="">選択してください</option>
+                                <option value="対象物件">対象物件</option>
+                                <option value="別住所1">別住所1</option>
+                                <option value="別住所2">別住所2</option>
+                                <option value="その他">その他（備考欄に記載）</option>
+                            </select>
+                        </div>
+                        <!-- 別住所1 -->
+                        <div class="mb-4 p-3 bg-white rounded-lg border border-green-100">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-semibold text-green-700">別住所1</span>
                             </div>
-                            <div class="sm:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">住所（自宅）</label>
-                                <input type="text" id="homeAddressInput" placeholder="例: 東京都渋谷区..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">郵便番号</label>
+                                    <input type="text" id="homeZipInput" placeholder="例: 150-0001" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">都道府県</label>
+                                    <input type="text" id="homePrefInput" placeholder="例: 東京都" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
+                                </div>
+                                <div class="sm:col-span-1">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">住所詳細</label>
+                                    <input type="text" id="homeAddressInput" placeholder="例: 渋谷区..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 別住所2 -->
+                        <div class="p-3 bg-white rounded-lg border border-green-100">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-semibold text-green-700">別住所2</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">郵便番号</label>
+                                    <input type="text" id="homeZipInput2" placeholder="例: 150-0001" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">都道府県</label>
+                                    <input type="text" id="homePrefInput2" placeholder="例: 東京都" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
+                                </div>
+                                <div class="sm:col-span-1">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">住所詳細</label>
+                                    <input type="text" id="homeAddressInput2" placeholder="例: 渋谷区..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
+                                </div>
                             </div>
                         </div>
                     </div>

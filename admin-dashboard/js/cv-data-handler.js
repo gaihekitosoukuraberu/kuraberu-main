@@ -70,16 +70,38 @@ const CVDataHandler = {
       const postalCode = crmContent.querySelector('input[placeholder*="150-"], input[placeholder*="160-"], input[placeholder*="140-"]')?.value || '';
       const address = crmContent.querySelector('input[placeholder*="東京都"], input[placeholder*="渋谷区"]')?.value || '';
 
-      // 自宅住所（表示されている場合のみ）
+      // 別住所（表示されている場合のみ）- 2つまで対応、スプシはTUV列にカンマ区切りで保存
       let homeZip = '';
+      let homePref = '';
       let homeAddress = '';
       let homeAddressFlag = '';
+      let quoteDestination = '';
 
       const homeAddressSection = document.getElementById('homeAddressSection');
       if (homeAddressSection && !homeAddressSection.classList.contains('hidden')) {
-        homeZip = document.getElementById('homeZipInput')?.value || '';
-        homeAddress = document.getElementById('homeAddressInput')?.value || '';
-        if (homeZip || homeAddress) {
+        // 見積もり送付先
+        quoteDestination = document.getElementById('quoteDestinationSelect')?.value || '';
+
+        // 別住所1
+        const zip1 = document.getElementById('homeZipInput')?.value || '';
+        const pref1 = document.getElementById('homePrefInput')?.value || '';
+        const addr1 = document.getElementById('homeAddressInput')?.value || '';
+
+        // 別住所2
+        const zip2 = document.getElementById('homeZipInput2')?.value || '';
+        const pref2 = document.getElementById('homePrefInput2')?.value || '';
+        const addr2 = document.getElementById('homeAddressInput2')?.value || '';
+
+        // カンマ区切りで保存（空の場合は省略）
+        const zips = [zip1, zip2].filter(v => v);
+        const prefs = [pref1, pref2].filter(v => v);
+        const addrs = [addr1, addr2].filter(v => v);
+
+        homeZip = zips.join(', ');
+        homePref = prefs.join(', ');
+        homeAddress = addrs.join(', ');
+
+        if (homeZip || homePref || homeAddress) {
           homeAddressFlag = '有';
         }
       }
@@ -121,10 +143,12 @@ const CVDataHandler = {
         postalCode,
         address,
 
-        // 自宅住所
+        // 別住所・見積もり送付先
         homeAddressFlag,
         homeZip,
+        homePref,
         homeAddress,
+        quoteDestination,
 
         // 物件詳細
         propertyType,
