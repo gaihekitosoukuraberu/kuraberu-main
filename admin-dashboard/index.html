@@ -10420,6 +10420,7 @@ window.addEventListener('beforeunload', function(e) {
                 wallMaterial: caseData.wallMaterial || '',
                 homeAddress: caseData.homeAddress || '',
                 altPhone: caseData.altPhone || '',
+                mapLink: caseData.mapLink || '',  // スプシから取得した短縮URL
                 // 希望内容
                 workItems: Array.isArray(caseData.workItems) ? caseData.workItems.join('、') : (caseData.workItems || ''),
                 constructionTiming: caseData.constructionTiming || '',
@@ -10458,7 +10459,8 @@ window.addEventListener('beforeunload', function(e) {
             const f = d.selectedFranchises[franchiseIndex];
             if (!f) return '';
 
-            const mapLink = d.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}` : '';
+            // V1984: スプシから取得した短縮URLを優先、なければ住所から生成
+            const mapLink = d.mapLink || (d.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}` : '');
 
             let msg = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 外壁塗装くらべる 案件紹介のご連絡
