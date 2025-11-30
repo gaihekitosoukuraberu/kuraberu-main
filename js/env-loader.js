@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-30T12:04:15.880Z - Deployment: AKfycbx_veiW_J5kIydJzoYtzoSJwyui2pJJ3B8yei9WpvvEUYjKj_QCTQrjduHDzIzTQbxfuA
+// Auto-synced: 2025-11-30T12:21:29.844Z - Deployment: AKfycbz8nId5T1iqrn4GyBUDx-XP2ffVvIPvgXmsPnKAdmSJXXUcoCV1IW1Ea18PnaTjTGxK
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -22,13 +22,13 @@ const ENV = {
   // ============================================
 
   // プライマリGAS URL（メイン運用）- V1997 最新デプロイメント
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbx_veiW_J5kIydJzoYtzoSJwyui2pJJ3B8yei9WpvvEUYjKj_QCTQrjduHDzIzTQbxfuA/exec',
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbz8nId5T1iqrn4GyBUDx-XP2ffVvIPvgXmsPnKAdmSJXXUcoCV1IW1Ea18PnaTjTGxK/exec',
 
   // フォールバックGAS URL（バックアップ）- V1997 最新デプロイメント
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbx_veiW_J5kIydJzoYtzoSJwyui2pJJ3B8yei9WpvvEUYjKj_QCTQrjduHDzIzTQbxfuA/exec',
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbz8nId5T1iqrn4GyBUDx-XP2ffVvIPvgXmsPnKAdmSJXXUcoCV1IW1Ea18PnaTjTGxK/exec',
 
   // 緊急時URL（最終フォールバック）- V1997 最新デプロイメント
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbx_veiW_J5kIydJzoYtzoSJwyui2pJJ3B8yei9WpvvEUYjKj_QCTQrjduHDzIzTQbxfuA/exec',
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbz8nId5T1iqrn4GyBUDx-XP2ffVvIPvgXmsPnKAdmSJXXUcoCV1IW1Ea18PnaTjTGxK/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1997 - 配信管理シート空行対策・日時フォーマット修正）
-  CACHE_BUSTER: 'v1764505137-fe80c73d'
+  CACHE_BUSTER: 'v1764505289848-qr9jcv'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
