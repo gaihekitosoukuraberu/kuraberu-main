@@ -1,0 +1,806 @@
+/**
+ * ====================================
+ * V2006: 案件一斉配信システム（オークション式）
+ * ====================================
+ *
+ * 【機能】
+ * - エリア内の全加盟店にメール送信
+ * - メール内に「購入」「気になる」ボタン（GAS doGetへのリンク）
+ * - 「購入」クリック → 残枠チェック → 空きあれば自動転送 & 管理者通知
+ * - 「気になる」クリック → 管理者にメール通知
+ *
+ * 【データ構造】
+ * - 「一斉配信」シート: 配信履歴
+ * - 「一斉配信レスポンス」シート: 購入/気になるの応答履歴
+ */
+
+var BroadcastSystem = {
+  /**
+   * GETリクエスト処理
+   */
+  handle: function(params) {
+    const action = params.action;
+
+    switch (action) {
+      case 'broadcast_purchase':
+        return this.handlePurchase(params);
+      case 'broadcast_interest':
+        return this.handleInterest(params);
+      case 'getBroadcastTargets':
+        return this.getBroadcastTargets(params);
+      case 'sendBroadcast':
+        return this.sendBroadcast(params);
+      default:
+        return { success: false, error: 'Unknown broadcast action: ' + action };
+    }
+  },
+
+  /**
+   * 一斉配信の対象加盟店数を取得（確認用）
+   * @param {Object} params - { cvId }
+   */
+  getBroadcastTargets: function(params) {
+    try {
+      const cvId = params.cvId;
+      if (!cvId) {
+        return { success: false, error: 'CV IDが指定されていません' };
+      }
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const userSheet = ss.getSheetByName('ユーザー登録');
+      const franchiseSheet = ss.getSheetByName('加盟店登録');
+      const deliverySheet = ss.getSheetByName('配信管理');
+
+      if (!userSheet) return { success: false, error: 'ユーザー登録シートが見つかりません' };
+      if (!franchiseSheet) return { success: false, error: '加盟店登録シートが見つかりません' };
+
+      // CV情報取得
+      const cvData = this.getCVData(userSheet, cvId);
+      if (!cvData) {
+        return { success: false, error: 'CV情報が見つかりません' };
+      }
+
+      // エリア情報取得
+      const prefecture = cvData.prefecture || this.extractPrefecture(cvData.address);
+      const city = cvData.city || this.extractCity(cvData.address);
+
+      if (!prefecture) {
+        return { success: false, error: '都道府県情報がありません' };
+      }
+
+      // エリア内の加盟店を取得
+      const targetFranchises = this.getAreaFranchises(franchiseSheet, prefecture, city);
+
+      // 既に転送済みの加盟店を除外
+      const deliveredIds = this.getDeliveredFranchiseIds(deliverySheet, cvId);
+      const availableFranchises = targetFranchises.filter(f => !deliveredIds.includes(f.id));
+
+      // 残枠計算
+      const maxCompanies = parseInt(cvData.companiesCount) || 4;
+      const deliveredCount = deliveredIds.length;
+      const remainingSlots = Math.max(0, maxCompanies - deliveredCount);
+
+      return {
+        success: true,
+        cvId: cvId,
+        area: `${prefecture} ${city || ''}`.trim(),
+        totalTargets: availableFranchises.length,
+        maxCompanies: maxCompanies,
+        deliveredCount: deliveredCount,
+        remainingSlots: remainingSlots,
+        franchises: availableFranchises.map(f => ({
+          id: f.id,
+          name: f.name
+        }))
+      };
+    } catch (error) {
+      console.error('[getBroadcastTargets] エラー:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  /**
+   * 一斉配信メール送信
+   * @param {Object} params - { cvId }
+   */
+  sendBroadcast: function(params) {
+    try {
+      console.log('[sendBroadcast] V2006 開始:', params);
+
+      const cvId = params.cvId;
+      if (!cvId) {
+        return { success: false, error: 'CV IDが指定されていません' };
+      }
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const userSheet = ss.getSheetByName('ユーザー登録');
+      const franchiseSheet = ss.getSheetByName('加盟店登録');
+      const deliverySheet = ss.getSheetByName('配信管理');
+
+      // 一斉配信シート取得（なければ作成）
+      let broadcastSheet = ss.getSheetByName('一斉配信');
+      if (!broadcastSheet) {
+        broadcastSheet = ss.insertSheet('一斉配信');
+        broadcastSheet.appendRow(['配信ID', 'CV ID', '配信日時', '対象加盟店数', '希望社数', '転送済み社数', '残枠', '購入済み加盟店', 'ステータス']);
+      }
+
+      // 一斉配信レスポンスシート取得（なければ作成）
+      let responseSheet = ss.getSheetByName('一斉配信レスポンス');
+      if (!responseSheet) {
+        responseSheet = ss.insertSheet('一斉配信レスポンス');
+        responseSheet.appendRow(['レスポンスID', '配信ID', '加盟店ID', '加盟店名', 'アクション', 'クリック日時', '結果', 'トークン', 'トークン使用済み']);
+      }
+
+      // CV情報取得
+      const cvData = this.getCVData(userSheet, cvId);
+      if (!cvData) {
+        return { success: false, error: 'CV情報が見つかりません' };
+      }
+
+      // エリア情報取得
+      const prefecture = cvData.prefecture || this.extractPrefecture(cvData.address);
+      const city = cvData.city || this.extractCity(cvData.address);
+
+      if (!prefecture) {
+        return { success: false, error: '都道府県情報がありません' };
+      }
+
+      // エリア内の加盟店を取得
+      const targetFranchises = this.getAreaFranchises(franchiseSheet, prefecture, city);
+
+      // 既に転送済みの加盟店を除外
+      const deliveredIds = this.getDeliveredFranchiseIds(deliverySheet, cvId);
+      const availableFranchises = targetFranchises.filter(f => !deliveredIds.includes(f.id));
+
+      if (availableFranchises.length === 0) {
+        return { success: false, error: '配信対象の加盟店がありません' };
+      }
+
+      // 残枠計算
+      const maxCompanies = parseInt(cvData.companiesCount) || 4;
+      const deliveredCount = deliveredIds.length;
+      const remainingSlots = Math.max(0, maxCompanies - deliveredCount);
+
+      if (remainingSlots === 0) {
+        return { success: false, error: '残り枠がありません' };
+      }
+
+      // 配信ID生成
+      const now = new Date();
+      const broadcastId = 'BC' + Utilities.formatDate(now, 'Asia/Tokyo', 'yyMMddHHmmss');
+      const timestamp = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
+
+      // 紹介料計算
+      const fee = this.calculateFee(cvData);
+
+      // GAS WebアプリURL取得
+      const scriptUrl = ScriptApp.getService().getUrl();
+
+      // 各加盟店にメール送信 & レスポンスシートにトークン記録
+      let sentCount = 0;
+      const sentFranchises = [];
+
+      availableFranchises.forEach((franchise, index) => {
+        if (!franchise.email) {
+          console.warn('[sendBroadcast] メールなし:', franchise.name);
+          return;
+        }
+
+        // トークン生成
+        const purchaseToken = Utilities.getUuid();
+        const interestToken = Utilities.getUuid();
+
+        // レスポンスシートにトークン記録（購入用）
+        responseSheet.appendRow([
+          'RSP' + Utilities.formatDate(now, 'Asia/Tokyo', 'yyMMddHHmmss') + String(index).padStart(3, '0') + 'P',
+          broadcastId,
+          franchise.id,
+          franchise.name,
+          '購入',
+          '',
+          '',
+          purchaseToken,
+          false
+        ]);
+
+        // レスポンスシートにトークン記録（気になる用）
+        responseSheet.appendRow([
+          'RSP' + Utilities.formatDate(now, 'Asia/Tokyo', 'yyMMddHHmmss') + String(index).padStart(3, '0') + 'I',
+          broadcastId,
+          franchise.id,
+          franchise.name,
+          '気になる',
+          '',
+          '',
+          interestToken,
+          false
+        ]);
+
+        // メール本文生成
+        const emailBody = this.generateBroadcastEmail(
+          cvData,
+          franchise,
+          fee,
+          remainingSlots,
+          scriptUrl,
+          purchaseToken,
+          interestToken,
+          broadcastId
+        );
+
+        // メール送信
+        try {
+          GmailApp.sendEmail(
+            franchise.email,
+            `【外壁塗装くらべる】案件のご案内 - ${prefecture}${city || ''} (${cvId})`,
+            emailBody,
+            { name: '外壁塗装くらべる運営事務局' }
+          );
+          sentCount++;
+          sentFranchises.push(franchise.name);
+          console.log('[sendBroadcast] 送信成功:', franchise.name, franchise.email);
+        } catch (emailError) {
+          console.error('[sendBroadcast] 送信失敗:', franchise.name, emailError);
+        }
+      });
+
+      // 一斉配信シートに記録
+      broadcastSheet.appendRow([
+        broadcastId,
+        cvId,
+        timestamp,
+        sentCount,
+        maxCompanies,
+        deliveredCount,
+        remainingSlots,
+        '',
+        '配信中'
+      ]);
+
+      console.log('[sendBroadcast] 完了:', sentCount, '件送信');
+
+      return {
+        success: true,
+        broadcastId: broadcastId,
+        sentCount: sentCount,
+        remainingSlots: remainingSlots,
+        message: `${sentCount}社に案件を配信しました`
+      };
+    } catch (error) {
+      console.error('[sendBroadcast] エラー:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  /**
+   * 購入ボタンクリック処理（doGetから呼び出し）
+   * @param {Object} params - { token, broadcastId }
+   */
+  handlePurchase: function(params) {
+    try {
+      console.log('[handlePurchase] V2006 開始:', params);
+
+      const token = params.token;
+      const broadcastId = params.broadcastId;
+
+      if (!token) {
+        return this.createHtmlResponse('エラー', 'トークンが無効です', 'error');
+      }
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const responseSheet = ss.getSheetByName('一斉配信レスポンス');
+      const broadcastSheet = ss.getSheetByName('一斉配信');
+
+      if (!responseSheet) {
+        return this.createHtmlResponse('エラー', 'システムエラーが発生しました', 'error');
+      }
+
+      // トークン検証
+      const responseData = responseSheet.getDataRange().getValues();
+      const headers = responseData[0];
+      const tokenIdx = headers.indexOf('トークン');
+      const usedIdx = headers.indexOf('トークン使用済み');
+      const franchiseIdIdx = headers.indexOf('加盟店ID');
+      const franchiseNameIdx = headers.indexOf('加盟店名');
+      const broadcastIdIdx = headers.indexOf('配信ID');
+      const clickTimeIdx = headers.indexOf('クリック日時');
+      const resultIdx = headers.indexOf('結果');
+
+      let targetRow = -1;
+      let franchiseId = '';
+      let franchiseName = '';
+      let foundBroadcastId = '';
+
+      for (let i = 1; i < responseData.length; i++) {
+        if (responseData[i][tokenIdx] === token) {
+          // 使用済みチェック
+          if (responseData[i][usedIdx] === true || responseData[i][usedIdx] === 'TRUE') {
+            return this.createHtmlResponse('購入済み', 'このリンクは既に使用されています', 'warning');
+          }
+          targetRow = i + 1;
+          franchiseId = responseData[i][franchiseIdIdx];
+          franchiseName = responseData[i][franchiseNameIdx];
+          foundBroadcastId = responseData[i][broadcastIdIdx];
+          break;
+        }
+      }
+
+      if (targetRow === -1) {
+        return this.createHtmlResponse('エラー', '無効なリンクです', 'error');
+      }
+
+      // 配信情報から残枠チェック
+      const broadcastData = broadcastSheet.getDataRange().getValues();
+      const bHeaders = broadcastData[0];
+      const bIdIdx = bHeaders.indexOf('配信ID');
+      const bCvIdIdx = bHeaders.indexOf('CV ID');
+      const bMaxIdx = bHeaders.indexOf('希望社数');
+      const bDeliveredIdx = bHeaders.indexOf('転送済み社数');
+      const bPurchasedIdx = bHeaders.indexOf('購入済み加盟店');
+      const bStatusIdx = bHeaders.indexOf('ステータス');
+
+      let broadcastRow = -1;
+      let cvId = '';
+      let maxCompanies = 4;
+      let deliveredCount = 0;
+      let purchasedList = '';
+
+      for (let i = 1; i < broadcastData.length; i++) {
+        if (broadcastData[i][bIdIdx] === foundBroadcastId) {
+          broadcastRow = i + 1;
+          cvId = broadcastData[i][bCvIdIdx];
+          maxCompanies = parseInt(broadcastData[i][bMaxIdx]) || 4;
+          deliveredCount = parseInt(broadcastData[i][bDeliveredIdx]) || 0;
+          purchasedList = broadcastData[i][bPurchasedIdx] || '';
+          break;
+        }
+      }
+
+      if (!cvId) {
+        return this.createHtmlResponse('エラー', '案件情報が見つかりません', 'error');
+      }
+
+      // 配信管理シートから現在の転送数を再取得（リアルタイム）
+      const deliverySheet = ss.getSheetByName('配信管理');
+      const currentDeliveredIds = this.getDeliveredFranchiseIds(deliverySheet, cvId);
+      const currentDeliveredCount = currentDeliveredIds.length;
+
+      const remainingSlots = maxCompanies - currentDeliveredCount;
+
+      if (remainingSlots <= 0) {
+        // 売約済み
+        const now = new Date();
+        responseSheet.getRange(targetRow, clickTimeIdx + 1).setValue(Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss'));
+        responseSheet.getRange(targetRow, resultIdx + 1).setValue('売約済み');
+        responseSheet.getRange(targetRow, usedIdx + 1).setValue(true);
+
+        return this.createHtmlResponse('売約済み', 'この案件は既に満枠となりました。またの機会にお願いいたします。', 'warning');
+      }
+
+      // 転送実行
+      const userSheet = ss.getSheetByName('ユーザー登録');
+      const franchiseSheet = ss.getSheetByName('加盟店登録');
+
+      // 紹介料を取得
+      const cvData = this.getCVData(userSheet, cvId);
+      const fee = this.calculateFee(cvData);
+
+      // sendOrderTransferを呼び出し
+      const transferResult = AdminSystem.sendOrderTransfer({
+        cvId: cvId,
+        franchises: [{
+          franchiseId: franchiseId,
+          franchiseName: franchiseName,
+          fee: fee,
+          rank: currentDeliveredCount + 1
+        }]
+      });
+
+      const now = new Date();
+      const timestamp = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
+
+      if (transferResult.success) {
+        // 成功
+        responseSheet.getRange(targetRow, clickTimeIdx + 1).setValue(timestamp);
+        responseSheet.getRange(targetRow, resultIdx + 1).setValue('成功');
+        responseSheet.getRange(targetRow, usedIdx + 1).setValue(true);
+
+        // 一斉配信シートの購入済み加盟店を更新
+        if (broadcastRow !== -1) {
+          const newPurchased = purchasedList ? purchasedList + ',' + franchiseName : franchiseName;
+          broadcastSheet.getRange(broadcastRow, bPurchasedIdx + 1).setValue(newPurchased);
+          broadcastSheet.getRange(broadcastRow, bDeliveredIdx + 1).setValue(currentDeliveredCount + 1);
+
+          // 満枠チェック
+          if (currentDeliveredCount + 1 >= maxCompanies) {
+            broadcastSheet.getRange(broadcastRow, bStatusIdx + 1).setValue('満枠');
+          }
+        }
+
+        // 管理者に通知
+        this.notifyAdmin(`【購入通知】${franchiseName}が案件${cvId}を購入しました`, cvId, franchiseName, 'purchase');
+
+        return this.createHtmlResponse('購入完了', `${franchiseName}様、案件の購入が完了しました。案件詳細メールをお送りしますので、ご確認ください。`, 'success');
+      } else {
+        // 失敗
+        responseSheet.getRange(targetRow, clickTimeIdx + 1).setValue(timestamp);
+        responseSheet.getRange(targetRow, resultIdx + 1).setValue('エラー: ' + transferResult.error);
+        responseSheet.getRange(targetRow, usedIdx + 1).setValue(true);
+
+        return this.createHtmlResponse('エラー', '購入処理に失敗しました。お手数ですが事務局までご連絡ください。', 'error');
+      }
+    } catch (error) {
+      console.error('[handlePurchase] エラー:', error);
+      return this.createHtmlResponse('エラー', 'システムエラーが発生しました', 'error');
+    }
+  },
+
+  /**
+   * 気になるボタンクリック処理
+   * @param {Object} params - { token }
+   */
+  handleInterest: function(params) {
+    try {
+      console.log('[handleInterest] V2006 開始:', params);
+
+      const token = params.token;
+
+      if (!token) {
+        return this.createHtmlResponse('エラー', 'トークンが無効です', 'error');
+      }
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const responseSheet = ss.getSheetByName('一斉配信レスポンス');
+      const broadcastSheet = ss.getSheetByName('一斉配信');
+
+      if (!responseSheet) {
+        return this.createHtmlResponse('エラー', 'システムエラーが発生しました', 'error');
+      }
+
+      // トークン検証
+      const responseData = responseSheet.getDataRange().getValues();
+      const headers = responseData[0];
+      const tokenIdx = headers.indexOf('トークン');
+      const usedIdx = headers.indexOf('トークン使用済み');
+      const franchiseIdIdx = headers.indexOf('加盟店ID');
+      const franchiseNameIdx = headers.indexOf('加盟店名');
+      const broadcastIdIdx = headers.indexOf('配信ID');
+      const clickTimeIdx = headers.indexOf('クリック日時');
+      const resultIdx = headers.indexOf('結果');
+
+      let targetRow = -1;
+      let franchiseName = '';
+      let foundBroadcastId = '';
+
+      for (let i = 1; i < responseData.length; i++) {
+        if (responseData[i][tokenIdx] === token) {
+          if (responseData[i][usedIdx] === true || responseData[i][usedIdx] === 'TRUE') {
+            return this.createHtmlResponse('送信済み', 'このリンクは既に使用されています', 'warning');
+          }
+          targetRow = i + 1;
+          franchiseName = responseData[i][franchiseNameIdx];
+          foundBroadcastId = responseData[i][broadcastIdIdx];
+          break;
+        }
+      }
+
+      if (targetRow === -1) {
+        return this.createHtmlResponse('エラー', '無効なリンクです', 'error');
+      }
+
+      // CV ID取得
+      let cvId = '';
+      if (broadcastSheet) {
+        const bData = broadcastSheet.getDataRange().getValues();
+        const bHeaders = bData[0];
+        const bIdIdx = bHeaders.indexOf('配信ID');
+        const bCvIdIdx = bHeaders.indexOf('CV ID');
+        for (let i = 1; i < bData.length; i++) {
+          if (bData[i][bIdIdx] === foundBroadcastId) {
+            cvId = bData[i][bCvIdIdx];
+            break;
+          }
+        }
+      }
+
+      const now = new Date();
+      const timestamp = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
+
+      // 記録
+      responseSheet.getRange(targetRow, clickTimeIdx + 1).setValue(timestamp);
+      responseSheet.getRange(targetRow, resultIdx + 1).setValue('通知済み');
+      responseSheet.getRange(targetRow, usedIdx + 1).setValue(true);
+
+      // 管理者に通知
+      this.notifyAdmin(`【気になる通知】${franchiseName}が案件${cvId}に興味を示しています`, cvId, franchiseName, 'interest');
+
+      return this.createHtmlResponse('送信完了', `${franchiseName}様、ご関心をいただきありがとうございます。担当者より改めてご連絡いたします。`, 'success');
+    } catch (error) {
+      console.error('[handleInterest] エラー:', error);
+      return this.createHtmlResponse('エラー', 'システムエラーが発生しました', 'error');
+    }
+  },
+
+  /**
+   * CV情報取得
+   */
+  getCVData: function(userSheet, cvId) {
+    const data = userSheet.getDataRange().getValues();
+    const headers = data[0];
+    const cvIdIdx = headers.indexOf('CV ID');
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][cvIdIdx] === cvId) {
+        const obj = {};
+        headers.forEach((h, idx) => {
+          obj[h] = data[i][idx];
+        });
+        return obj;
+      }
+    }
+    return null;
+  },
+
+  /**
+   * 都道府県を抽出
+   */
+  extractPrefecture: function(address) {
+    if (!address) return '';
+    const match = address.match(/^(.{2,3}[都道府県])/);
+    return match ? match[1] : '';
+  },
+
+  /**
+   * 市区町村を抽出
+   */
+  extractCity: function(address) {
+    if (!address) return '';
+    const match = address.match(/[都道府県](.+?[市区町村])/);
+    return match ? match[1] : '';
+  },
+
+  /**
+   * エリア内の加盟店を取得
+   */
+  getAreaFranchises: function(franchiseSheet, prefecture, city) {
+    const data = franchiseSheet.getDataRange().getValues();
+    const headers = data[0];
+
+    const idIdx = headers.indexOf('登録ID');
+    const nameIdx = headers.indexOf('会社名');
+    const emailIdx = headers.indexOf('営業用メールアドレス') !== -1 ? headers.indexOf('営業用メールアドレス') : headers.indexOf('メールアドレス');
+    const statusIdx = headers.indexOf('ステータス');
+    const areaIdx = headers.indexOf('対応エリア') !== -1 ? headers.indexOf('対応エリア') : headers.indexOf('営業エリア');
+
+    const franchises = [];
+
+    for (let i = 1; i < data.length; i++) {
+      const status = data[i][statusIdx];
+      // 承認済みの加盟店のみ
+      if (status !== '承認済み') continue;
+
+      const area = data[i][areaIdx] || '';
+      // エリアマッチング（都道府県が含まれていればOK）
+      if (area.includes(prefecture) || area === '' || area === '全国') {
+        franchises.push({
+          id: data[i][idIdx],
+          name: data[i][nameIdx],
+          email: data[i][emailIdx]
+        });
+      }
+    }
+
+    return franchises;
+  },
+
+  /**
+   * 転送済み加盟店IDリストを取得
+   */
+  getDeliveredFranchiseIds: function(deliverySheet, cvId) {
+    if (!deliverySheet) return [];
+
+    const data = deliverySheet.getDataRange().getValues();
+    const headers = data[0];
+    const cvIdIdx = headers.indexOf('CV ID');
+    const franchiseIdIdx = headers.indexOf('加盟店ID');
+
+    const ids = [];
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][cvIdIdx] === cvId) {
+        ids.push(data[i][franchiseIdIdx]);
+      }
+    }
+    return ids;
+  },
+
+  /**
+   * 紹介料計算
+   */
+  calculateFee: function(cvData) {
+    // 基本料金
+    let fee = 20000;
+
+    // 工事内容による加算（簡易版）
+    const workItems = cvData['見積もり希望箇所'] || cvData['workItems'] || '';
+    if (workItems.includes('屋根')) fee += 5000;
+    if (workItems.includes('外壁') && workItems.includes('屋根')) fee += 5000;
+
+    return fee;
+  },
+
+  /**
+   * 一斉配信メール本文生成
+   */
+  generateBroadcastEmail: function(cvData, franchise, fee, remainingSlots, scriptUrl, purchaseToken, interestToken, broadcastId) {
+    const prefecture = cvData['都道府県'] || this.extractPrefecture(cvData['住所詳細'] || '');
+    const city = cvData['市区町村'] || this.extractCity(cvData['住所詳細'] || '');
+    const propertyType = cvData['依頼物件種別'] || cvData['物件種別'] || '';
+    const buildingAge = cvData['築年数'] || '';
+    const workItems = cvData['見積もり希望箇所'] || cvData['workItems'] || '';
+
+    const purchaseUrl = `${scriptUrl}?action=broadcast_purchase&token=${purchaseToken}&broadcastId=${broadcastId}`;
+    const interestUrl = `${scriptUrl}?action=broadcast_interest&token=${interestToken}`;
+
+    return `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【外壁塗装くらべる】案件のご案内
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${franchise.name} 御中
+
+平素よりお世話になっております。
+外壁塗装くらべる運営事務局でございます。
+
+下記案件がございます。ご検討ください。
+
+-------------------------------------------
+【案件概要】
+-------------------------------------------
+エリア: ${prefecture} ${city}
+物件種別: ${propertyType}
+築年数: ${buildingAge}年
+希望工事: ${workItems}
+紹介料: ¥${fee.toLocaleString()}（税別）
+
+-------------------------------------------
+【残り枠】${remainingSlots}社
+-------------------------------------------
+
+※ 早い者勝ちとなります。残り枠がなくなり次第終了です。
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+▼ この案件を購入する（即時転送）
+${purchaseUrl}
+
+▼ 気になる（担当者に通知）
+${interestUrl}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+※ 購入後、お客様情報を含む詳細メールをお送りいたします。
+※ 「気になる」をクリックすると担当者に通知が届きます。
+
+外壁塗装くらべる運営事務局
+`;
+  },
+
+  /**
+   * 管理者に通知メール
+   */
+  notifyAdmin: function(subject, cvId, franchiseName, actionType) {
+    try {
+      const adminEmail = PropertiesService.getScriptProperties().getProperty('ADMIN_EMAIL');
+      if (!adminEmail) {
+        console.warn('[notifyAdmin] ADMIN_EMAIL未設定');
+        return;
+      }
+
+      const body = `
+案件ID: ${cvId}
+加盟店名: ${franchiseName}
+アクション: ${actionType === 'purchase' ? '購入' : '気になる'}
+日時: ${Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss')}
+`;
+
+      GmailApp.sendEmail(adminEmail, subject, body, {
+        name: '外壁塗装くらべる システム通知'
+      });
+    } catch (error) {
+      console.error('[notifyAdmin] エラー:', error);
+    }
+  },
+
+  /**
+   * HTMLレスポンス生成
+   */
+  createHtmlResponse: function(title, message, type) {
+    const colorMap = {
+      success: '#22c55e',
+      warning: '#f59e0b',
+      error: '#ef4444'
+    };
+    const color = colorMap[type] || '#3b82f6';
+
+    const html = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title} - 外壁塗装くらべる</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      padding: 40px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+    }
+    .icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: ${color};
+      margin: 0 auto 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .icon svg {
+      width: 40px;
+      height: 40px;
+      fill: white;
+    }
+    h1 {
+      color: #1f2937;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+    p {
+      color: #6b7280;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    .footer {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e7eb;
+      font-size: 14px;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">
+      ${type === 'success' ? '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>' :
+        type === 'warning' ? '<svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>' :
+        '<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>'}
+    </div>
+    <h1>${title}</h1>
+    <p>${message}</p>
+    <div class="footer">外壁塗装くらべる</div>
+  </div>
+</body>
+</html>`;
+
+    return HtmlService.createHtmlOutput(html)
+      .setTitle(title)
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+};

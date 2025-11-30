@@ -1285,9 +1285,13 @@
                 </div>
 
                 <!-- アクションボタン -->
-                <div class="flex justify-center mt-8">
+                <div class="flex justify-center gap-4 mt-8">
                     <button type="button" onclick="showOrderTransferModal()" class="px-8 py-3.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-lg hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105">
                         🚀 オーダー転送
+                    </button>
+                    <!-- V2006: 一斉配信ボタン -->
+                    <button type="button" onclick="showBroadcastModal()" class="px-8 py-3.5 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-bold text-lg hover:from-purple-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105">
+                        📢 一斉配信
                     </button>
                 </div>
             </div>
@@ -1365,6 +1369,80 @@
                         </button>
                         <button type="button" onclick="sendOrderTransfer()" id="orderTransferSubmitBtn" class="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-bold hover:from-green-700 hover:to-green-800 transition-all shadow-lg">
                             転送
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- V2006: 一斉配信確認モーダル -->
+            <div id="broadcastModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50" style="display: none;">
+                <div class="bg-gray-100 rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+                    <!-- ヘッダー -->
+                    <div class="sticky top-0 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-5 py-4 rounded-t-2xl z-10">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-bold">一斉配信確認</h3>
+                            <button onclick="closeBroadcastModal()" class="text-white/80 hover:text-white p-1">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="text-sm text-white/80 mt-1" id="broadcastCvId">CV-ID: ---</div>
+                    </div>
+
+                    <div class="p-4 space-y-4">
+                        <!-- 配信概要 -->
+                        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                            <h4 class="font-bold text-gray-800 mb-3">配信概要</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">対象エリア:</span>
+                                    <span class="font-medium" id="broadcastArea">---</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">対象加盟店数:</span>
+                                    <span class="font-medium text-purple-600" id="broadcastTargetCount">---社</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">希望社数:</span>
+                                    <span class="font-medium" id="broadcastMaxCompanies">---社</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">配信済み:</span>
+                                    <span class="font-medium" id="broadcastDeliveredCount">---社</span>
+                                </div>
+                                <div class="flex justify-between border-t pt-2 mt-2">
+                                    <span class="text-gray-800 font-bold">残り枠:</span>
+                                    <span class="font-bold text-green-600 text-lg" id="broadcastRemainingSlots">---社</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 注意事項 -->
+                        <div class="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
+                            <div class="flex items-start gap-2">
+                                <svg class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                                <div class="text-sm text-yellow-800">
+                                    <p class="font-bold mb-1">注意事項</p>
+                                    <ul class="list-disc list-inside space-y-1 text-yellow-700">
+                                        <li>全対象加盟店にメールが送信されます</li>
+                                        <li>「購入」ボタンで早い者勝ち転送</li>
+                                        <li>残り枠がなくなり次第自動終了</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- フッターボタン -->
+                    <div class="sticky bottom-0 bg-white border-t p-4 rounded-b-2xl flex gap-3">
+                        <button type="button" onclick="closeBroadcastModal()" class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300 transition-all">
+                            キャンセル
+                        </button>
+                        <button type="button" onclick="sendBroadcast()" id="broadcastSubmitBtn" class="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-bold hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg">
+                            配信開始
                         </button>
                     </div>
                 </div>
@@ -10822,6 +10900,7 @@ info@gaihekikuraberu.com
         }
 
         // V1992: オーダー転送を実行（転送のみ - 保存はshowOrderTransferModal時に完了済み）
+        // V2005: 予約転送モードに対応
         async function sendOrderTransfer() {
             if (!window.currentOrderTransferData) {
                 alert('転送データがありません');
@@ -10829,31 +10908,192 @@ info@gaihekikuraberu.com
             }
 
             const button = document.getElementById('orderTransferSubmitBtn');
+            const isScheduled = currentTransferMode === 'scheduled';
+
+            // V2005: 予約転送の場合、日時チェック
+            let scheduledDateTime = null;
+            if (isScheduled) {
+                const dateTimeInput = document.getElementById('scheduledTransferDateTime');
+                if (!dateTimeInput.value) {
+                    alert('予約日時を指定してください');
+                    return;
+                }
+                scheduledDateTime = new Date(dateTimeInput.value).toISOString();
+                // 過去日時チェック
+                if (new Date(dateTimeInput.value) <= new Date()) {
+                    alert('予約日時は未来の日時を指定してください');
+                    return;
+                }
+            }
+
             button.disabled = true;
-            button.textContent = '転送中...';
+            button.textContent = isScheduled ? '予約中...' : '転送中...';
 
             try {
                 const d = window.currentOrderTransferData;
 
-                // V1996: 転送実行（JSONP経由 - GAS側で転送文を再生成してメール送信）
-                const transferResponse = await window.apiClient.postRequest('sendOrderTransfer', {
-                    cvId: d.cvId,
-                    franchises: d.selectedFranchises.map((f, idx) => ({
-                        franchiseId: f.id,
-                        franchiseName: f.name,
-                        fee: f.fee,
-                        rank: idx + 1
-                    }))
-                });
+                // V2005: 予約転送の場合はscheduleOrderTransferを呼び出し
+                if (isScheduled) {
+                    const scheduleResponse = await window.apiClient.postRequest('scheduleOrderTransfer', {
+                        cvId: d.cvId,
+                        scheduledDateTime: scheduledDateTime,
+                        franchises: d.selectedFranchises.map((f, idx) => ({
+                            franchiseId: f.id,
+                            franchiseName: f.name,
+                            fee: f.fee,
+                            rank: idx + 1
+                        }))
+                    });
 
-                if (transferResponse.success) {
-                    showNotification(`転送完了: ${d.selectedFranchises.length}社に配信しました`, 'success');
-                    closeOrderTransferModal();
+                    if (scheduleResponse.success) {
+                        const formattedDate = new Date(scheduledDateTime).toLocaleString('ja-JP');
+                        showNotification(`予約完了: ${formattedDate}に${d.selectedFranchises.length}社に転送予定`, 'success');
+                        closeOrderTransferModal();
 
-                    // ステータスを「配信中」に更新
+                        // ステータスを「転送予約中」に更新
+                        if (casesData[currentCaseId]) {
+                            casesData[currentCaseId].status = '転送予約中';
+                            casesData[currentCaseId].deliveryStatus = '転送予約中';
+                        }
+
+                        // CRMビュー更新
+                        if (typeof loadCRMContent === 'function') {
+                            loadCRMContent(currentCaseId);
+                        }
+                    } else {
+                        throw new Error(scheduleResponse.error || '予約に失敗しました');
+                    }
+                } else {
+                    // V1996: 即時転送実行（JSONP経由 - GAS側で転送文を再生成してメール送信）
+                    const transferResponse = await window.apiClient.postRequest('sendOrderTransfer', {
+                        cvId: d.cvId,
+                        franchises: d.selectedFranchises.map((f, idx) => ({
+                            franchiseId: f.id,
+                            franchiseName: f.name,
+                            fee: f.fee,
+                            rank: idx + 1
+                        }))
+                    });
+
+                    if (transferResponse.success) {
+                        showNotification(`転送完了: ${d.selectedFranchises.length}社に配信しました`, 'success');
+                        closeOrderTransferModal();
+
+                        // ステータスを「配信中」に更新
+                        if (casesData[currentCaseId]) {
+                            casesData[currentCaseId].status = '配信中';
+                            casesData[currentCaseId].deliveryStatus = '配信済';
+                        }
+
+                        // CRMビュー更新
+                        if (typeof loadCRMContent === 'function') {
+                            loadCRMContent(currentCaseId);
+                        }
+                    } else {
+                        throw new Error(transferResponse.error || '転送に失敗しました');
+                    }
+                }
+            } catch (error) {
+                console.error('オーダー転送エラー:', error);
+                alert((isScheduled ? '予約' : '転送') + 'に失敗しました\n' + error.message);
+            } finally {
+                button.disabled = false;
+                button.textContent = isScheduled ? '予約転送' : '転送';
+            }
+        }
+
+        // ========================================
+        // V2006: 一斉配信機能（オークション式）
+        // ========================================
+
+        // 一斉配信モーダルを表示
+        async function showBroadcastModal() {
+            const cvId = currentCaseId;
+            if (!cvId) {
+                alert('案件が選択されていません');
+                return;
+            }
+
+            // モーダル表示
+            const modal = document.getElementById('broadcastModal');
+            modal.style.display = 'flex';
+            modal.classList.remove('hidden');
+
+            // CV ID表示
+            document.getElementById('broadcastCvId').textContent = 'CV-ID: ' + cvId;
+
+            // ローディング表示
+            document.getElementById('broadcastArea').textContent = '読み込み中...';
+            document.getElementById('broadcastTargetCount').textContent = '---社';
+            document.getElementById('broadcastMaxCompanies').textContent = '---社';
+            document.getElementById('broadcastDeliveredCount').textContent = '---社';
+            document.getElementById('broadcastRemainingSlots').textContent = '---社';
+
+            try {
+                // 対象加盟店数を取得
+                const response = await window.apiClient.callAdminApi('getBroadcastTargets', { cvId: cvId });
+
+                if (response && response.success) {
+                    document.getElementById('broadcastArea').textContent = response.area || '不明';
+                    document.getElementById('broadcastTargetCount').textContent = response.totalTargets + '社';
+                    document.getElementById('broadcastMaxCompanies').textContent = response.maxCompanies + '社';
+                    document.getElementById('broadcastDeliveredCount').textContent = response.deliveredCount + '社';
+                    document.getElementById('broadcastRemainingSlots').textContent = response.remainingSlots + '社';
+
+                    // 残り枠がない場合はボタン無効化
+                    const submitBtn = document.getElementById('broadcastSubmitBtn');
+                    if (response.remainingSlots <= 0) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = '残り枠なし';
+                        submitBtn.className = 'flex-1 px-6 py-3 bg-gray-400 text-white rounded-xl font-bold cursor-not-allowed';
+                    } else if (response.totalTargets === 0) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = '対象加盟店なし';
+                        submitBtn.className = 'flex-1 px-6 py-3 bg-gray-400 text-white rounded-xl font-bold cursor-not-allowed';
+                    } else {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = '配信開始';
+                        submitBtn.className = 'flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-bold hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg';
+                    }
+                } else {
+                    throw new Error(response?.error || '取得に失敗しました');
+                }
+            } catch (error) {
+                console.error('[showBroadcastModal] エラー:', error);
+                document.getElementById('broadcastArea').textContent = 'エラー';
+                showNotification('配信情報の取得に失敗しました', 'error');
+            }
+        }
+
+        // 一斉配信モーダルを閉じる
+        function closeBroadcastModal() {
+            const modal = document.getElementById('broadcastModal');
+            modal.style.display = 'none';
+            modal.classList.add('hidden');
+        }
+
+        // 一斉配信を実行
+        async function sendBroadcast() {
+            const cvId = currentCaseId;
+            if (!cvId) {
+                alert('案件が選択されていません');
+                return;
+            }
+
+            const button = document.getElementById('broadcastSubmitBtn');
+            button.disabled = true;
+            button.textContent = '配信中...';
+
+            try {
+                const response = await window.apiClient.callAdminApi('sendBroadcast', { cvId: cvId });
+
+                if (response && response.success) {
+                    showNotification(`一斉配信完了: ${response.sentCount}社に配信しました（残り枠: ${response.remainingSlots}社）`, 'success');
+                    closeBroadcastModal();
+
+                    // ステータス更新
                     if (casesData[currentCaseId]) {
-                        casesData[currentCaseId].status = '配信中';
-                        casesData[currentCaseId].deliveryStatus = '配信済';
+                        casesData[currentCaseId].status = '一斉配信中';
                     }
 
                     // CRMビュー更新
@@ -10861,14 +11101,14 @@ info@gaihekikuraberu.com
                         loadCRMContent(currentCaseId);
                     }
                 } else {
-                    throw new Error(transferResponse.error || '転送に失敗しました');
+                    throw new Error(response?.error || '配信に失敗しました');
                 }
             } catch (error) {
-                console.error('オーダー転送エラー:', error);
-                alert('転送に失敗しました\n' + error.message);
+                console.error('[sendBroadcast] エラー:', error);
+                alert('一斉配信に失敗しました\n' + error.message);
             } finally {
                 button.disabled = false;
-                button.textContent = '転送';
+                button.textContent = '配信開始';
             }
         }
 

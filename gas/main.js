@@ -626,6 +626,10 @@ function doGet(e) {
         timestamp: new Date().toString(),
         router: 'SystemRouter enabled'
       };
+    } else if (action === 'broadcast_purchase' || action === 'broadcast_interest') {
+      // V2006: 一斉配信のボタンクリック処理（HTMLを返す）
+      console.log('[main.js] Routing to BroadcastSystem (HTML response):', action);
+      return BroadcastSystem.handle(e.parameter);
     } else if (action === 'syncPostalCodes') {
       // V1948: 郵便番号一括同期 (one-time migration)
       console.log('[main.js] Running syncAllPostalCodes migration');
@@ -689,7 +693,25 @@ function doGet(e) {
           }
         }
 
-        result = handler(e.parameter, null);
+        // V2005: scheduleOrderTransferの場合、複数パラメータをJSONパース
+        if (action === 'scheduleOrderTransfer') {
+          try {
+            if (e.parameter.franchises) {
+              e.parameter.franchises = JSON.parse(e.parameter.franchises);
+            }
+            console.log('[main.js] Parsed scheduleOrderTransfer params');
+          } catch (err) {
+            console.error('[main.js] Failed to parse scheduleOrderTransfer parameters:', err);
+          }
+        }
+
+        // V2006: sendBroadcastの場合（一斉配信）
+        if (action === 'sendBroadcast' || action === 'getBroadcastTargets') {
+          console.log('[main.js] Routing to BroadcastSystem:', action);
+          result = BroadcastSystem.handle(e.parameter);
+        } else {
+          result = handler(e.parameter, null);
+        }
       }
     }
 

@@ -76,6 +76,9 @@ const AdminSystem = {
         case 'sendOrderTransfer':
           return this.sendOrderTransfer(params);
 
+        case 'scheduleOrderTransfer':
+          return this.scheduleOrderTransfer(params);
+
         case 'getDeliveredFranchises':
           return this.getDeliveredFranchises(params);
 
@@ -2384,6 +2387,115 @@ const AdminSystem = {
     } catch (error) {
       console.error('[sendOrderTransfer] エラー:', error);
       return { success: false, error: error.message || 'オーダー転送に失敗しました' };
+    }
+  },
+
+  /**
+   * V2005: 予約転送データを保存
+   * 転送は実行せず、指定日時に自動実行されるようデータを保存
+   * @param {Object} params - { cvId, scheduledDateTime, franchises }
+   */
+  scheduleOrderTransfer: function(params) {
+    try {
+      console.log('[scheduleOrderTransfer] V2005 開始:', params);
+
+      const cvId = params.cvId;
+      const scheduledDateTime = params.scheduledDateTime;
+      const franchises = params.franchises;
+
+      if (!cvId) {
+        return { success: false, error: 'CV IDが指定されていません' };
+      }
+      if (!scheduledDateTime) {
+        return { success: false, error: '予約日時が指定されていません' };
+      }
+      if (!franchises || franchises.length === 0) {
+        return { success: false, error: '転送先加盟店が指定されていません' };
+      }
+      if (franchises.length > 4) {
+        return { success: false, error: '最大4社まで選択できます' };
+      }
+
+      // 過去日時チェック
+      const scheduledDate = new Date(scheduledDateTime);
+      if (scheduledDate <= new Date()) {
+        return { success: false, error: '予約日時は未来の日時を指定してください' };
+      }
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const userSheet = ss.getSheetByName('ユーザー登録');
+
+      if (!userSheet) {
+        return { success: false, error: 'ユーザー登録シートが見つかりません' };
+      }
+
+      // ユーザー登録シートの該当行を更新
+      const userData = userSheet.getDataRange().getValues();
+      const headers = userData[0];
+
+      const cvIdIdx = headers.indexOf('CV ID');
+      const scheduledDateIdx = headers.indexOf('配信予定日時');
+      const scheduledDataIdx = headers.indexOf('予約転送データJSON');
+      const deliveryStatusIdx = headers.indexOf('配信ステータス');
+
+      if (cvIdIdx === -1) {
+        return { success: false, error: 'CV IDカラムが見つかりません' };
+      }
+
+      // 予約転送データJSONカラムがない場合はエラー（手動で追加が必要）
+      if (scheduledDataIdx === -1) {
+        console.warn('[scheduleOrderTransfer] 予約転送データJSONカラムが見つかりません。スプレッドシートにカラムを追加してください。');
+        // 配信予定日時カラムにデータを格納する代替案
+      }
+
+      // 該当CV IDの行を検索
+      let targetRow = -1;
+      for (let i = 1; i < userData.length; i++) {
+        if (userData[i][cvIdIdx] === cvId) {
+          targetRow = i + 1; // 1-indexed
+          break;
+        }
+      }
+
+      if (targetRow === -1) {
+        return { success: false, error: `CV ID ${cvId} が見つかりません` };
+      }
+
+      // 予約転送データJSON作成
+      const scheduledData = {
+        scheduledAt: new Date().toISOString(),
+        scheduledDateTime: scheduledDateTime,
+        franchises: franchises
+      };
+
+      // 配信予定日時を更新
+      if (scheduledDateIdx !== -1) {
+        const formattedDate = Utilities.formatDate(scheduledDate, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
+        userSheet.getRange(targetRow, scheduledDateIdx + 1).setValue(formattedDate);
+      }
+
+      // 予約転送データJSONを更新（カラムがあれば）
+      if (scheduledDataIdx !== -1) {
+        userSheet.getRange(targetRow, scheduledDataIdx + 1).setValue(JSON.stringify(scheduledData));
+      }
+
+      // 配信ステータスを「転送予約中」に更新
+      if (deliveryStatusIdx !== -1) {
+        userSheet.getRange(targetRow, deliveryStatusIdx + 1).setValue('転送予約中');
+      }
+
+      console.log('[scheduleOrderTransfer] 予約完了:', cvId, '→', scheduledDateTime);
+
+      return {
+        success: true,
+        message: `${franchises.length}社への転送を予約しました`,
+        scheduledDateTime: scheduledDateTime,
+        franchiseCount: franchises.length
+      };
+    } catch (error) {
+      console.error('[scheduleOrderTransfer] エラー:', error);
+      return { success: false, error: error.message || '予約転送の設定に失敗しました' };
     }
   },
 
