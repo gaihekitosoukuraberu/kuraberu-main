@@ -252,6 +252,20 @@ const SystemRouter = {
       actions: ['sendOrderTransfer']
     },
 
+    // V2005: 転送済み業者取得・取り消し
+    'getDeliveredFranchises': {
+      system: 'AdminSystem',
+      description: '転送済み業者取得',
+      prefix: false,
+      actions: ['getDeliveredFranchises']
+    },
+    'cancelTransfer': {
+      system: 'AdminSystem',
+      description: '転送取り消し',
+      prefix: false,
+      actions: ['cancelTransfer']
+    },
+
     // V2006: 一斉配信システム
     'getBroadcastTargets': {
       system: 'BroadcastSystem',
