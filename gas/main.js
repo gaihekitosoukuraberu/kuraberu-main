@@ -251,6 +251,13 @@ const SystemRouter = {
       prefix: false,
       actions: ['sendOrderTransfer']
     },
+    // V2005: 予約転送
+    'scheduleOrderTransfer': {
+      system: 'AdminSystem',
+      description: '予約転送',
+      prefix: false,
+      actions: ['scheduleOrderTransfer']
+    },
 
     // CVハートビートシステム（V1754）
     'heartbeat': {
