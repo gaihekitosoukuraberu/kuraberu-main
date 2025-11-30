@@ -199,7 +199,6 @@ var BroadcastSystem = {
 築年数: ${buildingAge}年
 希望工事: ${workItems}
 紹介料: ¥${fee.toLocaleString()}（税別）
-残り枠: ${maxCompanies}社
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -215,25 +214,10 @@ var BroadcastSystem = {
 
 外壁塗装くらべる運営事務局`;
 
-      // 含まれている情報・含まれていない情報を明示
       return {
         success: true,
         cvId: cvId,
-        preview: previewText,
-        includedInfo: [
-          'エリア（市区町村まで）',
-          '物件種別',
-          '築年数',
-          '希望工事',
-          '紹介料',
-          '残り枠'
-        ],
-        excludedInfo: [
-          '氏名',
-          '電話番号',
-          '詳細住所',
-          'メールアドレス'
-        ]
+        preview: previewText
       };
     } catch (error) {
       console.error('[getBroadcastPreview] エラー:', error);
@@ -914,7 +898,6 @@ ${franchise.name} 御中
 築年数: ${buildingAge}年
 希望工事: ${workItems}
 紹介料: ¥${fee.toLocaleString()}（税別）
-残り枠: ${remainingSlots}社
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
