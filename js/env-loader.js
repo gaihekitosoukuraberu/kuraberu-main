@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1981 - オーダー転送を保存＆転送に変更）
-  CACHE_BUSTER: 'v1764440206-fe31a591'
+  // キャッシュバスター（V1982 - 保存→転送メッセージ再生成→転送の順序に修正）
+  CACHE_BUSTER: 'v1982-save-then-transfer'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
