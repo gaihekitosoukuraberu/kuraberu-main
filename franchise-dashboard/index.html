@@ -13466,6 +13466,11 @@
                 if (sectionName === 'contract') {
                     loadContractCases();
                 }
+
+                // V2007: 案件管理セクションの場合は案件データを読み込み
+                if (sectionName === 'cases') {
+                    loadMerchantCases();
+                }
             }
 
             // メニューを閉じる
