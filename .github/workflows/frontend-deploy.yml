@@ -409,6 +409,30 @@ jobs:
             grep "CACHE_BUSTER" js/env-loader.js
           fi
 
+      - name: Sync env-loader.js to all frontend directories
+        run: |
+          echo "🔄 Syncing env-loader.js to all frontend directories..."
+          MASTER_FILE="js/env-loader.js"
+
+          # 全フロントエンドディレクトリにマスターファイルをコピー
+          TARGETS=(
+            "admin-dashboard/js/env-loader.js"
+            "franchise-dashboard/merchant-portal/env-loader.js"
+            "franchise-register/js/env-loader.js"
+            "estimate-keep-system/js/env-loader.js"
+          )
+
+          for TARGET in "${TARGETS[@]}"; do
+            if [ -d "$(dirname "$TARGET")" ]; then
+              cp "$MASTER_FILE" "$TARGET"
+              echo "✅ Synced to $TARGET"
+            else
+              echo "⚠️ Directory $(dirname "$TARGET") does not exist, skipping"
+            fi
+          done
+
+          echo "✅ All env-loader.js files synced from master"
+
       - name: Commit and push cache buster updates
         run: |
           echo "📝 env-loader.js キャッシュバスター更新をコミット中..."
@@ -416,14 +440,19 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
 
+          # 全env-loader.jsをステージング
           git add js/env-loader.js
+          git add admin-dashboard/js/env-loader.js
+          git add franchise-dashboard/merchant-portal/env-loader.js
+          git add franchise-register/js/env-loader.js
+          git add estimate-keep-system/js/env-loader.js
 
           if git diff --staged --quiet; then
             echo "📍 変更なし - コミットスキップ"
           else
-            git commit -m "auto: cache buster update - env-loader.js"
+            git commit -m "auto: cache buster update - all env-loader.js synced"
             git push
-            echo "✅ キャッシュバスター更新をプッシュしました"
+            echo "✅ 全env-loader.jsの更新をプッシュしました"
           fi
 
       - name: Deploy to Xserver via FTP
