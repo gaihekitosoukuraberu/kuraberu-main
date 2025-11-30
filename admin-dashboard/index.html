@@ -1289,9 +1289,9 @@
                     <button type="button" onclick="showOrderTransferModal()" class="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-base sm:text-lg hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl active:scale-95 sm:hover:scale-105">
                         🚀 オーダー転送
                     </button>
-                    <!-- V2006: 一斉配信ボタン -->
+                    <!-- V2006: 案件メールボタン -->
                     <button type="button" onclick="showBroadcastModal()" class="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-bold text-base sm:text-lg hover:from-purple-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl active:scale-95 sm:hover:scale-105">
-                        📢 一斉配信
+                        📧 案件メール
                     </button>
                 </div>
             </div>
@@ -1399,10 +1399,6 @@
                         <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
                             <h4 class="font-bold text-gray-800 mb-2">配信メールプレビュー</h4>
                             <pre id="broadcastPreviewText" class="text-xs bg-gray-50 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap border max-h-60 overflow-y-auto">読み込み中...</pre>
-                            <div class="mt-2 text-xs">
-                                <p class="text-green-600 font-medium">✓ 公開: <span id="broadcastIncludedInfo">---</span></p>
-                                <p class="text-red-600 font-medium">✗ 非公開: <span id="broadcastExcludedInfo">---</span></p>
-                            </div>
                         </div>
 
                         <!-- 説明 -->
@@ -10856,10 +10852,10 @@ info@gaihekikuraberu.com
         }
 
         // ========================================
-        // V2006: 一斉配信機能（オークション式）
+        // V2006: 案件メール機能
         // ========================================
 
-        // 一斉配信モーダルを表示
+        // 案件メールモーダルを表示
         async function showBroadcastModal() {
             const cvId = currentCaseId;
             if (!cvId) {
@@ -10920,7 +10916,7 @@ info@gaihekikuraberu.com
             }
         }
 
-        // 一斉配信モーダルを閉じる
+        // 案件メールモーダルを閉じる
         function closeBroadcastModal() {
             const modal = document.getElementById('broadcastModal');
             modal.classList.add('hidden');
@@ -10932,8 +10928,6 @@ info@gaihekikuraberu.com
                 const response = await window.apiClient.postRequest('getBroadcastPreview', { cvId: cvId });
                 if (response && response.success) {
                     document.getElementById('broadcastPreviewText').textContent = response.preview;
-                    document.getElementById('broadcastIncludedInfo').textContent = response.includedInfo.join('、');
-                    document.getElementById('broadcastExcludedInfo').textContent = response.excludedInfo.join('、');
                 }
             } catch (error) {
                 console.error('[loadBroadcastPreview] エラー:', error);
@@ -10941,7 +10935,7 @@ info@gaihekikuraberu.com
             }
         }
 
-        // 一斉配信を実行
+        // 案件メールを実行
         async function sendBroadcast() {
             const cvId = currentCaseId;
             if (!cvId) {
@@ -10957,12 +10951,12 @@ info@gaihekikuraberu.com
                 const response = await window.apiClient.postRequest('sendBroadcast', { cvId: cvId });
 
                 if (response && response.success) {
-                    showNotification(`一斉配信完了: ${response.sentCount}社に配信しました（残り枠: ${response.remainingSlots}社）`, 'success');
+                    showNotification(`案件メール送信完了: ${response.sentCount}社に配信しました（残り枠: ${response.remainingSlots}社）`, 'success');
                     closeBroadcastModal();
 
                     // ステータス更新
                     if (casesData[currentCaseId]) {
-                        casesData[currentCaseId].status = '一斉配信中';
+                        casesData[currentCaseId].status = '案件メール配信中';
                     }
 
                     // CRMビュー更新
@@ -10974,7 +10968,7 @@ info@gaihekikuraberu.com
                 }
             } catch (error) {
                 console.error('[sendBroadcast] エラー:', error);
-                alert('一斉配信に失敗しました\n' + error.message);
+                alert('案件メール送信に失敗しました\n' + error.message);
             } finally {
                 button.disabled = false;
                 button.textContent = '配信開始';
