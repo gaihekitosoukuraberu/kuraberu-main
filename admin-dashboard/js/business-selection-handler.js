@@ -2103,7 +2103,7 @@ const BusinessSelectionHandler = {
     let cancelButtonHtml = '';
     if (isDelivered) {
       // 取り消しボタン（コンパクト、右寄せ）
-      cancelButtonHtml = `<button onclick="event.stopPropagation(); window.businessSelectionHandler.showCancelTransferModal('${card.companyName.replace(/'/g, "\\'")}', '${deliveredInfo.franchiseId || ''}')"
+      cancelButtonHtml = `<button onclick="event.stopPropagation(); window.BusinessSelectionHandler.showCancelTransferModal('${card.companyName.replace(/'/g, "\\'")}', '${deliveredInfo.franchiseId || ''}')"
         class="inline-flex items-center gap-1 px-2 py-1 bg-white hover:bg-red-50 text-red-400 hover:text-red-600 text-xs rounded border border-gray-200 hover:border-red-300 transition-all"
         title="転送取り消し">
         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -2616,7 +2616,7 @@ const BusinessSelectionHandler = {
           <button onclick="document.getElementById('cancelTransferModal').remove()" class="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors">
             キャンセル
           </button>
-          <button onclick="window.businessSelectionHandler.executeCancelTransfer('${companyName}', '${franchiseId}')" class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors">
+          <button onclick="window.BusinessSelectionHandler.executeCancelTransfer('${companyName}', '${franchiseId}')" class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors">
             取り消す
           </button>
         </div>
