@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1994 - 転送文をAPI送信から除外）
-  CACHE_BUSTER: 'v1764476228-fef8137d'
+  // キャッシュバスター（V1995 - オーダー転送メール送信機能）
+  CACHE_BUSTER: 'v1995-order-transfer-email'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

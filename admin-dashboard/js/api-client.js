@@ -184,6 +184,42 @@ class ApiClient {
     return this.jsonpRequest(action, serializedData);
   }
 
+  /**
+   * V1995: 真のPOSTリクエスト（fetch使用 - 大きなデータ用）
+   * GASのdoPostにJSONボディを送信
+   * @param {string} action - アクション名
+   * @param {Object} data - 送信データ
+   * @returns {Promise<Object>} レスポンス
+   */
+  async fetchPost(action, data = {}) {
+    console.log(`[ApiClient] fetchPost: ${action}`);
+
+    const payload = {
+      action: action,
+      ...data
+    };
+
+    try {
+      const response = await fetch(this.baseUrl, {
+        method: 'POST',
+        mode: 'no-cors', // GASはCORS対応してないのでno-cors
+        headers: {
+          'Content-Type': 'text/plain' // GASがパースできる形式
+        },
+        body: JSON.stringify(payload)
+      });
+
+      // no-corsモードではレスポンスが読めないため、成功を仮定
+      // 実際の結果確認は別途必要
+      console.log(`[ApiClient] fetchPost sent: ${action}`);
+      return { success: true, message: 'リクエスト送信完了' };
+
+    } catch (error) {
+      console.error(`[ApiClient] fetchPost error: ${action}`, error);
+      throw error;
+    }
+  }
+
 
   /**
    * ヘルスチェック

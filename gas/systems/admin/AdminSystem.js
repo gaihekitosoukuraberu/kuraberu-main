@@ -2259,8 +2259,9 @@ const AdminSystem = {
   },
 
   /**
-   * オーダー転送処理（配信管理シートに書き込み）
+   * オーダー転送処理（配信管理シート + メール送信）
    * V1820新規実装
+   * V1995: メール送信機能追加（加盟店登録シートW列の営業用メールアドレスに送信）
    */
   sendOrderTransfer: function(params) {
     try {
@@ -2269,8 +2270,6 @@ const AdminSystem = {
       // paramsから直接取得（main.jsでパース済み）
       const cvId = params.cvId;
       const franchises = params.franchises;
-      const transferMessage = params.transferMessage;
-      const caseData = params.caseData;
 
       if (!cvId || !franchises || franchises.length === 0) {
         return {
@@ -2290,6 +2289,7 @@ const AdminSystem = {
       const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
       const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       const deliverySheet = ss.getSheetByName('配信管理');
+      const franchiseSheet = ss.getSheetByName('加盟店登録');
 
       if (!deliverySheet) {
         return {
@@ -2298,20 +2298,89 @@ const AdminSystem = {
         };
       }
 
+      if (!franchiseSheet) {
+        return {
+          success: false,
+          error: '加盟店登録シートが見つかりません'
+        };
+      }
+
+      // V1995: 加盟店登録シートからメールアドレスを取得するためのマップを作成
+      const franchiseData = franchiseSheet.getDataRange().getValues();
+      const franchiseHeaders = franchiseData[0];
+      const companyNameIndex = franchiseHeaders.indexOf('会社名（法人名）');
+      const salesEmailIndex = franchiseHeaders.indexOf('営業用メールアドレス'); // W列
+      const emailIndex = franchiseHeaders.indexOf('メールアドレス'); // フォールバック用
+
+      console.log('[sendOrderTransfer] 加盟店シート列:', { companyNameIndex, salesEmailIndex, emailIndex });
+
+      // 会社名→メールアドレスのマップを作成
+      const emailMap = {};
+      for (let i = 1; i < franchiseData.length; i++) {
+        const row = franchiseData[i];
+        const companyName = row[companyNameIndex] || '';
+        // 営業用メールアドレスを優先、なければ通常のメールアドレス
+        const email = row[salesEmailIndex] || row[emailIndex] || '';
+        if (companyName && email) {
+          emailMap[companyName] = email;
+        }
+      }
+      console.log('[sendOrderTransfer] メールマップ作成完了:', Object.keys(emailMap).length, '件');
+
       const now = new Date();
       const timestamp = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
       const dateOnly = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd');
 
-      // 各加盟店に対してレコードを作成
+      // メール送信結果を記録
+      const emailResults = [];
+
+      // 各加盟店に対してレコードを作成 & メール送信
       const records = franchises.map((franchise, index) => {
         const recordId = `DL${Utilities.formatDate(now, 'Asia/Tokyo', 'yyMMddHHmmss')}${String(Math.random()).slice(2, 7)}`;
+
+        // V1995: メール送信
+        const franchiseName = franchise.franchiseName || franchise.franchiseId;
+        const toEmail = emailMap[franchiseName];
+        const transferMessage = franchise.transferMessage || '';
+
+        if (toEmail && transferMessage) {
+          try {
+            // メール送信
+            GmailApp.sendEmail(
+              toEmail,
+              `【外壁塗装くらべる】案件紹介のご連絡 (${cvId})`,
+              transferMessage,
+              {
+                from: 'info@gaihekikuraberu.com',
+                name: '外壁塗装くらべる運営事務局'
+              }
+            );
+            console.log('[sendOrderTransfer] メール送信成功:', franchiseName, toEmail);
+            emailResults.push({ franchiseName, email: toEmail, success: true });
+          } catch (emailError) {
+            console.error('[sendOrderTransfer] メール送信失敗:', franchiseName, toEmail, emailError);
+            emailResults.push({ franchiseName, email: toEmail, success: false, error: emailError.message });
+          }
+        } else {
+          console.warn('[sendOrderTransfer] メール送信スキップ:', {
+            franchiseName,
+            hasEmail: !!toEmail,
+            hasMessage: !!transferMessage
+          });
+          emailResults.push({
+            franchiseName,
+            email: toEmail || '未登録',
+            success: false,
+            error: !toEmail ? 'メールアドレス未登録' : '転送文なし'
+          });
+        }
 
         return [
           recordId,                    // レコードID
           cvId,                        // CV ID
           franchise.franchiseId,       // 加盟店ID
           dateOnly,                    // 配信日時
-          franchise.rank,              // 配信順位
+          franchise.rank || (index + 1), // 配信順位
           '配信済み',                   // 配信ステータス
           '未対応',                     // 詳細ステータス
           timestamp,                   // ステータス更新日時
@@ -2352,12 +2421,15 @@ const AdminSystem = {
         deliverySheet.getRange(lastRow + 1, 1, records.length, records[0].length).setValues(records);
       }
 
-      console.log('[sendOrderTransfer] 成功:', records.length, '件');
+      // メール送信成功数をカウント
+      const successCount = emailResults.filter(r => r.success).length;
+      console.log('[sendOrderTransfer] 完了:', records.length, '件登録,', successCount, '件メール送信成功');
 
       return {
         success: true,
-        message: `${records.length}社に転送しました`,
+        message: `${records.length}社に転送しました（メール送信: ${successCount}/${records.length}件）`,
         recordCount: records.length,
+        emailResults: emailResults,
         records: records.map(r => ({
           recordId: r[0],
           franchiseId: r[2],

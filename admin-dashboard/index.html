@@ -10704,14 +10704,15 @@ info@gaihekikuraberu.com
             try {
                 const d = window.currentOrderTransferData;
 
-                // V1994: 転送実行（転送文はURL長制限のため送信しない - 配信管理シートへの登録のみ）
-                const transferResponse = await window.apiClient.postRequest('sendOrderTransfer', {
+                // V1995: 転送実行（fetchPostで転送文含む大きなデータをPOST送信 → メール送信）
+                const transferResponse = await window.apiClient.fetchPost('sendOrderTransfer', {
                     cvId: d.cvId,
                     franchises: d.selectedFranchises.map((f, idx) => ({
                         franchiseId: f.id,
                         franchiseName: f.name,
                         fee: f.fee,
-                        rank: idx + 1
+                        rank: idx + 1,
+                        transferMessage: f.transferMessage  // 転送文をPOSTで送信
                     }))
                 });
 
