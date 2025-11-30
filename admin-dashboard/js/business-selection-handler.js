@@ -2120,6 +2120,12 @@ const BusinessSelectionHandler = {
       ? `<input type="checkbox" disabled checked class="w-5 h-5 text-gray-400 rounded flex-shrink-0 cursor-not-allowed" onclick="event.stopPropagation()">`
       : `<input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="w-5 h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">`;
 
+    // 配信状況バッジ（転送済み/希望社数）
+    const transferCount = this.deliveredFranchises?.length || 0;
+    const desiredCountStr = this.currentCaseData?.desiredCount || this.currentCaseData?.companiesCountPreference || '3社';
+    const desiredCount = parseInt(desiredCountStr) || 3;
+    const deliveryStatusBadgeHtml = `<span class="inline-flex items-center justify-center px-1.5 py-0.5 bg-purple-100 border border-purple-400 text-purple-700 text-xs font-bold rounded">${transferCount}/${desiredCount}社</span>`;
+
     // V1956: モバイル完全縦積みレイアウト - 左寄せ最適化
     div.innerHTML = `
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
@@ -2133,6 +2139,7 @@ const BusinessSelectionHandler = {
             <div class="hidden md:block flex-1 min-w-0">
               <div class="font-semibold ${isDelivered ? 'text-gray-500' : 'text-gray-900'} text-base leading-tight">${card.companyName}</div>
             </div>
+            ${deliveryStatusBadgeHtml}
             ${deliveredBadgeHtml}
           </div>
 
