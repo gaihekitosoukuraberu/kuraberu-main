@@ -651,276 +651,50 @@
                 <div class="bg-white rounded-lg p-4 mb-4 shadow">
                     <div class="flex flex-wrap items-center gap-3">
                         <!-- ステータス別統計 -->
-                        <button onclick="filterCases('all')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
-                            <span class="text-lg font-bold" id="count-all">5</span>
+                        <button onclick="filterCases('all')" class="filter-stat-btn active flex items-center space-x-2 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition" data-filter="all">
+                            <span class="text-lg font-bold" id="stat-total">0</span>
                             <span class="text-xs">全件</span>
                         </button>
-                        <button onclick="filterCases('未対応')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition">
-                            <span class="text-lg font-bold" id="count-未対応">1</span>
-                            <span class="text-xs">未対応</span>
+                        <button onclick="filterCases('pending')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition" data-filter="pending">
+                            <span class="text-lg font-bold" id="stat-pending">0</span>
+                            <span class="text-xs">対応待ち</span>
                         </button>
-                        <button onclick="filterCases('アポ済')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition">
-                            <span class="text-lg font-bold" id="count-アポ済">1</span>
-                            <span class="text-xs">アポ済</span>
+                        <button onclick="filterCases('visited')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition" data-filter="visited">
+                            <span class="text-lg font-bold" id="stat-visited">0</span>
+                            <span class="text-xs">訪問済み</span>
                         </button>
-                        <button onclick="filterCases('見積提出済')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition">
-                            <span class="text-lg font-bold" id="count-見積提出済">1</span>
-                            <span class="text-xs">見積提出済</span>
+                        <button onclick="filterCases('quoted')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition" data-filter="quoted">
+                            <span class="text-lg font-bold" id="stat-quoted">0</span>
+                            <span class="text-xs">見積提出</span>
                         </button>
-                        <button onclick="filterCases('成約')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition">
-                            <span class="text-lg font-bold" id="count-成約">1</span>
+                        <button onclick="filterCases('contracted')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition" data-filter="contracted">
+                            <span class="text-lg font-bold" id="stat-contracted">0</span>
                             <span class="text-xs">成約</span>
+                        </button>
+                        <button onclick="filterCases('cancelled')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 transition" data-filter="cancelled">
+                            <span class="text-lg font-bold" id="stat-cancelled">0</span>
+                            <span class="text-xs">キャンセル</span>
                         </button>
 
                         <div class="flex-1"></div>
 
                         <!-- 検索・ソート -->
                         <input type="text" id="caseSearchInput" placeholder="顧客名・住所で検索..." class="px-3 py-2 border rounded-lg text-sm w-48" onkeyup="searchCases()">
-                        <select id="caseSortSelect" onchange="sortCases()" class="px-3 py-2 border rounded-lg text-sm">
-                            <option value="date_desc">登録日順（新しい順）</option>
-                            <option value="date_asc">登録日順（古い順）</option>
-                            <option value="status">ステータス順</option>
-                        </select>
+                        <button onclick="loadMerchantCases()" class="px-3 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition" title="データ再読み込み">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        </button>
                     </div>
                 </div>
 
                 <!-- カードビュー -->
                 <div id="caseCardView" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer" onclick="showCaseDetail(1)" data-case-id="1">
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">未対応</span>
-                        <div class="flex gap-1">
-                            <button onclick="event.stopPropagation(); showMemo(1)" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="メモ">
-                                <span class="text-lg">📝</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); scheduleCase(1)" class="p-1.5 rounded-lg hover:bg-yellow-100 transition-colors" title="スケジュール">
-                                <span class="text-lg">📅</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); passCase(1)" class="p-1.5 rounded-lg hover:bg-blue-100 transition-colors" title="担当パス">
-                                <span class="text-lg">🔄</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); openCancelRequest(1)" class="p-1.5 rounded-lg hover:bg-red-100 transition-colors" title="キャンセル申請">
-                                <span class="text-lg">❌</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); archiveCase('CV001')" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="追客終了BOXへ移動">
-                                <span class="text-lg">🗑️</span>
-                            </button>
-                        </div>
+                    <!-- ローディング表示 -->
+                    <div id="casesLoading" class="col-span-full text-center py-12">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
+                        <p class="text-gray-500">案件データを読み込み中...</p>
                     </div>
-                    <h3 class="font-bold text-lg mb-1">山田太郎</h3>
-                    <div class="mb-2">
-                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">👤 担当: 田中太郎</span>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-2">東京都世田谷区</p>
-                    <p class="text-sm text-gray-600 mb-3">戸建て・築15年</p>
-                    <div class="flex justify-between items-center text-xs text-gray-500 mb-3">
-                        <span>最終連絡: 2024/01/15 初回問い合わせ</span>
-                        <span>次回予定: 2024/01/18 14:00 電話フォロー</span>
-                    </div>
-                    <div class="flex gap-1">
-                        <button onclick="event.stopPropagation(); callCustomer('03-1234-5678')" class="flex-1 px-2 py-2 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors">
-                            📞
-                        </button>
-                        <button onclick="event.stopPropagation(); sendSMS('03-1234-5678')" class="flex-1 px-2 py-2 bg-yellow-100 text-yellow-700 rounded text-sm hover:bg-yellow-200 transition-colors">
-                            📩
-                        </button>
-                        <button onclick="event.stopPropagation(); quickStatusChange(1)" class="flex-1 px-2 py-2 bg-orange-100 text-orange-700 rounded text-sm hover:bg-orange-200 transition-colors">
-                            ステータス
-                        </button>
-                        <button onclick="event.stopPropagation(); showCaseDetail(1)" class="flex-1 px-2 py-2 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
-                            詳細
-                        </button>
-                    </div>
+                    <!-- 案件カードは動的に生成 -->
                 </div>
-            
-                <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer" onclick="showCaseDetail(2)" data-case-id="2">
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">アポ済</span>
-                        <div class="flex gap-1">
-                            <button onclick="event.stopPropagation(); showMemo(2)" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="メモ">
-                                <span class="text-lg">📝</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); scheduleCase(2)" class="p-1.5 rounded-lg hover:bg-yellow-100 transition-colors" title="スケジュール">
-                                <span class="text-lg">📅</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); passCase(2)" class="p-1.5 rounded-lg hover:bg-blue-100 transition-colors" title="担当パス">
-                                <span class="text-lg">🔄</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); openCancelRequest(2)" class="p-1.5 rounded-lg hover:bg-red-100 transition-colors" title="キャンセル申請">
-                                <span class="text-lg">❌</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); archiveCase('CV002')" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="追客終了BOXへ移動">
-                                <span class="text-lg">🗑️</span>
-                            </button>
-                        </div>
-                    </div>
-                    <h3 class="font-bold text-lg mb-1">鈴木花子</h3>
-                    <div class="mb-2">
-                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">👤 担当: 佐藤花子</span>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-2">神奈川県横浜市</p>
-                    <p class="text-sm text-gray-600 mb-3">戸建て・築10年</p>
-                    <div class="flex justify-between items-center text-xs text-gray-500 mb-3">
-                        <span>最終連絡: 2024/01/16 電話でアポ取得</span>
-                        <span>次回予定: 2024/01/20 14:00 現地調査</span>
-                    </div>
-                    <div class="flex gap-1">
-                        <button onclick="event.stopPropagation(); callCustomer('045-9876-5432')" class="flex-1 px-2 py-2 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors">
-                            📞
-                        </button>
-                        <button onclick="event.stopPropagation(); sendSMS('045-9876-5432')" class="flex-1 px-2 py-2 bg-yellow-100 text-yellow-700 rounded text-sm hover:bg-yellow-200 transition-colors">
-                            📩
-                        </button>
-                        <button onclick="event.stopPropagation(); quickStatusChange(2)" class="flex-1 px-2 py-2 bg-orange-100 text-orange-700 rounded text-sm hover:bg-orange-200 transition-colors">
-                            ステータス
-                        </button>
-                        <button onclick="event.stopPropagation(); showCaseDetail(2)" class="flex-1 px-2 py-2 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
-                            詳細
-                        </button>
-                    </div>
-                </div>
-            
-                <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer" onclick="showCaseDetail(3)" data-case-id="3">
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">見積提出済</span>
-                        <div class="flex gap-1">
-                            <button onclick="event.stopPropagation(); showMemo(3)" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="メモ">
-                                <span class="text-lg">📝</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); scheduleCase(3)" class="p-1.5 rounded-lg hover:bg-yellow-100 transition-colors" title="スケジュール">
-                                <span class="text-lg">📅</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); passCase(3)" class="p-1.5 rounded-lg hover:bg-blue-100 transition-colors" title="担当パス">
-                                <span class="text-lg">🔄</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); openCancelRequest(3)" class="p-1.5 rounded-lg hover:bg-red-100 transition-colors" title="キャンセル申請">
-                                <span class="text-lg">❌</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); archiveCase('CV003')" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="追客終了BOXへ移動">
-                                <span class="text-lg">🗑️</span>
-                            </button>
-                        </div>
-                    </div>
-                    <h3 class="font-bold text-lg mb-1">佐藤一郎</h3>
-                    <div class="mb-2">
-                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">👤 担当: 田中太郎</span>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-2">埼玉県さいたま市</p>
-                    <p class="text-sm text-gray-600 mb-3">アパート・築20年</p>
-                    <div class="flex justify-between items-center text-xs text-gray-500 mb-3">
-                        <span>最終連絡: 2024/01/14 見積書メール送付</span>
-                        <span>次回予定: 2024/01/22 10:00 見積説明訪問</span>
-                    </div>
-                    <div class="flex gap-1">
-                        <button onclick="event.stopPropagation(); callCustomer('048-1111-2222')" class="flex-1 px-2 py-2 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors">
-                            📞
-                        </button>
-                        <button onclick="event.stopPropagation(); sendSMS('048-1111-2222')" class="flex-1 px-2 py-2 bg-yellow-100 text-yellow-700 rounded text-sm hover:bg-yellow-200 transition-colors">
-                            📩
-                        </button>
-                        <button onclick="event.stopPropagation(); quickStatusChange(3)" class="flex-1 px-2 py-2 bg-orange-100 text-orange-700 rounded text-sm hover:bg-orange-200 transition-colors">
-                            ステータス
-                        </button>
-                        <button onclick="event.stopPropagation(); showCaseDetail(3)" class="flex-1 px-2 py-2 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
-                            詳細
-                        </button>
-                    </div>
-                </div>
-            
-                <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer" onclick="showCaseDetail(4)" data-case-id="4">
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800">現調済</span>
-                        <div class="flex gap-1">
-                            <button onclick="event.stopPropagation(); showMemo(4)" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="メモ">
-                                <span class="text-lg">📝</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); scheduleCase(4)" class="p-1.5 rounded-lg hover:bg-yellow-100 transition-colors" title="スケジュール">
-                                <span class="text-lg">📅</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); passCase(4)" class="p-1.5 rounded-lg hover:bg-blue-100 transition-colors" title="担当パス">
-                                <span class="text-lg">🔄</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); openCancelRequest(4)" class="p-1.5 rounded-lg hover:bg-red-100 transition-colors" title="キャンセル申請">
-                                <span class="text-lg">❌</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); archiveCase('CV004')" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="追客終了BOXへ移動">
-                                <span class="text-lg">🗑️</span>
-                            </button>
-                        </div>
-                    </div>
-                    <h3 class="font-bold text-lg mb-1">田中美咲</h3>
-                    <div class="mb-2">
-                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">👤 担当: 佐藤花子</span>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-2">千葉県千葉市</p>
-                    <p class="text-sm text-gray-600 mb-3">戸建て・築25年</p>
-                    <div class="flex justify-between items-center text-xs text-gray-500 mb-3">
-                        <span>最終連絡: 2024/01/10 現地調査実施</span>
-                        <span>次回予定: 見積作成中</span>
-                    </div>
-                    <div class="flex gap-1">
-                        <button onclick="event.stopPropagation(); callCustomer('043-3333-4444')" class="flex-1 px-2 py-2 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors">
-                            📞
-                        </button>
-                        <button onclick="event.stopPropagation(); sendSMS('043-3333-4444')" class="flex-1 px-2 py-2 bg-yellow-100 text-yellow-700 rounded text-sm hover:bg-yellow-200 transition-colors">
-                            📩
-                        </button>
-                        <button onclick="event.stopPropagation(); quickStatusChange(4)" class="flex-1 px-2 py-2 bg-orange-100 text-orange-700 rounded text-sm hover:bg-orange-200 transition-colors">
-                            ステータス
-                        </button>
-                        <button onclick="event.stopPropagation(); showCaseDetail(4)" class="flex-1 px-2 py-2 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
-                            詳細
-                        </button>
-                    </div>
-                </div>
-            
-                <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer" onclick="showCaseDetail(5)" data-case-id="5">
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">成約</span>
-                        <div class="flex gap-1">
-                            <button onclick="event.stopPropagation(); showMemo(5)" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="メモ">
-                                <span class="text-lg">📝</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); scheduleCase(5)" class="p-1.5 rounded-lg hover:bg-yellow-100 transition-colors" title="スケジュール">
-                                <span class="text-lg">📅</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); passCase(5)" class="p-1.5 rounded-lg hover:bg-blue-100 transition-colors" title="担当パス">
-                                <span class="text-lg">🔄</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); openCancelRequest(5)" class="p-1.5 rounded-lg hover:bg-red-100 transition-colors" title="キャンセル申請">
-                                <span class="text-lg">❌</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); archiveCase('CV005')" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="追客終了BOXへ移動">
-                                <span class="text-lg">🗑️</span>
-                            </button>
-                        </div>
-                    </div>
-                    <h3 class="font-bold text-lg mb-1">高橋健太</h3>
-                    <div class="mb-2">
-                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">👤 担当: 田中太郎</span>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-2">東京都新宿区</p>
-                    <p class="text-sm text-gray-600 mb-3">マンション・築8年</p>
-                    <div class="flex justify-between items-center text-xs text-gray-500 mb-3">
-                        <span>最終連絡: 2024/01/17 契約締結</span>
-                        <span>次回予定: 2024/01/25 工事開始</span>
-                    </div>
-                    <div class="flex gap-1">
-                        <button onclick="event.stopPropagation(); callCustomer('03-5555-6666')" class="flex-1 px-2 py-2 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors">
-                            📞
-                        </button>
-                        <button onclick="event.stopPropagation(); sendSMS('03-5555-6666')" class="flex-1 px-2 py-2 bg-yellow-100 text-yellow-700 rounded text-sm hover:bg-yellow-200 transition-colors">
-                            📩
-                        </button>
-                        <button onclick="event.stopPropagation(); quickStatusChange(5)" class="flex-1 px-2 py-2 bg-orange-100 text-orange-700 rounded text-sm hover:bg-orange-200 transition-colors">
-                            ステータス
-                        </button>
-                        <button onclick="event.stopPropagation(); showCaseDetail(5)" class="flex-1 px-2 py-2 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
-                            詳細
-                        </button>
-                    </div>
-                </div>
-            </div>
 
                 <!-- リストビュー（初期非表示） -->
                 <div id="caseListView" class="bg-white rounded-lg shadow overflow-hidden" style="display: none;">
@@ -932,42 +706,65 @@
                                 <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">顧客名</th>
                                 <th class="hidden md:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">住所</th>
                                 <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">電話番号</th>
-                                <th class="hidden lg:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">最終連絡</th>
-                                <th class="hidden md:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">次回アクション</th>
+                                <th class="hidden lg:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">配信日時</th>
                                 <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">アクション</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <tr>
-                                <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
-                                    <span class="px-1 sm:px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">未対応</span>
-                                </td>
-                                <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">山田太郎</td>
-                                <td class="hidden md:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">東京都世田谷区</td>
-                                <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500"><a href="tel:03-1234-5678">03-1234-5678</a></td>
-                                <td class="hidden lg:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">1/15 問合せ</td>
-                                <td class="hidden md:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">1/18 14:00 電話</td>
-                                <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm font-medium">
-                                    <button onclick="callCustomer('03-1234-5678')" class="text-green-600 hover:text-green-900 mr-2">📞</button>
-                                    <button onclick="showCaseDetail(1)" class="text-blue-600 hover:text-blue-900">詳細</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
-                                    <span class="px-1 sm:px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">アポ済</span>
-                                </td>
-                                <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">鈴木花子</td>
-                                <td class="hidden md:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">神奈川県横浜市</td>
-                                <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500"><a href="tel:045-9876-5432">045-9876-5432</a></td>
-                                <td class="hidden lg:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">1/16 アポ取得</td>
-                                <td class="hidden md:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">1/20 14:00 現調</td>
-                                <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm font-medium">
-                                    <button onclick="callCustomer('045-9876-5432')" class="text-green-600 hover:text-green-900 mr-2">📞</button>
-                                    <button onclick="showCaseDetail(2)" class="text-blue-600 hover:text-blue-900">詳細</button>
-                                </td>
-                            </tr>
+                        <tbody id="caseListBody" class="bg-white divide-y divide-gray-200">
+                            <!-- 動的に生成 -->
                         </tbody>
                     </table>
+                    </div>
+                </div>
+
+                <!-- メモモーダル -->
+                <div id="caseMemoModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+                    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                        <div class="p-4 border-b flex justify-between items-center">
+                            <h3 class="text-lg font-bold">メモ</h3>
+                            <button onclick="closeMemoModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
+                        </div>
+                        <div class="p-4">
+                            <p class="text-sm text-gray-600 mb-2" id="memoTargetName"></p>
+                            <textarea id="caseMemoTextarea" class="w-full border rounded-lg p-3 h-32 resize-none" placeholder="メモを入力..."></textarea>
+                        </div>
+                        <div class="p-4 border-t flex justify-end gap-2">
+                            <button onclick="closeMemoModal()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">キャンセル</button>
+                            <button onclick="saveCaseMemo()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">保存</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ステータス変更モーダル -->
+                <div id="caseStatusModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+                    <div class="bg-white rounded-lg shadow-xl max-w-sm w-full">
+                        <div class="p-4 border-b flex justify-between items-center">
+                            <h3 class="text-lg font-bold">ステータス変更</h3>
+                            <button onclick="closeStatusModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
+                        </div>
+                        <div class="p-4">
+                            <p class="text-sm text-gray-600 mb-3" id="statusTargetName"></p>
+                            <div class="space-y-2">
+                                <button onclick="setCaseStatus('対応待ち')" class="w-full py-2 px-4 rounded-lg text-left hover:bg-red-50 border border-red-200 text-red-700">対応待ち</button>
+                                <button onclick="setCaseStatus('訪問済み')" class="w-full py-2 px-4 rounded-lg text-left hover:bg-blue-50 border border-blue-200 text-blue-700">訪問済み</button>
+                                <button onclick="setCaseStatus('見積提出済み')" class="w-full py-2 px-4 rounded-lg text-left hover:bg-yellow-50 border border-yellow-200 text-yellow-700">見積提出済み</button>
+                                <button onclick="setCaseStatus('成約')" class="w-full py-2 px-4 rounded-lg text-left hover:bg-green-50 border border-green-200 text-green-700">成約</button>
+                                <button onclick="setCaseStatus('キャンセル')" class="w-full py-2 px-4 rounded-lg text-left hover:bg-gray-50 border border-gray-200 text-gray-700">キャンセル</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 案件詳細モーダル -->
+                <div id="caseDetailModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+                    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                        <div class="p-4 border-b flex justify-between items-center sticky top-0 bg-white">
+                            <h3 class="text-lg font-bold">案件詳細</h3>
+                            <button onclick="closeDetailModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
+                        </div>
+                        <div class="p-4" id="caseDetailContent">
+                            <!-- 動的に生成 -->
+                        </div>
                     </div>
                 </div>
             </div><!-- casesSectionの終了 -->
@@ -15440,27 +15237,435 @@
                     }
                 }
             }
+
+            // V2007: 案件管理セクション
+            if (section === 'cases') {
+                loadMerchantCases();
+            }
         }
 
-        // 案件管理機能
-        let currentCaseView = 'card'; // 'card' or 'list'
+        // =====================================================
+        // V2007: 案件管理機能（実データ連携）
+        // =====================================================
+        let currentCaseView = 'card';
+        let merchantCasesData = [];
+        let merchantCasesStats = {};
+        let currentFilter = 'all';
+        let currentMemoCase = null;
+        let currentStatusCase = null;
 
-        // 案件データ（サンプル）
-        const casesData = [
-            { id: 1, name: '山田太郎', location: '東京都世田谷区', propertyType: '戸建て・築15年', phone: '03-1234-5678', status: '未対応', assignee: '田中太郎', area: '東京都世田谷区', temperature: 4, lastContact: '2024/01/15 初回問い合わせ', nextAction: '2024/01/18 14:00 電話フォロー', age: 15 },
-            { id: 2, name: '鈴木花子', location: '神奈川県横浜市', propertyType: '戸建て・築10年', phone: '045-9876-5432', status: 'アポ済', assignee: '佐藤花子', area: '神奈川県横浜市', temperature: 3, lastContact: '2024/01/16 電話でアポ取得', nextAction: '2024/01/20 14:00 現地調査', age: 10 },
-            { id: 3, name: '佐藤一郎', location: '埼玉県さいたま市', propertyType: 'アパート・築20年', phone: '048-1111-2222', status: '見積提出済', assignee: '田中太郎', area: '埼玉県さいたま市', temperature: 5, lastContact: '2024/01/14 見積書メール送付', nextAction: '2024/01/22 10:00 見積説明訪問', age: 20 },
-            { id: 4, name: '田中美咲', location: '千葉県千葉市', propertyType: '戸建て・築25年', phone: '043-3333-4444', status: '現調済', assignee: '佐藤花子', area: '千葉県千葉市', temperature: 2, lastContact: '2024/01/10 現地調査実施', nextAction: '見積作成中', age: 25 },
-            { id: 5, name: '高橋健太', location: '東京都新宿区', propertyType: 'マンション・築8年', phone: '03-5555-6666', status: '成約', assignee: '田中太郎', area: '東京都新宿区', temperature: 5, lastContact: '2024/01/17 契約締結', nextAction: '2024/01/25 工事開始', age: 8 },
-            // 未振り分け案件
-            { id: 101, name: '新規顧客A', location: '東京都渋谷区', propertyType: '戸建て・築12年', phone: '03-0000-0000', status: '未対応', assignee: null, area: '東京都渋谷区', temperature: 4, source: 'くらべる', registeredDate: '2025-01-15 10:30' },
-            { id: 102, name: '新規顧客B', location: '神奈川県川崎市', propertyType: 'マンション・築5年', phone: '044-0000-0000', status: '未対応', assignee: null, area: '神奈川県川崎市', temperature: 3, source: 'くらべる', registeredDate: '2025-01-15 11:45' },
-            { id: 103, name: '新規顧客C', location: '埼玉県越谷市', propertyType: '戸建て・築20年', phone: '048-0000-0000', status: '未対応', assignee: null, area: '埼玉県越谷市', temperature: 5, source: 'くらべる', registeredDate: '2025-01-15 14:00' }
-        ];
+        // ステータス→スタイルマッピング
+        const statusStyles = {
+            '対応待ち': { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200' },
+            '訪問済み': { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-200' },
+            '見積提出済み': { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200' },
+            '成約': { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200' },
+            'キャンセル': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200' },
+            '': { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200' }
+        };
 
-        // 案件データを取得する関数
+        // 案件データをAPIから取得
+        async function loadMerchantCases() {
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            if (!merchantId) {
+                console.warn('[案件管理] merchantId が見つかりません');
+                return;
+            }
+
+            const loadingEl = document.getElementById('casesLoading');
+            if (loadingEl) loadingEl.classList.remove('hidden');
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        system: 'merchant',
+                        subsystem: 'contract',
+                        action: 'getMerchantCases',
+                        merchantId: merchantId
+                    })
+                });
+
+                const result = await response.json();
+                console.log('[案件管理] getMerchantCases response:', result);
+
+                if (result.success) {
+                    merchantCasesData = result.cases || [];
+                    merchantCasesStats = result.stats || {};
+                    updateCasesStats();
+                    renderCases();
+                } else {
+                    showNotification('エラー', result.error || '案件データの取得に失敗しました', 'error');
+                }
+            } catch (error) {
+                console.error('[案件管理] loadMerchantCases error:', error);
+                showNotification('エラー', '通信エラーが発生しました', 'error');
+            } finally {
+                if (loadingEl) loadingEl.classList.add('hidden');
+            }
+        }
+
+        // 統計表示を更新
+        function updateCasesStats() {
+            document.getElementById('stat-total').textContent = merchantCasesStats.total || 0;
+            document.getElementById('stat-pending').textContent = merchantCasesStats.pending || 0;
+            document.getElementById('stat-visited').textContent = merchantCasesStats.visited || 0;
+            document.getElementById('stat-quoted').textContent = merchantCasesStats.quoted || 0;
+            document.getElementById('stat-contracted').textContent = merchantCasesStats.contracted || 0;
+            document.getElementById('stat-cancelled').textContent = merchantCasesStats.cancelled || 0;
+        }
+
+        // フィルター処理
+        function filterCases(filter) {
+            currentFilter = filter;
+
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.filter-stat-btn').forEach(btn => {
+                btn.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-500');
+                if (btn.dataset.filter === filter) {
+                    btn.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500');
+                }
+            });
+
+            renderCases();
+        }
+
+        // フィルター条件に合致するかチェック
+        function matchesFilter(caseItem) {
+            if (currentFilter === 'all') return true;
+
+            const status = caseItem.detailStatus || '';
+            const filterMap = {
+                'pending': ['', '対応待ち'],
+                'visited': ['訪問済み'],
+                'quoted': ['見積提出済み'],
+                'contracted': ['成約'],
+                'cancelled': ['キャンセル']
+            };
+
+            return filterMap[currentFilter]?.includes(status);
+        }
+
+        // 検索処理
+        function searchCases() {
+            renderCases();
+        }
+
+        // 案件カードを描画
+        function renderCases() {
+            const searchTerm = (document.getElementById('caseSearchInput')?.value || '').toLowerCase();
+            const cardView = document.getElementById('caseCardView');
+            const listBody = document.getElementById('caseListBody');
+
+            // フィルター＆検索適用
+            const filteredCases = merchantCasesData.filter(c => {
+                if (!matchesFilter(c)) return false;
+                if (searchTerm) {
+                    const searchFields = [c.userName, c.userLocation, c.userTel].join(' ').toLowerCase();
+                    if (!searchFields.includes(searchTerm)) return false;
+                }
+                return true;
+            });
+
+            // カードビュー描画
+            const loadingEl = document.getElementById('casesLoading');
+            cardView.innerHTML = '';
+            if (loadingEl) cardView.appendChild(loadingEl);
+
+            if (filteredCases.length === 0) {
+                cardView.innerHTML += `
+                    <div class="col-span-full text-center py-12 text-gray-500">
+                        <p>該当する案件がありません</p>
+                    </div>
+                `;
+            } else {
+                filteredCases.forEach(c => {
+                    cardView.innerHTML += createCaseCard(c);
+                });
+            }
+
+            // リストビュー描画
+            if (listBody) {
+                listBody.innerHTML = filteredCases.map(c => createCaseRow(c)).join('');
+            }
+        }
+
+        // 案件カードHTML生成
+        function createCaseCard(c) {
+            const status = c.detailStatus || '対応待ち';
+            const style = statusStyles[status] || statusStyles[''];
+            const hasMemo = c.merchantMemo && c.merchantMemo.trim();
+
+            return `
+                <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow" data-cv-id="${c.cvId}">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${style.bg} ${style.text}">${status}</span>
+                        <div class="flex gap-1">
+                            <button onclick="openMemoModal('${c.cvId}')" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors relative" title="メモ">
+                                <span class="text-lg">📝</span>
+                                ${hasMemo ? '<span class="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></span>' : ''}
+                            </button>
+                            <button onclick="openStatusModal('${c.cvId}')" class="p-1.5 rounded-lg hover:bg-orange-100 transition-colors" title="ステータス変更">
+                                <span class="text-lg">📊</span>
+                            </button>
+                        </div>
+                    </div>
+                    <h3 class="font-bold text-lg mb-1">${escapeHtml(c.userName)}</h3>
+                    <p class="text-sm text-gray-600 mb-2">${escapeHtml(c.userLocation)}</p>
+                    <div class="flex items-center text-xs text-gray-500 mb-3">
+                        <span>配信: ${c.deliveredAt || '-'}</span>
+                    </div>
+                    ${hasMemo ? `<div class="text-xs text-gray-500 bg-gray-50 p-2 rounded mb-3 line-clamp-2">${escapeHtml(c.merchantMemo)}</div>` : ''}
+                    <div class="flex gap-1">
+                        <a href="tel:${c.userTel}" class="flex-1 px-2 py-2 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors text-center">
+                            📞 電話
+                        </a>
+                        <button onclick="openDetailModal('${c.cvId}')" class="flex-1 px-2 py-2 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
+                            詳細
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 案件リスト行HTML生成
+        function createCaseRow(c) {
+            const status = c.detailStatus || '対応待ち';
+            const style = statusStyles[status] || statusStyles[''];
+
+            return `
+                <tr data-cv-id="${c.cvId}">
+                    <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${style.bg} ${style.text}">${status}</span>
+                    </td>
+                    <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">${escapeHtml(c.userName)}</td>
+                    <td class="hidden md:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">${escapeHtml(c.userLocation)}</td>
+                    <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                        <a href="tel:${c.userTel}" class="text-green-600 hover:underline">${c.userTel}</a>
+                    </td>
+                    <td class="hidden lg:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">${c.deliveredAt || '-'}</td>
+                    <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="openMemoModal('${c.cvId}')" class="text-blue-600 hover:text-blue-900 mr-2" title="メモ">📝</button>
+                        <button onclick="openStatusModal('${c.cvId}')" class="text-orange-600 hover:text-orange-900 mr-2" title="ステータス">📊</button>
+                        <button onclick="openDetailModal('${c.cvId}')" class="text-gray-600 hover:text-gray-900" title="詳細">👁</button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        // HTML エスケープ
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"']/g, s => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[s]));
+        }
+
+        // 案件を CV ID で検索
+        function findCaseByCvId(cvId) {
+            return merchantCasesData.find(c => String(c.cvId) === String(cvId));
+        }
+
+        // メモモーダル
+        function openMemoModal(cvId) {
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            currentMemoCase = c;
+            document.getElementById('memoTargetName').textContent = `${c.userName} (${c.userLocation})`;
+            document.getElementById('caseMemoTextarea').value = c.merchantMemo || '';
+            document.getElementById('caseMemoModal').classList.remove('hidden');
+        }
+
+        function closeMemoModal() {
+            document.getElementById('caseMemoModal').classList.add('hidden');
+            currentMemoCase = null;
+        }
+
+        async function saveCaseMemo() {
+            if (!currentMemoCase) return;
+
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const memo = document.getElementById('caseMemoTextarea').value;
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        system: 'merchant',
+                        subsystem: 'contract',
+                        action: 'updateCaseMemo',
+                        merchantId: merchantId,
+                        cvId: currentMemoCase.cvId,
+                        memo: memo
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    currentMemoCase.merchantMemo = memo;
+                    renderCases();
+                    closeMemoModal();
+                    showNotification('保存完了', 'メモを保存しました');
+                } else {
+                    showNotification('エラー', result.error || 'メモの保存に失敗しました', 'error');
+                }
+            } catch (error) {
+                console.error('[案件管理] saveCaseMemo error:', error);
+                showNotification('エラー', '通信エラーが発生しました', 'error');
+            }
+        }
+
+        // ステータス変更モーダル
+        function openStatusModal(cvId) {
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            currentStatusCase = c;
+            document.getElementById('statusTargetName').textContent = `${c.userName} のステータスを選択`;
+            document.getElementById('caseStatusModal').classList.remove('hidden');
+        }
+
+        function closeStatusModal() {
+            document.getElementById('caseStatusModal').classList.add('hidden');
+            currentStatusCase = null;
+        }
+
+        async function setCaseStatus(newStatus) {
+            if (!currentStatusCase) return;
+
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        system: 'merchant',
+                        subsystem: 'contract',
+                        action: 'updateCaseStatus',
+                        merchantId: merchantId,
+                        cvId: currentStatusCase.cvId,
+                        status: newStatus
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    currentStatusCase.detailStatus = newStatus;
+
+                    // 統計を再計算
+                    recalculateStats();
+                    updateCasesStats();
+                    renderCases();
+                    closeStatusModal();
+                    showNotification('更新完了', `ステータスを「${newStatus}」に変更しました`);
+                } else {
+                    showNotification('エラー', result.error || 'ステータスの更新に失敗しました', 'error');
+                }
+            } catch (error) {
+                console.error('[案件管理] setCaseStatus error:', error);
+                showNotification('エラー', '通信エラーが発生しました', 'error');
+            }
+        }
+
+        // 統計を再計算
+        function recalculateStats() {
+            merchantCasesStats = {
+                total: merchantCasesData.length,
+                pending: 0,
+                visited: 0,
+                quoted: 0,
+                contracted: 0,
+                cancelled: 0
+            };
+
+            merchantCasesData.forEach(c => {
+                const status = c.detailStatus || '';
+                if (status === '成約') merchantCasesStats.contracted++;
+                else if (status === 'キャンセル') merchantCasesStats.cancelled++;
+                else if (status === '見積提出済み') merchantCasesStats.quoted++;
+                else if (status === '訪問済み') merchantCasesStats.visited++;
+                else merchantCasesStats.pending++;
+            });
+        }
+
+        // 詳細モーダル
+        function openDetailModal(cvId) {
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            const status = c.detailStatus || '対応待ち';
+            const style = statusStyles[status] || statusStyles[''];
+
+            const content = `
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xl font-bold">${escapeHtml(c.userName)}</h4>
+                        <span class="px-3 py-1 text-sm font-semibold rounded-full ${style.bg} ${style.text}">${status}</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p class="text-gray-500">CV ID</p>
+                            <p class="font-medium">${c.cvId}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">住所</p>
+                            <p class="font-medium">${escapeHtml(c.userLocation)}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">電話番号</p>
+                            <a href="tel:${c.userTel}" class="font-medium text-green-600">${c.userTel}</a>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">メールアドレス</p>
+                            <p class="font-medium">${c.userEmail || '-'}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">登録日時</p>
+                            <p class="font-medium">${c.createdAt || '-'}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">配信日時</p>
+                            <p class="font-medium">${c.deliveredAt || '-'}</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="text-gray-500 text-sm mb-1">メモ</p>
+                        <div class="bg-gray-50 p-3 rounded min-h-[60px] text-sm">
+                            ${c.merchantMemo ? escapeHtml(c.merchantMemo) : '<span class="text-gray-400">メモなし</span>'}
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 pt-2">
+                        <a href="tel:${c.userTel}" class="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg text-center hover:bg-green-600">
+                            📞 電話する
+                        </a>
+                        <button onclick="closeDetailModal(); openMemoModal('${c.cvId}')" class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            📝 メモ編集
+                        </button>
+                        <button onclick="closeDetailModal(); openStatusModal('${c.cvId}')" class="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
+                            📊 ステータス
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('caseDetailContent').innerHTML = content;
+            document.getElementById('caseDetailModal').classList.remove('hidden');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('caseDetailModal').classList.add('hidden');
+        }
+
+        // 案件データを取得する関数（互換性のため残す）
         function getCasesData() {
-            return casesData;
+            return merchantCasesData;
         }
 
         // 加盟店データをフォームに自動入力する関数

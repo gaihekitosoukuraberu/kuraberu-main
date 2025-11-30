@@ -380,6 +380,231 @@ var MerchantContractReport = {
   },
 
   /**
+   * V2007: 加盟店向け案件一覧取得（全ステータス対応）
+   * @param {Object} params - { merchantId: 加盟店ID }
+   * @return {Object} - { success, cases, stats }
+   */
+  getMerchantCases: function(params) {
+    const merchantId = params.merchantId;
+    console.log('[MerchantContractReport] getMerchantCases - merchantId:', merchantId);
+
+    if (!merchantId) {
+      return { success: false, error: '加盟店IDが必要です' };
+    }
+
+    try {
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const deliverySheet = ss.getSheetByName('配信管理');
+
+      if (!deliverySheet) {
+        return { success: false, error: '配信管理シートが見つかりません' };
+      }
+
+      const data = deliverySheet.getDataRange().getValues();
+      const headers = data[0];
+
+      // カラムインデックス取得
+      const colIdx = {
+        cvId: headers.indexOf('CV ID'),
+        userName: headers.indexOf('お名前'),
+        userLocation: headers.indexOf('市区町村'),
+        userTel: headers.indexOf('電話番号'),
+        userEmail: headers.indexOf('メールアドレス'),
+        createdAt: headers.indexOf('登録日時'),
+        deliveryStatus: headers.indexOf('配信ステータス'),
+        detailStatus: headers.indexOf('詳細ステータス'),
+        franchiseId: headers.indexOf('配信先加盟店ID'),
+        franchiseName: headers.indexOf('配信先加盟店名'),
+        deliveredAt: headers.indexOf('配信日時'),
+        merchantMemo: headers.indexOf('加盟店メモ'),
+        adminMemo: headers.indexOf('管理者メモ')
+      };
+
+      // 統計初期化
+      const stats = {
+        total: 0,
+        pending: 0,      // 対応待ち
+        visited: 0,      // 訪問済み
+        quoted: 0,       // 見積提出済み
+        contracted: 0,   // 成約
+        cancelled: 0     // キャンセル
+      };
+
+      const cases = [];
+
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        const rowFranchiseId = row[colIdx.franchiseId];
+
+        // この加盟店に配信された案件のみ
+        if (String(rowFranchiseId) !== String(merchantId)) continue;
+
+        const deliveryStatus = row[colIdx.deliveryStatus] || '';
+        const detailStatus = row[colIdx.detailStatus] || '';
+
+        // 配信済み以降のステータスのみ
+        if (!['配信済み', '成約', '失注'].includes(deliveryStatus)) continue;
+
+        stats.total++;
+
+        // 詳細ステータスで統計
+        if (detailStatus === '成約') {
+          stats.contracted++;
+        } else if (detailStatus === 'キャンセル') {
+          stats.cancelled++;
+        } else if (detailStatus === '見積提出済み') {
+          stats.quoted++;
+        } else if (detailStatus === '訪問済み') {
+          stats.visited++;
+        } else {
+          stats.pending++;
+        }
+
+        const caseData = {
+          cvId: row[colIdx.cvId],
+          rowIndex: i + 1,
+          userName: row[colIdx.userName] || '',
+          userLocation: row[colIdx.userLocation] || '',
+          userTel: row[colIdx.userTel] || '',
+          userEmail: row[colIdx.userEmail] || '',
+          createdAt: row[colIdx.createdAt] ? Utilities.formatDate(new Date(row[colIdx.createdAt]), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm') : '',
+          deliveredAt: row[colIdx.deliveredAt] ? Utilities.formatDate(new Date(row[colIdx.deliveredAt]), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm') : '',
+          deliveryStatus: deliveryStatus,
+          detailStatus: detailStatus,
+          merchantMemo: row[colIdx.merchantMemo] || ''
+        };
+
+        cases.push(caseData);
+      }
+
+      // 配信日時の新しい順でソート
+      cases.sort((a, b) => {
+        if (!a.deliveredAt) return 1;
+        if (!b.deliveredAt) return -1;
+        return new Date(b.deliveredAt) - new Date(a.deliveredAt);
+      });
+
+      console.log('[MerchantContractReport] getMerchantCases - found', cases.length, 'cases');
+
+      return {
+        success: true,
+        cases: cases,
+        stats: stats
+      };
+
+    } catch (error) {
+      console.error('[MerchantContractReport] getMerchantCases error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
+   * V2007: 案件の詳細ステータス更新
+   * @param {Object} params - { merchantId, cvId, status }
+   * @return {Object} - { success }
+   */
+  updateCaseStatus: function(params) {
+    const { merchantId, cvId, status } = params;
+    console.log('[MerchantContractReport] updateCaseStatus:', { merchantId, cvId, status });
+
+    if (!merchantId || !cvId || !status) {
+      return { success: false, error: 'パラメータが不足しています' };
+    }
+
+    const validStatuses = ['対応待ち', '訪問済み', '見積提出済み', '成約', 'キャンセル'];
+    if (!validStatuses.includes(status)) {
+      return { success: false, error: '無効なステータスです: ' + status };
+    }
+
+    try {
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const deliverySheet = ss.getSheetByName('配信管理');
+      const data = deliverySheet.getDataRange().getValues();
+      const headers = data[0];
+
+      const colIdx = {
+        cvId: headers.indexOf('CV ID'),
+        franchiseId: headers.indexOf('配信先加盟店ID'),
+        detailStatus: headers.indexOf('詳細ステータス'),
+        deliveryStatus: headers.indexOf('配信ステータス')
+      };
+
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        if (String(row[colIdx.cvId]) === String(cvId) &&
+            String(row[colIdx.franchiseId]) === String(merchantId)) {
+
+          // 詳細ステータス更新
+          deliverySheet.getRange(i + 1, colIdx.detailStatus + 1).setValue(status);
+
+          // 成約の場合は配信ステータスも更新
+          if (status === '成約') {
+            deliverySheet.getRange(i + 1, colIdx.deliveryStatus + 1).setValue('成約');
+          }
+
+          console.log('[MerchantContractReport] updateCaseStatus - updated row', i + 1);
+          return { success: true };
+        }
+      }
+
+      return { success: false, error: '該当する案件が見つかりません' };
+
+    } catch (error) {
+      console.error('[MerchantContractReport] updateCaseStatus error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
+   * V2007: 加盟店メモ更新
+   * @param {Object} params - { merchantId, cvId, memo }
+   * @return {Object} - { success }
+   */
+  updateCaseMemo: function(params) {
+    const { merchantId, cvId, memo } = params;
+    console.log('[MerchantContractReport] updateCaseMemo:', { merchantId, cvId, memoLength: (memo || '').length });
+
+    if (!merchantId || !cvId) {
+      return { success: false, error: 'パラメータが不足しています' };
+    }
+
+    try {
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const deliverySheet = ss.getSheetByName('配信管理');
+      const data = deliverySheet.getDataRange().getValues();
+      const headers = data[0];
+
+      const colIdx = {
+        cvId: headers.indexOf('CV ID'),
+        franchiseId: headers.indexOf('配信先加盟店ID'),
+        merchantMemo: headers.indexOf('加盟店メモ')
+      };
+
+      if (colIdx.merchantMemo === -1) {
+        return { success: false, error: '加盟店メモ列が見つかりません' };
+      }
+
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        if (String(row[colIdx.cvId]) === String(cvId) &&
+            String(row[colIdx.franchiseId]) === String(merchantId)) {
+
+          deliverySheet.getRange(i + 1, colIdx.merchantMemo + 1).setValue(memo || '');
+
+          console.log('[MerchantContractReport] updateCaseMemo - updated row', i + 1);
+          return { success: true };
+        }
+      }
+
+      return { success: false, error: '該当する案件が見つかりません' };
+
+    } catch (error) {
+      console.error('[MerchantContractReport] updateCaseMemo error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
    * アクションルーター
    * @param {Object} params - { action: アクション名, ...その他のパラメータ }
    * @return {Object} - 実行結果
@@ -392,6 +617,12 @@ var MerchantContractReport = {
         return this.getDeliveredCases(params);
       case 'submitContractReport':
         return this.submitContractReport(params);
+      case 'getMerchantCases':
+        return this.getMerchantCases(params);
+      case 'updateCaseStatus':
+        return this.updateCaseStatus(params);
+      case 'updateCaseMemo':
+        return this.updateCaseMemo(params);
       default:
         return {
           success: false,
