@@ -2261,189 +2261,211 @@ const AdminSystem = {
   /**
    * オーダー転送処理（配信管理シート + メール送信）
    * V1820新規実装
-   * V1995: メール送信機能追加（加盟店登録シートW列の営業用メールアドレスに送信）
+   * V1995: メール送信機能追加
+   * V1996: GAS側で転送文を生成してメール送信（URL長制限対策）
    */
   sendOrderTransfer: function(params) {
     try {
-      console.log('[sendOrderTransfer] 開始:', params);
+      console.log('[sendOrderTransfer] V1996 開始:', params);
 
-      // paramsから直接取得（main.jsでパース済み）
       const cvId = params.cvId;
       const franchises = params.franchises;
 
       if (!cvId || !franchises || franchises.length === 0) {
-        return {
-          success: false,
-          error: 'CV IDまたは加盟店情報が不足しています'
-        };
+        return { success: false, error: 'CV IDまたは加盟店情報が不足しています' };
       }
-
-      // 最大4社チェック
       if (franchises.length > 4) {
-        return {
-          success: false,
-          error: '最大4社まで選択できます'
-        };
+        return { success: false, error: '最大4社まで選択できます' };
       }
 
       const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
       const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       const deliverySheet = ss.getSheetByName('配信管理');
       const franchiseSheet = ss.getSheetByName('加盟店登録');
+      const userSheet = ss.getSheetByName('ユーザー登録');
 
-      if (!deliverySheet) {
-        return {
-          success: false,
-          error: '配信管理シートが見つかりません'
-        };
-      }
+      if (!deliverySheet) return { success: false, error: '配信管理シートが見つかりません' };
+      if (!franchiseSheet) return { success: false, error: '加盟店登録シートが見つかりません' };
+      if (!userSheet) return { success: false, error: 'ユーザー登録シートが見つかりません' };
 
-      if (!franchiseSheet) {
-        return {
-          success: false,
-          error: '加盟店登録シートが見つかりません'
-        };
-      }
+      // V1996: ユーザー登録シートからCV案件データを取得
+      const cvData = this.getCVDataForTransfer(userSheet, cvId);
+      console.log('[sendOrderTransfer] CVデータ取得:', cvData ? 'OK' : 'NOT FOUND');
 
-      // V1995: 加盟店登録シートからメールアドレスを取得するためのマップを作成
+      // 加盟店メールマップ作成
       const franchiseData = franchiseSheet.getDataRange().getValues();
-      const franchiseHeaders = franchiseData[0];
-      const companyNameIndex = franchiseHeaders.indexOf('会社名（法人名）');
-      const salesEmailIndex = franchiseHeaders.indexOf('営業用メールアドレス'); // W列
-      const emailIndex = franchiseHeaders.indexOf('メールアドレス'); // フォールバック用
+      const fHeaders = franchiseData[0];
+      const companyIdx = fHeaders.indexOf('会社名（法人名）');
+      const salesEmailIdx = fHeaders.indexOf('営業用メールアドレス');
+      const emailIdx = fHeaders.indexOf('メールアドレス');
 
-      console.log('[sendOrderTransfer] 加盟店シート列:', { companyNameIndex, salesEmailIndex, emailIndex });
-
-      // 会社名→メールアドレスのマップを作成
       const emailMap = {};
       for (let i = 1; i < franchiseData.length; i++) {
         const row = franchiseData[i];
-        const companyName = row[companyNameIndex] || '';
-        // 営業用メールアドレスを優先、なければ通常のメールアドレス
-        const email = row[salesEmailIndex] || row[emailIndex] || '';
-        if (companyName && email) {
-          emailMap[companyName] = email;
-        }
+        const name = row[companyIdx] || '';
+        const email = row[salesEmailIdx] || row[emailIdx] || '';
+        if (name && email) emailMap[name] = email;
       }
-      console.log('[sendOrderTransfer] メールマップ作成完了:', Object.keys(emailMap).length, '件');
+      console.log('[sendOrderTransfer] メールマップ:', Object.keys(emailMap).length, '件');
 
       const now = new Date();
       const timestamp = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
       const dateOnly = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd');
+      const deliveryDate = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
 
-      // メール送信結果を記録
       const emailResults = [];
-
-      // 各加盟店に対してレコードを作成 & メール送信
       const records = franchises.map((franchise, index) => {
         const recordId = `DL${Utilities.formatDate(now, 'Asia/Tokyo', 'yyMMddHHmmss')}${String(Math.random()).slice(2, 7)}`;
-
-        // V1995: メール送信
         const franchiseName = franchise.franchiseName || franchise.franchiseId;
         const toEmail = emailMap[franchiseName];
-        const transferMessage = franchise.transferMessage || '';
+        const fee = franchise.fee || 20000;
 
-        if (toEmail && transferMessage) {
+        // V1996: GAS側で転送文を生成してメール送信
+        if (toEmail && cvData) {
           try {
-            // メール送信
-            GmailApp.sendEmail(
-              toEmail,
-              `【外壁塗装くらべる】案件紹介のご連絡 (${cvId})`,
-              transferMessage,
-              {
-                from: 'info@gaihekikuraberu.com',
-                name: '外壁塗装くらべる運営事務局'
-              }
-            );
+            const transferMessage = this.generateTransferMessage(cvData, franchiseName, fee, deliveryDate, cvId);
+            GmailApp.sendEmail(toEmail, `【外壁塗装くらべる】案件紹介のご連絡 (${cvId})`, transferMessage, {
+              name: '外壁塗装くらべる運営事務局'
+            });
             console.log('[sendOrderTransfer] メール送信成功:', franchiseName, toEmail);
             emailResults.push({ franchiseName, email: toEmail, success: true });
           } catch (emailError) {
-            console.error('[sendOrderTransfer] メール送信失敗:', franchiseName, toEmail, emailError);
+            console.error('[sendOrderTransfer] メール送信失敗:', franchiseName, emailError);
             emailResults.push({ franchiseName, email: toEmail, success: false, error: emailError.message });
           }
         } else {
-          console.warn('[sendOrderTransfer] メール送信スキップ:', {
-            franchiseName,
-            hasEmail: !!toEmail,
-            hasMessage: !!transferMessage
-          });
-          emailResults.push({
-            franchiseName,
-            email: toEmail || '未登録',
-            success: false,
-            error: !toEmail ? 'メールアドレス未登録' : '転送文なし'
-          });
+          emailResults.push({ franchiseName, email: toEmail || '未登録', success: false, error: !toEmail ? 'メール未登録' : 'CVデータなし' });
         }
 
-        return [
-          recordId,                    // レコードID
-          cvId,                        // CV ID
-          franchise.franchiseId,       // 加盟店ID
-          dateOnly,                    // 配信日時
-          franchise.rank || (index + 1), // 配信順位
-          '配信済み',                   // 配信ステータス
-          '未対応',                     // 詳細ステータス
-          timestamp,                   // ステータス更新日時
-          timestamp,                   // 最終更新日時
-          0,                           // 電話回数
-          0,                           // SMS回数
-          0,                           // メール送信回数
-          0,                           // 訪問回数
-          '',                          // 最終連絡日時
-          '',                          // 次回連絡予定日時
-          '',                          // アポ予定日時
-          '',                          // 訪問予定日時
-          '',                          // 見積提出予定日
-          '[]',                        // 連絡履歴JSON
-          '',                          // 連絡履歴サマリー
-          '[]',                        // リマインド設定JSON
-          '[]',                        // 通知履歴JSON
-          '',                          // AI生成SMS文
-          '',                          // AI生成メール文
-          '',                          // 営業メモ
-          '',                          // 社内メモ
-          '',                          // 顧客反応スコア
-          '',                          // 見積金額
-          '',                          // 見積提出日時
-          '',                          // 成約日時
-          '',                          // 成約金額
-          '',                          // 辞退理由
-          '',                          // 辞退日時
-          '',                          // キャンセル申請ID
-          '',                          // 期限延長申請ID
-          'FALSE'                      // お断りメール送信済みフラグ
-        ];
+        return [recordId, cvId, franchise.franchiseId, dateOnly, franchise.rank || (index + 1),
+          '配信済み', '未対応', timestamp, timestamp, 0, 0, 0, 0, '', '', '', '', '', '[]', '', '[]', '[]', '', '', '', '', '', '', '', '', '', '', '', '', 'FALSE'];
       });
 
-      // シートに追記
       if (records.length > 0) {
         const lastRow = deliverySheet.getLastRow();
         deliverySheet.getRange(lastRow + 1, 1, records.length, records[0].length).setValues(records);
       }
 
-      // メール送信成功数をカウント
       const successCount = emailResults.filter(r => r.success).length;
-      console.log('[sendOrderTransfer] 完了:', records.length, '件登録,', successCount, '件メール送信成功');
+      console.log('[sendOrderTransfer] 完了:', records.length, '件登録,', successCount, '件メール送信');
 
       return {
         success: true,
-        message: `${records.length}社に転送しました（メール送信: ${successCount}/${records.length}件）`,
+        message: `${records.length}社に転送しました（メール: ${successCount}/${records.length}件）`,
         recordCount: records.length,
-        emailResults: emailResults,
-        records: records.map(r => ({
-          recordId: r[0],
-          franchiseId: r[2],
-          rank: r[4]
-        }))
+        emailResults: emailResults
       };
-
     } catch (error) {
       console.error('[sendOrderTransfer] エラー:', error);
-      return {
-        success: false,
-        error: error.message || 'オーダー転送に失敗しました'
-      };
+      return { success: false, error: error.message || 'オーダー転送に失敗しました' };
     }
+  },
+
+  /**
+   * V1996: ユーザー登録シートからCV案件データを取得
+   */
+  getCVDataForTransfer: function(sheet, cvId) {
+    try {
+      const data = sheet.getDataRange().getValues();
+      const headers = data[0];
+      const cvIdIdx = headers.indexOf('CVID');
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][cvIdIdx] === cvId) {
+          const obj = {};
+          headers.forEach((h, idx) => { obj[h] = data[i][idx] || ''; });
+          return obj;
+        }
+      }
+      return null;
+    } catch (e) {
+      console.error('[getCVDataForTransfer] エラー:', e);
+      return null;
+    }
+  },
+
+  /**
+   * V1996: 転送文を生成
+   */
+  generateTransferMessage: function(cv, franchiseName, fee, deliveryDate, cvId) {
+    const formatFee = (n) => '¥' + Number(n).toLocaleString('ja-JP');
+    const addr = [cv['都道府県（物件）'], cv['市区町村（物件）'], cv['住所詳細（物件）']].filter(v => v).join('');
+    const mapLink = cv['GoogleMapsリンク'] || '';
+
+    let msg = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+外壁塗装くらべる 案件紹介のご連絡
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${franchiseName} 御中
+
+平素よりお世話になっております。
+外壁塗装くらべる運営事務局でございます。
+
+下記の通り案件をご紹介させていただきます。
+お客様へのご連絡、現地調査、お見積りのご提出を
+よろしくお願いいたします。
+
+-------------------------------------------
+【配信情報】
+-------------------------------------------
+配信日時: ${deliveryDate}
+紹介料: ${formatFee(fee)}（税別）
+管理番号: ${cvId}
+
+-------------------------------------------
+【お客様情報】
+-------------------------------------------
+氏名: ${cv['氏名'] || ''}様${cv['カナ'] ? `（${cv['カナ']}）` : ''}
+電話番号: ${cv['電話番号'] || ''}`;
+
+    if (cv['メールアドレス']) msg += `\nメールアドレス: ${cv['メールアドレス']}`;
+    const ga = [cv['性別'], cv['年齢']].filter(x => x).join(' / ');
+    if (ga) msg += `\n性別/年代: ${ga}`;
+    if (cv['続柄']) msg += `\n続柄: ${cv['続柄']}`;
+
+    msg += `
+
+-------------------------------------------
+【物件情報】
+-------------------------------------------
+所在地: ${cv['郵便番号'] ? `〒${cv['郵便番号']} ` : ''}${addr || '未設定'}`;
+
+    const prop = [cv['物件種別'], cv['階数']].filter(x => x).join(' / ');
+    if (prop) msg += `\n物件種別: ${prop}`;
+    if (cv['築年数']) msg += `\n築年数: ${cv['築年数']}`;
+    if (cv['外壁材']) msg += `\n外壁材: ${cv['外壁材']}`;
+    if (cv['屋根材']) msg += `\n屋根材: ${cv['屋根材']}`;
+    if (mapLink) msg += `\n\nGoogle Maps:\n${mapLink}`;
+
+    msg += `
+
+-------------------------------------------
+【ご希望内容】
+-------------------------------------------`;
+    if (cv['工事希望箇所']) msg += `\n見積もり希望箇所: ${cv['工事希望箇所']}`;
+    if (cv['Q11_希望社数']) msg += `\n希望社数: ${cv['Q11_希望社数']}`;
+    if (cv['他社見積もり数']) msg += `\n他社見積: ${cv['他社見積もり数']}`;
+    if (cv['業者選定条件']) msg += `\n業者選定条件: ${cv['業者選定条件']}`;
+
+    msg += `
+
+-------------------------------------------
+【重要事項】
+-------------------------------------------
+■ キャンセル
+配信日を含む7営業日以内
+https://gaihekikuraberu.com/franchise-dashboard/
+
+■ 成約報告
+成約後7日以内
+https://gaihekikuraberu.com/franchise-dashboard/
+
+-------------------------------------------
+株式会社外壁塗装くらべる
+〒220-0011 神奈川県横浜市西区高島2-11-2 スカイメナー横浜519
+info@gaihekikuraberu.com
+-------------------------------------------`;
+
+    return msg;
   },
 
   /**
