@@ -1158,7 +1158,8 @@ const CVSheetSystem = {
         deliveryRows.forEach(row => {
           const cvId = row[1]; // 2列目: CV ID
           const status = row[5]; // 6列目: 配信ステータス
-          if (cvId && status === '配信済み') {
+          // 「配信済」と「配信済み」両方に対応
+          if (cvId && (status === '配信済' || status === '配信済み')) {
             transferCountMap[cvId] = (transferCountMap[cvId] || 0) + 1;
           }
         });

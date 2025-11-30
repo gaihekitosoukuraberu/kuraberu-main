@@ -2351,7 +2351,7 @@ const AdminSystem = {
         // 34:キャンセル申請ID, 35:期限延長申請ID, 36:お断りメール送信済みフラグ, 37:配信金額
         // V1999: お断りメール送信済みフラグはチェックボックス→false（boolean）
         return [recordId, cvId, franchise.franchiseId, timestamp, franchise.rank || (index + 1),
-          '配信済み', '未対応', timestamp, timestamp, 0, 0, 0, 0, '', '', '', '', '', '[]', '', '[]', '[]', '', '', '', '', '', '', '', '', '', '', '', '', '', false, fee];
+          '配信済', '未対応', timestamp, timestamp, 0, 0, 0, 0, '', '', '', '', '', '[]', '', '[]', '[]', '', '', '', '', '', '', '', '', '', '', '', '', '', false, fee];
       });
 
       if (records.length > 0) {
@@ -2556,7 +2556,7 @@ const AdminSystem = {
 
       // 各カラムを更新
       if (deliveryStatusIdx !== -1) {
-        userSheet.getRange(targetRow, deliveryStatusIdx + 1).setValue('配信済み');
+        userSheet.getRange(targetRow, deliveryStatusIdx + 1).setValue('配信済');
       }
       if (franchiseCountIdx !== -1) {
         userSheet.getRange(targetRow, franchiseCountIdx + 1).setValue(franchiseCount);

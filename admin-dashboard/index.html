@@ -5599,8 +5599,8 @@ window.addEventListener('beforeunload', function(e) {
             console.log('[setDeliveryFilter]', mode);
         }
 
-        // V1958: 配信前ステータス一覧
-        const PRE_DELIVERY_STATUSES = ['新規', '不在', '再架電', '見込み', 'ロスト', '配信中', '配信済', '他社契約済', '無効', 'クレーム'];
+        // V1958: 配信前ステータス一覧（「配信済み」と「配信済」両方対応）
+        const PRE_DELIVERY_STATUSES = ['新規', '不在', '再架電', '見込み', 'ロスト', '配信中', '配信済', '配信済み', '他社契約済', '無効', 'クレーム'];
         // 配信後ステータス一覧
         const POST_DELIVERY_STATUSES = ['アポ済', '現調済', '見積提出済', '入金予定', '入金完了', '完了', '紹介後キャンセル', '現調前キャンセル', '現調後ロスト'];
 
