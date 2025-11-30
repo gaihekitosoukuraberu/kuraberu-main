@@ -2099,26 +2099,16 @@ const BusinessSelectionHandler = {
       additionalInfo += '</div>';
     }
 
-    // V2008: 転送済み/申込済みバッジHTML（右上配置・美しいデザイン）
-    let statusBadgeHtml = '';
+    // V2009: 転送済みカードのプロデザイン
     let cancelButtonHtml = '';
     if (isDelivered) {
-      // 転送済みバッジ（右上に配置）
-      statusBadgeHtml = `<span class="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-0.5 bg-purple-600 text-white text-xs font-bold rounded-full shadow-md z-10">
-        転送済
-      </span>`;
-      // 取り消しボタン（カード下部に配置）
+      // 取り消しボタン（コンパクト、右寄せ）
       cancelButtonHtml = `<button onclick="event.stopPropagation(); window.businessSelectionHandler.showCancelTransferModal('${card.companyName.replace(/'/g, "\\'")}', '${deliveredInfo.franchiseId || ''}')"
-        class="w-full mt-2 py-1.5 bg-white hover:bg-red-50 text-red-500 text-xs font-medium rounded border border-red-200 hover:border-red-400 transition-all flex items-center justify-center gap-1"
+        class="inline-flex items-center gap-1 px-2 py-1 bg-white hover:bg-red-50 text-red-400 hover:text-red-600 text-xs rounded border border-gray-200 hover:border-red-300 transition-all"
         title="転送取り消し">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-        転送取り消し
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        取消
       </button>`;
-    } else if (isApplied) {
-      // 申込済みバッジ（右上に配置）
-      statusBadgeHtml = `<span class="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full shadow-md z-10">
-        申込済
-      </span>`;
     }
 
     // チェックボックスHTML（転送済みの場合は非表示）
@@ -2126,49 +2116,43 @@ const BusinessSelectionHandler = {
       ? ''
       : `<input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="w-5 h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">`;
 
-    // V2008: スマホ美しいレイアウト - 転送済みは特別デザイン
+    // V2009: プロフェッショナルデザイン
     div.innerHTML = `
-      <div class="relative">
-        ${statusBadgeHtml}
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-          <!-- 左側コンテンツ -->
-          <div class="flex-1">
-            <!-- 1行目: 順位 + チェックボックス + 会社名 -->
-            <div class="flex items-center gap-2 mb-1">
-              <div class="text-lg font-bold ${isDelivered ? 'text-purple-600' : 'text-pink-600'} flex-shrink-0 w-6">${card.rank}</div>
-              ${checkboxHtml}
-              <div class="flex-1 min-w-0">
-                <div class="font-semibold ${isDelivered ? 'text-purple-700' : 'text-gray-900'} text-base leading-tight truncate">${card.companyName}</div>
-              </div>
-            </div>
+      <div class="flex items-start gap-2">
+        <!-- 左: 順位 -->
+        <div class="text-lg font-bold ${isDelivered ? 'text-purple-600' : 'text-pink-600'} flex-shrink-0 w-6 pt-0.5">${card.rank}</div>
 
-            <!-- 2行目: アイコン類（ユーザー選択、地図、星評価・距離） -->
-            <div class="flex items-center gap-2 flex-wrap ml-8">
-              ${card.isUserSelected ? '<span class="inline-flex items-center justify-center w-5 h-5 bg-pink-600 text-white rounded" title="ユーザー選択"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg></span>' : ''}
-              <span class="inline-flex items-center justify-center w-5 h-5 text-yellow-500" title="${card.address || '住所未登録'}">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-              </span>
-              ${card.rating > 0 ? `<span class="text-yellow-600 text-sm">★${card.rating}</span>` : ''}
-              ${card.distanceText ? `<span class="text-blue-600 text-sm">📍${card.distanceText}</span>` : ''}
-            </div>
+        <!-- 中央: メインコンテンツ -->
+        <div class="flex-1 min-w-0">
+          <!-- 1行目: チェックボックス + 会社名 + 転送済バッジ -->
+          <div class="flex items-center gap-2 mb-1">
+            ${checkboxHtml}
+            <span class="font-semibold ${isDelivered ? 'text-purple-700' : 'text-gray-900'} text-base leading-tight">${card.companyName}</span>
+            ${isDelivered ? '<span class="inline-flex items-center px-1.5 py-0.5 bg-purple-600 text-white text-xs font-bold rounded">転送済</span>' : ''}
+            ${isApplied ? '<span class="inline-flex items-center px-1.5 py-0.5 bg-orange-500 text-white text-xs font-bold rounded">申込済</span>' : ''}
           </div>
 
-          <!-- 右側: マッチ率・金額 -->
-          <div class="text-right flex-shrink-0 flex items-center gap-3 ml-8 md:ml-0 md:flex-col md:gap-0">
-            <div id="${matchRateId}" class="inline-block px-2.5 py-1 rounded-full text-xs font-bold cursor-pointer hover:shadow-lg transition-shadow ${matchRateColor}"
-                 onclick="event.stopPropagation();"
-                 title="クリックで詳細を表示">
-              ${card.matchRate}%
-            </div>
-            <div class="text-sm font-bold text-green-600 whitespace-nowrap">
-              ${formattedPrice}
-            </div>
+          <!-- 2行目: アイコン + 距離 + 取消ボタン -->
+          <div class="flex items-center gap-2 flex-wrap">
+            ${card.isUserSelected ? '<span class="inline-flex items-center justify-center w-5 h-5 bg-pink-600 text-white rounded" title="ユーザー選択"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>' : ''}
+            <span class="inline-flex items-center justify-center w-5 h-5 bg-yellow-100 text-yellow-600 rounded" title="${card.address || '住所未登録'}">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            </span>
+            ${card.distanceText ? `<span class="text-gray-500 text-xs">${card.distanceText}</span>` : ''}
+            ${cancelButtonHtml}
           </div>
         </div>
-        ${cancelButtonHtml}
+
+        <!-- 右: マッチ率・金額 -->
+        <div class="flex-shrink-0 text-right">
+          <div id="${matchRateId}" class="inline-block px-2 py-0.5 rounded-full text-xs font-bold cursor-pointer hover:opacity-80 transition-opacity ${matchRateColor}"
+               onclick="event.stopPropagation();">
+            ${card.matchRate}%
+          </div>
+          <div class="text-sm font-bold text-green-600 mt-0.5">
+            ${formattedPrice}
+          </div>
+        </div>
       </div>
     `;
 
