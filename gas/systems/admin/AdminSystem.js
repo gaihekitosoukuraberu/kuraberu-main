@@ -2704,10 +2704,10 @@ const AdminSystem = {
       }
 
       // 希望社数に達したかどうかでステータスを決定
-      // V2000: スプレッドシートのデータ入力規則に合わせる（配信済み, 成約, 失注, キャンセル承認済み）
-      // 配信途中の場合は「未配信」を維持（入力規則に「配信中」がないため）
+      // V2001: 配信ステータス列は入力規則があるため許可値のみ（配信済み, 成約, 失注, キャンセル承認済み）
+      // 管理ステータスは希望社数未満なら「配信中」、達成なら「配信済み」
       const deliveryStatusToSet = totalTransferCount >= desiredCount ? '配信済み' : null; // nullの場合は更新しない
-      const managementStatusToSet = totalTransferCount >= desiredCount ? '配信済み' : '案件メール配信中';
+      const managementStatusToSet = totalTransferCount >= desiredCount ? '配信済み' : '配信中';
       console.log('[updateUserSheetDeliveryStatus] ステータス判定:', { existingCount, newFranchiseCount, totalTransferCount, desiredCount, deliveryStatusToSet, managementStatusToSet });
 
       // 配信先業者一覧を作成（既存 + 新規）
