@@ -2320,6 +2320,7 @@ const AdminSystem = {
         const fee = franchise.fee || 20000;
 
         // V1996: GAS側で転送文を生成してメール送信
+        console.log('[sendOrderTransfer] メール送信チェック:', { franchiseName, toEmail: toEmail || 'なし', cvDataExists: !!cvData });
         if (toEmail && cvData) {
           try {
             const transferMessage = this.generateTransferMessage(cvData, franchiseName, fee, deliveryDate, cvId);
@@ -2344,8 +2345,9 @@ const AdminSystem = {
         // 23:AI生成SMS文, 24:AI生成メール文, 25:営業メモ, 26:社内メモ, 27:顧客反応スコア,
         // 28:見積金額, 29:見積提出日時, 30:成約日時, 31:成約金額, 32:辞退理由, 33:辞退日時,
         // 34:キャンセル申請ID, 35:期限延長申請ID, 36:お断りメール送信済みフラグ, 37:配信金額
+        // V1999: お断りメール送信済みフラグはチェックボックス→false（boolean）
         return [recordId, cvId, franchise.franchiseId, timestamp, franchise.rank || (index + 1),
-          '配信済み', '未対応', timestamp, timestamp, 0, 0, 0, 0, '', '', '', '', '', '[]', '', '[]', '[]', '', '', '', '', '', '', '', '', '', '', '', '', '', 'FALSE', fee];
+          '配信済み', '未対応', timestamp, timestamp, 0, 0, 0, 0, '', '', '', '', '', '[]', '', '[]', '[]', '', '', '', '', '', '', '', '', '', '', '', '', '', false, fee];
       });
 
       if (records.length > 0) {
