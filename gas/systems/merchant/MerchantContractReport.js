@@ -393,6 +393,7 @@ var MerchantContractReport = {
     }
 
     try {
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
       const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       const deliverySheet = ss.getSheetByName('配信管理');
 
@@ -517,6 +518,7 @@ var MerchantContractReport = {
     }
 
     try {
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
       const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       const deliverySheet = ss.getSheetByName('配信管理');
       const data = deliverySheet.getDataRange().getValues();
@@ -569,6 +571,7 @@ var MerchantContractReport = {
     }
 
     try {
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
       const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       const deliverySheet = ss.getSheetByName('配信管理');
       const data = deliverySheet.getDataRange().getValues();
