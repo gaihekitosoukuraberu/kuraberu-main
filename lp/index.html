@@ -27,9 +27,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <!-- <link rel="stylesheet" href="css/delay_anim.css" /> -->
-    <link rel="stylesheet" href="css/default.css?v=1764" />
-    <link rel="stylesheet" href="css/style.css?v=1764" />
-    <link rel="stylesheet" href="css/style_sp.css?v=1764" />
+    <link rel="stylesheet" href="css/default.css?v=2024" />
+    <link rel="stylesheet" href="css/style.css?v=2024" />
+    <link rel="stylesheet" href="css/style_sp.css?v=2024" />
     <!-- Tailwind CSS (BOTシステム用) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 郵便番号フォーム 光るアニメーション -->
@@ -1752,8 +1752,8 @@
     <!--java script-->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <!-- <script src="js/delay_anim.js"></script> -->
-    <script src="js/function.js"></script>
-    <script src="js/validate.js"></script>
+    <script src="js/function.js?v=2024"></script>
+    <script src="js/validate.js?v=2024"></script>
     <!--//java script-->
 
     <!-- BOT用ヘルパー関数 -->
@@ -3309,11 +3309,13 @@
     </script>
 
     <!-- 外壁塗装くらべる BOTシステム -->
-    <!-- 🔥 環境変数マスターファイル（Single Source of Truth） -->
-    <script src="/js/env-loader.js"></script>
+    <!-- 🔥 環境変数マスターファイル（Single Source of Truth） - 動的キャッシュバスター -->
+    <script>
+      document.write('<script src="/js/env-loader.js?v=' + Date.now() + '"><\/script>');
+    </script>
 
     <!-- BOTローダー（動的スクリプトロード + キャッシュバスター自動適用） -->
-    <script src="gaiheki-bot-loader.js"></script>
+    <script src="gaiheki-bot-loader.js?v=2024"></script>
 
     <!-- V1925: 無料見積もりボタン（シンプル化 - !important削除でJS制御可能に） -->
     <div id="estimateBtnContainer" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 999999; background: white; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1); border-top: 1px solid #e5e7eb; padding: 1rem 0; padding-bottom: max(1rem, env(safe-area-inset-bottom));">

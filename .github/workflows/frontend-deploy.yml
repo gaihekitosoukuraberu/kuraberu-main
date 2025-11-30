@@ -342,8 +342,10 @@ jobs:
 
           # lp/index.html のキャッシュバスターを更新
           if [ -f "lp/index.html" ]; then
-            sed -i.bak -E "s/\.js\?v=[^\"]+/.js?v=$CACHE_BUSTER/g" lp/index.html
-            rm lp/index.html.bak
+            # JS/CSSの静的キャッシュバスター更新（?v=XXXX 形式）
+            sed -i.bak -E "s/\.js\?v=[0-9]+\"/.js?v=$CACHE_BUSTER\"/g" lp/index.html
+            sed -i.bak -E "s/\.css\?v=[0-9]+\"/.css?v=$CACHE_BUSTER\"/g" lp/index.html
+            rm -f lp/index.html.bak
             echo "✅ Updated lp/index.html"
           fi
 
