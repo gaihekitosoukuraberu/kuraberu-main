@@ -442,28 +442,9 @@ const CVListManager = {
       }
     }
 
-    // BOTデータの自動追記部分（毎回上書き）
-    const botDataLines = [];
-
-    // 訪問業者名（Q15）
-    if (cv.botAnswers?.q15_doorSalesCompany) {
-      botDataLines.push(`【訪問業者名】${cv.botAnswers.q15_doorSalesCompany}`);
-    }
-
-    // 業者選定条件（Q17）
-    if (cv.botAnswers?.q17_selectionCriteria) {
-      botDataLines.push(`【業者選定条件】${cv.botAnswers.q17_selectionCriteria}`);
-    }
-
-    // BOTデータがあれば区切り線と共に追加（毎回新しく生成）
-    if (botDataLines.length > 0) {
-      if (memoLines.length > 0) {
-        memoLines.push(''); // 空行
-        memoLines.push('─────────────────────');
-        memoLines.push('【BOT取得情報】');
-      }
-      memoLines.push(...botDataLines);
-    }
+    // V1988: BOTデータの自動追記を削除
+    // 業者選定条件・訪問業者名は専用フィールド（selectionCriteria等）で管理するため
+    // 案件メモには自動追記しない（重複防止）
 
     return memoLines.join('\n');
   },

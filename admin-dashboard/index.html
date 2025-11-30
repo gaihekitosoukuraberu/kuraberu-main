@@ -10521,7 +10521,7 @@ ${f.name} 御中
 -------------------------------------------
 【お客様情報】
 -------------------------------------------
-氏名: ${d.name}${d.nameKana ? `（${d.nameKana}）` : ''}
+氏名: ${d.name}様${d.nameKana ? `（${d.nameKana}）` : ''}
 電話番号: ${d.phone}`;
 
             if (d.altPhone) msg += `\n別途連絡先: ${d.altPhone}`;
@@ -10560,7 +10560,7 @@ ${f.name} 御中
 -------------------------------------------
 【ご希望内容】
 -------------------------------------------`;
-            if (d.workItems) msg += `\n施工箇所: ${d.workItems}`;
+            if (d.workItems) msg += `\n見積もり希望箇所: ${d.workItems}`;
             if (d.constructionTiming) msg += `\n施工時期: ${d.constructionTiming}`;
             if (d.companiesCount) msg += `\n希望社数: ${d.companiesCount}社`;
             if (d.surveyAttendance) msg += `\n立会い: ${d.surveyAttendance}`;
@@ -10590,13 +10590,15 @@ ${memoStr}`;
 【重要事項】
 -------------------------------------------
 ■ キャンセル期限
-転送日を含む7営業日以内（23:59まで）
+配信日を含む7営業日以内（23:59まで）
 
-■ キャンセル申請
+■ キャンセル申請方法
+加盟店管理画面よりお手続きください。
 https://gaihekikuraberu.com/franchise-dashboard/
+※ログイン後、メニューの「キャンセル申請」より申請可能です。
 
-■ 成約報告義務
-成約後は速やかにご報告をお願いいたします。
+■ 成約報告
+成約後は管理画面の「成約報告」より速やかにご報告をお願いいたします。
 未申告の場合、契約に基づき罰則の対象となります。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -10620,12 +10622,12 @@ info@gaihekikuraberu.com
             // CV-ID
             document.getElementById('orderTransferCvId').textContent = `CV-ID: ${d.cvId}`;
 
-            // 転送先業者リスト（タップで選択・紹介料編集可能）
+            // V1988: 転送先業者リスト（会社名を折り返し表示）
             const franchiseHtml = d.selectedFranchises.map((f, i) => `
                 <div class="franchise-transfer-item flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${i === currentFranchiseIndex ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'}" onclick="selectFranchiseForPreview(${i})">
                     <span class="w-8 h-8 ${i === currentFranchiseIndex ? 'bg-blue-600' : 'bg-gray-400'} text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">${i+1}</span>
-                    <div class="flex-1 min-w-0">
-                        <div class="font-semibold text-gray-800 truncate">${f.name}</div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-gray-800 text-sm leading-tight">${f.name}</div>
                     </div>
                     <div class="flex items-center gap-1 flex-shrink-0" onclick="event.stopPropagation()">
                         <select onchange="updateFranchiseFee(${i}, this.value)" class="text-sm border border-gray-300 rounded px-2 py-1 bg-white font-medium text-green-700">
