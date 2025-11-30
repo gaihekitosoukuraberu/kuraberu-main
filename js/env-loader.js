@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1988 - 転送文UI改善・メモ重複解消）
-  CACHE_BUSTER: 'v1764471983-feacf2af'
+  // キャッシュバスター（V1993 - 希望社数を保存対象外に）
+  CACHE_BUSTER: 'v1993-exclude-companiescount'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
