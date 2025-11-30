@@ -249,7 +249,7 @@ const BusinessSelectionHandler = {
         return;
       }
 
-      const response = await window.apiClient.callAdminApi('getDeliveredFranchises', { cvId });
+      const response = await window.apiClient.jsonpRequest('getDeliveredFranchises', { cvId });
       if (response && response.success && response.deliveredFranchises) {
         this.deliveredFranchises = response.deliveredFranchises;
         console.log('[V2004] 転送済み業者:', this.deliveredFranchises.length, '件', this.deliveredFranchises.map(f => f.franchiseName));
@@ -2688,7 +2688,7 @@ const BusinessSelectionHandler = {
       console.log('[cancelTransfer] 取り消し開始:', { cvId, companyName, franchiseId });
 
       // GAS APIを呼び出し
-      const response = await window.apiClient.callAdminApi('cancelTransfer', {
+      const response = await window.apiClient.jsonpRequest('cancelTransfer', {
         cvId,
         franchiseId,
         companyName
