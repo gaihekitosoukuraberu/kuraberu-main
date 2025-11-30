@@ -2098,14 +2098,19 @@ const BusinessSelectionHandler = {
     // V2004/V2007: 転送済み/申込済みバッジHTML（紫色で統一）
     let deliveredBadgeHtml = '';
     if (isDelivered) {
-      // 転送済み（紫バッジ）
-      deliveredBadgeHtml = `<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
-        <span class="inline-flex items-center justify-center px-2 py-0.5 bg-purple-600 text-white text-xs font-bold rounded">
-          転送済
+      // 転送済み（紫バッジ + 取り消しボタン）
+      deliveredBadgeHtml = `<span class="inline-flex items-center gap-1">
+        <span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
+          <span class="inline-flex items-center justify-center px-2 py-0.5 bg-purple-600 text-white text-xs font-bold rounded">
+            転送済
+          </span>
+          <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">
+            ${deliveredInfo.deliveryDate || ''} 転送済み<br>${deliveredInfo.detailStatus || ''}
+          </span>
         </span>
-        <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">
-          ${deliveredInfo.deliveryDate || ''} 転送済み<br>${deliveredInfo.detailStatus || ''}
-        </span>
+        <button onclick="event.stopPropagation(); window.businessSelectionHandler.showCancelTransferModal('${card.companyName}', '${deliveredInfo.franchiseId || ''}')" class="inline-flex items-center justify-center px-1.5 py-0.5 bg-red-100 hover:bg-red-200 text-red-600 text-xs font-medium rounded border border-red-300 transition-colors" title="転送取り消し">
+          ✕
+        </button>
       </span>`;
     } else if (isApplied) {
       // V2007: 申込済み（オレンジバッジ）
@@ -2606,6 +2611,135 @@ const BusinessSelectionHandler = {
 
     // V1924: 希望社数は上書きしない
     this.updateUI(businessCards, currentDesiredCount, false);
+  },
+
+  /**
+   * 転送取り消し確認モーダルを表示
+   * @param {string} companyName - 会社名
+   * @param {string} franchiseId - 加盟店ID
+   */
+  showCancelTransferModal(companyName, franchiseId) {
+    const modal = document.createElement('div');
+    modal.id = 'cancelTransferModal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]';
+    modal.innerHTML = `
+      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
+        <div class="text-center mb-4">
+          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-2">転送を取り消しますか？</h3>
+          <p class="text-gray-600 mb-2">
+            <span class="font-semibold text-purple-600">${companyName}</span> への転送を取り消します。
+          </p>
+          <p class="text-sm text-gray-500">
+            配信管理シートから削除され、転送数が1減ります。
+          </p>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="document.getElementById('cancelTransferModal').remove()" class="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors">
+            キャンセル
+          </button>
+          <button onclick="window.businessSelectionHandler.executeCancelTransfer('${companyName}', '${franchiseId}')" class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors">
+            取り消す
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    // 背景クリックで閉じる
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
+  },
+
+  /**
+   * 転送取り消しを実行
+   * @param {string} companyName - 会社名
+   * @param {string} franchiseId - 加盟店ID
+   */
+  async executeCancelTransfer(companyName, franchiseId) {
+    const modal = document.getElementById('cancelTransferModal');
+    const cvId = this.currentCaseData?.cvId || this.currentCaseData?._rawData?.cvId;
+
+    if (!cvId) {
+      alert('エラー: CV IDが見つかりません');
+      if (modal) modal.remove();
+      return;
+    }
+
+    // ボタンをローディング状態に
+    const confirmBtn = modal?.querySelector('button:last-child');
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '<span class="animate-spin inline-block mr-2">⏳</span>処理中...';
+    }
+
+    try {
+      console.log('[cancelTransfer] 取り消し開始:', { cvId, companyName, franchiseId });
+
+      // GAS APIを呼び出し
+      const response = await window.apiClient.callAdminApi('cancelTransfer', {
+        cvId,
+        franchiseId,
+        companyName
+      });
+
+      if (response && response.success) {
+        console.log('[cancelTransfer] 成功:', response);
+
+        // deliveredFranchisesから削除
+        this.deliveredFranchises = this.deliveredFranchises.filter(f => f.franchiseName !== companyName);
+
+        // 転送数を減らす
+        if (this.currentCaseData) {
+          this.currentCaseData.transferCount = Math.max(0, (this.currentCaseData.transferCount || 0) - 1);
+        }
+
+        // casesDataも更新（リストビュー用）
+        if (typeof casesData !== 'undefined' && cvId && casesData[cvId]) {
+          casesData[cvId].transferCount = Math.max(0, (casesData[cvId].transferCount || 0) - 1);
+          // ステータス更新（GASから返ってきた新ステータス）
+          if (response.newStatus) {
+            casesData[cvId].status = response.newStatus;
+            this.currentCaseData.status = response.newStatus;
+          }
+        }
+
+        // UI更新
+        if (typeof updateActionButtons === 'function') {
+          updateActionButtons(this.currentCaseData);
+        }
+
+        // カードを再生成
+        const businessCards = await this.generateBusinessCards({
+          allFranchises: this.allFranchises
+        }, this.currentSortType, this.showAll, this.searchQuery);
+
+        const franchiseCountSelect = document.getElementById('franchiseCount');
+        const currentDesiredCount = franchiseCountSelect?.value || '3社';
+        this.updateUI(businessCards, currentDesiredCount, false);
+
+        // リストビュー更新
+        if (typeof initializeListView === 'function') {
+          initializeListView();
+        }
+
+        alert(`${companyName} への転送を取り消しました`);
+      } else {
+        throw new Error(response?.error || '取り消しに失敗しました');
+      }
+    } catch (error) {
+      console.error('[cancelTransfer] エラー:', error);
+      alert('エラー: ' + error.message);
+    } finally {
+      if (modal) modal.remove();
+    }
   },
 
   // V1936: getSampleFranchises()削除 - フォールバック処理不要

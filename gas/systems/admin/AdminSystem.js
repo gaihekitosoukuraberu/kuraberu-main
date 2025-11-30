@@ -79,6 +79,9 @@ const AdminSystem = {
         case 'getDeliveredFranchises':
           return this.getDeliveredFranchises(params);
 
+        case 'cancelTransfer':
+          return this.cancelTransfer(params);
+
         case 'updateCVData':
           return this.updateCVData(params);
 
@@ -2472,6 +2475,119 @@ const AdminSystem = {
       };
     } catch (error) {
       console.error('[getDeliveredFranchises] エラー:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  /**
+   * 転送取り消し
+   * - 配信管理シートから該当レコードを削除
+   * - ユーザー登録シートのステータスを臨機応変に調整
+   */
+  cancelTransfer: function(params) {
+    try {
+      const { cvId, franchiseId, companyName } = params;
+      if (!cvId) {
+        return { success: false, error: 'CV IDが指定されていません' };
+      }
+
+      console.log('[cancelTransfer] 開始:', { cvId, franchiseId, companyName });
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const deliverySheet = ss.getSheetByName('配信管理');
+      const userSheet = ss.getSheetByName('ユーザー登録');
+
+      if (!deliverySheet) {
+        return { success: false, error: '配信管理シートが見つかりません' };
+      }
+
+      // 配信管理シートから該当レコードを検索・削除
+      const deliveryData = deliverySheet.getDataRange().getValues();
+      const deliveryHeaders = deliveryData[0];
+      const cvIdIdx = deliveryHeaders.indexOf('CV ID');
+      const franchiseIdIdx = deliveryHeaders.indexOf('加盟店ID');
+      const deliveryStatusIdx = deliveryHeaders.indexOf('配信ステータス');
+
+      let deletedRow = -1;
+      for (let i = deliveryData.length - 1; i >= 1; i--) {
+        const rowCvId = deliveryData[i][cvIdIdx];
+        const rowFranchiseId = deliveryData[i][franchiseIdIdx];
+        const rowStatus = deliveryData[i][deliveryStatusIdx];
+
+        // CV IDと加盟店IDが一致し、配信済み/配信済ステータスのレコードを削除
+        if (rowCvId === cvId &&
+            (rowFranchiseId === franchiseId || !franchiseId) &&
+            (rowStatus === '配信済' || rowStatus === '配信済み')) {
+          deletedRow = i + 1; // 1-indexed
+          deliverySheet.deleteRow(deletedRow);
+          console.log('[cancelTransfer] 配信管理から削除: 行', deletedRow);
+          break;
+        }
+      }
+
+      if (deletedRow === -1) {
+        return { success: false, error: '該当する配信レコードが見つかりません' };
+      }
+
+      // 残りの転送数をカウント
+      const updatedDeliveryData = deliverySheet.getDataRange().getValues();
+      let remainingCount = 0;
+      for (let i = 1; i < updatedDeliveryData.length; i++) {
+        const rowCvId = updatedDeliveryData[i][cvIdIdx];
+        const rowStatus = updatedDeliveryData[i][deliveryStatusIdx];
+        if (rowCvId === cvId && (rowStatus === '配信済' || rowStatus === '配信済み')) {
+          remainingCount++;
+        }
+      }
+      console.log('[cancelTransfer] 残り転送数:', remainingCount);
+
+      // ユーザー登録シートのステータスを調整
+      let newStatus = null;
+      if (userSheet) {
+        const userData = userSheet.getDataRange().getValues();
+        const userHeaders = userData[0];
+        const userCvIdIdx = userHeaders.indexOf('CV ID');
+        const userStatusIdx = userHeaders.indexOf('配信ステータス');
+        const userHopeIdx = userHeaders.indexOf('希望社数');
+
+        for (let i = 1; i < userData.length; i++) {
+          if (userData[i][userCvIdIdx] === cvId) {
+            const currentStatus = userData[i][userStatusIdx];
+            const hopeCountStr = userData[i][userHopeIdx] || '3社';
+            const hopeCount = parseInt(hopeCountStr) || 3;
+
+            // ステータス判定
+            // - 残り0社 → 配信中のまま or 元のステータスに戻す（新規など）
+            // - 残り1社以上で希望社数未満 → 配信中
+            // - 残り希望社数以上 → 配信済（通常ここには来ない）
+            if (remainingCount === 0) {
+              // 転送が0になった場合、「新規」に戻す（または配信中のまま）
+              newStatus = '新規';
+            } else if (remainingCount < hopeCount) {
+              newStatus = '配信中';
+            } else {
+              newStatus = '配信済';
+            }
+
+            // 現在のステータスと異なる場合のみ更新
+            if (currentStatus !== newStatus) {
+              userSheet.getRange(i + 1, userStatusIdx + 1).setValue(newStatus);
+              console.log('[cancelTransfer] ステータス更新:', currentStatus, '→', newStatus);
+            }
+            break;
+          }
+        }
+      }
+
+      return {
+        success: true,
+        deletedRow: deletedRow,
+        remainingCount: remainingCount,
+        newStatus: newStatus
+      };
+    } catch (error) {
+      console.error('[cancelTransfer] エラー:', error);
       return { success: false, error: error.message };
     }
   },
