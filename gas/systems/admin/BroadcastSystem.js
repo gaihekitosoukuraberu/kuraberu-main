@@ -419,6 +419,8 @@ var BroadcastSystem = {
       const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       const responseSheet = ss.getSheetByName('一斉配信レスポンス');
       const broadcastSheet = ss.getSheetByName('一斉配信');
+      const userSheet = ss.getSheetByName('ユーザー登録');
+      const deliverySheet = ss.getSheetByName('配信管理');
 
       if (!responseSheet) {
         return this.createHtmlResponse('エラー', 'システムエラーが発生しました', 'error');
@@ -482,6 +484,24 @@ var BroadcastSystem = {
         return this.createHtmlResponse('エラー', '案件情報が見つかりません', 'error');
       }
 
+      // 枠チェック: 既に埋まっていたら即お断り
+      const cvData = this.getCVData(userSheet, cvId);
+      const maxCompanies = parseInt(cvData?.companiesCount) || 4;
+      const deliveredIds = this.getDeliveredFranchiseIds(deliverySheet, cvId);
+      const remainingSlots = Math.max(0, maxCompanies - deliveredIds.length);
+
+      if (remainingSlots === 0) {
+        // 枠が埋まってる → 使用済みにしてお断り表示
+        const now = new Date();
+        const timestamp = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
+        responseSheet.getRange(targetRow, clickTimeIdx + 1).setValue(timestamp);
+        responseSheet.getRange(targetRow, resultIdx + 1).setValue('枠埋まり');
+        responseSheet.getRange(targetRow, usedIdx + 1).setValue(true);
+
+        console.log('[handlePurchase] 枠埋まり:', cvId, franchiseName);
+        return this.createHtmlResponse('募集終了', `${franchiseName}様、申し訳ございません。こちらの案件は既に募集枠が埋まりました。また次回の案件をご検討いただけますと幸いです。`, 'warning');
+      }
+
       const now = new Date();
       const timestamp = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
 
@@ -533,6 +553,8 @@ var BroadcastSystem = {
       const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       const responseSheet = ss.getSheetByName('一斉配信レスポンス');
       const broadcastSheet = ss.getSheetByName('一斉配信');
+      const userSheet = ss.getSheetByName('ユーザー登録');
+      const deliverySheet = ss.getSheetByName('配信管理');
 
       if (!responseSheet) {
         return this.createHtmlResponse('エラー', 'システムエラーが発生しました', 'error');
@@ -581,6 +603,25 @@ var BroadcastSystem = {
             cvId = bData[i][bCvIdIdx];
             break;
           }
+        }
+      }
+
+      // 枠チェック: 既に埋まっていたら即お断り
+      if (cvId) {
+        const cvData = this.getCVData(userSheet, cvId);
+        const maxCompanies = parseInt(cvData?.companiesCount) || 4;
+        const deliveredIds = this.getDeliveredFranchiseIds(deliverySheet, cvId);
+        const remainingSlots = Math.max(0, maxCompanies - deliveredIds.length);
+
+        if (remainingSlots === 0) {
+          const now = new Date();
+          const timestamp = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
+          responseSheet.getRange(targetRow, clickTimeIdx + 1).setValue(timestamp);
+          responseSheet.getRange(targetRow, resultIdx + 1).setValue('枠埋まり');
+          responseSheet.getRange(targetRow, usedIdx + 1).setValue(true);
+
+          console.log('[handleInterest] 枠埋まり:', cvId, franchiseName);
+          return this.createHtmlResponse('募集終了', `${franchiseName}様、申し訳ございません。こちらの案件は既に募集枠が埋まりました。また次回の案件をご検討いただけますと幸いです。`, 'warning');
         }
       }
 
@@ -938,6 +979,132 @@ ${interestUrl}
       });
     } catch (error) {
       console.error('[notifyAdmin] エラー:', error);
+    }
+  },
+
+  /**
+   * 枠が埋まった際にお断りメールを送信
+   * 転送完了後に呼び出す
+   * @param {string} cvId - 案件ID
+   */
+  sendRejectionEmails: function(cvId) {
+    try {
+      console.log('[sendRejectionEmails] 開始 cvId=', cvId);
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const responseSheet = ss.getSheetByName('一斉配信レスポンス');
+      const broadcastSheet = ss.getSheetByName('一斉配信');
+      const franchiseSheet = ss.getSheetByName('加盟店登録');
+
+      if (!responseSheet || !broadcastSheet) {
+        console.warn('[sendRejectionEmails] シートが見つかりません');
+        return { success: false, error: 'シートが見つかりません' };
+      }
+
+      // 配信IDを取得
+      const bData = broadcastSheet.getDataRange().getValues();
+      const bHeaders = bData[0];
+      const bIdIdx = bHeaders.indexOf('配信ID');
+      const bCvIdIdx = bHeaders.indexOf('CV ID');
+
+      let broadcastId = '';
+      for (let i = 1; i < bData.length; i++) {
+        if (bData[i][bCvIdIdx] === cvId) {
+          broadcastId = bData[i][bIdIdx];
+          break;
+        }
+      }
+
+      if (!broadcastId) {
+        console.log('[sendRejectionEmails] 配信レコードなし');
+        return { success: true, message: '配信レコードなし', sentCount: 0 };
+      }
+
+      // レスポンスシートから申込済み・気になる加盟店を取得
+      const rData = responseSheet.getDataRange().getValues();
+      const rHeaders = rData[0];
+      const rBroadcastIdIdx = rHeaders.indexOf('配信ID');
+      const rFranchiseIdIdx = rHeaders.indexOf('加盟店ID');
+      const rFranchiseNameIdx = rHeaders.indexOf('加盟店名');
+      const rResultIdx = rHeaders.indexOf('結果');
+      const rRejectionSentIdx = rHeaders.indexOf('お断りメール送信済み');
+
+      // 加盟店メールアドレス取得用
+      const fData = franchiseSheet.getDataRange().getValues();
+      const fHeaders = fData[0];
+      const fIdIdx = fHeaders.indexOf('登録ID');
+      const fEmailIdx = fHeaders.indexOf('営業用メールアドレス') !== -1 ? fHeaders.indexOf('営業用メールアドレス') : fHeaders.indexOf('メールアドレス');
+
+      const franchiseEmails = {};
+      for (let i = 1; i < fData.length; i++) {
+        franchiseEmails[fData[i][fIdIdx]] = fData[i][fEmailIdx];
+      }
+
+      let sentCount = 0;
+      const rejectionSentColIdx = rRejectionSentIdx !== -1 ? rRejectionSentIdx : rHeaders.length;
+
+      // カラムがなければ追加
+      if (rRejectionSentIdx === -1) {
+        responseSheet.getRange(1, rejectionSentColIdx + 1).setValue('お断りメール送信済み');
+      }
+
+      for (let i = 1; i < rData.length; i++) {
+        if (rData[i][rBroadcastIdIdx] !== broadcastId) continue;
+
+        const result = rData[i][rResultIdx];
+        // 申込済み or 通知済み（気になる）の加盟店が対象
+        if (result !== '申込済み' && result !== '通知済み') continue;
+
+        // 既にお断りメール送信済みならスキップ
+        if (rData[i][rejectionSentColIdx] === true || rData[i][rejectionSentColIdx] === 'TRUE') continue;
+
+        const franchiseId = rData[i][rFranchiseIdIdx];
+        const franchiseName = rData[i][rFranchiseNameIdx];
+        const email = franchiseEmails[franchiseId];
+
+        if (!email) {
+          console.warn('[sendRejectionEmails] メールなし:', franchiseName);
+          continue;
+        }
+
+        // お断りメール送信
+        const subject = '【外壁塗装くらべる】案件募集終了のお知らせ';
+        const body = `${franchiseName} 御中
+
+平素よりお世話になっております。
+外壁塗装くらべる運営事務局でございます。
+
+先日ご案内いたしました案件につきまして、
+おかげさまで募集枠が埋まりましたのでご報告いたします。
+
+この度はご検討いただき、誠にありがとうございました。
+また次回の案件もぜひご検討いただけますと幸いです。
+
+今後ともよろしくお願いいたします。
+
+外壁塗装くらべる運営事務局
+`;
+
+        try {
+          GmailApp.sendEmail(email, subject, body, {
+            name: '外壁塗装くらべる運営事務局'
+          });
+
+          // 送信済みフラグを立てる
+          responseSheet.getRange(i + 1, rejectionSentColIdx + 1).setValue(true);
+          sentCount++;
+          console.log('[sendRejectionEmails] 送信完了:', franchiseName, email);
+        } catch (mailError) {
+          console.error('[sendRejectionEmails] メール送信失敗:', franchiseName, mailError);
+        }
+      }
+
+      console.log('[sendRejectionEmails] 完了 sentCount=', sentCount);
+      return { success: true, sentCount: sentCount };
+    } catch (error) {
+      console.error('[sendRejectionEmails] エラー:', error);
+      return { success: false, error: error.message };
     }
   },
 
