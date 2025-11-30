@@ -1179,6 +1179,10 @@
                 <!-- 希望社数・配信済み件数・業者検索 -->
                 <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4">
                     <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">配信済</label>
+                        <div id="transferCountDisplay" class="w-full px-2 py-2 text-sm font-bold text-center bg-gray-100 border border-gray-300 rounded-lg text-green-600">0社</div>
+                    </div>
+                    <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">希望社数</label>
                         <select id="franchiseCount" class="w-full px-2 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all appearance-none bg-white" onchange="saveFranchiseCountChange(this.value)">
                             <option value="1社">1社</option>
@@ -1186,10 +1190,6 @@
                             <option value="3社" selected>3社</option>
                             <option value="4社">4社</option>
                         </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-500 mb-1">配信済</label>
-                        <div id="transferCountDisplay" class="w-full px-2 py-2 text-sm font-bold text-center bg-gray-100 border border-gray-300 rounded-lg text-green-600">0社</div>
                     </div>
                     <div class="col-span-1 sm:col-span-2">
                         <label class="block text-xs font-medium text-gray-500 mb-1">業者検索</label>

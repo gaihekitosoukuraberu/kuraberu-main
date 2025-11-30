@@ -2441,7 +2441,7 @@ const AdminSystem = {
         }
       }
 
-      // 該当CV IDの配信レコードを抽出
+      // 該当CV IDの配信レコードを抽出（配信済/配信済みステータスのみ）
       const deliveredFranchises = [];
       for (let i = 1; i < data.length; i++) {
         if (data[i][cvIdIdx] === cvId) {
@@ -2451,13 +2451,16 @@ const AdminSystem = {
           const detailStatus = detailStatusIdx !== -1 ? data[i][detailStatusIdx] : '';
           const deliveryDate = deliveryDateIdx !== -1 ? data[i][deliveryDateIdx] : '';
 
-          deliveredFranchises.push({
-            franchiseId: franchiseId,
-            franchiseName: franchiseName,
-            deliveryStatus: deliveryStatus,
-            detailStatus: detailStatus,
-            deliveryDate: deliveryDate ? Utilities.formatDate(new Date(deliveryDate), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm') : ''
-          });
+          // 配信済/配信済みステータスのレコードのみを転送済みとして扱う
+          if (deliveryStatus === '配信済' || deliveryStatus === '配信済み') {
+            deliveredFranchises.push({
+              franchiseId: franchiseId,
+              franchiseName: franchiseName,
+              deliveryStatus: deliveryStatus,
+              detailStatus: detailStatus,
+              deliveryDate: deliveryDate ? Utilities.formatDate(new Date(deliveryDate), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm') : ''
+            });
+          }
         }
       }
 
