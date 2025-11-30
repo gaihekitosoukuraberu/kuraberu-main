@@ -2434,13 +2434,15 @@
 
                 console.log('📤 CV1送信データ:', formData);
 
-                // CV2フォーマットに変換（CV1として送信）
+                // CV2フォーマットに変換（cv-api.jsが期待する形式）
                 const cv2FormData = {
                     name: formData.name,
                     email: formData.email,
-                    propertyAddress: { postalCode: formData.propertyZip, street: formData.propertyStreet },
+                    propertyZip: formData.propertyZip,
+                    propertyStreet: formData.propertyStreet,
                     isDifferentHome: formData.homeZip ? true : false,
-                    homeAddress: formData.homeZip ? { postalCode: formData.homeZip, street: formData.homeStreet } : null,
+                    homeZip: formData.homeZip || '',
+                    homeStreet: formData.homeStreet || '',
                     surveyDates: [],  // 空配列
                     requests: '',  // 空文字列
                     keepInfo: keepManager.getList().map(k => k.name).join(', ')
@@ -3200,20 +3202,15 @@
             submitBtn.textContent = '送信中...';
 
             try {
-                // フォームデータを収集
+                // フォームデータを収集（cv-api.jsが期待する形式）
                 const formData = {
                     name: document.getElementById('userName').value.trim(),
                     email: document.getElementById('userEmail').value.trim(),
-                    propertyAddress: {
-                        postalCode: document.getElementById('propertyZip').value,
-                        prefecture: document.getElementById('propertyAddress').value,
-                        street: document.getElementById('propertyStreet').value.trim()
-                    },
+                    propertyZip: document.getElementById('propertyZip').value,
+                    propertyStreet: document.getElementById('propertyStreet').value.trim(),
                     isDifferentHome: document.getElementById('differentHome').checked,
-                    homeAddress: document.getElementById('differentHome').checked ? {
-                        postalCode: document.getElementById('homeZip').value,
-                        street: document.getElementById('homeStreet').value.trim()
-                    } : null,
+                    homeZip: document.getElementById('differentHome').checked ? document.getElementById('homeZip').value : '',
+                    homeStreet: document.getElementById('differentHome').checked ? document.getElementById('homeStreet').value.trim() : '',
                     surveyDates: Array.from(document.querySelectorAll('input[name="surveyDate"]:checked')).map(cb => cb.value),
                     requests: document.getElementById('userRequests')?.value || ''
                 };
