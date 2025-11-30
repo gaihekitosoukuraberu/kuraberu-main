@@ -6696,11 +6696,7 @@ window.addEventListener('beforeunload', function(e) {
                 data['連絡時間帯'] = contactMethodInput.value || '';
             }
 
-            // 希望社数（Q11_希望社数）
-            const franchiseCountSelect = document.getElementById('franchiseCount');
-            if (franchiseCountSelect) {
-                data.companiesCount = franchiseCountSelect.value || '';
-            }
+            // V1993: 希望社数（companiesCount）は保存対象外（変動するため）
 
             // 特殊項目（選択されたボタンを配列で取得 - specialItemsButtonsのみ）
             const specialItemsButtons = document.getElementById('specialItemsButtons');
@@ -6717,20 +6713,15 @@ window.addEventListener('beforeunload', function(e) {
             }
 
             // V1901: 業者選択データ収集（双方向同期）
-            // BusinessSelectionHandler.checkedCompanies Set からAS列とCB列のデータを取得
+            // V1993: companiesCountは保存対象外（変動するため）
             if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.checkedCompanies) {
                 const checkedCompanies = Array.from(window.BusinessSelectionHandler.checkedCompanies);
 
                 // AS列: 業者選定履歴（カンマ区切りの業者名）
                 data.businessHistory = checkedCompanies.join(', ');
 
-                // CB列: 希望社数（チェックされた業者の数）
-                // 既存のcompaniesCountを上書き（checkedCompanies Setが権威的な状態）
-                data.companiesCount = checkedCompanies.length;
-
-                console.log('[getCRMFormData] V1901: 業者選択データ収集:', {
+                console.log('[getCRMFormData] V1993: 業者選択データ収集:', {
                     businessHistory: data.businessHistory,
-                    companiesCount: data.companiesCount,
                     checkedCompanies: checkedCompanies
                 });
             } else {
