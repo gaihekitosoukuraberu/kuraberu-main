@@ -142,7 +142,6 @@ var BroadcastSystem = {
       const propertyType = cvData['依頼物件種別'] || cvData['物件種別'] || '';
       const buildingAge = cvData['築年数'] || '';
       const workItems = cvData['見積もり希望箇所'] || cvData['workItems'] || '';
-      const fee = parseInt(cvData['fee']) || 10000;
       const maxCompanies = parseInt(cvData['companiesCount']) || 4;
 
       const previewText = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -163,13 +162,7 @@ var BroadcastSystem = {
 物件種別: ${propertyType}
 築年数: ${buildingAge}年
 希望工事: ${workItems}
-紹介料: ¥${fee.toLocaleString()}（税別）
-
--------------------------------------------
-【残り枠】${maxCompanies}社
--------------------------------------------
-
-※ 早い者勝ちとなります。残り枠がなくなり次第終了です。
+残り枠: ${maxCompanies}社
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -181,8 +174,7 @@ var BroadcastSystem = {
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-※ 申し込み後、管理者が確認して転送処理を行います。
-※ 「気になる」をクリックすると担当者に通知が届きます。
+※ 申し込み後、枠があれば自動で転送されます。
 
 外壁塗装くらべる運営事務局`;
 
@@ -192,17 +184,16 @@ var BroadcastSystem = {
         cvId: cvId,
         preview: previewText,
         includedInfo: [
-          '都道府県・市区町村（町名以下は非公開）',
+          'エリア（市区町村まで）',
           '物件種別',
           '築年数',
-          '希望工事内容',
-          '紹介料',
-          '残り枠数'
+          '希望工事',
+          '残り枠'
         ],
         excludedInfo: [
           '氏名',
           '電話番号',
-          '詳細住所（番地・建物名）',
+          '詳細住所',
           'メールアドレス'
         ]
       };
@@ -822,13 +813,7 @@ ${franchise.name} 御中
 物件種別: ${propertyType}
 築年数: ${buildingAge}年
 希望工事: ${workItems}
-紹介料: ¥${fee.toLocaleString()}（税別）
-
--------------------------------------------
-【残り枠】${remainingSlots}社
--------------------------------------------
-
-※ 早い者勝ちとなります。残り枠がなくなり次第終了です。
+残り枠: ${remainingSlots}社
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -840,8 +825,7 @@ ${interestUrl}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-※ 申し込み後、管理者が確認して転送処理を行います。
-※ 「気になる」をクリックすると担当者に通知が届きます。
+※ 申し込み後、枠があれば自動で転送されます。
 
 外壁塗装くらべる運営事務局
 `;
