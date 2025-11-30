@@ -13786,11 +13786,7 @@
                     initializeFirstLoginSettings();
                 });
 
-                // 案件カードを初期化
-                setTimeout(() => {
-                    renderCaseCards();
-                    updateCaseCounts();
-                }, 50);
+                // 案件カードは V2007 で showSection('cases') 時に loadMerchantCases() で自動読み込み
 
                 // カレンダーを初期化
                 setTimeout(() => {
@@ -18530,8 +18526,7 @@
                 // 案件管理セクションを表示した場合、未振り分け案件を更新
                 if (sectionName === 'cases') {
                     displayUnassignedCases();
-                    renderCaseCards(); // 動的に案件カードを生成
-                    updateCaseCounts(); // 件数を更新
+                    // V2007: 案件カードは loadMerchantCases() で自動読み込み（既にshowSectionフック内で呼び出し済み）
                 }
             };
         });
