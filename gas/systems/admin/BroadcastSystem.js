@@ -640,10 +640,10 @@ var BroadcastSystem = {
     const nameIdx = headers.indexOf('会社名');
     const emailIdx = headers.indexOf('営業用メールアドレス') !== -1 ? headers.indexOf('営業用メールアドレス') : headers.indexOf('メールアドレス');
     const statusIdx = headers.indexOf('ステータス');
-    const areaIdx = headers.indexOf('対応エリア') !== -1 ? headers.indexOf('対応エリア') : headers.indexOf('営業エリア');
+    const citiesIdx = headers.indexOf('対応市区町村');
 
-    console.log('[getAreaFranchises] indexes:', { idIdx, nameIdx, emailIdx, statusIdx, areaIdx });
-    console.log('[getAreaFranchises] 検索条件: prefecture=', prefecture);
+    console.log('[getAreaFranchises] indexes:', { idIdx, nameIdx, emailIdx, statusIdx, citiesIdx });
+    console.log('[getAreaFranchises] 検索条件: city=', city);
 
     const franchises = [];
     let totalRows = 0;
@@ -661,9 +661,9 @@ var BroadcastSystem = {
       }
       activeCount++;
 
-      const area = data[i][areaIdx] || '';
-      // エリアマッチング: 対応エリアに都道府県が含まれている、または全国対応
-      const isMatch = area.includes(prefecture) || area === '全国';
+      const cities = data[i][citiesIdx] || '';
+      // エリアマッチング: 対応市区町村に案件の市区町村が含まれている
+      const isMatch = city && cities.includes(city);
 
       if (isMatch) {
         franchises.push({

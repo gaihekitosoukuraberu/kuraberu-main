@@ -189,10 +189,30 @@ jobs:
             echo "📍 変更なし - コミットスキップ"
           else
             git commit -m "auto: GAS URL同期 (env-loader & fallback & PHP) - ${{ steps.deploy.outputs.deployment_id }}"
+
             # リモートの変更を取り込んでからプッシュ（競合回避）
-            git pull --rebase origin main || true
-            git push
-            echo "✅ env-loader更新をプッシュしました"
+            MAX_RETRIES=3
+            for i in $(seq 1 $MAX_RETRIES); do
+              echo "🔄 プッシュ試行 $i/$MAX_RETRIES..."
+              git pull --rebase origin main 2>&1 || {
+                echo "⚠️ rebase競合発生 - 解決を試みます"
+                git rebase --abort 2>/dev/null || true
+                git pull origin main --no-rebase 2>&1 || true
+              }
+
+              if git push 2>&1; then
+                echo "✅ env-loader更新をプッシュしました"
+                break
+              else
+                echo "⚠️ プッシュ失敗 - リトライ..."
+                sleep 2
+              fi
+
+              if [ $i -eq $MAX_RETRIES ]; then
+                echo "⚠️ プッシュを$MAX_RETRIES回試行しましたが失敗。スキップします。"
+                echo "※ GASデプロイは成功しています。env-loaderの同期は次回のプッシュで行われます。"
+              fi
+            done
           fi
 
           echo ""
