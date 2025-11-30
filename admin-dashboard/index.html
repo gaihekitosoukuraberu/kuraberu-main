@@ -1334,6 +1334,30 @@
                         </div>
                     </div>
 
+                        <!-- V2005: 予約転送オプション -->
+                        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                            <h4 class="font-bold text-gray-800 mb-3">転送タイミング</h4>
+                            <div class="flex gap-2 mb-3">
+                                <button type="button" id="transferModeImmediate" onclick="setTransferMode('immediate')" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-medium transition-all">
+                                    即時転送
+                                </button>
+                                <button type="button" id="transferModeScheduled" onclick="setTransferMode('scheduled')" class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium transition-all hover:bg-gray-300">
+                                    予約転送
+                                </button>
+                            </div>
+                            <!-- 予約日時選択（デフォルト非表示） -->
+                            <div id="scheduledTransferOptions" class="hidden">
+                                <div class="flex gap-2 items-center">
+                                    <input type="datetime-local" id="scheduledTransferDateTime" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <button type="button" onclick="setDefaultScheduleTime()" class="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-all">
+                                        翌朝9時
+                                    </button>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">※ 指定日時にGASトリガーで自動転送されます</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- フッターボタン -->
                     <div class="sticky bottom-0 bg-white border-t p-4 rounded-b-2xl flex gap-3">
                         <button type="button" onclick="closeOrderTransferModal()" class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300 transition-all">
@@ -10338,6 +10362,69 @@ window.addEventListener('beforeunload', function(e) {
         // 現在選択中の業者インデックス
         let currentFranchiseIndex = 0;
 
+        // V2005: 転送モード（immediate: 即時, scheduled: 予約）
+        let currentTransferMode = 'immediate';
+
+        // V2005: 転送モード切り替え
+        function setTransferMode(mode) {
+            currentTransferMode = mode;
+            const immediateBtn = document.getElementById('transferModeImmediate');
+            const scheduledBtn = document.getElementById('transferModeScheduled');
+            const scheduledOptions = document.getElementById('scheduledTransferOptions');
+            const submitBtn = document.getElementById('orderTransferSubmitBtn');
+
+            if (mode === 'immediate') {
+                immediateBtn.className = 'flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-medium transition-all';
+                scheduledBtn.className = 'flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium transition-all hover:bg-gray-300';
+                scheduledOptions.classList.add('hidden');
+                submitBtn.textContent = '転送';
+                submitBtn.className = 'flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-bold hover:from-green-700 hover:to-green-800 transition-all shadow-lg';
+            } else {
+                immediateBtn.className = 'flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium transition-all hover:bg-gray-300';
+                scheduledBtn.className = 'flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium transition-all';
+                scheduledOptions.classList.remove('hidden');
+                submitBtn.textContent = '予約転送';
+                submitBtn.className = 'flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg';
+                // デフォルト日時をセット（まだセットされていなければ）
+                const dateTimeInput = document.getElementById('scheduledTransferDateTime');
+                if (!dateTimeInput.value) {
+                    setDefaultScheduleTime();
+                }
+            }
+        }
+
+        // V2005: 翌朝9時をデフォルト日時に設定
+        function setDefaultScheduleTime() {
+            const dateTimeInput = document.getElementById('scheduledTransferDateTime');
+            const now = new Date();
+            // 翌日の9:00 AMを設定
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(9, 0, 0, 0);
+            // datetime-local形式にフォーマット
+            const formattedDateTime = tomorrow.toISOString().slice(0, 16);
+            dateTimeInput.value = formattedDateTime;
+        }
+
+        // V2005: 転送モーダルを開く際に即時モードにリセット
+        function resetTransferMode() {
+            currentTransferMode = 'immediate';
+            const immediateBtn = document.getElementById('transferModeImmediate');
+            const scheduledBtn = document.getElementById('transferModeScheduled');
+            const scheduledOptions = document.getElementById('scheduledTransferOptions');
+            const submitBtn = document.getElementById('orderTransferSubmitBtn');
+            const dateTimeInput = document.getElementById('scheduledTransferDateTime');
+
+            if (immediateBtn) immediateBtn.className = 'flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-medium transition-all';
+            if (scheduledBtn) scheduledBtn.className = 'flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium transition-all hover:bg-gray-300';
+            if (scheduledOptions) scheduledOptions.classList.add('hidden');
+            if (submitBtn) {
+                submitBtn.textContent = '転送';
+                submitBtn.className = 'flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-bold hover:from-green-700 hover:to-green-800 transition-all shadow-lg';
+            }
+            if (dateTimeInput) dateTimeInput.value = '';
+        }
+
         // 紹介料を数値に変換
         function parseFee(feeStr) {
             if (typeof feeStr === 'number') return feeStr;
@@ -10487,6 +10574,9 @@ window.addEventListener('beforeunload', function(e) {
             // UI更新
             currentFranchiseIndex = 0;
             populateOrderTransferModal();
+
+            // V2005: 転送モードをリセット（即時転送がデフォルト）
+            resetTransferMode();
 
             // モーダル表示
             const modal = document.getElementById('orderTransferModal');
