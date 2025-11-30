@@ -1056,16 +1056,27 @@ const CVSheetSystem = {
         console.log('[CVSheetSystem] V1902: 選択業者数を80列目（希望社数）に保存:', companyCount);
       }
 
-      // V1902: Google Mapsリンクを生成して84列目に保存
+      // V1991: Google Mapsリンクを生成して84列目に保存（短縮URL使用）
       const fullAddress = [
         params.propertyPrefecture,
         params.propertyCity,
         params.propertyStreet
       ].filter(v => v).join('');
       if (fullAddress) {
-        const googleMapsLink = this.generateGoogleMapsLink(fullAddress);
+        const longUrl = this.generateGoogleMapsLink(fullAddress);
+        // V1991: UrlShortenerで短縮（失敗時は元URLをそのまま使用）
+        let googleMapsLink = longUrl;
+        try {
+          const shortResult = UrlShortener.shortenUrl({ url: longUrl });
+          if (shortResult.success && shortResult.shortUrl) {
+            googleMapsLink = shortResult.shortUrl;
+            console.log('[CVSheetSystem] V1991: 短縮URL生成成功:', googleMapsLink);
+          }
+        } catch (shortErr) {
+          console.warn('[CVSheetSystem] V1991: URL短縮失敗、元URLを使用:', shortErr);
+        }
         sheet.getRange(targetRow, 84).setValue(googleMapsLink);                    // 84列目: Google Mapsリンク
-        console.log('[CVSheetSystem] V1902: Google Mapsリンクを生成:', googleMapsLink);
+        console.log('[CVSheetSystem] V1991: Google Mapsリンクを保存:', googleMapsLink);
       }
 
       console.log('[CVSheetSystem] CV2更新完了:', cvId);

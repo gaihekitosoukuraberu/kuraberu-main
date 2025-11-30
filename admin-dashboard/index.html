@@ -4045,46 +4045,8 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
-        // 住所入力時に自動的にマップリンクを生成
-        function autoGenerateMapLink() {
-            const addressInput = document.getElementById('addressInput');
-            const addressNumberInput = document.getElementById('addressNumberInput');
-
-            if (addressInput) {
-                addressInput.addEventListener('blur', function() {
-                    if (this.value.trim()) {
-                        generateGoogleMapLink();
-                    }
-                });
-                addressInput.addEventListener('input', function() {
-                    if (this.value.trim()) {
-                        setTimeout(() => {
-                            generateGoogleMapLink();
-                        }, 500); // 0.5秒後に自動生成
-                    }
-                });
-            }
-
-            if (addressNumberInput) {
-                addressNumberInput.addEventListener('blur', function() {
-                    if (this.value.trim()) {
-                        generateGoogleMapLink();
-                    }
-                });
-                addressNumberInput.addEventListener('input', function() {
-                    if (this.value.trim()) {
-                        setTimeout(() => {
-                            generateGoogleMapLink();
-                        }, 500); // 0.5秒後に自動生成
-                    }
-                });
-            }
-        }
-
-        // ページ読み込み時に実行
-        document.addEventListener('DOMContentLoaded', function() {
-            autoGenerateMapLink();
-        });
+        // V1991: 自動生成は削除（CV2時にスプシに短縮URLが保存されるため）
+        // 住所修正時は「生成」ボタンで手動生成、または手動でURLを貼り付け
 
         // オプションボタンの選択機能（イベント委任を使用）
         document.addEventListener('click', function(e) {
