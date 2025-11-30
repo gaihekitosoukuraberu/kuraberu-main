@@ -133,6 +133,9 @@ var BroadcastSystem = {
       const deliveredCount = deliveredIds.length;
       const remainingSlots = Math.max(0, maxCompanies - deliveredCount);
 
+      // 配信済みフラグ確認
+      const broadcastSent = cvData['案件メール配信済み'] === true || cvData['案件メール配信済み'] === 'TRUE';
+
       return {
         success: true,
         cvId: cvId,
@@ -141,6 +144,7 @@ var BroadcastSystem = {
         maxCompanies: maxCompanies,
         deliveredCount: deliveredCount,
         remainingSlots: remainingSlots,
+        broadcastSent: broadcastSent,
         franchises: availableFranchises.map(f => ({
           id: f.id,
           name: f.name
@@ -383,6 +387,9 @@ var BroadcastSystem = {
         '',
         '配信中'
       ]);
+
+      // ユーザー登録シートの「案件メール配信済み」カラムをTRUEに更新
+      this.updateBroadcastFlag(userSheet, cvId, true);
 
       console.log('[sendBroadcast] 完了:', sentCount, '件送信');
 
@@ -700,6 +707,35 @@ var BroadcastSystem = {
     const choson = city.match(/^(.+[町村])/);
     if (choson) return choson[1];
     return city;
+  },
+
+  /**
+   * ユーザー登録シートの「案件メール配信済み」フラグを更新
+   */
+  updateBroadcastFlag: function(userSheet, cvId, value) {
+    try {
+      const data = userSheet.getDataRange().getValues();
+      const headers = data[0];
+      const cvIdIdx = headers.indexOf('CV ID');
+      const broadcastFlagIdx = headers.indexOf('案件メール配信済み');
+
+      if (broadcastFlagIdx === -1) {
+        console.warn('[updateBroadcastFlag] 案件メール配信済みカラムが見つかりません');
+        return false;
+      }
+
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][cvIdIdx] === cvId) {
+          userSheet.getRange(i + 1, broadcastFlagIdx + 1).setValue(value);
+          console.log('[updateBroadcastFlag] 更新完了:', cvId, value);
+          return true;
+        }
+      }
+      return false;
+    } catch (error) {
+      console.error('[updateBroadcastFlag] エラー:', error);
+      return false;
+    }
   },
 
   /**

@@ -10888,9 +10888,14 @@ info@gaihekikuraberu.com
                     document.getElementById('broadcastDeliveredCount').textContent = response.deliveredCount + '社';
                     document.getElementById('broadcastRemainingSlots').textContent = response.remainingSlots + '社';
 
-                    // 残り枠がない場合はボタン無効化
+                    // ボタン状態制御
                     const submitBtn = document.getElementById('broadcastSubmitBtn');
-                    if (response.remainingSlots <= 0) {
+                    if (response.broadcastSent) {
+                        // 配信済み
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = '配信済み';
+                        submitBtn.className = 'flex-1 px-6 py-3 bg-gray-400 text-white rounded-xl font-bold cursor-not-allowed';
+                    } else if (response.remainingSlots <= 0) {
                         submitBtn.disabled = true;
                         submitBtn.textContent = '残り枠なし';
                         submitBtn.className = 'flex-1 px-6 py-3 bg-gray-400 text-white rounded-xl font-bold cursor-not-allowed';
