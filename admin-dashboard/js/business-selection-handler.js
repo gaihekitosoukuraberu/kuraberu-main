@@ -1581,12 +1581,14 @@ const BusinessSelectionHandler = {
 
     // V1904: 物件種別マッチング（15点）- GAS側と統一：データなしは満点
     if (casePropertyType && franchisePropertyTypes.length > 0) {
-      // 物件種別を正規化して比較（「戸建て」=「戸建て住宅」、「アパート」=「アパート・マンション」）
+      // V2000: 物件種別を正規化して比較（全種別対応）
       const normalizePropertyType = (type) => {
         if (!type) return '';
         type = type.trim();
         if (type.includes('戸建て') || type.includes('戸建')) return '戸建て';
         if (type.includes('アパート') || type.includes('マンション')) return 'アパート・マンション';
+        if (type.includes('店舗') || type.includes('事務所')) return '店舗・事務所';
+        if (type.includes('工場') || type.includes('倉庫')) return '工場・倉庫';
         return type;
       };
 
@@ -1704,6 +1706,7 @@ const BusinessSelectionHandler = {
 
   /**
    * 案件データから工事種別を抽出
+   * V2000: CRMで選択したworkItemsを優先的に使用
    * @returns {Array<string>} 工事種別の配列
    */
   extractWorkTypes() {
@@ -1711,6 +1714,21 @@ const BusinessSelectionHandler = {
     const botAnswers = rawData.botAnswers || {};
     const workTypes = [];
 
+    // V2000: CRMで選択されたworkItems（見積もり希望箇所）を優先
+    const workItemsStr = rawData.workItems || this.currentCaseData?.workItems || '';
+    if (workItemsStr) {
+      // 文字列の場合はカンマ区切りで分割
+      const workItemsArray = typeof workItemsStr === 'string'
+        ? workItemsStr.split(/[,、]/).map(item => item.trim()).filter(item => item)
+        : workItemsStr;
+
+      // workItemsがある場合はそれを使用
+      if (workItemsArray.length > 0) {
+        return workItemsArray;
+      }
+    }
+
+    // フォールバック: BOTの回答から取得
     // Q9_希望工事内容_外壁
     const wallWorkType = botAnswers.q9_wallWorkType || '';
     if (wallWorkType) {
