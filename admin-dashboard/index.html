@@ -11031,7 +11031,7 @@ info@gaihekikuraberu.com
 
             try {
                 // 対象加盟店数を取得
-                const response = await window.apiClient.callAdminApi('getBroadcastTargets', { cvId: cvId });
+                const response = await window.apiClient.postRequest('getBroadcastTargets', { cvId: cvId });
 
                 if (response && response.success) {
                     document.getElementById('broadcastArea').textContent = response.area || '不明';
@@ -11085,7 +11085,7 @@ info@gaihekikuraberu.com
             button.textContent = '配信中...';
 
             try {
-                const response = await window.apiClient.callAdminApi('sendBroadcast', { cvId: cvId });
+                const response = await window.apiClient.postRequest('sendBroadcast', { cvId: cvId });
 
                 if (response && response.success) {
                     showNotification(`一斉配信完了: ${response.sentCount}社に配信しました（残り枠: ${response.remainingSlots}社）`, 'success');
