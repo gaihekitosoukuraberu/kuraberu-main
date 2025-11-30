@@ -1,4 +1,4 @@
-// Auto-synced: 2025-12-01T05:40:00.000Z - Deployment: AKfycbxfq02Djr3SDu9Zt-6Q1MmTvXUJwshX2EZc5FqT882zjsVcHbuMx_j9DwjEqPBgULulIA
+// Auto-synced: 2025-12-01T05:50:00.000Z - Deployment: AKfycbwLhJaUeQgSxFt8coc9PDS3kydiz7K7IUUBUR0pY6kLU2SL37F0Ei39G-iGoV8BfM_y
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -12,8 +12,8 @@
  * 参照方法（PHP）:
  * このファイルを読み込んでGAS_URLを抽出
  *
- * @file-version V2021-MASTER-@HEAD-2025-12-01T05:40:00
- * @last-update 2025-12-01T05:40:00
+ * @file-version V2021-MASTER-@HEAD-2025-12-01T05:50:00
+ * @last-update 2025-12-01T05:50:00
  */
 
 const ENV = {
@@ -22,13 +22,13 @@ const ENV = {
   // ============================================
 
   // プライマリGAS URL（メイン運用）- V2021 配信管理加盟店ID修正
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxfq02Djr3SDu9Zt-6Q1MmTvXUJwshX2EZc5FqT882zjsVcHbuMx_j9DwjEqPBgULulIA/exec',
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwLhJaUeQgSxFt8coc9PDS3kydiz7K7IUUBUR0pY6kLU2SL37F0Ei39G-iGoV8BfM_y/exec',
 
   // フォールバックGAS URL（バックアップ）- V2021 配信管理加盟店ID修正
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxfq02Djr3SDu9Zt-6Q1MmTvXUJwshX2EZc5FqT882zjsVcHbuMx_j9DwjEqPBgULulIA/exec',
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbwLhJaUeQgSxFt8coc9PDS3kydiz7K7IUUBUR0pY6kLU2SL37F0Ei39G-iGoV8BfM_y/exec',
 
   // 緊急時URL（最終フォールバック）- V2021 配信管理加盟店ID修正
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxfq02Djr3SDu9Zt-6Q1MmTvXUJwshX2EZc5FqT882zjsVcHbuMx_j9DwjEqPBgULulIA/exec',
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbwLhJaUeQgSxFt8coc9PDS3kydiz7K7IUUBUR0pY6kLU2SL37F0Ei39G-iGoV8BfM_y/exec',
 
   // ============================================
   // 🔧 システム設定

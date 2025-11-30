@@ -456,11 +456,9 @@ var MerchantContractReport = {
         const row = data[i];
         const rowFranchiseId = row[colIdx.franchiseId];
 
-        // V2021: この加盟店に配信された案件のみ
-        // 加盟店ID（登録ID）または会社名でマッチング（既存データ互換性維持）
-        const isMatch = String(rowFranchiseId) === String(merchantId) ||
-                        (merchantCompanyName && String(rowFranchiseId) === String(merchantCompanyName));
-        if (!isMatch) continue;
+        // この加盟店に配信された案件のみ（登録ID or 会社名でマッチ）
+        if (String(rowFranchiseId) !== String(merchantId) &&
+            String(rowFranchiseId) !== String(merchantCompanyName)) continue;
 
         const deliveryStatus = row[colIdx.deliveryStatus] || '';
         const detailStatus = row[colIdx.detailStatus] || '';
@@ -523,7 +521,6 @@ var MerchantContractReport = {
 
   /**
    * V2007: 案件の詳細ステータス更新
-   * V2021: 加盟店ID/会社名両対応に修正
    * @param {Object} params - { merchantId, cvId, status }
    * @return {Object} - { success }
    */
@@ -549,40 +546,18 @@ var MerchantContractReport = {
 
       const colIdx = {
         cvId: headers.indexOf('CV ID'),
-        franchiseId: headers.indexOf('加盟店ID'),  // V2021: 正しいカラム名に修正
+        franchiseId: headers.indexOf('加盟店ID'),
         detailStatus: headers.indexOf('詳細ステータス'),
         deliveryStatus: headers.indexOf('配信ステータス')
       };
 
-      // V2021: merchantIdから会社名を取得（既存データ互換性維持）
-      const franchiseSheet = ss.getSheetByName('加盟店登録');
-      let merchantCompanyName = '';
-      if (franchiseSheet) {
-        const franchiseData = franchiseSheet.getDataRange().getValues();
-        const franchiseHeaders = franchiseData[0];
-        const regIdCol = franchiseHeaders.indexOf('登録ID');
-        const companyNameCol = franchiseHeaders.indexOf('会社名');
-        for (let i = 1; i < franchiseData.length; i++) {
-          if (String(franchiseData[i][regIdCol]) === String(merchantId)) {
-            merchantCompanyName = franchiseData[i][companyNameCol];
-            break;
-          }
-        }
-      }
-
       for (let i = 1; i < data.length; i++) {
         const row = data[i];
-        const rowFranchiseId = row[colIdx.franchiseId];
+        if (String(row[colIdx.cvId]) === String(cvId) &&
+            String(row[colIdx.franchiseId]) === String(merchantId)) {
 
-        // V2021: 加盟店ID（登録ID）または会社名でマッチング
-        const isMatch = String(rowFranchiseId) === String(merchantId) ||
-                        (merchantCompanyName && String(rowFranchiseId) === String(merchantCompanyName));
-
-        if (String(row[colIdx.cvId]) === String(cvId) && isMatch) {
-          // 詳細ステータス更新
           deliverySheet.getRange(i + 1, colIdx.detailStatus + 1).setValue(status);
 
-          // 成約の場合は配信ステータスも更新
           if (status === '成約') {
             deliverySheet.getRange(i + 1, colIdx.deliveryStatus + 1).setValue('成約');
           }
@@ -602,7 +577,6 @@ var MerchantContractReport = {
 
   /**
    * V2007: 加盟店メモ更新
-   * V2021: 加盟店ID/会社名両対応に修正
    * @param {Object} params - { merchantId, cvId, memo }
    * @return {Object} - { success }
    */
@@ -623,7 +597,7 @@ var MerchantContractReport = {
 
       const colIdx = {
         cvId: headers.indexOf('CV ID'),
-        franchiseId: headers.indexOf('加盟店ID'),  // V2021: 正しいカラム名に修正
+        franchiseId: headers.indexOf('加盟店ID'),
         merchantMemo: headers.indexOf('加盟店メモ')
       };
 
@@ -631,31 +605,11 @@ var MerchantContractReport = {
         return { success: false, error: '加盟店メモ列が見つかりません' };
       }
 
-      // V2021: merchantIdから会社名を取得（既存データ互換性維持）
-      const franchiseSheet = ss.getSheetByName('加盟店登録');
-      let merchantCompanyName = '';
-      if (franchiseSheet) {
-        const franchiseData = franchiseSheet.getDataRange().getValues();
-        const franchiseHeaders = franchiseData[0];
-        const regIdCol = franchiseHeaders.indexOf('登録ID');
-        const companyNameCol = franchiseHeaders.indexOf('会社名');
-        for (let i = 1; i < franchiseData.length; i++) {
-          if (String(franchiseData[i][regIdCol]) === String(merchantId)) {
-            merchantCompanyName = franchiseData[i][companyNameCol];
-            break;
-          }
-        }
-      }
-
       for (let i = 1; i < data.length; i++) {
         const row = data[i];
-        const rowFranchiseId = row[colIdx.franchiseId];
+        if (String(row[colIdx.cvId]) === String(cvId) &&
+            String(row[colIdx.franchiseId]) === String(merchantId)) {
 
-        // V2021: 加盟店ID（登録ID）または会社名でマッチング
-        const isMatch = String(rowFranchiseId) === String(merchantId) ||
-                        (merchantCompanyName && String(rowFranchiseId) === String(merchantCompanyName));
-
-        if (String(row[colIdx.cvId]) === String(cvId) && isMatch) {
           deliverySheet.getRange(i + 1, colIdx.merchantMemo + 1).setValue(memo || '');
 
           console.log('[MerchantContractReport] updateCaseMemo - updated row', i + 1);
