@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1987 - 配列型データ対応修正）
-  CACHE_BUSTER: 'v1764470664-fed4711b'
+  // キャッシュバスター（V1988 - 転送文UI改善・メモ重複解消）
+  CACHE_BUSTER: 'v1988-transfer-ui'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
