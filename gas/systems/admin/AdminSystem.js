@@ -2295,7 +2295,8 @@ const AdminSystem = {
       // 加盟店メールマップ作成
       const franchiseData = franchiseSheet.getDataRange().getValues();
       const fHeaders = franchiseData[0];
-      const companyIdx = fHeaders.indexOf('会社名（法人名）');
+      // V2000: ヘッダー名を実際のシートに合わせて修正
+      const companyIdx = fHeaders.indexOf('会社名');
       const salesEmailIdx = fHeaders.indexOf('営業用メールアドレス');
       const emailIdx = fHeaders.indexOf('メールアドレス');
 
