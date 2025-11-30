@@ -221,6 +221,7 @@ const BusinessSelectionHandler = {
   checkedCompanies: new Set(), // V1921: チェック済み業者名（グローバル管理）
   distancesCalculated: false, // 距離計算済みフラグ
   deliveredFranchises: [],    // V2004: 転送済み業者リスト（二重転送防止用）
+  scheduledTransferData: null, // V2007: 予約転送データ（JSONパース済み）
 
   /**
    * 初期化
@@ -262,12 +263,73 @@ const BusinessSelectionHandler = {
   },
 
   /**
+   * V2007: 予約転送データを読み込み
+   * @param {object} currentCaseData - 案件データ
+   */
+  loadScheduledTransferData(currentCaseData) {
+    this.scheduledTransferData = null;
+
+    // CG列（scheduledTransferData）を取得
+    const scheduledDataStr = currentCaseData.scheduledTransferData || currentCaseData._rawData?.scheduledTransferData || '';
+
+    if (!scheduledDataStr || scheduledDataStr.trim() === '') {
+      console.log('[V2007] 予約転送データなし');
+      return;
+    }
+
+    try {
+      this.scheduledTransferData = JSON.parse(scheduledDataStr);
+      console.log('[V2007] 予約転送データ読み込み:', {
+        scheduledDateTime: this.scheduledTransferData.scheduledDateTime,
+        franchises: this.scheduledTransferData.franchises?.map(f => f.franchiseName)
+      });
+    } catch (error) {
+      console.error('[V2007] 予約転送データJSONパースエラー:', error);
+      this.scheduledTransferData = null;
+    }
+  },
+
+  /**
    * V2004: 業者が転送済みかチェック
+   * V2007: 予約転送済みもチェック
    * @param {string} companyName - 会社名
    * @returns {object|null} 転送済み情報またはnull
    */
   getDeliveredInfo(companyName) {
-    return this.deliveredFranchises.find(f => f.franchiseName === companyName) || null;
+    // 既に転送済みの業者をチェック
+    const delivered = this.deliveredFranchises.find(f => f.franchiseName === companyName);
+    if (delivered) {
+      return delivered;
+    }
+
+    // V2007: 予約転送済みの業者をチェック
+    if (this.scheduledTransferData && this.scheduledTransferData.franchises) {
+      const scheduled = this.scheduledTransferData.franchises.find(
+        f => f.franchiseName === companyName || f.franchiseId === companyName
+      );
+      if (scheduled) {
+        // 予約転送日時をフォーマット
+        const scheduledDateTime = this.scheduledTransferData.scheduledDateTime;
+        let formattedDate = '';
+        if (scheduledDateTime) {
+          try {
+            const d = new Date(scheduledDateTime);
+            formattedDate = `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+          } catch (e) {
+            formattedDate = scheduledDateTime;
+          }
+        }
+        return {
+          franchiseName: companyName,
+          isScheduled: true,
+          scheduledDateTime: scheduledDateTime,
+          deliveryDate: formattedDate,
+          detailStatus: '予約転送'
+        };
+      }
+    }
+
+    return null;
   },
 
   /**
@@ -325,6 +387,9 @@ const BusinessSelectionHandler = {
 
       // V2004: 転送済み業者リストを取得（二重転送防止）
       await this.loadDeliveredFranchises(caseId);
+
+      // V2007: 予約転送データを読み込み（CG列）
+      this.loadScheduledTransferData(currentCaseData);
 
       // AS列から業者名を取得（V1902: franchiseSelectionHistoryキーもサポート）
       const businessHistory = currentCaseData.businessHistory || currentCaseData.franchiseSelectionHistory || '';
@@ -2019,17 +2084,31 @@ const BusinessSelectionHandler = {
       additionalInfo += '</div>';
     }
 
-    // V2004: 転送済みバッジHTML
-    const deliveredBadgeHtml = isDelivered
-      ? `<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
+    // V2004/V2007: 転送済み/予約転送済みバッジHTML
+    let deliveredBadgeHtml = '';
+    if (isDelivered) {
+      if (deliveredInfo.isScheduled) {
+        // V2007: 予約転送済み（青色バッジ）
+        deliveredBadgeHtml = `<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
+          <span class="inline-flex items-center justify-center px-2 py-0.5 bg-blue-500 text-white text-xs font-bold rounded">
+            🕐 予約済
+          </span>
+          <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">
+            ${deliveredInfo.deliveryDate || ''} に転送予定
+          </span>
+        </span>`;
+      } else {
+        // V2004: 転送済み（グレーバッジ）
+        deliveredBadgeHtml = `<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
           <span class="inline-flex items-center justify-center px-2 py-0.5 bg-gray-500 text-white text-xs font-bold rounded">
             転送済
           </span>
           <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">
             ${deliveredInfo.deliveryDate || ''} 転送済み<br>${deliveredInfo.detailStatus || ''}
           </span>
-        </span>`
-      : '';
+        </span>`;
+      }
+    }
 
     // V2004: チェックボックスHTML（転送済みの場合は無効化）
     const checkboxHtml = isDelivered
