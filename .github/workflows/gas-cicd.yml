@@ -189,6 +189,8 @@ jobs:
             echo "📍 変更なし - コミットスキップ"
           else
             git commit -m "auto: GAS URL同期 (env-loader & fallback & PHP) - ${{ steps.deploy.outputs.deployment_id }}"
+            # リモートの変更を取り込んでからプッシュ（競合回避）
+            git pull --rebase origin main || true
             git push
             echo "✅ env-loader更新をプッシュしました"
           fi
