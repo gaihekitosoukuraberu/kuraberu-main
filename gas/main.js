@@ -439,21 +439,21 @@ const SystemRouter = {
       actions: ['submitContractReport']
     },
 
-    // V2007: 案件管理システム（加盟店用）
+    // V2007: 案件管理システム（加盟店用）- MerchantSystemが委譲処理
     'getMerchantCases': {
-      system: 'MerchantContractReport',
+      system: 'MerchantSystem',
       description: '加盟店案件一覧取得',
       prefix: false,
       actions: ['getMerchantCases']
     },
     'updateCaseStatus': {
-      system: 'MerchantContractReport',
+      system: 'MerchantSystem',
       description: '案件ステータス更新',
       prefix: false,
       actions: ['updateCaseStatus']
     },
     'updateCaseMemo': {
-      system: 'MerchantContractReport',
+      system: 'MerchantSystem',
       description: '案件メモ更新',
       prefix: false,
       actions: ['updateCaseMemo']
