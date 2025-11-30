@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1986 - オーダー転送UI改善）
-  CACHE_BUSTER: 'v1764470214-fed934f0'
+  // キャッシュバスター（V1987 - 配列型データ対応修正）
+  CACHE_BUSTER: 'v1987-array-fix'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

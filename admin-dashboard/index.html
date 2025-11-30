@@ -10569,16 +10569,19 @@ ${f.name} 御中
             if (d.nextCallDate) msg += `\n連絡希望日時: ${formatDateTimeForTransfer(d.nextCallDate)}`;
             if (d.contactTimeSlot) msg += `\n連絡時間帯: ${d.contactTimeSlot}`;
             if (d.selectionCriteria) msg += `\n業者選定条件: ${d.selectionCriteria}`;
-            // V1986: specialItemsが空でないときのみ表示（空文字列でも表示されていたバグを修正）
-            if (d.specialItems && d.specialItems.trim()) msg += `\n特殊項目: ${d.specialItems}`;
+            // V1987: specialItemsが配列または文字列の場合に対応
+            const specialItemsStr = Array.isArray(d.specialItems) ? d.specialItems.join('、') : (d.specialItems || '');
+            if (specialItemsStr && specialItemsStr.trim()) msg += `\n特殊項目: ${specialItemsStr}`;
 
-            if (d.memo && d.memo.trim()) {
+            // V1987: memoも配列の場合に対応
+            const memoStr = Array.isArray(d.memo) ? d.memo.join('\n') : (d.memo || '');
+            if (memoStr && memoStr.trim()) {
                 msg += `
 
 -------------------------------------------
 【案件メモ】
 -------------------------------------------
-${d.memo}`;
+${memoStr}`;
             }
 
             msg += `
