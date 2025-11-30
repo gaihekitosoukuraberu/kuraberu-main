@@ -221,6 +221,7 @@ const BusinessSelectionHandler = {
   checkedCompanies: new Set(), // V1921: チェック済み業者名（グローバル管理）
   distancesCalculated: false, // 距離計算済みフラグ
   deliveredFranchises: [],    // V2004: 転送済み業者リスト（二重転送防止用）
+  appliedFranchises: [],      // V2007: 申込済み業者リスト（一斉配信から申込）
 
   /**
    * 初期化
@@ -262,6 +263,33 @@ const BusinessSelectionHandler = {
   },
 
   /**
+   * V2007: 申込済み業者リストを取得（一斉配信から申込）
+   * @param {string} cvId - CV ID
+   */
+  async loadAppliedFranchises(cvId) {
+    try {
+      console.log('[V2007] 申込済み業者取得開始:', cvId);
+      this.appliedFranchises = [];
+
+      if (!cvId) {
+        console.log('[V2007] CV IDなし、スキップ');
+        return;
+      }
+
+      const response = await window.apiClient.postRequest('getAppliedFranchises', { cvId });
+      if (response && response.success && response.appliedFranchises) {
+        this.appliedFranchises = response.appliedFranchises;
+        console.log('[V2007] 申込済み業者:', this.appliedFranchises.length, '件', this.appliedFranchises.map(f => f.franchiseName));
+      } else {
+        console.log('[V2007] 申込済み業者なし');
+      }
+    } catch (error) {
+      console.error('[V2007] 申込済み業者取得エラー:', error);
+      this.appliedFranchises = [];
+    }
+  },
+
+  /**
    * V2004: 業者が転送済みかチェック
    * @param {string} companyName - 会社名
    * @returns {object|null} 転送済み情報またはnull
@@ -273,6 +301,19 @@ const BusinessSelectionHandler = {
       return delivered;
     }
 
+    return null;
+  },
+
+  /**
+   * V2007: 業者が申込済みかチェック（一斉配信から）
+   * @param {string} companyName - 会社名
+   * @returns {object|null} 申込済み情報またはnull
+   */
+  getAppliedInfo(companyName) {
+    const applied = this.appliedFranchises.find(f => f.franchiseName === companyName);
+    if (applied) {
+      return applied;
+    }
     return null;
   },
 
@@ -331,6 +372,9 @@ const BusinessSelectionHandler = {
 
       // V2004: 転送済み業者リストを取得（二重転送防止）
       await this.loadDeliveredFranchises(caseId);
+
+      // V2007: 申込済み業者リストを取得（一斉配信から）
+      await this.loadAppliedFranchises(caseId);
 
       // AS列から業者名を取得（V1902: franchiseSelectionHistoryキーもサポート）
       const businessHistory = currentCaseData.businessHistory || currentCaseData.franchiseSelectionHistory || '';
@@ -1934,6 +1978,10 @@ const BusinessSelectionHandler = {
     const deliveredInfo = this.getDeliveredInfo(card.companyName);
     const isDelivered = !!deliveredInfo;
 
+    // V2007: 申込済みチェック（一斉配信から）
+    const appliedInfo = this.getAppliedInfo(card.companyName);
+    const isApplied = !!appliedInfo;
+
     // カラーコーディング（V1881: 新実装）
     // V2004: 転送済みの場合はグレー系に変更
     let colorConfig;
@@ -2025,30 +2073,28 @@ const BusinessSelectionHandler = {
       additionalInfo += '</div>';
     }
 
-    // V2004/V2007: 転送済み/配信中バッジHTML
+    // V2004/V2007: 転送済み/申込済みバッジHTML
     let deliveredBadgeHtml = '';
     if (isDelivered) {
-      if (deliveredInfo.isScheduled) {
-        // V2007: 配信中（青色バッジ）
-        deliveredBadgeHtml = `<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
-          <span class="inline-flex items-center justify-center px-2 py-0.5 bg-blue-500 text-white text-xs font-bold rounded">
-            配信中
-          </span>
-          <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">
-            ${deliveredInfo.deliveryDate || ''} に転送予定
-          </span>
-        </span>`;
-      } else {
-        // V2004: 転送済み（グレーバッジ）
-        deliveredBadgeHtml = `<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
-          <span class="inline-flex items-center justify-center px-2 py-0.5 bg-gray-500 text-white text-xs font-bold rounded">
-            転送済
-          </span>
-          <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">
-            ${deliveredInfo.deliveryDate || ''} 転送済み<br>${deliveredInfo.detailStatus || ''}
-          </span>
-        </span>`;
-      }
+      // V2004: 転送済み（グレーバッジ）
+      deliveredBadgeHtml = `<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
+        <span class="inline-flex items-center justify-center px-2 py-0.5 bg-gray-500 text-white text-xs font-bold rounded">
+          転送済
+        </span>
+        <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">
+          ${deliveredInfo.deliveryDate || ''} 転送済み<br>${deliveredInfo.detailStatus || ''}
+        </span>
+      </span>`;
+    } else if (isApplied) {
+      // V2007: 申込済み（オレンジバッジ）
+      deliveredBadgeHtml = `<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
+        <span class="inline-flex items-center justify-center px-2 py-0.5 bg-orange-500 text-white text-xs font-bold rounded">
+          申込済
+        </span>
+        <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">
+          ${appliedInfo.appliedAt || ''} 申込
+        </span>
+      </span>`;
     }
 
     // V2004: チェックボックスHTML（転送済みの場合は無効化）

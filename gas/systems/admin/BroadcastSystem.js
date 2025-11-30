@@ -30,6 +30,8 @@ var BroadcastSystem = {
         return this.getBroadcastTargets(params);
       case 'sendBroadcast':
         return this.sendBroadcast(params);
+      case 'getAppliedFranchises':
+        return this.getAppliedFranchises(params);
       default:
         return { success: false, error: 'Unknown broadcast action: ' + action };
     }
@@ -276,11 +278,12 @@ var BroadcastSystem = {
 
   /**
    * 購入ボタンクリック処理（doGetから呼び出し）
+   * V2007: 即転送ではなく申込記録のみ。管理者が手動で転送する。
    * @param {Object} params - { token, broadcastId }
    */
   handlePurchase: function(params) {
     try {
-      console.log('[handlePurchase] V2006 開始:', params);
+      console.log('[handlePurchase] V2007 申込記録モード:', params);
 
       const token = params.token;
       const broadcastId = params.broadcastId;
@@ -318,7 +321,7 @@ var BroadcastSystem = {
         if (responseData[i][tokenIdx] === token) {
           // 使用済みチェック
           if (responseData[i][usedIdx] === true || responseData[i][usedIdx] === 'TRUE') {
-            return this.createHtmlResponse('購入済み', 'このリンクは既に使用されています', 'warning');
+            return this.createHtmlResponse('申込済み', 'このリンクは既に使用されています', 'warning');
           }
           targetRow = i + 1;
           franchiseId = responseData[i][franchiseIdIdx];
@@ -332,29 +335,22 @@ var BroadcastSystem = {
         return this.createHtmlResponse('エラー', '無効なリンクです', 'error');
       }
 
-      // 配信情報から残枠チェック
+      // 配信情報からCV ID取得
       const broadcastData = broadcastSheet.getDataRange().getValues();
       const bHeaders = broadcastData[0];
       const bIdIdx = bHeaders.indexOf('配信ID');
       const bCvIdIdx = bHeaders.indexOf('CV ID');
-      const bMaxIdx = bHeaders.indexOf('希望社数');
-      const bDeliveredIdx = bHeaders.indexOf('転送済み社数');
-      const bPurchasedIdx = bHeaders.indexOf('購入済み加盟店');
-      const bStatusIdx = bHeaders.indexOf('ステータス');
+      const bAppliedIdx = bHeaders.indexOf('申込済み加盟店');
 
       let broadcastRow = -1;
       let cvId = '';
-      let maxCompanies = 4;
-      let deliveredCount = 0;
-      let purchasedList = '';
+      let appliedList = '';
 
       for (let i = 1; i < broadcastData.length; i++) {
         if (broadcastData[i][bIdIdx] === foundBroadcastId) {
           broadcastRow = i + 1;
           cvId = broadcastData[i][bCvIdIdx];
-          maxCompanies = parseInt(broadcastData[i][bMaxIdx]) || 4;
-          deliveredCount = parseInt(broadcastData[i][bDeliveredIdx]) || 0;
-          purchasedList = broadcastData[i][bPurchasedIdx] || '';
+          appliedList = broadcastData[i][bAppliedIdx] || '';
           break;
         }
       }
@@ -363,75 +359,33 @@ var BroadcastSystem = {
         return this.createHtmlResponse('エラー', '案件情報が見つかりません', 'error');
       }
 
-      // 配信管理シートから現在の転送数を再取得（リアルタイム）
-      const deliverySheet = ss.getSheetByName('配信管理');
-      const currentDeliveredIds = this.getDeliveredFranchiseIds(deliverySheet, cvId);
-      const currentDeliveredCount = currentDeliveredIds.length;
-
-      const remainingSlots = maxCompanies - currentDeliveredCount;
-
-      if (remainingSlots <= 0) {
-        // 売約済み
-        const now = new Date();
-        responseSheet.getRange(targetRow, clickTimeIdx + 1).setValue(Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss'));
-        responseSheet.getRange(targetRow, resultIdx + 1).setValue('売約済み');
-        responseSheet.getRange(targetRow, usedIdx + 1).setValue(true);
-
-        return this.createHtmlResponse('売約済み', 'この案件は既に満枠となりました。またの機会にお願いいたします。', 'warning');
-      }
-
-      // 転送実行
-      const userSheet = ss.getSheetByName('ユーザー登録');
-      const franchiseSheet = ss.getSheetByName('加盟店登録');
-
-      // 紹介料を取得
-      const cvData = this.getCVData(userSheet, cvId);
-      const fee = this.calculateFee(cvData);
-
-      // sendOrderTransferを呼び出し
-      const transferResult = AdminSystem.sendOrderTransfer({
-        cvId: cvId,
-        franchises: [{
-          franchiseId: franchiseId,
-          franchiseName: franchiseName,
-          fee: fee,
-          rank: currentDeliveredCount + 1
-        }]
-      });
-
       const now = new Date();
       const timestamp = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
 
-      if (transferResult.success) {
-        // 成功
-        responseSheet.getRange(targetRow, clickTimeIdx + 1).setValue(timestamp);
-        responseSheet.getRange(targetRow, resultIdx + 1).setValue('成功');
-        responseSheet.getRange(targetRow, usedIdx + 1).setValue(true);
+      // V2007: 申込記録のみ（転送は実行しない）
+      responseSheet.getRange(targetRow, clickTimeIdx + 1).setValue(timestamp);
+      responseSheet.getRange(targetRow, resultIdx + 1).setValue('申込済み');
+      responseSheet.getRange(targetRow, usedIdx + 1).setValue(true);
 
-        // 一斉配信シートの購入済み加盟店を更新
-        if (broadcastRow !== -1) {
-          const newPurchased = purchasedList ? purchasedList + ',' + franchiseName : franchiseName;
-          broadcastSheet.getRange(broadcastRow, bPurchasedIdx + 1).setValue(newPurchased);
-          broadcastSheet.getRange(broadcastRow, bDeliveredIdx + 1).setValue(currentDeliveredCount + 1);
-
-          // 満枠チェック
-          if (currentDeliveredCount + 1 >= maxCompanies) {
-            broadcastSheet.getRange(broadcastRow, bStatusIdx + 1).setValue('満枠');
-          }
+      // 一斉配信シートの申込済み加盟店を更新
+      if (broadcastRow !== -1) {
+        // 申込済み加盟店カラムがなければ購入済み加盟店カラムを使う
+        let appliedColIdx = bAppliedIdx;
+        if (appliedColIdx === -1) {
+          appliedColIdx = bHeaders.indexOf('購入済み加盟店');
         }
-
-        // 管理者に通知
-        this.notifyAdmin(`【購入通知】${franchiseName}が案件${cvId}を購入しました`, cvId, franchiseName, 'purchase');
-
-        return this.createHtmlResponse('購入完了', `${franchiseName}様、案件の購入が完了しました。案件詳細メールをお送りしますので、ご確認ください。`, 'success');
-      } else {
-        // 失敗
-        responseSheet.getRange(targetRow, clickTimeIdx + 1).setValue(timestamp);
-        responseSheet.getRange(targetRow, resultIdx + 1).setValue('エラー: ' + transferResult.error);
-        responseSheet.getRange(targetRow, usedIdx + 1).setValue(true);
-
-        return this.createHtmlResponse('エラー', '購入処理に失敗しました。お手数ですが事務局までご連絡ください。', 'error');
+        if (appliedColIdx !== -1) {
+          const newApplied = appliedList ? appliedList + ',' + franchiseName : franchiseName;
+          broadcastSheet.getRange(broadcastRow, appliedColIdx + 1).setValue(newApplied);
+        }
       }
+
+      // 管理者に通知（手動転送を促す）
+      this.notifyAdmin(`【申込通知】${franchiseName}が案件${cvId}への転送を希望しています`, cvId, franchiseName, 'application');
+
+      console.log('[handlePurchase] 申込記録完了:', cvId, franchiseName);
+
+      return this.createHtmlResponse('申込完了', `${franchiseName}様、案件への申込を受け付けました。運営事務局より確認後、案件詳細をお送りいたします。`, 'success');
     } catch (error) {
       console.error('[handlePurchase] エラー:', error);
       return this.createHtmlResponse('エラー', 'システムエラーが発生しました', 'error');
@@ -630,6 +584,83 @@ var BroadcastSystem = {
     if (workItems.includes('外壁') && workItems.includes('屋根')) fee += 5000;
 
     return fee;
+  },
+
+  /**
+   * V2007: 指定CV IDの申込済み加盟店リストを取得
+   * 業者カードに「申込済」バッジ表示用
+   * @param {Object} params - { cvId }
+   */
+  getAppliedFranchises: function(params) {
+    try {
+      const cvId = params.cvId;
+      if (!cvId) {
+        return { success: false, error: 'CV IDが指定されていません' };
+      }
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const responseSheet = ss.getSheetByName('一斉配信レスポンス');
+      const broadcastSheet = ss.getSheetByName('一斉配信');
+
+      if (!responseSheet || !broadcastSheet) {
+        return { success: true, appliedFranchises: [] };
+      }
+
+      // まず一斉配信シートから該当CVの配信IDを取得
+      const broadcastData = broadcastSheet.getDataRange().getValues();
+      const bHeaders = broadcastData[0];
+      const bIdIdx = bHeaders.indexOf('配信ID');
+      const bCvIdIdx = bHeaders.indexOf('CV ID');
+
+      const broadcastIds = [];
+      for (let i = 1; i < broadcastData.length; i++) {
+        if (broadcastData[i][bCvIdIdx] === cvId) {
+          broadcastIds.push(broadcastData[i][bIdIdx]);
+        }
+      }
+
+      if (broadcastIds.length === 0) {
+        return { success: true, appliedFranchises: [] };
+      }
+
+      // レスポンスシートから申込済みの加盟店を取得
+      const responseData = responseSheet.getDataRange().getValues();
+      const rHeaders = responseData[0];
+      const rBroadcastIdIdx = rHeaders.indexOf('配信ID');
+      const rFranchiseIdIdx = rHeaders.indexOf('加盟店ID');
+      const rFranchiseNameIdx = rHeaders.indexOf('加盟店名');
+      const rActionIdx = rHeaders.indexOf('アクション');
+      const rResultIdx = rHeaders.indexOf('結果');
+      const rClickTimeIdx = rHeaders.indexOf('クリック日時');
+
+      const appliedFranchises = [];
+      for (let i = 1; i < responseData.length; i++) {
+        const broadcastId = responseData[i][rBroadcastIdIdx];
+        const result = responseData[i][rResultIdx];
+        const action = responseData[i][rActionIdx];
+
+        // 該当CV、申込済み（購入アクション）のみ
+        if (broadcastIds.includes(broadcastId) && action === '購入' && result === '申込済み') {
+          appliedFranchises.push({
+            franchiseId: responseData[i][rFranchiseIdIdx],
+            franchiseName: responseData[i][rFranchiseNameIdx],
+            appliedAt: responseData[i][rClickTimeIdx] || ''
+          });
+        }
+      }
+
+      console.log('[getAppliedFranchises] CV:', cvId, '申込:', appliedFranchises.length, '件');
+
+      return {
+        success: true,
+        cvId: cvId,
+        appliedFranchises: appliedFranchises
+      };
+    } catch (error) {
+      console.error('[getAppliedFranchises] エラー:', error);
+      return { success: false, error: error.message };
+    }
   },
 
   /**

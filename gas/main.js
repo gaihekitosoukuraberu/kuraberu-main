@@ -265,6 +265,12 @@ const SystemRouter = {
       prefix: false,
       actions: ['sendBroadcast']
     },
+    'getAppliedFranchises': {
+      system: 'BroadcastSystem',
+      description: '申込済み加盟店取得',
+      prefix: false,
+      actions: ['getAppliedFranchises']
+    },
 
     // CVハートビートシステム（V1754）
     'heartbeat': {
@@ -707,8 +713,8 @@ function doGet(e) {
           }
         }
 
-        // V2006: sendBroadcastの場合（一斉配信）
-        if (action === 'sendBroadcast' || action === 'getBroadcastTargets') {
+        // V2006: 一斉配信関連
+        if (action === 'sendBroadcast' || action === 'getBroadcastTargets' || action === 'getAppliedFranchises') {
           console.log('[main.js] Routing to BroadcastSystem:', action);
           result = BroadcastSystem.handle(e.parameter);
         } else {
