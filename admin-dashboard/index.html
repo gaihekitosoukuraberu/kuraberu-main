@@ -10919,6 +10919,22 @@ info@gaihekikuraberu.com
                         updateActionButtons(casesData[currentCaseId]);
                     }
 
+                    // V2010: 転送済み業者リストを即座に更新（リロード不要）
+                    if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.deliveredFranchises) {
+                        d.selectedFranchises.forEach(f => {
+                            window.BusinessSelectionHandler.deliveredFranchises.push({
+                                franchiseId: f.id,
+                                franchiseName: f.name,
+                                deliveryStatus: '配信済',
+                                deliveryDate: new Date().toLocaleString('ja-JP')
+                            });
+                        });
+                        // 業者選択UIを再描画
+                        if (window.BusinessSelectionHandler.applySortAndRender) {
+                            window.BusinessSelectionHandler.applySortAndRender();
+                        }
+                    }
+
                     // CRMビュー更新
                     if (typeof loadCRMContent === 'function') {
                         loadCRMContent(currentCaseId);
