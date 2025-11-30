@@ -6227,6 +6227,7 @@ window.addEventListener('beforeunload', function(e) {
                         <div class="flex items-center gap-2">
                             <span class="text-xs text-gray-400 font-mono">${caseId}</span>
                             ${getCallCountDisplay(caseData)}
+                            ${getDeliveryStatusDisplay(caseData)}
                         </div>
                         <div class="relative group">
                             <div class="text-xs text-gray-500 cursor-pointer hover:text-blue-600"
@@ -6322,6 +6323,7 @@ window.addEventListener('beforeunload', function(e) {
                             <div class="flex items-center gap-2 mt-1">
                                 <span class="text-xs text-gray-400 font-mono">${caseId}</span>
                                 ${getCallCountDisplay(caseData)}
+                                ${getDeliveryStatusDisplay(caseData)}
                             </div>
                         </div>
 
@@ -7327,6 +7329,14 @@ window.addEventListener('beforeunload', function(e) {
                 parts.push(`<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50 text-amber-600 rounded text-xs font-medium">📝 ${counts.memoTotal}</span>`);
             }
             return `<div class="flex items-center gap-1">${parts.join('')}</div>`;
+        }
+
+        // 配信状況表示（転送済み/希望社数）
+        function getDeliveryStatusDisplay(caseData) {
+            const transferCount = caseData.transferCount || 0;
+            const desiredCountStr = caseData.desiredCount || caseData.companiesCountPreference || '3社';
+            const desiredCount = parseInt(desiredCountStr) || 3;
+            return `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-purple-50 text-purple-600 border border-purple-200 rounded text-xs font-medium">📞 ${transferCount}/${desiredCount}</span>`;
         }
 
         // V1941: 不在ボタン押下→ステータス変更→次の案件へ
