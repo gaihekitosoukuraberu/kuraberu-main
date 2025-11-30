@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1983 - オーダー転送プロ仕様リニューアル）
-  CACHE_BUSTER: 'v1764467724-fe779b58'
+  // キャッシュバスター（V1984 - Google Maps短縮URL優先対応）
+  CACHE_BUSTER: 'v1984-maplink-priority'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

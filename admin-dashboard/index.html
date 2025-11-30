@@ -4639,15 +4639,14 @@ window.addEventListener('beforeunload', function(e) {
                 }
             }
 
-            // 郵便番号または住所があればGoogle Mapsリンクを自動生成
-            if ((zipInput && zipInput.value) || (addressInput && addressInput.value)) {
-                setTimeout(() => generateGoogleMapLink(), 100);
-            }
-
-            // Googleマップ
+            // V1984: Googleマップ - スプシから取得した短縮URLを優先
             const mapLinkInput = document.getElementById('mapLinkInput');
             if (mapLinkInput && data.mapLink) {
+                // スプシに短縮URLがあればそれを使用
                 mapLinkInput.value = data.mapLink;
+            } else if ((zipInput && zipInput.value) || (addressInput && addressInput.value)) {
+                // スプシに短縮URLがなければ住所から生成（フォールバック）
+                setTimeout(() => generateGoogleMapLink(), 100);
             }
 
             // 見積もり・工事に関するご要望セクション
