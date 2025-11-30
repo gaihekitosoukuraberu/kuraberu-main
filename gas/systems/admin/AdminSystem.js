@@ -2336,9 +2336,16 @@ const AdminSystem = {
           emailResults.push({ franchiseName, email: toEmail || '未登録', success: false, error: !toEmail ? 'メール未登録' : 'CVデータなし' });
         }
 
-        // V1997: 配信日時にも時間を含める
+        // V1998: 配信管理シート37カラム対応（配信金額追加）
+        // 1:レコードID, 2:CVID, 3:加盟店ID, 4:配信日時, 5:配信順位, 6:配信ステータス, 7:詳細ステータス,
+        // 8:ステータス更新日時, 9:最終更新日時, 10:電話回数, 11:SMS回数, 12:メール送信回数, 13:訪問回数,
+        // 14:最終連絡日時, 15:次回連絡予定日時, 16:アポ予定日時, 17:訪問予定日時, 18:見積提出予定日,
+        // 19:連絡履歴JSON, 20:連絡履歴サマリー, 21:リマインド設定JSON, 22:通知履歴JSON,
+        // 23:AI生成SMS文, 24:AI生成メール文, 25:営業メモ, 26:社内メモ, 27:顧客反応スコア,
+        // 28:見積金額, 29:見積提出日時, 30:成約日時, 31:成約金額, 32:辞退理由, 33:辞退日時,
+        // 34:キャンセル申請ID, 35:期限延長申請ID, 36:お断りメール送信済みフラグ, 37:配信金額
         return [recordId, cvId, franchise.franchiseId, timestamp, franchise.rank || (index + 1),
-          '配信済み', '未対応', timestamp, timestamp, 0, 0, 0, 0, '', '', '', '', '', '[]', '', '[]', '[]', '', '', '', '', '', '', '', '', '', '', '', '', 'FALSE'];
+          '配信済み', '未対応', timestamp, timestamp, 0, 0, 0, 0, '', '', '', '', '', '[]', '', '[]', '[]', '', '', '', '', '', '', '', '', '', '', '', '', '', 'FALSE', fee];
       });
 
       if (records.length > 0) {
@@ -2378,14 +2385,22 @@ const AdminSystem = {
     try {
       const data = sheet.getDataRange().getValues();
       const headers = data[0];
-      const cvIdIdx = headers.indexOf('CVID');
+      // V1998: ヘッダーは「CV ID」（スペースあり）
+      const cvIdIdx = headers.indexOf('CV ID');
+      console.log('[getCVDataForTransfer] cvIdIdx:', cvIdIdx, 'searching for:', cvId);
+      if (cvIdIdx === -1) {
+        console.error('[getCVDataForTransfer] CV ID列が見つかりません。ヘッダー:', headers.slice(0, 10));
+        return null;
+      }
       for (let i = 1; i < data.length; i++) {
         if (data[i][cvIdIdx] === cvId) {
           const obj = {};
           headers.forEach((h, idx) => { obj[h] = data[i][idx] || ''; });
+          console.log('[getCVDataForTransfer] CVデータ取得成功:', cvId);
           return obj;
         }
       }
+      console.log('[getCVDataForTransfer] CVデータ見つからず:', cvId);
       return null;
     } catch (e) {
       console.error('[getCVDataForTransfer] エラー:', e);
