@@ -1395,6 +1395,21 @@
                             </div>
                         </div>
 
+                        <!-- メールプレビュー -->
+                        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-bold text-gray-800">配信メールプレビュー</h4>
+                                <button type="button" onclick="toggleBroadcastPreview()" class="text-xs text-purple-600 hover:text-purple-800">表示/非表示</button>
+                            </div>
+                            <div id="broadcastPreviewContainer" class="hidden">
+                                <pre id="broadcastPreviewText" class="text-xs bg-gray-50 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap border max-h-60 overflow-y-auto">読み込み中...</pre>
+                                <div class="mt-2 text-xs">
+                                    <p class="text-green-600 font-medium">✓ 公開情報: <span id="broadcastIncludedInfo">---</span></p>
+                                    <p class="text-red-600 font-medium">✗ 非公開: <span id="broadcastExcludedInfo">---</span></p>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- 注意事項 -->
                         <div class="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
                             <div class="flex items-start gap-2">
@@ -1405,8 +1420,8 @@
                                     <p class="font-bold mb-1">注意事項</p>
                                     <ul class="list-disc list-inside space-y-1 text-yellow-700">
                                         <li>全対象加盟店にメールが送信されます</li>
-                                        <li>「購入」ボタンで早い者勝ち転送</li>
-                                        <li>残り枠がなくなり次第自動終了</li>
+                                        <li>「申し込み」ボタンで加盟店が申込</li>
+                                        <li>申込後、管理者が手動で転送処理</li>
                                     </ul>
                                 </div>
                             </div>
@@ -10911,6 +10926,9 @@ info@gaihekikuraberu.com
                         submitBtn.textContent = '配信開始';
                         submitBtn.className = 'flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-bold hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg';
                     }
+
+                    // プレビュー取得
+                    loadBroadcastPreview(cvId);
                 } else {
                     throw new Error(response?.error || '取得に失敗しました');
                 }
@@ -10925,6 +10943,27 @@ info@gaihekikuraberu.com
         function closeBroadcastModal() {
             const modal = document.getElementById('broadcastModal');
             modal.classList.add('hidden');
+        }
+
+        // プレビュー表示切り替え
+        function toggleBroadcastPreview() {
+            const container = document.getElementById('broadcastPreviewContainer');
+            container.classList.toggle('hidden');
+        }
+
+        // プレビュー取得
+        async function loadBroadcastPreview(cvId) {
+            try {
+                const response = await window.apiClient.postRequest('getBroadcastPreview', { cvId: cvId });
+                if (response && response.success) {
+                    document.getElementById('broadcastPreviewText').textContent = response.preview;
+                    document.getElementById('broadcastIncludedInfo').textContent = response.includedInfo.join('、');
+                    document.getElementById('broadcastExcludedInfo').textContent = response.excludedInfo.join('、');
+                }
+            } catch (error) {
+                console.error('[loadBroadcastPreview] エラー:', error);
+                document.getElementById('broadcastPreviewText').textContent = 'プレビュー取得失敗';
+            }
         }
 
         // 一斉配信を実行

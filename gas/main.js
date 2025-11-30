@@ -259,6 +259,12 @@ const SystemRouter = {
       prefix: false,
       actions: ['getBroadcastTargets']
     },
+    'getBroadcastPreview': {
+      system: 'BroadcastSystem',
+      description: '一斉配信プレビュー',
+      prefix: false,
+      actions: ['getBroadcastPreview']
+    },
     'sendBroadcast': {
       system: 'BroadcastSystem',
       description: '一斉配信実行',
@@ -714,7 +720,7 @@ function doGet(e) {
         }
 
         // V2006: 一斉配信関連
-        if (action === 'sendBroadcast' || action === 'getBroadcastTargets' || action === 'getAppliedFranchises') {
+        if (action === 'sendBroadcast' || action === 'getBroadcastTargets' || action === 'getBroadcastPreview' || action === 'getAppliedFranchises') {
           console.log('[main.js] Routing to BroadcastSystem:', action);
           result = BroadcastSystem.handle(e.parameter);
         } else {

@@ -28,6 +28,8 @@ var BroadcastSystem = {
         return this.handleInterest(params);
       case 'getBroadcastTargets':
         return this.getBroadcastTargets(params);
+      case 'getBroadcastPreview':
+        return this.getBroadcastPreview(params);
       case 'sendBroadcast':
         return this.sendBroadcast(params);
       case 'getAppliedFranchises':
@@ -111,6 +113,101 @@ var BroadcastSystem = {
       };
     } catch (error) {
       console.error('[getBroadcastTargets] エラー:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  /**
+   * 一斉配信メールプレビュー取得
+   */
+  getBroadcastPreview: function(params) {
+    try {
+      const cvId = params.cvId;
+      if (!cvId) {
+        return { success: false, error: 'CV IDが指定されていません' };
+      }
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const userSheet = ss.getSheetByName('ユーザー登録');
+
+      const cvData = this.getCVData(userSheet, cvId);
+      if (!cvData) {
+        return { success: false, error: 'CV情報が見つかりません' };
+      }
+
+      // 個人情報を含まないプレビュー用テンプレート生成
+      const prefecture = cvData['都道府県（物件）'] || cvData['都道府県'] || this.extractPrefecture(cvData['住所詳細（物件）'] || cvData['住所詳細'] || '');
+      const city = cvData['市区町村（物件）'] || cvData['市区町村'] || this.extractCity(cvData['住所詳細（物件）'] || cvData['住所詳細'] || '');
+      const propertyType = cvData['依頼物件種別'] || cvData['物件種別'] || '';
+      const buildingAge = cvData['築年数'] || '';
+      const workItems = cvData['見積もり希望箇所'] || cvData['workItems'] || '';
+      const fee = parseInt(cvData['fee']) || 10000;
+      const maxCompanies = parseInt(cvData['companiesCount']) || 4;
+
+      const previewText = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【外壁塗装くらべる】案件のご案内
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+○○○○ 御中
+
+平素よりお世話になっております。
+外壁塗装くらべる運営事務局でございます。
+
+下記案件がございます。ご検討ください。
+
+-------------------------------------------
+【案件概要】
+-------------------------------------------
+エリア: ${prefecture} ${city}
+物件種別: ${propertyType}
+築年数: ${buildingAge}年
+希望工事: ${workItems}
+紹介料: ¥${fee.toLocaleString()}（税別）
+
+-------------------------------------------
+【残り枠】${maxCompanies}社
+-------------------------------------------
+
+※ 早い者勝ちとなります。残り枠がなくなり次第終了です。
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+▼ この案件に申し込む
+[申し込みボタンURL]
+
+▼ 気になる（担当者に通知）
+[気になるボタンURL]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+※ 申し込み後、管理者が確認して転送処理を行います。
+※ 「気になる」をクリックすると担当者に通知が届きます。
+
+外壁塗装くらべる運営事務局`;
+
+      // 含まれている情報・含まれていない情報を明示
+      return {
+        success: true,
+        cvId: cvId,
+        preview: previewText,
+        includedInfo: [
+          '都道府県・市区町村（町名以下は非公開）',
+          '物件種別',
+          '築年数',
+          '希望工事内容',
+          '紹介料',
+          '残り枠数'
+        ],
+        excludedInfo: [
+          '氏名',
+          '電話番号',
+          '詳細住所（番地・建物名）',
+          'メールアドレス'
+        ]
+      };
+    } catch (error) {
+      console.error('[getBroadcastPreview] エラー:', error);
       return { success: false, error: error.message };
     }
   },
@@ -531,11 +628,13 @@ var BroadcastSystem = {
   },
 
   /**
-   * エリア内の加盟店を取得
+   * エリア内の加盟店を取得（都道府県のみでマッチング、全加盟店対象）
    */
   getAreaFranchises: function(franchiseSheet, prefecture, city) {
     const data = franchiseSheet.getDataRange().getValues();
     const headers = data[0];
+
+    console.log('[getAreaFranchises] headers:', headers);
 
     const idIdx = headers.indexOf('登録ID');
     const nameIdx = headers.indexOf('会社名');
@@ -543,16 +642,30 @@ var BroadcastSystem = {
     const statusIdx = headers.indexOf('ステータス');
     const areaIdx = headers.indexOf('対応エリア') !== -1 ? headers.indexOf('対応エリア') : headers.indexOf('営業エリア');
 
+    console.log('[getAreaFranchises] indexes:', { idIdx, nameIdx, emailIdx, statusIdx, areaIdx });
+    console.log('[getAreaFranchises] 検索条件: prefecture=', prefecture);
+
     const franchises = [];
+    let totalRows = 0;
+    let activeCount = 0;
 
     for (let i = 1; i < data.length; i++) {
+      // 空行スキップ
+      if (!data[i][idIdx]) continue;
+      totalRows++;
+
       const status = data[i][statusIdx];
-      // 承認済みの加盟店のみ
-      if (status !== '承認済み') continue;
+      // アクティブな加盟店のみ（承認済み または ステータス空欄）
+      if (status && status !== '承認済み' && status !== 'アクティブ' && status !== '有効') {
+        continue;
+      }
+      activeCount++;
 
       const area = data[i][areaIdx] || '';
-      // エリアマッチング（都道府県が含まれていればOK）
-      if (area.includes(prefecture) || area === '' || area === '全国') {
+      // エリアマッチング: 都道府県が含まれている、または対応エリア未設定、または全国
+      const isMatch = !prefecture || area.includes(prefecture) || area === '' || area === '全国' || !area;
+
+      if (isMatch) {
         franchises.push({
           id: data[i][idIdx],
           name: data[i][nameIdx],
@@ -560,6 +673,8 @@ var BroadcastSystem = {
         });
       }
     }
+
+    console.log('[getAreaFranchises] 結果: totalRows=', totalRows, ', activeCount=', activeCount, ', matched=', franchises.length);
 
     return franchises;
   },
@@ -717,7 +832,7 @@ ${franchise.name} 御中
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-▼ この案件を購入する（即時転送）
+▼ この案件に申し込む
 ${purchaseUrl}
 
 ▼ 気になる（担当者に通知）
@@ -725,7 +840,7 @@ ${interestUrl}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-※ 購入後、お客様情報を含む詳細メールをお送りいたします。
+※ 申し込み後、管理者が確認して転送処理を行います。
 ※ 「気になる」をクリックすると担当者に通知が届きます。
 
 外壁塗装くらべる運営事務局
@@ -746,7 +861,7 @@ ${interestUrl}
       const body = `
 案件ID: ${cvId}
 加盟店名: ${franchiseName}
-アクション: ${actionType === 'purchase' ? '購入' : '気になる'}
+アクション: ${actionType === 'purchase' ? '申し込み' : '気になる'}
 日時: ${Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss')}
 `;
 
