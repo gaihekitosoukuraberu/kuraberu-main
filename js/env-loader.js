@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1986 - オーダー転送UI改善）
-  CACHE_BUSTER: 'v1986-transfer-fix'
+  CACHE_BUSTER: 'v1764470214-fed934f0'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
