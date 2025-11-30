@@ -2568,7 +2568,7 @@ const AdminSystem = {
         userSheet.getRange(targetRow, franchiseListIdx + 1).setValue(franchiseNames);
       }
       if (managementStatusIdx !== -1) {
-        userSheet.getRange(targetRow, managementStatusIdx + 1).setValue('配信済み');
+        userSheet.getRange(targetRow, managementStatusIdx + 1).setValue('配信済');
       }
       if (franchiseStatusIdx !== -1) {
         userSheet.getRange(targetRow, franchiseStatusIdx + 1).setValue(franchiseStatusJson);

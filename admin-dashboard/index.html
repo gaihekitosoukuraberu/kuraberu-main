@@ -10885,10 +10885,28 @@ info@gaihekikuraberu.com
                     showNotification(`転送完了: ${d.selectedFranchises.length}社に配信しました`, 'success');
                     closeOrderTransferModal();
 
-                    // ステータスを「配信中」に更新
+                    // ステータスと転送数を更新
                     if (casesData[currentCaseId]) {
-                        casesData[currentCaseId].status = '配信中';
+                        casesData[currentCaseId].status = '配信済';
                         casesData[currentCaseId].deliveryStatus = '配信済';
+                        // 転送数を加算（既存 + 今回の転送数）
+                        casesData[currentCaseId].transferCount = (casesData[currentCaseId].transferCount || 0) + d.selectedFranchises.length;
+                    }
+
+                    // オーダー転送ボタンを即座に無効化
+                    const orderTransferBtn = document.getElementById('orderTransferBtn');
+                    if (orderTransferBtn) {
+                        orderTransferBtn.disabled = true;
+                        orderTransferBtn.innerHTML = '✅ オーダー転送済み';
+                        orderTransferBtn.className = 'w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-gray-400 text-white rounded-xl font-bold text-base sm:text-lg cursor-not-allowed';
+                    }
+
+                    // 配信済み件数表示を即座に更新
+                    const transferCountDisplay = document.getElementById('transferCountDisplay');
+                    if (transferCountDisplay && casesData[currentCaseId]) {
+                        const count = casesData[currentCaseId].transferCount;
+                        transferCountDisplay.textContent = `${count}社`;
+                        transferCountDisplay.className = 'w-full px-2 py-2 text-sm font-bold text-center bg-green-50 border border-green-300 rounded-lg text-green-600';
                     }
 
                     // CRMビュー更新
