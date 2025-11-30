@@ -111,9 +111,11 @@ var BroadcastSystem = {
 
       // エリア情報取得（カラム名: 都道府県（物件）、市区町村（物件）、住所詳細（物件））
       const prefecture = cvData['都道府県（物件）'] || cvData['都道府県'] || cvData.prefecture || this.extractPrefecture(cvData['住所詳細（物件）'] || cvData['住所詳細'] || cvData.address || '');
-      const city = cvData['市区町村（物件）'] || cvData['市区町村'] || cvData.city || this.extractCity(cvData['住所詳細（物件）'] || cvData['住所詳細'] || cvData.address || '');
+      const cityRaw = cvData['市区町村（物件）'] || cvData['市区町村'] || cvData.city || this.extractCity(cvData['住所詳細（物件）'] || cvData['住所詳細'] || cvData.address || '');
+      // 市区町村を正規化（町名除去: "横浜市青葉区市ケ尾町" → "横浜市青葉区"）
+      const city = this.normalizeCity(cityRaw);
 
-      console.log('[getBroadcastTargets] 抽出結果: prefecture=', prefecture, ', city=', city);
+      console.log('[getBroadcastTargets] 抽出結果: prefecture=', prefecture, ', cityRaw=', cityRaw, ', city=', city);
 
       if (!prefecture) {
         return { success: false, error: '都道府県情報がありません。cvDataキー: ' + Object.keys(cvData).join(', ') };
@@ -655,6 +657,27 @@ var BroadcastSystem = {
   },
 
   /**
+   * 市区町村を正規化（町名を除去して「横浜市青葉区」形式にする）
+   * 例: "横浜市青葉区市ケ尾町" → "横浜市青葉区"
+   */
+  normalizeCity: function(city) {
+    if (!city) return '';
+    // 政令指定都市の区まで（横浜市青葉区、川崎市川崎区、さいたま市西区など）
+    const seirei = city.match(/^(.+市.+区)/);
+    if (seirei) return seirei[1];
+    // 東京23区（世田谷区、渋谷区など）
+    const ku = city.match(/^(.+区)/);
+    if (ku) return ku[1];
+    // 一般の市（横須賀市、藤沢市など）
+    const shi = city.match(/^(.+市)/);
+    if (shi) return shi[1];
+    // 町村
+    const choson = city.match(/^(.+[町村])/);
+    if (choson) return choson[1];
+    return city;
+  },
+
+  /**
    * エリア内の加盟店を取得（都道府県のみでマッチング、全加盟店対象）
    */
   getAreaFranchises: function(franchiseSheet, prefecture, city) {
@@ -669,8 +692,11 @@ var BroadcastSystem = {
     const statusIdx = headers.indexOf('ステータス');
     const citiesIdx = headers.indexOf('対応市区町村');
 
+    // 案件の市区町村を正規化（町名除去: "横浜市青葉区市ケ尾町" → "横浜市青葉区"）
+    const normalizedCity = this.normalizeCity(city);
+
     console.log('[getAreaFranchises] indexes:', { idIdx, nameIdx, emailIdx, statusIdx, citiesIdx });
-    console.log('[getAreaFranchises] 検索条件: city=', city);
+    console.log('[getAreaFranchises] 検索条件: city=', city, ', normalizedCity=', normalizedCity);
 
     const franchises = [];
     let totalRows = 0;
@@ -689,11 +715,11 @@ var BroadcastSystem = {
       activeCount++;
 
       const cities = data[i][citiesIdx] || '';
-      // エリアマッチング: 案件の市区町村が加盟店の対応市区町村リストに含まれているか
+      // エリアマッチング: 正規化した市区町村が加盟店の対応市区町村リストに含まれているか
       // 加盟店側: "横浜市青葉区,横浜市都筑区,川崎市..." のようなカンマ区切りリスト
-      // 案件側: "横浜市青葉区" → 完全一致でマッチ
+      // 案件側: "横浜市青葉区市ケ尾町" → 正規化 → "横浜市青葉区" でマッチ
       const cityList = cities.split(/[,、\n\s]+/).map(c => c.trim()).filter(c => c);
-      const isMatch = city && cityList.includes(city);
+      const isMatch = normalizedCity && cityList.includes(normalizedCity);
 
       if (isMatch) {
         franchises.push({
