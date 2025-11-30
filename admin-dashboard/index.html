@@ -9033,20 +9033,24 @@ window.addEventListener('beforeunload', function(e) {
 
             if (!orderTransferBtn || !broadcastBtn) return;
 
-            // 転送済みかどうか（配信管理に転送記録があるか）
-            const isTransferred = transferCount > 0 || caseData.status === '転送済み' || caseData.status === '転送完了';
+            // 希望社数を取得（デフォルト3社）
+            const desiredCountStr = caseData.desiredCount || caseData.companiesCountPreference || '3社';
+            const desiredCount = parseInt(desiredCountStr) || 3;
+
+            // 枠が埋まっているかどうか（転送済み >= 希望社数）
+            const isSlotsFull = transferCount >= desiredCount;
 
             // 案件メール配信済みかどうか
             const isBroadcastSent = caseData.broadcastSent === true || caseData.broadcastSent === 'TRUE' || caseData['案件メール配信済み'] === true || caseData['案件メール配信済み'] === 'TRUE';
 
-            // オーダー転送ボタン
-            if (isTransferred) {
+            // オーダー転送ボタン（枠が埋まっていたら無効化）
+            if (isSlotsFull) {
                 orderTransferBtn.disabled = true;
-                orderTransferBtn.innerHTML = '✅ オーダー転送済み';
+                orderTransferBtn.innerHTML = `✅ 転送済み (${transferCount}/${desiredCount}社)`;
                 orderTransferBtn.className = 'w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-gray-400 text-white rounded-xl font-bold text-base sm:text-lg cursor-not-allowed';
             } else {
                 orderTransferBtn.disabled = false;
-                orderTransferBtn.innerHTML = '🚀 オーダー転送';
+                orderTransferBtn.innerHTML = transferCount > 0 ? `🚀 オーダー転送 (${transferCount}/${desiredCount}社)` : '🚀 オーダー転送';
                 orderTransferBtn.className = 'w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-base sm:text-lg hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl active:scale-95 sm:hover:scale-105';
             }
 
@@ -9480,7 +9484,7 @@ window.addEventListener('beforeunload', function(e) {
 
         // V1923: 希望社数変更時の自動保存（CF列に保存）
         async function saveFranchiseCountChange(value) {
-            const cvId = window.BusinessSelectionHandler?.currentCaseData?.cvId;
+            const cvId = window.BusinessSelectionHandler?.currentCaseData?.cvId || currentCaseId;
             if (!cvId) {
                 console.warn('[V1923] CV IDが取得できないため保存をスキップ');
                 return;
@@ -9494,6 +9498,14 @@ window.addEventListener('beforeunload', function(e) {
             }
 
             console.log('[V1923] 希望社数を保存中:', { cvId, count });
+
+            // casesDataを更新（ボタン状態更新用）
+            if (casesData[cvId]) {
+                casesData[cvId].desiredCount = `${count}社`;
+                casesData[cvId].companiesCountPreference = `${count}社`;
+                // オーダー転送ボタンの状態を即座に更新
+                updateActionButtons(casesData[cvId]);
+            }
 
             // GASに保存
             try {
@@ -10891,22 +10903,9 @@ info@gaihekikuraberu.com
                         casesData[currentCaseId].deliveryStatus = '配信済';
                         // 転送数を加算（既存 + 今回の転送数）
                         casesData[currentCaseId].transferCount = (casesData[currentCaseId].transferCount || 0) + d.selectedFranchises.length;
-                    }
 
-                    // オーダー転送ボタンを即座に無効化
-                    const orderTransferBtn = document.getElementById('orderTransferBtn');
-                    if (orderTransferBtn) {
-                        orderTransferBtn.disabled = true;
-                        orderTransferBtn.innerHTML = '✅ オーダー転送済み';
-                        orderTransferBtn.className = 'w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-gray-400 text-white rounded-xl font-bold text-base sm:text-lg cursor-not-allowed';
-                    }
-
-                    // 配信済み件数表示を即座に更新
-                    const transferCountDisplay = document.getElementById('transferCountDisplay');
-                    if (transferCountDisplay && casesData[currentCaseId]) {
-                        const count = casesData[currentCaseId].transferCount;
-                        transferCountDisplay.textContent = `${count}社`;
-                        transferCountDisplay.className = 'w-full px-2 py-2 text-sm font-bold text-center bg-green-50 border border-green-300 rounded-lg text-green-600';
+                        // ボタン状態を即座に更新（希望社数と比較）
+                        updateActionButtons(casesData[currentCaseId]);
                     }
 
                     // CRMビュー更新
