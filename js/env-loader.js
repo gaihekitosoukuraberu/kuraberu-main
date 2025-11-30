@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1988 - 転送文UI改善・メモ重複解消）
-  CACHE_BUSTER: 'v1988-transfer-ui'
+  CACHE_BUSTER: 'v1764471721-fef9fe59'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
