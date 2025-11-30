@@ -178,17 +178,15 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
 
+          # マスターenv-loader.js + フォールバックURL持つファイルのみ
+          # ※各システムのローカルenv-loader.jsは削除済み（全システム/js/env-loader.js参照）
           git add js/env-loader.js
           git add lp/js/cv-api.js lp/js/utils.js lp/mail.php
-          git add admin-dashboard/js/env-loader.js
-          git add franchise-register/js/env-loader.js
-          git add franchise-dashboard/merchant-portal/env-loader.js
-          git add estimate-keep-system/js/env-loader.js
 
           if git diff --staged --quiet; then
             echo "📍 変更なし - コミットスキップ"
           else
-            git commit -m "auto: GAS URL同期 (env-loader & fallback & PHP) - ${{ steps.deploy.outputs.deployment_id }}"
+            git commit -m "auto: GAS URL同期 (master env-loader & fallback) - ${{ steps.deploy.outputs.deployment_id }}"
             git push || echo "⚠️ プッシュ失敗（競合の可能性）- GASデプロイは成功済み"
             echo "✅ env-loader更新完了"
           fi
