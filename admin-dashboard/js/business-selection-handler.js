@@ -2120,30 +2120,29 @@ const BusinessSelectionHandler = {
       ? ''
       : `<input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="w-4 h-4 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">`;
 
-    // V2012: iPhone SE最適化 - 2行レイアウト（会社名しっかり表示）
+    // V2013: iPhone SE最適化 - 3行レイアウト（はみ出し防止）
     div.innerHTML = `
-      <!-- 1行目: 順位 + チェック + 会社名 -->
+      <!-- 1行目: 順位 + チェック + 会社名 + バッジ -->
       <div class="flex items-center gap-2">
-        <span class="text-base font-bold ${isDelivered ? 'text-purple-600' : 'text-pink-600'} w-5 flex-shrink-0">${card.rank}</span>
+        <span class="text-base font-bold ${isDelivered ? 'text-purple-600' : 'text-pink-600'} flex-shrink-0">${card.rank}</span>
         ${checkboxHtml ? `<div class="flex-shrink-0">${checkboxHtml}</div>` : ''}
-        <span class="font-semibold ${isDelivered ? 'text-purple-700' : 'text-gray-900'} text-sm flex-1 min-w-0">${card.companyName}</span>
-        ${isDelivered ? '<span class="flex-shrink-0 px-1.5 py-0.5 bg-purple-600 text-white text-[10px] font-bold rounded whitespace-nowrap">転送済</span>' : ''}
-        ${isApplied ? '<span class="flex-shrink-0 px-1.5 py-0.5 bg-orange-500 text-white text-[10px] font-bold rounded whitespace-nowrap">申込済</span>' : ''}
+        <span class="font-semibold ${isDelivered ? 'text-purple-700' : 'text-gray-900'} text-sm">${card.companyName}</span>
+        ${isDelivered ? '<span class="flex-shrink-0 ml-auto px-1.5 py-0.5 bg-purple-600 text-white text-[10px] font-bold rounded">転送済</span>' : ''}
+        ${isApplied ? '<span class="flex-shrink-0 ml-auto px-1.5 py-0.5 bg-orange-500 text-white text-[10px] font-bold rounded">申込済</span>' : ''}
       </div>
-      <!-- 2行目: アイコン + 距離 + マッチ率 + 金額 -->
-      <div class="flex items-center justify-between mt-1.5 ml-7">
-        <div class="flex items-center gap-1.5">
-          ${card.isUserSelected ? '<span class="w-4 h-4 bg-pink-600 text-white rounded flex items-center justify-center"><svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></span>' : ''}
-          <span class="w-4 h-4 bg-yellow-100 text-yellow-600 rounded flex items-center justify-center">
-            <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-          </span>
-          ${card.distanceText ? `<span class="text-gray-500 text-xs">${card.distanceText}</span>` : ''}
-          ${cancelButtonHtml}
-        </div>
-        <div class="flex items-center gap-2">
-          <span id="${matchRateId}" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold cursor-pointer ${matchRateColor}" onclick="event.stopPropagation();">${card.matchRate}%</span>
-          <span class="text-xs font-bold text-green-600">${formattedPrice}</span>
-        </div>
+      <!-- 2行目: アイコン + 距離 + 取消ボタン -->
+      <div class="flex items-center gap-2 mt-1 pl-6">
+        ${card.isUserSelected ? '<span class="w-4 h-4 bg-pink-600 text-white rounded flex items-center justify-center flex-shrink-0"><svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></span>' : ''}
+        <span class="w-4 h-4 bg-yellow-100 text-yellow-600 rounded flex items-center justify-center flex-shrink-0">
+          <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        </span>
+        ${card.distanceText ? `<span class="text-gray-500 text-xs">${card.distanceText}</span>` : ''}
+        ${cancelButtonHtml}
+      </div>
+      <!-- 3行目: マッチ率 + 金額（右寄せ） -->
+      <div class="flex items-center justify-end gap-2 mt-1">
+        <span id="${matchRateId}" class="px-2 py-0.5 rounded-full text-xs font-bold cursor-pointer ${matchRateColor}" onclick="event.stopPropagation();">${card.matchRate}%</span>
+        <span class="text-sm font-bold text-green-600">${formattedPrice}</span>
       </div>
     `;
 
