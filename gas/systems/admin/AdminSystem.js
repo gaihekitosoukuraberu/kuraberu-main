@@ -2504,7 +2504,8 @@ const AdminSystem = {
   },
 
   /**
-   * V2003: ユーザー登録シートの配信ステータス・配信先加盟店数・配信日時・配信先業者一覧を自動更新
+   * V2003: ユーザー登録シートのステータス・配信日時・配信先業者一覧を自動更新
+   * 転送数は配信管理シートから取得（正確なデータソース）
    * 希望社数に達していたら「配信済」、達していなければ「配信中」
    */
   updateUserSheetDeliveryStatus: function(userSheet, cvId, newFranchiseCount, timestamp, franchises) {
@@ -2515,16 +2516,11 @@ const AdminSystem = {
       // 必要なカラムのインデックスを取得
       const cvIdIdx = headers.indexOf('CV ID');
       const deliveryStatusIdx = headers.indexOf('配信ステータス');
-      const franchiseCountIdx = headers.indexOf('配信先加盟店数');
       const deliveryDateIdx = headers.indexOf('配信日時');
       const franchiseListIdx = headers.indexOf('配信先業者一覧');
       const managementStatusIdx = headers.indexOf('管理ステータス');
       const franchiseStatusIdx = headers.indexOf('加盟店別ステータス');
       const desiredCountIdx = headers.indexOf('希望社数');
-
-      console.log('[updateUserSheetDeliveryStatus] カラムインデックス:', {
-        cvIdIdx, deliveryStatusIdx, franchiseCountIdx, deliveryDateIdx, franchiseListIdx, managementStatusIdx, franchiseStatusIdx, desiredCountIdx
-      });
 
       if (cvIdIdx === -1) {
         console.error('[updateUserSheetDeliveryStatus] CV ID列が見つかりません');
@@ -2547,8 +2543,20 @@ const AdminSystem = {
         return;
       }
 
-      // 既存の転送数を取得
-      const existingCount = parseInt(targetRowData[franchiseCountIdx]) || 0;
+      // 配信管理シートから既存の転送数を取得（正確なデータソース）
+      const ss = userSheet.getParent();
+      const deliverySheet = ss.getSheetByName('配信管理');
+      let existingCount = 0;
+      if (deliverySheet) {
+        const deliveryData = deliverySheet.getDataRange().getValues();
+        for (let i = 1; i < deliveryData.length; i++) {
+          const rowCvId = deliveryData[i][1]; // 2列目: CV ID
+          const status = deliveryData[i][5]; // 6列目: 配信ステータス
+          if (rowCvId === cvId && (status === '配信済' || status === '配信済み')) {
+            existingCount++;
+          }
+        }
+      }
       const totalTransferCount = existingCount + newFranchiseCount;
 
       // 希望社数を取得（デフォルト3社）
@@ -2560,7 +2568,7 @@ const AdminSystem = {
 
       // 希望社数に達したかどうかでステータスを決定
       const statusToSet = totalTransferCount >= desiredCount ? '配信済' : '配信中';
-      console.log('[updateUserSheetDeliveryStatus] ステータス判定:', { totalTransferCount, desiredCount, statusToSet });
+      console.log('[updateUserSheetDeliveryStatus] ステータス判定:', { existingCount, newFranchiseCount, totalTransferCount, desiredCount, statusToSet });
 
       // 配信先業者一覧を作成（既存 + 新規）
       const existingList = targetRowData[franchiseListIdx] || '';
@@ -2580,12 +2588,9 @@ const AdminSystem = {
       });
       const franchiseStatusJson = JSON.stringify(franchiseStatusObj);
 
-      // 各カラムを更新
+      // 各カラムを更新（配信先加盟店数は更新しない - 配信管理シートが正）
       if (deliveryStatusIdx !== -1) {
         userSheet.getRange(targetRow, deliveryStatusIdx + 1).setValue(statusToSet);
-      }
-      if (franchiseCountIdx !== -1) {
-        userSheet.getRange(targetRow, franchiseCountIdx + 1).setValue(totalTransferCount);
       }
       if (deliveryDateIdx !== -1) {
         userSheet.getRange(targetRow, deliveryDateIdx + 1).setValue(timestamp);
