@@ -89,6 +89,10 @@ const MerchantSystem = {
         // 成約報告機能（MerchantContractReportに委譲）
         case 'getDeliveredCases':
         case 'submitContractReport':
+        // V2007: 案件管理機能
+        case 'getMerchantCases':
+        case 'updateCaseStatus':
+        case 'updateCaseMemo':
           return MerchantContractReport[action](params);
 
         // 会社情報管理（CompanyInfoManagerに委譲）
@@ -237,6 +241,10 @@ const MerchantSystem = {
         // 成約報告機能（MerchantContractReportに委譲）
         case 'getDeliveredCases':
         case 'submitContractReport':
+        // V2007: 案件管理機能
+        case 'getMerchantCases':
+        case 'updateCaseStatus':
+        case 'updateCaseMemo':
           return MerchantContractReport[action](params);
 
         default:
