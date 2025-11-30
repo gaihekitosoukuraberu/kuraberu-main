@@ -2084,14 +2084,14 @@ const BusinessSelectionHandler = {
       additionalInfo += '</div>';
     }
 
-    // V2004/V2007: 転送済み/予約転送済みバッジHTML
+    // V2004/V2007: 転送済み/配信中バッジHTML
     let deliveredBadgeHtml = '';
     if (isDelivered) {
       if (deliveredInfo.isScheduled) {
-        // V2007: 予約転送済み（青色バッジ）
+        // V2007: 配信中（青色バッジ）
         deliveredBadgeHtml = `<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
           <span class="inline-flex items-center justify-center px-2 py-0.5 bg-blue-500 text-white text-xs font-bold rounded">
-            🕐 予約済
+            配信中
           </span>
           <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">
             ${deliveredInfo.deliveryDate || ''} に転送予定
