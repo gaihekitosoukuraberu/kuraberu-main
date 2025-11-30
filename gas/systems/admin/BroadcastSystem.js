@@ -63,9 +63,9 @@ var BroadcastSystem = {
         return { success: false, error: 'CV情報が見つかりません' };
       }
 
-      // エリア情報取得（カラム名: 都道府県、市区町村、住所詳細）
-      const prefecture = cvData['都道府県'] || cvData.prefecture || this.extractPrefecture(cvData['住所詳細'] || cvData.address || '');
-      const city = cvData['市区町村'] || cvData.city || this.extractCity(cvData['住所詳細'] || cvData.address || '');
+      // エリア情報取得（カラム名: 都道府県（物件）、市区町村（物件）、住所詳細（物件））
+      const prefecture = cvData['都道府県（物件）'] || cvData['都道府県'] || cvData.prefecture || this.extractPrefecture(cvData['住所詳細（物件）'] || cvData['住所詳細'] || cvData.address || '');
+      const city = cvData['市区町村（物件）'] || cvData['市区町村'] || cvData.city || this.extractCity(cvData['住所詳細（物件）'] || cvData['住所詳細'] || cvData.address || '');
 
       if (!prefecture) {
         return { success: false, error: '都道府県情報がありません' };
@@ -141,9 +141,9 @@ var BroadcastSystem = {
         return { success: false, error: 'CV情報が見つかりません' };
       }
 
-      // エリア情報取得（カラム名: 都道府県、市区町村、住所詳細）
-      const prefecture = cvData['都道府県'] || cvData.prefecture || this.extractPrefecture(cvData['住所詳細'] || cvData.address || '');
-      const city = cvData['市区町村'] || cvData.city || this.extractCity(cvData['住所詳細'] || cvData.address || '');
+      // エリア情報取得（カラム名: 都道府県（物件）、市区町村（物件）、住所詳細（物件））
+      const prefecture = cvData['都道府県（物件）'] || cvData['都道府県'] || cvData.prefecture || this.extractPrefecture(cvData['住所詳細（物件）'] || cvData['住所詳細'] || cvData.address || '');
+      const city = cvData['市区町村（物件）'] || cvData['市区町村'] || cvData.city || this.extractCity(cvData['住所詳細（物件）'] || cvData['住所詳細'] || cvData.address || '');
 
       if (!prefecture) {
         return { success: false, error: '都道府県情報がありません' };
@@ -667,8 +667,8 @@ var BroadcastSystem = {
    * 一斉配信メール本文生成
    */
   generateBroadcastEmail: function(cvData, franchise, fee, remainingSlots, scriptUrl, purchaseToken, interestToken, broadcastId) {
-    const prefecture = cvData['都道府県'] || this.extractPrefecture(cvData['住所詳細'] || '');
-    const city = cvData['市区町村'] || this.extractCity(cvData['住所詳細'] || '');
+    const prefecture = cvData['都道府県（物件）'] || cvData['都道府県'] || this.extractPrefecture(cvData['住所詳細（物件）'] || cvData['住所詳細'] || '');
+    const city = cvData['市区町村（物件）'] || cvData['市区町村'] || this.extractCity(cvData['住所詳細（物件）'] || cvData['住所詳細'] || '');
     const propertyType = cvData['依頼物件種別'] || cvData['物件種別'] || '';
     const buildingAge = cvData['築年数'] || '';
     const workItems = cvData['見積もり希望箇所'] || cvData['workItems'] || '';
