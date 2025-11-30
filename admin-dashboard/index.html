@@ -9039,13 +9039,19 @@ window.addEventListener('beforeunload', function(e) {
             const isBroadcastSent = caseData.broadcastSent === true || caseData.broadcastSent === 'TRUE' || caseData['案件メール配信済み'] === true || caseData['案件メール配信済み'] === 'TRUE';
 
             // オーダー転送ボタン（枠が埋まっていたら無効化）
+            // V2013: スマホ時は短いテキスト
+            const isMobile = window.innerWidth < 640;
             if (isSlotsFull) {
                 orderTransferBtn.disabled = true;
-                orderTransferBtn.innerHTML = `✅ 転送済み (${transferCount}/${desiredCount}社)`;
+                orderTransferBtn.innerHTML = isMobile ? `✅ 転送済 (${transferCount}/${desiredCount})` : `✅ 転送済み (${transferCount}/${desiredCount}社)`;
                 orderTransferBtn.className = 'w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-gray-400 text-white rounded-xl font-bold text-base sm:text-lg cursor-not-allowed';
             } else {
                 orderTransferBtn.disabled = false;
-                orderTransferBtn.innerHTML = transferCount > 0 ? `🚀 オーダー転送 (${transferCount}/${desiredCount}社)` : '🚀 オーダー転送';
+                if (transferCount > 0) {
+                    orderTransferBtn.innerHTML = isMobile ? `🚀 転送 (${transferCount}/${desiredCount})` : `🚀 オーダー転送 (${transferCount}/${desiredCount}社)`;
+                } else {
+                    orderTransferBtn.innerHTML = isMobile ? '🚀 転送' : '🚀 オーダー転送';
+                }
                 orderTransferBtn.className = 'w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-base sm:text-lg hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl active:scale-95 sm:hover:scale-105';
             }
 
