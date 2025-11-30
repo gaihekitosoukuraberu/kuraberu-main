@@ -76,6 +76,9 @@ const AdminSystem = {
         case 'sendOrderTransfer':
           return this.sendOrderTransfer(params);
 
+        case 'getDeliveredFranchises':
+          return this.getDeliveredFranchises(params);
+
         case 'updateCVData':
           return this.updateCVData(params);
 
@@ -2381,6 +2384,92 @@ const AdminSystem = {
     } catch (error) {
       console.error('[sendOrderTransfer] エラー:', error);
       return { success: false, error: error.message || 'オーダー転送に失敗しました' };
+    }
+  },
+
+  /**
+   * V2004: 指定CV IDの転送済み加盟店リストを取得
+   * 業者選択画面で転送済み業者をグレーアウト・選択不可にするため
+   */
+  getDeliveredFranchises: function(params) {
+    try {
+      const cvId = params.cvId;
+      if (!cvId) {
+        return { success: false, error: 'CV IDが指定されていません' };
+      }
+
+      console.log('[getDeliveredFranchises] CV ID:', cvId);
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const deliverySheet = ss.getSheetByName('配信管理');
+
+      if (!deliverySheet) {
+        return { success: true, deliveredFranchises: [] };
+      }
+
+      const data = deliverySheet.getDataRange().getValues();
+      const headers = data[0];
+
+      const cvIdIdx = headers.indexOf('CV ID');
+      const franchiseIdIdx = headers.indexOf('加盟店ID');
+      const deliveryStatusIdx = headers.indexOf('配信ステータス');
+      const detailStatusIdx = headers.indexOf('詳細ステータス');
+      const deliveryDateIdx = headers.indexOf('配信日時');
+
+      if (cvIdIdx === -1) {
+        console.error('[getDeliveredFranchises] CV ID列が見つかりません');
+        return { success: true, deliveredFranchises: [] };
+      }
+
+      // 加盟店登録シートから会社名を取得するためのマップを作成
+      const franchiseSheet = ss.getSheetByName('加盟店登録');
+      const franchiseNameMap = {};
+      if (franchiseSheet) {
+        const fData = franchiseSheet.getDataRange().getValues();
+        const fHeaders = fData[0];
+        const fIdIdx = fHeaders.indexOf('登録ID');
+        const fNameIdx = fHeaders.indexOf('会社名');
+        if (fIdIdx !== -1 && fNameIdx !== -1) {
+          for (let i = 1; i < fData.length; i++) {
+            const fId = fData[i][fIdIdx];
+            const fName = fData[i][fNameIdx];
+            if (fId && fName) {
+              franchiseNameMap[fId] = fName;
+            }
+          }
+        }
+      }
+
+      // 該当CV IDの配信レコードを抽出
+      const deliveredFranchises = [];
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][cvIdIdx] === cvId) {
+          const franchiseId = data[i][franchiseIdIdx] || '';
+          const franchiseName = franchiseNameMap[franchiseId] || franchiseId;
+          const deliveryStatus = deliveryStatusIdx !== -1 ? data[i][deliveryStatusIdx] : '';
+          const detailStatus = detailStatusIdx !== -1 ? data[i][detailStatusIdx] : '';
+          const deliveryDate = deliveryDateIdx !== -1 ? data[i][deliveryDateIdx] : '';
+
+          deliveredFranchises.push({
+            franchiseId: franchiseId,
+            franchiseName: franchiseName,
+            deliveryStatus: deliveryStatus,
+            detailStatus: detailStatus,
+            deliveryDate: deliveryDate ? Utilities.formatDate(new Date(deliveryDate), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm') : ''
+          });
+        }
+      }
+
+      console.log('[getDeliveredFranchises] 転送済み:', deliveredFranchises.length, '件');
+
+      return {
+        success: true,
+        deliveredFranchises: deliveredFranchises
+      };
+    } catch (error) {
+      console.error('[getDeliveredFranchises] エラー:', error);
+      return { success: false, error: error.message };
     }
   },
 

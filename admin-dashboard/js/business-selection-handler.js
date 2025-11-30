@@ -220,6 +220,7 @@ const BusinessSelectionHandler = {
   searchQuery: '',            // 検索クエリ
   checkedCompanies: new Set(), // V1921: チェック済み業者名（グローバル管理）
   distancesCalculated: false, // 距離計算済みフラグ
+  deliveredFranchises: [],    // V2004: 転送済み業者リスト（二重転送防止用）
 
   /**
    * 初期化
@@ -231,6 +232,42 @@ const BusinessSelectionHandler = {
     }
     console.log('[BusinessSelection] 初期化完了');
     return true;
+  },
+
+  /**
+   * V2004: 転送済み業者リストを取得
+   * @param {string} cvId - CV ID
+   */
+  async loadDeliveredFranchises(cvId) {
+    try {
+      console.log('[V2004] 転送済み業者取得開始:', cvId);
+      this.deliveredFranchises = [];
+
+      if (!cvId) {
+        console.log('[V2004] CV IDなし、スキップ');
+        return;
+      }
+
+      const response = await window.apiClient.callAdminApi('getDeliveredFranchises', { cvId });
+      if (response && response.success && response.deliveredFranchises) {
+        this.deliveredFranchises = response.deliveredFranchises;
+        console.log('[V2004] 転送済み業者:', this.deliveredFranchises.length, '件', this.deliveredFranchises.map(f => f.franchiseName));
+      } else {
+        console.log('[V2004] 転送済み業者なし');
+      }
+    } catch (error) {
+      console.error('[V2004] 転送済み業者取得エラー:', error);
+      this.deliveredFranchises = [];
+    }
+  },
+
+  /**
+   * V2004: 業者が転送済みかチェック
+   * @param {string} companyName - 会社名
+   * @returns {object|null} 転送済み情報またはnull
+   */
+  getDeliveredInfo(companyName) {
+    return this.deliveredFranchises.find(f => f.franchiseName === companyName) || null;
   },
 
   /**
@@ -285,6 +322,9 @@ const BusinessSelectionHandler = {
 
       // キャッシュに保存
       this.currentCaseData = currentCaseData;
+
+      // V2004: 転送済み業者リストを取得（二重転送防止）
+      await this.loadDeliveredFranchises(caseId);
 
       // AS列から業者名を取得（V1902: franchiseSelectionHistoryキーもサポート）
       const businessHistory = currentCaseData.businessHistory || currentCaseData.franchiseSelectionHistory || '';
@@ -1884,12 +1924,28 @@ const BusinessSelectionHandler = {
   createFranchiseCardElement(card, franchiseCount = 1) {
     const div = document.createElement('div');
 
+    // V2004: 転送済みチェック
+    const deliveredInfo = this.getDeliveredInfo(card.companyName);
+    const isDelivered = !!deliveredInfo;
+
     // カラーコーディング（V1881: 新実装）
-    const { borderClass, bgClass, hoverClass, ringClass } = this.getCardColor(
-      card.isUserSelected,
-      card.matchRate,
-      card.shouldCheck
-    );
+    // V2004: 転送済みの場合はグレー系に変更
+    let colorConfig;
+    if (isDelivered) {
+      colorConfig = {
+        borderClass: 'border-gray-400',
+        bgClass: 'bg-gray-100',
+        hoverClass: '',
+        ringClass: 'ring-gray-300'
+      };
+    } else {
+      colorConfig = this.getCardColor(
+        card.isUserSelected,
+        card.matchRate,
+        card.shouldCheck
+      );
+    }
+    const { borderClass, bgClass, hoverClass, ringClass } = colorConfig;
 
     // V1903: 紹介料金を計算
     const referralPrice = this.calculateReferralPrice(franchiseCount);
@@ -1897,12 +1953,18 @@ const BusinessSelectionHandler = {
 
     // V1951: iPhone SE最適化 - padding調整 (p-3で統一)
     // ホバー効果: 光る外枠 + 拡大 + 影 + クリック時縮小
-    div.className = `franchise-item ${card.shouldCheck ? 'selected' : ''} cursor-pointer border-2 ${borderClass} ${bgClass} rounded-lg p-3 sm:p-4 ${hoverClass} hover:ring-4 ${ringClass} ring-offset-2 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 ease-in-out`;
-    div.setAttribute('onclick', 'toggleFranchise(this)');
+    // V2004: 転送済みの場合はクリック無効・ホバー効果なし
+    const clickHandler = isDelivered ? '' : 'toggleFranchise(this)';
+    const hoverEffects = isDelivered ? 'opacity-60 cursor-not-allowed' : `${hoverClass} hover:ring-4 ${ringClass} ring-offset-2 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]`;
+    div.className = `franchise-item ${card.shouldCheck ? 'selected' : ''} ${isDelivered ? '' : 'cursor-pointer'} border-2 ${borderClass} ${bgClass} rounded-lg p-3 sm:p-4 ${hoverEffects} transition-all duration-200 ease-in-out`;
+    if (!isDelivered) {
+      div.setAttribute('onclick', clickHandler);
+    }
     div.setAttribute('data-franchise-id', card.franchiseId);
     div.setAttribute('data-match-rate', card.matchRate);
     div.setAttribute('data-user-selected', card.isUserSelected ? 'true' : 'false');
     div.setAttribute('data-referral-price', referralPrice); // V1903: 料金を属性として保存
+    div.setAttribute('data-delivered', isDelivered ? 'true' : 'false'); // V2004: 転送済みフラグ
 
     // matchDetailsをJSON文字列として保存
     if (card.matchDetails) {
@@ -1957,6 +2019,23 @@ const BusinessSelectionHandler = {
       additionalInfo += '</div>';
     }
 
+    // V2004: 転送済みバッジHTML
+    const deliveredBadgeHtml = isDelivered
+      ? `<span class="relative inline-block group cursor-help" onclick="event.stopPropagation();">
+          <span class="inline-flex items-center justify-center px-2 py-0.5 bg-gray-500 text-white text-xs font-bold rounded">
+            転送済
+          </span>
+          <span class="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity duration-200 z-50 pointer-events-none">
+            ${deliveredInfo.deliveryDate || ''} 転送済み<br>${deliveredInfo.detailStatus || ''}
+          </span>
+        </span>`
+      : '';
+
+    // V2004: チェックボックスHTML（転送済みの場合は無効化）
+    const checkboxHtml = isDelivered
+      ? `<input type="checkbox" disabled checked class="w-5 h-5 text-gray-400 rounded flex-shrink-0 cursor-not-allowed" onclick="event.stopPropagation()">`
+      : `<input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="w-5 h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">`;
+
     // V1956: モバイル完全縦積みレイアウト - 左寄せ最適化
     div.innerHTML = `
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
@@ -1964,17 +2043,18 @@ const BusinessSelectionHandler = {
         <div class="flex-1">
           <!-- 1行目: 順位 + チェックボックス（モバイル: 左寄せ / PC: 会社名と同じ行） -->
           <div class="flex items-center gap-2 mb-1.5 md:mb-0">
-            <div class="text-lg font-semibold text-pink-600 flex-shrink-0 w-7">${card.rank}</div>
-            <input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="w-5 h-5 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">
+            <div class="text-lg font-semibold ${isDelivered ? 'text-gray-400' : 'text-pink-600'} flex-shrink-0 w-7">${card.rank}</div>
+            ${checkboxHtml}
             <!-- PC時のみ: 会社名を同じ行に表示 -->
             <div class="hidden md:block flex-1 min-w-0">
-              <div class="font-semibold text-gray-900 text-base leading-tight">${card.companyName}</div>
+              <div class="font-semibold ${isDelivered ? 'text-gray-500' : 'text-gray-900'} text-base leading-tight">${card.companyName}</div>
             </div>
+            ${deliveredBadgeHtml}
           </div>
 
           <!-- 2行目: 会社名（モバイルのみ / PC: 非表示） -->
           <div class="md:hidden mb-1.5">
-            <div class="font-semibold text-gray-900 text-base leading-tight">${card.companyName}</div>
+            <div class="font-semibold ${isDelivered ? 'text-gray-500' : 'text-gray-900'} text-base leading-tight">${card.companyName}</div>
           </div>
 
           <!-- 3行目: アイコン類（ユーザー選択、地図、星評価・距離） -->
