@@ -8637,42 +8637,27 @@ window.addEventListener('beforeunload', function(e) {
             return '❓';
         }
 
-        // V1968: 階数表示（物件種別に応じた表示）
-        // - 戸建て（2階建て以下の自宅）→ 階数なし（2F固定なので表示不要）
-        // - 戸建て（実家・別荘・所有物件）→ 〜4F+
-        // - アパート・マンション → 3F〜10F+
-        // - 店舗・事務所 → 〜10F+
-        // - 工場・倉庫 → 〜10F+
+        // 階数表示
+        // 例：2階建て→2F、4階以上→4F〜、1階建て→1F、平屋→1F
         function getFloorDisplay(propertyType, floors, q1PropertyType) {
             if (!floors) return '';
 
-            // 戸建ての場合、元のBOT回答を確認
-            if (propertyType === '戸建て') {
-                // 実家・別荘・所有物件は階数表示あり（〜4F+）
-                if (q1PropertyType && (q1PropertyType.includes('実家') || q1PropertyType.includes('別荘') || q1PropertyType.includes('所有物件'))) {
-                    // 4階以上 → 4F+
-                    if (floors.includes('4') || floors.includes('以上')) return '4F+';
-                    const match = floors.match(/(\d+)/);
-                    if (match) {
-                        const num = parseInt(match[1]);
-                        if (num >= 3) return `${num}F`;
-                    }
-                    return '';
+            // 平屋 → 1F
+            if (floors.includes('平屋')) return '1F';
+
+            // 「〜以上」を含む場合 → NF〜
+            if (floors.includes('以上')) {
+                const match = floors.match(/(\d+)/);
+                if (match) {
+                    return `${match[1]}F〜`;
                 }
-                // 2階建て以下の自宅は階数表示なし
-                return '';
             }
 
-            // 「10階以上」→ 10F+
-            if (floors.includes('10')) return '10F+';
-            // 「4階以上」→ 4F+
-            if (floors.includes('4') && floors.includes('以上')) return '4F+';
-
-            // 数字を抽出（3〜9階）
+            // 数字を抽出
             const match = floors.match(/(\d+)/);
             if (match) {
                 const num = parseInt(match[1]);
-                if (num >= 3 && num <= 9) return `${num}F`;
+                return `${num}F`;
             }
 
             return '';
