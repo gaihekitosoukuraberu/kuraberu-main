@@ -655,15 +655,15 @@ var BroadcastSystem = {
       totalRows++;
 
       const status = data[i][statusIdx];
-      // アクティブな加盟店のみ（承認済み または ステータス空欄）
-      if (status && status !== '承認済み' && status !== 'アクティブ' && status !== '有効') {
+      // アクティブな加盟店のみ
+      if (status !== 'アクティブ') {
         continue;
       }
       activeCount++;
 
       const area = data[i][areaIdx] || '';
-      // エリアマッチング: 都道府県が含まれている、または対応エリア未設定、または全国
-      const isMatch = !prefecture || area.includes(prefecture) || area === '' || area === '全国' || !area;
+      // エリアマッチング: 対応エリアに都道府県が含まれている、または全国対応
+      const isMatch = area.includes(prefecture) || area === '全国';
 
       if (isMatch) {
         franchises.push({
