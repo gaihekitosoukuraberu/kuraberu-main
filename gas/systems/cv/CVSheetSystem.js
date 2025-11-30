@@ -1149,6 +1149,22 @@ const CVSheetSystem = {
         throw new Error('ユーザー登録シートが見つかりません');
       }
 
+      // 配信管理シートから転送数をカウント
+      const transferCountMap = {};
+      const deliverySheet = ss.getSheetByName('配信管理');
+      if (deliverySheet) {
+        const deliveryData = deliverySheet.getDataRange().getValues();
+        const deliveryRows = deliveryData.slice(1); // ヘッダー除く
+        deliveryRows.forEach(row => {
+          const cvId = row[1]; // 2列目: CV ID
+          const status = row[5]; // 6列目: 配信ステータス
+          if (cvId && status === '配信済み') {
+            transferCountMap[cvId] = (transferCountMap[cvId] || 0) + 1;
+          }
+        });
+        console.log('[CVSheetSystem] 配信管理シートから転送数集計完了');
+      }
+
       // 全データ取得（ヘッダー行を除く）
       const dataRange = sheet.getDataRange();
       const values = dataRange.getValues();
@@ -1289,6 +1305,9 @@ const CVSheetSystem = {
 
           // CG列: 案件メール配信済みフラグ（index 84）
           broadcastSent: row[84] === true || row[84] === 'TRUE',
+
+          // 配信管理シートからの転送数
+          transferCount: transferCountMap[row[0]] || 0,
 
           // V1832: BOT回答カラムを直接フィールドとしても読み込み（空文字列保持のため）
           quoteCount: row[36] || '',                    // AK: Q11_見積もり保有数（index 36）
