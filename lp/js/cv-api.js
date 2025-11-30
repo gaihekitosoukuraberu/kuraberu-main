@@ -12,7 +12,7 @@ const CVAPI = {
     // GAS Web App URL（ENV経由で取得、フォールバック付き）
     // V2018: フォールバックURLを最新に更新
     get GAS_URL() {
-        const url = window.ENV?.GAS_URL || 'https://script.google.com/macros/s/AKfycbwgWT1Xa3gWROvo98KUqDx-2bX4HoD4B2ONRQ3CgUdgsiENpSaPZBqnxH7gMM4rRNl9PQ/exec';
+        const url = window.ENV?.GAS_URL || 'https://script.google.com/macros/s/AKfycbzOwhPspNci8PG_T_K59zaG4difxn5NLiFtYmxrMApjZsbE-4_cdYBwoUxZmVkTztu4vQ/exec';
         console.log('[CVAPI] GAS_URL:', url, ', ENV存在:', !!window.ENV);
         return url;
     },
