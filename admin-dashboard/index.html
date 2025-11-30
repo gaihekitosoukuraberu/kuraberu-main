@@ -10396,9 +10396,9 @@ window.addEventListener('beforeunload', function(e) {
 (function() {
   const cacheBuster = new Date().getTime();
 
-  // env-loader.js を動的ロード
+  // env-loader.js を動的ロード（マスターファイルを参照）
   const envScript = document.createElement("script");
-  envScript.src = "js/env-loader.js?v=" + cacheBuster;
+  envScript.src = "/js/env-loader.js?v=" + cacheBuster;
   document.write("<script src=\"" + envScript.src + "\"><\/script>");
 
   // api-client.js を動的ロード
