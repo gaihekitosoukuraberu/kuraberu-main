@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1984 - Google Maps短縮URL優先対応）
-  CACHE_BUSTER: 'v1984-maplink-priority'
+  CACHE_BUSTER: 'v1764468403-fe449f3c'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
