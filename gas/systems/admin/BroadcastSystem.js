@@ -61,9 +61,9 @@ var BroadcastSystem = {
         return { success: false, error: 'CV情報が見つかりません' };
       }
 
-      // エリア情報取得
-      const prefecture = cvData.prefecture || this.extractPrefecture(cvData.address);
-      const city = cvData.city || this.extractCity(cvData.address);
+      // エリア情報取得（カラム名: 都道府県、市区町村、住所詳細）
+      const prefecture = cvData['都道府県'] || cvData.prefecture || this.extractPrefecture(cvData['住所詳細'] || cvData.address || '');
+      const city = cvData['市区町村'] || cvData.city || this.extractCity(cvData['住所詳細'] || cvData.address || '');
 
       if (!prefecture) {
         return { success: false, error: '都道府県情報がありません' };
@@ -139,9 +139,9 @@ var BroadcastSystem = {
         return { success: false, error: 'CV情報が見つかりません' };
       }
 
-      // エリア情報取得
-      const prefecture = cvData.prefecture || this.extractPrefecture(cvData.address);
-      const city = cvData.city || this.extractCity(cvData.address);
+      // エリア情報取得（カラム名: 都道府県、市区町村、住所詳細）
+      const prefecture = cvData['都道府県'] || cvData.prefecture || this.extractPrefecture(cvData['住所詳細'] || cvData.address || '');
+      const city = cvData['市区町村'] || cvData.city || this.extractCity(cvData['住所詳細'] || cvData.address || '');
 
       if (!prefecture) {
         return { success: false, error: '都道府県情報がありません' };
