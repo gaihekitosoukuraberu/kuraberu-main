@@ -370,11 +370,15 @@ const BusinessSelectionHandler = {
       // キャッシュに保存
       this.currentCaseData = currentCaseData;
 
+      // CV IDを取得（caseIdまたはcurrentCaseDataから）
+      const cvId = currentCaseData?.cvId || currentCaseData?._rawData?.cvId || caseId;
+      console.log('[loadBusinessSelectionData] cvId:', cvId, 'caseId:', caseId);
+
       // V2004: 転送済み業者リストを取得（二重転送防止）
-      await this.loadDeliveredFranchises(caseId);
+      await this.loadDeliveredFranchises(cvId);
 
       // V2007: 申込済み業者リストを取得（一斉配信から）
-      await this.loadAppliedFranchises(caseId);
+      await this.loadAppliedFranchises(cvId);
 
       // AS列から業者名を取得（V1902: franchiseSelectionHistoryキーもサポート）
       const businessHistory = currentCaseData.businessHistory || currentCaseData.franchiseSelectionHistory || '';
