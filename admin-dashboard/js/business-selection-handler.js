@@ -1323,11 +1323,11 @@ const BusinessSelectionHandler = {
       }
     }
 
-    // 転送済み業者を最上部に配置
+    // V2004: 転送済み業者を最上部に配置 + isDeliveredフラグ追加
     const deliveredNames = this.deliveredFranchises.map(f => f.franchiseName);
-    const deliveredFranchises = displayFranchises.filter(f => deliveredNames.includes(f.companyName));
+    const deliveredFranchisesFiltered = displayFranchises.filter(f => deliveredNames.includes(f.companyName));
     const otherFranchises = displayFranchises.filter(f => !deliveredNames.includes(f.companyName));
-    const topFranchises = [...deliveredFranchises, ...otherFranchises];
+    const topFranchises = [...deliveredFranchisesFiltered, ...otherFranchises];
 
     // V1920: カード生成（チェックボックス状態を保持）
     return topFranchises.map((franchise, index) => {
@@ -1337,8 +1337,12 @@ const BusinessSelectionHandler = {
       // マッチ率を計算
       const matchRate = this.calculateMatchRate(franchise);
 
+      // V2004: 転送済みかどうかチェック
+      const isDelivered = deliveredNames.includes(franchise.companyName);
+
       // V1924: チェック条件 = Set に含まれるか（ユーザー操作を完全に尊重）
-      const shouldCheck = this.checkedCompanies.has(franchise.companyName);
+      // V2004: ただし転送済みはチェック不可
+      const shouldCheck = isDelivered ? false : this.checkedCompanies.has(franchise.companyName);
 
       return {
         rank,
@@ -1350,6 +1354,7 @@ const BusinessSelectionHandler = {
         isUserSelected,
         matchDetails: matchRate.details,
         shouldCheck,
+        isDelivered,  // V2004: 転送済みフラグ
         avgContractAmount: franchise.avgContractAmount,
         rating: franchise.rating,
         reviewCount: franchise.reviewCount,
