@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1987 - 配列型データ対応修正）
-  CACHE_BUSTER: 'v1987-array-fix'
+  CACHE_BUSTER: 'v1764470664-fed4711b'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
