@@ -374,8 +374,14 @@ const BusinessSelectionHandler = {
       const cvId = currentCaseData?.cvId || currentCaseData?._rawData?.cvId || caseId;
       console.log('[loadBusinessSelectionData] cvId:', cvId, 'caseId:', caseId);
 
-      // V2004: 転送済み業者リストを取得（二重転送防止）
-      await this.loadDeliveredFranchises(cvId);
+      // V2011: 転送直後はローカルキャッシュを使用、それ以外はAPIから取得
+      if (!this.skipNextDeliveredLoad) {
+        // V2004: 転送済み業者リストを取得（二重転送防止）
+        await this.loadDeliveredFranchises(cvId);
+      } else {
+        console.log('[V2011] 転送直後のためdeliveredFranchises再取得をスキップ');
+        this.skipNextDeliveredLoad = false;
+      }
 
       // V2007: 申込済み業者リストを取得（一斉配信から）
       await this.loadAppliedFranchises(cvId);

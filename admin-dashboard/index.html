@@ -10919,8 +10919,12 @@ info@gaihekikuraberu.com
                         updateActionButtons(casesData[currentCaseId]);
                     }
 
-                    // V2010: 転送済み業者リストを即座に更新（リロード不要）
-                    if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.deliveredFranchises) {
+                    // V2011: 転送済み業者リストを更新してUI再描画
+                    if (window.BusinessSelectionHandler) {
+                        // deliveredFranchisesに追加
+                        if (!window.BusinessSelectionHandler.deliveredFranchises) {
+                            window.BusinessSelectionHandler.deliveredFranchises = [];
+                        }
                         d.selectedFranchises.forEach(f => {
                             window.BusinessSelectionHandler.deliveredFranchises.push({
                                 franchiseId: f.id,
@@ -10929,15 +10933,13 @@ info@gaihekikuraberu.com
                                 deliveryDate: new Date().toLocaleString('ja-JP')
                             });
                         });
-                        // 業者選択UIを再描画
-                        if (window.BusinessSelectionHandler.applySortAndRender) {
-                            window.BusinessSelectionHandler.applySortAndRender();
-                        }
+                        // 次回ロード時にAPI再取得をスキップするフラグ
+                        window.BusinessSelectionHandler.skipNextDeliveredLoad = true;
                     }
 
-                    // CRMビュー更新
+                    // CRMビュー更新（業者選択も再読み込みされる）
                     if (typeof loadCRMContent === 'function') {
-                        loadCRMContent(currentCaseId);
+                        await loadCRMContent(currentCaseId);
                     }
                 } else {
                     throw new Error(transferResponse.error || '転送に失敗しました');
