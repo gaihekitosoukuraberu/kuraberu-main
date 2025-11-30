@@ -251,13 +251,6 @@ const SystemRouter = {
       prefix: false,
       actions: ['sendOrderTransfer']
     },
-    // V2005: 予約転送
-    'scheduleOrderTransfer': {
-      system: 'AdminSystem',
-      description: '予約転送',
-      prefix: false,
-      actions: ['scheduleOrderTransfer']
-    },
 
     // CVハートビートシステム（V1754）
     'heartbeat': {
@@ -697,18 +690,6 @@ function doGet(e) {
             console.log('[main.js] Parsed sendOrderTransfer params');
           } catch (err) {
             console.error('[main.js] Failed to parse sendOrderTransfer parameters:', err);
-          }
-        }
-
-        // V2005: scheduleOrderTransferの場合、複数パラメータをJSONパース
-        if (action === 'scheduleOrderTransfer') {
-          try {
-            if (e.parameter.franchises) {
-              e.parameter.franchises = JSON.parse(e.parameter.franchises);
-            }
-            console.log('[main.js] Parsed scheduleOrderTransfer params');
-          } catch (err) {
-            console.error('[main.js] Failed to parse scheduleOrderTransfer parameters:', err);
           }
         }
 

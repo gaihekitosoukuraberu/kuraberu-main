@@ -221,7 +221,6 @@ const BusinessSelectionHandler = {
   checkedCompanies: new Set(), // V1921: チェック済み業者名（グローバル管理）
   distancesCalculated: false, // 距離計算済みフラグ
   deliveredFranchises: [],    // V2004: 転送済み業者リスト（二重転送防止用）
-  scheduledTransferData: null, // V2007: 予約転送データ（JSONパース済み）
 
   /**
    * 初期化
@@ -263,35 +262,7 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * V2007: 予約転送データを読み込み
-   * @param {object} currentCaseData - 案件データ
-   */
-  loadScheduledTransferData(currentCaseData) {
-    this.scheduledTransferData = null;
-
-    // CG列（scheduledTransferData）を取得
-    const scheduledDataStr = currentCaseData.scheduledTransferData || currentCaseData._rawData?.scheduledTransferData || '';
-
-    if (!scheduledDataStr || scheduledDataStr.trim() === '') {
-      console.log('[V2007] 予約転送データなし');
-      return;
-    }
-
-    try {
-      this.scheduledTransferData = JSON.parse(scheduledDataStr);
-      console.log('[V2007] 予約転送データ読み込み:', {
-        scheduledDateTime: this.scheduledTransferData.scheduledDateTime,
-        franchises: this.scheduledTransferData.franchises?.map(f => f.franchiseName)
-      });
-    } catch (error) {
-      console.error('[V2007] 予約転送データJSONパースエラー:', error);
-      this.scheduledTransferData = null;
-    }
-  },
-
-  /**
    * V2004: 業者が転送済みかチェック
-   * V2007: 予約転送済みもチェック
    * @param {string} companyName - 会社名
    * @returns {object|null} 転送済み情報またはnull
    */
@@ -300,33 +271,6 @@ const BusinessSelectionHandler = {
     const delivered = this.deliveredFranchises.find(f => f.franchiseName === companyName);
     if (delivered) {
       return delivered;
-    }
-
-    // V2007: 予約転送済みの業者をチェック
-    if (this.scheduledTransferData && this.scheduledTransferData.franchises) {
-      const scheduled = this.scheduledTransferData.franchises.find(
-        f => f.franchiseName === companyName || f.franchiseId === companyName
-      );
-      if (scheduled) {
-        // 予約転送日時をフォーマット
-        const scheduledDateTime = this.scheduledTransferData.scheduledDateTime;
-        let formattedDate = '';
-        if (scheduledDateTime) {
-          try {
-            const d = new Date(scheduledDateTime);
-            formattedDate = `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
-          } catch (e) {
-            formattedDate = scheduledDateTime;
-          }
-        }
-        return {
-          franchiseName: companyName,
-          isScheduled: true,
-          scheduledDateTime: scheduledDateTime,
-          deliveryDate: formattedDate,
-          detailStatus: '予約転送'
-        };
-      }
     }
 
     return null;
@@ -387,9 +331,6 @@ const BusinessSelectionHandler = {
 
       // V2004: 転送済み業者リストを取得（二重転送防止）
       await this.loadDeliveredFranchises(caseId);
-
-      // V2007: 予約転送データを読み込み（CG列）
-      this.loadScheduledTransferData(currentCaseData);
 
       // AS列から業者名を取得（V1902: franchiseSelectionHistoryキーもサポート）
       const businessHistory = currentCaseData.businessHistory || currentCaseData.franchiseSelectionHistory || '';

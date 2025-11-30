@@ -1287,10 +1287,6 @@ const CVSheetSystem = {
           specialItems: row[82] || '',                  // 83列目: 特殊項目（index 82）
           googleMapsLink: row[83] || '',               // 84列目: Google Mapsリンク（index 83）
 
-          // V2005: 予約転送関連（CF列〜CG列）
-          scheduledDeliveryDateTime: row[84] || '',    // CF: 配信予定日時（index 84）
-          scheduledTransferData: row[85] || '',        // CG: 予約転送データJSON（index 85）
-
           // V1832: BOT回答カラムを直接フィールドとしても読み込み（空文字列保持のため）
           quoteCount: row[36] || '',                    // AK: Q11_見積もり保有数（index 36）
           quoteSource: row[37] || '',                   // AL: Q12_見積もり取得先（index 37）

@@ -291,9 +291,6 @@ const CVListManager = {
         memo: cv.memo || '',
         caseMemo: this.buildCaseMemo(cv),
 
-        // V2005: 予約転送データ
-        scheduledTransferData: cv.scheduledTransferData || '',
-
         // 元データを保持（詳細表示用）
         _rawData: cv
       };
