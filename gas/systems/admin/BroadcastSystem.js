@@ -689,8 +689,21 @@ var BroadcastSystem = {
       activeCount++;
 
       const cities = data[i][citiesIdx] || '';
-      // エリアマッチング: 対応市区町村に案件の市区町村が含まれている
-      const isMatch = city && cities.includes(city);
+      // エリアマッチング: 案件の市区町村（例:横浜市青葉区）が加盟店の対応市区町村に部分一致するか
+      // 加盟店側: "横浜市,川崎市,相模原市" のようなカンマ区切りリスト
+      // 案件側: "横浜市青葉区" → "横浜市" を含む加盟店にマッチ
+      let isMatch = false;
+      if (city && cities) {
+        const cityList = cities.split(/[,、\n\s]+/).map(c => c.trim()).filter(c => c);
+        for (const targetCity of cityList) {
+          // 案件の市区町村が対応エリアを含む（横浜市青葉区 includes 横浜市）
+          // または対応エリアが案件の市区町村を含む（横浜市 includes 横浜市青葉区はfalseだが念のため）
+          if (city.includes(targetCity) || targetCity.includes(city)) {
+            isMatch = true;
+            break;
+          }
+        }
+      }
 
       if (isMatch) {
         franchises.push({
