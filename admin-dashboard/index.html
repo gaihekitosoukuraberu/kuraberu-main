@@ -9036,7 +9036,7 @@ window.addEventListener('beforeunload', function(e) {
             // 案件メールボタン
             if (isBroadcastSent) {
                 broadcastBtn.disabled = true;
-                broadcastBtn.innerHTML = '✅ 案件メール配信済み';
+                broadcastBtn.innerHTML = '✅ 案件メール済';
                 broadcastBtn.className = 'w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-gray-400 text-white rounded-xl font-bold text-base sm:text-lg cursor-not-allowed';
             } else {
                 broadcastBtn.disabled = false;
@@ -11001,6 +11001,15 @@ info@gaihekikuraberu.com
                     // ステータス更新
                     if (casesData[currentCaseId]) {
                         casesData[currentCaseId].status = '案件メール配信中';
+                        casesData[currentCaseId].broadcastSent = true;
+                    }
+
+                    // 案件メールボタンを即座に無効化
+                    const broadcastBtn = document.getElementById('broadcastBtn');
+                    if (broadcastBtn) {
+                        broadcastBtn.disabled = true;
+                        broadcastBtn.innerHTML = '✅ 案件メール済';
+                        broadcastBtn.className = 'w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-gray-400 text-white rounded-xl font-bold text-base sm:text-lg cursor-not-allowed';
                     }
 
                     // CRMビュー更新
