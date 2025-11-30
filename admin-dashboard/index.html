@@ -10907,10 +10907,18 @@ info@gaihekikuraberu.com
 
                     // ステータスと転送数を更新
                     if (casesData[currentCaseId]) {
-                        casesData[currentCaseId].status = '配信済';
-                        casesData[currentCaseId].deliveryStatus = '配信済';
                         // 転送数を加算（既存 + 今回の転送数）
-                        casesData[currentCaseId].transferCount = (casesData[currentCaseId].transferCount || 0) + d.selectedFranchises.length;
+                        const newTransferCount = (casesData[currentCaseId].transferCount || 0) + d.selectedFranchises.length;
+                        casesData[currentCaseId].transferCount = newTransferCount;
+
+                        // 希望社数を取得（デフォルト3社）
+                        const desiredCountStr = casesData[currentCaseId].desiredCount || casesData[currentCaseId].companiesCountPreference || '3社';
+                        const desiredCount = parseInt(desiredCountStr) || 3;
+
+                        // 希望社数に達したかどうかでステータスを決定
+                        const newStatus = newTransferCount >= desiredCount ? '配信済' : '配信中';
+                        casesData[currentCaseId].status = newStatus;
+                        casesData[currentCaseId].deliveryStatus = newStatus;
 
                         // ボタン状態を即座に更新（希望社数と比較）
                         updateActionButtons(casesData[currentCaseId]);

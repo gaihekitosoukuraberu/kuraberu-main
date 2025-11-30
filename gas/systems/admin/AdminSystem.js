@@ -2505,8 +2505,9 @@ const AdminSystem = {
 
   /**
    * V2003: ユーザー登録シートの配信ステータス・配信先加盟店数・配信日時・配信先業者一覧を自動更新
+   * 希望社数に達していたら「配信済」、達していなければ「配信中」
    */
-  updateUserSheetDeliveryStatus: function(userSheet, cvId, franchiseCount, timestamp, franchises) {
+  updateUserSheetDeliveryStatus: function(userSheet, cvId, newFranchiseCount, timestamp, franchises) {
     try {
       const data = userSheet.getDataRange().getValues();
       const headers = data[0];
@@ -2519,9 +2520,10 @@ const AdminSystem = {
       const franchiseListIdx = headers.indexOf('配信先業者一覧');
       const managementStatusIdx = headers.indexOf('管理ステータス');
       const franchiseStatusIdx = headers.indexOf('加盟店別ステータス');
+      const desiredCountIdx = headers.indexOf('希望社数');
 
       console.log('[updateUserSheetDeliveryStatus] カラムインデックス:', {
-        cvIdIdx, deliveryStatusIdx, franchiseCountIdx, deliveryDateIdx, franchiseListIdx, managementStatusIdx, franchiseStatusIdx
+        cvIdIdx, deliveryStatusIdx, franchiseCountIdx, deliveryDateIdx, franchiseListIdx, managementStatusIdx, franchiseStatusIdx, desiredCountIdx
       });
 
       if (cvIdIdx === -1) {
@@ -2531,9 +2533,11 @@ const AdminSystem = {
 
       // CV IDで行を検索
       let targetRow = -1;
+      let targetRowData = null;
       for (let i = 1; i < data.length; i++) {
         if (data[i][cvIdIdx] === cvId) {
           targetRow = i + 1; // 1-indexed
+          targetRowData = data[i];
           break;
         }
       }
@@ -2543,11 +2547,33 @@ const AdminSystem = {
         return;
       }
 
-      // 配信先業者一覧を作成
-      const franchiseNames = franchises.map(f => f.franchiseName || f.franchiseId).join(', ');
+      // 既存の転送数を取得
+      const existingCount = parseInt(targetRowData[franchiseCountIdx]) || 0;
+      const totalTransferCount = existingCount + newFranchiseCount;
 
-      // 加盟店別ステータスJSON作成（初期値: 未対応）
-      const franchiseStatusObj = {};
+      // 希望社数を取得（デフォルト3社）
+      let desiredCount = 3;
+      if (desiredCountIdx !== -1) {
+        const desiredVal = targetRowData[desiredCountIdx];
+        desiredCount = parseInt(desiredVal) || 3;
+      }
+
+      // 希望社数に達したかどうかでステータスを決定
+      const statusToSet = totalTransferCount >= desiredCount ? '配信済' : '配信中';
+      console.log('[updateUserSheetDeliveryStatus] ステータス判定:', { totalTransferCount, desiredCount, statusToSet });
+
+      // 配信先業者一覧を作成（既存 + 新規）
+      const existingList = targetRowData[franchiseListIdx] || '';
+      const newNames = franchises.map(f => f.franchiseName || f.franchiseId).join(', ');
+      const franchiseNames = existingList ? existingList + ', ' + newNames : newNames;
+
+      // 加盟店別ステータスJSON作成（既存を保持 + 新規追加）
+      let franchiseStatusObj = {};
+      try {
+        franchiseStatusObj = JSON.parse(targetRowData[franchiseStatusIdx] || '{}');
+      } catch (e) {
+        franchiseStatusObj = {};
+      }
       franchises.forEach(f => {
         const name = f.franchiseName || f.franchiseId;
         franchiseStatusObj[name] = '未対応';
@@ -2556,10 +2582,10 @@ const AdminSystem = {
 
       // 各カラムを更新
       if (deliveryStatusIdx !== -1) {
-        userSheet.getRange(targetRow, deliveryStatusIdx + 1).setValue('配信済');
+        userSheet.getRange(targetRow, deliveryStatusIdx + 1).setValue(statusToSet);
       }
       if (franchiseCountIdx !== -1) {
-        userSheet.getRange(targetRow, franchiseCountIdx + 1).setValue(franchiseCount);
+        userSheet.getRange(targetRow, franchiseCountIdx + 1).setValue(totalTransferCount);
       }
       if (deliveryDateIdx !== -1) {
         userSheet.getRange(targetRow, deliveryDateIdx + 1).setValue(timestamp);
@@ -2568,13 +2594,13 @@ const AdminSystem = {
         userSheet.getRange(targetRow, franchiseListIdx + 1).setValue(franchiseNames);
       }
       if (managementStatusIdx !== -1) {
-        userSheet.getRange(targetRow, managementStatusIdx + 1).setValue('配信済');
+        userSheet.getRange(targetRow, managementStatusIdx + 1).setValue(statusToSet);
       }
       if (franchiseStatusIdx !== -1) {
         userSheet.getRange(targetRow, franchiseStatusIdx + 1).setValue(franchiseStatusJson);
       }
 
-      console.log('[updateUserSheetDeliveryStatus] 更新完了:', cvId, '配信先:', franchiseCount, '社');
+      console.log('[updateUserSheetDeliveryStatus] 更新完了:', cvId, '配信先:', totalTransferCount, '/', desiredCount, '社', 'ステータス:', statusToSet);
     } catch (e) {
       console.error('[updateUserSheetDeliveryStatus] エラー:', e);
     }
