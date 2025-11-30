@@ -223,6 +223,7 @@ var BroadcastSystem = {
           '物件種別',
           '築年数',
           '希望工事',
+          '紹介料',
           '残り枠'
         ],
         excludedInfo: [
@@ -883,6 +884,7 @@ ${franchise.name} 御中
 物件種別: ${propertyType}
 築年数: ${buildingAge}年
 希望工事: ${workItems}
+紹介料: ¥${fee.toLocaleString()}（税別）
 残り枠: ${remainingSlots}社
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
