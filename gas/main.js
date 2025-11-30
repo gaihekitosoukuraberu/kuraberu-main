@@ -252,6 +252,20 @@ const SystemRouter = {
       actions: ['sendOrderTransfer']
     },
 
+    // V2006: 一斉配信システム
+    'getBroadcastTargets': {
+      system: 'BroadcastSystem',
+      description: '一斉配信対象取得',
+      prefix: false,
+      actions: ['getBroadcastTargets']
+    },
+    'sendBroadcast': {
+      system: 'BroadcastSystem',
+      description: '一斉配信実行',
+      prefix: false,
+      actions: ['sendBroadcast']
+    },
+
     // CVハートビートシステム（V1754）
     'heartbeat': {
       system: 'CVHeartbeatSystem',
