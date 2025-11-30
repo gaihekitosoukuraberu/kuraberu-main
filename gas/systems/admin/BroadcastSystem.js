@@ -63,12 +63,25 @@ var BroadcastSystem = {
         return { success: false, error: 'CV情報が見つかりません' };
       }
 
+      // デバッグ: cvDataのキーを確認
+      console.log('[getBroadcastTargets] cvData keys:', Object.keys(cvData));
+      console.log('[getBroadcastTargets] cvData都道府県関連:', JSON.stringify({
+        '都道府県（物件）': cvData['都道府県（物件）'],
+        '都道府県': cvData['都道府県'],
+        'prefecture': cvData.prefecture,
+        '住所詳細（物件）': cvData['住所詳細（物件）'],
+        '住所詳細': cvData['住所詳細'],
+        'address': cvData.address
+      }));
+
       // エリア情報取得（カラム名: 都道府県（物件）、市区町村（物件）、住所詳細（物件））
       const prefecture = cvData['都道府県（物件）'] || cvData['都道府県'] || cvData.prefecture || this.extractPrefecture(cvData['住所詳細（物件）'] || cvData['住所詳細'] || cvData.address || '');
       const city = cvData['市区町村（物件）'] || cvData['市区町村'] || cvData.city || this.extractCity(cvData['住所詳細（物件）'] || cvData['住所詳細'] || cvData.address || '');
 
+      console.log('[getBroadcastTargets] 抽出結果: prefecture=', prefecture, ', city=', city);
+
       if (!prefecture) {
-        return { success: false, error: '都道府県情報がありません' };
+        return { success: false, error: '都道府県情報がありません。cvDataキー: ' + Object.keys(cvData).join(', ') };
       }
 
       // エリア内の加盟店を取得
