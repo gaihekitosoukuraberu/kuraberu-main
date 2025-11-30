@@ -10360,15 +10360,33 @@ window.addEventListener('beforeunload', function(e) {
         function showOrderTransferModal() {
             // チェック済み加盟店を取得
             const selectedFranchises = [];
+            const caseData = casesData[currentCaseId] || {};
+
+            // V1986: FeeCalculatorを使用して紹介料を計算
+            let calculatedFee = 20000; // デフォルト
+            if (window.FeeCalculator) {
+                const workItems = Array.isArray(caseData.workItems) ? caseData.workItems :
+                    (caseData.workItems ? caseData.workItems.split(/[,、]/).map(i => i.trim()).filter(i => i) : []);
+                calculatedFee = FeeCalculator.calculateFromWorkItems(
+                    workItems,
+                    1, // 各社個別なので1社
+                    caseData.propertyType || '',
+                    caseData.floors || ''
+                );
+            }
+
             document.querySelectorAll('.franchise-item').forEach((item, index) => {
                 const checkbox = item.querySelector('input[type="checkbox"]');
                 const isSelected = checkbox ? checkbox.checked : item.classList.contains('selected');
 
                 if (isSelected) {
                     const franchiseId = item.getAttribute('data-franchise-id');
-                    const franchiseName = item.querySelector('.font-semibold')?.textContent || 'Unknown';
-                    const feeText = item.querySelector('.text-pink-600')?.textContent || '¥20,000';
-                    const feeNum = parseFee(feeText);
+                    // V1986: 会社名を正確に取得（.font-semibold.text-gray-900）
+                    const franchiseName = item.querySelector('.font-semibold.text-gray-900')?.textContent?.trim() ||
+                                          item.querySelector('.font-semibold')?.textContent?.trim() || 'Unknown';
+                    // V1986: data-referral-price属性から紹介料を取得、なければ計算済み金額を使用
+                    const referralPrice = item.getAttribute('data-referral-price');
+                    const feeNum = referralPrice ? parseInt(referralPrice, 10) : calculatedFee;
 
                     selectedFranchises.push({
                         id: franchiseId,
@@ -10389,8 +10407,7 @@ window.addEventListener('beforeunload', function(e) {
                 return;
             }
 
-            // casesDataから現在の案件データを取得
-            const caseData = casesData[currentCaseId] || {};
+            // V1986: caseDataは既に上で取得済み
             const now = new Date();
             const deliveryDate = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
@@ -10451,6 +10468,26 @@ window.addEventListener('beforeunload', function(e) {
         }
 
         // 各社向け転送メッセージ生成（プロフェッショナル版・絵文字なし）
+        // V1986: 日時表記をISO形式から読みやすい形式に変換
+        function formatDateTimeForTransfer(dateStr) {
+            if (!dateStr) return '';
+            // ISO形式（2025-11-30T10:00:00.000Z）をパース
+            if (dateStr.includes('T')) {
+                try {
+                    const d = new Date(dateStr);
+                    if (!isNaN(d.getTime())) {
+                        const year = d.getFullYear();
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        const hours = String(d.getHours()).padStart(2, '0');
+                        const mins = String(d.getMinutes()).padStart(2, '0');
+                        return `${year}/${month}/${day} ${hours}:${mins}`;
+                    }
+                } catch (e) {}
+            }
+            return dateStr; // パース失敗時はそのまま返す
+        }
+
         function generateTransferMessageForFranchise(franchiseIndex) {
             const d = window.currentOrderTransferData;
             if (!d) return '';
@@ -10512,8 +10549,9 @@ ${f.name} 御中
             if (d.previousConstructionTime) paintHistory += `（前回: ${d.previousConstructionTime}）`;
             if (paintHistory) msg += `\n塗装履歴: ${paintHistory}`;
 
-            if (d.roofMaterial) msg += `\n屋根材: ${d.roofMaterial}`;
+            // V1986: 外壁材と屋根材の順番を変更（外壁→屋根の順に）
             if (d.wallMaterial) msg += `\n外壁材: ${d.wallMaterial}`;
+            if (d.roofMaterial) msg += `\n屋根材: ${d.roofMaterial}`;
 
             if (mapLink) msg += `\n\nGoogle Maps:\n${mapLink}`;
 
@@ -10527,12 +10565,14 @@ ${f.name} 御中
             if (d.companiesCount) msg += `\n希望社数: ${d.companiesCount}社`;
             if (d.surveyAttendance) msg += `\n立会い: ${d.surveyAttendance}`;
             if (d.quoteCount) msg += `\n他社見積: ${d.quoteCount}`;
-            if (d.nextCallDate) msg += `\n連絡希望日時: ${d.nextCallDate}`;
+            // V1986: 連絡希望日時をフォーマット
+            if (d.nextCallDate) msg += `\n連絡希望日時: ${formatDateTimeForTransfer(d.nextCallDate)}`;
             if (d.contactTimeSlot) msg += `\n連絡時間帯: ${d.contactTimeSlot}`;
             if (d.selectionCriteria) msg += `\n業者選定条件: ${d.selectionCriteria}`;
-            if (d.specialItems) msg += `\n特殊項目: ${d.specialItems}`;
+            // V1986: specialItemsが空でないときのみ表示（空文字列でも表示されていたバグを修正）
+            if (d.specialItems && d.specialItems.trim()) msg += `\n特殊項目: ${d.specialItems}`;
 
-            if (d.memo) {
+            if (d.memo && d.memo.trim()) {
                 msg += `
 
 -------------------------------------------

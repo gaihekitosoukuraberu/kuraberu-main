@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1985 - 転送文に会社情報追加）
-  CACHE_BUSTER: 'v1764468463-fe22d57f'
+  // キャッシュバスター（V1986 - オーダー転送UI改善）
+  CACHE_BUSTER: 'v1986-transfer-fix'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
