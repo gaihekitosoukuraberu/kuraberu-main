@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1996 - GAS側で転送文生成・メール送信）
-  CACHE_BUSTER: 'v1996-gas-generate-transfer'
+  CACHE_BUSTER: 'v1764477904-fec52898'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
