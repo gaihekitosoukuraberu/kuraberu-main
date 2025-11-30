@@ -71,19 +71,19 @@
  */
 
 // ============================================
-// 🔥 バージョン定数（V1947-POSTAL-CODE-FILTERING）
+// 🔥 バージョン定数（V2021-FRANCHISE-ID-FIX）
 // ============================================
-const BUSINESS_SELECTION_HANDLER_VERSION = 2005;
-const EXPECTED_MIN_VERSION = 2005;
+const BUSINESS_SELECTION_HANDLER_VERSION = 2021;
+const EXPECTED_MIN_VERSION = 2021;
 
 // ============================================
-// 🔥 バージョン確認ログ（V2005）
+// 🔥 バージョン確認ログ（V2021）
 // ============================================
-console.log('%c[BusinessSelectionHandler] V2005 loaded successfully', 'color: #00ff00; font-weight: bold; font-size: 18px');
+console.log('%c[BusinessSelectionHandler] V2021 loaded successfully', 'color: #00ff00; font-weight: bold; font-size: 18px');
 console.log('[BusinessSelectionHandler] Version: ' + BUSINESS_SELECTION_HANDLER_VERSION);
-console.log('[BusinessSelectionHandler] Timestamp: 2025-11-30 22:50 JST');
-console.log('[BusinessSelectionHandler] V2005 Features: 転送済みバッジ表示 - jsonpRequest API修正');
-console.log('[BusinessSelectionHandler] V2005: getDeliveredFranchises API working');
+console.log('[BusinessSelectionHandler] Timestamp: 2025-12-01 14:30 JST');
+console.log('[BusinessSelectionHandler] V2021 Features: franchiseId修正 - 登録IDを正しく使用');
+console.log('[BusinessSelectionHandler] V2021: 配信管理シートに登録IDが保存されるよう修正');
 
 // ============================================
 // 🔥 V1929: バージョンチェック & キャッシュ警告バナー表示
@@ -604,13 +604,13 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * RankingSystemの業者データをフランチャイズ形式に変換（V1880: 新実装）
+   * RankingSystemの業者データをフランチャイズ形式に変換（V1880: 新実装 / V2021: franchiseId修正）
    * @param {object} business - RankingSystemの業者オブジェクト
    * @returns {object} フランチャイズ形式のオブジェクト
    */
   convertToFranchiseFormat(business) {
     const converted = {
-      franchiseId: business.companyName, // IDの代わりに会社名を使用
+      franchiseId: business.franchiseId || business.companyName, // V2021: 登録IDがあればそれを使用、なければ会社名
       companyName: business.companyName,
       serviceAreas: [business.prefecture].filter(p => p),
       city: business.city || '',

@@ -104,8 +104,9 @@ const RankingSystem = {
       // V1713-FIX: onEditトリガーで加盟店登録→加盟店マスタが自動同期されるため、
       // マスタシートだけを読めばOK（高速化）
 
-      // カラムインデックス取得（V1707: 対応築年数追加 / V1713: ボーナス・フラグ追加 / V1750: 3ヶ月データ追加 / V1751: 加盟日追加 / V1754: 総合スコア追加）
+      // カラムインデックス取得（V1707: 対応築年数追加 / V1713: ボーナス・フラグ追加 / V1750: 3ヶ月データ追加 / V1751: 加盟日追加 / V1754: 総合スコア追加 / V2021: 登録ID追加）
       const colIndex = {
+        franchiseId: masterHeaders.indexOf('登録ID'),  // V2021: 配信管理用に登録IDを追加
         companyName: masterHeaders.indexOf('会社名'),
         prefecture: masterHeaders.indexOf('対応都道府県'),
         cities: masterHeaders.indexOf('対応市区町村'),
@@ -448,9 +449,10 @@ const RankingSystem = {
           maxFloors: row[colIndex.maxFloors] || ''
         }, userParams);
 
-        // すべての条件を満たした業者を追加（V1751: 加盟日 + データ移行システム / V1896: マッチ度追加）
+        // すべての条件を満たした業者を追加（V1751: 加盟日 + データ移行システム / V1896: マッチ度追加 / V2021: 登録ID追加）
         filterStats.passed++;
         filtered.push({
+          franchiseId: row[colIndex.franchiseId] || '',  // V2021: 配信管理シートの加盟店ID用
           companyName: companyName,
           avgContractAmount: recent3MonthAvgAmount,
           rating: finalRating,
@@ -574,6 +576,7 @@ const RankingSystem = {
             }, userParams);
 
             return {
+              franchiseId: row[colIndex.franchiseId] || '',  // V2021: 配信管理シートの加盟店ID用
               companyName: companyName,
               avgContractAmount: recent3MonthAvgAmount,
               rating: row[colIndex.rating] || 4.2,
@@ -666,6 +669,7 @@ const RankingSystem = {
             }, userParams);
 
             return {
+              franchiseId: row[colIndex.franchiseId] || '',  // V2021: 配信管理シートの加盟店ID用
               companyName: companyName,
               avgContractAmount: recent3MonthAvgAmount,
               rating: row[colIndex.rating] || 4.2,
