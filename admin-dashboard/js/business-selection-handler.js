@@ -1508,23 +1508,27 @@ const BusinessSelectionHandler = {
               }
             }
 
-            // V2017: パターン4: 屋根葺き替え系のマッチング
-            // CRM側: 「屋根葺き替え（スレート）」「屋根葺き替え（瓦）」「屋根葺き替え」
+            // V2018: パターン4: 屋根葺き替え系のマッチング
+            // CRM側: 「屋根葺き替え（スレート）」「屋根葺き替え（瓦）」「屋根葺き替え」等
             // 業者側: 「屋根葺き替え・張り替え※スレート・ガルバリウム等」「屋根葺き替え・張り替え※瓦」
-            if (caseWork === '屋根葺き替え（スレート）' || caseWork === '屋根葺き替え' || caseWork.includes('屋根葺') && !caseWork.includes('瓦')) {
-              // スレート系 → 「※スレート・ガルバリウム等」にマッチ
-              if (franchiseWork === '屋根葺き替え・張り替え※スレート・ガルバリウム等') {
-                matched.push(franchiseWork);
-                isMatched = true;
-                break;
-              }
-            }
-            if (caseWork === '屋根葺き替え（瓦）' || (caseWork === '屋根葺き替え' && (this.currentCaseData?.roofMaterial || '').includes('瓦'))) {
-              // 瓦系 → 「※瓦」にマッチ
-              if (franchiseWork === '屋根葺き替え・張り替え※瓦') {
-                matched.push(franchiseWork);
-                isMatched = true;
-                break;
+            // ルール: 瓦は瓦専用、それ以外（スレート含む全て）はスレート・ガルバリウム等にマッチ
+            if (caseWork.includes('屋根葺')) {
+              const isTileRoof = caseWork.includes('瓦'); // 瓦かどうか
+
+              if (isTileRoof) {
+                // 瓦 → 「※瓦」にマッチ
+                if (franchiseWork === '屋根葺き替え・張り替え※瓦') {
+                  matched.push(franchiseWork);
+                  isMatched = true;
+                  break;
+                }
+              } else {
+                // 瓦以外（スレート含む全て） → 「※スレート・ガルバリウム等」にマッチ
+                if (franchiseWork === '屋根葺き替え・張り替え※スレート・ガルバリウム等') {
+                  matched.push(franchiseWork);
+                  isMatched = true;
+                  break;
+                }
               }
             }
           }

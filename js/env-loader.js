@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-30T12:21:29.844Z - Deployment: AKfycbz8nId5T1iqrn4GyBUDx-XP2ffVvIPvgXmsPnKAdmSJXXUcoCV1IW1Ea18PnaTjTGxK
+// Auto-synced: 2025-12-01T00:00:00.000Z - Deployment: AKfycbzDBLAJZ_jvb78KDLzFh-e-Nx5o9P1NnSjdiSeangSCdPAcurS98nc8G_djW77AkUDVTQ
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -12,8 +12,8 @@
  * 参照方法（PHP）:
  * このファイルを読み込んでGAS_URLを抽出
  *
- * @file-version V1862-MASTER-@HEAD-2025-11-26T03:10:40
- * @last-update 2025-11-26T03:10:40
+ * @file-version V2018-MASTER-@HEAD-2025-12-01T00:00:00
+ * @last-update 2025-12-01T00:00:00
  */
 
 const ENV = {
@@ -21,14 +21,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V1997 最新デプロイメント
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbz8nId5T1iqrn4GyBUDx-XP2ffVvIPvgXmsPnKAdmSJXXUcoCV1IW1Ea18PnaTjTGxK/exec',
+  // プライマリGAS URL（メイン運用）- V2018 LP/CV2修正
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbzDBLAJZ_jvb78KDLzFh-e-Nx5o9P1NnSjdiSeangSCdPAcurS98nc8G_djW77AkUDVTQ/exec',
 
-  // フォールバックGAS URL（バックアップ）- V1997 最新デプロイメント
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbz8nId5T1iqrn4GyBUDx-XP2ffVvIPvgXmsPnKAdmSJXXUcoCV1IW1Ea18PnaTjTGxK/exec',
+  // フォールバックGAS URL（バックアップ）- V2018 LP/CV2修正
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzDBLAJZ_jvb78KDLzFh-e-Nx5o9P1NnSjdiSeangSCdPAcurS98nc8G_djW77AkUDVTQ/exec',
 
-  // 緊急時URL（最終フォールバック）- V1997 最新デプロイメント
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbz8nId5T1iqrn4GyBUDx-XP2ffVvIPvgXmsPnKAdmSJXXUcoCV1IW1Ea18PnaTjTGxK/exec',
+  // 緊急時URL（最終フォールバック）- V2018 LP/CV2修正
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbzDBLAJZ_jvb78KDLzFh-e-Nx5o9P1NnSjdiSeangSCdPAcurS98nc8G_djW77AkUDVTQ/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1997 - 配信管理シート空行対策・日時フォーマット修正）
-  CACHE_BUSTER: 'v1764515315-fe9be741'
+  // キャッシュバスター（V2018 - LP/CV2修正）
+  CACHE_BUSTER: 'v2018-' + Date.now()
 };
 
 // グローバルに公開（全てのファイルから参照可能）
