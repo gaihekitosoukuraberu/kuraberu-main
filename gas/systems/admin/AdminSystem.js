@@ -2364,6 +2364,9 @@ const AdminSystem = {
         }
         if (lastDataRow === 0) lastDataRow = 1; // ヘッダー行のみの場合
         deliverySheet.getRange(lastDataRow + 1, 1, records.length, records[0].length).setValues(records);
+
+        // V2003: ユーザー登録シートの配信ステータス・配信先加盟店数・配信日時を自動更新
+        this.updateUserSheetDeliveryStatus(userSheet, cvId, records.length, timestamp, franchises);
       }
 
       const successCount = emailResults.filter(r => r.success).length;
@@ -2408,6 +2411,83 @@ const AdminSystem = {
     } catch (e) {
       console.error('[getCVDataForTransfer] エラー:', e);
       return null;
+    }
+  },
+
+  /**
+   * V2003: ユーザー登録シートの配信ステータス・配信先加盟店数・配信日時・配信先業者一覧を自動更新
+   */
+  updateUserSheetDeliveryStatus: function(userSheet, cvId, franchiseCount, timestamp, franchises) {
+    try {
+      const data = userSheet.getDataRange().getValues();
+      const headers = data[0];
+
+      // 必要なカラムのインデックスを取得
+      const cvIdIdx = headers.indexOf('CV ID');
+      const deliveryStatusIdx = headers.indexOf('配信ステータス');
+      const franchiseCountIdx = headers.indexOf('配信先加盟店数');
+      const deliveryDateIdx = headers.indexOf('配信日時');
+      const franchiseListIdx = headers.indexOf('配信先業者一覧');
+      const managementStatusIdx = headers.indexOf('管理ステータス');
+      const franchiseStatusIdx = headers.indexOf('加盟店別ステータス');
+
+      console.log('[updateUserSheetDeliveryStatus] カラムインデックス:', {
+        cvIdIdx, deliveryStatusIdx, franchiseCountIdx, deliveryDateIdx, franchiseListIdx, managementStatusIdx, franchiseStatusIdx
+      });
+
+      if (cvIdIdx === -1) {
+        console.error('[updateUserSheetDeliveryStatus] CV ID列が見つかりません');
+        return;
+      }
+
+      // CV IDで行を検索
+      let targetRow = -1;
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][cvIdIdx] === cvId) {
+          targetRow = i + 1; // 1-indexed
+          break;
+        }
+      }
+
+      if (targetRow === -1) {
+        console.error('[updateUserSheetDeliveryStatus] CV IDが見つかりません:', cvId);
+        return;
+      }
+
+      // 配信先業者一覧を作成
+      const franchiseNames = franchises.map(f => f.franchiseName || f.franchiseId).join(', ');
+
+      // 加盟店別ステータスJSON作成（初期値: 未対応）
+      const franchiseStatusObj = {};
+      franchises.forEach(f => {
+        const name = f.franchiseName || f.franchiseId;
+        franchiseStatusObj[name] = '未対応';
+      });
+      const franchiseStatusJson = JSON.stringify(franchiseStatusObj);
+
+      // 各カラムを更新
+      if (deliveryStatusIdx !== -1) {
+        userSheet.getRange(targetRow, deliveryStatusIdx + 1).setValue('配信済み');
+      }
+      if (franchiseCountIdx !== -1) {
+        userSheet.getRange(targetRow, franchiseCountIdx + 1).setValue(franchiseCount);
+      }
+      if (deliveryDateIdx !== -1) {
+        userSheet.getRange(targetRow, deliveryDateIdx + 1).setValue(timestamp);
+      }
+      if (franchiseListIdx !== -1) {
+        userSheet.getRange(targetRow, franchiseListIdx + 1).setValue(franchiseNames);
+      }
+      if (managementStatusIdx !== -1) {
+        userSheet.getRange(targetRow, managementStatusIdx + 1).setValue('配信済み');
+      }
+      if (franchiseStatusIdx !== -1) {
+        userSheet.getRange(targetRow, franchiseStatusIdx + 1).setValue(franchiseStatusJson);
+      }
+
+      console.log('[updateUserSheetDeliveryStatus] 更新完了:', cvId, '配信先:', franchiseCount, '社');
+    } catch (e) {
+      console.error('[updateUserSheetDeliveryStatus] エラー:', e);
     }
   },
 
@@ -2471,12 +2551,15 @@ ${franchiseName} 御中
     if (prop) msg += `\n物件種別: ${prop}`;
     if (cv['築年数']) msg += `\n築年数: ${cv['築年数']}年`;
     if (cv['建物面積']) msg += `\n建物面積: ${cv['建物面積']}`;
+    if (cv['住所フリガナ']) msg += `\n住所フリガナ: ${cv['住所フリガナ']}`;
     if (cv['Q4_工事歴']) msg += `\n塗装履歴: ${cv['Q4_工事歴']}`;
     if (cv['Q5_前回施工時期']) msg += `\n前回施工: ${cv['Q5_前回施工時期']}`;
     if (cv['Q6_外壁材質']) msg += `\n外壁材: ${cv['Q6_外壁材質']}`;
     if (cv['Q7_屋根材質']) msg += `\n屋根材: ${cv['Q7_屋根材質']}`;
     if (cv['Q16_現在の劣化状況']) msg += `\n劣化状況: ${cv['Q16_現在の劣化状況']}`;
     if (cv['Q8_気になる箇所']) msg += `\n気になる箇所: ${cv['Q8_気になる箇所']}`;
+    if (cv['Q9_希望工事内容_外壁']) msg += `\n外壁工事希望: ${cv['Q9_希望工事内容_外壁']}`;
+    if (cv['Q10_希望工事内容_屋根']) msg += `\n屋根工事希望: ${cv['Q10_希望工事内容_屋根']}`;
     if (mapLink) msg += `\n\nGoogle Maps:\n${mapLink}`;
 
     // 見積もり送付先（物件と異なる場合のみ表示）
@@ -2497,7 +2580,11 @@ ${franchiseName} 御中
     if (cv['Q11_見積もり保有数']) wishContent += `\n他社見積: ${cv['Q11_見積もり保有数']}`;
     if (cv['Q12_見積もり取得先']) wishContent += `\n見積もり取得先: ${cv['Q12_見積もり取得先']}`;
     if (cv['Q13_訪問業者有無']) wishContent += `\n訪問業者: ${cv['Q13_訪問業者有無']}`;
+    if (cv['Q15_訪問業者名']) wishContent += `\n訪問業者名: ${cv['Q15_訪問業者名']}`;
+    if (cv['Q14_比較意向']) wishContent += `\n比較意向: ${cv['Q14_比較意向']}`;
     if (cv['Q17_業者選定条件']) wishContent += `\n業者選定条件: ${cv['Q17_業者選定条件']}`;
+    if (cv['業者選定履歴']) wishContent += `\n業者選定履歴: ${cv['業者選定履歴']}`;
+    if (cv['ワードリンク回答']) wishContent += `\nワードリンク回答: ${cv['ワードリンク回答']}`;
     if (cv['現地調査希望日時']) wishContent += `\n現地調査希望: ${cv['現地調査希望日時']}`;
     if (cv['立ち会い可否']) {
       let attendance = cv['立ち会い可否'];

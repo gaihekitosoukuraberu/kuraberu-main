@@ -17,93 +17,125 @@
 
 var StatusDefinitions = {
   /**
-   * 詳細ステータス（加盟店ステータス13種類）
+   * V2003: 詳細ステータス（配信管理シート用・13種類）
+   * 加盟店が各案件をどう追客しているかを表す
    */
   merchantStatus: {
-    // === 未対応系 ===
+    // === 1. 未対応 ===
     PENDING: {
       value: '未対応',
       category: 'pending',
       isActive: false,
-      description: '配信されたが未だ対応していない'
-    },
-    ABSENT: {
-      value: '不在',
-      category: 'pending',
-      isActive: false,
-      description: '複数回連絡したが不在'
+      order: 1,
+      description: '配信後未着手'
     },
 
-    // === アクティブ追客系 ===
+    // === 2. 架電済/未アポ ===
     CALLED_NO_APPOINTMENT: {
       value: '架電済/未アポ',
       category: 'active',
       isActive: true,
-      description: '電話連絡は取れたがアポ未確定'
+      order: 2,
+      description: '電話したがアポ取れず'
     },
+
+    // === 3. アポ済 ===
     APPOINTMENT_SET: {
       value: 'アポ済',
       category: 'active',
       isActive: true,
-      description: 'アポイントメント確定済み'
+      order: 3,
+      description: '現調日時確定'
     },
+
+    // === 4. 現調済 ===
     SITE_SURVEY_DONE: {
       value: '現調済',
       category: 'active',
       isActive: true,
+      order: 4,
       description: '現地調査完了'
     },
-    QUOTE_SUBMITTED: {
-      value: '見積提出済み',
-      category: 'active',
-      isActive: true,
-      description: '見積書を提出済み'
-    },
-    REVISIT: {
-      value: '再訪問',
-      category: 'active',
-      isActive: true,
-      description: '再度訪問予定または訪問済み'
-    },
-    CONSIDERING: {
-      value: '検討中',
-      category: 'active',
-      isActive: true,
-      description: '顧客が検討中（見積後等）'
+
+    // === 5. 現調前キャンセル ===
+    PRE_SURVEY_CANCEL: {
+      value: '現調前キャンセル',
+      category: 'closed_failed',
+      isActive: false,
+      order: 5,
+      description: '現調前に顧客都合でキャンセル'
     },
 
-    // === 終了系（成功） ===
+    // === 6. 現調後失注 ===
+    POST_SURVEY_LOST: {
+      value: '現調後失注',
+      category: 'closed_failed',
+      isActive: false,
+      order: 6,
+      description: '現調後断られた'
+    },
+
+    // === 7. 見積提出済 ===
+    QUOTE_SUBMITTED: {
+      value: '見積提出済',
+      category: 'active',
+      isActive: true,
+      order: 7,
+      description: '見積書を顧客に提出'
+    },
+
+    // === 8. 成約 ===
     CONTRACT: {
       value: '成約',
       category: 'closed_success',
       isActive: false,
-      description: '契約成立'
-    },
-    PAYMENT_RECEIVED: {
-      value: '入金完了',
-      category: 'closed_success',
-      isActive: false,
-      description: '入金確認完了'
-    },
-    CONSTRUCTION_COMPLETE: {
-      value: '工事完了',
-      category: 'closed_success',
-      isActive: false,
-      description: '工事・施工完了'
+      order: 8,
+      description: '自社で契約締結'
     },
 
-    // === 終了系（失敗） ===
-    LOST: {
-      value: '失注',
+    // === 9. 他社契約済 ===
+    OTHER_COMPANY_CONTRACT: {
+      value: '他社契約済',
       category: 'closed_failed',
       isActive: false,
-      description: '他社に決定、または顧客辞退'
+      order: 9,
+      description: '他の一般業者で契約'
     },
-    CANCELLED: {
-      value: 'キャンセル',
+
+    // === 10. 別加盟店契約済 ===
+    OTHER_FRANCHISE_CONTRACT: {
+      value: '別加盟店契約済',
       category: 'closed_failed',
       isActive: false,
-      description: 'キャンセル承認済み（連絡取れず等）'
+      order: 10,
+      description: '他の加盟店で契約'
+    },
+
+    // === 11. 入金予定 ===
+    PAYMENT_PENDING: {
+      value: '入金予定',
+      category: 'closed_success',
+      isActive: false,
+      order: 11,
+      description: '契約金の入金待ち'
+    },
+
+    // === 12. 入金済 ===
+    PAYMENT_RECEIVED: {
+      value: '入金済',
+      category: 'closed_success',
+      isActive: false,
+      order: 12,
+      description: '入金確認完了'
+    },
+
+    // === 13. クレーム or 失注 ===
+    CLAIM_OR_LOST: {
+      value: 'クレーム or 失注',
+      category: 'closed_failed',
+      isActive: false,
+      order: 13,
+      description: '問題発生または失注'
     }
   },
 
