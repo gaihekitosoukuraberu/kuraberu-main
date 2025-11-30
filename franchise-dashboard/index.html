@@ -15369,10 +15369,16 @@
                 return true;
             });
 
-            // カードビュー描画
+            // カードビュー描画（ローディング要素を除いてクリア）
             const loadingEl = document.getElementById('casesLoading');
-            cardView.innerHTML = '';
-            if (loadingEl) cardView.appendChild(loadingEl);
+            if (loadingEl) loadingEl.classList.add('hidden');
+
+            // 既存のカードのみを削除（ローディング要素は保持）
+            Array.from(cardView.children).forEach(child => {
+                if (child.id !== 'casesLoading') {
+                    cardView.removeChild(child);
+                }
+            });
 
             if (filteredCases.length === 0) {
                 cardView.innerHTML += `
