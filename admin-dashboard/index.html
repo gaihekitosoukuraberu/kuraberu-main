@@ -8997,9 +8997,16 @@ window.addEventListener('beforeunload', function(e) {
                         );
 
                         // V1924: 初期チェック処理（AS列業者 + 100%マッチを自動チェック）
+                        // V2005: 転送済み業者は除外
                         // 古いチェック状態をクリア（新しいケースロード時）
                         window.BusinessSelectionHandler.checkedCompanies.clear();
+                        const deliveredNames = (window.BusinessSelectionHandler.deliveredFranchises || []).map(f => f.franchiseName);
                         selectionData.allFranchises.forEach(franchise => {
+                            // V2005: 転送済み業者はチェック対象から除外
+                            if (deliveredNames.includes(franchise.companyName)) {
+                                console.log('[V2005] 転送済み業者をチェック対象から除外:', franchise.companyName);
+                                return;
+                            }
                             const isUserSelected = selectionData.selectedCompanies.includes(franchise.companyName);
                             const matchRate = window.BusinessSelectionHandler.calculateMatchRate(franchise);
                             if (isUserSelected && matchRate.total === 100) {
@@ -10568,12 +10575,19 @@ window.addEventListener('beforeunload', function(e) {
             }
 
             document.querySelectorAll('.franchise-item').forEach((item, index) => {
+                // V2005: 転送済み業者は除外（チェックボックスがないはず）
+                const isDelivered = item.getAttribute('data-delivered') === 'true';
+                if (isDelivered) {
+                    console.log('[V2005] 転送済み業者をスキップ:', item.querySelector('.font-semibold')?.textContent?.trim());
+                    return; // 転送済みは絶対に除外
+                }
+
                 const checkbox = item.querySelector('input[type="checkbox"]');
                 const isSelected = checkbox ? checkbox.checked : item.classList.contains('selected');
 
                 if (isSelected) {
                     const franchiseId = item.getAttribute('data-franchise-id');
-                    // V1986: 会社名を正確に取得（.font-semibold.text-gray-900）
+                    // V2005: 会社名を正確に取得（通常は.text-gray-900、転送済みは.text-purple-700だが上で除外済み）
                     const franchiseName = item.querySelector('.font-semibold.text-gray-900')?.textContent?.trim() ||
                                           item.querySelector('.font-semibold')?.textContent?.trim() || 'Unknown';
                     // V1986: data-referral-price属性から紹介料を取得、なければ計算済み金額を使用
@@ -10594,6 +10608,23 @@ window.addEventListener('beforeunload', function(e) {
                 return;
             }
 
+            // V2005: 希望社数と既転送数から残り枠を計算
+            const desiredCountStr = caseData.desiredCount || caseData.companiesCountPreference || '3社';
+            const desiredCount = parseInt(desiredCountStr) || 3;
+            const alreadyTransferred = caseData.transferCount || 0;
+            const remainingSlots = desiredCount - alreadyTransferred;
+
+            if (remainingSlots <= 0) {
+                alert(`既に希望社数（${desiredCount}社）分の転送が完了しています`);
+                return;
+            }
+
+            if (selectedFranchises.length > remainingSlots) {
+                alert(`残り${remainingSlots}社分しか転送できません（希望${desiredCount}社、転送済${alreadyTransferred}社）`);
+                return;
+            }
+
+            // V2005: 最大4社制限は残り枠と合わせてチェック
             if (selectedFranchises.length > 4) {
                 alert('最大4社まで選択できます');
                 return;
@@ -10937,6 +10968,10 @@ info@gaihekikuraberu.com
                         const newStatus = newTransferCount >= desiredCount ? '配信済' : '配信中';
                         casesData[currentCaseId].status = newStatus;
                         casesData[currentCaseId].deliveryStatus = newStatus;
+
+                        // V2005: ステータスバッジを即座に更新
+                        updateCRMStatusBadge(newStatus);
+                        console.log('[V2005] 転送後ステータス更新:', newStatus, '(転送:', newTransferCount, '/', desiredCount, '社)');
 
                         // ボタン状態を即座に更新（希望社数と比較）
                         updateActionButtons(casesData[currentCaseId]);
