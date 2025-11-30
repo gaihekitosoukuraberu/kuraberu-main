@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1996 - GAS側で転送文生成・メール送信）
-  CACHE_BUSTER: 'v1764477904-fec52898'
+  // キャッシュバスター（V1997 - 配信管理シート空行対策・日時フォーマット修正）
+  CACHE_BUSTER: 'v1997-delivery-sheet-fix'
 };
 
 // グローバルに公開（全てのファイルから参照可能）

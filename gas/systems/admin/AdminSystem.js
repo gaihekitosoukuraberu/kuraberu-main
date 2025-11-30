@@ -2310,7 +2310,6 @@ const AdminSystem = {
 
       const now = new Date();
       const timestamp = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
-      const dateOnly = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd');
       const deliveryDate = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
 
       const emailResults = [];
@@ -2337,13 +2336,24 @@ const AdminSystem = {
           emailResults.push({ franchiseName, email: toEmail || '未登録', success: false, error: !toEmail ? 'メール未登録' : 'CVデータなし' });
         }
 
-        return [recordId, cvId, franchise.franchiseId, dateOnly, franchise.rank || (index + 1),
+        // V1997: 配信日時にも時間を含める
+        return [recordId, cvId, franchise.franchiseId, timestamp, franchise.rank || (index + 1),
           '配信済み', '未対応', timestamp, timestamp, 0, 0, 0, 0, '', '', '', '', '', '[]', '', '[]', '[]', '', '', '', '', '', '', '', '', '', '', '', '', 'FALSE'];
       });
 
       if (records.length > 0) {
-        const lastRow = deliverySheet.getLastRow();
-        deliverySheet.getRange(lastRow + 1, 1, records.length, records[0].length).setValues(records);
+        // V1997: 空行をスキップしてデータのある最後の行を見つける
+        const allData = deliverySheet.getDataRange().getValues();
+        let lastDataRow = 0;
+        for (let i = allData.length - 1; i >= 1; i--) {
+          // レコードIDカラム（A列）にデータがあれば有効行
+          if (allData[i][0] && String(allData[i][0]).trim() !== '') {
+            lastDataRow = i + 1; // 1-indexed
+            break;
+          }
+        }
+        if (lastDataRow === 0) lastDataRow = 1; // ヘッダー行のみの場合
+        deliverySheet.getRange(lastDataRow + 1, 1, records.length, records[0].length).setValues(records);
       }
 
       const successCount = emailResults.filter(r => r.success).length;
