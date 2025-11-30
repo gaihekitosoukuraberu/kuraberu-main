@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1983 - オーダー転送プロ仕様リニューアル）
-  CACHE_BUSTER: 'v1983-pro-transfer'
+  CACHE_BUSTER: 'v1764467724-fe779b58'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
