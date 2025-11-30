@@ -10947,10 +10947,10 @@ info@gaihekikuraberu.com
                         showNotification(`予約完了: ${formattedDate}に${d.selectedFranchises.length}社に転送予定`, 'success');
                         closeOrderTransferModal();
 
-                        // ステータスを「転送予約中」に更新
+                        // ステータスを「配信中」に更新
                         if (casesData[currentCaseId]) {
-                            casesData[currentCaseId].status = '転送予約中';
-                            casesData[currentCaseId].deliveryStatus = '転送予約中';
+                            casesData[currentCaseId].status = '配信中';
+                            casesData[currentCaseId].deliveryStatus = '配信中';
                         }
 
                         // CRMビュー更新
