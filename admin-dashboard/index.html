@@ -1176,11 +1176,11 @@
                     <h2 class="text-xl font-bold text-gray-900">業者選択</h2>
                 </div>
 
-                <!-- 希望社数と業者検索 -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <!-- 希望社数・配信済み件数・業者検索 -->
+                <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">希望社数</label>
-                        <select id="franchiseCount" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all appearance-none bg-white" onchange="saveFranchiseCountChange(this.value)">
+                        <label class="block text-xs font-medium text-gray-500 mb-1">希望社数</label>
+                        <select id="franchiseCount" class="w-full px-2 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all appearance-none bg-white" onchange="saveFranchiseCountChange(this.value)">
                             <option value="1社">1社</option>
                             <option value="2社">2社</option>
                             <option value="3社" selected>3社</option>
@@ -1188,18 +1188,22 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">業者検索</label>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">配信済</label>
+                        <div id="transferCountDisplay" class="w-full px-2 py-2 text-sm font-bold text-center bg-gray-100 border border-gray-300 rounded-lg text-green-600">0社</div>
+                    </div>
+                    <div class="col-span-1 sm:col-span-2">
+                        <label class="block text-xs font-medium text-gray-500 mb-1">業者検索</label>
                         <div class="relative">
                             <input type="text"
                                    id="franchiseSearch"
                                    placeholder="業者名で検索"
-                                   class="w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                                   class="w-full px-3 py-2 pr-8 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
                                    oninput="searchFranchise(this.value);">
                             <button type="button"
                                     id="clearSearchBtn"
-                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                    class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                                     onclick="clearFranchiseSearch()">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
@@ -9013,11 +9017,24 @@ window.addEventListener('beforeunload', function(e) {
         function updateActionButtons(caseData) {
             const orderTransferBtn = document.getElementById('orderTransferBtn');
             const broadcastBtn = document.getElementById('broadcastBtn');
+            const transferCountDisplay = document.getElementById('transferCountDisplay');
+
+            // 配信済み件数を表示
+            const transferCount = caseData.transferCount || 0;
+            if (transferCountDisplay) {
+                transferCountDisplay.textContent = `${transferCount}社`;
+                // 0社なら灰色、1社以上なら緑
+                if (transferCount > 0) {
+                    transferCountDisplay.className = 'w-full px-2 py-2 text-sm font-bold text-center bg-green-50 border border-green-300 rounded-lg text-green-600';
+                } else {
+                    transferCountDisplay.className = 'w-full px-2 py-2 text-sm font-bold text-center bg-gray-100 border border-gray-300 rounded-lg text-gray-500';
+                }
+            }
 
             if (!orderTransferBtn || !broadcastBtn) return;
 
             // 転送済みかどうか（配信管理に転送記録があるか）
-            const isTransferred = caseData.transferCount > 0 || caseData.status === '転送済み' || caseData.status === '転送完了';
+            const isTransferred = transferCount > 0 || caseData.status === '転送済み' || caseData.status === '転送完了';
 
             // 案件メール配信済みかどうか
             const isBroadcastSent = caseData.broadcastSent === true || caseData.broadcastSent === 'TRUE' || caseData['案件メール配信済み'] === true || caseData['案件メール配信済み'] === 'TRUE';
