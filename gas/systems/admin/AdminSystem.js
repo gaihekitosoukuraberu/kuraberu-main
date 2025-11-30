@@ -2358,9 +2358,9 @@ const AdminSystem = {
         // 28:見積金額, 29:見積提出日時, 30:成約日時, 31:成約金額, 32:辞退理由, 33:辞退日時,
         // 34:キャンセル申請ID, 35:期限延長申請ID, 36:お断りメール送信済みフラグ, 37:配信金額
         // V1999: お断りメール送信済みフラグはチェックボックス→false（boolean）
-        // V2000: 配信ステータスは「配信済み」に統一
+        // V2003: 配信ステータスは「配信済」に統一（UIと一致）
         return [recordId, cvId, franchise.franchiseId, timestamp, franchise.rank || (index + 1),
-          '配信済み', '未対応', timestamp, timestamp, 0, 0, 0, 0, '', '', '', '', '', '[]', '', '[]', '[]', '', '', '', '', '', '', '', '', '', '', '', '', '', false, fee];
+          '配信済', '未対応', timestamp, timestamp, 0, 0, 0, 0, '', '', '', '', '', '[]', '', '[]', '[]', '', '', '', '', '', '', '', '', '', '', '', '', '', false, fee];
       });
 
       // V2014: デバッグ - records配列の内容を確認
@@ -2573,19 +2573,16 @@ const AdminSystem = {
             const hopeCountStr = userData[i][userHopeIdx] || '3社';
             const hopeCount = parseInt(hopeCountStr) || 3;
 
-            // V2000: ステータス判定 - 配信ステータス列の入力規則に注意
-            // 入力規則: 配信済み, 成約, 失注, キャンセル承認済み（「配信中」「新規」は不可）
-            // - 残り0社 → 配信ステータスは更新しない（元のまま or クリア）
-            // - 残り1社以上で希望社数未満 → 配信ステータスは更新しない
-            // - 残り希望社数以上 → 配信済み
+            // V2003: ステータス判定 - UIのステータス変更と一致させる
+            // - 残り0社 → 新規に戻す
+            // - 残り1社以上で希望社数未満 → 配信中
+            // - 残り希望社数以上 → 配信済
             if (remainingCount === 0) {
-              // 転送が0になった場合、配信ステータスをクリア（入力規則で「新規」は不可）
-              newStatus = '';
+              newStatus = '新規';
             } else if (remainingCount < hopeCount) {
-              // 配信中は入力規則にないのでスキップ
-              newStatus = null;
+              newStatus = '配信中';
             } else {
-              newStatus = '配信済み';
+              newStatus = '配信済';
             }
 
             // 現在のステータスと異なる場合のみ更新（nullの場合はスキップ）
@@ -2704,9 +2701,9 @@ const AdminSystem = {
       }
 
       // 希望社数に達したかどうかでステータスを決定
-      // V2002: 配信ステータス・管理ステータス両方とも同じ値
-      // 未達成: 配信中、達成: 配信済み
-      const statusToSet = totalTransferCount >= desiredCount ? '配信済み' : '配信中';
+      // V2003: UIのステータス変更と一致させる（配信中/配信済）
+      // 未達成: 配信中、達成: 配信済
+      const statusToSet = totalTransferCount >= desiredCount ? '配信済' : '配信中';
       console.log('[updateUserSheetDeliveryStatus] ステータス判定:', { existingCount, newFranchiseCount, totalTransferCount, desiredCount, statusToSet });
 
       // 配信先業者一覧を作成（既存 + 新規）
