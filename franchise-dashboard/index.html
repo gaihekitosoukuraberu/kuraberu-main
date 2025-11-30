@@ -16927,76 +16927,7 @@
             }
         }
 
-        // 案件カードを動的に生成
-        function renderCaseCards() {
-            const cardView = document.getElementById('caseCardView');
-            if (!cardView) return;
-
-            // 既存のカードをクリア
-            cardView.innerHTML = '';
-
-            // casesDataから案件カードを生成
-            const filteredCases = casesData.filter(c => c.assignee); // 振り分け済みの案件のみ
-
-            filteredCases.forEach(caseItem => {
-                const card = createCaseCard(caseItem);
-                cardView.innerHTML += card;
-            });
-        }
-
-        // 個別の案件カードHTML生成
-        function createCaseCard(caseItem) {
-            const statusColor = getStatusColor(caseItem.status);
-
-            return `
-                <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer" onclick="showCaseDetail(${caseItem.id})" data-case-id="${caseItem.id}">
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColor}">${caseItem.status}</span>
-                        <div class="flex gap-1">
-                            <button onclick="event.stopPropagation(); showMemo(${caseItem.id})" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="メモ">
-                                <span class="text-lg">📝</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); scheduleCase(${caseItem.id})" class="p-1.5 rounded-lg hover:bg-yellow-100 transition-colors" title="スケジュール">
-                                <span class="text-lg">📅</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); passCase(${caseItem.id})" class="p-1.5 rounded-lg hover:bg-blue-100 transition-colors" title="担当パス">
-                                <span class="text-lg">🔄</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); openCancelRequest(${caseItem.id})" class="p-1.5 rounded-lg hover:bg-red-100 transition-colors" title="キャンセル申請">
-                                <span class="text-lg">❌</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); archiveCase('${caseItem.cvId || caseItem.id}')" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="追客終了BOXへ移動">
-                                <span class="text-lg">🗑️</span>
-                            </button>
-                        </div>
-                    </div>
-                    <h3 class="font-bold text-lg mb-1">${caseItem.name}</h3>
-                    <div class="mb-2">
-                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">👤 担当: ${caseItem.assignee}</span>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-2">${caseItem.location || caseItem.area}</p>
-                    <p class="text-sm text-gray-600 mb-3">${caseItem.propertyType}</p>
-                    <div class="flex justify-between items-center text-xs text-gray-500 mb-3">
-                        <span>最終連絡: ${caseItem.lastContact || '未連絡'}</span>
-                        <span>次回予定: ${caseItem.nextAction || '未定'}</span>
-                    </div>
-                    <div class="flex gap-1">
-                        <button onclick="event.stopPropagation(); callCustomer('${caseItem.phone}')" class="flex-1 px-2 py-2 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors">
-                            📞
-                        </button>
-                        <button onclick="event.stopPropagation(); sendSMS('${caseItem.phone}')" class="flex-1 px-2 py-2 bg-yellow-100 text-yellow-700 rounded text-sm hover:bg-yellow-200 transition-colors">
-                            📩
-                        </button>
-                        <button onclick="event.stopPropagation(); quickStatusChange(${caseItem.id})" class="flex-1 px-2 py-2 bg-orange-100 text-orange-700 rounded text-sm hover:bg-orange-200 transition-colors">
-                            ステータス
-                        </button>
-                        <button onclick="event.stopPropagation(); showCaseDetail(${caseItem.id})" class="flex-1 px-2 py-2 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
-                            詳細
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
+        // 古い renderCaseCards/createCaseCard は V2007 で置き換え済み
 
         // 表示切替
         function toggleCaseView() {
@@ -17016,111 +16947,22 @@
             }
         }
 
-        // 現在のフィルター状態
-        let currentFilter = 'all';
-        let currentSearchTerm = '';
-        let currentSort = 'date_desc';
-
-        // 案件カウントを更新
-        function updateCaseCounts() {
-            const counts = {
-                'all': casesData.filter(c => c.assignee).length,
-                '未対応': casesData.filter(c => c.assignee && c.status === '未対応').length,
-                'アポ済': casesData.filter(c => c.assignee && c.status === 'アポ済').length,
-                '見積提出済': casesData.filter(c => c.assignee && c.status === '見積提出済').length,
-                '成約': casesData.filter(c => c.assignee && c.status === '成約').length
-            };
-
-            // IDを使用してカウントを更新
-            Object.keys(counts).forEach(key => {
-                const el = document.getElementById(`count-${key}`);
-                if (el) {
-                    el.textContent = counts[key];
-                }
-            });
-        }
-
-        // フィルター機能
-        function filterCases(status) {
-            currentFilter = status;
-
-            // フィルターボタンのアクティブ状態を更新
-            document.querySelectorAll('.filter-stat-btn').forEach(btn => {
-                btn.classList.remove('ring-2', 'ring-blue-500');
-            });
-            event.target.closest('.filter-stat-btn').classList.add('ring-2', 'ring-blue-500');
-
-            // カードを再描画
-            renderFilteredAndSortedCards();
-        }
-
-        // 検索機能
-        function searchCases() {
-            currentSearchTerm = normalizeKana(document.getElementById('caseSearchInput').value);
-            renderFilteredAndSortedCards();
-        }
-
-        // ソート機能
-        function sortCases() {
-            currentSort = document.getElementById('caseSortSelect').value;
-            renderFilteredAndSortedCards();
-        }
-
-        // フィルター、検索、ソートを適用してカードを再描画
-        function renderFilteredAndSortedCards() {
-            const cardView = document.getElementById('caseCardView');
-            if (!cardView) return;
-
-            // フィルタリング
-            let filteredCases = casesData.filter(c => c.assignee);
-
-            // ステータスフィルター
-            if (currentFilter !== 'all') {
-                filteredCases = filteredCases.filter(c => c.status === currentFilter);
-            }
-
-            // 検索フィルター
-            if (currentSearchTerm) {
-                filteredCases = filteredCases.filter(c =>
-                    normalizeKana(c.name).includes(currentSearchTerm) ||
-                    normalizeKana(c.location).includes(currentSearchTerm)
-                );
-            }
-
-            // ソート
-            filteredCases.sort((a, b) => {
-                switch(currentSort) {
-                    case 'date_desc':
-                        return (b.id || 0) - (a.id || 0); // IDを日付の代わりに使用
-                    case 'date_asc':
-                        return (a.id || 0) - (b.id || 0);
-                    case 'status':
-                        const statusOrder = ['未対応', '架電済/未アポ', 'アポ済', '現調済', '見積提出済', '成約'];
-                        return statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
-                    default:
-                        return 0;
-                }
-            });
-
-            // カードをクリアして再描画
-            cardView.innerHTML = '';
-            filteredCases.forEach(caseItem => {
-                const card = createCaseCard(caseItem);
-                cardView.innerHTML += card;
-            });
-        }
-
-        // 案件ステータスに応じた色を取得
+        // 古いフィルター関連は V2007 で新実装に置き換え済み
+        // getStatusColor は古いダミーコード用だが、一部で使われている可能性があるので残す
         function getStatusColor(status) {
             const statusColors = {
                 '未対応': 'bg-red-100 text-red-800',
+                '対応待ち': 'bg-red-100 text-red-800',
                 '架電済/未アポ': 'bg-orange-100 text-orange-800',
                 'アポ済': 'bg-blue-100 text-blue-800',
+                '訪問済み': 'bg-blue-100 text-blue-800',
                 '現調済': 'bg-indigo-100 text-indigo-800',
                 '現調前キャンセル': 'bg-gray-100 text-gray-800',
                 '現調後失注': 'bg-gray-100 text-gray-800',
                 '見積提出済': 'bg-yellow-100 text-yellow-800',
+                '見積提出済み': 'bg-yellow-100 text-yellow-800',
                 '成約': 'bg-green-100 text-green-800',
+                'キャンセル': 'bg-gray-100 text-gray-600',
                 '他社契約済': 'bg-gray-100 text-gray-800',
                 '別加盟店契約済': 'bg-purple-100 text-purple-800',
                 '入金予定': 'bg-cyan-100 text-cyan-800',
