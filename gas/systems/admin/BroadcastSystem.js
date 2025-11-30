@@ -124,9 +124,13 @@ var BroadcastSystem = {
       // エリア内の加盟店を取得
       const targetFranchises = this.getAreaFranchises(franchiseSheet, prefecture, city);
 
-      // 既に転送済みの加盟店を除外
-      const deliveredIds = this.getDeliveredFranchiseIds(deliverySheet, cvId);
+      // V2006: 既に転送済みの加盟店情報を取得（ID + 名前）
+      const deliveredInfo = this.getDeliveredFranchiseInfo(deliverySheet, cvId, franchiseSheet);
+      const deliveredIds = deliveredInfo.map(f => f.id);
       const availableFranchises = targetFranchises.filter(f => !deliveredIds.includes(f.id));
+
+      console.log('[getBroadcastTargets] 転送済み除外: 全', targetFranchises.length, '社 → 対象', availableFranchises.length, '社');
+      console.log('[getBroadcastTargets] 除外された業者:', deliveredInfo.map(f => f.name).join(', '));
 
       // 残枠計算
       const maxCompanies = parseInt(cvData.companiesCount) || 4;
@@ -145,6 +149,8 @@ var BroadcastSystem = {
         deliveredCount: deliveredCount,
         remainingSlots: remainingSlots,
         broadcastSent: broadcastSent,
+        // V2006: 転送済み業者名リストを追加
+        deliveredFranchises: deliveredInfo.map(f => f.name),
         franchises: availableFranchises.map(f => ({
           id: f.id,
           name: f.name
@@ -279,12 +285,16 @@ var BroadcastSystem = {
       // エリア内の加盟店を取得
       const targetFranchises = this.getAreaFranchises(franchiseSheet, prefecture, city);
 
-      // 既に転送済みの加盟店を除外
-      const deliveredIds = this.getDeliveredFranchiseIds(deliverySheet, cvId);
+      // V2006: 既に転送済みの加盟店を除外（ID + 名前取得でログ出力）
+      const deliveredInfo = this.getDeliveredFranchiseInfo(deliverySheet, cvId, franchiseSheet);
+      const deliveredIds = deliveredInfo.map(f => f.id);
       const availableFranchises = targetFranchises.filter(f => !deliveredIds.includes(f.id));
 
+      console.log('[sendBroadcast] 転送済み除外: 全', targetFranchises.length, '社 → 対象', availableFranchises.length, '社');
+      console.log('[sendBroadcast] 除外された業者:', deliveredInfo.map(f => f.name).join(', '));
+
       if (availableFranchises.length === 0) {
-        return { success: false, error: '配信対象の加盟店がありません' };
+        return { success: false, error: '配信対象の加盟店がありません（転送済み: ' + deliveredInfo.map(f => f.name).join(', ') + '）' };
       }
 
       // 残枠計算
@@ -807,13 +817,63 @@ var BroadcastSystem = {
     const cvIdIdx = headers.indexOf('CV ID');
     const franchiseIdIdx = headers.indexOf('加盟店ID');
 
+    // V2006: デバッグログ追加
+    console.log('[getDeliveredFranchiseIds] cvId:', cvId, ', cvIdIdx:', cvIdIdx, ', franchiseIdIdx:', franchiseIdIdx);
+
     const ids = [];
     for (let i = 1; i < data.length; i++) {
-      if (data[i][cvIdIdx] === cvId) {
+      const rowCvId = data[i][cvIdIdx];
+      if (rowCvId === cvId) {
         ids.push(data[i][franchiseIdIdx]);
+        console.log('[getDeliveredFranchiseIds] マッチ: 行', i + 1, ', 加盟店ID:', data[i][franchiseIdIdx]);
       }
     }
+    console.log('[getDeliveredFranchiseIds] 転送済み加盟店ID:', ids.length, '件', ids);
     return ids;
+  },
+
+  /**
+   * V2006: 転送済み加盟店情報（ID + 名前）を取得
+   */
+  getDeliveredFranchiseInfo: function(deliverySheet, cvId, franchiseSheet) {
+    if (!deliverySheet) return [];
+
+    // 加盟店ID→名前マップを作成
+    const franchiseNameMap = {};
+    if (franchiseSheet) {
+      const fData = franchiseSheet.getDataRange().getValues();
+      const fHeaders = fData[0];
+      const fIdIdx = fHeaders.indexOf('登録ID');
+      const fNameIdx = fHeaders.indexOf('会社名');
+      if (fIdIdx !== -1 && fNameIdx !== -1) {
+        for (let i = 1; i < fData.length; i++) {
+          const fId = fData[i][fIdIdx];
+          const fName = fData[i][fNameIdx];
+          if (fId && fName) {
+            franchiseNameMap[fId] = fName;
+          }
+        }
+      }
+    }
+
+    const data = deliverySheet.getDataRange().getValues();
+    const headers = data[0];
+    const cvIdIdx = headers.indexOf('CV ID');
+    const franchiseIdIdx = headers.indexOf('加盟店ID');
+
+    const result = [];
+    for (let i = 1; i < data.length; i++) {
+      const rowCvId = data[i][cvIdIdx];
+      if (rowCvId === cvId) {
+        const franchiseId = data[i][franchiseIdIdx];
+        result.push({
+          id: franchiseId,
+          name: franchiseNameMap[franchiseId] || franchiseId
+        });
+      }
+    }
+    console.log('[getDeliveredFranchiseInfo] 転送済み:', result.length, '件', result.map(f => f.name).join(', '));
+    return result;
   },
 
   /**

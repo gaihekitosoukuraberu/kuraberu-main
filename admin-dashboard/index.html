@@ -1389,9 +1389,11 @@
                                     <span class="font-medium" id="broadcastMaxCompanies">---社</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-gray-600">配信済:</span>
-                                    <span class="font-medium" id="broadcastDeliveredCount">---社</span>
+                                    <span class="text-gray-600">転送済（除外）:</span>
+                                    <span class="font-medium text-purple-600" id="broadcastDeliveredCount">---社</span>
                                 </div>
+                                <!-- V2006: 転送済み業者名を表示 -->
+                                <div id="broadcastDeliveredNames" class="hidden text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded mt-1"></div>
                                 <div class="flex justify-between border-t pt-2 mt-2">
                                     <span class="text-gray-800 font-bold">残り枠:</span>
                                     <span class="font-bold text-green-600 text-lg" id="broadcastRemainingSlots">---社</span>
@@ -11047,6 +11049,16 @@ info@gaihekikuraberu.com
                     document.getElementById('broadcastMaxCompanies').textContent = response.maxCompanies + '社';
                     document.getElementById('broadcastDeliveredCount').textContent = response.deliveredCount + '社';
                     document.getElementById('broadcastRemainingSlots').textContent = response.remainingSlots + '社';
+
+                    // V2006: 転送済み業者名を表示
+                    const deliveredNamesEl = document.getElementById('broadcastDeliveredNames');
+                    if (deliveredNamesEl && response.deliveredFranchises && response.deliveredFranchises.length > 0) {
+                        deliveredNamesEl.textContent = '除外: ' + response.deliveredFranchises.join(', ');
+                        deliveredNamesEl.classList.remove('hidden');
+                        console.log('[V2006] 転送済み（案件メール除外）:', response.deliveredFranchises);
+                    } else if (deliveredNamesEl) {
+                        deliveredNamesEl.classList.add('hidden');
+                    }
 
                     // ボタン状態制御
                     const submitBtn = document.getElementById('broadcastSubmitBtn');
