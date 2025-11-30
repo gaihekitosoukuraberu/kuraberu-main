@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1993 - 希望社数を保存対象外に）
-  CACHE_BUSTER: 'v1993-exclude-companiescount'
+  CACHE_BUSTER: 'v1764475548-fe0007ac'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
