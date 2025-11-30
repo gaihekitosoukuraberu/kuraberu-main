@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V1994 - 転送文をAPI送信から除外）
-  CACHE_BUSTER: 'v1994-exclude-transfermsg'
+  CACHE_BUSTER: 'v1764476228-fef8137d'
 };
 
 // グローバルに公開（全てのファイルから参照可能）
