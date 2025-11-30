@@ -2272,10 +2272,15 @@ const AdminSystem = {
    */
   sendOrderTransfer: function(params) {
     try {
-      console.log('[sendOrderTransfer] V1996 開始:', params);
+      console.log('[sendOrderTransfer] V2014 開始:', JSON.stringify(params));
 
       const cvId = params.cvId;
       const franchises = params.franchises;
+
+      // V2014: デバッグログ強化
+      console.log('[sendOrderTransfer] cvId:', cvId);
+      console.log('[sendOrderTransfer] franchises配列長:', franchises ? franchises.length : 'undefined');
+      console.log('[sendOrderTransfer] franchises内容:', JSON.stringify(franchises));
 
       if (!cvId || !franchises || franchises.length === 0) {
         return { success: false, error: 'CV IDまたは加盟店情報が不足しています' };
@@ -2357,6 +2362,12 @@ const AdminSystem = {
           '配信済', '未対応', timestamp, timestamp, 0, 0, 0, 0, '', '', '', '', '', '[]', '', '[]', '[]', '', '', '', '', '', '', '', '', '', '', '', '', '', false, fee];
       });
 
+      // V2014: デバッグ - records配列の内容を確認
+      console.log('[sendOrderTransfer] records配列長:', records.length);
+      records.forEach((rec, idx) => {
+        console.log('[sendOrderTransfer] record[' + idx + ']:', rec[0], rec[1], rec[2], rec[5]); // ID, cvId, franchiseId, status
+      });
+
       if (records.length > 0) {
         // V1997: 空行をスキップしてデータのある最後の行を見つける
         const allData = deliverySheet.getDataRange().getValues();
@@ -2369,7 +2380,11 @@ const AdminSystem = {
           }
         }
         if (lastDataRow === 0) lastDataRow = 1; // ヘッダー行のみの場合
+
+        // V2014: 書き込み位置のデバッグ
+        console.log('[sendOrderTransfer] lastDataRow:', lastDataRow, ', 書き込み開始行:', lastDataRow + 1, ', 書き込み行数:', records.length);
         deliverySheet.getRange(lastDataRow + 1, 1, records.length, records[0].length).setValues(records);
+        console.log('[sendOrderTransfer] setValues完了');
 
         // V2003: ユーザー登録シートの配信ステータス・配信先加盟店数・配信日時を自動更新
         this.updateUserSheetDeliveryStatus(userSheet, cvId, records.length, timestamp, franchises);

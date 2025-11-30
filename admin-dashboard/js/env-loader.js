@@ -1,4 +1,4 @@
-// Auto-synced: 2025-11-30T23:00:00.000Z - Deployment: AKfycbxFjL-0JZmi5oDAXbytWEeiOgYoO5G-LFsvQagjGL3P9I92s8x4teZufxnS5U4W-QatYQ
+// Auto-synced: 2025-12-01T00:00:00.000Z - Deployment: AKfycbxdpXcva_6sRbKAJt0ufB8MUt2_g3LXfuSPsAT7YK63CEyfz1vVG5KgDiWStbjiUS8KRg
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -12,8 +12,8 @@
  * 参照方法（PHP）:
  * このファイルを読み込んでGAS_URLを抽出
  *
- * @file-version V1862-MASTER-@HEAD-2025-11-26T03:10:40
- * @last-update 2025-11-26T03:10:40
+ * @file-version V2014-MASTER-@HEAD-2025-12-01T00:00:00
+ * @last-update 2025-12-01T00:00:00
  */
 
 const ENV = {
@@ -21,14 +21,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V2005 転送済みバッジ＆キャンセルAPI
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxFjL-0JZmi5oDAXbytWEeiOgYoO5G-LFsvQagjGL3P9I92s8x4teZufxnS5U4W-QatYQ/exec',
+  // プライマリGAS URL（メイン運用）- V2014 転送デバッグログ強化
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbxdpXcva_6sRbKAJt0ufB8MUt2_g3LXfuSPsAT7YK63CEyfz1vVG5KgDiWStbjiUS8KRg/exec',
 
-  // フォールバックGAS URL（バックアップ）- V2005 転送済みバッジ＆キャンセルAPI
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxFjL-0JZmi5oDAXbytWEeiOgYoO5G-LFsvQagjGL3P9I92s8x4teZufxnS5U4W-QatYQ/exec',
+  // フォールバックGAS URL（バックアップ）- V2014 転送デバッグログ強化
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxdpXcva_6sRbKAJt0ufB8MUt2_g3LXfuSPsAT7YK63CEyfz1vVG5KgDiWStbjiUS8KRg/exec',
 
-  // 緊急時URL（最終フォールバック）- V2005 転送済みバッジ＆キャンセルAPI
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxFjL-0JZmi5oDAXbytWEeiOgYoO5G-LFsvQagjGL3P9I92s8x4teZufxnS5U4W-QatYQ/exec',
+  // 緊急時URL（最終フォールバック）- V2014 転送デバッグログ強化
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxdpXcva_6sRbKAJt0ufB8MUt2_g3LXfuSPsAT7YK63CEyfz1vVG5KgDiWStbjiUS8KRg/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V1997 - 配信管理シート空行対策・日時フォーマット修正）
-  CACHE_BUSTER: 'v1764505289848-qr9jcv'
+  // キャッシュバスター（V2014 - 転送デバッグログ強化）
+  CACHE_BUSTER: 'v2014-' + Date.now()
 };
 
 // グローバルに公開（全てのファイルから参照可能）
