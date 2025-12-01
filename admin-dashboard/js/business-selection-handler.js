@@ -482,6 +482,14 @@ const BusinessSelectionHandler = {
 
       console.log('[BusinessSelection] getRanking APIレスポンス:', response);
 
+      // V2042: 電話番号デバッグ - GASレスポンスの電話番号確認
+      const sampleBusiness = response.rankings?.cheap?.[0] || response.rankings?.recommended?.[0];
+      console.log('[V2042-PHONE-DEBUG] サンプル業者の電話番号:', {
+        companyName: sampleBusiness?.companyName,
+        phone: sampleBusiness?.phone,
+        hasPhone: !!sampleBusiness?.phone
+      });
+
       // V1917: GASの4つのランキングを個別に保持（ソート順表示用）
       // 各ランキングをフランチャイズ形式に変換して保存
       this.rankings = {
@@ -495,6 +503,14 @@ const BusinessSelectionHandler = {
         recommended: this.rankings.recommended.length,
         review: this.rankings.review.length,
         premium: this.rankings.premium.length
+      });
+
+      // V2042: 変換後の電話番号確認
+      const convertedSample = this.rankings.cheap[0] || this.rankings.recommended[0];
+      console.log('[V2042-PHONE-DEBUG] 変換後の電話番号:', {
+        companyName: convertedSample?.companyName,
+        phone: convertedSample?.phone,
+        hasPhone: !!convertedSample?.phone
       });
 
       // マージ済み全業者リスト（検索、マッチ度計算用）
