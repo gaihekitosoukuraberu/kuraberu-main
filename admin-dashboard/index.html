@@ -11026,9 +11026,9 @@ ${f.name} 御中
 -------------------------------------------`;
                 // 送付先種別を先に表示（会社、自宅など）
                 if (d.altPropertyType) {
-                    msg += `\n送付先: ${d.altPropertyType}`;
+                    msg += `\n希望送付先: ${d.altPropertyType}`;
                 } else {
-                    msg += `\n送付先: ${d.estimateDeliveryAddress}`;
+                    msg += `\n希望送付先: ${d.estimateDeliveryAddress}`;
                 }
                 // 別住所の詳細を下に表示
                 const altAddress = [d.homePrefecture, d.homeStreet].filter(v => v).join('');
