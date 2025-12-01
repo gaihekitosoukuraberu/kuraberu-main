@@ -1124,7 +1124,10 @@
                         </svg>
                     </button>
                 </div>
-                <div class="flex justify-end">
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="copyCaseMemo()" class="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all font-medium border border-gray-300">
+                        📋 コピー
+                    </button>
                     <button type="button" onclick="aiCorrectCaseMemo()" class="px-6 py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg hover:from-yellow-600 hover:to-yellow-700 transition-all font-medium shadow-md hover:shadow-lg">
                         ✨ AI添削
                     </button>
@@ -1501,6 +1504,24 @@ function startVoiceInput() {
     };
 
     recognition.start();
+}
+
+// 案件メモをコピー
+function copyCaseMemo() {
+    const textarea = document.getElementById('caseMemoTextarea');
+    const memoText = textarea.value;
+
+    if (!memoText || memoText.trim() === '') {
+        showNotification('案件メモが空です', 'error');
+        return;
+    }
+
+    navigator.clipboard.writeText(memoText).then(() => {
+        showNotification('コピーしました', 'success');
+    }).catch(err => {
+        console.error('[copyCaseMemo] エラー:', err);
+        showNotification('コピーに失敗しました', 'error');
+    });
 }
 
 // AI添削（DeepSeek使用）
