@@ -11001,7 +11001,6 @@ ${f.name} 御中
 
             const genderAge = [d.gender, d.age].filter(x=>x).join(' / ');
             if (genderAge) msg += `\n性別/年代: ${genderAge}`;
-            if (d.relation) msg += `\n続柄: ${d.relation}`;
             // V2029: 連絡時間帯を追加（お客様情報セクション）
             if (d.contactTimeSlot) msg += `\n連絡希望時間帯: ${d.contactTimeSlot}`;
             // V2029: 流入検索ワードを追加
