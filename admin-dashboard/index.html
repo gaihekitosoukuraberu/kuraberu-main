@@ -10899,7 +10899,11 @@ window.addEventListener('beforeunload', function(e) {
                 deteriorationStatus: caseData.deteriorationStatus || rawData.deteriorationStatus || '',
                 // V2029: 現地調査希望日時を追加
                 surveyDatePreference: caseData.surveyDatePreference || rawData.surveyDatePreference || '',
+                // V2029: 流入検索ワードを追加
+                searchKeyword: caseData.searchKeyword || rawData.searchKeyword || '',
                 memo: caseData.memo || caseData.caseMemo || '',
+                // V2029: ワードリンク回答を追加（案件メモに表示）
+                wordLinkAnswer: caseData.wordLinkAnswer || rawData.wordLinkAnswer || '',
                 // V2029: 2人目情報を追加
                 secondPerson: {
                     name: caseData['氏名（2人目）'] || rawData.secondPerson?.name || '',
@@ -10996,6 +11000,8 @@ ${f.name} 御中
             if (d.relation) msg += `\n続柄: ${d.relation}`;
             // V2029: 連絡時間帯を追加（お客様情報セクション）
             if (d.contactTimeSlot) msg += `\n連絡希望時間帯: ${d.contactTimeSlot}`;
+            // V2029: 流入検索ワードを追加
+            if (d.searchKeyword) msg += `\n流入検索ワード: ${d.searchKeyword}`;
 
             // V2029: 2人目の連絡先（存在する場合のみ）
             if (d.secondPerson && (d.secondPerson.name || d.secondPerson.phone)) {
@@ -11086,13 +11092,17 @@ ${f.name} 御中
 
             // V1987: memoも配列の場合に対応
             const memoStr = Array.isArray(d.memo) ? d.memo.join('\n') : (d.memo || '');
-            if (memoStr && memoStr.trim()) {
+            // V2029: ワードリンク回答があれば案件メモに追加
+            const wordLinkStr = d.wordLinkAnswer ? `【ワードリンク回答】${d.wordLinkAnswer}` : '';
+            const fullMemo = [memoStr, wordLinkStr].filter(s => s && s.trim()).join('\n\n');
+
+            if (fullMemo) {
                 msg += `
 
 -------------------------------------------
 【案件メモ】
 -------------------------------------------
-${memoStr}`;
+${fullMemo}`;
             }
 
             msg += `
