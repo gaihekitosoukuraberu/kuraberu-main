@@ -2384,8 +2384,19 @@ const AdminSystem = {
 
         // V2014: 書き込み位置のデバッグ
         console.log('[sendOrderTransfer] lastDataRow:', lastDataRow, ', 書き込み開始行:', lastDataRow + 1, ', 書き込み行数:', records.length);
+
+        // V2034: 書き込み前のデータ確認
+        console.log('[sendOrderTransfer] V2034 書き込みデータ:');
+        records.forEach((rec, idx) => {
+          console.log('[sendOrderTransfer] レコード' + idx + ': recordId=' + rec[0] + ', cvId=' + rec[1] + ', franchiseId=' + rec[2] + ', status=' + rec[5]);
+        });
+
         deliverySheet.getRange(lastDataRow + 1, 1, records.length, records[0].length).setValues(records);
         console.log('[sendOrderTransfer] setValues完了');
+
+        // V2034: 書き込み後の確認
+        const verifyData = deliverySheet.getRange(lastDataRow + 1, 1, records.length, 6).getValues();
+        console.log('[sendOrderTransfer] V2034 書き込み後確認:', JSON.stringify(verifyData));
 
         // V2003: ユーザー登録シートの配信ステータス・配信先加盟店数・配信日時を自動更新
         this.updateUserSheetDeliveryStatus(userSheet, cvId, records.length, timestamp, franchises);
@@ -2461,14 +2472,20 @@ const AdminSystem = {
       }
 
       // 該当CV IDの配信レコードを抽出（配信済/配信済みステータスのみ）
+      // V2034: デバッグログ追加
+      console.log('[getDeliveredFranchises] データ行数:', data.length);
       const deliveredFranchises = [];
       for (let i = 1; i < data.length; i++) {
-        if (data[i][cvIdIdx] === cvId) {
+        const rowCvId = data[i][cvIdIdx];
+        if (rowCvId === cvId) {
           const franchiseId = data[i][franchiseIdIdx] || '';
+          // V2034: 加盟店IDが会社名の場合があるので、そのまま使う
           const franchiseName = franchiseNameMap[franchiseId] || franchiseId;
           const deliveryStatus = deliveryStatusIdx !== -1 ? data[i][deliveryStatusIdx] : '';
           const detailStatus = detailStatusIdx !== -1 ? data[i][detailStatusIdx] : '';
           const deliveryDate = deliveryDateIdx !== -1 ? data[i][deliveryDateIdx] : '';
+
+          console.log('[getDeliveredFranchises] マッチ行:', i + 1, 'franchiseId:', franchiseId, 'status:', deliveryStatus);
 
           // 配信済/配信済みステータスのレコードのみを転送済みとして扱う
           if (deliveryStatus === '配信済' || deliveryStatus === '配信済み') {
