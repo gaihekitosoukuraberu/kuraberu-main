@@ -10839,6 +10839,21 @@ window.addEventListener('beforeunload', function(e) {
             const deliveryDate = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
             // モーダルデータを作成
+            // V2029: 住所を都道府県・市区町村・番地から再構築（_rawDataから直接取得）
+            const rawData = caseData._rawData || {};
+            const fullAddress = [
+                rawData.prefecture || caseData.prefecture || '',
+                rawData.city || caseData.city || '',
+                rawData.propertyStreet || caseData.propertyStreet || ''
+            ].filter(v => v).join('');
+            console.log('[V2029] 転送文用住所構築:', {
+                prefecture: rawData.prefecture || caseData.prefecture,
+                city: rawData.city || caseData.city,
+                propertyStreet: rawData.propertyStreet || caseData.propertyStreet,
+                fullAddress: fullAddress,
+                originalAddress: caseData.address
+            });
+
             window.currentOrderTransferData = {
                 cvId: currentCaseId,
                 deliveryDate: deliveryDate,
@@ -10852,7 +10867,7 @@ window.addEventListener('beforeunload', function(e) {
                 relation: caseData.relation || '',
                 // 物件情報
                 postalCode: caseData.postalCode || '',
-                address: caseData.address || '',
+                address: fullAddress || caseData.address || '',
                 propertyType: caseData.propertyType || '',
                 floors: caseData.floors || '',
                 area: caseData.area || '',
