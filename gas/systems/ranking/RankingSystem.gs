@@ -116,12 +116,20 @@ const RankingSystem = {
           const regData = registerSheet.getRange(2, 1, regLastRow - 1, registerSheet.getLastColumn()).getValues();
           regData.forEach((row, i) => {
             const name = companyNameIdx >= 0 ? (row[companyNameIdx] || '') : '';
-            const phone = row[phoneIdx] || '';
+            let phone = row[phoneIdx] || '';
+            // V2040: 電話番号の先頭0補完（スプレッドシートで数値扱いされると0が消える）
+            if (phone) {
+              phone = String(phone);
+              // 日本の電話番号は0始まり。9桁または10桁の数字なら先頭に0を追加
+              if (/^\d{9,10}$/.test(phone) && !phone.startsWith('0')) {
+                phone = '0' + phone;
+              }
+            }
             if (i < 3) {
               console.log('[RankingSystem] サンプル行' + i + ':', { name, phone, rawK: row[10] });
             }
             if (name && phone) {
-              phoneMap[name] = String(phone);
+              phoneMap[name] = phone;
             }
           });
           console.log('[RankingSystem] 電話番号マップ作成:', Object.keys(phoneMap).length, '件');
