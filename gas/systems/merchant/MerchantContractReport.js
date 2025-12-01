@@ -380,13 +380,13 @@ var MerchantContractReport = {
   },
 
   /**
-   * V2007: 加盟店向け案件一覧取得（全ステータス対応）
+   * V2022: 加盟店向け案件一覧取得（ユーザー登録からの全情報取得対応）
    * @param {Object} params - { merchantId: 加盟店ID }
    * @return {Object} - { success, cases, stats }
    */
   getMerchantCases: function(params) {
     const merchantId = params.merchantId;
-    console.log('[MerchantContractReport] getMerchantCases - merchantId:', merchantId);
+    console.log('[MerchantContractReport] getMerchantCases V2022 - merchantId:', merchantId);
 
     if (!merchantId) {
       return { success: false, error: '加盟店IDが必要です' };
@@ -396,33 +396,108 @@ var MerchantContractReport = {
       const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
       const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       const deliverySheet = ss.getSheetByName('配信管理');
+      const userSheet = ss.getSheetByName('ユーザー登録');
 
       if (!deliverySheet) {
         return { success: false, error: '配信管理シートが見つかりません' };
       }
+      if (!userSheet) {
+        return { success: false, error: 'ユーザー登録シートが見つかりません' };
+      }
 
-      const data = deliverySheet.getDataRange().getValues();
-      const headers = data[0];
+      // ============================================
+      // 1. ユーザー登録シートからCV ID → 顧客情報マップ作成
+      // ============================================
+      const userData = userSheet.getDataRange().getValues();
+      const userHeaders = userData[0];
 
-      // カラムインデックス取得
-      // 注意: 配信管理シートの「加盟店ID」列には実際は会社名が入っている
-      const colIdx = {
-        cvId: headers.indexOf('CV ID'),
-        userName: headers.indexOf('お名前'),
-        userLocation: headers.indexOf('市区町村'),
-        userTel: headers.indexOf('電話番号'),
-        userEmail: headers.indexOf('メールアドレス'),
-        createdAt: headers.indexOf('登録日時'),
-        deliveryStatus: headers.indexOf('配信ステータス'),
-        detailStatus: headers.indexOf('詳細ステータス'),
-        franchiseId: headers.indexOf('加盟店ID'),  // 実際は会社名が入っている列
-        franchiseName: headers.indexOf('配信先加盟店名'),
-        deliveredAt: headers.indexOf('配信日時'),
-        merchantMemo: headers.indexOf('加盟店メモ'),
-        adminMemo: headers.indexOf('管理者メモ')
-      };
+      // ユーザー登録シートのカラムインデックス
+      const userCol = {};
+      userHeaders.forEach((h, i) => { userCol[h] = i; });
 
-      // merchantIdから会社名を取得（加盟店登録シートから）
+      const userMap = {};
+      for (let i = 1; i < userData.length; i++) {
+        const row = userData[i];
+        const cvId = row[userCol['CV ID']];
+        if (!cvId) continue;
+
+        userMap[cvId] = {
+          // 基本情報
+          name: row[userCol['氏名']] || '',
+          nameKana: row[userCol['フリガナ']] || '',
+          tel: row[userCol['電話番号']] || '',
+          email: row[userCol['メールアドレス']] || '',
+          gender: row[userCol['性別']] || '',
+          age: row[userCol['年齢']] || '',
+          contactTime: row[userCol['連絡時間帯']] || '',
+          relationship: row[userCol['続柄']] || '',
+
+          // 物件情報
+          postalCode: row[userCol['郵便番号（物件）']] || '',
+          prefecture: row[userCol['都道府県（物件）']] || '',
+          city: row[userCol['市区町村（物件）']] || '',
+          addressDetail: row[userCol['住所詳細（物件）']] || '',
+          addressKana: row[userCol['住所フリガナ']] || '',
+          propertyType: row[userCol['物件種別']] || row[userCol['Q1_物件種別']] || '',
+          floors: row[userCol['階数']] || row[userCol['Q2_階数']] || '',
+          buildingAge: row[userCol['築年数']] || row[userCol['Q3_築年数']] || '',
+          buildingArea: row[userCol['建物面積']] || '',
+          googleMapsLink: row[userCol['Google Mapsリンク']] || '',
+
+          // 工事関連
+          workHistory: row[userCol['Q4_工事歴']] || '',
+          lastConstructionTime: row[userCol['Q5_前回施工時期']] || '',
+          exteriorMaterial: row[userCol['Q6_外壁材質']] || '',
+          roofMaterial: row[userCol['Q7_屋根材質']] || '',
+          concernedAreas: row[userCol['Q8_気になる箇所']] || '',
+          exteriorWorkRequest: row[userCol['Q9_希望工事内容_外壁']] || '',
+          roofWorkRequest: row[userCol['Q10_希望工事内容_屋根']] || '',
+          deteriorationStatus: row[userCol['Q16_現在の劣化状況']] || '',
+
+          // 希望・意向
+          estimateAreas: row[userCol['見積もり希望箇所']] || '',
+          constructionTiming: row[userCol['施工時期']] || '',
+          desiredCompanies: row[userCol['希望社数']] || '',
+          existingEstimates: row[userCol['Q11_見積もり保有数']] || '',
+          estimateSource: row[userCol['Q12_見積もり取得先']] || '',
+          visitingContractor: row[userCol['Q13_訪問業者有無']] || '',
+          comparisonIntent: row[userCol['Q14_比較意向']] || '',
+          visitingContractorName: row[userCol['Q15_訪問業者名']] || '',
+          selectionCriteria: row[userCol['Q17_業者選定条件']] || '',
+
+          // 現調・立会
+          inspectionDate: row[userCol['現地調査希望日時']] || '',
+          attendanceStatus: row[userCol['立ち会い可否']] || '',
+          attendeeRelation: row[userCol['立ち会い者関係性']] || '',
+
+          // 2人目連絡先
+          name2: row[userCol['氏名（2人目）']] || '',
+          tel2: row[userCol['電話番号（2人目）']] || '',
+          relationship2: row[userCol['続柄（2人目）']] || '',
+          remarks2: row[userCol['備考（2人目）']] || '',
+
+          // その他
+          specialItems: row[userCol['特殊項目']] || '',
+          caseMemo: row[userCol['案件メモ']] || '',
+
+          // 見積もり送付先（物件と異なる場合）
+          estimateDestination: row[userCol['見積もり送付先']] || '',
+          homePostalCode: row[userCol['郵便番号（自宅）']] || '',
+          homePrefecture: row[userCol['都道府県（自宅）']] || '',
+          homeAddressDetail: row[userCol['住所詳細（自宅）']] || ''
+        };
+      }
+
+      // ============================================
+      // 2. 配信管理シートから配信案件取得
+      // ============================================
+      const deliveryData = deliverySheet.getDataRange().getValues();
+      const deliveryHeaders = deliveryData[0];
+
+      const delCol = {};
+      deliveryHeaders.forEach((h, i) => { delCol[h] = i; });
+
+      // merchantIdから会社名を取得（後方互換性のため）
       const franchiseSheet = ss.getSheetByName('加盟店登録');
       let merchantCompanyName = '';
       if (franchiseSheet) {
@@ -443,25 +518,28 @@ var MerchantContractReport = {
       // 統計初期化
       const stats = {
         total: 0,
-        pending: 0,      // 対応待ち
-        visited: 0,      // 訪問済み
-        quoted: 0,       // 見積提出済み
-        contracted: 0,   // 成約
-        cancelled: 0     // キャンセル
+        pending: 0,
+        visited: 0,
+        quoted: 0,
+        contracted: 0,
+        cancelled: 0
       };
 
       const cases = [];
 
-      for (let i = 1; i < data.length; i++) {
-        const row = data[i];
-        const rowFranchiseId = row[colIdx.franchiseId];
+      for (let i = 1; i < deliveryData.length; i++) {
+        const row = deliveryData[i];
+        const cvId = row[delCol['CV ID']];
+        const rowFranchiseId = row[delCol['加盟店ID']];
+
+        if (!cvId) continue;
 
         // この加盟店に配信された案件のみ（登録ID or 会社名でマッチ）
         if (String(rowFranchiseId) !== String(merchantId) &&
             String(rowFranchiseId) !== String(merchantCompanyName)) continue;
 
-        const deliveryStatus = row[colIdx.deliveryStatus] || '';
-        const detailStatus = row[colIdx.detailStatus] || '';
+        const deliveryStatus = row[delCol['配信ステータス']] || '';
+        const detailStatus = row[delCol['詳細ステータス']] || '';
 
         // 配信済み以降のステータスのみ
         if (!['配信済み', '成約', '失注'].includes(deliveryStatus)) continue;
@@ -481,18 +559,87 @@ var MerchantContractReport = {
           stats.pending++;
         }
 
+        // ユーザー登録から顧客情報取得
+        const user = userMap[cvId] || {};
+
+        // 住所を結合
+        const fullAddress = [user.prefecture, user.city, user.addressDetail].filter(v => v).join('');
+
         const caseData = {
-          cvId: row[colIdx.cvId],
+          // 識別子
+          cvId: cvId,
           rowIndex: i + 1,
-          userName: row[colIdx.userName] || '',
-          userLocation: row[colIdx.userLocation] || '',
-          userTel: row[colIdx.userTel] || '',
-          userEmail: row[colIdx.userEmail] || '',
-          createdAt: row[colIdx.createdAt] ? Utilities.formatDate(new Date(row[colIdx.createdAt]), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm') : '',
-          deliveredAt: row[colIdx.deliveredAt] ? Utilities.formatDate(new Date(row[colIdx.deliveredAt]), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm') : '',
+
+          // ステータス
           deliveryStatus: deliveryStatus,
-          detailStatus: detailStatus,
-          merchantMemo: row[colIdx.merchantMemo] || ''
+          detailStatus: detailStatus || '未対応',
+          deliveredAt: row[delCol['配信日時']] ? Utilities.formatDate(new Date(row[delCol['配信日時']]), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm') : '',
+          merchantMemo: row[delCol['加盟店メモ']] || '',
+
+          // === お客様情報 ===
+          customerName: user.name,
+          customerNameKana: user.nameKana,
+          customerTel: user.tel,
+          customerEmail: user.email,
+          customerGender: user.gender,
+          customerAge: user.age,
+          contactTime: user.contactTime,
+          relationship: user.relationship,
+
+          // === 物件情報 ===
+          postalCode: user.postalCode,
+          prefecture: user.prefecture,
+          city: user.city,
+          addressDetail: user.addressDetail,
+          fullAddress: fullAddress,
+          addressKana: user.addressKana,
+          propertyType: user.propertyType,
+          floors: user.floors,
+          buildingAge: user.buildingAge,
+          buildingArea: user.buildingArea,
+          googleMapsLink: user.googleMapsLink,
+
+          // === 工事関連 ===
+          workHistory: user.workHistory,
+          lastConstructionTime: user.lastConstructionTime,
+          exteriorMaterial: user.exteriorMaterial,
+          roofMaterial: user.roofMaterial,
+          concernedAreas: user.concernedAreas,
+          exteriorWorkRequest: user.exteriorWorkRequest,
+          roofWorkRequest: user.roofWorkRequest,
+          deteriorationStatus: user.deteriorationStatus,
+
+          // === 希望・意向 ===
+          estimateAreas: user.estimateAreas,
+          constructionTiming: user.constructionTiming,
+          desiredCompanies: user.desiredCompanies,
+          existingEstimates: user.existingEstimates,
+          estimateSource: user.estimateSource,
+          visitingContractor: user.visitingContractor,
+          comparisonIntent: user.comparisonIntent,
+          visitingContractorName: user.visitingContractorName,
+          selectionCriteria: user.selectionCriteria,
+
+          // === 現調・立会 ===
+          inspectionDate: user.inspectionDate,
+          attendanceStatus: user.attendanceStatus,
+          attendeeRelation: user.attendeeRelation,
+
+          // === 2人目連絡先 ===
+          name2: user.name2,
+          tel2: user.tel2,
+          relationship2: user.relationship2,
+          remarks2: user.remarks2,
+
+          // === その他 ===
+          specialItems: user.specialItems,
+          caseMemo: user.caseMemo,
+
+          // === 見積もり送付先 ===
+          estimateDestination: user.estimateDestination,
+          homePostalCode: user.homePostalCode,
+          homePrefecture: user.homePrefecture,
+          homeAddressDetail: user.homeAddressDetail
         };
 
         cases.push(caseData);
@@ -505,7 +652,7 @@ var MerchantContractReport = {
         return new Date(b.deliveredAt) - new Date(a.deliveredAt);
       });
 
-      console.log('[MerchantContractReport] getMerchantCases - found', cases.length, 'cases');
+      console.log('[MerchantContractReport] getMerchantCases V2022 - found', cases.length, 'cases');
 
       return {
         success: true,

@@ -755,9 +755,9 @@
                     </div>
                 </div>
 
-                <!-- 案件詳細モーダル -->
+                <!-- 案件詳細モーダル（V2022 全情報対応） -->
                 <div id="caseDetailModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-                    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                         <div class="p-4 border-b flex justify-between items-center sticky top-0 bg-white">
                             <h3 class="text-lg font-bold">案件詳細</h3>
                             <button onclick="closeDetailModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
@@ -15359,11 +15359,11 @@
             const cardView = document.getElementById('caseCardView');
             const listBody = document.getElementById('caseListBody');
 
-            // フィルター＆検索適用
+            // フィルター＆検索適用（V2022 新フィールド対応）
             const filteredCases = merchantCasesData.filter(c => {
                 if (!matchesFilter(c)) return false;
                 if (searchTerm) {
-                    const searchFields = [c.userName, c.userLocation, c.userTel].join(' ').toLowerCase();
+                    const searchFields = [c.customerName, c.fullAddress, c.city, c.customerTel, c.cvId].join(' ').toLowerCase();
                     if (!searchFields.includes(searchTerm)) return false;
                 }
                 return true;
@@ -15398,11 +15398,14 @@
             }
         }
 
-        // 案件カードHTML生成
+        // 案件カードHTML生成（V2022 全情報対応）
         function createCaseCard(c) {
             const status = c.detailStatus || '対応待ち';
             const style = statusStyles[status] || statusStyles[''];
             const hasMemo = c.merchantMemo && c.merchantMemo.trim();
+
+            // 物件情報の簡易表示
+            const propertyInfo = [c.propertyType, c.floors ? `${c.floors}階` : ''].filter(v => v).join(' / ');
 
             return `
                 <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow" data-cv-id="${c.cvId}">
@@ -15418,14 +15421,15 @@
                             </button>
                         </div>
                     </div>
-                    <h3 class="font-bold text-lg mb-1">${escapeHtml(c.userName)}</h3>
-                    <p class="text-sm text-gray-600 mb-2">${escapeHtml(c.userLocation)}</p>
+                    <h3 class="font-bold text-lg mb-1">${escapeHtml(c.customerName || '-')}</h3>
+                    <p class="text-sm text-gray-600 mb-1">${escapeHtml(c.fullAddress || c.city || '-')}</p>
+                    ${propertyInfo ? `<p class="text-xs text-gray-500 mb-2">${escapeHtml(propertyInfo)}</p>` : ''}
                     <div class="flex items-center text-xs text-gray-500 mb-3">
                         <span>配信: ${c.deliveredAt || '-'}</span>
                     </div>
                     ${hasMemo ? `<div class="text-xs text-gray-500 bg-gray-50 p-2 rounded mb-3 line-clamp-2">${escapeHtml(c.merchantMemo)}</div>` : ''}
                     <div class="flex gap-1">
-                        <a href="tel:${c.userTel}" class="flex-1 px-2 py-2 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors text-center">
+                        <a href="tel:${c.customerTel}" class="flex-1 px-2 py-2 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors text-center">
                             📞 電話
                         </a>
                         <button onclick="openDetailModal('${c.cvId}')" class="flex-1 px-2 py-2 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
@@ -15436,7 +15440,7 @@
             `;
         }
 
-        // 案件リスト行HTML生成
+        // 案件リスト行HTML生成（V2022 全情報対応）
         function createCaseRow(c) {
             const status = c.detailStatus || '対応待ち';
             const style = statusStyles[status] || statusStyles[''];
@@ -15446,10 +15450,10 @@
                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                         <span class="px-2 py-1 text-xs font-semibold rounded-full ${style.bg} ${style.text}">${status}</span>
                     </td>
-                    <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">${escapeHtml(c.userName)}</td>
-                    <td class="hidden md:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">${escapeHtml(c.userLocation)}</td>
+                    <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">${escapeHtml(c.customerName || '-')}</td>
+                    <td class="hidden md:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">${escapeHtml(c.fullAddress || c.city || '-')}</td>
                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
-                        <a href="tel:${c.userTel}" class="text-green-600 hover:underline">${c.userTel}</a>
+                        <a href="tel:${c.customerTel}" class="text-green-600 hover:underline">${c.customerTel || '-'}</a>
                     </td>
                     <td class="hidden lg:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">${c.deliveredAt || '-'}</td>
                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm font-medium">
@@ -15480,7 +15484,7 @@
             if (!c) return;
 
             currentMemoCase = c;
-            document.getElementById('memoTargetName').textContent = `${c.userName} (${c.userLocation})`;
+            document.getElementById('memoTargetName').textContent = `${c.customerName || '-'} (${c.fullAddress || c.city || '-'})`;
             document.getElementById('caseMemoTextarea').value = c.merchantMemo || '';
             document.getElementById('caseMemoModal').classList.remove('hidden');
         }
@@ -15531,7 +15535,7 @@
             if (!c) return;
 
             currentStatusCase = c;
-            document.getElementById('statusTargetName').textContent = `${c.userName} のステータスを選択`;
+            document.getElementById('statusTargetName').textContent = `${c.customerName || '-'} のステータスを選択`;
             document.getElementById('caseStatusModal').classList.remove('hidden');
         }
 
@@ -15599,7 +15603,7 @@
             });
         }
 
-        // 詳細モーダル
+        // 詳細モーダル（V2022 全情報対応）
         function openDetailModal(cvId) {
             const c = findCaseByCvId(cvId);
             if (!c) return;
@@ -15607,55 +15611,135 @@
             const status = c.detailStatus || '対応待ち';
             const style = statusStyles[status] || statusStyles[''];
 
+            // 詳細項目ヘルパー（値がある場合のみ表示）
+            const detailItem = (label, value) => {
+                if (!value) return '';
+                return `<div class="py-1.5 flex"><span class="text-gray-500 w-28 flex-shrink-0">${label}</span><span class="font-medium">${escapeHtml(value)}</span></div>`;
+            };
+
+            // セクションヘルパー（項目がある場合のみセクション表示）
+            const section = (title, items) => {
+                const filtered = items.filter(i => i);
+                if (filtered.length === 0) return '';
+                return `
+                    <div class="border-t pt-3 mt-3">
+                        <h5 class="font-bold text-sm text-gray-700 mb-2">${title}</h5>
+                        <div class="text-sm">${filtered.join('')}</div>
+                    </div>
+                `;
+            };
+
+            // 住所フルテキスト
+            const fullAddr = c.postalCode ? `〒${c.postalCode} ${c.fullAddress || ''}` : (c.fullAddress || '-');
+
+            // 物件種別と階数
+            const propType = [c.propertyType, c.floors ? `${c.floors}階` : ''].filter(v => v).join(' / ');
+
+            // 性別/年代
+            const genderAge = [c.customerGender, c.customerAge].filter(v => v).join(' / ');
+
+            // 立ち会い情報
+            let attendance = c.attendanceStatus || '';
+            if (attendance && c.attendeeRelation) attendance += `（${c.attendeeRelation}）`;
+
             const content = `
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h4 class="text-xl font-bold">${escapeHtml(c.userName)}</h4>
+                <div class="space-y-2">
+                    <!-- ヘッダー -->
+                    <div class="flex items-center justify-between pb-2 border-b">
+                        <div>
+                            <h4 class="text-xl font-bold">${escapeHtml(c.customerName || '-')}様</h4>
+                            ${c.customerNameKana ? `<p class="text-sm text-gray-500">${escapeHtml(c.customerNameKana)}</p>` : ''}
+                        </div>
                         <span class="px-3 py-1 text-sm font-semibold rounded-full ${style.bg} ${style.text}">${status}</span>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <p class="text-gray-500">CV ID</p>
-                            <p class="font-medium">${c.cvId}</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-500">住所</p>
-                            <p class="font-medium">${escapeHtml(c.userLocation)}</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-500">電話番号</p>
-                            <a href="tel:${c.userTel}" class="font-medium text-green-600">${c.userTel}</a>
-                        </div>
-                        <div>
-                            <p class="text-gray-500">メールアドレス</p>
-                            <p class="font-medium">${c.userEmail || '-'}</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-500">登録日時</p>
-                            <p class="font-medium">${c.createdAt || '-'}</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-500">配信日時</p>
-                            <p class="font-medium">${c.deliveredAt || '-'}</p>
+                    <!-- 管理情報 -->
+                    <div class="text-sm bg-gray-50 rounded p-2">
+                        <div class="flex flex-wrap gap-4">
+                            <span class="text-gray-500">CV ID: <span class="font-medium text-gray-700">${c.cvId}</span></span>
+                            <span class="text-gray-500">配信: <span class="font-medium text-gray-700">${c.deliveredAt || '-'}</span></span>
                         </div>
                     </div>
 
-                    <div>
-                        <p class="text-gray-500 text-sm mb-1">メモ</p>
-                        <div class="bg-gray-50 p-3 rounded min-h-[60px] text-sm">
+                    <!-- お客様情報 -->
+                    ${section('お客様情報', [
+                        detailItem('電話番号', c.customerTel ? `<a href="tel:${c.customerTel}" class="text-green-600 hover:underline">${c.customerTel}</a>` : ''),
+                        detailItem('メール', c.customerEmail),
+                        detailItem('性別/年代', genderAge),
+                        detailItem('続柄', c.relationship),
+                        detailItem('連絡時間帯', c.contactTime)
+                    ])}
+
+                    <!-- 2人目連絡先 -->
+                    ${(c.name2 || c.tel2) ? section('2人目の連絡先', [
+                        detailItem('氏名', c.name2),
+                        detailItem('電話番号', c.tel2 ? `<a href="tel:${c.tel2}" class="text-green-600 hover:underline">${c.tel2}</a>` : ''),
+                        detailItem('続柄', c.relationship2),
+                        detailItem('備考', c.remarks2)
+                    ]) : ''}
+
+                    <!-- 物件情報 -->
+                    ${section('物件情報', [
+                        detailItem('所在地', fullAddr),
+                        c.googleMapsLink ? `<div class="py-1.5"><a href="${c.googleMapsLink}" target="_blank" class="text-blue-600 hover:underline text-sm">Google Mapsで開く →</a></div>` : '',
+                        detailItem('物件種別', propType),
+                        detailItem('築年数', c.buildingAge ? `${c.buildingAge}年` : ''),
+                        detailItem('建物面積', c.buildingArea),
+                        detailItem('外壁材', c.exteriorMaterial),
+                        detailItem('屋根材', c.roofMaterial),
+                        detailItem('塗装履歴', c.workHistory),
+                        detailItem('前回施工', c.lastConstructionTime),
+                        detailItem('劣化状況', c.deteriorationStatus),
+                        detailItem('気になる箇所', c.concernedAreas)
+                    ])}
+
+                    <!-- 希望内容 -->
+                    ${section('ご希望内容', [
+                        detailItem('見積もり希望', c.estimateAreas),
+                        detailItem('外壁工事', c.exteriorWorkRequest),
+                        detailItem('屋根工事', c.roofWorkRequest),
+                        detailItem('施工時期', c.constructionTiming),
+                        detailItem('希望社数', c.desiredCompanies),
+                        detailItem('他社見積', c.existingEstimates),
+                        detailItem('見積取得先', c.estimateSource),
+                        detailItem('訪問業者', c.visitingContractor),
+                        detailItem('訪問業者名', c.visitingContractorName),
+                        detailItem('比較意向', c.comparisonIntent),
+                        detailItem('選定条件', c.selectionCriteria)
+                    ])}
+
+                    <!-- 現地調査 -->
+                    ${section('現地調査', [
+                        detailItem('希望日時', c.inspectionDate),
+                        detailItem('立ち会い', attendance)
+                    ])}
+
+                    <!-- 特殊・備考 -->
+                    ${c.specialItems ? section('特殊要望', [
+                        `<div class="text-sm">${escapeHtml(c.specialItems)}</div>`
+                    ]) : ''}
+
+                    ${c.caseMemo ? section('案件メモ（運営）', [
+                        `<div class="text-sm bg-yellow-50 p-2 rounded">${escapeHtml(c.caseMemo)}</div>`
+                    ]) : ''}
+
+                    <!-- 加盟店メモ -->
+                    <div class="border-t pt-3 mt-3">
+                        <h5 class="font-bold text-sm text-gray-700 mb-2">自社メモ</h5>
+                        <div class="bg-blue-50 p-3 rounded min-h-[50px] text-sm">
                             ${c.merchantMemo ? escapeHtml(c.merchantMemo) : '<span class="text-gray-400">メモなし</span>'}
                         </div>
                     </div>
 
-                    <div class="flex gap-2 pt-2">
-                        <a href="tel:${c.userTel}" class="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg text-center hover:bg-green-600">
-                            📞 電話する
+                    <!-- アクションボタン -->
+                    <div class="flex gap-2 pt-3 border-t mt-3">
+                        <a href="tel:${c.customerTel}" class="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg text-center hover:bg-green-600 text-sm">
+                            📞 電話
                         </a>
-                        <button onclick="closeDetailModal(); openMemoModal('${c.cvId}')" class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                            📝 メモ編集
+                        <button onclick="closeDetailModal(); openMemoModal('${c.cvId}')" class="flex-1 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm">
+                            📝 メモ
                         </button>
-                        <button onclick="closeDetailModal(); openStatusModal('${c.cvId}')" class="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
+                        <button onclick="closeDetailModal(); openStatusModal('${c.cvId}')" class="flex-1 px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm">
                             📊 ステータス
                         </button>
                     </div>
