@@ -2401,7 +2401,7 @@ const AdminSystem = {
         // V2003: ユーザー登録シートの配信ステータス・配信先加盟店数・配信日時を自動更新
         // V2035: エラーがあっても転送成功を返すようtry-catchで囲む
         try {
-          this.updateUserSheetDeliveryStatus(userSheet, cvId, records.length, timestamp, franchises);
+          this.updateUserSheetDeliveryStatus(userSheet, cvId, records.length, timestamp);
         } catch (statusUpdateError) {
           console.error('[sendOrderTransfer] ユーザーシート更新エラー（転送は成功）:', statusUpdateError);
         }
@@ -2662,22 +2662,21 @@ const AdminSystem = {
   },
 
   /**
-   * V2003: ユーザー登録シートのステータス・配信日時・配信先業者一覧を自動更新
+   * V2039: ユーザー登録シートのステータス・配信日時を更新
    * 転送数は配信管理シートから取得（正確なデータソース）
-   * 希望社数に達していたら「配信済」、達していなければ「配信中」
+   * 希望社数に達していたら「配信済み」、達していなければ「配信中」
+   * 配信先業者一覧・加盟店別ステータスは配信管理シートで管理（ここでは更新しない）
    */
-  updateUserSheetDeliveryStatus: function(userSheet, cvId, newFranchiseCount, timestamp, franchises) {
+  updateUserSheetDeliveryStatus: function(userSheet, cvId, newFranchiseCount, timestamp) {
     try {
       const data = userSheet.getDataRange().getValues();
       const headers = data[0];
 
-      // 必要なカラムのインデックスを取得
+      // V2039: 必要なカラムのインデックスを取得（配信先業者一覧・加盟店別ステータスは配信管理シートで管理）
       const cvIdIdx = headers.indexOf('CV ID');
       const deliveryStatusIdx = headers.indexOf('配信ステータス');
       const deliveryDateIdx = headers.indexOf('配信日時');
-      const franchiseListIdx = headers.indexOf('配信先業者一覧');
       const managementStatusIdx = headers.indexOf('管理ステータス');
-      const franchiseStatusIdx = headers.indexOf('加盟店別ステータス');
       const desiredCountIdx = headers.indexOf('希望社数');
 
       if (cvIdIdx === -1) {
@@ -2724,40 +2723,13 @@ const AdminSystem = {
         desiredCount = parseInt(desiredVal) || 3;
       }
 
-      // 希望社数に達したかどうかでステータスを決定
-      // V2033: データ入力規則に準拠（配信済み, 成約, 失注, キャンセル承認済み）
-      // 転送が開始されたら「配信済み」を設定（「配信中」は無効な値）
-      const statusToSet = '配信済み';
+      // V2039: 希望社数に達したかどうかでステータスを決定
+      const statusToSet = totalTransferCount >= desiredCount ? '配信済み' : '配信中';
       console.log('[updateUserSheetDeliveryStatus] ステータス判定:', { existingCount, newFranchiseCount, totalTransferCount, desiredCount, statusToSet });
 
-      // 配信先業者一覧を作成（既存 + 新規）
-      const existingList = targetRowData[franchiseListIdx] || '';
-      const newNames = franchises.map(f => f.franchiseName || f.franchiseId).join(', ');
-      const franchiseNames = existingList ? existingList + ', ' + newNames : newNames;
-
-      // 加盟店別ステータスJSON作成（既存を保持 + 新規追加）
-      let franchiseStatusObj = {};
-      try {
-        franchiseStatusObj = JSON.parse(targetRowData[franchiseStatusIdx] || '{}');
-      } catch (e) {
-        franchiseStatusObj = {};
-      }
-      franchises.forEach(f => {
-        const name = f.franchiseName || f.franchiseId;
-        franchiseStatusObj[name] = '未対応';
-      });
-      const franchiseStatusJson = JSON.stringify(franchiseStatusObj);
-
-      // 各カラムを更新（配信先加盟店数は更新しない - 配信管理シートが正）
-      // V2035: 各setValue呼び出しを個別にtry-catchで囲む
-      console.log('[updateUserSheetDeliveryStatus] V2035 カラムインデックス:', {
-        deliveryStatusIdx, deliveryDateIdx, franchiseListIdx, managementStatusIdx, franchiseStatusIdx, targetRow
-      });
-
-      // V2035: 配信ステータス更新（エラーがあっても継続）
+      // V2039: 配信ステータス・配信日時・管理ステータスのみ更新（配信先業者一覧・加盟店別ステータスは配信管理シートで管理）
       if (deliveryStatusIdx !== -1) {
         try {
-          console.log('[updateUserSheetDeliveryStatus] 配信ステータス設定: 行', targetRow, '列', deliveryStatusIdx + 1, '値:', statusToSet);
           userSheet.getRange(targetRow, deliveryStatusIdx + 1).setValue(statusToSet);
         } catch (e1) {
           console.error('[updateUserSheetDeliveryStatus] 配信ステータス設定エラー:', e1);
@@ -2770,31 +2742,15 @@ const AdminSystem = {
           console.error('[updateUserSheetDeliveryStatus] 配信日時設定エラー:', e2);
         }
       }
-      if (franchiseListIdx !== -1) {
-        try {
-          userSheet.getRange(targetRow, franchiseListIdx + 1).setValue(franchiseNames);
-        } catch (e3) {
-          console.error('[updateUserSheetDeliveryStatus] 配信先業者一覧設定エラー:', e3);
-        }
-      }
-      // V2037: 管理ステータス（F列）更新 - 「配信済み」「配信中」に統一
       if (managementStatusIdx !== -1) {
         try {
-          console.log('[updateUserSheetDeliveryStatus] 管理ステータス設定: 行', targetRow, '列', managementStatusIdx + 1, '値:', statusToSet);
           userSheet.getRange(targetRow, managementStatusIdx + 1).setValue(statusToSet);
         } catch (e4) {
           console.error('[updateUserSheetDeliveryStatus] 管理ステータス設定エラー:', e4);
         }
       }
-      if (franchiseStatusIdx !== -1) {
-        try {
-          userSheet.getRange(targetRow, franchiseStatusIdx + 1).setValue(franchiseStatusJson);
-        } catch (e5) {
-          console.error('[updateUserSheetDeliveryStatus] 加盟店別ステータス設定エラー:', e5);
-        }
-      }
 
-      console.log('[updateUserSheetDeliveryStatus] 更新完了:', cvId, '配信先:', totalTransferCount, '/', desiredCount, '社', 'status:', statusToSet);
+      console.log('[updateUserSheetDeliveryStatus] 更新完了:', cvId, '転送:', totalTransferCount, '/', desiredCount, '社', 'status:', statusToSet);
     } catch (e) {
       console.error('[updateUserSheetDeliveryStatus] 全体エラー:', e);
     }

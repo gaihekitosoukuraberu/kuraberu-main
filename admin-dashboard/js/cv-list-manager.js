@@ -295,7 +295,7 @@ const CVListManager = {
         deliveryStatus: cv.deliveryStatus || '未配信',
         date: this.parseDate(cv.registeredAt),
         amount: formattedAmount,
-        franchiseStatuses: this.parseFranchiseStatuses(cv.franchiseStatuses),
+        // V2039: franchiseStatuses削除（配信管理シートで管理）
 
         // 案件メール配信済みフラグ
         broadcastSent: cv.broadcastSent === true || cv.broadcastSent === 'TRUE',
@@ -380,21 +380,7 @@ const CVListManager = {
     }
   },
 
-  /**
-   * 加盟店別ステータスをパース（JSON文字列 → オブジェクト）
-   * @param {string} franchiseStatusesStr - JSON文字列
-   * @returns {Object} 加盟店別ステータスオブジェクト
-   */
-  parseFranchiseStatuses(franchiseStatusesStr) {
-    if (!franchiseStatusesStr) return {};
-
-    try {
-      return JSON.parse(franchiseStatusesStr);
-    } catch (error) {
-      console.warn('[CVListManager] 加盟店別ステータスパース失敗:', franchiseStatusesStr);
-      return {};
-    }
-  },
+  // V2039: parseFranchiseStatuses削除（配信管理シートで管理）
 
   /**
    * 架電履歴をパース（改行区切り → 配列）

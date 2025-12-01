@@ -421,9 +421,9 @@ var AdminCancelSystem = {
   },
 
   /**
-   * ユーザー登録シートを更新（キャンセル承認時）
+   * V2039: ユーザー登録シートを更新（キャンセル承認時）
    * - 管理ステータスを「配信後未成約」に更新
-   * - 配信先業者一覧からこの加盟店を削除
+   * - 配信管理シートから該当レコードを削除（配信先業者一覧は使わない）
    * @param {Sheet} userSheet - ユーザー登録シート
    * @param {String} cvId - CV ID
    * @param {String} merchantId - 加盟店ID
@@ -437,7 +437,6 @@ var AdminCancelSystem = {
 
       const cvIdIdx = userHeaders.indexOf('CV ID');
       const managementStatusIdx = userHeaders.indexOf('管理ステータス');
-      const deliveredMerchantsIdx = userHeaders.indexOf('配信先業者一覧');
 
       let targetRow = -1;
       for (let i = 0; i < userRows.length; i++) {
@@ -457,14 +456,24 @@ var AdminCancelSystem = {
       // 管理ステータスを「配信後未成約」に更新
       userSheet.getRange(targetRow, managementStatusIdx + 1).setValue('配信後未成約');
 
-      // 配信先業者一覧から該当加盟店IDを削除
-      const currentMerchants = userRows[targetRow - 2][deliveredMerchantsIdx];
-      if (currentMerchants) {
-        const merchantList = currentMerchants.toString().split(',').map(m => m.trim());
-        const updatedList = merchantList.filter(m => m !== merchantId && m !== String(merchantId));
-        const newMerchants = updatedList.join(', ');
-        userSheet.getRange(targetRow, deliveredMerchantsIdx + 1).setValue(newMerchants);
-        console.log('[AdminCancelSystem] 配信先業者一覧更新:', currentMerchants, '→', newMerchants);
+      // V2039: 配信管理シートから該当レコードを削除（ステータスを「キャンセル承認済み」に更新）
+      const ss = userSheet.getParent();
+      const deliverySheet = ss.getSheetByName('配信管理');
+      if (deliverySheet) {
+        const deliveryData = deliverySheet.getDataRange().getValues();
+        const deliveryHeaders = deliveryData[0];
+        const cvIdColIdx = deliveryHeaders.indexOf('CV ID');
+        const franchiseIdColIdx = deliveryHeaders.indexOf('加盟店ID');
+        const statusColIdx = deliveryHeaders.indexOf('配信ステータス');
+
+        // 該当レコードを検索してステータス更新
+        for (let i = 1; i < deliveryData.length; i++) {
+          if (deliveryData[i][cvIdColIdx] === cvId && deliveryData[i][franchiseIdColIdx] === merchantId) {
+            deliverySheet.getRange(i + 1, statusColIdx + 1).setValue('キャンセル承認済み');
+            console.log('[AdminCancelSystem] 配信管理シート更新: CV', cvId, '加盟店', merchantId, '→ キャンセル承認済み');
+            break;
+          }
+        }
       }
 
       return {
