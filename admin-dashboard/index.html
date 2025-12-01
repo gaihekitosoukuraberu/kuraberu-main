@@ -2793,10 +2793,21 @@ window.addEventListener('beforeunload', function(e) {
         }
 
         // 加盟店に電話
-        function callFranchise(franchiseId) {
-            console.log(`加盟店 ${franchiseId} に電話`);
-            // 実際のアプリケーションでは電話番号を取得してダイヤル
-            alert(`加盟店 ${franchiseId} に電話をかけます`);
+        // V2041: 電話番号を直接受け取るように修正
+        function callFranchise(companyName, phone) {
+            console.log(`[callFranchise] ${companyName} に電話:`, phone);
+
+            if (!phone || phone === '' || phone === '(なし)') {
+                alert(`${companyName} の電話番号が登録されていません`);
+                return;
+            }
+
+            // 電話番号をクリーンアップ（ハイフン等を除去）
+            const cleanPhone = phone.replace(/[^\d]/g, '');
+            console.log(`[callFranchise] クリーンアップ後: ${cleanPhone}`);
+
+            // 電話発信
+            window.location.href = 'tel:' + cleanPhone;
         }
 
         // 加盟店にメール
