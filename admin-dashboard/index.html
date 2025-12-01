@@ -8508,9 +8508,11 @@ window.addEventListener('beforeunload', function(e) {
             // Step1を表示、他を非表示
             document.getElementById('callResultStep1').classList.remove('hidden');
             document.getElementById('callResultStep2Connected').classList.add('hidden');
-            document.getElementById('callResultStep2Absent').classList.add('hidden');
             document.getElementById('callResultStep3').classList.add('hidden');
             document.getElementById('newFranchiseNote').value = '';
+            // 選択状態もリセット
+            selectedHistoryIndex = -1;
+            document.getElementById('historyActionBar').classList.add('hidden');
 
             loadFranchiseHistory();
         }
@@ -8567,6 +8569,13 @@ window.addEventListener('beforeunload', function(e) {
             // メモがあれば結合
             const note = memo ? `${resultText}\n${memo}` : resultText;
 
+            // casesDataチェック
+            if (!currentCaseId || !casesData[currentCaseId]) {
+                console.error('[V2043] 案件データがありません:', currentCaseId);
+                alert('案件データがありません');
+                return;
+            }
+
             if (!casesData[currentCaseId].franchiseHistory) {
                 casesData[currentCaseId].franchiseHistory = [];
             }
@@ -8577,15 +8586,19 @@ window.addEventListener('beforeunload', function(e) {
             casesData[currentCaseId].franchiseHistory.unshift({
                 date: timestamp,
                 companyName: companyName,
-                note: note
+                note: note,
+                label: null  // V2044: ラベル用フィールド
             });
+
+            console.log('[V2043] 履歴追加:', { companyName, note, total: casesData[currentCaseId].franchiseHistory.length });
 
             // GASへ保存
             try {
                 const historyFormatted = casesData[currentCaseId].franchiseHistory.map(item => ({
                     date: item.date,
                     companyName: item.companyName,
-                    note: item.note
+                    note: item.note,
+                    label: item.label || null
                 }));
 
                 const jsonStr = JSON.stringify(historyFormatted);
