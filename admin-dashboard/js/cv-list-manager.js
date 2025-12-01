@@ -260,6 +260,9 @@ const CVListManager = {
         // V2027: 別住所物件種別（AY列）
         '別住所物件種別': cv.altPropertyType || '',
 
+        // V2027: Google Mapsリンク（CE列）
+        mapLink: cv.googleMapsLink || '',
+
         // 工事内容・検索
         searchKeyword: cv.searchKeyword || '',
         workItems: workItems,
