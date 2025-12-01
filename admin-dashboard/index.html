@@ -4696,6 +4696,39 @@ window.addEventListener('beforeunload', function(e) {
                 relationSelect.value = data.relation || data['続柄'] || '本人';
             }
 
+            // V2025: 2人目の情報（JKLM列から読み込み）
+            const name2 = data['氏名（2人目）'] || '';
+            const phone2 = data['電話番号（2人目）'] || '';
+            const relation2 = data['続柄（2人目）'] || '';
+            const memo2 = data['備考（2人目）'] || '';
+
+            const name2Input = document.getElementById('name2Input');
+            const phone2Input = document.getElementById('phone2Input');
+            const relation2Select = document.getElementById('relation2Select');
+            const memo2Input = document.getElementById('memo2Input');
+
+            if (name2Input) name2Input.value = name2;
+            if (phone2Input) phone2Input.value = phone2;
+            if (relation2Select) relation2Select.value = relation2;
+            if (memo2Input) memo2Input.value = memo2;
+
+            // 2人目情報がある場合はセクションを開く
+            if (name2 || phone2 || relation2 || memo2) {
+                const secondPersonSection = document.getElementById('secondPersonSection');
+                const secondPersonToggleIcon = document.getElementById('secondPersonToggleIcon');
+                const secondPersonToggleText = document.getElementById('secondPersonToggleText');
+                if (secondPersonSection) {
+                    secondPersonSection.classList.remove('hidden');
+                    if (secondPersonToggleIcon) {
+                        secondPersonToggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+                    }
+                    if (secondPersonToggleText) {
+                        secondPersonToggleText.textContent = '2人目の情報を削除';
+                    }
+                }
+                console.log('[populateForm] 2人目情報読み込み:', { name2, phone2, relation2, memo2 });
+            }
+
             // 電話番号とメール
             const telInput = crmContent.querySelector('input[type="tel"]');
             if (telInput) telInput.value = data.phone || data['電話番号'] || '';
@@ -6765,6 +6798,16 @@ window.addEventListener('beforeunload', function(e) {
             // 関係性（セレクトから取得）
             const relationSelect = document.getElementById('relationSelect');
             if (relationSelect) data.relation = relationSelect.value;
+
+            // V2025: 2人目の情報（JKLM列）
+            const name2Input = document.getElementById('name2Input');
+            const phone2Input = document.getElementById('phone2Input');
+            const relation2Select = document.getElementById('relation2Select');
+            const memo2Input = document.getElementById('memo2Input');
+            if (name2Input) data['氏名（2人目）'] = name2Input.value || '';
+            if (phone2Input) data['電話番号（2人目）'] = phone2Input.value || '';
+            if (relation2Select) data['続柄（2人目）'] = relation2Select.value || '';
+            if (memo2Input) data['備考（2人目）'] = memo2Input.value || '';
 
             // 住所
             const zipInput = document.getElementById('zipInput');
