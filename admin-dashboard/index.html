@@ -10987,7 +10987,7 @@ ${f.name} 御中
             // V2029: 2人目の連絡先（存在する場合のみ）
             if (d.secondPerson && (d.secondPerson.name || d.secondPerson.phone)) {
                 msg += `\n\n【2人目の連絡先】`;
-                if (d.secondPerson.name) msg += `\n氏名: ${d.secondPerson.name}`;
+                if (d.secondPerson.name) msg += `\n氏名: ${d.secondPerson.name}様`;
                 if (d.secondPerson.phone) msg += `\n電話番号: ${d.secondPerson.phone}`;
                 if (d.secondPerson.relation) msg += `\n続柄: ${d.secondPerson.relation}`;
                 if (d.secondPerson.memo) msg += `\n備考: ${d.secondPerson.memo}`;
