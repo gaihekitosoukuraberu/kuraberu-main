@@ -15699,7 +15699,7 @@
                     <!-- 物件情報 -->
                     ${section('物件情報', [
                         detailItem('所在地', fullAddr),
-                        c.googleMapsLink ? `<div class="py-1.5"><a href="${c.googleMapsLink}" target="_blank" class="text-blue-600 hover:underline text-sm">Google Mapsで開く →</a></div>` : '',
+                        detailItem('Google Map', c.googleMapsLink ? `<a href="${c.googleMapsLink}" target="_blank" class="text-blue-600 hover:underline">リンク →</a>` : '', true),
                         detailItem('物件種別', propType),
                         detailItem('延床面積', c.buildingArea),
                         detailItem('築年数', c.buildingAge ? `${c.buildingAge}年` : ''),
