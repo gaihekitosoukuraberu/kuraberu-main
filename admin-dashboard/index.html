@@ -8806,19 +8806,19 @@ window.addEventListener('beforeunload', function(e) {
             ).join('');
         }
         
-        // 選択された履歴エントリのインデックス（モバイル用）
-        let selectedHistoryIndex = null;
+        // 選択された履歴エントリのインデックス（モバイル用・架電履歴用）
+        let selectedCallHistoryIndex = null;
 
-        // 履歴エントリの選択をトグル（モバイル用2段階タップ）
+        // 履歴エントリの選択をトグル（モバイル用2段階タップ・架電履歴用）
         function toggleHistorySelection(index, event) {
             event.stopPropagation();
 
-            if (selectedHistoryIndex === index) {
+            if (selectedCallHistoryIndex === index) {
                 // 既に選択されている場合は選択解除
-                selectedHistoryIndex = null;
+                selectedCallHistoryIndex = null;
             } else {
                 // 新しいエントリを選択
-                selectedHistoryIndex = index;
+                selectedCallHistoryIndex = index;
             }
 
             // 表示を更新
@@ -8900,7 +8900,7 @@ window.addEventListener('beforeunload', function(e) {
             historyList.innerHTML = allHistory.map((item, index) => {
                 // callHistoryエントリのみ編集・削除可能（caseMemoは読み取り専用）
                 const isEditable = item.source === 'callHistory';
-                const isSelected = selectedHistoryIndex === index;
+                const isSelected = selectedCallHistoryIndex === index;
                 // 選択されている時のみボタンを表示（2タップ操作：1タップ目で選択→2タップ目でボタン押下）
                 const buttonVisibilityClass = isSelected ? 'opacity-100' : 'opacity-0';
 
