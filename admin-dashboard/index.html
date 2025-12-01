@@ -8581,6 +8581,15 @@ window.addEventListener('beforeunload', function(e) {
             // GASへ保存（saveFranchiseHistoryToGAS関数を使用）
             await saveFranchiseHistoryToGAS();
 
+            // V2045: BusinessSelectionHandlerのcurrentCaseDataも更新して業者カードを再描画
+            if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.currentCaseData) {
+                window.BusinessSelectionHandler.currentCaseData.franchiseHistory = casesData[currentCaseId].franchiseHistory;
+                // カードを再描画（コール回数更新のため）
+                if (typeof window.BusinessSelectionHandler.applySortAndRender === 'function') {
+                    window.BusinessSelectionHandler.applySortAndRender(window.BusinessSelectionHandler.currentSortType || 'user');
+                }
+            }
+
             // モーダルを閉じる
             closeFranchiseHistoryModal();
         }
@@ -8668,6 +8677,9 @@ window.addEventListener('beforeunload', function(e) {
             selectedHistoryIndex = -1;
             await saveFranchiseHistoryToGAS();
             loadFranchiseHistory();
+
+            // 業者カードも再描画
+            updateBusinessCards();
         }
 
         // 旧関数（互換性のため残す）
