@@ -2015,6 +2015,54 @@ window.addEventListener('beforeunload', function(e) {
         </div>
     </div>
 
+    <!-- V2046: メモ専用モーダル（📝ボタン用） -->
+    <div id="memoOnlyModal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeMemoOnlyModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-2 sm:p-6 lg:p-8">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-[calc(100vw-16px)] sm:max-w-md max-h-[95vh] overflow-hidden flex flex-col">
+                <!-- ヘッダー -->
+                <div class="flex justify-between items-center px-4 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">📝 メモ</h3>
+                        <p id="memoOnlyTargetName" class="text-sm text-gray-500 mt-0.5">---</p>
+                    </div>
+                    <button onclick="closeMemoOnlyModal()" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-2 transition-all">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- コンテンツエリア -->
+                <div class="flex-1 overflow-y-auto px-4 py-5">
+                    <!-- メモ入力 -->
+                    <div class="space-y-3">
+                        <p class="text-sm font-medium text-gray-600">メモを入力</p>
+                        <textarea
+                            id="memoOnlyNote"
+                            placeholder="メモを入力..."
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl resize-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm"
+                            rows="4"
+                        ></textarea>
+                        <button
+                            onclick="saveMemoOnly()"
+                            class="w-full py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-md hover:shadow-lg transition-all">
+                            保存
+                        </button>
+                    </div>
+
+                    <!-- メモ履歴リスト -->
+                    <div id="memoHistorySection" class="border-t border-gray-200 pt-4 mt-5">
+                        <h4 class="text-sm font-semibold text-gray-900 mb-3">📋 過去のメモ</h4>
+                        <div id="memoHistoryList" class="space-y-2 max-h-48 overflow-y-auto">
+                            <!-- 動的に生成される -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ソートモーダル -->
     <div id="sortModal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/50" onclick="closeSortModal()"></div>
@@ -8512,6 +8560,164 @@ window.addEventListener('beforeunload', function(e) {
             currentCallSubResult = '';
         }
 
+        // ============================================
+        // V2046: メモ専用モーダル（📝ボタン用）
+        // ============================================
+        let currentMemoCompany = null;
+        let selectedMemoHistoryIndex = -1;
+
+        // V2046: メモ専用モーダルを開く
+        function openMemoModal(companyName) {
+            if (!currentCaseId) {
+                alert('案件が選択されていません');
+                return;
+            }
+            currentMemoCompany = companyName;
+            selectedMemoHistoryIndex = -1;
+            document.getElementById('memoOnlyTargetName').textContent = companyName;
+            document.getElementById('memoOnlyNote').value = '';
+            document.getElementById('memoOnlyModal').classList.remove('hidden');
+            loadMemoHistory();
+        }
+
+        // V2046: メモ専用モーダルを閉じる
+        function closeMemoOnlyModal() {
+            document.getElementById('memoOnlyModal').classList.add('hidden');
+            document.getElementById('memoOnlyNote').value = '';
+            currentMemoCompany = null;
+            selectedMemoHistoryIndex = -1;
+        }
+
+        // V2046: メモのみ保存
+        async function saveMemoOnly() {
+            const memo = document.getElementById('memoOnlyNote').value.trim();
+            if (!memo) {
+                alert('メモを入力してください');
+                return;
+            }
+
+            if (!currentCaseId || !casesData[currentCaseId]) {
+                console.error('[V2046] 案件データがありません:', currentCaseId);
+                alert('案件データがありません');
+                return;
+            }
+
+            if (!casesData[currentCaseId].franchiseHistory) {
+                casesData[currentCaseId].franchiseHistory = [];
+            }
+
+            const timestamp = new Date().toLocaleString('ja-JP');
+            const companyName = currentMemoCompany || '不明';
+
+            casesData[currentCaseId].franchiseHistory.unshift({
+                date: timestamp,
+                companyName: companyName,
+                note: memo,
+                types: ['memo']  // V2046: メモのみ
+            });
+
+            console.log('[V2046] メモ追加:', { companyName, memo });
+
+            await saveFranchiseHistoryToGAS();
+
+            // BusinessSelectionHandlerも更新
+            if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.currentCaseData) {
+                window.BusinessSelectionHandler.currentCaseData.franchiseHistory = casesData[currentCaseId].franchiseHistory;
+                if (typeof window.BusinessSelectionHandler.applySortAndRender === 'function') {
+                    window.BusinessSelectionHandler.applySortAndRender(window.BusinessSelectionHandler.currentSortType || 'user');
+                }
+            }
+
+            closeMemoOnlyModal();
+        }
+
+        // V2046: メモ履歴を読み込み
+        function loadMemoHistory() {
+            const historyList = document.getElementById('memoHistoryList');
+            if (!currentCaseId || !casesData[currentCaseId]) {
+                historyList.innerHTML = '<p class="text-gray-500 text-sm">案件データがありません</p>';
+                return;
+            }
+
+            const allHistory = casesData[currentCaseId].franchiseHistory || [];
+            // 現在の会社のメモのみフィルタ
+            const memoHistory = allHistory.filter(item =>
+                item.companyName === currentMemoCompany &&
+                item.types && item.types.includes('memo')
+            );
+
+            if (memoHistory.length === 0) {
+                historyList.innerHTML = '<p class="text-gray-500 text-sm">メモがありません</p>';
+                return;
+            }
+
+            historyList.innerHTML = memoHistory.map((item, index) => {
+                const originalIndex = allHistory.findIndex(h => h === item);
+                const isSelected = originalIndex === selectedMemoHistoryIndex;
+                return `
+                <div onclick="selectMemoHistory(${originalIndex})" class="cursor-pointer rounded-lg p-3 border-2 ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'} transition-all">
+                    <div class="flex justify-between items-start gap-2">
+                        <div class="flex-1 min-w-0">
+                            <div class="text-xs text-gray-400">${item.date}</div>
+                            <div class="text-sm text-gray-700 mt-1">${item.note}</div>
+                        </div>
+                        ${isSelected ? `
+                        <div class="flex flex-col gap-1 flex-shrink-0">
+                            <button onclick="event.stopPropagation(); editMemoHistory(${originalIndex})" class="text-sm hover:bg-blue-100 rounded p-1">✏️</button>
+                            <button onclick="event.stopPropagation(); deleteMemoHistory(${originalIndex})" class="text-sm hover:bg-red-100 rounded p-1">🗑️</button>
+                            <button onclick="event.stopPropagation(); clearMemoSelection()" class="text-sm hover:bg-gray-200 rounded p-1">✕</button>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function selectMemoHistory(index) {
+            selectedMemoHistoryIndex = index;
+            loadMemoHistory();
+        }
+
+        function clearMemoSelection() {
+            selectedMemoHistoryIndex = -1;
+            loadMemoHistory();
+        }
+
+        async function editMemoHistory(index) {
+            const history = casesData[currentCaseId].franchiseHistory;
+            if (!history || !history[index]) return;
+
+            const item = history[index];
+            const newNote = prompt('メモを編集:', item.note || '');
+            if (newNote !== null && newNote !== item.note) {
+                history[index].note = newNote;
+                await saveFranchiseHistoryToGAS();
+                loadMemoHistory();
+
+                if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.currentCaseData) {
+                    window.BusinessSelectionHandler.currentCaseData.franchiseHistory = casesData[currentCaseId].franchiseHistory;
+                }
+            }
+        }
+
+        async function deleteMemoHistory(index) {
+            if (!confirm('このメモを削除しますか？')) return;
+            const history = casesData[currentCaseId].franchiseHistory;
+            if (!history) return;
+
+            history.splice(index, 1);
+            selectedMemoHistoryIndex = -1;
+            await saveFranchiseHistoryToGAS();
+            loadMemoHistory();
+
+            if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.currentCaseData) {
+                window.BusinessSelectionHandler.currentCaseData.franchiseHistory = casesData[currentCaseId].franchiseHistory;
+                if (typeof window.BusinessSelectionHandler.applySortAndRender === 'function') {
+                    window.BusinessSelectionHandler.applySortAndRender(window.BusinessSelectionHandler.currentSortType || 'user');
+                }
+            }
+        }
+
         // V2043: Step1 → Step2（繋がった場合）or Step3（不在の場合は直接）
         function selectCallResult(type) {
             currentCallResultType = type;
@@ -8569,11 +8775,15 @@ window.addEventListener('beforeunload', function(e) {
             const timestamp = new Date().toLocaleString('ja-JP');
             const companyName = currentFranchiseCallCompany || '不明';
 
+            // V2046: メモがあれば call + memo 両方、なければ call のみ
+            const hasNote = memo.length > 0;
+            const types = hasNote ? ['call', 'memo'] : ['call'];
+
             casesData[currentCaseId].franchiseHistory.unshift({
                 date: timestamp,
                 companyName: companyName,
                 note: note,
-                label: null  // V2044: ラベル用フィールド
+                types: types  // V2046: 'call', 'memo' の配列
             });
 
             console.log('[V2043] 履歴追加:', { companyName, note, total: casesData[currentCaseId].franchiseHistory.length });

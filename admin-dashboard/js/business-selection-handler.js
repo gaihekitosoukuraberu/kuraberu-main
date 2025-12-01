@@ -224,25 +224,31 @@ const BusinessSelectionHandler = {
   appliedFranchises: [],      // V2007: 申込済み業者リスト（一斉配信から申込）
 
   /**
-   * V2043: 加盟店へのコール回数を取得
+   * V2046: 加盟店へのコール回数を取得（types に 'call' が含まれるもの）
    * @param {string} companyName - 会社名
    * @returns {number} コール回数
    */
   getCallCount(companyName) {
     if (!this.currentCaseData) return 0;
     const history = this.currentCaseData.franchiseHistory || [];
-    return history.filter(item => item.companyName === companyName).length;
+    return history.filter(item =>
+      item.companyName === companyName &&
+      item.types && item.types.includes('call')
+    ).length;
   },
 
   /**
-   * V2045: 加盟店の履歴数を取得（📝の右に表示）
+   * V2046: 加盟店のメモ回数を取得（types に 'memo' が含まれるもの）
    * @param {string} companyName - 会社名
-   * @returns {number} 履歴数
+   * @returns {number} メモ回数
    */
-  getHistoryCount(companyName) {
+  getMemoCount(companyName) {
     if (!this.currentCaseData) return 0;
     const history = this.currentCaseData.franchiseHistory || [];
-    return history.filter(item => item.companyName === companyName).length;
+    return history.filter(item =>
+      item.companyName === companyName &&
+      item.types && item.types.includes('memo')
+    ).length;
   },
 
   /**
@@ -2189,9 +2195,9 @@ const BusinessSelectionHandler = {
       ? ''
       : `<input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="w-4 h-4 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">`;
 
-    // V2045: コール回数と履歴数を事前に取得
+    // V2046: コール回数とメモ回数を事前に取得（type別にカウント）
     const callCount = this.getCallCount(card.companyName);
-    const historyCount = this.getHistoryCount(card.companyName);
+    const memoCount = this.getMemoCount(card.companyName);
 
     // V2013: iPhone SE最適化 - 3行レイアウト（はみ出し防止）
     div.innerHTML = `
@@ -2216,7 +2222,7 @@ const BusinessSelectionHandler = {
       <div class="flex items-center justify-between gap-2 mt-1">
         <div class="flex items-center gap-1 pl-6">
           <button onclick="event.stopPropagation(); callFranchise('${card.companyName.replace(/'/g, "\\'")}', '${card.phone || ''}')" class="p-1 text-green-600 hover:bg-green-100 rounded transition-all text-sm" title="電話をかける">📞${callCount > 0 ? `<span class="text-xs text-green-700 font-bold">${callCount}</span>` : ''}</button>
-          <button onclick="event.stopPropagation(); openFranchiseHistoryModal('${card.companyName.replace(/'/g, "\\'")}')" class="p-1 text-blue-600 hover:bg-blue-100 rounded transition-all text-sm" title="対応履歴">📝${historyCount > 0 ? `<span class="text-xs text-blue-700 font-bold">${historyCount}</span>` : ''}</button>
+          <button onclick="event.stopPropagation(); openMemoModal('${card.companyName.replace(/'/g, "\\'")}')" class="p-1 text-blue-600 hover:bg-blue-100 rounded transition-all text-sm" title="メモ">📝${memoCount > 0 ? `<span class="text-xs text-blue-700 font-bold">${memoCount}</span>` : ''}</button>
         </div>
         <div class="flex items-center gap-2">
           <span id="${matchRateId}" class="px-2 py-0.5 rounded-full text-xs font-bold cursor-pointer ${matchRateColor}" onclick="event.stopPropagation();">${card.matchRate}%</span>
