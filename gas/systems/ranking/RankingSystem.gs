@@ -111,15 +111,24 @@ const RankingSystem = {
           const regHeaders = registerSheet.getRange(1, 1, 1, registerSheet.getLastColumn()).getValues()[0];
           console.log('[RankingSystem] 加盟店登録ヘッダー:', regHeaders.slice(0, 15));
           const companyNameIdx = regHeaders.indexOf('会社名');
-          // V2040-FIX: 電話番号列をヘッダーから動的に取得（ハードコードから修正）
-          let phoneIdx = regHeaders.indexOf('電話番号');
-          if (phoneIdx < 0) phoneIdx = regHeaders.indexOf('担当者電話番号');
-          if (phoneIdx < 0) phoneIdx = regHeaders.indexOf('携帯番号');
-          console.log('[RankingSystem] 会社名列Index:', companyNameIdx, ', 電話列Index:', phoneIdx, ', ヘッダー:', regHeaders);
+          // V2040-FIX: 電話番号列をヘッダーから動的に取得（複数候補から検索）
+          let phoneIdx = -1;
+          const phoneCandidates = ['担当者携帯番号', '電話番号', '担当者電話番号', '携帯番号', '携帯', 'TEL', '連絡先'];
+          for (const candidate of phoneCandidates) {
+            phoneIdx = regHeaders.indexOf(candidate);
+            if (phoneIdx >= 0) {
+              console.log('[RankingSystem] 電話番号列発見:', candidate, '→ Index:', phoneIdx);
+              break;
+            }
+          }
+          if (phoneIdx < 0) {
+            console.log('[RankingSystem] 電話番号列が見つかりません。ヘッダー:', regHeaders);
+          }
+          console.log('[RankingSystem] 会社名列Index:', companyNameIdx, ', 電話列Index:', phoneIdx);
           const regData = registerSheet.getRange(2, 1, regLastRow - 1, registerSheet.getLastColumn()).getValues();
           regData.forEach((row, i) => {
             const name = companyNameIdx >= 0 ? (row[companyNameIdx] || '') : '';
-            let phone = row[phoneIdx] || '';
+            let phone = phoneIdx >= 0 ? (row[phoneIdx] || '') : '';
             // V2040: 電話番号の先頭0補完（スプレッドシートで数値扱いされると0が消える）
             if (phone) {
               phone = String(phone);

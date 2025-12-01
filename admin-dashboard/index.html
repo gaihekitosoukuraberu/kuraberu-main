@@ -1122,7 +1122,13 @@
                     <h2 class="text-xl font-bold text-gray-900">案件メモ</h2>
                 </div>
                 <div class="relative mb-4">
-                    <textarea id="caseMemoTextarea" rows="4" placeholder="顧客からの要望や特記事項を入力..." class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all resize-none"></textarea>
+                    <!-- コピーボタン（右上小アイコン） -->
+                    <button type="button" onclick="copyCaseMemo()" class="absolute top-2 right-2 p-1.5 bg-gray-100 text-gray-500 rounded hover:bg-gray-200 hover:text-gray-700 transition-colors z-10" title="コピー">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                    </button>
+                    <textarea id="caseMemoTextarea" rows="4" placeholder="顧客からの要望や特記事項を入力..." class="w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all resize-none"></textarea>
                     <button type="button" onclick="startVoiceInput()" class="absolute bottom-3 right-3 p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors" title="音声入力">
                         <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
@@ -1130,9 +1136,6 @@
                     </button>
                 </div>
                 <div class="flex justify-end gap-2">
-                    <button type="button" onclick="copyCaseMemo()" class="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all font-medium border border-gray-300">
-                        📋 コピー
-                    </button>
                     <button type="button" onclick="aiCorrectCaseMemo()" class="px-6 py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg hover:from-yellow-600 hover:to-yellow-700 transition-all font-medium shadow-md hover:shadow-lg">
                         ✨ AI添削
                     </button>
@@ -1155,7 +1158,7 @@
                             <span class="hidden sm:inline">遮熱・断熱塗料提案可能</span>
                         </button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="立ち会いなし・見積もり手渡し希望">
-                            <span class="sm:hidden">立会なし手渡し</span>
+                            <span class="sm:hidden">立会無手渡し</span>
                             <span class="hidden sm:inline">立ち会いなし・手渡し希望</span>
                         </button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="遠方につき立ち会いなし・見積もり郵送・電話で商談可">
@@ -1170,7 +1173,10 @@
                             <span class="sm:hidden">太陽光脱着</span>
                             <span class="hidden sm:inline">太陽光パネル脱着（撤去含む）</span>
                         </button>
-                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="提携先ローン有り">提携先ローン有り</button>
+                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="提携先ローン有り">
+                            <span class="sm:hidden">提携ローン有</span>
+                            <span class="hidden sm:inline">提携先ローン有り</span>
+                        </button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="クレジットカード払い可">
                             <span class="sm:hidden">カード払い可</span>
                             <span class="hidden sm:inline">クレジットカード払い可</span>
@@ -1184,8 +1190,14 @@
                             <span class="hidden sm:inline">助成金申請サポート</span>
                         </button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="建築許可証">建築許可証</button>
-                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="光触媒塗料提案可">光触媒塗料提案可</button>
-                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="分割払いプラン有">分割払いプラン有</button>
+                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="光触媒塗料提案可">
+                            <span class="sm:hidden">光触媒可</span>
+                            <span class="hidden sm:inline">光触媒塗料提案可</span>
+                        </button>
+                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="分割払いプラン有">
+                            <span class="sm:hidden">分割プラン有</span>
+                            <span class="hidden sm:inline">分割払いプラン有</span>
+                        </button>
                     </div>
                 </div>
             </div>
