@@ -1568,7 +1568,7 @@ function toggleSecondPerson() {
     }
 }
 
-// 自宅住所セクション トグル
+// 別住所セクション トグル
 function toggleHomeAddress() {
     const section = document.getElementById('homeAddressSection');
     const icon = document.getElementById('homeAddressToggleIcon');
@@ -1577,15 +1577,41 @@ function toggleHomeAddress() {
     if (section.classList.contains('hidden')) {
         section.classList.remove('hidden');
         icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
-        text.textContent = '自宅住所';
+        text.textContent = '別住所を閉じる';
+        // V2024: 別住所入力時に案件メモへリマインダー追記
+        addAlternateAddressReminder();
     } else {
         section.classList.add('hidden');
         icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />';
-        text.textContent = '自宅住所';
+        text.textContent = '別住所を追加';
         // 入力内容をクリア
         document.getElementById('homeZipInput').value = '';
         document.getElementById('homeAddressInput').value = '';
     }
+}
+
+// V2024: 別住所入力時に案件メモへリマインダー自動追記
+function addAlternateAddressReminder() {
+    const caseMemoTextarea = document.getElementById('caseMemoTextarea');
+    if (!caseMemoTextarea) return;
+
+    const reminderText = '【別住所物件種別＝】';
+    // 既に追記済みの場合はスキップ
+    if (caseMemoTextarea.value.includes(reminderText)) return;
+
+    // メモの末尾にリマインダーを追記（既存内容を保持）
+    const currentMemo = caseMemoTextarea.value;
+    if (currentMemo.trim()) {
+        caseMemoTextarea.value = currentMemo + '\n\n' + reminderText;
+    } else {
+        caseMemoTextarea.value = reminderText;
+    }
+
+    // 変更をマーク（自動保存トリガー用）
+    if (currentCaseId) {
+        unsavedChanges.set(currentCaseId, 'caseMemo');
+    }
+    console.log('[addAlternateAddressReminder] 案件メモにリマインダー追記');
 }
 
 // 物件種別に応じて階数選択肢を動的に変更
