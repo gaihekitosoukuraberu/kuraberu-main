@@ -1,59 +1,65 @@
 /**
- * V2038: F列（6列目）のデータ入力規則を直接修正
- * エラー: セル F28 に入力したデータは、このセルで設定しているデータの入力規則に違反しています
- *
- * 実行方法: GASエディタで fixColumnF() を実行
+ * ユーザー登録シートのF列（年齢）の入力規則を削除（元に戻す）
  */
-
-/**
- * 配信管理シートのF列を確認・修正
- */
-function fixColumnF() {
-  console.log('===== 配信管理シートF列 入力規則修正 V2038 開始 =====');
+function restoreUserSheetColumnF() {
+  console.log('===== ユーザー登録シート F列 復元 =====');
 
   const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName('ユーザー登録');
 
-  // 配信管理シートを確認
-  const deliverySheet = ss.getSheetByName('配信管理');
-  if (deliverySheet) {
-    console.log('--- 配信管理シート ---');
-    const headers = deliverySheet.getRange(1, 1, 1, 10).getValues()[0];
-    console.log('配信管理シート ヘッダー(A-J):', headers);
-
-    const fHeader = deliverySheet.getRange(1, 6).getValue();
-    console.log('配信管理シート F列ヘッダー:', fHeader);
-
-    const existingRule = deliverySheet.getRange(2, 6).getDataValidation();
-    if (existingRule) {
-      const criteria = existingRule.getCriteriaType();
-      const args = existingRule.getCriteriaValues();
-      console.log('配信管理シート F列 既存規則:', criteria.toString(), JSON.stringify(args));
-
-      // 配信ステータスの入力規則を更新
-      const allowedValues = ['配信済み', '配信済', '成約', '失注', 'キャンセル承認済み', '未対応', '対応中', '商談中'];
-      const rule = SpreadsheetApp.newDataValidation()
-        .requireValueInList(allowedValues, true)
-        .setAllowInvalid(true)  // 無効な値も許可（エラー回避）
-        .build();
-
-      const lastRow = Math.max(deliverySheet.getLastRow(), 2);
-      deliverySheet.getRange(2, 6, lastRow - 1, 1).setDataValidation(rule);
-      console.log('✅ 配信管理シート F列の入力規則を更新');
-    } else {
-      console.log('配信管理シート F列に入力規則なし');
-    }
+  if (!sheet) {
+    console.error('ユーザー登録シートが見つかりません');
+    return;
   }
 
-  // ユーザー登録シートも確認
-  const userSheet = ss.getSheetByName('ユーザー登録');
-  if (userSheet) {
-    console.log('--- ユーザー登録シート ---');
-    const headers = userSheet.getRange(1, 1, 1, 10).getValues()[0];
-    console.log('ユーザー登録シート ヘッダー(A-J):', headers);
+  const fHeader = sheet.getRange(1, 6).getValue();
+  console.log('F列ヘッダー:', fHeader);
+
+  // F列の入力規則を削除
+  const lastRow = Math.max(sheet.getLastRow(), 2);
+  sheet.getRange(2, 6, lastRow - 1, 1).clearDataValidations();
+
+  console.log('✅ ユーザー登録シート F列の入力規則を削除しました');
+}
+
+/**
+ * V2038: 配信管理シートのF列（配信ステータス）の入力規則を修正
+ * 実行: GASエディタで fixDeliverySheetColumnF() を実行
+ */
+function fixDeliverySheetColumnF() {
+  console.log('===== 配信管理シート F列 修正 =====');
+
+  const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName('配信管理');
+
+  if (!sheet) {
+    console.error('配信管理シートが見つかりません');
+    return;
   }
 
-  console.log('===== 完了 =====');
+  // F列ヘッダー確認
+  const fHeader = sheet.getRange(1, 6).getValue();
+  console.log('F列ヘッダー:', fHeader);
+
+  // 既存規則確認
+  const existingRule = sheet.getRange(2, 6).getDataValidation();
+  if (existingRule) {
+    console.log('既存規則:', existingRule.getCriteriaValues());
+  }
+
+  // 新しい入力規則（配信済みを追加）
+  const allowedValues = ['配信済み', '成約', '失注', 'キャンセル承認済み'];
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(allowedValues, true)
+    .setAllowInvalid(true)
+    .build();
+
+  const lastRow = Math.max(sheet.getLastRow(), 2);
+  sheet.getRange(2, 6, lastRow - 1, 1).setDataValidation(rule);
+
+  console.log('✅ 完了 許可値:', allowedValues.join(', '));
 }
 
 /**
