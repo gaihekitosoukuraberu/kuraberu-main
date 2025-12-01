@@ -111,8 +111,11 @@ const RankingSystem = {
           const regHeaders = registerSheet.getRange(1, 1, 1, registerSheet.getLastColumn()).getValues()[0];
           console.log('[RankingSystem] 加盟店登録ヘッダー:', regHeaders.slice(0, 15));
           const companyNameIdx = regHeaders.indexOf('会社名');
-          const phoneIdx = 10; // K列（0-indexed = 10）
-          console.log('[RankingSystem] 会社名列Index:', companyNameIdx, ', 電話列Index:', phoneIdx);
+          // V2040-FIX: 電話番号列をヘッダーから動的に取得（ハードコードから修正）
+          let phoneIdx = regHeaders.indexOf('電話番号');
+          if (phoneIdx < 0) phoneIdx = regHeaders.indexOf('担当者電話番号');
+          if (phoneIdx < 0) phoneIdx = regHeaders.indexOf('携帯番号');
+          console.log('[RankingSystem] 会社名列Index:', companyNameIdx, ', 電話列Index:', phoneIdx, ', ヘッダー:', regHeaders);
           const regData = registerSheet.getRange(2, 1, regLastRow - 1, registerSheet.getLastColumn()).getValues();
           regData.forEach((row, i) => {
             const name = companyNameIdx >= 0 ? (row[companyNameIdx] || '') : '';
