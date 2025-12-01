@@ -853,18 +853,15 @@
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
                                     <label class="block text-xs font-medium text-gray-600 mb-1">郵便番号</label>
-                                    <div class="flex gap-1">
-                                        <input type="text" id="homeZipInput" placeholder="例: 1500001" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm" oninput="autoFetchHomeAddress(1)">
-                                        <button type="button" onclick="fetchHomeAddress(1)" class="px-2 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-xs">検索</button>
-                                    </div>
+                                    <input type="text" id="homeZipInput" placeholder="7桁で自動検索" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm" oninput="autoFetchHomeAddress(1)">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-gray-600 mb-1">都道府県</label>
-                                    <input type="text" id="homePrefInput" placeholder="例: 東京都" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
+                                    <input type="text" id="homePrefInput" placeholder="自動入力" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
                                 </div>
-                                <div class="sm:col-span-1">
+                                <div>
                                     <label class="block text-xs font-medium text-gray-600 mb-1">住所詳細</label>
-                                    <input type="text" id="homeAddressInput" placeholder="例: 渋谷区..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
+                                    <input type="text" id="homeAddressInput" placeholder="自動入力" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
                                 </div>
                             </div>
                         </div>
@@ -876,18 +873,15 @@
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
                                     <label class="block text-xs font-medium text-gray-600 mb-1">郵便番号</label>
-                                    <div class="flex gap-1">
-                                        <input type="text" id="homeZipInput2" placeholder="例: 1500001" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm" oninput="autoFetchHomeAddress(2)">
-                                        <button type="button" onclick="fetchHomeAddress(2)" class="px-2 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-xs">検索</button>
-                                    </div>
+                                    <input type="text" id="homeZipInput2" placeholder="7桁で自動検索" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm" oninput="autoFetchHomeAddress(2)">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-gray-600 mb-1">都道府県</label>
-                                    <input type="text" id="homePrefInput2" placeholder="例: 東京都" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
+                                    <input type="text" id="homePrefInput2" placeholder="自動入力" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
                                 </div>
-                                <div class="sm:col-span-1">
+                                <div>
                                     <label class="block text-xs font-medium text-gray-600 mb-1">住所詳細</label>
-                                    <input type="text" id="homeAddressInput2" placeholder="例: 渋谷区..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
+                                    <input type="text" id="homeAddressInput2" placeholder="自動入力" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
                                 </div>
                             </div>
                         </div>
