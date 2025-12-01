@@ -3029,6 +3029,7 @@ info@gaihekikuraberu.com
         'callHistory': '架電履歴',      // BK列 - Call history tracking
         'nextCallDate': '次回架電日時',  // BL列 - Next callback date
         'memo': 'メモ',                  // BM列 - Internal CRM notes (shared with list view)
+        'franchiseHistory': '加盟店対応履歴',  // BO列 - V2040: Franchise call history tracking
         // V2002: 別住所・見積もり送付先
         'homeZip': '郵便番号（自宅）',       // T列
         'homePref': '都道府県（自宅）',      // U列

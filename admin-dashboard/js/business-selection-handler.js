@@ -634,7 +634,9 @@ const BusinessSelectionHandler = {
       // V1911: 住所・支店住所・会社名カナ追加
       address: business.address || '',
       branchAddress: business.branchAddress || '',
-      companyNameKana: business.companyNameKana || ''
+      companyNameKana: business.companyNameKana || '',
+      // V2040: 電話番号追加（加盟店対応履歴用）
+      phone: business.phone || ''
     };
 
     // V1900: 変換デバッグログ
@@ -2160,10 +2162,16 @@ const BusinessSelectionHandler = {
         ${card.distanceText ? `<span class="text-gray-500 text-xs">${card.distanceText}</span>` : ''}
         ${cancelButtonHtml}
       </div>
-      <!-- 3行目: マッチ率 + 金額（右寄せ） -->
-      <div class="flex items-center justify-end gap-2 mt-1">
-        <span id="${matchRateId}" class="px-2 py-0.5 rounded-full text-xs font-bold cursor-pointer ${matchRateColor}" onclick="event.stopPropagation();">${card.matchRate}%</span>
-        <span class="text-sm font-bold text-green-600">${formattedPrice}</span>
+      <!-- 3行目: 📞📝ボタン + マッチ率 + 金額 -->
+      <div class="flex items-center justify-between gap-2 mt-1">
+        <div class="flex items-center gap-1 pl-6">
+          ${card.phone ? `<button onclick="event.stopPropagation(); callFranchise('${card.companyName.replace(/'/g, "\\'")}', '${card.phone}')" class="p-1 text-green-600 hover:bg-green-100 rounded transition-all text-sm" title="電話をかける">📞</button>` : ''}
+          <button onclick="event.stopPropagation(); openFranchiseHistoryModal('${card.companyName.replace(/'/g, "\\'")}')" class="p-1 text-blue-600 hover:bg-blue-100 rounded transition-all text-sm" title="対応履歴">📝</button>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="${matchRateId}" class="px-2 py-0.5 rounded-full text-xs font-bold cursor-pointer ${matchRateColor}" onclick="event.stopPropagation();">${card.matchRate}%</span>
+          <span class="text-sm font-bold text-green-600">${formattedPrice}</span>
+        </div>
       </div>
     `;
 

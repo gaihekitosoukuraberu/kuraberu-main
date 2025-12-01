@@ -315,6 +315,9 @@ const CVListManager = {
         nextCallDate: cv.nextCallDate || '',
         lastCallDate: cv.lastCallDate || '',
 
+        // V2040: 加盟店対応履歴
+        franchiseHistory: this.parseFranchiseHistory(cv.franchiseHistory),
+
         // メモ・その他
         memo: cv.memo || '',
         caseMemo: this.buildCaseMemo(cv),
@@ -428,6 +431,46 @@ const CVListManager = {
       });
     } catch (error) {
       console.warn('[CVListManager] 架電履歴パース失敗:', callHistoryStr);
+      return [];
+    }
+  },
+
+  /**
+   * V2040: 加盟店対応履歴をパース（JSON → 配列）
+   * @param {string} franchiseHistoryStr - 加盟店対応履歴文字列（JSON）
+   * @returns {Array} 加盟店対応履歴配列
+   */
+  parseFranchiseHistory(franchiseHistoryStr) {
+    if (!franchiseHistoryStr) return [];
+
+    try {
+      const trimmed = franchiseHistoryStr.trim();
+      if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+        const parsed = JSON.parse(franchiseHistoryStr);
+        const array = Array.isArray(parsed) ? parsed : [parsed];
+        return array.map(item => ({
+          date: item.date || '',
+          companyName: item.companyName || '',
+          note: item.note || ''
+        }));
+      }
+
+      // Legacy format: newline-delimited text
+      const lines = franchiseHistoryStr.split('\n').filter(line => line.trim());
+      return lines.map(line => {
+        // "[2025/01/10 10:30] [会社名] メモ内容" のような形式を想定
+        const match = line.match(/^\[(.+?)\]\s*\[(.+?)\]\s*(.+)$/);
+        if (match) {
+          return {
+            date: match[1],
+            companyName: match[2],
+            note: match[3]
+          };
+        }
+        return { date: '', companyName: '', note: line };
+      });
+    } catch (error) {
+      console.warn('[CVListManager] 加盟店対応履歴パース失敗:', franchiseHistoryStr);
       return [];
     }
   },

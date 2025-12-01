@@ -1281,7 +1281,7 @@ const CVSheetSystem = {
           nextCallDate: row[63] || '',                  // BL: 次回架電日時（index 63）
           memo: row[64] || '',                          // BM: メモ（index 64）
           status: row[65] || '新規',                     // BN: 管理ステータス（index 65）
-          franchiseStatuses: row[66] || '',             // BO: 加盟店別ステータス（JSON）（index 66）
+          franchiseHistory: row[66] || '',             // BO: 加盟店対応履歴（V2040）（index 66）
           firstCallDate: row[67] || '',                 // BP: 初回架電日時（index 67）
           lastUpdateDate: row[68] || '',                // BQ: 最終更新日時（index 68）
           scheduledDeliveryDate: row[69] || '',         // BR: 配信予定日時（index 69）

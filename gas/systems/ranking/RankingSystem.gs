@@ -140,7 +140,9 @@ const RankingSystem = {
         branchAddress: masterHeaders.indexOf('支店住所'),
         companyNameKana: masterHeaders.indexOf('会社名カナ'),
         // V1947: 郵便番号追加（距離フィルタリング用）
-        postalCode: masterHeaders.indexOf('郵便番号')
+        postalCode: masterHeaders.indexOf('郵便番号'),
+        // V2040: 電話番号追加（加盟店対応履歴用）
+        phone: masterHeaders.indexOf('電話番号')
       };
 
       // V1713-DEBUG: カラムインデックス検証
@@ -497,7 +499,9 @@ const RankingSystem = {
           branchAddress: row[colIndex.branchAddress] || '',
           companyNameKana: row[colIndex.companyNameKana] || '',
           // V1947: 郵便番号追加（距離フィルタリング用）
-          postalCode: row[colIndex.postalCode] || ''
+          postalCode: row[colIndex.postalCode] || '',
+          // V2040: 電話番号追加（加盟店対応履歴用）
+          phone: row[colIndex.phone] || ''
         });
 
         // V1834-DEBUG: 最初の3社のプレビューHP値をログ出力
@@ -609,7 +613,8 @@ const RankingSystem = {
               address: row[colIndex.address] || '', // V1960: 距離計算用に住所を追加
               branchAddress: row[colIndex.branchAddress] || '',
               companyNameKana: row[colIndex.companyNameKana] || '',
-              postalCode: row[colIndex.postalCode] || ''
+              postalCode: row[colIndex.postalCode] || '',
+              phone: row[colIndex.phone] || '' // V2040: 電話番号追加
             };
           });
           console.log('[RankingSystem] 🔄 ステップ1結果: ' + filtered.length + '件');
@@ -702,7 +707,8 @@ const RankingSystem = {
               address: row[colIndex.address] || '', // V1960: 距離計算用に住所を追加
               branchAddress: row[colIndex.branchAddress] || '',
               companyNameKana: row[colIndex.companyNameKana] || '',
-              postalCode: row[colIndex.postalCode] || ''
+              postalCode: row[colIndex.postalCode] || '',
+              phone: row[colIndex.phone] || '' // V2040: 電話番号追加
             };
           });
           console.log('[RankingSystem] 🔄 ステップ2結果: ' + filtered.length + '件（都道府県内・工事種別条件なし）');
