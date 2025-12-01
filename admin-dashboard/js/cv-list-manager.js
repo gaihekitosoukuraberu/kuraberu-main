@@ -263,6 +263,9 @@ const CVListManager = {
         // V2027: 連絡時間帯（AU列）
         '連絡時間帯': cv.contactTimePreference || '',
 
+        // V2027: 見積もり送付先（AV列）
+        '見積もり送付先': cv.estimateDeliveryAddress || '',
+
         // V2027: Google Mapsリンク（CE列）
         mapLink: cv.googleMapsLink || '',
 

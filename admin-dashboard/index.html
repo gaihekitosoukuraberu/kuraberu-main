@@ -4993,6 +4993,12 @@ window.addEventListener('beforeunload', function(e) {
                 altPropertyTypeSelect.value = altPropertyTypeStr;
             }
 
+            // V2027: 見積もり送付先（AV列）
+            const quoteDestinationSelect = document.getElementById('quoteDestinationSelect');
+            if (quoteDestinationSelect) {
+                quoteDestinationSelect.value = data['見積もり送付先'] || '';
+            }
+
             // 別住所情報がある場合は別住所セクションを開く
             if (homeZip || homePref || homeAddress || altPropertyTypeStr) {
                 const homeAddressSection = document.getElementById('homeAddressSection');
@@ -6938,6 +6944,12 @@ window.addEventListener('beforeunload', function(e) {
             const contactMethodInput = document.getElementById('contactMethodInput');
             if (contactMethodInput) {
                 data['連絡時間帯'] = contactMethodInput.value || '';
+            }
+
+            // V2027: 見積もり送付先（AV列）
+            const quoteDestinationSelect = document.getElementById('quoteDestinationSelect');
+            if (quoteDestinationSelect) {
+                data['見積もり送付先'] = quoteDestinationSelect.value || '';
             }
 
             // V1993: 希望社数（companiesCount）は保存対象外（変動するため）
