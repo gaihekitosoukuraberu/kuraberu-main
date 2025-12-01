@@ -429,8 +429,8 @@ function getAreaFromPostalCode(postalCode) {
 // 郵便番号DBスプレッドシートから住所を取得（シンプル版）
 async function getAddressFromPostalCode(postalCode) {
   try {
-    // 統一されたGASエンドポイントのURL（ENV経由で取得、フォールバック付き）- V2022
-    const gasUrl = window.ENV?.GAS_URL || 'https://script.google.com/macros/s/AKfycbzFfJEJUoywYW-V0xEpCsXlfncAD8KBVSUrdQJN15TGkygeU6yxrQO4ccdyCPxKyeKAYA/exec';
+    // 統一されたGASエンドポイントのURL（ENV経由で取得、フォールバック付き）- GitHub Actions @1939
+    const gasUrl = window.ENV?.GAS_URL || 'https://script.google.com/macros/s/AKfycbxMjuXuFuWh-so0aiVnNGYF22rF4waDsk2SHn6-mPMWcMNnCyyPtXPs9wdcKLcQCuQ6Cw/exec';
     
     console.log('🔍 郵便番号検索:', postalCode);
     
