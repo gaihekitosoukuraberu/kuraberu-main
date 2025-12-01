@@ -11054,7 +11054,11 @@ ${f.name} 御中
             if (d.constructionTiming) msg += `\n施工時期: ${d.constructionTiming}`;
             if (d.surveyAttendance) {
                 let attendance = d.surveyAttendance;
-                if (d.attendanceRelation) attendance += `（${d.attendanceRelation}）`;
+                if (d.attendanceRelation) {
+                    // 「本人」→「ご本人様」に丁寧語変換
+                    const politeRelation = d.attendanceRelation === '本人' ? 'ご本人様' : d.attendanceRelation;
+                    attendance += `（${politeRelation}）`;
+                }
                 msg += `\n立会い: ${attendance}`;
             }
             if (d.surveyDatePreference) msg += `\n現地調査希望日時: ${d.surveyDatePreference}`;
