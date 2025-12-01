@@ -11022,18 +11022,18 @@ ${f.name} 御中
             if (d.estimateDeliveryAddress && d.estimateDeliveryAddress !== '物件住所') {
                 msg += `\n
 -------------------------------------------
-【見積もり送付先】※物件とは別の住所
+【見積もり送付先】
 -------------------------------------------`;
-                // 別住所の詳細を構築
+                // 送付先種別を先に表示（会社、自宅など）
+                if (d.altPropertyType) {
+                    msg += `\n送付先: ${d.altPropertyType}`;
+                } else {
+                    msg += `\n送付先: ${d.estimateDeliveryAddress}`;
+                }
+                // 別住所の詳細を下に表示
                 const altAddress = [d.homePrefecture, d.homeStreet].filter(v => v).join('');
                 if (altAddress) {
-                    msg += `\n送付先: ${d.homePostalCode ? `〒${d.homePostalCode} ` : ''}${altAddress}`;
-                }
-                if (d.altPropertyType) {
-                    msg += `\n種別: ${d.altPropertyType}`;
-                }
-                if (!altAddress && !d.altPropertyType) {
-                    msg += `\n${d.estimateDeliveryAddress}`;
+                    msg += `\n${d.homePostalCode ? `〒${d.homePostalCode} ` : ''}${altAddress}`;
                 }
             }
 
