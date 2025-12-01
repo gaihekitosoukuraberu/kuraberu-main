@@ -2753,7 +2753,15 @@ const AdminSystem = {
    */
   generateTransferMessage: function(cv, franchiseName, fee, deliveryDate, cvId) {
     const formatFee = (n) => '¥' + Number(n).toLocaleString('ja-JP');
+    // V2028: デバッグログ - 住所関連フィールドの確認
+    console.log('[generateTransferMessage] V2028 住所デバッグ:', {
+      '都道府県（物件）': cv['都道府県（物件）'],
+      '市区町村（物件）': cv['市区町村（物件）'],
+      '住所詳細（物件）': cv['住所詳細（物件）'],
+      'cvKeys': Object.keys(cv).filter(k => k.includes('物件') || k.includes('都道府県') || k.includes('市区町村'))
+    });
     const addr = [cv['都道府県（物件）'], cv['市区町村（物件）'], cv['住所詳細（物件）']].filter(v => v).join('');
+    console.log('[generateTransferMessage] V2028 addr結果:', addr);
     const mapLink = cv['Google Mapsリンク'] || '';
 
     let msg = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
