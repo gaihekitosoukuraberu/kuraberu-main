@@ -122,21 +122,22 @@ jobs:
             echo "ℹ️ 削除対象のデプロイメントなし"
           fi
 
-          # V2040: バージョン200上限対策 - @HEADデプロイを使用
-          # clasp pushで@HEADは自動更新されるため、新規deployは不要
-          echo "🚀 @HEADデプロイメントを使用（バージョン上限対策）..."
+          # V2040: 新規デプロイメント作成（/exec用）
+          echo "🚀 新規デプロイメント作成中..."
+          DEPLOY_OUTPUT=$(clasp deploy -d "V2040-$(date +%Y%m%d%H%M%S)" 2>&1)
+          echo "$DEPLOY_OUTPUT"
 
-          # @HEADのデプロイメントIDを取得
-          DEPLOYMENT_ID=$(clasp deployments 2>&1 | grep "@HEAD" | grep -oE 'AKfycb[A-Za-z0-9_-]{38,}' | head -1)
+          # デプロイメントIDを抽出
+          DEPLOYMENT_ID=$(echo "$DEPLOY_OUTPUT" | grep -oE 'AKfycb[A-Za-z0-9_-]{38,}' | head -1)
 
           if [ -z "$DEPLOYMENT_ID" ]; then
-            echo "❌ ERROR: @HEADデプロイメントIDの取得に失敗"
+            echo "❌ ERROR: デプロイメントIDの取得に失敗"
             clasp deployments
             exit 1
           fi
 
-          echo "✅ GASプッシュ完了（@HEAD自動更新）"
-          echo "📍 @HEAD Deployment ID: $DEPLOYMENT_ID"
+          echo "✅ GASデプロイ完了"
+          echo "📍 Deployment ID: $DEPLOYMENT_ID"
           echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
 
       - name: Health check
@@ -159,7 +160,6 @@ jobs:
       - name: Log deployment success
         run: |
           echo "✅ デプロイ成功"
-          echo "Version: ${{ steps.deploy.outputs.version }}"
           echo "Deployment ID: ${{ steps.deploy.outputs.deployment_id }}"
 
       - name: Sync all env-loaders with new deployment ID (FORCE CACHE BUSTER UPDATE)
