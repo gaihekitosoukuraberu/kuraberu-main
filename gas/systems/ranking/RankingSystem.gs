@@ -101,6 +101,27 @@ const RankingSystem = {
       const allData = masterSheet.getRange(2, 1, lastRow - 1, masterSheet.getLastColumn()).getValues();
       console.log('[RankingSystem] 全業者数: ' + allData.length);
 
+      // V2040: 加盟店登録シートから電話番号を取得（K列）
+      const phoneMap = {};
+      const registerSheet = ss.getSheetByName('加盟店登録');
+      if (registerSheet) {
+        const regLastRow = registerSheet.getLastRow();
+        if (regLastRow >= 2) {
+          const regHeaders = registerSheet.getRange(1, 1, 1, registerSheet.getLastColumn()).getValues()[0];
+          const companyNameIdx = regHeaders.indexOf('会社名');
+          const phoneIdx = 10; // K列（0-indexed = 10）
+          const regData = registerSheet.getRange(2, 1, regLastRow - 1, registerSheet.getLastColumn()).getValues();
+          regData.forEach(row => {
+            const name = row[companyNameIdx] || '';
+            const phone = row[phoneIdx] || '';
+            if (name && phone) {
+              phoneMap[name] = phone;
+            }
+          });
+          console.log('[RankingSystem] 電話番号マップ作成:', Object.keys(phoneMap).length, '件');
+        }
+      }
+
       // V1713-FIX: onEditトリガーで加盟店登録→加盟店マスタが自動同期されるため、
       // マスタシートだけを読めばOK（高速化）
 
@@ -140,9 +161,8 @@ const RankingSystem = {
         branchAddress: masterHeaders.indexOf('支店住所'),
         companyNameKana: masterHeaders.indexOf('会社名カナ'),
         // V1947: 郵便番号追加（距離フィルタリング用）
-        postalCode: masterHeaders.indexOf('郵便番号'),
-        // V2040: 電話番号追加（加盟店対応履歴用）
-        phone: masterHeaders.indexOf('電話番号')
+        postalCode: masterHeaders.indexOf('郵便番号')
+        // V2040: 電話番号は加盟店登録シートから取得（phoneMap）
       };
 
       // V1713-DEBUG: カラムインデックス検証
@@ -500,8 +520,8 @@ const RankingSystem = {
           companyNameKana: row[colIndex.companyNameKana] || '',
           // V1947: 郵便番号追加（距離フィルタリング用）
           postalCode: row[colIndex.postalCode] || '',
-          // V2040: 電話番号追加（加盟店対応履歴用）
-          phone: row[colIndex.phone] || ''
+          // V2040: 電話番号追加（加盟店登録シートK列から取得）
+          phone: phoneMap[companyName] || ''
         });
 
         // V1834-DEBUG: 最初の3社のプレビューHP値をログ出力
@@ -614,7 +634,7 @@ const RankingSystem = {
               branchAddress: row[colIndex.branchAddress] || '',
               companyNameKana: row[colIndex.companyNameKana] || '',
               postalCode: row[colIndex.postalCode] || '',
-              phone: row[colIndex.phone] || '' // V2040: 電話番号追加
+              phone: phoneMap[companyName] || '' // V2040: 加盟店登録シートから取得
             };
           });
           console.log('[RankingSystem] 🔄 ステップ1結果: ' + filtered.length + '件');
@@ -708,7 +728,7 @@ const RankingSystem = {
               branchAddress: row[colIndex.branchAddress] || '',
               companyNameKana: row[colIndex.companyNameKana] || '',
               postalCode: row[colIndex.postalCode] || '',
-              phone: row[colIndex.phone] || '' // V2040: 電話番号追加
+              phone: phoneMap[companyName] || '' // V2040: 加盟店登録シートから取得
             };
           });
           console.log('[RankingSystem] 🔄 ステップ2結果: ' + filtered.length + '件（都道府県内・工事種別条件なし）');
