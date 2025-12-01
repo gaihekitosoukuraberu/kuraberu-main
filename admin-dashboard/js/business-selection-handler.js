@@ -1400,7 +1400,9 @@ const BusinessSelectionHandler = {
         // V1911: 住所情報追加
         address: franchise.address,
         branchAddress: franchise.branchAddress,
-        companyNameKana: franchise.companyNameKana
+        companyNameKana: franchise.companyNameKana,
+        // V2042: 電話番号追加（📞ボタン用）
+        phone: franchise.phone || ''
       };
     });
   },
