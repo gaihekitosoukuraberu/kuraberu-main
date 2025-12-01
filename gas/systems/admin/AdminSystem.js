@@ -3017,7 +3017,9 @@ info@gaihekikuraberu.com
         'homeZip': '郵便番号（自宅）',       // T列
         'homePref': '都道府県（自宅）',      // U列
         'homeAddress': '住所詳細（自宅）',   // V列
-        'quoteDestination': '見積もり送付先' // AV列
+        'quoteDestination': '見積もり送付先', // AV列
+        // V2026: 別住所物件種別（AY列 - 旧:配信先加盟店数を転用）
+        '別住所物件種別': '別住所物件種別'   // AY列(51)
       };
 
       // 更新するデータをマッピング

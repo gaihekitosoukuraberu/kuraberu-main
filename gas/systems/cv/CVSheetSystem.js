@@ -626,7 +626,7 @@ const CVSheetSystem = {
 
         // AX-BD(50-56): 配信・成約管理
         '未配信',                                 // AX(50): 配信ステータス
-        0,                                       // AY(51): 配信先加盟店数
+        '',                                      // AY(51): 別住所物件種別（V2026で転用）
         '',                                      // AZ(52): 配信日時
         'FALSE',                                 // BA(53): 成約フラグ
         '',                                      // BB(54): 成約日時
@@ -857,7 +857,7 @@ const CVSheetSystem = {
         params.wordLinkAnswer || '',             // AW(49): ワードリンク回答
 
         '未配信',                                 // AX(50): 配信ステータス
-        0,                                       // AY(51): 配信先加盟店数
+        '',                                      // AY(51): 別住所物件種別（V2026で転用）
         '',                                      // AZ(52): 配信日時
         'FALSE',                                 // BA(53): 成約フラグ
         '',                                      // BB(54): 成約日時
@@ -1259,7 +1259,7 @@ const CVSheetSystem = {
 
           // AX-BD: 配信・成約管理
           deliveryStatus: row[49] || '',                // AX: 配信ステータス（index 49）
-          companiesCount: row[50] || 0,                 // AY: 配信先加盟店数（index 50）
+          altPropertyType: row[50] || '',               // AY: 別住所物件種別（V2026で転用）（index 50）
           deliveryDate: row[51] || '',                  // AZ: 配信日時（index 51）
           contractFlag: row[52] === 'TRUE',             // BA: 成約フラグ（index 52）
           contractDate: row[53] || '',                  // BB: 成約日時（index 53）

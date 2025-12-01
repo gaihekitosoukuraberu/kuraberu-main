@@ -850,7 +850,7 @@
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-sm font-semibold text-green-700">別住所1</span>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                 <div>
                                     <label class="block text-xs font-medium text-gray-600 mb-1">郵便番号</label>
                                     <input type="text" id="homeZipInput" placeholder="7桁で自動検索" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm" oninput="autoFetchHomeAddress(1)">
@@ -863,6 +863,17 @@
                                     <label class="block text-xs font-medium text-gray-600 mb-1">住所詳細</label>
                                     <input type="text" id="homeAddressInput" placeholder="自動入力" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
                                 </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">種別</label>
+                                    <select id="altPropertyTypeSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
+                                        <option value="">選択</option>
+                                        <option value="自宅">自宅</option>
+                                        <option value="実家">実家</option>
+                                        <option value="会社">会社</option>
+                                        <option value="別荘">別荘</option>
+                                        <option value="その他">その他</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         <!-- 別住所2 -->
@@ -870,7 +881,7 @@
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-sm font-semibold text-green-700">別住所2</span>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                 <div>
                                     <label class="block text-xs font-medium text-gray-600 mb-1">郵便番号</label>
                                     <input type="text" id="homeZipInput2" placeholder="7桁で自動検索" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm" oninput="autoFetchHomeAddress(2)">
@@ -882,6 +893,17 @@
                                 <div>
                                     <label class="block text-xs font-medium text-gray-600 mb-1">住所詳細</label>
                                     <input type="text" id="homeAddressInput2" placeholder="自動入力" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">種別</label>
+                                    <select id="altPropertyTypeSelect2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm">
+                                        <option value="">選択</option>
+                                        <option value="自宅">自宅</option>
+                                        <option value="実家">実家</option>
+                                        <option value="会社">会社</option>
+                                        <option value="別荘">別荘</option>
+                                        <option value="その他">その他</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -5026,6 +5048,14 @@ window.addEventListener('beforeunload', function(e) {
             if (homePrefInput) homePrefInput.value = homePref;
             if (homeAddressInput) homeAddressInput.value = homeAddress;
 
+            // V2026: 別住所物件種別（AY列 - カンマ区切りを分解して別住所1・2にセット）
+            const altPropertyTypeStr = data['別住所物件種別'] || data.altPropertyType || '';
+            const altPropertyTypes = altPropertyTypeStr.split(',').map(s => s.trim());
+            const altPropertyTypeSelect = document.getElementById('altPropertyTypeSelect');
+            const altPropertyTypeSelect2 = document.getElementById('altPropertyTypeSelect2');
+            if (altPropertyTypeSelect && altPropertyTypes[0]) altPropertyTypeSelect.value = altPropertyTypes[0];
+            if (altPropertyTypeSelect2 && altPropertyTypes[1]) altPropertyTypeSelect2.value = altPropertyTypes[1];
+
             // 自宅住所がある場合は別住所セクションを開く
             if (homeZip || homePref || homeAddress) {
                 const homeAddressSection = document.getElementById('homeAddressSection');
@@ -6841,6 +6871,12 @@ window.addEventListener('beforeunload', function(e) {
             if (homeZipInput) data['郵便番号（自宅）'] = homeZipInput.value || '';
             if (homePrefInput) data['都道府県（自宅）'] = homePrefInput.value || '';
             if (homeAddressInput) data['住所詳細（自宅）'] = homeAddressInput.value || '';
+
+            // V2026: 別住所物件種別（AY列 - 別住所1と2をカンマ区切りで結合）
+            const altPropertyType1 = document.getElementById('altPropertyTypeSelect')?.value || '';
+            const altPropertyType2 = document.getElementById('altPropertyTypeSelect2')?.value || '';
+            const altPropertyTypes = [altPropertyType1, altPropertyType2].filter(v => v).join(', ');
+            data['別住所物件種別'] = altPropertyTypes;
 
             // 物件プロフィール（IDベースで直接取得）
             const propertyTypeInput = document.getElementById('propertyTypeSelect');

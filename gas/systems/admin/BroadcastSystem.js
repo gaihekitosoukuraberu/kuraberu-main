@@ -132,8 +132,8 @@ var BroadcastSystem = {
       console.log('[getBroadcastTargets] 転送済み除外: 全', targetFranchises.length, '社 → 対象', availableFranchises.length, '社');
       console.log('[getBroadcastTargets] 除外された業者:', deliveredInfo.map(f => f.name).join(', '));
 
-      // 残枠計算
-      const maxCompanies = parseInt(cvData.companiesCount) || 4;
+      // 残枠計算 - V2026: companiesCount(廃止) → 希望社数 を参照
+      const maxCompanies = parseInt(cvData.companiesCountPreference || cvData['希望社数']) || 4;
       const deliveredCount = deliveredIds.length;
       const remainingSlots = Math.max(0, maxCompanies - deliveredCount);
 
@@ -187,7 +187,8 @@ var BroadcastSystem = {
       const propertyType = cvData['依頼物件種別'] || cvData['物件種別'] || '';
       const buildingAge = cvData['築年数'] || '';
       const workItems = cvData['見積もり希望箇所'] || cvData['workItems'] || '';
-      const maxCompanies = parseInt(cvData['companiesCount']) || 4;
+      // V2026: companiesCount(廃止) → 希望社数 を参照
+      const maxCompanies = parseInt(cvData['希望社数'] || cvData.companiesCountPreference) || 4;
       const fee = this.calculateFee(cvData, maxCompanies);
 
       const previewText = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -297,8 +298,8 @@ var BroadcastSystem = {
         return { success: false, error: '配信対象の加盟店がありません（転送済み: ' + deliveredInfo.map(f => f.name).join(', ') + '）' };
       }
 
-      // 残枠計算
-      const maxCompanies = parseInt(cvData.companiesCount) || 4;
+      // 残枠計算 - V2026: companiesCount(廃止) → 希望社数 を参照
+      const maxCompanies = parseInt(cvData.companiesCountPreference || cvData['希望社数']) || 4;
       const deliveredCount = deliveredIds.length;
       const remainingSlots = Math.max(0, maxCompanies - deliveredCount);
 
@@ -503,7 +504,8 @@ var BroadcastSystem = {
 
       // 枠チェック: 既に埋まっていたら即お断り
       const cvData = this.getCVData(userSheet, cvId);
-      const maxCompanies = parseInt(cvData?.companiesCount) || 4;
+      // V2026: companiesCount(廃止) → 希望社数 を参照
+      const maxCompanies = parseInt(cvData?.['希望社数'] || cvData?.companiesCountPreference) || 4;
       const deliveredIds = this.getDeliveredFranchiseIds(deliverySheet, cvId);
       const remainingSlots = Math.max(0, maxCompanies - deliveredIds.length);
 
@@ -626,7 +628,8 @@ var BroadcastSystem = {
       // 枠チェック: 既に埋まっていたら即お断り
       if (cvId) {
         const cvData = this.getCVData(userSheet, cvId);
-        const maxCompanies = parseInt(cvData?.companiesCount) || 4;
+        // V2026: companiesCount(廃止) → 希望社数 を参照
+      const maxCompanies = parseInt(cvData?.['希望社数'] || cvData?.companiesCountPreference) || 4;
         const deliveredIds = this.getDeliveredFranchiseIds(deliverySheet, cvId);
         const remainingSlots = Math.max(0, maxCompanies - deliveredIds.length);
 
