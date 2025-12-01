@@ -652,7 +652,7 @@ function getGasUrlFromEnvLoader(){
 	$envLoaderPath = __DIR__ . '/../js/env-loader.js';
 
 	// フォールバックURL（ファイル読み込み失敗時）- GitHub Actions @1939
-	$fallbackUrl = 'https://script.google.com/macros/s/AKfycbx7q5s5a1eCiVReGtzAayWIxqDDDQW6Z-d131ZCyDUnpze-KZ77zGK1r7_okn3lEfTRmw/exec';
+	$fallbackUrl = 'https://script.google.com/macros/s/AKfycbwELLceustg9Sd_BbXJahHDewOcRFU8CNHSGnSQEUdb97DdSIA8DOX9AY9ZVXA9-AFa7Q/exec';
 
 	// ファイルが存在しない場合はフォールバック
 	if(!file_exists($envLoaderPath)){
