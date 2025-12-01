@@ -1976,26 +1976,6 @@ window.addEventListener('beforeunload', function(e) {
                         <button onclick="selectCallSubResult('お断り')" class="w-full py-3 px-4 bg-red-50 hover:bg-red-100 border-2 border-red-300 rounded-xl text-red-700 font-semibold transition-all">
                             お断り
                         </button>
-                        <button onclick="selectCallSubResult('折り返し依頼')" class="w-full py-3 px-4 bg-purple-50 hover:bg-purple-100 border-2 border-purple-300 rounded-xl text-purple-700 font-semibold transition-all">
-                            折り返し依頼
-                        </button>
-                        <button onclick="goBackToStep1()" class="w-full py-2 px-4 text-gray-500 hover:text-gray-700 text-sm underline transition-all">
-                            ← 戻る
-                        </button>
-                    </div>
-
-                    <!-- Step 2: サブ選択（不在の場合） -->
-                    <div id="callResultStep2Absent" class="hidden space-y-3">
-                        <p class="text-sm font-medium text-gray-600 mb-3">詳細を選択</p>
-                        <button onclick="selectCallSubResult('不在')" class="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 border-2 border-gray-300 rounded-xl text-gray-700 font-semibold transition-all">
-                            不在（コール後）
-                        </button>
-                        <button onclick="selectCallSubResult('話し中')" class="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 border-2 border-gray-300 rounded-xl text-gray-700 font-semibold transition-all">
-                            話し中
-                        </button>
-                        <button onclick="selectCallSubResult('番号違い')" class="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 border-2 border-gray-300 rounded-xl text-gray-700 font-semibold transition-all">
-                            番号違い
-                        </button>
                         <button onclick="goBackToStep1()" class="w-full py-2 px-4 text-gray-500 hover:text-gray-700 text-sm underline transition-all">
                             ← 戻る
                         </button>
@@ -8531,30 +8511,27 @@ window.addEventListener('beforeunload', function(e) {
             currentCallSubResult = '';
         }
 
-        // V2043: Step1 → Step2（繋がった/不在選択）
+        // V2043: Step1 → Step2（繋がった場合）or Step3（不在の場合は直接）
         function selectCallResult(type) {
             currentCallResultType = type;
             document.getElementById('callResultStep1').classList.add('hidden');
 
             if (type === 'connected') {
+                // 繋がった → サブ選択へ
                 document.getElementById('callResultStep2Connected').classList.remove('hidden');
             } else {
-                document.getElementById('callResultStep2Absent').classList.remove('hidden');
+                // 不在 → Step3へ直接（サブ選択なし）
+                currentCallSubResult = '';
+                document.getElementById('selectedCallResult').textContent = '不在';
+                document.getElementById('callResultStep3').classList.remove('hidden');
             }
         }
 
-        // V2043: Step2 → Step3（サブ選択後）
+        // V2043: Step2 → Step3（サブ選択後 - 繋がった場合のみ）
         function selectCallSubResult(subResult) {
             currentCallSubResult = subResult;
-
-            // 表示用テキスト
-            const resultText = currentCallResultType === 'connected'
-                ? `繋がった → ${subResult}`
-                : `不在 → ${subResult}`;
-            document.getElementById('selectedCallResult').textContent = resultText;
-
+            document.getElementById('selectedCallResult').textContent = `繋がった → ${subResult}`;
             document.getElementById('callResultStep2Connected').classList.add('hidden');
-            document.getElementById('callResultStep2Absent').classList.add('hidden');
             document.getElementById('callResultStep3').classList.remove('hidden');
         }
 
@@ -8564,7 +8541,6 @@ window.addEventListener('beforeunload', function(e) {
             currentCallSubResult = '';
             document.getElementById('callResultStep1').classList.remove('hidden');
             document.getElementById('callResultStep2Connected').classList.add('hidden');
-            document.getElementById('callResultStep2Absent').classList.add('hidden');
             document.getElementById('callResultStep3').classList.add('hidden');
         }
 
@@ -8573,7 +8549,7 @@ window.addEventListener('beforeunload', function(e) {
             const memo = document.getElementById('newFranchiseNote').value.trim();
             const resultText = currentCallResultType === 'connected'
                 ? `繋がった → ${currentCallSubResult}`
-                : `不在 → ${currentCallSubResult}`;
+                : '不在';
 
             // メモがあれば結合
             const note = memo ? `${resultText}\n${memo}` : resultText;
