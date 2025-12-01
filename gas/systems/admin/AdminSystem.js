@@ -2701,9 +2701,9 @@ const AdminSystem = {
       }
 
       // 希望社数に達したかどうかでステータスを決定
-      // V2003: UIのステータス変更と一致させる（配信中/配信済）
-      // 未達成: 配信中、達成: 配信済
-      const statusToSet = totalTransferCount >= desiredCount ? '配信済' : '配信中';
+      // V2033: データ入力規則に準拠（配信済み, 成約, 失注, キャンセル承認済み）
+      // 転送が開始されたら「配信済み」を設定（「配信中」は無効な値）
+      const statusToSet = '配信済み';
       console.log('[updateUserSheetDeliveryStatus] ステータス判定:', { existingCount, newFranchiseCount, totalTransferCount, desiredCount, statusToSet });
 
       // 配信先業者一覧を作成（既存 + 新規）
