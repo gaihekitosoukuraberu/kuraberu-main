@@ -10884,6 +10884,7 @@ window.addEventListener('beforeunload', function(e) {
                 constructionTiming: caseData.constructionTiming || '',
                 companiesCount: caseData.companiesCount || '',
                 surveyAttendance: caseData.surveyAttendance || '',
+                attendanceRelation: caseData.attendanceRelation || rawData.attendanceRelation || '',
                 quoteCount: caseData.quoteCount || '',
                 nextCallDate: caseData.nextCallDate || '',
                 selectionCriteria: caseData.selectionCriteria || caseData.q17_selectionCriteria || '',
@@ -11051,7 +11052,11 @@ ${f.name} 御中
 -------------------------------------------`;
             if (d.workItems) msg += `\n見積もり希望箇所: ${d.workItems}`;
             if (d.constructionTiming) msg += `\n施工時期: ${d.constructionTiming}`;
-            if (d.surveyAttendance) msg += `\n立会い: ${d.surveyAttendance}`;
+            if (d.surveyAttendance) {
+                let attendance = d.surveyAttendance;
+                if (d.attendanceRelation) attendance += `（${d.attendanceRelation}）`;
+                msg += `\n立会い: ${attendance}`;
+            }
             if (d.surveyDatePreference) msg += `\n現地調査希望日時: ${d.surveyDatePreference}`;
             if (d.selectionCriteria) msg += `\n業者選定条件: ${d.selectionCriteria}`;
             // V2029: 劣化状況を追加
