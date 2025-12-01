@@ -4272,9 +4272,34 @@ window.addEventListener('beforeunload', function(e) {
                         button.classList.add('bg-white', 'border-gray-300', 'text-gray-700');
                         button.classList.remove('bg-purple-500', 'border-purple-500', 'text-white', 'shadow-md');
                     }
+
+                    // V2030: 特殊項目ボタンクリック時に業者リストをフィルタリング再描画
+                    if (button.closest('#specialItemsButtons')) {
+                        updateSpecialItemsFilter();
+                    }
                 }
             }
         });
+
+        // V2030: 特殊項目フィルタリング更新
+        function updateSpecialItemsFilter() {
+            const specialItemsButtons = document.getElementById('specialItemsButtons');
+            if (!specialItemsButtons) return;
+
+            // 選択された特殊項目を取得
+            const selectedItems = Array.from(specialItemsButtons.querySelectorAll('.option-button.selected'))
+                .map(btn => btn.getAttribute('data-value'))
+                .filter(v => v);
+
+            console.log('[V2030] 特殊項目選択変更:', selectedItems);
+
+            // BusinessSelectionHandlerのcurrentCaseDataを更新
+            if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.currentCaseData) {
+                window.BusinessSelectionHandler.currentCaseData.specialItems = selectedItems;
+                // 業者リストを再描画
+                window.BusinessSelectionHandler.applySortAndRender(window.BusinessSelectionHandler.currentSortType || 'selected');
+            }
+        }
 
         // 時間スロットの選択機能（後で初期化）
         function initializeTimeSlots() {
