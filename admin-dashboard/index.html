@@ -8592,21 +8592,8 @@ window.addEventListener('beforeunload', function(e) {
 
             console.log('[V2043] 履歴追加:', { companyName, note, total: casesData[currentCaseId].franchiseHistory.length });
 
-            // GASへ保存
-            try {
-                const historyFormatted = casesData[currentCaseId].franchiseHistory.map(item => ({
-                    date: item.date,
-                    companyName: item.companyName,
-                    note: item.note,
-                    label: item.label || null
-                }));
-
-                const jsonStr = JSON.stringify(historyFormatted);
-                await saveFieldToGAS(currentCaseId, 'franchiseHistory', jsonStr);
-                console.log('[V2043] 通話結果保存成功:', note);
-            } catch (error) {
-                console.error('[V2043] 通話結果保存エラー:', error);
-            }
+            // GASへ保存（saveFranchiseHistoryToGAS関数を使用）
+            await saveFranchiseHistoryToGAS();
 
             // モーダルを閉じる
             closeFranchiseHistoryModal();
@@ -8711,15 +8698,35 @@ window.addEventListener('beforeunload', function(e) {
             clearHistorySelection();
         }
 
-        // V2044: GASへ履歴を保存
+        // V2044: GASへ履歴を保存（BO列: franchiseHistory）
         async function saveFranchiseHistoryToGAS() {
             try {
+                if (!currentCaseId || !casesData[currentCaseId]) {
+                    console.error('[V2044] 案件データがありません');
+                    return false;
+                }
                 const history = casesData[currentCaseId].franchiseHistory || [];
                 const jsonStr = JSON.stringify(history);
-                await saveFieldToGAS(currentCaseId, 'franchiseHistory', jsonStr);
-                console.log('[V2044] 履歴保存成功');
+
+                console.log('[V2044] GAS保存開始:', { cvId: currentCaseId, historyCount: history.length });
+
+                const result = await window.apiClient.postRequest('updateCVData', {
+                    cvId: currentCaseId,
+                    data: {
+                        franchiseHistory: jsonStr
+                    }
+                });
+
+                if (result.success) {
+                    console.log('[V2044] 履歴保存成功');
+                    return true;
+                } else {
+                    console.error('[V2044] 履歴保存失敗:', result.error);
+                    return false;
+                }
             } catch (error) {
                 console.error('[V2044] 履歴保存エラー:', error);
+                return false;
             }
         }
 
