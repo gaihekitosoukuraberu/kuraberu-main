@@ -205,30 +205,15 @@ jobs:
           grep "CACHE_BUSTER" js/env-loader.js
 
       # ======================================================================
-      # 🚀 gasフォルダ変更時、全フロントエンドを本番サーバーに自動デプロイ
-      # env-loader.js, HTML, CSS, JS など全ファイルを確実にデプロイ
+      # 🚀 GAS変更時はenv-loader.jsのみをFTPアップロード（高速化）
+      # 全ファイルデプロイはfrontend-deploy.ymlに任せる
       # ======================================================================
-      - name: Deploy all frontend files to production servers
+      - name: Deploy env-loader.js to production server
         if: success()
-        id: ftp_deploy
-        uses: SamKirkland/FTP-Deploy-Action@4.3.0
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./
-          server-dir: gaihekikuraberu.com/public_html/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/gas/**
-            **/node_modules/**
-            **/.DS_Store
-            **/vendor/**
-            **/*.md
-            **/.github/**
-          dangerous-clean-slate: false
-          log-level: verbose
+        run: |
+          echo "📤 env-loader.jsをFTPアップロード中..."
+          curl -T js/env-loader.js -u "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" "ftp://${{ secrets.FTP_HOST }}/gaihekikuraberu.com/public_html/js/env-loader.js"
+          echo "✅ env-loader.jsアップロード完了"
 
       - name: Verify production deployment
         if: success()
