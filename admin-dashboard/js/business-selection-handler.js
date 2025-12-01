@@ -2165,7 +2165,7 @@ const BusinessSelectionHandler = {
       <!-- 3行目: 📞📝ボタン + マッチ率 + 金額 -->
       <div class="flex items-center justify-between gap-2 mt-1">
         <div class="flex items-center gap-1 pl-6">
-          ${card.phone ? `<button onclick="event.stopPropagation(); callFranchise('${card.companyName.replace(/'/g, "\\'")}', '${card.phone}')" class="p-1 text-green-600 hover:bg-green-100 rounded transition-all text-sm" title="電話をかける">📞</button>` : ''}
+          <button onclick="event.stopPropagation(); callFranchise('${card.companyName.replace(/'/g, "\\'")}', '${card.phone || ''}')" class="p-1 text-green-600 hover:bg-green-100 rounded transition-all text-sm" title="電話をかける">📞</button>
           <button onclick="event.stopPropagation(); openFranchiseHistoryModal('${card.companyName.replace(/'/g, "\\'")}')" class="p-1 text-blue-600 hover:bg-blue-100 rounded transition-all text-sm" title="対応履歴">📝</button>
         </div>
         <div class="flex items-center gap-2">
