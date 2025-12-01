@@ -10889,7 +10889,14 @@ window.addEventListener('beforeunload', function(e) {
                 selectionCriteria: caseData.selectionCriteria || caseData.q17_selectionCriteria || '',
                 // V2029: 連絡時間帯のキー修正（連絡時間帯 or contactTimeSlot）
                 contactTimeSlot: caseData['連絡時間帯'] || caseData.contactTimeSlot || rawData.contactTimePreference || '',
-                specialItems: caseData.specialItems || '',
+                // V2029: 他社見積もり関連情報を追加
+                quoteSource: caseData.quoteSource || rawData.quoteSource || '',
+                doorSalesVisit: caseData.doorSalesVisit || rawData.doorSalesVisit || '',
+                doorSalesCompany: caseData.doorSalesCompany || rawData.doorSalesCompany || '',
+                comparisonIntention: caseData.comparisonIntention || rawData.comparisonIntention || '',
+                deteriorationStatus: caseData.deteriorationStatus || rawData.deteriorationStatus || '',
+                // V2029: 現地調査希望日時を追加
+                surveyDatePreference: caseData.surveyDatePreference || rawData.surveyDatePreference || '',
                 memo: caseData.memo || caseData.caseMemo || '',
                 // V2029: 2人目情報を追加
                 secondPerson: {
@@ -10976,7 +10983,7 @@ ${f.name} 御中
 -------------------------------------------
 【お客様情報】
 -------------------------------------------
-氏名: ${d.name}様${d.nameKana ? `（${d.nameKana}）` : ''}
+氏名: ${d.name}${d.nameKana ? `（${d.nameKana}）` : ''}様
 電話番号: ${d.phone}`;
 
             if (d.altPhone) msg += `\n別途連絡先: ${d.altPhone}`;
@@ -11016,7 +11023,7 @@ ${f.name} 御中
             if (d.wallMaterial) msg += `\n外壁材: ${d.wallMaterial}`;
             if (d.roofMaterial) msg += `\n屋根材: ${d.roofMaterial}`;
 
-            if (mapLink) msg += `\n\nGoogle Maps:\n${mapLink}`;
+            if (mapLink) msg += `\n\nGoogleマップ: ${mapLink}`;
 
             // V2029: 見積もり送付先（別住所の場合は住所詳細・物件種別も表示）
             if (d.estimateDeliveryAddress && d.estimateDeliveryAddress !== '物件住所') {
@@ -11044,13 +11051,20 @@ ${f.name} 御中
 -------------------------------------------`;
             if (d.workItems) msg += `\n見積もり希望箇所: ${d.workItems}`;
             if (d.constructionTiming) msg += `\n施工時期: ${d.constructionTiming}`;
-            if (d.companiesCount) msg += `\n希望社数: ${d.companiesCount}社`;
             if (d.surveyAttendance) msg += `\n立会い: ${d.surveyAttendance}`;
-            if (d.quoteCount) msg += `\n他社見積: ${d.quoteCount}`;
+            if (d.surveyDatePreference) msg += `\n現地調査希望日時: ${d.surveyDatePreference}`;
             if (d.selectionCriteria) msg += `\n業者選定条件: ${d.selectionCriteria}`;
-            // V1987: specialItemsが配列または文字列の場合に対応
-            const specialItemsStr = Array.isArray(d.specialItems) ? d.specialItems.join('、') : (d.specialItems || '');
-            if (specialItemsStr && specialItemsStr.trim()) msg += `\n特殊項目: ${specialItemsStr}`;
+            // V2029: 劣化状況を追加
+            if (d.deteriorationStatus) msg += `\n劣化状況: ${d.deteriorationStatus}`;
+            // V2029: 他社見積もり関連情報をまとめて表示
+            if (d.quoteCount || d.quoteSource || d.doorSalesVisit) {
+                msg += `\n`;
+                if (d.quoteCount) msg += `\n他社見積: ${d.quoteCount}`;
+                if (d.quoteSource) msg += `\n見積もり取得先: ${d.quoteSource}`;
+                if (d.doorSalesVisit) msg += `\n訪問業者の状況: ${d.doorSalesVisit}`;
+                if (d.doorSalesCompany) msg += `\n訪問業者名: ${d.doorSalesCompany}`;
+                if (d.comparisonIntention) msg += `\n比較意向: ${d.comparisonIntention}`;
+            }
 
             // V1987: memoも配列の場合に対応
             const memoStr = Array.isArray(d.memo) ? d.memo.join('\n') : (d.memo || '');
