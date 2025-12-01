@@ -2978,6 +2978,8 @@ info@gaihekikuraberu.com
         'age': '年齢',
         'relation': '続柄',
         'postalCode': '郵便番号（物件）',
+        '都道府県（物件）': '都道府県（物件）',  // V2022: CRMフォームから直接保存
+        '市区町村（物件）': '市区町村（物件）',  // V2022: CRMフォームから直接保存
         'address': '住所詳細（物件）',
         'propertyType': '物件種別',
         'floors': '階数',

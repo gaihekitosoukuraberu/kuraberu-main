@@ -4938,6 +4938,35 @@ window.addEventListener('beforeunload', function(e) {
                 }
             }
 
+            // V2022: 自宅住所（別住所1）を読み込み - スプシのTUV列
+            const homeZipInput = document.getElementById('homeZipInput');
+            const homePrefInput = document.getElementById('homePrefInput');
+            const homeAddressInput = document.getElementById('homeAddressInput');
+            const homeZip = data['郵便番号（自宅）'] || data.homeZip || '';
+            const homePref = data['都道府県（自宅）'] || data.homePref || '';
+            const homeAddress = data['住所詳細（自宅）'] || data.homeAddress || '';
+
+            if (homeZipInput) homeZipInput.value = homeZip;
+            if (homePrefInput) homePrefInput.value = homePref;
+            if (homeAddressInput) homeAddressInput.value = homeAddress;
+
+            // 自宅住所がある場合は別住所セクションを開く
+            if (homeZip || homePref || homeAddress) {
+                const homeAddressSection = document.getElementById('homeAddressSection');
+                const homeAddressToggleIcon = document.getElementById('homeAddressToggleIcon');
+                const homeAddressToggleText = document.getElementById('homeAddressToggleText');
+                if (homeAddressSection) {
+                    homeAddressSection.classList.remove('hidden');
+                    if (homeAddressToggleIcon) {
+                        homeAddressToggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+                    }
+                    if (homeAddressToggleText) {
+                        homeAddressToggleText.textContent = '別住所を閉じる';
+                    }
+                }
+                console.log('[populateForm] 自宅住所読み込み:', { homeZip, homePref, homeAddress });
+            }
+
             // 未入力フィールドの赤枠表示を更新（即座に実行）
             validateEmptyFields();
         }
@@ -6700,11 +6729,32 @@ window.addEventListener('beforeunload', function(e) {
 
             const addressInput = document.getElementById('addressInput');
             const addressNumberInput = document.getElementById('addressNumberInput');
+            // V2022: 都道府県・市区町村をaddressInputから分解して保存
+            if (addressInput) {
+                const fullAddress = addressInput.value || '';
+                // 都道府県を抽出（東京都、北海道、京都府、大阪府、その他○○県）
+                const prefMatch = fullAddress.match(/^(東京都|北海道|(?:京都|大阪)府|.{2,3}県)/);
+                if (prefMatch) {
+                    data['都道府県（物件）'] = prefMatch[1];
+                    data['市区町村（物件）'] = fullAddress.substring(prefMatch[1].length);
+                } else {
+                    // 都道府県が含まれない場合は全体を市区町村として保存
+                    data['都道府県（物件）'] = '';
+                    data['市区町村（物件）'] = fullAddress;
+                }
+            }
             // 住所詳細（物件）には番地のみを保存
-            // 都道府県・市区町村は別フィールドとして既に存在
             if (addressNumberInput) {
                 data.address = addressNumberInput.value || '';
             }
+
+            // V2022: 自宅住所（別住所1）- スプシのTUV列に保存
+            const homeZipInput = document.getElementById('homeZipInput');
+            const homePrefInput = document.getElementById('homePrefInput');
+            const homeAddressInput = document.getElementById('homeAddressInput');
+            if (homeZipInput) data['郵便番号（自宅）'] = homeZipInput.value || '';
+            if (homePrefInput) data['都道府県（自宅）'] = homePrefInput.value || '';
+            if (homeAddressInput) data['住所詳細（自宅）'] = homeAddressInput.value || '';
 
             // 物件プロフィール（IDベースで直接取得）
             const propertyTypeInput = document.getElementById('propertyTypeSelect');
