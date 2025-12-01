@@ -644,7 +644,8 @@ const BusinessSelectionHandler = {
       inputMaxFloors: business.maxFloors,
       inputCities: business.cities?.substring(0, 50),
       outputMaxFloors: converted.maxFloors,
-      outputCitiesCount: converted.citiesArray.length
+      outputCitiesCount: converted.citiesArray.length,
+      phone: business.phone || '(なし)'  // V2040: 電話番号デバッグ
     });
 
     return converted;
@@ -1843,11 +1844,16 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * 料金をフォーマット（例: 20000 → "¥20,000"）
+   * 料金をフォーマット（例: 20000 → "¥20,000" / スマホ: "¥20K"）
    * @param {number} price - 料金
    * @returns {string} フォーマット済み料金
    */
   formatReferralPrice(price) {
+    // V2040: スマホ時は短縮表示（¥20K形式）
+    const isMobile = window.innerWidth < 640;
+    if (isMobile && price >= 1000) {
+      return `¥${Math.round(price / 1000)}K`;
+    }
     return `¥${price.toLocaleString()}`;
   },
 
@@ -2192,9 +2198,18 @@ const BusinessSelectionHandler = {
   /**
    * 価格をフォーマット
    * @param {number} price - 価格
+   * @param {boolean} compact - スマホ用短縮表示（¥20K形式）
    * @returns {string} フォーマット済み価格
    */
-  formatPrice(price) {
+  formatPrice(price, compact = false) {
+    if (compact) {
+      // スマホ用: ¥20K形式
+      if (price >= 1000) {
+        return `¥${Math.round(price / 1000)}K`;
+      }
+      return `¥${price}`;
+    }
+    // PC用: 2万円形式
     if (price >= 10000) {
       return `${Math.round(price / 10000)}万円`;
     }
