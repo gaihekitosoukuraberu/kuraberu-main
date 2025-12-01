@@ -15682,7 +15682,7 @@
                     <!-- お客様情報 -->
                     ${section('お客様情報', [
                         detailItem('電話番号', c.customerTel ? `<a href="tel:${c.customerTel}" class="text-green-600 hover:underline">${c.customerTel}</a>` : '', true),
-                        detailItem('メール', c.customerEmail),
+                        detailItem('メール', c.customerEmail ? `<a href="mailto:${c.customerEmail}" class="text-blue-600 hover:underline">${c.customerEmail}</a>` : '', true),
                         detailItem('性別/年代', genderAge),
                         detailItem('連絡時間帯', c.contactTime),
                         detailItem('流入検索ワード', c.searchKeyword)
@@ -15716,10 +15716,10 @@
 
                     <!-- ご希望内容 -->
                     ${section('ご希望内容', [
-                        detailItem('見積もり希望箇所', c.estimateAreas),
+                        detailItem('気になる箇所', c.estimateAreas),
                         detailItem('施工時期', c.constructionTiming),
                         detailItem('立ち会い', attendance),
-                        detailItem('現地調査希望日時', c.inspectionDate),
+                        detailItem('現調希望日時', c.inspectionDate),
                         detailItem('業者選定条件', c.selectionCriteria),
                         detailItem('劣化状況', c.deteriorationStatus),
                         detailItem('他社見積', c.existingEstimates),
