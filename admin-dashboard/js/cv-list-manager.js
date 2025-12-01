@@ -92,6 +92,10 @@ const CVListManager = {
         console.log('[CVListManager] q10_roofWorkType:', cv.botAnswers?.q10_roofWorkType);
         console.log('[CVListManager] q11_quoteCount:', cv.botAnswers?.q11_quoteCount);
         console.log('[CVListManager] q12_quoteSource:', cv.botAnswers?.q12_quoteSource);
+        // V2027: 2人目情報・別住所情報のデバッグ
+        console.log('[CVListManager] secondPerson:', cv.secondPerson);
+        console.log('[CVListManager] homeAddress:', cv.homeAddress);
+        console.log('[CVListManager] altPropertyType:', cv.altPropertyType);
       }
 
       // CV IDをキーとして使用
@@ -256,6 +260,9 @@ const CVListManager = {
         '郵便番号（自宅）': cv.homeAddress?.postalCode || '',
         '都道府県（自宅）': cv.homeAddress?.prefecture || '',
         '住所詳細（自宅）': cv.homeAddress?.street || '',
+
+        // V2027: 別住所物件種別（AY列）
+        '別住所物件種別': cv.altPropertyType || '',
 
         // 工事内容・検索
         searchKeyword: cv.searchKeyword || '',
