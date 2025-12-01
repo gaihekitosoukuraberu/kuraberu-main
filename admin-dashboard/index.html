@@ -4677,7 +4677,7 @@ window.addEventListener('beforeunload', function(e) {
             // 関係性（セレクト - IDで直接アクセス、デフォルトは「本人」）
             const relationSelect = document.getElementById('relationSelect');
             if (relationSelect) {
-                relationSelect.value = data.relation || data['続柄'] || '本人';
+                relationSelect.value = data.relation || data['続柄'] || 'ご本人様';
             }
 
             // V2025: 2人目の情報（JKLM列から読み込み）
