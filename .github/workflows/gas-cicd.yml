@@ -93,46 +93,50 @@ jobs:
           echo "📤 GASにコードをプッシュ中..."
           clasp push --force
 
-          echo "🗑️ デプロイメント数を確認中..."
-          # 20個のデプロイメント制限を回避するため、15個以上の場合は古いものを削除
-          DEPLOY_COUNT=$(clasp deployments 2>&1 | grep -c "AKfycb" || echo "0")
-          echo "現在のデプロイメント数: $DEPLOY_COUNT"
+          echo "🗑️ バージョン数を確認中..."
+          # 200個のバージョン制限を回避するため、190個以上の場合は古いものを削除
+          VERSION_OUTPUT=$(clasp versions 2>&1)
+          VERSION_COUNT=$(echo "$VERSION_OUTPUT" | head -1 | grep -oE '[0-9]+' || echo "0")
+          echo "現在のバージョン数: $VERSION_COUNT"
 
-          if [ "$DEPLOY_COUNT" -ge 15 ]; then
-            echo "🗑️ 古いデプロイメントを削除中（15個以上検出）..."
-            # @HEADと最新2個を除いた古い5個を削除
-            DEPLOYMENTS=$(clasp deployments 2>&1 | grep "AKfycb" | grep -v "@HEAD" | tail -n +3 | head -5)
-            if [ ! -z "$DEPLOYMENTS" ]; then
-              echo "$DEPLOYMENTS" | while read -r line; do
-                DEPLOY_ID=$(echo "$line" | grep -oE 'AKfycb[A-Za-z0-9_-]{38,}' | head -1)
-                if [ ! -z "$DEPLOY_ID" ]; then
-                  echo "削除: $DEPLOY_ID"
-                  clasp undeploy "$DEPLOY_ID" 2>&1 || true
-                fi
-              done
-              echo "✅ 古いデプロイメント削除完了"
-            fi
-          else
-            echo "ℹ️ デプロイメント数が15未満のため削除をスキップ"
+          if [ "$VERSION_COUNT" -ge 190 ]; then
+            echo "🗑️ 古いバージョンを削除中（190個以上検出）..."
+            # 古いバージョン番号を20個取得して削除（GAS APIの仕様上、バージョン削除は不可能なのでスキップ）
+            # 代わりにデプロイメントを削除してバージョンを解放
+            echo "⚠️ GASバージョンは直接削除できないため、古いデプロイメントを削除します"
           fi
 
-          echo "🚀 新しいWeb App deploymentを作成中..."
-          # 新規デプロイメントを作成（組織アカウントで確実に動作）
-          DEPLOY_OUTPUT=$(clasp deploy --description "auto: V$(date +%s) - GitHub Actions" 2>&1)
-          echo "$DEPLOY_OUTPUT"
+          echo "🗑️ @HEAD以外の全デプロイメントを削除中..."
+          # @HEADを除いた全ての古いデプロイメントを削除
+          DEPLOYMENTS=$(clasp deployments 2>&1 | grep "AKfycb" | grep -v "@HEAD")
+          if [ ! -z "$DEPLOYMENTS" ]; then
+            echo "$DEPLOYMENTS" | while read -r line; do
+              DEPLOY_ID=$(echo "$line" | grep -oE 'AKfycb[A-Za-z0-9_-]{38,}' | head -1)
+              if [ ! -z "$DEPLOY_ID" ]; then
+                echo "削除: $DEPLOY_ID"
+                clasp undeploy "$DEPLOY_ID" 2>&1 || true
+              fi
+            done
+            echo "✅ 古いデプロイメント全削除完了"
+          else
+            echo "ℹ️ 削除対象のデプロイメントなし"
+          fi
 
-          # デプロイメントIDを抽出（AKfycb で始まる44文字の文字列）
-          DEPLOYMENT_ID=$(echo "$DEPLOY_OUTPUT" | grep -oE 'AKfycb[A-Za-z0-9_-]{38,}' | head -1)
+          # V2040: バージョン200上限対策 - @HEADデプロイを使用
+          # clasp pushで@HEADは自動更新されるため、新規deployは不要
+          echo "🚀 @HEADデプロイメントを使用（バージョン上限対策）..."
+
+          # @HEADのデプロイメントIDを取得
+          DEPLOYMENT_ID=$(clasp deployments 2>&1 | grep "@HEAD" | grep -oE 'AKfycb[A-Za-z0-9_-]{38,}' | head -1)
 
           if [ -z "$DEPLOYMENT_ID" ]; then
-            echo "❌ ERROR: デプロイメントIDの抽出に失敗"
-            echo "Deploy output:"
-            echo "$DEPLOY_OUTPUT"
+            echo "❌ ERROR: @HEADデプロイメントIDの取得に失敗"
+            clasp deployments
             exit 1
           fi
 
-          echo "✅ GASプッシュ＆デプロイ完了"
-          echo "📍 新しいDeployment ID: $DEPLOYMENT_ID"
+          echo "✅ GASプッシュ完了（@HEAD自動更新）"
+          echo "📍 @HEAD Deployment ID: $DEPLOYMENT_ID"
           echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
 
       - name: Health check
