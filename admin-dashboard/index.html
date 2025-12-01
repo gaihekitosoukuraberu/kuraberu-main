@@ -1211,8 +1211,8 @@
                     <h2 class="text-xl font-bold text-gray-900">業者選択</h2>
                 </div>
 
-                <!-- 配信済・希望社数・業者検索 -->
-                <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4">
+                <!-- V2046: 配信済・希望社数・表示社数 -->
+                <div class="grid grid-cols-3 gap-2 mb-2">
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">配信済</label>
                         <div id="transferCountDisplay" class="w-full px-2 py-2 text-sm font-bold text-center bg-gray-100 border border-gray-300 rounded-lg text-gray-500">0社</div>
@@ -1226,23 +1226,33 @@
                             <option value="4社">4社</option>
                         </select>
                     </div>
-                    <div class="col-span-1 sm:col-span-2">
-                        <label class="block text-xs font-medium text-gray-500 mb-1">業者検索</label>
-                        <div class="relative">
-                            <input type="text"
-                                   id="franchiseSearch"
-                                   placeholder="業者名で検索"
-                                   class="w-full px-3 py-2 pr-8 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
-                                   oninput="searchFranchise(this.value);">
-                            <button type="button"
-                                    id="clearSearchBtn"
-                                    class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                                    onclick="clearFranchiseSearch()">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">表示社数</label>
+                        <select id="displayFranchiseCount" class="w-full px-2 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all appearance-none bg-white" onchange="changeDisplayCount(this.value)">
+                            <option value="8" selected>8社</option>
+                            <option value="15">15社</option>
+                            <option value="30">30社</option>
+                            <option value="50">50社</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- V2046: 業者検索（下に移動） -->
+                <div class="mb-4">
+                    <label class="block text-xs font-medium text-gray-500 mb-1">業者検索</label>
+                    <div class="relative">
+                        <input type="text"
+                               id="franchiseSearch"
+                               placeholder="業者名で検索"
+                               class="w-full px-3 py-2 pr-8 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                               oninput="searchFranchise(this.value);">
+                        <button type="button"
+                                id="clearSearchBtn"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                onclick="clearFranchiseSearch()">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
@@ -8788,6 +8798,14 @@ window.addEventListener('beforeunload', function(e) {
 
             console.log('[V2043] 履歴追加:', { companyName, note, total: casesData[currentCaseId].franchiseHistory.length });
 
+            // V2046: 「お断り」の場合はdeclinedCompaniesに追加
+            if (currentCallSubResult === 'お断り') {
+                if (window.BusinessSelectionHandler) {
+                    window.BusinessSelectionHandler.declinedCompanies.add(companyName);
+                    console.log('[V2046] お断り追加:', companyName);
+                }
+            }
+
             // GASへ保存（saveFranchiseHistoryToGAS関数を使用）
             await saveFranchiseHistoryToGAS();
 
@@ -10373,6 +10391,26 @@ window.addEventListener('beforeunload', function(e) {
                 }
             } catch (error) {
                 console.error('[V1923] 希望社数保存エラー:', error);
+            }
+        }
+
+        // V2046: 表示社数変更時の処理（動的にカード表示数を変更）
+        function changeDisplayCount(value) {
+            const count = parseInt(value);
+            if (isNaN(count) || count < 1) {
+                console.warn('[V2046] 不正な表示社数:', value);
+                return;
+            }
+
+            console.log('[V2046] 表示社数を変更:', count);
+
+            // BusinessSelectionHandlerの表示社数を更新
+            if (window.BusinessSelectionHandler) {
+                window.BusinessSelectionHandler.displayCount = count;
+                // カードを再描画
+                window.BusinessSelectionHandler.applySortAndRender(
+                    window.BusinessSelectionHandler.currentSortType || 'user'
+                );
             }
         }
 

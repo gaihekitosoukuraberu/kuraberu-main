@@ -218,6 +218,8 @@ const BusinessSelectionHandler = {
   currentSortType: 'user',    // 現在のソート順
   showAll: false,             // もっと見る状態
   searchQuery: '',            // 検索クエリ
+  displayCount: 8,            // V2046: 表示社数（デフォルト8）
+  declinedCompanies: new Set(), // V2046: お断りされた業者名
   checkedCompanies: new Set(), // V1921: チェック済み業者名（グローバル管理）
   distancesCalculated: false, // 距離計算済みフラグ
   deliveredFranchises: [],    // V2004: 転送済み業者リスト（二重転送防止用）
@@ -397,6 +399,17 @@ const BusinessSelectionHandler = {
 
       // キャッシュに保存
       this.currentCaseData = currentCaseData;
+
+      // V2046: 履歴からお断り業者を復元
+      this.declinedCompanies.clear();
+      const franchiseHistory = currentCaseData.franchiseHistory || [];
+      franchiseHistory.forEach(item => {
+        // 「お断り」が含まれる履歴を検出
+        if (item.note && item.note.includes('お断り') && item.companyName) {
+          this.declinedCompanies.add(item.companyName);
+        }
+      });
+      console.log('[V2046] お断り業者復元:', Array.from(this.declinedCompanies));
 
       // CV IDを取得（caseIdまたはcurrentCaseDataから）
       const cvId = currentCaseData?.cvId || currentCaseData?._rawData?.cvId || caseId;
@@ -1292,8 +1305,8 @@ const BusinessSelectionHandler = {
         console.log('[V1913-SORT] sortType:', sortType, '→ ソート後順序:', displayFranchises.slice(0, 6).map(f => f.companyName + '(マッチ:' + (f._matchRate || '?') + '%)').join(' → '));
       }
 
-      // V1909: ソートタイプに応じたグループ化
-      const limit = showAll ? 8 : 4;
+      // V2046: 表示社数を使用（デフォルト8）
+      const limit = this.displayCount || 8;
 
       // V1915: 'user' または 'selected' の両方に対応
       if (sortType === 'user' || sortType === 'selected') {
@@ -2199,6 +2212,9 @@ const BusinessSelectionHandler = {
     const callCount = this.getCallCount(card.companyName);
     const memoCount = this.getMemoCount(card.companyName);
 
+    // V2046: お断りかどうかを確認
+    const isDeclined = this.declinedCompanies.has(card.companyName);
+
     // V2013: iPhone SE最適化 - 3行レイアウト（はみ出し防止）
     div.innerHTML = `
       <!-- 1行目: 順位 + チェック + 会社名 + バッジ -->
@@ -2206,6 +2222,7 @@ const BusinessSelectionHandler = {
         <span class="text-base font-bold ${isDelivered ? 'text-purple-600' : 'text-pink-600'} flex-shrink-0">${card.rank}</span>
         ${checkboxHtml ? `<div class="flex-shrink-0">${checkboxHtml}</div>` : ''}
         <span class="font-semibold ${isDelivered ? 'text-purple-700' : 'text-gray-900'} text-sm">${card.companyName}</span>
+        ${isDeclined ? '<span class="flex-shrink-0 ml-auto px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded">お断り</span>' : ''}
         ${isDelivered ? '<span class="flex-shrink-0 ml-auto px-1.5 py-0.5 bg-purple-600 text-white text-[10px] font-bold rounded">転送済</span>' : ''}
         ${isApplied ? '<span class="flex-shrink-0 ml-auto px-1.5 py-0.5 bg-orange-500 text-white text-[10px] font-bold rounded">申込済</span>' : ''}
       </div>
