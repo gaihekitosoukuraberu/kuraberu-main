@@ -12,7 +12,7 @@ const CVAPI = {
     // GAS Web App URL（ENV経由で取得、フォールバック付き）
     // V2022: GitHub Actions @1939
     get GAS_URL() {
-        const url = window.ENV?.GAS_URL || 'https://script.google.com/macros/s/AKfycbwELLceustg9Sd_BbXJahHDewOcRFU8CNHSGnSQEUdb97DdSIA8DOX9AY9ZVXA9-AFa7Q/exec';
+        const url = window.ENV?.GAS_URL || 'https://script.google.com/macros/s/AKfycbxH6Jv6AoMagLOWN26KTsgxU1c0tVmFVo93UjlWJXboNTKNE2wjQW0gFs6Mnl1SGpQKZw/exec';
         console.log('[CVAPI] GAS_URL:', url, ', ENV存在:', !!window.ENV);
         return url;
     },
