@@ -431,6 +431,7 @@ var MerchantContractReport = {
           age: row[userCol['年齢']] || '',
           contactTime: row[userCol['連絡時間帯']] || '',
           relationship: row[userCol['続柄']] || '',
+          searchKeyword: row[userCol['流入検索ワード']] || '',
 
           // 物件情報
           postalCode: row[userCol['郵便番号（物件）']] || '',
@@ -479,6 +480,7 @@ var MerchantContractReport = {
           // その他
           specialItems: row[userCol['特殊項目']] || '',
           caseMemo: row[userCol['案件メモ']] || '',
+          wordLinkAnswer: row[userCol['ワードリンク回答']] || '',
 
           // 見積もり送付先（物件と異なる場合）
           estimateDestination: row[userCol['見積もり送付先']] || '',
@@ -585,6 +587,7 @@ var MerchantContractReport = {
           customerAge: user.age,
           contactTime: user.contactTime,
           relationship: user.relationship,
+          searchKeyword: user.searchKeyword,
 
           // === 物件情報 ===
           postalCode: user.postalCode,
@@ -634,6 +637,7 @@ var MerchantContractReport = {
           // === その他 ===
           specialItems: user.specialItems,
           caseMemo: user.caseMemo,
+          wordLinkAnswer: user.wordLinkAnswer,
 
           // === 見積もり送付先 ===
           estimateDestination: user.estimateDestination,

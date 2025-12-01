@@ -15603,7 +15603,7 @@
             });
         }
 
-        // 詳細モーダル（V2022 全情報対応）
+        // 詳細モーダル（V2031 オーダー転送文全項目対応）
         function openDetailModal(cvId) {
             const c = findCaseByCvId(cvId);
             if (!c) return;
@@ -15612,9 +15612,10 @@
             const style = statusStyles[status] || statusStyles[''];
 
             // 詳細項目ヘルパー（値がある場合のみ表示）
-            const detailItem = (label, value) => {
+            // V2030: isHtml引数追加 - trueの場合はHTMLをそのまま出力（リンク等用）
+            const detailItem = (label, value, isHtml = false) => {
                 if (!value) return '';
-                return `<div class="py-1.5 flex"><span class="text-gray-500 w-28 flex-shrink-0">${label}</span><span class="font-medium">${escapeHtml(value)}</span></div>`;
+                return `<div class="py-1.5 flex"><span class="text-gray-500 w-28 flex-shrink-0">${label}</span><span class="font-medium">${isHtml ? value : escapeHtml(value)}</span></div>`;
             };
 
             // セクションヘルパー（項目がある場合のみセクション表示）
@@ -15642,13 +15643,30 @@
             let attendance = c.attendanceStatus || '';
             if (attendance && c.attendeeRelation) attendance += `（${c.attendeeRelation}）`;
 
+            // 塗装履歴（工事歴＋前回施工時期）
+            let paintHistory = c.workHistory || '';
+            if (c.lastConstructionTime) {
+                paintHistory = paintHistory ? `${paintHistory}（前回: ${c.lastConstructionTime}）` : c.lastConstructionTime;
+            }
+
+            // 見積もり送付先セクション（物件住所と異なる場合のみ）
+            const hasAltAddress = c.estimateDestination && c.estimateDestination !== '物件住所';
+            const altAddress = [c.homePrefecture, c.homeAddressDetail].filter(v => v).join('');
+            const altAddrFull = c.homePostalCode ? `〒${c.homePostalCode} ${altAddress}` : altAddress;
+
+            // 案件メモ + ワードリンク回答を結合
+            let fullMemo = c.caseMemo || '';
+            if (c.wordLinkAnswer) {
+                const wordLinkText = `【ワードリンク回答】${c.wordLinkAnswer}`;
+                fullMemo = fullMemo ? `${fullMemo}\n\n${wordLinkText}` : wordLinkText;
+            }
+
             const content = `
                 <div class="space-y-2">
                     <!-- ヘッダー -->
                     <div class="flex items-center justify-between pb-2 border-b">
                         <div>
-                            <h4 class="text-xl font-bold">${escapeHtml(c.customerName || '-')}様</h4>
-                            ${c.customerNameKana ? `<p class="text-sm text-gray-500">${escapeHtml(c.customerNameKana)}</p>` : ''}
+                            <h4 class="text-xl font-bold">${escapeHtml(c.customerName || '-')}${c.customerNameKana ? `（${escapeHtml(c.customerNameKana)}）` : ''}様</h4>
                         </div>
                         <span class="px-3 py-1 text-sm font-semibold rounded-full ${style.bg} ${style.text}">${status}</span>
                     </div>
@@ -15663,17 +15681,17 @@
 
                     <!-- お客様情報 -->
                     ${section('お客様情報', [
-                        detailItem('電話番号', c.customerTel ? `<a href="tel:${c.customerTel}" class="text-green-600 hover:underline">${c.customerTel}</a>` : ''),
+                        detailItem('電話番号', c.customerTel ? `<a href="tel:${c.customerTel}" class="text-green-600 hover:underline">${c.customerTel}</a>` : '', true),
                         detailItem('メール', c.customerEmail),
                         detailItem('性別/年代', genderAge),
-                        detailItem('続柄', c.relationship),
-                        detailItem('連絡時間帯', c.contactTime)
+                        detailItem('連絡時間帯', c.contactTime),
+                        detailItem('流入検索ワード', c.searchKeyword)
                     ])}
 
                     <!-- 2人目連絡先 -->
                     ${(c.name2 || c.tel2) ? section('2人目の連絡先', [
-                        detailItem('氏名', c.name2),
-                        detailItem('電話番号', c.tel2 ? `<a href="tel:${c.tel2}" class="text-green-600 hover:underline">${c.tel2}</a>` : ''),
+                        detailItem('氏名', c.name2 ? `${c.name2}様` : ''),
+                        detailItem('電話番号', c.tel2 ? `<a href="tel:${c.tel2}" class="text-green-600 hover:underline">${c.tel2}</a>` : '', true),
                         detailItem('続柄', c.relationship2),
                         detailItem('備考', c.remarks2)
                     ]) : ''}
@@ -15683,44 +15701,42 @@
                         detailItem('所在地', fullAddr),
                         c.googleMapsLink ? `<div class="py-1.5"><a href="${c.googleMapsLink}" target="_blank" class="text-blue-600 hover:underline text-sm">Google Mapsで開く →</a></div>` : '',
                         detailItem('物件種別', propType),
+                        detailItem('延床面積', c.buildingArea),
                         detailItem('築年数', c.buildingAge ? `${c.buildingAge}年` : ''),
-                        detailItem('建物面積', c.buildingArea),
+                        detailItem('塗装履歴', paintHistory),
                         detailItem('外壁材', c.exteriorMaterial),
-                        detailItem('屋根材', c.roofMaterial),
-                        detailItem('塗装履歴', c.workHistory),
-                        detailItem('前回施工', c.lastConstructionTime),
-                        detailItem('劣化状況', c.deteriorationStatus),
-                        detailItem('気になる箇所', c.concernedAreas)
+                        detailItem('屋根材', c.roofMaterial)
                     ])}
 
-                    <!-- 希望内容 -->
+                    <!-- 見積もり送付先（別住所の場合のみ） -->
+                    ${hasAltAddress ? section('見積もり送付先', [
+                        detailItem('希望送付先', c.estimateDestination),
+                        altAddrFull ? `<div class="py-1.5 flex"><span class="text-gray-500 w-28 flex-shrink-0">住所</span><span class="font-medium">${escapeHtml(altAddrFull)}</span></div>` : ''
+                    ]) : ''}
+
+                    <!-- ご希望内容 -->
                     ${section('ご希望内容', [
-                        detailItem('見積もり希望', c.estimateAreas),
-                        detailItem('外壁工事', c.exteriorWorkRequest),
-                        detailItem('屋根工事', c.roofWorkRequest),
+                        detailItem('見積もり希望箇所', c.estimateAreas),
                         detailItem('施工時期', c.constructionTiming),
-                        detailItem('希望社数', c.desiredCompanies),
+                        detailItem('立ち会い', attendance),
+                        detailItem('現地調査希望日時', c.inspectionDate),
+                        detailItem('業者選定条件', c.selectionCriteria),
+                        detailItem('劣化状況', c.deteriorationStatus),
                         detailItem('他社見積', c.existingEstimates),
-                        detailItem('見積取得先', c.estimateSource),
-                        detailItem('訪問業者', c.visitingContractor),
+                        detailItem('見積もり取得先', c.estimateSource),
+                        detailItem('訪問業者の状況', c.visitingContractor),
                         detailItem('訪問業者名', c.visitingContractorName),
-                        detailItem('比較意向', c.comparisonIntent),
-                        detailItem('選定条件', c.selectionCriteria)
+                        detailItem('比較意向', c.comparisonIntent)
                     ])}
 
-                    <!-- 現地調査 -->
-                    ${section('現地調査', [
-                        detailItem('希望日時', c.inspectionDate),
-                        detailItem('立ち会い', attendance)
-                    ])}
-
-                    <!-- 特殊・備考 -->
+                    <!-- 特殊要望 -->
                     ${c.specialItems ? section('特殊要望', [
                         `<div class="text-sm">${escapeHtml(c.specialItems)}</div>`
                     ]) : ''}
 
-                    ${c.caseMemo ? section('案件メモ（運営）', [
-                        `<div class="text-sm bg-yellow-50 p-2 rounded">${escapeHtml(c.caseMemo)}</div>`
+                    <!-- 案件メモ（運営） -->
+                    ${fullMemo ? section('案件メモ（運営）', [
+                        `<div class="text-sm bg-yellow-50 p-2 rounded whitespace-pre-wrap">${escapeHtml(fullMemo)}</div>`
                     ]) : ''}
 
                     <!-- 加盟店メモ -->
@@ -15734,13 +15750,13 @@
                     <!-- アクションボタン -->
                     <div class="flex gap-2 pt-3 border-t mt-3">
                         <a href="tel:${c.customerTel}" class="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg text-center hover:bg-green-600 text-sm">
-                            📞 電話
+                            電話
                         </a>
                         <button onclick="closeDetailModal(); openMemoModal('${c.cvId}')" class="flex-1 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm">
-                            📝 メモ
+                            メモ
                         </button>
                         <button onclick="closeDetailModal(); openStatusModal('${c.cvId}')" class="flex-1 px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm">
-                            📊 ステータス
+                            ステータス
                         </button>
                     </div>
                 </div>
