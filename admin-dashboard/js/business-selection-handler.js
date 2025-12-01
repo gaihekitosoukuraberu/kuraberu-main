@@ -2207,6 +2207,10 @@ const BusinessSelectionHandler = {
       ? ''
       : `<input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="w-4 h-4 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">`;
 
+    // V2044: コール回数とラベルを事前に取得
+    const callCount = this.getCallCount(card.companyName);
+    const labelBadge = this.getLabelBadge(card.companyName);
+
     // V2013: iPhone SE最適化 - 3行レイアウト（はみ出し防止）
     div.innerHTML = `
       <!-- 1行目: 順位 + チェック + 会社名 + バッジ -->
@@ -2229,9 +2233,9 @@ const BusinessSelectionHandler = {
       <!-- 3行目: 📞📝ボタン + ラベル + マッチ率 + 金額 -->
       <div class="flex items-center justify-between gap-2 mt-1">
         <div class="flex items-center gap-1 pl-6">
-          <button onclick="event.stopPropagation(); callFranchise('${card.companyName.replace(/'/g, "\\'")}', '${card.phone || ''}')" class="p-1 text-green-600 hover:bg-green-100 rounded transition-all text-sm" title="電話をかける">📞${this.getCallCount(card.companyName) > 0 ? `<span class="text-xs text-green-700 font-bold">${this.getCallCount(card.companyName)}</span>` : ''}</button>
+          <button onclick="event.stopPropagation(); callFranchise('${card.companyName.replace(/'/g, "\\'")}', '${card.phone || ''}')" class="p-1 text-green-600 hover:bg-green-100 rounded transition-all text-sm" title="電話をかける">📞${callCount > 0 ? `<span class="text-xs text-green-700 font-bold">${callCount}</span>` : ''}</button>
           <button onclick="event.stopPropagation(); openFranchiseHistoryModal('${card.companyName.replace(/'/g, "\\'")}')" class="p-1 text-blue-600 hover:bg-blue-100 rounded transition-all text-sm" title="対応履歴">📝</button>
-          ${this.getLabelBadge(card.companyName)}
+          ${labelBadge}
         </div>
         <div class="flex items-center gap-2">
           <span id="${matchRateId}" class="px-2 py-0.5 rounded-full text-xs font-bold cursor-pointer ${matchRateColor}" onclick="event.stopPropagation();">${card.matchRate}%</span>
