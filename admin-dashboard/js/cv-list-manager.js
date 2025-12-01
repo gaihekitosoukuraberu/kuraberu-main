@@ -246,6 +246,17 @@ const CVListManager = {
         address: this.formatAddress(cv),
         addressKana: cv.addressKana || '',
 
+        // V2027: 2人目情報（JKLM列）
+        '氏名（2人目）': cv.secondPerson?.name || '',
+        '電話番号（2人目）': cv.secondPerson?.phone || '',
+        '続柄（2人目）': cv.secondPerson?.relation || '',
+        '備考（2人目）': cv.secondPerson?.memo || '',
+
+        // V2027: 別住所情報（TUV列）
+        '郵便番号（自宅）': cv.homeAddress?.postalCode || '',
+        '都道府県（自宅）': cv.homeAddress?.prefecture || '',
+        '住所詳細（自宅）': cv.homeAddress?.street || '',
+
         // 工事内容・検索
         searchKeyword: cv.searchKeyword || '',
         workItems: workItems,
