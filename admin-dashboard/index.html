@@ -10887,9 +10887,19 @@ window.addEventListener('beforeunload', function(e) {
                 quoteCount: caseData.quoteCount || '',
                 nextCallDate: caseData.nextCallDate || '',
                 selectionCriteria: caseData.selectionCriteria || caseData.q17_selectionCriteria || '',
-                contactTimeSlot: caseData.contactTimeSlot || '',
+                // V2029: 連絡時間帯のキー修正（連絡時間帯 or contactTimeSlot）
+                contactTimeSlot: caseData['連絡時間帯'] || caseData.contactTimeSlot || rawData.contactTimePreference || '',
                 specialItems: caseData.specialItems || '',
                 memo: caseData.memo || caseData.caseMemo || '',
+                // V2029: 2人目情報を追加
+                secondPerson: {
+                    name: caseData['氏名（2人目）'] || rawData.secondPerson?.name || '',
+                    phone: caseData['電話番号（2人目）'] || rawData.secondPerson?.phone || '',
+                    relation: caseData['続柄（2人目）'] || rawData.secondPerson?.relation || '',
+                    memo: caseData['備考（2人目）'] || rawData.secondPerson?.memo || ''
+                },
+                // V2029: 見積もり送付先を追加
+                estimateDeliveryAddress: caseData['見積もり送付先'] || rawData.estimateDeliveryAddress || '',
                 // 転送先
                 selectedFranchises: selectedFranchises
             };
@@ -10971,6 +10981,17 @@ ${f.name} 御中
             const genderAge = [d.gender, d.age].filter(x=>x).join(' / ');
             if (genderAge) msg += `\n性別/年代: ${genderAge}`;
             if (d.relation) msg += `\n続柄: ${d.relation}`;
+            // V2029: 連絡時間帯を追加（お客様情報セクション）
+            if (d.contactTimeSlot) msg += `\n連絡希望時間帯: ${d.contactTimeSlot}`;
+
+            // V2029: 2人目の連絡先（存在する場合のみ）
+            if (d.secondPerson && (d.secondPerson.name || d.secondPerson.phone)) {
+                msg += `\n\n【2人目の連絡先】`;
+                if (d.secondPerson.name) msg += `\n氏名: ${d.secondPerson.name}`;
+                if (d.secondPerson.phone) msg += `\n電話番号: ${d.secondPerson.phone}`;
+                if (d.secondPerson.relation) msg += `\n続柄: ${d.secondPerson.relation}`;
+                if (d.secondPerson.memo) msg += `\n備考: ${d.secondPerson.memo}`;
+            }
 
             msg += `
 
@@ -10996,6 +11017,11 @@ ${f.name} 御中
 
             if (mapLink) msg += `\n\nGoogle Maps:\n${mapLink}`;
 
+            // V2029: 見積もり送付先（物件と異なる場合のみ表示）
+            if (d.estimateDeliveryAddress) {
+                msg += `\n\n【見積もり送付先】\n${d.estimateDeliveryAddress}`;
+            }
+
             msg += `
 
 -------------------------------------------
@@ -11006,9 +11032,6 @@ ${f.name} 御中
             if (d.companiesCount) msg += `\n希望社数: ${d.companiesCount}社`;
             if (d.surveyAttendance) msg += `\n立会い: ${d.surveyAttendance}`;
             if (d.quoteCount) msg += `\n他社見積: ${d.quoteCount}`;
-            // V1986: 連絡希望日時をフォーマット
-            if (d.nextCallDate) msg += `\n連絡希望日時: ${formatDateTimeForTransfer(d.nextCallDate)}`;
-            if (d.contactTimeSlot) msg += `\n連絡時間帯: ${d.contactTimeSlot}`;
             if (d.selectionCriteria) msg += `\n業者選定条件: ${d.selectionCriteria}`;
             // V1987: specialItemsが配列または文字列の場合に対応
             const specialItemsStr = Array.isArray(d.specialItems) ? d.specialItems.join('、') : (d.specialItems || '');
