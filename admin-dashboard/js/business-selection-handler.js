@@ -1174,7 +1174,24 @@ const BusinessSelectionHandler = {
    * @returns {Array} 表示用業者カード配列
    */
   async generateBusinessCards(selectionData, sortType = 'user', showAll = false, searchQuery = '') {
-    const { allFranchises } = selectionData;
+    let { allFranchises } = selectionData;
+
+    // V2030: 特殊項目フィルタリング
+    // CRMで特殊項目が選択されている場合、その項目を持つ業者のみに絞り込む
+    const selectedSpecialItems = this.currentCaseData?.specialItems || [];
+    if (selectedSpecialItems.length > 0) {
+      const beforeCount = allFranchises.length;
+      allFranchises = allFranchises.filter(f => {
+        const franchiseSpecialSupport = f.specialSupport || '';
+        // 選択された特殊項目すべてが業者の特殊対応項目に含まれているかチェック（完全一致）
+        return selectedSpecialItems.every(item => {
+          // カンマ区切りまたは改行区切りで分割して完全一致チェック
+          const franchiseItems = franchiseSpecialSupport.split(/[,、\n]/).map(s => s.trim()).filter(s => s);
+          return franchiseItems.includes(item);
+        });
+      });
+      console.log('[V2030] 特殊項目フィルタリング:', selectedSpecialItems, '→', beforeCount, '社 →', allFranchises.length, '社');
+    }
 
     // V1914: 入力データの距離情報をチェック
     if (sortType === 'distance') {
