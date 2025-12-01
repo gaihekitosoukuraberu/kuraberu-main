@@ -2358,9 +2358,9 @@ const AdminSystem = {
         // 28:見積金額, 29:見積提出日時, 30:成約日時, 31:成約金額, 32:辞退理由, 33:辞退日時,
         // 34:キャンセル申請ID, 35:期限延長申請ID, 36:お断りメール送信済みフラグ, 37:配信金額
         // V1999: お断りメール送信済みフラグはチェックボックス→false（boolean）
-        // V2003: 配信ステータスは「配信済」に統一（UIと一致）
+        // V2037: 配信ステータスは「配信済み」に統一（プルダウン規則に合わせる）
         return [recordId, cvId, franchise.franchiseId, timestamp, franchise.rank || (index + 1),
-          '配信済', '未対応', timestamp, timestamp, 0, 0, 0, 0, '', '', '', '', '', '[]', '', '[]', '[]', '', '', '', '', '', '', '', '', '', '', '', '', '', false, fee];
+          '配信済み', '未対応', timestamp, timestamp, 0, 0, 0, 0, '', '', '', '', '', '[]', '', '[]', '[]', '', '', '', '', '', '', '', '', '', '', '', '', '', false, fee];
       });
 
       // V2014: デバッグ - records配列の内容を確認
@@ -2597,14 +2597,16 @@ const AdminSystem = {
 
             // V2003: ステータス判定 - UIのステータス変更と一致させる
             // - 残り0社 → 新規に戻す
+            // V2037: ステータス統一（「配信済み」「配信中」- プルダウン規則に合わせる）
+            // - 残り0社 → 新規
             // - 残り1社以上で希望社数未満 → 配信中
-            // - 残り希望社数以上 → 配信済
+            // - 残り希望社数以上 → 配信済み
             if (remainingCount === 0) {
               newStatus = '新規';
             } else if (remainingCount < hopeCount) {
               newStatus = '配信中';
             } else {
-              newStatus = '配信済';
+              newStatus = '配信済み';
             }
 
             // 現在のステータスと異なる場合のみ更新（nullの場合はスキップ）
@@ -2775,17 +2777,14 @@ const AdminSystem = {
           console.error('[updateUserSheetDeliveryStatus] 配信先業者一覧設定エラー:', e3);
         }
       }
-      // V2036: 管理ステータス（F列）は更新しない
-      // F列のデータ入力規則は配信ステータスとは異なる値セットを持つため
-      // 管理ステータスは手動管理とし、配信ステータス（AJ列）のみ自動更新
+      // V2037: 管理ステータス（F列）更新 - 「配信済み」「配信中」に統一
       if (managementStatusIdx !== -1) {
-        console.log('[updateUserSheetDeliveryStatus] V2036: 管理ステータス(F列)は更新スキップ - データ入力規則が異なるため');
-        // try {
-        //   console.log('[updateUserSheetDeliveryStatus] 管理ステータス設定: 行', targetRow, '列', managementStatusIdx + 1, '値:', statusToSet);
-        //   userSheet.getRange(targetRow, managementStatusIdx + 1).setValue(statusToSet);
-        // } catch (e4) {
-        //   console.error('[updateUserSheetDeliveryStatus] 管理ステータス設定エラー:', e4);
-        // }
+        try {
+          console.log('[updateUserSheetDeliveryStatus] 管理ステータス設定: 行', targetRow, '列', managementStatusIdx + 1, '値:', statusToSet);
+          userSheet.getRange(targetRow, managementStatusIdx + 1).setValue(statusToSet);
+        } catch (e4) {
+          console.error('[updateUserSheetDeliveryStatus] 管理ステータス設定エラー:', e4);
+        }
       }
       if (franchiseStatusIdx !== -1) {
         try {
