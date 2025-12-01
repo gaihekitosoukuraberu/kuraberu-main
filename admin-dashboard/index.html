@@ -8654,7 +8654,7 @@ window.addEventListener('beforeunload', function(e) {
         }
 
         // V2045: 履歴を編集
-        function editHistory(index) {
+        async function editHistory(index) {
             const history = casesData[currentCaseId].franchiseHistory;
             if (!history || !history[index]) return;
 
@@ -8662,8 +8662,13 @@ window.addEventListener('beforeunload', function(e) {
             const newNote = prompt('メモを編集:', item.note || '');
             if (newNote !== null && newNote !== item.note) {
                 history[index].note = newNote;
-                saveFranchiseHistoryToGAS();
+                await saveFranchiseHistoryToGAS();
                 loadFranchiseHistory();
+
+                // V2045: 業者カードを再描画（メモ内容が変わった場合）
+                if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.currentCaseData) {
+                    window.BusinessSelectionHandler.currentCaseData.franchiseHistory = casesData[currentCaseId].franchiseHistory;
+                }
             }
         }
 
@@ -8678,8 +8683,13 @@ window.addEventListener('beforeunload', function(e) {
             await saveFranchiseHistoryToGAS();
             loadFranchiseHistory();
 
-            // 業者カードも再描画
-            updateBusinessCards();
+            // V2045: 業者カードの履歴カウントを更新
+            if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.currentCaseData) {
+                window.BusinessSelectionHandler.currentCaseData.franchiseHistory = casesData[currentCaseId].franchiseHistory;
+                if (typeof window.BusinessSelectionHandler.applySortAndRender === 'function') {
+                    window.BusinessSelectionHandler.applySortAndRender(window.BusinessSelectionHandler.currentSortType || 'user');
+                }
+            }
         }
 
         // 旧関数（互換性のため残す）
