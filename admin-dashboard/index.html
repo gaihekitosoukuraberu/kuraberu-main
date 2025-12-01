@@ -7037,21 +7037,9 @@ window.addEventListener('beforeunload', function(e) {
                 console.warn('[getCRMFormData] specialItemsButtons要素が見つかりません');
             }
 
-            // V1901: 業者選択データ収集（双方向同期）
-            // V1993: companiesCountは保存対象外（変動するため）
-            if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.checkedCompanies) {
-                const checkedCompanies = Array.from(window.BusinessSelectionHandler.checkedCompanies);
-
-                // AS列: 業者選定履歴（カンマ区切りの業者名）
-                data.businessHistory = checkedCompanies.join(', ');
-
-                console.log('[getCRMFormData] V1993: 業者選択データ収集:', {
-                    businessHistory: data.businessHistory,
-                    checkedCompanies: checkedCompanies
-                });
-            } else {
-                console.warn('[getCRMFormData] V1901: BusinessSelectionHandler未初期化 - 業者選択データをスキップ');
-            }
+            // V2039: AS列（業者選定履歴）は触らない
+            // AS列はCV時にお客さんが選んだ業者。管理画面からは変更しない。
+            // チェック状態はUI上の一時的な状態でカラム管理していない。
 
             console.log('[getCRMFormData] フォームデータ取得:', data);
             return data;
@@ -11278,8 +11266,11 @@ info@gaihekikuraberu.com
             }
 
             const button = document.getElementById('orderTransferSubmitBtn');
+            const btnText = document.getElementById('orderTransferBtnText');
+            const spinner = document.getElementById('orderTransferSpinner');
             button.disabled = true;
-            button.textContent = '転送中...';
+            if (btnText) btnText.textContent = '転送中...';
+            if (spinner) spinner.classList.remove('hidden');
 
             try {
                 const d = window.currentOrderTransferData;
@@ -11361,7 +11352,8 @@ info@gaihekikuraberu.com
                 alert('転送に失敗しました\n' + error.message);
             } finally {
                 button.disabled = false;
-                button.textContent = '転送';
+                if (btnText) btnText.textContent = '転送';
+                if (spinner) spinner.classList.add('hidden');
             }
         }
 
