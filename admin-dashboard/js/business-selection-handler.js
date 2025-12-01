@@ -235,6 +235,35 @@ const BusinessSelectionHandler = {
   },
 
   /**
+   * V2044: 加盟店の最新ラベルを取得
+   * @param {string} companyName - 会社名
+   * @returns {string|null} ラベル（重要/要対応/完了）またはnull
+   */
+  getLatestLabel(companyName) {
+    if (!this.currentCaseData) return null;
+    const history = this.currentCaseData.franchiseHistory || [];
+    // 該当加盟店の履歴でラベル付きの最新を取得
+    const labeled = history.find(item => item.companyName === companyName && item.label);
+    return labeled ? labeled.label : null;
+  },
+
+  /**
+   * V2044: ラベルバッジHTMLを取得
+   * @param {string} companyName - 会社名
+   * @returns {string} ラベルバッジHTML
+   */
+  getLabelBadge(companyName) {
+    const label = this.getLatestLabel(companyName);
+    if (!label) return '';
+    const colors = {
+      '重要': 'bg-red-500 text-white',
+      '要対応': 'bg-yellow-500 text-white',
+      '完了': 'bg-green-500 text-white'
+    };
+    return `<span class="px-1.5 py-0.5 text-[10px] font-bold rounded ${colors[label] || 'bg-gray-500 text-white'}">${label}</span>`;
+  },
+
+  /**
    * 初期化
    */
   init() {
@@ -2197,11 +2226,12 @@ const BusinessSelectionHandler = {
         ${card.distanceText ? `<span class="text-gray-500 text-xs">${card.distanceText}</span>` : ''}
         ${cancelButtonHtml}
       </div>
-      <!-- 3行目: 📞📝ボタン + マッチ率 + 金額 -->
+      <!-- 3行目: 📞📝ボタン + ラベル + マッチ率 + 金額 -->
       <div class="flex items-center justify-between gap-2 mt-1">
         <div class="flex items-center gap-1 pl-6">
           <button onclick="event.stopPropagation(); callFranchise('${card.companyName.replace(/'/g, "\\'")}', '${card.phone || ''}')" class="p-1 text-green-600 hover:bg-green-100 rounded transition-all text-sm" title="電話をかける">📞${this.getCallCount(card.companyName) > 0 ? `<span class="text-xs text-green-700 font-bold">${this.getCallCount(card.companyName)}</span>` : ''}</button>
           <button onclick="event.stopPropagation(); openFranchiseHistoryModal('${card.companyName.replace(/'/g, "\\'")}')" class="p-1 text-blue-600 hover:bg-blue-100 rounded transition-all text-sm" title="対応履歴">📝</button>
+          ${this.getLabelBadge(card.companyName)}
         </div>
         <div class="flex items-center gap-2">
           <span id="${matchRateId}" class="px-2 py-0.5 rounded-full text-xs font-bold cursor-pointer ${matchRateColor}" onclick="event.stopPropagation();">${card.matchRate}%</span>
