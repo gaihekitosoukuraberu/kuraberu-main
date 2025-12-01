@@ -106,20 +106,29 @@ const RankingSystem = {
       const registerSheet = ss.getSheetByName('加盟店登録');
       if (registerSheet) {
         const regLastRow = registerSheet.getLastRow();
+        console.log('[RankingSystem] 加盟店登録シート行数:', regLastRow);
         if (regLastRow >= 2) {
           const regHeaders = registerSheet.getRange(1, 1, 1, registerSheet.getLastColumn()).getValues()[0];
+          console.log('[RankingSystem] 加盟店登録ヘッダー:', regHeaders.slice(0, 15));
           const companyNameIdx = regHeaders.indexOf('会社名');
           const phoneIdx = 10; // K列（0-indexed = 10）
+          console.log('[RankingSystem] 会社名列Index:', companyNameIdx, ', 電話列Index:', phoneIdx);
           const regData = registerSheet.getRange(2, 1, regLastRow - 1, registerSheet.getLastColumn()).getValues();
-          regData.forEach(row => {
-            const name = row[companyNameIdx] || '';
+          regData.forEach((row, i) => {
+            const name = companyNameIdx >= 0 ? (row[companyNameIdx] || '') : '';
             const phone = row[phoneIdx] || '';
+            if (i < 3) {
+              console.log('[RankingSystem] サンプル行' + i + ':', { name, phone, rawK: row[10] });
+            }
             if (name && phone) {
-              phoneMap[name] = phone;
+              phoneMap[name] = String(phone);
             }
           });
           console.log('[RankingSystem] 電話番号マップ作成:', Object.keys(phoneMap).length, '件');
+          console.log('[RankingSystem] phoneMap例:', Object.entries(phoneMap).slice(0, 3));
         }
+      } else {
+        console.log('[RankingSystem] 加盟店登録シートが見つかりません');
       }
 
       // V1713-FIX: onEditトリガーで加盟店登録→加盟店マスタが自動同期されるため、
