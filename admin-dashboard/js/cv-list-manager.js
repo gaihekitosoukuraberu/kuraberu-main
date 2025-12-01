@@ -96,6 +96,7 @@ const CVListManager = {
         console.log('[CVListManager] secondPerson:', cv.secondPerson);
         console.log('[CVListManager] homeAddress:', cv.homeAddress);
         console.log('[CVListManager] altPropertyType:', cv.altPropertyType);
+        console.log('[CVListManager] _rawDataキー確認:', Object.keys(cv).filter(k => k.includes('alt') || k.includes('Property') || k.includes('別住所')));
       }
 
       // CV IDをキーとして使用
