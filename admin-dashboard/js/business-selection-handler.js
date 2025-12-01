@@ -224,6 +224,17 @@ const BusinessSelectionHandler = {
   appliedFranchises: [],      // V2007: 申込済み業者リスト（一斉配信から申込）
 
   /**
+   * V2043: 加盟店へのコール回数を取得
+   * @param {string} companyName - 会社名
+   * @returns {number} コール回数
+   */
+  getCallCount(companyName) {
+    if (!this.currentCaseData) return 0;
+    const history = this.currentCaseData.franchiseHistory || [];
+    return history.filter(item => item.companyName === companyName).length;
+  },
+
+  /**
    * 初期化
    */
   init() {
@@ -2189,7 +2200,7 @@ const BusinessSelectionHandler = {
       <!-- 3行目: 📞📝ボタン + マッチ率 + 金額 -->
       <div class="flex items-center justify-between gap-2 mt-1">
         <div class="flex items-center gap-1 pl-6">
-          <button onclick="event.stopPropagation(); callFranchise('${card.companyName.replace(/'/g, "\\'")}', '${card.phone || ''}')" class="p-1 text-green-600 hover:bg-green-100 rounded transition-all text-sm" title="電話をかける">📞</button>
+          <button onclick="event.stopPropagation(); callFranchise('${card.companyName.replace(/'/g, "\\'")}', '${card.phone || ''}')" class="p-1 text-green-600 hover:bg-green-100 rounded transition-all text-sm" title="電話をかける">📞${this.getCallCount(card.companyName) > 0 ? `<span class="text-xs text-green-700 font-bold">${this.getCallCount(card.companyName)}</span>` : ''}</button>
           <button onclick="event.stopPropagation(); openFranchiseHistoryModal('${card.companyName.replace(/'/g, "\\'")}')" class="p-1 text-blue-600 hover:bg-blue-100 rounded transition-all text-sm" title="対応履歴">📝</button>
         </div>
         <div class="flex items-center gap-2">
