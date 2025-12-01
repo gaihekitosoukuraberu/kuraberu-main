@@ -2778,8 +2778,6 @@ window.addEventListener('beforeunload', function(e) {
             const button = event.target.closest('button');
             const label = button.getAttribute('data-label');
 
-            console.log('sortFranchises called:', sortType, label); // デバッグ用
-
             // ラジオボタン動作：全てのボタンを非選択状態に戻す
             document.querySelectorAll('.franchise-sort-btn').forEach(btn => {
                 btn.classList.remove(
@@ -2821,7 +2819,6 @@ window.addEventListener('beforeunload', function(e) {
             const labelDisplay = document.getElementById('sortLabelDisplay');
             if (labelDisplay && label) {
                 labelDisplay.textContent = label;
-                console.log('Label displayed:', label); // デバッグ用
             }
 
             // ソート処理のメッセージ
@@ -4881,32 +4878,20 @@ window.addEventListener('beforeunload', function(e) {
 
             // 現地調査希望日時（AR列: 現地調査希望日時, V1833: surveyDatePreferenceキー使用）
             // ボタンを選択状態にする（V1832: スタイルも適用, V1833: survey-datetime-button class使用）
-            console.log('[populateForm V1833] 現地調査希望日時処理開始');
-            console.log('[populateForm V1833] data.surveyDatePreference:', data.surveyDatePreference);
             const surveyButtonGroup = document.getElementById('surveyDateTimeButtonGroup');
-            console.log('[populateForm V1833] surveyButtonGroup要素:', surveyButtonGroup);
             if (surveyButtonGroup) {
-                // V1833 DEBUG: データの確認
-                console.log('[populateForm DEBUG] surveyDatePreference:', data.surveyDatePreference);
-                console.log('[populateForm DEBUG] 全データキー:', Object.keys(data));
-
                 // V1902: 複数フォーマット対応「金曜日・午前」→「金曜 午前」変換
                 const selectedTimes = data.surveyDatePreference
                     ? data.surveyDatePreference.split(', ').map(t => t.replace(/日・/g, ' ').replace(/_/g, ' ').trim())
                     : [];
 
-                console.log('[populateForm DEBUG] 変換後selectedTimes:', selectedTimes);
-
                 surveyButtonGroup.querySelectorAll('.survey-datetime-button').forEach(btn => {
                     const btnText = btn.textContent.trim();
-                    console.log('[populateForm DEBUG] ボタンテキスト:', btnText, 'マッチ:', selectedTimes.includes(btnText));
-
                     // 選択状態のボタンにスタイルを適用
                     if (selectedTimes.includes(btnText)) {
                         btn.classList.add('selected');
                         btn.classList.remove('bg-white', 'border-gray-300', 'text-gray-700');
                         btn.classList.add('bg-orange-500', 'border-orange-500', 'text-white', 'shadow-md');
-                        console.log('[populateForm DEBUG] ボタン選択:', btnText);
                     } else {
                         // 未選択状態のボタンは初期スタイルを確実に適用
                         btn.classList.remove('selected', 'bg-orange-500', 'border-orange-500', 'text-white', 'shadow-md');
@@ -5007,11 +4992,9 @@ window.addEventListener('beforeunload', function(e) {
 
             // V2027: 別住所物件種別（AY列）
             const altPropertyTypeStr = data['別住所物件種別'] || '';
-            console.log('[populateForm] 別住所物件種別:', altPropertyTypeStr);
             const altPropertyTypeSelect = document.getElementById('altPropertyTypeSelect');
             if (altPropertyTypeSelect && altPropertyTypeStr) {
                 altPropertyTypeSelect.value = altPropertyTypeStr;
-                console.log('[populateForm] 別住所種別セット:', altPropertyTypeStr);
             }
 
             // 別住所情報がある場合は別住所セクションを開く
@@ -9594,12 +9577,6 @@ window.addEventListener('beforeunload', function(e) {
 
         // V1922: チェックボックス変更時の処理（希望社数制限）
         async function handleFranchiseCheck(checkbox, companyName) {
-            // ========== V1925: デバッグログ追加 ==========
-            console.log('%c[V1925-DEBUG] handleFranchiseCheck 呼び出された！', 'color: #ff0000; font-weight: bold; font-size: 16px');
-            console.log('[V1925-DEBUG] companyName:', companyName);
-            console.log('[V1925-DEBUG] checked:', checkbox.checked);
-            console.log('[V1925-DEBUG] 現在のcheckedCompanies BEFORE:', Array.from(window.BusinessSelectionHandler.checkedCompanies));
-
             const isChecked = checkbox.checked;
 
             if (isChecked) {

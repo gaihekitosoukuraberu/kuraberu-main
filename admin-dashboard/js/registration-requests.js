@@ -73,11 +73,8 @@ async function loadRegistrationRequestsData() {
 
         console.log('[RegistrationRequests] APIレスポンス:', result);
 
-        // データ構造をデバッグ
+        // データマッピング強化（フロントエンド側で処理）
         if (result && result.data && result.data.length > 0) {
-            console.log('[DEBUG] サンプルデータ:', result.data[0]);
-
-            // データマッピング強化（フロントエンド側で処理）
             result.data = result.data.map(item => {
                 return {
                     ...item,
@@ -121,15 +118,6 @@ async function loadRegistrationRequestsData() {
             pendingRequests = enhanceData(result.pending) || [];
             approvedRequests = enhanceData(result.approved) || [];
             rejectedRequests = enhanceData(result.rejected) || [];
-
-            // V1924: デバッグログ - 全データのregistrationIdと会社名の対応を確認
-            console.log('[RegistrationRequests] === V1924 データマッピング確認 ===');
-            console.log('[RegistrationRequests] 承認済み件数:', approvedRequests.length);
-            approvedRequests.forEach((item, idx) => {
-                const companyName = item['会社名（法人名）'] || item['会社名'] || item.businessName || '(名前なし)';
-                console.log(`  [${idx}] ${companyName} → registrationId: ${item.registrationId}`);
-            });
-            console.log('[RegistrationRequests] === マッピング確認終了 ===');
 
             // 統計情報を計算して更新（全データから計算）
             const stats = calculateRegistrationStats(currentRegistrationData);
@@ -528,12 +516,6 @@ function createRegistrationRow(item, type) {
         console.log('[Registration Row] 全データ:', JSON.stringify(item, null, 2));
     }
 
-    // V1924: デバッグログ - 表示される会社名とregistrationIdの対応を確認
-    console.log(`[Registration Row DEBUG] 表示会社名: "${companyName}" → registrationId: "${item.registrationId}"`);
-    if (item['会社名（法人名）']) console.log(`  元データ会社名（法人名）: ${item['会社名（法人名）']}`);
-    if (item['会社名']) console.log(`  元データ会社名: ${item['会社名']}`);
-    if (item.businessName) console.log(`  元データbusinessName: ${item.businessName}`);
-
     tr.innerHTML = `
         <td class="px-6 py-4 text-sm text-gray-900">${dateStr}</td>
         <td class="px-6 py-4">
@@ -818,26 +800,6 @@ function viewRegistrationDetails(registrationId) {
         alert('データが見つかりません');
         return;
     }
-
-    // デバッグログ - 実際のデータ構造を確認（詳細）
-    console.log('[DEBUG] 詳細モーダルデータ:', item);
-    console.log('[DEBUG] データキー:', Object.keys(item));
-    console.log('[DEBUG] 全フィールド確認:');
-    Object.keys(item).forEach(key => {
-        console.log(`  ${key}: ${item[key]}`);
-    });
-    console.log('[DEBUG] 重要フィールド確認:', {
-        '会社名カナ': item['会社名カナ'] || item['会社名（カナ）'] || item.companyNameKana || item['会社名（フリガナ）'],
-        'メール': item['メールアドレス'] || item.email || item.mail,
-        '営業担当者': item['営業担当者氏名'] || item['営業担当者名'] || item.salesPerson,
-        '営業担当者カナ': item['営業担当者カナ'] || item.salesPersonKana,
-        '対応物件種別': item['対応物件種別'] || item.propertyTypes,
-        '築年数': item['対応建物築年数'] || item.buildingAgeRange || item['築年数'],
-        '施工内容': item['対応可能施工内容'] || item.constructionCapabilities,
-        '施工箇所': item['施工箇所'] || item.constructionLocation,
-        '特殊対応': item['特殊対応'] || item.specialHandling,
-        '特殊対応項目': item['特殊対応項目'] || item.specialHandlingItems
-    });
 
     // モーダル作成
     const modal = document.createElement('div');

@@ -92,11 +92,6 @@ const CVListManager = {
         console.log('[CVListManager] q10_roofWorkType:', cv.botAnswers?.q10_roofWorkType);
         console.log('[CVListManager] q11_quoteCount:', cv.botAnswers?.q11_quoteCount);
         console.log('[CVListManager] q12_quoteSource:', cv.botAnswers?.q12_quoteSource);
-        // V2027: 2人目情報・別住所情報のデバッグ
-        console.log('[CVListManager] secondPerson:', cv.secondPerson);
-        console.log('[CVListManager] homeAddress:', cv.homeAddress);
-        console.log('[CVListManager] altPropertyType:', cv.altPropertyType);
-        console.log('[CVListManager] _rawDataキー確認:', Object.keys(cv).filter(k => k.includes('alt') || k.includes('Property') || k.includes('別住所')));
       }
 
       // CV IDをキーとして使用
