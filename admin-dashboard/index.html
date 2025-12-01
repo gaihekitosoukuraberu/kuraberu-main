@@ -11280,15 +11280,24 @@ info@gaihekikuraberu.com
             try {
                 const d = window.currentOrderTransferData;
 
+                // V2032: 転送データのデバッグログ
+                const franchisesPayload = d.selectedFranchises.map((f, idx) => ({
+                    franchiseId: f.id,
+                    franchiseName: f.name,
+                    fee: f.fee,
+                    rank: idx + 1
+                }));
+                console.log('[V2032-DEBUG] 転送前データ:', {
+                    cvId: d.cvId,
+                    selectedFranchisesCount: d.selectedFranchises.length,
+                    franchisesPayloadCount: franchisesPayload.length,
+                    franchisesPayload: franchisesPayload
+                });
+
                 // V1996: 即時転送実行（JSONP経由 - GAS側で転送文を再生成してメール送信）
                 const transferResponse = await window.apiClient.postRequest('sendOrderTransfer', {
                     cvId: d.cvId,
-                    franchises: d.selectedFranchises.map((f, idx) => ({
-                        franchiseId: f.id,
-                        franchiseName: f.name,
-                        fee: f.fee,
-                        rank: idx + 1
-                    }))
+                    franchises: franchisesPayload
                 });
 
                 if (transferResponse.success) {

@@ -181,6 +181,15 @@ class ApiClient {
       }
     }
 
+    // V2032: シリアライズ後のデータサイズをログ出力
+    if (action === 'sendOrderTransfer') {
+      const franchisesStr = serializedData.franchises || '';
+      console.log('[V2032-DEBUG] ApiClient sendOrderTransfer:', {
+        franchisesLength: franchisesStr.length,
+        franchisesData: franchisesStr
+      });
+    }
+
     return this.jsonpRequest(action, serializedData);
   }
 
