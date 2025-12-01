@@ -1,4 +1,4 @@
-// Auto-synced: 2025-12-02T00:10:00.000Z - Deployment: AKfycbxTYSe1da-HXFK_4FtSLIIe_7yCfJRnaAEihT23Ld8aG8JwbdjowqYWu1gX6PJekZXiqA
+// V2040: 加盟店対応履歴機能追加
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -12,8 +12,8 @@
  * 参照方法（PHP）:
  * このファイルを読み込んでGAS_URLを抽出
  *
- * @file-version V2022-MASTER-@HEAD-2025-12-01T06:15:00
- * @last-update 2025-12-01T06:15:00
+ * @file-version V2040-MASTER-@HEAD-2025-12-02
+ * @last-update 2025-12-02
  */
 
 const ENV = {
@@ -21,14 +21,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V2033 @1950
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxTYSe1da-HXFK_4FtSLIIe_7yCfJRnaAEihT23Ld8aG8JwbdjowqYWu1gX6PJekZXiqA/exec',
+  // プライマリGAS URL（メイン運用）- V2040 @HEAD
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/dev',
 
-  // フォールバックGAS URL（バックアップ）- V2033 @1950
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxTYSe1da-HXFK_4FtSLIIe_7yCfJRnaAEihT23Ld8aG8JwbdjowqYWu1gX6PJekZXiqA/exec',
+  // フォールバックGAS URL（バックアップ）- V2040 @HEAD
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/dev',
 
-  // 緊急時URL（最終フォールバック）- V2033 @1950
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxTYSe1da-HXFK_4FtSLIIe_7yCfJRnaAEihT23Ld8aG8JwbdjowqYWu1gX6PJekZXiqA/exec',
+  // 緊急時URL（最終フォールバック）- V2040 @HEAD
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxGBYjSiaHG2W7RrRyBBwRldeDDlbC0ILnCu75T-mFj/dev',
 
   // ============================================
   // 🔧 システム設定
@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V2033 - 強制更新）
-  CACHE_BUSTER: 'v1764602689'
+  // キャッシュバスター（V2040 - 強制更新）
+  CACHE_BUSTER: 'v2040_' + Date.now()
 };
 
 // グローバルに公開（全てのファイルから参照可能）
