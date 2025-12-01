@@ -2006,19 +2006,6 @@ window.addEventListener('beforeunload', function(e) {
                     <!-- 履歴リスト -->
                     <div id="franchiseHistorySection" class="border-t border-gray-200 pt-4 mt-5">
                         <h4 class="text-sm font-semibold text-gray-900 mb-3">📋 過去の履歴</h4>
-                        <!-- V2044: 選択時アクションバー -->
-                        <div id="historyActionBar" class="hidden bg-gray-100 rounded-lg p-2 mb-3 flex items-center justify-between gap-2">
-                            <div class="flex items-center gap-2">
-                                <button onclick="setHistoryLabel('重要')" class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded hover:bg-red-200 transition-all">重要</button>
-                                <button onclick="setHistoryLabel('要対応')" class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded hover:bg-yellow-200 transition-all">要対応</button>
-                                <button onclick="setHistoryLabel('完了')" class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded hover:bg-green-200 transition-all">完了</button>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button onclick="editSelectedHistory()" class="p-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-all" title="編集">✏️</button>
-                                <button onclick="deleteSelectedHistory()" class="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-all" title="削除">🗑️</button>
-                                <button onclick="clearHistorySelection()" class="p-1.5 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition-all" title="選択解除">✕</button>
-                            </div>
-                        </div>
                         <div id="franchiseHistoryList" class="space-y-2 max-h-48 overflow-y-auto">
                             <!-- 動的に生成される履歴 -->
                         </div>
@@ -8512,7 +8499,6 @@ window.addEventListener('beforeunload', function(e) {
             document.getElementById('newFranchiseNote').value = '';
             // 選択状態もリセット
             selectedHistoryIndex = -1;
-            document.getElementById('historyActionBar').classList.add('hidden');
 
             loadFranchiseHistory();
         }
@@ -8614,80 +8600,77 @@ window.addEventListener('beforeunload', function(e) {
 
             if (franchiseHistory.length === 0) {
                 historyList.innerHTML = '<p class="text-gray-500 text-sm">履歴がありません</p>';
-                document.getElementById('historyActionBar').classList.add('hidden');
                 return;
             }
 
-            // ラベルの色設定
-            const labelColors = {
-                '重要': 'bg-red-500 text-white',
-                '要対応': 'bg-yellow-500 text-white',
-                '完了': 'bg-green-500 text-white'
-            };
-
+            // V2045: カード右側にボタン表示（選択時のみ）
             historyList.innerHTML = franchiseHistory.map((item, index) => {
                 const isSelected = index === selectedHistoryIndex;
-                const labelHtml = item.label ? `<span class="px-1.5 py-0.5 text-[10px] font-bold rounded ${labelColors[item.label] || 'bg-gray-500 text-white'}">${item.label}</span>` : '';
                 return `
                 <div onclick="selectHistory(${index})" class="cursor-pointer rounded-lg p-3 border-2 transition-all ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50 hover:border-gray-300'}">
-                    <div class="flex justify-between items-start mb-1">
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm font-semibold text-green-700">${item.companyName || '---'}</span>
-                            ${labelHtml}
+                    <div class="flex justify-between items-start gap-2">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-sm font-semibold text-green-700">${item.companyName || '---'}</span>
+                                <span class="text-xs text-gray-500">${item.date || item.timestamp || '---'}</span>
+                            </div>
+                            <div class="text-sm text-gray-700 whitespace-pre-wrap break-words">${item.note || ''}</div>
                         </div>
-                        <div class="text-xs text-gray-500">${item.date || item.timestamp || '---'}</div>
+                        ${isSelected ? `
+                        <div class="flex flex-col gap-1 flex-shrink-0">
+                            <button onclick="event.stopPropagation(); editHistory(${index})" class="p-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-all" title="編集">✏️</button>
+                            <button onclick="event.stopPropagation(); deleteHistory(${index})" class="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-all" title="削除">🗑️</button>
+                            <button onclick="event.stopPropagation(); clearHistorySelection()" class="p-1.5 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition-all" title="閉じる">✕</button>
+                        </div>
+                        ` : ''}
                     </div>
-                    <div class="text-sm text-gray-700 whitespace-pre-wrap">${item.note || ''}</div>
                 </div>
             `}).join('');
         }
 
-        // V2044: 履歴を選択
+        // V2045: 履歴を選択
         function selectHistory(index) {
             if (selectedHistoryIndex === index) {
-                // 同じ項目をタップで選択解除
                 clearHistorySelection();
                 return;
             }
             selectedHistoryIndex = index;
-            document.getElementById('historyActionBar').classList.remove('hidden');
             loadFranchiseHistory();
         }
 
-        // V2044: 選択解除
+        // V2045: 選択解除
         function clearHistorySelection() {
             selectedHistoryIndex = -1;
-            document.getElementById('historyActionBar').classList.add('hidden');
             loadFranchiseHistory();
         }
 
-        // V2044: ラベルを設定
-        async function setHistoryLabel(label) {
-            if (selectedHistoryIndex < 0) return;
+        // V2045: 履歴を編集
+        function editHistory(index) {
             const history = casesData[currentCaseId].franchiseHistory;
-            if (!history || !history[selectedHistoryIndex]) return;
+            if (!history || !history[index]) return;
 
-            history[selectedHistoryIndex].label = label;
-            await saveFranchiseHistoryToGAS();
-            clearHistorySelection();
-        }
-
-        // V2044: 履歴を編集
-        function editSelectedHistory() {
-            if (selectedHistoryIndex < 0) return;
-            const history = casesData[currentCaseId].franchiseHistory;
-            if (!history || !history[selectedHistoryIndex]) return;
-
-            const item = history[selectedHistoryIndex];
+            const item = history[index];
             const newNote = prompt('メモを編集:', item.note || '');
-            if (newNote !== null) {
-                history[selectedHistoryIndex].note = newNote;
+            if (newNote !== null && newNote !== item.note) {
+                history[index].note = newNote;
                 saveFranchiseHistoryToGAS();
-                clearHistorySelection();
+                loadFranchiseHistory();
             }
         }
 
-        // V2044: 履歴を削除
+        // V2045: 履歴を削除
+        async function deleteHistory(index) {
+            if (!confirm('この履歴を削除しますか？')) return;
+            const history = casesData[currentCaseId].franchiseHistory;
+            if (!history) return;
+
+            history.splice(index, 1);
+            selectedHistoryIndex = -1;
+            await saveFranchiseHistoryToGAS();
+            loadFranchiseHistory();
+        }
+
+        // 旧関数（互換性のため残す）
         async function deleteSelectedHistory() {
             if (selectedHistoryIndex < 0) return;
             if (!confirm('この履歴を削除しますか？')) return;

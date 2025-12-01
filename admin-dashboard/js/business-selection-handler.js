@@ -235,32 +235,14 @@ const BusinessSelectionHandler = {
   },
 
   /**
-   * V2044: 加盟店の最新ラベルを取得
+   * V2045: 加盟店の履歴数を取得（📝の右に表示）
    * @param {string} companyName - 会社名
-   * @returns {string|null} ラベル（重要/要対応/完了）またはnull
+   * @returns {number} 履歴数
    */
-  getLatestLabel(companyName) {
-    if (!this.currentCaseData) return null;
+  getHistoryCount(companyName) {
+    if (!this.currentCaseData) return 0;
     const history = this.currentCaseData.franchiseHistory || [];
-    // 該当加盟店の履歴でラベル付きの最新を取得
-    const labeled = history.find(item => item.companyName === companyName && item.label);
-    return labeled ? labeled.label : null;
-  },
-
-  /**
-   * V2044: ラベルバッジHTMLを取得
-   * @param {string} companyName - 会社名
-   * @returns {string} ラベルバッジHTML
-   */
-  getLabelBadge(companyName) {
-    const label = this.getLatestLabel(companyName);
-    if (!label) return '';
-    const colors = {
-      '重要': 'bg-red-500 text-white',
-      '要対応': 'bg-yellow-500 text-white',
-      '完了': 'bg-green-500 text-white'
-    };
-    return `<span class="px-1.5 py-0.5 text-[10px] font-bold rounded ${colors[label] || 'bg-gray-500 text-white'}">${label}</span>`;
+    return history.filter(item => item.companyName === companyName).length;
   },
 
   /**
@@ -2207,9 +2189,9 @@ const BusinessSelectionHandler = {
       ? ''
       : `<input type="checkbox" ${card.shouldCheck ? 'checked' : ''} class="w-4 h-4 text-pink-600 rounded flex-shrink-0" onclick="event.stopPropagation()" onchange="handleFranchiseCheck(this, '${card.companyName.replace(/'/g, "\\'")}')">`;
 
-    // V2044: コール回数とラベルを事前に取得
+    // V2045: コール回数と履歴数を事前に取得
     const callCount = this.getCallCount(card.companyName);
-    const labelBadge = this.getLabelBadge(card.companyName);
+    const historyCount = this.getHistoryCount(card.companyName);
 
     // V2013: iPhone SE最適化 - 3行レイアウト（はみ出し防止）
     div.innerHTML = `
@@ -2230,12 +2212,11 @@ const BusinessSelectionHandler = {
         ${card.distanceText ? `<span class="text-gray-500 text-xs">${card.distanceText}</span>` : ''}
         ${cancelButtonHtml}
       </div>
-      <!-- 3行目: 📞📝ボタン + ラベル + マッチ率 + 金額 -->
+      <!-- 3行目: 📞📝ボタン + マッチ率 + 金額 -->
       <div class="flex items-center justify-between gap-2 mt-1">
         <div class="flex items-center gap-1 pl-6">
           <button onclick="event.stopPropagation(); callFranchise('${card.companyName.replace(/'/g, "\\'")}', '${card.phone || ''}')" class="p-1 text-green-600 hover:bg-green-100 rounded transition-all text-sm" title="電話をかける">📞${callCount > 0 ? `<span class="text-xs text-green-700 font-bold">${callCount}</span>` : ''}</button>
-          <button onclick="event.stopPropagation(); openFranchiseHistoryModal('${card.companyName.replace(/'/g, "\\'")}')" class="p-1 text-blue-600 hover:bg-blue-100 rounded transition-all text-sm" title="対応履歴">📝</button>
-          ${labelBadge}
+          <button onclick="event.stopPropagation(); openFranchiseHistoryModal('${card.companyName.replace(/'/g, "\\'")}')" class="p-1 text-blue-600 hover:bg-blue-100 rounded transition-all text-sm" title="対応履歴">📝${historyCount > 0 ? `<span class="text-xs text-blue-700 font-bold">${historyCount}</span>` : ''}</button>
         </div>
         <div class="flex items-center gap-2">
           <span id="${matchRateId}" class="px-2 py-0.5 rounded-full text-xs font-bold cursor-pointer ${matchRateColor}" onclick="event.stopPropagation();">${card.matchRate}%</span>
