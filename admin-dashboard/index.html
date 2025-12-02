@@ -1892,58 +1892,8 @@ window.addEventListener('beforeunload', function(e) {
                                 </svg>
                             </button>
                         </div>
-                        <div class="space-y-2 mt-3">
-                            <!-- V1948: iPhone SE最適化 - 縦並び -->
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">次回架電日時</label>
-                                <div class="flex gap-1">
-                                    <input
-                                        type="date"
-                                        id="nextCallDate"
-                                        class="flex-1 min-w-0 px-2 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 transition-all text-xs"
-                                    >
-                                    <select
-                                        id="nextCallHour"
-                                        class="w-14 px-1 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 transition-all text-xs"
-                                    >
-                                            <option value="">時</option>
-                                            <option value="00">00</option>
-                                            <option value="01">01</option>
-                                            <option value="02">02</option>
-                                            <option value="03">03</option>
-                                            <option value="04">04</option>
-                                            <option value="05">05</option>
-                                            <option value="06">06</option>
-                                            <option value="07">07</option>
-                                            <option value="08">08</option>
-                                            <option value="09">09</option>
-                                            <option value="10">10</option>
-                                            <option value="11">11</option>
-                                            <option value="12">12</option>
-                                            <option value="13">13</option>
-                                            <option value="14">14</option>
-                                            <option value="15">15</option>
-                                            <option value="16">16</option>
-                                            <option value="17">17</option>
-                                            <option value="18">18</option>
-                                            <option value="19">19</option>
-                                            <option value="20">20</option>
-                                            <option value="21">21</option>
-                                            <option value="22">22</option>
-                                            <option value="23">23</option>
-                                        </select>
-                                    <select
-                                        id="nextCallMinute"
-                                        class="w-14 px-1 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 transition-all text-xs"
-                                    >
-                                        <option value="">分</option>
-                                        <option value="00">00</option>
-                                        <option value="15">15</option>
-                                        <option value="30">30</option>
-                                        <option value="45">45</option>
-                                    </select>
-                                </div>
-                            </div>
+                        <!-- V2057: 次回架電日時は削除、別モーダルで設定 -->
+                        <div class="mt-3">
                             <button
                                 onclick="addCallHistory()"
                                 class="w-full px-8 py-3 sm:py-3.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold shadow-md hover:shadow-lg transition-all text-sm sm:text-base">
@@ -6913,6 +6863,7 @@ window.addEventListener('beforeunload', function(e) {
         // リストステータス変更用のグローバル変数
         let currentEditingCaseId = null;
         let currentEditingButton = null;
+        let showNextCallAfterStatus = false; // V2057: ステータス選択後に次回架電日モーダル表示
 
         // リストステータス変更モーダルを開く
         function openListStatusModal(caseId, buttonElement) {
@@ -6932,6 +6883,8 @@ window.addEventListener('beforeunload', function(e) {
         function selectListStatus(newStatus) {
             if (!currentEditingCaseId) return;
 
+            const savedCaseId = currentEditingCaseId; // V2057: 保存しておく
+
             changeStatus(currentEditingCaseId, newStatus);
 
             // ボタンの表示を更新
@@ -6942,6 +6895,12 @@ window.addEventListener('beforeunload', function(e) {
             }
 
             closeListStatusModal();
+
+            // V2057: 接続フローの場合は次回架電日モーダルを表示
+            if (showNextCallAfterStatus) {
+                showNextCallAfterStatus = false;
+                openNextCallModal(savedCaseId);
+            }
         }
 
         async function changeStatus(caseId, newStatus) {
@@ -8067,20 +8026,16 @@ window.addEventListener('beforeunload', function(e) {
             const skipBtn = document.getElementById('skipBtn');
 
             if (status === 'connected') {
-                connectedBtn.classList.remove('from-gray-400', 'to-gray-500');
-                connectedBtn.classList.add('from-green-500', 'to-green-600', 'ring-4', 'ring-green-200');
-                absentBtn.classList.remove('from-gray-500', 'to-gray-600', 'ring-4', 'ring-gray-200');
-                absentBtn.classList.add('from-gray-400', 'to-gray-500');
-                skipBtn.classList.remove('hidden');
-                // 次回架電設定を表示
-                document.getElementById('nextCallQuickSettings').classList.remove('hidden');
-                autoSetNextCallTime();
+                // V2057: 接続時はメモモーダル→ステータス→次回架電日の流れ
+                hideConnectionModal();
+                openCallHistoryModalForConnected();
             } else {
-                // V2056: 不在の場合（今回の不在を含めてカウント）
-                const absentCount = getAbsentCount() + 1; // 今回の不在を含める
-                console.log('[V2056] 不在回数（今回含む）:', absentCount);
+                // V2057: 不在の場合（総架電回数でチェック）
+                const counts = getCallAndMemoCounts(casesData[currentCaseId]);
+                const totalCallCount = counts.callTotal + 1; // 今回の架電を含める
+                console.log('[V2057] 総架電回数（今回含む）:', totalCallCount);
 
-                if (absentCount <= 12) {
+                if (totalCallCount <= 12) {
                     // 1-12回目: 即閉じ＋自動次回架電設定（直近の9/12/17/19時）
                     handleQuickAbsent();
                 } else {
@@ -8757,20 +8712,30 @@ window.addEventListener('beforeunload', function(e) {
         }
 
 
+        // V2057: 接続フロー用フラグ
+        let isConnectedFlow = false;
+
         function openCallHistoryModal(caseId) {
             // リストから開いた場合はcaseIdを設定
             if (caseId) {
                 currentCaseId = caseId;
             }
+            isConnectedFlow = false; // 通常のメモモーダル
             document.getElementById('callHistoryModal').classList.remove('hidden');
             loadCallHistory();
         }
-        
+
+        // V2057: 接続時専用のメモモーダル
+        function openCallHistoryModalForConnected() {
+            isConnectedFlow = true; // 接続フロー
+            document.getElementById('callHistoryModal').classList.remove('hidden');
+            loadCallHistory();
+        }
+
         // 架電履歴モーダルを閉じる
         function closeCallHistoryModal() {
             document.getElementById('callHistoryModal').classList.add('hidden');
             document.getElementById('newCallNote').value = '';
-            document.getElementById('nextCallDate').value = '';
         }
 
         // 音声入力機能
@@ -8951,22 +8916,9 @@ window.addEventListener('beforeunload', function(e) {
             }
 
             const timestamp = new Date().toLocaleString('ja-JP');
-            const nextCallDate = document.getElementById('nextCallDate').value;
-            const nextCallHour = document.getElementById('nextCallHour')?.value || '';
-            const nextCallMinute = document.getElementById('nextCallMinute')?.value || '';
 
-            // 時間を結合（両方入力されている場合）
-            const nextCallTime = (nextCallHour && nextCallMinute) ? `${nextCallHour}:${nextCallMinute}` : '';
-
-            // 日付と時間を結合（両方入力されている場合）
-            let nextCallDateTime = '';
-            if (nextCallDate) {
-                if (nextCallTime) {
-                    nextCallDateTime = `${nextCallDate} ${nextCallTime}`;
-                } else {
-                    nextCallDateTime = nextCallDate;
-                }
-            }
+            // V2057: 次回架電日時フィールドは削除されたので空
+            const nextCallDateTime = '';
 
             casesData[currentCaseId].callHistory.unshift({
                 timestamp: timestamp,
@@ -8974,18 +8926,8 @@ window.addEventListener('beforeunload', function(e) {
                 nextCallDate: nextCallDateTime
             });
 
-            // 次回架電日時を保存
-            if (nextCallDateTime) {
-                casesData[currentCaseId].nextCallDate = nextCallDateTime;
-            }
-
             // UIリセット
             document.getElementById('newCallNote').value = '';
-            document.getElementById('nextCallDate').value = '';
-            const hourEl = document.getElementById('nextCallHour');
-            const minuteEl = document.getElementById('nextCallMinute');
-            if (hourEl) hourEl.value = '';
-            if (minuteEl) minuteEl.value = '';
 
             // 履歴を再表示
             loadCallHistory();
@@ -8995,7 +8937,7 @@ window.addEventListener('beforeunload', function(e) {
                 initializeListView();
             }
 
-            // 即座にGASへ保存（BK列: callHistory配列、BL列: 次回架電日時）
+            // 即座にGASへ保存（BK列: callHistory配列）
             try {
                 // callHistory配列をフォーマット（timestampをdateに変換）
                 const callHistoryFormatted = casesData[currentCaseId].callHistory.map(item => {
@@ -9009,11 +8951,6 @@ window.addEventListener('beforeunload', function(e) {
                 const updateData = {
                     callHistory: JSON.stringify(callHistoryFormatted) // BK列: 架電履歴（JSON文字列）
                 };
-
-                // 次回架電日時が入力されている場合はBL列も更新
-                if (nextCallDateTime) {
-                    updateData.nextCallDate = nextCallDateTime; // BL列: 次回架電日時
-                }
 
                 console.log('[CallHistory] スプレッドシートへ保存中:', {
                     caseId: currentCaseId,
@@ -9031,8 +8968,17 @@ window.addEventListener('beforeunload', function(e) {
                         caseId: currentCaseId,
                         historyCount: callHistoryFormatted.length
                     });
-                    // V1963: 保存成功後にモーダルを閉じる
+                    // V2057: 保存成功後にモーダルを閉じる
                     closeCallHistoryModal();
+
+                    // V2057: 接続フローの場合はステータス変更→次回架電日モーダル
+                    if (isConnectedFlow) {
+                        isConnectedFlow = false;
+                        // ステータス変更モーダルを表示
+                        openListStatusModal(currentCaseId);
+                        // ステータス選択後に次回架電日モーダルを表示するフラグ
+                        showNextCallAfterStatus = true;
+                    }
                 } else {
                     console.error('[CallHistory] スプレッドシートへの保存失敗:', result.error);
                     alert('履歴の保存に失敗しました: ' + (result.error || '不明なエラー'));
