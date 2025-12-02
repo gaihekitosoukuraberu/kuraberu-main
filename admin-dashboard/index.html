@@ -11642,6 +11642,8 @@ window.addEventListener('beforeunload', function(e) {
                 homePostalCode: caseData['郵便番号（自宅）'] || rawData.homeAddress?.postalCode || '',
                 homePrefecture: caseData['都道府県（自宅）'] || rawData.homeAddress?.prefecture || '',
                 homeStreet: caseData['住所詳細（自宅）'] || rawData.homeAddress?.street || '',
+                // V2047: 特殊対応項目を追加
+                specialItems: caseData.specialItems || rawData.specialItems || [],
                 // 転送先
                 selectedFranchises: selectedFranchises
             };
@@ -11692,7 +11694,7 @@ window.addEventListener('beforeunload', function(e) {
             const mapLink = d.mapLink || (d.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}` : '');
 
             let msg = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-外壁塗装くらべる 案件紹介のご連絡
+🆕 新着案件のご案内
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ${f.name} 御中
@@ -11756,6 +11758,15 @@ ${f.name} 御中
             if (d.roofMaterial) msg += `\n屋根材: ${d.roofMaterial}`;
 
             if (mapLink) msg += `\n\nGoogleマップ: ${mapLink}`;
+
+            // V2047: 特殊対応項目（選択されている場合のみ表示）
+            if (d.specialItems && d.specialItems.length > 0) {
+                msg += `\n
+-------------------------------------------
+【特殊対応】
+-------------------------------------------
+${d.specialItems.join('、')}`;
+            }
 
             // V2029: 見積もり送付先（別住所の場合は住所詳細・物件種別も表示）
             if (d.estimateDeliveryAddress && d.estimateDeliveryAddress !== '物件住所') {

@@ -448,10 +448,12 @@ const CVListManager = {
       if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
         const parsed = JSON.parse(franchiseHistoryStr);
         const array = Array.isArray(parsed) ? parsed : [parsed];
+        // V2047: typesフィールドも保持（電話/メモカウント用）
         return array.map(item => ({
           date: item.date || '',
           companyName: item.companyName || '',
-          note: item.note || ''
+          note: item.note || '',
+          types: item.types || []  // V2046で追加されたtype情報を保持
         }));
       }
 
