@@ -2335,7 +2335,8 @@ const AdminSystem = {
         console.log('[sendOrderTransfer] メール送信チェック:', { franchiseName, toEmail: toEmail || 'なし', cvDataExists: !!cvData });
         if (toEmail && cvData) {
           try {
-            const transferMessage = this.generateTransferMessage(cvData, franchiseName, fee, deliveryDate, cvId);
+            const franchiseId = franchise.franchiseId || '';
+            const transferMessage = this.generateTransferMessage(cvData, franchiseName, franchiseId, fee, deliveryDate, cvId);
             GmailApp.sendEmail(toEmail, `【外壁塗装くらべる】案件紹介のご連絡 (${cvId})`, transferMessage, {
               name: '外壁塗装くらべる運営事務局'
             });
@@ -2759,7 +2760,7 @@ const AdminSystem = {
   /**
    * V2002: 転送文を生成（全項目対応・空項目は除外）
    */
-  generateTransferMessage: function(cv, franchiseName, fee, deliveryDate, cvId) {
+  generateTransferMessage: function(cv, franchiseName, franchiseId, fee, deliveryDate, cvId) {
     const formatFee = (n) => '¥' + Number(n).toLocaleString('ja-JP');
     // V2028: デバッグログ - 住所関連フィールドの確認
     console.log('[generateTransferMessage] V2028 住所デバッグ:', {
@@ -2890,6 +2891,7 @@ ${cv['案件メモ']}`;
 【管理画面】
 -------------------------------------------
 https://gaihekikuraberu.com/franchise-dashboard/
+ログインID: ${franchiseId}
 
 -------------------------------------------
 【重要事項】
