@@ -647,42 +647,53 @@
                     </div>
                 </div>
 
-                <!-- フィルター・統計バー -->
-                <div class="bg-white rounded-lg p-4 mb-4 shadow">
-                    <div class="flex flex-wrap items-center gap-3">
-                        <!-- ステータス別統計 -->
-                        <button onclick="filterCases('all')" class="filter-stat-btn active flex items-center space-x-2 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition" data-filter="all">
-                            <span class="text-lg font-bold" id="stat-total">0</span>
-                            <span class="text-xs">全件</span>
-                        </button>
-                        <button onclick="filterCases('pending')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition" data-filter="pending">
-                            <span class="text-lg font-bold" id="stat-pending">0</span>
-                            <span class="text-xs">対応待ち</span>
-                        </button>
-                        <button onclick="filterCases('visited')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition" data-filter="visited">
-                            <span class="text-lg font-bold" id="stat-visited">0</span>
-                            <span class="text-xs">訪問済み</span>
-                        </button>
-                        <button onclick="filterCases('quoted')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition" data-filter="quoted">
-                            <span class="text-lg font-bold" id="stat-quoted">0</span>
-                            <span class="text-xs">見積提出</span>
-                        </button>
-                        <button onclick="filterCases('contracted')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition" data-filter="contracted">
-                            <span class="text-lg font-bold" id="stat-contracted">0</span>
-                            <span class="text-xs">成約</span>
-                        </button>
-                        <button onclick="filterCases('cancelled')" class="filter-stat-btn flex items-center space-x-2 px-3 py-2 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 transition" data-filter="cancelled">
-                            <span class="text-lg font-bold" id="stat-cancelled">0</span>
-                            <span class="text-xs">キャンセル</span>
-                        </button>
+                <!-- フィルター・統計バー（admin-dashboard風） -->
+                <div class="bg-gradient-to-r from-gray-50 to-white rounded-xl p-4 mb-4 border border-gray-200 shadow-sm">
+                    <div class="flex flex-col gap-3 w-full">
+                        <!-- 検索ボックス -->
+                        <div class="relative">
+                            <input type="text" id="caseSearchInput" placeholder="SEARCH" oninput="searchCases()" autocomplete="off" class="w-full pl-10 pr-10 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all">
+                            <div class="absolute left-3 top-3">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <button onclick="document.getElementById('caseSearchInput').value=''; searchCases();" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
 
-                        <div class="flex-1"></div>
-
-                        <!-- 検索・ソート -->
-                        <input type="text" id="caseSearchInput" placeholder="顧客名・住所で検索..." class="px-3 py-2 border rounded-lg text-sm w-48" onkeyup="searchCases()">
-                        <button onclick="loadMerchantCases()" class="px-3 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition" title="データ再読み込み">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                        </button>
+                        <!-- フィルターボタン群（2行×3列・パステル系） -->
+                        <div class="grid grid-cols-3 gap-1 sm:gap-1.5 w-full">
+                            <!-- 上段: 全件・対応待ち・訪問済み -->
+                            <button id="filterBtnAll" onclick="filterCases('all')" class="filter-stat-btn flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-cyan-100 text-cyan-700 border border-cyan-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-cyan-200 transition-all cursor-pointer opacity-100 ring-2 ring-cyan-400" data-filter="all">
+                                <span class="text-xs sm:text-sm font-medium">全件</span>
+                                <span class="text-xs sm:text-sm font-bold" id="stat-total">0</span>
+                            </button>
+                            <button id="filterBtnPending" onclick="filterCases('pending')" class="filter-stat-btn flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-red-100 text-red-700 border border-red-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-red-200 transition-all cursor-pointer opacity-70" data-filter="pending">
+                                <span class="text-xs sm:text-sm font-medium">対応待ち</span>
+                                <span class="text-xs sm:text-sm font-bold" id="stat-pending">0</span>
+                            </button>
+                            <button id="filterBtnVisited" onclick="filterCases('visited')" class="filter-stat-btn flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-blue-100 text-blue-700 border border-blue-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-blue-200 transition-all cursor-pointer opacity-70" data-filter="visited">
+                                <span class="text-xs sm:text-sm font-medium">訪問済み</span>
+                                <span class="text-xs sm:text-sm font-bold" id="stat-visited">0</span>
+                            </button>
+                            <!-- 下段: 見積提出・成約・キャンセル -->
+                            <button id="filterBtnQuoted" onclick="filterCases('quoted')" class="filter-stat-btn flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-amber-100 text-amber-700 border border-amber-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-amber-200 transition-all cursor-pointer opacity-70" data-filter="quoted">
+                                <span class="text-xs sm:text-sm font-medium">見積提出</span>
+                                <span class="text-xs sm:text-sm font-bold" id="stat-quoted">0</span>
+                            </button>
+                            <button id="filterBtnContracted" onclick="filterCases('contracted')" class="filter-stat-btn flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-green-100 text-green-700 border border-green-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-green-200 transition-all cursor-pointer opacity-70" data-filter="contracted">
+                                <span class="text-xs sm:text-sm font-medium">成約</span>
+                                <span class="text-xs sm:text-sm font-bold" id="stat-contracted">0</span>
+                            </button>
+                            <button id="filterBtnCancelled" onclick="filterCases('cancelled')" class="filter-stat-btn flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-gray-100 text-gray-600 border border-gray-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-gray-200 transition-all cursor-pointer opacity-70" data-filter="cancelled">
+                                <span class="text-xs sm:text-sm font-medium">キャンセル</span>
+                                <span class="text-xs sm:text-sm font-bold" id="stat-cancelled">0</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -764,6 +775,107 @@
                         </div>
                         <div class="p-4" id="caseDetailContent">
                             <!-- 動的に生成 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 通話結果モーダル（接続/不在選択） -->
+                <div id="connectionModal" class="fixed inset-0 z-50 hidden">
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeConnectionModal()"></div>
+                    <div class="fixed inset-0 flex items-center justify-center p-4">
+                        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden max-h-[90vh] overflow-y-auto">
+                            <div class="px-5 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
+                                <h3 class="text-lg font-bold text-gray-900 text-center">通話結果</h3>
+                            </div>
+                            <div class="p-5 space-y-3">
+                                <!-- 接続/不在選択 -->
+                                <div id="connectionBtnsContainer" class="flex gap-3">
+                                    <button id="connectedBtn" onclick="selectConnectionStatus('connected')" class="flex-1 py-3 text-base font-bold bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                                        <span class="text-xl">📞</span>
+                                        接続
+                                    </button>
+                                    <button id="absentBtn" onclick="selectConnectionStatus('absent')" class="flex-1 py-3 text-base font-bold bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                                        <span class="text-xl">📵</span>
+                                        不在
+                                    </button>
+                                </div>
+
+                                <!-- 次回架電クイック設定 -->
+                                <div id="nextCallQuickSettings" class="hidden p-4 bg-gray-50 rounded-xl">
+                                    <h4 class="text-sm font-semibold text-gray-700 mb-3">次回架電を設定</h4>
+                                    <div class="flex gap-2 mb-3">
+                                        <!-- 日付ボタン -->
+                                        <div class="grid grid-cols-2 gap-1.5 w-24 flex-shrink-0">
+                                            <button onclick="setQuickCallDay('today')" data-day="today" class="quick-day-btn px-1.5 py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">当日</button>
+                                            <button onclick="setQuickCallDay('tomorrow')" data-day="tomorrow" class="quick-day-btn px-1.5 py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">明日</button>
+                                            <button onclick="setQuickCallDay('saturday')" data-day="saturday" class="quick-day-btn px-1.5 py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">土</button>
+                                            <button onclick="setQuickCallDay('sunday')" data-day="sunday" class="quick-day-btn px-1.5 py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">日</button>
+                                        </div>
+                                        <!-- 時間ボタン -->
+                                        <div class="flex-1 grid grid-cols-4 gap-1.5">
+                                            <button onclick="setQuickCallTime(9)" data-hour="9" class="quick-time-btn px-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">9時</button>
+                                            <button onclick="setQuickCallTime(12)" data-hour="12" class="quick-time-btn px-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">12時</button>
+                                            <button onclick="setQuickCallTime(17)" data-hour="17" class="quick-time-btn px-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">17時</button>
+                                            <button onclick="setQuickCallTime(19)" data-hour="19" class="quick-time-btn px-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">19時</button>
+                                        </div>
+                                    </div>
+                                    <!-- 分数プルダウン -->
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <span class="text-xs text-gray-500 flex-shrink-0">分：</span>
+                                        <select id="quickCallMinute" onchange="updateSelectedNextCallDisplay()" class="flex-1 px-2 py-1.5 border-2 border-gray-300 rounded-lg text-sm focus:border-blue-500 transition-all">
+                                            <option value="0">00分</option>
+                                            <option value="15">15分</option>
+                                            <option value="30">30分</option>
+                                            <option value="45">45分</option>
+                                        </select>
+                                    </div>
+                                    <div id="selectedNextCall" class="text-center text-sm text-blue-600 font-medium mb-3 hidden"></div>
+                                    <div class="flex gap-2">
+                                        <button onclick="skipNextCallSetting()" class="flex-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 text-gray-600 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
+                                            スキップ
+                                        </button>
+                                        <button onclick="confirmConnectionResult()" class="flex-1 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all text-sm">
+                                            確定
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- メモ入力セクション（接続時のみ表示） -->
+                                <div id="memoSection" class="hidden">
+                                    <div class="p-4 bg-gray-50 rounded-xl">
+                                        <h4 class="text-sm font-semibold text-gray-700 mb-3">通話メモ</h4>
+                                        <textarea id="connectionMemo" rows="3" placeholder="通話内容をメモ..." class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:border-blue-500 transition-all resize-none"></textarea>
+                                        <div class="flex gap-2 mt-3">
+                                            <button onclick="backToConnectionSelect()" class="flex-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 text-gray-600 rounded-lg hover:border-gray-500 transition-all">
+                                                戻る
+                                            </button>
+                                            <button onclick="confirmMemoAndShowStatus()" class="flex-1 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all text-sm">
+                                                次へ
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- ステータス選択セクション -->
+                                <div id="statusSection" class="hidden">
+                                    <div class="p-4 bg-gray-50 rounded-xl">
+                                        <h4 class="text-sm font-semibold text-gray-700 mb-3">ステータス変更</h4>
+                                        <div class="grid grid-cols-3 gap-2 mb-3">
+                                            <button onclick="selectCaseStatus('対応待ち')" class="case-status-btn py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all">対応待ち</button>
+                                            <button onclick="selectCaseStatus('訪問済み')" class="case-status-btn py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">訪問済み</button>
+                                            <button onclick="selectCaseStatus('見積提出済み')" class="case-status-btn py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all">見積提出</button>
+                                            <button onclick="selectCaseStatus('成約')" class="case-status-btn py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all">成約</button>
+                                            <button onclick="selectCaseStatus('キャンセル')" class="case-status-btn py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-100 transition-all">キャンセル</button>
+                                            <button onclick="skipStatusChange()" class="py-2 text-xs font-medium bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 transition-all">変更なし</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 戻るボタン（モーダル下部） -->
+                                <button onclick="closeConnectionModal()" id="closeConnectionBtn" class="w-full py-2 text-sm text-gray-500 hover:text-gray-700 transition-all">
+                                    閉じる
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -15321,11 +15433,28 @@
         function filterCases(filter) {
             currentFilter = filter;
 
-            // ボタンのアクティブ状態を更新
-            document.querySelectorAll('.filter-stat-btn').forEach(btn => {
-                btn.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-500');
-                if (btn.dataset.filter === filter) {
-                    btn.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500');
+            // ボタンのアクティブ状態を更新（admin-dashboard風パステルカラー）
+            const buttonStyles = {
+                'all': { active: 'opacity-100 ring-2 ring-cyan-400', inactive: 'opacity-70', ring: 'ring-cyan-400' },
+                'pending': { active: 'opacity-100 ring-2 ring-red-400', inactive: 'opacity-70', ring: 'ring-red-400' },
+                'visited': { active: 'opacity-100 ring-2 ring-blue-400', inactive: 'opacity-70', ring: 'ring-blue-400' },
+                'quoted': { active: 'opacity-100 ring-2 ring-amber-400', inactive: 'opacity-70', ring: 'ring-amber-400' },
+                'contracted': { active: 'opacity-100 ring-2 ring-green-400', inactive: 'opacity-70', ring: 'ring-green-400' },
+                'cancelled': { active: 'opacity-100 ring-2 ring-gray-400', inactive: 'opacity-70', ring: 'ring-gray-400' }
+            };
+
+            document.querySelectorAll('[id^="filterBtn"]').forEach(btn => {
+                const btnFilter = btn.dataset.filter;
+                const style = buttonStyles[btnFilter];
+                if (!style) return;
+
+                // 全てのringクラスを削除
+                btn.classList.remove('opacity-70', 'opacity-100', 'ring-2', 'ring-cyan-400', 'ring-red-400', 'ring-blue-400', 'ring-amber-400', 'ring-green-400', 'ring-gray-400');
+
+                if (btnFilter === filter) {
+                    btn.classList.add('opacity-100', 'ring-2', style.ring);
+                } else {
+                    btn.classList.add('opacity-70');
                 }
             });
 
@@ -15398,7 +15527,7 @@
             }
         }
 
-        // 案件カードHTML生成（V2022 全情報対応）
+        // 案件カードHTML生成（V2022 全情報対応 + 架電回数表示）
         function createCaseCard(c) {
             const status = c.detailStatus || '対応待ち';
             const style = statusStyles[status] || statusStyles[''];
@@ -15407,10 +15536,17 @@
             // 物件情報の簡易表示
             const propertyInfo = [c.propertyType, c.floors ? `${c.floors}階` : ''].filter(v => v).join(' / ');
 
+            // 架電回数の取得（データから）
+            const callCount = parseInt(c.callCount || c.phoneCount || 0);
+            const callCountBadge = callCount > 0 ? `<span class="ml-1 px-1.5 py-0.5 text-xs bg-gray-200 text-gray-600 rounded">${callCount}回</span>` : '';
+
             return `
                 <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow" data-cv-id="${c.cvId}">
                     <div class="flex justify-between items-start mb-3">
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${style.bg} ${style.text}">${status}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${style.bg} ${style.text}">${status}</span>
+                            ${callCountBadge}
+                        </div>
                         <div class="flex gap-1">
                             <button onclick="openMemoModal('${c.cvId}')" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors relative" title="メモ">
                                 <span class="text-lg">📝</span>
@@ -15429,7 +15565,7 @@
                     </div>
                     ${hasMemo ? `<div class="text-xs text-gray-500 bg-gray-50 p-2 rounded mb-3 line-clamp-2">${escapeHtml(c.merchantMemo)}</div>` : ''}
                     <div class="flex gap-1">
-                        <a href="tel:${c.customerTel}" class="flex-1 px-2 py-2 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors text-center">
+                        <a href="tel:${c.customerTel}" onclick="startPhoneCall('${c.cvId}')" class="flex-1 px-2 py-2 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors text-center">
                             📞 電話
                         </a>
                         <button onclick="openDetailModal('${c.cvId}')" class="flex-1 px-2 py-2 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
@@ -15527,6 +15663,274 @@
                 console.error('[案件管理] saveCaseMemo error:', error);
                 showNotification('エラー', '通信エラーが発生しました', 'error');
             }
+        }
+
+        // ===== 通話結果モーダル関連 =====
+        let currentCallCase = null;
+        let connectionStatus = null;
+        let quickCallTime = null;
+        let quickCallDay = null;
+        let pendingMemo = '';
+        let pendingStatus = null;
+
+        // 電話発信時の処理（発信後にモーダル表示）
+        function startPhoneCall(cvId) {
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            currentCallCase = c;
+            // 電話発信後、少し遅延してモーダルを表示
+            setTimeout(() => {
+                showConnectionModal();
+            }, 500);
+        }
+
+        // 通話結果モーダルを表示
+        function showConnectionModal() {
+            const modal = document.getElementById('connectionModal');
+            if (!modal) return;
+
+            // 全状態をリセット
+            connectionStatus = null;
+            quickCallTime = null;
+            quickCallDay = null;
+            pendingMemo = '';
+            pendingStatus = null;
+
+            // 接続/不在ボタンを表示
+            const connectionBtns = document.getElementById('connectionBtnsContainer');
+            if (connectionBtns) connectionBtns.classList.remove('hidden');
+
+            // 他のセクションを隠す
+            document.getElementById('nextCallQuickSettings')?.classList.add('hidden');
+            document.getElementById('memoSection')?.classList.add('hidden');
+            document.getElementById('statusSection')?.classList.add('hidden');
+            document.getElementById('selectedNextCall')?.classList.add('hidden');
+
+            modal.classList.remove('hidden');
+        }
+
+        // 通話結果モーダルを閉じる
+        function closeConnectionModal() {
+            document.getElementById('connectionModal')?.classList.add('hidden');
+            currentCallCase = null;
+        }
+
+        // 接続/不在を選択
+        function selectConnectionStatus(status) {
+            connectionStatus = status;
+
+            // 接続/不在ボタンを非表示
+            document.getElementById('connectionBtnsContainer')?.classList.add('hidden');
+
+            if (status === 'connected') {
+                // 接続時：メモ入力セクションを表示
+                document.getElementById('memoSection')?.classList.remove('hidden');
+            } else {
+                // 不在時：次回架電設定を表示
+                document.getElementById('nextCallQuickSettings')?.classList.remove('hidden');
+            }
+        }
+
+        // 接続/不在選択に戻る
+        function backToConnectionSelect() {
+            document.getElementById('memoSection')?.classList.add('hidden');
+            document.getElementById('statusSection')?.classList.add('hidden');
+            document.getElementById('connectionBtnsContainer')?.classList.remove('hidden');
+        }
+
+        // メモ確定→ステータス選択へ
+        function confirmMemoAndShowStatus() {
+            pendingMemo = document.getElementById('connectionMemo')?.value || '';
+            document.getElementById('memoSection')?.classList.add('hidden');
+            document.getElementById('statusSection')?.classList.remove('hidden');
+        }
+
+        // ステータス選択
+        function selectCaseStatus(status) {
+            pendingStatus = status;
+            // 次回架電設定へ
+            document.getElementById('statusSection')?.classList.add('hidden');
+            document.getElementById('nextCallQuickSettings')?.classList.remove('hidden');
+        }
+
+        // ステータス変更をスキップ
+        function skipStatusChange() {
+            pendingStatus = null;
+            document.getElementById('statusSection')?.classList.add('hidden');
+            document.getElementById('nextCallQuickSettings')?.classList.remove('hidden');
+        }
+
+        // クイック日付選択
+        function setQuickCallDay(day) {
+            quickCallDay = day;
+
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.quick-day-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50');
+                btn.classList.add('border-gray-300');
+                if (btn.dataset.day === day) {
+                    btn.classList.add('border-blue-500', 'bg-blue-50');
+                    btn.classList.remove('border-gray-300');
+                }
+            });
+
+            updateSelectedNextCallDisplay();
+        }
+
+        // クイック時間選択
+        function setQuickCallTime(hour) {
+            quickCallTime = hour;
+
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.quick-time-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50');
+                btn.classList.add('border-gray-300');
+                if (parseInt(btn.dataset.hour) === hour) {
+                    btn.classList.add('border-blue-500', 'bg-blue-50');
+                    btn.classList.remove('border-gray-300');
+                }
+            });
+
+            updateSelectedNextCallDisplay();
+        }
+
+        // 選択された次回架電日時を表示
+        function updateSelectedNextCallDisplay() {
+            const el = document.getElementById('selectedNextCall');
+            if (!el) return;
+
+            if (!quickCallDay || !quickCallTime) {
+                el.classList.add('hidden');
+                return;
+            }
+
+            const minute = document.getElementById('quickCallMinute')?.value || '0';
+            const dateStr = getNextCallDateString(quickCallDay);
+            el.textContent = `次回: ${dateStr} ${quickCallTime}:${minute.padStart(2, '0')}`;
+            el.classList.remove('hidden');
+        }
+
+        // 日付文字列を取得
+        function getNextCallDateString(day) {
+            const now = new Date();
+            let targetDate = new Date();
+
+            if (day === 'today') {
+                // 今日
+            } else if (day === 'tomorrow') {
+                targetDate.setDate(now.getDate() + 1);
+            } else if (day === 'saturday') {
+                const dayOfWeek = now.getDay();
+                const daysUntilSat = (6 - dayOfWeek + 7) % 7 || 7;
+                targetDate.setDate(now.getDate() + daysUntilSat);
+            } else if (day === 'sunday') {
+                const dayOfWeek = now.getDay();
+                const daysUntilSun = (7 - dayOfWeek) % 7 || 7;
+                targetDate.setDate(now.getDate() + daysUntilSun);
+            }
+
+            const month = targetDate.getMonth() + 1;
+            const date = targetDate.getDate();
+            const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+            const weekday = weekdays[targetDate.getDay()];
+
+            return `${month}/${date}(${weekday})`;
+        }
+
+        // 次回架電設定をスキップ
+        function skipNextCallSetting() {
+            confirmConnectionResult(true);
+        }
+
+        // 通話結果を確定して保存
+        async function confirmConnectionResult(skipNextCall = false) {
+            if (!currentCallCase) return;
+
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+
+            // ログインユーザー情報を取得（親アカウントの名前）
+            const merchantData = window.merchantData || {};
+            const operatorName = merchantData.salesPerson || merchantData.companyName || merchantId;
+
+            // 次回架電日時を計算
+            let nextCallDateTime = null;
+            if (!skipNextCall && quickCallDay && quickCallTime) {
+                nextCallDateTime = calculateNextCallDateTime();
+            }
+
+            // UI即時更新＆モーダルクローズ
+            closeConnectionModal();
+            showNotification('保存中...', '通話結果を記録しています');
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        system: 'merchant',
+                        subsystem: 'contract',
+                        action: 'saveCallResult',
+                        merchantId: merchantId,
+                        cvId: currentCallCase.cvId,
+                        connectionStatus: connectionStatus, // 'connected' or 'absent'
+                        memo: pendingMemo,
+                        newStatus: pendingStatus,
+                        nextCallDateTime: nextCallDateTime,
+                        operatorName: operatorName  // 担当者名を送信
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    // ローカルデータを更新
+                    if (connectionStatus === 'absent') {
+                        currentCallCase.callCount = (parseInt(currentCallCase.callCount || 0) + 1);
+                    }
+                    if (pendingMemo) {
+                        currentCallCase.merchantMemo = pendingMemo;
+                    }
+                    if (pendingStatus) {
+                        currentCallCase.detailStatus = pendingStatus;
+                        recalculateStats();
+                        updateCasesStats();
+                    }
+                    renderCases();
+                    showNotification('保存完了', '通話結果を記録しました');
+                } else {
+                    showNotification('エラー', result.error || '保存に失敗しました', 'error');
+                }
+            } catch (error) {
+                console.error('[案件管理] confirmConnectionResult error:', error);
+                showNotification('エラー', '通信エラーが発生しました', 'error');
+            }
+        }
+
+        // 次回架電日時を計算
+        function calculateNextCallDateTime() {
+            if (!quickCallDay || !quickCallTime) return null;
+
+            const now = new Date();
+            let targetDate = new Date();
+
+            if (quickCallDay === 'today') {
+                // 今日
+            } else if (quickCallDay === 'tomorrow') {
+                targetDate.setDate(now.getDate() + 1);
+            } else if (quickCallDay === 'saturday') {
+                const dayOfWeek = now.getDay();
+                const daysUntilSat = (6 - dayOfWeek + 7) % 7 || 7;
+                targetDate.setDate(now.getDate() + daysUntilSat);
+            } else if (quickCallDay === 'sunday') {
+                const dayOfWeek = now.getDay();
+                const daysUntilSun = (7 - dayOfWeek) % 7 || 7;
+                targetDate.setDate(now.getDate() + daysUntilSun);
+            }
+
+            const minute = parseInt(document.getElementById('quickCallMinute')?.value || '0');
+            targetDate.setHours(quickCallTime, minute, 0, 0);
+
+            return targetDate.toISOString();
         }
 
         // ステータス変更モーダル
