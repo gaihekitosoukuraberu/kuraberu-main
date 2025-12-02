@@ -10821,28 +10821,34 @@ window.addEventListener('beforeunload', function(e) {
         // クイックアクション（リスト用）
         async function quickActionList(action, caseId) {
             if (action === '不在') {
-                casesData[caseId].status = '不在';
+                // V2056: 新規の場合のみステータスを不在に変更
+                const currentStatus = casesData[caseId].status;
+                if (currentStatus === '新規') {
+                    casesData[caseId].status = '不在';
+                }
 
                 // 架電履歴に追加（appendCallHistoryは既にGASに保存する）
                 await appendCallHistory(caseId, '不在');
 
-                // ステータスもGASに保存
-                try {
-                    console.log(`[Auto-Save] 案件 ${caseId} のステータスを ${action} に変更中...`);
-                    const result = await window.apiClient.postRequest('updateCVData', {
-                        cvId: caseId,
-                        data: {
-                            status: action
-                        }
-                    });
+                // V2056: 新規の場合のみステータスもGASに保存
+                if (currentStatus === '新規') {
+                    try {
+                        console.log(`[Auto-Save] 案件 ${caseId} のステータスを ${action} に変更中...`);
+                        const result = await window.apiClient.postRequest('updateCVData', {
+                            cvId: caseId,
+                            data: {
+                                status: action
+                            }
+                        });
 
-                    if (result.success) {
-                        console.log(`[Auto-Save] 案件 ${caseId} のステータス保存完了: ${action}`);
-                    } else {
-                        console.error(`[Auto-Save] ステータス保存失敗:`, result.error);
+                        if (result.success) {
+                            console.log(`[Auto-Save] 案件 ${caseId} のステータス保存完了: ${action}`);
+                        } else {
+                            console.error(`[Auto-Save] ステータス保存失敗:`, result.error);
+                        }
+                    } catch (error) {
+                        console.error(`[Auto-Save] ステータス保存エラー:`, error);
                     }
-                } catch (error) {
-                    console.error(`[Auto-Save] ステータス保存エラー:`, error);
                 }
             }
             else if (action === '対応中') {
@@ -10920,17 +10926,20 @@ window.addEventListener('beforeunload', function(e) {
         function quickActionCRM(status) {
             if (!currentCaseId) return;
 
-            casesData[currentCaseId].status = status;
-
-            // 不在の場合は架電履歴に追加
+            // V2056: 不在の場合は新規の時のみステータス変更
             if (status === '不在') {
+                const currentStatus = casesData[currentCaseId].status;
+                if (currentStatus === '新規') {
+                    casesData[currentCaseId].status = status;
+                }
+                // 架電履歴に追加
                 appendCallHistory(currentCaseId, '不在');
-            }
-
-            // 不在・再架電の場合は次の案件へ
-            if (status === '不在' || status === '再架電') {
+                nextCase();
+            } else if (status === '再架電') {
+                casesData[currentCaseId].status = status;
                 nextCase();
             } else {
+                casesData[currentCaseId].status = status;
                 loadCRMContent(currentCaseId);
             }
         }
