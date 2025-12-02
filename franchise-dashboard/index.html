@@ -16043,7 +16043,7 @@
                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm font-medium">
                         <button onclick="openMemoModal('${c.cvId}')" class="text-blue-600 hover:text-blue-900 mr-2" title="メモ">📝</button>
                         <button onclick="openStatusModal('${c.cvId}')" class="text-orange-600 hover:text-orange-900 mr-2" title="ステータス">📊</button>
-                        <button onclick="openDetailModal('${c.cvId}')" class="text-gray-600 hover:text-gray-900" title="詳細">👁</button>
+                        <button onclick="openDetailModal('${c.cvId}')" class="text-blue-600 hover:text-blue-900 text-xs" title="詳細">詳細</button>
                     </td>
                 </tr>
             `;
@@ -16586,31 +16586,10 @@
                         `<div class="text-sm">${escapeHtml(c.specialItems)}</div>`
                     ]) : ''}
 
-                    <!-- 案件メモ（運営） -->
-                    ${fullMemo ? section('案件メモ（運営）', [
-                        `<div class="text-sm bg-yellow-50 p-2 rounded whitespace-pre-wrap">${escapeHtml(fullMemo)}</div>`
+                    <!-- 案件メモ -->
+                    ${fullMemo ? section('案件メモ', [
+                        `<div class="text-sm p-2 rounded whitespace-pre-wrap">${escapeHtml(fullMemo)}</div>`
                     ]) : ''}
-
-                    <!-- 加盟店メモ -->
-                    <div class="border-t pt-3 mt-3">
-                        <h5 class="font-bold text-sm text-gray-700 mb-2">自社メモ</h5>
-                        <div class="bg-blue-50 p-3 rounded min-h-[50px] text-sm">
-                            ${c.merchantMemo ? escapeHtml(c.merchantMemo) : '<span class="text-gray-400">メモなし</span>'}
-                        </div>
-                    </div>
-
-                    <!-- アクションボタン -->
-                    <div class="flex gap-2 pt-3 border-t mt-3">
-                        <a href="tel:${c.customerTel}" class="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg text-center hover:bg-green-600 text-sm">
-                            電話
-                        </a>
-                        <button onclick="closeDetailModal(); openMemoModal('${c.cvId}')" class="flex-1 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm">
-                            メモ
-                        </button>
-                        <button onclick="closeDetailModal(); openStatusModal('${c.cvId}')" class="flex-1 px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm">
-                            ステータス
-                        </button>
-                    </div>
                 </div>
             `;
 
