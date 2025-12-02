@@ -16044,7 +16044,7 @@
                         <div class="text-right">
                             ${assignee && assignee !== '-'
                                 ? `<span class="text-sm text-gray-600">${escapeHtml(assignee)}</span>`
-                                : `<button onclick="event.stopPropagation(); openAssignModal('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors">振分</button>`
+                                : `<button onclick="event.stopPropagation(); openAssignModal('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 rounded hover:bg-purple-100 transition-colors">振分</button>`
                             }
                         </div>
                     </div>
@@ -16146,14 +16146,14 @@
                     <td class="px-3 py-3 text-sm">
                         ${assignee && assignee !== '-'
                             ? `<span class="text-gray-600">${escapeHtml(assignee)}</span>`
-                            : `<button onclick="openAssignModal('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors">振分</button>`
+                            : `<button onclick="openAssignModal('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 rounded hover:bg-purple-100 transition-colors">振分</button>`
                         }
                     </td>
                     <!-- 配信日 -->
                     <td class="px-3 py-3 hidden lg:table-cell text-sm text-gray-500">${shortDate}</td>
                     <!-- 詳細 -->
                     <td class="px-2 py-3 text-center">
-                        <button onclick="openDetailModal('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                        <button onclick="openDetailModal('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
                             詳細
                         </button>
                     </td>
