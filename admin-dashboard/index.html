@@ -2226,8 +2226,8 @@ window.addEventListener('beforeunload', function(e) {
                     <h3 class="text-lg font-bold text-gray-900 text-center">通話結果</h3>
                 </div>
                 <div class="p-5 space-y-3">
-                    <!-- 接続/不在選択 -->
-                    <div class="flex gap-3">
+                    <!-- V2076: 接続/不在選択（ID追加） -->
+                    <div id="connectionBtnsContainer" class="flex gap-3">
                         <button id="connectedBtn" onclick="selectConnectionStatus('connected')" class="flex-1 py-3 text-base font-bold bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
                             <span class="text-xl">📞</span>
                             接続
@@ -8110,39 +8110,63 @@ window.addEventListener('beforeunload', function(e) {
         }
 
         // V1959: 接続確認モーダル表示
+        // V2076: 必ず接続/不在ボタンを最初に表示（完全リセット）
         function showConnectionModal() {
             const modal = document.getElementById('connectionModal');
-            if (modal) {
-                // 全てリセット
-                connectionStatus = null;
-                quickCallTime = null;
-                quickCallDay = null;
-                useCustomTime = false;
+            if (!modal) return;
 
-                document.getElementById('nextCallQuickSettings').classList.add('hidden');
-                document.getElementById('selectedNextCall').classList.add('hidden');
-                document.getElementById('customTimeSection').classList.add('hidden');
-                document.getElementById('skipBtn').classList.add('hidden');
+            // 全状態をリセット
+            connectionStatus = null;
+            quickCallTime = null;
+            quickCallDay = null;
+            useCustomTime = false;
 
-                // ボタンのスタイルをリセット
-                const connectedBtn = document.getElementById('connectedBtn');
-                const absentBtn = document.getElementById('absentBtn');
-                const customBtn = document.getElementById('customTimeBtn');
+            // V2076: 必ず接続/不在ボタンを表示
+            const connectionBtns = document.getElementById('connectionBtnsContainer');
+            if (connectionBtns) connectionBtns.classList.remove('hidden');
 
+            // 次回架電設定を隠す
+            const nextCallSettings = document.getElementById('nextCallQuickSettings');
+            if (nextCallSettings) nextCallSettings.classList.add('hidden');
+
+            const selectedNextCall = document.getElementById('selectedNextCall');
+            if (selectedNextCall) selectedNextCall.classList.add('hidden');
+
+            const customTimeSection = document.getElementById('customTimeSection');
+            if (customTimeSection) customTimeSection.classList.add('hidden');
+
+            const skipBtn = document.getElementById('skipBtn');
+            if (skipBtn) skipBtn.classList.add('hidden');
+
+            // V2076: 戻るボタンを完全に隠す（存在する場合）
+            const backBtn = document.getElementById('absentBackBtn');
+            if (backBtn) backBtn.classList.add('hidden');
+
+            // ボタンのスタイルをリセット
+            const connectedBtn = document.getElementById('connectedBtn');
+            const absentBtn = document.getElementById('absentBtn');
+            const customBtn = document.getElementById('customTimeBtn');
+
+            if (connectedBtn) {
                 connectedBtn.classList.remove('ring-4', 'ring-green-200');
                 connectedBtn.classList.add('from-green-500', 'to-green-600');
+            }
+            if (absentBtn) {
                 absentBtn.classList.remove('ring-4', 'ring-gray-200', 'from-gray-500', 'to-gray-600');
                 absentBtn.classList.add('from-gray-400', 'to-gray-500');
+            }
+            if (customBtn) {
                 customBtn.classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-600');
                 customBtn.classList.add('border-gray-300', 'text-gray-600');
-
-                document.querySelectorAll('.quick-time-btn, .quick-day-btn').forEach(btn => {
-                    btn.classList.remove('border-blue-500', 'bg-blue-50');
-                    btn.classList.add('border-gray-300');
-                });
-
-                modal.classList.remove('hidden');
             }
+
+            document.querySelectorAll('.quick-time-btn, .quick-day-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50');
+                btn.classList.add('border-gray-300');
+            });
+
+            modal.classList.remove('hidden');
+            console.log('[V2076] 通話結果モーダル表示 - 接続/不在ボタン表示');
         }
 
         function hideConnectionModal() {
@@ -8261,21 +8285,25 @@ window.addEventListener('beforeunload', function(e) {
             return tomorrow.toLocaleString('ja-JP');
         }
 
-        // V2054: 不在3回目以降: 次回架電モーダル表示
+        // V2076: 不在13回目以降: 次回架電設定を表示（戻るボタン付き）
         function showAbsentNextCallModal() {
             // 接続/不在ボタンを隠す
-            document.querySelector('#connectionModal .flex.gap-3').classList.add('hidden');
+            const connectionBtns = document.getElementById('connectionBtnsContainer');
+            if (connectionBtns) connectionBtns.classList.add('hidden');
+
             // 次回架電設定を表示
             const nextCallSettings = document.getElementById('nextCallQuickSettings');
-            nextCallSettings.classList.remove('hidden');
+            if (nextCallSettings) nextCallSettings.classList.remove('hidden');
 
             // スキップボタンのテキストを変更して表示
             const skipBtn = document.getElementById('skipBtn');
-            skipBtn.textContent = '次回架電を設定しない';
-            skipBtn.classList.remove('hidden');
-            skipBtn.onclick = function() { skipAbsentNextCall(); };
+            if (skipBtn) {
+                skipBtn.textContent = '次回架電を設定しない';
+                skipBtn.classList.remove('hidden');
+                skipBtn.onclick = function() { skipAbsentNextCall(); };
+            }
 
-            // 戻るボタンを追加
+            // 戻るボタンを追加（13回目以降の不在で次回架電設定画面から戻る用）
             let backBtn = document.getElementById('absentBackBtn');
             if (!backBtn) {
                 backBtn = document.createElement('button');
@@ -8283,7 +8311,7 @@ window.addEventListener('beforeunload', function(e) {
                 backBtn.className = 'w-full py-2 text-sm text-gray-500 hover:text-gray-700 transition-all mt-2';
                 backBtn.textContent = '← 接続/不在選択に戻る';
                 backBtn.onclick = function() { resetConnectionModal(); };
-                nextCallSettings.parentNode.insertBefore(backBtn, nextCallSettings.nextSibling);
+                if (nextCallSettings) nextCallSettings.parentNode.insertBefore(backBtn, nextCallSettings.nextSibling);
             }
             backBtn.classList.remove('hidden');
 
@@ -8315,20 +8343,24 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
-        // V2054: モーダルをリセット
+        // V2076: モーダルをリセット（接続/不在選択に戻る）
         function resetConnectionModal() {
             // 接続/不在ボタンを再表示
-            document.querySelector('#connectionModal .flex.gap-3').classList.remove('hidden');
+            const connectionBtns = document.getElementById('connectionBtnsContainer');
+            if (connectionBtns) connectionBtns.classList.remove('hidden');
             // 次回架電設定を隠す
-            document.getElementById('nextCallQuickSettings').classList.add('hidden');
+            const nextCallSettings = document.getElementById('nextCallQuickSettings');
+            if (nextCallSettings) nextCallSettings.classList.add('hidden');
             // 戻るボタンを隠す
             const backBtn = document.getElementById('absentBackBtn');
             if (backBtn) backBtn.classList.add('hidden');
             // スキップボタンを元に戻す
             const skipBtn = document.getElementById('skipBtn');
-            skipBtn.textContent = '次回設定をスキップ →';
-            skipBtn.classList.add('hidden');
-            skipBtn.onclick = function() { skipNextCallSetting(); };
+            if (skipBtn) {
+                skipBtn.textContent = '次回設定をスキップ →';
+                skipBtn.classList.add('hidden');
+                skipBtn.onclick = function() { skipNextCallSetting(); };
+            }
             // 状態をリセット
             connectionStatus = null;
         }
@@ -9246,7 +9278,8 @@ window.addEventListener('beforeunload', function(e) {
         }
 
         // V2046: メモのみ保存
-        async function saveMemoOnly() {
+        // V2076: バックグラウンド保存に変更
+        function saveMemoOnly() {
             const memo = document.getElementById('memoOnlyNote').value.trim();
             if (!memo) {
                 alert('メモを入力してください');
@@ -9279,7 +9312,8 @@ window.addEventListener('beforeunload', function(e) {
 
             console.log('[V2046] メモ追加:', { companyName: savedCompanyName, memo });
 
-            await saveFranchiseHistoryToGAS();
+            // V2076: バックグラウンドで保存（awaitしない）
+            saveFranchiseHistoryToGAS();
 
             // BusinessSelectionHandlerも更新
             if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.currentCaseData) {
