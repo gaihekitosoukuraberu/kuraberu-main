@@ -6897,6 +6897,12 @@ window.addEventListener('beforeunload', function(e) {
 
             closeListStatusModal();
 
+            // V2061: 配信後ステータスに変更した場合、配信後フィルターに切り替え
+            if (POST_DELIVERY_STATUSES.includes(newStatus) && deliveryFilter === 'pre') {
+                setDeliveryFilter('post');
+                renderCurrentView();
+            }
+
             // V2057: 接続フローの場合は次回架電日モーダルを表示
             if (showNextCallAfterStatus) {
                 showNextCallAfterStatus = false;
