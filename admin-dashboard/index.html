@@ -5712,43 +5712,31 @@ window.addEventListener('beforeunload', function(e) {
             initializeListView();
         }
 
-        // V2062: 本日改（現在時刻以前の次回架電日を持つ案件を温度順・架電日古い順で表示）
+        // V2062: 本日改（今日以前の次回架電日を持つ案件を架電日古い順で表示）
         function filterByTodayKai() {
             if (currentView !== 'list') {
                 switchView('list');
             }
 
-            const now = new Date();
+            // 今日の日付の終わり（23:59:59）
+            const today = new Date();
+            today.setHours(23, 59, 59, 999);
 
-            // 現在時刻以前の次回架電日を持つ案件をフィルタリング
+            // 次回架電日が設定されていて今日以前の案件をフィルタリング
             const filteredCases = Object.entries(casesData)
                 .filter(([_, caseData]) => {
                     // 配信前ステータスのみ
                     if (!PRE_DELIVERY_STATUSES.includes(caseData.status)) return false;
 
-                    // 次回架電日が設定されていて現在時刻以前
+                    // 次回架電日が設定されていて今日以前
                     const nextCallDate = caseData.nextCallDate;
                     if (!nextCallDate) return false;
 
                     const callDateTime = new Date(nextCallDate);
-                    return callDateTime <= now;
+                    return callDateTime <= today;
                 })
                 .sort((a, b) => {
-                    // V2062: 温度順（見込み→再架電→不在→新規→その他）
-                    const statusPriority = {
-                        '見込み': 1,
-                        '再架電': 2,
-                        '不在': 3,
-                        '新規': 4
-                    };
-                    const priorityA = statusPriority[a[1].status] || 99;
-                    const priorityB = statusPriority[b[1].status] || 99;
-
-                    if (priorityA !== priorityB) {
-                        return priorityA - priorityB;
-                    }
-
-                    // 同じ温度なら架電日が古い順
+                    // V2062: 架電日が古い順（最優先）
                     const dateA = new Date(a[1].nextCallDate || 0);
                     const dateB = new Date(b[1].nextCallDate || 0);
                     return dateA - dateB;
@@ -6059,13 +6047,15 @@ window.addEventListener('beforeunload', function(e) {
             const allCountEl = document.getElementById('allCount');
             if (allCountEl) allCountEl.textContent = allCount;
 
-            // 本日改件数（現在時刻以前の次回架電日を持つ配信前案件）
+            // 本日改件数（今日以前の次回架電日を持つ配信前案件）
+            const today = new Date();
+            today.setHours(23, 59, 59, 999);
             const todayKaiCount = Object.values(casesData).filter(c => {
                 if (!PRE_DELIVERY_STATUSES.includes(c.status)) return false;
                 const nextCallDate = c.nextCallDate;
                 if (!nextCallDate) return false;
                 const callDateTime = new Date(nextCallDate);
-                return callDateTime <= now;
+                return callDateTime <= today;
             }).length;
             const todayKaiCountEl = document.getElementById('todayKaiCount');
             if (todayKaiCountEl) todayKaiCountEl.textContent = todayKaiCount;
