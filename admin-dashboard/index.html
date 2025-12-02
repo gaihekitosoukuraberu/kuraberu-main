@@ -5712,6 +5712,20 @@ window.addEventListener('beforeunload', function(e) {
             initializeListView();
         }
 
+        // V2062: 履歴から最新の次回架電日を取得
+        function getLatestNextCallDate(caseData) {
+            const history = caseData.callHistory || [];
+            // 履歴を新しい順に走査して、最初に見つかった有効な次回架電日を返す
+            for (const record of history) {
+                const nextCallDate = record.nextCallDate;
+                if (nextCallDate && nextCallDate.trim() !== '') {
+                    return nextCallDate;
+                }
+            }
+            // 履歴になければ案件レベルのnextCallDateを返す
+            return caseData.nextCallDate || '';
+        }
+
         // V2062: 本日改（今日以前の次回架電日を持つ案件を架電日古い順で表示）
         function filterByTodayKai() {
             if (currentView !== 'list') {
@@ -5726,34 +5740,36 @@ window.addEventListener('beforeunload', function(e) {
 
             // 次回架電日が設定されていて今日以前の案件をフィルタリング
             const filteredCases = Object.entries(casesData)
-                .filter(([caseId, caseData]) => {
+                .map(([caseId, caseData]) => {
+                    // 履歴から最新の次回架電日を取得
+                    const latestNextCallDate = getLatestNextCallDate(caseData);
+                    return [caseId, caseData, latestNextCallDate];
+                })
+                .filter(([caseId, caseData, latestNextCallDate]) => {
                     // 配信前ステータスのみ
                     if (!PRE_DELIVERY_STATUSES.includes(caseData.status)) return false;
 
-                    // 次回架電日が設定されていて今日以前
-                    const nextCallDate = caseData.nextCallDate;
-
                     // 空文字、null、undefinedをチェック
-                    if (!nextCallDate || nextCallDate.trim() === '') return false;
+                    if (!latestNextCallDate || latestNextCallDate.trim() === '') return false;
 
-                    const callDateTime = new Date(nextCallDate);
+                    const callDateTime = new Date(latestNextCallDate);
 
                     // Invalid Dateチェック
                     if (isNaN(callDateTime.getTime())) {
-                        console.log('[filterByTodayKai] 無効な日付:', caseId, nextCallDate);
+                        console.log('[filterByTodayKai] 無効な日付:', caseId, latestNextCallDate);
                         return false;
                     }
 
                     const isMatch = callDateTime <= today;
                     if (isMatch) {
-                        console.log('[filterByTodayKai] 該当:', caseId, nextCallDate);
+                        console.log('[filterByTodayKai] 該当:', caseId, latestNextCallDate);
                     }
                     return isMatch;
                 })
                 .sort((a, b) => {
                     // V2062: 架電日が古い順（最優先）
-                    const dateA = new Date(a[1].nextCallDate);
-                    const dateB = new Date(b[1].nextCallDate);
+                    const dateA = new Date(a[2]); // latestNextCallDate
+                    const dateB = new Date(b[2]);
                     return dateA - dateB;
                 });
 
@@ -6069,7 +6085,8 @@ window.addEventListener('beforeunload', function(e) {
             todayEnd.setHours(23, 59, 59, 999);
             const todayKaiCount = Object.values(casesData).filter(c => {
                 if (!PRE_DELIVERY_STATUSES.includes(c.status)) return false;
-                const nextCallDate = c.nextCallDate;
+                // 履歴から最新の次回架電日を取得
+                const nextCallDate = getLatestNextCallDate(c);
                 // 空文字、null、undefinedをチェック
                 if (!nextCallDate || nextCallDate.trim() === '') return false;
                 const callDateTime = new Date(nextCallDate);
