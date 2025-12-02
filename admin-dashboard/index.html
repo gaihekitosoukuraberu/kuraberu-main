@@ -7927,7 +7927,17 @@ window.addEventListener('beforeunload', function(e) {
         let quickCallDay = null;
         let useCustomTime = false;
 
+        // V2054: 不在回数を取得
+        function getAbsentCount() {
+            if (!currentCaseId || !casesData[currentCaseId]) return 0;
+            const callHistory = casesData[currentCaseId].callHistory || [];
+            return callHistory.filter(item =>
+                item.note && (item.note.includes('不在') || item.note.includes('📵'))
+            ).length;
+        }
+
         // V1959: 接続/不在を選択
+        // V2054: 不在1-2回目は即閉じ＋自動次回架電設定、3回目以降はモーダル表示
         function selectConnectionStatus(status) {
             connectionStatus = status;
 
@@ -7941,17 +7951,133 @@ window.addEventListener('beforeunload', function(e) {
                 absentBtn.classList.remove('from-gray-500', 'to-gray-600', 'ring-4', 'ring-gray-200');
                 absentBtn.classList.add('from-gray-400', 'to-gray-500');
                 skipBtn.classList.remove('hidden');
+                // 次回架電設定を表示
+                document.getElementById('nextCallQuickSettings').classList.remove('hidden');
+                autoSetNextCallTime();
             } else {
-                absentBtn.classList.remove('from-gray-400', 'to-gray-500');
-                absentBtn.classList.add('from-gray-500', 'to-gray-600', 'ring-4', 'ring-gray-200');
-                connectedBtn.classList.remove('from-green-500', 'to-green-600', 'ring-4', 'ring-green-200');
-                connectedBtn.classList.add('from-green-500', 'to-green-600');
-                skipBtn.classList.add('hidden');
+                // V2054: 不在の場合
+                const absentCount = getAbsentCount();
+                console.log('[V2054] 不在回数:', absentCount);
+
+                if (absentCount < 2) {
+                    // 1-2回目: 即閉じて自動で次回架電設定
+                    handleQuickAbsent();
+                } else {
+                    // 3回目以降: 次回架電モーダル表示（接続/不在選択を隠す）
+                    showAbsentNextCallModal();
+                }
+            }
+        }
+
+        // V2054: 不在1-2回目: 即閉じ＋自動次回架電設定
+        async function handleQuickAbsent() {
+            // 自動で次回架電日時を設定（翌日同時刻）
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(now.getDate() + 1);
+            const nextCallDateTime = tomorrow.toLocaleString('ja-JP');
+
+            // 履歴を更新
+            if (currentCaseId && casesData[currentCaseId]) {
+                const lastRecord = casesData[currentCaseId].callHistory?.[0];
+                if (lastRecord && lastRecord.note === '📞 架電') {
+                    lastRecord.note = '📵 不在';
+                    lastRecord.nextCallDate = nextCallDateTime;
+                }
+                casesData[currentCaseId].nextCallDate = nextCallDateTime;
+
+                // 新規→不在にステータス変更
+                const currentStatus = casesData[currentCaseId].status;
+                if (currentStatus === '新規') {
+                    await changeCRMStatus('不在');
+                }
             }
 
+            // 即座にモーダルを閉じる
+            hideConnectionModal();
+
+            // バックグラウンドでGAS保存
+            saveCallHistoryToGAS();
+
+            // リストを更新
+            afterCallFlow = false;
+            if (typeof initializeListView === 'function') {
+                initializeListView();
+            }
+
+            console.log('[V2054] 不在（自動次回架電）:', nextCallDateTime);
+        }
+
+        // V2054: 不在3回目以降: 次回架電モーダル表示
+        function showAbsentNextCallModal() {
+            // 接続/不在ボタンを隠す
+            document.querySelector('#connectionModal .flex.gap-3').classList.add('hidden');
             // 次回架電設定を表示
-            document.getElementById('nextCallQuickSettings').classList.remove('hidden');
+            const nextCallSettings = document.getElementById('nextCallQuickSettings');
+            nextCallSettings.classList.remove('hidden');
+
+            // スキップボタンのテキストを変更して表示
+            const skipBtn = document.getElementById('skipBtn');
+            skipBtn.textContent = '次回架電を設定しない';
+            skipBtn.classList.remove('hidden');
+            skipBtn.onclick = function() { skipAbsentNextCall(); };
+
+            // 戻るボタンを追加
+            let backBtn = document.getElementById('absentBackBtn');
+            if (!backBtn) {
+                backBtn = document.createElement('button');
+                backBtn.id = 'absentBackBtn';
+                backBtn.className = 'w-full py-2 text-sm text-gray-500 hover:text-gray-700 transition-all mt-2';
+                backBtn.textContent = '← 接続/不在選択に戻る';
+                backBtn.onclick = function() { resetConnectionModal(); };
+                nextCallSettings.parentNode.insertBefore(backBtn, nextCallSettings.nextSibling);
+            }
+            backBtn.classList.remove('hidden');
+
             autoSetNextCallTime();
+        }
+
+        // V2054: 不在で次回架電設定しない
+        async function skipAbsentNextCall() {
+            // 履歴を更新（次回架電なし）
+            if (currentCaseId && casesData[currentCaseId]) {
+                const lastRecord = casesData[currentCaseId].callHistory?.[0];
+                if (lastRecord && lastRecord.note === '📞 架電') {
+                    lastRecord.note = '📵 不在';
+                }
+
+                // 新規→不在にステータス変更
+                const currentStatus = casesData[currentCaseId].status;
+                if (currentStatus === '新規') {
+                    await changeCRMStatus('不在');
+                }
+            }
+
+            hideConnectionModal();
+            saveCallHistoryToGAS();
+
+            afterCallFlow = false;
+            if (typeof initializeListView === 'function') {
+                initializeListView();
+            }
+        }
+
+        // V2054: モーダルをリセット
+        function resetConnectionModal() {
+            // 接続/不在ボタンを再表示
+            document.querySelector('#connectionModal .flex.gap-3').classList.remove('hidden');
+            // 次回架電設定を隠す
+            document.getElementById('nextCallQuickSettings').classList.add('hidden');
+            // 戻るボタンを隠す
+            const backBtn = document.getElementById('absentBackBtn');
+            if (backBtn) backBtn.classList.add('hidden');
+            // スキップボタンを元に戻す
+            const skipBtn = document.getElementById('skipBtn');
+            skipBtn.textContent = '次回設定をスキップ →';
+            skipBtn.classList.add('hidden');
+            skipBtn.onclick = function() { skipNextCallSetting(); };
+            // 状態をリセット
+            connectionStatus = null;
         }
 
         // V1959: カスタム時間入力の切り替え
@@ -7983,10 +8109,18 @@ window.addEventListener('beforeunload', function(e) {
         }
 
         // V1959: 確定ボタン
+        // V2054: 不在3回目以降もconnectionStatus='absent'で処理
         async function confirmConnectionResult() {
+            // V2054: 不在3回目以降はconnectionStatusが'absent'にセットされている
             if (!connectionStatus) {
-                alert('接続/不在を選択してください');
-                return;
+                // 接続/不在ボタンが隠れている場合は不在として処理
+                const buttonsHidden = document.querySelector('#connectionModal .flex.gap-3')?.classList.contains('hidden');
+                if (buttonsHidden) {
+                    connectionStatus = 'absent';
+                } else {
+                    alert('接続/不在を選択してください');
+                    return;
+                }
             }
 
             // 次回架電日時を計算
