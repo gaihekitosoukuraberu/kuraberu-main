@@ -689,19 +689,49 @@
                 </div>
 
                 <!-- メモモーダル -->
-                <div id="caseMemoModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-                    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
-                        <div class="p-4 border-b flex justify-between items-center">
-                            <h3 class="text-lg font-bold">メモ</h3>
-                            <button onclick="closeMemoModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
-                        </div>
-                        <div class="p-4">
-                            <p class="text-sm text-gray-600 mb-2" id="memoTargetName"></p>
-                            <textarea id="caseMemoTextarea" class="w-full border rounded-lg p-3 h-32 resize-none" placeholder="メモを入力..."></textarea>
-                        </div>
-                        <div class="p-4 border-t flex justify-end gap-2">
-                            <button onclick="closeMemoModal()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">キャンセル</button>
-                            <button onclick="saveCaseMemo()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">保存</button>
+                <div id="caseMemoModal" class="fixed inset-0 z-50 hidden">
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeMemoModal()"></div>
+                    <div class="fixed inset-0 flex items-center justify-center p-2 sm:p-6 lg:p-8">
+                        <div class="bg-white rounded-xl shadow-2xl w-full max-w-[calc(100vw-16px)] sm:max-w-md max-h-[95vh] overflow-hidden flex flex-col">
+                            <!-- ヘッダー -->
+                            <div class="flex justify-between items-center px-4 py-4 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-white">
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900">📝 メモ</h3>
+                                    <p id="memoTargetName" class="text-sm text-gray-500 mt-0.5">---</p>
+                                </div>
+                                <button onclick="closeMemoModal()" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-2 transition-all">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- コンテンツエリア -->
+                            <div class="flex-1 overflow-y-auto px-4 py-5">
+                                <!-- メモ入力 -->
+                                <div class="space-y-3">
+                                    <p class="text-sm font-medium text-gray-600">メモを入力</p>
+                                    <textarea
+                                        id="caseMemoTextarea"
+                                        placeholder="メモを入力..."
+                                        class="w-full p-3 border-2 border-gray-200 rounded-xl resize-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all text-sm"
+                                        rows="4"
+                                    ></textarea>
+                                    <button
+                                        onclick="saveCaseMemo()"
+                                        class="w-full py-3 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-bold shadow-md hover:shadow-lg transition-all">
+                                        保存
+                                    </button>
+                                </div>
+
+                                <!-- メモ履歴リスト -->
+                                <div id="memoHistorySection" class="border-t border-gray-200 pt-4 mt-5">
+                                    <h4 class="text-sm font-semibold text-gray-900 mb-3">📋 過去の履歴</h4>
+                                    <div id="memoHistoryList" class="space-y-2 max-h-48 overflow-y-auto">
+                                        <!-- 動的に生成される -->
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -16107,26 +16137,110 @@
         }
 
         // メモモーダル
+        let selectedMemoHistoryIndex = -1;
+
         function openMemoModal(cvId) {
             const c = findCaseByCvId(cvId);
             if (!c) return;
 
             currentMemoCase = c;
+            selectedMemoHistoryIndex = -1;
             document.getElementById('memoTargetName').textContent = `${c.customerName || '-'} (${c.fullAddress || c.city || '-'})`;
-            document.getElementById('caseMemoTextarea').value = c.merchantMemo || '';
+            document.getElementById('caseMemoTextarea').value = '';
             document.getElementById('caseMemoModal').classList.remove('hidden');
+            loadMemoHistory();
         }
 
         function closeMemoModal() {
             document.getElementById('caseMemoModal').classList.add('hidden');
+            document.getElementById('caseMemoTextarea').value = '';
             currentMemoCase = null;
+            selectedMemoHistoryIndex = -1;
         }
 
-        async function saveCaseMemo() {
-            if (!currentMemoCase) return;
+        // メモ履歴を読み込み
+        function loadMemoHistory() {
+            const historyList = document.getElementById('memoHistoryList');
+            if (!currentMemoCase) {
+                historyList.innerHTML = '<p class="text-gray-500 text-sm">案件データがありません</p>';
+                return;
+            }
 
+            const allHistory = currentMemoCase.callHistory || [];
+            if (allHistory.length === 0) {
+                historyList.innerHTML = '<p class="text-gray-500 text-sm">履歴がありません</p>';
+                return;
+            }
+
+            historyList.innerHTML = allHistory.map((item, idx) => {
+                const isSelected = idx === selectedMemoHistoryIndex;
+                const note = item.note || '';
+                // 通話/メモのアイコン判定
+                const isCall = note.startsWith('📞') || note.startsWith('📵');
+                const typeLabel = isCall ? '📞' : '📝';
+                const date = item.date || '';
+
+                return `
+                <div onclick="selectMemoHistory(${idx})" class="cursor-pointer rounded-lg p-3 border-2 ${isSelected ? 'border-amber-500 bg-amber-50' : 'border-gray-200 hover:bg-gray-50'} transition-all">
+                    <div class="flex justify-between items-start gap-2">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-gray-400">${date}</span>
+                                <span class="text-xs">${typeLabel}</span>
+                            </div>
+                            <div class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">${escapeHtml(note)}</div>
+                        </div>
+                        ${isSelected ? `
+                        <div class="flex flex-col gap-1 flex-shrink-0">
+                            <button onclick="event.stopPropagation(); editMemoHistory(${idx})" class="text-sm hover:bg-amber-100 rounded p-1" title="編集">✏️</button>
+                            <button onclick="event.stopPropagation(); deleteMemoHistory(${idx})" class="text-sm hover:bg-red-100 rounded p-1" title="削除">🗑️</button>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function selectMemoHistory(index) {
+            selectedMemoHistoryIndex = index;
+            loadMemoHistory();
+        }
+
+        async function editMemoHistory(index) {
+            if (!currentMemoCase) return;
+            const history = currentMemoCase.callHistory || [];
+            if (!history[index]) return;
+
+            const item = history[index];
+            const newNote = prompt('メモを編集:', item.note || '');
+            if (newNote !== null && newNote !== item.note) {
+                history[index].note = newNote;
+                // GASに保存
+                await saveCallHistoryToGAS();
+                loadMemoHistory();
+                renderCases();
+            }
+        }
+
+        async function deleteMemoHistory(index) {
+            if (!currentMemoCase) return;
+            if (!confirm('この履歴を削除しますか？')) return;
+
+            const history = currentMemoCase.callHistory || [];
+            if (!history[index]) return;
+
+            history.splice(index, 1);
+            selectedMemoHistoryIndex = -1;
+            // GASに保存
+            await saveCallHistoryToGAS();
+            loadMemoHistory();
+            renderCases();
+        }
+
+        // 通話履歴をGASに保存
+        async function saveCallHistoryToGAS() {
+            if (!currentMemoCase) return;
             const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
-            const memo = document.getElementById('caseMemoTextarea').value;
 
             try {
                 const response = await fetch(GAS_URL, {
@@ -16135,18 +16249,63 @@
                     body: JSON.stringify({
                         system: 'merchant',
                         subsystem: 'contract',
-                        action: 'updateCaseMemo',
+                        action: 'updateCallHistory',
                         merchantId: merchantId,
                         cvId: currentMemoCase.cvId,
-                        memo: memo
+                        callHistory: currentMemoCase.callHistory
+                    })
+                });
+                const result = await response.json();
+                if (!result.success) {
+                    console.error('履歴保存エラー:', result.error);
+                }
+            } catch (error) {
+                console.error('履歴保存エラー:', error);
+            }
+        }
+
+        async function saveCaseMemo() {
+            if (!currentMemoCase) return;
+
+            const memo = document.getElementById('caseMemoTextarea').value.trim();
+            if (!memo) {
+                showNotification('エラー', 'メモを入力してください', 'error');
+                return;
+            }
+
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const timestamp = new Date().toLocaleString('ja-JP');
+
+            // callHistoryに追加
+            if (!currentMemoCase.callHistory) {
+                currentMemoCase.callHistory = [];
+            }
+            currentMemoCase.callHistory.unshift({
+                date: timestamp,
+                note: memo
+            });
+
+            // 入力欄クリア
+            document.getElementById('caseMemoTextarea').value = '';
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        system: 'merchant',
+                        subsystem: 'contract',
+                        action: 'updateCallHistory',
+                        merchantId: merchantId,
+                        cvId: currentMemoCase.cvId,
+                        callHistory: currentMemoCase.callHistory
                     })
                 });
 
                 const result = await response.json();
                 if (result.success) {
-                    currentMemoCase.merchantMemo = memo;
+                    loadMemoHistory();
                     renderCases();
-                    closeMemoModal();
                     showNotification('保存完了', 'メモを保存しました');
                 } else {
                     showNotification('エラー', result.error || 'メモの保存に失敗しました', 'error');
