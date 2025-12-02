@@ -644,7 +644,7 @@
                                 <span class="text-xs sm:text-sm font-medium" id="statusFilterLabel">絞り込み</span>
                             </button>
                             <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-emerald-200 transition-all cursor-pointer opacity-70">
-                                <span class="text-xs sm:text-sm font-medium" id="dateFilterLabel">期間</span>
+                                <span class="text-xs sm:text-sm font-medium" id="dateFilterLabel">配信日</span>
                             </button>
                             <select id="sortOrderSelect" onchange="selectSortOrderDirect(this.value)" class="py-1.5 sm:py-2 px-2 bg-amber-100 text-amber-700 border border-amber-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-amber-200 transition-all cursor-pointer text-xs sm:text-sm font-medium appearance-none text-center">
                                 <option value="date-desc">新着順</option>
@@ -1008,7 +1008,7 @@
                     </div>
                 </div>
 
-                <!-- 期間フィルタモーダル -->
+                <!-- 配信日フィルタモーダル -->
                 <div id="dateFilterModal" class="fixed inset-0 z-50 hidden">
                     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeDateFilterModal()"></div>
                     <div class="fixed inset-0 flex items-center justify-center p-4">
@@ -1016,7 +1016,7 @@
                             <!-- ヘッダー -->
                             <div class="px-5 py-4 bg-gradient-to-r from-indigo-500 to-purple-600">
                                 <div class="flex justify-between items-center">
-                                    <h3 class="text-lg font-bold text-white">📅 期間フィルタ</h3>
+                                    <h3 class="text-lg font-bold text-white">📦 配信日</h3>
                                     <button onclick="closeDateFilterModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-lg p-1.5 transition-all">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -1026,19 +1026,16 @@
                             </div>
                             <!-- コンテンツ -->
                             <div class="p-5">
+                                <!-- 月選択ボタン（動的生成） -->
                                 <div class="mb-5">
-                                    <label class="block text-sm font-bold text-gray-700 mb-3">フィルタ対象</label>
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <button id="dateTypeDelivery" onclick="setDateFilterType('delivery')" class="py-3 px-4 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-bold text-sm hover:bg-indigo-100 transition-all">
-                                            📦 配信日
-                                        </button>
-                                        <button id="dateTypeCall" onclick="setDateFilterType('call')" class="py-3 px-4 rounded-xl border-2 border-gray-200 bg-white text-gray-600 font-bold text-sm hover:bg-gray-50 transition-all">
-                                            📞 架電日
-                                        </button>
+                                    <label class="block text-sm font-bold text-gray-700 mb-3">月で絞り込み</label>
+                                    <div id="monthButtonsContainer" class="grid grid-cols-3 gap-2">
+                                        <!-- JSで動的生成 -->
                                     </div>
                                 </div>
-                                <div id="dateRangeSection" class="mb-5">
-                                    <label class="block text-sm font-bold text-gray-700 mb-3">日付範囲</label>
+                                <!-- カスタム日付範囲 -->
+                                <div class="mb-5">
+                                    <label class="block text-sm font-bold text-gray-700 mb-3">日付で指定</label>
                                     <div class="flex items-center gap-3">
                                         <input type="date" id="modalDateFrom" class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
                                         <span class="text-gray-400 font-bold">〜</span>
@@ -15820,16 +15817,14 @@
         }
 
         // =====================================================
-        // 期間フィルタモーダル関数
+        // 配信日フィルタモーダル関数
         // =====================================================
+        let selectedMonth = null; // 選択中の月 (例: '2024-12')
+
         function openDateFilterModal() {
-            updateDateFilterTypeButtons();
             document.getElementById('modalDateFrom').value = dateFilterFrom || '';
             document.getElementById('modalDateTo').value = dateFilterTo || '';
-
-            const isEnabled = dateFilterType !== 'none';
-            document.getElementById('dateRangeSection').classList.toggle('hidden', !isEnabled);
-
+            generateMonthButtons();
             document.getElementById('dateFilterModal').classList.remove('hidden');
         }
 
@@ -15837,39 +15832,50 @@
             document.getElementById('dateFilterModal').classList.add('hidden');
         }
 
-        function setDateFilterType(type) {
-            dateFilterType = type;
-            updateDateFilterTypeButtons();
+        // 直近6ヶ月の月ボタンを生成
+        function generateMonthButtons() {
+            const container = document.getElementById('monthButtonsContainer');
+            const now = new Date();
+            let html = '';
 
-            // 架電日選択時は今日をデフォルト
-            if (type === 'call') {
-                const today = new Date().toISOString().split('T')[0];
-                document.getElementById('modalDateFrom').value = today;
-                document.getElementById('modalDateTo').value = today;
+            for (let i = 0; i < 6; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const year = d.getFullYear();
+                const month = d.getMonth() + 1;
+                const key = `${year}-${String(month).padStart(2, '0')}`;
+                const label = `${month}月`;
+                const isSelected = selectedMonth === key;
+
+                html += `<button onclick="selectMonth('${key}')" class="py-3 px-4 rounded-xl border-2 font-bold text-base transition-all ${isSelected ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'}">${label}</button>`;
             }
+
+            container.innerHTML = html;
         }
 
-        function updateDateFilterTypeButtons() {
-            const types = ['delivery', 'call'];
-            types.forEach(t => {
-                const btn = document.getElementById(t === 'delivery' ? 'dateTypeDelivery' : 'dateTypeCall');
-                if (btn) {
-                    if (t === dateFilterType) {
-                        btn.className = 'py-3 px-4 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-bold text-sm hover:bg-indigo-100 transition-all';
-                    } else {
-                        btn.className = 'py-3 px-4 rounded-xl border-2 border-gray-200 bg-white text-gray-600 font-bold text-sm hover:bg-gray-50 transition-all';
-                    }
-                }
-            });
+        // 月ボタンをクリック
+        function selectMonth(key) {
+            selectedMonth = key;
+            const [year, month] = key.split('-').map(Number);
+
+            // その月の初日と末日を設定
+            const firstDay = new Date(year, month - 1, 1);
+            const lastDay = new Date(year, month, 0);
+
+            const formatDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+            document.getElementById('modalDateFrom').value = formatDate(firstDay);
+            document.getElementById('modalDateTo').value = formatDate(lastDay);
+
+            generateMonthButtons(); // 選択状態を更新
         }
 
         function clearDateFilter() {
-            dateFilterType = 'delivery';
+            selectedMonth = null;
             dateFilterFrom = null;
             dateFilterTo = null;
             document.getElementById('modalDateFrom').value = '';
             document.getElementById('modalDateTo').value = '';
-            updateDateFilterTypeButtons();
+            generateMonthButtons();
             updateDateFilterLabel();
             closeDateFilterModal();
             renderCases();
@@ -15887,28 +15893,32 @@
         function updateDateFilterLabel() {
             const label = document.getElementById('dateFilterLabel');
             const btn = document.getElementById('dateFilterBtn');
-            const typeName = dateFilterType === 'call' ? '架電' : '配信';
-            let dateRange = '';
-            if (dateFilterFrom && dateFilterTo) {
+            let displayText = '';
+
+            // 月が選択されていれば月表示
+            if (selectedMonth && dateFilterFrom && dateFilterTo) {
+                const month = parseInt(selectedMonth.split('-')[1]);
+                displayText = `${month}月`;
+            } else if (dateFilterFrom && dateFilterTo) {
                 if (dateFilterFrom === dateFilterTo) {
-                    dateRange = dateFilterFrom.slice(5);
+                    displayText = dateFilterFrom.slice(5).replace('-', '/');
                 } else {
-                    dateRange = `${dateFilterFrom.slice(5)}〜${dateFilterTo.slice(5)}`;
+                    displayText = `${dateFilterFrom.slice(5).replace('-', '/')}〜${dateFilterTo.slice(5).replace('-', '/')}`;
                 }
             } else if (dateFilterFrom) {
-                dateRange = `${dateFilterFrom.slice(5)}〜`;
+                displayText = `${dateFilterFrom.slice(5).replace('-', '/')}〜`;
             } else if (dateFilterTo) {
-                dateRange = `〜${dateFilterTo.slice(5)}`;
+                displayText = `〜${dateFilterTo.slice(5).replace('-', '/')}`;
             }
 
-            if (dateRange) {
-                label.textContent = `${typeName} ${dateRange}`;
+            if (displayText) {
+                label.textContent = displayText;
                 if (btn) {
                     btn.classList.remove('opacity-70');
                     btn.classList.add('opacity-100', 'ring-2', 'ring-emerald-400');
                 }
             } else {
-                label.textContent = '期間';
+                label.textContent = '配信日';
                 if (btn) {
                     btn.classList.add('opacity-70');
                     btn.classList.remove('opacity-100', 'ring-2', 'ring-emerald-400');
@@ -16063,7 +16073,15 @@
             }
 
             const fullAddress = c.fullAddress || c.city || '-';
+            const shortAddress = fullAddress.replace(/^(東京都|北海道|.{2,3}[都道府県])/, '');
             const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
+
+            // 配信日を短縮表示（MM/DD）
+            let deliveryShort = '-';
+            if (c.deliveredAt) {
+                const match = c.deliveredAt.match(/(\d+)\/(\d+)/);
+                if (match) deliveryShort = `${match[1]}/${match[2]}`;
+            }
 
             return `
                 <div class="bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition-shadow" data-cv-id="${c.cvId}">
@@ -16075,7 +16093,7 @@
                         }
                     </div>
                     <h3 class="font-bold text-xl mb-2">${escapeHtml(c.customerName || '-')}</h3>
-                    <a href="${mapUrl}" target="_blank" class="text-base text-blue-600 hover:text-blue-800 hover:underline block mb-2">📍${escapeHtml(fullAddress)}</a>
+                    <a href="${mapUrl}" target="_blank" class="text-base text-blue-600 hover:text-blue-800 hover:underline block mb-2" title="${escapeHtml(fullAddress)}">📍${escapeHtml(shortAddress)}</a>
                     ${propertyInfo ? `<p class="text-sm text-gray-500 mb-3">${escapeHtml(propertyInfo)}</p>` : ''}
                     <!-- 📞📝🗓️ボタン -->
                     <div class="flex items-center gap-4 mb-4">
@@ -16090,7 +16108,7 @@
                         </button>
                     </div>
                     <div class="text-sm text-gray-500 mb-4">
-                        <span>配信: ${c.deliveredAt || '-'}</span>
+                        <span>配信: ${deliveryShort}</span>
                     </div>
                     ${hasMemo ? `<div class="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg mb-4 line-clamp-2">${escapeHtml(c.merchantMemo)}</div>` : ''}
                     <div class="flex gap-2">
