@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <!-- Deployment: V2063 - ソートモーダル全面リニューアル(下部固定ボタン・一括選択・プリセット) (2025-12-02 JST) -->
+    <!-- Deployment: V2064 - フィルターボタン選択状態表示・本日改で並び順自動設定 (2025-12-02 JST) -->
     <title>本部管理画面 - 案件割り振りシステム</title>
     <link rel="icon" type="image/png" href="images/7.png">
     <link rel="apple-touch-icon" href="images/7.png">
@@ -369,17 +369,17 @@
                             </button>
                         </div>
 
-                        <!-- V2062: 統計ボタン群（3等分）- 新規・全て・本日改 -->
+                        <!-- V2064: 統計ボタン群（3等分）- 新規・全て・本日改（選択状態表示対応） -->
                         <div class="flex items-center gap-2 w-full">
-                            <button onclick="filterByNewStatus()" class="flex-1 flex items-center justify-center gap-1 py-2.5 border-2 border-blue-500 bg-blue-100 text-blue-800 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
+                            <button id="filterBtnNew" onclick="filterByNewStatus()" class="flex-1 flex items-center justify-center gap-1 py-2.5 border-2 border-blue-300 bg-blue-50 text-blue-600 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer opacity-60">
                                 <span class="text-base font-bold" id="newCount">15</span>
                                 <span class="text-xs font-medium">新規</span>
                             </button>
-                            <button onclick="filterByAll()" class="flex-1 flex items-center justify-center gap-1 py-2.5 border-2 border-gray-400 bg-gray-100 text-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
+                            <button id="filterBtnAll" onclick="filterByAll()" class="flex-1 flex items-center justify-center gap-1 py-2.5 border-2 border-gray-300 bg-gray-50 text-gray-500 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer opacity-60">
                                 <span class="text-base font-bold" id="allCount">0</span>
                                 <span class="text-xs font-medium">全て</span>
                             </button>
-                            <button onclick="filterByTodayKai()" class="flex-1 flex items-center justify-center gap-1 py-2.5 border-2 border-red-500 bg-red-100 text-red-800 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
+                            <button id="filterBtnTodayKai" onclick="filterByTodayKai()" class="flex-1 flex items-center justify-center gap-1 py-2.5 border-2 border-red-300 bg-red-50 text-red-500 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer opacity-60">
                                 <span class="text-base font-bold" id="todayKaiCount">0</span>
                                 <span class="text-xs font-medium">本日改</span>
                             </button>
@@ -5677,6 +5677,18 @@ window.addEventListener('beforeunload', function(e) {
             };
             document.getElementById('sortOrderLabel').textContent = labels[value] || '新着順';
 
+            // V2064: ヘッダーボタンのスタイル更新（デフォルト以外はハイライト）
+            const sortOrderBtn = document.getElementById('sortOrderBtn');
+            if (sortOrderBtn) {
+                if (value !== 'date-desc') {
+                    sortOrderBtn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                    sortOrderBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
+                } else {
+                    sortOrderBtn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
+                    sortOrderBtn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+                }
+            }
+
             // モーダルを閉じる
             closeSortOrderModal();
 
@@ -5694,6 +5706,18 @@ window.addEventListener('beforeunload', function(e) {
                     btn.className = 'sort-order-btn py-3 px-4 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-semibold text-sm text-left';
                 }
             });
+
+            // V2064: ヘッダーボタンのスタイルも更新
+            const sortOrderBtn = document.getElementById('sortOrderBtn');
+            if (sortOrderBtn) {
+                if (currentValue !== 'date-desc') {
+                    sortOrderBtn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                    sortOrderBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
+                } else {
+                    sortOrderBtn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
+                    sortOrderBtn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+                }
+            }
         }
 
         // ステータスでフィルタリング（統計クリック用）
@@ -5704,6 +5728,35 @@ window.addEventListener('beforeunload', function(e) {
         
         // 対応中優先順でソート（見込み→再架電→不在）
         
+        // V2064: アクティブなクイックフィルター（'new', 'all', 'todayKai', null）
+        let activeQuickFilter = null;
+
+        // V2064: クイックフィルターボタンの状態を更新
+        function updateQuickFilterButtons() {
+            const btnNew = document.getElementById('filterBtnNew');
+            const btnAll = document.getElementById('filterBtnAll');
+            const btnTodayKai = document.getElementById('filterBtnTodayKai');
+
+            // 全ボタンを非アクティブに
+            [btnNew, btnAll, btnTodayKai].forEach(btn => {
+                if (btn) {
+                    btn.classList.remove('opacity-100', 'ring-2', 'ring-offset-1', 'scale-105');
+                    btn.classList.add('opacity-60');
+                }
+            });
+
+            // アクティブなボタンをハイライト
+            let activeBtn = null;
+            if (activeQuickFilter === 'new') activeBtn = btnNew;
+            else if (activeQuickFilter === 'all') activeBtn = btnAll;
+            else if (activeQuickFilter === 'todayKai') activeBtn = btnTodayKai;
+
+            if (activeBtn) {
+                activeBtn.classList.remove('opacity-60');
+                activeBtn.classList.add('opacity-100', 'ring-2', 'ring-offset-1', 'scale-105');
+            }
+        }
+
         // 新規ボタンのフィルタリング
         function filterByNewStatus() {
             if (currentView !== 'list') {
@@ -5711,11 +5764,15 @@ window.addEventListener('beforeunload', function(e) {
             }
 
             currentStatusFilter = '新規';
-            todayKaiFilterActive = false; // V2062: 本日改フィルターを解除
+            selectedStatuses = [];
+            todayKaiFilterActive = false;
             todayKaiCaseIds = [];
+            activeQuickFilter = 'new';
+            updateQuickFilterButtons();
+            updateSelectedCount();
             initializeListView();
         }
-        
+
         // V2062: 全て表示（配信前の全案件）
         function filterByAll() {
             if (currentView !== 'list') {
@@ -5725,8 +5782,11 @@ window.addEventListener('beforeunload', function(e) {
             // フィルターをクリアして全件表示
             currentStatusFilter = null;
             selectedStatuses = [];
-            todayKaiFilterActive = false; // V2062: 本日改フィルターを解除
+            todayKaiFilterActive = false;
             todayKaiCaseIds = [];
+            activeQuickFilter = 'all';
+            updateQuickFilterButtons();
+            updateSelectedCount();
             initializeListView();
         }
 
@@ -5801,6 +5861,15 @@ window.addEventListener('beforeunload', function(e) {
             todayKaiFilterActive = true;
             todayKaiCaseIds = filteredCases.map(([id]) => id);
             currentPage = 1;
+            selectedStatuses = [];
+            activeQuickFilter = 'todayKai';
+            updateQuickFilterButtons();
+            updateSelectedCount();
+
+            // V2064: 並び順を「次回架電順」に自動設定
+            document.getElementById('sortSelect').value = 'nextcall-asc';
+            document.getElementById('sortOrderLabel').textContent = '次回架電順';
+            updateSortOrderButtons();
 
             // リストビューを再描画
             initializeListView();
@@ -5999,6 +6068,10 @@ window.addEventListener('beforeunload', function(e) {
             // 本日改フィルターをクリア（ステータスフィルターを優先）
             todayKaiFilterActive = false;
             todayKaiCaseIds = [];
+
+            // V2064: クイックフィルターをリセット
+            activeQuickFilter = null;
+            updateQuickFilterButtons();
 
             // リストを再描画（selectedStatusesフィルタ適用）
             initializeListView();
