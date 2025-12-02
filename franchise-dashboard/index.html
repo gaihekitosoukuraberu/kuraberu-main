@@ -18791,7 +18791,6 @@
                         unassignedCases.splice(index, 1);
                     }
                 });
-                displayUnassignedCases();
                 closeAssignmentModal();
             } else {
                 alert('振り分ける案件を選択してください');
@@ -19898,70 +19897,13 @@
             }
         ];
 
-        // 未振り分け案件を表示
-        function displayUnassignedCases() {
-            const unassignedSection = document.getElementById('unassignedCasesSection');
-            const unassignedList = document.getElementById('unassignedCasesList');
-            const badge = document.getElementById('unassignedBadge');
-
-            if (unassignedCases.length > 0) {
-                // バッジを表示
-                badge.textContent = unassignedCases.length;
-                badge.classList.remove('hidden');
-
-                // トータルバッジカウントを更新
-                updateTotalBadgeCount();
-
-                // 未振り分けセクションを表示
-                unassignedSection.classList.remove('hidden');
-
-                // 案件カードを生成
-                unassignedList.innerHTML = unassignedCases.map(caseItem => {
-                    return `
-                        <div class="bg-white rounded-lg border border-yellow-300 p-3 hover:shadow-md transition-shadow">
-                            <div class="flex justify-between items-start mb-2">
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">未対応</span>
-                            </div>
-                            <h4 class="font-bold text-sm mb-1">${caseItem.name}</h4>
-                            <p class="text-xs text-gray-600">${caseItem.address}</p>
-                            <p class="text-xs text-gray-600 mb-2">${caseItem.type}</p>
-                            <div class="flex justify-between items-center text-xs text-gray-500">
-                                <span>登録: ${caseItem.registeredDate}</span>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                // バッジを非表示
-                badge.classList.add('hidden');
-
-                // 未振り分けセクションを非表示
-                unassignedSection.classList.add('hidden');
-            }
-        }
-
-
-        // ページ読み込み時に未振り分け案件を表示
+        // ページ読み込み時の初期化
         document.addEventListener('DOMContentLoaded', function() {
-            displayUnassignedCases();
-
             // 初期バッジカウントを更新
             setTimeout(updateTotalBadgeCount, 500);
 
             // カレンダーの自動同期を実行
             setTimeout(autoSyncToCalendar, 1000);
-
-            // showSection関数をオーバーライド（既存のoriginalShowSectionを使用）
-            const prevShowSection = window.showSection;
-            window.showSection = function(sectionName) {
-                prevShowSection(sectionName);
-
-                // 案件管理セクションを表示した場合、未振り分け案件を更新
-                if (sectionName === 'cases') {
-                    displayUnassignedCases();
-                    // V2007: 案件カードは loadMerchantCases() で自動読み込み（既にshowSectionフック内で呼び出し済み）
-                }
-            };
         });
     </script>
     <!-- 画像拡大表示モーダル -->
