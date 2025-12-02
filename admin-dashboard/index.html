@@ -8633,33 +8633,35 @@ window.addEventListener('beforeunload', function(e) {
                 return;
             }
 
-            if (!casesData[currentCaseId].franchiseHistory) {
-                casesData[currentCaseId].franchiseHistory = [];
+            // V2049: 即座にモーダルを閉じて2重保存防止
+            const savedCaseId = currentCaseId;
+            const savedCompanyName = currentMemoCompany || '不明';
+            closeMemoOnlyModal();
+
+            if (!casesData[savedCaseId].franchiseHistory) {
+                casesData[savedCaseId].franchiseHistory = [];
             }
 
             const timestamp = new Date().toLocaleString('ja-JP');
-            const companyName = currentMemoCompany || '不明';
 
-            casesData[currentCaseId].franchiseHistory.unshift({
+            casesData[savedCaseId].franchiseHistory.unshift({
                 date: timestamp,
-                companyName: companyName,
+                companyName: savedCompanyName,
                 note: memo,
                 types: ['memo']  // V2046: メモのみ
             });
 
-            console.log('[V2046] メモ追加:', { companyName, memo });
+            console.log('[V2046] メモ追加:', { companyName: savedCompanyName, memo });
 
             await saveFranchiseHistoryToGAS();
 
             // BusinessSelectionHandlerも更新
             if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.currentCaseData) {
-                window.BusinessSelectionHandler.currentCaseData.franchiseHistory = casesData[currentCaseId].franchiseHistory;
+                window.BusinessSelectionHandler.currentCaseData.franchiseHistory = casesData[savedCaseId].franchiseHistory;
                 if (typeof window.BusinessSelectionHandler.applySortAndRender === 'function') {
                     window.BusinessSelectionHandler.applySortAndRender(window.BusinessSelectionHandler.currentSortType || 'user');
                 }
             }
-
-            closeMemoOnlyModal();
         }
 
         // V2047: メモ履歴を読み込み（全履歴表示・電話/メモラベル付き）
