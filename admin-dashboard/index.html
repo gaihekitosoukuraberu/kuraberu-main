@@ -9366,7 +9366,7 @@ window.addEventListener('beforeunload', function(e) {
                         </div>
                         ${isSelected ? `
                         <div class="flex flex-col gap-1 flex-shrink-0">
-                            <button onclick="event.stopPropagation(); toggleLabel(${originalIndex})" class="text-sm hover:bg-yellow-100 rounded p-1 ${isLabel ? 'bg-yellow-200' : ''}" title="${isLabel ? 'ラベル解除' : 'ラベル設定'}">🏷️</button>
+                            ${hasMemo ? `<button onclick="event.stopPropagation(); toggleLabel(${originalIndex})" class="text-sm hover:bg-yellow-100 rounded p-1 ${isLabel ? 'bg-yellow-200' : ''}" title="${isLabel ? 'ラベル解除' : 'ラベル設定'}">🏷️</button>` : ''}
                             <button onclick="event.stopPropagation(); editMemoHistory(${originalIndex})" class="text-sm hover:bg-blue-100 rounded p-1">✏️</button>
                             <button onclick="event.stopPropagation(); deleteMemoHistory(${originalIndex})" class="text-sm hover:bg-red-100 rounded p-1">🗑️</button>
                         </div>
@@ -9740,7 +9740,7 @@ window.addEventListener('beforeunload', function(e) {
                         </div>
                         ${isSelected ? `
                         <div class="flex flex-col gap-1 flex-shrink-0">
-                            <button onclick="event.stopPropagation(); toggleLabelFromCall(${originalIndex})" class="p-1.5 hover:bg-yellow-100 rounded transition-all ${isLabel ? 'bg-yellow-200' : 'bg-gray-100'}" title="${isLabel ? 'ラベル解除' : 'ラベル設定'}">🏷️</button>
+                            ${hasMemo ? `<button onclick="event.stopPropagation(); toggleLabelFromCall(${originalIndex})" class="p-1.5 hover:bg-yellow-100 rounded transition-all ${isLabel ? 'bg-yellow-200' : 'bg-gray-100'}" title="${isLabel ? 'ラベル解除' : 'ラベル設定'}">🏷️</button>` : ''}
                             <button onclick="event.stopPropagation(); editHistory(${originalIndex})" class="p-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-all" title="編集">✏️</button>
                             <button onclick="event.stopPropagation(); deleteHistory(${originalIndex})" class="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-all" title="削除">🗑️</button>
                         </div>
@@ -10071,6 +10071,7 @@ window.addEventListener('beforeunload', function(e) {
             });
 
             // V1963: 履歴を表示（アイコン削除）
+            // V2077: ラベル設定はメモ履歴のみに制限
             historyList.innerHTML = allHistory.map((item, index) => {
                 // callHistoryエントリのみ編集・削除可能（caseMemoは読み取り専用）
                 const isEditable = item.source === 'callHistory';
@@ -10080,6 +10081,10 @@ window.addEventListener('beforeunload', function(e) {
 
                 // V1965: このエントリがラベルとして設定されているかチェック
                 const isLabel = casesData[currentCaseId]?.label === item.note;
+
+                // V2077: メモかどうか判定（接続/不在/架電を含まないものがメモ）
+                const isCallRecord = item.note && (item.note.includes('📞') || item.note.includes('📵') || item.note.includes('接続') || item.note.includes('不在') || item.note.includes('架電'));
+                const isMemoRecord = !isCallRecord;
 
                 return `
                     <div class="border-l-4 ${isEditable ? 'border-blue-500' : 'border-gray-400'} pl-4 py-2 group hover:bg-gray-50 rounded-r transition-all ${isSelected ? 'bg-blue-50' : ''} ${isLabel ? 'bg-yellow-50' : ''}" data-history-index="${index}" onclick="toggleHistorySelection(${index}, event)">
@@ -10091,13 +10096,13 @@ window.addEventListener('beforeunload', function(e) {
                             </div>
                             ${isEditable ? `
                                 <div class="flex gap-1.5 ${buttonVisibilityClass} transition-opacity duration-200 flex-shrink-0">
-                                    <button
+                                    ${isMemoRecord ? `<button
                                         onclick="setAsLabel(${index}, '${item.note.replace(/'/g, "\\'")}'); event.stopPropagation();"
                                         class="${isLabel ? 'text-yellow-600 bg-yellow-100' : 'text-yellow-600 hover:text-white hover:bg-yellow-500'} text-xs px-2.5 py-1.5 rounded-md transition-all font-medium"
                                         title="${isLabel ? 'ラベル解除' : 'ラベル設定'}"
                                     >
                                         ${isLabel ? '解除' : 'ラベル'}
-                                    </button>
+                                    </button>` : ''}
                                     <button
                                         onclick="editCallHistoryEntry(${index}); event.stopPropagation();"
                                         class="text-blue-600 hover:text-white hover:bg-blue-600 text-xs px-2.5 py-1.5 rounded-md transition-all font-medium"
