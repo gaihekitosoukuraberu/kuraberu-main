@@ -15580,6 +15580,7 @@
         function createCaseRow(c) {
             const status = c.detailStatus || '対応待ち';
             const style = statusStyles[status] || statusStyles[''];
+            const address = escapeHtml(c.fullAddress || c.city || '-');
 
             return `
                 <tr data-cv-id="${c.cvId}">
@@ -15587,7 +15588,12 @@
                         <span class="px-2 py-1 text-xs font-semibold rounded-full ${style.bg} ${style.text}">${status}</span>
                     </td>
                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm">${escapeHtml(c.customerName || '-')}</td>
-                    <td class="hidden md:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">${escapeHtml(c.fullAddress || c.city || '-')}</td>
+                    <td class="hidden md:table-cell px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="relative group cursor-pointer" title="${address}">
+                            <span class="text-lg">📍</span>
+                            <span class="absolute left-6 top-0 z-10 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap max-w-xs truncate">${address}</span>
+                        </span>
+                    </td>
                     <td class="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                         <a href="tel:${c.customerTel}" class="text-green-600 hover:underline">${c.customerTel || '-'}</a>
                     </td>
