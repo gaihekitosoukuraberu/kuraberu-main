@@ -1,25 +1,39 @@
 # Claude Code プロジェクト設定
 
-## 🚨🚨🚨 絶対厳守ルール 🚨🚨🚨
+## 🚨 Git運用ルール 🚨
 
-### git pull 絶対禁止（ユーザー確認なしで実行するな）
+### 安全なpush手順（毎回これに従え）
 
 ```bash
-# ❌ 絶対にやるな
-git pull
-git pull --rebase
-git fetch && git merge
+# 1. まずローカルの変更をコミット
+git add -A && git commit -m "メッセージ"
 
-# pushが拒否されたら？
-# → 独断でpullするな！ユーザーに確認を取れ！
+# 2. リモートの状態を確認
+git fetch origin
+
+# 3. 分岐があるか確認
+git status
+# → "have diverged" の場合のみ pull --rebase
+
+# 4. push
+git push
 ```
 
-**理由**: 過去に数十時間の作業がpullで上書きされて消失した。ローカルが最新でGitHubが古い場合がある。
+### 重要ポイント
 
-**pushが "rejected" されたときの正しい対応:**
-1. ユーザーに報告する：「pushが拒否されました。GitHubに新しいコミットがあります。pullしてもよいですか？」
-2. ユーザーのOKが出てから初めてpull
-3. 独断でpull/rebaseしない
+- **ローカルの変更は必ず先にコミット** → これでpullしても消えない
+- コミット済みなら `git pull --rebase` は安全（ローカルコミットが上に乗る）
+- **未コミットの変更がある状態でpullするな** → これが危険
+
+### 自動処理OK
+
+ユーザーに確認不要で以下を実行してよい：
+1. `git add -A && git commit` （ローカル変更を保護）
+2. `git fetch origin` （確認のみ、変更なし）
+3. `git pull --rebase` （コミット済みなら安全）
+4. `git push`
+
+**要するに：先にコミットすれば安全。聞かずに進めろ。**
 
 ---
 
