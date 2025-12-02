@@ -636,15 +636,8 @@
                     </div>
                 </div>
 
-                <div class="mb-6 flex justify-between items-center">
+                <div class="mb-6">
                     <h2 class="text-2xl font-bold text-gray-900">案件管理</h2>
-                    <div class="flex items-center space-x-2">
-                        <button onclick="toggleCaseView()" class="p-2 text-gray-500 hover:text-gray-700 bg-white rounded-lg shadow">
-                            <svg id="viewIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                            </svg>
-                        </button>
-                    </div>
                 </div>
 
                 <!-- フィルター・統計バー -->
@@ -698,8 +691,8 @@
                     </div>
                 </div>
 
-                <!-- カードビュー -->
-                <div id="caseCardView" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- カードビュー（スマホ: 表示 / PC: 非表示） -->
+                <div id="caseCardView" class="grid grid-cols-1 gap-4 md:hidden">
                     <!-- ローディング表示 -->
                     <div id="casesLoading" class="col-span-full text-center py-12">
                         <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
@@ -708,8 +701,8 @@
                     <!-- 案件カードは動的に生成 -->
                 </div>
 
-                <!-- リストビュー（初期非表示） -->
-                <div id="caseListView" class="bg-white rounded-lg shadow overflow-hidden" style="display: none;">
+                <!-- リストビュー（スマホ: 非表示 / PC: 表示） -->
+                <div id="caseListView" class="bg-white rounded-lg shadow overflow-hidden hidden md:block">
                     <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
@@ -15506,7 +15499,6 @@
         // =====================================================
         // V2007: 案件管理機能（実データ連携）
         // =====================================================
-        let currentCaseView = 'card';
         let merchantCasesData = [];
         let merchantCasesStats = {};
         let currentFilter = 'all';
@@ -17878,24 +17870,7 @@
         }
 
         // 古い renderCaseCards/createCaseCard は V2007 で置き換え済み
-
-        // 表示切替
-        function toggleCaseView() {
-            currentCaseView = currentCaseView === 'card' ? 'list' : 'card';
-            const cardView = document.getElementById('caseCardView');
-            const listView = document.getElementById('caseListView');
-            const viewIcon = document.getElementById('viewIcon');
-
-            if (currentCaseView === 'card') {
-                cardView.style.display = 'grid';
-                listView.style.display = 'none';
-                viewIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>';
-            } else {
-                cardView.style.display = 'none';
-                listView.style.display = 'block';
-                viewIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>';
-            }
-        }
+        // 表示切替は Tailwind レスポンシブクラスで自動（md未満:カード / md以上:リスト）
 
         // 古いフィルター関連は V2007 で新実装に置き換え済み
         // getStatusColor は古いダミーコード用だが、一部で使われている可能性があるので残す
