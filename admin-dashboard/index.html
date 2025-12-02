@@ -797,12 +797,7 @@
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1">郵便番号<span class="text-red-500 ml-1">*</span></label>
-                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                            <input type="text" id="zipInput" placeholder="150-0001" class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
-                            <button type="button" onclick="fetchAddress()" class="px-4 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors whitespace-nowrap text-sm font-medium">
-                                住所取得
-                            </button>
-                        </div>
+                        <input type="text" id="zipInput" placeholder="150-0001" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" oninput="autoFetchAddress(this)">
                     </div>
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1">住所<span class="text-red-500 ml-1">*</span></label>
@@ -10418,13 +10413,20 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
+        // V2047: 郵便番号7桁入力で自動的に住所取得
+        function autoFetchAddress(input) {
+            const cleanPostalCode = input.value.replace(/[^0-9]/g, '');
+            if (cleanPostalCode.length === 7) {
+                fetchAddress();
+            }
+        }
+
         // 物件の郵便番号から住所を取得
         async function fetchAddress() {
             const zipInput = document.getElementById('zipInput');
             const addressInput = document.getElementById('addressInput');
 
             if (!zipInput || !zipInput.value) {
-                alert('郵便番号を入力してください');
                 return;
             }
 
@@ -10432,7 +10434,6 @@ window.addEventListener('beforeunload', function(e) {
             const cleanPostalCode = zipInput.value.replace(/[^0-9]/g, '');
 
             if (cleanPostalCode.length !== 7) {
-                alert('正しい郵便番号を入力してください（7桁）');
                 return;
             }
 
