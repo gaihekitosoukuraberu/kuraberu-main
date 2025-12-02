@@ -978,10 +978,10 @@
                             </div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">対象</label>
-                                <div class="flex gap-2">
-                                    <button id="dateTypeNone" onclick="setDateFilterType('none')" class="flex-1 py-2 px-3 rounded-lg border-2 border-gray-300 bg-gray-100 text-gray-800 font-medium text-sm">なし</button>
-                                    <button id="dateTypeDelivery" onclick="setDateFilterType('delivery')" class="flex-1 py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm">配信日</button>
-                                    <button id="dateTypeCall" onclick="setDateFilterType('call')" class="flex-1 py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm">架電日</button>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button id="dateTypeNone" onclick="setDateFilterType('none')" class="py-2 px-3 rounded-lg border-2 border-gray-300 bg-gray-100 text-gray-800 font-medium text-sm">なし</button>
+                                    <button id="dateTypeDelivery" onclick="setDateFilterType('delivery')" class="py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm">配信日</button>
+                                    <button id="dateTypeCall" onclick="setDateFilterType('call')" class="py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm col-span-2">架電日</button>
                                 </div>
                             </div>
                             <div id="dateRangeSection" class="mb-4 hidden">
@@ -992,9 +992,14 @@
                                     <input type="date" id="modalDateTo" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm">
                                 </div>
                             </div>
-                            <button onclick="applyDateFilter()" class="w-full py-2.5 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-all">
-                                適用
-                            </button>
+                            <div class="flex gap-2">
+                                <button onclick="closeDateFilterModal()" class="flex-1 py-2.5 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg font-semibold hover:bg-gray-200 transition-all">
+                                    キャンセル
+                                </button>
+                                <button onclick="applyDateFilter()" class="flex-1 py-2.5 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-all">
+                                    適用
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
