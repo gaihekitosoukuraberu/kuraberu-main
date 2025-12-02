@@ -15607,6 +15607,243 @@
             return filterMap[currentFilter]?.includes(status);
         }
 
+        // =====================================================
+        // ソートモーダル関数
+        // =====================================================
+        function openSortModal() {
+            document.getElementById('sortModal').classList.remove('hidden');
+            updateStatusButtonStates();
+            updateSelectedCount();
+        }
+
+        function closeSortModal() {
+            document.getElementById('sortModal').classList.add('hidden');
+        }
+
+        function toggleStatusFilter(status) {
+            const index = selectedStatuses.indexOf(status);
+            if (index > -1) {
+                selectedStatuses.splice(index, 1);
+            } else {
+                selectedStatuses.push(status);
+            }
+            updateStatusButtonStates();
+            updateSelectedCount();
+        }
+
+        function updateStatusButtonStates() {
+            const buttons = document.querySelectorAll('#sortModal .status-filter-btn');
+            buttons.forEach(button => {
+                const onclick = button.getAttribute('onclick');
+                const match = onclick.match(/toggleStatusFilter\('([^']+)'\)/);
+                if (match) {
+                    const status = match[1];
+                    const originalText = button.dataset.originalText || button.textContent.replace('✓ ', '');
+                    button.dataset.originalText = originalText;
+
+                    if (selectedStatuses.includes(status)) {
+                        button.style.opacity = '1';
+                        button.style.transform = 'scale(0.95)';
+                        button.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.5)';
+                        button.textContent = '✓ ' + originalText;
+                    } else {
+                        button.style.opacity = '0.6';
+                        button.style.transform = 'scale(1)';
+                        button.style.boxShadow = '';
+                        button.textContent = originalText;
+                    }
+                }
+            });
+        }
+
+        function updateSelectedCount() {
+            const countElement = document.getElementById('selectedStatusCount');
+            if (countElement) {
+                if (selectedStatuses.length === 0) {
+                    countElement.textContent = 'すべて表示中';
+                    countElement.className = 'text-sm text-gray-500';
+                } else {
+                    countElement.textContent = `${selectedStatuses.length}件選択中`;
+                    countElement.className = 'text-sm text-blue-600 font-semibold';
+                }
+            }
+
+            // ヘッダーのソートボタンラベル更新
+            const filterLabel = document.getElementById('statusFilterLabel');
+            const filterBtn = document.getElementById('statusFilterBtn');
+            if (filterLabel && filterBtn) {
+                if (selectedStatuses.length === 0) {
+                    filterLabel.textContent = 'ソート';
+                    filterBtn.classList.add('opacity-70');
+                    filterBtn.classList.remove('opacity-100', 'ring-2', 'ring-violet-400');
+                } else {
+                    const arraysEqual = (a, b) => a.length === b.length && a.every(v => b.includes(v)) && b.every(v => a.includes(v));
+                    const CALL_TARGET = ['未対応', '架電済/未アポ'];
+                    const IN_PROGRESS = ['アポ済', '現調済', '見積提出済', '入金予定'];
+
+                    let labelText = `ソート ${selectedStatuses.length}`;
+                    if (arraysEqual(selectedStatuses, CALL_TARGET)) {
+                        labelText = '架電対象';
+                    } else if (arraysEqual(selectedStatuses, IN_PROGRESS)) {
+                        labelText = '進行中';
+                    }
+
+                    filterLabel.textContent = labelText;
+                    filterBtn.classList.remove('opacity-70');
+                    filterBtn.classList.add('opacity-100', 'ring-2', 'ring-violet-400');
+                }
+            }
+        }
+
+        function selectCallTargetStatuses() {
+            selectedStatuses = ['未対応', '架電済/未アポ'];
+            updateStatusButtonStates();
+            updateSelectedCount();
+        }
+
+        function selectInProgressStatuses() {
+            selectedStatuses = ['アポ済', '現調済', '見積提出済', '入金予定'];
+            updateStatusButtonStates();
+            updateSelectedCount();
+        }
+
+        function clearStatusFilter() {
+            selectedStatuses = [];
+            updateStatusButtonStates();
+            updateSelectedCount();
+            renderCases();
+        }
+
+        function applyStatusFilter() {
+            closeSortModal();
+            renderCases();
+        }
+
+        // =====================================================
+        // 期間フィルタモーダル関数
+        // =====================================================
+        function openDateFilterModal() {
+            updateDateFilterTypeButtons();
+            document.getElementById('modalDateFrom').value = dateFilterFrom || '';
+            document.getElementById('modalDateTo').value = dateFilterTo || '';
+
+            const isEnabled = dateFilterType !== 'none';
+            document.getElementById('dateRangeSection').classList.toggle('hidden', !isEnabled);
+
+            document.getElementById('dateFilterModal').classList.remove('hidden');
+        }
+
+        function closeDateFilterModal() {
+            document.getElementById('dateFilterModal').classList.add('hidden');
+        }
+
+        function setDateFilterType(type) {
+            dateFilterType = type;
+            updateDateFilterTypeButtons();
+
+            const isEnabled = type !== 'none';
+            document.getElementById('dateRangeSection').classList.toggle('hidden', !isEnabled);
+
+            // 架電日選択時は今日をデフォルト
+            if (type === 'call') {
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('modalDateFrom').value = today;
+                document.getElementById('modalDateTo').value = today;
+            }
+        }
+
+        function updateDateFilterTypeButtons() {
+            const types = ['none', 'delivery', 'call'];
+            const typeIdMap = { 'none': 'dateTypeNone', 'delivery': 'dateTypeDelivery', 'call': 'dateTypeCall' };
+            types.forEach(t => {
+                const btn = document.getElementById(typeIdMap[t]);
+                if (btn) {
+                    if (t === dateFilterType) {
+                        btn.className = 'flex-1 py-2 px-3 rounded-lg border-2 border-gray-300 bg-gray-100 text-gray-800 font-medium text-sm';
+                    } else {
+                        btn.className = 'flex-1 py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm';
+                    }
+                }
+            });
+        }
+
+        function applyDateFilter() {
+            dateFilterFrom = document.getElementById('modalDateFrom').value || null;
+            dateFilterTo = document.getElementById('modalDateTo').value || null;
+
+            updateDateFilterLabel();
+            closeDateFilterModal();
+            renderCases();
+        }
+
+        function updateDateFilterLabel() {
+            const label = document.getElementById('dateFilterLabel');
+            const btn = document.getElementById('dateFilterBtn');
+            if (dateFilterType === 'none') {
+                label.textContent = '期間';
+                if (btn) {
+                    btn.classList.add('opacity-70');
+                    btn.classList.remove('opacity-100', 'ring-2', 'ring-emerald-400');
+                }
+            } else {
+                const typeName = dateFilterType === 'call' ? '架電' : '配信';
+                let dateRange = '';
+                if (dateFilterFrom && dateFilterTo) {
+                    if (dateFilterFrom === dateFilterTo) {
+                        dateRange = dateFilterFrom.slice(5);
+                    } else {
+                        dateRange = `${dateFilterFrom.slice(5)}〜${dateFilterTo.slice(5)}`;
+                    }
+                } else if (dateFilterFrom) {
+                    dateRange = `${dateFilterFrom.slice(5)}〜`;
+                } else if (dateFilterTo) {
+                    dateRange = `〜${dateFilterTo.slice(5)}`;
+                }
+                label.textContent = dateRange ? `${typeName} ${dateRange}` : typeName;
+                if (btn) {
+                    btn.classList.remove('opacity-70');
+                    btn.classList.add('opacity-100', 'ring-2', 'ring-emerald-400');
+                }
+            }
+        }
+
+        // =====================================================
+        // 並び順モーダル関数
+        // =====================================================
+        function openSortOrderModal() {
+            updateSortOrderButtons();
+            document.getElementById('sortOrderModal').classList.remove('hidden');
+        }
+
+        function closeSortOrderModal() {
+            document.getElementById('sortOrderModal').classList.add('hidden');
+        }
+
+        function selectSortOrder(value) {
+            currentSortOrder = value;
+
+            const labels = {
+                'date-desc': '新着順',
+                'nextcall-asc': '次回架電順',
+                'status': 'ステータス順'
+            };
+            document.getElementById('sortOrderLabel').textContent = labels[value] || '新着順';
+
+            closeSortOrderModal();
+            renderCases();
+        }
+
+        function updateSortOrderButtons() {
+            document.querySelectorAll('.sort-order-btn').forEach(btn => {
+                const val = btn.dataset.value;
+                if (val === currentSortOrder) {
+                    btn.className = 'sort-order-btn py-3 px-4 rounded-lg border-2 border-blue-500 bg-blue-100 text-blue-800 font-semibold text-sm text-left';
+                } else {
+                    btn.className = 'sort-order-btn py-3 px-4 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-semibold text-sm text-left';
+                }
+            });
+        }
+
         // 検索処理
         function searchCases() {
             renderCases();
@@ -15618,14 +15855,50 @@
             const cardView = document.getElementById('caseCardView');
             const listBody = document.getElementById('caseListBody');
 
-            // フィルター＆検索適用（V2022 新フィールド対応）
-            const filteredCases = merchantCasesData.filter(c => {
+            // フィルター＆検索適用
+            let filteredCases = merchantCasesData.filter(c => {
+                // 基本フィルター
                 if (!matchesFilter(c)) return false;
+
+                // ステータスフィルター（ソートモーダルで選択）
+                if (selectedStatuses.length > 0) {
+                    const status = c.detailStatus || '';
+                    if (!selectedStatuses.includes(status)) return false;
+                }
+
+                // 日付フィルター
+                if (dateFilterType !== 'none' && dateFilterFrom && dateFilterTo) {
+                    let dateStr = dateFilterType === 'call' ? c.nextCallDate : c.deliveredAt;
+                    if (!dateStr) return false;
+                    const dateOnly = dateStr.split(' ')[0];
+                    if (dateOnly < dateFilterFrom || dateOnly > dateFilterTo) return false;
+                }
+
+                // 検索フィルター
                 if (searchTerm) {
                     const searchFields = [c.customerName, c.fullAddress, c.city, c.customerTel, c.cvId].join(' ').toLowerCase();
                     if (!searchFields.includes(searchTerm)) return false;
                 }
                 return true;
+            });
+
+            // ソート順を適用
+            const STATUS_ORDER = ['未対応', '架電済/未アポ', 'アポ済', '現調済', '見積提出済', '入金予定', '成約', '入金済', '現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', 'クレーム'];
+            filteredCases.sort((a, b) => {
+                switch (currentSortOrder) {
+                    case 'date-desc':
+                        return new Date(b.deliveredAt || 0) - new Date(a.deliveredAt || 0);
+                    case 'nextcall-asc':
+                        const dateA = a.nextCallDate || '9999-12-31';
+                        const dateB = b.nextCallDate || '9999-12-31';
+                        return dateA.localeCompare(dateB);
+                    case 'status':
+                        const indexA = STATUS_ORDER.indexOf(a.detailStatus || '');
+                        const indexB = STATUS_ORDER.indexOf(b.detailStatus || '');
+                        return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+                    default:
+                        return 0;
+                }
             });
 
             // カードビュー描画（ローディング要素を除いてクリア）
