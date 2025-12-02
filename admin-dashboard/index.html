@@ -6434,6 +6434,12 @@ window.addEventListener('beforeunload', function(e) {
                     allCases = allCases.filter(([_, caseData]) => POST_DELIVERY_STATUSES.includes(caseData.status));
                     console.log('Total cases after delivery filter (post):', allCases.length);
                 }
+
+                // V2062: ソートモーダルで選択したステータスフィルタを適用
+                if (selectedStatuses && selectedStatuses.length > 0) {
+                    allCases = allCases.filter(([_, caseData]) => selectedStatuses.includes(caseData.status));
+                    console.log('Total cases after selected statuses filter:', allCases.length);
+                }
             }
 
             // V2062: 本日改フィルターが有効な場合は日付フィルタとソートをスキップ
