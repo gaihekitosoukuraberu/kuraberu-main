@@ -7000,21 +7000,23 @@ window.addEventListener('beforeunload', function(e) {
         }
 
         // リストからステータスを選択
-        async function selectListStatus(newStatus) {
+        function selectListStatus(newStatus) {
             if (!currentEditingCaseId) return;
 
             const savedCaseId = currentEditingCaseId; // V2057: 保存しておく
 
-            // V2059: 即時保存（awaitで確実に保存）
-            await changeStatus(currentEditingCaseId, newStatus);
+            // V2075: UI即時更新 → モーダル閉じる → バックグラウンド保存
+            // ローカルデータを即時更新
+            casesData[savedCaseId].status = newStatus;
 
-            // ボタンの表示を更新
+            // ボタンの表示を即時更新
             if (currentEditingButton) {
                 const colorClass = getStatusColor(newStatus);
                 currentEditingButton.className = 'px-4 py-1.5 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-xs font-semibold ' + colorClass;
                 currentEditingButton.textContent = newStatus;
             }
 
+            // モーダルを即座に閉じる
             closeListStatusModal();
 
             // V2061: 配信後ステータスに変更した場合、配信後フィルターに切り替え
@@ -7027,6 +7029,34 @@ window.addEventListener('beforeunload', function(e) {
             if (showNextCallAfterStatus) {
                 showNextCallAfterStatus = false;
                 openNextCallModal(savedCaseId);
+            }
+
+            // バックグラウンドで保存（awaitしない）
+            saveStatusInBackground(savedCaseId, newStatus);
+        }
+
+        // V2075: バックグラウンド保存関数
+        async function saveStatusInBackground(caseId, newStatus) {
+            try {
+                console.log(`[BG-Save] 案件 ${caseId} のステータスを ${newStatus} に保存中...`);
+                const result = await window.apiClient.postRequest('updateCVData', {
+                    cvId: caseId,
+                    data: { status: newStatus }
+                });
+
+                if (result.success) {
+                    console.log(`[BG-Save] 案件 ${caseId} のステータス保存完了`);
+                    unsavedChanges.delete(caseId);
+                    updateSaveButton();
+                } else {
+                    console.error(`[BG-Save] ステータス保存失敗:`, result.error);
+                    unsavedChanges.set(caseId, { status: newStatus, timestamp: Date.now() });
+                    updateSaveButton();
+                }
+            } catch (error) {
+                console.error(`[BG-Save] ステータス保存エラー:`, error);
+                unsavedChanges.set(caseId, { status: newStatus, timestamp: Date.now() });
+                updateSaveButton();
             }
         }
 
