@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <!-- Deployment: V2065 - ステータス変更モーダル3列グリッド化・並び順ハイライト削除 (2025-12-02 JST) -->
+    <!-- Deployment: V2066 - フィルターボタン統一デザイン(2行3列グラデーション) (2025-12-02 JST) -->
     <title>本部管理画面 - 案件割り振りシステム</title>
     <link rel="icon" type="image/png" href="images/7.png">
     <link rel="apple-touch-icon" href="images/7.png">
@@ -369,32 +369,33 @@
                             </button>
                         </div>
 
-                        <!-- V2064: 統計ボタン群（3等分）- 新規・全て・本日改（選択状態表示対応） -->
-                        <div class="flex items-center gap-2 w-full">
-                            <button id="filterBtnNew" onclick="filterByNewStatus()" class="flex-1 flex items-center justify-center gap-1 py-2.5 border-2 border-blue-300 bg-blue-50 text-blue-600 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer opacity-60">
-                                <span class="text-base font-bold" id="newCount">15</span>
+                        <!-- V2066: フィルターボタン群（6等分・2行×3列・統一デザイン） -->
+                        <div class="grid grid-cols-3 gap-2 w-full">
+                            <!-- 上段: 新規・全て・本日改 -->
+                            <button id="filterBtnNew" onclick="filterByNewStatus()" class="flex flex-col items-center justify-center py-3 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer opacity-70">
+                                <span class="text-lg font-bold" id="newCount">0</span>
                                 <span class="text-xs font-medium">新規</span>
                             </button>
-                            <button id="filterBtnAll" onclick="filterByAll()" class="flex-1 flex items-center justify-center gap-1 py-2.5 border-2 border-gray-300 bg-gray-50 text-gray-500 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer opacity-60">
-                                <span class="text-base font-bold" id="allCount">0</span>
+                            <button id="filterBtnAll" onclick="filterByAll()" class="flex flex-col items-center justify-center py-3 bg-gradient-to-br from-slate-500 to-slate-600 text-white rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer opacity-70">
+                                <span class="text-lg font-bold" id="allCount">0</span>
                                 <span class="text-xs font-medium">全て</span>
                             </button>
-                            <button id="filterBtnTodayKai" onclick="filterByTodayKai()" class="flex-1 flex items-center justify-center gap-1 py-2.5 border-2 border-red-300 bg-red-50 text-red-500 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer opacity-60">
-                                <span class="text-base font-bold" id="todayKaiCount">0</span>
+                            <button id="filterBtnTodayKai" onclick="filterByTodayKai()" class="flex flex-col items-center justify-center py-3 bg-gradient-to-br from-rose-500 to-rose-600 text-white rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer opacity-70">
+                                <span class="text-lg font-bold" id="todayKaiCount">0</span>
                                 <span class="text-xs font-medium">本日改</span>
                             </button>
-                        </div>
-
-                        <!-- V1978: ソートボタン（3等分・すべてbutton） -->
-                        <div class="flex items-center gap-2 w-full">
-                            <button id="statusFilterBtn" onclick="openSortModal()" class="flex-1 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center">
-                                <span id="statusFilterLabel">ソート</span>
+                            <!-- 下段: ソート・期間・並び順 -->
+                            <button id="statusFilterBtn" onclick="openSortModal()" class="flex flex-col items-center justify-center py-3 bg-gradient-to-br from-violet-500 to-violet-600 text-white rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer">
+                                <span class="text-lg font-bold" id="statusFilterLabel">⚡</span>
+                                <span class="text-xs font-medium">ソート</span>
                             </button>
-                            <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex-1 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center truncate">
-                                <span id="dateFilterLabel">期間</span>
+                            <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex flex-col items-center justify-center py-3 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer">
+                                <span class="text-lg font-bold" id="dateFilterIcon">📅</span>
+                                <span class="text-xs font-medium truncate" id="dateFilterLabel">期間</span>
                             </button>
-                            <button id="sortOrderBtn" onclick="openSortOrderModal()" class="flex-1 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center">
-                                <span id="sortOrderLabel">新着順</span>
+                            <button id="sortOrderBtn" onclick="openSortOrderModal()" class="flex flex-col items-center justify-center py-3 bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer">
+                                <span class="text-lg font-bold">↕️</span>
+                                <span class="text-xs font-medium" id="sortOrderLabel">新着順</span>
                             </button>
                         </div>
                         <!-- 隠しselect（JS互換用） -->
@@ -5638,30 +5639,30 @@ window.addEventListener('beforeunload', function(e) {
             initializeListView();
         }
 
+        // V2066: 期間フィルターラベル更新（新グリッドレイアウト対応）
         function updateDateFilterLabel() {
             const label = document.getElementById('dateFilterLabel');
-            const btn = document.getElementById('dateFilterBtn');
+            const icon = document.getElementById('dateFilterIcon');
             if (dateFilterType === 'none') {
                 label.textContent = '期間';
-                btn.className = 'flex-1 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center truncate';
+                if (icon) icon.textContent = '📅';
             } else {
                 const typeName = dateFilterType === 'call' ? '架電' : '流入';
                 let dateRange = '';
                 if (dateFilterFrom && dateFilterTo) {
-                    // 同じ日付なら1つだけ表示
                     if (dateFilterFrom === dateFilterTo) {
                         dateRange = dateFilterFrom.slice(5);
                     } else {
-                        dateRange = `${dateFilterFrom.slice(5)}〜${dateFilterTo.slice(5)}`;
+                        dateRange = `${dateFilterFrom.slice(8)}〜${dateFilterTo.slice(8)}`;
                     }
                 } else if (dateFilterFrom) {
-                    dateRange = `${dateFilterFrom.slice(5)}〜`;
+                    dateRange = `${dateFilterFrom.slice(8)}〜`;
                 } else if (dateFilterTo) {
-                    dateRange = `〜${dateFilterTo.slice(5)}`;
+                    dateRange = `〜${dateFilterTo.slice(8)}`;
                 }
-                const timeLabel = timeFilter !== 'all' && dateFilterType === 'call' ? ` ${timeFilter === 'sat' ? '土' : timeFilter === 'sun' ? '日' : timeFilter + '時'}` : '';
-                label.textContent = `${typeName}${dateRange ? ':' + dateRange : ''}${timeLabel}`;
-                btn.className = 'flex-1 py-2.5 bg-blue-500 text-white border border-blue-500 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center truncate';
+                const timeLabel = timeFilter !== 'all' && dateFilterType === 'call' ? `${timeFilter === 'sat' ? '土' : timeFilter === 'sun' ? '日' : timeFilter + '時'}` : '';
+                label.textContent = `${typeName}${timeLabel}`;
+                if (icon) icon.textContent = dateRange || '✓';
             }
         }
 
@@ -5718,29 +5719,29 @@ window.addEventListener('beforeunload', function(e) {
         // V2064: アクティブなクイックフィルター（'new', 'all', 'todayKai', null）
         let activeQuickFilter = null;
 
-        // V2064: クイックフィルターボタンの状態を更新
+        // V2066: クイックフィルターボタンの状態を更新
         function updateQuickFilterButtons() {
             const btnNew = document.getElementById('filterBtnNew');
             const btnAll = document.getElementById('filterBtnAll');
             const btnTodayKai = document.getElementById('filterBtnTodayKai');
 
-            // 全ボタンを非アクティブに
+            // 全ボタンを非アクティブに（薄く）
             [btnNew, btnAll, btnTodayKai].forEach(btn => {
                 if (btn) {
-                    btn.classList.remove('opacity-100', 'ring-2', 'ring-offset-1', 'scale-105');
-                    btn.classList.add('opacity-60');
+                    btn.classList.remove('opacity-100', 'ring-4', 'ring-white', 'ring-offset-2', 'scale-105');
+                    btn.classList.add('opacity-70');
                 }
             });
 
-            // アクティブなボタンをハイライト
+            // アクティブなボタンをハイライト（リング + スケール）
             let activeBtn = null;
             if (activeQuickFilter === 'new') activeBtn = btnNew;
             else if (activeQuickFilter === 'all') activeBtn = btnAll;
             else if (activeQuickFilter === 'todayKai') activeBtn = btnTodayKai;
 
             if (activeBtn) {
-                activeBtn.classList.remove('opacity-60');
-                activeBtn.classList.add('opacity-100', 'ring-2', 'ring-offset-1', 'scale-105');
+                activeBtn.classList.remove('opacity-70');
+                activeBtn.classList.add('opacity-100', 'ring-4', 'ring-white', 'ring-offset-2', 'scale-105');
             }
         }
 
@@ -6078,18 +6079,13 @@ window.addEventListener('beforeunload', function(e) {
                 }
             }
 
-            // V2063: ヘッダーのソートボタンラベルも更新
+            // V2066: ヘッダーのソートボタンラベルも更新（アイコン/件数表示）
             const filterLabel = document.getElementById('statusFilterLabel');
-            const filterBtn = document.getElementById('statusFilterBtn');
-            if (filterLabel && filterBtn) {
+            if (filterLabel) {
                 if (selectedStatuses.length === 0) {
-                    filterLabel.textContent = 'ソート';
-                    filterBtn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
-                    filterBtn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+                    filterLabel.textContent = '⚡';
                 } else {
                     filterLabel.textContent = `${selectedStatuses.length}件`;
-                    filterBtn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
-                    filterBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
                 }
             }
         }
