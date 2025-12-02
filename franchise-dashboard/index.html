@@ -15963,11 +15963,11 @@
             // 物件情報の簡易表示（floorsにはそのまま「2階建て」等が入っている）
             const propertyInfo = [c.propertyType, c.floors].filter(v => v).join(' / ');
 
-            // 通話履歴カウント（接続/不在）
+            // 通話履歴カウントとメモ件数
             const callBadge = getCallCountBadge(c);
             const memoBadge = getMemoCountBadge(c);
-            const countsBadges = (callBadge || memoBadge) ?
-                `<div class="flex items-center gap-1">${callBadge ? `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-xs bg-blue-50 text-blue-600 rounded font-medium">📞${callBadge}</span>` : ''}${memoBadge ? `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-xs bg-amber-50 text-amber-600 rounded font-medium">📝${memoBadge}</span>` : ''}</div>`
+            const countsBadges = (callBadge !== '-' || memoBadge !== '-') ?
+                `<div class="flex items-center gap-1">${callBadge !== '-' ? `<span class="inline-flex items-center px-1.5 py-0.5 text-xs bg-blue-50 text-blue-600 rounded font-medium">${callBadge}</span>` : ''}${memoBadge !== '-' ? `<span class="inline-flex items-center px-1.5 py-0.5 text-xs bg-amber-50 text-amber-600 rounded font-medium">${memoBadge}</span>` : ''}</div>`
                 : '';
 
             return `
@@ -16058,21 +16058,17 @@
                             }
                         </div>
                     </td>
-                    <!-- 📞電話（接続/不在カウント付き） -->
+                    <!-- 電話（通話回数） -->
                     <td class="px-2 py-3 text-center">
-                        <div class="flex flex-col items-center gap-0.5">
-                            <a href="tel:${c.customerTel}" onclick="startPhoneCall('${c.cvId}')" class="text-xl hover:scale-110 transition-transform inline-block" title="電話: ${c.customerTel || '-'}">📞</a>
+                        <a href="tel:${c.customerTel}" onclick="startPhoneCall('${c.cvId}')" class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline" title="電話: ${c.customerTel || '-'}">
                             ${getCallCountBadge(c)}
-                        </div>
+                        </a>
                     </td>
-                    <!-- 📋メモ（カウント付き） -->
+                    <!-- メモ（件数） -->
                     <td class="px-2 py-3 text-center">
-                        <div class="flex flex-col items-center gap-0.5">
-                            <button onclick="openMemoModal('${c.cvId}')" class="text-xl hover:scale-110 transition-transform relative" title="メモ">
-                                📋${hasMemo ? '<span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>' : ''}
-                            </button>
+                        <button onclick="openMemoModal('${c.cvId}')" class="text-sm font-medium text-amber-600 hover:text-amber-800" title="メモ">
                             ${getMemoCountBadge(c)}
-                        </div>
+                        </button>
                     </td>
                     <!-- 🗓️次回架電 -->
                     <td class="px-2 py-3 text-center">
@@ -16169,20 +16165,14 @@
         let pendingMemo = '';
         let pendingStatus = null;
 
-        // 通話回数とメモ件数を分離してカウント
+        // 通話回数とメモ件数をカウント
         function getCallAndMemoCounts(caseData) {
             const history = caseData.callHistory || [];
 
-            // 接続回数
-            const connectedRecords = history.filter(item => {
+            // 通話回数（📞または📵で始まる記録）
+            const callRecords = history.filter(item => {
                 const note = item.note || '';
-                return note.includes('接続') || note.includes('転送OK') || note.includes('検討中') || note.includes('お断り');
-            });
-
-            // 不在回数
-            const absentRecords = history.filter(item => {
-                const note = item.note || '';
-                return note.includes('不在') || note.startsWith('📵');
+                return note.startsWith('📞') || note.startsWith('📵');
             });
 
             // メモ記録（架電記録以外）
@@ -16192,23 +16182,23 @@
             });
 
             return {
-                connectedTotal: connectedRecords.length, // 接続回数（分子）
-                absentTotal: absentRecords.length,       // 不在回数（分母）
+                callTotal: callRecords.length,
                 memoTotal: memoRecords.length
             };
         }
 
-        // 通話履歴カウント表示
+        // 通話履歴カウント表示（📞2回 形式）
         function getCallCountBadge(caseData) {
             const counts = getCallAndMemoCounts(caseData);
-            if (counts.connectedTotal === 0 && counts.absentTotal === 0) return '';
-            return `<span class="text-xs text-blue-600 font-medium ml-0.5">${counts.connectedTotal}/${counts.absentTotal}</span>`;
+            if (counts.callTotal === 0) return '-';
+            return `📞${counts.callTotal}回`;
         }
 
+        // メモカウント表示（📋2件 形式）
         function getMemoCountBadge(caseData) {
             const counts = getCallAndMemoCounts(caseData);
-            if (counts.memoTotal === 0) return '';
-            return `<span class="text-xs text-amber-600 font-medium ml-0.5">${counts.memoTotal}</span>`;
+            if (counts.memoTotal === 0) return '-';
+            return `📋${counts.memoTotal}件`;
         }
 
         // 電話発信時の処理（通話中バー表示）
