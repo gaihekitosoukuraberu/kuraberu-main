@@ -16167,16 +16167,33 @@
         let pendingMemo = '';
         let pendingStatus = null;
 
-        // 電話発信時の処理（発信後にモーダル表示）
+        // 電話発信時の処理（ブラウザに戻った時にモーダル表示）
         function startPhoneCall(cvId) {
             const c = findCaseByCvId(cvId);
             if (!c) return;
 
             currentCallCase = c;
-            // 電話発信後、少し遅延してモーダルを表示
+
+            // ブラウザに戻った時（visibilitychange）にモーダルを表示
+            const handleVisibilityChange = () => {
+                if (document.visibilityState === 'visible' && currentCallCase) {
+                    document.removeEventListener('visibilitychange', handleVisibilityChange);
+                    // 少し遅延してモーダル表示（画面が完全に戻ってから）
+                    setTimeout(() => {
+                        showConnectionModal();
+                    }, 300);
+                }
+            };
+            document.addEventListener('visibilitychange', handleVisibilityChange);
+
+            // 5秒以内に画面遷移しなかった場合はリスナーを削除（PCなど電話アプリがない環境）
             setTimeout(() => {
-                showConnectionModal();
-            }, 500);
+                document.removeEventListener('visibilitychange', handleVisibilityChange);
+                // PCの場合はすぐモーダル表示
+                if (currentCallCase && document.visibilityState === 'visible') {
+                    showConnectionModal();
+                }
+            }, 5000);
         }
 
         // 通話結果モーダルを表示
