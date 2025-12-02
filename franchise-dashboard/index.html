@@ -15996,9 +15996,7 @@
             // 通話履歴カウントとメモ件数
             const callBadge = getCallCountBadge(c);
             const memoBadge = getMemoCountBadge(c);
-            const countsBadges = (callBadge !== '-' || memoBadge !== '-') ?
-                `<div class="flex items-center gap-1">${callBadge !== '-' ? `<span class="inline-flex items-center px-1.5 py-0.5 text-xs bg-blue-50 text-blue-600 rounded font-medium">${callBadge}</span>` : ''}${memoBadge !== '-' ? `<span class="inline-flex items-center px-1.5 py-0.5 text-xs bg-amber-50 text-amber-600 rounded font-medium">${memoBadge}</span>` : ''}</div>`
-                : '';
+            const countsBadges = `<div class="flex items-center gap-1"><span class="inline-flex items-center px-1.5 py-0.5 text-xs bg-blue-50 text-blue-600 rounded font-medium">${callBadge}</span><span class="inline-flex items-center px-1.5 py-0.5 text-xs bg-amber-50 text-amber-600 rounded font-medium">${memoBadge}</span></div>`;
 
             return `
                 <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow" data-cv-id="${c.cvId}">
@@ -16349,14 +16347,14 @@
         // 通話履歴カウント表示（📞2回 形式）
         function getCallCountBadge(caseData) {
             const counts = getCallAndMemoCounts(caseData);
-            if (counts.callTotal === 0) return '-';
+            if (counts.callTotal === 0) return '📞-';
             return `📞${counts.callTotal}回`;
         }
 
         // メモカウント表示（📋2件 形式）
         function getMemoCountBadge(caseData) {
             const counts = getCallAndMemoCounts(caseData);
-            if (counts.memoTotal === 0) return '-';
+            if (counts.memoTotal === 0) return '📋-';
             return `📋${counts.memoTotal}件`;
         }
 
