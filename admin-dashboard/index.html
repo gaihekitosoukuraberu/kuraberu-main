@@ -934,33 +934,42 @@
 
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">見積もり希望箇所</label>
-                    <div id="workItemsButtons" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                    <!-- V2047: 外壁系(左)・屋根系(右)で配置 -->
+                    <div id="workItemsButtons" class="grid grid-cols-2 gap-2">
+                        <!-- 外壁塗装 / 屋根塗装 -->
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="外壁塗装">外壁塗装</button>
+                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="屋根塗装">屋根塗装</button>
+                        <!-- 外壁カバー / 屋根カバー -->
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="外壁カバー工法">
                             <span class="sm:hidden">外壁カバー</span>
                             <span class="hidden sm:inline">外壁カバー工法</span>
-                        </button>
-                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="外壁張替え">外壁張替え</button>
-                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="屋根塗装">屋根塗装</button>
-                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="屋上防水">屋上防水</button>
-                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="屋根葺き替え（スレート）">
-                            <span class="sm:hidden">屋根葺(ｽﾚ)</span>
-                            <span class="hidden sm:inline">屋根葺き替え（スレート）</span>
-                        </button>
-                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="屋根葺き替え（瓦）">
-                            <span class="sm:hidden">屋根葺(瓦)</span>
-                            <span class="hidden sm:inline">屋根葺き替え（瓦）</span>
                         </button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="屋根カバー工法">
                             <span class="sm:hidden">屋根カバー</span>
                             <span class="hidden sm:inline">屋根カバー工法</span>
                         </button>
+                        <!-- 外壁張替え / 屋根葺き替え（スレート） -->
+                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="外壁張替え">外壁張替え</button>
+                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="屋根葺き替え（スレート）">
+                            <span class="sm:hidden">屋根葺(ｽﾚ)</span>
+                            <span class="hidden sm:inline">屋根葺き替え（スレート）</span>
+                        </button>
+                        <!-- 外壁補修 / 屋根葺き替え（瓦） -->
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="外壁補修">外壁補修</button>
-                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="屋根補修">屋根補修</button>
+                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="屋根葺き替え（瓦）">
+                            <span class="sm:hidden">屋根葺(瓦)</span>
+                            <span class="hidden sm:inline">屋根葺き替え（瓦）</span>
+                        </button>
+                        <!-- 外壁不明 / 屋根補修 -->
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="外壁不明">外壁不明</button>
-                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="屋根不明">屋根不明</button>
+                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="屋根補修">屋根補修</button>
+                        <!-- ベランダ防水 / 屋根不明 -->
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="ベランダ防水">ベランダ防水</button>
+                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="屋根不明">屋根不明</button>
+                        <!-- 屋上防水 / 内装水回り -->
+                        <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="屋上防水">屋上防水</button>
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="内装水回り">内装水回り</button>
+                        <!-- 内装（室内） / その他 -->
                         <button type="button" class="option-button px-3 py-2 bg-white border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-xs sm:text-sm font-medium text-gray-700 text-center whitespace-normal leading-tight" data-value="内装（床・クロス等）">
                             <span class="sm:hidden">内装（室内）</span>
                             <span class="hidden sm:inline">内装（床・クロス等）</span>
