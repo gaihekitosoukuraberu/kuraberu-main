@@ -8861,11 +8861,107 @@ window.addEventListener('beforeunload', function(e) {
         }
 
         // V2043: Step2 → Step3（サブ選択後 - 繋がった場合のみ）
+        // V2052: 即閉じてバックグラウンド保存。転送OKならチェック追加
         function selectCallSubResult(subResult) {
             currentCallSubResult = subResult;
-            document.getElementById('selectedCallResult').textContent = `繋がった → ${subResult}`;
-            document.getElementById('callResultStep2Connected').classList.add('hidden');
-            document.getElementById('callResultStep3').classList.remove('hidden');
+
+            // V2052: 必要な値を先に保存
+            const savedCaseId = currentCaseId;
+            const companyName = currentFranchiseCallCompany || '不明';
+            const resultText = `繋がった → ${subResult}`;
+
+            // V2052: 即座にモーダルを閉じる
+            closeFranchiseHistoryModal();
+
+            // ローカルデータ更新
+            if (!casesData[savedCaseId].franchiseHistory) {
+                casesData[savedCaseId].franchiseHistory = [];
+            }
+
+            const timestamp = new Date().toLocaleString('ja-JP');
+
+            casesData[savedCaseId].franchiseHistory.unshift({
+                date: timestamp,
+                companyName: companyName,
+                note: resultText,
+                types: ['call']
+            });
+
+            console.log('[V2052] 通話結果履歴追加:', { companyName, resultText });
+
+            // V2052: 転送OKならチェックを追加
+            if (subResult === '転送OK') {
+                addFranchiseCheckWithLimit(companyName);
+            }
+
+            // V2052: お断りならdeclinedCompaniesに追加
+            if (subResult === 'お断り') {
+                if (window.BusinessSelectionHandler) {
+                    window.BusinessSelectionHandler.declinedCompanies.add(companyName);
+                }
+            }
+
+            // V2052: カード即時更新
+            if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.currentCaseData) {
+                window.BusinessSelectionHandler.currentCaseData.franchiseHistory = casesData[savedCaseId].franchiseHistory;
+                if (typeof window.BusinessSelectionHandler.applySortAndRender === 'function') {
+                    window.BusinessSelectionHandler.applySortAndRender(window.BusinessSelectionHandler.currentSortType || 'user');
+                }
+            }
+
+            // V2052: バックグラウンドでGAS保存
+            saveFranchiseHistoryToGAS().then(() => {
+                console.log('[V2052] 通話結果GAS保存完了');
+            }).catch(err => {
+                console.error('[V2052] 通話結果GAS保存エラー:', err);
+            });
+        }
+
+        // V2052: 転送OKで業者にチェックを追加（希望社数制限考慮）
+        function addFranchiseCheckWithLimit(companyName) {
+            if (!window.BusinessSelectionHandler) return;
+
+            const checkedCompanies = window.BusinessSelectionHandler.checkedCompanies;
+
+            // 既にチェック済みなら何もしない
+            if (checkedCompanies.has(companyName)) {
+                console.log('[V2052] 既にチェック済み:', companyName);
+                return;
+            }
+
+            // 希望社数チェック
+            const franchiseCountSelect = document.getElementById('franchiseCount');
+            const desiredCount = franchiseCountSelect ? parseInt(franchiseCountSelect.value) : 3;
+            const currentCount = checkedCompanies.size;
+
+            if (currentCount >= desiredCount) {
+                // 希望社数に達している → 確認モーダル
+                const confirmed = confirm(`現在の希望社数は${desiredCount}社です。\n${desiredCount + 1}社に変更しますか？`);
+
+                if (confirmed) {
+                    // 希望社数を自動更新
+                    const newCount = desiredCount + 1;
+                    if (franchiseCountSelect) {
+                        franchiseCountSelect.value = `${newCount}社`;
+                    }
+                    console.log('[V2052] 希望社数更新:', desiredCount, '→', newCount);
+
+                    // CF列に保存
+                    if (typeof saveFranchiseCountChange === 'function') {
+                        saveFranchiseCountChange(`${newCount}社`).catch(err => {
+                            console.error('[V2052] CF列保存エラー:', err);
+                        });
+                    }
+                } else {
+                    // キャンセル → チェック追加しない
+                    console.log('[V2052] ユーザーがキャンセル - チェック追加なし');
+                    return;
+                }
+            }
+
+            // チェック追加
+            checkedCompanies.add(companyName);
+            console.log('[V2052] チェック追加:', companyName);
         }
 
         // V2043: Step1に戻る
