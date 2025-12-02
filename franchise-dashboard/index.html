@@ -16038,40 +16038,40 @@
             }
 
             return `
-                <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow" data-cv-id="${c.cvId}">
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${style.bg} ${style.text}">${status}</span>
+                <div class="bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition-shadow" data-cv-id="${c.cvId}">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="px-3 py-1.5 text-sm font-bold rounded-full ${style.bg} ${style.text}">${status}</span>
                         <div class="text-right">
                             ${assignee && assignee !== '-'
-                                ? `<span class="text-sm text-gray-600">${escapeHtml(assignee)}</span>`
-                                : `<button onclick="event.stopPropagation(); openAssignModal('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 rounded hover:bg-purple-100 transition-colors">振分</button>`
+                                ? `<span class="text-base text-gray-700 font-medium">${escapeHtml(assignee)}</span>`
+                                : `<button onclick="event.stopPropagation(); openAssignModal('${c.cvId}')" class="px-3 py-1.5 text-sm font-bold text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">振分</button>`
                             }
                         </div>
                     </div>
-                    <h3 class="font-bold text-lg mb-1">${escapeHtml(c.customerName || '-')}</h3>
-                    <p class="text-sm text-gray-600 mb-1">📍${escapeHtml(c.fullAddress || c.city || '-')}</p>
-                    ${propertyInfo ? `<p class="text-xs text-gray-500 mb-2">${escapeHtml(propertyInfo)}</p>` : ''}
+                    <h3 class="font-bold text-xl mb-2">${escapeHtml(c.customerName || '-')}</h3>
+                    <p class="text-base text-gray-600 mb-2">📍${escapeHtml(c.fullAddress || c.city || '-')}</p>
+                    ${propertyInfo ? `<p class="text-sm text-gray-500 mb-3">${escapeHtml(propertyInfo)}</p>` : ''}
                     <!-- 📞📝🗓️ボタン -->
-                    <div class="flex items-center gap-3 mb-3">
-                        <a href="tel:${c.customerTel}" onclick="startPhoneCall('${c.cvId}')" class="text-base text-blue-600 hover:text-blue-800" title="電話: ${c.customerTel || '-'}">
+                    <div class="flex items-center gap-4 mb-4">
+                        <a href="tel:${c.customerTel}" onclick="startPhoneCall('${c.cvId}')" class="text-lg text-blue-600 hover:text-blue-800 font-medium" title="電話: ${c.customerTel || '-'}">
                             ${getCallCountBadge(c)}
                         </a>
-                        <button onclick="openMemoModal('${c.cvId}')" class="text-base text-amber-600 hover:text-amber-800" title="メモ">
+                        <button onclick="openMemoModal('${c.cvId}')" class="text-lg text-amber-600 hover:text-amber-800 font-medium" title="メモ">
                             ${getMemoCountBadge(c)}
                         </button>
-                        <button onclick="openNextCallModal('${c.cvId}')" class="text-base text-gray-600 hover:text-blue-600" title="次回架電日を設定">
+                        <button onclick="openNextCallModal('${c.cvId}')" class="text-lg text-gray-600 hover:text-blue-600 font-medium" title="次回架電日を設定">
                             ${nextCallShort ? '🗓️' + nextCallShort : '🗓️'}
                         </button>
                     </div>
-                    <div class="text-xs text-gray-500 mb-3">
+                    <div class="text-sm text-gray-500 mb-4">
                         <span>配信: ${c.deliveredAt || '-'}</span>
                     </div>
-                    ${hasMemo ? `<div class="text-xs text-gray-500 bg-gray-50 p-2 rounded mb-3 line-clamp-2">${escapeHtml(c.merchantMemo)}</div>` : ''}
-                    <div class="flex gap-1">
-                        <a href="tel:${c.customerTel}" onclick="startPhoneCall('${c.cvId}')" class="flex-1 px-2 py-2 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors text-center">
+                    ${hasMemo ? `<div class="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg mb-4 line-clamp-2">${escapeHtml(c.merchantMemo)}</div>` : ''}
+                    <div class="flex gap-2">
+                        <a href="tel:${c.customerTel}" onclick="startPhoneCall('${c.cvId}')" class="flex-1 px-4 py-3 bg-green-100 text-green-700 rounded-lg text-base font-bold hover:bg-green-200 transition-colors text-center">
                             📞 電話
                         </a>
-                        <button onclick="openDetailModal('${c.cvId}')" class="flex-1 px-2 py-2 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
+                        <button onclick="openDetailModal('${c.cvId}')" class="flex-1 px-4 py-3 bg-blue-100 text-blue-700 rounded-lg text-base font-bold hover:bg-blue-200 transition-colors">
                             詳細
                         </button>
                     </div>
