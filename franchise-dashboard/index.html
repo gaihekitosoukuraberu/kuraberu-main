@@ -16062,19 +16062,20 @@
                 if (match) nextCallShort = `${match[2]}/${match[3]}`;
             }
 
+            const fullAddress = c.fullAddress || c.city || '-';
+            const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
+
             return `
                 <div class="bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition-shadow" data-cv-id="${c.cvId}">
-                    <div class="flex justify-between items-start mb-4">
+                    <div class="flex justify-between items-center mb-4">
                         <span class="px-3 py-1.5 text-sm font-bold rounded-full ${style.bg} ${style.text}">${status}</span>
-                        <div class="text-right">
-                            ${assignee && assignee !== '-'
-                                ? `<span class="text-base text-gray-700 font-medium">${escapeHtml(assignee)}</span>`
-                                : `<button onclick="event.stopPropagation(); openAssignModal('${c.cvId}')" class="px-3 py-1.5 text-sm font-bold text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">振分</button>`
-                            }
-                        </div>
+                        ${assignee && assignee !== '-'
+                            ? `<span class="text-base text-gray-700 font-medium">${escapeHtml(assignee)}</span>`
+                            : `<button onclick="event.stopPropagation(); openAssignModal('${c.cvId}')" class="px-3 py-1.5 text-sm font-bold text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">振分</button>`
+                        }
                     </div>
                     <h3 class="font-bold text-xl mb-2">${escapeHtml(c.customerName || '-')}</h3>
-                    <p class="text-base text-gray-600 mb-2">📍${escapeHtml(c.fullAddress || c.city || '-')}</p>
+                    <a href="${mapUrl}" target="_blank" class="text-base text-blue-600 hover:text-blue-800 hover:underline block mb-2">📍${escapeHtml(fullAddress)}</a>
                     ${propertyInfo ? `<p class="text-sm text-gray-500 mb-3">${escapeHtml(propertyInfo)}</p>` : ''}
                     <!-- 📞📝🗓️ボタン -->
                     <div class="flex items-center gap-4 mb-4">
