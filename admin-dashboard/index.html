@@ -2089,6 +2089,13 @@ window.addEventListener('beforeunload', function(e) {
                     </div>
                 </div>
 
+                <!-- V2062: 適用して閉じるボタン（中央配置） -->
+                <div class="my-4 py-4 border-y border-gray-200">
+                    <button onclick="closeSortModal()" class="w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all font-semibold hover:from-blue-600 hover:to-blue-700">
+                        適用して閉じる
+                    </button>
+                </div>
+
                 <!-- 配信後ステータス -->
                 <div>
                     <h4 class="text-sm font-medium text-gray-700 mb-2">配信後ステータス</h4>
@@ -2104,13 +2111,6 @@ window.addEventListener('beforeunload', function(e) {
                         <button onclick="filterBySpecificStatus('現調前キャンセル')" class="px-4 py-2 border-2 border-blue-600 bg-blue-100 text-blue-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">現調前キャンセル</button>
                         <button onclick="filterBySpecificStatus('現調後ロスト')" class="px-4 py-2 border-2 border-gray-700 bg-gray-200 text-gray-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">現調後ロスト</button>
                     </div>
-                </div>
-
-                <!-- 適用して閉じるボタン -->
-                <div class="mt-4 pt-4 border-t border-gray-200">
-                    <button onclick="closeSortModal()" class="w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all font-semibold hover:from-blue-600 hover:to-blue-700">
-                        適用して閉じる
-                    </button>
                 </div>
             </div>
         </div>
