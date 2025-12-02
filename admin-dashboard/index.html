@@ -5695,8 +5695,10 @@ window.addEventListener('beforeunload', function(e) {
             if (currentView !== 'list') {
                 switchView('list');
             }
-            
+
             currentStatusFilter = '新規';
+            todayKaiFilterActive = false; // V2062: 本日改フィルターを解除
+            todayKaiCaseIds = [];
             initializeListView();
         }
         
@@ -5709,6 +5711,8 @@ window.addEventListener('beforeunload', function(e) {
             // フィルターをクリアして全件表示
             currentStatusFilter = null;
             selectedStatuses = [];
+            todayKaiFilterActive = false; // V2062: 本日改フィルターを解除
+            todayKaiCaseIds = [];
             initializeListView();
         }
 
@@ -5725,6 +5729,10 @@ window.addEventListener('beforeunload', function(e) {
             // 履歴になければ案件レベルのnextCallDateを返す
             return caseData.nextCallDate || '';
         }
+
+        // V2062: 本日改フィルターフラグ
+        let todayKaiFilterActive = false;
+        let todayKaiCaseIds = [];
 
         // V2062: 本日改（今日以前の次回架電日を持つ案件を架電日古い順で表示）
         function filterByTodayKai() {
@@ -5775,11 +5783,13 @@ window.addEventListener('beforeunload', function(e) {
 
             console.log('[filterByTodayKai] 該当件数:', filteredCases.length);
 
-            // 専用フィルターとして表示
-            displayedCaseIds = filteredCases.map(([id]) => id);
+            // 本日改フィルターを有効化
+            todayKaiFilterActive = true;
+            todayKaiCaseIds = filteredCases.map(([id]) => id);
             currentPage = 1;
-            renderListViewPage();
-            updatePaginationInfo();
+
+            // リストビューを再描画
+            initializeListView();
         }
 
         function filterByPriority() {
@@ -6369,142 +6379,162 @@ window.addEventListener('beforeunload', function(e) {
             }
             tbody.innerHTML = '';
 
-            // 1. 検索フィルタを最初に適用
-            let allCases = Object.entries(casesData);
-            console.log('Total cases before filters:', allCases.length);
-
-            const searchInput = document.getElementById('searchInput');
-            const searchTerm = normalizeText(searchInput?.value || '');
-
-            if (searchTerm) {
-                // 検索条件でフィルタリング
-                allCases = allCases.filter(([caseId, caseData]) => {
-                    const searchableText = normalizeText(
-                        JSON.stringify([
-                            caseData.name || '',
-                            caseData.kana || '',
-                            caseData.phone || '',
-                            caseData.address || '',
-                            caseData.postalCode || '',
-                            caseData.prefecture || '',
-                            caseData.city || '',
-                            caseData.status || ''
-                        ])
-                    );
-                    return searchableText.includes(searchTerm);
-                });
-                console.log('Total cases after search filter:', allCases.length);
+            // V2062: 本日改フィルターが有効な場合は専用リストを使用
+            let allCases;
+            if (todayKaiFilterActive && todayKaiCaseIds.length > 0) {
+                // 本日改フィルター：事前にソート済みのIDリストを使用
+                allCases = todayKaiCaseIds
+                    .filter(id => casesData[id]) // 存在チェック
+                    .map(id => [id, casesData[id]]);
+                console.log('Total cases (todayKai filter):', allCases.length);
+                // フィルターをリセット（次の通常操作で解除）
+                // todayKaiFilterActive = false; // ここではリセットしない（ページネーションで必要）
+            } else {
+                // 通常フィルタ
+                allCases = Object.entries(casesData);
+                console.log('Total cases before filters:', allCases.length);
             }
 
-            // 2. ステータスフィルタを適用
-            if (currentStatusFilter) {
-                allCases = allCases.filter(([_, caseData]) => caseData.status === currentStatusFilter);
-                console.log('Total cases after status filter:', allCases.length);
-            }
+            // V2062: 本日改フィルターが有効な場合は他のフィルターをスキップ
+            if (!todayKaiFilterActive) {
+                const searchInput = document.getElementById('searchInput');
+                const searchTerm = normalizeText(searchInput?.value || '');
 
-            // V1958: 配信前/後フィルタを適用
-            if (deliveryFilter === 'pre') {
-                allCases = allCases.filter(([_, caseData]) => PRE_DELIVERY_STATUSES.includes(caseData.status));
-                console.log('Total cases after delivery filter (pre):', allCases.length);
-            } else if (deliveryFilter === 'post') {
-                allCases = allCases.filter(([_, caseData]) => POST_DELIVERY_STATUSES.includes(caseData.status));
-                console.log('Total cases after delivery filter (post):', allCases.length);
-            }
-
-            // V1974: 日付範囲フィルタを適用
-            if (dateFilterType !== 'none' && (dateFilterFrom || dateFilterTo)) {
-                const fromDate = dateFilterFrom ? new Date(dateFilterFrom + 'T00:00:00') : null;
-                const toDate = dateFilterTo ? new Date(dateFilterTo + 'T23:59:59') : null;
-
-                allCases = allCases.filter(([_, caseData]) => {
-                    let targetDate = null;
-
-                    if (dateFilterType === 'call') {
-                        // 架電日フィルタ
-                        if (!caseData.nextCallDate) return false;
-                        targetDate = new Date(caseData.nextCallDate);
-                    } else if (dateFilterType === 'reg') {
-                        // 流入日フィルタ
-                        const regDate = caseData.createdAt || caseData.date;
-                        if (!regDate) return false;
-                        targetDate = new Date(regDate);
-                    }
-
-                    if (!targetDate) return false;
-
-                    // 日付範囲チェック
-                    if (fromDate && targetDate < fromDate) return false;
-                    if (toDate && targetDate > toDate) return false;
-
-                    return true;
-                });
-                console.log('Total cases after date filter:', allCases.length);
-            }
-
-            // V1974: 時間帯フィルタを適用（架電日のみ）
-            if (dateFilterType === 'call' && timeFilter !== 'all') {
-                allCases = allCases.filter(([_, caseData]) => {
-                    if (!caseData.nextCallDate) return false;
-                    const nextCallDate = new Date(caseData.nextCallDate);
-                    const hour = nextCallDate.getHours();
-                    const dayOfWeek = nextCallDate.getDay(); // 0=日, 6=土
-
-                    if (timeFilter === 'sat') {
-                        return dayOfWeek === 6;
-                    } else if (timeFilter === 'sun') {
-                        return dayOfWeek === 0;
-                    } else {
-                        const filterHour = parseInt(timeFilter);
-                        return hour === filterHour;
-                    }
-                });
-                console.log('Total cases after time filter:', allCases.length);
-            }
-
-            // ソート処理
-            const sortOption = document.getElementById('sortSelect')?.value || 'date-desc';
-            allCases.sort(([idA, dataA], [idB, dataB]) => {
-                if (sortOption === 'date-desc') {
-                    // 新着順（IDの降順、または登録日時の降順）
-                    const dateA = dataA.createdAt || dataA.date || idA;
-                    const dateB = dataB.createdAt || dataB.date || idB;
-                    return dateB > dateA ? 1 : -1;
-                } else if (sortOption === 'amount-desc') {
-                    // V1958: 金額順（金額の降順）- 数値/文字列両対応
-                    const parseAmount = (val) => {
-                        if (!val) return 0;
-                        if (typeof val === 'number') return val;
-                        // ¥20,000 → 20000, ¥20K → 20000
-                        const str = String(val).replace(/[¥￥,]/g, '');
-                        if (str.includes('K')) {
-                            return parseInt(str.replace('K', '')) * 1000 || 0;
-                        }
-                        return parseInt(str) || 0;
-                    };
-                    const amountA = parseAmount(dataA.amount);
-                    const amountB = parseAmount(dataB.amount);
-                    return amountB - amountA;
-                } else if (sortOption === 'nextcall-asc') {
-                    // V1959: 次回架電日順（早い順）
-                    const parseNextCall = (val) => {
-                        if (!val) return Infinity; // 未設定は最後
-                        try {
-                            return new Date(val).getTime();
-                        } catch {
-                            return Infinity;
-                        }
-                    };
-                    const nextA = parseNextCall(dataA.nextCallDate);
-                    const nextB = parseNextCall(dataB.nextCallDate);
-                    return nextA - nextB;
+                if (searchTerm) {
+                    // 検索条件でフィルタリング
+                    allCases = allCases.filter(([caseId, caseData]) => {
+                        const searchableText = normalizeText(
+                            JSON.stringify([
+                                caseData.name || '',
+                                caseData.kana || '',
+                                caseData.phone || '',
+                                caseData.address || '',
+                                caseData.postalCode || '',
+                                caseData.prefecture || '',
+                                caseData.city || '',
+                                caseData.status || ''
+                            ])
+                        );
+                        return searchableText.includes(searchTerm);
+                    });
+                    console.log('Total cases after search filter:', allCases.length);
                 }
-                return 0;
-            });
 
-            // V1958: 逆順フラグが有効なら配列を反転
-            if (isReversed) {
-                allCases.reverse();
+                // 2. ステータスフィルタを適用
+                if (currentStatusFilter) {
+                    allCases = allCases.filter(([_, caseData]) => caseData.status === currentStatusFilter);
+                    console.log('Total cases after status filter:', allCases.length);
+                }
+
+                // V1958: 配信前/後フィルタを適用
+                if (deliveryFilter === 'pre') {
+                    allCases = allCases.filter(([_, caseData]) => PRE_DELIVERY_STATUSES.includes(caseData.status));
+                    console.log('Total cases after delivery filter (pre):', allCases.length);
+                } else if (deliveryFilter === 'post') {
+                    allCases = allCases.filter(([_, caseData]) => POST_DELIVERY_STATUSES.includes(caseData.status));
+                    console.log('Total cases after delivery filter (post):', allCases.length);
+                }
             }
+
+            // V2062: 本日改フィルターが有効な場合は日付フィルタとソートをスキップ
+            if (!todayKaiFilterActive) {
+                // V1974: 日付範囲フィルタを適用
+                if (dateFilterType !== 'none' && (dateFilterFrom || dateFilterTo)) {
+                    const fromDate = dateFilterFrom ? new Date(dateFilterFrom + 'T00:00:00') : null;
+                    const toDate = dateFilterTo ? new Date(dateFilterTo + 'T23:59:59') : null;
+
+                    allCases = allCases.filter(([_, caseData]) => {
+                        let targetDate = null;
+
+                        if (dateFilterType === 'call') {
+                            // 架電日フィルタ
+                            if (!caseData.nextCallDate) return false;
+                            targetDate = new Date(caseData.nextCallDate);
+                        } else if (dateFilterType === 'reg') {
+                            // 流入日フィルタ
+                            const regDate = caseData.createdAt || caseData.date;
+                            if (!regDate) return false;
+                            targetDate = new Date(regDate);
+                        }
+
+                        if (!targetDate) return false;
+
+                        // 日付範囲チェック
+                        if (fromDate && targetDate < fromDate) return false;
+                        if (toDate && targetDate > toDate) return false;
+
+                        return true;
+                    });
+                    console.log('Total cases after date filter:', allCases.length);
+                }
+
+                // V1974: 時間帯フィルタを適用（架電日のみ）
+                if (dateFilterType === 'call' && timeFilter !== 'all') {
+                    allCases = allCases.filter(([_, caseData]) => {
+                        if (!caseData.nextCallDate) return false;
+                        const nextCallDate = new Date(caseData.nextCallDate);
+                        const hour = nextCallDate.getHours();
+                        const dayOfWeek = nextCallDate.getDay(); // 0=日, 6=土
+
+                        if (timeFilter === 'sat') {
+                            return dayOfWeek === 6;
+                        } else if (timeFilter === 'sun') {
+                            return dayOfWeek === 0;
+                        } else {
+                            const filterHour = parseInt(timeFilter);
+                            return hour === filterHour;
+                        }
+                    });
+                    console.log('Total cases after time filter:', allCases.length);
+                }
+            }
+
+            // ソート処理（本日改フィルターが有効な場合はスキップ - 既にソート済み）
+            if (!todayKaiFilterActive) {
+                const sortOption = document.getElementById('sortSelect')?.value || 'date-desc';
+                allCases.sort(([idA, dataA], [idB, dataB]) => {
+                    if (sortOption === 'date-desc') {
+                        // 新着順（IDの降順、または登録日時の降順）
+                        const dateA = dataA.createdAt || dataA.date || idA;
+                        const dateB = dataB.createdAt || dataB.date || idB;
+                        return dateB > dateA ? 1 : -1;
+                    } else if (sortOption === 'amount-desc') {
+                        // V1958: 金額順（金額の降順）- 数値/文字列両対応
+                        const parseAmount = (val) => {
+                            if (!val) return 0;
+                            if (typeof val === 'number') return val;
+                            // ¥20,000 → 20000, ¥20K → 20000
+                            const str = String(val).replace(/[¥￥,]/g, '');
+                            if (str.includes('K')) {
+                                return parseInt(str.replace('K', '')) * 1000 || 0;
+                            }
+                            return parseInt(str) || 0;
+                        };
+                        const amountA = parseAmount(dataA.amount);
+                        const amountB = parseAmount(dataB.amount);
+                        return amountB - amountA;
+                    } else if (sortOption === 'nextcall-asc') {
+                        // V1959: 次回架電日順（早い順）
+                        const parseNextCall = (val) => {
+                            if (!val) return Infinity; // 未設定は最後
+                            try {
+                                return new Date(val).getTime();
+                            } catch {
+                                return Infinity;
+                            }
+                        };
+                        const nextA = parseNextCall(dataA.nextCallDate);
+                        const nextB = parseNextCall(dataB.nextCallDate);
+                        return nextA - nextB;
+                    }
+                    return 0;
+                });
+
+                // V1958: 逆順フラグが有効なら配列を反転
+                if (isReversed) {
+                    allCases.reverse();
+                }
+            } // end of !todayKaiFilterActive for sort
 
             // 全データを取得
             // const allCases = Object.entries(casesData);
