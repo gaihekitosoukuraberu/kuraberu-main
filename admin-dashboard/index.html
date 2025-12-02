@@ -10072,12 +10072,11 @@ window.addEventListener('beforeunload', function(e) {
 
             // V1963: 履歴を表示（アイコン削除）
             // V2077: ラベル設定はメモ履歴のみに制限
+            // V2078: 選択時のみボタンを表示（opacity-0ではなく完全非表示）
             historyList.innerHTML = allHistory.map((item, index) => {
                 // callHistoryエントリのみ編集・削除可能（caseMemoは読み取り専用）
                 const isEditable = item.source === 'callHistory';
                 const isSelected = selectedCallHistoryIndex === index;
-                // 選択されている時のみボタンを表示（2タップ操作：1タップ目で選択→2タップ目でボタン押下）
-                const buttonVisibilityClass = isSelected ? 'opacity-100' : 'opacity-0';
 
                 // V1965: このエントリがラベルとして設定されているかチェック
                 const isLabel = casesData[currentCaseId]?.label === item.note;
@@ -10094,8 +10093,8 @@ window.addEventListener('beforeunload', function(e) {
                                 <p class="mt-1 break-words">${item.note}</p>
                                 ${item.nextCallDate ? `<p class="text-sm text-blue-600 mt-1">次回架電: ${item.nextCallDate}</p>` : ''}
                             </div>
-                            ${isEditable ? `
-                                <div class="flex gap-1.5 ${buttonVisibilityClass} transition-opacity duration-200 flex-shrink-0">
+                            ${isEditable && isSelected ? `
+                                <div class="flex gap-1.5 flex-shrink-0">
                                     ${isMemoRecord ? `<button
                                         onclick="setAsLabel(${index}, '${item.note.replace(/'/g, "\\'")}'); event.stopPropagation();"
                                         class="${isLabel ? 'text-yellow-600 bg-yellow-100' : 'text-yellow-600 hover:text-white hover:bg-yellow-500'} text-xs px-2.5 py-1.5 rounded-md transition-all font-medium"
