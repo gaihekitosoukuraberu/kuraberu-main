@@ -327,15 +327,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <!-- V1959: 配信前/後トグル（ヘッダーに移動） -->
-                    <div class="flex items-center border-2 border-gray-300 rounded-full overflow-hidden shadow-sm">
-                        <button id="preDeliveryBtn" onclick="setDeliveryFilter('pre')" class="px-2 md:px-3 py-1 md:py-1.5 text-xs font-medium bg-indigo-500 text-white transition-all">
-                            配信前
-                        </button>
-                        <button id="postDeliveryBtn" onclick="setDeliveryFilter('post')" class="px-2 md:px-3 py-1 md:py-1.5 text-xs font-medium bg-white text-gray-600 transition-all">
-                            配信後
-                        </button>
-                    </div>
+                    <!-- V2063: 配信前/後トグルは廃止 - ソートモーダルに統合 -->
                     <button onclick="createNewCase()" class="bg-gradient-to-r from-green-500 to-green-600 text-white p-2.5 md:px-5 md:py-2.5 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
