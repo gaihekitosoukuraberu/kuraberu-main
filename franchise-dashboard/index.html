@@ -901,46 +901,46 @@
                                     </button>
                                 </div>
 
-                                <!-- 対応中ステータス -->
+                                <!-- 対応中ステータス（温度上昇順: 青→グレー→オレンジ→紫→黄→シアン） -->
                                 <div class="mb-4">
                                     <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                                         <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
                                         対応中
                                     </h4>
                                     <div class="grid grid-cols-3 gap-1.5">
-                                        <button id="status-btn-未対応" onclick="toggleStatusFilter('未対応')" class="status-filter-btn px-2 py-1.5 border-2 border-blue-500 bg-blue-100 text-blue-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">新着</button>
-                                        <button id="status-btn-架電済/未アポ" onclick="toggleStatusFilter('架電済/未アポ')" class="status-filter-btn px-2 py-1.5 border-2 border-gray-400 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">未アポ</button>
-                                        <button id="status-btn-アポ済" onclick="toggleStatusFilter('アポ済')" class="status-filter-btn px-2 py-1.5 border-2 border-orange-500 bg-orange-100 text-orange-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">アポ済</button>
-                                        <button id="status-btn-現調済" onclick="toggleStatusFilter('現調済')" class="status-filter-btn px-2 py-1.5 border-2 border-purple-500 bg-purple-100 text-purple-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調済</button>
-                                        <button id="status-btn-見積提出済" onclick="toggleStatusFilter('見積提出済')" class="status-filter-btn px-2 py-1.5 border-2 border-red-500 bg-red-100 text-red-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">見積提出</button>
-                                        <button id="status-btn-入金予定" onclick="toggleStatusFilter('入金予定')" class="status-filter-btn px-2 py-1.5 border-2 border-yellow-500 bg-yellow-100 text-yellow-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">入金予定</button>
+                                        <button id="status-btn-未対応" onclick="toggleStatusFilter('未対応')" class="status-filter-btn px-2 py-1.5 border-2 border-blue-400 bg-blue-100 text-blue-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">新着</button>
+                                        <button id="status-btn-架電済/未アポ" onclick="toggleStatusFilter('架電済/未アポ')" class="status-filter-btn px-2 py-1.5 border-2 border-slate-400 bg-slate-100 text-slate-700 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">未アポ</button>
+                                        <button id="status-btn-アポ済" onclick="toggleStatusFilter('アポ済')" class="status-filter-btn px-2 py-1.5 border-2 border-orange-400 bg-orange-100 text-orange-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">アポ済</button>
+                                        <button id="status-btn-現調済" onclick="toggleStatusFilter('現調済')" class="status-filter-btn px-2 py-1.5 border-2 border-purple-400 bg-purple-100 text-purple-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調済</button>
+                                        <button id="status-btn-見積提出済" onclick="toggleStatusFilter('見積提出済')" class="status-filter-btn px-2 py-1.5 border-2 border-amber-400 bg-amber-100 text-amber-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">見積提出</button>
+                                        <button id="status-btn-入金予定" onclick="toggleStatusFilter('入金予定')" class="status-filter-btn px-2 py-1.5 border-2 border-cyan-400 bg-cyan-100 text-cyan-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">入金予定</button>
                                     </div>
                                 </div>
 
-                                <!-- 完了ステータス -->
+                                <!-- 完了ステータス（緑系） -->
                                 <div class="mb-4">
                                     <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                                         <span class="w-2 h-2 bg-green-500 rounded-full"></span>
                                         完了
                                     </h4>
                                     <div class="grid grid-cols-3 gap-1.5">
-                                        <button id="status-btn-成約" onclick="toggleStatusFilter('成約')" class="status-filter-btn px-2 py-1.5 border-2 border-green-600 bg-green-100 text-green-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">成約</button>
-                                        <button id="status-btn-入金済" onclick="toggleStatusFilter('入金済')" class="status-filter-btn px-2 py-1.5 border-2 border-green-700 bg-green-100 text-green-900 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">入金済</button>
+                                        <button id="status-btn-成約" onclick="toggleStatusFilter('成約')" class="status-filter-btn px-2 py-1.5 border-2 border-green-400 bg-green-100 text-green-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">成約</button>
+                                        <button id="status-btn-入金済" onclick="toggleStatusFilter('入金済')" class="status-filter-btn px-2 py-1.5 border-2 border-emerald-400 bg-emerald-100 text-emerald-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">入金済</button>
                                     </div>
                                 </div>
 
-                                <!-- キャンセル・失注ステータス -->
+                                <!-- キャンセル・失注ステータス（グレー系 + 赤） -->
                                 <div class="pb-4">
                                     <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                                         <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
                                         キャンセル・失注
                                     </h4>
                                     <div class="grid grid-cols-3 gap-1.5">
-                                        <button id="status-btn-現調前キャンセル" onclick="toggleStatusFilter('現調前キャンセル')" class="status-filter-btn px-2 py-1.5 border-2 border-cyan-500 bg-cyan-100 text-cyan-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調前CN</button>
-                                        <button id="status-btn-現調後失注" onclick="toggleStatusFilter('現調後失注')" class="status-filter-btn px-2 py-1.5 border-2 border-gray-600 bg-gray-200 text-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調後失注</button>
-                                        <button id="status-btn-他社契約済" onclick="toggleStatusFilter('他社契約済')" class="status-filter-btn px-2 py-1.5 border-2 border-slate-500 bg-slate-100 text-slate-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">他社契約</button>
-                                        <button id="status-btn-別加盟店契約済" onclick="toggleStatusFilter('別加盟店契約済')" class="status-filter-btn px-2 py-1.5 border-2 border-indigo-500 bg-indigo-100 text-indigo-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">別加盟店</button>
-                                        <button id="status-btn-クレーム" onclick="toggleStatusFilter('クレーム')" class="status-filter-btn px-2 py-1.5 border-2 border-red-700 bg-red-100 text-red-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">クレーム</button>
+                                        <button id="status-btn-現調前キャンセル" onclick="toggleStatusFilter('現調前キャンセル')" class="status-filter-btn px-2 py-1.5 border-2 border-gray-400 bg-gray-100 text-gray-600 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調前CN</button>
+                                        <button id="status-btn-現調後失注" onclick="toggleStatusFilter('現調後失注')" class="status-filter-btn px-2 py-1.5 border-2 border-gray-500 bg-gray-200 text-gray-700 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調後失注</button>
+                                        <button id="status-btn-他社契約済" onclick="toggleStatusFilter('他社契約済')" class="status-filter-btn px-2 py-1.5 border-2 border-gray-400 bg-gray-100 text-gray-600 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">他社契約</button>
+                                        <button id="status-btn-別加盟店契約済" onclick="toggleStatusFilter('別加盟店契約済')" class="status-filter-btn px-2 py-1.5 border-2 border-indigo-400 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">別加盟店契約</button>
+                                        <button id="status-btn-クレーム" onclick="toggleStatusFilter('クレーム')" class="status-filter-btn px-2 py-1.5 border-2 border-red-400 bg-red-100 text-red-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">クレーム</button>
                                     </div>
                                 </div>
                             </div>
@@ -15512,14 +15512,31 @@
         let dateFilterTo = null;
         let currentSortOrder = 'date-desc'; // date-desc/nextcall-asc/status
 
-        // ステータス→スタイルマッピング
+        // ステータス→スタイルマッピング（温度感で統一）
+        // 青=フレッシュ/クール → オレンジ=温 → 緑=成約 → グレー=終了・ネガティブ
         const statusStyles = {
-            '対応待ち': { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200' },
-            '訪問済み': { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-200' },
-            '見積提出済み': { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200' },
-            '成約': { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200' },
-            'キャンセル': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200' },
-            '': { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200' }
+            // 進行中（温度上昇順）
+            '新着': { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-300' },
+            '未対応': { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-300' },
+            '未アポ': { bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-300' },
+            '架電済/未アポ': { bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-300' },
+            'アポ済': { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-300' },
+            '現調済': { bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-300' },
+            '見積提出済み': { bg: 'bg-amber-100', text: 'text-amber-800', border: 'border-amber-300' },
+            '見積提出済': { bg: 'bg-amber-100', text: 'text-amber-800', border: 'border-amber-300' },
+            '入金予定': { bg: 'bg-cyan-100', text: 'text-cyan-800', border: 'border-cyan-300' },
+            // ゴール
+            '成約': { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-300' },
+            '入金済': { bg: 'bg-emerald-100', text: 'text-emerald-800', border: 'border-emerald-300' },
+            // ネガティブ終了
+            '現調前キャンセル': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-300' },
+            '現調後失注': { bg: 'bg-gray-200', text: 'text-gray-700', border: 'border-gray-400' },
+            '他社契約済': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-300' },
+            '別加盟店契約済': { bg: 'bg-indigo-100', text: 'text-indigo-700', border: 'border-indigo-300' },
+            'クレーム': { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-300' },
+            'キャンセル': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-300' },
+            // デフォルト（新着扱い）
+            '': { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-300' }
         };
 
         // 案件データをAPIから取得
@@ -15613,7 +15630,7 @@
 
             const status = caseItem.detailStatus || '';
             const filterMap = {
-                'pending': ['', '対応待ち', '未対応'],
+                'pending': ['', '対応待ち', '未対応', '新着'],
                 'visited': ['訪問済み'],
                 'quoted': ['見積提出済み'],
                 'contracted': ['成約'],
@@ -17874,27 +17891,30 @@
 
         // 古いフィルター関連は V2007 で新実装に置き換え済み
         // getStatusColor は古いダミーコード用だが、一部で使われている可能性があるので残す
+        // ※ statusStyles と統一（温度感: 青=フレッシュ → オレンジ=温 → 緑=成約 → グレー=終了）
         function getStatusColor(status) {
             const statusColors = {
-                '未対応': 'bg-red-100 text-red-800',
-                '対応待ち': 'bg-red-100 text-red-800',
-                '架電済/未アポ': 'bg-orange-100 text-orange-800',
-                'アポ済': 'bg-blue-100 text-blue-800',
-                '訪問済み': 'bg-blue-100 text-blue-800',
-                '現調済': 'bg-indigo-100 text-indigo-800',
-                '現調前キャンセル': 'bg-gray-100 text-gray-800',
-                '現調後失注': 'bg-gray-100 text-gray-800',
-                '見積提出済': 'bg-yellow-100 text-yellow-800',
-                '見積提出済み': 'bg-yellow-100 text-yellow-800',
-                '成約': 'bg-green-100 text-green-800',
-                'キャンセル': 'bg-gray-100 text-gray-600',
-                '他社契約済': 'bg-gray-100 text-gray-800',
-                '別加盟店契約済': 'bg-purple-100 text-purple-800',
+                '新着': 'bg-blue-100 text-blue-800',
+                '未対応': 'bg-blue-100 text-blue-800',
+                '対応待ち': 'bg-blue-100 text-blue-800',
+                '未アポ': 'bg-slate-100 text-slate-700',
+                '架電済/未アポ': 'bg-slate-100 text-slate-700',
+                'アポ済': 'bg-orange-100 text-orange-800',
+                '訪問済み': 'bg-orange-100 text-orange-800',
+                '現調済': 'bg-purple-100 text-purple-800',
+                '見積提出済': 'bg-amber-100 text-amber-800',
+                '見積提出済み': 'bg-amber-100 text-amber-800',
                 '入金予定': 'bg-cyan-100 text-cyan-800',
+                '成約': 'bg-green-100 text-green-800',
                 '入金済': 'bg-emerald-100 text-emerald-800',
-                'クレーム or 失注': 'bg-red-100 text-red-800'
+                '現調前キャンセル': 'bg-gray-100 text-gray-600',
+                '現調後失注': 'bg-gray-200 text-gray-700',
+                '他社契約済': 'bg-gray-100 text-gray-600',
+                '別加盟店契約済': 'bg-indigo-100 text-indigo-700',
+                'キャンセル': 'bg-gray-100 text-gray-600',
+                'クレーム': 'bg-red-100 text-red-800'
             };
-            return statusColors[status] || 'bg-gray-100 text-gray-800';
+            return statusColors[status] || 'bg-blue-100 text-blue-800';
         }
 
         // 案件振り分けモーダル
