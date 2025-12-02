@@ -1454,10 +1454,14 @@
                             </div>
                         </div>
 
-                        <!-- メールプレビュー -->
+                        <!-- メールプレビュー（編集可能） -->
                         <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-                            <h4 class="font-bold text-gray-800 mb-2">配信メールプレビュー</h4>
-                            <pre id="broadcastPreviewText" class="text-xs bg-gray-50 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap border max-h-60 overflow-y-auto">読み込み中...</pre>
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-bold text-gray-800">配信メールプレビュー</h4>
+                                <button onclick="copyBroadcastMessage()" class="text-xs bg-slate-600 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700 transition-all">コピー</button>
+                            </div>
+                            <textarea id="broadcastPreviewText" class="w-full h-60 p-3 text-xs bg-gray-50 rounded-lg border focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none font-mono" placeholder="読み込み中..."></textarea>
+                            <p class="text-xs text-gray-400 mt-1">※ 必要に応じて直接編集可能です</p>
                         </div>
 
                         <!-- 説明 -->
@@ -11708,7 +11712,7 @@ ${f.name} 御中
 平素よりお世話になっております。
 外壁塗装くらべる運営事務局でございます。
 
-下記の通り案件をご紹介させていただきます。
+下記新着案件がございますのでぜひご検討ください。
 お客様へのご連絡、現地調査、お見積りのご提出を
 よろしくお願いいたします。
 
@@ -12155,12 +12159,27 @@ info@gaihekikuraberu.com
             try {
                 const response = await window.apiClient.postRequest('getBroadcastPreview', { cvId: cvId });
                 if (response && response.success) {
-                    document.getElementById('broadcastPreviewText').textContent = response.preview;
+                    document.getElementById('broadcastPreviewText').value = response.preview;
                 }
             } catch (error) {
                 console.error('[loadBroadcastPreview] エラー:', error);
-                document.getElementById('broadcastPreviewText').textContent = 'プレビュー取得失敗';
+                document.getElementById('broadcastPreviewText').value = 'プレビュー取得失敗';
             }
+        }
+
+        // V2047: 案件メールをコピー
+        function copyBroadcastMessage() {
+            const textarea = document.getElementById('broadcastPreviewText');
+            if (!textarea || !textarea.value) {
+                showNotification('コピーする内容がありません', 'error');
+                return;
+            }
+            navigator.clipboard.writeText(textarea.value).then(() => {
+                showNotification('コピーしました', 'success');
+            }).catch(err => {
+                console.error('[copyBroadcastMessage] コピー失敗:', err);
+                showNotification('コピーに失敗しました', 'error');
+            });
         }
 
         // 案件メールを実行
@@ -12171,12 +12190,16 @@ info@gaihekikuraberu.com
                 return;
             }
 
+            // V2047: 編集されたメール本文を取得
+            const editedMessage = document.getElementById('broadcastPreviewText').value;
+
             const button = document.getElementById('broadcastSubmitBtn');
             button.disabled = true;
             button.textContent = '配信中...';
 
             try {
-                const response = await window.apiClient.postRequest('sendBroadcast', { cvId: cvId });
+                // V2047: 編集内容も送信
+                const response = await window.apiClient.postRequest('sendBroadcast', { cvId: cvId, customMessage: editedMessage });
 
                 if (response && response.success) {
                     showNotification(`案件メール送信完了: ${response.sentCount}社に配信しました（残り枠: ${response.remainingSlots}社）`, 'success');
