@@ -665,7 +665,7 @@
                 </div>
 
                 <!-- カードビュー（スマホ: 表示 / PC: 非表示） -->
-                <div id="caseCardView" class="grid grid-cols-1 gap-4 md:hidden">
+                <div id="caseCardView" class="grid grid-cols-1 gap-5 md:hidden">
                     <!-- ローディング表示 -->
                     <div id="casesLoading" class="col-span-full text-center py-12">
                         <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
@@ -16115,7 +16115,7 @@
             }
 
             return `
-                <div class="bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition-shadow" data-cv-id="${c.cvId}">
+                <div class="bg-white rounded-xl shadow-lg border-2 border-gray-200 p-5 hover:shadow-xl transition-shadow" data-cv-id="${c.cvId}">
                     <div class="flex justify-between items-center mb-4">
                         <span class="px-3 py-1.5 text-sm font-bold rounded-full ${style.bg} ${style.text}">${status}</span>
                         ${assignee && assignee !== '-'
