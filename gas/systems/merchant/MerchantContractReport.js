@@ -777,6 +777,57 @@ var MerchantContractReport = {
   },
 
   /**
+   * 通話履歴更新
+   * @param {Object} params - { merchantId, cvId, callHistory }
+   * @return {Object} - { success }
+   */
+  updateCallHistory: function(params) {
+    const { merchantId, cvId, callHistory } = params;
+    console.log('[MerchantContractReport] updateCallHistory:', { merchantId, cvId, historyLength: (callHistory || []).length });
+
+    if (!merchantId || !cvId) {
+      return { success: false, error: 'パラメータが不足しています' };
+    }
+
+    try {
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const deliverySheet = ss.getSheetByName('配信管理');
+      const data = deliverySheet.getDataRange().getValues();
+      const headers = data[0];
+
+      const colIdx = {
+        cvId: headers.indexOf('CV ID'),
+        franchiseId: headers.indexOf('加盟店ID'),
+        callHistory: headers.indexOf('通話履歴')
+      };
+
+      if (colIdx.callHistory === -1) {
+        return { success: false, error: '通話履歴列が見つかりません' };
+      }
+
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        if (String(row[colIdx.cvId]) === String(cvId) &&
+            String(row[colIdx.franchiseId]) === String(merchantId)) {
+
+          const historyJson = JSON.stringify(callHistory || []);
+          deliverySheet.getRange(i + 1, colIdx.callHistory + 1).setValue(historyJson);
+
+          console.log('[MerchantContractReport] updateCallHistory - updated row', i + 1);
+          return { success: true };
+        }
+      }
+
+      return { success: false, error: '該当する案件が見つかりません' };
+
+    } catch (error) {
+      console.error('[MerchantContractReport] updateCallHistory error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
    * アクションルーター
    * @param {Object} params - { action: アクション名, ...その他のパラメータ }
    * @return {Object} - 実行結果
@@ -795,6 +846,8 @@ var MerchantContractReport = {
         return this.updateCaseStatus(params);
       case 'updateCaseMemo':
         return this.updateCaseMemo(params);
+      case 'updateCallHistory':
+        return this.updateCallHistory(params);
       default:
         return {
           success: false,

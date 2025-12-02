@@ -17011,6 +17011,98 @@
             closeAssignModal();
         }
 
+        // ===== 次回架電日設定モーダル =====
+        let nextCallTargetCvId = null;
+
+        function openNextCallModal(cvId) {
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            nextCallTargetCvId = cvId;
+            document.getElementById('nextCallTargetName').textContent = `${c.customerName || '-'} (${c.fullAddress || c.city || '-'})`;
+
+            // 既存の日付があればセット
+            if (c.nextCallDate) {
+                document.getElementById('nextCallDateInput').value = c.nextCallDate;
+            } else {
+                document.getElementById('nextCallDateInput').value = '';
+            }
+
+            document.getElementById('nextCallModal').classList.remove('hidden');
+        }
+
+        function closeNextCallModal() {
+            document.getElementById('nextCallModal').classList.add('hidden');
+            nextCallTargetCvId = null;
+        }
+
+        function setNextCallQuick(daysFromNow) {
+            const date = new Date();
+            date.setDate(date.getDate() + daysFromNow);
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            document.getElementById('nextCallDateInput').value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        async function saveNextCallDate() {
+            if (!nextCallTargetCvId) return;
+
+            const dateValue = document.getElementById('nextCallDateInput').value;
+            if (!dateValue) {
+                showNotification('エラー', '日付を選択してください', 'error');
+                return;
+            }
+
+            try {
+                const result = await window.apiClient.postRequest('updateCVData', {
+                    cvId: nextCallTargetCvId,
+                    data: { nextCallDate: dateValue }
+                });
+
+                if (result.success) {
+                    const caseData = merchantCasesData.find(c => String(c.cvId) === String(nextCallTargetCvId));
+                    if (caseData) {
+                        caseData.nextCallDate = dateValue;
+                    }
+                    renderCases();
+                    closeNextCallModal();
+                    showNotification('保存完了', '次回架電日を設定しました');
+                } else {
+                    showNotification('エラー', '保存に失敗しました', 'error');
+                }
+            } catch (error) {
+                console.error('次回架電日保存エラー:', error);
+                showNotification('エラー', '通信エラーが発生しました', 'error');
+            }
+        }
+
+        async function clearNextCallDate() {
+            if (!nextCallTargetCvId) return;
+
+            try {
+                const result = await window.apiClient.postRequest('updateCVData', {
+                    cvId: nextCallTargetCvId,
+                    data: { nextCallDate: '' }
+                });
+
+                if (result.success) {
+                    const caseData = merchantCasesData.find(c => String(c.cvId) === String(nextCallTargetCvId));
+                    if (caseData) {
+                        caseData.nextCallDate = '';
+                    }
+                    renderCases();
+                    closeNextCallModal();
+                    showNotification('完了', '次回架電日をクリアしました');
+                } else {
+                    showNotification('エラー', 'クリアに失敗しました', 'error');
+                }
+            } catch (error) {
+                console.error('次回架電日クリアエラー:', error);
+                showNotification('エラー', '通信エラーが発生しました', 'error');
+            }
+        }
+
         // 案件データを取得する関数（互換性のため残す）
         function getCasesData() {
             return merchantCasesData;
