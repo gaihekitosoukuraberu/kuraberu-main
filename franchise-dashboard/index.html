@@ -16281,11 +16281,10 @@
 
         // 通話中バーから詳細モーダルを開く（バーは消さない）
         function openCallingCaseDetail() {
-            if (!currentCallCase) return;
-            // 詳細モーダルを開く
-            if (typeof openDetailModal === 'function') {
-                openDetailModal(currentCallCase.cvId);
-            }
+            const cvId = localStorage.getItem('callingCvId');
+            if (!cvId) return;
+            // 詳細モーダルを開く（グローバル関数として呼び出し）
+            window.openDetailModalFromBar(cvId);
         }
 
         window.openCallingCaseDetail = openCallingCaseDetail;
@@ -16777,6 +16776,9 @@
             document.getElementById('caseDetailContent').innerHTML = content;
             document.getElementById('caseDetailModal').classList.remove('hidden');
         }
+
+        // 通話中バーからの呼び出し用
+        window.openDetailModalFromBar = openDetailModal;
 
         function closeDetailModal() {
             document.getElementById('caseDetailModal').classList.add('hidden');
