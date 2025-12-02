@@ -8702,7 +8702,6 @@ window.addEventListener('beforeunload', function(e) {
                         <div class="flex flex-col gap-1 flex-shrink-0">
                             <button onclick="event.stopPropagation(); editMemoHistory(${originalIndex})" class="text-sm hover:bg-blue-100 rounded p-1">✏️</button>
                             <button onclick="event.stopPropagation(); deleteMemoHistory(${originalIndex})" class="text-sm hover:bg-red-100 rounded p-1">🗑️</button>
-                            <button onclick="event.stopPropagation(); clearMemoSelection()" class="text-sm hover:bg-gray-200 rounded p-1">✕</button>
                         </div>
                         ` : ''}
                     </div>
@@ -8929,7 +8928,6 @@ window.addEventListener('beforeunload', function(e) {
                         <div class="flex flex-col gap-1 flex-shrink-0">
                             <button onclick="event.stopPropagation(); editHistory(${originalIndex})" class="p-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-all" title="編集">✏️</button>
                             <button onclick="event.stopPropagation(); deleteHistory(${originalIndex})" class="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-all" title="削除">🗑️</button>
-                            <button onclick="event.stopPropagation(); clearHistorySelection()" class="p-1.5 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition-all" title="閉じる">✕</button>
                         </div>
                         ` : ''}
                     </div>
