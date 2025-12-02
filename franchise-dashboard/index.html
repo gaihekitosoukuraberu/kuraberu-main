@@ -1010,40 +1010,49 @@
 
                 <!-- 期間フィルタモーダル -->
                 <div id="dateFilterModal" class="fixed inset-0 z-50 hidden">
-                    <div class="fixed inset-0 bg-black/50" onclick="closeDateFilterModal()"></div>
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeDateFilterModal()"></div>
                     <div class="fixed inset-0 flex items-center justify-center p-4">
-                        <div class="bg-white rounded-lg shadow-xl p-5 w-full max-w-sm">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-semibold text-gray-900">期間フィルタ</h3>
-                                <button onclick="closeDateFilterModal()" class="text-gray-400 hover:text-gray-600">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">対象</label>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <button id="dateTypeNone" onclick="setDateFilterType('none')" class="py-2 px-3 rounded-lg border-2 border-gray-300 bg-gray-100 text-gray-800 font-medium text-sm">なし</button>
-                                    <button id="dateTypeDelivery" onclick="setDateFilterType('delivery')" class="py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm">配信日</button>
-                                    <button id="dateTypeCall" onclick="setDateFilterType('call')" class="py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm col-span-2">架電日</button>
+                        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+                            <!-- ヘッダー -->
+                            <div class="px-5 py-4 bg-gradient-to-r from-indigo-500 to-purple-600">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="text-lg font-bold text-white">📅 期間フィルタ</h3>
+                                    <button onclick="closeDateFilterModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-lg p-1.5 transition-all">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
-                            <div id="dateRangeSection" class="mb-4 hidden">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">日付範囲</label>
-                                <div class="flex items-center gap-2">
-                                    <input type="date" id="modalDateFrom" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                                    <span class="text-gray-400">〜</span>
-                                    <input type="date" id="modalDateTo" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                            <!-- コンテンツ -->
+                            <div class="p-5">
+                                <div class="mb-5">
+                                    <label class="block text-sm font-bold text-gray-700 mb-3">フィルタ対象</label>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <button id="dateTypeDelivery" onclick="setDateFilterType('delivery')" class="py-3 px-4 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-bold text-sm hover:bg-indigo-100 transition-all">
+                                            📦 配信日
+                                        </button>
+                                        <button id="dateTypeCall" onclick="setDateFilterType('call')" class="py-3 px-4 rounded-xl border-2 border-gray-200 bg-white text-gray-600 font-bold text-sm hover:bg-gray-50 transition-all">
+                                            📞 架電日
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="closeDateFilterModal()" class="flex-1 py-2.5 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg font-semibold hover:bg-gray-200 transition-all">
-                                    キャンセル
-                                </button>
-                                <button onclick="applyDateFilter()" class="flex-1 py-2.5 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-all">
-                                    適用
-                                </button>
+                                <div id="dateRangeSection" class="mb-5">
+                                    <label class="block text-sm font-bold text-gray-700 mb-3">日付範囲</label>
+                                    <div class="flex items-center gap-3">
+                                        <input type="date" id="modalDateFrom" class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
+                                        <span class="text-gray-400 font-bold">〜</span>
+                                        <input type="date" id="modalDateTo" class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <button onclick="clearDateFilter()" class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-all">
+                                        クリア
+                                    </button>
+                                    <button onclick="applyDateFilter()" class="flex-1 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all">
+                                        適用
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -15826,9 +15835,6 @@
             dateFilterType = type;
             updateDateFilterTypeButtons();
 
-            const isEnabled = type !== 'none';
-            document.getElementById('dateRangeSection').classList.toggle('hidden', !isEnabled);
-
             // 架電日選択時は今日をデフォルト
             if (type === 'call') {
                 const today = new Date().toISOString().split('T')[0];
@@ -15838,18 +15844,29 @@
         }
 
         function updateDateFilterTypeButtons() {
-            const types = ['none', 'delivery', 'call'];
-            const typeIdMap = { 'none': 'dateTypeNone', 'delivery': 'dateTypeDelivery', 'call': 'dateTypeCall' };
+            const types = ['delivery', 'call'];
             types.forEach(t => {
-                const btn = document.getElementById(typeIdMap[t]);
+                const btn = document.getElementById(t === 'delivery' ? 'dateTypeDelivery' : 'dateTypeCall');
                 if (btn) {
                     if (t === dateFilterType) {
-                        btn.className = 'flex-1 py-2 px-3 rounded-lg border-2 border-gray-300 bg-gray-100 text-gray-800 font-medium text-sm';
+                        btn.className = 'py-3 px-4 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-bold text-sm hover:bg-indigo-100 transition-all';
                     } else {
-                        btn.className = 'flex-1 py-2 px-3 rounded-lg border-2 border-gray-200 bg-white text-gray-600 font-medium text-sm';
+                        btn.className = 'py-3 px-4 rounded-xl border-2 border-gray-200 bg-white text-gray-600 font-bold text-sm hover:bg-gray-50 transition-all';
                     }
                 }
             });
+        }
+
+        function clearDateFilter() {
+            dateFilterType = 'delivery';
+            dateFilterFrom = null;
+            dateFilterTo = null;
+            document.getElementById('modalDateFrom').value = '';
+            document.getElementById('modalDateTo').value = '';
+            updateDateFilterTypeButtons();
+            updateDateFilterLabel();
+            closeDateFilterModal();
+            renderCases();
         }
 
         function applyDateFilter() {
@@ -15864,30 +15881,31 @@
         function updateDateFilterLabel() {
             const label = document.getElementById('dateFilterLabel');
             const btn = document.getElementById('dateFilterBtn');
-            if (dateFilterType === 'none') {
+            const typeName = dateFilterType === 'call' ? '架電' : '配信';
+            let dateRange = '';
+            if (dateFilterFrom && dateFilterTo) {
+                if (dateFilterFrom === dateFilterTo) {
+                    dateRange = dateFilterFrom.slice(5);
+                } else {
+                    dateRange = `${dateFilterFrom.slice(5)}〜${dateFilterTo.slice(5)}`;
+                }
+            } else if (dateFilterFrom) {
+                dateRange = `${dateFilterFrom.slice(5)}〜`;
+            } else if (dateFilterTo) {
+                dateRange = `〜${dateFilterTo.slice(5)}`;
+            }
+
+            if (dateRange) {
+                label.textContent = `${typeName} ${dateRange}`;
+                if (btn) {
+                    btn.classList.remove('opacity-70');
+                    btn.classList.add('opacity-100', 'ring-2', 'ring-emerald-400');
+                }
+            } else {
                 label.textContent = '期間';
                 if (btn) {
                     btn.classList.add('opacity-70');
                     btn.classList.remove('opacity-100', 'ring-2', 'ring-emerald-400');
-                }
-            } else {
-                const typeName = dateFilterType === 'call' ? '架電' : '配信';
-                let dateRange = '';
-                if (dateFilterFrom && dateFilterTo) {
-                    if (dateFilterFrom === dateFilterTo) {
-                        dateRange = dateFilterFrom.slice(5);
-                    } else {
-                        dateRange = `${dateFilterFrom.slice(5)}〜${dateFilterTo.slice(5)}`;
-                    }
-                } else if (dateFilterFrom) {
-                    dateRange = `${dateFilterFrom.slice(5)}〜`;
-                } else if (dateFilterTo) {
-                    dateRange = `〜${dateFilterTo.slice(5)}`;
-                }
-                label.textContent = dateRange ? `${typeName} ${dateRange}` : typeName;
-                if (btn) {
-                    btn.classList.remove('opacity-70');
-                    btn.classList.add('opacity-100', 'ring-2', 'ring-emerald-400');
                 }
             }
         }
