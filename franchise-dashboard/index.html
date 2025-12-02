@@ -16030,7 +16030,9 @@
                     <h3 class="font-bold text-lg mb-1">${escapeHtml(c.customerName || '-')}</h3>
                     <p class="text-sm text-gray-600 mb-1">${escapeHtml(c.fullAddress || c.city || '-')}</p>
                     ${propertyInfo ? `<p class="text-xs text-gray-500 mb-2">${escapeHtml(propertyInfo)}</p>` : ''}
-                    <div class="flex items-center text-xs text-gray-500 mb-3">
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mb-3">
+                        ${c.nextCallDate ? `<span>🗓️次回: ${c.nextCallDate.replace(/^\d{4}[-\/]/, '').replace(/-/g, '/')}</span>` : ''}
+                        ${c.assignee ? `<span>担当: ${escapeHtml(c.assignee)}</span>` : ''}
                         <span>配信: ${c.deliveredAt || '-'}</span>
                     </div>
                     ${hasMemo ? `<div class="text-xs text-gray-500 bg-gray-50 p-2 rounded mb-3 line-clamp-2">${escapeHtml(c.merchantMemo)}</div>` : ''}
