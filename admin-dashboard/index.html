@@ -323,7 +323,7 @@
                     </div>
                     <div>
                         <h1 class="text-xl md:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">案件管理</h1>
-                        <p class="hidden md:block text-xs md:text-sm text-gray-500 mt-0.5">Case Management</p>
+                        <p id="currentCaseIdDisplay" class="text-xs md:text-sm text-blue-600 font-medium mt-0.5"></p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
@@ -369,33 +369,33 @@
                             </button>
                         </div>
 
-                        <!-- V2066: フィルターボタン群（6等分・2行×3列・統一デザイン） -->
-                        <div class="grid grid-cols-3 gap-2 w-full">
+                        <!-- V2067: フィルターボタン群（2行×3列・スマホ最適化） -->
+                        <div class="grid grid-cols-3 gap-1.5 sm:gap-2 w-full">
                             <!-- 上段: 新規・全て・本日改 -->
-                            <button id="filterBtnNew" onclick="filterByNewStatus()" class="flex flex-col items-center justify-center py-3 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer opacity-70">
-                                <span class="text-lg font-bold" id="newCount">0</span>
-                                <span class="text-xs font-medium">新規</span>
+                            <button id="filterBtnNew" onclick="filterByNewStatus()" class="flex flex-col items-center justify-center py-2 sm:py-3 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer opacity-70">
+                                <span class="text-base sm:text-lg font-bold" id="newCount">0</span>
+                                <span class="text-[10px] sm:text-xs font-medium">新規</span>
                             </button>
-                            <button id="filterBtnAll" onclick="filterByAll()" class="flex flex-col items-center justify-center py-3 bg-gradient-to-br from-slate-500 to-slate-600 text-white rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer opacity-70">
-                                <span class="text-lg font-bold" id="allCount">0</span>
-                                <span class="text-xs font-medium">全て</span>
+                            <button id="filterBtnAll" onclick="filterByAll()" class="flex flex-col items-center justify-center py-2 sm:py-3 bg-gradient-to-br from-slate-500 to-slate-600 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer opacity-70">
+                                <span class="text-base sm:text-lg font-bold" id="allCount">0</span>
+                                <span class="text-[10px] sm:text-xs font-medium">全て</span>
                             </button>
-                            <button id="filterBtnTodayKai" onclick="filterByTodayKai()" class="flex flex-col items-center justify-center py-3 bg-gradient-to-br from-rose-500 to-rose-600 text-white rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer opacity-70">
-                                <span class="text-lg font-bold" id="todayKaiCount">0</span>
-                                <span class="text-xs font-medium">本日改</span>
+                            <button id="filterBtnTodayKai" onclick="filterByTodayKai()" class="flex flex-col items-center justify-center py-2 sm:py-3 bg-gradient-to-br from-rose-500 to-rose-600 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer opacity-70">
+                                <span class="text-base sm:text-lg font-bold" id="todayKaiCount">0</span>
+                                <span class="text-[10px] sm:text-xs font-medium">本日改</span>
                             </button>
                             <!-- 下段: ソート・期間・並び順 -->
-                            <button id="statusFilterBtn" onclick="openSortModal()" class="flex flex-col items-center justify-center py-3 bg-gradient-to-br from-violet-500 to-violet-600 text-white rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer">
-                                <span class="text-lg font-bold" id="statusFilterLabel">⚡</span>
-                                <span class="text-xs font-medium">ソート</span>
+                            <button id="statusFilterBtn" onclick="openSortModal()" class="flex flex-col items-center justify-center py-2 sm:py-3 bg-gradient-to-br from-violet-500 to-violet-600 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer">
+                                <span class="text-base sm:text-lg font-bold" id="statusFilterLabel">⚡</span>
+                                <span class="text-[10px] sm:text-xs font-medium">ソート</span>
                             </button>
-                            <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex flex-col items-center justify-center py-3 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer">
-                                <span class="text-lg font-bold" id="dateFilterIcon">📅</span>
-                                <span class="text-xs font-medium truncate" id="dateFilterLabel">期間</span>
+                            <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex flex-col items-center justify-center py-2 sm:py-3 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer">
+                                <span class="text-base sm:text-lg font-bold" id="dateFilterIcon">📅</span>
+                                <span class="text-[10px] sm:text-xs font-medium truncate" id="dateFilterLabel">期間</span>
                             </button>
-                            <button id="sortOrderBtn" onclick="openSortOrderModal()" class="flex flex-col items-center justify-center py-3 bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer">
-                                <span class="text-lg font-bold">↕️</span>
-                                <span class="text-xs font-medium" id="sortOrderLabel">新着順</span>
+                            <button id="sortOrderBtn" onclick="openSortOrderModal()" class="flex flex-col items-center justify-center py-2 sm:py-3 bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer">
+                                <span class="text-base sm:text-lg font-bold">↕️</span>
+                                <span class="text-[10px] sm:text-xs font-medium" id="sortOrderLabel">新着順</span>
                             </button>
                         </div>
                         <!-- 隠しselect（JS互換用） -->
@@ -4892,10 +4892,15 @@ window.addEventListener('beforeunload', function(e) {
             const crmContent = document.getElementById('crmContent');
             if (!crmContent) return;
 
-            // CVID表示（セクションタイトルに表示）
+            // V2067: CVID表示（ヘッダーに表示）
+            const caseIdDisplay = document.getElementById('currentCaseIdDisplay');
+            if (caseIdDisplay) {
+                caseIdDisplay.textContent = caseId;
+            }
+            // セクションタイトルは「基本情報」に戻す
             const sectionTitle = document.getElementById('sectionTitle');
             if (sectionTitle) {
-                sectionTitle.textContent = caseId;
+                sectionTitle.textContent = '基本情報';
             }
 
             // 基本情報（IDで直接取得）
