@@ -689,9 +689,11 @@
                             <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-emerald-200 transition-all cursor-pointer opacity-70">
                                 <span class="text-xs sm:text-sm font-medium" id="dateFilterLabel">期間</span>
                             </button>
-                            <button id="sortOrderBtn" onclick="openSortOrderModal()" class="flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-amber-100 text-amber-700 border border-amber-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-amber-200 transition-all cursor-pointer opacity-70">
-                                <span class="text-xs sm:text-sm font-medium" id="sortOrderLabel">並び順</span>
-                            </button>
+                            <select id="sortOrderSelect" onchange="selectSortOrderDirect(this.value)" class="py-1.5 sm:py-2 px-2 bg-amber-100 text-amber-700 border border-amber-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-amber-200 transition-all cursor-pointer text-xs sm:text-sm font-medium appearance-none text-center">
+                                <option value="date-desc">新着順</option>
+                                <option value="nextcall-asc">次回架電順</option>
+                                <option value="status">ステータス順</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -15847,6 +15849,12 @@
             document.getElementById('sortOrderLabel').textContent = labels[value] || '新着順';
 
             closeSortOrderModal();
+            renderCases();
+        }
+
+        // プルダウンから直接並び順変更
+        function selectSortOrderDirect(value) {
+            currentSortOrder = value;
             renderCases();
         }
 
