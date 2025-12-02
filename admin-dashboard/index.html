@@ -11745,11 +11745,7 @@ window.addEventListener('beforeunload', function(e) {
             const modal = document.getElementById('orderTransferModal');
             modal.classList.remove('hidden');
 
-            // V2047: スピナーを戻す
-            const btn = document.getElementById('orderTransferBtn');
-            const btnIcon = document.getElementById('orderTransferBtnIcon');
-            const btnSpinner = document.getElementById('orderTransferBtnSpinner');
-            const btnLabel = document.getElementById('orderTransferBtnLabel');
+            // V2047: スピナーを戻す（変数は関数冒頭で宣言済み）
             if (btn) btn.disabled = false;
             if (btnIcon) btnIcon.classList.remove('hidden');
             if (btnSpinner) btnSpinner.classList.add('hidden');
