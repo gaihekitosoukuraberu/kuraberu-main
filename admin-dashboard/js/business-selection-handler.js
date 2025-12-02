@@ -254,6 +254,20 @@ const BusinessSelectionHandler = {
   },
 
   /**
+   * V2050: 加盟店のラベル（isLabel: true の履歴）を取得
+   * @param {string} companyName - 会社名
+   * @returns {string|null} ラベルテキスト（なければnull）
+   */
+  getLabel(companyName) {
+    if (!this.currentCaseData) return null;
+    const history = this.currentCaseData.franchiseHistory || [];
+    const labelItem = history.find(item =>
+      item.companyName === companyName && item.isLabel === true
+    );
+    return labelItem ? labelItem.note : null;
+  },
+
+  /**
    * 初期化
    */
   init() {
@@ -2212,6 +2226,9 @@ const BusinessSelectionHandler = {
     const callCount = this.getCallCount(card.companyName);
     const memoCount = this.getMemoCount(card.companyName);
 
+    // V2050: ラベル取得
+    const labelText = this.getLabel(card.companyName);
+
     // V2046: お断りかどうかを確認
     const isDeclined = this.declinedCompanies.has(card.companyName);
 
@@ -2246,6 +2263,12 @@ const BusinessSelectionHandler = {
           <span class="text-sm font-bold text-green-600">${formattedPrice}</span>
         </div>
       </div>
+      ${labelText ? `
+      <!-- V2050: ラベル表示 -->
+      <div class="mt-2 pl-6">
+        <span class="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-lg border border-yellow-300">🏷️ ${labelText}</span>
+      </div>
+      ` : ''}
     `;
 
     // V1922: マッチ率バッジにクリックイベントを追加

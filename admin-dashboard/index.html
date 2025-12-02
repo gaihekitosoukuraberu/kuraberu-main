@@ -8665,6 +8665,7 @@ window.addEventListener('beforeunload', function(e) {
         }
 
         // V2047: メモ履歴を読み込み（全履歴表示・電話/メモラベル付き）
+        // V2050: ラベル設定機能追加
         function loadMemoHistory() {
             const historyList = document.getElementById('memoHistoryList');
             if (!currentCaseId || !casesData[currentCaseId]) {
@@ -8690,18 +8691,22 @@ window.addEventListener('beforeunload', function(e) {
                 const hasCall = item.types && item.types.includes('call');
                 const hasMemo = item.types && item.types.includes('memo');
                 const typeLabel = hasCall && hasMemo ? '📞📝' : (hasCall ? '📞' : (hasMemo ? '📝' : ''));
+                // V2050: ラベルかどうか
+                const isLabel = item.isLabel === true;
                 return `
-                <div onclick="selectMemoHistory(${originalIndex})" class="cursor-pointer rounded-lg p-3 border-2 ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'} transition-all">
+                <div onclick="selectMemoHistory(${originalIndex})" class="cursor-pointer rounded-lg p-3 border-2 ${isLabel ? 'border-yellow-400 bg-yellow-50' : (isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50')} transition-all">
                     <div class="flex justify-between items-start gap-2">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2">
                                 <span class="text-xs text-gray-400">${item.date}</span>
                                 <span class="text-xs">${typeLabel}</span>
+                                ${isLabel ? '<span class="text-xs px-1 py-0.5 bg-yellow-200 text-yellow-800 rounded">🏷️ラベル</span>' : ''}
                             </div>
                             <div class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">${item.note}</div>
                         </div>
                         ${isSelected ? `
                         <div class="flex flex-col gap-1 flex-shrink-0">
+                            <button onclick="event.stopPropagation(); toggleLabel(${originalIndex})" class="text-sm hover:bg-yellow-100 rounded p-1 ${isLabel ? 'bg-yellow-200' : ''}" title="${isLabel ? 'ラベル解除' : 'ラベル設定'}">🏷️</button>
                             <button onclick="event.stopPropagation(); editMemoHistory(${originalIndex})" class="text-sm hover:bg-blue-100 rounded p-1">✏️</button>
                             <button onclick="event.stopPropagation(); deleteMemoHistory(${originalIndex})" class="text-sm hover:bg-red-100 rounded p-1">🗑️</button>
                         </div>
@@ -8748,6 +8753,42 @@ window.addEventListener('beforeunload', function(e) {
             await saveFranchiseHistoryToGAS();
             loadMemoHistory();
 
+            if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.currentCaseData) {
+                window.BusinessSelectionHandler.currentCaseData.franchiseHistory = casesData[currentCaseId].franchiseHistory;
+                if (typeof window.BusinessSelectionHandler.applySortAndRender === 'function') {
+                    window.BusinessSelectionHandler.applySortAndRender(window.BusinessSelectionHandler.currentSortType || 'user');
+                }
+            }
+        }
+
+        // V2050: ラベル設定/解除をトグル
+        async function toggleLabel(index) {
+            const history = casesData[currentCaseId].franchiseHistory;
+            if (!history || !history[index]) return;
+
+            const item = history[index];
+            const companyName = item.companyName;
+
+            if (item.isLabel) {
+                // ラベル解除
+                delete history[index].isLabel;
+                console.log('[V2050] ラベル解除:', companyName);
+            } else {
+                // 同じ会社の他のラベルを解除
+                history.forEach((h, i) => {
+                    if (h.companyName === companyName && h.isLabel) {
+                        delete history[i].isLabel;
+                    }
+                });
+                // このアイテムをラベルに設定
+                history[index].isLabel = true;
+                console.log('[V2050] ラベル設定:', companyName, item.note);
+            }
+
+            await saveFranchiseHistoryToGAS();
+            loadMemoHistory();
+
+            // カード再描画
             if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.currentCaseData) {
                 window.BusinessSelectionHandler.currentCaseData.franchiseHistory = casesData[currentCaseId].franchiseHistory;
                 if (typeof window.BusinessSelectionHandler.applySortAndRender === 'function') {
@@ -8909,6 +8950,7 @@ window.addEventListener('beforeunload', function(e) {
             }
 
             // V2047: ラベル付きで表示（📞電話 / 📝メモ）
+            // V2050: ラベル設定機能追加
             historyList.innerHTML = companyHistory.map((item, idx) => {
                 const originalIndex = allHistory.findIndex(h => h === item);
                 const isSelected = originalIndex === selectedHistoryIndex;
@@ -8916,18 +8958,22 @@ window.addEventListener('beforeunload', function(e) {
                 const hasCall = item.types && item.types.includes('call');
                 const hasMemo = item.types && item.types.includes('memo');
                 const typeLabel = hasCall && hasMemo ? '📞📝' : (hasCall ? '📞' : (hasMemo ? '📝' : ''));
+                // V2050: ラベルかどうか
+                const isLabel = item.isLabel === true;
                 return `
-                <div onclick="selectHistory(${originalIndex})" class="cursor-pointer rounded-lg p-3 border-2 transition-all ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50 hover:border-gray-300'}">
+                <div onclick="selectHistory(${originalIndex})" class="cursor-pointer rounded-lg p-3 border-2 transition-all ${isLabel ? 'border-yellow-400 bg-yellow-50' : (isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50 hover:border-gray-300')}">
                     <div class="flex justify-between items-start gap-2">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 mb-1">
                                 <span class="text-xs">${typeLabel}</span>
                                 <span class="text-xs text-gray-500">${item.date || item.timestamp || '---'}</span>
+                                ${isLabel ? '<span class="text-xs px-1 py-0.5 bg-yellow-200 text-yellow-800 rounded">🏷️ラベル</span>' : ''}
                             </div>
                             <div class="text-sm text-gray-700 whitespace-pre-wrap break-words">${item.note || ''}</div>
                         </div>
                         ${isSelected ? `
                         <div class="flex flex-col gap-1 flex-shrink-0">
+                            <button onclick="event.stopPropagation(); toggleLabelFromCall(${originalIndex})" class="p-1.5 hover:bg-yellow-100 rounded transition-all ${isLabel ? 'bg-yellow-200' : 'bg-gray-100'}" title="${isLabel ? 'ラベル解除' : 'ラベル設定'}">🏷️</button>
                             <button onclick="event.stopPropagation(); editHistory(${originalIndex})" class="p-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-all" title="編集">✏️</button>
                             <button onclick="event.stopPropagation(); deleteHistory(${originalIndex})" class="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-all" title="削除">🗑️</button>
                         </div>
@@ -9001,6 +9047,42 @@ window.addEventListener('beforeunload', function(e) {
             history.splice(selectedHistoryIndex, 1);
             await saveFranchiseHistoryToGAS();
             clearHistorySelection();
+        }
+
+        // V2050: 電話履歴画面からラベル設定/解除
+        async function toggleLabelFromCall(index) {
+            const history = casesData[currentCaseId].franchiseHistory;
+            if (!history || !history[index]) return;
+
+            const item = history[index];
+            const companyName = item.companyName;
+
+            if (item.isLabel) {
+                // ラベル解除
+                delete history[index].isLabel;
+                console.log('[V2050] ラベル解除（電話画面）:', companyName);
+            } else {
+                // 同じ会社の他のラベルを解除
+                history.forEach((h, i) => {
+                    if (h.companyName === companyName && h.isLabel) {
+                        delete history[i].isLabel;
+                    }
+                });
+                // このアイテムをラベルに設定
+                history[index].isLabel = true;
+                console.log('[V2050] ラベル設定（電話画面）:', companyName, item.note);
+            }
+
+            await saveFranchiseHistoryToGAS();
+            loadFranchiseHistory();
+
+            // カード再描画
+            if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.currentCaseData) {
+                window.BusinessSelectionHandler.currentCaseData.franchiseHistory = casesData[currentCaseId].franchiseHistory;
+                if (typeof window.BusinessSelectionHandler.applySortAndRender === 'function') {
+                    window.BusinessSelectionHandler.applySortAndRender(window.BusinessSelectionHandler.currentSortType || 'user');
+                }
+            }
         }
 
         // V2044: GASへ履歴を保存（BO列: franchiseHistory）
