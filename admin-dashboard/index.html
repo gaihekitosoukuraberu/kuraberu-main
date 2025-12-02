@@ -385,17 +385,14 @@
                                 <span class="text-xs sm:text-sm font-bold" id="todayKaiCount">0</span>
                             </button>
                             <!-- 下段: ソート・期間・並び順 -->
-                            <button id="statusFilterBtn" onclick="openSortModal()" class="flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-violet-100 text-violet-700 border border-violet-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-violet-200 transition-all cursor-pointer">
-                                <span class="text-xs sm:text-sm font-medium">ソート</span>
-                                <span class="text-xs sm:text-sm font-bold" id="statusFilterLabel">-</span>
+                            <button id="statusFilterBtn" onclick="openSortModal()" class="flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-violet-100 text-violet-700 border border-violet-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-violet-200 transition-all cursor-pointer opacity-70">
+                                <span class="text-xs sm:text-sm font-medium" id="statusFilterLabel">ソート</span>
                             </button>
                             <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-emerald-200 transition-all cursor-pointer">
                                 <span class="text-xs sm:text-sm font-medium" id="dateFilterLabel">期間</span>
-                                <span class="text-xs sm:text-sm font-bold" id="dateFilterIcon">-</span>
                             </button>
                             <button id="sortOrderBtn" onclick="openSortOrderModal()" class="flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-amber-100 text-amber-700 border border-amber-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-amber-200 transition-all cursor-pointer">
-                                <span class="text-xs sm:text-sm font-medium" id="sortOrderLabel">新着順</span>
-                                <span class="text-xs sm:text-sm font-bold" id="sortOrderIcon">-</span>
+                                <span class="text-xs sm:text-sm font-medium" id="sortOrderLabel">並び順</span>
                             </button>
                         </div>
                         <!-- 隠しselect（JS互換用） -->
@@ -5647,10 +5644,12 @@ window.addEventListener('beforeunload', function(e) {
         // V2068: 期間フィルターラベル更新（パステル系対応）
         function updateDateFilterLabel() {
             const label = document.getElementById('dateFilterLabel');
-            const icon = document.getElementById('dateFilterIcon');
+            const btn = document.getElementById('dateFilterBtn');
             if (dateFilterType === 'none') {
                 label.textContent = '期間';
-                if (icon) icon.textContent = '-';
+                if (btn) {
+                    btn.classList.remove('opacity-100', 'ring-2', 'ring-emerald-400');
+                }
             } else {
                 const typeName = dateFilterType === 'call' ? '架電' : '流入';
                 let dateRange = '';
@@ -5658,16 +5657,17 @@ window.addEventListener('beforeunload', function(e) {
                     if (dateFilterFrom === dateFilterTo) {
                         dateRange = dateFilterFrom.slice(5);
                     } else {
-                        dateRange = `${dateFilterFrom.slice(8)}〜${dateFilterTo.slice(8)}`;
+                        dateRange = `${dateFilterFrom.slice(5)}〜${dateFilterTo.slice(5)}`;
                     }
                 } else if (dateFilterFrom) {
-                    dateRange = `${dateFilterFrom.slice(8)}〜`;
+                    dateRange = `${dateFilterFrom.slice(5)}〜`;
                 } else if (dateFilterTo) {
-                    dateRange = `〜${dateFilterTo.slice(8)}`;
+                    dateRange = `〜${dateFilterTo.slice(5)}`;
                 }
-                const timeLabel = timeFilter !== 'all' && dateFilterType === 'call' ? `${timeFilter === 'sat' ? '土' : timeFilter === 'sun' ? '日' : timeFilter + '時'}` : '';
-                label.textContent = `${typeName}${timeLabel}`;
-                if (icon) icon.textContent = dateRange || 'ON';
+                label.textContent = dateRange ? `${typeName} ${dateRange}` : typeName;
+                if (btn) {
+                    btn.classList.add('opacity-100', 'ring-2', 'ring-emerald-400');
+                }
             }
         }
 
@@ -6084,13 +6084,18 @@ window.addEventListener('beforeunload', function(e) {
                 }
             }
 
-            // V2068: ヘッダーのソートボタンラベルも更新（件数表示）
+            // V2071: ヘッダーのソートボタンラベル更新＋選択時に色濃く
             const filterLabel = document.getElementById('statusFilterLabel');
-            if (filterLabel) {
+            const filterBtn = document.getElementById('statusFilterBtn');
+            if (filterLabel && filterBtn) {
                 if (selectedStatuses.length === 0) {
-                    filterLabel.textContent = '-';
+                    filterLabel.textContent = 'ソート';
+                    filterBtn.classList.add('opacity-70');
+                    filterBtn.classList.remove('opacity-100', 'ring-2', 'ring-violet-400');
                 } else {
-                    filterLabel.textContent = `${selectedStatuses.length}件`;
+                    filterLabel.textContent = `ソート ${selectedStatuses.length}`;
+                    filterBtn.classList.remove('opacity-70');
+                    filterBtn.classList.add('opacity-100', 'ring-2', 'ring-violet-400');
                 }
             }
         }
