@@ -650,6 +650,21 @@
                 <!-- フィルター・統計バー -->
                 <div class="bg-gradient-to-r from-gray-50 to-white rounded-xl p-4 mb-4 border border-gray-200 shadow-sm">
                     <div class="flex flex-col gap-3 w-full">
+                        <!-- 検索ボックス -->
+                        <div class="relative">
+                            <input type="text" id="caseSearchInput" placeholder="名前・住所・電話で検索" oninput="searchCases()" autocomplete="off" class="w-full pl-10 pr-10 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all">
+                            <div class="absolute left-3 top-3">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <button onclick="document.getElementById('caseSearchInput').value=''; searchCases();" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
                         <!-- 統計表示（クイックフィルター） -->
                         <div class="grid grid-cols-3 gap-1 sm:gap-1.5 w-full">
                             <button id="filterBtnAll" data-filter="all" onclick="filterCases('all')" class="flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-gray-100 text-gray-700 border border-gray-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-gray-200 transition-all cursor-pointer opacity-100 ring-2 ring-gray-400">
@@ -666,25 +681,10 @@
                             </button>
                         </div>
 
-                        <!-- 検索ボックス -->
-                        <div class="relative">
-                            <input type="text" id="caseSearchInput" placeholder="名前・住所・電話で検索" oninput="searchCases()" autocomplete="off" class="w-full pl-10 pr-10 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all">
-                            <div class="absolute left-3 top-3">
-                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </div>
-                            <button onclick="document.getElementById('caseSearchInput').value=''; searchCases();" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-
-                        <!-- ソート・期間・並び順ボタン（3列） -->
+                        <!-- 絞り込み・期間・並び順ボタン（3列） -->
                         <div class="grid grid-cols-3 gap-1 sm:gap-1.5 w-full">
                             <button id="statusFilterBtn" onclick="openSortModal()" class="flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-violet-100 text-violet-700 border border-violet-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-violet-200 transition-all cursor-pointer opacity-70">
-                                <span class="text-xs sm:text-sm font-medium" id="statusFilterLabel">ソート</span>
+                                <span class="text-xs sm:text-sm font-medium" id="statusFilterLabel">絞り込み</span>
                             </button>
                             <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-emerald-200 transition-all cursor-pointer opacity-70">
                                 <span class="text-xs sm:text-sm font-medium" id="dateFilterLabel">期間</span>
@@ -15692,12 +15692,12 @@
                 }
             }
 
-            // ヘッダーのソートボタンラベル更新
+            // ヘッダーの絞り込みボタンラベル更新
             const filterLabel = document.getElementById('statusFilterLabel');
             const filterBtn = document.getElementById('statusFilterBtn');
             if (filterLabel && filterBtn) {
                 if (selectedStatuses.length === 0) {
-                    filterLabel.textContent = 'ソート';
+                    filterLabel.textContent = '絞り込み';
                     filterBtn.classList.add('opacity-70');
                     filterBtn.classList.remove('opacity-100', 'ring-2', 'ring-violet-400');
                 } else {
@@ -15705,7 +15705,7 @@
                     const CALL_TARGET = ['未対応', '架電済/未アポ'];
                     const IN_PROGRESS = ['アポ済', '現調済', '見積提出済', '入金予定'];
 
-                    let labelText = `ソート ${selectedStatuses.length}`;
+                    let labelText = `絞込 ${selectedStatuses.length}`;
                     if (arraysEqual(selectedStatuses, CALL_TARGET)) {
                         labelText = '架電対象';
                     } else if (arraysEqual(selectedStatuses, IN_PROGRESS)) {
