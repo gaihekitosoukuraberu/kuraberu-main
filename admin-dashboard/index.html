@@ -8806,47 +8806,58 @@ window.addEventListener('beforeunload', function(e) {
                 document.getElementById('callResultStep1').classList.add('hidden');
                 document.getElementById('callResultStep2Connected').classList.remove('hidden');
             } else {
-                // V2047: 不在 → 即保存して閉じる
+                // V2047: 不在 → 即閉じてバックグラウンド保存
                 currentCallSubResult = '';
-                await saveCallResultDirect('不在');
+                saveCallResultDirect('不在');
             }
         }
 
         // V2047: 直接保存（不在用）
-        async function saveCallResultDirect(resultText) {
+        // V2051: 即閉じてバックグラウンド保存
+        function saveCallResultDirect(resultText) {
             if (!currentCaseId || !casesData[currentCaseId]) {
                 console.error('[V2047] 案件データがありません:', currentCaseId);
                 alert('案件データがありません');
                 return;
             }
 
-            if (!casesData[currentCaseId].franchiseHistory) {
-                casesData[currentCaseId].franchiseHistory = [];
+            // V2051: 先に必要な値を保存
+            const savedCaseId = currentCaseId;
+            const companyName = currentFranchiseCallCompany || '不明';
+
+            // V2051: 即座にモーダルを閉じる
+            closeFranchiseHistoryModal();
+
+            // ローカルデータ更新
+            if (!casesData[savedCaseId].franchiseHistory) {
+                casesData[savedCaseId].franchiseHistory = [];
             }
 
             const timestamp = new Date().toLocaleString('ja-JP');
-            const companyName = currentFranchiseCallCompany || '不明';
 
-            casesData[currentCaseId].franchiseHistory.unshift({
+            casesData[savedCaseId].franchiseHistory.unshift({
                 date: timestamp,
                 companyName: companyName,
                 note: resultText,
                 types: ['call']
             });
 
-            console.log('[V2047] 不在履歴追加:', { companyName, resultText });
+            console.log('[V2051] 不在履歴追加（バックグラウンド保存）:', { companyName, resultText });
 
-            await saveFranchiseHistoryToGAS();
-
-            // BusinessSelectionHandler更新
+            // V2051: カード即時更新（GAS保存前に）
             if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.currentCaseData) {
-                window.BusinessSelectionHandler.currentCaseData.franchiseHistory = casesData[currentCaseId].franchiseHistory;
+                window.BusinessSelectionHandler.currentCaseData.franchiseHistory = casesData[savedCaseId].franchiseHistory;
                 if (typeof window.BusinessSelectionHandler.applySortAndRender === 'function') {
                     window.BusinessSelectionHandler.applySortAndRender(window.BusinessSelectionHandler.currentSortType || 'user');
                 }
             }
 
-            closeFranchiseHistoryModal();
+            // V2051: バックグラウンドでGAS保存（awaitしない）
+            saveFranchiseHistoryToGAS().then(() => {
+                console.log('[V2051] 不在履歴GAS保存完了');
+            }).catch(err => {
+                console.error('[V2051] 不在履歴GAS保存エラー:', err);
+            });
         }
 
         // V2043: Step2 → Step3（サブ選択後 - 繋がった場合のみ）
