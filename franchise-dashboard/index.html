@@ -624,27 +624,27 @@
 
                         <!-- クイックフィルタ（全案件/要対応/成約） -->
                         <div class="grid grid-cols-3 gap-2 w-full">
-                            <button id="filterBtnAll" data-filter="all" onclick="filterCases('all')" class="flex flex-col items-center justify-center py-3 px-2 bg-slate-600 text-white rounded-xl shadow-md hover:shadow-lg hover:bg-slate-700 transition-all cursor-pointer ring-2 ring-slate-400 ring-offset-1">
+                            <button id="filterBtnAll" data-filter="all" onclick="filterCases('all')" class="flex flex-col items-center justify-center py-3 px-2 bg-slate-700 text-white rounded-xl shadow-lg hover:bg-slate-800 transition-all cursor-pointer ring-2 ring-white ring-offset-2 ring-offset-slate-700">
                                 <span class="text-lg font-bold" id="stat-total">0</span>
                                 <span class="text-xs font-medium opacity-90">全案件</span>
                             </button>
-                            <button id="filterBtnPending" data-filter="pending" onclick="filterCases('pending')" class="flex flex-col items-center justify-center py-3 px-2 bg-blue-500 text-white rounded-xl shadow-md hover:shadow-lg hover:bg-blue-600 transition-all cursor-pointer">
+                            <button id="filterBtnPending" data-filter="pending" onclick="filterCases('pending')" class="flex flex-col items-center justify-center py-3 px-2 bg-blue-300 text-blue-800 rounded-xl shadow-md hover:bg-blue-400 transition-all cursor-pointer">
                                 <span class="text-lg font-bold" id="stat-pending">0</span>
-                                <span class="text-xs font-medium opacity-90">要対応</span>
+                                <span class="text-xs font-medium">要対応</span>
                             </button>
-                            <button id="filterBtnContracted" data-filter="contracted" onclick="filterCases('contracted')" class="flex flex-col items-center justify-center py-3 px-2 bg-emerald-500 text-white rounded-xl shadow-md hover:shadow-lg hover:bg-emerald-600 transition-all cursor-pointer">
+                            <button id="filterBtnContracted" data-filter="contracted" onclick="filterCases('contracted')" class="flex flex-col items-center justify-center py-3 px-2 bg-emerald-300 text-emerald-800 rounded-xl shadow-md hover:bg-emerald-400 transition-all cursor-pointer">
                                 <span class="text-lg font-bold" id="stat-contracted">0</span>
-                                <span class="text-xs font-medium opacity-90">成約済</span>
+                                <span class="text-xs font-medium">成約済</span>
                             </button>
                         </div>
 
                         <!-- 絞り込み（ステータス・配信日）2列 -->
                         <div class="grid grid-cols-2 gap-2 w-full">
-                            <button id="statusFilterBtn" onclick="openSortModal()" class="flex items-center justify-center gap-2 py-2.5 px-3 bg-purple-500 text-white rounded-xl shadow-md hover:shadow-lg hover:bg-purple-600 transition-all cursor-pointer">
+                            <button id="statusFilterBtn" onclick="openSortModal()" class="flex items-center justify-center gap-2 py-2.5 px-3 bg-violet-300 text-violet-800 rounded-xl shadow-md hover:bg-violet-400 transition-all cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                                 <span class="text-sm font-bold" id="statusFilterLabel">ステータス</span>
                             </button>
-                            <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex items-center justify-center gap-2 py-2.5 px-3 bg-teal-500 text-white rounded-xl shadow-md hover:shadow-lg hover:bg-teal-600 transition-all cursor-pointer">
+                            <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex items-center justify-center gap-2 py-2.5 px-3 bg-orange-300 text-orange-800 rounded-xl shadow-md hover:bg-orange-400 transition-all cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 <span class="text-sm font-bold" id="dateFilterLabel">配信日</span>
                             </button>
@@ -15669,26 +15669,40 @@
         function filterCases(filter) {
             currentFilter = filter;
 
-            // 新デザイン: ボタンのアクティブ状態を更新
-            const buttons = {
-                'all': { base: 'bg-slate-600 hover:bg-slate-700', ring: 'ring-2 ring-slate-400 ring-offset-1' },
-                'pending': { base: 'bg-blue-500 hover:bg-blue-600', ring: 'ring-2 ring-blue-300 ring-offset-1' },
-                'contracted': { base: 'bg-emerald-500 hover:bg-emerald-600', ring: 'ring-2 ring-emerald-300 ring-offset-1' }
+            // 選択状態のスタイル定義
+            const activeStyles = {
+                'all': {
+                    active: 'bg-slate-700 text-white ring-2 ring-white ring-offset-2 ring-offset-slate-700 shadow-lg',
+                    inactive: 'bg-slate-300 text-slate-700 shadow-md'
+                },
+                'pending': {
+                    active: 'bg-blue-600 text-white ring-2 ring-white ring-offset-2 ring-offset-blue-600 shadow-lg',
+                    inactive: 'bg-blue-300 text-blue-800 shadow-md'
+                },
+                'contracted': {
+                    active: 'bg-emerald-600 text-white ring-2 ring-white ring-offset-2 ring-offset-emerald-600 shadow-lg',
+                    inactive: 'bg-emerald-300 text-emerald-800 shadow-md'
+                }
             };
 
             document.querySelectorAll('[id^="filterBtn"]').forEach(btn => {
                 const btnFilter = btn.dataset.filter;
-                const style = buttons[btnFilter];
+                const style = activeStyles[btnFilter];
                 if (!style) return;
 
-                // リングクラスを削除
-                btn.classList.remove('ring-2', 'ring-slate-400', 'ring-blue-300', 'ring-emerald-300', 'ring-offset-1');
+                // 全スタイルクラスを削除
+                btn.classList.remove(
+                    'bg-slate-700', 'bg-slate-300', 'text-white', 'text-slate-700',
+                    'bg-blue-600', 'bg-blue-300', 'text-blue-800',
+                    'bg-emerald-600', 'bg-emerald-300', 'text-emerald-800',
+                    'ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-slate-700', 'ring-offset-blue-600', 'ring-offset-emerald-600',
+                    'shadow-lg', 'shadow-md'
+                );
 
                 if (btnFilter === filter) {
-                    btn.classList.add('ring-2', 'ring-offset-1');
-                    if (btnFilter === 'all') btn.classList.add('ring-slate-400');
-                    if (btnFilter === 'pending') btn.classList.add('ring-blue-300');
-                    if (btnFilter === 'contracted') btn.classList.add('ring-emerald-300');
+                    style.active.split(' ').forEach(c => btn.classList.add(c));
+                } else {
+                    style.inactive.split(' ').forEach(c => btn.classList.add(c));
                 }
             });
 
@@ -15778,7 +15792,9 @@
             if (filterLabel && filterBtn) {
                 if (selectedStatuses.length === 0) {
                     filterLabel.textContent = 'ステータス';
-                    filterBtn.classList.remove('ring-2', 'ring-purple-300', 'ring-offset-1');
+                    // 非選択時: 薄い色
+                    filterBtn.classList.remove('bg-violet-600', 'text-white', 'ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-violet-600', 'shadow-lg');
+                    filterBtn.classList.add('bg-violet-300', 'text-violet-800', 'shadow-md');
                 } else {
                     const arraysEqual = (a, b) => a.length === b.length && a.every(v => b.includes(v)) && b.every(v => a.includes(v));
                     const CALL_TARGET = ['未対応', '架電済/未アポ'];
@@ -15792,7 +15808,9 @@
                     }
 
                     filterLabel.textContent = labelText;
-                    filterBtn.classList.add('ring-2', 'ring-purple-300', 'ring-offset-1');
+                    // 選択時: 濃い色+リング
+                    filterBtn.classList.remove('bg-violet-300', 'text-violet-800', 'shadow-md');
+                    filterBtn.classList.add('bg-violet-600', 'text-white', 'ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-violet-600', 'shadow-lg');
                 }
             }
         }
@@ -15919,12 +15937,16 @@
             if (displayText) {
                 label.textContent = displayText;
                 if (btn) {
-                    btn.classList.add('ring-2', 'ring-teal-300', 'ring-offset-1');
+                    // 選択時: 濃い色+リング
+                    btn.classList.remove('bg-orange-300', 'text-orange-800', 'shadow-md');
+                    btn.classList.add('bg-orange-500', 'text-white', 'ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-orange-500', 'shadow-lg');
                 }
             } else {
                 label.textContent = '配信日';
                 if (btn) {
-                    btn.classList.remove('ring-2', 'ring-teal-300', 'ring-offset-1');
+                    // 非選択時: 薄い色
+                    btn.classList.remove('bg-orange-500', 'text-white', 'ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-orange-500', 'shadow-lg');
+                    btn.classList.add('bg-orange-300', 'text-orange-800', 'shadow-md');
                 }
             }
         }
@@ -16098,7 +16120,7 @@
                         <span class="px-3 py-1.5 text-sm font-bold rounded-full ${style.bg} ${style.text}">${status}</span>
                         ${assignee && assignee !== '-'
                             ? `<span class="text-base text-gray-700 font-medium">${escapeHtml(assignee)}</span>`
-                            : `<button onclick="event.stopPropagation(); openAssignModal('${c.cvId}')" class="px-3 py-1.5 text-sm font-bold text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">振分</button>`
+                            : `<button onclick="event.stopPropagation(); openAssignModal('${c.cvId}')" class="px-3 py-1.5 text-sm font-bold text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">案件振り分け</button>`
                         }
                     </div>
                     <h3 class="font-bold text-xl mb-2">${escapeHtml(c.customerName || '-')}</h3>
@@ -16199,7 +16221,7 @@
                     <td class="px-3 py-3 text-sm">
                         ${assignee && assignee !== '-'
                             ? `<span class="text-gray-600">${escapeHtml(assignee)}</span>`
-                            : `<button onclick="openAssignModal('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 rounded hover:bg-purple-100 transition-colors">振分</button>`
+                            : `<button onclick="openAssignModal('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 rounded hover:bg-purple-100 transition-colors">案件振り分け</button>`
                         }
                     </td>
                     <!-- 配信日 -->
