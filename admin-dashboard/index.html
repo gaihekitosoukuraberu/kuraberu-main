@@ -369,33 +369,33 @@
                             </button>
                         </div>
 
-                        <!-- V2068: フィルターボタン群（2行×3列・パステル系） -->
-                        <div class="grid grid-cols-3 gap-1.5 sm:gap-2 w-full">
+                        <!-- V2069: フィルターボタン群（2行×3列・横並び細型） -->
+                        <div class="grid grid-cols-3 gap-1 sm:gap-1.5 w-full">
                             <!-- 上段: 新規・全て・本日改 -->
-                            <button id="filterBtnNew" onclick="filterByNewStatus()" class="flex flex-col items-center justify-center py-2 sm:py-3 bg-blue-100 text-blue-700 border-2 border-blue-300 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md hover:bg-blue-200 transition-all cursor-pointer opacity-70">
-                                <span class="text-base sm:text-lg font-bold" id="newCount">0</span>
-                                <span class="text-[10px] sm:text-xs font-medium">新規</span>
+                            <button id="filterBtnNew" onclick="filterByNewStatus()" class="flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-blue-100 text-blue-700 border border-blue-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-blue-200 transition-all cursor-pointer opacity-70">
+                                <span class="text-xs sm:text-sm font-medium">新規</span>
+                                <span class="text-xs sm:text-sm font-bold" id="newCount">0</span>
                             </button>
-                            <button id="filterBtnAll" onclick="filterByAll()" class="flex flex-col items-center justify-center py-2 sm:py-3 bg-cyan-100 text-cyan-700 border-2 border-cyan-300 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md hover:bg-cyan-200 transition-all cursor-pointer opacity-70">
-                                <span class="text-base sm:text-lg font-bold" id="allCount">0</span>
-                                <span class="text-[10px] sm:text-xs font-medium">全て</span>
+                            <button id="filterBtnAll" onclick="filterByAll()" class="flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-cyan-100 text-cyan-700 border border-cyan-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-cyan-200 transition-all cursor-pointer opacity-70">
+                                <span class="text-xs sm:text-sm font-medium">全て</span>
+                                <span class="text-xs sm:text-sm font-bold" id="allCount">0</span>
                             </button>
-                            <button id="filterBtnTodayKai" onclick="filterByTodayKai()" class="flex flex-col items-center justify-center py-2 sm:py-3 bg-rose-100 text-rose-700 border-2 border-rose-300 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md hover:bg-rose-200 transition-all cursor-pointer opacity-70">
-                                <span class="text-base sm:text-lg font-bold" id="todayKaiCount">0</span>
-                                <span class="text-[10px] sm:text-xs font-medium">本日改</span>
+                            <button id="filterBtnTodayKai" onclick="filterByTodayKai()" class="flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-rose-100 text-rose-700 border border-rose-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-rose-200 transition-all cursor-pointer opacity-70">
+                                <span class="text-xs sm:text-sm font-medium">本日改</span>
+                                <span class="text-xs sm:text-sm font-bold" id="todayKaiCount">0</span>
                             </button>
                             <!-- 下段: ソート・期間・並び順 -->
-                            <button id="statusFilterBtn" onclick="openSortModal()" class="flex flex-col items-center justify-center py-2 sm:py-3 bg-violet-100 text-violet-700 border-2 border-violet-300 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md hover:bg-violet-200 transition-all cursor-pointer">
-                                <span class="text-base sm:text-lg font-bold" id="statusFilterLabel">-</span>
-                                <span class="text-[10px] sm:text-xs font-medium">ソート</span>
+                            <button id="statusFilterBtn" onclick="openSortModal()" class="flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-violet-100 text-violet-700 border border-violet-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-violet-200 transition-all cursor-pointer">
+                                <span class="text-xs sm:text-sm font-medium">ソート</span>
+                                <span class="text-xs sm:text-sm font-bold" id="statusFilterLabel">-</span>
                             </button>
-                            <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex flex-col items-center justify-center py-2 sm:py-3 bg-emerald-100 text-emerald-700 border-2 border-emerald-300 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md hover:bg-emerald-200 transition-all cursor-pointer">
-                                <span class="text-base sm:text-lg font-bold" id="dateFilterIcon">-</span>
-                                <span class="text-[10px] sm:text-xs font-medium truncate" id="dateFilterLabel">期間</span>
+                            <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-emerald-200 transition-all cursor-pointer">
+                                <span class="text-xs sm:text-sm font-medium" id="dateFilterLabel">期間</span>
+                                <span class="text-xs sm:text-sm font-bold" id="dateFilterIcon">-</span>
                             </button>
-                            <button id="sortOrderBtn" onclick="openSortOrderModal()" class="flex flex-col items-center justify-center py-2 sm:py-3 bg-amber-100 text-amber-700 border-2 border-amber-300 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md hover:bg-amber-200 transition-all cursor-pointer">
-                                <span class="text-base sm:text-lg font-bold" id="sortOrderIcon">-</span>
-                                <span class="text-[10px] sm:text-xs font-medium" id="sortOrderLabel">新着順</span>
+                            <button id="sortOrderBtn" onclick="openSortOrderModal()" class="flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2 bg-amber-100 text-amber-700 border border-amber-300 rounded-md sm:rounded-lg shadow-sm hover:shadow-md hover:bg-amber-200 transition-all cursor-pointer">
+                                <span class="text-xs sm:text-sm font-medium" id="sortOrderLabel">新着順</span>
+                                <span class="text-xs sm:text-sm font-bold" id="sortOrderIcon">-</span>
                             </button>
                         </div>
                         <!-- 隠しselect（JS互換用） -->
