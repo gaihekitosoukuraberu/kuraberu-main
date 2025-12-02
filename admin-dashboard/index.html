@@ -6084,7 +6084,7 @@ window.addEventListener('beforeunload', function(e) {
                 }
             }
 
-            // V2071: ヘッダーのソートボタンラベル更新＋選択時に色濃く
+            // V2072: ヘッダーのソートボタンラベル更新（プリセット判定対応）
             const filterLabel = document.getElementById('statusFilterLabel');
             const filterBtn = document.getElementById('statusFilterBtn');
             if (filterLabel && filterBtn) {
@@ -6093,7 +6093,23 @@ window.addEventListener('beforeunload', function(e) {
                     filterBtn.classList.add('opacity-70');
                     filterBtn.classList.remove('opacity-100', 'ring-2', 'ring-violet-400');
                 } else {
-                    filterLabel.textContent = `ソート ${selectedStatuses.length}`;
+                    // プリセット判定
+                    const arraysEqual = (a, b) => a.length === b.length && a.every(v => b.includes(v)) && b.every(v => a.includes(v));
+                    const CALL_TARGET = ['新規', '不在', '再架電'];
+                    const IN_PROGRESS = ['見込み', '配信中', 'アポ済', '現調済', '見積提出済', '入金予定'];
+
+                    let labelText = `ソート ${selectedStatuses.length}`;
+                    if (arraysEqual(selectedStatuses, PRE_DELIVERY_STATUSES)) {
+                        labelText = '配信前';
+                    } else if (arraysEqual(selectedStatuses, POST_DELIVERY_STATUSES)) {
+                        labelText = '配信後';
+                    } else if (arraysEqual(selectedStatuses, CALL_TARGET)) {
+                        labelText = '架電対象';
+                    } else if (arraysEqual(selectedStatuses, IN_PROGRESS)) {
+                        labelText = '進行中';
+                    }
+
+                    filterLabel.textContent = labelText;
                     filterBtn.classList.remove('opacity-70');
                     filterBtn.classList.add('opacity-100', 'ring-2', 'ring-violet-400');
                 }
