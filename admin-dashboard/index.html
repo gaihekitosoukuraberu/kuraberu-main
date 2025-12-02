@@ -2395,6 +2395,96 @@ window.addEventListener('beforeunload', function(e) {
         </div>
     </div>
 
+    <!-- V2055: 次回架電日設定専用モーダル -->
+    <div id="nextCallDateModal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeNextCallModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-gray-900">🗓️ 次回架電日設定</h3>
+                    <button onclick="closeNextCallModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-5">
+                    <div id="nextCallDateModalContent" class="p-4 bg-gray-50 rounded-xl">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3">次回架電を設定</h4>
+                        <!-- 日付と時間選択 -->
+                        <div class="flex gap-2 mb-3">
+                            <!-- 日付ボタン -->
+                            <div class="grid grid-cols-2 gap-1.5 w-24 flex-shrink-0">
+                                <button onclick="setNextCallQuickDay('today')" data-day="today" class="next-call-day-btn px-1.5 py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">当日</button>
+                                <button onclick="setNextCallQuickDay('tomorrow')" data-day="tomorrow" class="next-call-day-btn px-1.5 py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">明日</button>
+                                <button onclick="setNextCallQuickDay('saturday')" data-day="saturday" class="next-call-day-btn px-1.5 py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">土</button>
+                                <button onclick="setNextCallQuickDay('sunday')" data-day="sunday" class="next-call-day-btn px-1.5 py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">日</button>
+                            </div>
+                            <!-- 時間ボタン -->
+                            <div class="flex-1 grid grid-cols-4 gap-1.5">
+                                <button onclick="setNextCallQuickTime(9)" data-hour="9" class="next-call-time-btn px-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">9時</button>
+                                <button onclick="setNextCallQuickTime(12)" data-hour="12" class="next-call-time-btn px-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">12時</button>
+                                <button onclick="setNextCallQuickTime(17)" data-hour="17" class="next-call-time-btn px-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">17時</button>
+                                <button onclick="setNextCallQuickTime(19)" data-hour="19" class="next-call-time-btn px-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">19時</button>
+                            </div>
+                        </div>
+                        <!-- 分数プルダウン -->
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-xs text-gray-500 flex-shrink-0">分：</span>
+                            <select id="nextCallModalMinute" onchange="updateNextCallModalDisplay()" class="flex-1 px-2 py-1.5 border-2 border-gray-300 rounded-lg text-sm focus:border-blue-500 transition-all">
+                                <option value="0">00分</option>
+                                <option value="15">15分</option>
+                                <option value="30">30分</option>
+                                <option value="45">45分</option>
+                            </select>
+                        </div>
+                        <div id="nextCallModalSelected" class="text-center text-sm text-blue-600 font-medium mb-3 hidden"></div>
+
+                        <!-- カスタム時間入力 -->
+                        <div id="nextCallModalCustomSection" class="hidden mb-3 p-3 bg-white rounded-lg border border-gray-200">
+                            <div class="flex items-center gap-2">
+                                <input type="date" id="nextCallModalCustomDate" class="w-28 px-2 py-1.5 border border-gray-300 rounded text-sm">
+                                <select id="nextCallModalCustomHour" class="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm">
+                                    <option value="">時</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                    <option value="11">11</option>
+                                    <option value="12">12</option>
+                                    <option value="13">13</option>
+                                    <option value="14">14</option>
+                                    <option value="15">15</option>
+                                    <option value="16">16</option>
+                                    <option value="17">17</option>
+                                    <option value="18">18</option>
+                                    <option value="19">19</option>
+                                    <option value="20">20</option>
+                                </select>
+                                <select id="nextCallModalCustomMinute" class="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm">
+                                    <option value="0">00分</option>
+                                    <option value="15">15分</option>
+                                    <option value="30">30分</option>
+                                    <option value="45">45分</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button onclick="toggleNextCallModalCustom()" id="nextCallModalCustomBtn" class="flex-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 text-gray-600 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
+                                カスタム
+                            </button>
+                            <button onclick="saveNextCallDate()" class="flex-1 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all text-sm">
+                                設定
+                            </button>
+                        </div>
+                    </div>
+                    <button onclick="clearNextCallDate()" class="w-full mt-3 py-2 text-sm text-red-500 hover:text-red-700 transition-all">
+                        次回架電日をクリア
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- モーダル -->
     <div id="modal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" onclick="closeModal()"></div>
@@ -6704,6 +6794,7 @@ window.addEventListener('beforeunload', function(e) {
                                 <button onclick="callCase('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="電話">📞</button>
                                 <button onclick="window.location.href='sms:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="SMS">💬</button>
                                 <button onclick="openCallHistoryModal('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="メモ">📝</button>
+                                <button onclick="event.stopPropagation(); openNextCallModal('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="次回架電日設定">🗓️</button>
                             </div>
                             <button onclick="openCRM('${caseId}')" class="px-4 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">詳細</button>
                         </div>
@@ -7958,27 +8049,24 @@ window.addEventListener('beforeunload', function(e) {
                 document.getElementById('nextCallQuickSettings').classList.remove('hidden');
                 autoSetNextCallTime();
             } else {
-                // V2054: 不在の場合
+                // V2055: 不在の場合
                 const absentCount = getAbsentCount();
-                console.log('[V2054] 不在回数:', absentCount);
+                console.log('[V2055] 不在回数:', absentCount);
 
-                if (absentCount < 2) {
-                    // 1-2回目: 即閉じて自動で次回架電設定
+                if (absentCount < 12) {
+                    // 1-12回目: 即閉じ＋自動次回架電設定（直近の9/12/17/19時）
                     handleQuickAbsent();
                 } else {
-                    // 3回目以降: 次回架電モーダル表示（接続/不在選択を隠す）
+                    // 13回目以降: 次回架電モーダル表示
                     showAbsentNextCallModal();
                 }
             }
         }
 
-        // V2054: 不在1-2回目: 即閉じ＋自動次回架電設定
+        // V2055: 不在1-12回目: 即閉じ＋自動次回架電設定（直近の9/12/17/19時）
         async function handleQuickAbsent() {
-            // 自動で次回架電日時を設定（翌日同時刻）
-            const now = new Date();
-            const tomorrow = new Date(now);
-            tomorrow.setDate(now.getDate() + 1);
-            const nextCallDateTime = tomorrow.toLocaleString('ja-JP');
+            // V2055: 直近の9時、12時、17時、19時を計算
+            const nextCallDateTime = getNextCallSlot();
 
             // 履歴を更新
             if (currentCaseId && casesData[currentCaseId]) {
@@ -8008,7 +8096,29 @@ window.addEventListener('beforeunload', function(e) {
                 initializeListView();
             }
 
-            console.log('[V2054] 不在（自動次回架電）:', nextCallDateTime);
+            console.log('[V2055] 不在（自動次回架電）:', nextCallDateTime);
+        }
+
+        // V2055: 直近の9時、12時、17時、19時を取得
+        function getNextCallSlot() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const slots = [9, 12, 17, 19];
+
+            // 今日の中で次のスロットを探す
+            for (const slot of slots) {
+                if (currentHour < slot) {
+                    const nextCall = new Date(now);
+                    nextCall.setHours(slot, 0, 0, 0);
+                    return nextCall.toLocaleString('ja-JP');
+                }
+            }
+
+            // 今日のスロットが全て過ぎていたら翌日9時
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(9, 0, 0, 0);
+            return tomorrow.toLocaleString('ja-JP');
         }
 
         // V2054: 不在3回目以降: 次回架電モーダル表示
@@ -8082,6 +8192,250 @@ window.addEventListener('beforeunload', function(e) {
             // 状態をリセット
             connectionStatus = null;
         }
+
+        // ========================================
+        // V2055: 次回架電日設定専用モーダル機能
+        // ========================================
+        let nextCallModalCaseId = null;
+        let nextCallModalDay = null;
+        let nextCallModalTime = null;
+        let nextCallModalUseCustom = false;
+
+        function openNextCallModal(caseId) {
+            nextCallModalCaseId = caseId;
+            nextCallModalDay = null;
+            nextCallModalTime = null;
+            nextCallModalUseCustom = false;
+
+            // ボタン状態リセット
+            document.querySelectorAll('.next-call-day-btn, .next-call-time-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50');
+                btn.classList.add('border-gray-300');
+            });
+            document.getElementById('nextCallModalSelected').classList.add('hidden');
+            document.getElementById('nextCallModalCustomSection').classList.add('hidden');
+            document.getElementById('nextCallModalCustomBtn').classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-600');
+            document.getElementById('nextCallModalCustomBtn').classList.add('border-gray-300', 'text-gray-600');
+            document.getElementById('nextCallModalMinute').value = '0';
+
+            // モーダル表示
+            document.getElementById('nextCallDateModal').classList.remove('hidden');
+        }
+
+        function closeNextCallModal() {
+            document.getElementById('nextCallDateModal').classList.add('hidden');
+            nextCallModalCaseId = null;
+        }
+
+        function setNextCallQuickDay(day) {
+            nextCallModalDay = day;
+            nextCallModalUseCustom = false;
+            // ボタンハイライト
+            document.querySelectorAll('.next-call-day-btn').forEach(btn => {
+                if (btn.dataset.day === day) {
+                    btn.classList.add('border-blue-500', 'bg-blue-50');
+                    btn.classList.remove('border-gray-300');
+                } else {
+                    btn.classList.remove('border-blue-500', 'bg-blue-50');
+                    btn.classList.add('border-gray-300');
+                }
+            });
+            // カスタムボタンリセット
+            document.getElementById('nextCallModalCustomBtn').classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-600');
+            document.getElementById('nextCallModalCustomBtn').classList.add('border-gray-300', 'text-gray-600');
+            document.getElementById('nextCallModalCustomSection').classList.add('hidden');
+            updateNextCallModalDisplay();
+        }
+
+        function setNextCallQuickTime(hour) {
+            nextCallModalTime = hour;
+            nextCallModalUseCustom = false;
+            // ボタンハイライト
+            document.querySelectorAll('.next-call-time-btn').forEach(btn => {
+                if (parseInt(btn.dataset.hour) === hour) {
+                    btn.classList.add('border-blue-500', 'bg-blue-50');
+                    btn.classList.remove('border-gray-300');
+                } else {
+                    btn.classList.remove('border-blue-500', 'bg-blue-50');
+                    btn.classList.add('border-gray-300');
+                }
+            });
+            updateNextCallModalDisplay();
+        }
+
+        function updateNextCallModalDisplay() {
+            if (nextCallModalUseCustom) return;
+
+            if (nextCallModalDay && nextCallModalTime) {
+                const minute = parseInt(document.getElementById('nextCallModalMinute').value) || 0;
+                const targetDate = getTargetDateForDay(nextCallModalDay);
+                const dateStr = `${targetDate.getMonth() + 1}/${targetDate.getDate()}`;
+                const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+                const dayName = dayNames[targetDate.getDay()];
+                const minuteStr = minute.toString().padStart(2, '0');
+                document.getElementById('nextCallModalSelected').textContent = `📅 ${dateStr}（${dayName}）${nextCallModalTime}:${minuteStr}`;
+                document.getElementById('nextCallModalSelected').classList.remove('hidden');
+            } else {
+                document.getElementById('nextCallModalSelected').classList.add('hidden');
+            }
+        }
+
+        function getTargetDateForDay(day) {
+            const now = new Date();
+            let targetDate = new Date(now);
+
+            switch (day) {
+                case 'today':
+                    break;
+                case 'tomorrow':
+                    targetDate.setDate(targetDate.getDate() + 1);
+                    break;
+                case 'saturday':
+                    const daysUntilSat = (6 - now.getDay() + 7) % 7 || 7;
+                    targetDate.setDate(targetDate.getDate() + daysUntilSat);
+                    break;
+                case 'sunday':
+                    const daysUntilSun = (7 - now.getDay()) % 7 || 7;
+                    targetDate.setDate(targetDate.getDate() + daysUntilSun);
+                    break;
+            }
+            return targetDate;
+        }
+
+        function toggleNextCallModalCustom() {
+            nextCallModalUseCustom = !nextCallModalUseCustom;
+            const customSection = document.getElementById('nextCallModalCustomSection');
+            const customBtn = document.getElementById('nextCallModalCustomBtn');
+
+            if (nextCallModalUseCustom) {
+                customSection.classList.remove('hidden');
+                customBtn.classList.add('border-blue-500', 'bg-blue-50', 'text-blue-600');
+                customBtn.classList.remove('border-gray-300', 'text-gray-600');
+                // クイック選択をクリア
+                nextCallModalDay = null;
+                nextCallModalTime = null;
+                document.querySelectorAll('.next-call-day-btn, .next-call-time-btn').forEach(btn => {
+                    btn.classList.remove('border-blue-500', 'bg-blue-50');
+                    btn.classList.add('border-gray-300');
+                });
+                document.getElementById('nextCallModalSelected').classList.add('hidden');
+                // 今日の日付をセット
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('nextCallModalCustomDate').value = today;
+            } else {
+                customSection.classList.add('hidden');
+                customBtn.classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-600');
+                customBtn.classList.add('border-gray-300', 'text-gray-600');
+            }
+        }
+
+        async function saveNextCallDate() {
+            if (!nextCallModalCaseId || !casesData[nextCallModalCaseId]) {
+                alert('案件が見つかりません');
+                return;
+            }
+
+            let nextCallDateTime = null;
+
+            if (nextCallModalUseCustom) {
+                const customDate = document.getElementById('nextCallModalCustomDate').value;
+                const customHour = document.getElementById('nextCallModalCustomHour').value;
+                const customMinute = document.getElementById('nextCallModalCustomMinute').value;
+
+                if (!customDate || !customHour) {
+                    alert('日付と時間を選択してください');
+                    return;
+                }
+                const dateObj = new Date(customDate);
+                dateObj.setHours(parseInt(customHour), parseInt(customMinute) || 0, 0, 0);
+                nextCallDateTime = dateObj.toLocaleString('ja-JP');
+            } else {
+                if (!nextCallModalDay || !nextCallModalTime) {
+                    alert('日付と時間を選択してください');
+                    return;
+                }
+                const targetDate = getTargetDateForDay(nextCallModalDay);
+                const minute = parseInt(document.getElementById('nextCallModalMinute').value) || 0;
+                targetDate.setHours(nextCallModalTime, minute, 0, 0);
+                nextCallDateTime = targetDate.toLocaleString('ja-JP');
+            }
+
+            // ローカルデータ更新
+            casesData[nextCallModalCaseId].nextCallDate = nextCallDateTime;
+
+            // モーダルを閉じる
+            closeNextCallModal();
+
+            // UI更新
+            if (typeof initializeListView === 'function') {
+                initializeListView();
+            }
+
+            // GASに保存（バックグラウンド）
+            try {
+                const response = await fetch(ENV.GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'updateCRM',
+                        caseId: nextCallModalCaseId,
+                        data: JSON.stringify({ nextCallDate: nextCallDateTime })
+                    })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    console.log('[V2055] 次回架電日保存完了:', nextCallDateTime);
+                } else {
+                    console.error('[V2055] 次回架電日保存失敗:', result.error);
+                }
+            } catch (error) {
+                console.error('[V2055] 次回架電日保存エラー:', error);
+            }
+        }
+
+        async function clearNextCallDate() {
+            if (!nextCallModalCaseId || !casesData[nextCallModalCaseId]) {
+                alert('案件が見つかりません');
+                return;
+            }
+
+            if (!confirm('次回架電日をクリアしますか？')) return;
+
+            // ローカルデータ更新
+            casesData[nextCallModalCaseId].nextCallDate = '';
+
+            // モーダルを閉じる
+            closeNextCallModal();
+
+            // UI更新
+            if (typeof initializeListView === 'function') {
+                initializeListView();
+            }
+
+            // GASに保存（バックグラウンド）
+            try {
+                const response = await fetch(ENV.GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'updateCRM',
+                        caseId: nextCallModalCaseId,
+                        data: JSON.stringify({ nextCallDate: '' })
+                    })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    console.log('[V2055] 次回架電日クリア完了');
+                } else {
+                    console.error('[V2055] 次回架電日クリア失敗:', result.error);
+                }
+            } catch (error) {
+                console.error('[V2055] 次回架電日クリアエラー:', error);
+            }
+        }
+        // ========================================
+        // V2055: 次回架電日設定専用モーダル機能 END
+        // ========================================
 
         // V1959: カスタム時間入力の切り替え
         function toggleCustomTime() {
