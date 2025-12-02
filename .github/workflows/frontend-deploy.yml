@@ -8,7 +8,6 @@ on:
       - 'admin-dashboard/**'
       - 'franchise-dashboard/**'
       - 'franchise-register/**'
-      - 'estimate-keep-system/**'
       - 'lp/**'
       - 'js/**'
       - '.github/workflows/**'
@@ -209,37 +208,6 @@ jobs:
           curl -f https://gaihekikuraberu.com/franchise-register/ || exit 1
           echo "✅ Franchise Register deployed successfully"
 
-  deploy-estimate:
-    name: Deploy Estimate System
-    runs-on: ubuntu-latest
-    needs: [deploy-js]
-    continue-on-error: true
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          persist-credentials: true
-          fetch-depth: 0
-
-      # estimate-keep-systemにはindex.htmlがないためキャッシュバスター更新なし
-      - name: Deploy to Xserver via FTP
-        uses: SamKirkland/FTP-Deploy-Action@4.3.0
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./estimate-keep-system/
-          server-dir: gaihekikuraberu.com/public_html/estimate-keep-system/
-          dangerous-clean-slate: false
-
-      - name: Verify deployment
-        run: |
-          sleep 5
-          curl -f https://gaihekikuraberu.com/estimate-keep-system/ || exit 1
-          echo "✅ Estimate System deployed successfully"
-
   deploy-lp:
     name: Deploy LP
     runs-on: ubuntu-latest
@@ -372,7 +340,7 @@ jobs:
   notify:
     name: Notify Deployment Status
     runs-on: ubuntu-latest
-    needs: [deploy-admin, deploy-franchise-dashboard, deploy-register, deploy-estimate, deploy-lp, deploy-js]
+    needs: [deploy-admin, deploy-franchise-dashboard, deploy-register, deploy-lp, deploy-js]
     if: always()
 
     steps:
@@ -384,5 +352,4 @@ jobs:
           echo "  - Admin: https://gaihekikuraberu.com/admin-dashboard/"
           echo "  - Franchise Dashboard: https://gaihekikuraberu.com/franchise-dashboard/"
           echo "  - Register: https://gaihekikuraberu.com/franchise-register/"
-          echo "  - Estimate: https://gaihekikuraberu.com/estimate-keep-system/"
           echo "  - LP: https://gaihekikuraberu.com/lp/"
