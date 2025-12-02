@@ -7209,7 +7209,11 @@ window.addEventListener('beforeunload', function(e) {
                 data['見積もり送付先'] = quoteDestinationSelect.value || '';
             }
 
-            // V1993: 希望社数（companiesCount）は保存対象外（変動するため）
+            // V2053: 希望社数（CF列: companiesCount）を保存
+            const franchiseCountSelect = document.getElementById('franchiseCount');
+            if (franchiseCountSelect) {
+                data.companiesCount = franchiseCountSelect.value || '';
+            }
 
             // 特殊項目（選択されたボタンを配列で取得 - specialItemsButtonsのみ）
             const specialItemsButtons = document.getElementById('specialItemsButtons');
