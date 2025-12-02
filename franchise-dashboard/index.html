@@ -16030,37 +16030,40 @@
             // 物件情報の簡易表示（floorsにはそのまま「2階建て」等が入っている）
             const propertyInfo = [c.propertyType, c.floors].filter(v => v).join(' / ');
 
-            // 通話履歴カウントとメモ件数
-            const callBadge = getCallCountBadge(c);
-            const memoBadge = getMemoCountBadge(c);
-            const countsBadges = `<div class="flex items-center gap-2"><span class="inline-flex items-center px-2 py-1 text-sm bg-blue-50 text-blue-600 rounded font-medium">${callBadge}</span><span class="inline-flex items-center px-2 py-1 text-sm bg-amber-50 text-amber-600 rounded font-medium">${memoBadge}</span></div>`;
+            // 次回架電日の短縮表示
+            let nextCallShort = '';
+            if (c.nextCallDate) {
+                const match = c.nextCallDate.match(/(\d+)[-\/](\d+)[-\/](\d+)/);
+                if (match) nextCallShort = `${match[2]}/${match[3]}`;
+            }
 
             return `
                 <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow" data-cv-id="${c.cvId}">
                     <div class="flex justify-between items-start mb-3">
-                        <div class="flex items-center gap-2">
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${style.bg} ${style.text}">${status}</span>
-                            ${countsBadges}
-                        </div>
-                        <div class="flex gap-1">
-                            <button onclick="openMemoModal('${c.cvId}')" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors relative" title="メモ">
-                                <span class="text-lg">📝</span>
-                                ${hasMemo ? '<span class="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></span>' : ''}
-                            </button>
-                            <button onclick="openStatusModal('${c.cvId}')" class="p-1.5 rounded-lg hover:bg-orange-100 transition-colors" title="ステータス変更">
-                                <span class="text-lg">📊</span>
-                            </button>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${style.bg} ${style.text}">${status}</span>
+                        <div class="text-right">
+                            ${assignee && assignee !== '-'
+                                ? `<span class="text-sm text-gray-600">${escapeHtml(assignee)}</span>`
+                                : `<button onclick="event.stopPropagation(); openAssignModal('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors">振分</button>`
+                            }
                         </div>
                     </div>
                     <h3 class="font-bold text-lg mb-1">${escapeHtml(c.customerName || '-')}</h3>
                     <p class="text-sm text-gray-600 mb-1">${escapeHtml(c.fullAddress || c.city || '-')}</p>
                     ${propertyInfo ? `<p class="text-xs text-gray-500 mb-2">${escapeHtml(propertyInfo)}</p>` : ''}
-                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mb-3">
-                        ${c.nextCallDate ? `<span>🗓️次回: ${c.nextCallDate.replace(/^\d{4}[-\/]/, '').replace(/-/g, '/')}</span>` : ''}
-                        ${c.assignee
-                            ? `<span>担当: ${escapeHtml(c.assignee)}</span>`
-                            : `<button onclick="event.stopPropagation(); openAssignModal('${c.cvId}')" class="px-2 py-0.5 text-xs font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors">振分</button>`
-                        }
+                    <!-- 📞📝🗓️ボタン -->
+                    <div class="flex items-center gap-3 mb-3">
+                        <a href="tel:${c.customerTel}" onclick="startPhoneCall('${c.cvId}')" class="text-base text-blue-600 hover:text-blue-800" title="電話: ${c.customerTel || '-'}">
+                            ${getCallCountBadge(c)}
+                        </a>
+                        <button onclick="openMemoModal('${c.cvId}')" class="text-base text-amber-600 hover:text-amber-800" title="メモ">
+                            ${getMemoCountBadge(c)}
+                        </button>
+                        <button onclick="openNextCallModal('${c.cvId}')" class="text-base text-gray-600 hover:text-blue-600" title="次回架電日を設定">
+                            ${nextCallShort ? '🗓️' + nextCallShort : '🗓️'}
+                        </button>
+                    </div>
+                    <div class="text-xs text-gray-500 mb-3">
                         <span>配信: ${c.deliveredAt || '-'}</span>
                     </div>
                     ${hasMemo ? `<div class="text-xs text-gray-500 bg-gray-50 p-2 rounded mb-3 line-clamp-2">${escapeHtml(c.merchantMemo)}</div>` : ''}
