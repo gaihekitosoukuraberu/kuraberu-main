@@ -8026,6 +8026,13 @@ window.addEventListener('beforeunload', function(e) {
             const skipBtn = document.getElementById('skipBtn');
 
             if (status === 'connected') {
+                // V2058: 接続時に「📞 接続」履歴を追加（分子カウント用）
+                if (currentCaseId && casesData[currentCaseId]) {
+                    const lastRecord = casesData[currentCaseId].callHistory?.[0];
+                    if (lastRecord && lastRecord.note === '📞 架電') {
+                        lastRecord.note = '📞 接続';
+                    }
+                }
                 // V2057: 接続時はメモモーダル→ステータス→次回架電日の流れ
                 hideConnectionModal();
                 openCallHistoryModalForConnected();
