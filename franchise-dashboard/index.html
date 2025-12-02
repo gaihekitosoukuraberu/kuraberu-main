@@ -16506,12 +16506,8 @@
             const altAddress = [c.homePrefecture, c.homeAddressDetail].filter(v => v).join('');
             const altAddrFull = c.homePostalCode ? `〒${c.homePostalCode} ${altAddress}` : altAddress;
 
-            // 案件メモ + ワードリンク回答を結合
-            let fullMemo = c.caseMemo || '';
-            if (c.wordLinkAnswer) {
-                const wordLinkText = `【ワードリンク回答】${c.wordLinkAnswer}`;
-                fullMemo = fullMemo ? `${fullMemo}\n\n${wordLinkText}` : wordLinkText;
-            }
+            // 案件メモ
+            const fullMemo = c.caseMemo || '';
 
             const content = `
                 <div class="space-y-2">
@@ -16531,13 +16527,13 @@
                         </div>
                     </div>
 
-                    <!-- お客様情報 -->
+                    <!-- お客様情報（転送文準拠の並び順） -->
                     ${section('お客様情報', [
                         detailItem('電話番号', c.customerTel ? `<a href="tel:${c.customerTel}" class="text-green-600 hover:underline">${c.customerTel}</a>` : '', true),
                         detailItem('メール', c.customerEmail ? `<a href="mailto:${c.customerEmail}" class="text-blue-600 hover:underline">${c.customerEmail}</a>` : '', true),
                         detailItem('性別/年代', genderAge),
-                        detailItem('連絡時間帯', c.contactTime),
-                        detailItem('流入検索ワード', c.searchKeyword)
+                        detailItem('続柄', c.relationship),
+                        detailItem('連絡時間帯', c.contactTime)
                     ])}
 
                     <!-- 2人目連絡先 -->
@@ -16548,16 +16544,20 @@
                         detailItem('備考', c.remarks2)
                     ]) : ''}
 
-                    <!-- 物件情報 -->
+                    <!-- 物件情報（転送文準拠の並び順） -->
                     ${section('物件情報', [
                         detailItem('所在地', fullAddr),
-                        detailItem('グーグルマップ', c.googleMapsLink ? `<a href="${c.googleMapsLink}" target="_blank" class="text-blue-600 hover:underline">ストリートビュー表示</a>` : '', true),
                         detailItem('物件種別', propType),
-                        detailItem('延床面積', c.buildingArea),
                         detailItem('築年数', c.buildingAge ? `${c.buildingAge}年` : ''),
+                        detailItem('建物面積', c.buildingArea),
                         detailItem('塗装履歴', paintHistory),
                         detailItem('外壁材', c.exteriorMaterial),
-                        detailItem('屋根材', c.roofMaterial)
+                        detailItem('屋根材', c.roofMaterial),
+                        detailItem('劣化状況', c.deteriorationStatus),
+                        detailItem('気になる箇所', c.estimateAreas),
+                        detailItem('外壁工事希望', c.exteriorWorkRequest),
+                        detailItem('屋根工事希望', c.roofWorkRequest),
+                        detailItem('Google Maps', c.googleMapsLink ? `<a href="${c.googleMapsLink}" target="_blank" class="text-blue-600 hover:underline">地図を開く</a>` : '', true)
                     ])}
 
                     <!-- 見積もり送付先（別住所の場合のみ） -->
@@ -16566,25 +16566,22 @@
                         altAddrFull ? `<div class="py-1.5 flex"><span class="text-gray-500 w-28 flex-shrink-0">住所</span><span class="font-medium">${escapeHtml(altAddrFull)}</span></div>` : ''
                     ]) : ''}
 
-                    <!-- ご希望内容 -->
+                    <!-- ご希望内容（転送文準拠の並び順） -->
                     ${section('ご希望内容', [
-                        detailItem('気になる箇所', c.estimateAreas),
+                        detailItem('見積もり希望箇所', c.estimateRequestAreas),
                         detailItem('施工時期', c.constructionTiming),
-                        detailItem('立ち会い', attendance),
-                        detailItem('現調希望日時', c.inspectionDate),
-                        detailItem('業者選定条件', c.selectionCriteria),
-                        detailItem('劣化状況', c.deteriorationStatus),
+                        detailItem('希望社数', c.preferredCompanyCount),
                         detailItem('他社見積', c.existingEstimates),
                         detailItem('見積もり取得先', c.estimateSource),
-                        detailItem('訪問業者の状況', c.visitingContractor),
+                        detailItem('訪問業者', c.visitingContractor),
                         detailItem('訪問業者名', c.visitingContractorName),
-                        detailItem('比較意向', c.comparisonIntent)
+                        detailItem('比較意向', c.comparisonIntent),
+                        detailItem('業者選定条件', c.selectionCriteria),
+                        detailItem('ワードリンク回答', c.wordLinkAnswer),
+                        detailItem('現調希望日時', c.inspectionDate),
+                        detailItem('立ち会い', attendance),
+                        detailItem('特殊要望', c.specialItems)
                     ])}
-
-                    <!-- 特殊要望 -->
-                    ${c.specialItems ? section('特殊要望', [
-                        `<div class="text-sm">${escapeHtml(c.specialItems)}</div>`
-                    ]) : ''}
 
                     <!-- 案件メモ -->
                     ${fullMemo ? section('案件メモ', [
