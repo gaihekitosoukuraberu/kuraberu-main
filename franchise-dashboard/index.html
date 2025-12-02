@@ -16000,8 +16000,8 @@
             const style = statusStyles[status] || statusStyles[''];
             const hasMemo = c.merchantMemo && c.merchantMemo.trim();
 
-            // 物件情報の簡易表示
-            const propertyInfo = [c.propertyType, c.floors ? `${c.floors}階` : ''].filter(v => v).join(' / ');
+            // 物件情報の簡易表示（floorsにはそのまま「2階建て」等が入っている）
+            const propertyInfo = [c.propertyType, c.floors].filter(v => v).join(' / ');
 
             // 通話履歴カウント（接続/不在）
             const callBadge = getCallCountBadge(c);
@@ -16678,8 +16678,8 @@
             // 住所フルテキスト
             const fullAddr = c.postalCode ? `〒${c.postalCode} ${c.fullAddress || ''}` : (c.fullAddress || '-');
 
-            // 物件種別と階数
-            const propType = [c.propertyType, c.floors ? `${c.floors}階` : ''].filter(v => v).join(' / ');
+            // 物件種別と階数（floorsにはそのまま「2階建て」等が入っている）
+            const propType = [c.propertyType, c.floors].filter(v => v).join(' / ');
 
             // 性別/年代
             const genderAge = [c.customerGender, c.customerAge].filter(v => v).join(' / ');
