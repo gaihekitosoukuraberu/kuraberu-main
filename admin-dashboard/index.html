@@ -8653,7 +8653,7 @@ window.addEventListener('beforeunload', function(e) {
             closeMemoOnlyModal();
         }
 
-        // V2046: メモ履歴を読み込み
+        // V2047: メモ履歴を読み込み（全履歴表示・電話/メモラベル付き）
         function loadMemoHistory() {
             const historyList = document.getElementById('memoHistoryList');
             if (!currentCaseId || !casesData[currentCaseId]) {
@@ -8662,26 +8662,32 @@ window.addEventListener('beforeunload', function(e) {
             }
 
             const allHistory = casesData[currentCaseId].franchiseHistory || [];
-            // 現在の会社のメモのみフィルタ
-            const memoHistory = allHistory.filter(item =>
-                item.companyName === currentMemoCompany &&
-                item.types && item.types.includes('memo')
+            // V2047: 現在の会社の全履歴を表示（電話もメモも）
+            const companyHistory = allHistory.filter(item =>
+                item.companyName === currentMemoCompany
             );
 
-            if (memoHistory.length === 0) {
-                historyList.innerHTML = '<p class="text-gray-500 text-sm">メモがありません</p>';
+            if (companyHistory.length === 0) {
+                historyList.innerHTML = '<p class="text-gray-500 text-sm">履歴がありません</p>';
                 return;
             }
 
-            historyList.innerHTML = memoHistory.map((item, index) => {
+            historyList.innerHTML = companyHistory.map((item, idx) => {
                 const originalIndex = allHistory.findIndex(h => h === item);
                 const isSelected = originalIndex === selectedMemoHistoryIndex;
+                // V2047: 電話/メモのラベル表示
+                const hasCall = item.types && item.types.includes('call');
+                const hasMemo = item.types && item.types.includes('memo');
+                const typeLabel = hasCall && hasMemo ? '📞📝' : (hasCall ? '📞' : (hasMemo ? '📝' : ''));
                 return `
                 <div onclick="selectMemoHistory(${originalIndex})" class="cursor-pointer rounded-lg p-3 border-2 ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'} transition-all">
                     <div class="flex justify-between items-start gap-2">
                         <div class="flex-1 min-w-0">
-                            <div class="text-xs text-gray-400">${item.date}</div>
-                            <div class="text-sm text-gray-700 mt-1">${item.note}</div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-gray-400">${item.date}</span>
+                                <span class="text-xs">${typeLabel}</span>
+                            </div>
+                            <div class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">${item.note}</div>
                         </div>
                         ${isSelected ? `
                         <div class="flex flex-col gap-1 flex-shrink-0">
@@ -8740,20 +8746,56 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
-        // V2043: Step1 → Step2（繋がった場合）or Step3（不在の場合は直接）
-        function selectCallResult(type) {
+        // V2043: Step1 → Step2（繋がった場合）or 即保存（不在の場合）
+        async function selectCallResult(type) {
             currentCallResultType = type;
-            document.getElementById('callResultStep1').classList.add('hidden');
 
             if (type === 'connected') {
                 // 繋がった → サブ選択へ
+                document.getElementById('callResultStep1').classList.add('hidden');
                 document.getElementById('callResultStep2Connected').classList.remove('hidden');
             } else {
-                // 不在 → Step3へ直接（サブ選択なし）
+                // V2047: 不在 → 即保存して閉じる
                 currentCallSubResult = '';
-                document.getElementById('selectedCallResult').textContent = '不在';
-                document.getElementById('callResultStep3').classList.remove('hidden');
+                await saveCallResultDirect('不在');
             }
+        }
+
+        // V2047: 直接保存（不在用）
+        async function saveCallResultDirect(resultText) {
+            if (!currentCaseId || !casesData[currentCaseId]) {
+                console.error('[V2047] 案件データがありません:', currentCaseId);
+                alert('案件データがありません');
+                return;
+            }
+
+            if (!casesData[currentCaseId].franchiseHistory) {
+                casesData[currentCaseId].franchiseHistory = [];
+            }
+
+            const timestamp = new Date().toLocaleString('ja-JP');
+            const companyName = currentFranchiseCallCompany || '不明';
+
+            casesData[currentCaseId].franchiseHistory.unshift({
+                date: timestamp,
+                companyName: companyName,
+                note: resultText,
+                types: ['call']
+            });
+
+            console.log('[V2047] 不在履歴追加:', { companyName, resultText });
+
+            await saveFranchiseHistoryToGAS();
+
+            // BusinessSelectionHandler更新
+            if (window.BusinessSelectionHandler && window.BusinessSelectionHandler.currentCaseData) {
+                window.BusinessSelectionHandler.currentCaseData.franchiseHistory = casesData[currentCaseId].franchiseHistory;
+                if (typeof window.BusinessSelectionHandler.applySortAndRender === 'function') {
+                    window.BusinessSelectionHandler.applySortAndRender(window.BusinessSelectionHandler.currentSortType || 'user');
+                }
+            }
+
+            closeFranchiseHistoryModal();
         }
 
         // V2043: Step2 → Step3（サブ選択後 - 繋がった場合のみ）
@@ -8845,30 +8887,39 @@ window.addEventListener('beforeunload', function(e) {
                 return;
             }
 
-            const franchiseHistory = casesData[currentCaseId].franchiseHistory || [];
+            const allHistory = casesData[currentCaseId].franchiseHistory || [];
+            // V2047: 現在の会社の履歴のみ表示
+            const companyHistory = allHistory.filter(item =>
+                item.companyName === currentFranchiseCallCompany
+            );
 
-            if (franchiseHistory.length === 0) {
+            if (companyHistory.length === 0) {
                 historyList.innerHTML = '<p class="text-gray-500 text-sm">履歴がありません</p>';
                 return;
             }
 
-            // V2045: カード右側にボタン表示（選択時のみ）
-            historyList.innerHTML = franchiseHistory.map((item, index) => {
-                const isSelected = index === selectedHistoryIndex;
+            // V2047: ラベル付きで表示（📞電話 / 📝メモ）
+            historyList.innerHTML = companyHistory.map((item, idx) => {
+                const originalIndex = allHistory.findIndex(h => h === item);
+                const isSelected = originalIndex === selectedHistoryIndex;
+                // V2047: 電話/メモのラベル表示
+                const hasCall = item.types && item.types.includes('call');
+                const hasMemo = item.types && item.types.includes('memo');
+                const typeLabel = hasCall && hasMemo ? '📞📝' : (hasCall ? '📞' : (hasMemo ? '📝' : ''));
                 return `
-                <div onclick="selectHistory(${index})" class="cursor-pointer rounded-lg p-3 border-2 transition-all ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50 hover:border-gray-300'}">
+                <div onclick="selectHistory(${originalIndex})" class="cursor-pointer rounded-lg p-3 border-2 transition-all ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50 hover:border-gray-300'}">
                     <div class="flex justify-between items-start gap-2">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 mb-1">
-                                <span class="text-sm font-semibold text-green-700">${item.companyName || '---'}</span>
+                                <span class="text-xs">${typeLabel}</span>
                                 <span class="text-xs text-gray-500">${item.date || item.timestamp || '---'}</span>
                             </div>
                             <div class="text-sm text-gray-700 whitespace-pre-wrap break-words">${item.note || ''}</div>
                         </div>
                         ${isSelected ? `
                         <div class="flex flex-col gap-1 flex-shrink-0">
-                            <button onclick="event.stopPropagation(); editHistory(${index})" class="p-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-all" title="編集">✏️</button>
-                            <button onclick="event.stopPropagation(); deleteHistory(${index})" class="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-all" title="削除">🗑️</button>
+                            <button onclick="event.stopPropagation(); editHistory(${originalIndex})" class="p-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-all" title="編集">✏️</button>
+                            <button onclick="event.stopPropagation(); deleteHistory(${originalIndex})" class="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-all" title="削除">🗑️</button>
                             <button onclick="event.stopPropagation(); clearHistorySelection()" class="p-1.5 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition-all" title="閉じる">✕</button>
                         </div>
                         ` : ''}
