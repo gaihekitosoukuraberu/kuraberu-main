@@ -192,7 +192,7 @@ var BroadcastSystem = {
       const fee = this.calculateFee(cvData, maxCompanies);
 
       const previewText = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-【外壁塗装くらべる】案件のご案内
+【外壁塗装くらべる】新着案件のご案内
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ○○○○ 御中
@@ -200,7 +200,7 @@ var BroadcastSystem = {
 平素よりお世話になっております。
 外壁塗装くらべる運営事務局でございます。
 
-下記案件がございます。ご検討ください。
+下記新着案件がございますのでぜひご検討ください。
 
 -------------------------------------------
 【案件概要】
@@ -374,7 +374,7 @@ var BroadcastSystem = {
         try {
           GmailApp.sendEmail(
             franchise.email,
-            `【外壁塗装くらべる】案件のご案内 - ${prefecture}${city || ''} (${cvId})`,
+            `【外壁塗装くらべる】新着案件のご案内 - ${prefecture}${city || ''} (${cvId})`,
             emailBody,
             { name: '外壁塗装くらべる運営事務局' }
           );
@@ -1020,7 +1020,7 @@ var BroadcastSystem = {
     const interestUrl = `${scriptUrl}?action=broadcast_interest&token=${interestToken}`;
 
     return `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-【外壁塗装くらべる】案件のご案内
+【外壁塗装くらべる】新着案件のご案内
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ${franchise.name} 御中
@@ -1028,7 +1028,7 @@ ${franchise.name} 御中
 平素よりお世話になっております。
 外壁塗装くらべる運営事務局でございます。
 
-下記案件がございます。ご検討ください。
+下記新着案件がございますのでぜひご検討ください。
 
 -------------------------------------------
 【案件概要】
