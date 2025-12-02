@@ -211,9 +211,14 @@
                 <span class="font-bold">通話中:</span>
                 <span id="callingBarName" class="font-medium"></span>
             </div>
-            <button onclick="endPhoneCall()" class="px-4 py-1.5 bg-white text-green-600 font-bold rounded-lg hover:bg-gray-100 transition-all shadow-md">
-                通話終了
-            </button>
+            <div class="flex items-center gap-2">
+                <button onclick="openCallingCaseDetail()" class="px-3 py-1.5 bg-white/20 text-white font-medium rounded-lg hover:bg-white/30 transition-all">
+                    詳細
+                </button>
+                <button onclick="endPhoneCall()" class="px-4 py-1.5 bg-white text-green-600 font-bold rounded-lg hover:bg-gray-100 transition-all shadow-md">
+                    終話
+                </button>
+            </div>
         </div>
     </div>
 
@@ -16273,6 +16278,17 @@
         }
 
         window.endPhoneCall = endPhoneCall;
+
+        // 通話中バーから詳細モーダルを開く（バーは消さない）
+        function openCallingCaseDetail() {
+            if (!currentCallCase) return;
+            // 詳細モーダルを開く
+            if (typeof openDetailModal === 'function') {
+                openDetailModal(currentCallCase.cvId);
+            }
+        }
+
+        window.openCallingCaseDetail = openCallingCaseDetail;
 
         // ページ復帰時に通話中バーを復元
         function checkCallingState() {
