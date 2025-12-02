@@ -16033,7 +16033,7 @@
             // 通話履歴カウントとメモ件数
             const callBadge = getCallCountBadge(c);
             const memoBadge = getMemoCountBadge(c);
-            const countsBadges = `<div class="flex items-center gap-1"><span class="inline-flex items-center px-1.5 py-0.5 text-xs bg-blue-50 text-blue-600 rounded font-medium">${callBadge}</span><span class="inline-flex items-center px-1.5 py-0.5 text-xs bg-amber-50 text-amber-600 rounded font-medium">${memoBadge}</span></div>`;
+            const countsBadges = `<div class="flex items-center gap-2"><span class="inline-flex items-center px-2 py-1 text-sm bg-blue-50 text-blue-600 rounded font-medium">${callBadge}</span><span class="inline-flex items-center px-2 py-1 text-sm bg-amber-50 text-amber-600 rounded font-medium">${memoBadge}</span></div>`;
 
             return `
                 <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow" data-cv-id="${c.cvId}">
@@ -16125,19 +16125,19 @@
                     </td>
                     <!-- 電話（通話回数） -->
                     <td class="px-2 py-3 text-center">
-                        <a href="tel:${c.customerTel}" onclick="startPhoneCall('${c.cvId}')" class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline" title="電話: ${c.customerTel || '-'}">
+                        <a href="tel:${c.customerTel}" onclick="startPhoneCall('${c.cvId}')" class="text-base font-medium text-blue-600 hover:text-blue-800 hover:underline" title="電話: ${c.customerTel || '-'}">
                             ${getCallCountBadge(c)}
                         </a>
                     </td>
                     <!-- メモ（件数） -->
                     <td class="px-2 py-3 text-center">
-                        <button onclick="openMemoModal('${c.cvId}')" class="text-sm font-medium text-amber-600 hover:text-amber-800" title="メモ">
+                        <button onclick="openMemoModal('${c.cvId}')" class="text-base font-medium text-amber-600 hover:text-amber-800" title="メモ">
                             ${getMemoCountBadge(c)}
                         </button>
                     </td>
                     <!-- 次回架電 -->
                     <td class="px-2 py-3 text-center">
-                        <button onclick="openNextCallModal('${c.cvId}')" class="text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-2 py-1 rounded transition-colors" title="次回架電日を設定">${nextCallDisplay !== '-' ? '🗓️' + nextCallDisplay : '🗓️'}</button>
+                        <button onclick="openNextCallModal('${c.cvId}')" class="text-base text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-2 py-1 rounded transition-colors" title="次回架電日を設定">${nextCallDisplay !== '-' ? '🗓️' + nextCallDisplay : '🗓️'}</button>
                     </td>
                     <!-- 担当 -->
                     <td class="px-3 py-3 text-sm">
@@ -16388,11 +16388,11 @@
             return `📞${counts.callTotal}回`;
         }
 
-        // メモカウント表示（📋2件 形式）
+        // メモカウント表示（📝2件 形式）
         function getMemoCountBadge(caseData) {
             const counts = getCallAndMemoCounts(caseData);
-            if (counts.memoTotal === 0) return '📋';
-            return `📋${counts.memoTotal}件`;
+            if (counts.memoTotal === 0) return '📝';
+            return `📝${counts.memoTotal}件`;
         }
 
         // 電話発信時の処理（通話中バー表示）
