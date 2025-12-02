@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <!-- Deployment: V2034 - 転送デバッグ強化 (2025-12-02 00:25 JST) -->
+    <!-- Deployment: V2063 - ソートモーダル全面リニューアル(下部固定ボタン・一括選択・プリセット) (2025-12-02 JST) -->
     <title>本部管理画面 - 案件割り振りシステム</title>
     <link rel="icon" type="image/png" href="images/7.png">
     <link rel="apple-touch-icon" href="images/7.png">
@@ -387,8 +387,8 @@
 
                         <!-- V1978: ソートボタン（3等分・すべてbutton） -->
                         <div class="flex items-center gap-2 w-full">
-                            <button onclick="openSortModal()" class="flex-1 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center">
-                                ソート
+                            <button id="statusFilterBtn" onclick="openSortModal()" class="flex-1 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center">
+                                <span id="statusFilterLabel">ソート</span>
                             </button>
                             <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex-1 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center truncate">
                                 <span id="dateFilterLabel">期間</span>
@@ -2037,72 +2037,94 @@ window.addEventListener('beforeunload', function(e) {
     </div>
 
     <!-- ソートモーダル -->
+    <!-- V2063: ソートモーダル（配信前/後Toggle廃止・全面リニューアル） -->
     <div id="sortModal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/50" onclick="closeSortModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
-                <div class="flex justify-between items-center mb-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[85vh] flex flex-col">
+                <!-- ヘッダー -->
+                <div class="flex justify-between items-center p-5 pb-3 flex-shrink-0">
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-900">ステータスでソート</h3>
-                        <p id="selectedStatusCount" class="text-sm text-gray-500">すべて表示中</p>
+                        <h3 class="text-lg font-bold text-gray-900">ステータス絞り込み</h3>
+                        <p id="selectedStatusCount" class="text-sm text-blue-600 font-medium">すべて表示中</p>
                     </div>
-                    <button onclick="closeSortModal()" class="text-gray-400 hover:text-gray-600">
+                    <button onclick="closeSortModal()" class="text-gray-400 hover:text-gray-600 p-1">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
-                
-                <!-- すべて表示ボタン -->
-                <div class="mb-4">
-                    <button onclick="showAllCases()" class="w-full px-4 py-2.5 bg-gradient-to-r from-gray-100 to-white text-gray-800 border border-gray-300 rounded-lg shadow hover:shadow-lg transition-all font-medium">
-                        <span class="flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            選択をクリア（すべて表示）
-                        </span>
-                    </button>
-                </div>
-                
-                <!-- 管理ステータス -->
-                <div class="mb-4">
-                    <h4 class="text-sm font-medium text-gray-700 mb-2">管理ステータス</h4>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="filterBySpecificStatus('新規')" class="px-4 py-2 border-2 border-blue-500 bg-blue-100 text-blue-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">新規</button>
-                        <button onclick="filterBySpecificStatus('不在')" class="px-4 py-2 border-2 border-gray-500 bg-gray-100 text-gray-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">不在</button>
-                        <button onclick="filterBySpecificStatus('再架電')" class="px-4 py-2 border-2 border-yellow-500 bg-yellow-100 text-yellow-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">再架電</button>
-                        <button onclick="filterBySpecificStatus('見込み')" class="px-4 py-2 border-2 border-orange-600 bg-orange-100 text-orange-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">見込み</button>
-                        <button onclick="filterBySpecificStatus('ロスト')" class="px-4 py-2 border-2 border-gray-700 bg-gray-200 text-gray-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">ロスト</button>
-                        <button onclick="filterBySpecificStatus('配信中')" class="px-4 py-2 border-2 border-green-600 bg-green-100 text-green-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">配信中</button>
-                        <button onclick="filterBySpecificStatus('他社契約済')" class="px-4 py-2 border-2 border-slate-500 bg-slate-100 text-slate-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">他社契約済</button>
-                        <button onclick="filterBySpecificStatus('無効')" class="px-4 py-2 border-2 border-gray-600 bg-gray-100 text-gray-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">無効</button>
-                        <button onclick="filterBySpecificStatus('クレーム')" class="px-4 py-2 border-2 border-red-700 bg-red-100 text-red-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">クレーム</button>
+
+                <!-- スクロール可能なコンテンツエリア -->
+                <div class="flex-1 overflow-y-auto px-5">
+                    <!-- V2063: 一括選択ボタン -->
+                    <div class="flex gap-2 mb-4">
+                        <button onclick="selectPreDeliveryStatuses()" class="flex-1 px-3 py-2 bg-indigo-100 text-indigo-700 border-2 border-indigo-400 rounded-lg hover:bg-indigo-200 transition-all font-medium text-sm">
+                            📋 配信前一括
+                        </button>
+                        <button onclick="selectPostDeliveryStatuses()" class="flex-1 px-3 py-2 bg-purple-100 text-purple-700 border-2 border-purple-400 rounded-lg hover:bg-purple-200 transition-all font-medium text-sm">
+                            📦 配信後一括
+                        </button>
+                    </div>
+
+                    <!-- V2063: プリセットボタン -->
+                    <div class="flex gap-2 mb-4 pb-4 border-b border-gray-200">
+                        <button onclick="selectCallTargetStatuses()" class="flex-1 px-3 py-2 bg-green-100 text-green-700 border-2 border-green-400 rounded-lg hover:bg-green-200 transition-all font-medium text-sm">
+                            📞 架電対象
+                        </button>
+                        <button onclick="selectInProgressStatuses()" class="flex-1 px-3 py-2 bg-orange-100 text-orange-700 border-2 border-orange-400 rounded-lg hover:bg-orange-200 transition-all font-medium text-sm">
+                            🔥 進行中
+                        </button>
+                    </div>
+
+                    <!-- 配信前ステータス -->
+                    <div class="mb-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                            配信前ステータス
+                        </h4>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <button id="status-btn-新規" onclick="filterBySpecificStatus('新規')" class="status-filter-btn px-2 py-1.5 border-2 border-blue-500 bg-blue-100 text-blue-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">新規</button>
+                            <button id="status-btn-不在" onclick="filterBySpecificStatus('不在')" class="status-filter-btn px-2 py-1.5 border-2 border-gray-500 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">不在</button>
+                            <button id="status-btn-再架電" onclick="filterBySpecificStatus('再架電')" class="status-filter-btn px-2 py-1.5 border-2 border-yellow-500 bg-yellow-100 text-yellow-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">再架電</button>
+                            <button id="status-btn-見込み" onclick="filterBySpecificStatus('見込み')" class="status-filter-btn px-2 py-1.5 border-2 border-orange-600 bg-orange-100 text-orange-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">見込み</button>
+                            <button id="status-btn-ロスト" onclick="filterBySpecificStatus('ロスト')" class="status-filter-btn px-2 py-1.5 border-2 border-gray-700 bg-gray-200 text-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">ロスト</button>
+                            <button id="status-btn-配信中" onclick="filterBySpecificStatus('配信中')" class="status-filter-btn px-2 py-1.5 border-2 border-green-600 bg-green-100 text-green-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">配信中</button>
+                            <button id="status-btn-他社契約済" onclick="filterBySpecificStatus('他社契約済')" class="status-filter-btn px-2 py-1.5 border-2 border-slate-500 bg-slate-100 text-slate-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">他社契約</button>
+                            <button id="status-btn-無効" onclick="filterBySpecificStatus('無効')" class="status-filter-btn px-2 py-1.5 border-2 border-gray-600 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">無効</button>
+                            <button id="status-btn-クレーム" onclick="filterBySpecificStatus('クレーム')" class="status-filter-btn px-2 py-1.5 border-2 border-red-700 bg-red-100 text-red-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">クレーム</button>
+                        </div>
+                    </div>
+
+                    <!-- 配信後ステータス -->
+                    <div class="pb-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                            配信後ステータス
+                        </h4>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <button id="status-btn-配信済み" onclick="filterBySpecificStatus('配信済み')" class="status-filter-btn px-2 py-1.5 border-2 border-purple-600 bg-purple-100 text-purple-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">配信済み</button>
+                            <button id="status-btn-アポ済" onclick="filterBySpecificStatus('アポ済')" class="status-filter-btn px-2 py-1.5 border-2 border-orange-500 bg-orange-100 text-orange-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">アポ済</button>
+                            <button id="status-btn-現調済" onclick="filterBySpecificStatus('現調済')" class="status-filter-btn px-2 py-1.5 border-2 border-orange-600 bg-orange-100 text-orange-900 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調済</button>
+                            <button id="status-btn-見積提出済" onclick="filterBySpecificStatus('見積提出済')" class="status-filter-btn px-2 py-1.5 border-2 border-red-600 bg-red-100 text-red-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">見積提出</button>
+                            <button id="status-btn-入金予定" onclick="filterBySpecificStatus('入金予定')" class="status-filter-btn px-2 py-1.5 border-2 border-red-700 bg-red-100 text-red-900 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">入金予定</button>
+                            <button id="status-btn-入金完了" onclick="filterBySpecificStatus('入金完了')" class="status-filter-btn px-2 py-1.5 border-2 border-purple-700 bg-purple-100 text-purple-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">入金完了</button>
+                            <button id="status-btn-完了" onclick="filterBySpecificStatus('完了')" class="status-filter-btn px-2 py-1.5 border-2 border-green-700 bg-green-100 text-green-900 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">完了</button>
+                            <button id="status-btn-紹介後キャンセル" onclick="filterBySpecificStatus('紹介後キャンセル')" class="status-filter-btn px-2 py-1.5 border-2 border-cyan-600 bg-cyan-100 text-cyan-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">紹介後CN</button>
+                            <button id="status-btn-現調前キャンセル" onclick="filterBySpecificStatus('現調前キャンセル')" class="status-filter-btn px-2 py-1.5 border-2 border-blue-600 bg-blue-100 text-blue-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調前CN</button>
+                            <button id="status-btn-現調後ロスト" onclick="filterBySpecificStatus('現調後ロスト')" class="status-filter-btn px-2 py-1.5 border-2 border-gray-700 bg-gray-200 text-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調後LS</button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- V2062: 適用して閉じるボタン（中央配置） -->
-                <div class="my-4 py-4 border-y border-gray-200">
-                    <button onclick="closeSortModal()" class="w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all font-semibold hover:from-blue-600 hover:to-blue-700">
-                        適用して閉じる
+                <!-- V2063: クリア・設定ボタン（下部固定） -->
+                <div class="flex gap-2 p-5 pt-3 border-t border-gray-200 bg-white flex-shrink-0">
+                    <button onclick="clearStatusFilter()" class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg shadow-sm hover:bg-gray-200 transition-all font-medium text-sm">
+                        クリア
                     </button>
-                </div>
-
-                <!-- 配信後ステータス -->
-                <div>
-                    <h4 class="text-sm font-medium text-gray-700 mb-2">配信後ステータス</h4>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="filterBySpecificStatus('配信済み')" class="px-4 py-2 border-2 border-purple-600 bg-purple-100 text-purple-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">配信済み</button>
-                        <button onclick="filterBySpecificStatus('アポ済')" class="px-4 py-2 border-2 border-orange-500 bg-orange-100 text-orange-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">アポ済</button>
-                        <button onclick="filterBySpecificStatus('現調済')" class="px-4 py-2 border-2 border-orange-600 bg-orange-100 text-orange-900 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">現調済</button>
-                        <button onclick="filterBySpecificStatus('見積提出済')" class="px-4 py-2 border-2 border-red-600 bg-red-100 text-red-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">見積提出済</button>
-                        <button onclick="filterBySpecificStatus('入金予定')" class="px-4 py-2 border-2 border-red-700 bg-red-100 text-red-900 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">入金予定</button>
-                        <button onclick="filterBySpecificStatus('入金完了')" class="px-4 py-2 border-2 border-purple-700 bg-purple-100 text-purple-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">入金完了</button>
-                        <button onclick="filterBySpecificStatus('完了')" class="px-4 py-2 border-2 border-green-700 bg-green-100 text-green-900 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">完了</button>
-                        <button onclick="filterBySpecificStatus('紹介後キャンセル')" class="px-4 py-2 border-2 border-cyan-600 bg-cyan-100 text-cyan-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">紹介後キャンセル</button>
-                        <button onclick="filterBySpecificStatus('現調前キャンセル')" class="px-4 py-2 border-2 border-blue-600 bg-blue-100 text-blue-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">現調前キャンセル</button>
-                        <button onclick="filterBySpecificStatus('現調後ロスト')" class="px-4 py-2 border-2 border-gray-700 bg-gray-200 text-gray-800 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium">現調後ロスト</button>
-                    </div>
+                    <button onclick="applyStatusFilter()" class="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all font-semibold text-sm">
+                        設定
+                    </button>
                 </div>
             </div>
         </div>
@@ -5940,7 +5962,7 @@ window.addEventListener('beforeunload', function(e) {
             applyStatusFilter();
         }
 
-        // ステータスボタンの選択状態を更新
+        // V2063: ステータスボタンの選択状態を更新（チェックマーク付き）
         function updateStatusButtonStates() {
             const buttons = document.querySelectorAll('#sortModal button[onclick*="filterBySpecificStatus"]');
             buttons.forEach(button => {
@@ -5948,46 +5970,43 @@ window.addEventListener('beforeunload', function(e) {
                 const match = onclick.match(/filterBySpecificStatus\('([^']+)'\)/);
                 if (match) {
                     const status = match[1];
+                    // ボタンの元のテキストを取得（チェックマークを除去）
+                    const originalText = button.dataset.originalText || button.textContent.replace('✓ ', '');
+                    button.dataset.originalText = originalText;
+
                     if (selectedStatuses.includes(status)) {
-                        // 選択中：濃い色
+                        // 選択中：濃い色 + チェックマーク
                         button.style.opacity = '1';
                         button.style.transform = 'scale(0.95)';
                         button.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.5)';
+                        button.textContent = '✓ ' + originalText;
                     } else {
                         // 未選択：薄い色
                         button.style.opacity = '0.6';
                         button.style.transform = 'scale(1)';
                         button.style.boxShadow = '';
+                        button.textContent = originalText;
                     }
                 }
             });
         }
 
-        // ステータスフィルタを適用（複数OR条件）
+        // V2063: ステータスフィルタを適用して閉じる（設定ボタン用）
         function applyStatusFilter() {
-            initializeListView(); // まずすべての案件を表示
+            // モーダルを閉じる
+            closeSortModal();
 
-            // 何も選択されていない場合はすべて表示
-            if (selectedStatuses.length === 0) {
-                return;
-            }
+            // 本日改フィルターをクリア（ステータスフィルターを優先）
+            todayKaiFilterActive = false;
+            todayKaiCaseIds = [];
 
-            // 選択されたステータスのいずれかに一致する案件のみ表示
-            const rows = document.querySelectorAll('#casesListBody tr');
-            rows.forEach(row => {
-                const statusElement = row.querySelector('td:nth-child(2) span');
-                const rowStatus = statusElement?.textContent.trim() || '';
-
-                if (selectedStatuses.includes(rowStatus)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
+            // リストを再描画（selectedStatusesフィルタ適用）
+            initializeListView();
         }
 
-        // 選択数を更新
+        // V2063: 選択数を更新（モーダル内 + ヘッダーボタン）
         function updateSelectedCount() {
+            // モーダル内の件数表示
             const countElement = document.getElementById('selectedStatusCount');
             if (countElement) {
                 if (selectedStatuses.length === 0) {
@@ -5998,6 +6017,61 @@ window.addEventListener('beforeunload', function(e) {
                     countElement.className = 'text-sm text-blue-600 font-semibold';
                 }
             }
+
+            // V2063: ヘッダーのソートボタンラベルも更新
+            const filterLabel = document.getElementById('statusFilterLabel');
+            const filterBtn = document.getElementById('statusFilterBtn');
+            if (filterLabel && filterBtn) {
+                if (selectedStatuses.length === 0) {
+                    filterLabel.textContent = 'ソート';
+                    filterBtn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
+                    filterBtn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+                } else {
+                    filterLabel.textContent = `${selectedStatuses.length}件`;
+                    filterBtn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                    filterBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
+                }
+            }
+        }
+
+        // V2063: ステータスフィルタをクリア
+        function clearStatusFilter() {
+            selectedStatuses = [];
+            updateStatusButtonStates();
+            updateSelectedCount();
+            // 本日改フィルターもクリア
+            todayKaiFilterActive = false;
+            todayKaiCaseIds = [];
+            // リストを再描画
+            initializeListView();
+        }
+
+        // V2063: 配信前ステータスを一括選択
+        function selectPreDeliveryStatuses() {
+            selectedStatuses = [...PRE_DELIVERY_STATUSES];
+            updateStatusButtonStates();
+            updateSelectedCount();
+        }
+
+        // V2063: 配信後ステータスを一括選択
+        function selectPostDeliveryStatuses() {
+            selectedStatuses = [...POST_DELIVERY_STATUSES];
+            updateStatusButtonStates();
+            updateSelectedCount();
+        }
+
+        // V2063: 架電対象ステータスを選択（新規・不在・再架電）
+        function selectCallTargetStatuses() {
+            selectedStatuses = ['新規', '不在', '再架電'];
+            updateStatusButtonStates();
+            updateSelectedCount();
+        }
+
+        // V2063: 進行中ステータスを選択（見込み・配信中・アポ済・現調済・見積提出済）
+        function selectInProgressStatuses() {
+            selectedStatuses = ['見込み', '配信中', 'アポ済', '現調済', '見積提出済', '入金予定'];
+            updateStatusButtonStates();
+            updateSelectedCount();
         }
 
         // 案件フィルタリング機能
