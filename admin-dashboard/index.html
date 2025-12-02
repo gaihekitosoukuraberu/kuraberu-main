@@ -7760,8 +7760,14 @@ window.addEventListener('beforeunload', function(e) {
             const history = caseData.callHistory || [];
             const today = new Date().toLocaleDateString('ja-JP');
 
-            // 架電記録（📞 or 📵で始まるもの）
-            const callRecords = history.filter(item => {
+            // V2056: 接続回数（📞 接続 or 📞 架電→接続のみ、📵不在は除外）
+            const connectedRecords = history.filter(item => {
+                const note = item.note || '';
+                return note.includes('接続') || note.includes('転送OK') || note.includes('検討中') || note.includes('お断り');
+            });
+
+            // 総架電回数（📞 or 📵で始まるもの全て）
+            const allCallRecords = history.filter(item => {
                 const note = item.note || '';
                 return note.startsWith('📞') || note.startsWith('📵');
             });
@@ -7772,15 +7778,16 @@ window.addEventListener('beforeunload', function(e) {
                 return !note.startsWith('📞') && !note.startsWith('📵') && note.trim() !== '';
             });
 
-            // 今日の架電回数
-            const todayCallCount = callRecords.filter(item => {
+            // 今日の接続回数
+            const todayConnectedCount = connectedRecords.filter(item => {
                 const itemDate = item.date || item.timestamp || '';
                 return itemDate.startsWith(today);
             }).length;
 
             return {
-                callToday: todayCallCount,
-                callTotal: callRecords.length,
+                callToday: todayConnectedCount,        // 今日の接続回数
+                callTotal: allCallRecords.length,      // 総架電回数（分母）
+                connectedTotal: connectedRecords.length, // 総接続回数（分子）
                 memoTotal: memoRecords.length
             };
         }
@@ -7816,11 +7823,11 @@ window.addEventListener('beforeunload', function(e) {
             return `<div class="flex items-center gap-1">${parts.join('')}</div>`;
         }
 
-        // V2055: アイコン横のコンパクトなカウント表示
+        // V2056: アイコン横のコンパクトなカウント表示（接続回数/総架電回数）
         function getCallCountBadge(caseData) {
             const counts = getCallAndMemoCounts(caseData);
             if (counts.callTotal === 0) return '';
-            return `<span class="text-xs text-blue-600 font-medium ml-0.5">${counts.callToday}/${counts.callTotal}</span>`;
+            return `<span class="text-xs text-blue-600 font-medium ml-0.5">${counts.connectedTotal}/${counts.callTotal}</span>`;
         }
 
         function getMemoCountBadge(caseData) {
@@ -7844,8 +7851,11 @@ window.addEventListener('beforeunload', function(e) {
                 return;
             }
 
-            // 1. ステータスを「不在」に変更（GAS保存も実行）
-            await changeCRMStatus('不在');
+            // V2056: 新規の場合のみステータスを「不在」に変更
+            const currentStatus = casesData[currentCaseId].status;
+            if (currentStatus === '新規') {
+                await changeCRMStatus('不在');
+            }
 
             // 2. 架電履歴に「不在」を追加
             if (!casesData[currentCaseId].callHistory) {
@@ -8066,11 +8076,11 @@ window.addEventListener('beforeunload', function(e) {
                 document.getElementById('nextCallQuickSettings').classList.remove('hidden');
                 autoSetNextCallTime();
             } else {
-                // V2055: 不在の場合
-                const absentCount = getAbsentCount();
-                console.log('[V2055] 不在回数:', absentCount);
+                // V2056: 不在の場合（今回の不在を含めてカウント）
+                const absentCount = getAbsentCount() + 1; // 今回の不在を含める
+                console.log('[V2056] 不在回数（今回含む）:', absentCount);
 
-                if (absentCount < 12) {
+                if (absentCount <= 12) {
                     // 1-12回目: 即閉じ＋自動次回架電設定（直近の9/12/17/19時）
                     handleQuickAbsent();
                 } else {
