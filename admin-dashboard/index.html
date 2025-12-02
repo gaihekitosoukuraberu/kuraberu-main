@@ -159,6 +159,20 @@
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
+    <!-- 通話中バー（発信後に表示） -->
+    <div id="callingBar" class="fixed top-0 left-0 right-0 z-[60] hidden">
+        <div class="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-3 flex items-center justify-between shadow-lg">
+            <div class="flex items-center gap-3">
+                <span class="text-xl animate-pulse">📞</span>
+                <span class="font-bold">通話中:</span>
+                <span id="callingBarName" class="font-medium"></span>
+            </div>
+            <button onclick="endPhoneCall()" class="px-4 py-1.5 bg-white text-green-600 font-bold rounded-lg hover:bg-gray-100 transition-all shadow-md">
+                通話終了
+            </button>
+        </div>
+    </div>
+
     <!-- ログイン画面 -->
     <div id="loginScreen" class="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 z-[100] flex items-center justify-center">
         <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
@@ -8046,6 +8060,7 @@ window.addEventListener('beforeunload', function(e) {
         }
 
         // V1956: 電話をかける（モバイルカード対応）
+        // V2078: 通話中バー表示対応
         function callCase(caseId) {
             console.log('[callCase] 開始:', caseId);
 
@@ -8070,15 +8085,18 @@ window.addEventListener('beforeunload', function(e) {
             // 1. currentCaseIdを設定
             currentCaseId = targetId;
 
-            // 2. localStorageに状態保存
-            localStorage.setItem('afterCallFlow', 'true');
-            localStorage.setItem('afterCallCaseId', targetId);
-            localStorage.setItem('afterCallTime', Date.now().toString());
+            // 2. localStorageに状態保存（通話中状態）
+            localStorage.setItem('callingInProgress', 'true');
+            localStorage.setItem('callingCaseId', targetId);
+            localStorage.setItem('callingStartTime', Date.now().toString());
 
             // 3. 架電履歴を追加（バックグラウンド）
             addAutoCallRecord();
 
-            // 4. 電話発信（少し遅延）
+            // 4. 通話中バーを表示
+            showCallingBar(caseData);
+
+            // 5. 電話発信（少し遅延）
             setTimeout(() => {
                 window.location.href = 'tel:' + phone;
             }, 150);
@@ -8086,26 +8104,62 @@ window.addEventListener('beforeunload', function(e) {
 
         window.callCase = callCase;
 
-        // V1958: ページ復帰時の処理（接続確認モーダルを表示）
+        // 通話中バーを表示
+        function showCallingBar(caseData) {
+            const bar = document.getElementById('callingBar');
+            const nameSpan = document.getElementById('callingBarName');
+            if (bar && nameSpan) {
+                nameSpan.textContent = caseData.name || '顧客';
+                bar.classList.remove('hidden');
+            }
+        }
+
+        // 通話終了ボタン押下時
+        function endPhoneCall() {
+            const bar = document.getElementById('callingBar');
+            if (bar) bar.classList.add('hidden');
+
+            // localStorageをクリア
+            localStorage.removeItem('callingInProgress');
+            localStorage.removeItem('callingCaseId');
+            localStorage.removeItem('callingStartTime');
+
+            // 通話結果モーダルを表示
+            afterCallFlow = true;
+            showConnectionModal();
+        }
+
+        window.endPhoneCall = endPhoneCall;
+
+        // V2078: ページ復帰時の処理（通話中バーを復元）
         function checkAfterCallFlow() {
-            const afterCall = localStorage.getItem('afterCallFlow');
-            const caseId = localStorage.getItem('afterCallCaseId');
-            const callTime = parseInt(localStorage.getItem('afterCallTime') || '0');
+            const callingInProgress = localStorage.getItem('callingInProgress');
+            const caseId = localStorage.getItem('callingCaseId');
+            const callTime = parseInt(localStorage.getItem('callingStartTime') || '0');
             const elapsed = Date.now() - callTime;
 
-            console.log('[checkAfterCallFlow]', { afterCall, caseId, elapsed });
+            console.log('[checkAfterCallFlow]', { callingInProgress, caseId, elapsed });
 
-            // 5分以内の架電のみ有効
-            if (afterCall === 'true' && caseId && elapsed < 300000) {
-                localStorage.removeItem('afterCallFlow');
-                localStorage.removeItem('afterCallCaseId');
-                localStorage.removeItem('afterCallTime');
-
+            // 30分以内の通話中状態を復元
+            if (callingInProgress === 'true' && caseId && elapsed < 1800000) {
                 currentCaseId = caseId;
-                afterCallFlow = true;
 
-                // V1958: 接続確認モーダルを表示
-                setTimeout(() => showConnectionModal(), 300);
+                // casesDataが読み込まれている場合は通話中バーを表示
+                if (casesData && casesData[caseId]) {
+                    showCallingBar(casesData[caseId]);
+                } else {
+                    // データ読み込み前なら遅延して再試行
+                    setTimeout(() => {
+                        if (casesData && casesData[caseId]) {
+                            showCallingBar(casesData[caseId]);
+                        }
+                    }, 1000);
+                }
+            } else if (callingInProgress === 'true') {
+                // 30分以上経過したら通話中状態をクリア
+                localStorage.removeItem('callingInProgress');
+                localStorage.removeItem('callingCaseId');
+                localStorage.removeItem('callingStartTime');
             }
         }
 
