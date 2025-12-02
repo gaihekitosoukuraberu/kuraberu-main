@@ -628,11 +628,11 @@
                                 <span class="text-lg font-bold" id="stat-total">0</span>
                                 <span class="text-xs font-medium opacity-90">全案件</span>
                             </button>
-                            <button id="filterBtnPending" data-filter="pending" onclick="filterCases('pending')" class="flex flex-col items-center justify-center py-3 px-2 bg-blue-300 text-blue-800 rounded-xl shadow-md hover:bg-blue-400 transition-all cursor-pointer">
+                            <button id="filterBtnPending" data-filter="pending" onclick="filterCases('pending')" class="flex flex-col items-center justify-center py-3 px-2 bg-sky-100 text-sky-400 rounded-xl shadow-md hover:bg-sky-200 transition-all cursor-pointer">
                                 <span class="text-lg font-bold" id="stat-pending">0</span>
                                 <span class="text-xs font-medium">要対応</span>
                             </button>
-                            <button id="filterBtnContracted" data-filter="contracted" onclick="filterCases('contracted')" class="flex flex-col items-center justify-center py-3 px-2 bg-emerald-300 text-emerald-800 rounded-xl shadow-md hover:bg-emerald-400 transition-all cursor-pointer">
+                            <button id="filterBtnContracted" data-filter="contracted" onclick="filterCases('contracted')" class="flex flex-col items-center justify-center py-3 px-2 bg-teal-100 text-teal-400 rounded-xl shadow-md hover:bg-teal-200 transition-all cursor-pointer">
                                 <span class="text-lg font-bold" id="stat-contracted">0</span>
                                 <span class="text-xs font-medium">成約済</span>
                             </button>
@@ -15669,19 +15669,19 @@
         function filterCases(filter) {
             currentFilter = filter;
 
-            // 選択状態のスタイル定義
+            // 選択状態のスタイル定義（非選択時は薄く、選択時は濃く）
             const activeStyles = {
                 'all': {
                     active: 'bg-slate-700 text-white ring-2 ring-white ring-offset-2 ring-offset-slate-700 shadow-lg',
-                    inactive: 'bg-slate-300 text-slate-700 shadow-md'
+                    inactive: 'bg-slate-200 text-slate-500 shadow-md'
                 },
                 'pending': {
-                    active: 'bg-blue-600 text-white ring-2 ring-white ring-offset-2 ring-offset-blue-600 shadow-lg',
-                    inactive: 'bg-blue-300 text-blue-800 shadow-md'
+                    active: 'bg-sky-600 text-white ring-2 ring-white ring-offset-2 ring-offset-sky-600 shadow-lg',
+                    inactive: 'bg-sky-100 text-sky-400 shadow-md'
                 },
                 'contracted': {
-                    active: 'bg-emerald-600 text-white ring-2 ring-white ring-offset-2 ring-offset-emerald-600 shadow-lg',
-                    inactive: 'bg-emerald-300 text-emerald-800 shadow-md'
+                    active: 'bg-teal-600 text-white ring-2 ring-white ring-offset-2 ring-offset-teal-600 shadow-lg',
+                    inactive: 'bg-teal-100 text-teal-400 shadow-md'
                 }
             };
 
@@ -15692,10 +15692,10 @@
 
                 // 全スタイルクラスを削除
                 btn.classList.remove(
-                    'bg-slate-700', 'bg-slate-300', 'text-white', 'text-slate-700',
-                    'bg-blue-600', 'bg-blue-300', 'text-blue-800',
-                    'bg-emerald-600', 'bg-emerald-300', 'text-emerald-800',
-                    'ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-slate-700', 'ring-offset-blue-600', 'ring-offset-emerald-600',
+                    'bg-slate-700', 'bg-slate-200', 'text-white', 'text-slate-500',
+                    'bg-sky-600', 'bg-sky-100', 'text-sky-400',
+                    'bg-teal-600', 'bg-teal-100', 'text-teal-400',
+                    'ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-slate-700', 'ring-offset-sky-600', 'ring-offset-teal-600',
                     'shadow-lg', 'shadow-md'
                 );
 
