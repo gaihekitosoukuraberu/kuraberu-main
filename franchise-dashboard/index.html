@@ -16044,6 +16044,7 @@
             const status = c.detailStatus || '対応待ち';
             const style = statusStyles[status] || statusStyles[''];
             const hasMemo = c.merchantMemo && c.merchantMemo.trim();
+            const assignee = c.assignee || '';
 
             // 物件情報の簡易表示（floorsにはそのまま「2階建て」等が入っている）
             const propertyInfo = [c.propertyType, c.floors].filter(v => v).join(' / ');
