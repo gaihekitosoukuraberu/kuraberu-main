@@ -1267,17 +1267,18 @@
                                     </div>
                                 </div>
 
-                                <!-- 配信日絞り込み（元のdateFilterModalの中身そのまま） -->
+                                <!-- 配信日絞り込み -->
                                 <div class="pt-4 border-t border-gray-200">
-                                    <h4 class="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                    <h4 class="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
                                         <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                        配信日
+                                        配信日で絞り込む
                                         <span id="ufDateFilterLabel" class="ml-auto text-xs px-2 py-0.5 bg-amber-100 text-amber-600 rounded-full font-medium">すべて</span>
                                     </h4>
+                                    <p class="text-xs text-gray-500 mb-3">案件が配信された日付で絞り込みます</p>
 
                                     <!-- 月選択ボタン -->
                                     <div class="mb-4">
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">月で絞り込み</label>
+                                        <p class="text-xs text-gray-600 mb-2 font-medium">▼ 月を選ぶ（タップで選択）</p>
                                         <div id="ufMonthButtonsContainer" class="grid grid-cols-3 gap-2">
                                             <!-- JSで動的生成 -->
                                         </div>
@@ -1285,7 +1286,7 @@
 
                                     <!-- カスタム日付範囲 -->
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">日付で指定</label>
+                                        <p class="text-xs text-gray-600 mb-2 font-medium">▼ 日付を細かく指定する場合</p>
                                         <div class="flex items-center gap-3">
                                             <input type="date" id="ufModalDateFrom" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
                                             <span class="text-gray-400 font-bold">〜</span>
