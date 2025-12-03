@@ -129,21 +129,26 @@ const MerchantSystem = {
 
   /**
    * POSTリクエスト処理
+   * @param {Object} e - イベントオブジェクト
+   * @param {Object} postData - main.jsでパース済みのPOSTデータ（オプション）
    */
-  handlePost: function(e) {
+  handlePost: function(e, postData) {
     try {
-      // POSTボディからもパラメータを取得
-      let params = e.parameter;
-      if (e.postData && e.postData.contents) {
+      // main.jsから渡されたpostDataを優先、なければe.parameterから取得
+      let params = postData || e.parameter || {};
+
+      // postDataがなく、e.postDataがある場合はパース
+      if (!postData && e.postData && e.postData.contents) {
         try {
-          const postData = JSON.parse(e.postData.contents);
-          params = Object.assign({}, params, postData);
+          const parsed = JSON.parse(e.postData.contents);
+          params = Object.assign({}, params, parsed);
         } catch (err) {
           console.error('[MerchantSystem] POST data parse error:', err);
         }
       }
 
       const action = params.action;
+      console.log('[MerchantSystem] handlePost action:', action, 'params:', JSON.stringify(params));
 
       switch (action) {
         case 'verifyFirstLogin':
