@@ -20,6 +20,22 @@
  * ⚠️  管理ステータスの遷移ロジックに注意
  */
 
+/**
+ * 連絡履歴JSONをパースするヘルパー関数
+ * @param {string} jsonStr - JSON文字列
+ * @return {Array} - パース結果（配列）
+ */
+function parseCallHistoryJSON(jsonStr) {
+  if (!jsonStr) return [];
+  try {
+    const parsed = JSON.parse(jsonStr);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.warn('[parseCallHistoryJSON] Parse error:', e.message);
+    return [];
+  }
+}
+
 var MerchantContractReport = {
   /**
    * 配信済み案件一覧を取得（成約報告対象）
@@ -577,6 +593,7 @@ var MerchantContractReport = {
           detailStatus: detailStatus || '未対応',
           deliveredAt: row[delCol['配信日時']] ? Utilities.formatDate(new Date(row[delCol['配信日時']]), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm') : '',
           merchantMemo: row[delCol['加盟店メモ']] || '',
+          callHistory: parseCallHistoryJSON(row[delCol['連絡履歴JSON']]),
 
           // === お客様情報 ===
           customerName: user.name,
@@ -845,11 +862,11 @@ var MerchantContractReport = {
       const colIdx = {
         cvId: headers.indexOf('CV ID'),
         franchiseId: headers.indexOf('加盟店ID'),
-        callHistory: headers.indexOf('通話履歴')
+        callHistory: headers.indexOf('連絡履歴JSON')
       };
 
       if (colIdx.callHistory === -1) {
-        return { success: false, error: '通話履歴列が見つかりません' };
+        return { success: false, error: '連絡履歴JSON列が見つかりません' };
       }
 
       for (let i = 1; i < data.length; i++) {

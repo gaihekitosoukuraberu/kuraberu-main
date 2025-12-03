@@ -94,6 +94,7 @@ const MerchantSystem = {
         case 'updateCaseStatus':
         case 'updateCaseMemo':
         case 'updateNextCallDate':
+        case 'updateCallHistory':
           return MerchantContractReport[action](params);
 
         // 会社情報管理（CompanyInfoManagerに委譲）
@@ -252,6 +253,7 @@ const MerchantSystem = {
         case 'updateCaseStatus':
         case 'updateCaseMemo':
         case 'updateNextCallDate':
+        case 'updateCallHistory':
           return MerchantContractReport[action](params);
 
         default:
