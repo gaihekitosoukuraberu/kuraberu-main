@@ -723,9 +723,14 @@ var MerchantContractReport = {
         detailStatus: headers.indexOf('詳細ステータス'),
         deliveryStatus: headers.indexOf('配信ステータス')
       };
+      console.log('[updateCaseStatus] colIdx:', JSON.stringify(colIdx));
+      console.log('[updateCaseStatus] headers:', headers.slice(0, 10));
 
       for (let i = 1; i < data.length; i++) {
         const row = data[i];
+        if (String(row[colIdx.cvId]) === String(cvId)) {
+          console.log('[updateCaseStatus] Found cvId at row', i+1, 'franchiseId in sheet:', row[colIdx.franchiseId], 'expected:', merchantId);
+        }
         if (String(row[colIdx.cvId]) === String(cvId) &&
             String(row[colIdx.franchiseId]) === String(merchantId)) {
 
