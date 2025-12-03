@@ -17978,6 +17978,8 @@
             if (!currentStatusCase) return;
 
             const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            console.log('[setCaseStatus] currentStatusCase:', currentStatusCase);
+            console.log('[setCaseStatus] merchantId:', merchantId, 'cvId:', currentStatusCase.cvId, 'status:', newStatus);
 
             try {
                 const response = await fetch(GAS_URL, {
