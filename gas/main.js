@@ -464,6 +464,12 @@ const SystemRouter = {
       prefix: false,
       actions: ['updateNextCallDate']
     },
+    'updateCallHistory': {
+      system: 'MerchantSystem',
+      description: '連絡履歴更新',
+      prefix: false,
+      actions: ['updateCallHistory']
+    },
 
     // キャンセル承認システム（管理者用）
     'approveCancelReport': {
