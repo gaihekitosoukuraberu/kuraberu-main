@@ -17566,6 +17566,26 @@
                 // 接続時：通話結果モーダルを閉じて、新しいメモモーダルを開く
                 const cvId = currentCallCase?.cvId;
                 afterCallCase = currentCallCase;
+
+                // 新着→未アポに自動変更
+                if (currentCallCase && currentCallCase.detailStatus === '新着') {
+                    currentCallCase.detailStatus = '未アポ';
+                    // バックグラウンドでステータス更新
+                    const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+                    fetch(GAS_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            system: 'merchant',
+                            subsystem: 'contract',
+                            action: 'updateCaseStatus',
+                            merchantId: merchantId,
+                            cvId: cvId,
+                            status: '未アポ'
+                        })
+                    }).catch(err => console.error('ステータス自動更新エラー:', err));
+                }
+
                 document.getElementById('connectionModal')?.classList.add('hidden');
 
                 if (cvId) {
