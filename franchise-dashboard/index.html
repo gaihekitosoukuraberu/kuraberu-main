@@ -1236,20 +1236,20 @@
                                 <!-- 配信日絞り込み -->
                                 <div class="pt-4 border-t border-gray-200">
                                     <h4 class="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
-                                        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                         配信日で絞り込む
                                         <span id="ufDateFilterLabel" class="ml-auto text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium">すべて</span>
                                     </h4>
 
                                     <!-- 期間ボタン（全期間/今月/先月） -->
                                     <div class="flex gap-2 mb-3">
-                                        <button id="uf-period-all" onclick="ufSetPeriodFilter('all')" class="flex-1 px-3 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-amber-400 transition-all font-bold text-sm">
+                                        <button id="uf-period-all" onclick="ufSetPeriodFilter('all')" class="flex-1 px-3 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-yellow-400 transition-all font-bold text-sm">
                                             全期間
                                         </button>
-                                        <button id="uf-period-thismonth" onclick="ufSetPeriodFilter('thismonth')" class="flex-1 px-3 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-amber-400 transition-all font-bold text-sm">
+                                        <button id="uf-period-thismonth" onclick="ufSetPeriodFilter('thismonth')" class="flex-1 px-3 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-yellow-400 transition-all font-bold text-sm">
                                             今月
                                         </button>
-                                        <button id="uf-period-lastmonth" onclick="ufSetPeriodFilter('lastmonth')" class="flex-1 px-3 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-amber-400 transition-all font-bold text-sm">
+                                        <button id="uf-period-lastmonth" onclick="ufSetPeriodFilter('lastmonth')" class="flex-1 px-3 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-yellow-400 transition-all font-bold text-sm">
                                             先月
                                         </button>
                                     </div>
@@ -1258,9 +1258,9 @@
                                     <div id="uf-custom-date-range" class="hidden">
                                         <p class="text-xs text-gray-400 mb-2">期間を調整できます</p>
                                         <div class="flex items-center gap-3">
-                                            <input type="date" id="ufModalDateFrom" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all">
+                                            <input type="date" id="ufModalDateFrom" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 transition-all">
                                             <span class="text-gray-400 font-bold">〜</span>
-                                            <input type="date" id="ufModalDateTo" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all">
+                                            <input type="date" id="ufModalDateTo" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 transition-all">
                                         </div>
                                     </div>
                                 </div>
@@ -16266,8 +16266,8 @@
             const lastMonthBtn = document.getElementById('uf-period-lastmonth');
 
             const baseClass = 'flex-1 px-3 py-3 border-2 rounded-xl transition-all font-bold text-sm';
-            const activeClass = 'bg-amber-500 text-white border-amber-500 shadow-lg';
-            const inactiveClass = 'bg-white text-gray-600 border-gray-300 hover:border-amber-400';
+            const activeClass = 'bg-yellow-500 text-white border-yellow-500 shadow-lg';
+            const inactiveClass = 'bg-white text-gray-600 border-gray-300 hover:border-yellow-400';
 
             if (allBtn) allBtn.className = `${baseClass} ${ufCurrentPeriod === 'all' ? activeClass : inactiveClass}`;
             if (thisMonthBtn) thisMonthBtn.className = `${baseClass} ${ufCurrentPeriod === 'thismonth' ? activeClass : inactiveClass}`;
