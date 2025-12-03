@@ -18350,6 +18350,14 @@
                 dateTimeValue = `${dateValue} ${h}:${m}`;
             }
 
+            // 過去日時チェック
+            const selectedDateTime = new Date(`${dateValue}T${String(selectedNextCallHour).padStart(2, '0')}:${String(selectedNextCallMinute).padStart(2, '0')}:00`);
+            const now = new Date();
+            if (selectedDateTime < now) {
+                showNotification('エラー', '現在より前の日時は設定できません', 'error');
+                return;
+            }
+
             // 即閉じ＋バックグラウンド保存
             const saveCvId = nextCallTargetCvId;
             const caseData = merchantCasesData.find(c => String(c.cvId) === String(saveCvId));
