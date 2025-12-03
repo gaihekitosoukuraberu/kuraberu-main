@@ -720,7 +720,7 @@
                                     <button
                                         onclick="saveCaseMemo()"
                                         class="px-4 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-bold shadow-md hover:shadow-lg transition-all flex-shrink-0">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                                     </button>
                                 </div>
                             </div>
@@ -17282,35 +17282,37 @@
                 note: memo
             });
 
-            // 入力欄クリア
-            document.getElementById('caseMemoTextarea').value = '';
+            // 保存対象を退避（モーダル閉じる前に）
+            const saveTarget = {
+                cvId: currentMemoCase.cvId,
+                callHistory: [...currentMemoCase.callHistory]
+            };
 
-            try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({
-                        system: 'merchant',
-                        subsystem: 'contract',
-                        action: 'updateCallHistory',
-                        merchantId: merchantId,
-                        cvId: currentMemoCase.cvId,
-                        callHistory: currentMemoCase.callHistory
-                    })
-                });
+            // 即座にモーダル閉じる & 画面更新
+            closeMemoModal();
+            renderCases();
 
-                const result = await response.json();
-                if (result.success) {
-                    loadMemoHistory();
-                    renderCases();
-                    showNotification('保存完了', 'メモを保存しました');
-                } else {
-                    showNotification('エラー', result.error || 'メモの保存に失敗しました', 'error');
+            // バックグラウンドで保存（await不要）
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    system: 'merchant',
+                    subsystem: 'contract',
+                    action: 'updateCallHistory',
+                    merchantId: merchantId,
+                    cvId: saveTarget.cvId,
+                    callHistory: saveTarget.callHistory
+                })
+            }).then(response => response.json()).then(result => {
+                if (!result.success) {
+                    console.error('[案件管理] saveCaseMemo error:', result.error);
+                    showNotification('保存エラー', result.error || 'メモの保存に失敗しました', 'error');
                 }
-            } catch (error) {
+            }).catch(error => {
                 console.error('[案件管理] saveCaseMemo error:', error);
-                showNotification('エラー', '通信エラーが発生しました', 'error');
-            }
+                showNotification('通信エラー', '保存に失敗しました', 'error');
+            });
         }
 
         // ===== 通話結果モーダル関連 =====
