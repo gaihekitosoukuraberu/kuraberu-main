@@ -17257,7 +17257,8 @@
                         action: 'updateCallHistory',
                         merchantId: merchantId,
                         cvId: currentMemoCase.cvId,
-                        callHistory: currentMemoCase.callHistory
+                        callHistory: currentMemoCase.callHistory,
+                        callCount: currentMemoCase.callCount
                     })
                 });
                 const result = await response.json();
@@ -17310,7 +17311,8 @@
                     action: 'updateCallHistory',
                     merchantId: merchantId,
                     cvId: saveTarget.cvId,
-                    callHistory: saveTarget.callHistory
+                    callHistory: saveTarget.callHistory,
+                    callCount: saveTarget.callCount
                 })
             }).then(response => response.json()).then(result => {
                 if (!result.success) {
@@ -17518,7 +17520,8 @@
                             action: 'updateCallHistory',
                             merchantId: merchantId,
                             cvId: cvId,
-                            callHistory: currentCallCase.callHistory
+                            callHistory: currentCallCase.callHistory,
+                            callCount: currentCallCase.callCount
                         })
                     }).catch(err => console.error('不在記録保存エラー:', err));
                 }

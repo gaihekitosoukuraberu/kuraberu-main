@@ -877,8 +877,8 @@ var MerchantContractReport = {
    * @return {Object} - { success }
    */
   updateCallHistory: function(params) {
-    const { merchantId, cvId, callHistory } = params;
-    console.log('[MerchantContractReport] updateCallHistory:', { merchantId, cvId, historyLength: (callHistory || []).length });
+    const { merchantId, cvId, callHistory, callCount } = params;
+    console.log('[MerchantContractReport] updateCallHistory:', { merchantId, cvId, historyLength: (callHistory || []).length, callCount });
 
     if (!merchantId || !cvId) {
       return { success: false, error: 'パラメータが不足しています' };
@@ -898,6 +898,7 @@ var MerchantContractReport = {
       const cvIdCol = colIdx['CV ID'];
       const franchiseIdCol = colIdx['加盟店ID'];
       const callHistoryCol = colIdx['連絡履歴JSON'];
+      const callCountCol = colIdx['電話回数'];
 
       if (callHistoryCol === undefined) {
         return { success: false, error: '連絡履歴JSON列が見つかりません' };
@@ -933,7 +934,12 @@ var MerchantContractReport = {
           const historyJson = JSON.stringify(callHistory || []);
           deliverySheet.getRange(i + 1, callHistoryCol + 1).setValue(historyJson);
 
-          console.log('[MerchantContractReport] updateCallHistory - updated row', i + 1);
+          // 電話回数も保存
+          if (callCount !== undefined && callCountCol !== undefined) {
+            deliverySheet.getRange(i + 1, callCountCol + 1).setValue(callCount);
+          }
+
+          console.log('[MerchantContractReport] updateCallHistory - updated row', i + 1, ', callCount:', callCount);
           return { success: true };
         }
       }
