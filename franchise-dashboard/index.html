@@ -819,17 +819,17 @@
                     <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
                         <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
                             <!-- ヘッダー -->
-                            <div class="p-4 border-b bg-gradient-to-r from-blue-500 to-blue-600 text-white flex-shrink-0 relative">
-                                <button onclick="closeNextCallModal()" class="absolute top-3 right-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                                <div class="pr-12">
+                            <div class="p-4 border-b bg-gradient-to-r from-blue-500 to-blue-600 text-white flex-shrink-0">
+                                <div class="flex justify-between items-center mb-2">
                                     <h3 class="text-lg font-bold">📞 次回架電を設定</h3>
-                                    <p id="nextCallTargetName" class="text-base font-bold text-white mt-2">---</p>
-                                    <p id="nextCallTargetAddress" class="text-sm text-blue-100 mt-0.5">---</p>
+                                    <button onclick="closeNextCallModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all -mr-2">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
                                 </div>
+                                <p id="nextCallTargetName" class="text-base font-bold text-white">---</p>
+                                <p id="nextCallTargetAddress" class="text-sm text-blue-100 mt-0.5">---</p>
                             </div>
 
                             <!-- コンテンツ（スクロール可能） -->
