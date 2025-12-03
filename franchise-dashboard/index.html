@@ -1195,12 +1195,14 @@
                             <!-- コンテンツ（スクロール可能） -->
                             <div class="flex-1 overflow-y-auto px-5 py-4">
                                 <!-- 説明 -->
-                                <p class="text-sm text-gray-600 mb-4">見たい案件を選んで「適用する」を押してください。複数選択できます。</p>
+                                <p class="text-sm text-gray-600 mb-4">見たい案件を選んで「適用する」を押してください。</p>
 
                                 <!-- ステータス絞り込み -->
                                 <div class="mb-6">
-                                    <h4 class="text-base font-bold text-gray-900 mb-2">ステータス</h4>
-                                    <p class="text-xs text-gray-500 mb-3">電話前の案件か、電話後の案件かを選べます</p>
+                                    <h4 class="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                                        ステータスで絞り込む
+                                    </h4>
 
                                     <!-- アポ前/アポ後 プリセットボタン -->
                                     <div class="flex gap-3 mb-3">
@@ -1235,12 +1237,11 @@
 
                                 <!-- 配信日絞り込み -->
                                 <div class="pt-4 border-t border-gray-200">
-                                    <h4 class="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
+                                    <h4 class="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
                                         <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                        配信日
+                                        配信日で絞り込む
                                         <span id="ufDateFilterLabel" class="ml-auto text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium">すべて</span>
                                     </h4>
-                                    <p class="text-xs text-gray-500 mb-3">案件が届いた時期で絞り込めます</p>
 
                                     <!-- 期間ボタン（全期間/今月/先月） -->
                                     <div class="flex gap-2 mb-3">
