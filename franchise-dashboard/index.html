@@ -17369,19 +17369,35 @@
             }
         }
 
+        // 時間帯ラベルを動的に決定
+        function getTimeLabel(hour) {
+            if (hour >= 5 && hour < 11) return '朝';
+            if (hour >= 11 && hour < 14) return '昼';
+            if (hour >= 14 && hour < 18) return '夕方';
+            return '夜';
+        }
+
         // 時間プリセットボタンを生成
         function renderTimePresetButtons() {
             loadTimePresets();
             const container = document.getElementById('timePresetButtons');
             if (!container) return;
 
-            const html = timePresets.map((preset, idx) => {
+            // 時間順にソート
+            const sortedPresets = [...timePresets].sort((a, b) => {
+                const timeA = a.hour * 60 + a.minute;
+                const timeB = b.hour * 60 + b.minute;
+                return timeA - timeB;
+            });
+
+            const html = sortedPresets.map((preset) => {
                 const timeStr = `${preset.hour}:${String(preset.minute).padStart(2, '0')}`;
+                const label = getTimeLabel(preset.hour);
                 return `
                     <button onclick="setNextCallTimePreset(${preset.hour}, ${preset.minute})"
                             class="next-call-time-btn py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-lg hover:border-blue-400 hover:bg-blue-50 font-medium text-sm transition-all"
                             data-hour="${preset.hour}" data-minute="${preset.minute}">
-                        <div class="text-xs text-gray-400">${preset.label}</div>
+                        <div class="text-xs text-gray-400">${label}</div>
                         <div>${timeStr}</div>
                     </button>
                 `;
@@ -17498,19 +17514,55 @@
             document.getElementById('nextCallModal').classList.remove('hidden');
         }
 
+        // 祝日リスト（簡易版、年をまたぐ場合は都度更新が必要）
+        const HOLIDAYS_2024_2025 = [
+            '2024-01-01', '2024-01-08', '2024-02-11', '2024-02-12', '2024-02-23',
+            '2024-03-20', '2024-04-29', '2024-05-03', '2024-05-04', '2024-05-05', '2024-05-06',
+            '2024-07-15', '2024-08-11', '2024-08-12', '2024-09-16', '2024-09-22', '2024-09-23',
+            '2024-10-14', '2024-11-03', '2024-11-04', '2024-11-23',
+            '2025-01-01', '2025-01-13', '2025-02-11', '2025-02-23', '2025-02-24',
+            '2025-03-20', '2025-04-29', '2025-05-03', '2025-05-04', '2025-05-05', '2025-05-06',
+            '2025-07-21', '2025-08-11', '2025-09-15', '2025-09-23',
+            '2025-10-13', '2025-11-03', '2025-11-23', '2025-11-24'
+        ];
+
+        function isHoliday(date) {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            return HOLIDAYS_2024_2025.includes(`${yyyy}-${mm}-${dd}`);
+        }
+
         function initDayLabels() {
             const dayOffsets = [0, 1, 2, 3, 5, 7, 14];
             const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
 
             dayOffsets.forEach(offset => {
                 const labelEl = document.getElementById(`dayLabel${offset}`);
+                const btn = document.querySelector(`.next-call-day-btn[data-day="${offset}"]`);
                 if (labelEl) {
                     const date = new Date();
                     date.setDate(date.getDate() + offset);
                     const m = date.getMonth() + 1;
                     const d = date.getDate();
-                    const dayName = dayNames[date.getDay()];
+                    const dayOfWeek = date.getDay();
+                    const dayName = dayNames[dayOfWeek];
                     labelEl.textContent = `${m}/${d}(${dayName})`;
+
+                    // 土日祝の色分け
+                    if (btn) {
+                        // 一旦リセット
+                        btn.classList.remove('text-blue-600', 'text-red-500');
+                        labelEl.classList.remove('text-blue-600', 'text-red-500');
+
+                        if (dayOfWeek === 0 || isHoliday(date)) {
+                            // 日曜・祝日 → 赤
+                            labelEl.classList.add('text-red-500');
+                        } else if (dayOfWeek === 6) {
+                            // 土曜 → 青
+                            labelEl.classList.add('text-blue-600');
+                        }
+                    }
                 }
             });
         }
