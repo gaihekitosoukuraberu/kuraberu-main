@@ -18426,24 +18426,26 @@
             })
             .then(response => response.json())
             .then(result => {
+                console.log('[次回架電] 保存結果:', result);
                 if (result.success) {
                     showNotification('保存完了', '次回架電日を設定しました');
                 } else {
                     // 失敗時はデータを元に戻して再描画
+                    console.error('[次回架電] 保存失敗:', result.error);
                     if (caseData) {
                         caseData.nextCallDate = '';
                     }
                     renderCases();
-                    showNotification('エラー', '保存に失敗しました', 'error');
+                    showNotification('エラー', result.error || '保存に失敗しました', 'error');
                 }
             })
             .catch(error => {
-                console.error('次回架電日保存エラー:', error);
+                console.error('[次回架電] 通信エラー:', error);
                 if (caseData) {
                     caseData.nextCallDate = '';
                 }
                 renderCases();
-                showNotification('エラー', '通信エラーが発生しました', 'error');
+                showNotification('エラー', '通信エラー: ' + error.message, 'error');
             });
         }
 
