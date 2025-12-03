@@ -16308,32 +16308,32 @@
 
             closeUnifiedFilterModal();
 
-            // フィルターボタンのラベル更新
-            const label = document.getElementById('unifiedFilterLabel');
-            if (label) {
-                const parts = [];
-                if (ufSelectedStatuses.length > 0) {
-                    parts.push(`${ufSelectedStatuses.length}件`);
-                }
-                if (ufSelectedMonth) {
-                    const [y, m] = ufSelectedMonth.split('-');
-                    parts.push(`${parseInt(m)}月`);
-                } else if (ufDateFrom || ufDateTo) {
-                    parts.push('期間');
-                }
-                label.textContent = parts.length > 0 ? parts.join('・') : '絞り込み';
-            }
+            // 絞り込みが有効かチェック
+            const hasFilter = ufSelectedStatuses.length > 0 || ufCurrentPeriod !== 'all';
 
-            // フィルターボタンの見た目更新
-            const btn = document.getElementById('unifiedFilterBtn');
-            if (btn) {
-                if (ufSelectedStatuses.length > 0 || ufSelectedMonth || ufDateFrom || ufDateTo) {
-                    btn.classList.remove('bg-purple-50', 'text-purple-600', 'border-purple-200');
-                    btn.classList.add('bg-purple-500', 'text-white', 'border-purple-500');
-                } else {
-                    btn.classList.remove('bg-purple-500', 'text-white', 'border-purple-500');
-                    btn.classList.add('bg-purple-50', 'text-purple-600', 'border-purple-200');
+            if (hasFilter) {
+                // 絞り込みモードに切り替え（クイックフィルターは非アクティブに）
+                currentFilter = 'unified';
+                updateFilterButtonStyles('unified');
+
+                // フィルターボタンのラベル更新
+                const label = document.getElementById('unifiedFilterLabel');
+                if (label) {
+                    const parts = [];
+                    if (ufSelectedStatuses.length > 0) {
+                        parts.push(`${ufSelectedStatuses.length}件`);
+                    }
+                    if (ufCurrentPeriod === 'thismonth') {
+                        parts.push('今月');
+                    } else if (ufCurrentPeriod === 'lastmonth') {
+                        parts.push('先月');
+                    }
+                    label.textContent = parts.length > 0 ? parts.join('・') : '絞り込み';
                 }
+            } else {
+                // 絞り込みなし → 全案件に戻す
+                currentFilter = 'all';
+                updateFilterButtonStyles('all');
             }
 
             // 元のフィルターにも反映（後方互換）
@@ -16425,24 +16425,34 @@
         function filterCases(filter) {
             currentFilter = filter;
 
+            // 絞り込みモーダルの設定をリセット
+            ufSelectedStatuses = [];
+            ufSelectedMonth = null;
+            ufDateFrom = null;
+            ufDateTo = null;
+            ufCurrentPreset = null;
+            ufCurrentPeriod = 'all';
+            selectedStatuses = [];
+            dateFilterFrom = null;
+            dateFilterTo = null;
+
             // ボタンスタイルを即時更新
+            updateFilterButtonStyles(filter);
+
+            renderCases();
+        }
+
+        // フィルターボタンのスタイル更新（共通関数）
+        function updateFilterButtonStyles(activeFilter) {
             const btnAll = document.getElementById('filterBtnAll');
             const btnPending = document.getElementById('filterBtnPending');
             const btnContracted = document.getElementById('filterBtnContracted');
-
-            // 全クラスリセット用
-            const allClasses = [
-                'bg-indigo-500', 'bg-indigo-50', 'text-white', 'text-indigo-400',
-                'bg-pink-500', 'bg-pink-50', 'text-pink-400',
-                'bg-green-500', 'bg-green-50', 'text-green-500',
-                'ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-indigo-500', 'ring-offset-pink-500', 'ring-offset-green-500',
-                'shadow-lg', 'shadow-md', 'border', 'border-indigo-200', 'border-pink-200', 'border-green-200', 'border-transparent'
-            ];
+            const btnUnified = document.getElementById('unifiedFilterBtn');
+            const btnLabel = document.getElementById('unifiedFilterLabel');
 
             // 全案件ボタン
             if (btnAll) {
-                allClasses.forEach(c => btnAll.classList.remove(c));
-                if (filter === 'all') {
+                if (activeFilter === 'all') {
                     btnAll.className = 'flex flex-col items-center justify-center py-3 px-2 bg-indigo-500 text-white rounded-xl shadow-lg transition-all cursor-pointer ring-2 ring-white ring-offset-2 ring-offset-indigo-500';
                 } else {
                     btnAll.className = 'flex flex-col items-center justify-center py-3 px-2 bg-indigo-50 text-indigo-400 border border-indigo-200 rounded-xl shadow-md transition-all cursor-pointer';
@@ -16451,8 +16461,7 @@
 
             // 要対応ボタン
             if (btnPending) {
-                allClasses.forEach(c => btnPending.classList.remove(c));
-                if (filter === 'pending') {
+                if (activeFilter === 'pending') {
                     btnPending.className = 'flex flex-col items-center justify-center py-3 px-2 bg-pink-500 text-white rounded-xl shadow-lg transition-all cursor-pointer ring-2 ring-white ring-offset-2 ring-offset-pink-500';
                 } else {
                     btnPending.className = 'flex flex-col items-center justify-center py-3 px-2 bg-pink-50 text-pink-400 border border-pink-200 rounded-xl shadow-md transition-all cursor-pointer';
@@ -16461,15 +16470,24 @@
 
             // 成約済ボタン
             if (btnContracted) {
-                allClasses.forEach(c => btnContracted.classList.remove(c));
-                if (filter === 'contracted') {
+                if (activeFilter === 'contracted') {
                     btnContracted.className = 'flex flex-col items-center justify-center py-3 px-2 bg-green-500 text-white rounded-xl shadow-lg transition-all cursor-pointer ring-2 ring-white ring-offset-2 ring-offset-green-500';
                 } else {
                     btnContracted.className = 'flex flex-col items-center justify-center py-3 px-2 bg-green-50 text-green-500 border border-green-200 rounded-xl shadow-md transition-all cursor-pointer';
                 }
             }
 
-            renderCases();
+            // 絞り込みボタン
+            if (btnUnified) {
+                if (activeFilter === 'unified') {
+                    btnUnified.classList.remove('bg-purple-50', 'text-purple-600', 'border-purple-200');
+                    btnUnified.classList.add('bg-purple-500', 'text-white', 'border-purple-500');
+                } else {
+                    btnUnified.classList.remove('bg-purple-500', 'text-white', 'border-purple-500');
+                    btnUnified.classList.add('bg-purple-50', 'text-purple-600', 'border-purple-200');
+                    if (btnLabel) btnLabel.textContent = '絞り込み';
+                }
+            }
         }
 
         // フィルター条件に合致するかチェック
@@ -16490,9 +16508,12 @@
         function matchesFilter(caseItem) {
             if (currentFilter === 'all') return true;
 
+            // 絞り込みモーダルからのフィルター
+            if (currentFilter === 'unified') {
+                return matchesUnifiedFilter(caseItem);
+            }
+
             const status = caseItem.detailStatus || '';
-            // デバッグ: 実際のステータス値を確認
-            console.log('[matchesFilter] status:', status, 'currentFilter:', currentFilter);
 
             const filterMap = {
                 // 要対応: 新着、未アポ、アポ済、現調済、見積提出済、入金予定
@@ -16503,9 +16524,7 @@
                 'cancelled': ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', 'クレーム']
             };
 
-            const result = filterMap[currentFilter]?.includes(status);
-            console.log('[matchesFilter] result:', result);
-            return result;
+            return filterMap[currentFilter]?.includes(status);
         }
 
         // =====================================================
