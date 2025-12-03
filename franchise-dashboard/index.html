@@ -16943,11 +16943,15 @@
             // 物件情報の簡易表示（floorsにはそのまま「2階建て」等が入っている）
             const propertyInfo = [c.propertyType, c.floors].filter(v => v).join(' / ');
 
-            // 次回架電日の短縮表示
+            // 次回架電日の短縮表示（時刻込み）
             let nextCallShort = '';
             if (c.nextCallDate) {
-                const match = c.nextCallDate.match(/(\d+)[-\/](\d+)[-\/](\d+)/);
-                if (match) nextCallShort = `${match[2]}/${match[3]}`;
+                const dateMatch = c.nextCallDate.match(/(\d+)[-\/](\d+)[-\/](\d+)/);
+                const timeMatch = c.nextCallDate.match(/(\d+):(\d+)/);
+                if (dateMatch) {
+                    nextCallShort = `${dateMatch[2]}/${dateMatch[3]}`;
+                    if (timeMatch) nextCallShort += ` ${timeMatch[1]}:${timeMatch[2]}`;
+                }
             }
 
             const fullAddress = c.fullAddress || c.city || '-';
@@ -17020,11 +17024,15 @@
                 if (match) shortDate = `${match[1]}/${match[2]}`;
             }
 
-            // 次回架電日を短縮表示（MM/DD）
+            // 次回架電日を短縮表示（MM/DD HH:mm）
             let nextCallDisplay = '-';
             if (c.nextCallDate) {
-                const match = c.nextCallDate.match(/(\d+)[-\/](\d+)[-\/](\d+)/);
-                if (match) nextCallDisplay = `${match[2]}/${match[3]}`;
+                const dateMatch = c.nextCallDate.match(/(\d+)[-\/](\d+)[-\/](\d+)/);
+                const timeMatch = c.nextCallDate.match(/(\d+):(\d+)/);
+                if (dateMatch) {
+                    nextCallDisplay = `${dateMatch[2]}/${dateMatch[3]}`;
+                    if (timeMatch) nextCallDisplay += ` ${timeMatch[1]}:${timeMatch[2]}`;
+                }
             }
 
             // 担当者名
