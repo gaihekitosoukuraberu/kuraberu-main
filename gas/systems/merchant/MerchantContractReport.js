@@ -859,30 +859,54 @@ var MerchantContractReport = {
       const data = deliverySheet.getDataRange().getValues();
       const headers = data[0];
 
-      const colIdx = {
-        cvId: headers.indexOf('CV ID'),
-        franchiseId: headers.indexOf('加盟店ID'),
-        callHistory: headers.indexOf('連絡履歴JSON')
-      };
+      // ヘッダーマップ作成（getMerchantCasesと同じ方式）
+      const colIdx = {};
+      headers.forEach((h, i) => { colIdx[h] = i; });
 
-      if (colIdx.callHistory === -1) {
+      const cvIdCol = colIdx['CV ID'];
+      const franchiseIdCol = colIdx['加盟店ID'];
+      const callHistoryCol = colIdx['連絡履歴JSON'];
+
+      if (callHistoryCol === undefined) {
         return { success: false, error: '連絡履歴JSON列が見つかりません' };
       }
 
+      // 会社名も取得（getMerchantCasesと同じロジック）
+      let merchantCompanyName = '';
+      const franchiseSheet = ss.getSheetByName('加盟店登録');
+      if (franchiseSheet) {
+        const franchiseData = franchiseSheet.getDataRange().getValues();
+        const franchiseHeaders = franchiseData[0];
+        const regIdCol = franchiseHeaders.indexOf('登録ID');
+        const companyNameCol = franchiseHeaders.indexOf('会社名');
+
+        for (let i = 1; i < franchiseData.length; i++) {
+          if (String(franchiseData[i][regIdCol]) === String(merchantId)) {
+            merchantCompanyName = franchiseData[i][companyNameCol];
+            break;
+          }
+        }
+      }
+      console.log('[MerchantContractReport] updateCallHistory - merchantId:', merchantId, ', companyName:', merchantCompanyName);
+
       for (let i = 1; i < data.length; i++) {
         const row = data[i];
-        if (String(row[colIdx.cvId]) === String(cvId) &&
-            String(row[colIdx.franchiseId]) === String(merchantId)) {
+        const rowCvId = row[cvIdCol];
+        const rowFranchiseId = row[franchiseIdCol];
+
+        // CV IDが一致 AND (登録ID or 会社名でマッチ)
+        if (String(rowCvId) === String(cvId) &&
+            (String(rowFranchiseId) === String(merchantId) || String(rowFranchiseId) === String(merchantCompanyName))) {
 
           const historyJson = JSON.stringify(callHistory || []);
-          deliverySheet.getRange(i + 1, colIdx.callHistory + 1).setValue(historyJson);
+          deliverySheet.getRange(i + 1, callHistoryCol + 1).setValue(historyJson);
 
           console.log('[MerchantContractReport] updateCallHistory - updated row', i + 1);
           return { success: true };
         }
       }
 
-      return { success: false, error: '該当する案件が見つかりません' };
+      return { success: false, error: '該当する案件が見つかりません (cvId: ' + cvId + ', merchantId: ' + merchantId + ')' };
 
     } catch (error) {
       console.error('[MerchantContractReport] updateCallHistory error:', error);
