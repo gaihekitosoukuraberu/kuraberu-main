@@ -17964,52 +17964,55 @@
         }
 
         // ステータス確定
-        async function confirmStatusSelection() {
+        function confirmStatusSelection() {
             if (!selectedStatusValue) {
                 showNotification('選択してください', 'ステータスを選択してください', 'warning');
                 return;
             }
-            await setCaseStatus(selectedStatusValue);
+            setCaseStatus(selectedStatusValue);
         }
 
-        async function setCaseStatus(newStatus) {
+        function setCaseStatus(newStatus) {
             if (!currentStatusCase) return;
 
             const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const cvId = currentStatusCase.cvId;
             console.log('[setCaseStatus] currentStatusCase:', currentStatusCase);
-            console.log('[setCaseStatus] merchantId:', merchantId, 'cvId:', currentStatusCase.cvId, 'status:', newStatus);
+            console.log('[setCaseStatus] merchantId:', merchantId, 'cvId:', cvId, 'status:', newStatus);
 
-            try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({
-                        system: 'merchant',
-                        subsystem: 'contract',
-                        action: 'updateCaseStatus',
-                        merchantId: merchantId,
-                        cvId: currentStatusCase.cvId,
-                        status: newStatus
-                    })
-                });
+            // 即座にローカルデータ更新＆モーダル閉じる
+            currentStatusCase.detailStatus = newStatus;
+            recalculateStats();
+            updateCasesStats();
+            renderCases();
+            closeStatusModal();
 
-                const result = await response.json();
+            // バックグラウンドでGASに保存
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    system: 'merchant',
+                    subsystem: 'contract',
+                    action: 'updateCaseStatus',
+                    merchantId: merchantId,
+                    cvId: cvId,
+                    status: newStatus
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
                 if (result.success) {
-                    currentStatusCase.detailStatus = newStatus;
-
-                    // 統計を再計算
-                    recalculateStats();
-                    updateCasesStats();
-                    renderCases();
-                    closeStatusModal();
-                    showNotification('更新完了', `ステータスを「${newStatus}」に変更しました`);
+                    console.log('[setCaseStatus] 保存完了:', newStatus);
                 } else {
-                    showNotification('エラー', result.error || 'ステータスの更新に失敗しました', 'error');
+                    console.error('[setCaseStatus] 保存失敗:', result.error);
+                    showNotification('保存エラー', result.error || 'ステータスの保存に失敗しました', 'error');
                 }
-            } catch (error) {
-                console.error('[案件管理] setCaseStatus error:', error);
-                showNotification('エラー', '通信エラーが発生しました', 'error');
-            }
+            })
+            .catch(error => {
+                console.error('[setCaseStatus] 通信エラー:', error);
+                showNotification('通信エラー', 'ステータスの保存に失敗しました', 'error');
+            });
         }
 
         // 統計を再計算
