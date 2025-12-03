@@ -1,4 +1,4 @@
-// V2040: 加盟店対応履歴機能追加
+// V1973: MerchantSystem.handlePost postData引数修正
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -12,8 +12,8 @@
  * 参照方法（PHP）:
  * このファイルを読み込んでGAS_URLを抽出
  *
- * @file-version V2040-MASTER-@HEAD-2025-12-02
- * @last-update 2025-12-02
+ * @file-version V1973-MASTER-@HEAD-2025-12-03
+ * @last-update 2025-12-03
  */
 
 const ENV = {
@@ -21,14 +21,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V2040
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxNhfq-1j113ZQRiVWg5uHWAXJonMLxcn6QZOfZm9O1Hi-WieoNBiU3GGa_f1S-sFCTXA/exec',
+  // プライマリGAS URL（メイン運用）- V1973
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwqyHDorwYiGJw9_BH6XeJV3csLesNPmKz1Bl4Tg-xjk_3P0Dzjhz_0SDgiiMJyTfByow/exec',
 
-  // フォールバックGAS URL（バックアップ）- V2040
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxNhfq-1j113ZQRiVWg5uHWAXJonMLxcn6QZOfZm9O1Hi-WieoNBiU3GGa_f1S-sFCTXA/exec',
+  // フォールバックGAS URL（バックアップ）- V1973
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbwqyHDorwYiGJw9_BH6XeJV3csLesNPmKz1Bl4Tg-xjk_3P0Dzjhz_0SDgiiMJyTfByow/exec',
 
-  // 緊急時URL（最終フォールバック）- V2040
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxNhfq-1j113ZQRiVWg5uHWAXJonMLxcn6QZOfZm9O1Hi-WieoNBiU3GGa_f1S-sFCTXA/exec',
+  // 緊急時URL（最終フォールバック）- V1973
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbwqyHDorwYiGJw9_BH6XeJV3csLesNPmKz1Bl4Tg-xjk_3P0Dzjhz_0SDgiiMJyTfByow/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V2040 - 強制更新）
-  CACHE_BUSTER: 'v1764739710304-24pc3n' + Date.now()
+  CACHE_BUSTER: 'v1764738901' + Date.now()
 };
 
 // グローバルに公開（全てのファイルから参照可能）
