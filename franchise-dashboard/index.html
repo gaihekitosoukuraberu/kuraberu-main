@@ -604,47 +604,45 @@
                     <h2 class="text-2xl font-bold text-gray-900">案件管理</h2>
                 </div>
 
-                <!-- 検索・フィルターエリア（リデザイン版） -->
+                <!-- 検索・フィルターエリア -->
                 <div class="bg-white rounded-2xl p-4 mb-4 border border-gray-100 shadow-lg">
-                    <!-- 検索 + 絞り込みボタン（横並び） -->
-                    <div class="flex gap-2 mb-4">
-                        <div class="relative flex-1">
-                            <input type="text" id="caseSearchInput" placeholder="検索" oninput="searchCases()" autocomplete="off" class="w-full pl-10 pr-8 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 shadow-sm transition-all bg-gray-50 placeholder-gray-400">
-                            <div class="absolute left-3 top-3.5">
-                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
+                    <div class="flex flex-col gap-4 w-full">
+                        <!-- 検索ボックス + 絞り込みボタン（横並び） -->
+                        <div class="flex gap-2">
+                            <div class="relative flex-1 max-w-xs">
+                                <input type="text" id="caseSearchInput" placeholder="名前・住所・電話で検索" oninput="searchCases()" autocomplete="off" class="w-full pl-10 pr-10 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 shadow-sm transition-all bg-gray-50 placeholder-gray-400">
+                                <div class="absolute left-3 top-2.5">
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                <button onclick="document.getElementById('caseSearchInput').value=''; searchCases();" class="absolute right-2 top-2 text-gray-400 hover:text-gray-600 p-1">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
                             </div>
-                            <button onclick="document.getElementById('caseSearchInput').value=''; searchCases();" class="absolute right-2 top-3 text-gray-400 hover:text-gray-600 p-1">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                            <button onclick="openUnifiedFilterModal()" id="unifiedFilterBtn" class="flex items-center gap-2 px-4 py-2.5 bg-purple-50 text-purple-600 border-2 border-purple-200 rounded-xl shadow-md hover:bg-purple-100 transition-all font-bold whitespace-nowrap">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                                <span id="unifiedFilterLabel">絞り込み</span>
                             </button>
                         </div>
-                        <button onclick="openUnifiedFilterModal()" id="unifiedFilterBtn" class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl shadow-lg hover:from-indigo-600 hover:to-purple-700 transition-all font-bold whitespace-nowrap">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                            <span id="unifiedFilterLabel">絞り込み</span>
-                        </button>
-                    </div>
 
-                    <!-- クイックフィルタ（4つのプリセット） -->
-                    <div class="grid grid-cols-4 gap-2">
-                        <button id="filterBtnAll" data-filter="all" onclick="quickFilter('all')" class="quick-filter-btn flex flex-col items-center justify-center py-3 px-1 bg-indigo-500 text-white rounded-xl shadow-lg transition-all cursor-pointer">
-                            <span class="text-xl font-bold" id="stat-total">0</span>
-                            <span class="text-xs font-medium">全件</span>
-                        </button>
-                        <button id="filterBtnCall" data-filter="call" onclick="quickFilter('call')" class="quick-filter-btn flex flex-col items-center justify-center py-3 px-1 bg-white text-green-600 border-2 border-green-300 rounded-xl shadow-md hover:bg-green-50 transition-all cursor-pointer">
-                            <span class="text-xl font-bold" id="stat-call">0</span>
-                            <span class="text-xs font-medium">📞架電</span>
-                        </button>
-                        <button id="filterBtnProgress" data-filter="progress" onclick="quickFilter('progress')" class="quick-filter-btn flex flex-col items-center justify-center py-3 px-1 bg-white text-orange-600 border-2 border-orange-300 rounded-xl shadow-md hover:bg-orange-50 transition-all cursor-pointer">
-                            <span class="text-xl font-bold" id="stat-progress">0</span>
-                            <span class="text-xs font-medium">🔥進行</span>
-                        </button>
-                        <button id="filterBtnContracted" data-filter="contracted" onclick="quickFilter('contracted')" class="quick-filter-btn flex flex-col items-center justify-center py-3 px-1 bg-white text-emerald-600 border-2 border-emerald-300 rounded-xl shadow-md hover:bg-emerald-50 transition-all cursor-pointer">
-                            <span class="text-xl font-bold" id="stat-contracted">0</span>
-                            <span class="text-xs font-medium">✅成約</span>
-                        </button>
+                        <!-- クイックフィルタ（全案件/要対応/成約） -->
+                        <div class="grid grid-cols-3 gap-2 w-full">
+                            <button id="filterBtnAll" data-filter="all" onclick="filterCases('all')" class="flex flex-col items-center justify-center py-3 px-2 bg-indigo-500 text-white rounded-xl shadow-lg hover:bg-indigo-600 transition-all cursor-pointer ring-2 ring-white ring-offset-2 ring-offset-indigo-500">
+                                <span class="text-lg font-bold" id="stat-total">0</span>
+                                <span class="text-xs font-medium">全案件</span>
+                            </button>
+                            <button id="filterBtnPending" data-filter="pending" onclick="filterCases('pending')" class="flex flex-col items-center justify-center py-3 px-2 bg-pink-50 text-pink-400 border border-pink-200 rounded-xl shadow-md hover:bg-pink-100 transition-all cursor-pointer">
+                                <span class="text-lg font-bold" id="stat-pending">0</span>
+                                <span class="text-xs font-medium">要対応</span>
+                            </button>
+                            <button id="filterBtnContracted" data-filter="contracted" onclick="filterCases('contracted')" class="flex flex-col items-center justify-center py-3 px-2 bg-green-50 text-green-500 border border-green-200 rounded-xl shadow-md hover:bg-green-100 transition-all cursor-pointer">
+                                <span class="text-lg font-bold" id="stat-contracted">0</span>
+                                <span class="text-xs font-medium">成約済</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -1174,17 +1172,17 @@
                     </div>
                 </div>
 
-                <!-- 統合絞り込みモーダル（フルスクリーン風） -->
+                <!-- 統合絞り込みモーダル（ステータス＋配信日を合体） -->
                 <div id="unifiedFilterModal" class="fixed inset-0 z-50 hidden">
-                    <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" onclick="closeUnifiedFilterModal()"></div>
-                    <div class="fixed inset-x-0 bottom-0 sm:inset-4 sm:top-auto sm:bottom-auto sm:left-1/2 sm:-translate-x-1/2 sm:max-w-lg flex items-end sm:items-center justify-center">
-                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-h-[90vh] sm:max-h-[85vh] flex flex-col overflow-hidden">
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeUnifiedFilterModal()"></div>
+                    <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
                             <!-- ヘッダー -->
-                            <div class="px-5 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 flex-shrink-0">
+                            <div class="px-5 py-4 bg-gradient-to-r from-purple-500 to-indigo-600 flex-shrink-0">
                                 <div class="flex justify-between items-center">
                                     <div>
-                                        <h3 class="text-xl font-bold text-white">絞り込み</h3>
-                                        <p id="unifiedFilterStatus" class="text-sm text-indigo-200 mt-0.5">すべて表示中</p>
+                                        <h3 class="text-lg font-bold text-white">絞り込み</h3>
+                                        <p id="unifiedFilterStatus" class="text-sm text-purple-200 mt-0.5">すべて表示中</p>
                                     </div>
                                     <button onclick="closeUnifiedFilterModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1194,57 +1192,105 @@
                                 </div>
                             </div>
 
-                            <!-- コンテンツ -->
-                            <div class="flex-1 overflow-y-auto p-5 space-y-6">
-                                <!-- ステータス（プリセット） -->
-                                <div>
-                                    <h4 class="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
-                                        <span class="text-lg">📊</span> ステータス
+                            <!-- コンテンツ（スクロール可能） -->
+                            <div class="flex-1 overflow-y-auto px-5 py-4">
+                                <!-- ステータス絞り込み（元のsortModalの中身そのまま） -->
+                                <div class="mb-6">
+                                    <h4 class="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                                        ステータス
+                                        <span id="ufSelectedStatusCount" class="ml-auto text-xs px-2 py-0.5 bg-blue-100 text-blue-600 rounded-full font-medium">すべて</span>
                                     </h4>
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <button onclick="setUnifiedStatusFilter('call')" id="uf-status-call" class="uf-status-btn flex items-center justify-center gap-2 py-4 px-4 bg-green-50 text-green-700 border-2 border-green-300 rounded-2xl hover:bg-green-100 transition-all font-bold text-base">
-                                            <span class="text-xl">📞</span> 架電対象
+
+                                    <!-- プリセットボタン -->
+                                    <div class="flex gap-2 mb-4 pb-4 border-b border-gray-200">
+                                        <button onclick="ufSelectCallTargetStatuses()" class="flex-1 px-3 py-2 bg-green-100 text-green-700 border-2 border-green-400 rounded-lg hover:bg-green-200 transition-all font-medium text-sm">
+                                            📞 架電対象
                                         </button>
-                                        <button onclick="setUnifiedStatusFilter('progress')" id="uf-status-progress" class="uf-status-btn flex items-center justify-center gap-2 py-4 px-4 bg-orange-50 text-orange-700 border-2 border-orange-300 rounded-2xl hover:bg-orange-100 transition-all font-bold text-base">
-                                            <span class="text-xl">🔥</span> 進行中
+                                        <button onclick="ufSelectInProgressStatuses()" class="flex-1 px-3 py-2 bg-orange-100 text-orange-700 border-2 border-orange-400 rounded-lg hover:bg-orange-200 transition-all font-medium text-sm">
+                                            🔥 進行中
                                         </button>
-                                        <button onclick="setUnifiedStatusFilter('contracted')" id="uf-status-contracted" class="uf-status-btn flex items-center justify-center gap-2 py-4 px-4 bg-emerald-50 text-emerald-700 border-2 border-emerald-300 rounded-2xl hover:bg-emerald-100 transition-all font-bold text-base">
-                                            <span class="text-xl">✅</span> 成約済
-                                        </button>
-                                        <button onclick="setUnifiedStatusFilter('all')" id="uf-status-all" class="uf-status-btn flex items-center justify-center gap-2 py-4 px-4 bg-indigo-50 text-indigo-700 border-2 border-indigo-300 rounded-2xl hover:bg-indigo-100 transition-all font-bold text-base">
-                                            <span class="text-xl">📦</span> すべて
-                                        </button>
+                                    </div>
+
+                                    <!-- 対応中ステータス -->
+                                    <div class="mb-4">
+                                        <h5 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                            <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                            対応中
+                                        </h5>
+                                        <div class="grid grid-cols-3 gap-1.5">
+                                            <button id="uf-status-btn-未対応" onclick="ufToggleStatusFilter('未対応')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-blue-400 bg-blue-100 text-blue-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">新着</button>
+                                            <button id="uf-status-btn-架電済/未アポ" onclick="ufToggleStatusFilter('架電済/未アポ')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-slate-400 bg-slate-100 text-slate-700 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">未アポ</button>
+                                            <button id="uf-status-btn-アポ済" onclick="ufToggleStatusFilter('アポ済')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-orange-400 bg-orange-100 text-orange-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">アポ済</button>
+                                            <button id="uf-status-btn-現調済" onclick="ufToggleStatusFilter('現調済')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-purple-400 bg-purple-100 text-purple-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調済</button>
+                                            <button id="uf-status-btn-見積提出済" onclick="ufToggleStatusFilter('見積提出済')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-amber-400 bg-amber-100 text-amber-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">見積提出</button>
+                                            <button id="uf-status-btn-入金予定" onclick="ufToggleStatusFilter('入金予定')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-cyan-400 bg-cyan-100 text-cyan-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">入金予定</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- 完了ステータス -->
+                                    <div class="mb-4">
+                                        <h5 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                            完了
+                                        </h5>
+                                        <div class="grid grid-cols-3 gap-1.5">
+                                            <button id="uf-status-btn-成約" onclick="ufToggleStatusFilter('成約')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-green-400 bg-green-100 text-green-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">成約</button>
+                                            <button id="uf-status-btn-入金済" onclick="ufToggleStatusFilter('入金済')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-emerald-400 bg-emerald-100 text-emerald-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">入金済</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- キャンセル・失注ステータス -->
+                                    <div>
+                                        <h5 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                            <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                                            キャンセル・失注
+                                        </h5>
+                                        <div class="grid grid-cols-3 gap-1.5">
+                                            <button id="uf-status-btn-現調前キャンセル" onclick="ufToggleStatusFilter('現調前キャンセル')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-gray-400 bg-gray-100 text-gray-600 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調前CN</button>
+                                            <button id="uf-status-btn-現調後失注" onclick="ufToggleStatusFilter('現調後失注')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-gray-500 bg-gray-200 text-gray-700 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調後失注</button>
+                                            <button id="uf-status-btn-他社契約済" onclick="ufToggleStatusFilter('他社契約済')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-gray-400 bg-gray-100 text-gray-600 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">他社契約</button>
+                                            <button id="uf-status-btn-別加盟店契約済" onclick="ufToggleStatusFilter('別加盟店契約済')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-indigo-400 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">別加盟店契約</button>
+                                            <button id="uf-status-btn-クレーム" onclick="ufToggleStatusFilter('クレーム')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-red-400 bg-red-100 text-red-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">クレーム</button>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- 配信月 -->
-                                <div>
-                                    <h4 class="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
-                                        <span class="text-lg">📅</span> 配信月
+                                <!-- 配信日絞り込み（元のdateFilterModalの中身そのまま） -->
+                                <div class="pt-4 border-t border-gray-200">
+                                    <h4 class="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        配信日
+                                        <span id="ufDateFilterLabel" class="ml-auto text-xs px-2 py-0.5 bg-amber-100 text-amber-600 rounded-full font-medium">すべて</span>
                                     </h4>
-                                    <div id="ufMonthButtons" class="grid grid-cols-4 gap-2">
-                                        <!-- JSで動的生成 -->
-                                    </div>
-                                </div>
 
-                                <!-- 担当者 -->
-                                <div>
-                                    <h4 class="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
-                                        <span class="text-lg">👤</span> 担当者
-                                    </h4>
-                                    <div id="ufAssigneeButtons" class="grid grid-cols-3 gap-2">
-                                        <!-- JSで動的生成 -->
+                                    <!-- 月選択ボタン -->
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">月で絞り込み</label>
+                                        <div id="ufMonthButtonsContainer" class="grid grid-cols-3 gap-2">
+                                            <!-- JSで動的生成 -->
+                                        </div>
+                                    </div>
+
+                                    <!-- カスタム日付範囲 -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">日付で指定</label>
+                                        <div class="flex items-center gap-3">
+                                            <input type="date" id="ufModalDateFrom" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
+                                            <span class="text-gray-400 font-bold">〜</span>
+                                            <input type="date" id="ufModalDateTo" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- フッター -->
-                            <div class="flex gap-3 p-5 border-t border-gray-200 bg-gray-50 flex-shrink-0">
-                                <button onclick="clearUnifiedFilter()" class="flex-1 py-4 bg-white text-gray-700 border-2 border-gray-300 rounded-2xl font-bold text-base hover:bg-gray-100 transition-all">
+                            <div class="flex gap-2 p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+                                <button onclick="clearUnifiedFilter()" class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 border border-gray-300 rounded-xl shadow-sm hover:bg-gray-200 transition-all font-medium">
                                     クリア
                                 </button>
-                                <button onclick="applyUnifiedFilter()" class="flex-[2] py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-bold text-base shadow-lg hover:shadow-xl transition-all">
-                                    適用
+                                <button onclick="applyUnifiedFilter()" class="flex-1 px-4 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl shadow-md hover:shadow-lg transition-all font-semibold">
+                                    適用する
                                 </button>
                             </div>
                         </div>
@@ -15983,13 +16029,12 @@
         }
 
         // =====================================================
-        // 統合絞り込みモーダル関数
+        // 統合絞り込みモーダル関数（ステータス＋配信日を合体）
         // =====================================================
-        let unifiedFilter = {
-            status: 'all',  // 'all', 'call', 'progress', 'contracted'
-            month: null,    // null or '2024-12'
-            assignee: null  // null or '担当者名'
-        };
+        let ufSelectedStatuses = [];  // 統合モーダル用のステータス選択
+        let ufDateFrom = null;        // 統合モーダル用の日付開始
+        let ufDateTo = null;          // 統合モーダル用の日付終了
+        let ufSelectedMonth = null;   // 統合モーダル用の月選択
 
         function openUnifiedFilterModal() {
             document.getElementById('unifiedFilterModal').classList.remove('hidden');
@@ -16004,38 +16049,86 @@
 
         function initUnifiedFilterModal() {
             // ステータスボタンの状態更新
-            updateUnifiedStatusButtons();
+            ufUpdateStatusButtonStates();
+            ufUpdateSelectedStatusCount();
 
             // 月ボタンを生成
-            generateMonthButtons();
+            ufGenerateMonthButtons();
 
-            // 担当者ボタンを生成
-            generateAssigneeButtons();
+            // 日付入力の状態復元
+            const dateFromEl = document.getElementById('ufModalDateFrom');
+            const dateToEl = document.getElementById('ufModalDateTo');
+            if (dateFromEl) dateFromEl.value = ufDateFrom || '';
+            if (dateToEl) dateToEl.value = ufDateTo || '';
 
-            // ステータス表示更新
-            updateUnifiedFilterStatusText();
+            // ヘッダーのステータス表示更新
+            ufUpdateFilterStatusText();
         }
 
-        function updateUnifiedStatusButtons() {
-            ['all', 'call', 'progress', 'contracted'].forEach(status => {
-                const btn = document.getElementById(`uf-status-${status}`);
-                if (!btn) return;
+        // ステータスボタンのトグル
+        function ufToggleStatusFilter(status) {
+            const index = ufSelectedStatuses.indexOf(status);
+            if (index > -1) {
+                ufSelectedStatuses.splice(index, 1);
+            } else {
+                ufSelectedStatuses.push(status);
+            }
+            ufUpdateStatusButtonStates();
+            ufUpdateSelectedStatusCount();
+        }
 
-                btn.classList.remove('ring-4', 'ring-offset-2');
-                if (unifiedFilter.status === status) {
-                    btn.classList.add('ring-4', 'ring-offset-2');
-                    if (status === 'call') btn.classList.add('ring-green-400');
-                    else if (status === 'progress') btn.classList.add('ring-orange-400');
-                    else if (status === 'contracted') btn.classList.add('ring-emerald-400');
-                    else btn.classList.add('ring-indigo-400');
-                } else {
-                    btn.classList.remove('ring-green-400', 'ring-orange-400', 'ring-emerald-400', 'ring-indigo-400');
+        // ステータスボタンの見た目更新
+        function ufUpdateStatusButtonStates() {
+            const buttons = document.querySelectorAll('#unifiedFilterModal .uf-status-filter-btn');
+            buttons.forEach(button => {
+                const onclick = button.getAttribute('onclick');
+                const match = onclick.match(/ufToggleStatusFilter\('([^']+)'\)/);
+                if (match) {
+                    const status = match[1];
+                    if (ufSelectedStatuses.includes(status)) {
+                        button.style.opacity = '1';
+                        button.style.transform = 'scale(0.95)';
+                        button.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.5)';
+                    } else {
+                        button.style.opacity = '0.7';
+                        button.style.transform = 'scale(1)';
+                        button.style.boxShadow = '';
+                    }
                 }
             });
         }
 
-        function generateMonthButtons() {
-            const container = document.getElementById('ufMonthButtons');
+        // 選択中ステータス数の更新
+        function ufUpdateSelectedStatusCount() {
+            const countEl = document.getElementById('ufSelectedStatusCount');
+            if (countEl) {
+                if (ufSelectedStatuses.length === 0) {
+                    countEl.textContent = 'すべて';
+                    countEl.className = 'ml-auto text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium';
+                } else {
+                    countEl.textContent = `${ufSelectedStatuses.length}件選択`;
+                    countEl.className = 'ml-auto text-xs px-2 py-0.5 bg-blue-100 text-blue-600 rounded-full font-medium';
+                }
+            }
+        }
+
+        // 架電対象プリセット
+        function ufSelectCallTargetStatuses() {
+            ufSelectedStatuses = ['未対応', '架電済/未アポ'];
+            ufUpdateStatusButtonStates();
+            ufUpdateSelectedStatusCount();
+        }
+
+        // 進行中プリセット
+        function ufSelectInProgressStatuses() {
+            ufSelectedStatuses = ['アポ済', '現調済', '見積提出済', '入金予定'];
+            ufUpdateStatusButtonStates();
+            ufUpdateSelectedStatusCount();
+        }
+
+        // 月ボタンの生成
+        function ufGenerateMonthButtons() {
+            const container = document.getElementById('ufMonthButtonsContainer');
             if (!container) return;
 
             const now = new Date();
@@ -16054,96 +16147,103 @@
             }
 
             container.innerHTML = months.map(m => `
-                <button onclick="setUnifiedMonthFilter(${m.value ? "'" + m.value + "'" : 'null'})"
-                        class="uf-month-btn py-3 px-2 rounded-xl border-2 font-bold text-sm transition-all
-                               ${unifiedFilter.month === m.value ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white text-gray-700 border-gray-200 hover:border-indigo-300'}">
+                <button onclick="ufSetMonthFilter(${m.value ? "'" + m.value + "'" : 'null'})"
+                        class="uf-month-btn py-2.5 px-2 rounded-xl border-2 font-bold text-sm transition-all
+                               ${ufSelectedMonth === m.value ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-700 border-gray-200 hover:border-amber-300'}">
                     ${m.label}
                 </button>
             `).join('');
         }
 
-        function generateAssigneeButtons() {
-            const container = document.getElementById('ufAssigneeButtons');
-            if (!container) return;
-
-            // 案件データから担当者リストを抽出
-            const assignees = new Set(['全員']);
-            merchantCasesData.forEach(c => {
-                if (c.assignee && c.assignee.trim()) {
-                    assignees.add(c.assignee.trim());
-                }
-            });
-
-            container.innerHTML = Array.from(assignees).map(a => `
-                <button onclick="setUnifiedAssigneeFilter(${a === '全員' ? 'null' : "'" + a + "'" })"
-                        class="uf-assignee-btn py-3 px-2 rounded-xl border-2 font-bold text-sm transition-all truncate
-                               ${(a === '全員' && !unifiedFilter.assignee) || unifiedFilter.assignee === a ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white text-gray-700 border-gray-200 hover:border-indigo-300'}">
-                    ${a}
-                </button>
-            `).join('');
+        // 月フィルターの設定
+        function ufSetMonthFilter(month) {
+            ufSelectedMonth = month;
+            // 月を選んだら日付範囲はクリア
+            ufDateFrom = null;
+            ufDateTo = null;
+            document.getElementById('ufModalDateFrom').value = '';
+            document.getElementById('ufModalDateTo').value = '';
+            ufGenerateMonthButtons();
+            ufUpdateDateLabel();
         }
 
-        function setUnifiedStatusFilter(status) {
-            unifiedFilter.status = status;
-            updateUnifiedStatusButtons();
-            updateUnifiedFilterStatusText();
+        // 日付ラベルの更新
+        function ufUpdateDateLabel() {
+            const labelEl = document.getElementById('ufDateFilterLabel');
+            if (!labelEl) return;
+
+            if (ufSelectedMonth) {
+                const [y, m] = ufSelectedMonth.split('-');
+                labelEl.textContent = `${parseInt(m)}月`;
+                labelEl.className = 'ml-auto text-xs px-2 py-0.5 bg-amber-100 text-amber-600 rounded-full font-medium';
+            } else if (ufDateFrom || ufDateTo) {
+                labelEl.textContent = '期間指定';
+                labelEl.className = 'ml-auto text-xs px-2 py-0.5 bg-amber-100 text-amber-600 rounded-full font-medium';
+            } else {
+                labelEl.textContent = 'すべて';
+                labelEl.className = 'ml-auto text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium';
+            }
         }
 
-        function setUnifiedMonthFilter(month) {
-            unifiedFilter.month = month;
-            generateMonthButtons();
-            updateUnifiedFilterStatusText();
-        }
-
-        function setUnifiedAssigneeFilter(assignee) {
-            unifiedFilter.assignee = assignee;
-            generateAssigneeButtons();
-            updateUnifiedFilterStatusText();
-        }
-
-        function updateUnifiedFilterStatusText() {
+        // ヘッダーのステータステキスト更新
+        function ufUpdateFilterStatusText() {
             const parts = [];
 
-            if (unifiedFilter.status !== 'all') {
-                const labels = { call: '📞架電対象', progress: '🔥進行中', contracted: '✅成約済' };
-                parts.push(labels[unifiedFilter.status]);
+            if (ufSelectedStatuses.length > 0) {
+                parts.push(`ステータス${ufSelectedStatuses.length}件`);
             }
-            if (unifiedFilter.month) {
-                const [y, m] = unifiedFilter.month.split('-');
+            if (ufSelectedMonth) {
+                const [y, m] = ufSelectedMonth.split('-');
                 parts.push(`${parseInt(m)}月`);
-            }
-            if (unifiedFilter.assignee) {
-                parts.push(unifiedFilter.assignee);
+            } else if (ufDateFrom || ufDateTo) {
+                parts.push('期間指定');
             }
 
             const statusEl = document.getElementById('unifiedFilterStatus');
             if (statusEl) {
                 statusEl.textContent = parts.length > 0 ? parts.join(' / ') : 'すべて表示中';
             }
+
+            ufUpdateDateLabel();
         }
 
+        // クリア
         function clearUnifiedFilter() {
-            unifiedFilter = { status: 'all', month: null, assignee: null };
+            ufSelectedStatuses = [];
+            ufSelectedMonth = null;
+            ufDateFrom = null;
+            ufDateTo = null;
             initUnifiedFilterModal();
         }
 
+        // 適用
         function applyUnifiedFilter() {
+            // 日付入力を取得
+            const dateFromEl = document.getElementById('ufModalDateFrom');
+            const dateToEl = document.getElementById('ufModalDateTo');
+            if (dateFromEl && dateFromEl.value) {
+                ufDateFrom = dateFromEl.value;
+                ufSelectedMonth = null;  // 日付指定があれば月選択はクリア
+            }
+            if (dateToEl && dateToEl.value) {
+                ufDateTo = dateToEl.value;
+                ufSelectedMonth = null;
+            }
+
             closeUnifiedFilterModal();
 
             // フィルターボタンのラベル更新
             const label = document.getElementById('unifiedFilterLabel');
             if (label) {
                 const parts = [];
-                if (unifiedFilter.status !== 'all') {
-                    const labels = { call: '架電', progress: '進行', contracted: '成約' };
-                    parts.push(labels[unifiedFilter.status]);
+                if (ufSelectedStatuses.length > 0) {
+                    parts.push(`${ufSelectedStatuses.length}件`);
                 }
-                if (unifiedFilter.month) {
-                    const [y, m] = unifiedFilter.month.split('-');
+                if (ufSelectedMonth) {
+                    const [y, m] = ufSelectedMonth.split('-');
                     parts.push(`${parseInt(m)}月`);
-                }
-                if (unifiedFilter.assignee) {
-                    parts.push(unifiedFilter.assignee);
+                } else if (ufDateFrom || ufDateTo) {
+                    parts.push('期間');
                 }
                 label.textContent = parts.length > 0 ? parts.join('・') : '絞り込み';
             }
@@ -16151,84 +16251,74 @@
             // フィルターボタンの見た目更新
             const btn = document.getElementById('unifiedFilterBtn');
             if (btn) {
-                if (unifiedFilter.status !== 'all' || unifiedFilter.month || unifiedFilter.assignee) {
-                    btn.classList.add('ring-2', 'ring-white', 'ring-offset-2');
+                if (ufSelectedStatuses.length > 0 || ufSelectedMonth || ufDateFrom || ufDateTo) {
+                    btn.classList.remove('bg-purple-50', 'text-purple-600', 'border-purple-200');
+                    btn.classList.add('bg-purple-500', 'text-white', 'border-purple-500');
                 } else {
-                    btn.classList.remove('ring-2', 'ring-white', 'ring-offset-2');
+                    btn.classList.remove('bg-purple-500', 'text-white', 'border-purple-500');
+                    btn.classList.add('bg-purple-50', 'text-purple-600', 'border-purple-200');
                 }
             }
 
-            renderCases();
-        }
-
-        // クイックフィルター（上部4ボタン）
-        function quickFilter(filter) {
-            unifiedFilter.status = filter;
-
-            // ボタンのスタイル更新
-            document.querySelectorAll('.quick-filter-btn').forEach(btn => {
-                const btnFilter = btn.dataset.filter;
-                btn.classList.remove('bg-indigo-500', 'text-white', 'bg-green-500', 'bg-orange-500', 'bg-emerald-500', 'shadow-lg');
-                btn.classList.remove('ring-2', 'ring-white', 'ring-offset-2');
-
-                if (btnFilter === filter) {
-                    if (filter === 'all') btn.classList.add('bg-indigo-500', 'text-white', 'shadow-lg');
-                    else if (filter === 'call') btn.classList.add('bg-green-500', 'text-white', 'shadow-lg');
-                    else if (filter === 'progress') btn.classList.add('bg-orange-500', 'text-white', 'shadow-lg');
-                    else if (filter === 'contracted') btn.classList.add('bg-emerald-500', 'text-white', 'shadow-lg');
-                } else {
-                    btn.classList.add('bg-white');
-                    if (filter === 'all') btn.classList.remove('text-white');
-                }
-            });
+            // 元のフィルターにも反映（後方互換）
+            selectedStatuses = [...ufSelectedStatuses];
+            if (ufSelectedMonth) {
+                const [y, m] = ufSelectedMonth.split('-');
+                const startDate = new Date(parseInt(y), parseInt(m) - 1, 1);
+                const endDate = new Date(parseInt(y), parseInt(m), 0);
+                dateFilterFrom = startDate.toISOString().split('T')[0];
+                dateFilterTo = endDate.toISOString().split('T')[0];
+            } else {
+                dateFilterFrom = ufDateFrom;
+                dateFilterTo = ufDateTo;
+            }
 
             renderCases();
         }
 
         // 統合フィルターに合致するかチェック
         function matchesUnifiedFilter(caseItem) {
-            // ステータスフィルター
-            if (unifiedFilter.status !== 'all') {
+            // ステータスフィルター（複数選択）
+            if (ufSelectedStatuses.length > 0) {
                 const status = caseItem.detailStatus || '';
-                const statusMap = {
-                    'call': ['未対応', '架電済/未アポ'],
-                    'progress': ['アポ済', '現調済', '見積提出済', '入金予定'],
-                    'contracted': ['成約', '入金済']
-                };
-                if (!statusMap[unifiedFilter.status]?.includes(status)) {
+                if (!ufSelectedStatuses.includes(status)) {
                     return false;
                 }
             }
 
             // 月フィルター
-            if (unifiedFilter.month) {
+            if (ufSelectedMonth) {
                 const deliveryDate = caseItem.deliveryDate || '';
-                if (!deliveryDate.startsWith(unifiedFilter.month)) {
+                if (!deliveryDate.startsWith(ufSelectedMonth)) {
                     return false;
                 }
             }
 
-            // 担当者フィルター
-            if (unifiedFilter.assignee) {
-                if ((caseItem.assignee || '').trim() !== unifiedFilter.assignee) {
-                    return false;
-                }
+            // 日付範囲フィルター
+            if (ufDateFrom || ufDateTo) {
+                const deliveryDate = caseItem.deliveryDate || '';
+                if (ufDateFrom && deliveryDate < ufDateFrom) return false;
+                if (ufDateTo && deliveryDate > ufDateTo) return false;
             }
 
             return true;
         }
 
-        // 統計カウント更新（新UI用）
+        // 統計カウント更新
         function updateQuickFilterStats() {
-            const stats = { all: 0, call: 0, progress: 0, contracted: 0 };
+            let pending = 0;
+            let contracted = 0;
 
             merchantCasesData.forEach(c => {
                 const status = c.detailStatus || '';
-                stats.all++;
-
-                if (['未対応', '架電済/未アポ'].includes(status)) stats.call++;
-                else if (['アポ済', '現調済', '見積提出済', '入金予定'].includes(status)) stats.progress++;
-                else if (['成約', '入金済'].includes(status)) stats.contracted++;
+                // 要対応: 未対応、架電済/未アポ、アポ済、現調済、見積提出済、入金予定
+                if (['未対応', '架電済/未アポ', 'アポ済', '現調済', '見積提出済', '入金予定'].includes(status)) {
+                    pending++;
+                }
+                // 成約済: 成約、入金済
+                if (['成約', '入金済'].includes(status)) {
+                    contracted++;
+                }
             });
 
             const setIfExists = (id, value) => {
@@ -16236,10 +16326,9 @@
                 if (el) el.textContent = value;
             };
 
-            setIfExists('stat-total', stats.all);
-            setIfExists('stat-call', stats.call);
-            setIfExists('stat-progress', stats.progress);
-            setIfExists('stat-contracted', stats.contracted);
+            setIfExists('stat-total', merchantCasesData.length);
+            setIfExists('stat-pending', pending);
+            setIfExists('stat-contracted', contracted);
         }
 
         // フィルター処理（旧互換）
