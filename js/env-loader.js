@@ -1,4 +1,4 @@
-// V1973: MerchantSystem.handlePost postData引数修正
+// V1978: 統合フィルターモーダル（ステータス+配信日合体）
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -12,7 +12,7 @@
  * 参照方法（PHP）:
  * このファイルを読み込んでGAS_URLを抽出
  *
- * @file-version V1973-MASTER-@HEAD-2025-12-03
+ * @file-version V1978-MASTER-@HEAD-2025-12-03
  * @last-update 2025-12-03
  */
 
