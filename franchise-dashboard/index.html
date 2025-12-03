@@ -746,8 +746,8 @@
                 <!-- ステータス変更モーダル -->
                 <div id="caseStatusModal" class="fixed inset-0 z-50 hidden">
                     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeStatusModal()"></div>
-                    <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
-                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+                    <div class="fixed inset-x-0 top-4 bottom-0 flex items-start justify-center p-0 sm:p-4">
+                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md overflow-hidden flex flex-col">
                             <!-- ヘッダー -->
                             <div class="p-4 pb-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white relative">
                                 <button onclick="closeStatusModal()" class="absolute top-3 right-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
@@ -760,33 +760,33 @@
                             </div>
 
                             <!-- ステータス選択エリア -->
-                            <div class="flex-1 overflow-y-auto p-3 bg-gray-50">
+                            <div class="flex-1 p-3 bg-gray-50">
                                 <!-- 営業進捗フロー（中央配置＋矢印＋説明） -->
                                 <p class="text-sm text-gray-500 mb-1.5 font-medium text-center">📞 営業進捗</p>
                                 <div class="flex flex-col items-center mb-2" id="statusDetailGrid">
-                                    <div class="flex items-center gap-3 w-56">
+                                    <div class="flex items-center">
                                         <button onclick="selectDetailStatus('新着')" data-status="新着" class="status-btn w-28 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-base hover:bg-blue-100 hover:border-blue-300 hover:text-blue-800 transition-all">新着</button>
-                                        <span class="text-sm text-gray-400 whitespace-nowrap">未着手</span>
+                                        <span class="text-sm text-gray-400 whitespace-nowrap ml-3 w-32">未着手</span>
                                     </div>
-                                    <div class="w-28 text-center"><span class="text-gray-300 text-base">↓</span></div>
-                                    <div class="flex items-center gap-3 w-56">
+                                    <span class="text-gray-300 text-base w-28 text-center -mr-32">↓</span>
+                                    <div class="flex items-center">
                                         <button onclick="selectDetailStatus('未アポ')" data-status="未アポ" class="status-btn w-28 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-base hover:bg-sky-100 hover:border-sky-300 hover:text-sky-700 transition-all">未アポ</button>
-                                        <span class="text-sm text-gray-400 whitespace-nowrap">電話したがアポ取れず</span>
+                                        <span class="text-sm text-gray-400 whitespace-nowrap ml-3 w-32">電話したがアポ取れず</span>
                                     </div>
-                                    <div class="w-28 text-center"><span class="text-gray-300 text-base">↓</span></div>
-                                    <div class="flex items-center gap-3 w-56">
+                                    <span class="text-gray-300 text-base w-28 text-center -mr-32">↓</span>
+                                    <div class="flex items-center">
                                         <button onclick="selectDetailStatus('アポ済')" data-status="アポ済" class="status-btn w-28 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-base hover:bg-orange-100 hover:border-orange-300 hover:text-orange-800 transition-all">アポ済</button>
-                                        <span class="text-sm text-gray-400 whitespace-nowrap">現調日時確定</span>
+                                        <span class="text-sm text-gray-400 whitespace-nowrap ml-3 w-32">現調日時確定</span>
                                     </div>
-                                    <div class="w-28 text-center"><span class="text-gray-300 text-base">↓</span></div>
-                                    <div class="flex items-center gap-3 w-56">
+                                    <span class="text-gray-300 text-base w-28 text-center -mr-32">↓</span>
+                                    <div class="flex items-center">
                                         <button onclick="selectDetailStatus('現調済')" data-status="現調済" class="status-btn w-28 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-base hover:bg-purple-100 hover:border-purple-300 hover:text-purple-800 transition-all">現調済</button>
-                                        <span class="text-sm text-gray-400 whitespace-nowrap">現地調査完了</span>
+                                        <span class="text-sm text-gray-400 whitespace-nowrap ml-3 w-32">現地調査完了</span>
                                     </div>
-                                    <div class="w-28 text-center"><span class="text-gray-300 text-base">↓</span></div>
-                                    <div class="flex items-center gap-3 w-56">
+                                    <span class="text-gray-300 text-base w-28 text-center -mr-32">↓</span>
+                                    <div class="flex items-center">
                                         <button onclick="selectDetailStatus('見積提出済')" data-status="見積提出済" class="status-btn w-28 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-base hover:bg-amber-100 hover:border-amber-300 hover:text-amber-800 transition-all">見積提出済</button>
-                                        <span class="text-sm text-gray-400 whitespace-nowrap">見積書を顧客に提出</span>
+                                        <span class="text-sm text-gray-400 whitespace-nowrap ml-3 w-32">見積書を顧客に提出</span>
                                     </div>
                                 </div>
 
