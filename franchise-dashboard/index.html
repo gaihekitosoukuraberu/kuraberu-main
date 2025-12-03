@@ -755,7 +755,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
-                                <h3 class="text-lg font-bold">ステータスを選択</h3>
+                                <h3 class="text-lg font-bold">ステータスを選択してください</h3>
                                 <p id="statusTargetName" class="text-sm text-purple-200 mt-1">---</p>
                             </div>
 
@@ -777,12 +777,12 @@
 
                                 <!-- 離脱ステータス -->
                                 <p class="text-xs text-gray-500 mb-2 font-medium text-center">✖️ 離脱・その他</p>
-                                <div class="flex flex-col items-center gap-1.5 mb-4" id="statusDetailGrid2">
-                                    <button onclick="selectDetailStatus('現調前キャンセル')" data-status="現調前キャンセル" title="現調前に顧客都合でキャンセル" class="status-btn w-40 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-gray-500 font-bold text-sm hover:bg-gray-200 hover:border-gray-400 hover:text-gray-700 transition-all">現調前キャンセル</button>
-                                    <button onclick="selectDetailStatus('現調後失注')" data-status="現調後失注" title="現調後断られた" class="status-btn w-40 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-gray-500 font-bold text-sm hover:bg-gray-300 hover:border-gray-500 hover:text-gray-800 transition-all">現調後失注</button>
-                                    <button onclick="selectDetailStatus('他社契約済')" data-status="他社契約済" title="他の一般業者で契約" class="status-btn w-40 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-gray-500 font-bold text-sm hover:bg-gray-200 hover:border-gray-400 hover:text-gray-700 transition-all">他社契約済</button>
-                                    <button onclick="selectDetailStatus('別加盟店契約済')" data-status="別加盟店契約済" title="他の加盟店で契約" class="status-btn w-40 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-gray-500 font-bold text-sm hover:bg-indigo-100 hover:border-indigo-300 hover:text-indigo-700 transition-all">別加盟店契約済</button>
-                                    <button onclick="selectDetailStatus('クレーム')" data-status="クレーム" title="問題発生または失注" class="status-btn w-40 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-gray-500 font-bold text-sm hover:bg-red-100 hover:border-red-300 hover:text-red-800 transition-all">クレーム</button>
+                                <div class="grid grid-cols-3 gap-1.5 mb-4 max-w-xs mx-auto" id="statusDetailGrid2">
+                                    <button onclick="selectDetailStatus('現調前キャンセル')" data-status="現調前キャンセル" title="現調前に顧客都合でキャンセル" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-xs hover:bg-gray-200 hover:border-gray-400 hover:text-gray-700 transition-all">現調前<br>キャンセル</button>
+                                    <button onclick="selectDetailStatus('現調後失注')" data-status="現調後失注" title="現調後断られた" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-xs hover:bg-gray-300 hover:border-gray-500 hover:text-gray-800 transition-all">現調後<br>失注</button>
+                                    <button onclick="selectDetailStatus('他社契約済')" data-status="他社契約済" title="他の一般業者で契約" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-xs hover:bg-gray-200 hover:border-gray-400 hover:text-gray-700 transition-all">他社<br>契約済</button>
+                                    <button onclick="selectDetailStatus('別加盟店契約済')" data-status="別加盟店契約済" title="他の加盟店で契約" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-xs hover:bg-indigo-100 hover:border-indigo-300 hover:text-indigo-700 transition-all">別加盟店<br>契約済</button>
+                                    <button onclick="selectDetailStatus('クレーム')" data-status="クレーム" title="問題発生または失注" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-xs hover:bg-red-100 hover:border-red-300 hover:text-red-800 transition-all">クレーム</button>
                                 </div>
 
                                 <!-- 成約・入金系の説明 -->
