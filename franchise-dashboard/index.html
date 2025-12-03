@@ -761,58 +761,34 @@
 
                             <!-- ステータス選択エリア -->
                             <div class="flex-1 overflow-y-auto p-4 bg-gray-50">
-                                <!-- 進捗ステータス（フロー順） -->
+                                <!-- 営業進捗フロー（縦に→で進む） -->
                                 <p class="text-xs text-gray-500 mb-2 font-medium">📞 営業進捗</p>
-                                <div class="grid grid-cols-5 gap-1.5 mb-4" id="statusDetailGrid">
-                                    <button onclick="selectDetailStatus('新着')" data-status="新着" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-blue-100 hover:border-blue-300 hover:text-blue-800 transition-all flex flex-col items-center">
-                                        <span>新着</span>
-                                        <span class="text-[10px] text-gray-400 font-normal mt-0.5">配信直後</span>
-                                    </button>
-                                    <button onclick="selectDetailStatus('未アポ')" data-status="未アポ" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-sky-100 hover:border-sky-300 hover:text-sky-700 transition-all flex flex-col items-center">
-                                        <span>未アポ</span>
-                                        <span class="text-[10px] text-gray-400 font-normal mt-0.5">架電済</span>
-                                    </button>
-                                    <button onclick="selectDetailStatus('アポ済')" data-status="アポ済" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-orange-100 hover:border-orange-300 hover:text-orange-800 transition-all flex flex-col items-center">
-                                        <span>アポ済</span>
-                                        <span class="text-[10px] text-gray-400 font-normal mt-0.5">日程確定</span>
-                                    </button>
-                                    <button onclick="selectDetailStatus('現調済')" data-status="現調済" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-purple-100 hover:border-purple-300 hover:text-purple-800 transition-all flex flex-col items-center">
-                                        <span>現調済</span>
-                                        <span class="text-[10px] text-gray-400 font-normal mt-0.5">調査完了</span>
-                                    </button>
-                                    <button onclick="selectDetailStatus('見積提出済')" data-status="見積提出済" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-amber-100 hover:border-amber-300 hover:text-amber-800 transition-all flex flex-col items-center">
-                                        <span>見積提出</span>
-                                        <span class="text-[10px] text-gray-400 font-normal mt-0.5">返答待ち</span>
-                                    </button>
+                                <div class="flex items-center gap-1 mb-4 overflow-x-auto pb-1" id="statusDetailGrid">
+                                    <button onclick="selectDetailStatus('新着')" data-status="新着" class="status-btn py-2 px-3 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-blue-100 hover:border-blue-300 hover:text-blue-800 transition-all whitespace-nowrap">新着</button>
+                                    <span class="text-gray-300 text-xs">→</span>
+                                    <button onclick="selectDetailStatus('未アポ')" data-status="未アポ" class="status-btn py-2 px-3 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-sky-100 hover:border-sky-300 hover:text-sky-700 transition-all whitespace-nowrap">未アポ</button>
+                                    <span class="text-gray-300 text-xs">→</span>
+                                    <button onclick="selectDetailStatus('アポ済')" data-status="アポ済" class="status-btn py-2 px-3 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-orange-100 hover:border-orange-300 hover:text-orange-800 transition-all whitespace-nowrap">アポ済</button>
+                                    <span class="text-gray-300 text-xs">→</span>
+                                    <button onclick="selectDetailStatus('現調済')" data-status="現調済" class="status-btn py-2 px-3 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-purple-100 hover:border-purple-300 hover:text-purple-800 transition-all whitespace-nowrap">現調済</button>
+                                    <span class="text-gray-300 text-xs">→</span>
+                                    <button onclick="selectDetailStatus('見積提出済')" data-status="見積提出済" class="status-btn py-2 px-3 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-amber-100 hover:border-amber-300 hover:text-amber-800 transition-all whitespace-nowrap">見積提出済</button>
                                 </div>
 
                                 <!-- 離脱ステータス -->
                                 <p class="text-xs text-gray-500 mb-2 font-medium">✖️ 離脱・その他</p>
-                                <div class="grid grid-cols-3 gap-1.5" id="statusDetailGrid2">
-                                    <button onclick="selectDetailStatus('現調前キャンセル')" data-status="現調前キャンセル" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-gray-200 hover:border-gray-400 hover:text-gray-700 transition-all flex flex-col items-center">
-                                        <span>現調前CN</span>
-                                        <span class="text-[10px] text-gray-400 font-normal mt-0.5">顧客都合</span>
-                                    </button>
-                                    <button onclick="selectDetailStatus('現調後失注')" data-status="現調後失注" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-gray-300 hover:border-gray-500 hover:text-gray-800 transition-all flex flex-col items-center">
-                                        <span>現調後失注</span>
-                                        <span class="text-[10px] text-gray-400 font-normal mt-0.5">調査後断り</span>
-                                    </button>
-                                    <button onclick="selectDetailStatus('他社契約済')" data-status="他社契約済" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-gray-200 hover:border-gray-400 hover:text-gray-700 transition-all flex flex-col items-center">
-                                        <span>他社契約</span>
-                                        <span class="text-[10px] text-gray-400 font-normal mt-0.5">一般業者</span>
-                                    </button>
-                                    <button onclick="selectDetailStatus('別加盟店契約済')" data-status="別加盟店契約済" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-indigo-100 hover:border-indigo-300 hover:text-indigo-700 transition-all flex flex-col items-center">
-                                        <span>別加盟店</span>
-                                        <span class="text-[10px] text-gray-400 font-normal mt-0.5">他の加盟店</span>
-                                    </button>
-                                    <button onclick="selectDetailStatus('クレーム')" data-status="クレーム" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-red-100 hover:border-red-300 hover:text-red-800 transition-all flex flex-col items-center">
-                                        <span>クレーム</span>
-                                        <span class="text-[10px] text-gray-400 font-normal mt-0.5">問題発生</span>
-                                    </button>
+                                <div class="grid grid-cols-3 gap-1.5 mb-4" id="statusDetailGrid2">
+                                    <button onclick="selectDetailStatus('現調前キャンセル')" data-status="現調前キャンセル" class="status-btn py-2 px-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-gray-200 hover:border-gray-400 hover:text-gray-700 transition-all text-center">現調前キャンセル</button>
+                                    <button onclick="selectDetailStatus('現調後失注')" data-status="現調後失注" class="status-btn py-2 px-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-gray-300 hover:border-gray-500 hover:text-gray-800 transition-all text-center">現調後失注</button>
+                                    <button onclick="selectDetailStatus('他社契約済')" data-status="他社契約済" class="status-btn py-2 px-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-gray-200 hover:border-gray-400 hover:text-gray-700 transition-all text-center">他社契約済</button>
+                                    <button onclick="selectDetailStatus('別加盟店契約済')" data-status="別加盟店契約済" class="status-btn py-2 px-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-indigo-100 hover:border-indigo-300 hover:text-indigo-700 transition-all text-center">別加盟店契約済</button>
+                                    <button onclick="selectDetailStatus('クレーム')" data-status="クレーム" class="status-btn py-2 px-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-semibold text-xs hover:bg-red-100 hover:border-red-300 hover:text-red-800 transition-all text-center">クレーム</button>
                                 </div>
 
                                 <!-- 成約・入金系の説明 -->
-                                <p class="text-[10px] text-gray-400 mt-4 text-center">※ 成約・入金ステータスは「成約報告」メニューから変更</p>
+                                <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 text-center">
+                                    <p class="text-xs text-amber-700">💡 成約・入金ステータスは「成約報告」から変更</p>
+                                </div>
                             </div>
 
                             <!-- フッターボタン -->
