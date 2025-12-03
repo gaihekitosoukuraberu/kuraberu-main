@@ -604,51 +604,47 @@
                     <h2 class="text-2xl font-bold text-gray-900">案件管理</h2>
                 </div>
 
-                <!-- 検索・フィルターエリア -->
+                <!-- 検索・フィルターエリア（リデザイン版） -->
                 <div class="bg-white rounded-2xl p-4 mb-4 border border-gray-100 shadow-lg">
-                    <div class="flex flex-col gap-4 w-full">
-                        <!-- 検索ボックス -->
-                        <div class="relative">
-                            <input type="text" id="caseSearchInput" placeholder="名前・住所・電話で検索" oninput="searchCases()" autocomplete="off" class="w-full pl-11 pr-11 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 shadow-sm transition-all bg-gray-50 placeholder-gray-400">
-                            <div class="absolute left-4 top-3.5">
+                    <!-- 検索 + 絞り込みボタン（横並び） -->
+                    <div class="flex gap-2 mb-4">
+                        <div class="relative flex-1">
+                            <input type="text" id="caseSearchInput" placeholder="検索" oninput="searchCases()" autocomplete="off" class="w-full pl-10 pr-8 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 shadow-sm transition-all bg-gray-50 placeholder-gray-400">
+                            <div class="absolute left-3 top-3.5">
                                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                             </div>
-                            <button onclick="document.getElementById('caseSearchInput').value=''; searchCases();" class="absolute right-3 top-3 text-gray-400 hover:text-gray-600 p-1">
+                            <button onclick="document.getElementById('caseSearchInput').value=''; searchCases();" class="absolute right-2 top-3 text-gray-400 hover:text-gray-600 p-1">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
+                        <button onclick="openUnifiedFilterModal()" id="unifiedFilterBtn" class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl shadow-lg hover:from-indigo-600 hover:to-purple-700 transition-all font-bold whitespace-nowrap">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                            <span id="unifiedFilterLabel">絞り込み</span>
+                        </button>
+                    </div>
 
-                        <!-- クイックフィルタ（全案件/要対応/成約） -->
-                        <div class="grid grid-cols-3 gap-2 w-full">
-                            <button id="filterBtnAll" data-filter="all" onclick="filterCases('all')" class="flex flex-col items-center justify-center py-3 px-2 bg-indigo-500 text-white rounded-xl shadow-lg hover:bg-indigo-600 transition-all cursor-pointer ring-2 ring-white ring-offset-2 ring-offset-indigo-500">
-                                <span class="text-lg font-bold" id="stat-total">0</span>
-                                <span class="text-xs font-medium">全案件</span>
-                            </button>
-                            <button id="filterBtnPending" data-filter="pending" onclick="filterCases('pending')" class="flex flex-col items-center justify-center py-3 px-2 bg-pink-50 text-pink-400 border border-pink-200 rounded-xl shadow-md hover:bg-pink-100 transition-all cursor-pointer">
-                                <span class="text-lg font-bold" id="stat-pending">0</span>
-                                <span class="text-xs font-medium">要対応</span>
-                            </button>
-                            <button id="filterBtnContracted" data-filter="contracted" onclick="filterCases('contracted')" class="flex flex-col items-center justify-center py-3 px-2 bg-green-50 text-green-500 border border-green-200 rounded-xl shadow-md hover:bg-green-100 transition-all cursor-pointer">
-                                <span class="text-lg font-bold" id="stat-contracted">0</span>
-                                <span class="text-xs font-medium">成約済</span>
-                            </button>
-                        </div>
-
-                        <!-- 絞り込み（ステータス・配信日）2列 -->
-                        <div class="grid grid-cols-2 gap-2 w-full">
-                            <button id="statusFilterBtn" onclick="openSortModal()" class="flex items-center justify-center gap-2 py-2.5 px-3 bg-purple-50 text-purple-500 border border-purple-200 rounded-xl shadow-md hover:bg-purple-100 transition-all cursor-pointer">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                                <span class="text-sm font-bold" id="statusFilterLabel">ステータス</span>
-                            </button>
-                            <button id="dateFilterBtn" onclick="openDateFilterModal()" class="flex items-center justify-center gap-2 py-2.5 px-3 bg-amber-50 text-amber-500 border border-amber-200 rounded-xl shadow-md hover:bg-amber-100 transition-all cursor-pointer">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                <span class="text-sm font-bold" id="dateFilterLabel">配信日</span>
-                            </button>
-                        </div>
+                    <!-- クイックフィルタ（4つのプリセット） -->
+                    <div class="grid grid-cols-4 gap-2">
+                        <button id="filterBtnAll" data-filter="all" onclick="quickFilter('all')" class="quick-filter-btn flex flex-col items-center justify-center py-3 px-1 bg-indigo-500 text-white rounded-xl shadow-lg transition-all cursor-pointer">
+                            <span class="text-xl font-bold" id="stat-total">0</span>
+                            <span class="text-xs font-medium">全件</span>
+                        </button>
+                        <button id="filterBtnCall" data-filter="call" onclick="quickFilter('call')" class="quick-filter-btn flex flex-col items-center justify-center py-3 px-1 bg-white text-green-600 border-2 border-green-300 rounded-xl shadow-md hover:bg-green-50 transition-all cursor-pointer">
+                            <span class="text-xl font-bold" id="stat-call">0</span>
+                            <span class="text-xs font-medium">📞架電</span>
+                        </button>
+                        <button id="filterBtnProgress" data-filter="progress" onclick="quickFilter('progress')" class="quick-filter-btn flex flex-col items-center justify-center py-3 px-1 bg-white text-orange-600 border-2 border-orange-300 rounded-xl shadow-md hover:bg-orange-50 transition-all cursor-pointer">
+                            <span class="text-xl font-bold" id="stat-progress">0</span>
+                            <span class="text-xs font-medium">🔥進行</span>
+                        </button>
+                        <button id="filterBtnContracted" data-filter="contracted" onclick="quickFilter('contracted')" class="quick-filter-btn flex flex-col items-center justify-center py-3 px-1 bg-white text-emerald-600 border-2 border-emerald-300 rounded-xl shadow-md hover:bg-emerald-50 transition-all cursor-pointer">
+                            <span class="text-xl font-bold" id="stat-contracted">0</span>
+                            <span class="text-xs font-medium">✅成約</span>
+                        </button>
                     </div>
                 </div>
 
@@ -1178,7 +1174,84 @@
                     </div>
                 </div>
 
-                <!-- ソートモーダル（ステータス絞り込み） -->
+                <!-- 統合絞り込みモーダル（フルスクリーン風） -->
+                <div id="unifiedFilterModal" class="fixed inset-0 z-50 hidden">
+                    <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" onclick="closeUnifiedFilterModal()"></div>
+                    <div class="fixed inset-x-0 bottom-0 sm:inset-4 sm:top-auto sm:bottom-auto sm:left-1/2 sm:-translate-x-1/2 sm:max-w-lg flex items-end sm:items-center justify-center">
+                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-h-[90vh] sm:max-h-[85vh] flex flex-col overflow-hidden">
+                            <!-- ヘッダー -->
+                            <div class="px-5 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 flex-shrink-0">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h3 class="text-xl font-bold text-white">絞り込み</h3>
+                                        <p id="unifiedFilterStatus" class="text-sm text-indigo-200 mt-0.5">すべて表示中</p>
+                                    </div>
+                                    <button onclick="closeUnifiedFilterModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- コンテンツ -->
+                            <div class="flex-1 overflow-y-auto p-5 space-y-6">
+                                <!-- ステータス（プリセット） -->
+                                <div>
+                                    <h4 class="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                        <span class="text-lg">📊</span> ステータス
+                                    </h4>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <button onclick="setUnifiedStatusFilter('call')" id="uf-status-call" class="uf-status-btn flex items-center justify-center gap-2 py-4 px-4 bg-green-50 text-green-700 border-2 border-green-300 rounded-2xl hover:bg-green-100 transition-all font-bold text-base">
+                                            <span class="text-xl">📞</span> 架電対象
+                                        </button>
+                                        <button onclick="setUnifiedStatusFilter('progress')" id="uf-status-progress" class="uf-status-btn flex items-center justify-center gap-2 py-4 px-4 bg-orange-50 text-orange-700 border-2 border-orange-300 rounded-2xl hover:bg-orange-100 transition-all font-bold text-base">
+                                            <span class="text-xl">🔥</span> 進行中
+                                        </button>
+                                        <button onclick="setUnifiedStatusFilter('contracted')" id="uf-status-contracted" class="uf-status-btn flex items-center justify-center gap-2 py-4 px-4 bg-emerald-50 text-emerald-700 border-2 border-emerald-300 rounded-2xl hover:bg-emerald-100 transition-all font-bold text-base">
+                                            <span class="text-xl">✅</span> 成約済
+                                        </button>
+                                        <button onclick="setUnifiedStatusFilter('all')" id="uf-status-all" class="uf-status-btn flex items-center justify-center gap-2 py-4 px-4 bg-indigo-50 text-indigo-700 border-2 border-indigo-300 rounded-2xl hover:bg-indigo-100 transition-all font-bold text-base">
+                                            <span class="text-xl">📦</span> すべて
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- 配信月 -->
+                                <div>
+                                    <h4 class="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                        <span class="text-lg">📅</span> 配信月
+                                    </h4>
+                                    <div id="ufMonthButtons" class="grid grid-cols-4 gap-2">
+                                        <!-- JSで動的生成 -->
+                                    </div>
+                                </div>
+
+                                <!-- 担当者 -->
+                                <div>
+                                    <h4 class="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                        <span class="text-lg">👤</span> 担当者
+                                    </h4>
+                                    <div id="ufAssigneeButtons" class="grid grid-cols-3 gap-2">
+                                        <!-- JSで動的生成 -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- フッター -->
+                            <div class="flex gap-3 p-5 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+                                <button onclick="clearUnifiedFilter()" class="flex-1 py-4 bg-white text-gray-700 border-2 border-gray-300 rounded-2xl font-bold text-base hover:bg-gray-100 transition-all">
+                                    クリア
+                                </button>
+                                <button onclick="applyUnifiedFilter()" class="flex-[2] py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-bold text-base shadow-lg hover:shadow-xl transition-all">
+                                    適用
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ソートモーダル（ステータス絞り込み）※後方互換用 -->
                 <div id="sortModal" class="fixed inset-0 z-50 hidden">
                     <div class="fixed inset-0 bg-black/50" onclick="closeSortModal()"></div>
                     <div class="fixed inset-0 flex items-center justify-center p-4">
