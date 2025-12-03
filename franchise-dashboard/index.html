@@ -13750,10 +13750,39 @@
             }
         }
 
-        // 本部からの通知を読み込む（今後実装）
+        // 通知パネルの内容を更新
         function loadNotifications() {
-            // TODO: GASから本部通知を取得
-            console.log('Loading notifications from headquarters...');
+            const list = document.getElementById('notificationList');
+            if (!list) return;
+
+            // 新着案件数をカウント
+            let newCount = 0;
+            merchantCasesData.forEach(c => {
+                if (c.detailStatus === '新着') newCount++;
+            });
+
+            if (newCount > 0) {
+                list.innerHTML = `
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0">
+                                <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-bold text-blue-800">新着案件が ${newCount}件 あります</p>
+                                <p class="text-sm text-blue-600 mt-1">案件管理から確認してください</p>
+                                <button onclick="showSection('cases'); toggleNotificationPanel();" class="mt-3 px-4 py-2 bg-blue-500 text-white text-sm font-bold rounded-lg hover:bg-blue-600 transition-all">
+                                    案件管理を開く
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                list.innerHTML = '<p class="text-gray-500 text-center py-8">新しい通知はありません</p>';
+            }
         }
 
         // 加盟店ステータス更新
@@ -16430,6 +16459,17 @@
             if (badge) {
                 badge.textContent = newCount;
                 badge.style.display = newCount > 0 ? 'block' : 'none';
+            }
+
+            // ヘッダーのベルアイコンバッジを新着数で更新
+            const notifBadge = document.getElementById('notificationCount');
+            if (notifBadge) {
+                notifBadge.textContent = newCount;
+                if (newCount > 0) {
+                    notifBadge.classList.remove('hidden');
+                } else {
+                    notifBadge.classList.add('hidden');
+                }
             }
         }
 
