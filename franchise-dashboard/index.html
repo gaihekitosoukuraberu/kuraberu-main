@@ -760,33 +760,44 @@
                             </div>
 
                             <!-- ステータス選択エリア -->
-                            <div class="flex-1 overflow-y-auto p-4 bg-gray-50">
-                                <!-- 営業進捗フロー（縦並び・中央配置） -->
-                                <p class="text-xs text-gray-500 mb-3 font-medium text-center">📞 営業進捗</p>
-                                <div class="flex flex-col items-center gap-1 mb-5" id="statusDetailGrid">
-                                    <button onclick="selectDetailStatus('新着')" data-status="新着" title="配信後未着手" class="status-btn w-40 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-500 font-bold text-sm hover:bg-blue-100 hover:border-blue-300 hover:text-blue-800 transition-all">新着</button>
-                                    <span class="text-gray-300 text-lg">↓</span>
-                                    <button onclick="selectDetailStatus('未アポ')" data-status="未アポ" title="電話したがアポ取れず" class="status-btn w-40 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-500 font-bold text-sm hover:bg-sky-100 hover:border-sky-300 hover:text-sky-700 transition-all">未アポ</button>
-                                    <span class="text-gray-300 text-lg">↓</span>
-                                    <button onclick="selectDetailStatus('アポ済')" data-status="アポ済" title="現調日時確定" class="status-btn w-40 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-500 font-bold text-sm hover:bg-orange-100 hover:border-orange-300 hover:text-orange-800 transition-all">アポ済</button>
-                                    <span class="text-gray-300 text-lg">↓</span>
-                                    <button onclick="selectDetailStatus('現調済')" data-status="現調済" title="現地調査完了" class="status-btn w-40 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-500 font-bold text-sm hover:bg-purple-100 hover:border-purple-300 hover:text-purple-800 transition-all">現調済</button>
-                                    <span class="text-gray-300 text-lg">↓</span>
-                                    <button onclick="selectDetailStatus('見積提出済')" data-status="見積提出済" title="見積書を顧客に提出" class="status-btn w-40 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-500 font-bold text-sm hover:bg-amber-100 hover:border-amber-300 hover:text-amber-800 transition-all">見積提出済</button>
+                            <div class="flex-1 overflow-y-auto p-3 bg-gray-50">
+                                <!-- 営業進捗フロー（左寄せ＋説明） -->
+                                <p class="text-xs text-gray-500 mb-2 font-medium">📞 営業進捗</p>
+                                <div class="flex flex-col gap-0.5 mb-3" id="statusDetailGrid">
+                                    <div class="flex items-center gap-2">
+                                        <button onclick="selectDetailStatus('新着')" data-status="新着" class="status-btn w-24 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-sm hover:bg-blue-100 hover:border-blue-300 hover:text-blue-800 transition-all">新着</button>
+                                        <span class="text-xs text-gray-400">配信後未着手</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button onclick="selectDetailStatus('未アポ')" data-status="未アポ" class="status-btn w-24 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-sm hover:bg-sky-100 hover:border-sky-300 hover:text-sky-700 transition-all">未アポ</button>
+                                        <span class="text-xs text-gray-400">電話したがアポ取れず</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button onclick="selectDetailStatus('アポ済')" data-status="アポ済" class="status-btn w-24 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-sm hover:bg-orange-100 hover:border-orange-300 hover:text-orange-800 transition-all">アポ済</button>
+                                        <span class="text-xs text-gray-400">現調日時確定</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button onclick="selectDetailStatus('現調済')" data-status="現調済" class="status-btn w-24 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-sm hover:bg-purple-100 hover:border-purple-300 hover:text-purple-800 transition-all">現調済</button>
+                                        <span class="text-xs text-gray-400">現地調査完了</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button onclick="selectDetailStatus('見積提出済')" data-status="見積提出済" class="status-btn w-24 py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-sm hover:bg-amber-100 hover:border-amber-300 hover:text-amber-800 transition-all">見積提出済</button>
+                                        <span class="text-xs text-gray-400">見積書を顧客に提出</span>
+                                    </div>
                                 </div>
 
                                 <!-- 離脱ステータス -->
-                                <p class="text-xs text-gray-500 mb-2 font-medium text-center">✖️ 離脱・その他</p>
-                                <div class="grid grid-cols-3 gap-1.5 mb-4 max-w-xs mx-auto" id="statusDetailGrid2">
-                                    <button onclick="selectDetailStatus('現調前キャンセル')" data-status="現調前キャンセル" title="現調前に顧客都合でキャンセル" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-xs hover:bg-gray-200 hover:border-gray-400 hover:text-gray-700 transition-all">現調前<br>キャンセル</button>
-                                    <button onclick="selectDetailStatus('現調後失注')" data-status="現調後失注" title="現調後断られた" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-xs hover:bg-gray-300 hover:border-gray-500 hover:text-gray-800 transition-all">現調後<br>失注</button>
-                                    <button onclick="selectDetailStatus('他社契約済')" data-status="他社契約済" title="他の一般業者で契約" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-xs hover:bg-gray-200 hover:border-gray-400 hover:text-gray-700 transition-all">他社<br>契約済</button>
-                                    <button onclick="selectDetailStatus('別加盟店契約済')" data-status="別加盟店契約済" title="他の加盟店で契約" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-xs hover:bg-indigo-100 hover:border-indigo-300 hover:text-indigo-700 transition-all">別加盟店<br>契約済</button>
-                                    <button onclick="selectDetailStatus('クレーム')" data-status="クレーム" title="問題発生または失注" class="status-btn py-2 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-xs hover:bg-red-100 hover:border-red-300 hover:text-red-800 transition-all">クレーム</button>
+                                <p class="text-xs text-gray-500 mb-1.5 font-medium">✖️ 離脱・その他</p>
+                                <div class="grid grid-cols-3 gap-1 mb-3" id="statusDetailGrid2">
+                                    <button onclick="selectDetailStatus('現調前キャンセル')" data-status="現調前キャンセル" title="現調前に顧客都合でキャンセル" class="status-btn py-1.5 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-xs hover:bg-gray-200 hover:border-gray-400 hover:text-gray-700 transition-all leading-tight">現調前<br>キャンセル</button>
+                                    <button onclick="selectDetailStatus('現調後失注')" data-status="現調後失注" title="現調後断られた" class="status-btn py-1.5 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-xs hover:bg-gray-300 hover:border-gray-500 hover:text-gray-800 transition-all leading-tight">現調後<br>失注</button>
+                                    <button onclick="selectDetailStatus('他社契約済')" data-status="他社契約済" title="他の一般業者で契約" class="status-btn py-1.5 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-xs hover:bg-gray-200 hover:border-gray-400 hover:text-gray-700 transition-all leading-tight">他社<br>契約済</button>
+                                    <button onclick="selectDetailStatus('別加盟店契約済')" data-status="別加盟店契約済" title="他の加盟店で契約" class="status-btn py-1.5 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-xs hover:bg-indigo-100 hover:border-indigo-300 hover:text-indigo-700 transition-all leading-tight">別加盟店<br>契約済</button>
+                                    <button onclick="selectDetailStatus('クレーム')" data-status="クレーム" title="問題発生または失注" class="status-btn py-1.5 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-xs hover:bg-red-100 hover:border-red-300 hover:text-red-800 transition-all leading-tight">クレーム</button>
                                 </div>
 
                                 <!-- 成約・入金系の説明 -->
-                                <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 text-center">
+                                <div class="bg-amber-50 border border-amber-200 rounded-lg p-1.5 text-center">
                                     <p class="text-xs text-amber-700">💡 成約時は「成約報告」よりお手続きください</p>
                                 </div>
                             </div>
