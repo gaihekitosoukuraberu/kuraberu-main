@@ -16415,6 +16415,9 @@
             if (currentFilter === 'all') return true;
 
             const status = caseItem.detailStatus || '';
+            // デバッグ: 実際のステータス値を確認
+            console.log('[matchesFilter] status:', status, 'currentFilter:', currentFilter);
+
             const filterMap = {
                 // 要対応: 新着、未アポ、アポ済、現調済、見積提出済、入金予定
                 'pending': ['新着', '未アポ', 'アポ済', '現調済', '見積提出済', '入金予定'],
@@ -16424,7 +16427,9 @@
                 'cancelled': ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', 'クレーム']
             };
 
-            return filterMap[currentFilter]?.includes(status);
+            const result = filterMap[currentFilter]?.includes(status);
+            console.log('[matchesFilter] result:', result);
+            return result;
         }
 
         // =====================================================
