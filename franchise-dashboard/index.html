@@ -18411,6 +18411,7 @@
             closeNextCallModal();
 
             // バックグラウンドで保存
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
             fetch(window.ENV.GAS_URL, {
                 method: 'POST',
                 headers: {
@@ -18418,6 +18419,7 @@
                 },
                 body: JSON.stringify({
                     action: 'updateNextCallDate',
+                    merchantId: merchantId,
                     cvId: saveCvId,
                     nextCallDate: dateTimeValue
                 })

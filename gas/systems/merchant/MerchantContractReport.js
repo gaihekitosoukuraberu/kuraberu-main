@@ -799,8 +799,8 @@ var MerchantContractReport = {
    * @return {Object} - { success }
    */
   updateNextCallDate: function(params) {
-    const { cvId, nextCallDate } = params;
-    console.log('[MerchantContractReport] updateNextCallDate:', { cvId, nextCallDate });
+    const { merchantId, cvId, nextCallDate } = params;
+    console.log('[MerchantContractReport] updateNextCallDate:', { merchantId, cvId, nextCallDate });
 
     if (!cvId) {
       return { success: false, error: 'cvIdが不足しています' };
@@ -813,25 +813,55 @@ var MerchantContractReport = {
       const data = deliverySheet.getDataRange().getValues();
       const headers = data[0];
 
-      const colIdx = {
-        cvId: headers.indexOf('CV ID'),
-        nextCallDate: headers.indexOf('次回連絡予定日時')
-      };
+      // ヘッダーマップ作成
+      const colIdx = {};
+      headers.forEach((h, i) => { colIdx[h] = i; });
 
-      if (colIdx.nextCallDate === -1) {
+      const cvIdCol = colIdx['CV ID'];
+      const franchiseIdCol = colIdx['加盟店ID'];
+      const nextCallDateCol = colIdx['次回連絡予定日時'];
+
+      if (nextCallDateCol === undefined) {
         return { success: false, error: '次回連絡予定日時列が見つかりません' };
       }
 
+      // merchantIdがある場合は会社名も取得（updateCallHistoryと同じロジック）
+      let merchantCompanyName = '';
+      if (merchantId) {
+        const franchiseSheet = ss.getSheetByName('加盟店登録');
+        if (franchiseSheet) {
+          const franchiseData = franchiseSheet.getDataRange().getValues();
+          const franchiseHeaders = franchiseData[0];
+          const regIdCol = franchiseHeaders.indexOf('登録ID');
+          const companyNameCol = franchiseHeaders.indexOf('会社名');
+
+          for (let i = 1; i < franchiseData.length; i++) {
+            if (String(franchiseData[i][regIdCol]) === String(merchantId)) {
+              merchantCompanyName = franchiseData[i][companyNameCol];
+              break;
+            }
+          }
+        }
+      }
+      console.log('[MerchantContractReport] updateNextCallDate - merchantCompanyName:', merchantCompanyName);
+
       for (let i = 1; i < data.length; i++) {
         const row = data[i];
-        if (String(row[colIdx.cvId]) === String(cvId)) {
-          deliverySheet.getRange(i + 1, colIdx.nextCallDate + 1).setValue(nextCallDate || '');
+        const rowCvId = row[cvIdCol];
+        const rowFranchiseId = row[franchiseIdCol];
+
+        // CV IDが一致 AND (merchantIdなし OR 登録ID/会社名でマッチ)
+        const cvMatch = String(rowCvId) === String(cvId);
+        const merchantMatch = !merchantId || String(rowFranchiseId) === String(merchantId) || String(rowFranchiseId) === String(merchantCompanyName);
+
+        if (cvMatch && merchantMatch) {
+          deliverySheet.getRange(i + 1, nextCallDateCol + 1).setValue(nextCallDate || '');
           console.log('[MerchantContractReport] updateNextCallDate - updated row', i + 1);
           return { success: true };
         }
       }
 
-      return { success: false, error: '該当する案件が見つかりません' };
+      return { success: false, error: '該当する案件が見つかりません (cvId: ' + cvId + ')' };
 
     } catch (error) {
       console.error('[MerchantContractReport] updateNextCallDate error:', error);
