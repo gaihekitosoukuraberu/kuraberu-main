@@ -800,34 +800,153 @@
                 <!-- 次回架電日設定モーダル -->
                 <div id="nextCallModal" class="fixed inset-0 z-50 hidden">
                     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeNextCallModal()"></div>
-                    <div class="fixed inset-0 flex items-center justify-center p-4">
-                        <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full">
-                            <div class="p-4 border-b flex justify-between items-center bg-gradient-to-r from-blue-50 to-white">
-                                <h3 class="text-lg font-bold">🗓️ 次回架電日を設定</h3>
-                                <button onclick="closeNextCallModal()" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-2 transition-all">
+                    <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+                            <!-- ヘッダー -->
+                            <div class="p-4 border-b flex justify-between items-center bg-gradient-to-r from-blue-500 to-blue-600 text-white flex-shrink-0">
+                                <div>
+                                    <h3 class="text-lg font-bold">📞 次回架電を設定</h3>
+                                    <p id="nextCallTargetName" class="text-sm text-blue-100 mt-0.5">---</p>
+                                </div>
+                                <button onclick="closeNextCallModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
                             </div>
-                            <div class="p-4">
-                                <p id="nextCallTargetName" class="text-sm text-gray-500 mb-4">---</p>
-                                <!-- クイック選択ボタン -->
-                                <div class="grid grid-cols-4 gap-2 mb-4">
-                                    <button onclick="setNextCallQuick(0)" class="py-2 px-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-medium text-sm">今日</button>
-                                    <button onclick="setNextCallQuick(1)" class="py-2 px-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-medium text-sm">明日</button>
-                                    <button onclick="setNextCallQuick(2)" class="py-2 px-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-medium text-sm">明後日</button>
-                                    <button onclick="setNextCallQuick(7)" class="py-2 px-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-medium text-sm">1週間後</button>
+
+                            <!-- コンテンツ（スクロール可能） -->
+                            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                                <!-- 現在のステータスとおすすめプリセット -->
+                                <div id="nextCallPresetSection" class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-200">
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <span class="text-lg">💡</span>
+                                        <span class="text-sm font-bold text-amber-800">おすすめプリセット</span>
+                                        <span id="nextCallCurrentStatus" class="ml-auto text-xs px-2 py-1 bg-white rounded-full text-gray-600 font-medium">---</span>
+                                    </div>
+                                    <div id="nextCallPresetBtns" class="grid grid-cols-2 gap-2">
+                                        <!-- JSで動的生成 -->
+                                    </div>
                                 </div>
-                                <!-- カレンダー選択 -->
-                                <div class="mb-4">
-                                    <label class="text-sm font-medium text-gray-600 block mb-2">日付を選択</label>
-                                    <input type="date" id="nextCallDateInput" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+
+                                <!-- 日付クイック選択 -->
+                                <div class="bg-gray-50 rounded-xl p-4">
+                                    <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                        <span>📅</span> 日付を選択
+                                    </h4>
+                                    <div class="grid grid-cols-4 gap-2 mb-3">
+                                        <button onclick="setNextCallDay(0)" data-day="0" class="next-call-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">今日</div>
+                                            <div id="dayLabel0" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setNextCallDay(1)" data-day="1" class="next-call-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">明日</div>
+                                            <div id="dayLabel1" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setNextCallDay(2)" data-day="2" class="next-call-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">明後日</div>
+                                            <div id="dayLabel2" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setNextCallDay(3)" data-day="3" class="next-call-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">3日後</div>
+                                            <div id="dayLabel3" class="text-base"></div>
+                                        </button>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-2 mb-3">
+                                        <button onclick="setNextCallDay(5)" data-day="5" class="next-call-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">5日後</div>
+                                            <div id="dayLabel5" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setNextCallDay(7)" data-day="7" class="next-call-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">1週間後</div>
+                                            <div id="dayLabel7" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setNextCallDay(14)" data-day="14" class="next-call-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">2週間後</div>
+                                            <div id="dayLabel14" class="text-base"></div>
+                                        </button>
+                                        <button onclick="toggleCustomDatePicker()" class="py-3 bg-white border-2 border-gray-200 text-gray-500 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">その他</div>
+                                            <div class="text-base">📆</div>
+                                        </button>
+                                    </div>
+                                    <!-- カスタム日付選択（非表示デフォルト） -->
+                                    <div id="customDatePicker" class="hidden">
+                                        <input type="date" id="nextCallDateInput" class="w-full p-3 border-2 border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-center font-bold">
+                                    </div>
                                 </div>
-                                <!-- 保存・クリアボタン -->
-                                <div class="flex gap-2">
-                                    <button onclick="clearNextCallDate()" class="flex-1 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 font-bold transition-all">クリア</button>
-                                    <button onclick="saveNextCallDate()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-md hover:shadow-lg transition-all">保存</button>
+
+                                <!-- 時間帯選択 -->
+                                <div class="bg-gray-50 rounded-xl p-4">
+                                    <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                        <span>⏰</span> 時間帯を選択
+                                    </h4>
+                                    <!-- 時間帯プリセット -->
+                                    <div class="grid grid-cols-4 gap-2 mb-3">
+                                        <button onclick="setNextCallTimePreset(9, 0)" class="next-call-time-btn py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-lg hover:border-blue-400 hover:bg-blue-50 font-medium text-sm transition-all" data-hour="9" data-minute="0">
+                                            <div class="text-xs text-gray-400">朝</div>
+                                            <div>9:00</div>
+                                        </button>
+                                        <button onclick="setNextCallTimePreset(12, 0)" class="next-call-time-btn py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-lg hover:border-blue-400 hover:bg-blue-50 font-medium text-sm transition-all" data-hour="12" data-minute="0">
+                                            <div class="text-xs text-gray-400">昼</div>
+                                            <div>12:00</div>
+                                        </button>
+                                        <button onclick="setNextCallTimePreset(15, 0)" class="next-call-time-btn py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-lg hover:border-blue-400 hover:bg-blue-50 font-medium text-sm transition-all" data-hour="15" data-minute="0">
+                                            <div class="text-xs text-gray-400">午後</div>
+                                            <div>15:00</div>
+                                        </button>
+                                        <button onclick="setNextCallTimePreset(18, 0)" class="next-call-time-btn py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-lg hover:border-blue-400 hover:bg-blue-50 font-medium text-sm transition-all" data-hour="18" data-minute="0">
+                                            <div class="text-xs text-gray-400">夕方</div>
+                                            <div>18:00</div>
+                                        </button>
+                                    </div>
+                                    <!-- 30分単位カスタム -->
+                                    <div class="flex items-center gap-2">
+                                        <select id="nextCallHour" class="flex-1 p-3 border-2 border-gray-200 rounded-xl text-center font-bold focus:border-blue-500 transition-all" onchange="updateNextCallTimeDisplay()">
+                                            <option value="">時</option>
+                                            <option value="8">8時</option>
+                                            <option value="9">9時</option>
+                                            <option value="10">10時</option>
+                                            <option value="11">11時</option>
+                                            <option value="12">12時</option>
+                                            <option value="13">13時</option>
+                                            <option value="14">14時</option>
+                                            <option value="15">15時</option>
+                                            <option value="16">16時</option>
+                                            <option value="17">17時</option>
+                                            <option value="18">18時</option>
+                                            <option value="19">19時</option>
+                                            <option value="20">20時</option>
+                                        </select>
+                                        <span class="text-xl font-bold text-gray-400">:</span>
+                                        <select id="nextCallMinute" class="flex-1 p-3 border-2 border-gray-200 rounded-xl text-center font-bold focus:border-blue-500 transition-all" onchange="updateNextCallTimeDisplay()">
+                                            <option value="0">00分</option>
+                                            <option value="30">30分</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- 選択結果プレビュー -->
+                                <div id="nextCallPreview" class="bg-blue-50 rounded-xl p-4 border-2 border-blue-200 hidden">
+                                    <div class="flex items-center justify-center gap-3">
+                                        <span class="text-2xl">📞</span>
+                                        <div class="text-center">
+                                            <div class="text-xs text-blue-600 font-medium">次回架電予定</div>
+                                            <div id="nextCallPreviewText" class="text-xl font-bold text-blue-800">---</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- フッター（固定） -->
+                            <div class="p-4 border-t bg-gray-50 flex-shrink-0">
+                                <div class="flex gap-3">
+                                    <button onclick="clearNextCallDate()" class="flex-1 py-3 bg-white border-2 border-gray-300 text-gray-600 rounded-xl hover:bg-gray-100 font-bold transition-all">
+                                        クリア
+                                    </button>
+                                    <button onclick="saveNextCallDate()" id="nextCallSaveBtn" class="flex-[2] py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-lg hover:shadow-xl transition-all disabled:bg-gray-300 disabled:shadow-none">
+                                        保存する
+                                    </button>
                                 </div>
                             </div>
                         </div>
