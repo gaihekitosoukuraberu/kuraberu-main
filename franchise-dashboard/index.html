@@ -1219,8 +1219,8 @@
                                             対応中
                                         </h5>
                                         <div class="grid grid-cols-3 gap-1.5">
-                                            <button id="uf-status-btn-未対応" onclick="ufToggleStatusFilter('未対応')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-blue-400 bg-blue-100 text-blue-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">新着</button>
-                                            <button id="uf-status-btn-架電済/未アポ" onclick="ufToggleStatusFilter('架電済/未アポ')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-slate-400 bg-slate-100 text-slate-700 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">未アポ</button>
+                                            <button id="uf-status-btn-新着" onclick="ufToggleStatusFilter('新着')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-blue-400 bg-blue-100 text-blue-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">新着</button>
+                                            <button id="uf-status-btn-未アポ" onclick="ufToggleStatusFilter('未アポ')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-slate-400 bg-slate-100 text-slate-700 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">未アポ</button>
                                             <button id="uf-status-btn-アポ済" onclick="ufToggleStatusFilter('アポ済')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-orange-400 bg-orange-100 text-orange-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">アポ済</button>
                                             <button id="uf-status-btn-現調済" onclick="ufToggleStatusFilter('現調済')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-purple-400 bg-purple-100 text-purple-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調済</button>
                                             <button id="uf-status-btn-見積提出済" onclick="ufToggleStatusFilter('見積提出済')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-amber-400 bg-amber-100 text-amber-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">見積提出</button>
@@ -1324,15 +1324,15 @@
                                     </button>
                                 </div>
 
-                                <!-- 対応中ステータス（温度上昇順: 青→グレー→オレンジ→紫→黄→シアン） -->
+                                <!-- 対応中ステータス -->
                                 <div class="mb-4">
                                     <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                                         <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
                                         対応中
                                     </h4>
                                     <div class="grid grid-cols-3 gap-1.5">
-                                        <button id="status-btn-未対応" onclick="toggleStatusFilter('未対応')" class="status-filter-btn px-2 py-1.5 border-2 border-blue-400 bg-blue-100 text-blue-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">新着</button>
-                                        <button id="status-btn-架電済/未アポ" onclick="toggleStatusFilter('架電済/未アポ')" class="status-filter-btn px-2 py-1.5 border-2 border-slate-400 bg-slate-100 text-slate-700 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">未アポ</button>
+                                        <button id="status-btn-新着" onclick="toggleStatusFilter('新着')" class="status-filter-btn px-2 py-1.5 border-2 border-blue-400 bg-blue-100 text-blue-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">新着</button>
+                                        <button id="status-btn-未アポ" onclick="toggleStatusFilter('未アポ')" class="status-filter-btn px-2 py-1.5 border-2 border-slate-400 bg-slate-100 text-slate-700 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">未アポ</button>
                                         <button id="status-btn-アポ済" onclick="toggleStatusFilter('アポ済')" class="status-filter-btn px-2 py-1.5 border-2 border-orange-400 bg-orange-100 text-orange-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">アポ済</button>
                                         <button id="status-btn-現調済" onclick="toggleStatusFilter('現調済')" class="status-filter-btn px-2 py-1.5 border-2 border-purple-400 bg-purple-100 text-purple-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調済</button>
                                         <button id="status-btn-見積提出済" onclick="toggleStatusFilter('見積提出済')" class="status-filter-btn px-2 py-1.5 border-2 border-amber-400 bg-amber-100 text-amber-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">見積提出</button>
@@ -16112,14 +16112,14 @@
             }
         }
 
-        // 架電対象プリセット
+        // 架電対象プリセット（新着、未アポ）
         function ufSelectCallTargetStatuses() {
-            ufSelectedStatuses = ['未対応', '架電済/未アポ'];
+            ufSelectedStatuses = ['新着', '未アポ'];
             ufUpdateStatusButtonStates();
             ufUpdateSelectedStatusCount();
         }
 
-        // 進行中プリセット
+        // 進行中プリセット（アポ済、現調済、見積提出済、入金予定）
         function ufSelectInProgressStatuses() {
             ufSelectedStatuses = ['アポ済', '現調済', '見積提出済', '入金予定'];
             ufUpdateStatusButtonStates();
@@ -16305,14 +16305,28 @@
         }
 
         // 統計カウント更新
+        // ステータス一覧:
+        // 1. 新着: 配信後未着手
+        // 2. 未アポ: 電話したがアポ取れず
+        // 3. アポ済: 現調日時確定
+        // 4. 現調済: 現地調査完了
+        // 5. 現調前キャンセル: 現調前に顧客都合でキャンセル
+        // 6. 現調後失注: 現調後断られた
+        // 7. 見積提出済: 見積書を顧客に提出
+        // 8. 成約: 自社で契約締結
+        // 9. 他社契約済: 他の一般業者で契約
+        // 10. 別加盟店契約済: 他の加盟店で契約
+        // 11. 入金予定: 契約金の入金待ち
+        // 12. 入金済: 入金確認完了
+        // 13. クレーム: 問題発生または失注
         function updateQuickFilterStats() {
             let pending = 0;
             let contracted = 0;
 
             merchantCasesData.forEach(c => {
                 const status = c.detailStatus || '';
-                // 要対応: 未対応、架電済/未アポ、アポ済、現調済、見積提出済、入金予定
-                if (['未対応', '架電済/未アポ', 'アポ済', '現調済', '見積提出済', '入金予定'].includes(status)) {
+                // 要対応: 新着、未アポ、アポ済、現調済、見積提出済、入金予定
+                if (['新着', '未アポ', 'アポ済', '現調済', '見積提出済', '入金予定'].includes(status)) {
                     pending++;
                 }
                 // 成約済: 成約、入金済
@@ -16504,7 +16518,7 @@
         }
 
         function selectCallTargetStatuses() {
-            selectedStatuses = ['未対応', '架電済/未アポ'];
+            selectedStatuses = ['新着', '未アポ'];
             updateStatusButtonStates();
             updateSelectedCount();
         }
