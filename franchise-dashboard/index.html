@@ -743,21 +743,62 @@
                     </div>
                 </div>
 
-                <!-- ステータス変更モーダル -->
-                <div id="caseStatusModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-                    <div class="bg-white rounded-lg shadow-xl max-w-sm w-full">
-                        <div class="p-4 border-b flex justify-between items-center">
-                            <h3 class="text-lg font-bold">ステータス変更</h3>
-                            <button onclick="closeStatusModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
-                        </div>
-                        <div class="p-4">
-                            <p class="text-sm text-gray-600 mb-3" id="statusTargetName"></p>
-                            <div class="space-y-2">
-                                <button onclick="setCaseStatus('対応待ち')" class="w-full py-2 px-4 rounded-lg text-left hover:bg-red-50 border border-red-200 text-red-700">対応待ち</button>
-                                <button onclick="setCaseStatus('訪問済み')" class="w-full py-2 px-4 rounded-lg text-left hover:bg-blue-50 border border-blue-200 text-blue-700">訪問済み</button>
-                                <button onclick="setCaseStatus('見積提出済み')" class="w-full py-2 px-4 rounded-lg text-left hover:bg-yellow-50 border border-yellow-200 text-yellow-700">見積提出済み</button>
-                                <button onclick="setCaseStatus('成約')" class="w-full py-2 px-4 rounded-lg text-left hover:bg-green-50 border border-green-200 text-green-700">成約</button>
-                                <button onclick="setCaseStatus('キャンセル')" class="w-full py-2 px-4 rounded-lg text-left hover:bg-gray-50 border border-gray-200 text-gray-700">キャンセル</button>
+                <!-- ステータス変更モーダル（通話後フロー用・新デザイン） -->
+                <div id="caseStatusModal" class="fixed inset-0 z-50 hidden">
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeStatusModal()"></div>
+                    <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+                            <!-- ヘッダー -->
+                            <div class="p-4 pb-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white relative">
+                                <button onclick="closeStatusModal()" class="absolute top-3 right-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                                <h3 class="text-lg font-bold">ステータスを選択</h3>
+                                <p id="statusTargetName" class="text-sm text-purple-200 mt-1">---</p>
+                            </div>
+
+                            <!-- ステータス選択エリア -->
+                            <div class="flex-1 overflow-y-auto p-4 bg-gray-50">
+                                <!-- かんたん選択（アポ前/アポ後） -->
+                                <p class="text-xs text-gray-500 mb-2 font-medium">かんたん選択</p>
+                                <div class="flex gap-3 mb-5">
+                                    <button onclick="setStatusQuickGroup('before')" id="statusQuickBefore" class="flex-1 py-3 px-4 bg-white border-2 border-blue-400 rounded-xl text-blue-600 font-bold flex items-center justify-center gap-2 hover:bg-blue-50 transition-all">
+                                        <span>📞</span> アポ前
+                                    </button>
+                                    <button onclick="setStatusQuickGroup('after')" id="statusQuickAfter" class="flex-1 py-3 px-4 bg-white border-2 border-gray-200 rounded-xl text-gray-600 font-bold flex items-center justify-center gap-2 hover:bg-gray-50 transition-all">
+                                        <span>🔥</span> アポ後
+                                    </button>
+                                </div>
+
+                                <!-- 詳細選択 -->
+                                <p class="text-xs text-gray-500 mb-2 font-medium">詳細選択</p>
+                                <div class="grid grid-cols-3 gap-2" id="statusDetailGrid">
+                                    <button onclick="selectDetailStatus('新着')" data-status="新着" class="status-btn py-2.5 px-2 bg-yellow-50 border-2 border-yellow-300 rounded-xl text-yellow-700 font-semibold text-sm hover:bg-yellow-100 transition-all">新着</button>
+                                    <button onclick="selectDetailStatus('未アポ')" data-status="未アポ" class="status-btn py-2.5 px-2 bg-cyan-50 border-2 border-cyan-300 rounded-xl text-cyan-700 font-semibold text-sm hover:bg-cyan-100 transition-all">未アポ</button>
+                                    <button onclick="selectDetailStatus('アポ済')" data-status="アポ済" class="status-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-xl text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all">アポ済</button>
+                                    <button onclick="selectDetailStatus('現調済')" data-status="現調済" class="status-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-xl text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all">現調済</button>
+                                    <button onclick="selectDetailStatus('見積提出')" data-status="見積提出" class="status-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-xl text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all">見積提出</button>
+                                    <button onclick="selectDetailStatus('入金予定')" data-status="入金予定" class="status-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-xl text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all">入金予定</button>
+                                    <button onclick="selectDetailStatus('成約')" data-status="成約" class="status-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-xl text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all">成約</button>
+                                    <button onclick="selectDetailStatus('入金済')" data-status="入金済" class="status-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-xl text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all">入金済</button>
+                                    <button onclick="selectDetailStatus('現調前CN')" data-status="現調前CN" class="status-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-xl text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all">現調前CN</button>
+                                    <button onclick="selectDetailStatus('現調後失注')" data-status="現調後失注" class="status-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-xl text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all">現調後失注</button>
+                                    <button onclick="selectDetailStatus('他社契約')" data-status="他社契約" class="status-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-xl text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all">他社契約</button>
+                                    <button onclick="selectDetailStatus('別加盟店契約')" data-status="別加盟店契約" class="status-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-xl text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all text-xs">別加盟店契約</button>
+                                    <button onclick="selectDetailStatus('クレーム')" data-status="クレーム" class="status-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-xl text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all">クレーム</button>
+                                </div>
+                            </div>
+
+                            <!-- フッターボタン -->
+                            <div class="p-4 bg-white border-t flex gap-3 flex-shrink-0">
+                                <button onclick="closeStatusModal()" class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-all">
+                                    スキップ
+                                </button>
+                                <button onclick="confirmStatusSelection()" id="statusConfirmBtn" class="flex-1 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold hover:opacity-90 shadow-lg transition-all">
+                                    適用する
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -17125,6 +17166,24 @@
             document.getElementById('caseMemoTextarea').value = '';
             currentMemoCase = null;
             selectedMemoHistoryIndex = -1;
+            isAfterCallMode = false;
+        }
+
+        // 通話後フロー用のメモモーダル
+        let isAfterCallMode = false;
+
+        function openMemoModalForCall(cvId) {
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            currentMemoCase = c;
+            isAfterCallMode = true;
+            selectedMemoHistoryIndex = -1;
+            document.getElementById('memoTargetName').textContent = `${c.customerName || '-'} 様`;
+            document.getElementById('memoTargetAddress').textContent = c.fullAddress || c.city || '-';
+            document.getElementById('caseMemoTextarea').value = '';
+            document.getElementById('caseMemoModal').classList.remove('hidden');
+            loadMemoHistory();
         }
 
         // メモ履歴を読み込み
@@ -17294,12 +17353,22 @@
             // 保存対象を退避（モーダル閉じる前に）
             const saveTarget = {
                 cvId: currentMemoCase.cvId,
-                callHistory: [...currentMemoCase.callHistory]
+                callHistory: [...currentMemoCase.callHistory],
+                callCount: currentMemoCase.callCount,
+                customerName: currentMemoCase.customerName
             };
+
+            // 通話後モードかどうかを退避
+            const wasAfterCallMode = isAfterCallMode;
 
             // 即座にモーダル閉じる & 画面更新
             closeMemoModal();
             renderCases();
+
+            // 通話後モードならステータス選択モーダルを開く
+            if (wasAfterCallMode) {
+                openStatusModalForCall(saveTarget.cvId, saveTarget.customerName);
+            }
 
             // バックグラウンドで保存（await不要）
             fetch(GAS_URL, {
@@ -17485,14 +17554,24 @@
             currentCallCase = null;
         }
 
+        // 通話後フロー用の状態管理
+        let afterCallCase = null;
+        let selectedStatusValue = null;
+
         // 接続/不在を選択
         function selectConnectionStatus(status) {
             connectionStatus = status;
 
             if (status === 'connected') {
-                // 接続時：接続/不在ボタンを非表示してメモ入力セクションを表示
-                document.getElementById('connectionBtnsContainer')?.classList.add('hidden');
-                document.getElementById('memoSection')?.classList.remove('hidden');
+                // 接続時：通話結果モーダルを閉じて、新しいメモモーダルを開く
+                const cvId = currentCallCase?.cvId;
+                afterCallCase = currentCallCase;
+                document.getElementById('connectionModal')?.classList.add('hidden');
+
+                if (cvId) {
+                    // メモモーダルを通話後モードで開く
+                    openMemoModalForCall(cvId);
+                }
             } else {
                 // 不在時：通話モーダルを閉じて次回架電モーダルを開く
                 const cvId = currentCallCase?.cvId;
@@ -17757,13 +17836,105 @@
             if (!c) return;
 
             currentStatusCase = c;
-            document.getElementById('statusTargetName').textContent = `${c.customerName || '-'} のステータスを選択`;
+            selectedStatusValue = null;
+            document.getElementById('statusTargetName').textContent = `${c.customerName || '-'} 様`;
             document.getElementById('caseStatusModal').classList.remove('hidden');
+            resetStatusSelection();
+        }
+
+        // 通話後フロー用のステータスモーダル
+        function openStatusModalForCall(cvId, customerName) {
+            const c = findCaseByCvId(cvId);
+            if (!c) {
+                // 案件が見つからなくてもcvIdがあれば開く（保存直後のケース）
+                currentStatusCase = { cvId, customerName };
+            } else {
+                currentStatusCase = c;
+            }
+            selectedStatusValue = null;
+            document.getElementById('statusTargetName').textContent = `${customerName || '-'} 様`;
+            document.getElementById('caseStatusModal').classList.remove('hidden');
+            resetStatusSelection();
         }
 
         function closeStatusModal() {
             document.getElementById('caseStatusModal').classList.add('hidden');
             currentStatusCase = null;
+            selectedStatusValue = null;
+            afterCallCase = null;
+        }
+
+        // ステータス選択UIをリセット
+        function resetStatusSelection() {
+            selectedStatusValue = null;
+            // かんたん選択をリセット
+            document.getElementById('statusQuickBefore')?.classList.remove('border-blue-400', 'text-blue-600', 'bg-blue-50');
+            document.getElementById('statusQuickBefore')?.classList.add('border-gray-200', 'text-gray-600');
+            document.getElementById('statusQuickAfter')?.classList.remove('border-orange-400', 'text-orange-600', 'bg-orange-50');
+            document.getElementById('statusQuickAfter')?.classList.add('border-gray-200', 'text-gray-600');
+            // 詳細選択をリセット
+            document.querySelectorAll('#statusDetailGrid .status-btn').forEach(btn => {
+                btn.classList.remove('border-purple-500', 'bg-purple-50', 'text-purple-700');
+                btn.classList.add('border-gray-200', 'text-gray-600');
+            });
+            // デフォルトで新着と未アポをハイライト
+            const newBtn = document.querySelector('[data-status="新着"]');
+            const miApoBtn = document.querySelector('[data-status="未アポ"]');
+            if (newBtn) {
+                newBtn.classList.remove('border-gray-200', 'text-gray-600');
+                newBtn.classList.add('border-yellow-300', 'bg-yellow-50', 'text-yellow-700');
+            }
+            if (miApoBtn) {
+                miApoBtn.classList.remove('border-gray-200', 'text-gray-600');
+                miApoBtn.classList.add('border-cyan-300', 'bg-cyan-50', 'text-cyan-700');
+            }
+        }
+
+        // かんたん選択（アポ前/アポ後）
+        function setStatusQuickGroup(group) {
+            const beforeBtn = document.getElementById('statusQuickBefore');
+            const afterBtn = document.getElementById('statusQuickAfter');
+
+            if (group === 'before') {
+                beforeBtn?.classList.remove('border-gray-200', 'text-gray-600');
+                beforeBtn?.classList.add('border-blue-400', 'text-blue-600', 'bg-blue-50');
+                afterBtn?.classList.remove('border-orange-400', 'text-orange-600', 'bg-orange-50');
+                afterBtn?.classList.add('border-gray-200', 'text-gray-600');
+                // 未アポを選択
+                selectDetailStatus('未アポ');
+            } else {
+                afterBtn?.classList.remove('border-gray-200', 'text-gray-600');
+                afterBtn?.classList.add('border-orange-400', 'text-orange-600', 'bg-orange-50');
+                beforeBtn?.classList.remove('border-blue-400', 'text-blue-600', 'bg-blue-50');
+                beforeBtn?.classList.add('border-gray-200', 'text-gray-600');
+                // アポ済を選択
+                selectDetailStatus('アポ済');
+            }
+        }
+
+        // 詳細ステータス選択
+        function selectDetailStatus(status) {
+            selectedStatusValue = status;
+            // 全てリセット
+            document.querySelectorAll('#statusDetailGrid .status-btn').forEach(btn => {
+                btn.classList.remove('border-purple-500', 'bg-purple-50', 'text-purple-700', 'border-yellow-300', 'bg-yellow-50', 'text-yellow-700', 'border-cyan-300', 'bg-cyan-50', 'text-cyan-700');
+                btn.classList.add('border-gray-200', 'text-gray-600', 'bg-white');
+            });
+            // 選択したボタンをハイライト
+            const selectedBtn = document.querySelector(`[data-status="${status}"]`);
+            if (selectedBtn) {
+                selectedBtn.classList.remove('border-gray-200', 'text-gray-600', 'bg-white');
+                selectedBtn.classList.add('border-purple-500', 'bg-purple-50', 'text-purple-700');
+            }
+        }
+
+        // ステータス確定
+        async function confirmStatusSelection() {
+            if (!selectedStatusValue) {
+                showNotification('選択してください', 'ステータスを選択してください', 'warning');
+                return;
+            }
+            await setCaseStatus(selectedStatusValue);
         }
 
         async function setCaseStatus(newStatus) {
