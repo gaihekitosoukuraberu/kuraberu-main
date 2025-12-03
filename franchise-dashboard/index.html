@@ -17479,15 +17479,16 @@
         function selectConnectionStatus(status) {
             connectionStatus = status;
 
-            // 接続/不在ボタンを非表示
-            document.getElementById('connectionBtnsContainer')?.classList.add('hidden');
-
             if (status === 'connected') {
-                // 接続時：メモ入力セクションを表示
+                // 接続時：接続/不在ボタンを非表示してメモ入力セクションを表示
+                document.getElementById('connectionBtnsContainer')?.classList.add('hidden');
                 document.getElementById('memoSection')?.classList.remove('hidden');
             } else {
-                // 不在時：次回架電設定を表示
-                document.getElementById('nextCallQuickSettings')?.classList.remove('hidden');
+                // 不在時：通話モーダルを閉じて新しいメモモーダルを開く
+                closeConnectionModal();
+                if (currentCallCase) {
+                    openMemoModal(currentCallCase.cvId);
+                }
             }
         }
 
