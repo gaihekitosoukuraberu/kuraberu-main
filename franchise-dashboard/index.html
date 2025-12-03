@@ -16507,7 +16507,7 @@
             // 全案件ボタン
             if (btnAll) {
                 if (activeFilter === 'all') {
-                    btnAll.className = 'flex flex-col items-center justify-center py-3 px-2 bg-indigo-500 text-white rounded-xl shadow-lg transition-all cursor-pointer ring-2 ring-white ring-offset-2 ring-offset-indigo-500';
+                    btnAll.className = 'flex flex-col items-center justify-center py-3 px-2 bg-indigo-100 text-indigo-700 border border-indigo-300 rounded-xl shadow-md transition-all cursor-pointer';
                 } else {
                     btnAll.className = 'flex flex-col items-center justify-center py-3 px-2 bg-indigo-50 text-indigo-400 border border-indigo-200 rounded-xl shadow-md transition-all cursor-pointer';
                 }
@@ -16516,7 +16516,7 @@
             // 要対応ボタン
             if (btnPending) {
                 if (activeFilter === 'pending') {
-                    btnPending.className = 'flex flex-col items-center justify-center py-3 px-2 bg-pink-500 text-white rounded-xl shadow-lg transition-all cursor-pointer ring-2 ring-white ring-offset-2 ring-offset-pink-500';
+                    btnPending.className = 'flex flex-col items-center justify-center py-3 px-2 bg-pink-100 text-pink-700 border border-pink-300 rounded-xl shadow-md transition-all cursor-pointer';
                 } else {
                     btnPending.className = 'flex flex-col items-center justify-center py-3 px-2 bg-pink-50 text-pink-400 border border-pink-200 rounded-xl shadow-md transition-all cursor-pointer';
                 }
@@ -16525,7 +16525,7 @@
             // 成約済ボタン
             if (btnContracted) {
                 if (activeFilter === 'contracted') {
-                    btnContracted.className = 'flex flex-col items-center justify-center py-3 px-2 bg-green-500 text-white rounded-xl shadow-lg transition-all cursor-pointer ring-2 ring-white ring-offset-2 ring-offset-green-500';
+                    btnContracted.className = 'flex flex-col items-center justify-center py-3 px-2 bg-green-100 text-green-700 border border-green-300 rounded-xl shadow-md transition-all cursor-pointer';
                 } else {
                     btnContracted.className = 'flex flex-col items-center justify-center py-3 px-2 bg-green-50 text-green-500 border border-green-200 rounded-xl shadow-md transition-all cursor-pointer';
                 }
@@ -16535,9 +16535,9 @@
             if (btnUnified) {
                 if (activeFilter === 'unified') {
                     btnUnified.classList.remove('bg-purple-50', 'text-purple-600', 'border-purple-200');
-                    btnUnified.classList.add('bg-purple-500', 'text-white', 'border-purple-500');
+                    btnUnified.classList.add('bg-purple-100', 'text-purple-700', 'border-purple-300');
                 } else {
-                    btnUnified.classList.remove('bg-purple-500', 'text-white', 'border-purple-500');
+                    btnUnified.classList.remove('bg-purple-100', 'text-purple-700', 'border-purple-300');
                     btnUnified.classList.add('bg-purple-50', 'text-purple-600', 'border-purple-200');
                     if (btnLabel) btnLabel.textContent = '絞り込み';
                 }
