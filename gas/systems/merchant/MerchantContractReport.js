@@ -798,11 +798,11 @@ var MerchantContractReport = {
 
       const colIdx = {
         cvId: headers.indexOf('CV ID'),
-        nextCallDate: headers.indexOf('次回架電日時')
+        nextCallDate: headers.indexOf('次回連絡予定日時')
       };
 
       if (colIdx.nextCallDate === -1) {
-        return { success: false, error: '次回架電日時列が見つかりません' };
+        return { success: false, error: '次回連絡予定日時列が見つかりません' };
       }
 
       for (let i = 1; i < data.length; i++) {
