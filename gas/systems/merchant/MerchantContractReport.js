@@ -594,6 +594,8 @@ var MerchantContractReport = {
           deliveredAt: row[delCol['配信日時']] ? Utilities.formatDate(new Date(row[delCol['配信日時']]), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm') : '',
           merchantMemo: row[delCol['加盟店メモ']] || '',
           callHistory: parseCallHistoryJSON(row[delCol['連絡履歴JSON']]),
+          nextCallDate: row[delCol['次回連絡予定日時']] || '',
+          callCount: row[delCol['電話回数']] || 0,
 
           // === お客様情報 ===
           customerName: user.name,
