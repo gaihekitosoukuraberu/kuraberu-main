@@ -16961,8 +16961,8 @@
             // 配信日を短縮表示（MM/DD）
             let deliveryShort = '-';
             if (c.deliveredAt) {
-                const match = c.deliveredAt.match(/(\d+)\/(\d+)/);
-                if (match) deliveryShort = `${match[1]}/${match[2]}`;
+                const match = c.deliveredAt.match(/(\d+)\/(\d+)\/(\d+)/);
+                if (match) deliveryShort = `${match[2]}/${match[3]}`;
             }
 
             return `
