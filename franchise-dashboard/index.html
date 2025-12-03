@@ -773,7 +773,7 @@
                                     </div>
                                     <div class="flex items-start">
                                         <div class="flex flex-col items-center w-28">
-                                            <button onclick="selectDetailStatus('未アポ')" data-status="未アポ" class="status-btn w-full py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-base hover:bg-sky-100 hover:border-sky-300 hover:text-sky-700 transition-all">未アポ</button>
+                                            <button onclick="selectDetailStatus('未アポ')" data-status="未アポ" class="status-btn w-full py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-base hover:bg-pink-100 hover:border-pink-300 hover:text-pink-700 transition-all">未アポ</button>
                                             <span class="text-gray-300 text-base">↓</span>
                                         </div>
                                         <span class="text-sm text-gray-400 whitespace-nowrap ml-3 w-32 py-2">電話したがアポ取れず</span>
@@ -1370,7 +1370,7 @@
                                     </h4>
                                     <div class="grid grid-cols-3 gap-1.5">
                                         <button id="status-btn-新着" onclick="toggleStatusFilter('新着')" class="status-filter-btn px-2 py-1.5 border-2 border-blue-400 bg-blue-100 text-blue-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">新着</button>
-                                        <button id="status-btn-未アポ" onclick="toggleStatusFilter('未アポ')" class="status-filter-btn px-2 py-1.5 border-2 border-sky-400 bg-sky-100 text-sky-700 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">未アポ</button>
+                                        <button id="status-btn-未アポ" onclick="toggleStatusFilter('未アポ')" class="status-filter-btn px-2 py-1.5 border-2 border-pink-400 bg-pink-100 text-pink-700 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">未アポ</button>
                                         <button id="status-btn-アポ済" onclick="toggleStatusFilter('アポ済')" class="status-filter-btn px-2 py-1.5 border-2 border-orange-400 bg-orange-100 text-orange-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">アポ済</button>
                                         <button id="status-btn-現調済" onclick="toggleStatusFilter('現調済')" class="status-filter-btn px-2 py-1.5 border-2 border-purple-400 bg-purple-100 text-purple-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調済</button>
                                         <button id="status-btn-見積提出済" onclick="toggleStatusFilter('見積提出済')" class="status-filter-btn px-2 py-1.5 border-2 border-amber-400 bg-amber-100 text-amber-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">見積提出</button>
@@ -16020,8 +16020,8 @@
             // 進行中（温度上昇順）
             '新着': { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-300' },
             '未対応': { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-300' },
-            '未アポ': { bg: 'bg-sky-100', text: 'text-sky-700', border: 'border-sky-300' },
-            '架電済/未アポ': { bg: 'bg-sky-100', text: 'text-sky-700', border: 'border-sky-300' },
+            '未アポ': { bg: 'bg-pink-100', text: 'text-pink-700', border: 'border-pink-300' },
+            '架電済/未アポ': { bg: 'bg-pink-100', text: 'text-pink-700', border: 'border-pink-300' },
             'アポ済': { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-300' },
             '現調済': { bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-300' },
             '見積提出済み': { bg: 'bg-amber-100', text: 'text-amber-800', border: 'border-amber-300' },
@@ -16171,7 +16171,7 @@
         // ステータスごとの色定義（statusStylesと同じ色）
         const statusColorMap = {
             '新着': { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-300' },
-            '未アポ': { bg: 'bg-sky-100', text: 'text-sky-700', border: 'border-sky-300' },
+            '未アポ': { bg: 'bg-pink-100', text: 'text-pink-700', border: 'border-pink-300' },
             'アポ済': { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-300' },
             '現調済': { bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-300' },
             '見積提出済': { bg: 'bg-amber-100', text: 'text-amber-800', border: 'border-amber-300' },
@@ -17880,7 +17880,7 @@
         // ステータスカラーマップ（選択時の色）
         const statusSelectedStyles = {
             '新着': { bg: 'bg-blue-100', border: 'border-blue-400', text: 'text-blue-800' },
-            '未アポ': { bg: 'bg-sky-100', border: 'border-sky-400', text: 'text-sky-700' },
+            '未アポ': { bg: 'bg-pink-100', border: 'border-pink-400', text: 'text-pink-700' },
             'アポ済': { bg: 'bg-orange-100', border: 'border-orange-400', text: 'text-orange-800' },
             '現調済': { bg: 'bg-purple-100', border: 'border-purple-400', text: 'text-purple-800' },
             '見積提出済': { bg: 'bg-amber-100', border: 'border-amber-400', text: 'text-amber-800' },
@@ -19985,8 +19985,8 @@
                 '新着': 'bg-blue-100 text-blue-800',
                 '未対応': 'bg-blue-100 text-blue-800',
                 '対応待ち': 'bg-blue-100 text-blue-800',
-                '未アポ': 'bg-sky-100 text-sky-700',
-                '架電済/未アポ': 'bg-sky-100 text-sky-700',
+                '未アポ': 'bg-pink-100 text-pink-700',
+                '架電済/未アポ': 'bg-pink-100 text-pink-700',
                 'アポ済': 'bg-orange-100 text-orange-800',
                 '訪問済み': 'bg-orange-100 text-orange-800',
                 '現調済': 'bg-purple-100 text-purple-800',
