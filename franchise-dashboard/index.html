@@ -16135,8 +16135,8 @@
         // アポ前プリセット（新着、未アポ）
         // 現在選択中のプリセット（'before'/'after'/null）
         let ufCurrentPreset = null;
-        // 現在選択中の期間（'all'/'thismonth'/'lastmonth'/null）
-        let ufCurrentPeriod = null;
+        // 現在選択中の期間（'all'/'thismonth'/'lastmonth'）
+        let ufCurrentPeriod = 'all';
 
         // アポ前プリセット
         function ufSelectCallTargetStatuses() {
@@ -16288,7 +16288,7 @@
             ufDateFrom = null;
             ufDateTo = null;
             ufCurrentPreset = null;
-            ufCurrentPeriod = null;
+            ufCurrentPeriod = 'all';
             initUnifiedFilterModal();
         }
 
