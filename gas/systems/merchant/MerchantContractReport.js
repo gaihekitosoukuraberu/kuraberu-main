@@ -702,7 +702,10 @@ var MerchantContractReport = {
       return { success: false, error: 'パラメータが不足しています' };
     }
 
-    const validStatuses = ['対応待ち', '訪問済み', '見積提出済み', '成約', 'キャンセル'];
+    const validStatuses = [
+      '新着', '未アポ', 'アポ済', '現調済', '現調前キャンセル', '現調後失注',
+      '見積提出済', '成約', '他社契約済', '別加盟店契約済', '入金予定', '入金済', 'クレーム'
+    ];
     if (!validStatuses.includes(status)) {
       return { success: false, error: '無効なステータスです: ' + status };
     }
