@@ -16204,14 +16204,14 @@
 
             if (beforeBtn) {
                 if (ufCurrentPreset === 'before') {
-                    beforeBtn.className = 'flex-1 px-4 py-4 bg-blue-500 text-white border-2 border-blue-500 rounded-xl transition-all font-bold text-base shadow-lg';
+                    beforeBtn.className = 'flex-1 px-4 py-4 bg-blue-100 text-blue-700 border-2 border-blue-300 rounded-xl transition-all font-bold text-base shadow-md';
                 } else {
                     beforeBtn.className = 'flex-1 px-4 py-4 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-blue-400 transition-all font-bold text-base';
                 }
             }
             if (afterBtn) {
                 if (ufCurrentPreset === 'after') {
-                    afterBtn.className = 'flex-1 px-4 py-4 bg-orange-500 text-white border-2 border-orange-500 rounded-xl transition-all font-bold text-base shadow-lg';
+                    afterBtn.className = 'flex-1 px-4 py-4 bg-orange-100 text-orange-700 border-2 border-orange-300 rounded-xl transition-all font-bold text-base shadow-md';
                 } else {
                     afterBtn.className = 'flex-1 px-4 py-4 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-orange-400 transition-all font-bold text-base';
                 }
@@ -16266,7 +16266,7 @@
             const lastMonthBtn = document.getElementById('uf-period-lastmonth');
 
             const baseClass = 'flex-1 px-3 py-3 border-2 rounded-xl transition-all font-bold text-sm';
-            const activeClass = 'bg-yellow-500 text-white border-yellow-500 shadow-lg';
+            const activeClass = 'bg-yellow-100 text-yellow-700 border-yellow-300 shadow-md';
             const inactiveClass = 'bg-white text-gray-600 border-gray-300 hover:border-yellow-400';
 
             if (allBtn) allBtn.className = `${baseClass} ${ufCurrentPeriod === 'all' ? activeClass : inactiveClass}`;
