@@ -1205,10 +1205,10 @@
                                     <!-- プリセットボタン -->
                                     <div class="flex gap-2 mb-4 pb-4 border-b border-gray-200">
                                         <button onclick="ufSelectCallTargetStatuses()" class="flex-1 px-3 py-2 bg-green-100 text-green-700 border-2 border-green-400 rounded-lg hover:bg-green-200 transition-all font-medium text-sm">
-                                            📞 架電対象
+                                            📞 アポ前
                                         </button>
                                         <button onclick="ufSelectInProgressStatuses()" class="flex-1 px-3 py-2 bg-orange-100 text-orange-700 border-2 border-orange-400 rounded-lg hover:bg-orange-200 transition-all font-medium text-sm">
-                                            🔥 進行中
+                                            🔥 アポ後
                                         </button>
                                     </div>
 
@@ -1317,10 +1317,10 @@
                                 <!-- プリセットボタン -->
                                 <div class="flex gap-2 mb-4 pb-4 border-b border-gray-200">
                                     <button onclick="selectCallTargetStatuses()" class="flex-1 px-3 py-2 bg-green-100 text-green-700 border-2 border-green-400 rounded-lg hover:bg-green-200 transition-all font-medium text-sm">
-                                        📞 架電対象
+                                        📞 アポ前
                                     </button>
                                     <button onclick="selectInProgressStatuses()" class="flex-1 px-3 py-2 bg-orange-100 text-orange-700 border-2 border-orange-400 rounded-lg hover:bg-orange-200 transition-all font-medium text-sm">
-                                        🔥 進行中
+                                        🔥 アポ後
                                     </button>
                                 </div>
 
@@ -16112,14 +16112,14 @@
             }
         }
 
-        // 架電対象プリセット（新着、未アポ）
+        // アポ前プリセット（新着、未アポ）
         function ufSelectCallTargetStatuses() {
             ufSelectedStatuses = ['新着', '未アポ'];
             ufUpdateStatusButtonStates();
             ufUpdateSelectedStatusCount();
         }
 
-        // 進行中プリセット（アポ済、現調済、見積提出済、入金予定）
+        // アポ後プリセット（アポ済、現調済、見積提出済、入金予定）
         function ufSelectInProgressStatuses() {
             ufSelectedStatuses = ['アポ済', '現調済', '見積提出済', '入金予定'];
             ufUpdateStatusButtonStates();
