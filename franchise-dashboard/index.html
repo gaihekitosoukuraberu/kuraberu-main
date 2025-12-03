@@ -609,7 +609,7 @@
                     <div class="flex flex-col gap-4 w-full">
                         <!-- 検索ボックス + 絞り込みボタン（横並び） -->
                         <div class="flex gap-2">
-                            <div class="relative flex-1 max-w-xs">
+                            <div class="relative flex-1 sm:max-w-sm md:max-w-md">
                                 <input type="text" id="caseSearchInput" placeholder="名前・住所・電話で検索" oninput="searchCases()" autocomplete="off" class="w-full pl-10 pr-10 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 shadow-sm transition-all bg-gray-50 placeholder-gray-400">
                                 <div class="absolute left-3 top-2.5">
                                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -16335,42 +16335,49 @@
         function filterCases(filter) {
             currentFilter = filter;
 
-            // 選択状態のスタイル定義（ポジティブで見やすい配色）
-            const activeStyles = {
-                'all': {
-                    active: 'bg-indigo-500 text-white ring-2 ring-white ring-offset-2 ring-offset-indigo-500 shadow-lg border-transparent',
-                    inactive: 'bg-indigo-50 text-indigo-400 border border-indigo-200 shadow-md'
-                },
-                'pending': {
-                    active: 'bg-pink-500 text-white ring-2 ring-white ring-offset-2 ring-offset-pink-500 shadow-lg border-transparent',
-                    inactive: 'bg-pink-50 text-pink-400 border border-pink-200 shadow-md'
-                },
-                'contracted': {
-                    active: 'bg-green-500 text-white ring-2 ring-white ring-offset-2 ring-offset-green-500 shadow-lg border-transparent',
-                    inactive: 'bg-green-50 text-green-500 border border-green-200 shadow-md'
-                }
-            };
+            // ボタンスタイルを即時更新
+            const btnAll = document.getElementById('filterBtnAll');
+            const btnPending = document.getElementById('filterBtnPending');
+            const btnContracted = document.getElementById('filterBtnContracted');
 
-            document.querySelectorAll('[id^="filterBtn"]').forEach(btn => {
-                const btnFilter = btn.dataset.filter;
-                const style = activeStyles[btnFilter];
-                if (!style) return;
+            // 全クラスリセット用
+            const allClasses = [
+                'bg-indigo-500', 'bg-indigo-50', 'text-white', 'text-indigo-400',
+                'bg-pink-500', 'bg-pink-50', 'text-pink-400',
+                'bg-green-500', 'bg-green-50', 'text-green-500',
+                'ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-indigo-500', 'ring-offset-pink-500', 'ring-offset-green-500',
+                'shadow-lg', 'shadow-md', 'border', 'border-indigo-200', 'border-pink-200', 'border-green-200', 'border-transparent'
+            ];
 
-                // 全スタイルクラスを削除
-                btn.classList.remove(
-                    'bg-indigo-500', 'bg-indigo-50', 'text-white', 'text-indigo-400',
-                    'bg-pink-500', 'bg-pink-50', 'text-pink-400',
-                    'bg-green-500', 'bg-green-50', 'text-green-500',
-                    'ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-indigo-500', 'ring-offset-pink-500', 'ring-offset-green-500',
-                    'shadow-lg', 'shadow-md', 'border', 'border-indigo-200', 'border-pink-200', 'border-green-200', 'border-transparent'
-                );
-
-                if (btnFilter === filter) {
-                    style.active.split(' ').forEach(c => btn.classList.add(c));
+            // 全案件ボタン
+            if (btnAll) {
+                allClasses.forEach(c => btnAll.classList.remove(c));
+                if (filter === 'all') {
+                    btnAll.className = 'flex flex-col items-center justify-center py-3 px-2 bg-indigo-500 text-white rounded-xl shadow-lg transition-all cursor-pointer ring-2 ring-white ring-offset-2 ring-offset-indigo-500';
                 } else {
-                    style.inactive.split(' ').forEach(c => btn.classList.add(c));
+                    btnAll.className = 'flex flex-col items-center justify-center py-3 px-2 bg-indigo-50 text-indigo-400 border border-indigo-200 rounded-xl shadow-md transition-all cursor-pointer';
                 }
-            });
+            }
+
+            // 要対応ボタン
+            if (btnPending) {
+                allClasses.forEach(c => btnPending.classList.remove(c));
+                if (filter === 'pending') {
+                    btnPending.className = 'flex flex-col items-center justify-center py-3 px-2 bg-pink-500 text-white rounded-xl shadow-lg transition-all cursor-pointer ring-2 ring-white ring-offset-2 ring-offset-pink-500';
+                } else {
+                    btnPending.className = 'flex flex-col items-center justify-center py-3 px-2 bg-pink-50 text-pink-400 border border-pink-200 rounded-xl shadow-md transition-all cursor-pointer';
+                }
+            }
+
+            // 成約済ボタン
+            if (btnContracted) {
+                allClasses.forEach(c => btnContracted.classList.remove(c));
+                if (filter === 'contracted') {
+                    btnContracted.className = 'flex flex-col items-center justify-center py-3 px-2 bg-green-500 text-white rounded-xl shadow-lg transition-all cursor-pointer ring-2 ring-white ring-offset-2 ring-offset-green-500';
+                } else {
+                    btnContracted.className = 'flex flex-col items-center justify-center py-3 px-2 bg-green-50 text-green-500 border border-green-200 rounded-xl shadow-md transition-all cursor-pointer';
+                }
+            }
 
             renderCases();
         }
