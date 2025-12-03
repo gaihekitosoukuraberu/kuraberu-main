@@ -819,12 +819,13 @@
                     <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
                         <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
                             <!-- ヘッダー -->
-                            <div class="p-4 border-b flex justify-between items-center bg-gradient-to-r from-blue-500 to-blue-600 text-white flex-shrink-0">
-                                <div>
+                            <div class="p-4 border-b flex justify-between items-start bg-gradient-to-r from-blue-500 to-blue-600 text-white flex-shrink-0">
+                                <div class="flex-1">
                                     <h3 class="text-lg font-bold">📞 次回架電を設定</h3>
-                                    <p id="nextCallTargetName" class="text-sm text-blue-100 mt-0.5">---</p>
+                                    <p id="nextCallTargetName" class="text-base font-bold text-white mt-2">---</p>
+                                    <p id="nextCallTargetAddress" class="text-sm text-blue-100 mt-0.5">---</p>
                                 </div>
-                                <button onclick="closeNextCallModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+                                <button onclick="closeNextCallModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all flex-shrink-0">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
@@ -833,22 +834,11 @@
 
                             <!-- コンテンツ（スクロール可能） -->
                             <div class="flex-1 overflow-y-auto p-4 space-y-4">
-                                <!-- 現在のステータスとおすすめプリセット -->
-                                <div id="nextCallPresetSection" class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-200">
-                                    <div class="flex items-center gap-2 mb-3">
-                                        <span class="text-lg">💡</span>
-                                        <span class="text-sm font-bold text-amber-800">おすすめプリセット</span>
-                                        <span id="nextCallCurrentStatus" class="ml-auto text-xs px-2 py-1 bg-white rounded-full text-gray-600 font-medium">---</span>
-                                    </div>
-                                    <div id="nextCallPresetBtns" class="grid grid-cols-2 gap-2">
-                                        <!-- JSで動的生成 -->
-                                    </div>
-                                </div>
-
                                 <!-- 日付クイック選択 -->
                                 <div class="bg-gray-50 rounded-xl p-4">
                                     <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
                                         <span>📅</span> 日付を選択
+                                        <button onclick="openDatePresetSettings()" class="ml-auto text-gray-400 hover:text-blue-500 transition-all" title="プリセット設定">⚙️</button>
                                     </h4>
                                     <div class="grid grid-cols-4 gap-2 mb-3">
                                         <button onclick="setNextCallDay(0)" data-day="0" class="next-call-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
@@ -896,49 +886,41 @@
                                 <div class="bg-gray-50 rounded-xl p-4">
                                     <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
                                         <span>⏰</span> 時間帯を選択
+                                        <button onclick="openTimePresetSettings()" class="ml-auto text-gray-400 hover:text-blue-500 transition-all" title="プリセット設定">⚙️</button>
                                     </h4>
                                     <!-- 時間帯プリセット -->
-                                    <div class="grid grid-cols-4 gap-2 mb-3">
-                                        <button onclick="setNextCallTimePreset(9, 0)" class="next-call-time-btn py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-lg hover:border-blue-400 hover:bg-blue-50 font-medium text-sm transition-all" data-hour="9" data-minute="0">
-                                            <div class="text-xs text-gray-400">朝</div>
-                                            <div>9:00</div>
-                                        </button>
-                                        <button onclick="setNextCallTimePreset(12, 0)" class="next-call-time-btn py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-lg hover:border-blue-400 hover:bg-blue-50 font-medium text-sm transition-all" data-hour="12" data-minute="0">
-                                            <div class="text-xs text-gray-400">昼</div>
-                                            <div>12:00</div>
-                                        </button>
-                                        <button onclick="setNextCallTimePreset(15, 0)" class="next-call-time-btn py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-lg hover:border-blue-400 hover:bg-blue-50 font-medium text-sm transition-all" data-hour="15" data-minute="0">
-                                            <div class="text-xs text-gray-400">午後</div>
-                                            <div>15:00</div>
-                                        </button>
-                                        <button onclick="setNextCallTimePreset(18, 0)" class="next-call-time-btn py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-lg hover:border-blue-400 hover:bg-blue-50 font-medium text-sm transition-all" data-hour="18" data-minute="0">
-                                            <div class="text-xs text-gray-400">夕方</div>
-                                            <div>18:00</div>
-                                        </button>
+                                    <div id="timePresetButtons" class="grid grid-cols-4 gap-2 mb-3">
+                                        <!-- JSで動的生成 -->
                                     </div>
-                                    <!-- 30分単位カスタム -->
-                                    <div class="flex items-center gap-2">
-                                        <select id="nextCallHour" class="flex-1 p-3 border-2 border-gray-200 rounded-xl text-center font-bold focus:border-blue-500 transition-all" onchange="updateNextCallTimeDisplay()">
-                                            <option value="">時</option>
-                                            <option value="8">8時</option>
-                                            <option value="9">9時</option>
-                                            <option value="10">10時</option>
-                                            <option value="11">11時</option>
-                                            <option value="12">12時</option>
-                                            <option value="13">13時</option>
-                                            <option value="14">14時</option>
-                                            <option value="15">15時</option>
-                                            <option value="16">16時</option>
-                                            <option value="17">17時</option>
-                                            <option value="18">18時</option>
-                                            <option value="19">19時</option>
-                                            <option value="20">20時</option>
-                                        </select>
-                                        <span class="text-xl font-bold text-gray-400">:</span>
-                                        <select id="nextCallMinute" class="flex-1 p-3 border-2 border-gray-200 rounded-xl text-center font-bold focus:border-blue-500 transition-all" onchange="updateNextCallTimeDisplay()">
-                                            <option value="0">00分</option>
-                                            <option value="30">30分</option>
-                                        </select>
+                                    <!-- カスタム時間選択（非表示デフォルト） -->
+                                    <div id="customTimePicker" class="hidden">
+                                        <div class="flex items-center gap-2">
+                                            <select id="nextCallHour" class="flex-1 p-3 border-2 border-blue-300 rounded-xl text-center font-bold focus:border-blue-500 transition-all" onchange="updateNextCallTimeDisplay()">
+                                                <option value="">時</option>
+                                                <option value="8">8時</option>
+                                                <option value="9">9時</option>
+                                                <option value="10">10時</option>
+                                                <option value="11">11時</option>
+                                                <option value="12">12時</option>
+                                                <option value="13">13時</option>
+                                                <option value="14">14時</option>
+                                                <option value="15">15時</option>
+                                                <option value="16">16時</option>
+                                                <option value="17">17時</option>
+                                                <option value="18">18時</option>
+                                                <option value="19">19時</option>
+                                                <option value="20">20時</option>
+                                            </select>
+                                            <span class="text-xl font-bold text-gray-400">:</span>
+                                            <select id="nextCallMinute" class="flex-1 p-3 border-2 border-blue-300 rounded-xl text-center font-bold focus:border-blue-500 transition-all" onchange="updateNextCallTimeDisplay()">
+                                                <option value="0">00分</option>
+                                                <option value="10">10分</option>
+                                                <option value="20">20分</option>
+                                                <option value="30">30分</option>
+                                                <option value="40">40分</option>
+                                                <option value="50">50分</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -963,6 +945,105 @@
                                     <button onclick="saveNextCallDate()" id="nextCallSaveBtn" class="flex-[2] py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-lg hover:shadow-xl transition-all disabled:bg-gray-300 disabled:shadow-none">
                                         保存する
                                     </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 時間プリセット設定モーダル -->
+                <div id="timePresetModal" class="fixed inset-0 z-[60] hidden">
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeTimePresetModal()"></div>
+                    <div class="fixed inset-0 flex items-center justify-center p-4">
+                        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+                            <div class="p-4 border-b bg-gradient-to-r from-gray-100 to-white">
+                                <h3 class="text-lg font-bold text-gray-900 text-center">⚙️ 時間プリセット設定</h3>
+                            </div>
+                            <div class="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
+                                <p class="text-sm text-gray-500 text-center">3つのプリセット時間を設定できます</p>
+                                <!-- プリセット1 -->
+                                <div class="bg-gray-50 rounded-xl p-3">
+                                    <label class="text-xs font-bold text-gray-600 mb-2 block">プリセット1</label>
+                                    <div class="flex items-center gap-2">
+                                        <select id="presetTime1Hour" class="flex-1 p-2 border-2 border-gray-200 rounded-lg text-center font-bold">
+                                            <option value="8">8時</option>
+                                            <option value="9" selected>9時</option>
+                                            <option value="10">10時</option>
+                                            <option value="11">11時</option>
+                                            <option value="12">12時</option>
+                                            <option value="13">13時</option>
+                                            <option value="14">14時</option>
+                                            <option value="15">15時</option>
+                                            <option value="16">16時</option>
+                                            <option value="17">17時</option>
+                                            <option value="18">18時</option>
+                                            <option value="19">19時</option>
+                                            <option value="20">20時</option>
+                                        </select>
+                                        <span class="text-gray-400">:</span>
+                                        <select id="presetTime1Minute" class="flex-1 p-2 border-2 border-gray-200 rounded-lg text-center font-bold">
+                                            <option value="0" selected>00分</option>
+                                            <option value="30">30分</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- プリセット2 -->
+                                <div class="bg-gray-50 rounded-xl p-3">
+                                    <label class="text-xs font-bold text-gray-600 mb-2 block">プリセット2</label>
+                                    <div class="flex items-center gap-2">
+                                        <select id="presetTime2Hour" class="flex-1 p-2 border-2 border-gray-200 rounded-lg text-center font-bold">
+                                            <option value="8">8時</option>
+                                            <option value="9">9時</option>
+                                            <option value="10">10時</option>
+                                            <option value="11">11時</option>
+                                            <option value="12" selected>12時</option>
+                                            <option value="13">13時</option>
+                                            <option value="14">14時</option>
+                                            <option value="15">15時</option>
+                                            <option value="16">16時</option>
+                                            <option value="17">17時</option>
+                                            <option value="18">18時</option>
+                                            <option value="19">19時</option>
+                                            <option value="20">20時</option>
+                                        </select>
+                                        <span class="text-gray-400">:</span>
+                                        <select id="presetTime2Minute" class="flex-1 p-2 border-2 border-gray-200 rounded-lg text-center font-bold">
+                                            <option value="0" selected>00分</option>
+                                            <option value="30">30分</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- プリセット3 -->
+                                <div class="bg-gray-50 rounded-xl p-3">
+                                    <label class="text-xs font-bold text-gray-600 mb-2 block">プリセット3</label>
+                                    <div class="flex items-center gap-2">
+                                        <select id="presetTime3Hour" class="flex-1 p-2 border-2 border-gray-200 rounded-lg text-center font-bold">
+                                            <option value="8">8時</option>
+                                            <option value="9">9時</option>
+                                            <option value="10">10時</option>
+                                            <option value="11">11時</option>
+                                            <option value="12">12時</option>
+                                            <option value="13">13時</option>
+                                            <option value="14">14時</option>
+                                            <option value="15">15時</option>
+                                            <option value="16">16時</option>
+                                            <option value="17">17時</option>
+                                            <option value="18" selected>18時</option>
+                                            <option value="19">19時</option>
+                                            <option value="20">20時</option>
+                                        </select>
+                                        <span class="text-gray-400">:</span>
+                                        <select id="presetTime3Minute" class="flex-1 p-2 border-2 border-gray-200 rounded-lg text-center font-bold">
+                                            <option value="0" selected>00分</option>
+                                            <option value="30">30分</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-4 border-t bg-gray-50">
+                                <div class="flex gap-3">
+                                    <button onclick="closeTimePresetModal()" class="flex-1 py-3 bg-white border-2 border-gray-300 text-gray-600 rounded-xl font-bold">キャンセル</button>
+                                    <button onclick="saveTimePresets()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg">保存</button>
                                 </div>
                             </div>
                         </div>
@@ -17269,57 +17350,92 @@
         let selectedNextCallHour = null;
         let selectedNextCallMinute = 0;
 
-        // ステータス別プリセット定義
-        const STATUS_PRESETS = {
-            '新着': [
-                { label: '今日すぐ', days: 0, hour: null, desc: '即架電' },
-                { label: '今日の夕方', days: 0, hour: 18, minute: 0, desc: '18時' },
-                { label: '明日朝イチ', days: 1, hour: 9, minute: 0, desc: '翌朝9時' },
-                { label: '明日昼休み', days: 1, hour: 12, minute: 0, desc: '翌12時' }
-            ],
-            '未アポ': [
-                { label: '今日リトライ', days: 0, hour: null, desc: '今日中' },
-                { label: '明日リトライ', days: 1, hour: null, desc: '翌日' },
-                { label: '夕方時間帯', days: 0, hour: 19, minute: 0, desc: '19時' },
-                { label: '週末狙い', days: null, weekend: true, hour: 10, desc: '土日午前' }
-            ],
-            'アポ済': [
-                { label: '現調翌日', days: 1, hour: 10, minute: 0, desc: '翌日確認' },
-                { label: '現調後3日', days: 3, hour: 15, minute: 0, desc: '3日後午後' },
-                { label: '1週間後', days: 7, hour: 10, minute: 0, desc: '様子見' },
-                { label: '2週間後', days: 14, hour: 10, minute: 0, desc: 'ゆっくり' }
-            ],
-            '現調済': [
-                { label: '見積即フォロー', days: 1, hour: 14, minute: 0, desc: '翌日午後' },
-                { label: '見積2日後', days: 2, hour: 14, minute: 0, desc: '2日後' },
-                { label: '検討期間', days: 5, hour: 10, minute: 0, desc: '5日後' },
-                { label: '1週間後', days: 7, hour: 10, minute: 0, desc: 'じっくり' }
-            ],
-            '見積提出済み': [
-                { label: '翌日確認', days: 1, hour: 14, minute: 0, desc: '早めプッシュ' },
-                { label: '3日後確認', days: 3, hour: 14, minute: 0, desc: '検討後' },
-                { label: '1週間後', days: 7, hour: 10, minute: 0, desc: 'ゆっくり' },
-                { label: '2週間後', days: 14, hour: 10, minute: 0, desc: '最終確認' }
-            ],
-            '入金予定': [
-                { label: '3日後確認', days: 3, hour: 10, minute: 0, desc: '入金確認' },
-                { label: '1週間後', days: 7, hour: 10, minute: 0, desc: '入金催促' },
-                { label: '2週間後', days: 14, hour: 10, minute: 0, desc: '再催促' },
-                { label: '1ヶ月後', days: 30, hour: 10, minute: 0, desc: '最終確認' }
-            ],
-            '成約': [
-                { label: '工事日確認', days: 3, hour: 10, minute: 0, desc: '日程調整' },
-                { label: '1週間後', days: 7, hour: 10, minute: 0, desc: '進捗確認' },
-                { label: '工事前日', days: 1, hour: 17, minute: 0, desc: 'リマインド' },
-                { label: '工事翌日', days: 1, hour: 10, minute: 0, desc: '完了確認' }
-            ],
-            'default': [
-                { label: '今日中', days: 0, hour: null, desc: '即対応' },
-                { label: '明日朝', days: 1, hour: 10, minute: 0, desc: '翌日午前' },
-                { label: '3日後', days: 3, hour: 14, minute: 0, desc: '午後' },
-                { label: '1週間後', days: 7, hour: 10, minute: 0, desc: '様子見' }
-            ]
-        };
+        // 時間プリセット（デフォルト値、localStorageから読み込み可）
+        let timePresets = [
+            { label: '朝', hour: 9, minute: 0 },
+            { label: '昼', hour: 12, minute: 0 },
+            { label: '夕方', hour: 18, minute: 0 }
+        ];
+
+        // localStorageから時間プリセットを読み込み
+        function loadTimePresets() {
+            const saved = localStorage.getItem('nextCallTimePresets');
+            if (saved) {
+                try {
+                    timePresets = JSON.parse(saved);
+                } catch (e) {
+                    console.error('時間プリセット読み込みエラー:', e);
+                }
+            }
+        }
+
+        // 時間プリセットボタンを生成
+        function renderTimePresetButtons() {
+            loadTimePresets();
+            const container = document.getElementById('timePresetButtons');
+            if (!container) return;
+
+            const html = timePresets.map((preset, idx) => {
+                const timeStr = `${preset.hour}:${String(preset.minute).padStart(2, '0')}`;
+                return `
+                    <button onclick="setNextCallTimePreset(${preset.hour}, ${preset.minute})"
+                            class="next-call-time-btn py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-lg hover:border-blue-400 hover:bg-blue-50 font-medium text-sm transition-all"
+                            data-hour="${preset.hour}" data-minute="${preset.minute}">
+                        <div class="text-xs text-gray-400">${preset.label}</div>
+                        <div>${timeStr}</div>
+                    </button>
+                `;
+            }).join('');
+
+            // その他ボタンを追加
+            container.innerHTML = html + `
+                <button onclick="toggleCustomTimePicker()" class="py-2 bg-white border-2 border-gray-200 text-gray-500 rounded-lg hover:border-blue-400 hover:bg-blue-50 font-medium text-sm transition-all">
+                    <div class="text-xs text-gray-400">その他</div>
+                    <div class="text-base">⏰</div>
+                </button>
+            `;
+        }
+
+        // カスタム時間ピッカーの表示切り替え
+        function toggleCustomTimePicker() {
+            const picker = document.getElementById('customTimePicker');
+            picker.classList.toggle('hidden');
+        }
+
+        // 時間プリセット設定モーダル
+        function openTimePresetSettings() {
+            loadTimePresets();
+            // 現在の値をセット
+            document.getElementById('presetTime1Hour').value = timePresets[0]?.hour || 9;
+            document.getElementById('presetTime1Minute').value = timePresets[0]?.minute || 0;
+            document.getElementById('presetTime2Hour').value = timePresets[1]?.hour || 12;
+            document.getElementById('presetTime2Minute').value = timePresets[1]?.minute || 0;
+            document.getElementById('presetTime3Hour').value = timePresets[2]?.hour || 18;
+            document.getElementById('presetTime3Minute').value = timePresets[2]?.minute || 0;
+
+            document.getElementById('timePresetModal').classList.remove('hidden');
+        }
+
+        function closeTimePresetModal() {
+            document.getElementById('timePresetModal').classList.add('hidden');
+        }
+
+        function saveTimePresets() {
+            timePresets = [
+                { label: '朝', hour: parseInt(document.getElementById('presetTime1Hour').value), minute: parseInt(document.getElementById('presetTime1Minute').value) },
+                { label: '昼', hour: parseInt(document.getElementById('presetTime2Hour').value), minute: parseInt(document.getElementById('presetTime2Minute').value) },
+                { label: '夕方', hour: parseInt(document.getElementById('presetTime3Hour').value), minute: parseInt(document.getElementById('presetTime3Minute').value) }
+            ];
+            localStorage.setItem('nextCallTimePresets', JSON.stringify(timePresets));
+            renderTimePresetButtons();
+            closeTimePresetModal();
+            showNotification('保存完了', '時間プリセットを保存しました');
+        }
+
+        // 日付プリセット設定（将来用、現在はアラートで案内）
+        function openDatePresetSettings() {
+            showNotification('準備中', '日付プリセット設定は準備中です');
+        }
 
         function openNextCallModal(cvId) {
             const c = findCaseByCvId(cvId);
@@ -17330,18 +17446,20 @@
             selectedNextCallHour = null;
             selectedNextCallMinute = 0;
 
-            // 顧客名表示
-            document.getElementById('nextCallTargetName').textContent = `${c.customerName || '-'} (${c.fullAddress || c.city || '-'})`;
+            // 顧客名（カナ＋様）と住所を分けて表示
+            const customerName = c.customerName || '-';
+            const customerKana = c.customerKana || '';
+            const nameDisplay = customerKana ? `${customerKana} 様` : `${customerName} 様`;
+            const addressDisplay = c.fullAddress || c.city || '-';
 
-            // 現在のステータス表示
-            const status = c.detailStatus || '新着';
-            document.getElementById('nextCallCurrentStatus').textContent = status;
+            document.getElementById('nextCallTargetName').textContent = nameDisplay;
+            document.getElementById('nextCallTargetAddress').textContent = addressDisplay;
 
             // 日付ラベルを動的生成
             initDayLabels();
 
-            // ステータス別プリセット生成
-            generateStatusPresets(status);
+            // 時間プリセットボタンを生成
+            renderTimePresetButtons();
 
             // 既存の日付・時間があればセット
             if (c.nextCallDate) {
@@ -17353,7 +17471,9 @@
                     if (timePart) {
                         const [h, m] = timePart.split(':');
                         selectedNextCallHour = parseInt(h);
-                        selectedNextCallMinute = parseInt(m) >= 30 ? 30 : 0;
+                        // 10分刻みに丸める
+                        selectedNextCallMinute = Math.round(parseInt(m) / 10) * 10;
+                        if (selectedNextCallMinute >= 60) selectedNextCallMinute = 50;
                         document.getElementById('nextCallHour').value = selectedNextCallHour;
                         document.getElementById('nextCallMinute').value = selectedNextCallMinute;
                     }
@@ -17364,8 +17484,9 @@
                 document.getElementById('nextCallMinute').value = '0';
             }
 
-            // カスタム日付ピッカーを隠す
+            // カスタムピッカーを隠す
             document.getElementById('customDatePicker').classList.add('hidden');
+            document.getElementById('customTimePicker').classList.add('hidden');
 
             // 選択状態をクリア
             clearDaySelection();
@@ -17392,81 +17513,6 @@
                     labelEl.textContent = `${m}/${d}(${dayName})`;
                 }
             });
-        }
-
-        function generateStatusPresets(status) {
-            const container = document.getElementById('nextCallPresetBtns');
-            const presets = STATUS_PRESETS[status] || STATUS_PRESETS['default'];
-            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
-
-            container.innerHTML = presets.map(preset => {
-                // 日付を計算
-                let targetDate = new Date();
-                let dateLabel = '';
-
-                if (preset.weekend) {
-                    // 次の土曜日
-                    const dayOfWeek = targetDate.getDay();
-                    const daysUntilSat = (6 - dayOfWeek + 7) % 7 || 7;
-                    targetDate.setDate(targetDate.getDate() + daysUntilSat);
-                    const m = targetDate.getMonth() + 1;
-                    const d = targetDate.getDate();
-                    dateLabel = `${m}/${d}(${dayNames[targetDate.getDay()]})`;
-                } else if (preset.days !== null) {
-                    targetDate.setDate(targetDate.getDate() + preset.days);
-                    const m = targetDate.getMonth() + 1;
-                    const d = targetDate.getDate();
-                    dateLabel = `${m}/${d}(${dayNames[targetDate.getDay()]})`;
-                }
-
-                // 時間ラベル
-                let timeLabel = '';
-                if (preset.hour !== null) {
-                    const h = String(preset.hour).padStart(2, '0');
-                    const min = String(preset.minute || 0).padStart(2, '0');
-                    timeLabel = `${h}:${min}`;
-                }
-
-                const bgColor = 'bg-gradient-to-r from-amber-400 to-orange-400';
-                return `
-                    <button onclick="applyPreset(${preset.days}, ${preset.hour || 'null'}, ${preset.minute || 0}, ${preset.weekend || false})"
-                            class="py-3 px-2 ${bgColor} text-white rounded-xl font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all">
-                        <div class="text-sm font-bold">${preset.label}</div>
-                        <div class="text-xs text-amber-100 mt-1">${dateLabel}${timeLabel ? ' ' + timeLabel : ''}</div>
-                    </button>
-                `;
-            }).join('');
-        }
-
-        function applyPreset(days, hour, minute, weekend) {
-            let date = new Date();
-
-            if (weekend) {
-                // 次の土曜日を探す
-                const dayOfWeek = date.getDay();
-                const daysUntilSat = (6 - dayOfWeek + 7) % 7 || 7;
-                date.setDate(date.getDate() + daysUntilSat);
-            } else if (days !== null) {
-                date.setDate(date.getDate() + days);
-            }
-
-            const yyyy = date.getFullYear();
-            const mm = String(date.getMonth() + 1).padStart(2, '0');
-            const dd = String(date.getDate()).padStart(2, '0');
-            selectedNextCallDate = `${yyyy}-${mm}-${dd}`;
-            document.getElementById('nextCallDateInput').value = selectedNextCallDate;
-
-            if (hour !== null) {
-                selectedNextCallHour = hour;
-                selectedNextCallMinute = minute || 0;
-                document.getElementById('nextCallHour').value = hour;
-                document.getElementById('nextCallMinute').value = selectedNextCallMinute;
-            }
-
-            // ボタン選択状態を更新
-            clearDaySelection();
-            clearTimeSelection();
-            updateNextCallPreview();
         }
 
         function setNextCallDay(daysFromNow) {
