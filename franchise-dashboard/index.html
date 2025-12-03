@@ -18354,7 +18354,7 @@
             const selectedDateTime = new Date(`${dateValue}T${String(selectedNextCallHour).padStart(2, '0')}:${String(selectedNextCallMinute).padStart(2, '0')}:00`);
             const now = new Date();
             if (selectedDateTime < now) {
-                showNotification('エラー', '現在より前の日時は設定できません', 'error');
+                showNotification('お知らせ', '現在より先の日時で設定して下さい', 'warning');
                 return;
             }
 
