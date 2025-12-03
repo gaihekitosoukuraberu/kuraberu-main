@@ -17827,10 +17827,8 @@
 
                 const result = await response.json();
                 if (result.success) {
-                    // ローカルデータを更新
-                    if (connectionStatus === 'absent') {
-                        currentCallCase.callCount = (parseInt(currentCallCase.callCount || 0) + 1);
-                    }
+                    // ローカルデータを更新（接続・不在どちらでも電話回数を増やす）
+                    currentCallCase.callCount = (parseInt(currentCallCase.callCount || 0) + 1);
                     if (pendingMemo) {
                         currentCallCase.merchantMemo = pendingMemo;
                     }

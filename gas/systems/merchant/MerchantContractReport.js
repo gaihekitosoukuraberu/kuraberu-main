@@ -895,6 +895,114 @@ var MerchantContractReport = {
   },
 
   /**
+   * 通話結果保存（接続/不在、メモ、ステータス、次回架電、電話回数）
+   * @param {Object} params - { merchantId, cvId, connectionStatus, memo, newStatus, nextCallDateTime, operatorName }
+   * @return {Object} - { success }
+   */
+  saveCallResult: function(params) {
+    const { merchantId, cvId, connectionStatus, memo, newStatus, nextCallDateTime, operatorName } = params;
+    console.log('[MerchantContractReport] saveCallResult:', { merchantId, cvId, connectionStatus, newStatus });
+
+    if (!merchantId || !cvId) {
+      return { success: false, error: 'パラメータが不足しています' };
+    }
+
+    try {
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const deliverySheet = ss.getSheetByName('配信管理');
+      const data = deliverySheet.getDataRange().getValues();
+      const headers = data[0];
+
+      // ヘッダーマップ作成
+      const colIdx = {};
+      headers.forEach((h, i) => { colIdx[h] = i; });
+
+      const cvIdCol = colIdx['CV ID'];
+      const franchiseIdCol = colIdx['加盟店ID'];
+      const callHistoryCol = colIdx['連絡履歴JSON'];
+      const callCountCol = colIdx['電話回数'];
+      const statusCol = colIdx['詳細ステータス'];
+      const nextCallCol = colIdx['次回架電予定'];
+
+      // 会社名も取得（getMerchantCasesと同じロジック）
+      let merchantCompanyName = '';
+      const franchiseSheet = ss.getSheetByName('加盟店登録');
+      if (franchiseSheet) {
+        const franchiseData = franchiseSheet.getDataRange().getValues();
+        const franchiseHeaders = franchiseData[0];
+        const regIdCol = franchiseHeaders.indexOf('登録ID');
+        const companyNameCol = franchiseHeaders.indexOf('会社名');
+
+        for (let i = 1; i < franchiseData.length; i++) {
+          if (String(franchiseData[i][regIdCol]) === String(merchantId)) {
+            merchantCompanyName = franchiseData[i][companyNameCol];
+            break;
+          }
+        }
+      }
+      console.log('[MerchantContractReport] saveCallResult - merchantId:', merchantId, ', companyName:', merchantCompanyName);
+
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        const rowCvId = row[cvIdCol];
+        const rowFranchiseId = row[franchiseIdCol];
+
+        // CV IDが一致 AND (登録ID or 会社名でマッチ)
+        if (String(rowCvId) === String(cvId) &&
+            (String(rowFranchiseId) === String(merchantId) || String(rowFranchiseId) === String(merchantCompanyName))) {
+
+          // 1. 電話回数をインクリメント
+          if (callCountCol !== undefined) {
+            const currentCount = parseInt(row[callCountCol] || 0);
+            deliverySheet.getRange(i + 1, callCountCol + 1).setValue(currentCount + 1);
+          }
+
+          // 2. 連絡履歴に追加
+          if (callHistoryCol !== undefined) {
+            let existingHistory = [];
+            try {
+              existingHistory = JSON.parse(row[callHistoryCol] || '[]');
+            } catch (e) {
+              existingHistory = [];
+            }
+
+            const historyEntry = {
+              date: new Date().toLocaleString('ja-JP'),
+              note: connectionStatus === 'connected'
+                ? '📞 接続' + (memo ? ' - ' + memo : '')
+                : '📞 不在',
+              operator: operatorName || ''
+            };
+            existingHistory.unshift(historyEntry);
+
+            deliverySheet.getRange(i + 1, callHistoryCol + 1).setValue(JSON.stringify(existingHistory));
+          }
+
+          // 3. ステータス更新
+          if (newStatus && statusCol !== undefined) {
+            deliverySheet.getRange(i + 1, statusCol + 1).setValue(newStatus);
+          }
+
+          // 4. 次回架電予定
+          if (nextCallDateTime && nextCallCol !== undefined) {
+            deliverySheet.getRange(i + 1, nextCallCol + 1).setValue(nextCallDateTime);
+          }
+
+          console.log('[MerchantContractReport] saveCallResult - updated row', i + 1);
+          return { success: true };
+        }
+      }
+
+      return { success: false, error: '該当する案件が見つかりません (cvId: ' + cvId + ', merchantId: ' + merchantId + ')' };
+
+    } catch (error) {
+      console.error('[MerchantContractReport] saveCallResult error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
    * 通話履歴更新
    * @param {Object} params - { merchantId, cvId, callHistory }
    * @return {Object} - { success }
@@ -996,6 +1104,8 @@ var MerchantContractReport = {
         return this.updateCaseMemo(params);
       case 'updateCallHistory':
         return this.updateCallHistory(params);
+      case 'saveCallResult':
+        return this.saveCallResult(params);
       default:
         return {
           success: false,
