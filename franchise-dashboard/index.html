@@ -1194,103 +1194,69 @@
 
                             <!-- コンテンツ（スクロール可能） -->
                             <div class="flex-1 overflow-y-auto px-5 py-4">
-                                <!-- 使い方の説明 -->
-                                <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4">
-                                    <p class="text-sm text-blue-800 font-medium mb-1">📖 使い方</p>
-                                    <p class="text-xs text-blue-700">見たい案件の条件を選んで「適用する」を押してください。複数選択できます。</p>
-                                </div>
-
                                 <!-- ステータス絞り込み -->
                                 <div class="mb-6">
-                                    <h4 class="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
-                                        <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                                        ステータスで絞り込む
-                                        <span id="ufSelectedStatusCount" class="ml-auto text-xs px-2 py-0.5 bg-blue-100 text-blue-600 rounded-full font-medium">すべて</span>
-                                    </h4>
-                                    <p class="text-xs text-gray-500 mb-3">案件の進捗状況で絞り込みます</p>
+                                    <h4 class="text-base font-bold text-gray-900 mb-3">ステータス</h4>
 
-                                    <!-- プリセットボタン -->
-                                    <div class="mb-4 pb-4 border-b border-gray-200">
-                                        <p class="text-xs text-gray-600 mb-2 font-medium">▼ よく使う絞り込み（ワンタッチ）</p>
-                                        <div class="flex gap-2">
-                                            <button onclick="ufSelectCallTargetStatuses()" class="flex-1 px-3 py-3 bg-blue-100 text-blue-700 border-2 border-blue-400 rounded-lg hover:bg-blue-200 transition-all font-bold text-sm">
-                                                📞 アポ前<br><span class="text-xs font-normal">新着・未アポ</span>
-                                            </button>
-                                            <button onclick="ufSelectInProgressStatuses()" class="flex-1 px-3 py-3 bg-orange-100 text-orange-700 border-2 border-orange-400 rounded-lg hover:bg-orange-200 transition-all font-bold text-sm">
-                                                🔥 アポ後<br><span class="text-xs font-normal">アポ済〜入金予定</span>
-                                            </button>
-                                        </div>
+                                    <!-- アポ前/アポ後 プリセットボタン -->
+                                    <div class="flex gap-3 mb-3">
+                                        <button id="uf-preset-before" onclick="ufSelectCallTargetStatuses()" class="flex-1 px-4 py-4 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-blue-400 transition-all font-bold text-base">
+                                            📞 アポ前
+                                        </button>
+                                        <button id="uf-preset-after" onclick="ufSelectInProgressStatuses()" class="flex-1 px-4 py-4 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-orange-400 transition-all font-bold text-base">
+                                            🔥 アポ後
+                                        </button>
                                     </div>
 
-                                    <!-- 対応中ステータス -->
-                                    <div class="mb-4">
-                                        <p class="text-xs text-gray-600 mb-2 font-medium">▼ 個別に選ぶ（タップで選択/解除）</p>
-                                        <h5 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                                            <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
-                                            対応中
-                                        </h5>
-                                        <div class="grid grid-cols-3 gap-1.5">
-                                            <button id="uf-status-btn-新着" onclick="ufToggleStatusFilter('新着')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-blue-400 bg-blue-100 text-blue-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">新着</button>
-                                            <button id="uf-status-btn-未アポ" onclick="ufToggleStatusFilter('未アポ')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-slate-400 bg-slate-100 text-slate-700 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">未アポ</button>
-                                            <button id="uf-status-btn-アポ済" onclick="ufToggleStatusFilter('アポ済')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-orange-400 bg-orange-100 text-orange-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">アポ済</button>
-                                            <button id="uf-status-btn-現調済" onclick="ufToggleStatusFilter('現調済')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-purple-400 bg-purple-100 text-purple-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調済</button>
-                                            <button id="uf-status-btn-見積提出済" onclick="ufToggleStatusFilter('見積提出済')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-amber-400 bg-amber-100 text-amber-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">見積提出</button>
-                                            <button id="uf-status-btn-入金予定" onclick="ufToggleStatusFilter('入金予定')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-cyan-400 bg-cyan-100 text-cyan-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">入金予定</button>
-                                        </div>
-                                    </div>
-
-                                    <!-- 完了ステータス -->
-                                    <div class="mb-4">
-                                        <h5 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                                            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                                            完了
-                                        </h5>
-                                        <div class="grid grid-cols-3 gap-1.5">
-                                            <button id="uf-status-btn-成約" onclick="ufToggleStatusFilter('成約')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-green-400 bg-green-100 text-green-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">成約</button>
-                                            <button id="uf-status-btn-入金済" onclick="ufToggleStatusFilter('入金済')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-emerald-400 bg-emerald-100 text-emerald-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">入金済</button>
-                                        </div>
-                                    </div>
-
-                                    <!-- キャンセル・失注ステータス -->
-                                    <div>
-                                        <h5 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                                            <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
-                                            キャンセル・失注
-                                        </h5>
-                                        <div class="grid grid-cols-3 gap-1.5">
-                                            <button id="uf-status-btn-現調前キャンセル" onclick="ufToggleStatusFilter('現調前キャンセル')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-gray-400 bg-gray-100 text-gray-600 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調前CN</button>
-                                            <button id="uf-status-btn-現調後失注" onclick="ufToggleStatusFilter('現調後失注')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-gray-500 bg-gray-200 text-gray-700 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調後失注</button>
-                                            <button id="uf-status-btn-他社契約済" onclick="ufToggleStatusFilter('他社契約済')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-gray-400 bg-gray-100 text-gray-600 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">他社契約</button>
-                                            <button id="uf-status-btn-別加盟店契約済" onclick="ufToggleStatusFilter('別加盟店契約済')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-indigo-400 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">別加盟店契約</button>
-                                            <button id="uf-status-btn-クレーム" onclick="ufToggleStatusFilter('クレーム')" class="uf-status-filter-btn px-2 py-1.5 border-2 border-red-400 bg-red-100 text-red-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">クレーム</button>
+                                    <!-- 個別ステータス（選択時のみ表示） -->
+                                    <div id="uf-detail-statuses" class="hidden">
+                                        <p class="text-xs text-gray-500 mb-2">個別に変更することも可能です</p>
+                                        <div class="grid grid-cols-3 gap-1.5 mb-3">
+                                            <button id="uf-status-btn-新着" onclick="ufToggleStatusFilter('新着')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">新着</button>
+                                            <button id="uf-status-btn-未アポ" onclick="ufToggleStatusFilter('未アポ')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">未アポ</button>
+                                            <button id="uf-status-btn-アポ済" onclick="ufToggleStatusFilter('アポ済')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">アポ済</button>
+                                            <button id="uf-status-btn-現調済" onclick="ufToggleStatusFilter('現調済')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">現調済</button>
+                                            <button id="uf-status-btn-見積提出済" onclick="ufToggleStatusFilter('見積提出済')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">見積提出</button>
+                                            <button id="uf-status-btn-入金予定" onclick="ufToggleStatusFilter('入金予定')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">入金予定</button>
+                                            <button id="uf-status-btn-成約" onclick="ufToggleStatusFilter('成約')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">成約</button>
+                                            <button id="uf-status-btn-入金済" onclick="ufToggleStatusFilter('入金済')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">入金済</button>
+                                            <button id="uf-status-btn-現調前キャンセル" onclick="ufToggleStatusFilter('現調前キャンセル')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">現調前CN</button>
+                                            <button id="uf-status-btn-現調後失注" onclick="ufToggleStatusFilter('現調後失注')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">現調後失注</button>
+                                            <button id="uf-status-btn-他社契約済" onclick="ufToggleStatusFilter('他社契約済')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">他社契約</button>
+                                            <button id="uf-status-btn-別加盟店契約済" onclick="ufToggleStatusFilter('別加盟店契約済')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">別加盟店</button>
+                                            <button id="uf-status-btn-クレーム" onclick="ufToggleStatusFilter('クレーム')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">クレーム</button>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- 配信日絞り込み -->
                                 <div class="pt-4 border-t border-gray-200">
-                                    <h4 class="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
+                                    <h4 class="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
                                         <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                        配信日で絞り込む
-                                        <span id="ufDateFilterLabel" class="ml-auto text-xs px-2 py-0.5 bg-amber-100 text-amber-600 rounded-full font-medium">すべて</span>
+                                        配信日
+                                        <span id="ufDateFilterLabel" class="ml-auto text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium">すべて</span>
                                     </h4>
-                                    <p class="text-xs text-gray-500 mb-3">案件が配信された日付で絞り込みます</p>
 
-                                    <!-- 月選択ボタン -->
-                                    <div class="mb-4">
-                                        <p class="text-xs text-gray-600 mb-2 font-medium">▼ 月を選ぶ（タップで選択）</p>
-                                        <div id="ufMonthButtonsContainer" class="grid grid-cols-3 gap-2">
-                                            <!-- JSで動的生成 -->
-                                        </div>
+                                    <!-- 期間ボタン（全期間/今月/先月） -->
+                                    <div class="flex gap-2 mb-3">
+                                        <button id="uf-period-all" onclick="ufSetPeriodFilter('all')" class="flex-1 px-3 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-amber-400 transition-all font-bold text-sm">
+                                            全期間
+                                        </button>
+                                        <button id="uf-period-thismonth" onclick="ufSetPeriodFilter('thismonth')" class="flex-1 px-3 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-amber-400 transition-all font-bold text-sm">
+                                            今月
+                                        </button>
+                                        <button id="uf-period-lastmonth" onclick="ufSetPeriodFilter('lastmonth')" class="flex-1 px-3 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-amber-400 transition-all font-bold text-sm">
+                                            先月
+                                        </button>
                                     </div>
 
-                                    <!-- カスタム日付範囲 -->
-                                    <div>
-                                        <p class="text-xs text-gray-600 mb-2 font-medium">▼ 日付を細かく指定する場合</p>
+                                    <!-- カスタム日付範囲（細かく指定時のみ表示） -->
+                                    <div id="uf-custom-date-range" class="hidden">
+                                        <p class="text-xs text-gray-500 mb-2">細かく指定する場合</p>
                                         <div class="flex items-center gap-3">
-                                            <input type="date" id="ufModalDateFrom" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
+                                            <input type="date" id="ufModalDateFrom" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all">
                                             <span class="text-gray-400 font-bold">〜</span>
-                                            <input type="date" id="ufModalDateTo" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
+                                            <input type="date" id="ufModalDateTo" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all">
                                         </div>
                                     </div>
                                 </div>
@@ -16125,17 +16091,114 @@
         }
 
         // アポ前プリセット（新着、未アポ）
+        // 現在選択中のプリセット（'before'/'after'/null）
+        let ufCurrentPreset = null;
+        // 現在選択中の期間（'all'/'thismonth'/'lastmonth'/null）
+        let ufCurrentPeriod = null;
+
+        // アポ前プリセット
         function ufSelectCallTargetStatuses() {
+            ufCurrentPreset = 'before';
             ufSelectedStatuses = ['新着', '未アポ'];
+            ufShowDetailStatuses();
+            ufUpdatePresetButtonStates();
             ufUpdateStatusButtonStates();
             ufUpdateSelectedStatusCount();
         }
 
         // アポ後プリセット（アポ済、現調済、見積提出済、入金予定）
         function ufSelectInProgressStatuses() {
+            ufCurrentPreset = 'after';
             ufSelectedStatuses = ['アポ済', '現調済', '見積提出済', '入金予定'];
+            ufShowDetailStatuses();
+            ufUpdatePresetButtonStates();
             ufUpdateStatusButtonStates();
             ufUpdateSelectedStatusCount();
+        }
+
+        // 個別ステータス表示
+        function ufShowDetailStatuses() {
+            const detail = document.getElementById('uf-detail-statuses');
+            if (detail) {
+                detail.classList.remove('hidden');
+            }
+        }
+
+        // プリセットボタンの状態更新
+        function ufUpdatePresetButtonStates() {
+            const beforeBtn = document.getElementById('uf-preset-before');
+            const afterBtn = document.getElementById('uf-preset-after');
+
+            if (beforeBtn) {
+                if (ufCurrentPreset === 'before') {
+                    beforeBtn.className = 'flex-1 px-4 py-4 bg-blue-500 text-white border-2 border-blue-500 rounded-xl transition-all font-bold text-base shadow-lg';
+                } else {
+                    beforeBtn.className = 'flex-1 px-4 py-4 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-blue-400 transition-all font-bold text-base';
+                }
+            }
+            if (afterBtn) {
+                if (ufCurrentPreset === 'after') {
+                    afterBtn.className = 'flex-1 px-4 py-4 bg-orange-500 text-white border-2 border-orange-500 rounded-xl transition-all font-bold text-base shadow-lg';
+                } else {
+                    afterBtn.className = 'flex-1 px-4 py-4 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-orange-400 transition-all font-bold text-base';
+                }
+            }
+        }
+
+        // 期間フィルター設定
+        function ufSetPeriodFilter(period) {
+            ufCurrentPeriod = period;
+            const now = new Date();
+
+            if (period === 'all') {
+                ufSelectedMonth = null;
+                ufDateFrom = null;
+                ufDateTo = null;
+                document.getElementById('ufModalDateFrom').value = '';
+                document.getElementById('ufModalDateTo').value = '';
+                document.getElementById('uf-custom-date-range').classList.add('hidden');
+            } else if (period === 'thismonth') {
+                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                ufSelectedMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                ufDateFrom = formatDateForInput(firstDay);
+                ufDateTo = formatDateForInput(lastDay);
+                document.getElementById('ufModalDateFrom').value = ufDateFrom;
+                document.getElementById('ufModalDateTo').value = ufDateTo;
+                document.getElementById('uf-custom-date-range').classList.remove('hidden');
+            } else if (period === 'lastmonth') {
+                const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                const lastDay = new Date(now.getFullYear(), now.getMonth(), 0);
+                ufSelectedMonth = `${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}`;
+                ufDateFrom = formatDateForInput(firstDay);
+                ufDateTo = formatDateForInput(lastDay);
+                document.getElementById('ufModalDateFrom').value = ufDateFrom;
+                document.getElementById('ufModalDateTo').value = ufDateTo;
+                document.getElementById('uf-custom-date-range').classList.remove('hidden');
+            }
+
+            ufUpdatePeriodButtonStates();
+            ufUpdateDateLabel();
+        }
+
+        // 日付フォーマット（YYYY-MM-DD）
+        function formatDateForInput(date) {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
+
+        // 期間ボタンの状態更新
+        function ufUpdatePeriodButtonStates() {
+            const allBtn = document.getElementById('uf-period-all');
+            const thisMonthBtn = document.getElementById('uf-period-thismonth');
+            const lastMonthBtn = document.getElementById('uf-period-lastmonth');
+
+            const baseClass = 'flex-1 px-3 py-3 border-2 rounded-xl transition-all font-bold text-sm';
+            const activeClass = 'bg-amber-500 text-white border-amber-500 shadow-lg';
+            const inactiveClass = 'bg-white text-gray-600 border-gray-300 hover:border-amber-400';
+
+            if (allBtn) allBtn.className = `${baseClass} ${ufCurrentPeriod === 'all' ? activeClass : inactiveClass}`;
+            if (thisMonthBtn) thisMonthBtn.className = `${baseClass} ${ufCurrentPeriod === 'thismonth' ? activeClass : inactiveClass}`;
+            if (lastMonthBtn) lastMonthBtn.className = `${baseClass} ${ufCurrentPeriod === 'lastmonth' ? activeClass : inactiveClass}`;
         }
 
         // 月ボタンの生成
