@@ -16398,9 +16398,14 @@
         function updateQuickFilterStats() {
             let pending = 0;
             let contracted = 0;
+            let newCount = 0;
 
             merchantCasesData.forEach(c => {
                 const status = c.detailStatus || '';
+                // 新着カウント
+                if (status === '新着') {
+                    newCount++;
+                }
                 // 要対応: 新着、未アポ、アポ済、現調済、見積提出済、入金予定
                 if (['新着', '未アポ', 'アポ済', '現調済', '見積提出済', '入金予定'].includes(status)) {
                     pending++;
@@ -16419,6 +16424,13 @@
             setIfExists('stat-total', merchantCasesData.length);
             setIfExists('stat-pending', pending);
             setIfExists('stat-contracted', contracted);
+
+            // サイドメニューの案件管理バッジを新着数で更新
+            const badge = document.getElementById('unassignedBadge');
+            if (badge) {
+                badge.textContent = newCount;
+                badge.style.display = newCount > 0 ? 'block' : 'none';
+            }
         }
 
         // フィルター処理（旧互換）
