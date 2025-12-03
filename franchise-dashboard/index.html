@@ -1194,26 +1194,37 @@
 
                             <!-- コンテンツ（スクロール可能） -->
                             <div class="flex-1 overflow-y-auto px-5 py-4">
-                                <!-- ステータス絞り込み（元のsortModalの中身そのまま） -->
+                                <!-- 使い方の説明 -->
+                                <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4">
+                                    <p class="text-sm text-blue-800 font-medium mb-1">📖 使い方</p>
+                                    <p class="text-xs text-blue-700">見たい案件の条件を選んで「適用する」を押してください。複数選択できます。</p>
+                                </div>
+
+                                <!-- ステータス絞り込み -->
                                 <div class="mb-6">
-                                    <h4 class="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                    <h4 class="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
                                         <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                                        ステータス
+                                        ステータスで絞り込む
                                         <span id="ufSelectedStatusCount" class="ml-auto text-xs px-2 py-0.5 bg-blue-100 text-blue-600 rounded-full font-medium">すべて</span>
                                     </h4>
+                                    <p class="text-xs text-gray-500 mb-3">案件の進捗状況で絞り込みます</p>
 
                                     <!-- プリセットボタン -->
-                                    <div class="flex gap-2 mb-4 pb-4 border-b border-gray-200">
-                                        <button onclick="ufSelectCallTargetStatuses()" class="flex-1 px-3 py-2 bg-blue-100 text-blue-700 border-2 border-blue-400 rounded-lg hover:bg-blue-200 transition-all font-medium text-sm">
-                                            📞 アポ前
-                                        </button>
-                                        <button onclick="ufSelectInProgressStatuses()" class="flex-1 px-3 py-2 bg-orange-100 text-orange-700 border-2 border-orange-400 rounded-lg hover:bg-orange-200 transition-all font-medium text-sm">
-                                            🔥 アポ後
-                                        </button>
+                                    <div class="mb-4 pb-4 border-b border-gray-200">
+                                        <p class="text-xs text-gray-600 mb-2 font-medium">▼ よく使う絞り込み（ワンタッチ）</p>
+                                        <div class="flex gap-2">
+                                            <button onclick="ufSelectCallTargetStatuses()" class="flex-1 px-3 py-3 bg-blue-100 text-blue-700 border-2 border-blue-400 rounded-lg hover:bg-blue-200 transition-all font-bold text-sm">
+                                                📞 アポ前<br><span class="text-xs font-normal">新着・未アポ</span>
+                                            </button>
+                                            <button onclick="ufSelectInProgressStatuses()" class="flex-1 px-3 py-3 bg-orange-100 text-orange-700 border-2 border-orange-400 rounded-lg hover:bg-orange-200 transition-all font-bold text-sm">
+                                                🔥 アポ後<br><span class="text-xs font-normal">アポ済〜入金予定</span>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <!-- 対応中ステータス -->
                                     <div class="mb-4">
+                                        <p class="text-xs text-gray-600 mb-2 font-medium">▼ 個別に選ぶ（タップで選択/解除）</p>
                                         <h5 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                                             <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
                                             対応中
