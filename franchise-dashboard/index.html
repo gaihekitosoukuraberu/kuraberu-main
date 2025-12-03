@@ -17724,69 +17724,96 @@
                 dateTimeValue = `${dateValue} ${h}:${m}`;
             }
 
-            try {
-                const response = await fetch(window.ENV.GAS_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    },
-                    body: JSON.stringify({
-                        action: 'updateNextCallDate',
-                        cvId: nextCallTargetCvId,
-                        nextCallDate: dateTimeValue
-                    })
-                });
-                const result = await response.json();
+            // 即閉じ＋バックグラウンド保存
+            const saveCvId = nextCallTargetCvId;
+            const caseData = merchantCasesData.find(c => String(c.cvId) === String(saveCvId));
+            if (caseData) {
+                caseData.nextCallDate = dateTimeValue;
+            }
+            renderCases();
+            closeNextCallModal();
 
+            // バックグラウンドで保存
+            fetch(window.ENV.GAS_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain'
+                },
+                body: JSON.stringify({
+                    action: 'updateNextCallDate',
+                    cvId: saveCvId,
+                    nextCallDate: dateTimeValue
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
                 if (result.success) {
-                    const caseData = merchantCasesData.find(c => String(c.cvId) === String(nextCallTargetCvId));
-                    if (caseData) {
-                        caseData.nextCallDate = dateTimeValue;
-                    }
-                    renderCases();
-                    closeNextCallModal();
                     showNotification('保存完了', '次回架電日を設定しました');
                 } else {
+                    // 失敗時はデータを元に戻して再描画
+                    if (caseData) {
+                        caseData.nextCallDate = '';
+                    }
+                    renderCases();
                     showNotification('エラー', '保存に失敗しました', 'error');
                 }
-            } catch (error) {
+            })
+            .catch(error => {
                 console.error('次回架電日保存エラー:', error);
+                if (caseData) {
+                    caseData.nextCallDate = '';
+                }
+                renderCases();
                 showNotification('エラー', '通信エラーが発生しました', 'error');
-            }
+            });
         }
 
         async function clearNextCallDate() {
             if (!nextCallTargetCvId) return;
 
-            try {
-                const response = await fetch(window.ENV.GAS_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    },
-                    body: JSON.stringify({
-                        action: 'updateNextCallDate',
-                        cvId: nextCallTargetCvId,
-                        nextCallDate: ''
-                    })
-                });
-                const result = await response.json();
+            // 即閉じ＋バックグラウンド保存
+            const saveCvId = nextCallTargetCvId;
+            const caseData = merchantCasesData.find(c => String(c.cvId) === String(saveCvId));
+            const oldValue = caseData ? caseData.nextCallDate : '';
+            if (caseData) {
+                caseData.nextCallDate = '';
+            }
+            renderCases();
+            closeNextCallModal();
 
+            // バックグラウンドで保存
+            fetch(window.ENV.GAS_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain'
+                },
+                body: JSON.stringify({
+                    action: 'updateNextCallDate',
+                    cvId: saveCvId,
+                    nextCallDate: ''
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
                 if (result.success) {
-                    const caseData = merchantCasesData.find(c => String(c.cvId) === String(nextCallTargetCvId));
-                    if (caseData) {
-                        caseData.nextCallDate = '';
-                    }
-                    renderCases();
-                    closeNextCallModal();
                     showNotification('完了', '次回架電日をクリアしました');
                 } else {
+                    // 失敗時はデータを元に戻して再描画
+                    if (caseData) {
+                        caseData.nextCallDate = oldValue;
+                    }
+                    renderCases();
                     showNotification('エラー', 'クリアに失敗しました', 'error');
                 }
-            } catch (error) {
+            })
+            .catch(error => {
                 console.error('次回架電日クリアエラー:', error);
+                if (caseData) {
+                    caseData.nextCallDate = oldValue;
+                }
+                renderCases();
                 showNotification('エラー', '通信エラーが発生しました', 'error');
-            }
+            });
         }
 
         // 案件データを取得する関数（互換性のため残す）
