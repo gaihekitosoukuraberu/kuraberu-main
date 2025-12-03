@@ -17725,19 +17725,23 @@
             }
 
             try {
-                const result = await window.apiClient.postRequest('updateCVData', {
-                    cvId: nextCallTargetCvId,
-                    data: {
-                        nextCallDate: dateValue,
-                        nextCallDateTime: dateTimeValue
-                    }
+                const response = await fetch(window.ENV.GAS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    },
+                    body: JSON.stringify({
+                        action: 'updateNextCallDate',
+                        cvId: nextCallTargetCvId,
+                        nextCallDate: dateTimeValue
+                    })
                 });
+                const result = await response.json();
 
                 if (result.success) {
                     const caseData = merchantCasesData.find(c => String(c.cvId) === String(nextCallTargetCvId));
                     if (caseData) {
-                        caseData.nextCallDate = dateValue;
-                        caseData.nextCallDateTime = dateTimeValue;
+                        caseData.nextCallDate = dateTimeValue;
                     }
                     renderCases();
                     closeNextCallModal();
@@ -17755,16 +17759,23 @@
             if (!nextCallTargetCvId) return;
 
             try {
-                const result = await window.apiClient.postRequest('updateCVData', {
-                    cvId: nextCallTargetCvId,
-                    data: { nextCallDate: '', nextCallDateTime: '' }
+                const response = await fetch(window.ENV.GAS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    },
+                    body: JSON.stringify({
+                        action: 'updateNextCallDate',
+                        cvId: nextCallTargetCvId,
+                        nextCallDate: ''
+                    })
                 });
+                const result = await response.json();
 
                 if (result.success) {
                     const caseData = merchantCasesData.find(c => String(c.cvId) === String(nextCallTargetCvId));
                     if (caseData) {
                         caseData.nextCallDate = '';
-                        caseData.nextCallDateTime = '';
                     }
                     renderCases();
                     closeNextCallModal();

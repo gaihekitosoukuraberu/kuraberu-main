@@ -777,6 +777,52 @@ var MerchantContractReport = {
   },
 
   /**
+   * 次回架電日更新
+   * @param {Object} params - { cvId, nextCallDate }
+   * @return {Object} - { success }
+   */
+  updateNextCallDate: function(params) {
+    const { cvId, nextCallDate } = params;
+    console.log('[MerchantContractReport] updateNextCallDate:', { cvId, nextCallDate });
+
+    if (!cvId) {
+      return { success: false, error: 'cvIdが不足しています' };
+    }
+
+    try {
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const deliverySheet = ss.getSheetByName('配信管理');
+      const data = deliverySheet.getDataRange().getValues();
+      const headers = data[0];
+
+      const colIdx = {
+        cvId: headers.indexOf('CV ID'),
+        nextCallDate: headers.indexOf('次回架電日時')
+      };
+
+      if (colIdx.nextCallDate === -1) {
+        return { success: false, error: '次回架電日時列が見つかりません' };
+      }
+
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        if (String(row[colIdx.cvId]) === String(cvId)) {
+          deliverySheet.getRange(i + 1, colIdx.nextCallDate + 1).setValue(nextCallDate || '');
+          console.log('[MerchantContractReport] updateNextCallDate - updated row', i + 1);
+          return { success: true };
+        }
+      }
+
+      return { success: false, error: '該当する案件が見つかりません' };
+
+    } catch (error) {
+      console.error('[MerchantContractReport] updateNextCallDate error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
    * 通話履歴更新
    * @param {Object} params - { merchantId, cvId, callHistory }
    * @return {Object} - { success }

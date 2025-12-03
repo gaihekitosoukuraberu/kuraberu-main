@@ -458,6 +458,12 @@ const SystemRouter = {
       prefix: false,
       actions: ['updateCaseMemo']
     },
+    'updateNextCallDate': {
+      system: 'MerchantSystem',
+      description: '次回架電日更新',
+      prefix: false,
+      actions: ['updateNextCallDate']
+    },
 
     // キャンセル承認システム（管理者用）
     'approveCancelReport': {
