@@ -838,7 +838,6 @@
                                 <div class="bg-gray-50 rounded-xl p-4">
                                     <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
                                         <span>📅</span> 日付を選択
-                                        <button onclick="openDatePresetSettings()" class="ml-auto text-gray-400 hover:text-blue-500 transition-all" title="プリセット設定">⚙️</button>
                                     </h4>
                                     <div class="grid grid-cols-4 gap-2 mb-3">
                                         <button onclick="setNextCallDay(0)" data-day="0" class="next-call-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
@@ -956,14 +955,21 @@
                     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeTimePresetModal()"></div>
                     <div class="fixed inset-0 flex items-center justify-center p-4">
                         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
-                            <div class="p-4 border-b bg-gradient-to-r from-gray-100 to-white">
-                                <h3 class="text-lg font-bold text-gray-900 text-center">⚙️ 時間プリセット設定</h3>
+                            <div class="p-4 border-b bg-gradient-to-r from-blue-500 to-blue-600">
+                                <h3 class="text-lg font-bold text-white text-center">⏰ よく使う時間を登録</h3>
                             </div>
                             <div class="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
-                                <p class="text-sm text-gray-500 text-center">3つのプリセット時間を設定できます</p>
+                                <!-- 説明 -->
+                                <div class="bg-blue-50 rounded-xl p-3 border border-blue-200">
+                                    <p class="text-sm text-blue-800 leading-relaxed">
+                                        <span class="font-bold">📌 使い方</span><br>
+                                        電話をかける時間を3つ登録できます。<br>
+                                        保存すると、次回から選べるようになります。
+                                    </p>
+                                </div>
                                 <!-- プリセット1 -->
                                 <div class="bg-gray-50 rounded-xl p-3">
-                                    <label class="text-xs font-bold text-gray-600 mb-2 block">プリセット1</label>
+                                    <label class="text-sm font-bold text-gray-700 mb-2 block">① 1つ目の時間</label>
                                     <div class="flex items-center gap-2">
                                         <select id="presetTime1Hour" class="flex-1 p-2 border-2 border-gray-200 rounded-lg text-center font-bold">
                                             <option value="8">8時</option>
@@ -989,7 +995,7 @@
                                 </div>
                                 <!-- プリセット2 -->
                                 <div class="bg-gray-50 rounded-xl p-3">
-                                    <label class="text-xs font-bold text-gray-600 mb-2 block">プリセット2</label>
+                                    <label class="text-sm font-bold text-gray-700 mb-2 block">② 2つ目の時間</label>
                                     <div class="flex items-center gap-2">
                                         <select id="presetTime2Hour" class="flex-1 p-2 border-2 border-gray-200 rounded-lg text-center font-bold">
                                             <option value="8">8時</option>
@@ -1015,7 +1021,7 @@
                                 </div>
                                 <!-- プリセット3 -->
                                 <div class="bg-gray-50 rounded-xl p-3">
-                                    <label class="text-xs font-bold text-gray-600 mb-2 block">プリセット3</label>
+                                    <label class="text-sm font-bold text-gray-700 mb-2 block">③ 3つ目の時間</label>
                                     <div class="flex items-center gap-2">
                                         <select id="presetTime3Hour" class="flex-1 p-2 border-2 border-gray-200 rounded-lg text-center font-bold">
                                             <option value="8">8時</option>
