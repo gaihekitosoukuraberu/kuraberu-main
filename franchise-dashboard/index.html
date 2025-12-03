@@ -598,18 +598,18 @@
                 </div>
             </div><!-- salesSectionの終了 -->
 
-            <!-- 案件管理セクション -->
-            <div id="casesSection" class="section" style="display: none;">
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold text-gray-900">案件管理</h2>
+            <!-- 案件管理セクション（全画面・白背景） -->
+            <div id="casesSection" class="section bg-white -mx-6 px-6 pb-6" style="display: none; min-height: calc(100vh - 5rem);">
+                <div class="mb-4 pt-2">
+                    <h2 class="text-xl font-bold text-gray-900">案件管理</h2>
                 </div>
 
                 <!-- 検索・フィルターエリア -->
-                <div class="mb-4">
+                <div class="mb-3">
                     <div class="flex flex-col gap-4 w-full">
                         <!-- 検索ボックス + 絞り込みボタン（横並び） -->
                         <div class="flex gap-2">
-                            <div class="relative flex-1 sm:max-w-sm md:max-w-md">
+                            <div class="relative flex-1 md:max-w-lg lg:max-w-xl">
                                 <input type="text" id="caseSearchInput" placeholder="名前・住所・電話で検索" oninput="searchCases()" autocomplete="off" class="w-full pl-10 pr-10 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 shadow-sm transition-all bg-gray-50 placeholder-gray-400">
                                 <div class="absolute left-3 top-2.5">
                                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -16388,11 +16388,13 @@
 
             const status = caseItem.detailStatus || '';
             const filterMap = {
-                'pending': ['', '対応待ち', '未対応', '新着'],
+                // 要対応: 未対応、架電済/未アポ、アポ済、現調済、見積提出済、入金予定（統計と同じ）
+                'pending': ['未対応', '架電済/未アポ', 'アポ済', '現調済', '見積提出済', '入金予定'],
                 'visited': ['訪問済み'],
-                'quoted': ['見積提出済み'],
-                'contracted': ['成約'],
-                'cancelled': ['キャンセル']
+                'quoted': ['見積提出済み', '見積提出済'],
+                // 成約済: 成約、入金済（統計と同じ）
+                'contracted': ['成約', '入金済'],
+                'cancelled': ['キャンセル', '現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済']
             };
 
             return filterMap[currentFilter]?.includes(status);
