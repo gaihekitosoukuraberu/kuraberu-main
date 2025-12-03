@@ -15958,6 +15958,7 @@
                     merchantCasesData = result.cases || [];
                     merchantCasesStats = result.stats || {};
                     updateCasesStats();
+                    updateQuickFilterStats();  // 新UI用統計
                     renderCases();
                 } else {
                     showNotification('エラー', result.error || '案件データの取得に失敗しました', 'error');
@@ -15981,7 +15982,267 @@
             setIfExists('stat-contracted', merchantCasesStats.contracted);
         }
 
-        // フィルター処理
+        // =====================================================
+        // 統合絞り込みモーダル関数
+        // =====================================================
+        let unifiedFilter = {
+            status: 'all',  // 'all', 'call', 'progress', 'contracted'
+            month: null,    // null or '2024-12'
+            assignee: null  // null or '担当者名'
+        };
+
+        function openUnifiedFilterModal() {
+            document.getElementById('unifiedFilterModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            initUnifiedFilterModal();
+        }
+
+        function closeUnifiedFilterModal() {
+            document.getElementById('unifiedFilterModal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function initUnifiedFilterModal() {
+            // ステータスボタンの状態更新
+            updateUnifiedStatusButtons();
+
+            // 月ボタンを生成
+            generateMonthButtons();
+
+            // 担当者ボタンを生成
+            generateAssigneeButtons();
+
+            // ステータス表示更新
+            updateUnifiedFilterStatusText();
+        }
+
+        function updateUnifiedStatusButtons() {
+            ['all', 'call', 'progress', 'contracted'].forEach(status => {
+                const btn = document.getElementById(`uf-status-${status}`);
+                if (!btn) return;
+
+                btn.classList.remove('ring-4', 'ring-offset-2');
+                if (unifiedFilter.status === status) {
+                    btn.classList.add('ring-4', 'ring-offset-2');
+                    if (status === 'call') btn.classList.add('ring-green-400');
+                    else if (status === 'progress') btn.classList.add('ring-orange-400');
+                    else if (status === 'contracted') btn.classList.add('ring-emerald-400');
+                    else btn.classList.add('ring-indigo-400');
+                } else {
+                    btn.classList.remove('ring-green-400', 'ring-orange-400', 'ring-emerald-400', 'ring-indigo-400');
+                }
+            });
+        }
+
+        function generateMonthButtons() {
+            const container = document.getElementById('ufMonthButtons');
+            if (!container) return;
+
+            const now = new Date();
+            const months = [];
+
+            // 全期間ボタン
+            months.push({ label: '全期間', value: null });
+
+            // 過去6ヶ月
+            for (let i = 0; i < 6; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                months.push({
+                    label: `${d.getMonth() + 1}月`,
+                    value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+                });
+            }
+
+            container.innerHTML = months.map(m => `
+                <button onclick="setUnifiedMonthFilter(${m.value ? "'" + m.value + "'" : 'null'})"
+                        class="uf-month-btn py-3 px-2 rounded-xl border-2 font-bold text-sm transition-all
+                               ${unifiedFilter.month === m.value ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white text-gray-700 border-gray-200 hover:border-indigo-300'}">
+                    ${m.label}
+                </button>
+            `).join('');
+        }
+
+        function generateAssigneeButtons() {
+            const container = document.getElementById('ufAssigneeButtons');
+            if (!container) return;
+
+            // 案件データから担当者リストを抽出
+            const assignees = new Set(['全員']);
+            merchantCasesData.forEach(c => {
+                if (c.assignee && c.assignee.trim()) {
+                    assignees.add(c.assignee.trim());
+                }
+            });
+
+            container.innerHTML = Array.from(assignees).map(a => `
+                <button onclick="setUnifiedAssigneeFilter(${a === '全員' ? 'null' : "'" + a + "'" })"
+                        class="uf-assignee-btn py-3 px-2 rounded-xl border-2 font-bold text-sm transition-all truncate
+                               ${(a === '全員' && !unifiedFilter.assignee) || unifiedFilter.assignee === a ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white text-gray-700 border-gray-200 hover:border-indigo-300'}">
+                    ${a}
+                </button>
+            `).join('');
+        }
+
+        function setUnifiedStatusFilter(status) {
+            unifiedFilter.status = status;
+            updateUnifiedStatusButtons();
+            updateUnifiedFilterStatusText();
+        }
+
+        function setUnifiedMonthFilter(month) {
+            unifiedFilter.month = month;
+            generateMonthButtons();
+            updateUnifiedFilterStatusText();
+        }
+
+        function setUnifiedAssigneeFilter(assignee) {
+            unifiedFilter.assignee = assignee;
+            generateAssigneeButtons();
+            updateUnifiedFilterStatusText();
+        }
+
+        function updateUnifiedFilterStatusText() {
+            const parts = [];
+
+            if (unifiedFilter.status !== 'all') {
+                const labels = { call: '📞架電対象', progress: '🔥進行中', contracted: '✅成約済' };
+                parts.push(labels[unifiedFilter.status]);
+            }
+            if (unifiedFilter.month) {
+                const [y, m] = unifiedFilter.month.split('-');
+                parts.push(`${parseInt(m)}月`);
+            }
+            if (unifiedFilter.assignee) {
+                parts.push(unifiedFilter.assignee);
+            }
+
+            const statusEl = document.getElementById('unifiedFilterStatus');
+            if (statusEl) {
+                statusEl.textContent = parts.length > 0 ? parts.join(' / ') : 'すべて表示中';
+            }
+        }
+
+        function clearUnifiedFilter() {
+            unifiedFilter = { status: 'all', month: null, assignee: null };
+            initUnifiedFilterModal();
+        }
+
+        function applyUnifiedFilter() {
+            closeUnifiedFilterModal();
+
+            // フィルターボタンのラベル更新
+            const label = document.getElementById('unifiedFilterLabel');
+            if (label) {
+                const parts = [];
+                if (unifiedFilter.status !== 'all') {
+                    const labels = { call: '架電', progress: '進行', contracted: '成約' };
+                    parts.push(labels[unifiedFilter.status]);
+                }
+                if (unifiedFilter.month) {
+                    const [y, m] = unifiedFilter.month.split('-');
+                    parts.push(`${parseInt(m)}月`);
+                }
+                if (unifiedFilter.assignee) {
+                    parts.push(unifiedFilter.assignee);
+                }
+                label.textContent = parts.length > 0 ? parts.join('・') : '絞り込み';
+            }
+
+            // フィルターボタンの見た目更新
+            const btn = document.getElementById('unifiedFilterBtn');
+            if (btn) {
+                if (unifiedFilter.status !== 'all' || unifiedFilter.month || unifiedFilter.assignee) {
+                    btn.classList.add('ring-2', 'ring-white', 'ring-offset-2');
+                } else {
+                    btn.classList.remove('ring-2', 'ring-white', 'ring-offset-2');
+                }
+            }
+
+            renderCases();
+        }
+
+        // クイックフィルター（上部4ボタン）
+        function quickFilter(filter) {
+            unifiedFilter.status = filter;
+
+            // ボタンのスタイル更新
+            document.querySelectorAll('.quick-filter-btn').forEach(btn => {
+                const btnFilter = btn.dataset.filter;
+                btn.classList.remove('bg-indigo-500', 'text-white', 'bg-green-500', 'bg-orange-500', 'bg-emerald-500', 'shadow-lg');
+                btn.classList.remove('ring-2', 'ring-white', 'ring-offset-2');
+
+                if (btnFilter === filter) {
+                    if (filter === 'all') btn.classList.add('bg-indigo-500', 'text-white', 'shadow-lg');
+                    else if (filter === 'call') btn.classList.add('bg-green-500', 'text-white', 'shadow-lg');
+                    else if (filter === 'progress') btn.classList.add('bg-orange-500', 'text-white', 'shadow-lg');
+                    else if (filter === 'contracted') btn.classList.add('bg-emerald-500', 'text-white', 'shadow-lg');
+                } else {
+                    btn.classList.add('bg-white');
+                    if (filter === 'all') btn.classList.remove('text-white');
+                }
+            });
+
+            renderCases();
+        }
+
+        // 統合フィルターに合致するかチェック
+        function matchesUnifiedFilter(caseItem) {
+            // ステータスフィルター
+            if (unifiedFilter.status !== 'all') {
+                const status = caseItem.detailStatus || '';
+                const statusMap = {
+                    'call': ['未対応', '架電済/未アポ'],
+                    'progress': ['アポ済', '現調済', '見積提出済', '入金予定'],
+                    'contracted': ['成約', '入金済']
+                };
+                if (!statusMap[unifiedFilter.status]?.includes(status)) {
+                    return false;
+                }
+            }
+
+            // 月フィルター
+            if (unifiedFilter.month) {
+                const deliveryDate = caseItem.deliveryDate || '';
+                if (!deliveryDate.startsWith(unifiedFilter.month)) {
+                    return false;
+                }
+            }
+
+            // 担当者フィルター
+            if (unifiedFilter.assignee) {
+                if ((caseItem.assignee || '').trim() !== unifiedFilter.assignee) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // 統計カウント更新（新UI用）
+        function updateQuickFilterStats() {
+            const stats = { all: 0, call: 0, progress: 0, contracted: 0 };
+
+            merchantCasesData.forEach(c => {
+                const status = c.detailStatus || '';
+                stats.all++;
+
+                if (['未対応', '架電済/未アポ'].includes(status)) stats.call++;
+                else if (['アポ済', '現調済', '見積提出済', '入金予定'].includes(status)) stats.progress++;
+                else if (['成約', '入金済'].includes(status)) stats.contracted++;
+            });
+
+            const setIfExists = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            };
+
+            setIfExists('stat-total', stats.all);
+            setIfExists('stat-call', stats.call);
+            setIfExists('stat-progress', stats.progress);
+            setIfExists('stat-contracted', stats.contracted);
+        }
+
+        // フィルター処理（旧互換）
         function filterCases(filter) {
             currentFilter = filter;
 
@@ -16323,16 +16584,19 @@
 
             // フィルター＆検索適用
             let filteredCases = merchantCasesData.filter(c => {
-                // 基本フィルター
+                // 統合フィルター（新UI）
+                if (!matchesUnifiedFilter(c)) return false;
+
+                // 旧フィルター（後方互換用）
                 if (!matchesFilter(c)) return false;
 
-                // ステータスフィルター（ソートモーダルで選択）
+                // ステータスフィルター（ソートモーダルで選択）- 旧UI用
                 if (selectedStatuses.length > 0) {
                     const status = c.detailStatus || '';
                     if (!selectedStatuses.includes(status)) return false;
                 }
 
-                // 日付フィルター
+                // 日付フィルター - 旧UI用
                 if (dateFilterType !== 'none' && dateFilterFrom && dateFilterTo) {
                     let dateStr = dateFilterType === 'call' ? c.nextCallDate : c.deliveredAt;
                     if (!dateStr) return false;
