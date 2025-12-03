@@ -700,46 +700,62 @@
                 <!-- メモモーダル -->
                 <div id="caseMemoModal" class="fixed inset-0 z-50 hidden">
                     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeMemoModal()"></div>
-                    <div class="fixed inset-0 flex items-center justify-center p-2 sm:p-6 lg:p-8">
-                        <div class="bg-white rounded-xl shadow-2xl w-full max-w-[calc(100vw-16px)] sm:max-w-md max-h-[95vh] overflow-hidden flex flex-col">
+                    <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
                             <!-- ヘッダー -->
-                            <div class="flex justify-between items-center px-4 py-4 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-white">
+                            <div class="p-4 border-b flex justify-between items-center bg-gradient-to-r from-amber-500 to-orange-500 text-white flex-shrink-0">
                                 <div>
-                                    <h3 class="text-lg font-bold text-gray-900">📝 メモ</h3>
-                                    <p id="memoTargetName" class="text-sm text-gray-500 mt-0.5">---</p>
+                                    <h3 class="text-lg font-bold">📝 メモ・履歴</h3>
+                                    <p id="memoTargetName" class="text-sm text-amber-100 mt-0.5">---</p>
                                 </div>
-                                <button onclick="closeMemoModal()" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-2 transition-all">
+                                <button onclick="closeMemoModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
                             </div>
 
-                            <!-- コンテンツエリア -->
-                            <div class="flex-1 overflow-y-auto px-4 py-5">
-                                <!-- メモ入力 -->
-                                <div class="space-y-3">
-                                    <p class="text-sm font-medium text-gray-600">メモを入力</p>
+                            <!-- コンテンツエリア（スクロール可能） -->
+                            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                                <!-- メモ入力セクション -->
+                                <div class="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                                    <h4 class="text-sm font-bold text-amber-800 mb-3 flex items-center gap-2">
+                                        <span>✏️</span> 新しいメモを追加
+                                    </h4>
                                     <textarea
                                         id="caseMemoTextarea"
-                                        placeholder="メモを入力..."
-                                        class="w-full p-3 border-2 border-gray-200 rounded-xl resize-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all text-sm"
-                                        rows="4"
+                                        placeholder="メモを入力してください..."
+                                        class="w-full p-3 border-2 border-amber-200 rounded-xl resize-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all text-sm bg-white"
+                                        rows="3"
                                     ></textarea>
-                                    <button
-                                        onclick="saveCaseMemo()"
-                                        class="w-full py-3 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-bold shadow-md hover:shadow-lg transition-all">
-                                        保存
-                                    </button>
+                                    <!-- クイック入力ボタン -->
+                                    <div class="flex flex-wrap gap-2 mt-3">
+                                        <button onclick="appendQuickMemo('不在')" class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-all">📵 不在</button>
+                                        <button onclick="appendQuickMemo('折り返し待ち')" class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-all">📞 折り返し待ち</button>
+                                        <button onclick="appendQuickMemo('検討中')" class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-all">🤔 検討中</button>
+                                        <button onclick="appendQuickMemo('相見積')" class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-all">📊 相見積</button>
+                                    </div>
                                 </div>
 
                                 <!-- メモ履歴リスト -->
-                                <div id="memoHistorySection" class="border-t border-gray-200 pt-4 mt-5">
-                                    <h4 class="text-sm font-semibold text-gray-900 mb-3">📋 過去の履歴</h4>
-                                    <div id="memoHistoryList" class="space-y-2 max-h-48 overflow-y-auto">
+                                <div class="bg-gray-50 rounded-xl p-4">
+                                    <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                        <span>📋</span> 履歴
+                                        <span id="memoHistoryCount" class="ml-auto text-xs px-2 py-0.5 bg-gray-200 rounded-full text-gray-600">0件</span>
+                                    </h4>
+                                    <div id="memoHistoryList" class="space-y-2 max-h-60 overflow-y-auto">
                                         <!-- 動的に生成される -->
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- フッター（固定） -->
+                            <div class="p-4 border-t bg-gray-50 flex-shrink-0">
+                                <button
+                                    onclick="saveCaseMemo()"
+                                    class="w-full py-3 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-bold shadow-lg hover:shadow-xl transition-all">
+                                    💾 メモを保存
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1016,15 +1032,24 @@
 
                                 <!-- メモ入力セクション（接続時のみ表示） -->
                                 <div id="memoSection" class="hidden">
-                                    <div class="p-4 bg-gray-50 rounded-xl">
-                                        <h4 class="text-sm font-semibold text-gray-700 mb-3">通話メモ</h4>
-                                        <textarea id="connectionMemo" rows="3" placeholder="通話内容をメモ..." class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:border-blue-500 transition-all resize-none"></textarea>
-                                        <div class="flex gap-2 mt-3">
-                                            <button onclick="backToConnectionSelect()" class="flex-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 text-gray-600 rounded-lg hover:border-gray-500 transition-all">
+                                    <div class="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                                        <h4 class="text-sm font-bold text-amber-800 mb-3 flex items-center gap-2">
+                                            <span>📞</span> 通話メモ
+                                        </h4>
+                                        <textarea id="connectionMemo" rows="3" placeholder="通話内容をメモ..." class="w-full p-3 border-2 border-amber-200 rounded-xl text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all resize-none bg-white"></textarea>
+                                        <!-- クイック入力ボタン -->
+                                        <div class="flex flex-wrap gap-2 mt-3 mb-4">
+                                            <button onclick="appendConnectionMemo('アポ取得')" class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-medium text-gray-600 hover:bg-green-50 hover:border-green-400 transition-all">✅ アポ取得</button>
+                                            <button onclick="appendConnectionMemo('検討中')" class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-all">🤔 検討中</button>
+                                            <button onclick="appendConnectionMemo('相見積中')" class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-all">📊 相見積中</button>
+                                            <button onclick="appendConnectionMemo('見積希望')" class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-medium text-gray-600 hover:bg-blue-50 hover:border-blue-400 transition-all">📝 見積希望</button>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button onclick="backToConnectionSelect()" class="flex-1 py-2.5 text-sm font-medium bg-white border-2 border-gray-300 text-gray-600 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all">
                                                 戻る
                                             </button>
-                                            <button onclick="confirmMemoAndShowStatus()" class="flex-1 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all text-sm">
-                                                次へ
+                                            <button onclick="confirmMemoAndShowStatus()" class="flex-1 py-2.5 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 shadow-md transition-all text-sm">
+                                                次へ →
                                             </button>
                                         </div>
                                     </div>
@@ -16393,14 +16418,19 @@
         // メモ履歴を読み込み
         function loadMemoHistory() {
             const historyList = document.getElementById('memoHistoryList');
+            const countEl = document.getElementById('memoHistoryCount');
+
             if (!currentMemoCase) {
-                historyList.innerHTML = '<p class="text-gray-500 text-sm">案件データがありません</p>';
+                historyList.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">案件データがありません</p>';
+                if (countEl) countEl.textContent = '0件';
                 return;
             }
 
             const allHistory = currentMemoCase.callHistory || [];
+            if (countEl) countEl.textContent = `${allHistory.length}件`;
+
             if (allHistory.length === 0) {
-                historyList.innerHTML = '<p class="text-gray-500 text-sm">履歴がありません</p>';
+                historyList.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">まだ履歴がありません</p>';
                 return;
             }
 
@@ -16409,28 +16439,41 @@
                 const note = item.note || '';
                 // 通話/メモのアイコン判定
                 const isCall = note.startsWith('📞') || note.startsWith('📵');
-                const typeLabel = isCall ? '📞' : '📝';
+                const typeIcon = isCall ? '📞' : '📝';
+                const typeBg = isCall ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700';
                 const date = item.date || '';
 
                 return `
-                <div onclick="selectMemoHistory(${idx})" class="cursor-pointer rounded-lg p-3 border-2 ${isSelected ? 'border-amber-500 bg-amber-50' : 'border-gray-200 hover:bg-gray-50'} transition-all">
+                <div onclick="selectMemoHistory(${idx})" class="cursor-pointer rounded-xl p-3 border-2 ${isSelected ? 'border-amber-500 bg-amber-50 shadow-md' : 'border-gray-200 bg-white hover:bg-gray-50'} transition-all">
                     <div class="flex justify-between items-start gap-2">
                         <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-xs px-2 py-0.5 rounded-full ${typeBg} font-medium">${typeIcon}</span>
                                 <span class="text-xs text-gray-400">${date}</span>
-                                <span class="text-xs">${typeLabel}</span>
                             </div>
-                            <div class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">${escapeHtml(note)}</div>
+                            <div class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">${escapeHtml(note)}</div>
                         </div>
                         ${isSelected ? `
-                        <div class="flex flex-col gap-1 flex-shrink-0">
-                            <button onclick="event.stopPropagation(); editMemoHistory(${idx})" class="text-sm hover:bg-amber-100 rounded p-1" title="編集">✏️</button>
-                            <button onclick="event.stopPropagation(); deleteMemoHistory(${idx})" class="text-sm hover:bg-red-100 rounded p-1" title="削除">🗑️</button>
+                        <div class="flex gap-1 flex-shrink-0">
+                            <button onclick="event.stopPropagation(); editMemoHistory(${idx})" class="w-8 h-8 flex items-center justify-center hover:bg-amber-100 rounded-lg transition-all" title="編集">✏️</button>
+                            <button onclick="event.stopPropagation(); deleteMemoHistory(${idx})" class="w-8 h-8 flex items-center justify-center hover:bg-red-100 rounded-lg transition-all" title="削除">🗑️</button>
                         </div>
                         ` : ''}
                     </div>
                 </div>
             `}).join('');
+        }
+
+        // クイックメモ追加
+        function appendQuickMemo(text) {
+            const textarea = document.getElementById('caseMemoTextarea');
+            const current = textarea.value.trim();
+            if (current) {
+                textarea.value = current + '\n' + text;
+            } else {
+                textarea.value = text;
+            }
+            textarea.focus();
         }
 
         function selectMemoHistory(index) {
@@ -16729,6 +16772,18 @@
             document.getElementById('memoSection')?.classList.add('hidden');
             document.getElementById('statusSection')?.classList.add('hidden');
             document.getElementById('connectionBtnsContainer')?.classList.remove('hidden');
+        }
+
+        // 通話メモにクイック追加
+        function appendConnectionMemo(text) {
+            const textarea = document.getElementById('connectionMemo');
+            const current = textarea.value.trim();
+            if (current) {
+                textarea.value = current + '\n' + text;
+            } else {
+                textarea.value = text;
+            }
+            textarea.focus();
         }
 
         // メモ確定→ステータス選択へ
@@ -17210,57 +17265,357 @@
 
         // ===== 次回架電日設定モーダル =====
         let nextCallTargetCvId = null;
+        let selectedNextCallDate = null;
+        let selectedNextCallHour = null;
+        let selectedNextCallMinute = 0;
+
+        // ステータス別プリセット定義
+        const STATUS_PRESETS = {
+            '新着': [
+                { label: '今日すぐ', days: 0, hour: null, desc: '即架電' },
+                { label: '今日の夕方', days: 0, hour: 18, minute: 0, desc: '18時' },
+                { label: '明日朝イチ', days: 1, hour: 9, minute: 0, desc: '翌朝9時' },
+                { label: '明日昼休み', days: 1, hour: 12, minute: 0, desc: '翌12時' }
+            ],
+            '未アポ': [
+                { label: '今日リトライ', days: 0, hour: null, desc: '今日中' },
+                { label: '明日リトライ', days: 1, hour: null, desc: '翌日' },
+                { label: '夕方時間帯', days: 0, hour: 19, minute: 0, desc: '19時' },
+                { label: '週末狙い', days: null, weekend: true, hour: 10, desc: '土日午前' }
+            ],
+            'アポ済': [
+                { label: '現調翌日', days: 1, hour: 10, minute: 0, desc: '翌日確認' },
+                { label: '現調後3日', days: 3, hour: 15, minute: 0, desc: '3日後午後' },
+                { label: '1週間後', days: 7, hour: 10, minute: 0, desc: '様子見' },
+                { label: '2週間後', days: 14, hour: 10, minute: 0, desc: 'ゆっくり' }
+            ],
+            '現調済': [
+                { label: '見積即フォロー', days: 1, hour: 14, minute: 0, desc: '翌日午後' },
+                { label: '見積2日後', days: 2, hour: 14, minute: 0, desc: '2日後' },
+                { label: '検討期間', days: 5, hour: 10, minute: 0, desc: '5日後' },
+                { label: '1週間後', days: 7, hour: 10, minute: 0, desc: 'じっくり' }
+            ],
+            '見積提出済み': [
+                { label: '翌日確認', days: 1, hour: 14, minute: 0, desc: '早めプッシュ' },
+                { label: '3日後確認', days: 3, hour: 14, minute: 0, desc: '検討後' },
+                { label: '1週間後', days: 7, hour: 10, minute: 0, desc: 'ゆっくり' },
+                { label: '2週間後', days: 14, hour: 10, minute: 0, desc: '最終確認' }
+            ],
+            '入金予定': [
+                { label: '3日後確認', days: 3, hour: 10, minute: 0, desc: '入金確認' },
+                { label: '1週間後', days: 7, hour: 10, minute: 0, desc: '入金催促' },
+                { label: '2週間後', days: 14, hour: 10, minute: 0, desc: '再催促' },
+                { label: '1ヶ月後', days: 30, hour: 10, minute: 0, desc: '最終確認' }
+            ],
+            '成約': [
+                { label: '工事日確認', days: 3, hour: 10, minute: 0, desc: '日程調整' },
+                { label: '1週間後', days: 7, hour: 10, minute: 0, desc: '進捗確認' },
+                { label: '工事前日', days: 1, hour: 17, minute: 0, desc: 'リマインド' },
+                { label: '工事翌日', days: 1, hour: 10, minute: 0, desc: '完了確認' }
+            ],
+            'default': [
+                { label: '今日中', days: 0, hour: null, desc: '即対応' },
+                { label: '明日朝', days: 1, hour: 10, minute: 0, desc: '翌日午前' },
+                { label: '3日後', days: 3, hour: 14, minute: 0, desc: '午後' },
+                { label: '1週間後', days: 7, hour: 10, minute: 0, desc: '様子見' }
+            ]
+        };
 
         function openNextCallModal(cvId) {
             const c = findCaseByCvId(cvId);
             if (!c) return;
 
             nextCallTargetCvId = cvId;
+            selectedNextCallDate = null;
+            selectedNextCallHour = null;
+            selectedNextCallMinute = 0;
+
+            // 顧客名表示
             document.getElementById('nextCallTargetName').textContent = `${c.customerName || '-'} (${c.fullAddress || c.city || '-'})`;
 
-            // 既存の日付があればセット
+            // 現在のステータス表示
+            const status = c.detailStatus || '新着';
+            document.getElementById('nextCallCurrentStatus').textContent = status;
+
+            // 日付ラベルを動的生成
+            initDayLabels();
+
+            // ステータス別プリセット生成
+            generateStatusPresets(status);
+
+            // 既存の日付・時間があればセット
             if (c.nextCallDate) {
                 document.getElementById('nextCallDateInput').value = c.nextCallDate;
+                selectedNextCallDate = c.nextCallDate;
+                // 時間も取得（nextCallDateTimeがあれば）
+                if (c.nextCallDateTime) {
+                    const timePart = c.nextCallDateTime.split(' ')[1];
+                    if (timePart) {
+                        const [h, m] = timePart.split(':');
+                        selectedNextCallHour = parseInt(h);
+                        selectedNextCallMinute = parseInt(m) >= 30 ? 30 : 0;
+                        document.getElementById('nextCallHour').value = selectedNextCallHour;
+                        document.getElementById('nextCallMinute').value = selectedNextCallMinute;
+                    }
+                }
             } else {
                 document.getElementById('nextCallDateInput').value = '';
+                document.getElementById('nextCallHour').value = '';
+                document.getElementById('nextCallMinute').value = '0';
             }
+
+            // カスタム日付ピッカーを隠す
+            document.getElementById('customDatePicker').classList.add('hidden');
+
+            // 選択状態をクリア
+            clearDaySelection();
+            clearTimeSelection();
+
+            // プレビュー更新
+            updateNextCallPreview();
 
             document.getElementById('nextCallModal').classList.remove('hidden');
         }
 
-        function closeNextCallModal() {
-            document.getElementById('nextCallModal').classList.add('hidden');
-            nextCallTargetCvId = null;
+        function initDayLabels() {
+            const dayOffsets = [0, 1, 2, 3, 5, 7, 14];
+            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+
+            dayOffsets.forEach(offset => {
+                const labelEl = document.getElementById(`dayLabel${offset}`);
+                if (labelEl) {
+                    const date = new Date();
+                    date.setDate(date.getDate() + offset);
+                    const m = date.getMonth() + 1;
+                    const d = date.getDate();
+                    const dayName = dayNames[date.getDay()];
+                    labelEl.textContent = `${m}/${d}(${dayName})`;
+                }
+            });
         }
 
-        function setNextCallQuick(daysFromNow) {
+        function generateStatusPresets(status) {
+            const container = document.getElementById('nextCallPresetBtns');
+            const presets = STATUS_PRESETS[status] || STATUS_PRESETS['default'];
+            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+
+            container.innerHTML = presets.map(preset => {
+                // 日付を計算
+                let targetDate = new Date();
+                let dateLabel = '';
+
+                if (preset.weekend) {
+                    // 次の土曜日
+                    const dayOfWeek = targetDate.getDay();
+                    const daysUntilSat = (6 - dayOfWeek + 7) % 7 || 7;
+                    targetDate.setDate(targetDate.getDate() + daysUntilSat);
+                    const m = targetDate.getMonth() + 1;
+                    const d = targetDate.getDate();
+                    dateLabel = `${m}/${d}(${dayNames[targetDate.getDay()]})`;
+                } else if (preset.days !== null) {
+                    targetDate.setDate(targetDate.getDate() + preset.days);
+                    const m = targetDate.getMonth() + 1;
+                    const d = targetDate.getDate();
+                    dateLabel = `${m}/${d}(${dayNames[targetDate.getDay()]})`;
+                }
+
+                // 時間ラベル
+                let timeLabel = '';
+                if (preset.hour !== null) {
+                    const h = String(preset.hour).padStart(2, '0');
+                    const min = String(preset.minute || 0).padStart(2, '0');
+                    timeLabel = `${h}:${min}`;
+                }
+
+                const bgColor = 'bg-gradient-to-r from-amber-400 to-orange-400';
+                return `
+                    <button onclick="applyPreset(${preset.days}, ${preset.hour || 'null'}, ${preset.minute || 0}, ${preset.weekend || false})"
+                            class="py-3 px-2 ${bgColor} text-white rounded-xl font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all">
+                        <div class="text-sm font-bold">${preset.label}</div>
+                        <div class="text-xs text-amber-100 mt-1">${dateLabel}${timeLabel ? ' ' + timeLabel : ''}</div>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function applyPreset(days, hour, minute, weekend) {
+            let date = new Date();
+
+            if (weekend) {
+                // 次の土曜日を探す
+                const dayOfWeek = date.getDay();
+                const daysUntilSat = (6 - dayOfWeek + 7) % 7 || 7;
+                date.setDate(date.getDate() + daysUntilSat);
+            } else if (days !== null) {
+                date.setDate(date.getDate() + days);
+            }
+
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            selectedNextCallDate = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('nextCallDateInput').value = selectedNextCallDate;
+
+            if (hour !== null) {
+                selectedNextCallHour = hour;
+                selectedNextCallMinute = minute || 0;
+                document.getElementById('nextCallHour').value = hour;
+                document.getElementById('nextCallMinute').value = selectedNextCallMinute;
+            }
+
+            // ボタン選択状態を更新
+            clearDaySelection();
+            clearTimeSelection();
+            updateNextCallPreview();
+        }
+
+        function setNextCallDay(daysFromNow) {
             const date = new Date();
             date.setDate(date.getDate() + daysFromNow);
             const yyyy = date.getFullYear();
             const mm = String(date.getMonth() + 1).padStart(2, '0');
             const dd = String(date.getDate()).padStart(2, '0');
-            document.getElementById('nextCallDateInput').value = `${yyyy}-${mm}-${dd}`;
+            selectedNextCallDate = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('nextCallDateInput').value = selectedNextCallDate;
+
+            // ボタンの選択状態を更新
+            clearDaySelection();
+            const btn = document.querySelector(`.next-call-day-btn[data-day="${daysFromNow}"]`);
+            if (btn) {
+                btn.classList.remove('border-gray-200', 'bg-white');
+                btn.classList.add('border-blue-500', 'bg-blue-50', 'ring-2', 'ring-blue-200');
+            }
+
+            updateNextCallPreview();
+        }
+
+        function clearDaySelection() {
+            document.querySelectorAll('.next-call-day-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50', 'ring-2', 'ring-blue-200');
+                btn.classList.add('border-gray-200', 'bg-white');
+            });
+        }
+
+        function toggleCustomDatePicker() {
+            const picker = document.getElementById('customDatePicker');
+            picker.classList.toggle('hidden');
+            if (!picker.classList.contains('hidden')) {
+                document.getElementById('nextCallDateInput').focus();
+            }
+        }
+
+        // カスタム日付入力時
+        document.addEventListener('DOMContentLoaded', () => {
+            const dateInput = document.getElementById('nextCallDateInput');
+            if (dateInput) {
+                dateInput.addEventListener('change', (e) => {
+                    selectedNextCallDate = e.target.value;
+                    clearDaySelection();
+                    updateNextCallPreview();
+                });
+            }
+        });
+
+        function setNextCallTimePreset(hour, minute) {
+            selectedNextCallHour = hour;
+            selectedNextCallMinute = minute;
+            document.getElementById('nextCallHour').value = hour;
+            document.getElementById('nextCallMinute').value = minute;
+
+            // ボタンの選択状態を更新
+            clearTimeSelection();
+            const btn = document.querySelector(`.next-call-time-btn[data-hour="${hour}"][data-minute="${minute}"]`);
+            if (btn) {
+                btn.classList.remove('border-gray-200', 'bg-white');
+                btn.classList.add('border-blue-500', 'bg-blue-50', 'ring-2', 'ring-blue-200');
+            }
+
+            updateNextCallPreview();
+        }
+
+        function clearTimeSelection() {
+            document.querySelectorAll('.next-call-time-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50', 'ring-2', 'ring-blue-200');
+                btn.classList.add('border-gray-200', 'bg-white');
+            });
+        }
+
+        function updateNextCallTimeDisplay() {
+            const hour = document.getElementById('nextCallHour').value;
+            const minute = document.getElementById('nextCallMinute').value;
+            if (hour) {
+                selectedNextCallHour = parseInt(hour);
+                selectedNextCallMinute = parseInt(minute);
+                clearTimeSelection();
+            }
+            updateNextCallPreview();
+        }
+
+        function updateNextCallPreview() {
+            const preview = document.getElementById('nextCallPreview');
+            const previewText = document.getElementById('nextCallPreviewText');
+
+            if (!selectedNextCallDate) {
+                preview.classList.add('hidden');
+                return;
+            }
+
+            const date = new Date(selectedNextCallDate);
+            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+            const m = date.getMonth() + 1;
+            const d = date.getDate();
+            const dayName = dayNames[date.getDay()];
+
+            let text = `${m}/${d}(${dayName})`;
+            if (selectedNextCallHour !== null) {
+                const h = String(selectedNextCallHour).padStart(2, '0');
+                const min = String(selectedNextCallMinute).padStart(2, '0');
+                text += ` ${h}:${min}`;
+            }
+
+            previewText.textContent = text;
+            preview.classList.remove('hidden');
+        }
+
+        function closeNextCallModal() {
+            document.getElementById('nextCallModal').classList.add('hidden');
+            nextCallTargetCvId = null;
+            selectedNextCallDate = null;
+            selectedNextCallHour = null;
+            selectedNextCallMinute = 0;
         }
 
         async function saveNextCallDate() {
             if (!nextCallTargetCvId) return;
 
-            const dateValue = document.getElementById('nextCallDateInput').value;
+            const dateValue = selectedNextCallDate || document.getElementById('nextCallDateInput').value;
             if (!dateValue) {
                 showNotification('エラー', '日付を選択してください', 'error');
                 return;
             }
 
+            // 日時を組み立て
+            let dateTimeValue = dateValue;
+            if (selectedNextCallHour !== null) {
+                const h = String(selectedNextCallHour).padStart(2, '0');
+                const m = String(selectedNextCallMinute).padStart(2, '0');
+                dateTimeValue = `${dateValue} ${h}:${m}`;
+            }
+
             try {
                 const result = await window.apiClient.postRequest('updateCVData', {
                     cvId: nextCallTargetCvId,
-                    data: { nextCallDate: dateValue }
+                    data: {
+                        nextCallDate: dateValue,
+                        nextCallDateTime: dateTimeValue
+                    }
                 });
 
                 if (result.success) {
                     const caseData = merchantCasesData.find(c => String(c.cvId) === String(nextCallTargetCvId));
                     if (caseData) {
                         caseData.nextCallDate = dateValue;
+                        caseData.nextCallDateTime = dateTimeValue;
                     }
                     renderCases();
                     closeNextCallModal();
@@ -17280,13 +17635,14 @@
             try {
                 const result = await window.apiClient.postRequest('updateCVData', {
                     cvId: nextCallTargetCvId,
-                    data: { nextCallDate: '' }
+                    data: { nextCallDate: '', nextCallDateTime: '' }
                 });
 
                 if (result.success) {
                     const caseData = merchantCasesData.find(c => String(c.cvId) === String(nextCallTargetCvId));
                     if (caseData) {
                         caseData.nextCallDate = '';
+                        caseData.nextCallDateTime = '';
                     }
                     renderCases();
                     closeNextCallModal();
