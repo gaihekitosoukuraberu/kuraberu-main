@@ -17485,9 +17485,44 @@
                 document.getElementById('memoSection')?.classList.remove('hidden');
             } else {
                 // 不在時：通話モーダルを閉じて次回架電モーダルを開く
-                closeConnectionModal();
+                const cvId = currentCallCase?.cvId;
+
+                // 不在を履歴に記録
                 if (currentCallCase) {
-                    openNextCallModal(currentCallCase.cvId);
+                    if (!currentCallCase.callHistory) {
+                        currentCallCase.callHistory = [];
+                    }
+                    currentCallCase.callHistory.unshift({
+                        date: new Date().toLocaleString('ja-JP'),
+                        note: '📞 不在'
+                    });
+                    // 電話回数をインクリメント
+                    currentCallCase.callCount = (parseInt(currentCallCase.callCount || 0) + 1);
+
+                    // バックグラウンドでGASに保存
+                    const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+                    fetch(GAS_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            system: 'merchant',
+                            subsystem: 'contract',
+                            action: 'updateCallHistory',
+                            merchantId: merchantId,
+                            cvId: cvId,
+                            callHistory: currentCallCase.callHistory
+                        })
+                    }).catch(err => console.error('不在記録保存エラー:', err));
+                }
+
+                // モーダルを閉じて画面更新
+                document.getElementById('connectionModal')?.classList.add('hidden');
+                renderCases();
+
+                // 次回架電モーダルを開く
+                if (cvId) {
+                    currentCallCase = null;
+                    openNextCallModal(cvId);
                 }
             }
         }
