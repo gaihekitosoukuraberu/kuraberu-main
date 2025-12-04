@@ -12,7 +12,7 @@
  * 参照方法（PHP）:
  * このファイルを読み込んでGAS_URLを抽出
  *
- * @file-version V2048-MASTER-@2014-2025-12-05
+ * @file-version V2049-MASTER-@2015-2025-12-05
  * @last-update 2025-12-05
  */
 
@@ -21,14 +21,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V2048
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbw2aoEAsqeESn09Lwx4_dusy4clKEe3MqTkXW7BhDD-CRIhbVQwBjdrkxvFaz0Q7q56YQ/exec',
+  // プライマリGAS URL（メイン運用）- V2049
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbxMMrka-B0hj4drMi_uo9vnTZxTl9oTZo12BMm9yPHAFNTl05L16-F9rLfRNPGPK9k_6g/exec',
 
-  // フォールバックGAS URL（バックアップ）- V2048
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbw2aoEAsqeESn09Lwx4_dusy4clKEe3MqTkXW7BhDD-CRIhbVQwBjdrkxvFaz0Q7q56YQ/exec',
+  // フォールバックGAS URL（バックアップ）- V2049
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxMMrka-B0hj4drMi_uo9vnTZxTl9oTZo12BMm9yPHAFNTl05L16-F9rLfRNPGPK9k_6g/exec',
 
-  // 緊急時URL（最終フォールバック）- V2048
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbw2aoEAsqeESn09Lwx4_dusy4clKEe3MqTkXW7BhDD-CRIhbVQwBjdrkxvFaz0Q7q56YQ/exec',
+  // 緊急時URL（最終フォールバック）- V2049
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxMMrka-B0hj4drMi_uo9vnTZxTl9oTZo12BMm9yPHAFNTl05L16-F9rLfRNPGPK9k_6g/exec',
 
   // ============================================
   // 🔧 システム設定

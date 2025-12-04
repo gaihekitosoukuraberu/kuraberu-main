@@ -2667,14 +2667,30 @@ const MerchantSystem = {
     const ss = SpreadsheetApp.openById(DataAccessLayer.getSpreadsheetId());
     let sheet = ss.getSheetByName('認証情報');
 
+    const expectedHeaders = [
+      '加盟店ID', 'メールアドレス', 'パスワードハッシュ', '最終ログイン', 'パスワード変更日',
+      '親加盟店ID', '氏名', '役職', '追加権限JSON', 'ステータス',
+      '招待有効期限', '招待作成日時', '登録日時', '署名'
+    ];
+
     if (!sheet) {
       // シートがなければ作成
       sheet = ss.insertSheet('認証情報');
-      sheet.getRange(1, 1, 1, 14).setValues([[
-        '加盟店ID', 'メールアドレス', 'パスワードハッシュ', '最終ログイン', 'パスワード変更日',
-        '親加盟店ID', '氏名', '役職', '追加権限JSON', 'ステータス',
-        '招待有効期限', '招待作成日時', '登録日時', '署名'
-      ]]);
+      sheet.getRange(1, 1, 1, 14).setValues([expectedHeaders]);
+    } else {
+      // ヘッダー自動修復（空の列があれば補完）
+      const currentHeaders = sheet.getRange(1, 1, 1, 14).getValues()[0];
+      let needsUpdate = false;
+      for (let i = 0; i < expectedHeaders.length; i++) {
+        if (!currentHeaders[i] || currentHeaders[i] === '') {
+          currentHeaders[i] = expectedHeaders[i];
+          needsUpdate = true;
+        }
+      }
+      if (needsUpdate) {
+        console.log('[MerchantSystem] ヘッダー自動修復実行');
+        sheet.getRange(1, 1, 1, 14).setValues([currentHeaders]);
+      }
     }
 
     return sheet;
