@@ -8411,7 +8411,6 @@
 
         // 加盟店データを取得する関数
         async function fetchMerchantData(merchantId) {
-            console.log('[fetchMerchantData] 開始 merchantId:', merchantId);
             try {
                 const result = await new Promise((resolve, reject) => {
                     const callbackName = 'jsonp_data_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -8436,35 +8435,28 @@
                     document.body.appendChild(script);
                 });
 
-                console.log('[fetchMerchantData] 取得結果:', result);
                 if (result.success && result.data) {
                     window.merchantData = result.data;
                     window.merchantId = merchantId;
 
                     const salesPersonName = result.data['営業担当者氏名'] || result.data.salesPersonName || result.data.sales_person_name || '';
-                    console.log('[fetchMerchantData] 営業担当者氏名:', salesPersonName);
                     if (salesPersonName) {
                         window.merchantData.salesPerson = salesPersonName;
                     }
 
                     // ヘッダーのステータスをスプシのAJ列から反映
                     const status = result.data['ステータス'];
-                    console.log('[fetchMerchantData] ステータス:', status);
                     if (status) {
                         updateHeaderStatus(status);
-                        // V1703: 一時停止設定の状態表示も同期
                         updatePauseStatus(status);
                     }
 
                     // ヘッダーの営業担当者を更新
-                    console.log('[fetchMerchantData] updateRoleDisplay呼び出し前 currentUser:', currentUser);
                     updateRoleDisplay();
                 } else {
-                    console.log('[fetchMerchantData] 失敗 result:', result);
                     window.merchantData = {};
                 }
             } catch (error) {
-                console.error('[fetchMerchantData] エラー:', error);
                 window.merchantData = {};
             }
         }
