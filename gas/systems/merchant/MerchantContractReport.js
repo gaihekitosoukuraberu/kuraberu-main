@@ -1259,6 +1259,35 @@ var MerchantContractReport = {
   },
 
   /**
+   * POSTリクエストハンドラー
+   * @param {Object} e - イベントオブジェクト
+   * @param {Object} postData - main.jsでパース済みのPOSTデータ（オプション）
+   * @return {Object} - 実行結果
+   */
+  handlePost: function(e, postData) {
+    try {
+      // main.jsから渡されたpostDataを優先、なければe.parameterから取得
+      let params = postData || e.parameter || {};
+
+      // postDataがなく、e.postDataがある場合はパース
+      if (!postData && e.postData && e.postData.contents) {
+        try {
+          const parsed = JSON.parse(e.postData.contents);
+          params = Object.assign({}, params, parsed);
+        } catch (err) {
+          console.error('[MerchantContractReport] POST data parse error:', err);
+        }
+      }
+
+      console.log('[MerchantContractReport] handlePost action:', params.action);
+      return this.handle(params);
+    } catch (error) {
+      console.error('[MerchantContractReport] handlePost error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
    * アクションルーター
    * @param {Object} params - { action: アクション名, ...その他のパラメータ }
    * @return {Object} - 実行結果
