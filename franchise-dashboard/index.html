@@ -25893,6 +25893,20 @@
             // 毎回実行: 自動配信設定をスプレッドシートから読み込み
             if (window.merchantData) {
                 console.log('[initializeFirstLoginSettings] window.merchantDataが存在します。loadAutodeliverySettingsを呼び出します。');
+
+                // ヘッダーの担当者・ステータスを更新（fetchMerchantDataが失敗した場合のフォールバック）
+                const salesPersonName = window.merchantData['営業担当者氏名'] || window.merchantData.salesPersonName || '';
+                if (salesPersonName && !window.merchantData.salesPerson) {
+                    window.merchantData.salesPerson = salesPersonName;
+                }
+                if (typeof updateRoleDisplay === 'function') {
+                    updateRoleDisplay();
+                }
+                const status = window.merchantData['ステータス'];
+                if (status && typeof updateHeaderStatus === 'function') {
+                    updateHeaderStatus(status);
+                }
+
                 window.loadAutodeliverySettings(window.merchantData);
             } else {
                 console.warn('[initializeFirstLoginSettings] window.merchantDataが存在しません！');
