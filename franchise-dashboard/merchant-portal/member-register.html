@@ -230,12 +230,12 @@
         // 招待情報を保持
         let inviteData = null;
 
-        // URLパラメータ取得
+        // URLパラメータ取得（短縮リンク対応）
         function getUrlParams() {
             const params = new URLSearchParams(window.location.search);
             return {
-                data: params.get('data'),
-                sig: params.get('sig')
+                id: params.get('id'),
+                s: params.get('s')
             };
         }
 
@@ -254,9 +254,9 @@
 
         // 初期化
         async function init() {
-            const { data, sig } = getUrlParams();
+            const { id, s } = getUrlParams();
 
-            if (!data || !sig) {
+            if (!id || !s) {
                 showError('無効なアクセスです。招待リンクから再度アクセスしてください。');
                 return;
             }
@@ -274,7 +274,7 @@
                     };
 
                     const script = document.createElement('script');
-                    script.src = `${GAS_URL}?action=verifyMemberInvite&data=${encodeURIComponent(data)}&sig=${encodeURIComponent(sig)}&callback=${callbackName}`;
+                    script.src = `${GAS_URL}?action=verifyMemberInvite&id=${encodeURIComponent(id)}&s=${encodeURIComponent(s)}&callback=${callbackName}`;
                     script.onerror = () => {
                         delete window[callbackName];
                         document.body.removeChild(script);
@@ -295,8 +295,8 @@
 
                 if (result.success && result.invite) {
                     inviteData = result.invite;
-                    inviteData.data = data;
-                    inviteData.sig = sig;
+                    inviteData.id = id;
+                    inviteData.s = s;
 
                     // 表示更新
                     document.getElementById('merchantNameDisplay').textContent =
@@ -477,8 +477,8 @@
 
                     const params = new URLSearchParams({
                         action: 'registerMember',
-                        data: inviteData.data,
-                        sig: inviteData.sig,
+                        id: inviteData.id,
+                        s: inviteData.s,
                         name: memberName,
                         password: password,
                         callback: callbackName

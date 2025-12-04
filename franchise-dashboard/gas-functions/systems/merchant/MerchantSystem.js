@@ -2395,12 +2395,11 @@ const MerchantSystem = {
         createdAt: now.toISOString()
       };
 
-      // 署名生成（シンプルなHMAC風）
+      // 短い署名生成（8文字）
       const secret = PropertiesService.getScriptProperties().getProperty('INVITE_SECRET') || 'default-secret-key';
-      const dataStr = JSON.stringify(inviteData);
       const signature = Utilities.base64Encode(
-        Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, dataStr + secret)
-      );
+        Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, memberId + secret)
+      ).substring(0, 8);
 
       // 認証情報シートに招待レコード追加
       const credSheet = this._getCredentialsSheet();
@@ -2412,8 +2411,8 @@ const MerchantSystem = {
       // 新しい行を追加
       const newRow = credSheet.getLastRow() + 1;
       credSheet.getRange(newRow, colIndex('加盟店ID')).setValue(memberId);
-      credSheet.getRange(newRow, colIndex('メールアドレス')).setValue(''); // 後で設定
-      credSheet.getRange(newRow, colIndex('パスワードハッシュ')).setValue(''); // 後で設定
+      credSheet.getRange(newRow, colIndex('メールアドレス')).setValue('');
+      credSheet.getRange(newRow, colIndex('パスワードハッシュ')).setValue('');
 
       // 追加列（F列以降）
       if (colIndex('親加盟店ID') > 0) credSheet.getRange(newRow, colIndex('親加盟店ID')).setValue(merchantId);
@@ -2424,9 +2423,8 @@ const MerchantSystem = {
       if (colIndex('招待作成日時') > 0) credSheet.getRange(newRow, colIndex('招待作成日時')).setValue(inviteData.createdAt);
       if (colIndex('署名') > 0) credSheet.getRange(newRow, colIndex('署名')).setValue(signature);
 
-      // 招待リンク生成
-      const encodedData = Utilities.base64Encode(dataStr, Utilities.Charset.UTF_8);
-      const inviteLink = `https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/member-register.html?data=${encodeURIComponent(encodedData)}&sig=${encodeURIComponent(signature)}`;
+      // 短い招待リンク: /invite/{memberId}?s={sig}
+      const inviteLink = `https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/member-register.html?id=${memberId}&s=${signature}`;
 
       return {
         success: true,
@@ -2442,45 +2440,76 @@ const MerchantSystem = {
   },
 
   /**
-   * 招待トークン検証
+   * 招待トークン検証（短縮リンク対応）
    */
   verifyMemberInvite: function(params) {
     try {
-      const { data, sig } = params;
+      // 新形式: id + s（短縮リンク）
+      const memberId = params.id;
+      const sig = params.s;
 
-      if (!data || !sig) {
+      if (!memberId || !sig) {
         return { success: false, error: 'パラメータが不足しています' };
       }
-
-      // データをデコード
-      const decodedData = Utilities.newBlob(Utilities.base64Decode(data)).getDataAsString();
-      const inviteData = JSON.parse(decodedData);
 
       // 署名検証
       const secret = PropertiesService.getScriptProperties().getProperty('INVITE_SECRET') || 'default-secret-key';
       const expectedSig = Utilities.base64Encode(
-        Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, decodedData + secret)
-      );
+        Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, memberId + secret)
+      ).substring(0, 8);
 
       if (sig !== expectedSig) {
         return { success: false, error: '署名が無効です' };
       }
 
+      // 認証情報シートからデータ取得
+      const credSheet = this._getCredentialsSheet();
+      const credData = credSheet.getDataRange().getValues();
+      const headers = credData[0];
+
+      const colIndex = (name) => headers.indexOf(name);
+      const memberIdCol = colIndex('加盟店ID');
+      const parentIdCol = colIndex('親加盟店ID');
+      const roleCol = colIndex('役職');
+      const statusCol = colIndex('ステータス');
+      const expiryCol = colIndex('招待有効期限');
+
+      // メンバーIDで行を探す
+      let inviteRow = null;
+      for (let i = 1; i < credData.length; i++) {
+        if (credData[i][memberIdCol] === memberId) {
+          inviteRow = credData[i];
+          break;
+        }
+      }
+
+      if (!inviteRow) {
+        return { success: false, error: '招待が見つかりません' };
+      }
+
+      // ステータスチェック
+      if (inviteRow[statusCol] !== 'pending') {
+        return { success: false, error: 'この招待は既に使用されています' };
+      }
+
       // 有効期限チェック
-      if (new Date(inviteData.expiresAt) < new Date()) {
+      const expiresAt = inviteRow[expiryCol];
+      if (expiresAt && new Date(expiresAt) < new Date()) {
         return { success: false, error: '招待リンクの有効期限が切れています' };
       }
+
+      const parentMerchantId = inviteRow[parentIdCol];
 
       // 親加盟店の情報を取得
       const regSheet = DataAccessLayer.getRegistrationSheet();
       const regData = regSheet.getDataRange().getValues();
       const regHeaders = regData[0];
-      const merchantIdCol = regHeaders.indexOf('登録ID');
+      const regMerchantIdCol = regHeaders.indexOf('登録ID');
       const companyNameCol = regHeaders.indexOf('会社名');
 
       let merchantName = '';
       for (let i = 1; i < regData.length; i++) {
-        if (regData[i][merchantIdCol] === inviteData.merchantId) {
+        if (regData[i][regMerchantIdCol] === parentMerchantId) {
           merchantName = regData[i][companyNameCol] || '';
           break;
         }
@@ -2489,11 +2518,11 @@ const MerchantSystem = {
       return {
         success: true,
         invite: {
-          merchantId: inviteData.merchantId,
-          memberId: inviteData.memberId,
-          role: inviteData.role,
+          merchantId: parentMerchantId,
+          memberId: memberId,
+          role: inviteRow[roleCol] || 'standard',
           merchantName: merchantName,
-          expiresAt: inviteData.expiresAt
+          expiresAt: expiresAt
         }
       };
 
@@ -2504,19 +2533,19 @@ const MerchantSystem = {
   },
 
   /**
-   * メンバー登録
+   * メンバー登録（短縮リンク対応）
    */
   registerMember: function(params) {
     try {
-      const { data, sig, name, password } = params;
+      const { id, s, name, password } = params;
 
       // まず招待を検証
-      const verifyResult = this.verifyMemberInvite({ data, sig });
+      const verifyResult = this.verifyMemberInvite({ id, s });
       if (!verifyResult.success) {
         return verifyResult;
       }
 
-      const { memberId, role } = verifyResult.invite;
+      const { memberId } = verifyResult.invite;
 
       if (!name || !password) {
         return { success: false, error: '氏名とパスワードは必須です' };
