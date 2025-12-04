@@ -135,10 +135,25 @@
                 </svg>
             </div>
             <h3 class="text-xl font-bold text-gray-800 mb-2">登録完了</h3>
-            <p class="text-gray-600 mb-6">
-                メンバー登録が完了しました。<br>
-                ログインページからログインしてください。
+            <p class="text-gray-600 mb-4">
+                メンバー登録が完了しました。
             </p>
+
+            <!-- ログイン情報 -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+                <p class="text-sm font-bold text-blue-800 mb-2">ログイン情報（メモしてください）</p>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">加盟店ID:</span>
+                        <span id="successMerchantId" class="font-mono font-bold text-gray-800"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">パスワード:</span>
+                        <span class="text-gray-800">登録時に設定したもの</span>
+                    </div>
+                </div>
+            </div>
+
             <a href="login.html"
                class="inline-block bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-200">
                 ログインページへ
@@ -367,6 +382,8 @@
                 console.log('[member-register] Register response:', result);
 
                 if (result.success) {
+                    // 加盟店IDを表示
+                    document.getElementById('successMerchantId').textContent = inviteData.merchantId || '不明';
                     document.getElementById('registerSection').classList.add('hidden');
                     document.getElementById('successSection').classList.remove('hidden');
                 } else {
