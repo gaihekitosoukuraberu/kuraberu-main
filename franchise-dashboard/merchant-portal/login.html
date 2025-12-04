@@ -46,11 +46,12 @@
         <form id="loginForm">
             <div class="mb-4">
                 <label for="merchantId" class="block text-gray-700 text-sm font-bold mb-2">
-                    加盟店ID
+                    ID
                 </label>
                 <input type="text" id="merchantId" name="merchantId" required
                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                       placeholder="加盟店IDを入力">
+                       placeholder="加盟店ID または メンバーID">
+                <p class="text-xs text-gray-500 mt-1">※メンバーの方は招待時に発行されたIDを入力</p>
             </div>
 
             <div class="mb-6">
@@ -162,6 +163,17 @@
 
         // 初回ログイン後の自動入力（PC・スマホ両対応）
         function autoFillLogin() {
+            // メンバー登録後の自動入力
+            const tempMemberId = sessionStorage.getItem('tempMemberId');
+            if (tempMemberId) {
+                document.getElementById('merchantId').value = tempMemberId;
+                document.getElementById('rememberMe').checked = true;
+                sessionStorage.removeItem('tempMemberId');
+                console.log('[Auto-fill] メンバーIDを自動入力しました');
+                return;
+            }
+
+            // 従来の自動入力（オーナー用）
             const tempMerchantId = sessionStorage.getItem('tempMerchantId');
             const tempPassword = sessionStorage.getItem('tempPassword');
 
@@ -199,6 +211,12 @@
             loginBtn.textContent = 'ログイン中...';
 
             try {
+                // メンバーIDかどうか判定
+                const isMember = merchantId.startsWith('MEM_');
+                const action = isMember ? 'verifyMemberLogin' : 'verifyLogin';
+
+                console.log('[Login] Using action:', action, 'isMember:', isMember);
+
                 // JSONP でログイン
                 const result = await new Promise((resolve, reject) => {
                     const callbackName = 'jsonp_' + Date.now();
@@ -208,8 +226,15 @@
                         resolve(data);
                     };
 
+                    let url;
+                    if (isMember) {
+                        url = `${GAS_URL}?action=${action}&memberId=${encodeURIComponent(merchantId)}&password=${encodeURIComponent(password)}&callback=${callbackName}`;
+                    } else {
+                        url = `${GAS_URL}?action=${action}&merchantId=${encodeURIComponent(merchantId)}&password=${encodeURIComponent(password)}&callback=${callbackName}`;
+                    }
+
                     const script = document.createElement('script');
-                    script.src = `${GAS_URL}?action=verifyLogin&merchantId=${encodeURIComponent(merchantId)}&password=${encodeURIComponent(password)}&callback=${callbackName}`;
+                    script.src = url;
                     script.onerror = () => {
                         delete window[callbackName];
                         document.body.removeChild(script);
@@ -223,12 +248,23 @@
                 if (result.success) {
                     // ログイン成功
                     const storage = rememberMe ? localStorage : sessionStorage;
-                    storage.setItem('merchantId', merchantId);
-                    storage.setItem('isLoggedIn', 'true');
 
-                    // index.htmlが認識できる形式で保存（加盟店ID = 管理者権限）
-                    storage.setItem('franchiseUser', merchantId);
-                    storage.setItem('franchiseRole', 'admin');
+                    if (isMember) {
+                        // メンバーログイン
+                        storage.setItem('memberId', merchantId);
+                        storage.setItem('merchantId', result.merchantId); // 親の加盟店ID
+                        storage.setItem('memberName', result.memberName || '');
+                        storage.setItem('memberRole', result.role || 'standard');
+                        storage.setItem('franchiseUser', result.merchantId);
+                        storage.setItem('franchiseRole', result.role || 'standard');
+                    } else {
+                        // オーナーログイン
+                        storage.setItem('merchantId', merchantId);
+                        storage.setItem('franchiseUser', merchantId);
+                        storage.setItem('franchiseRole', 'admin');
+                    }
+
+                    storage.setItem('isLoggedIn', 'true');
                     storage.setItem('loginTime', new Date().toISOString());
 
                     // 加盟店ダッシュボードにリダイレクト

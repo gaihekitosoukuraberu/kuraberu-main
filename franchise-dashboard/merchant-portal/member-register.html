@@ -141,11 +141,11 @@
 
             <!-- ログイン情報 -->
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
-                <p class="text-sm font-bold text-blue-800 mb-2">ログイン情報（メモしてください）</p>
+                <p class="text-sm font-bold text-blue-800 mb-2">ログイン情報（スクショ推奨）</p>
                 <div class="space-y-2 text-sm">
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">加盟店ID:</span>
-                        <span id="successMerchantId" class="font-mono font-bold text-gray-800"></span>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">あなたのID:</span>
+                        <span id="successMerchantId" class="font-mono font-bold text-blue-700 bg-white px-2 py-1 rounded"></span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-600">パスワード:</span>
@@ -382,10 +382,13 @@
                 console.log('[member-register] Register response:', result);
 
                 if (result.success) {
-                    // 加盟店IDを表示
-                    document.getElementById('successMerchantId').textContent = inviteData.merchantId || '不明';
+                    // ログイン情報を表示
+                    document.getElementById('successMerchantId').textContent = inviteData.memberId || '不明';
                     document.getElementById('registerSection').classList.add('hidden');
                     document.getElementById('successSection').classList.remove('hidden');
+
+                    // 自動ログイン用にセッションに保存（初回のみ）
+                    sessionStorage.setItem('tempMemberId', inviteData.memberId);
                 } else {
                     alert('エラー: ' + (result.error || '登録に失敗しました'));
                     submitBtn.disabled = false;
