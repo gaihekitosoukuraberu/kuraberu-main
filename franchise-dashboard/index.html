@@ -678,7 +678,6 @@
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">顧客情報</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">架電履歴</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">メモ/履歴</th>
-                                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">次回架電</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">進捗</th>
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">担当</th>
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">配信日</th>
@@ -17728,10 +17727,6 @@
                         <button onclick="openMemoModal('${c.cvId}')" class="text-base font-medium text-amber-600 hover:text-amber-800" title="メモ/履歴">
                             ${getMemoCountBadge(c)}
                         </button>
-                    </td>
-                    <!-- 次回架電 -->
-                    <td class="px-2 py-3 text-center">
-                        <button onclick="openNextCallModal('${c.cvId}')" class="text-sm ${nextCallDisplay !== '-' ? 'text-blue-600' : 'text-gray-400'} hover:text-blue-700 hover:bg-blue-50 px-1.5 py-0.5 rounded transition-colors" title="次回架電日を設定">${nextCallDisplay !== '-' ? nextCallDisplay : '🗓️'}</button>
                     </td>
                     <!-- 進捗 -->
                     <td class="px-2 py-3 text-center">
