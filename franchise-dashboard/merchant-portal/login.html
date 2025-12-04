@@ -222,7 +222,7 @@
 
             try {
                 // メンバーIDかどうか判定
-                const isMember = merchantId.startsWith('MEM_');
+                const isMember = merchantId.startsWith('ST');
                 const action = isMember ? 'verifyMemberLogin' : 'verifyLogin';
 
                 console.log('[Login] Using action:', action, 'isMember:', isMember);

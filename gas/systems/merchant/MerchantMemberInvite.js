@@ -149,11 +149,20 @@ const MerchantMemberInvite = {
         return { success: false, error: '加盟店IDが必要です' };
       }
 
-      // メンバーID生成（短く：M + 6文字）
-      const memberId = 'M' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      // 現在時刻
+      const now = new Date();
+
+      // メンバーID生成（ST + 日時ベース12桁 = Staff）
+      // 形式: ST + YYMMDDHHMMSS（例: ST251205012345）
+      const dateStr = now.getFullYear().toString().slice(-2) +
+                      String(now.getMonth() + 1).padStart(2, '0') +
+                      String(now.getDate()).padStart(2, '0') +
+                      String(now.getHours()).padStart(2, '0') +
+                      String(now.getMinutes()).padStart(2, '0') +
+                      String(now.getSeconds()).padStart(2, '0');
+      const memberId = 'ST' + dateStr;
 
       // 有効期限計算
-      const now = new Date();
       const expiry = new Date(now.getTime() + expiryHours * 60 * 60 * 1000);
 
       // 招待データ作成
