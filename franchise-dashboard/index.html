@@ -17557,7 +17557,7 @@
                 // 次回架電日（見積完成目処）があれば表示
                 if (nextCallDisplay !== '-') {
                     return {
-                        html: `<button onclick="openNextCallModal('${c.cvId}')" class="text-sm text-blue-600 font-medium hover:text-blue-700 hover:bg-blue-50 px-1.5 py-0.5 rounded transition-colors" title="見積完成目処を変更">📝見積完成 ${nextCallDisplay}</button>`
+                        html: `<button onclick="openNextCallModal('${c.cvId}')" class="text-sm text-blue-600 font-medium hover:text-blue-700 hover:bg-blue-50 px-1.5 py-0.5 rounded transition-colors" title="見積完成目処を変更">📝完成目処 ${nextCallDisplay}</button>`
                     };
                 }
                 return { html: '<span class="text-gray-300">-</span>' };
