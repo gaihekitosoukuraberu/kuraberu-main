@@ -7345,8 +7345,9 @@
                 </div>
             </div>
 
-            <!-- 詳細設定トグル -->
-            <div class="mb-6">
+            <!-- 詳細設定トグル（一旦非表示、後でカードから設定可能） -->
+            <!-- TODO: Phase3で権限編集機能実装後に復活 -->
+            <div class="mb-6 hidden">
                 <button onclick="toggleInviteAdvanced()" class="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1">
                     <svg id="inviteAdvancedIcon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -15479,6 +15480,12 @@
         function shareInviteSMS() {
             const message = encodeURIComponent(`くらべるネット招待: ${generatedInviteLink}`);
             window.open(`sms:?body=${message}`, '_blank');
+        }
+
+        function shareInviteEmail() {
+            const subject = encodeURIComponent('くらべるネット加盟店システムへの招待');
+            const body = encodeURIComponent(`くらべるネット加盟店システムへの招待です。\n\n以下のリンクから登録してください：\n${generatedInviteLink}\n\n※このリンクは24時間有効です。`);
+            window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
         }
 
         // ====================================
