@@ -17547,16 +17547,20 @@
         // 接続/不在を選択
         function selectConnectionStatus(status) {
             connectionStatus = status;
+            console.log('[selectConnectionStatus] status:', status);
 
             if (status === 'connected') {
                 // 接続時：通話結果モーダルを閉じて、新しいメモモーダルを開く
                 const cvId = currentCallCase?.cvId;
                 afterCallCase = currentCallCase;
                 const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+                console.log('[selectConnectionStatus] connected - cvId:', cvId, 'merchantId:', merchantId);
 
                 // 電話回数を即座にインクリメント（ローカル）
                 if (currentCallCase) {
-                    currentCallCase.callCount = (parseInt(currentCallCase.callCount || 0) + 1);
+                    const oldCount = currentCallCase.callCount || 0;
+                    currentCallCase.callCount = (parseInt(oldCount) + 1);
+                    console.log('[selectConnectionStatus] callCount:', oldCount, '→', currentCallCase.callCount);
                     renderCases(); // UI即時反映
                 }
 
@@ -17565,7 +17569,8 @@
                     currentCallCase.detailStatus = '未アポ';
                 }
 
-                // バックグラウンドで電話回数とステータスを保存
+                // バックグラウンドで電話回数を保存
+                console.log('[selectConnectionStatus] GASに電話回数保存開始...');
                 fetch(GAS_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' },
@@ -17578,7 +17583,10 @@
                         callHistory: currentCallCase?.callHistory || [],
                         callCount: currentCallCase?.callCount || 1
                     })
-                }).catch(err => console.error('電話回数保存エラー:', err));
+                })
+                .then(res => res.json())
+                .then(result => console.log('[selectConnectionStatus] 電話回数保存結果:', result))
+                .catch(err => console.error('[selectConnectionStatus] 電話回数保存エラー:', err));
 
                 // 新着だった場合はステータスも更新
                 if (currentCallCase && currentCallCase.detailStatus === '未アポ') {
