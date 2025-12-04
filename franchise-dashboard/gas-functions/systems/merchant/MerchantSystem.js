@@ -2423,8 +2423,22 @@ const MerchantSystem = {
       if (colIndex('招待作成日時') > 0) credSheet.getRange(newRow, colIndex('招待作成日時')).setValue(inviteData.createdAt);
       if (colIndex('署名') > 0) credSheet.getRange(newRow, colIndex('署名')).setValue(signature);
 
-      // 短い招待リンク: /invite/{memberId}?s={sig}
-      const inviteLink = `https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/member-register.html?id=${memberId}&s=${signature}`;
+      // 長いURL
+      const longUrl = `https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/member-register.html?id=${memberId}&s=${signature}`;
+
+      // is.gdで短縮
+      let inviteLink = longUrl;
+      try {
+        const apiUrl = `https://is.gd/create.php?format=simple&url=${encodeURIComponent(longUrl)}`;
+        const response = UrlFetchApp.fetch(apiUrl, { muteHttpExceptions: true });
+        const shortUrl = response.getContentText().trim();
+        if (shortUrl.startsWith('https://is.gd/')) {
+          inviteLink = shortUrl;
+          console.log('[MerchantSystem] is.gd短縮成功:', shortUrl);
+        }
+      } catch (e) {
+        console.log('[MerchantSystem] is.gd短縮失敗、元URLを使用:', e);
+      }
 
       return {
         success: true,
