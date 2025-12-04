@@ -19640,52 +19640,24 @@
             if (!currentMemoCase) return;
 
             const cvId = currentMemoCase.cvId;
-            const c = currentMemoCase;
             const memoText = `${emoji} ${label}`;
-
-            // 履歴に追加
-            if (!c.callHistory) {
-                c.callHistory = [];
-            }
-            c.callHistory.unshift({
-                date: new Date().toLocaleString('ja-JP'),
-                type: 'quick_progress',
-                note: memoText
-            });
-
-            // GASに保存
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
-            fetch(GAS_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify({
-                    system: 'merchant',
-                    subsystem: 'contract',
-                    action: 'addCaseMemo',
-                    merchantId: merchantId,
-                    cvId: cvId,
-                    memo: memoText
-                })
-            })
-            .then(res => res.json())
-            .then(result => {
-                if (result.success) {
-                    console.log('[selectMemoQuickOption] 保存完了:', memoText);
-                } else {
-                    console.error('[selectMemoQuickOption] 保存失敗:', result.error);
-                }
-            })
-            .catch(err => console.error('[selectMemoQuickOption] 通信エラー:', err));
 
             // 商談アポ済の場合は見積提出日時モーダルを開く
             if (action === 'estimate') {
+                // テキストエリアにセットしてから見積モーダルへ
+                const textarea = document.getElementById('caseMemoTextarea');
+                if (textarea) {
+                    textarea.value = textarea.value ? textarea.value + '\n' + memoText : memoText;
+                }
                 closeMemoModal();
                 openEstimateDateModal(cvId);
             } else {
-                // メモとして保存してモーダルを閉じる
-                closeMemoModal();
-                renderCases();
-                showNotification('保存完了', '進捗を記録しました');
+                // テキストエリアに追加（自動保存はしない）
+                const textarea = document.getElementById('caseMemoTextarea');
+                if (textarea) {
+                    textarea.value = textarea.value ? textarea.value + '\n' + memoText : memoText;
+                    textarea.focus();
+                }
             }
         }
 
