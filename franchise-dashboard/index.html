@@ -678,7 +678,7 @@
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">顧客情報</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">架電</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">メモ</th>
-                                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">次回</th>
+                                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">次回架電</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">現調</th>
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">担当</th>
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">配信日</th>
@@ -17283,10 +17283,10 @@
                     <!-- 日程エリア（次回架電・現調） -->
                     <div class="flex flex-wrap gap-2 mb-3 text-sm">
                         <button onclick="openNextCallModal('${c.cvId}')" class="flex items-center gap-1 px-2 py-1 rounded-lg ${nextCallShort ? 'bg-blue-50 text-blue-700' : 'bg-gray-50 text-gray-500'} hover:bg-blue-100 transition-colors" title="次回架電日を設定">
-                            <span>🗓️</span><span class="font-medium">${nextCallShort || '架電予定'}</span>
+                            <span>🗓️</span><span class="font-medium">${nextCallShort ? '次回架電' + nextCallShort : '架電予定'}</span>
                         </button>
                         ${surveyShort ? `<button onclick="openSurveyModal('${c.cvId}')" class="flex items-center gap-1 px-2 py-1 rounded-lg bg-orange-50 text-orange-700 hover:bg-orange-100 transition-colors" title="現調日時を変更">
-                            <span>🏠</span><span class="font-medium">${surveyShort}</span>
+                            <span>🏠</span><span class="font-medium">現調${surveyShort}</span>
                         </button>` : ''}
                     </div>
                     <div class="text-xs text-gray-400 mb-3">
@@ -19191,7 +19191,7 @@
                         const btnContainer = document.createElement('div');
                         btnContainer.id = 'memoSkipBtnContainer';
                         btnContainer.className = 'mt-2';
-                        btnContainer.innerHTML = '<button id="memoSkipBtn" onclick="skipMemoAndClose()" class="w-full py-2.5 text-gray-500 text-sm font-medium hover:text-gray-700 transition-all flex items-center justify-center gap-1"><span>完了</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>';
+                        btnContainer.innerHTML = '<button id="memoSkipBtn" onclick="skipMemoAndClose()" class="w-full py-2.5 bg-gray-100 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-200 transition-all">メモをスキップ</button>';
                         memoInputArea.appendChild(btnContainer);
                     }
                 } else {
