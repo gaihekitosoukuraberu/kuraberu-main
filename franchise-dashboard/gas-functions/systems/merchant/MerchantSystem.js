@@ -882,6 +882,38 @@ const MerchantSystem = {
           resetLoginAttempts(merchantId);
         }
 
+        // メンバーIDの場合、メンバー情報を取得
+        const isMember = merchantId.startsWith('ST') && merchantId.length === 14;
+        if (isMember) {
+          // 認証情報シートからメンバー情報取得
+          const credSheet = this._getCredentialsSheet();
+          const credData = credSheet.getDataRange().getValues();
+          const headers = credData[0];
+          const memberIdCol = headers.indexOf('加盟店ID');
+          const parentIdCol = headers.indexOf('親加盟店ID');
+          const nameCol = headers.indexOf('氏名');
+          const roleCol = headers.indexOf('役職');
+
+          let memberInfo = null;
+          for (let i = 1; i < credData.length; i++) {
+            if (credData[i][memberIdCol] === merchantId) {
+              memberInfo = {
+                merchantId: credData[i][parentIdCol],
+                name: credData[i][nameCol] || '',
+                role: credData[i][roleCol] || 'standard'
+              };
+              break;
+            }
+          }
+
+          return {
+            success: true,
+            message: 'ログイン成功',
+            merchantId: merchantId,
+            member: memberInfo
+          };
+        }
+
         return {
           success: true,
           message: 'ログイン成功',
