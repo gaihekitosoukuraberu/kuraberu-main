@@ -1056,6 +1056,61 @@
                     </div>
                 </div>
 
+                <!-- 現調後アクション選択モーダル -->
+                <div id="postSurveyActionModal" class="fixed inset-0 z-50 hidden">
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closePostSurveyActionModal()"></div>
+                    <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md overflow-hidden">
+                            <!-- ヘッダー -->
+                            <div class="p-4 border-b bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-lg font-bold">✅ 現調完了！次のアクションは？</h3>
+                                    <button onclick="closePostSurveyActionModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all -mr-2">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <p id="postSurveyTargetName" class="text-base font-bold text-white">---</p>
+                                <p id="postSurveyTargetAddress" class="text-sm text-emerald-100 mt-0.5">---</p>
+                            </div>
+
+                            <!-- 選択肢 -->
+                            <div class="p-4 space-y-3">
+                                <button onclick="selectPostSurveyAction('estimate')" class="w-full p-4 bg-emerald-50 border-2 border-emerald-200 rounded-xl hover:border-emerald-400 hover:bg-emerald-100 transition-all text-left group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">📅</span>
+                                        <div>
+                                            <div class="font-bold text-emerald-800 group-hover:text-emerald-900">商談日時が決まっている</div>
+                                            <div class="text-sm text-emerald-600">見積もりお渡しの日時を設定</div>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                <button onclick="selectPostSurveyAction('nextcall')" class="w-full p-4 bg-blue-50 border-2 border-blue-200 rounded-xl hover:border-blue-400 hover:bg-blue-100 transition-all text-left group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">📝</span>
+                                        <div>
+                                            <div class="font-bold text-blue-800 group-hover:text-blue-900">見積もり作成後に連絡</div>
+                                            <div class="text-sm text-blue-600">見積もり完成目処（次回架電日）を設定</div>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                <button onclick="selectPostSurveyAction('skip')" class="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-xl hover:border-gray-400 hover:bg-gray-100 transition-all text-left group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">⏭️</span>
+                                        <div>
+                                            <div class="font-bold text-gray-700 group-hover:text-gray-900">後で設定</div>
+                                            <div class="text-sm text-gray-500">今はスキップ</div>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 見積提出日時モーダル（商談アポ済選択後） -->
                 <div id="estimateDateModal" class="fixed inset-0 z-50 hidden">
                     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeEstimateDateModal()"></div>
@@ -19370,6 +19425,50 @@
 
             // メモモーダルへ（スキップ可能）
             openMemoModalAfterSurvey(cvId);
+        }
+
+        // ====================================
+        // 現調後アクション選択モーダル関連
+        // ====================================
+        let postSurveyTargetCvId = null;
+
+        function openPostSurveyActionModal(cvId) {
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            postSurveyTargetCvId = cvId;
+
+            // 顧客名と住所を表示
+            document.getElementById('postSurveyTargetName').textContent = `${c.customerName || '-'} 様`;
+            document.getElementById('postSurveyTargetAddress').textContent = c.fullAddress || c.city || '-';
+
+            document.getElementById('postSurveyActionModal').classList.remove('hidden');
+        }
+
+        function closePostSurveyActionModal() {
+            document.getElementById('postSurveyActionModal').classList.add('hidden');
+            postSurveyTargetCvId = null;
+        }
+
+        function selectPostSurveyAction(action) {
+            const cvId = postSurveyTargetCvId;
+            closePostSurveyActionModal();
+
+            if (!cvId) return;
+
+            switch (action) {
+                case 'estimate':
+                    // 商談日時が決まっている → 見積提出日モーダル
+                    openEstimateDateModal(cvId);
+                    break;
+                case 'nextcall':
+                    // 見積もり作成後に連絡 → 次回架電日モーダル（見積もり完成目処）
+                    openNextCallModal(cvId);
+                    break;
+                case 'skip':
+                    // 後で設定 → 何もしない
+                    break;
+            }
         }
 
         // ====================================
