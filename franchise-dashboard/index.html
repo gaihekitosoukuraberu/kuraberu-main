@@ -18715,9 +18715,13 @@
                 isAfterCallMode = false;
             }
 
-            // アポ済なら現調日時設定モーダルを表示（通話フロー以外でも）
+            // ステータスに応じて次のモーダルを表示
             if (newStatus === 'アポ済') {
+                // アポ済なら現調日時設定モーダル
                 openSurveyDateModal(cvId);
+            } else if (newStatus === '現調済') {
+                // 現調済なら見積提出日モーダル
+                openEstimateDateModal(cvId);
             } else if (wasAfterCallMode && newStatus === '未アポ') {
                 // 通話後フローで未アポの場合のみ次回架電日設定
                 openNextCallModal(cvId);
@@ -19603,7 +19607,8 @@
                 { emoji: '🔥', label: '温度高', action: 'memo' },
                 { emoji: '😐', label: '温度中', action: 'memo' },
                 { emoji: '❄️', label: '温度低', action: 'memo' },
-                { emoji: '🏠', label: '他社見積待ち', action: 'memo' }
+                { emoji: '🏠', label: '他社見積待ち', action: 'memo' },
+                { emoji: '📆', label: '長期追客', action: 'memo' }
             ]
         };
 
