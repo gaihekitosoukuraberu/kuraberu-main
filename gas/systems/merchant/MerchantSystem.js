@@ -112,6 +112,16 @@ const MerchantSystem = {
         case 'companyinfo_saveInsurances':
           return CompanyInfoManager.handle(params);
 
+        // メンバー招待・認証（MerchantMemberInviteに委譲）
+        case 'verifyMemberInvite':
+          return MerchantMemberInvite.verifyMemberInvite(params);
+        case 'registerMember':
+          return MerchantMemberInvite.registerMember(params);
+        case 'getMemberList':
+          return MerchantMemberInvite.getMemberList(params);
+        case 'verifyMemberLogin':
+          return MerchantMemberInvite.verifyMemberLogin(params);
+
         default:
           return {
             success: false,
@@ -255,6 +265,12 @@ const MerchantSystem = {
         case 'updateNextCallDate':
         case 'updateCallHistory':
           return MerchantContractReport[action](params);
+
+        // メンバー招待・管理（MerchantMemberInviteに委譲）
+        case 'generateInviteLink':
+          return MerchantMemberInvite.generateInviteLink(params);
+        case 'cancelInvite':
+          return MerchantMemberInvite.cancelInvite(params);
 
         default:
           return {

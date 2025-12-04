@@ -161,7 +161,14 @@ const SystemRouter = {
         'resetPassword',
         'getMerchantUrlSlug',
         'updateAutoDeliverySettings',
-        'resumeAutoDelivery'
+        'resumeAutoDelivery',
+        // メンバー招待・認証
+        'generateInviteLink',
+        'verifyMemberInvite',
+        'registerMember',
+        'getMemberList',
+        'verifyMemberLogin',
+        'cancelInvite'
       ]
     },
 
