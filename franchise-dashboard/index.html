@@ -18862,8 +18862,8 @@
             } else if (newStatus === '見積提出済') {
                 // 見積提出済なら状況選択モーダル
                 openSituationModal(cvId);
-            } else if (wasAfterCallMode && newStatus === '未アポ') {
-                // 通話後フローで未アポの場合のみ次回架電日設定
+            } else if (newStatus === '未アポ') {
+                // 未アポなら次回架電日設定
                 openNextCallModal(cvId);
             }
         }
