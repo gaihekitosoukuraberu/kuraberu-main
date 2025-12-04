@@ -1,0 +1,22 @@
+name: Cache Buster Update
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  update-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update cache buster
+        run: |
+          TIMESTAMP=$(date +%s)
+          sed -i "s/CACHE_BUSTER: 'v[0-9]*' + Date.now()/CACHE_BUSTER: 'v${TIMESTAMP}' + Date.now()/" js/env-loader.js
+
+      - name: Commit if changed
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git diff --quiet || (git add js/env-loader.js && git commit -m "auto: cache buster update" && git push)
