@@ -86,11 +86,11 @@ git add CURRENT_TODO.md && git commit -m "TODO: 作業内容" && git push
 
 ## キャッシュバスター自動更新
 
-**GitHub Actionsで自動化済み**（`.github/workflows/cache-buster.yml`）
+**GitHub Actionsで自動化済み**（`.github/workflows/frontend-deploy.yml`）
 
 - mainにpush → 自動でenv-loader.jsのキャッシュバスター更新
 - 手動更新不要
-- FTPアップロードで全箇所最新になる
+- FTPアップロードも自動実行される
 
 ---
 
