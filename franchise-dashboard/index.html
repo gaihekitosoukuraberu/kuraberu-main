@@ -17285,9 +17285,9 @@
                         <button onclick="openNextCallModal('${c.cvId}')" class="flex items-center gap-1 px-2 py-1 rounded-lg ${nextCallShort ? 'bg-blue-50 text-blue-700' : 'bg-gray-50 text-gray-500'} hover:bg-blue-100 transition-colors" title="次回架電日を設定">
                             <span>🗓️</span><span class="font-medium">${nextCallShort || '架電予定'}</span>
                         </button>
-                        <button onclick="openSurveyModal('${c.cvId}')" class="flex items-center gap-1 px-2 py-1 rounded-lg ${surveyShort ? 'bg-orange-50 text-orange-700' : 'bg-gray-50 text-gray-500'} hover:bg-orange-100 transition-colors" title="現調日時を設定">
-                            <span>🏠</span><span class="font-medium">${surveyShort || '現調予定'}</span>
-                        </button>
+                        ${surveyShort ? `<button onclick="openSurveyModal('${c.cvId}')" class="flex items-center gap-1 px-2 py-1 rounded-lg bg-orange-50 text-orange-700 hover:bg-orange-100 transition-colors" title="現調日時を変更">
+                            <span>🏠</span><span class="font-medium">${surveyShort}</span>
+                        </button>` : ''}
                     </div>
                     <div class="text-xs text-gray-400 mb-3">
                         <span>配信: ${deliveryShort}</span>
@@ -17387,7 +17387,7 @@
                     </td>
                     <!-- 現調日 -->
                     <td class="px-2 py-3 text-center">
-                        <button onclick="openSurveyModal('${c.cvId}')" class="text-sm ${surveyDisplay !== '-' ? 'text-orange-600 font-medium' : 'text-gray-400'} hover:text-orange-700 hover:bg-orange-50 px-1.5 py-0.5 rounded transition-colors" title="現調日時を設定">${surveyDisplay !== '-' ? surveyDisplay : '🏠'}</button>
+                        ${surveyDisplay !== '-' ? `<button onclick="openSurveyModal('${c.cvId}')" class="text-sm text-orange-600 font-medium hover:text-orange-700 hover:bg-orange-50 px-1.5 py-0.5 rounded transition-colors" title="現調日時を変更">${surveyDisplay}</button>` : '<span class="text-gray-300">-</span>'}
                     </td>
                     <!-- 担当 -->
                     <td class="px-3 py-3 text-sm">
