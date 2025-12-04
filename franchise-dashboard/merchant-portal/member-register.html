@@ -3,13 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <script>
-        // 動的manifest生成（start_urlに招待パラメータを含める）
+        // 最優先: ログイン済みならダッシュボードへリダイレクト
         (function() {
-            var currentUrl = window.location.href;
+            var isLoggedIn = localStorage.getItem('isLoggedIn') === 'true' ||
+                             sessionStorage.getItem('isLoggedIn') === 'true';
+            if (isLoggedIn) {
+                // 招待パラメータをクリア
+                localStorage.removeItem('pendingInvite');
+                window.location.replace('../index.html');
+                return;
+            }
+        })();
+    </script>
+    <script>
+        // 動的manifest生成（ログイン後はダッシュボードをstart_urlに）
+        (function() {
+            var isLoggedIn = localStorage.getItem('isLoggedIn') === 'true' ||
+                             sessionStorage.getItem('isLoggedIn') === 'true';
+            var startUrl = isLoggedIn ? '../index.html' : window.location.href;
             var manifest = {
-                "name": "くらべる メンバー登録",
+                "name": "くらべる 加盟店管理",
                 "short_name": "くらべる",
-                "start_url": currentUrl,
+                "start_url": startUrl,
                 "display": "standalone",
                 "background_color": "#ffffff",
                 "theme_color": "#3b82f6",
