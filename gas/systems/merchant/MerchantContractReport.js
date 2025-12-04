@@ -700,8 +700,8 @@ var MerchantContractReport = {
    * @return {Object} - { success }
    */
   updateCaseStatus: function(params) {
-    const { merchantId, cvId, status } = params;
-    console.log('[MerchantContractReport] updateCaseStatus:', { merchantId, cvId, status });
+    const { merchantId, cvId, status, oldStatus } = params;
+    console.log('[MerchantContractReport] updateCaseStatus:', { merchantId, cvId, status, oldStatus });
 
     if (!merchantId || !cvId || !status) {
       return { success: false, error: 'パラメータが不足しています' };
@@ -726,7 +726,8 @@ var MerchantContractReport = {
         cvId: headers.indexOf('CV ID'),
         franchiseId: headers.indexOf('加盟店ID'),
         detailStatus: headers.indexOf('詳細ステータス'),
-        deliveryStatus: headers.indexOf('配信ステータス')
+        deliveryStatus: headers.indexOf('配信ステータス'),
+        caseMemo: headers.indexOf('加盟店メモ')
       };
 
       // merchantIdから会社名を取得（getMerchantCasesと同じロジック）
@@ -758,6 +759,16 @@ var MerchantContractReport = {
 
           if (status === '成約') {
             deliverySheet.getRange(i + 1, colIdx.deliveryStatus + 1).setValue('成約');
+          }
+
+          // ステータス変更履歴をメモに追加（oldStatusが異なる場合のみ）
+          if (oldStatus && oldStatus !== status && colIdx.caseMemo >= 0) {
+            const now = new Date();
+            const dateStr = Utilities.formatDate(now, 'Asia/Tokyo', 'M/d H:mm');
+            const statusChangeNote = `🏷️ ${oldStatus} → ${status} (${dateStr})`;
+            const currentMemo = row[colIdx.caseMemo] || '';
+            const newMemo = currentMemo ? statusChangeNote + '\n' + currentMemo : statusChangeNote;
+            deliverySheet.getRange(i + 1, colIdx.caseMemo + 1).setValue(newMemo);
           }
 
           console.log('[MerchantContractReport] updateCaseStatus - updated row', i + 1);

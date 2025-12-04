@@ -676,7 +676,7 @@
                             <tr>
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">顧客情報</th>
-                                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">架電</th>
+                                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">架電履歴</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">メモ</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">次回架電</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">現調</th>
@@ -18476,7 +18476,7 @@
             renderCases();
             closeStatusModal();
 
-            // バックグラウンドでGASに保存
+            // バックグラウンドでGASに保存（旧ステータスも送信してメモに履歴を残す）
             fetch(GAS_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain' },
@@ -18486,7 +18486,8 @@
                     action: 'updateCaseStatus',
                     merchantId: merchantId,
                     cvId: cvId,
-                    status: newStatus
+                    status: newStatus,
+                    oldStatus: oldStatus || '新着'
                 })
             })
             .then(response => response.json())
@@ -18503,17 +18504,17 @@
                 showNotification('通信エラー', 'ステータスの保存に失敗しました', 'error');
             });
 
-            // 通話後フローの場合は条件分岐
+            // ステータスに応じて次のアクションへ
             if (wasAfterCallMode) {
                 isAfterCallMode = false;
-                if (newStatus === 'アポ済') {
-                    // アポ済 → 現調日時設定 → メモ（スキップ可）
-                    openSurveyDateModal(cvId);
-                } else if (newStatus === '未アポ') {
-                    // 未アポ → 次回架電日設定 → 終わり
-                    openNextCallModal(cvId);
-                }
-                // その他のステータス → 終わり（何もしない）
+            }
+
+            // アポ済なら現調日時設定モーダルを表示（通話フロー以外でも）
+            if (newStatus === 'アポ済') {
+                openSurveyDateModal(cvId);
+            } else if (wasAfterCallMode && newStatus === '未アポ') {
+                // 通話後フローで未アポの場合のみ次回架電日設定
+                openNextCallModal(cvId);
             }
         }
 
