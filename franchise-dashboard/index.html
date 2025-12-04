@@ -19427,9 +19427,8 @@
 
             let text = `${m}/${d}(${dayName})`;
             if (selectedNextCallHour !== null) {
-                const h = String(selectedNextCallHour).padStart(2, '0');
                 const min = String(selectedNextCallMinute).padStart(2, '0');
-                text += ` ${h}:${min}`;
+                text += ` ${selectedNextCallHour}:${min}`;
             }
 
             previewText.textContent = text;
@@ -19459,12 +19458,11 @@
                 return;
             }
 
-            // 日時を組み立て
+            // 日時を組み立て（時はゼロ埋めなし、分はゼロ埋め）
             let dateTimeValue = dateValue;
             if (selectedNextCallHour !== null) {
-                const h = String(selectedNextCallHour).padStart(2, '0');
                 const m = String(selectedNextCallMinute).padStart(2, '0');
-                dateTimeValue = `${dateValue} ${h}:${m}`;
+                dateTimeValue = `${dateValue} ${selectedNextCallHour}:${m}`;
             }
 
             // 過去日時チェック
@@ -19475,12 +19473,11 @@
                 return;
             }
 
-            // 日付表示用フォーマット
+            // 日付表示用フォーマット（時はゼロ埋めなし、分はゼロ埋め）
             const d = new Date(dateValue);
             const days = ['日', '月', '火', '水', '木', '金', '土'];
-            const h = String(selectedNextCallHour).padStart(2, '0');
             const m = String(selectedNextCallMinute).padStart(2, '0');
-            const nextCallDisplay = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]}) ${h}:${m}`;
+            const nextCallDisplay = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]}) ${selectedNextCallHour}:${m}`;
 
             // 即閉じ＋バックグラウンド保存
             const saveCvId = nextCallTargetCvId;
