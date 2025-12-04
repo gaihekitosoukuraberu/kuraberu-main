@@ -389,6 +389,7 @@
 
                     // 自動ログイン用にセッションに保存（初回のみ）
                     sessionStorage.setItem('tempMemberId', inviteData.memberId);
+                    sessionStorage.setItem('tempMemberPassword', password); // パスワードも保存
                 } else {
                     alert('エラー: ' + (result.error || '登録に失敗しました'));
                     submitBtn.disabled = false;

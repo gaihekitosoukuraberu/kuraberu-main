@@ -165,11 +165,16 @@
         function autoFillLogin() {
             // メンバー登録後の自動入力
             const tempMemberId = sessionStorage.getItem('tempMemberId');
+            const tempMemberPassword = sessionStorage.getItem('tempMemberPassword');
             if (tempMemberId) {
                 document.getElementById('merchantId').value = tempMemberId;
+                if (tempMemberPassword) {
+                    document.getElementById('password').value = tempMemberPassword;
+                }
                 document.getElementById('rememberMe').checked = true;
                 sessionStorage.removeItem('tempMemberId');
-                console.log('[Auto-fill] メンバーIDを自動入力しました');
+                sessionStorage.removeItem('tempMemberPassword');
+                console.log('[Auto-fill] メンバーID・パスワードを自動入力しました');
                 return;
             }
 
