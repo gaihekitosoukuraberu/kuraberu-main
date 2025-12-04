@@ -679,6 +679,7 @@
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">架電</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">メモ</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">次回</th>
+                                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">現調</th>
                                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">担当</th>
                                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">配信日</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">詳細</th>
@@ -17247,6 +17248,17 @@
                 if (match) deliveryShort = `${match[2]}/${match[3]}`;
             }
 
+            // 現調日を短縮表示（MM/DD HH:mm）
+            let surveyShort = '';
+            if (c.surveyDate) {
+                const dateMatch = c.surveyDate.match(/(\d+)[-\/](\d+)[-\/](\d+)/);
+                const timeMatch = c.surveyDate.match(/(\d+):(\d+)/);
+                if (dateMatch) {
+                    surveyShort = `${dateMatch[2]}/${dateMatch[3]}`;
+                    if (timeMatch) surveyShort += ` ${timeMatch[1]}:${timeMatch[2]}`;
+                }
+            }
+
             return `
                 <div class="bg-white rounded-xl shadow-lg border-2 border-gray-200 p-5 hover:shadow-xl transition-shadow" data-cv-id="${c.cvId}">
                     <div class="flex justify-between items-center mb-4">
@@ -17259,20 +17271,26 @@
                     <h3 class="font-bold text-xl mb-2">${escapeHtml(c.customerName || '-')}</h3>
                     <a href="${mapUrl}" target="_blank" class="text-base text-blue-600 hover:text-blue-800 hover:underline block mb-2" title="${escapeHtml(fullAddress)}">📍${escapeHtml(shortAddress)}</a>
                     ${propertyInfo ? `<p class="text-sm text-gray-500 mb-3">${escapeHtml(propertyInfo)}</p>` : ''}
-                    <!-- 📞📋🗓️ボタン -->
-                    <div class="flex items-center gap-4 mb-4">
-                        <button onclick="openConnectionModalDirect('${c.cvId}')" class="text-lg text-blue-600 hover:text-blue-800 font-medium" title="架電履歴を追加（電話アプリ外で架電した場合）">
+                    <!-- 📞📋 + 日程表示 -->
+                    <div class="flex items-center gap-3 mb-3">
+                        <button onclick="openConnectionModalDirect('${c.cvId}')" class="text-lg text-blue-600 hover:text-blue-800 font-medium" title="架電履歴を追加">
                             ${getCallCountBadge(c)}
                         </button>
                         <button onclick="openMemoModal('${c.cvId}')" class="text-lg text-amber-600 hover:text-amber-800 font-medium" title="メモ・履歴">
                             ${getMemoCountBadge(c)}
                         </button>
-                        <button onclick="openNextCallModal('${c.cvId}')" class="text-lg text-gray-600 hover:text-blue-600 font-medium" title="次回架電日を設定">
-                            ${nextCallShort ? '🗓️' + nextCallShort : '🗓️'}
+                    </div>
+                    <!-- 日程エリア（次回架電・現調） -->
+                    <div class="flex flex-wrap gap-2 mb-3 text-sm">
+                        <button onclick="openNextCallModal('${c.cvId}')" class="flex items-center gap-1 px-2 py-1 rounded-lg ${nextCallShort ? 'bg-blue-50 text-blue-700' : 'bg-gray-50 text-gray-500'} hover:bg-blue-100 transition-colors" title="次回架電日を設定">
+                            <span>🗓️</span><span class="font-medium">${nextCallShort || '架電予定'}</span>
+                        </button>
+                        <button onclick="openSurveyModal('${c.cvId}')" class="flex items-center gap-1 px-2 py-1 rounded-lg ${surveyShort ? 'bg-orange-50 text-orange-700' : 'bg-gray-50 text-gray-500'} hover:bg-orange-100 transition-colors" title="現調日時を設定">
+                            <span>🏠</span><span class="font-medium">${surveyShort || '現調予定'}</span>
                         </button>
                     </div>
-                    <div class="text-sm text-gray-500 mb-4">
-                        <span>配信日: ${deliveryShort}</span>
+                    <div class="text-xs text-gray-400 mb-3">
+                        <span>配信: ${deliveryShort}</span>
                     </div>
                     ${getCaseLabelsHtml(c)}
                     ${hasMemo ? `<div class="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg mb-4 line-clamp-2">${escapeHtml(c.merchantMemo)}</div>` : ''}
@@ -17318,6 +17336,17 @@
                 }
             }
 
+            // 現調日を短縮表示（MM/DD HH:mm）
+            let surveyDisplay = '-';
+            if (c.surveyDate) {
+                const dateMatch = c.surveyDate.match(/(\d+)[-\/](\d+)[-\/](\d+)/);
+                const timeMatch = c.surveyDate.match(/(\d+):(\d+)/);
+                if (dateMatch) {
+                    surveyDisplay = `${dateMatch[2]}/${dateMatch[3]}`;
+                    if (timeMatch) surveyDisplay += ` ${timeMatch[1]}:${timeMatch[2]}`;
+                }
+            }
+
             // 担当者名
             const assignee = c.assignee || '-';
 
@@ -17354,7 +17383,11 @@
                     </td>
                     <!-- 次回架電 -->
                     <td class="px-2 py-3 text-center">
-                        <button onclick="openNextCallModal('${c.cvId}')" class="text-base text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-2 py-1 rounded transition-colors" title="次回架電日を設定">${nextCallDisplay !== '-' ? '🗓️' + nextCallDisplay : '🗓️'}</button>
+                        <button onclick="openNextCallModal('${c.cvId}')" class="text-sm ${nextCallDisplay !== '-' ? 'text-blue-600' : 'text-gray-400'} hover:text-blue-700 hover:bg-blue-50 px-1.5 py-0.5 rounded transition-colors" title="次回架電日を設定">${nextCallDisplay !== '-' ? nextCallDisplay : '🗓️'}</button>
+                    </td>
+                    <!-- 現調日 -->
+                    <td class="px-2 py-3 text-center">
+                        <button onclick="openSurveyModal('${c.cvId}')" class="text-sm ${surveyDisplay !== '-' ? 'text-orange-600 font-medium' : 'text-gray-400'} hover:text-orange-700 hover:bg-orange-50 px-1.5 py-0.5 rounded transition-colors" title="現調日時を設定">${surveyDisplay !== '-' ? surveyDisplay : '🏠'}</button>
                     </td>
                     <!-- 担当 -->
                     <td class="px-3 py-3 text-sm">
@@ -18946,6 +18979,11 @@
         function closeSurveyDateModal() {
             document.getElementById('surveyDateModal').classList.add('hidden');
             surveyTargetCvId = null;
+        }
+
+        // カード/リストから直接現調モーダルを開く用エイリアス
+        function openSurveyModal(cvId) {
+            openSurveyDateModal(cvId);
         }
 
         function initSurveyDayLabels() {

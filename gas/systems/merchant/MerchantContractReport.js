@@ -120,6 +120,7 @@ var MerchantContractReport = {
       const delDeliveredAtIdx = deliveryHeaders.indexOf('配信日時');
       const delStatusIdx = deliveryHeaders.indexOf('配信ステータス');
       const delDetailStatusIdx = deliveryHeaders.indexOf('詳細ステータス');
+      const delSurveyDateIdx = deliveryHeaders.indexOf('現調日時');
 
       // 配信済み案件を抽出（この加盟店に配信されていて、まだこの加盟店が成約報告していないもの）
       const deliveredCases = [];
@@ -156,6 +157,9 @@ var MerchantContractReport = {
           continue;
         }
 
+        // 現調日時を取得
+        const surveyDate = delSurveyDateIdx >= 0 ? (row[delSurveyDateIdx] || '') : '';
+
         // 案件情報を追加
         deliveredCases.push({
           cvId: cvId,
@@ -166,7 +170,8 @@ var MerchantContractReport = {
           addressKana: userInfo.addressKana,
           workCategory: userInfo.workCategory,
           deliveredAt: deliveredAt || '',
-          managementStatus: detailStatus || '配信済み'
+          managementStatus: detailStatus || '配信済み',
+          surveyDate: surveyDate
         });
       }
 
@@ -920,10 +925,10 @@ var MerchantContractReport = {
 
       const cvIdCol = colIdx['CV ID'];
       const franchiseIdCol = colIdx['加盟店ID'];
-      const surveyDateCol = colIdx['現地調査希望日時'];
+      const surveyDateCol = colIdx['現調日時'];
 
       if (surveyDateCol === undefined) {
-        return { success: false, error: '現地調査希望日時列が見つかりません' };
+        return { success: false, error: '現調日時列が見つかりません' };
       }
 
       // merchantIdがある場合は会社名も取得
