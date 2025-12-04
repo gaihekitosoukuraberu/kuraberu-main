@@ -66,6 +66,16 @@ const MerchantSystem = {
         case 'checkUpdate':
           return this.checkUpdate(params);
 
+        // メンバー招待システム（GET用 - JSONP）
+        case 'verifyMemberInvite':
+          return this.verifyMemberInvite(params);
+
+        case 'registerMember':
+          return this.registerMember(params);
+
+        case 'getMemberList':
+          return this.getMemberList(params);
+
         // 会社情報管理（CompanyInfoManagerに委譲）
         case 'companyinfo_uploadImage':
         case 'companyinfo_uploadMainVisual':
@@ -217,6 +227,19 @@ const MerchantSystem = {
 
         case 'updateMerchantUrlAndPreviewHp':
           return this.updateMerchantUrlAndPreviewHp(params);
+
+        // メンバー招待システム
+        case 'generateInviteLink':
+          return this.generateInviteLink(params);
+
+        case 'verifyMemberInvite':
+          return this.verifyMemberInvite(params);
+
+        case 'registerMember':
+          return this.registerMember(params);
+
+        case 'getMemberList':
+          return this.getMemberList(params);
 
         default:
           return {
