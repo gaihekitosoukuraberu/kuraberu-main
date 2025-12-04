@@ -949,28 +949,41 @@
                                     </div>
                                 </div>
 
-                                <!-- 時間帯選択 -->
+                                <!-- 時間選択（プルダウン） -->
                                 <div class="bg-gray-50 rounded-xl p-4">
                                     <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
                                         <span>⏰</span> 時間を選択
                                     </h4>
-                                    <div class="grid grid-cols-4 gap-2 mb-3">
-                                        <button onclick="setSurveyTime(9)" data-survey-hour="9" class="survey-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">9時</button>
-                                        <button onclick="setSurveyTime(10)" data-survey-hour="10" class="survey-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">10時</button>
-                                        <button onclick="setSurveyTime(11)" data-survey-hour="11" class="survey-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">11時</button>
-                                        <button onclick="setSurveyTime(13)" data-survey-hour="13" class="survey-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">13時</button>
-                                    </div>
-                                    <div class="grid grid-cols-4 gap-2 mb-3">
-                                        <button onclick="setSurveyTime(14)" data-survey-hour="14" class="survey-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">14時</button>
-                                        <button onclick="setSurveyTime(15)" data-survey-hour="15" class="survey-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">15時</button>
-                                        <button onclick="setSurveyTime(16)" data-survey-hour="16" class="survey-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">16時</button>
-                                        <button onclick="setSurveyTime(17)" data-survey-hour="17" class="survey-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">17時</button>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs text-gray-500">分：</span>
-                                        <select id="surveyMinute" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg text-center font-bold focus:border-orange-500 transition-all" onchange="updateSurveyPreview()">
+                                    <div class="flex items-center gap-3">
+                                        <select id="surveyHour" class="flex-1 px-3 py-3 border-2 border-gray-200 rounded-xl text-center font-bold text-lg focus:border-orange-500 transition-all" onchange="onSurveyTimeChange()">
+                                            <option value="">時</option>
+                                            <option value="5">5時</option>
+                                            <option value="6">6時</option>
+                                            <option value="7">7時</option>
+                                            <option value="8">8時</option>
+                                            <option value="9">9時</option>
+                                            <option value="10">10時</option>
+                                            <option value="11">11時</option>
+                                            <option value="12">12時</option>
+                                            <option value="13">13時</option>
+                                            <option value="14">14時</option>
+                                            <option value="15">15時</option>
+                                            <option value="16">16時</option>
+                                            <option value="17">17時</option>
+                                            <option value="18">18時</option>
+                                            <option value="19">19時</option>
+                                            <option value="20">20時</option>
+                                            <option value="21">21時</option>
+                                            <option value="22">22時</option>
+                                        </select>
+                                        <span class="text-xl font-bold text-gray-400">:</span>
+                                        <select id="surveyMinute" class="flex-1 px-3 py-3 border-2 border-gray-200 rounded-xl text-center font-bold text-lg focus:border-orange-500 transition-all" onchange="onSurveyTimeChange()">
                                             <option value="0">00分</option>
+                                            <option value="10">10分</option>
+                                            <option value="20">20分</option>
                                             <option value="30">30分</option>
+                                            <option value="40">40分</option>
+                                            <option value="50">50分</option>
                                         </select>
                                     </div>
                                 </div>
@@ -18692,12 +18705,9 @@
                 btn.classList.remove('border-orange-500', 'bg-orange-100', 'text-orange-800');
                 btn.classList.add('border-gray-200', 'text-gray-700');
             });
-            document.querySelectorAll('.survey-time-btn').forEach(btn => {
-                btn.classList.remove('border-orange-500', 'bg-orange-100', 'text-orange-800');
-                btn.classList.add('border-gray-200', 'text-gray-700');
-            });
             document.getElementById('surveyPreview').classList.add('hidden');
             document.getElementById('surveyCustomDatePicker').classList.add('hidden');
+            document.getElementById('surveyHour').value = '';
             document.getElementById('surveyMinute').value = '0';
         }
 
@@ -18721,20 +18731,12 @@
             updateSurveyPreview();
         }
 
-        function setSurveyTime(hour) {
-            selectedSurveyHour = hour;
+        function onSurveyTimeChange() {
+            const hourEl = document.getElementById('surveyHour');
+            const minuteEl = document.getElementById('surveyMinute');
 
-            // ボタン状態更新
-            document.querySelectorAll('.survey-time-btn').forEach(btn => {
-                const btnHour = btn.getAttribute('data-survey-hour');
-                if (btnHour === String(hour)) {
-                    btn.classList.add('border-orange-500', 'bg-orange-100', 'text-orange-800');
-                    btn.classList.remove('border-gray-200', 'text-gray-700');
-                } else {
-                    btn.classList.remove('border-orange-500', 'bg-orange-100', 'text-orange-800');
-                    btn.classList.add('border-gray-200', 'text-gray-700');
-                }
-            });
+            selectedSurveyHour = hourEl.value ? parseInt(hourEl.value) : null;
+            selectedSurveyMinute = parseInt(minuteEl.value) || 0;
 
             updateSurveyPreview();
         }
