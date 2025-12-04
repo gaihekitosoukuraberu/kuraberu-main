@@ -677,7 +677,7 @@
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">顧客情報</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">架電履歴</th>
-                                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">メモ</th>
+                                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">メモ/履歴</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">次回架電</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">進捗</th>
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">担当</th>
@@ -705,7 +705,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
-                                <h3 class="text-lg font-bold">📝 引き継ぎメモ</h3>
+                                <h3 class="text-lg font-bold">📝 メモ/履歴</h3>
                                 <p id="memoTargetName" class="text-sm text-amber-100 mt-1">---</p>
                                 <p id="memoTargetAddress" class="text-xs text-amber-100/80 mt-0.5">---</p>
                             </div>
@@ -1093,6 +1093,61 @@
                                         <div>
                                             <div class="font-bold text-blue-800 group-hover:text-blue-900">見積もり作成後に連絡</div>
                                             <div class="text-sm text-blue-600">見積もり完成目処（次回架電日）を設定</div>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 温度選択モーダル（見積提出済選択後） -->
+                <div id="temperatureModal" class="fixed inset-0 z-50 hidden">
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeTemperatureModal()"></div>
+                    <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md overflow-hidden">
+                            <!-- ヘッダー -->
+                            <div class="p-4 border-b bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-lg font-bold">🌡️ お客様の温度感は？</h3>
+                                    <button onclick="closeTemperatureModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all -mr-2">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <p id="temperatureTargetName" class="text-base font-bold text-white">---</p>
+                                <p id="temperatureTargetAddress" class="text-sm text-purple-100 mt-0.5">---</p>
+                            </div>
+
+                            <!-- 選択肢 -->
+                            <div class="p-4 space-y-3">
+                                <button onclick="selectTemperature('high')" class="w-full p-4 bg-red-50 border-2 border-red-200 rounded-xl hover:border-red-400 hover:bg-red-100 transition-all text-left group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-3xl">🔥</span>
+                                        <div>
+                                            <div class="font-bold text-red-800 group-hover:text-red-900">温度高</div>
+                                            <div class="text-sm text-red-600">契約の可能性が高い</div>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                <button onclick="selectTemperature('medium')" class="w-full p-4 bg-yellow-50 border-2 border-yellow-200 rounded-xl hover:border-yellow-400 hover:bg-yellow-100 transition-all text-left group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-3xl">😐</span>
+                                        <div>
+                                            <div class="font-bold text-yellow-800 group-hover:text-yellow-900">温度中</div>
+                                            <div class="text-sm text-yellow-600">検討中・様子見</div>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                <button onclick="selectTemperature('low')" class="w-full p-4 bg-blue-50 border-2 border-blue-200 rounded-xl hover:border-blue-400 hover:bg-blue-100 transition-all text-left group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-3xl">❄️</span>
+                                        <div>
+                                            <div class="font-bold text-blue-800 group-hover:text-blue-900">温度低</div>
+                                            <div class="text-sm text-blue-600">見込み薄・長期追客</div>
                                         </div>
                                     </div>
                                 </button>
@@ -17473,14 +17528,12 @@
         }
 
         // 進捗表示を決定（ステータスに応じて）
-        function getProgressDisplayForRow(c, status, surveyDisplay, estimateDisplay) {
-            // 最新の進捗メモを取得（callHistoryからquick_progressタイプを探す）
-            let latestProgress = null;
-            if (c.callHistory && Array.isArray(c.callHistory)) {
-                const progressEntry = c.callHistory.find(h => h.type === 'quick_progress');
-                if (progressEntry) {
-                    latestProgress = progressEntry.note;
-                }
+        function getProgressDisplayForRow(c, status, surveyDisplay, estimateDisplay, nextCallDisplay) {
+            // 温度情報を取得
+            let tempDisplay = c.temperatureText || null;
+            if (!tempDisplay && c.callHistory && Array.isArray(c.callHistory)) {
+                const tempEntry = c.callHistory.find(h => h.type === 'temperature');
+                if (tempEntry) tempDisplay = tempEntry.note;
             }
 
             // ステータスに応じて表示を決定
@@ -17488,12 +17541,8 @@
                 // 現調日時があれば表示
                 if (surveyDisplay !== '-') {
                     return {
-                        html: `<button onclick="openSurveyDateModal('${c.cvId}')" class="text-sm text-orange-600 font-medium hover:text-orange-700 hover:bg-orange-50 px-1.5 py-0.5 rounded transition-colors" title="現調日時を変更">🏠${surveyDisplay}</button>`
+                        html: `<button onclick="openSurveyDateModal('${c.cvId}')" class="text-sm text-orange-600 font-medium hover:text-orange-700 hover:bg-orange-50 px-1.5 py-0.5 rounded transition-colors" title="現調日時を変更">🏠現調 ${surveyDisplay}</button>`
                     };
-                }
-                // 進捗メモがあれば表示
-                if (latestProgress) {
-                    return { html: `<span class="text-xs text-orange-600">${latestProgress}</span>` };
                 }
                 return { html: '<span class="text-gray-300">-</span>' };
             }
@@ -17502,33 +17551,38 @@
                 // 商談日時があれば表示
                 if (estimateDisplay !== '-') {
                     return {
-                        html: `<button onclick="openEstimateDateModal('${c.cvId}')" class="text-sm text-emerald-600 font-medium hover:text-emerald-700 hover:bg-emerald-50 px-1.5 py-0.5 rounded transition-colors" title="商談日時を変更">📋${estimateDisplay}</button>`
+                        html: `<button onclick="openEstimateDateModal('${c.cvId}')" class="text-sm text-emerald-600 font-medium hover:text-emerald-700 hover:bg-emerald-50 px-1.5 py-0.5 rounded transition-colors" title="商談日時を変更">📋商談 ${estimateDisplay}</button>`
                     };
                 }
-                // 進捗メモがあれば表示
-                if (latestProgress) {
-                    return { html: `<span class="text-xs text-emerald-600">${latestProgress}</span>` };
+                // 次回架電日（見積完成目処）があれば表示
+                if (nextCallDisplay !== '-') {
+                    return {
+                        html: `<button onclick="openNextCallModal('${c.cvId}')" class="text-sm text-blue-600 font-medium hover:text-blue-700 hover:bg-blue-50 px-1.5 py-0.5 rounded transition-colors" title="見積完成目処を変更">📝見積完成 ${nextCallDisplay}</button>`
+                    };
                 }
                 return { html: '<span class="text-gray-300">-</span>' };
             }
 
             if (status === '見積提出済') {
-                // 温度などの進捗を表示
-                if (latestProgress) {
-                    // 温度に応じた色
+                // 温度を表示
+                if (tempDisplay) {
                     let colorClass = 'text-gray-600';
-                    if (latestProgress.includes('🔥') || latestProgress.includes('温度高')) colorClass = 'text-red-600';
-                    else if (latestProgress.includes('😐') || latestProgress.includes('温度中')) colorClass = 'text-yellow-600';
-                    else if (latestProgress.includes('❄️') || latestProgress.includes('温度低')) colorClass = 'text-blue-600';
-                    return { html: `<span class="text-xs font-medium ${colorClass}">${latestProgress}</span>` };
+                    if (tempDisplay.includes('🔥') || tempDisplay.includes('高')) colorClass = 'text-red-600';
+                    else if (tempDisplay.includes('😐') || tempDisplay.includes('中')) colorClass = 'text-yellow-600';
+                    else if (tempDisplay.includes('❄️') || tempDisplay.includes('低')) colorClass = 'text-blue-600';
+                    return {
+                        html: `<button onclick="openTemperatureModal('${c.cvId}')" class="text-sm font-medium ${colorClass} hover:opacity-70 px-1.5 py-0.5 rounded transition-colors" title="温度を変更">${tempDisplay}</button>`
+                    };
                 }
                 return { html: '<span class="text-gray-300">-</span>' };
             }
 
             if (status === '未アポ') {
-                // 進捗メモがあれば表示
-                if (latestProgress) {
-                    return { html: `<span class="text-xs text-gray-600">${latestProgress}</span>` };
+                // 次回架電日があれば表示
+                if (nextCallDisplay !== '-') {
+                    return {
+                        html: `<button onclick="openNextCallModal('${c.cvId}')" class="text-sm text-blue-600 font-medium hover:text-blue-700 hover:bg-blue-50 px-1.5 py-0.5 rounded transition-colors" title="次回架電日を変更">📞架電 ${nextCallDisplay}</button>`
+                    };
                 }
                 return { html: '<span class="text-gray-300">-</span>' };
             }
@@ -17591,7 +17645,7 @@
             }
 
             // 進捗表示を決定（ステータスに応じて）
-            const progressDisplay = getProgressDisplayForRow(c, status, surveyDisplay, estimateDisplay);
+            const progressDisplay = getProgressDisplayForRow(c, status, surveyDisplay, estimateDisplay, nextCallDisplay);
 
             // 担当者名
             const assignee = c.assignee || '-';
@@ -17623,7 +17677,7 @@
                     </td>
                     <!-- メモ（件数） -->
                     <td class="px-2 py-3 text-center">
-                        <button onclick="openMemoModal('${c.cvId}')" class="text-base font-medium text-amber-600 hover:text-amber-800" title="メモ">
+                        <button onclick="openMemoModal('${c.cvId}')" class="text-base font-medium text-amber-600 hover:text-amber-800" title="メモ/履歴">
                             ${getMemoCountBadge(c)}
                         </button>
                     </td>
@@ -18767,6 +18821,9 @@
             } else if (newStatus === '現調済') {
                 // 現調済ならアクション選択モーダル
                 openPostSurveyActionModal(cvId);
+            } else if (newStatus === '見積提出済') {
+                // 見積提出済なら温度選択モーダル
+                openTemperatureModal(cvId);
             } else if (wasAfterCallMode && newStatus === '未アポ') {
                 // 通話後フローで未アポの場合のみ次回架電日設定
                 openNextCallModal(cvId);
@@ -19350,11 +19407,8 @@
         }
 
         function skipSurveyDate() {
-            // スキップ→メモモーダルへ（スキップ可能）
+            // スキップ→閉じるだけ
             closeSurveyDateModal();
-            if (surveyTargetCvId) {
-                openMemoModalAfterSurvey(surveyTargetCvId);
-            }
         }
 
         function saveSurveyDate() {
@@ -19412,9 +19466,6 @@
             .catch(err => console.error('[saveSurveyDate] 通信エラー:', err));
 
             closeSurveyDateModal();
-
-            // メモモーダルへ（スキップ可能）
-            openMemoModalAfterSurvey(cvId);
         }
 
         // ====================================
@@ -19453,6 +19504,75 @@
                 // 見積もり作成後に連絡 → 次回架電日モーダル（見積もり完成目処）
                 openNextCallModal(cvId);
             }
+        }
+
+        // ====================================
+        // 温度選択モーダル関連
+        // ====================================
+        let temperatureTargetCvId = null;
+
+        function openTemperatureModal(cvId) {
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            temperatureTargetCvId = cvId;
+
+            // 顧客名と住所を表示
+            document.getElementById('temperatureTargetName').textContent = `${c.customerName || '-'} 様`;
+            document.getElementById('temperatureTargetAddress').textContent = c.fullAddress || c.city || '-';
+
+            document.getElementById('temperatureModal').classList.remove('hidden');
+        }
+
+        function closeTemperatureModal() {
+            document.getElementById('temperatureModal').classList.add('hidden');
+            temperatureTargetCvId = null;
+        }
+
+        function selectTemperature(level) {
+            const cvId = temperatureTargetCvId;
+            if (!cvId) return;
+
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            // 温度表示テキストを設定
+            let tempText = '';
+            if (level === 'high') tempText = '🔥温度高';
+            else if (level === 'medium') tempText = '😐温度中';
+            else if (level === 'low') tempText = '❄️温度低';
+
+            // caseにtemperature情報を保存
+            c.temperature = level;
+            c.temperatureText = tempText;
+
+            // 履歴に追加
+            if (!c.callHistory) c.callHistory = [];
+            c.callHistory.unshift({
+                date: new Date().toLocaleString('ja-JP'),
+                type: 'temperature',
+                note: tempText
+            });
+
+            // GASに保存（progressとして）
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            saveProgressToGAS(merchantId, cvId, tempText);
+
+            closeTemperatureModal();
+
+            // UI更新
+            renderCasesList();
+        }
+
+        // 温度をGASに保存
+        function saveProgressToGAS(merchantId, cvId, progressText) {
+            const url = `${ENV.GAS_URL}?action=updateMerchantCaseProgress&merchantId=${encodeURIComponent(merchantId)}&cvId=${encodeURIComponent(cvId)}&progress=${encodeURIComponent(progressText)}&_cb=${Date.now()}`;
+
+            const script = document.createElement('script');
+            script.src = url;
+            script.onerror = () => console.error('[saveProgressToGAS] Failed');
+            document.body.appendChild(script);
+            setTimeout(() => script.remove(), 5000);
         }
 
         // ====================================
@@ -19630,12 +19750,9 @@
             .catch(err => console.error('[saveEstimateDate] 通信エラー:', err));
 
             closeEstimateDateModal();
-
-            // メモモーダルへ（スキップ可能）
-            openMemoModalAfterEstimate(cvId);
         }
 
-        // 見積提出日時設定後のメモモーダル（スキップ可能）
+        // 見積提出日時設定後のメモモーダル（旧機能、現在不使用）
         function openMemoModalAfterEstimate(cvId) {
             const c = findCaseByCvId(cvId);
             if (!c) return;
