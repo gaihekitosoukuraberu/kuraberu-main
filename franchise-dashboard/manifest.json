@@ -2,7 +2,7 @@
   "name": "くらべる加盟店管理",
   "short_name": "くらべる",
   "description": "外壁塗装くらべる 加盟店管理システム",
-  "start_url": "/franchise-dashboard/index.html",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
