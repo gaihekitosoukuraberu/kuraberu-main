@@ -18669,6 +18669,17 @@
                 const label = document.getElementById(`surveyDayLabel${offset}`);
                 if (label) {
                     label.textContent = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+
+                    // 土日祝の色分け
+                    label.classList.remove('text-blue-600', 'text-red-500');
+                    const dayOfWeek = d.getDay();
+                    if (dayOfWeek === 0 || isHoliday(d)) {
+                        // 日曜・祝日 → 赤
+                        label.classList.add('text-red-500');
+                    } else if (dayOfWeek === 6) {
+                        // 土曜 → 青
+                        label.classList.add('text-blue-600');
+                    }
                 }
             });
         }
