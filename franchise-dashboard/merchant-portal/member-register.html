@@ -323,9 +323,12 @@
 
             try {
                 // メンバー登録（JSONP）
+                console.log('[member-register] Starting registration...');
+
                 const result = await new Promise((resolve, reject) => {
                     const callbackName = 'jsonp_' + Date.now();
                     window[callbackName] = (data) => {
+                        console.log('[member-register] Callback received:', data);
                         delete window[callbackName];
                         document.body.removeChild(script);
                         resolve(data);
@@ -340,17 +343,21 @@
                         callback: callbackName
                     });
 
+                    console.log('[member-register] Request URL length:', (GAS_URL + '?' + params.toString()).length);
+
                     const script = document.createElement('script');
                     script.src = `${GAS_URL}?${params.toString()}`;
-                    script.onerror = () => {
+                    script.onerror = (e) => {
+                        console.error('[member-register] Script load error:', e);
                         delete window[callbackName];
                         document.body.removeChild(script);
-                        reject(new Error('JSONP request failed'));
+                        reject(new Error('JSONP request failed - script load error'));
                     };
                     document.body.appendChild(script);
 
                     setTimeout(() => {
                         if (window[callbackName]) {
+                            console.error('[member-register] Request timeout after 30s');
                             delete window[callbackName];
                             reject(new Error('Request timeout'));
                         }

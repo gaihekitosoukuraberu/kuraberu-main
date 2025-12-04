@@ -299,7 +299,13 @@ const MerchantMemberInvite = {
   // ====================================
   registerMember: function(params) {
     try {
-      console.log('[registerMember] Start');
+      console.log('[registerMember] Start - params:', JSON.stringify({
+        hasData: !!params.data,
+        hasSig: !!params.sig,
+        hasName: !!params.name,
+        hasPassword: !!params.password,
+        passwordLength: params.password ? params.password.length : 0
+      }));
 
       const encodedData = params.data;
       const signature = params.sig;
@@ -307,6 +313,12 @@ const MerchantMemberInvite = {
       const password = params.password;
 
       if (!encodedData || !signature || !memberName || !password) {
+        console.error('[registerMember] Missing params:', {
+          data: !!encodedData,
+          sig: !!signature,
+          name: !!memberName,
+          password: !!password
+        });
         return { success: false, error: '必要な情報が不足しています' };
       }
 
