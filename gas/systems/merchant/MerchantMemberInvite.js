@@ -149,8 +149,8 @@ const MerchantMemberInvite = {
         return { success: false, error: '加盟店IDが必要です' };
       }
 
-      // メンバーID生成
-      const memberId = 'MEM_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+      // メンバーID生成（短く：M + 6文字）
+      const memberId = 'M' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
       // 有効期限計算
       const now = new Date();

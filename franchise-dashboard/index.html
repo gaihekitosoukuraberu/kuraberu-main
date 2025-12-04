@@ -6891,10 +6891,36 @@
             <!-- 設定セクション -->
             <div id="settingsSection" class="section" style="display: none;">
                 <h2 class="text-2xl font-bold text-gray-900 mb-6">設定</h2>
-                
-                <!-- タブナビゲーション -->
-                <!-- タブを削除して1ページ統合 -->
-                
+
+                <!-- アカウント情報（メンバー用） -->
+                <div id="accountInfoCard" class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 mb-6 text-white">
+                    <h3 class="text-lg font-bold mb-4">アカウント情報</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs text-blue-200 mb-1">あなたのID</label>
+                            <div class="flex items-center gap-2">
+                                <span id="myAccountId" class="font-mono text-lg font-bold bg-white/20 px-3 py-1 rounded">-</span>
+                                <button onclick="copyMyId()" class="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors" title="コピー">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <p class="text-xs text-blue-200 mt-2">※ログイン時に必要です。メモしておいてください。</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-blue-200 mb-1">アプリとして追加</label>
+                            <button onclick="PWAHelper.showInstallPrompt()" class="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                </svg>
+                                <span class="text-sm font-medium">ホーム画面に追加</span>
+                            </button>
+                            <p class="text-xs text-blue-200 mt-2">※ブラウザを開かずにアクセスできます</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- プロフィール情報 -->
                 <div id="profileSection">
                     <div class="bg-white shadow rounded-lg p-6">
@@ -9073,15 +9099,25 @@
 
         // ロール表示更新
         function updateRoleDisplay() {
-            // ユーザー名とロールを表示
-            document.getElementById('userName').textContent = currentUser;
+            // メンバーかどうかチェック
+            const memberId = localStorage.getItem('memberId') || sessionStorage.getItem('memberId');
+            const memberName = localStorage.getItem('memberName') || sessionStorage.getItem('memberName');
 
-            // 営業担当者氏名を表示（window.merchantDataのX列から取得）
-            let salesPerson = '営業担当者未設定';
-            if (window.merchantData && window.merchantData.salesPerson) {
-                salesPerson = window.merchantData.salesPerson;
+            if (memberId) {
+                // メンバーの場合：自分のIDと名前を表示
+                document.getElementById('userName').textContent = memberId;
+                document.getElementById('userRole').textContent = memberName || 'メンバー';
+            } else {
+                // オーナーの場合：従来通り
+                document.getElementById('userName').textContent = currentUser;
+
+                // 営業担当者氏名を表示（window.merchantDataのX列から取得）
+                let salesPerson = '営業担当者未設定';
+                if (window.merchantData && window.merchantData.salesPerson) {
+                    salesPerson = window.merchantData.salesPerson;
+                }
+                document.getElementById('userRole').textContent = salesPerson;
             }
-            document.getElementById('userRole').textContent = salesPerson;
             
             // 権限に応じてUIを変更
             if (userRole === 'admin') {
@@ -15047,6 +15083,11 @@
                     loadContractCases();
                 }
 
+                // 設定セクションの場合はアカウント情報を更新
+                if (sectionName === 'settings') {
+                    updateAccountInfo();
+                }
+
                 // V2007: 案件管理セクションの場合は案件データを読み込み
                 if (sectionName === 'cases') {
                     loadMerchantCases();
@@ -15211,6 +15252,40 @@
             navigator.clipboard.writeText(invite.link).then(() => {
                 showNotification('コピー完了', '招待リンクをコピーしました', 'success');
             });
+        }
+
+        // 自分のIDをコピー
+        function copyMyId() {
+            const memberId = localStorage.getItem('memberId') || sessionStorage.getItem('memberId');
+            const merchantId = localStorage.getItem('merchantId') || sessionStorage.getItem('merchantId');
+            const idToCopy = memberId || merchantId;
+
+            if (idToCopy) {
+                navigator.clipboard.writeText(idToCopy).then(() => {
+                    showNotification('コピー完了', 'IDをコピーしました', 'success');
+                }).catch(() => {
+                    // フォールバック
+                    const textarea = document.createElement('textarea');
+                    textarea.value = idToCopy;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    showNotification('コピー完了', 'IDをコピーしました', 'success');
+                });
+            }
+        }
+
+        // 設定画面のアカウント情報を更新
+        function updateAccountInfo() {
+            const memberId = localStorage.getItem('memberId') || sessionStorage.getItem('memberId');
+            const merchantId = localStorage.getItem('merchantId') || sessionStorage.getItem('merchantId');
+            const myId = memberId || merchantId || '-';
+
+            const accountIdEl = document.getElementById('myAccountId');
+            if (accountIdEl) {
+                accountIdEl.textContent = myId;
+            }
         }
 
         // 招待中メンバーの権限編集
