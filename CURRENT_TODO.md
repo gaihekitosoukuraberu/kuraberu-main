@@ -1,44 +1,73 @@
 # 現在の作業TODO
 
-**作業開始**: 2025-12-04 22:40 JST
+**作業開始**: 2025-12-04 22:45 JST
 
-## 目標: メンバー招待システムGAS実装
+## 全体目標: メンバー管理 & 案件担当システム実装
 
-### 完了済み（フロントエンド）
-- [x] 招待モーダルUI（権限選択、リンク生成、コピー/LINE/SMS共有）
-- [x] メンバー管理カードUI（招待中/既存メンバー表示）
-- [x] メンバー登録ページ（`member-register.html`）
+---
 
-### TODO（GASバックエンド）
-- [ ] `generateInviteLink` - 招待リンク生成API
-  - トークン生成（data + signature方式）
-  - スプレッドシートに招待情報保存
-  - 24時間有効期限
-- [ ] `verifyMemberInvite` - 招待トークン検証API（JSONP）
-  - 署名検証
-  - 有効期限チェック
-  - 招待情報を返す
-- [ ] `registerMember` - メンバー登録API（JSONP）
-  - トークン検証
-  - メンバー情報保存
-  - 招待を使用済みに更新
+## Phase 1: メンバー招待システム（GAS）★最優先
+- [ ] 1-1. 招待用スプレッドシート設計・作成
+- [ ] 1-2. `generateInviteLink` API実装
+- [ ] 1-3. `verifyMemberInvite` API実装（JSONP）
+- [ ] 1-4. `registerMember` API実装（JSONP）
+- [ ] 1-5. フロントと結合テスト
+
+**関連ファイル:**
+- `gas/systems/merchant/MerchantMemberInvite.js` ← 新規作成
+- `gas/main.js` - ルーティング追加
+
+---
+
+## Phase 2: 案件担当振り分け機能
+- [ ] 2-1. 担当者選択UI（案件詳細モーダル内）
+- [ ] 2-2. 担当者変更API（GAS）
+- [ ] 2-3. 案件カードに担当名表示
+
+**関連ファイル:**
+- `franchise-dashboard/index.html` - UI
+- `gas/systems/merchant/MerchantSystem.js` - API
+
+---
+
+## Phase 3: 通知設定（担当ごと個別）
+- [ ] 3-1. 通知設定UI（メンバー管理画面内）
+- [ ] 3-2. 通知設定保存API
+- [ ] 3-3. 通知送信時の担当別フィルタリング
+
+**通知種類（想定）:**
+- 新規案件通知
+- ステータス変更通知
+- リマインダー通知
+- 本部からの通知
+
+---
+
+## 設計原則（厳守）
+
+1. **doPost/doGetはmainに集約** - 各システムはhandler関数のみ
+2. **共通関数は最小限** - 各ファイルで独立
+3. **機能ごとにファイル分離** - スパゲッティ化防止
+4. **区切りごとにボスに確認** - 勝手に進めない
+
+---
 
 ## 進捗メモ
-- フロントエンドは `franchise-dashboard/index.html` 14860行目〜
-- メンバー登録ページは `merchant-portal/member-register.html`
-- GASは `gas/systems/merchant/MerchantSystem.js` に追加
 
-## 関連ファイル
-- `franchise-dashboard/index.html` - 招待UI（完成）
-- `franchise-dashboard/merchant-portal/member-register.html` - 登録ページ（完成）
-- `gas/systems/merchant/MerchantSystem.js` - ここにAPI追加
-- `gas/main.js` - ルーティング確認
+### 完了済み（フロントエンド）
+- [x] 招待モーダルUI - `index.html:7131-7237`
+- [x] メンバー管理カードUI - `index.html:14885-15002`
+- [x] メンバー登録ページ - `member-register.html`
 
-## 期待するAPI仕様
+### 次のアクション
+→ Phase 1-1: 招待用スプシ設計から開始
+
+---
+
+## API仕様
 
 ### generateInviteLink（POST）
 ```javascript
-// リクエスト
 {
   system: 'merchant',
   action: 'generateInviteLink',
@@ -47,39 +76,17 @@
   expiryHours: 24,
   additionalPermissions: { caseViewAll, caseEdit, reportAll }
 }
-
-// レスポンス
-{
-  success: true,
-  inviteLink: "https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/member-register.html?data=xxx&sig=xxx"
-}
+// → { success: true, inviteLink: "https://..." }
 ```
 
 ### verifyMemberInvite（GET/JSONP）
-```javascript
-// リクエスト
+```
 ?action=verifyMemberInvite&data=xxx&sig=xxx&callback=jsonp_xxx
-
-// レスポンス
-jsonp_xxx({
-  success: true,
-  invite: {
-    merchantId: 'xxx',
-    merchantName: '加盟店名',
-    role: 'standard',
-    additionalPermissions: {...}
-  }
-})
+// → jsonp_xxx({ success: true, invite: {...} })
 ```
 
 ### registerMember（GET/JSONP）
-```javascript
-// リクエスト
-?action=registerMember&data=xxx&sig=xxx&name=山田太郎&password=xxx&callback=jsonp_xxx
-
-// レスポンス
-jsonp_xxx({
-  success: true,
-  memberId: 'xxx'
-})
+```
+?action=registerMember&data=xxx&sig=xxx&name=xxx&password=xxx&callback=jsonp_xxx
+// → jsonp_xxx({ success: true, memberId: 'xxx' })
 ```
