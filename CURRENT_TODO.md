@@ -1,7 +1,7 @@
 # 現在の作業TODO
 
 **作業開始**: 2025-12-04 22:45 JST
-**最終更新**: 2025-12-04 23:10 JST
+**最終更新**: 2025-12-04 23:35 JST
 
 ---
 
@@ -28,39 +28,43 @@ M: 登録日時
 N: 署名
 ```
 
-**既存シート活用**
-- 通知設定シート → Phase3でそのまま使う
-- ブラウザ通知シート → そのまま使う
-- 配信管理シート → Phase2で担当者列追加
-
 ---
 
-## Phase 1: メンバー招待システム（GAS）★最優先
+## Phase 1: メンバー招待システム ✅完了
 
 - [x] 1-1. スプシ設計確定
-- [ ] 1-2. `generateInviteLink` API実装
-- [ ] 1-3. `verifyMemberInvite` API実装（JSONP）
-- [ ] 1-4. `registerMember` API実装（JSONP）
-- [ ] 1-5. フロントと結合テスト
-
-**ファイル:**
-- `gas/systems/merchant/MerchantMemberInvite.js` ← 新規作成
-- `gas/systems/merchant/MerchantSystem.js` ← ルーティング追加
-- `gas/main.js` ← SystemRouter追加
+- [x] 1-2. `generateInviteLink` API実装
+- [x] 1-3. `verifyMemberInvite` API実装（JSONP）
+- [x] 1-4. `registerMember` API実装（JSONP）
+- [ ] 1-5. フロントと結合テスト（デプロイ待ち）
 
 ---
 
-## Phase 2: 案件担当振り分け機能
+## Phase 2: 案件担当振り分け機能 ★現在作業中
 
-- [ ] 2-1. 配信管理シートに「担当者ID」列追加（既存列の後ろ）
-- [ ] 2-2. 担当者選択UI（案件詳細モーダル内）
-- [ ] 2-3. 担当者変更API（GAS）
-- [ ] 2-4. 案件カードに担当名表示
-- [ ] 2-5. メンバー一覧取得API（ドロップダウン用）
+### 2-A. 手動振り分け（既存改修）
+- [ ] 2-A-1. 振り分けモーダルUI改修（リッチ化）
+- [ ] 2-A-2. `getStaffList()` → `getMemberList` API連携
+- [ ] 2-A-3. 配信管理シートに担当者列確認/追加
 
-**ファイル:**
-- `franchise-dashboard/index.html` - UI
-- `gas/systems/merchant/MerchantSystem.js` または `MerchantContractReport.js` - API
+### 2-B. 一括振り分け
+- [ ] 2-B-1. モーダルに「一括振り分け」セクション追加
+- [ ] 2-B-2. 均等振り分けロジック実装
+- [ ] 2-B-3. 複数人同時配信対応（2人ずつとか）
+
+### 2-C. AI自動振り分け（DeepSeek連携）
+- [ ] 2-C-1. 自動振り分け設定画面UI
+- [ ] 2-C-2. パラメータ設定
+  - 成約率ベース
+  - 距離・エリアベース
+  - 分配率（%指定）
+  - メンバー別分配比率（Aは多め、Bは少なめ）
+  - 特殊ルール（Aは全部含む、B/Cは半分ずつ等）
+- [ ] 2-C-3. DeepSeek API連携（OpenRouter経由）
+- [ ] 2-C-4. AI提案 → 管理者最終確認フロー
+- [ ] 2-C-5. 自動振り分け実行
+
+**OpenRouter設定**: プロパティにセット済み
 
 ---
 
@@ -69,16 +73,6 @@ N: 署名
 - [ ] 3-1. 通知設定UIをメンバー管理画面に追加
 - [ ] 3-2. 通知設定保存API（既存シート活用）
 - [ ] 3-3. 通知送信時の担当別フィルタリング
-
-**通知種類:**
-- 新規案件通知
-- ステータス変更通知
-- リマインダー通知
-- 本部からの通知（ブラウザ通知シート）
-
-**ファイル:**
-- `franchise-dashboard/index.html` - UI
-- 既存の通知設定シート活用
 
 ---
 
@@ -92,41 +86,101 @@ N: 署名
 
 ---
 
-## API仕様（Phase1）
+## Phase 2-C 自動振り分け 設計案
 
-### generateInviteLink（POST）
-```javascript
-{
-  system: 'merchant',
-  action: 'generateInviteLink',
-  merchantId: 'FR251121163819',
-  role: 'leader' | 'standard' | 'office',
-  expiryHours: 24,
-  additionalPermissions: { caseViewAll: true, caseEdit: false, reportAll: true }
-}
-// → { success: true, inviteLink: "https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/member-register.html?data=xxx&sig=xxx" }
+### 振り分けモーダル（リッチ版）
+```
+┌─────────────────────────────────┐
+│  🎯 案件振り分け            ✕   │
+├─────────────────────────────────┤
+│                                 │
+│  【この案件を振り分け】          │
+│  ┌───────────────────────────┐ │
+│  │ 👤 田中太郎  ⭐85%        │ │
+│  │ 👤 佐藤花子  ⭐72%        │ │
+│  │ 👤 鈴木一郎  ⭐68%        │ │
+│  └───────────────────────────┘ │
+│                                 │
+│  ─────── または ───────         │
+│                                 │
+│  【一括振り分け】                │
+│  未振り分け: 5件                │
+│  [均等に振り分ける]             │
+│  [🤖 AIにおまかせ]              │
+│                                 │
+└─────────────────────────────────┘
 ```
 
-### verifyMemberInvite（GET/JSONP）
+### AI自動振り分け設定画面
 ```
-?action=verifyMemberInvite&data=xxx&sig=xxx&callback=jsonp_xxx
-// → jsonp_xxx({ success: true, invite: { merchantId, merchantName, role, additionalPermissions } })
+┌─────────────────────────────────┐
+│  🤖 自動振り分け設定        ✕   │
+├─────────────────────────────────┤
+│                                 │
+│  【振り分け基準】（複数選択可）   │
+│  ☑ 成約率ベース（高い人に多く） │
+│  ☐ エリア・距離ベース          │
+│  ☐ 均等分配                    │
+│                                 │
+│  【メンバー別設定】              │
+│  田中太郎: [━━━━━━━●━━] 70%    │
+│  佐藤花子: [━━━●━━━━━━] 30%    │
+│  鈴木一郎: [━━━━━●━━━━] 50%    │
+│                                 │
+│  【配信人数】                    │
+│  ○ 1人ずつ                     │
+│  ● 2人ずつ                     │
+│  ○ 3人ずつ                     │
+│                                 │
+│  【特殊ルール】                  │
+│  ☐ 田中は全案件に含める         │
+│  ☐ 新人は先輩とペアで           │
+│                                 │
+│  [💡 AIに最適化してもらう]       │
+│  [📋 プレビュー]                │
+│  [✅ この設定で実行]             │
+│                                 │
+└─────────────────────────────────┘
 ```
 
-### registerMember（GET/JSONP）
+### AIプレビュー確認画面
 ```
-?action=registerMember&data=xxx&sig=xxx&name=山田太郎&password=xxx&callback=jsonp_xxx
-// → jsonp_xxx({ success: true, memberId: 'MEM_xxx' })
+┌─────────────────────────────────┐
+│  🤖 AIの振り分け提案        ✕   │
+├─────────────────────────────────┤
+│                                 │
+│  DeepSeekが以下を提案しました:   │
+│                                 │
+│  田中太郎: 3件                  │
+│  ├ CV-001 東京都渋谷区...       │
+│  ├ CV-005 東京都新宿区...       │
+│  └ CV-008 東京都港区...         │
+│                                 │
+│  佐藤花子: 2件                  │
+│  ├ CV-002 神奈川県横浜市...     │
+│  └ CV-007 神奈川県川崎市...     │
+│                                 │
+│  💬 理由: 成約率と距離を考慮し、 │
+│  田中さんは都内案件を中心に、    │
+│  佐藤さんは神奈川エリアを...     │
+│                                 │
+│  [✅ この振り分けで実行]         │
+│  [🔄 再提案してもらう]          │
+│  [✏️ 手動で調整]                │
+│                                 │
+└─────────────────────────────────┘
 ```
 
 ---
 
 ## 進捗メモ
 
-### 完了済み（フロントエンド）
-- [x] 招待モーダルUI - `index.html:7131-7237`
-- [x] メンバー管理カードUI - `index.html:14885-15002`
-- [x] メンバー登録ページ - `member-register.html`
+### 完了済み
+- [x] Phase1 GAS実装（MerchantMemberInvite.js）
+- [x] 招待モーダルUI
+- [x] メンバー管理カードUI
+- [x] メンバー登録ページ
+- [x] 案件振り分けボタン（既存・ハードコード）
 
 ### 次のアクション
-→ Phase 1-2: generateInviteLink API実装開始
+→ Phase2-A: 振り分けモーダルUI改修開始
