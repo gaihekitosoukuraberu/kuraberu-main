@@ -861,16 +861,195 @@
                     </div>
                 </div>
 
-                <!-- 担当者選択モーダル -->
-                <div id="assignModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-                    <div class="bg-white rounded-lg shadow-xl max-w-sm w-full">
-                        <div class="p-4 border-b flex justify-between items-center">
-                            <h3 class="text-lg font-bold">担当者を選択</h3>
-                            <button onclick="closeAssignModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                <!-- 担当者選択モーダル（リッチ版） -->
+                <div id="assignModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col">
+                        <!-- ヘッダー -->
+                        <div class="p-4 border-b bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex justify-between items-center flex-shrink-0">
+                            <div>
+                                <h3 class="text-lg font-bold flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                    案件振り分け
+                                </h3>
+                                <p id="assignTargetInfo" class="text-sm text-purple-100 mt-1">案件を選択中...</p>
+                            </div>
+                            <button onclick="closeAssignModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
                         </div>
-                        <div class="p-4">
-                            <div id="assignStaffList" class="space-y-2">
+
+                        <!-- コンテンツ -->
+                        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                            <!-- この案件を振り分け -->
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold">1</span>
+                                    この案件を振り分け
+                                </h4>
+                                <div id="assignStaffList" class="space-y-2">
+                                    <!-- 動的に生成 -->
+                                </div>
+                            </div>
+
+                            <!-- 区切り線 -->
+                            <div class="flex items-center gap-3">
+                                <div class="flex-1 h-px bg-gray-200"></div>
+                                <span class="text-xs text-gray-400 font-medium">または</span>
+                                <div class="flex-1 h-px bg-gray-200"></div>
+                            </div>
+
+                            <!-- 一括振り分け -->
+                            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
+                                <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">2</span>
+                                    一括振り分け
+                                </h4>
+                                <p id="unassignedCount" class="text-sm text-gray-600 mb-3">未振り分け: <span class="font-bold text-blue-600">0</span>件</p>
+                                <div class="space-y-2">
+                                    <button onclick="bulkAssignEqual()" class="w-full py-3 bg-white text-blue-600 border-2 border-blue-200 rounded-xl hover:bg-blue-50 hover:border-blue-400 font-bold text-sm transition-all flex items-center justify-center gap-2">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                        均等に振り分ける
+                                    </button>
+                                    <button onclick="openAIAssignModal()" class="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl hover:from-purple-600 hover:to-indigo-600 font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                                        AIにおまかせ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI自動振り分け設定モーダル -->
+                <div id="aiAssignModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
+                        <!-- ヘッダー -->
+                        <div class="p-4 border-b bg-gradient-to-r from-purple-600 to-pink-600 text-white flex justify-between items-center flex-shrink-0">
+                            <div>
+                                <h3 class="text-lg font-bold flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                                    AI自動振り分け設定
+                                </h3>
+                                <p class="text-sm text-purple-100 mt-1">DeepSeekが最適な振り分けを提案します</p>
+                            </div>
+                            <button onclick="closeAIAssignModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- コンテンツ -->
+                        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                            <!-- 振り分け基準 -->
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <h4 class="text-sm font-bold text-gray-700 mb-3">振り分け基準（複数選択可）</h4>
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-3 p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-purple-300 cursor-pointer transition-all">
+                                        <input type="checkbox" id="aiCriteria_rate" class="w-5 h-5 text-purple-600 rounded" checked>
+                                        <div>
+                                            <span class="font-medium text-gray-800">成約率ベース</span>
+                                            <p class="text-xs text-gray-500">成約率が高いメンバーに多く振り分け</p>
+                                        </div>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-purple-300 cursor-pointer transition-all">
+                                        <input type="checkbox" id="aiCriteria_area" class="w-5 h-5 text-purple-600 rounded">
+                                        <div>
+                                            <span class="font-medium text-gray-800">エリア・距離ベース</span>
+                                            <p class="text-xs text-gray-500">得意エリアや距離を考慮</p>
+                                        </div>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-purple-300 cursor-pointer transition-all">
+                                        <input type="checkbox" id="aiCriteria_equal" class="w-5 h-5 text-purple-600 rounded">
+                                        <div>
+                                            <span class="font-medium text-gray-800">均等分配</span>
+                                            <p class="text-xs text-gray-500">全員に同じ数ずつ振り分け</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- 配信人数 -->
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <h4 class="text-sm font-bold text-gray-700 mb-3">1案件あたりの配信人数</h4>
+                                <div class="flex gap-2">
+                                    <button onclick="setAssignCount(1)" data-count="1" class="assign-count-btn flex-1 py-3 bg-white border-2 border-purple-500 text-purple-600 rounded-xl font-bold text-sm transition-all">1人</button>
+                                    <button onclick="setAssignCount(2)" data-count="2" class="assign-count-btn flex-1 py-3 bg-white border-2 border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:border-purple-300 transition-all">2人</button>
+                                    <button onclick="setAssignCount(3)" data-count="3" class="assign-count-btn flex-1 py-3 bg-white border-2 border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:border-purple-300 transition-all">3人</button>
+                                </div>
+                            </div>
+
+                            <!-- メンバー別分配率 -->
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <h4 class="text-sm font-bold text-gray-700 mb-3">メンバー別分配率</h4>
+                                <div id="memberRatioList" class="space-y-3">
+                                    <!-- 動的に生成 -->
+                                </div>
+                            </div>
+
+                            <!-- 特殊ルール -->
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <h4 class="text-sm font-bold text-gray-700 mb-3">特殊ルール</h4>
+                                <div id="specialRulesList" class="space-y-2">
+                                    <!-- 動的に生成 -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- フッター -->
+                        <div class="p-4 border-t bg-gray-50 flex-shrink-0 space-y-2">
+                            <button onclick="requestAIAssignment()" id="aiAssignBtn" class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                AIに提案してもらう
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI振り分け結果プレビューモーダル -->
+                <div id="aiAssignPreviewModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
+                        <!-- ヘッダー -->
+                        <div class="p-4 border-b bg-gradient-to-r from-green-500 to-emerald-500 text-white flex justify-between items-center flex-shrink-0">
+                            <div>
+                                <h3 class="text-lg font-bold flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    AIの振り分け提案
+                                </h3>
+                                <p class="text-sm text-green-100 mt-1">確認して実行してください</p>
+                            </div>
+                            <button onclick="closeAIAssignPreviewModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- コンテンツ -->
+                        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                            <div id="aiAssignPreviewContent">
                                 <!-- 動的に生成 -->
+                            </div>
+
+                            <!-- AI理由 -->
+                            <div id="aiAssignReason" class="bg-purple-50 rounded-xl p-4 border border-purple-100">
+                                <h4 class="text-sm font-bold text-purple-700 mb-2 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                                    AIからのコメント
+                                </h4>
+                                <p id="aiReasonText" class="text-sm text-purple-800"></p>
+                            </div>
+                        </div>
+
+                        <!-- フッター -->
+                        <div class="p-4 border-t bg-gray-50 flex-shrink-0 space-y-2">
+                            <button onclick="executeAIAssignment()" class="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:from-green-600 hover:to-emerald-600 font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                この振り分けで実行
+                            </button>
+                            <div class="flex gap-2">
+                                <button onclick="requestAIAssignment()" class="flex-1 py-2 bg-white text-purple-600 border-2 border-purple-200 rounded-xl hover:bg-purple-50 font-medium text-sm transition-all">
+                                    再提案してもらう
+                                </button>
+                                <button onclick="closeAIAssignPreviewModal(); openAssignModal(null)" class="flex-1 py-2 bg-white text-gray-600 border-2 border-gray-200 rounded-xl hover:bg-gray-50 font-medium text-sm transition-all">
+                                    手動で調整
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -19891,24 +20070,136 @@
 
         // ===== 担当者選択モーダル =====
         let assignTargetCvId = null;
+        let cachedMemberList = null;
+        let aiAssignSettings = {
+            count: 1,
+            criteria: { rate: true, area: false, equal: false },
+            memberRatios: {},
+            specialRules: []
+        };
+        let aiAssignResult = null;
 
-        // 担当者リスト（設定から取得、なければデフォルト）
-        function getStaffList() {
-            // 設定画面などから取得できる場合はそちらを使う
-            // とりあえずデフォルトリスト
-            return ['田中太郎', '佐藤花子', '鈴木一郎'];
+        // メンバーリストをAPIから取得
+        async function getMemberListFromAPI() {
+            if (cachedMemberList) return cachedMemberList;
+
+            try {
+                const merchantId = window.merchantId;
+                if (!merchantId) {
+                    console.error('merchantId not found');
+                    return [];
+                }
+
+                return new Promise((resolve, reject) => {
+                    const callbackName = 'getMemberList_' + Date.now();
+                    const script = document.createElement('script');
+
+                    window[callbackName] = function(response) {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+
+                        if (response.success && response.members) {
+                            // activeなメンバーのみをキャッシュ
+                            cachedMemberList = response.members.filter(m => m.status === 'active');
+                            resolve(cachedMemberList);
+                        } else {
+                            resolve([]);
+                        }
+                    };
+
+                    script.src = `${window.ENV.GAS_URL}?action=getMemberList&merchantId=${encodeURIComponent(merchantId)}&callback=${callbackName}`;
+                    script.onerror = () => {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        resolve([]);
+                    };
+                    document.body.appendChild(script);
+                });
+            } catch (error) {
+                console.error('メンバーリスト取得エラー:', error);
+                return [];
+            }
         }
 
-        function openAssignModal(cvId) {
+        // メンバーリストキャッシュをクリア
+        function clearMemberListCache() {
+            cachedMemberList = null;
+        }
+
+        // 未振り分け案件数を取得
+        function getUnassignedCaseCount() {
+            if (!merchantCasesData) return 0;
+            return merchantCasesData.filter(c => !c.assignee || c.assignee === '').length;
+        }
+
+        // モーダルを開く
+        async function openAssignModal(cvId) {
             assignTargetCvId = cvId;
-            const staffList = getStaffList();
-            const listHtml = staffList.map(name => `
-                <button onclick="assignStaff('${name}')" class="w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200">
-                    <span class="font-medium">${name}</span>
-                </button>
-            `).join('');
+
+            // ターゲット情報を表示
+            const targetInfo = document.getElementById('assignTargetInfo');
+            if (cvId) {
+                const caseData = merchantCasesData.find(c => String(c.cvId) === String(cvId));
+                if (caseData) {
+                    targetInfo.textContent = `${caseData.cvId} - ${caseData.customerName || '名前未設定'}`;
+                } else {
+                    targetInfo.textContent = `案件ID: ${cvId}`;
+                }
+            } else {
+                targetInfo.textContent = '一括振り分けモード';
+            }
+
+            // メンバーリストを取得して表示
+            const members = await getMemberListFromAPI();
+
+            let listHtml = '';
+            if (members.length === 0) {
+                listHtml = `
+                    <div class="text-center py-4 text-gray-500">
+                        <p class="text-sm">メンバーが登録されていません</p>
+                        <p class="text-xs mt-1">メンバー管理からメンバーを招待してください</p>
+                    </div>
+                `;
+            } else {
+                listHtml = members.map(member => {
+                    const roleBadge = getRoleBadge(member.role);
+                    return `
+                        <button onclick="assignStaff('${member.memberId}', '${member.name}')"
+                                class="w-full text-left px-4 py-3 rounded-xl hover:bg-purple-50 transition-all border-2 border-gray-100 hover:border-purple-300 flex items-center justify-between group">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center text-white font-bold text-sm">
+                                    ${member.name ? member.name.charAt(0) : '?'}
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-800">${member.name || member.memberId}</span>
+                                    ${roleBadge}
+                                </div>
+                            </div>
+                            <svg class="w-5 h-5 text-gray-300 group-hover:text-purple-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    `;
+                }).join('');
+            }
+
             document.getElementById('assignStaffList').innerHTML = listHtml;
+
+            // 未振り分け件数を更新
+            const unassignedCount = getUnassignedCaseCount();
+            document.getElementById('unassignedCount').innerHTML = `未振り分け: <span class="font-bold text-blue-600">${unassignedCount}</span>件`;
+
             document.getElementById('assignModal').classList.remove('hidden');
+        }
+
+        // 役職バッジを生成
+        function getRoleBadge(role) {
+            const badges = {
+                'leader': '<span class="ml-2 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">リーダー</span>',
+                'standard': '<span class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">営業</span>',
+                'office': '<span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full">事務</span>'
+            };
+            return badges[role] || '';
         }
 
         function closeAssignModal() {
@@ -19916,21 +20207,30 @@
             assignTargetCvId = null;
         }
 
-        async function assignStaff(staffName) {
+        // 担当者を割り当て（単一案件）
+        async function assignStaff(memberId, staffName) {
             if (!assignTargetCvId) return;
 
             try {
-                // APIで担当者を更新
-                const result = await window.apiClient.postRequest('updateCVData', {
-                    cvId: assignTargetCvId,
-                    data: { assignee: staffName }
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'updateCVData',
+                        merchantId: window.merchantId,
+                        cvId: assignTargetCvId,
+                        data: { assignee: staffName, assigneeId: memberId }
+                    })
                 });
+
+                const result = await response.json();
 
                 if (result.success) {
                     // ローカルデータも更新
                     const caseData = merchantCasesData.find(c => String(c.cvId) === String(assignTargetCvId));
                     if (caseData) {
                         caseData.assignee = staffName;
+                        caseData.assigneeId = memberId;
                     }
                     // リスト再描画
                     if (typeof renderCaseList === 'function') {
@@ -19946,6 +20246,322 @@
             }
 
             closeAssignModal();
+        }
+
+        // ===== 均等振り分け =====
+        async function bulkAssignEqual() {
+            const members = await getMemberListFromAPI();
+            if (members.length === 0) {
+                showNotification('エラー', 'メンバーが登録されていません', 'error');
+                return;
+            }
+
+            const unassignedCases = merchantCasesData.filter(c => !c.assignee || c.assignee === '');
+            if (unassignedCases.length === 0) {
+                showNotification('情報', '未振り分けの案件がありません', 'info');
+                return;
+            }
+
+            // 確認ダイアログ
+            if (!confirm(`${unassignedCases.length}件の案件を${members.length}人に均等に振り分けます。よろしいですか？`)) {
+                return;
+            }
+
+            showNotification('処理中', '均等振り分けを実行中...', 'info');
+
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (let i = 0; i < unassignedCases.length; i++) {
+                const caseData = unassignedCases[i];
+                const member = members[i % members.length];
+
+                try {
+                    const response = await fetch(GAS_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: 'updateCVData',
+                            merchantId: window.merchantId,
+                            cvId: caseData.cvId,
+                            data: { assignee: member.name, assigneeId: member.memberId }
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        caseData.assignee = member.name;
+                        caseData.assigneeId = member.memberId;
+                        successCount++;
+                    } else {
+                        errorCount++;
+                    }
+                } catch (error) {
+                    errorCount++;
+                }
+            }
+
+            // リスト再描画
+            if (typeof renderCaseList === 'function') {
+                renderCaseList();
+            }
+
+            closeAssignModal();
+
+            if (errorCount === 0) {
+                showNotification('完了', `${successCount}件を均等に振り分けました`, 'success');
+            } else {
+                showNotification('一部エラー', `${successCount}件成功、${errorCount}件失敗`, 'warning');
+            }
+        }
+
+        // ===== AI自動振り分けモーダル =====
+        async function openAIAssignModal() {
+            closeAssignModal();
+
+            const members = await getMemberListFromAPI();
+            if (members.length === 0) {
+                showNotification('エラー', 'メンバーが登録されていません', 'error');
+                return;
+            }
+
+            // メンバー別分配率を生成
+            const ratioListHtml = members.map((member, index) => {
+                const ratio = aiAssignSettings.memberRatios[member.memberId] || 50;
+                return `
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center text-white font-bold text-xs">
+                            ${member.name ? member.name.charAt(0) : '?'}
+                        </div>
+                        <span class="font-medium text-gray-700 w-20 truncate">${member.name || member.memberId}</span>
+                        <input type="range" min="0" max="100" value="${ratio}"
+                               class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                               onchange="updateMemberRatio('${member.memberId}', this.value)"
+                               id="ratio_${member.memberId}">
+                        <span class="w-12 text-right text-sm font-bold text-purple-600" id="ratioVal_${member.memberId}">${ratio}%</span>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('memberRatioList').innerHTML = ratioListHtml;
+
+            // 特殊ルールを生成
+            const rulesListHtml = members.map(member => `
+                <label class="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200 hover:border-purple-300 cursor-pointer transition-all">
+                    <input type="checkbox" class="w-4 h-4 text-purple-600 rounded"
+                           id="rule_allInclude_${member.memberId}"
+                           onchange="updateSpecialRule('allInclude', '${member.memberId}', this.checked)">
+                    <span class="text-sm text-gray-700">${member.name}は全案件に含める</span>
+                </label>
+            `).join('');
+            document.getElementById('specialRulesList').innerHTML = rulesListHtml;
+
+            document.getElementById('aiAssignModal').classList.remove('hidden');
+        }
+
+        function closeAIAssignModal() {
+            document.getElementById('aiAssignModal').classList.add('hidden');
+        }
+
+        function closeAIAssignPreviewModal() {
+            document.getElementById('aiAssignPreviewModal').classList.add('hidden');
+        }
+
+        // 配信人数を設定
+        function setAssignCount(count) {
+            aiAssignSettings.count = count;
+
+            // ボタンのスタイルを更新
+            document.querySelectorAll('.assign-count-btn').forEach(btn => {
+                const btnCount = parseInt(btn.getAttribute('data-count'));
+                if (btnCount === count) {
+                    btn.classList.remove('border-gray-200', 'text-gray-600');
+                    btn.classList.add('border-purple-500', 'text-purple-600');
+                } else {
+                    btn.classList.remove('border-purple-500', 'text-purple-600');
+                    btn.classList.add('border-gray-200', 'text-gray-600');
+                }
+            });
+        }
+
+        // メンバー別分配率を更新
+        function updateMemberRatio(memberId, value) {
+            aiAssignSettings.memberRatios[memberId] = parseInt(value);
+            document.getElementById(`ratioVal_${memberId}`).textContent = `${value}%`;
+        }
+
+        // 特殊ルールを更新
+        function updateSpecialRule(ruleType, memberId, checked) {
+            const ruleKey = `${ruleType}_${memberId}`;
+            if (checked) {
+                if (!aiAssignSettings.specialRules.includes(ruleKey)) {
+                    aiAssignSettings.specialRules.push(ruleKey);
+                }
+            } else {
+                aiAssignSettings.specialRules = aiAssignSettings.specialRules.filter(r => r !== ruleKey);
+            }
+        }
+
+        // AI振り分けをリクエスト
+        async function requestAIAssignment() {
+            const members = await getMemberListFromAPI();
+            const unassignedCases = merchantCasesData.filter(c => !c.assignee || c.assignee === '');
+
+            if (unassignedCases.length === 0) {
+                showNotification('情報', '未振り分けの案件がありません', 'info');
+                return;
+            }
+
+            // 設定を収集
+            aiAssignSettings.criteria = {
+                rate: document.getElementById('aiCriteria_rate').checked,
+                area: document.getElementById('aiCriteria_area').checked,
+                equal: document.getElementById('aiCriteria_equal').checked
+            };
+
+            const btn = document.getElementById('aiAssignBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<svg class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>AIが分析中...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'aiAssignCases',
+                        merchantId: window.merchantId,
+                        cases: unassignedCases.map(c => ({
+                            cvId: c.cvId,
+                            customerName: c.customerName,
+                            address: c.address,
+                            prefecture: c.prefecture,
+                            status: c.status
+                        })),
+                        members: members.map(m => ({
+                            memberId: m.memberId,
+                            name: m.name,
+                            role: m.role
+                        })),
+                        settings: aiAssignSettings
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.assignments) {
+                    aiAssignResult = result.assignments;
+                    showAIAssignPreview(result.assignments, result.reason || 'AIが最適な振り分けを提案しました');
+                } else {
+                    showNotification('エラー', result.error || 'AI振り分けに失敗しました', 'error');
+                }
+            } catch (error) {
+                console.error('AI振り分けエラー:', error);
+                showNotification('エラー', '通信エラーが発生しました', 'error');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // AI振り分け結果をプレビュー
+        function showAIAssignPreview(assignments, reason) {
+            closeAIAssignModal();
+
+            // 結果をメンバーごとにグループ化
+            const grouped = {};
+            assignments.forEach(a => {
+                if (!grouped[a.memberId]) {
+                    grouped[a.memberId] = {
+                        name: a.memberName,
+                        cases: []
+                    };
+                }
+                grouped[a.memberId].cases.push(a);
+            });
+
+            const contentHtml = Object.entries(grouped).map(([memberId, data]) => `
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-bold text-sm">
+                            ${data.name ? data.name.charAt(0) : '?'}
+                        </div>
+                        <div>
+                            <span class="font-bold text-gray-800">${data.name}</span>
+                            <span class="ml-2 text-sm text-green-600 font-medium">${data.cases.length}件</span>
+                        </div>
+                    </div>
+                    <div class="space-y-1 pl-13">
+                        ${data.cases.map(c => `
+                            <div class="text-sm text-gray-600 flex items-center gap-2">
+                                <span class="text-gray-400">├</span>
+                                <span class="font-mono text-xs text-gray-500">${c.cvId}</span>
+                                <span>${c.customerName || '名前未設定'}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('aiAssignPreviewContent').innerHTML = contentHtml;
+            document.getElementById('aiReasonText').textContent = reason;
+            document.getElementById('aiAssignPreviewModal').classList.remove('hidden');
+        }
+
+        // AI振り分けを実行
+        async function executeAIAssignment() {
+            if (!aiAssignResult || aiAssignResult.length === 0) {
+                showNotification('エラー', '振り分けデータがありません', 'error');
+                return;
+            }
+
+            showNotification('処理中', 'AI振り分けを実行中...', 'info');
+
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const assignment of aiAssignResult) {
+                try {
+                    const response = await fetch(GAS_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: 'updateCVData',
+                            merchantId: window.merchantId,
+                            cvId: assignment.cvId,
+                            data: { assignee: assignment.memberName, assigneeId: assignment.memberId }
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        // ローカルデータも更新
+                        const caseData = merchantCasesData.find(c => String(c.cvId) === String(assignment.cvId));
+                        if (caseData) {
+                            caseData.assignee = assignment.memberName;
+                            caseData.assigneeId = assignment.memberId;
+                        }
+                        successCount++;
+                    } else {
+                        errorCount++;
+                    }
+                } catch (error) {
+                    errorCount++;
+                }
+            }
+
+            // リスト再描画
+            if (typeof renderCaseList === 'function') {
+                renderCaseList();
+            }
+
+            closeAIAssignPreviewModal();
+            aiAssignResult = null;
+
+            if (errorCount === 0) {
+                showNotification('完了', `${successCount}件をAI提案通りに振り分けました`, 'success');
+            } else {
+                showNotification('一部エラー', `${successCount}件成功、${errorCount}件失敗`, 'warning');
+            }
         }
 
         // ===== 次回架電日設定モーダル =====
