@@ -15580,13 +15580,13 @@
         }
 
         function shareInviteSMS() {
-            const message = encodeURIComponent(`くらべるネット招待: ${generatedInviteLink}`);
+            const message = encodeURIComponent(`招待リンク\n${generatedInviteLink}`);
             window.open(`sms:?body=${message}`, '_blank');
         }
 
         function shareInviteEmail() {
-            const subject = encodeURIComponent('くらべるネット加盟店システムへの招待');
-            const body = encodeURIComponent(`くらべるネット加盟店システムへの招待です。\n\n以下のリンクから登録してください：\n${generatedInviteLink}\n\n※このリンクは24時間有効です。`);
+            const subject = encodeURIComponent('招待リンク');
+            const body = encodeURIComponent(`招待リンク\n${generatedInviteLink}`);
             window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
         }
 
