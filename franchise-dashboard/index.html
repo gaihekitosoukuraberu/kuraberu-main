@@ -660,8 +660,8 @@
 
                 <!-- カードビュー（スマホ: 表示 / PC: 非表示） -->
                 <div id="caseCardView" class="grid grid-cols-1 gap-5 md:hidden">
-                    <!-- ローディング表示 -->
-                    <div id="casesLoading" class="col-span-full text-center py-12">
+                    <!-- ローディング表示（hidden by default） -->
+                    <div id="casesLoading" class="col-span-full text-center py-12 hidden">
                         <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
                         <p class="text-gray-500">案件データを読み込み中...</p>
                     </div>
@@ -16268,11 +16268,7 @@
                     }
                 }
             }
-
-            // V2007: 案件管理セクション
-            if (section === 'cases') {
-                loadMerchantCases();
-            }
+            // 案件管理セクションは originalShowSection で処理済み
         }
 
         // =====================================================
