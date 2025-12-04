@@ -1056,6 +1056,131 @@
                     </div>
                 </div>
 
+                <!-- 見積提出日時モーダル（商談アポ済選択後） -->
+                <div id="estimateDateModal" class="fixed inset-0 z-50 hidden">
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeEstimateDateModal()"></div>
+                    <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+                            <!-- ヘッダー -->
+                            <div class="p-4 border-b bg-gradient-to-r from-emerald-500 to-emerald-600 text-white flex-shrink-0">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-lg font-bold">📋 商談日時を設定</h3>
+                                    <button onclick="closeEstimateDateModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all -mr-2">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <p id="estimateTargetName" class="text-base font-bold text-white">---</p>
+                                <p id="estimateTargetAddress" class="text-sm text-emerald-100 mt-0.5">---</p>
+                            </div>
+
+                            <!-- コンテンツ -->
+                            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                                <!-- 日付クイック選択（今日〜6日後） -->
+                                <div class="bg-gray-50 rounded-xl p-4">
+                                    <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                        <span>📅</span> 日付を選択
+                                    </h4>
+                                    <div class="grid grid-cols-4 gap-2 mb-3">
+                                        <button onclick="setEstimateDay(0)" data-estimate-day="0" class="estimate-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">今日</div>
+                                            <div id="estimateDayLabel0" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setEstimateDay(1)" data-estimate-day="1" class="estimate-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">明日</div>
+                                            <div id="estimateDayLabel1" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setEstimateDay(2)" data-estimate-day="2" class="estimate-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">明後日</div>
+                                            <div id="estimateDayLabel2" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setEstimateDay(3)" data-estimate-day="3" class="estimate-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">3日後</div>
+                                            <div id="estimateDayLabel3" class="text-base"></div>
+                                        </button>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-2 mb-3">
+                                        <button onclick="setEstimateDay(4)" data-estimate-day="4" class="estimate-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">4日後</div>
+                                            <div id="estimateDayLabel4" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setEstimateDay(5)" data-estimate-day="5" class="estimate-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">5日後</div>
+                                            <div id="estimateDayLabel5" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setEstimateDay(6)" data-estimate-day="6" class="estimate-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">6日後</div>
+                                            <div id="estimateDayLabel6" class="text-base"></div>
+                                        </button>
+                                        <button onclick="toggleEstimateCustomDatePicker()" class="py-3 bg-white border-2 border-gray-200 text-gray-500 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">その他</div>
+                                            <div class="text-base">📆</div>
+                                        </button>
+                                    </div>
+                                    <!-- カスタム日付選択 -->
+                                    <div id="estimateCustomDatePicker" class="hidden">
+                                        <input type="date" id="estimateDateInput" class="w-full p-3 border-2 border-emerald-300 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all text-center font-bold" onchange="onEstimateDateInputChange()">
+                                    </div>
+                                </div>
+
+                                <!-- 時間選択（プルダウン） -->
+                                <div class="bg-gray-50 rounded-xl p-4">
+                                    <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                        <span>⏰</span> 時間を選択
+                                    </h4>
+                                    <div class="flex items-center gap-3">
+                                        <select id="estimateHour" class="flex-1 px-3 py-3 border-2 border-gray-200 rounded-xl text-center font-bold text-lg focus:border-emerald-500 transition-all" onchange="onEstimateTimeChange()">
+                                            <option value="">時</option>
+                                            <option value="9">9時</option>
+                                            <option value="10">10時</option>
+                                            <option value="11">11時</option>
+                                            <option value="12">12時</option>
+                                            <option value="13">13時</option>
+                                            <option value="14">14時</option>
+                                            <option value="15">15時</option>
+                                            <option value="16">16時</option>
+                                            <option value="17">17時</option>
+                                            <option value="18">18時</option>
+                                            <option value="19">19時</option>
+                                            <option value="20">20時</option>
+                                            <option value="21">21時</option>
+                                        </select>
+                                        <span class="text-xl font-bold text-gray-400">:</span>
+                                        <select id="estimateMinute" class="flex-1 px-3 py-3 border-2 border-gray-200 rounded-xl text-center font-bold text-lg focus:border-emerald-500 transition-all" onchange="onEstimateTimeChange()">
+                                            <option value="0">00分</option>
+                                            <option value="30">30分</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- 選択結果プレビュー -->
+                                <div id="estimatePreview" class="bg-emerald-50 rounded-xl p-4 border-2 border-emerald-200 hidden">
+                                    <div class="flex items-center justify-center gap-3">
+                                        <span class="text-2xl">📋</span>
+                                        <div class="text-center">
+                                            <div class="text-xs text-emerald-600 font-medium">商談予定日時</div>
+                                            <div id="estimatePreviewText" class="text-xl font-bold text-emerald-800">---</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- フッター -->
+                            <div class="p-4 border-t bg-gray-50 flex-shrink-0">
+                                <div class="flex gap-3">
+                                    <button onclick="closeEstimateDateModal()" class="flex-1 py-3 bg-white border-2 border-gray-300 text-gray-600 rounded-xl hover:bg-gray-100 font-bold transition-all">
+                                        戻る
+                                    </button>
+                                    <button onclick="saveEstimateDate()" id="estimateSaveBtn" class="flex-[2] py-3 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 font-bold shadow-lg hover:shadow-xl transition-all disabled:bg-gray-300 disabled:shadow-none">
+                                        保存して次へ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 次回架電日設定モーダル -->
                 <div id="nextCallModal" class="fixed inset-0 z-50 hidden">
                     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeNextCallModal()"></div>
@@ -17441,6 +17566,7 @@
             document.getElementById('caseMemoTextarea').value = '';
             document.getElementById('caseMemoModal').classList.remove('hidden');
             loadMemoHistory();
+            showMemoQuickOptions(c.detailStatus);
         }
 
         function closeMemoModal() {
@@ -17449,6 +17575,11 @@
             currentMemoCase = null;
             selectedMemoHistoryIndex = -1;
             isAfterCallMode = false;
+            // クイック選択肢とスキップボタンを削除
+            const quickContainer = document.getElementById('memoQuickOptionsContainer');
+            if (quickContainer) quickContainer.remove();
+            const skipContainer = document.getElementById('memoSkipBtnContainer');
+            if (skipContainer) skipContainer.remove();
         }
 
         // 通話後フロー用のメモモーダル
@@ -17466,6 +17597,7 @@
             document.getElementById('caseMemoTextarea').value = '';
             document.getElementById('caseMemoModal').classList.remove('hidden');
             loadMemoHistory();
+            showMemoQuickOptions(c.detailStatus);
         }
 
         // メモ履歴を読み込み
@@ -19162,6 +19294,205 @@
             openMemoModalAfterSurvey(cvId);
         }
 
+        // ====================================
+        // 見積提出日時モーダル関連
+        // ====================================
+        let estimateTargetCvId = null;
+        let selectedEstimateDate = null;
+        let selectedEstimateHour = null;
+        let selectedEstimateMinute = 0;
+
+        function openEstimateDateModal(cvId) {
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            estimateTargetCvId = cvId;
+            selectedEstimateDate = null;
+            selectedEstimateHour = null;
+            selectedEstimateMinute = 0;
+
+            // 顧客名と住所を表示
+            document.getElementById('estimateTargetName').textContent = `${c.customerName || '-'} 様`;
+            document.getElementById('estimateTargetAddress').textContent = c.fullAddress || c.city || '-';
+
+            // 日付ラベル更新
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            for (let i = 0; i <= 6; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() + i);
+                const label = document.getElementById(`estimateDayLabel${i}`);
+                if (label) {
+                    label.textContent = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+                }
+            }
+
+            // リセット
+            document.querySelectorAll('.estimate-day-btn').forEach(btn => {
+                btn.classList.remove('border-emerald-500', 'bg-emerald-100', 'text-emerald-800');
+                btn.classList.add('border-gray-200', 'text-gray-700');
+            });
+            document.getElementById('estimateHour').value = '';
+            document.getElementById('estimateMinute').value = '0';
+            document.getElementById('estimatePreview').classList.add('hidden');
+            document.getElementById('estimateCustomDatePicker').classList.add('hidden');
+
+            document.getElementById('estimateDateModal').classList.remove('hidden');
+        }
+
+        function closeEstimateDateModal() {
+            document.getElementById('estimateDateModal').classList.add('hidden');
+            estimateTargetCvId = null;
+        }
+
+        function setEstimateDay(offset) {
+            const today = new Date();
+            today.setDate(today.getDate() + offset);
+            today.setHours(0, 0, 0, 0);
+            selectedEstimateDate = today;
+
+            // ボタン状態更新
+            document.querySelectorAll('.estimate-day-btn').forEach(btn => {
+                const btnOffset = btn.getAttribute('data-estimate-day');
+                if (btnOffset === String(offset)) {
+                    btn.classList.add('border-emerald-500', 'bg-emerald-100', 'text-emerald-800');
+                    btn.classList.remove('border-gray-200', 'text-gray-700');
+                } else {
+                    btn.classList.remove('border-emerald-500', 'bg-emerald-100', 'text-emerald-800');
+                    btn.classList.add('border-gray-200', 'text-gray-700');
+                }
+            });
+
+            updateEstimatePreview();
+        }
+
+        function onEstimateTimeChange() {
+            const hourEl = document.getElementById('estimateHour');
+            const minuteEl = document.getElementById('estimateMinute');
+
+            selectedEstimateHour = hourEl.value ? parseInt(hourEl.value) : null;
+            selectedEstimateMinute = parseInt(minuteEl.value) || 0;
+
+            updateEstimatePreview();
+        }
+
+        function toggleEstimateCustomDatePicker() {
+            const picker = document.getElementById('estimateCustomDatePicker');
+            picker.classList.toggle('hidden');
+            if (!picker.classList.contains('hidden')) {
+                const input = document.getElementById('estimateDateInput');
+                const today = new Date();
+                input.min = today.toISOString().split('T')[0];
+                input.value = '';
+            }
+        }
+
+        function onEstimateDateInputChange() {
+            const input = document.getElementById('estimateDateInput');
+            if (input.value) {
+                selectedEstimateDate = new Date(input.value + 'T00:00:00');
+                // クイックボタンの選択解除
+                document.querySelectorAll('.estimate-day-btn').forEach(btn => {
+                    btn.classList.remove('border-emerald-500', 'bg-emerald-100', 'text-emerald-800');
+                    btn.classList.add('border-gray-200', 'text-gray-700');
+                });
+                updateEstimatePreview();
+            }
+        }
+
+        function updateEstimatePreview() {
+            selectedEstimateMinute = parseInt(document.getElementById('estimateMinute').value) || 0;
+
+            if (selectedEstimateDate && selectedEstimateHour !== null) {
+                const days = ['日', '月', '火', '水', '木', '金', '土'];
+                const d = selectedEstimateDate;
+                const dateStr = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+                const timeStr = `${selectedEstimateHour}:${String(selectedEstimateMinute).padStart(2, '0')}`;
+                document.getElementById('estimatePreviewText').textContent = `${dateStr} ${timeStr}`;
+                document.getElementById('estimatePreview').classList.remove('hidden');
+            } else {
+                document.getElementById('estimatePreview').classList.add('hidden');
+            }
+        }
+
+        function saveEstimateDate() {
+            if (!selectedEstimateDate || selectedEstimateHour === null) {
+                showNotification('入力エラー', '日付と時間を選択してください', 'warning');
+                return;
+            }
+
+            const cvId = estimateTargetCvId;
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            // 日時文字列を作成
+            const d = selectedEstimateDate;
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            const estimateDateTime = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${selectedEstimateHour}:${String(selectedEstimateMinute).padStart(2, '0')}`;
+            const estimateDateDisplay = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]}) ${selectedEstimateHour}:${String(selectedEstimateMinute).padStart(2, '0')}`;
+
+            // 履歴に追加
+            if (!c.callHistory) {
+                c.callHistory = [];
+            }
+            c.callHistory.unshift({
+                date: new Date().toLocaleString('ja-JP'),
+                type: 'estimate_set',
+                note: `📋 商談予定: ${estimateDateDisplay}`
+            });
+
+            // ローカルデータ更新
+            c.estimateDate = estimateDateTime;
+            renderCases();
+
+            // バックグラウンドでGASに保存
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    system: 'merchant',
+                    subsystem: 'contract',
+                    action: 'updateEstimateDate',
+                    merchantId: merchantId,
+                    cvId: cvId,
+                    estimateDate: estimateDateTime
+                })
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    console.log('[saveEstimateDate] 保存完了:', estimateDateTime);
+                } else {
+                    console.error('[saveEstimateDate] 保存失敗:', result.error);
+                }
+            })
+            .catch(err => console.error('[saveEstimateDate] 通信エラー:', err));
+
+            closeEstimateDateModal();
+
+            // メモモーダルへ（スキップ可能）
+            openMemoModalAfterEstimate(cvId);
+        }
+
+        // 見積提出日時設定後のメモモーダル（スキップ可能）
+        function openMemoModalAfterEstimate(cvId) {
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            currentMemoCase = c;
+            isAfterCallMode = false;
+
+            document.getElementById('memoTargetName').textContent = `${c.customerName || '-'} 様`;
+            document.getElementById('memoTargetAddress').textContent = c.fullAddress || c.city || '-';
+            document.getElementById('caseMemoTextarea').value = '';
+
+            showMemoSkipButton(true);
+            showMemoQuickOptions(c.detailStatus);
+
+            document.getElementById('caseMemoModal').classList.remove('hidden');
+            loadMemoHistory();
+        }
+
         // 現調日時設定後のメモモーダル（スキップ可能）
         function openMemoModalAfterSurvey(cvId) {
             const c = findCaseByCvId(cvId);
@@ -19174,8 +19505,9 @@
             document.getElementById('memoTargetAddress').textContent = c.fullAddress || c.city || '-';
             document.getElementById('caseMemoTextarea').value = '';
 
-            // メモモーダルにスキップボタンを表示するフラグ
+            // メモモーダルにスキップボタンとクイック選択肢を表示
             showMemoSkipButton(true);
+            showMemoQuickOptions(c.detailStatus);
 
             document.getElementById('caseMemoModal').classList.remove('hidden');
             loadMemoHistory();
@@ -19213,6 +19545,126 @@
             closeMemoModal();
             const container = document.getElementById('memoSkipBtnContainer');
             if (container) container.remove();
+            const quickContainer = document.getElementById('memoQuickOptionsContainer');
+            if (quickContainer) quickContainer.remove();
+        }
+
+        // ====================================
+        // メモモーダル クイック選択肢
+        // ====================================
+        const memoQuickOptionsConfig = {
+            '未アポ': [
+                { emoji: '⏳', label: '日程調整中', action: 'memo' }
+            ],
+            'アポ済': [
+                { emoji: '📅', label: '現調日確定', action: 'memo' }
+            ],
+            '現調済': [
+                { emoji: '📋', label: '商談アポ済', action: 'estimate' },
+                { emoji: '📝', label: '見積作成中', action: 'memo' }
+            ],
+            '見積提出済': [
+                { emoji: '🔥', label: '温度高', action: 'memo' },
+                { emoji: '😐', label: '温度中', action: 'memo' },
+                { emoji: '❄️', label: '温度低', action: 'memo' },
+                { emoji: '🏠', label: '他社見積待ち', action: 'memo' }
+            ]
+        };
+
+        function showMemoQuickOptions(status) {
+            // 既存のクイック選択肢を削除
+            const existingContainer = document.getElementById('memoQuickOptionsContainer');
+            if (existingContainer) existingContainer.remove();
+
+            const options = memoQuickOptionsConfig[status];
+            if (!options || options.length === 0) return;
+
+            const memoInputArea = document.querySelector('#caseMemoModal .bg-amber-50');
+            if (!memoInputArea) return;
+
+            const container = document.createElement('div');
+            container.id = 'memoQuickOptionsContainer';
+            container.className = 'mt-3 pt-3 border-t border-amber-200';
+            container.innerHTML = `
+                <div class="text-xs text-amber-600 font-medium mb-2">📌 進捗クイック入力</div>
+                <div class="flex flex-wrap gap-2">
+                    ${options.map(opt => `
+                        <button onclick="selectMemoQuickOption('${opt.emoji}', '${opt.label}', '${opt.action}')"
+                            class="px-3 py-1.5 bg-white border border-amber-300 rounded-lg text-sm font-medium text-amber-700 hover:bg-amber-100 hover:border-amber-400 transition-all">
+                            ${opt.emoji} ${opt.label}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+
+            // スキップボタンの前に挿入
+            const skipContainer = document.getElementById('memoSkipBtnContainer');
+            if (skipContainer) {
+                memoInputArea.insertBefore(container, skipContainer);
+            } else {
+                memoInputArea.appendChild(container);
+            }
+        }
+
+        function selectMemoQuickOption(emoji, label, action) {
+            if (!currentMemoCase) return;
+
+            const cvId = currentMemoCase.cvId;
+            const c = currentMemoCase;
+            const memoText = `${emoji} ${label}`;
+
+            // 履歴に追加
+            if (!c.callHistory) {
+                c.callHistory = [];
+            }
+            c.callHistory.unshift({
+                date: new Date().toLocaleString('ja-JP'),
+                type: 'quick_progress',
+                note: memoText
+            });
+
+            // GASに保存
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    system: 'merchant',
+                    subsystem: 'contract',
+                    action: 'addCaseMemo',
+                    merchantId: merchantId,
+                    cvId: cvId,
+                    memo: memoText
+                })
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    console.log('[selectMemoQuickOption] 保存完了:', memoText);
+                } else {
+                    console.error('[selectMemoQuickOption] 保存失敗:', result.error);
+                }
+            })
+            .catch(err => console.error('[selectMemoQuickOption] 通信エラー:', err));
+
+            // 商談アポ済の場合は見積提出日時モーダルを開く
+            if (action === 'estimate') {
+                closeMemoModal();
+                const container = document.getElementById('memoSkipBtnContainer');
+                if (container) container.remove();
+                const quickContainer = document.getElementById('memoQuickOptionsContainer');
+                if (quickContainer) quickContainer.remove();
+                openEstimateDateModal(cvId);
+            } else {
+                // メモとして保存してモーダルを閉じる
+                closeMemoModal();
+                const container = document.getElementById('memoSkipBtnContainer');
+                if (container) container.remove();
+                const quickContainer = document.getElementById('memoQuickOptionsContainer');
+                if (quickContainer) quickContainer.remove();
+                renderCases();
+                showNotification('保存完了', '進捗を記録しました');
+            }
         }
 
         function openNextCallModal(cvId) {
