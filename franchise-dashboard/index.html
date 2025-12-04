@@ -17,6 +17,25 @@
   document.write("<script src=\"js/pwa-helper.js?v=" + cacheBuster + "\"><\/script>");
 })();
 </script>
+    <script>
+        // PWA起動時：未完了の招待があればリダイレクト
+        (function() {
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            const pending = localStorage.getItem('pendingInvite');
+            if (isStandalone && pending) {
+                try {
+                    const { id, s } = JSON.parse(pending);
+                    if (id && s) {
+                        console.log('[PWA] Pending invite found, redirecting to member-register');
+                        window.location.href = `merchant-portal/member-register.html?id=${id}&s=${s}`;
+                    }
+                } catch (e) {
+                    console.error('[PWA] Failed to parse pendingInvite:', e);
+                    localStorage.removeItem('pendingInvite');
+                }
+            }
+        })();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -15555,7 +15574,8 @@
         }
 
         function shareInviteLine() {
-            const message = encodeURIComponent(`くらべるネット加盟店システムへの招待\n\n以下のリンクから登録してください：\n${generatedInviteLink}`);
+            // シンプルにリンクのみ（余計なURL検出を防ぐ）
+            const message = encodeURIComponent(`招待リンク\n${generatedInviteLink}`);
             window.open(`https://line.me/R/msg/text/?${message}`, '_blank');
         }
 

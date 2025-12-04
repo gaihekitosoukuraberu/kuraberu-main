@@ -22,6 +22,25 @@
   document.write("<script src=\"/js/env-loader.js?v=" + cacheBuster + "\"><\/script>");
 })();
 </script>
+    <script>
+        // PWA起動時：未完了の招待があればリダイレクト
+        (function() {
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            const pending = localStorage.getItem('pendingInvite');
+            if (isStandalone && pending) {
+                try {
+                    const { id, s } = JSON.parse(pending);
+                    if (id && s) {
+                        console.log('[PWA] Pending invite found, redirecting to member-register');
+                        window.location.href = `member-register.html?id=${id}&s=${s}`;
+                    }
+                } catch (e) {
+                    console.error('[PWA] Failed to parse pendingInvite:', e);
+                    localStorage.removeItem('pendingInvite');
+                }
+            }
+        })();
+    </script>
     <style>
         body { font-family: 'Inter', system-ui, sans-serif; }
     </style>

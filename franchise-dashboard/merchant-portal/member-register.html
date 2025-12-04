@@ -275,9 +275,27 @@
             const { id, s } = getUrlParams();
 
             if (!id || !s) {
+                // PWAから起動時、localStorageに保存された招待パラメータをチェック
+                const pending = localStorage.getItem('pendingInvite');
+                if (pending) {
+                    try {
+                        const { id: savedId, s: savedS } = JSON.parse(pending);
+                        if (savedId && savedS) {
+                            console.log('[member-register] Restoring invite from localStorage');
+                            window.location.href = `member-register.html?id=${savedId}&s=${savedS}`;
+                            return;
+                        }
+                    } catch (e) {
+                        console.error('[member-register] Failed to parse pendingInvite:', e);
+                    }
+                }
                 showError('無効なアクセスです。招待リンクから再度アクセスしてください。');
                 return;
             }
+
+            // PWA起動用に招待パラメータをlocalStorageに保存
+            localStorage.setItem('pendingInvite', JSON.stringify({ id, s }));
+            console.log('[member-register] Saved invite params to localStorage');
 
             try {
                 // 招待トークン検証（JSONP）
@@ -532,6 +550,10 @@
                 console.log('[member-register] Register response:', result);
 
                 if (result.success) {
+                    // 招待パラメータをクリア（登録完了）
+                    localStorage.removeItem('pendingInvite');
+                    console.log('[member-register] Cleared pendingInvite from localStorage');
+
                     // ログイン情報を表示
                     document.getElementById('successMerchantId').textContent = inviteData.memberId || '不明';
                     document.getElementById('registerSection').classList.add('hidden');
