@@ -250,13 +250,14 @@
                     const storage = rememberMe ? localStorage : sessionStorage;
 
                     if (isMember) {
-                        // メンバーログイン
+                        // メンバーログイン（result.memberから取得）
+                        const member = result.member || {};
                         storage.setItem('memberId', merchantId);
-                        storage.setItem('merchantId', result.merchantId); // 親の加盟店ID
-                        storage.setItem('memberName', result.memberName || '');
-                        storage.setItem('memberRole', result.role || 'standard');
-                        storage.setItem('franchiseUser', result.merchantId);
-                        storage.setItem('franchiseRole', result.role || 'standard');
+                        storage.setItem('merchantId', member.merchantId); // 親の加盟店ID
+                        storage.setItem('memberName', member.name || '');
+                        storage.setItem('memberRole', member.role || 'standard');
+                        storage.setItem('franchiseUser', member.merchantId);
+                        storage.setItem('franchiseRole', member.role || 'standard');
                     } else {
                         // オーナーログイン
                         storage.setItem('merchantId', merchantId);
