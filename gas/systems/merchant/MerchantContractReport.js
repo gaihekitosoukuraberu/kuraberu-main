@@ -121,6 +121,7 @@ var MerchantContractReport = {
       const delStatusIdx = deliveryHeaders.indexOf('配信ステータス');
       const delDetailStatusIdx = deliveryHeaders.indexOf('詳細ステータス');
       const delSurveyDateIdx = deliveryHeaders.indexOf('現調日時');
+      const delEstimateDateIdx = deliveryHeaders.indexOf('商談日時');
 
       // 配信済み案件を抽出（この加盟店に配信されていて、まだこの加盟店が成約報告していないもの）
       const deliveredCases = [];
@@ -157,8 +158,9 @@ var MerchantContractReport = {
           continue;
         }
 
-        // 現調日時を取得
+        // 現調日時・商談日時を取得
         const surveyDate = delSurveyDateIdx >= 0 ? (row[delSurveyDateIdx] || '') : '';
+        const estimateDate = delEstimateDateIdx >= 0 ? (row[delEstimateDateIdx] || '') : '';
 
         // 案件情報を追加
         deliveredCases.push({
@@ -171,7 +173,8 @@ var MerchantContractReport = {
           workCategory: userInfo.workCategory,
           deliveredAt: deliveredAt || '',
           managementStatus: detailStatus || '配信済み',
-          surveyDate: surveyDate
+          surveyDate: surveyDate,
+          estimateDate: estimateDate
         });
       }
 
@@ -667,7 +670,11 @@ var MerchantContractReport = {
           estimateDestination: user.estimateDestination,
           homePostalCode: user.homePostalCode,
           homePrefecture: user.homePrefecture,
-          homeAddressDetail: user.homeAddressDetail
+          homeAddressDetail: user.homeAddressDetail,
+
+          // === 現調・商談日時（配信管理シートから） ===
+          surveyDate: row[delCol['現調日時']] || '',
+          estimateDate: row[delCol['商談日時']] || ''
         };
 
         cases.push(caseData);

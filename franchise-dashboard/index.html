@@ -17431,6 +17431,71 @@
             `;
         }
 
+        // 進捗表示を決定（ステータスに応じて）
+        function getProgressDisplayForRow(c, status, surveyDisplay, estimateDisplay) {
+            // 最新の進捗メモを取得（callHistoryからquick_progressタイプを探す）
+            let latestProgress = null;
+            if (c.callHistory && Array.isArray(c.callHistory)) {
+                const progressEntry = c.callHistory.find(h => h.type === 'quick_progress');
+                if (progressEntry) {
+                    latestProgress = progressEntry.note;
+                }
+            }
+
+            // ステータスに応じて表示を決定
+            if (status === 'アポ済') {
+                // 現調日時があれば表示
+                if (surveyDisplay !== '-') {
+                    return {
+                        html: `<button onclick="openSurveyDateModal('${c.cvId}')" class="text-sm text-orange-600 font-medium hover:text-orange-700 hover:bg-orange-50 px-1.5 py-0.5 rounded transition-colors" title="現調日時を変更">🏠${surveyDisplay}</button>`
+                    };
+                }
+                // 進捗メモがあれば表示
+                if (latestProgress) {
+                    return { html: `<span class="text-xs text-orange-600">${latestProgress}</span>` };
+                }
+                return { html: '<span class="text-gray-300">-</span>' };
+            }
+
+            if (status === '現調済') {
+                // 商談日時があれば表示
+                if (estimateDisplay !== '-') {
+                    return {
+                        html: `<button onclick="openEstimateDateModal('${c.cvId}')" class="text-sm text-emerald-600 font-medium hover:text-emerald-700 hover:bg-emerald-50 px-1.5 py-0.5 rounded transition-colors" title="商談日時を変更">📋${estimateDisplay}</button>`
+                    };
+                }
+                // 進捗メモがあれば表示
+                if (latestProgress) {
+                    return { html: `<span class="text-xs text-emerald-600">${latestProgress}</span>` };
+                }
+                return { html: '<span class="text-gray-300">-</span>' };
+            }
+
+            if (status === '見積提出済') {
+                // 温度などの進捗を表示
+                if (latestProgress) {
+                    // 温度に応じた色
+                    let colorClass = 'text-gray-600';
+                    if (latestProgress.includes('🔥') || latestProgress.includes('温度高')) colorClass = 'text-red-600';
+                    else if (latestProgress.includes('😐') || latestProgress.includes('温度中')) colorClass = 'text-yellow-600';
+                    else if (latestProgress.includes('❄️') || latestProgress.includes('温度低')) colorClass = 'text-blue-600';
+                    return { html: `<span class="text-xs font-medium ${colorClass}">${latestProgress}</span>` };
+                }
+                return { html: '<span class="text-gray-300">-</span>' };
+            }
+
+            if (status === '未アポ') {
+                // 進捗メモがあれば表示
+                if (latestProgress) {
+                    return { html: `<span class="text-xs text-gray-600">${latestProgress}</span>` };
+                }
+                return { html: '<span class="text-gray-300">-</span>' };
+            }
+
+            // その他のステータス
+            return { html: '<span class="text-gray-300">-</span>' };
+        }
+
         // 案件リスト行HTML生成（V2035 県名カット）
         function createCaseRow(c) {
             const status = c.detailStatus || '新着';
@@ -17472,6 +17537,20 @@
                 }
             }
 
+            // 商談日を短縮表示（MM/DD HH:mm）
+            let estimateDisplay = '-';
+            if (c.estimateDate) {
+                const dateMatch = c.estimateDate.match(/(\d+)[-\/](\d+)[-\/](\d+)/);
+                const timeMatch = c.estimateDate.match(/(\d+):(\d+)/);
+                if (dateMatch) {
+                    estimateDisplay = `${dateMatch[2]}/${dateMatch[3]}`;
+                    if (timeMatch) estimateDisplay += ` ${timeMatch[1]}:${timeMatch[2]}`;
+                }
+            }
+
+            // 進捗表示を決定（ステータスに応じて）
+            const progressDisplay = getProgressDisplayForRow(c, status, surveyDisplay, estimateDisplay);
+
             // 担当者名
             const assignee = c.assignee || '-';
 
@@ -17510,9 +17589,9 @@
                     <td class="px-2 py-3 text-center">
                         <button onclick="openNextCallModal('${c.cvId}')" class="text-sm ${nextCallDisplay !== '-' ? 'text-blue-600' : 'text-gray-400'} hover:text-blue-700 hover:bg-blue-50 px-1.5 py-0.5 rounded transition-colors" title="次回架電日を設定">${nextCallDisplay !== '-' ? nextCallDisplay : '🗓️'}</button>
                     </td>
-                    <!-- 現調日 -->
+                    <!-- 進捗 -->
                     <td class="px-2 py-3 text-center">
-                        ${surveyDisplay !== '-' ? `<button onclick="openSurveyModal('${c.cvId}')" class="text-sm text-orange-600 font-medium hover:text-orange-700 hover:bg-orange-50 px-1.5 py-0.5 rounded transition-colors" title="現調日時を変更">${surveyDisplay}</button>` : '<span class="text-gray-300">-</span>'}
+                        ${progressDisplay.html}
                     </td>
                     <!-- 担当 -->
                     <td class="px-3 py-3 text-sm">
