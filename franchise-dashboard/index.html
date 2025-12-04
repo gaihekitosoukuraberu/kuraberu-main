@@ -1101,53 +1101,93 @@
                     </div>
                 </div>
 
-                <!-- 温度選択モーダル（見積提出済選択後） -->
-                <div id="temperatureModal" class="fixed inset-0 z-50 hidden">
-                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeTemperatureModal()"></div>
+                <!-- 状況選択モーダル（見積提出済選択後） -->
+                <div id="situationModal" class="fixed inset-0 z-50 hidden">
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSituationModal()"></div>
                     <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
-                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md overflow-hidden">
+                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[90vh] overflow-hidden flex flex-col">
                             <!-- ヘッダー -->
-                            <div class="p-4 border-b bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                            <div class="p-4 border-b bg-gradient-to-r from-purple-500 to-pink-500 text-white flex-shrink-0">
                                 <div class="flex justify-between items-center mb-2">
-                                    <h3 class="text-lg font-bold">🌡️ お客様の温度感は？</h3>
-                                    <button onclick="closeTemperatureModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all -mr-2">
+                                    <h3 class="text-lg font-bold">📋 お客様の状況は？</h3>
+                                    <button onclick="closeSituationModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all -mr-2">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     </button>
                                 </div>
-                                <p id="temperatureTargetName" class="text-base font-bold text-white">---</p>
-                                <p id="temperatureTargetAddress" class="text-sm text-purple-100 mt-0.5">---</p>
+                                <p id="situationTargetName" class="text-base font-bold text-white">---</p>
+                                <p id="situationTargetAddress" class="text-sm text-purple-100 mt-0.5">---</p>
                             </div>
 
                             <!-- 選択肢 -->
-                            <div class="p-4 space-y-3">
-                                <button onclick="selectTemperature('high')" class="w-full p-4 bg-red-50 border-2 border-red-200 rounded-xl hover:border-red-400 hover:bg-red-100 transition-all text-left group">
+                            <div class="p-4 space-y-2 overflow-y-auto flex-1">
+                                <button onclick="selectSituation('contract', '🔥契約検討中')" class="w-full p-3 bg-red-50 border-2 border-red-200 rounded-xl hover:border-red-400 hover:bg-red-100 transition-all text-left group">
                                     <div class="flex items-center gap-3">
-                                        <span class="text-3xl">🔥</span>
+                                        <span class="text-2xl">🔥</span>
                                         <div>
-                                            <div class="font-bold text-red-800 group-hover:text-red-900">温度高</div>
-                                            <div class="text-sm text-red-600">契約の可能性が高い</div>
+                                            <div class="font-bold text-red-800 group-hover:text-red-900">契約検討中</div>
+                                            <div class="text-xs text-red-600">日程・金額の詰め段階</div>
                                         </div>
                                     </div>
                                 </button>
 
-                                <button onclick="selectTemperature('medium')" class="w-full p-4 bg-yellow-50 border-2 border-yellow-200 rounded-xl hover:border-yellow-400 hover:bg-yellow-100 transition-all text-left group">
+                                <button onclick="selectSituation('compare', '😡比較検討中')" class="w-full p-3 bg-orange-50 border-2 border-orange-200 rounded-xl hover:border-orange-400 hover:bg-orange-100 transition-all text-left group">
                                     <div class="flex items-center gap-3">
-                                        <span class="text-3xl">😐</span>
+                                        <span class="text-2xl">😡</span>
                                         <div>
-                                            <div class="font-bold text-yellow-800 group-hover:text-yellow-900">温度中</div>
-                                            <div class="text-sm text-yellow-600">検討中・様子見</div>
+                                            <div class="font-bold text-orange-800 group-hover:text-orange-900">比較検討中</div>
+                                            <div class="text-xs text-orange-600">他社見積もりと比較中</div>
                                         </div>
                                     </div>
                                 </button>
 
-                                <button onclick="selectTemperature('low')" class="w-full p-4 bg-blue-50 border-2 border-blue-200 rounded-xl hover:border-blue-400 hover:bg-blue-100 transition-all text-left group">
+                                <button onclick="selectSituation('family', '😐家族相談中')" class="w-full p-3 bg-yellow-50 border-2 border-yellow-200 rounded-xl hover:border-yellow-400 hover:bg-yellow-100 transition-all text-left group">
                                     <div class="flex items-center gap-3">
-                                        <span class="text-3xl">❄️</span>
+                                        <span class="text-2xl">😐</span>
                                         <div>
-                                            <div class="font-bold text-blue-800 group-hover:text-blue-900">温度低</div>
-                                            <div class="text-sm text-blue-600">見込み薄・長期追客</div>
+                                            <div class="font-bold text-yellow-800 group-hover:text-yellow-900">家族相談中</div>
+                                            <div class="text-xs text-yellow-600">配偶者・家族と相談中</div>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                <button onclick="selectSituation('budget', '💰予算次第')" class="w-full p-3 bg-green-50 border-2 border-green-200 rounded-xl hover:border-green-400 hover:bg-green-100 transition-all text-left group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">💰</span>
+                                        <div>
+                                            <div class="font-bold text-green-800 group-hover:text-green-900">予算次第</div>
+                                            <div class="text-xs text-green-600">お金の都合を調整中</div>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                <button onclick="selectSituation('timing', '⏳時期次第')" class="w-full p-3 bg-cyan-50 border-2 border-cyan-200 rounded-xl hover:border-cyan-400 hover:bg-cyan-100 transition-all text-left group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">⏳</span>
+                                        <div>
+                                            <div class="font-bold text-cyan-800 group-hover:text-cyan-900">時期次第</div>
+                                            <div class="text-xs text-cyan-600">来年、引っ越し後など</div>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                <button onclick="selectSituation('hold', '🔺保留')" class="w-full p-3 bg-gray-50 border-2 border-gray-200 rounded-xl hover:border-gray-400 hover:bg-gray-100 transition-all text-left group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">🔺</span>
+                                        <div>
+                                            <div class="font-bold text-gray-700 group-hover:text-gray-900">保留</div>
+                                            <div class="text-xs text-gray-500">一旦ストップ</div>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                <button onclick="selectSituation('low', '❄️見込み薄')" class="w-full p-3 bg-blue-50 border-2 border-blue-200 rounded-xl hover:border-blue-400 hover:bg-blue-100 transition-all text-left group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">❄️</span>
+                                        <div>
+                                            <div class="font-bold text-blue-800 group-hover:text-blue-900">見込み薄</div>
+                                            <div class="text-xs text-blue-600">難しそう・長期追客</div>
                                         </div>
                                     </div>
                                 </button>
@@ -17564,14 +17604,22 @@
             }
 
             if (status === '見積提出済') {
-                // 温度を表示
-                if (tempDisplay) {
-                    let colorClass = 'text-gray-600';
-                    if (tempDisplay.includes('🔥') || tempDisplay.includes('高')) colorClass = 'text-red-600';
-                    else if (tempDisplay.includes('😐') || tempDisplay.includes('中')) colorClass = 'text-yellow-600';
-                    else if (tempDisplay.includes('❄️') || tempDisplay.includes('低')) colorClass = 'text-blue-600';
+                // 状況情報を取得
+                let sitDisplay = c.situationText || null;
+                if (!sitDisplay && c.callHistory && Array.isArray(c.callHistory)) {
+                    const sitEntry = c.callHistory.find(h => h.type === 'situation');
+                    if (sitEntry) sitDisplay = sitEntry.note;
+                }
+
+                // 状況＋フォロー日を表示
+                if (sitDisplay) {
+                    // 状況の短縮表示（絵文字＋短縮テキスト）
+                    let shortSit = sitDisplay.replace('検討中', '').replace('相談中', '');
+                    let followPart = nextCallDisplay !== '-' ? `📞${nextCallDisplay}` : '';
+                    let displayText = followPart ? `${shortSit}/${followPart}` : shortSit;
+
                     return {
-                        html: `<button onclick="openTemperatureModal('${c.cvId}')" class="text-sm font-medium ${colorClass} hover:opacity-70 px-1.5 py-0.5 rounded transition-colors" title="温度を変更">${tempDisplay}</button>`
+                        html: `<button onclick="openSituationModal('${c.cvId}')" class="text-sm font-medium text-purple-600 hover:opacity-70 px-1.5 py-0.5 rounded transition-colors" title="状況を変更">${displayText}</button>`
                     };
                 }
                 return { html: '<span class="text-gray-300">-</span>' };
@@ -18822,8 +18870,8 @@
                 // 現調済ならアクション選択モーダル
                 openPostSurveyActionModal(cvId);
             } else if (newStatus === '見積提出済') {
-                // 見積提出済なら温度選択モーダル
-                openTemperatureModal(cvId);
+                // 見積提出済なら状況選択モーダル
+                openSituationModal(cvId);
             } else if (wasAfterCallMode && newStatus === '未アポ') {
                 // 通話後フローで未アポの場合のみ次回架電日設定
                 openNextCallModal(cvId);
@@ -19507,72 +19555,76 @@
         }
 
         // ====================================
-        // 温度選択モーダル関連
+        // 状況選択モーダル関連
         // ====================================
-        let temperatureTargetCvId = null;
+        let situationTargetCvId = null;
 
-        function openTemperatureModal(cvId) {
+        function openSituationModal(cvId) {
             const c = findCaseByCvId(cvId);
             if (!c) return;
 
-            temperatureTargetCvId = cvId;
+            situationTargetCvId = cvId;
 
             // 顧客名と住所を表示
-            document.getElementById('temperatureTargetName').textContent = `${c.customerName || '-'} 様`;
-            document.getElementById('temperatureTargetAddress').textContent = c.fullAddress || c.city || '-';
+            document.getElementById('situationTargetName').textContent = `${c.customerName || '-'} 様`;
+            document.getElementById('situationTargetAddress').textContent = c.fullAddress || c.city || '-';
 
-            document.getElementById('temperatureModal').classList.remove('hidden');
+            document.getElementById('situationModal').classList.remove('hidden');
         }
 
-        function closeTemperatureModal() {
-            document.getElementById('temperatureModal').classList.add('hidden');
-            temperatureTargetCvId = null;
+        function closeSituationModal() {
+            document.getElementById('situationModal').classList.add('hidden');
+            situationTargetCvId = null;
         }
 
-        function selectTemperature(level) {
-            const cvId = temperatureTargetCvId;
+        function selectSituation(code, displayText) {
+            const cvId = situationTargetCvId;
             if (!cvId) return;
 
             const c = findCaseByCvId(cvId);
             if (!c) return;
 
-            // 温度表示テキストを設定
-            let tempText = '';
-            if (level === 'high') tempText = '🔥温度高';
-            else if (level === 'medium') tempText = '😐温度中';
-            else if (level === 'low') tempText = '❄️温度低';
-
-            // caseにtemperature情報を保存
-            c.temperature = level;
-            c.temperatureText = tempText;
+            // caseに状況情報を保存
+            c.situationCode = code;
+            c.situationText = displayText;
 
             // 履歴に追加
             if (!c.callHistory) c.callHistory = [];
             c.callHistory.unshift({
                 date: new Date().toLocaleString('ja-JP'),
-                type: 'temperature',
-                note: tempText
+                type: 'situation',
+                note: displayText
             });
 
-            // GASに保存（progressとして）
+            // GASに保存
             const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
-            saveProgressToGAS(merchantId, cvId, tempText);
+            saveSituationToGAS(merchantId, cvId, displayText);
 
-            closeTemperatureModal();
+            closeSituationModal();
 
-            // UI更新
-            renderCasesList();
+            // フォロー日設定モーダルを開く
+            openFollowDateModal(cvId);
         }
 
-        // 温度をGASに保存
-        function saveProgressToGAS(merchantId, cvId, progressText) {
-            const url = `${ENV.GAS_URL}?action=updateMerchantCaseProgress&merchantId=${encodeURIComponent(merchantId)}&cvId=${encodeURIComponent(cvId)}&progress=${encodeURIComponent(progressText)}&_cb=${Date.now()}`;
+        // 状況をGASに保存
+        function saveSituationToGAS(merchantId, cvId, situationText) {
+            const url = `${ENV.GAS_URL}?action=updateMerchantCaseSituation&merchantId=${encodeURIComponent(merchantId)}&cvId=${encodeURIComponent(cvId)}&situation=${encodeURIComponent(situationText)}&_cb=${Date.now()}`;
 
             const script = document.createElement('script');
             script.src = url;
-            script.onerror = () => console.error('[saveProgressToGAS] Failed');
+            script.onerror = () => console.error('[saveSituationToGAS] Failed');
             document.body.appendChild(script);
             setTimeout(() => script.remove(), 5000);
+        }
+
+        // 旧温度モーダル互換（進捗列のクリック用）
+        function openTemperatureModal(cvId) {
+            openSituationModal(cvId);
+        }
+
+        // フォロー日設定モーダル（次回架電日モーダルを流用）
+        function openFollowDateModal(cvId) {
+            openNextCallModal(cvId);
         }
 
         // ====================================
