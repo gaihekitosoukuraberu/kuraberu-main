@@ -1,11 +1,9 @@
-<!-- V2024-12-04-DEBUG -->
 <html lang="ja"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>加盟店管理システム - 外壁塗装くらべるAI</title>
     <link rel="icon" type="image/png" href="images/5.png">
     <script>
-console.log('🔥 V2024-12-04-DEBUG: ファイル更新確認');
 (function() {
   const cacheBuster = new Date().getTime();
   document.write("<script src=\"/js/env-loader.js?v=" + cacheBuster + "\"><\/script>");
@@ -25942,6 +25940,26 @@ console.log('🔥 V2024-12-04-DEBUG: ファイル更新確認');
                 if (result.success && result.data) {
                     window.merchantData = result.data;
                     window.merchantId = merchantId;
+
+                    // 営業担当者氏名をセット
+                    const salesPersonName = result.data['営業担当者氏名'] || result.data.salesPersonName || '';
+                    if (salesPersonName) {
+                        window.merchantData.salesPerson = salesPersonName;
+                    }
+
+                    // ヘッダーのステータスを更新
+                    const status = result.data['ステータス'];
+                    if (status && typeof updateHeaderStatus === 'function') {
+                        updateHeaderStatus(status);
+                        if (typeof updatePauseStatus === 'function') {
+                            updatePauseStatus(status);
+                        }
+                    }
+
+                    // ヘッダーの担当者表示を更新
+                    if (typeof updateRoleDisplay === 'function') {
+                        updateRoleDisplay();
+                    }
 
                     // 自動配信設定を読み込む
                     window.loadAutodeliverySettings(result.data);
