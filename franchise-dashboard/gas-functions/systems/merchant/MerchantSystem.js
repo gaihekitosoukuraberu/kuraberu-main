@@ -853,7 +853,9 @@ const MerchantSystem = {
    */
   verifyLogin: function(params) {
     try {
-      const { merchantId, password } = params;
+      // memberId または merchantId を受け付ける
+      const merchantId = params.memberId || params.merchantId;
+      const password = params.password;
 
       if (!merchantId || !password) {
         return {
