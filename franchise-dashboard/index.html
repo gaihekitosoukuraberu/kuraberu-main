@@ -17784,7 +17784,6 @@
             document.getElementById('caseMemoTextarea').value = '';
             document.getElementById('caseMemoModal').classList.remove('hidden');
             loadMemoHistory();
-            showMemoQuickOptions(c.detailStatus);
         }
 
         function closeMemoModal() {
@@ -17793,9 +17792,6 @@
             currentMemoCase = null;
             selectedMemoHistoryIndex = -1;
             isAfterCallMode = false;
-            // クイック選択肢を削除
-            const quickContainer = document.getElementById('memoQuickOptionsContainer');
-            if (quickContainer) quickContainer.remove();
         }
 
         // 通話後フロー用のメモモーダル
@@ -17813,7 +17809,6 @@
             document.getElementById('caseMemoTextarea').value = '';
             document.getElementById('caseMemoModal').classList.remove('hidden');
             loadMemoHistory();
-            showMemoQuickOptions(c.detailStatus);
         }
 
         // メモ履歴を読み込み
@@ -19811,106 +19806,24 @@
             document.getElementById('memoTargetAddress').textContent = c.fullAddress || c.city || '-';
             document.getElementById('caseMemoTextarea').value = '';
 
-            showMemoQuickOptions(c.detailStatus);
-
             document.getElementById('caseMemoModal').classList.remove('hidden');
             loadMemoHistory();
         }
 
-        // 現調日時設定後のメモモーダル
+        // 現調日時設定後のメモモーダル（旧機能、現在不使用）
         function openMemoModalAfterSurvey(cvId) {
             const c = findCaseByCvId(cvId);
             if (!c) return;
 
             currentMemoCase = c;
-            isAfterCallMode = false; // 通話フロー終了
+            isAfterCallMode = false;
 
             document.getElementById('memoTargetName').textContent = `${c.customerName || '-'} 様`;
             document.getElementById('memoTargetAddress').textContent = c.fullAddress || c.city || '-';
             document.getElementById('caseMemoTextarea').value = '';
 
-            // クイック選択肢を表示
-            showMemoQuickOptions(c.detailStatus);
-
             document.getElementById('caseMemoModal').classList.remove('hidden');
             loadMemoHistory();
-        }
-
-        // ====================================
-        // メモモーダル クイック選択肢
-        // ====================================
-        const memoQuickOptionsConfig = {
-            '未アポ': [
-                { emoji: '⏳', label: '日程調整中', action: 'memo' }
-            ],
-            'アポ済': [
-                { emoji: '📅', label: '現調日確定', action: 'memo' }
-            ],
-            '現調済': [
-                { emoji: '📋', label: '商談アポ済', action: 'estimate' },
-                { emoji: '📝', label: '見積作成中', action: 'memo' }
-            ],
-            '見積提出済': [
-                { emoji: '🔥', label: '温度高', action: 'memo' },
-                { emoji: '😐', label: '温度中', action: 'memo' },
-                { emoji: '❄️', label: '温度低', action: 'memo' },
-                { emoji: '🏠', label: '他社見積待ち', action: 'memo' },
-                { emoji: '📆', label: '長期追客', action: 'memo' }
-            ]
-        };
-
-        function showMemoQuickOptions(status) {
-            // 既存のクイック選択肢を削除
-            const existingContainer = document.getElementById('memoQuickOptionsContainer');
-            if (existingContainer) existingContainer.remove();
-
-            const options = memoQuickOptionsConfig[status];
-            if (!options || options.length === 0) return;
-
-            const memoInputArea = document.querySelector('#caseMemoModal .bg-amber-50');
-            if (!memoInputArea) return;
-
-            const container = document.createElement('div');
-            container.id = 'memoQuickOptionsContainer';
-            container.className = 'mt-3 pt-3 border-t border-amber-200';
-            container.innerHTML = `
-                <div class="text-xs text-amber-600 font-medium mb-2">📌 進捗クイック入力</div>
-                <div class="flex flex-wrap gap-2">
-                    ${options.map(opt => `
-                        <button onclick="selectMemoQuickOption('${opt.emoji}', '${opt.label}', '${opt.action}')"
-                            class="px-3 py-1.5 bg-white border border-amber-300 rounded-lg text-sm font-medium text-amber-700 hover:bg-amber-100 hover:border-amber-400 transition-all">
-                            ${opt.emoji} ${opt.label}
-                        </button>
-                    `).join('')}
-                </div>
-            `;
-
-            memoInputArea.appendChild(container);
-        }
-
-        function selectMemoQuickOption(emoji, label, action) {
-            if (!currentMemoCase) return;
-
-            const cvId = currentMemoCase.cvId;
-            const memoText = `${emoji} ${label}`;
-
-            // 商談アポ済の場合は見積提出日時モーダルを開く
-            if (action === 'estimate') {
-                // テキストエリアにセットしてから見積モーダルへ
-                const textarea = document.getElementById('caseMemoTextarea');
-                if (textarea) {
-                    textarea.value = textarea.value ? textarea.value + '\n' + memoText : memoText;
-                }
-                closeMemoModal();
-                openEstimateDateModal(cvId);
-            } else {
-                // テキストエリアに追加（自動保存はしない）
-                const textarea = document.getElementById('caseMemoTextarea');
-                if (textarea) {
-                    textarea.value = textarea.value ? textarea.value + '\n' + memoText : memoText;
-                    textarea.focus();
-                }
-            }
         }
 
         function openNextCallModal(cvId) {
