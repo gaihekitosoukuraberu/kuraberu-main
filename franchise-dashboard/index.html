@@ -834,8 +834,8 @@
 
                 <!-- 案件詳細モーダル（V2022 全情報対応） -->
                 <div id="caseDetailModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-                    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div class="p-4 border-b flex justify-between items-center sticky top-0 bg-white">
+                    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+                        <div class="p-4 border-b flex justify-between items-center flex-shrink-0 bg-white rounded-t-lg">
                             <div class="w-8"></div>
                             <div class="flex items-center gap-2">
                                 <span id="detailModalStatus" class="px-3 py-1 text-sm font-semibold rounded-full"></span>
@@ -843,8 +843,25 @@
                             </div>
                             <button onclick="closeDetailModal()" class="text-gray-500 hover:text-gray-700 text-2xl w-8">&times;</button>
                         </div>
-                        <div class="p-4" id="caseDetailContent">
+                        <div class="flex-1 overflow-y-auto p-4" id="caseDetailContent">
                             <!-- 動的に生成 -->
+                        </div>
+                        <!-- メモセクション（下部固定） -->
+                        <div class="border-t bg-amber-50 p-3 flex-shrink-0 rounded-b-lg">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-amber-600 font-bold text-sm">📝 メモ</span>
+                                <span id="detailMemoCount" class="text-xs px-2 py-0.5 bg-amber-200 rounded-full text-amber-700">0件</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <textarea id="detailMemoTextarea" placeholder="メモを入力..." rows="2" class="flex-1 p-2 border-2 border-amber-200 rounded-lg resize-none focus:border-amber-500 focus:ring-1 focus:ring-amber-200 transition-all text-base bg-white"></textarea>
+                                <button onclick="saveDetailMemo()" class="px-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-bold shadow transition-all flex-shrink-0">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="white" d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+                                </button>
+                            </div>
+                            <!-- 履歴プレビュー（最新2件） -->
+                            <div id="detailMemoHistory" class="mt-2 space-y-1 max-h-24 overflow-y-auto">
+                                <!-- 動的に生成 -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -18341,13 +18358,98 @@
 
             document.getElementById('caseDetailContent').innerHTML = content;
             document.getElementById('caseDetailModal').classList.remove('hidden');
+
+            // 詳細モーダル用の現在案件を保持
+            currentDetailCase = c;
+
+            // メモセクションを更新
+            updateDetailMemoSection(c);
         }
 
         // 通話中バーからの呼び出し用
         window.openDetailModalFromBar = openDetailModal;
 
+        // 詳細モーダル用の現在案件
+        let currentDetailCase = null;
+
         function closeDetailModal() {
             document.getElementById('caseDetailModal').classList.add('hidden');
+            currentDetailCase = null;
+        }
+
+        // 詳細モーダルのメモセクションを更新
+        function updateDetailMemoSection(c) {
+            const history = c.callHistory || [];
+            // メモのみ（📞以外）をフィルタ
+            const memoRecords = history.filter(item => {
+                const note = item.note || '';
+                return !note.startsWith('📞') && !note.startsWith('📵') && note.trim() !== '';
+            });
+
+            // 件数表示
+            document.getElementById('detailMemoCount').textContent = `${memoRecords.length}件`;
+
+            // 履歴プレビュー（最新3件）
+            const historyEl = document.getElementById('detailMemoHistory');
+            if (memoRecords.length === 0) {
+                historyEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-1">メモはまだありません</p>';
+            } else {
+                historyEl.innerHTML = memoRecords.slice(0, 3).map(item => `
+                    <div class="text-xs bg-white rounded p-2 border border-amber-100">
+                        <div class="flex justify-between items-start">
+                            <span class="text-gray-500">${item.date || ''}</span>
+                        </div>
+                        <p class="text-gray-700 mt-0.5 line-clamp-2">${escapeHtml(item.note || '')}</p>
+                    </div>
+                `).join('');
+            }
+
+            // テキストエリアをクリア
+            document.getElementById('detailMemoTextarea').value = '';
+        }
+
+        // 詳細モーダルからメモを保存
+        function saveDetailMemo() {
+            const textarea = document.getElementById('detailMemoTextarea');
+            const memo = textarea.value.trim();
+            if (!memo || !currentDetailCase) return;
+
+            // callHistoryに追加
+            if (!currentDetailCase.callHistory) {
+                currentDetailCase.callHistory = [];
+            }
+            currentDetailCase.callHistory.unshift({
+                date: new Date().toLocaleString('ja-JP'),
+                note: memo
+            });
+
+            // UI更新
+            updateDetailMemoSection(currentDetailCase);
+            renderCases();
+
+            // GASに保存（バックグラウンド）
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    system: 'merchant',
+                    subsystem: 'contract',
+                    action: 'updateCaseMemo',
+                    merchantId: merchantId,
+                    cvId: currentDetailCase.cvId,
+                    memo: memo
+                })
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    console.log('[saveDetailMemo] 保存完了');
+                } else {
+                    console.error('[saveDetailMemo] 保存失敗:', result.error);
+                }
+            })
+            .catch(err => console.error('[saveDetailMemo] 通信エラー:', err));
         }
 
         // ===== 担当者選択モーダル =====
