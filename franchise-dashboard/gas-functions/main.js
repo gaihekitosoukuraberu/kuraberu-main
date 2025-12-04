@@ -310,3 +310,13 @@ function createJsonResponse(data) {
     .createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
 }
+
+/**
+ * スケジュール転送処理（トリガー用ダミー関数）
+ * ※トリガー設定が残っているため、エラー回避用
+ * TODO: GASコンソールでトリガーを確認し、不要なら削除
+ */
+function processScheduledTransfers() {
+  console.log('[main.gs] processScheduledTransfers called - dummy function');
+  // 何もしない
+}
