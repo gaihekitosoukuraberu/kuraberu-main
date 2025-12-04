@@ -17507,8 +17507,9 @@
             // 配信日を短縮表示（MM/DD）
             let shortDate = '-';
             if (c.deliveredAt) {
-                const match = c.deliveredAt.match(/(\d+)\/(\d+)/);
-                if (match) shortDate = `${match[1]}/${match[2]}`;
+                // 2025/12/4 や 2025-12-04 形式から MM/DD を抽出
+                const match = c.deliveredAt.match(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+                if (match) shortDate = `${match[2]}/${match[3]}`;
             }
 
             // 次回架電日を短縮表示（MM/DD HH:mm）
