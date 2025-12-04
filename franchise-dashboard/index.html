@@ -17553,7 +17553,7 @@
             return `
                 <tr data-cv-id="${c.cvId}" class="hover:bg-gray-50 transition-colors">
                     <!-- ステータス（タップで変更） -->
-                    <td class="px-3 py-3">
+                    <td class="px-3 py-3 text-center">
                         <button onclick="openStatusModal('${c.cvId}')" class="px-2 py-1 text-xs font-semibold rounded-full ${style.bg} ${style.text} ${style.border} border hover:opacity-80 transition-opacity cursor-pointer" title="クリックで変更">
                             ${displayStatus}
                         </button>
@@ -17590,14 +17590,14 @@
                         ${progressDisplay.html}
                     </td>
                     <!-- 担当 -->
-                    <td class="px-3 py-3 text-sm">
+                    <td class="px-3 py-3 text-sm text-center">
                         ${assignee && assignee !== '-'
                             ? `<span class="text-gray-600">${escapeHtml(assignee)}</span>`
                             : `<button onclick="openAssignModal('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 rounded hover:bg-purple-100 transition-colors">案件振り分け</button>`
                         }
                     </td>
                     <!-- 配信日 -->
-                    <td class="px-3 py-3 hidden lg:table-cell text-sm text-gray-500">${shortDate}</td>
+                    <td class="px-3 py-3 hidden lg:table-cell text-sm text-gray-500 text-center">${shortDate}</td>
                     <!-- 詳細 -->
                     <td class="px-2 py-3 text-center">
                         <button onclick="openDetailModal('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
