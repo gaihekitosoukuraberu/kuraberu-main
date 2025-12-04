@@ -19204,6 +19204,11 @@
         }
 
         function skipMemoAndClose() {
+            const textarea = document.getElementById('caseMemoTextarea');
+            if (textarea && textarea.value.trim()) {
+                alert('メモに入力があります。送信するか、内容を削除してからスキップしてください。');
+                return;
+            }
             closeMemoModal();
             const container = document.getElementById('memoSkipBtnContainer');
             if (container) container.remove();
