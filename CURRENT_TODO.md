@@ -1,7 +1,7 @@
 # 現在の作業TODO
 
 **作業開始**: 2025-12-04 22:45 JST
-**最終更新**: 2025-12-04 23:35 JST
+**最終更新**: 2025-12-05 00:15 JST
 
 ---
 
@@ -40,31 +40,36 @@ N: 署名
 
 ---
 
-## Phase 2: 案件担当振り分け機能 ★現在作業中
+## Phase 2: 案件担当振り分け機能 ✅完了
 
-### 2-A. 手動振り分け（既存改修）
-- [ ] 2-A-1. 振り分けモーダルUI改修（リッチ化）
-- [ ] 2-A-2. `getStaffList()` → `getMemberList` API連携
-- [ ] 2-A-3. 配信管理シートに担当者列確認/追加
+### 2-A. 手動振り分け（既存改修） ✅
+- [x] 2-A-1. 振り分けモーダルUI改修（リッチ化）
+- [x] 2-A-2. `getStaffList()` → `getMemberList` API連携
+- [ ] 2-A-3. 配信管理シートに担当者列確認/追加（テスト時に確認）
 
-### 2-B. 一括振り分け
-- [ ] 2-B-1. モーダルに「一括振り分け」セクション追加
-- [ ] 2-B-2. 均等振り分けロジック実装
-- [ ] 2-B-3. 複数人同時配信対応（2人ずつとか）
+### 2-B. 一括振り分け ✅
+- [x] 2-B-1. モーダルに「一括振り分け」セクション追加
+- [x] 2-B-2. 均等振り分けロジック実装（bulkAssignEqual関数）
+- [x] 2-B-3. 複数人同時配信対応（AI設定で1-3人選択可能）
 
-### 2-C. AI自動振り分け（DeepSeek連携）
-- [ ] 2-C-1. 自動振り分け設定画面UI
-- [ ] 2-C-2. パラメータ設定
+### 2-C. AI自動振り分け（DeepSeek連携） ✅
+- [x] 2-C-1. 自動振り分け設定画面UI（aiAssignModal）
+- [x] 2-C-2. パラメータ設定
   - 成約率ベース
   - 距離・エリアベース
   - 分配率（%指定）
-  - メンバー別分配比率（Aは多め、Bは少なめ）
-  - 特殊ルール（Aは全部含む、B/Cは半分ずつ等）
-- [ ] 2-C-3. DeepSeek API連携（OpenRouter経由）
-- [ ] 2-C-4. AI提案 → 管理者最終確認フロー
-- [ ] 2-C-5. 自動振り分け実行
+  - メンバー別分配比率（スライダーUI）
+  - 特殊ルール（全案件に含めるチェックボックス）
+- [x] 2-C-3. DeepSeek API連携（MerchantAIAssign.js）
+- [x] 2-C-4. AI提案 → 管理者最終確認フロー（aiAssignPreviewModal）
+- [x] 2-C-5. 自動振り分け実行（executeAIAssignment関数）
 
 **OpenRouter設定**: プロパティにセット済み
+
+### ★次のステップ: デプロイ＆テスト
+- [ ] clasp push でGASデプロイ
+- [ ] フロントエンドFTPアップロード
+- [ ] 動作確認テスト
 
 ---
 
@@ -181,6 +186,14 @@ N: 署名
 - [x] メンバー管理カードUI
 - [x] メンバー登録ページ
 - [x] 案件振り分けボタン（既存・ハードコード）
+- [x] Phase2-A 振り分けモーダルUI（リッチ版）
+- [x] Phase2-A getMemberListFromAPI()でAPI連携
+- [x] Phase2-B 均等振り分け（bulkAssignEqual）
+- [x] Phase2-C AI設定モーダル（aiAssignModal）
+- [x] Phase2-C AIプレビューモーダル（aiAssignPreviewModal）
+- [x] Phase2-C GAS: MerchantAIAssign.js作成
+- [x] Phase2-C MerchantSystem.jsにルーティング追加
+- [x] Phase2-C main.jsのSystemRouterに追加
 
 ### 次のアクション
-→ Phase2-A: 振り分けモーダルUI改修開始
+→ デプロイ＆テスト（ボスに確認）

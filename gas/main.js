@@ -168,7 +168,9 @@ const SystemRouter = {
         'registerMember',
         'getMemberList',
         'verifyMemberLogin',
-        'cancelInvite'
+        'cancelInvite',
+        // AI振り分け
+        'aiAssignCases'
       ]
     },
 

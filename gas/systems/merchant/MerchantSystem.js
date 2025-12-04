@@ -272,6 +272,10 @@ const MerchantSystem = {
         case 'cancelInvite':
           return MerchantMemberInvite.cancelInvite(params);
 
+        // AI振り分け（MerchantAIAssignに委譲）
+        case 'aiAssignCases':
+          return MerchantAIAssign.aiAssignCases(params);
+
         default:
           return {
             success: false,
