@@ -17654,11 +17654,9 @@
             currentMemoCase = null;
             selectedMemoHistoryIndex = -1;
             isAfterCallMode = false;
-            // クイック選択肢とスキップボタンを削除
+            // クイック選択肢を削除
             const quickContainer = document.getElementById('memoQuickOptionsContainer');
             if (quickContainer) quickContainer.remove();
-            const skipContainer = document.getElementById('memoSkipBtnContainer');
-            if (skipContainer) skipContainer.remove();
         }
 
         // 通話後フロー用のメモモーダル
@@ -19565,14 +19563,13 @@
             document.getElementById('memoTargetAddress').textContent = c.fullAddress || c.city || '-';
             document.getElementById('caseMemoTextarea').value = '';
 
-            showMemoSkipButton(true);
             showMemoQuickOptions(c.detailStatus);
 
             document.getElementById('caseMemoModal').classList.remove('hidden');
             loadMemoHistory();
         }
 
-        // 現調日時設定後のメモモーダル（スキップ可能）
+        // 現調日時設定後のメモモーダル
         function openMemoModalAfterSurvey(cvId) {
             const c = findCaseByCvId(cvId);
             if (!c) return;
@@ -19584,48 +19581,11 @@
             document.getElementById('memoTargetAddress').textContent = c.fullAddress || c.city || '-';
             document.getElementById('caseMemoTextarea').value = '';
 
-            // メモモーダルにスキップボタンとクイック選択肢を表示
-            showMemoSkipButton(true);
+            // クイック選択肢を表示
             showMemoQuickOptions(c.detailStatus);
 
             document.getElementById('caseMemoModal').classList.remove('hidden');
             loadMemoHistory();
-        }
-
-        // メモモーダルのスキップボタン表示/非表示
-        function showMemoSkipButton(show) {
-            let skipBtn = document.getElementById('memoSkipBtn');
-            if (show) {
-                if (!skipBtn) {
-                    // スキップボタンがなければ作成
-                    const memoInputArea = document.querySelector('#caseMemoModal .bg-amber-50');
-                    if (memoInputArea) {
-                        const btnContainer = document.createElement('div');
-                        btnContainer.id = 'memoSkipBtnContainer';
-                        btnContainer.className = 'mt-2';
-                        btnContainer.innerHTML = '<button id="memoSkipBtn" onclick="skipMemoAndClose()" class="px-4 py-2 bg-amber-100 text-amber-700 text-sm font-medium rounded-lg hover:bg-amber-200 transition-all border border-amber-200">スキップ</button>';
-                        memoInputArea.appendChild(btnContainer);
-                    }
-                } else {
-                    skipBtn.parentElement.classList.remove('hidden');
-                }
-            } else {
-                const container = document.getElementById('memoSkipBtnContainer');
-                if (container) container.classList.add('hidden');
-            }
-        }
-
-        function skipMemoAndClose() {
-            const textarea = document.getElementById('caseMemoTextarea');
-            if (textarea && textarea.value.trim()) {
-                alert('メモに入力があります。送信するか、内容を削除してからスキップしてください。');
-                return;
-            }
-            closeMemoModal();
-            const container = document.getElementById('memoSkipBtnContainer');
-            if (container) container.remove();
-            const quickContainer = document.getElementById('memoQuickOptionsContainer');
-            if (quickContainer) quickContainer.remove();
         }
 
         // ====================================
@@ -19676,13 +19636,7 @@
                 </div>
             `;
 
-            // スキップボタンの前に挿入
-            const skipContainer = document.getElementById('memoSkipBtnContainer');
-            if (skipContainer) {
-                memoInputArea.insertBefore(container, skipContainer);
-            } else {
-                memoInputArea.appendChild(container);
-            }
+            memoInputArea.appendChild(container);
         }
 
         function selectMemoQuickOption(emoji, label, action) {
@@ -19729,18 +19683,10 @@
             // 商談アポ済の場合は見積提出日時モーダルを開く
             if (action === 'estimate') {
                 closeMemoModal();
-                const container = document.getElementById('memoSkipBtnContainer');
-                if (container) container.remove();
-                const quickContainer = document.getElementById('memoQuickOptionsContainer');
-                if (quickContainer) quickContainer.remove();
                 openEstimateDateModal(cvId);
             } else {
                 // メモとして保存してモーダルを閉じる
                 closeMemoModal();
-                const container = document.getElementById('memoSkipBtnContainer');
-                if (container) container.remove();
-                const quickContainer = document.getElementById('memoQuickOptionsContainer');
-                if (quickContainer) quickContainer.remove();
                 renderCases();
                 showNotification('保存完了', '進捗を記録しました');
             }
