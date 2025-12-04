@@ -14965,7 +14965,7 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${member.contracts} / ${member.rate}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                             <button onclick="editPermissions('${member.name}')" class="text-blue-600 hover:text-blue-900 mr-2">権限</button>
-                            <button onclick="openPasswordResetModal('${member.id}', '${member.name}')" class="text-yellow-600 hover:text-yellow-900 mr-2">PW</button>
+                            <button onclick="openPasswordResetModal('${member.id}', '${member.name}')" class="text-yellow-600 hover:text-yellow-900 mr-2">パス再発行</button>
                             <button onclick="confirmDeleteSales('${member.name}')" class="text-red-600 hover:text-red-900">削除</button>
                         </td>
                     </tr>
@@ -15096,34 +15096,21 @@
 
                 if (result.success && result.resetLink) {
                     generatedResetLink = result.resetLink;
+                    document.getElementById('resetLinkText').textContent = generatedResetLink;
+                    document.getElementById('resetLinkArea').classList.remove('hidden');
+                    btn.classList.add('hidden');
+                    showNotification('リセットリンク発行', `${resetTargetMember.name}さんのリセットリンクを発行しました`, 'success');
                 } else {
-                    // GAS未実装時
-                    const resetData = btoa(JSON.stringify({
-                        merchantId: merchantId,
-                        memberId: resetTargetMember.id,
-                        memberName: resetTargetMember.name,
-                        expiry: Date.now() + (24 * 60 * 60 * 1000)
-                    }));
-                    const resetSig = Math.random().toString(36).substring(2, 18);
-                    generatedResetLink = `${window.location.origin}/franchise-dashboard/merchant-portal/password-reset.html?data=${encodeURIComponent(resetData)}&sig=${resetSig}`;
+                    showNotification('エラー', result.error || 'リセットリンクの発行に失敗しました', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'リセットリンク発行';
                 }
             } catch (error) {
                 console.error('[PasswordReset] Error:', error);
-                // フォールバック
-                const resetData = btoa(JSON.stringify({
-                    merchantId: merchantId,
-                    memberId: resetTargetMember.id,
-                    memberName: resetTargetMember.name,
-                    expiry: Date.now() + (24 * 60 * 60 * 1000)
-                }));
-                const resetSig = Math.random().toString(36).substring(2, 18);
-                generatedResetLink = `${window.location.origin}/franchise-dashboard/merchant-portal/password-reset.html?data=${encodeURIComponent(resetData)}&sig=${resetSig}`;
+                showNotification('通信エラー', 'リセットリンクの発行に失敗しました', 'error');
+                btn.disabled = false;
+                btn.textContent = 'リセットリンク発行';
             }
-
-            document.getElementById('resetLinkText').textContent = generatedResetLink;
-            document.getElementById('resetLinkArea').classList.remove('hidden');
-            btn.classList.add('hidden');
-            showNotification('リセットリンク発行', `${resetTargetMember.name}さんのリセットリンクを発行しました`, 'success');
         }
 
         function copyResetLink() {
@@ -15245,34 +15232,11 @@
                     document.getElementById('inviteLinkArea').classList.remove('hidden');
                     addPendingInvite(generatedInviteLink, expiry);
                 } else {
-                    // デモ用：GAS未実装時のダミーリンク生成
-                    const demoData = btoa(JSON.stringify({
-                        merchantId: merchantId,
-                        role: selectedInviteRole,
-                        expiry: Date.now() + (expiry * 60 * 60 * 1000),
-                        permissions: additionalPerms
-                    }));
-                    const demoSig = Math.random().toString(36).substring(2, 18);
-                    generatedInviteLink = `${window.location.origin}/franchise-dashboard/merchant-portal/member-register.html?data=${encodeURIComponent(demoData)}&sig=${demoSig}`;
-                    document.getElementById('inviteLinkText').textContent = generatedInviteLink;
-                    document.getElementById('inviteLinkArea').classList.remove('hidden');
-                    addPendingInvite(generatedInviteLink, expiry);
-                    console.log('[Invite] Demo mode - generated dummy link');
+                    showNotification('エラー', result.error || '招待リンクの生成に失敗しました', 'error');
                 }
             } catch (error) {
                 console.error('[Invite] Error:', error);
-                // デモ用：エラー時もダミーリンク生成
-                const demoData = btoa(JSON.stringify({
-                    merchantId: merchantId,
-                    role: selectedInviteRole,
-                    expiry: Date.now() + (expiry * 60 * 60 * 1000),
-                    permissions: additionalPerms
-                }));
-                const demoSig = Math.random().toString(36).substring(2, 18);
-                generatedInviteLink = `${window.location.origin}/franchise-dashboard/merchant-portal/member-register.html?data=${encodeURIComponent(demoData)}&sig=${demoSig}`;
-                document.getElementById('inviteLinkText').textContent = generatedInviteLink;
-                document.getElementById('inviteLinkArea').classList.remove('hidden');
-                addPendingInvite(generatedInviteLink, expiry);
+                showNotification('通信エラー', '招待リンクの生成に失敗しました', 'error');
             }
 
             btn.disabled = false;
