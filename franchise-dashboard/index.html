@@ -1096,16 +1096,6 @@
                                         </div>
                                     </div>
                                 </button>
-
-                                <button onclick="selectPostSurveyAction('skip')" class="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-xl hover:border-gray-400 hover:bg-gray-100 transition-all text-left group">
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-2xl">⏭️</span>
-                                        <div>
-                                            <div class="font-bold text-gray-700 group-hover:text-gray-900">後で設定</div>
-                                            <div class="text-sm text-gray-500">今はスキップ</div>
-                                        </div>
-                                    </div>
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -18775,8 +18765,8 @@
                 // アポ済なら現調日時設定モーダル
                 openSurveyDateModal(cvId);
             } else if (newStatus === '現調済') {
-                // 現調済なら見積提出日モーダル
-                openEstimateDateModal(cvId);
+                // 現調済ならアクション選択モーダル
+                openPostSurveyActionModal(cvId);
             } else if (wasAfterCallMode && newStatus === '未アポ') {
                 // 通話後フローで未アポの場合のみ次回架電日設定
                 openNextCallModal(cvId);
@@ -19456,18 +19446,12 @@
 
             if (!cvId) return;
 
-            switch (action) {
-                case 'estimate':
-                    // 商談日時が決まっている → 見積提出日モーダル
-                    openEstimateDateModal(cvId);
-                    break;
-                case 'nextcall':
-                    // 見積もり作成後に連絡 → 次回架電日モーダル（見積もり完成目処）
-                    openNextCallModal(cvId);
-                    break;
-                case 'skip':
-                    // 後で設定 → 何もしない
-                    break;
+            if (action === 'estimate') {
+                // 商談日時が決まっている → 見積提出日モーダル
+                openEstimateDateModal(cvId);
+            } else if (action === 'nextcall') {
+                // 見積もり作成後に連絡 → 次回架電日モーダル（見積もり完成目処）
+                openNextCallModal(cvId);
             }
         }
 
