@@ -1,4 +1,4 @@
-// V1980: 📞マーク/電話ボタン分離（架電履歴追加 vs 電話アプリ発信）
+// V2051: メンバーログイン認証修正
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -12,7 +12,7 @@
  * 参照方法（PHP）:
  * このファイルを読み込んでGAS_URLを抽出
  *
- * @file-version V2049-MASTER-@2015-2025-12-05
+ * @file-version V2051-MASTER-2025-12-05
  * @last-update 2025-12-05
  */
 
@@ -21,14 +21,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V2049
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxMMrka-B0hj4drMi_uo9vnTZxTl9oTZo12BMm9yPHAFNTl05L16-F9rLfRNPGPK9k_6g/exec',
+  // プライマリGAS URL（メイン運用）- V2051
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwr0oWBXyed1GM_wqXy4gG8FbTWj7Wof-xUxXD1jPIPyf8LG5QR10OUemBHXZANNa_AdQ/exec',
 
-  // フォールバックGAS URL（バックアップ）- V2049
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxMMrka-B0hj4drMi_uo9vnTZxTl9oTZo12BMm9yPHAFNTl05L16-F9rLfRNPGPK9k_6g/exec',
+  // フォールバックGAS URL（バックアップ）- V2051
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbwr0oWBXyed1GM_wqXy4gG8FbTWj7Wof-xUxXD1jPIPyf8LG5QR10OUemBHXZANNa_AdQ/exec',
 
-  // 緊急時URL（最終フォールバック）- V2049
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxMMrka-B0hj4drMi_uo9vnTZxTl9oTZo12BMm9yPHAFNTl05L16-F9rLfRNPGPK9k_6g/exec',
+  // 緊急時URL（最終フォールバック）- V2051
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbwr0oWBXyed1GM_wqXy4gG8FbTWj7Wof-xUxXD1jPIPyf8LG5QR10OUemBHXZANNa_AdQ/exec',
 
   // ============================================
   // 🔧 システム設定

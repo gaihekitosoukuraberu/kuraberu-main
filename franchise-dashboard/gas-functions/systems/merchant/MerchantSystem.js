@@ -40,6 +40,7 @@ const MerchantSystem = {
           return this.resetPassword(params);
 
         case 'verifyLogin':
+        case 'verifyMemberLogin':
           return this.verifyLogin(params);
 
         case 'getMerchantData':
@@ -147,6 +148,7 @@ const MerchantSystem = {
           return this.resetPassword(params);
 
         case 'verifyLogin':
+        case 'verifyMemberLogin':
           return this.verifyLogin(params);
 
         case 'updateAutoDeliverySettings':
@@ -2569,12 +2571,12 @@ const MerchantSystem = {
         return { success: false, error: 'パスワードは8文字以上必要です' };
       }
 
-      // パスワードハッシュ化
-      const salt = Utilities.getUuid();
-      const hash = Utilities.base64Encode(
-        Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, password + salt)
-      );
-      const passwordHash = salt + ':' + hash;
+      // パスワードハッシュ化（_savePassword/_verifyLoginと同じ方式）
+      const SECRET_KEY = PropertiesService.getScriptProperties().getProperty('SECRET_KEY');
+      const passwordHash = Utilities.computeDigest(
+        Utilities.DigestAlgorithm.SHA_256,
+        password + SECRET_KEY + memberId
+      ).map(function(b) { return ('0' + (b & 0xFF).toString(16)).slice(-2); }).join('');
 
       // 認証情報シート更新
       const credSheet = this._getCredentialsSheet();
