@@ -470,6 +470,24 @@ const SystemRouter = {
       prefix: false,
       actions: ['updateCallHistory']
     },
+    'updateSurveyDate': {
+      system: 'MerchantContractReport',
+      description: '現調日時更新',
+      prefix: false,
+      actions: ['updateSurveyDate']
+    },
+    'updateEstimateDate': {
+      system: 'MerchantContractReport',
+      description: '商談日時更新',
+      prefix: false,
+      actions: ['updateEstimateDate']
+    },
+    'updateMerchantCaseSituation': {
+      system: 'MerchantContractReport',
+      description: '案件状況更新',
+      prefix: false,
+      actions: ['updateMerchantCaseSituation']
+    },
 
     // キャンセル承認システム（管理者用）
     'approveCancelReport': {
