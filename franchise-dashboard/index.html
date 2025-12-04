@@ -17599,7 +17599,7 @@
             const propertyInfo = [c.propertyType, c.floors].filter(v => v).join(' / ');
 
             // 次回架電日の短縮表示（時刻込み）
-            let nextCallShort = '';
+            let nextCallShort = '-';
             if (c.nextCallDate) {
                 const dateMatch = c.nextCallDate.match(/(\d+)[-\/](\d+)[-\/](\d+)/);
                 const timeMatch = c.nextCallDate.match(/(\d+):(\d+)/);
@@ -17621,7 +17621,7 @@
             }
 
             // 現調日を短縮表示（MM/DD HH:mm）
-            let surveyShort = '';
+            let surveyShort = '-';
             if (c.surveyDate) {
                 const dateMatch = c.surveyDate.match(/(\d+)[-\/](\d+)[-\/](\d+)/);
                 const timeMatch = c.surveyDate.match(/(\d+):(\d+)/);
@@ -17630,6 +17630,20 @@
                     if (timeMatch) surveyShort += ` ${timeMatch[1]}:${timeMatch[2]}`;
                 }
             }
+
+            // 商談日を短縮表示（MM/DD HH:mm）
+            let estimateShort = '-';
+            if (c.estimateDate) {
+                const dateMatch = c.estimateDate.match(/(\d+)[-\/](\d+)[-\/](\d+)/);
+                const timeMatch = c.estimateDate.match(/(\d+):(\d+)/);
+                if (dateMatch) {
+                    estimateShort = `${dateMatch[2]}/${dateMatch[3]}`;
+                    if (timeMatch) estimateShort += ` ${timeMatch[1]}:${timeMatch[2]}`;
+                }
+            }
+
+            // PC版と同じ進捗表示ロジックを使用
+            const progressDisplay = getProgressDisplayForCard(c, status, surveyShort, estimateShort, nextCallShort);
 
             return `
                 <div class="bg-white rounded-xl shadow-lg border-2 border-gray-200 p-5 hover:shadow-xl transition-shadow" data-cv-id="${c.cvId}">
@@ -17652,11 +17666,9 @@
                             ${getMemoCountBadge(c)}
                         </button>
                     </div>
-                    <!-- 現調日エリア（次回架電日は進捗に統合済み） -->
-                    ${surveyShort ? `<div class="flex flex-wrap gap-2 mb-3 text-sm">
-                        <button onclick="openSurveyModal('${c.cvId}')" class="flex items-center gap-1 px-2 py-1 rounded-lg bg-orange-50 text-orange-700 hover:bg-orange-100 transition-colors" title="現調日時を変更">
-                            <span>🏠</span><span class="font-medium">現調${surveyShort}</span>
-                        </button>
+                    <!-- 進捗表示エリア（PC版と同じロジック） -->
+                    ${progressDisplay.html !== '-' ? `<div class="flex flex-wrap gap-2 mb-3 text-sm">
+                        ${progressDisplay.html}
                     </div>` : ''}
                     <div class="text-xs text-gray-400 mb-3">
                         <span>配信: ${deliveryShort}</span>
@@ -17673,6 +17685,75 @@
                     </div>
                 </div>
             `;
+        }
+
+        // 進捗表示を決定（カード用 - スマホ）
+        function getProgressDisplayForCard(c, status, surveyDisplay, estimateDisplay, nextCallDisplay) {
+            // アポ済 → 現調日
+            if (status === 'アポ済') {
+                if (surveyDisplay !== '-') {
+                    return {
+                        html: `<button onclick="openSurveyDateModal('${c.cvId}')" class="flex items-center gap-1 px-2 py-1 rounded-lg bg-orange-50 text-orange-700 hover:bg-orange-100 transition-colors" title="現調日時を変更">
+                            <span>🏠</span><span class="font-medium">現調 ${surveyDisplay}</span>
+                        </button>`
+                    };
+                }
+                return { html: '-' };
+            }
+
+            // 現調済 → 商談日 or 見積完成予定
+            if (status === '現調済') {
+                if (estimateDisplay !== '-') {
+                    return {
+                        html: `<button onclick="openEstimateDateModal('${c.cvId}')" class="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors" title="商談日時を変更">
+                            <span>📋</span><span class="font-medium">商談 ${estimateDisplay}</span>
+                        </button>`
+                    };
+                }
+                if (nextCallDisplay !== '-') {
+                    return {
+                        html: `<button onclick="openNextCallModal('${c.cvId}')" class="flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors" title="見積完成予定を変更">
+                            <span>📝</span><span class="font-medium">見積予定 ${nextCallDisplay}</span>
+                        </button>`
+                    };
+                }
+                return { html: '-' };
+            }
+
+            // 見積提出済 → 状況 + フォロー日
+            if (status === '見積提出済') {
+                let sitDisplay = c.situationText || null;
+                if (!sitDisplay && c.callHistory && Array.isArray(c.callHistory)) {
+                    const sitEntry = c.callHistory.find(h => h.type === 'situation');
+                    if (sitEntry) sitDisplay = sitEntry.note;
+                }
+                if (sitDisplay) {
+                    let shortSit = sitDisplay.replace('検討中', '').replace('相談中', '');
+                    let followPart = nextCallDisplay !== '-' ? `📞${nextCallDisplay}` : '';
+                    let displayText = followPart ? `${shortSit}/${followPart}` : shortSit;
+                    return {
+                        html: `<button onclick="openSituationModal('${c.cvId}')" class="flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors" title="状況を変更">
+                            <span class="font-medium">${displayText}</span>
+                        </button>`
+                    };
+                }
+                return { html: '-' };
+            }
+
+            // 未アポ・架電済/未アポ → 次回架電日
+            if (status === '未アポ' || status === '架電済/未アポ' || status === '未対応' || status === '新着') {
+                if (nextCallDisplay !== '-') {
+                    return {
+                        html: `<button onclick="openNextCallModal('${c.cvId}')" class="flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors" title="次回架電日を変更">
+                            <span>📞</span><span class="font-medium">架電 ${nextCallDisplay}</span>
+                        </button>`
+                    };
+                }
+                return { html: '-' };
+            }
+
+            // その他のステータス
+            return { html: '-' };
         }
 
         // 進捗表示を決定（ステータスに応じて）
@@ -17877,6 +17958,33 @@
         // 案件を CV ID で検索
         function findCaseByCvId(cvId) {
             return merchantCasesData.find(c => String(c.cvId) === String(cvId));
+        }
+
+        // 履歴をGASに保存（統計用）
+        function saveCallHistoryToGAS(cvId, callHistory, callCount) {
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    system: 'merchant',
+                    subsystem: 'contract',
+                    action: 'updateCallHistory',
+                    merchantId: merchantId,
+                    cvId: cvId,
+                    callHistory: callHistory || [],
+                    callCount: callCount || 0
+                })
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    console.log('[saveCallHistoryToGAS] 履歴保存完了:', cvId);
+                } else {
+                    console.error('[saveCallHistoryToGAS] 履歴保存失敗:', result.error);
+                }
+            })
+            .catch(err => console.error('[saveCallHistoryToGAS] 通信エラー:', err));
         }
 
         // メモモーダル
@@ -19612,6 +19720,9 @@
             })
             .catch(err => console.error('[saveSurveyDate] 通信エラー:', err));
 
+            // 履歴もGASに保存（統計用）
+            saveCallHistoryToGAS(cvId, c.callHistory, c.callCount);
+
             closeSurveyDateModal();
         }
 
@@ -19939,6 +20050,9 @@
             })
             .catch(err => console.error('[saveLongTermFollow] 通信エラー:', err));
 
+            // 履歴もGASに保存（統計用）
+            saveCallHistoryToGAS(cvId, c.callHistory, c.callCount);
+
             closeLongTermFollowModal();
             renderCases();
             showNotification('保存完了', `${displayStr} にフォロー予定を設定しました`, 'success');
@@ -20117,6 +20231,9 @@
                 }
             })
             .catch(err => console.error('[saveEstimateDate] 通信エラー:', err));
+
+            // 履歴もGASに保存（統計用）
+            saveCallHistoryToGAS(cvId, c.callHistory, c.callCount);
 
             closeEstimateDateModal();
         }
@@ -20473,6 +20590,11 @@
                 renderCases();
                 showNotification('エラー', '通信エラー: ' + error.message, 'error');
             });
+
+            // 履歴もGASに保存（統計用）
+            if (caseData) {
+                saveCallHistoryToGAS(saveCvId, caseData.callHistory, caseData.callCount);
+            }
         }
 
         async function clearNextCallDate() {
