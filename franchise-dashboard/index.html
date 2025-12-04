@@ -1457,6 +1457,93 @@
                     </div>
                 </div>
 
+                <!-- 長期追客モーダル -->
+                <div id="longTermFollowModal" class="fixed inset-0 z-50 hidden">
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeLongTermFollowModal()"></div>
+                    <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+                            <!-- ヘッダー -->
+                            <div class="p-4 border-b bg-gradient-to-r from-purple-500 to-pink-500 text-white flex-shrink-0">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-lg font-bold">📅 次回フォロー予定を設定</h3>
+                                    <button onclick="closeLongTermFollowModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all -mr-2">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <p id="longTermTargetName" class="text-base font-bold text-white">---</p>
+                                <p id="longTermTargetAddress" class="text-sm text-purple-100 mt-0.5">---</p>
+                            </div>
+
+                            <!-- コンテンツ -->
+                            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                                <!-- 日付クイック選択 -->
+                                <div class="bg-gray-50 rounded-xl p-4">
+                                    <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                        <span>🗓️</span> いつ頃フォローする？
+                                    </h4>
+                                    <div class="grid grid-cols-3 gap-2 mb-3">
+                                        <button onclick="setLongTermDay(7)" data-ltday="7" class="long-term-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-purple-400 hover:bg-purple-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">1週間後</div>
+                                            <div id="ltDayLabel7" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setLongTermDay(14)" data-ltday="14" class="long-term-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-purple-400 hover:bg-purple-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">2週間後</div>
+                                            <div id="ltDayLabel14" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setLongTermDay(21)" data-ltday="21" class="long-term-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-purple-400 hover:bg-purple-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">3週間後</div>
+                                            <div id="ltDayLabel21" class="text-base"></div>
+                                        </button>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-2 mb-3">
+                                        <button onclick="setLongTermDay(30)" data-ltday="30" class="long-term-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-purple-400 hover:bg-purple-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">1ヶ月後</div>
+                                            <div id="ltDayLabel30" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setLongTermDay(60)" data-ltday="60" class="long-term-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-purple-400 hover:bg-purple-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">2ヶ月後</div>
+                                            <div id="ltDayLabel60" class="text-base"></div>
+                                        </button>
+                                        <button onclick="toggleLongTermCustomDate()" class="py-3 bg-white border-2 border-gray-200 text-gray-500 rounded-xl hover:border-purple-400 hover:bg-purple-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">その他</div>
+                                            <div class="text-base">📆</div>
+                                        </button>
+                                    </div>
+                                    <!-- カスタム日付選択 -->
+                                    <div id="longTermCustomDatePicker" class="hidden">
+                                        <input type="date" id="longTermDateInput" class="w-full p-3 border-2 border-purple-300 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-center font-bold" onchange="setLongTermCustomDate()">
+                                    </div>
+                                </div>
+
+                                <!-- 選択結果プレビュー -->
+                                <div id="longTermPreview" class="bg-purple-50 rounded-xl p-4 border-2 border-purple-200 hidden">
+                                    <div class="flex items-center justify-center gap-3">
+                                        <span class="text-2xl">📅</span>
+                                        <div class="text-center">
+                                            <div class="text-xs text-purple-600 font-medium">次回フォロー予定</div>
+                                            <div id="longTermPreviewText" class="text-xl font-bold text-purple-800">---</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- フッター -->
+                            <div class="p-4 border-t bg-gray-50 flex-shrink-0">
+                                <div class="flex gap-3">
+                                    <button onclick="skipLongTermFollow()" class="flex-1 py-3 bg-white border-2 border-gray-300 text-gray-600 rounded-xl hover:bg-gray-100 font-bold transition-all">
+                                        スキップ
+                                    </button>
+                                    <button onclick="saveLongTermFollow()" id="longTermSaveBtn" class="flex-[2] py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 font-bold shadow-lg hover:shadow-xl transition-all disabled:bg-gray-300 disabled:shadow-none disabled:from-gray-300 disabled:to-gray-300" disabled>
+                                        保存する
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 時間プリセット設定モーダル -->
                 <div id="timePresetModal" class="fixed inset-0 z-[60] hidden">
                     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeTimePresetModal()"></div>
@@ -19612,9 +19699,196 @@
             openSituationModal(cvId);
         }
 
-        // フォロー日設定モーダル（次回架電日モーダルを流用）
+        // フォロー日設定モーダル（状況に応じて長期追客/次回架電を振り分け）
         function openFollowDateModal(cvId) {
-            openNextCallModal(cvId);
+            const c = findCaseByCvId(cvId);
+            if (!c) {
+                openNextCallModal(cvId);
+                return;
+            }
+
+            // 長期追客対象の状況コード
+            const longTermCodes = ['timing', 'hold', 'low'];
+            if (longTermCodes.includes(c.situationCode)) {
+                openLongTermFollowModal(cvId);
+            } else {
+                openNextCallModal(cvId);
+            }
+        }
+
+        // ====================================
+        // 長期追客モーダル関連
+        // ====================================
+        let longTermTargetCvId = null;
+        let selectedLongTermDate = null;
+
+        function openLongTermFollowModal(cvId) {
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            longTermTargetCvId = cvId;
+            selectedLongTermDate = null;
+
+            // 顧客名と住所を表示
+            document.getElementById('longTermTargetName').textContent = `${c.customerName || '-'} 様`;
+            document.getElementById('longTermTargetAddress').textContent = c.fullAddress || c.city || '-';
+
+            // 日付ラベル更新
+            updateLongTermDayLabels();
+
+            // リセット
+            document.querySelectorAll('.long-term-day-btn').forEach(btn => {
+                btn.classList.remove('border-purple-500', 'bg-purple-100', 'text-purple-800');
+                btn.classList.add('border-gray-200', 'text-gray-700');
+            });
+            document.getElementById('longTermPreview').classList.add('hidden');
+            document.getElementById('longTermCustomDatePicker').classList.add('hidden');
+            document.getElementById('longTermSaveBtn').disabled = true;
+
+            document.getElementById('longTermFollowModal').classList.remove('hidden');
+        }
+
+        function closeLongTermFollowModal() {
+            document.getElementById('longTermFollowModal').classList.add('hidden');
+            longTermTargetCvId = null;
+        }
+
+        function updateLongTermDayLabels() {
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            const dayOffsets = [7, 14, 21, 30, 60];
+
+            dayOffsets.forEach(offset => {
+                const d = new Date();
+                d.setDate(d.getDate() + offset);
+                const label = document.getElementById(`ltDayLabel${offset}`);
+                if (label) {
+                    const dayOfWeek = days[d.getDay()];
+                    const color = d.getDay() === 0 ? 'text-red-500' : (d.getDay() === 6 ? 'text-blue-500' : '');
+                    label.innerHTML = `<span class="${color}">${d.getMonth() + 1}/${d.getDate()}(${dayOfWeek})</span>`;
+                }
+            });
+        }
+
+        function setLongTermDay(daysOffset) {
+            const d = new Date();
+            d.setDate(d.getDate() + daysOffset);
+            selectedLongTermDate = d;
+
+            // ボタンスタイル更新
+            document.querySelectorAll('.long-term-day-btn').forEach(btn => {
+                btn.classList.remove('border-purple-500', 'bg-purple-100', 'text-purple-800');
+                btn.classList.add('border-gray-200', 'text-gray-700');
+            });
+            const selectedBtn = document.querySelector(`[data-ltday="${daysOffset}"]`);
+            if (selectedBtn) {
+                selectedBtn.classList.remove('border-gray-200', 'text-gray-700');
+                selectedBtn.classList.add('border-purple-500', 'bg-purple-100', 'text-purple-800');
+            }
+
+            // カスタム日付ピッカーを非表示
+            document.getElementById('longTermCustomDatePicker').classList.add('hidden');
+
+            updateLongTermPreview();
+        }
+
+        function toggleLongTermCustomDate() {
+            const picker = document.getElementById('longTermCustomDatePicker');
+            picker.classList.toggle('hidden');
+
+            if (!picker.classList.contains('hidden')) {
+                const input = document.getElementById('longTermDateInput');
+                const today = new Date();
+                today.setDate(today.getDate() + 1);
+                input.min = today.toISOString().split('T')[0];
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        function setLongTermCustomDate() {
+            const input = document.getElementById('longTermDateInput');
+            if (!input.value) return;
+
+            selectedLongTermDate = new Date(input.value);
+
+            // ボタンスタイルリセット
+            document.querySelectorAll('.long-term-day-btn').forEach(btn => {
+                btn.classList.remove('border-purple-500', 'bg-purple-100', 'text-purple-800');
+                btn.classList.add('border-gray-200', 'text-gray-700');
+            });
+
+            updateLongTermPreview();
+        }
+
+        function updateLongTermPreview() {
+            if (!selectedLongTermDate) {
+                document.getElementById('longTermPreview').classList.add('hidden');
+                document.getElementById('longTermSaveBtn').disabled = true;
+                return;
+            }
+
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            const d = selectedLongTermDate;
+            const dateStr = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+
+            document.getElementById('longTermPreviewText').textContent = dateStr;
+            document.getElementById('longTermPreview').classList.remove('hidden');
+            document.getElementById('longTermSaveBtn').disabled = false;
+        }
+
+        function skipLongTermFollow() {
+            closeLongTermFollowModal();
+            renderCases();
+        }
+
+        function saveLongTermFollow() {
+            if (!selectedLongTermDate || !longTermTargetCvId) return;
+
+            const cvId = longTermTargetCvId;
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            const d = selectedLongTermDate;
+            const dateStr = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} 10:00`;
+            const displayStr = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+
+            // ローカルデータ更新
+            c.nextCallDate = dateStr;
+
+            // 履歴に追加
+            if (!c.callHistory) c.callHistory = [];
+            c.callHistory.unshift({
+                date: new Date().toLocaleString('ja-JP'),
+                type: 'follow_set',
+                note: `📅 フォロー予定: ${displayStr}`
+            });
+
+            // GASに保存
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    action: 'updateNextCallDate',
+                    merchantId: merchantId,
+                    cvId: cvId,
+                    nextCallDate: dateStr
+                })
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    console.log('[saveLongTermFollow] 保存完了:', dateStr);
+                } else {
+                    console.error('[saveLongTermFollow] 保存失敗:', result.error);
+                }
+            })
+            .catch(err => console.error('[saveLongTermFollow] 通信エラー:', err));
+
+            closeLongTermFollowModal();
+            renderCases();
+            showNotification('保存完了', `${displayStr} にフォロー予定を設定しました`, 'success');
         }
 
         // ====================================
