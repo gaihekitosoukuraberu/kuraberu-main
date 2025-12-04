@@ -23,19 +23,18 @@
 })();
 </script>
     <script>
-        // PWA起動時：未完了の招待があればリダイレクト
+        // 未完了の招待があれば即リダイレクト（PWA/ブラウザ問わず）
         (function() {
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
             const pending = localStorage.getItem('pendingInvite');
-            if (isStandalone && pending) {
+            if (pending) {
                 try {
                     const { id, s } = JSON.parse(pending);
                     if (id && s) {
-                        console.log('[PWA] Pending invite found, redirecting to member-register');
+                        console.log('[App] Pending invite found, redirecting to member-register');
                         window.location.href = `member-register.html?id=${id}&s=${s}`;
                     }
                 } catch (e) {
-                    console.error('[PWA] Failed to parse pendingInvite:', e);
+                    console.error('[App] Failed to parse pendingInvite:', e);
                     localStorage.removeItem('pendingInvite');
                 }
             }
