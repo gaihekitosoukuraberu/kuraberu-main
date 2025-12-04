@@ -1,13 +1,20 @@
 <html lang="ja"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="くらべる">
     <title>加盟店管理システム - 外壁塗装くらべるAI</title>
     <link rel="icon" type="image/png" href="images/5.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
     <script>
 (function() {
   const cacheBuster = new Date().getTime();
   document.write("<script src=\"/js/env-loader.js?v=" + cacheBuster + "\"><\/script>");
   document.write("<script src=\"merchant-portal/cancel-reasons.js?v=" + cacheBuster + "\"><\/script>");
+  document.write("<script src=\"js/pwa-helper.js?v=" + cacheBuster + "\"><\/script>");
 })();
 </script>
     <script src="https://cdn.tailwindcss.com"></script>

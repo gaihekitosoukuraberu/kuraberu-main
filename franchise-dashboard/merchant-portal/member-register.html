@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>メンバー登録 - くらべる加盟店管理システム</title>
     <link rel="icon" type="image/png" href="../images/5.png">
+    <link rel="manifest" href="../manifest.json">
+    <link rel="apple-touch-icon" href="../images/icon-192.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script>
@@ -403,8 +407,43 @@
             }
         });
 
+        // LINEブラウザ検出
+        function checkLineBrowser() {
+            const ua = navigator.userAgent.toLowerCase();
+            if (ua.includes('line')) {
+                const currentUrl = window.location.href;
+                const modal = document.createElement('div');
+                modal.innerHTML = `
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+                        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center">
+                            <div class="text-5xl mb-4">🔗</div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">ブラウザで開いてください</h3>
+                            <p class="text-gray-600 text-sm mb-6">
+                                LINEアプリ内では登録がうまくいかない場合があります。<br>
+                                Safari または Chrome で開いてください。
+                            </p>
+                            <div class="space-y-3">
+                                <button onclick="window.location.href='${currentUrl}'"
+                                        class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors">
+                                    Safari/Chrome で開く
+                                </button>
+                                <button onclick="this.closest('.fixed').remove()"
+                                        class="w-full py-2 text-gray-500 text-sm hover:text-gray-700">
+                                    このまま続ける（非推奨）
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+        }
+
         // 初期化実行
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLineBrowser();
+            init();
+        });
     </script>
 </body>
 </html>
