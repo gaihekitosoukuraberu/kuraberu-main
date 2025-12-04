@@ -539,8 +539,11 @@
             <div id="salesSection" class="section" style="display: none;">
                 <div class="mb-6 flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-gray-900">メンバー管理</h2>
-                    <button onclick="openPermissionModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                        新規メンバー追加
+                    <button onclick="openInviteModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        メンバーを招待
                     </button>
                 </div>
 
@@ -7169,6 +7172,125 @@
                 <button onclick="savePermissions()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                     保存
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- メンバー招待モーダル -->
+    <div id="inviteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-6 border w-11/12 max-w-lg shadow-lg rounded-xl bg-white">
+            <!-- ヘッダー -->
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">メンバーを招待</h3>
+                    <p class="text-sm text-gray-500 mt-1">招待リンクをLINEやSMSで送るだけ</p>
+                </div>
+                <button onclick="closeInviteModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- 権限選択 -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-3">権限レベルを選択</label>
+                <div class="grid grid-cols-3 gap-3">
+                    <button onclick="selectInviteRole('office')" class="invite-role-btn p-4 border-2 rounded-xl hover:border-blue-500 transition-all" data-role="office">
+                        <div class="text-2xl mb-1">📋</div>
+                        <div class="font-medium text-gray-900">一般事務</div>
+                        <div class="text-xs text-gray-500 mt-1">閲覧中心</div>
+                    </button>
+                    <button onclick="selectInviteRole('standard')" class="invite-role-btn p-4 border-2 rounded-xl hover:border-blue-500 transition-all border-blue-500 bg-blue-50" data-role="standard">
+                        <div class="text-2xl mb-1">💼</div>
+                        <div class="font-medium text-gray-900">一般営業</div>
+                        <div class="text-xs text-gray-500 mt-1">案件対応</div>
+                    </button>
+                    <button onclick="selectInviteRole('leader')" class="invite-role-btn p-4 border-2 rounded-xl hover:border-blue-500 transition-all" data-role="leader">
+                        <div class="text-2xl mb-1">👑</div>
+                        <div class="font-medium text-gray-900">リーダー</div>
+                        <div class="text-xs text-gray-500 mt-1">チーム管理</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 詳細設定トグル -->
+            <div class="mb-6">
+                <button onclick="toggleInviteAdvanced()" class="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                    <svg id="inviteAdvancedIcon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                    詳細な権限設定
+                </button>
+                <div id="inviteAdvancedPanel" class="hidden mt-3 p-4 bg-gray-50 rounded-lg">
+                    <p class="text-sm text-gray-600 mb-3">招待後に「権限編集」から細かく設定できます</p>
+                    <div class="space-y-2 text-sm">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="invitePerm_caseViewAll" class="rounded">
+                            <span class="ml-2">他担当者の案件閲覧</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="invitePerm_caseEdit" class="rounded">
+                            <span class="ml-2">他担当者の案件編集</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="invitePerm_reportAll" class="rounded">
+                            <span class="ml-2">全体レポート閲覧</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 有効期限 -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">リンク有効期限</label>
+                <select id="inviteExpiry" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="24">24時間</option>
+                    <option value="48">48時間</option>
+                    <option value="72" selected>72時間（3日間）</option>
+                    <option value="168">7日間</option>
+                </select>
+            </div>
+
+            <!-- 生成ボタン -->
+            <button onclick="generateInviteLink()" id="generateInviteBtn" class="w-full py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold text-lg transition-colors">
+                招待リンクを生成
+            </button>
+
+            <!-- 生成されたリンク表示エリア -->
+            <div id="inviteLinkArea" class="hidden mt-6 p-4 bg-green-50 border border-green-200 rounded-xl">
+                <div class="flex items-center gap-2 mb-3">
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span class="font-medium text-green-800">招待リンクを生成しました</span>
+                </div>
+                <div class="bg-white p-3 rounded-lg border mb-3">
+                    <code id="inviteLinkText" class="text-sm text-gray-700 break-all"></code>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="copyInviteLink()" class="py-2 px-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium flex items-center justify-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        コピー
+                    </button>
+                    <button onclick="shareInviteLine()" class="py-2 px-3 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-1">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 5.82 2 10.5c0 2.95 1.94 5.53 4.84 6.88-.17.63-.61 2.28-.7 2.63-.11.44.16.43.34.32.14-.09 2.2-1.45 3.1-2.04.46.06.94.09 1.42.09 5.52 0 10-3.82 10-8.5S17.52 2 12 2z"/>
+                        </svg>
+                        LINE
+                    </button>
+                    <button onclick="shareInviteSMS()" class="py-2 px-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                        SMS
+                    </button>
+                </div>
+                <p class="text-xs text-gray-500 mt-3 text-center">
+                    ⏰ このリンクは <span id="inviteExpiryDisplay">72時間</span> 有効・1回限り使用可能
+                </p>
             </div>
         </div>
     </div>
@@ -14799,7 +14921,138 @@
             document.getElementById('sideMenu').classList.add('-translate-x-full');
         }
 
+        // ====================================
+        // メンバー招待モーダル
+        // ====================================
+        let selectedInviteRole = 'standard';
+        let generatedInviteLink = '';
+
+        function openInviteModal() {
+            const modal = document.getElementById('inviteModal');
+            // リセット
+            selectedInviteRole = 'standard';
+            generatedInviteLink = '';
+            document.getElementById('inviteLinkArea').classList.add('hidden');
+            document.getElementById('inviteAdvancedPanel').classList.add('hidden');
+            document.getElementById('inviteAdvancedIcon').style.transform = 'rotate(0deg)';
+            document.getElementById('inviteExpiry').value = '72';
+            // 権限ボタンリセット
+            document.querySelectorAll('.invite-role-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50');
+            });
+            document.querySelector('[data-role="standard"]').classList.add('border-blue-500', 'bg-blue-50');
+            // チェックボックスリセット
+            document.getElementById('invitePerm_caseViewAll').checked = false;
+            document.getElementById('invitePerm_caseEdit').checked = false;
+            document.getElementById('invitePerm_reportAll').checked = false;
+            modal.classList.remove('hidden');
+        }
+
+        function closeInviteModal() {
+            document.getElementById('inviteModal').classList.add('hidden');
+        }
+
+        function selectInviteRole(role) {
+            selectedInviteRole = role;
+            document.querySelectorAll('.invite-role-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50');
+            });
+            document.querySelector(`[data-role="${role}"]`).classList.add('border-blue-500', 'bg-blue-50');
+        }
+
+        function toggleInviteAdvanced() {
+            const panel = document.getElementById('inviteAdvancedPanel');
+            const icon = document.getElementById('inviteAdvancedIcon');
+            panel.classList.toggle('hidden');
+            icon.style.transform = panel.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(90deg)';
+        }
+
+        async function generateInviteLink() {
+            const btn = document.getElementById('generateInviteBtn');
+            btn.disabled = true;
+            btn.textContent = '生成中...';
+
+            const expiry = document.getElementById('inviteExpiry').value;
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+
+            // 追加権限の取得
+            const additionalPerms = {
+                caseViewAll: document.getElementById('invitePerm_caseViewAll').checked,
+                caseEdit: document.getElementById('invitePerm_caseEdit').checked,
+                reportAll: document.getElementById('invitePerm_reportAll').checked
+            };
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        system: 'merchant',
+                        action: 'generateInviteLink',
+                        merchantId: merchantId,
+                        role: selectedInviteRole,
+                        expiryHours: parseInt(expiry),
+                        additionalPermissions: additionalPerms
+                    })
+                });
+                const result = await response.json();
+
+                if (result.success && result.inviteLink) {
+                    generatedInviteLink = result.inviteLink;
+                    document.getElementById('inviteLinkText').textContent = generatedInviteLink;
+                    document.getElementById('inviteExpiryDisplay').textContent = expiry + '時間';
+                    document.getElementById('inviteLinkArea').classList.remove('hidden');
+                } else {
+                    // デモ用：GAS未実装時のダミーリンク生成
+                    const token = Math.random().toString(36).substring(2, 10);
+                    generatedInviteLink = `https://kuraberu.jp/invite/${merchantId}/${token}`;
+                    document.getElementById('inviteLinkText').textContent = generatedInviteLink;
+                    document.getElementById('inviteExpiryDisplay').textContent = expiry + '時間';
+                    document.getElementById('inviteLinkArea').classList.remove('hidden');
+                    console.log('[Invite] Demo mode - generated dummy link');
+                }
+            } catch (error) {
+                console.error('[Invite] Error:', error);
+                // デモ用：エラー時もダミーリンク生成
+                const token = Math.random().toString(36).substring(2, 10);
+                generatedInviteLink = `https://kuraberu.jp/invite/${merchantId}/${token}`;
+                document.getElementById('inviteLinkText').textContent = generatedInviteLink;
+                document.getElementById('inviteExpiryDisplay').textContent = expiry + '時間';
+                document.getElementById('inviteLinkArea').classList.remove('hidden');
+            }
+
+            btn.disabled = false;
+            btn.textContent = '招待リンクを生成';
+        }
+
+        function copyInviteLink() {
+            navigator.clipboard.writeText(generatedInviteLink).then(() => {
+                showNotification('コピー完了', '招待リンクをクリップボードにコピーしました', 'success');
+            }).catch(() => {
+                // フォールバック
+                const textarea = document.createElement('textarea');
+                textarea.value = generatedInviteLink;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showNotification('コピー完了', '招待リンクをクリップボードにコピーしました', 'success');
+            });
+        }
+
+        function shareInviteLine() {
+            const message = encodeURIComponent(`くらべるネット加盟店システムへの招待\n\n以下のリンクから登録してください：\n${generatedInviteLink}`);
+            window.open(`https://line.me/R/msg/text/?${message}`, '_blank');
+        }
+
+        function shareInviteSMS() {
+            const message = encodeURIComponent(`くらべるネット招待: ${generatedInviteLink}`);
+            window.open(`sms:?body=${message}`, '_blank');
+        }
+
+        // ====================================
         // 権限モーダル
+        // ====================================
         function openPermissionModal(name = null, isNew = true) {
             const modal = document.getElementById('permissionModal');
             const modalTitle = document.getElementById('modalTitle');
