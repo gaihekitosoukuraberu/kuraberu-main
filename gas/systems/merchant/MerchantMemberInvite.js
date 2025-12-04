@@ -188,15 +188,28 @@ const MerchantMemberInvite = {
       sheet.appendRow(newRow);
 
       // 招待リンク生成
-      const inviteLink = 'https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/member-register.html?data='
+      const longInviteLink = 'https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/member-register.html?data='
         + encodeURIComponent(encodedData)
         + '&sig=' + encodeURIComponent(signature);
+
+      // URL短縮（SMS文字数対策）
+      let inviteLink = longInviteLink;
+      try {
+        const shortResult = UrlShortener.shortenUrl({ url: longInviteLink });
+        if (shortResult.success && shortResult.shortUrl) {
+          inviteLink = shortResult.shortUrl;
+          console.log('[generateInviteLink] URL短縮成功:', inviteLink);
+        }
+      } catch (shortError) {
+        console.warn('[generateInviteLink] URL短縮失敗、元のURLを使用:', shortError);
+      }
 
       console.log('[generateInviteLink] Success:', inviteLink);
 
       return {
         success: true,
         inviteLink: inviteLink,
+        longInviteLink: longInviteLink, // フォールバック用
         memberId: memberId,
         expiry: expiry.toISOString()
       };
