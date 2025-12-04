@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>メンバー登録 - くらべる加盟店管理システム</title>
+    <link rel="icon" type="image/png" href="../images/5.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+(function() {
+  const cacheBuster = new Date().getTime();
+  document.write("<script src=\"/js/env-loader.js?v=" + cacheBuster + "\"><\/script>");
+})();
+</script>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
+        <!-- ロゴ -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800">外壁塗装くらべる</h1>
+            <p class="text-gray-500 mt-2">メンバー登録</p>
+        </div>
+
+        <!-- ローディング -->
+        <div id="loadingSection" class="text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <p class="mt-4 text-gray-600">招待リンクを確認中...</p>
+        </div>
+
+        <!-- エラー表示 -->
+        <div id="errorSection" class="hidden">
+            <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">招待リンクエラー</h3>
+                        <p id="errorMessage" class="mt-1 text-sm text-red-700">
+                            リンクが無効または期限切れです。
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600 mb-4">
+                    管理者に新しい招待リンクを発行してもらってください。
+                </p>
+            </div>
+        </div>
+
+        <!-- 登録フォーム -->
+        <div id="registerSection" class="hidden">
+            <!-- 招待情報表示 -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <p class="text-sm text-blue-800 mb-2">
+                    <span id="merchantNameDisplay" class="font-bold"></span> への招待
+                </p>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-blue-600">役職:</span>
+                    <span id="roleDisplay" class="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800"></span>
+                </div>
+            </div>
+
+            <form id="registerForm">
+                <!-- 氏名 -->
+                <div class="mb-4">
+                    <label for="memberName" class="block text-gray-700 text-sm font-bold mb-2">
+                        氏名 <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="memberName" name="memberName" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="山田 太郎">
+                </div>
+
+                <!-- パスワード -->
+                <div class="mb-4">
+                    <label for="password" class="block text-gray-700 text-sm font-bold mb-2">
+                        パスワード <span class="text-red-500">*</span>
+                    </label>
+                    <input type="password" id="password" name="password" required
+                           minlength="8"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="8文字以上">
+                    <p class="text-xs text-gray-500 mt-1">
+                        ※8文字以上で設定してください
+                    </p>
+                </div>
+
+                <!-- パスワード確認 -->
+                <div class="mb-6">
+                    <label for="passwordConfirm" class="block text-gray-700 text-sm font-bold mb-2">
+                        パスワード（確認） <span class="text-red-500">*</span>
+                    </label>
+                    <input type="password" id="passwordConfirm" name="passwordConfirm" required
+                           minlength="8"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="もう一度入力">
+                </div>
+
+                <!-- パスワード強度インジケーター -->
+                <div class="mb-6">
+                    <div class="flex justify-between text-xs text-gray-600 mb-1">
+                        <span>パスワード強度</span>
+                        <span id="strengthText">未入力</span>
+                    </div>
+                    <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div id="strengthBar" class="h-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn"
+                        class="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-200">
+                    登録する
+                </button>
+            </form>
+        </div>
+
+        <!-- 成功メッセージ -->
+        <div id="successSection" class="hidden text-center">
+            <div class="mb-6">
+                <svg class="mx-auto h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">登録完了</h3>
+            <p class="text-gray-600 mb-6">
+                メンバー登録が完了しました。<br>
+                ログインページからログインしてください。
+            </p>
+            <a href="login.html"
+               class="inline-block bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-200">
+                ログインページへ
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // GAS API URL
+        console.log('[member-register] ENV check:', typeof ENV, ENV);
+        if (typeof ENV === 'undefined' || !ENV.GAS_URL) {
+            console.error('[member-register] ENV not loaded!');
+            alert('システムエラー: 環境設定が読み込めません。ページを再読み込みしてください。');
+        }
+        const GAS_URL = ENV.GAS_URL;
+
+        // 招待情報を保持
+        let inviteData = null;
+
+        // URLパラメータ取得
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                data: params.get('data'),
+                sig: params.get('sig')
+            };
+        }
+
+        // 役職ラベル
+        const roleLabels = {
+            leader: 'リーダー',
+            standard: '営業',
+            office: '事務'
+        };
+
+        const roleStyles = {
+            leader: 'bg-purple-100 text-purple-800',
+            standard: 'bg-blue-100 text-blue-800',
+            office: 'bg-green-100 text-green-800'
+        };
+
+        // 初期化
+        async function init() {
+            const { data, sig } = getUrlParams();
+
+            if (!data || !sig) {
+                showError('無効なアクセスです。招待リンクから再度アクセスしてください。');
+                return;
+            }
+
+            try {
+                // 招待トークン検証（JSONP）
+                console.log('[member-register] Verifying invite token...');
+
+                const result = await new Promise((resolve, reject) => {
+                    const callbackName = 'jsonp_' + Date.now();
+                    window[callbackName] = (data) => {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        resolve(data);
+                    };
+
+                    const script = document.createElement('script');
+                    script.src = `${GAS_URL}?action=verifyMemberInvite&data=${encodeURIComponent(data)}&sig=${encodeURIComponent(sig)}&callback=${callbackName}`;
+                    script.onerror = () => {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        reject(new Error('JSONP request failed'));
+                    };
+                    document.body.appendChild(script);
+
+                    // タイムアウト
+                    setTimeout(() => {
+                        if (window[callbackName]) {
+                            delete window[callbackName];
+                            reject(new Error('Request timeout'));
+                        }
+                    }, 30000);
+                });
+
+                console.log('[member-register] Verify response:', result);
+
+                if (result.success && result.invite) {
+                    inviteData = result.invite;
+                    inviteData.data = data;
+                    inviteData.sig = sig;
+
+                    // 表示更新
+                    document.getElementById('merchantNameDisplay').textContent =
+                        result.invite.merchantName || '加盟店';
+
+                    const roleEl = document.getElementById('roleDisplay');
+                    roleEl.textContent = roleLabels[result.invite.role] || '営業';
+                    roleEl.className = `px-2 py-0.5 text-xs font-semibold rounded-full ${roleStyles[result.invite.role] || roleStyles.standard}`;
+
+                    showRegisterForm();
+                } else {
+                    showError(result.error || 'リンクが無効または期限切れです。');
+                }
+            } catch (error) {
+                console.error('[member-register] Error:', error);
+                showError('通信エラーが発生しました。しばらく経ってから再度お試しください。');
+            }
+        }
+
+        // エラー表示
+        function showError(message) {
+            document.getElementById('loadingSection').classList.add('hidden');
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorSection').classList.remove('hidden');
+        }
+
+        // 登録フォーム表示
+        function showRegisterForm() {
+            document.getElementById('loadingSection').classList.add('hidden');
+            document.getElementById('registerSection').classList.remove('hidden');
+        }
+
+        // パスワード強度チェック
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            let text = '弱い';
+            let color = 'bg-red-500';
+
+            if (password.length >= 8) strength++;
+            if (password.length >= 12) strength++;
+            if (password.match(/[a-z]/)) strength++;
+            if (password.match(/[A-Z]/)) strength++;
+            if (password.match(/[0-9]/)) strength++;
+
+            if (strength <= 2) {
+                text = '弱い';
+                color = 'bg-red-500';
+            } else if (strength === 3) {
+                text = '普通';
+                color = 'bg-yellow-500';
+            } else if (strength >= 4) {
+                text = '強い';
+                color = 'bg-green-500';
+            }
+
+            const percentage = Math.min((strength / 5) * 100, 100);
+
+            document.getElementById('strengthText').textContent = text;
+            const bar = document.getElementById('strengthBar');
+            bar.style.width = percentage + '%';
+            bar.className = `h-full transition-all duration-300 ${color}`;
+        }
+
+        // パスワード入力イベント
+        document.getElementById('password').addEventListener('input', (e) => {
+            checkPasswordStrength(e.target.value);
+        });
+
+        // フォーム送信
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const memberName = document.getElementById('memberName').value.trim();
+            const password = document.getElementById('password').value;
+            const passwordConfirm = document.getElementById('passwordConfirm').value;
+
+            // バリデーション
+            if (!memberName) {
+                alert('氏名を入力してください。');
+                return;
+            }
+
+            if (password !== passwordConfirm) {
+                alert('パスワードが一致しません。');
+                return;
+            }
+
+            if (password.length < 8) {
+                alert('パスワードは8文字以上で設定してください。');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '登録中...';
+
+            try {
+                // メンバー登録（JSONP）
+                const result = await new Promise((resolve, reject) => {
+                    const callbackName = 'jsonp_' + Date.now();
+                    window[callbackName] = (data) => {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        resolve(data);
+                    };
+
+                    const params = new URLSearchParams({
+                        action: 'registerMember',
+                        data: inviteData.data,
+                        sig: inviteData.sig,
+                        name: memberName,
+                        password: password,
+                        callback: callbackName
+                    });
+
+                    const script = document.createElement('script');
+                    script.src = `${GAS_URL}?${params.toString()}`;
+                    script.onerror = () => {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        reject(new Error('JSONP request failed'));
+                    };
+                    document.body.appendChild(script);
+
+                    setTimeout(() => {
+                        if (window[callbackName]) {
+                            delete window[callbackName];
+                            reject(new Error('Request timeout'));
+                        }
+                    }, 30000);
+                });
+
+                console.log('[member-register] Register response:', result);
+
+                if (result.success) {
+                    document.getElementById('registerSection').classList.add('hidden');
+                    document.getElementById('successSection').classList.remove('hidden');
+                } else {
+                    alert('エラー: ' + (result.error || '登録に失敗しました'));
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '登録する';
+                }
+            } catch (error) {
+                console.error('[member-register] Error:', error);
+                alert('通信エラーが発生しました。しばらく経ってから再度お試しください。');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '登録する';
+            }
+        });
+
+        // 初期化実行
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
