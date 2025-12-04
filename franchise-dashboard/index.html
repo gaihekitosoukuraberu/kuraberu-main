@@ -17392,10 +17392,16 @@
         function getCallAndMemoCounts(caseData) {
             const history = caseData.callHistory || [];
 
-            // 通話回数（📞または📵で始まる記録）
-            const callRecords = history.filter(item => {
+            // 接続回数（📞 接続）
+            const connectedRecords = history.filter(item => {
                 const note = item.note || '';
-                return note.startsWith('📞') || note.startsWith('📵');
+                return note.startsWith('📞 接続') || note.startsWith('📞接続');
+            });
+
+            // 不在回数（📞 不在 または 📵）
+            const absentRecords = history.filter(item => {
+                const note = item.note || '';
+                return note.startsWith('📞 不在') || note.startsWith('📵');
             });
 
             // メモ記録（架電記録以外）
@@ -17405,16 +17411,18 @@
             });
 
             return {
-                callTotal: callRecords.length,
+                connectedCount: connectedRecords.length,
+                absentCount: absentRecords.length,
+                callTotal: connectedRecords.length + absentRecords.length,
                 memoTotal: memoRecords.length
             };
         }
 
-        // 通話履歴カウント表示（📞2回 形式）
+        // 通話履歴カウント表示（📞1接続/2架電 形式）
         function getCallCountBadge(caseData) {
             const counts = getCallAndMemoCounts(caseData);
             if (counts.callTotal === 0) return '📞';
-            return `📞${counts.callTotal}回`;
+            return `📞${counts.connectedCount}接続/${counts.callTotal}架電`;
         }
 
         // メモカウント表示（📝2件 形式）
@@ -17556,11 +17564,16 @@
                 const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
                 console.log('[selectConnectionStatus] connected - cvId:', cvId, 'merchantId:', merchantId);
 
-                // 電話回数を即座にインクリメント（ローカル）
+                // 接続履歴を追加（ローカル）
                 if (currentCallCase) {
-                    const oldCount = currentCallCase.callCount || 0;
-                    currentCallCase.callCount = (parseInt(oldCount) + 1);
-                    console.log('[selectConnectionStatus] callCount:', oldCount, '→', currentCallCase.callCount);
+                    if (!currentCallCase.callHistory) {
+                        currentCallCase.callHistory = [];
+                    }
+                    currentCallCase.callHistory.unshift({
+                        date: new Date().toLocaleString('ja-JP'),
+                        note: '📞 接続'
+                    });
+                    console.log('[selectConnectionStatus] callHistory updated:', currentCallCase.callHistory.length);
                     renderCases(); // UI即時反映
                 }
 
