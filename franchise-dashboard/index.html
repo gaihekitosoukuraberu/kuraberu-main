@@ -744,6 +744,46 @@
                     </div>
                 </div>
 
+                <!-- ラベル選択モーダル -->
+                <div id="labelModal" class="fixed inset-0 z-[60] hidden">
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeLabelModal()"></div>
+                    <div class="fixed inset-0 flex items-center justify-center p-4">
+                        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+                            <div class="p-4 border-b bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
+                                <h3 class="text-lg font-bold">🏷️ ラベルを設定</h3>
+                                <p class="text-sm text-blue-100 mt-1">この履歴にラベルをつけてカードに表示</p>
+                            </div>
+                            <div class="p-4">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button onclick="applyLabel('要対応', 'red')" class="px-3 py-2 rounded-lg bg-red-100 text-red-700 font-medium hover:bg-red-200 transition-all flex items-center gap-2 justify-center">
+                                        <span class="w-3 h-3 rounded-full bg-red-500"></span>要対応
+                                    </button>
+                                    <button onclick="applyLabel('確認中', 'yellow')" class="px-3 py-2 rounded-lg bg-yellow-100 text-yellow-700 font-medium hover:bg-yellow-200 transition-all flex items-center gap-2 justify-center">
+                                        <span class="w-3 h-3 rounded-full bg-yellow-500"></span>確認中
+                                    </button>
+                                    <button onclick="applyLabel('連絡待ち', 'blue')" class="px-3 py-2 rounded-lg bg-blue-100 text-blue-700 font-medium hover:bg-blue-200 transition-all flex items-center gap-2 justify-center">
+                                        <span class="w-3 h-3 rounded-full bg-blue-500"></span>連絡待ち
+                                    </button>
+                                    <button onclick="applyLabel('重要', 'purple')" class="px-3 py-2 rounded-lg bg-purple-100 text-purple-700 font-medium hover:bg-purple-200 transition-all flex items-center gap-2 justify-center">
+                                        <span class="w-3 h-3 rounded-full bg-purple-500"></span>重要
+                                    </button>
+                                    <button onclick="applyLabel('見込み高', 'green')" class="px-3 py-2 rounded-lg bg-green-100 text-green-700 font-medium hover:bg-green-200 transition-all flex items-center gap-2 justify-center">
+                                        <span class="w-3 h-3 rounded-full bg-green-500"></span>見込み高
+                                    </button>
+                                    <button onclick="applyLabel('見込み低', 'gray')" class="px-3 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition-all flex items-center gap-2 justify-center">
+                                        <span class="w-3 h-3 rounded-full bg-gray-500"></span>見込み低
+                                    </button>
+                                </div>
+                                <div class="mt-4 pt-4 border-t">
+                                    <button onclick="closeLabelModal()" class="w-full py-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-all">
+                                        キャンセル
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ステータス変更モーダル -->
                 <div id="caseStatusModal" class="fixed inset-0 z-50 hidden">
                     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeStatusModal()"></div>
@@ -17112,6 +17152,69 @@
             }
         }
 
+        // 案件のラベルを取得してHTML生成
+        function getCaseLabelsHtml(c) {
+            // callHistoryからラベル付きアイテムを抽出
+            const history = c.callHistory || [];
+            const labelsMap = {};
+            history.forEach(item => {
+                if (item.label && item.labelColor) {
+                    labelsMap[item.label] = item.labelColor;
+                }
+            });
+            const labels = Object.entries(labelsMap);
+            if (labels.length === 0) return '';
+
+            const labelColorMap = {
+                red: { bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-500' },
+                yellow: { bg: 'bg-yellow-100', text: 'text-yellow-700', dot: 'bg-yellow-500' },
+                blue: { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500' },
+                purple: { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500' },
+                green: { bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' },
+                gray: { bg: 'bg-gray-100', text: 'text-gray-700', dot: 'bg-gray-500' }
+            };
+
+            return `
+                <div class="flex flex-wrap gap-1 mb-3">
+                    ${labels.map(([text, color]) => {
+                        const style = labelColorMap[color] || labelColorMap.gray;
+                        return `<span class="text-xs px-2 py-0.5 rounded-full ${style.bg} ${style.text} font-medium flex items-center gap-1"><span class="w-2 h-2 rounded-full ${style.dot}"></span>${escapeHtml(text)}</span>`;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // リスト用コンパクトラベル表示
+        function getCaseLabelsHtmlCompact(c) {
+            const history = c.callHistory || [];
+            const labelsMap = {};
+            history.forEach(item => {
+                if (item.label && item.labelColor) {
+                    labelsMap[item.label] = item.labelColor;
+                }
+            });
+            const labels = Object.entries(labelsMap);
+            if (labels.length === 0) return '';
+
+            const labelColorMap = {
+                red: { bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-500' },
+                yellow: { bg: 'bg-yellow-100', text: 'text-yellow-700', dot: 'bg-yellow-500' },
+                blue: { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500' },
+                purple: { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500' },
+                green: { bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' },
+                gray: { bg: 'bg-gray-100', text: 'text-gray-700', dot: 'bg-gray-500' }
+            };
+
+            return `
+                <div class="flex flex-wrap gap-1 mt-1">
+                    ${labels.map(([text, color]) => {
+                        const style = labelColorMap[color] || labelColorMap.gray;
+                        return `<span class="text-[10px] px-1.5 py-0.5 rounded ${style.bg} ${style.text} font-medium">${escapeHtml(text)}</span>`;
+                    }).join('')}
+                </div>
+            `;
+        }
+
         // 案件カードHTML生成（V2022 全情報対応 + 架電回数表示）
         function createCaseCard(c) {
             const status = c.detailStatus || '対応待ち';
@@ -17171,6 +17274,7 @@
                     <div class="text-sm text-gray-500 mb-4">
                         <span>配信日: ${deliveryShort}</span>
                     </div>
+                    ${getCaseLabelsHtml(c)}
                     ${hasMemo ? `<div class="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg mb-4 line-clamp-2">${escapeHtml(c.merchantMemo)}</div>` : ''}
                     <div class="flex gap-2">
                         <a href="tel:${c.customerTel}" onclick="startPhoneCall('${c.cvId}')" class="flex-1 px-4 py-3 bg-green-100 text-green-700 rounded-lg text-base font-bold hover:bg-green-200 transition-colors text-center">
@@ -17233,6 +17337,7 @@
                                 ? `<a href="${c.googleMapsLink}" target="_blank" class="text-xs text-gray-500 hover:text-blue-600 truncate max-w-[180px] transition-colors" title="${address}（タップで地図）">📍${displayAddress}</a>`
                                 : `<span class="text-xs text-gray-500 truncate max-w-[180px]" title="${address}">📍${displayAddress}</span>`
                             }
+                            ${getCaseLabelsHtmlCompact(c)}
                         </div>
                     </td>
                     <!-- 架電回数（タップで接続/不在記録） -->
@@ -17360,6 +17465,7 @@
                 const isSelected = idx === selectedMemoHistoryIndex;
                 const note = item.note || '';
                 const date = item.date || '';
+                const type = item.type || detectHistoryType(note);
 
                 // 日付をフォーマット（MM/DD HH:mm形式）
                 let formattedDate = date;
@@ -17370,24 +17476,49 @@
                     }
                 } catch(e) {}
 
+                // 履歴タイプに応じた表示
+                const { icon, label, bgColor, textColor, dotColor } = getHistoryStyle(type, note);
+
+                // メモ部分のみ抽出（アイコンプレフィックスを除去）
+                const cleanNote = note.replace(/^(📞\s*(接続|不在)|📵\s*不在|🏷️|🏠|📅)/, '').trim();
+
+                // ラベル表示用
+                const itemLabel = item.label || '';
+                const itemLabelColor = item.labelColor || 'gray';
+                const labelColorMap = {
+                    red: { bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-500' },
+                    yellow: { bg: 'bg-yellow-100', text: 'text-yellow-700', dot: 'bg-yellow-500' },
+                    blue: { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500' },
+                    purple: { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500' },
+                    green: { bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' },
+                    gray: { bg: 'bg-gray-100', text: 'text-gray-700', dot: 'bg-gray-500' }
+                };
+                const labelStyle = labelColorMap[itemLabelColor] || labelColorMap.gray;
+
                 return `
                 <div onclick="selectMemoHistory(${idx})" class="relative cursor-pointer group">
                     <!-- タイムラインライン -->
                     <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 ${idx === allHistory.length - 1 ? 'h-6' : ''}"></div>
 
                     <!-- タイムラインドット -->
-                    <div class="absolute left-2.5 top-2 w-3 h-3 rounded-full ${isSelected ? 'bg-amber-500' : 'bg-gray-300'} border-2 border-white shadow-sm"></div>
+                    <div class="absolute left-2.5 top-2 w-3 h-3 rounded-full ${isSelected ? 'bg-amber-500' : dotColor} border-2 border-white shadow-sm"></div>
 
                     <!-- コンテンツカード -->
                     <div class="ml-8 rounded-xl p-3 ${isSelected ? 'bg-amber-50 border-2 border-amber-400 shadow-md' : 'bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm'} transition-all">
                         <div class="flex justify-between items-start gap-2">
                             <div class="flex-1 min-w-0">
-                                <div class="text-xs text-gray-400 mb-1.5 font-medium">${formattedDate}</div>
-                                <div class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">${escapeHtml(note)}</div>
+                                <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                    <span class="text-xs text-gray-400 font-medium">${formattedDate}</span>
+                                    <span class="text-xs px-1.5 py-0.5 rounded ${bgColor} ${textColor} font-medium">${icon} ${label}</span>
+                                    ${itemLabel ? `<span class="text-xs px-1.5 py-0.5 rounded ${labelStyle.bg} ${labelStyle.text} font-medium flex items-center gap-1"><span class="w-2 h-2 rounded-full ${labelStyle.dot}"></span>${itemLabel}</span>` : ''}
+                                </div>
+                                ${cleanNote ? `<div class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">${escapeHtml(cleanNote)}</div>` : ''}
                             </div>
                             ${isSelected ? `
                             <div class="flex gap-1 flex-shrink-0">
                                 <button onclick="event.stopPropagation(); editMemoHistory(${idx})" class="w-7 h-7 flex items-center justify-center text-amber-600 hover:bg-amber-100 rounded-lg transition-all text-sm" title="編集">✏️</button>
+                                <button onclick="event.stopPropagation(); setMemoLabel(${idx})" class="w-7 h-7 flex items-center justify-center text-blue-500 hover:bg-blue-100 rounded-lg transition-all text-sm" title="ラベル">🏷️</button>
+                                ${itemLabel ? `<button onclick="event.stopPropagation(); removeLabel(${idx})" class="w-7 h-7 flex items-center justify-center text-gray-400 hover:bg-gray-100 rounded-lg transition-all text-xs" title="ラベル解除">✖️</button>` : ''}
                                 <button onclick="event.stopPropagation(); deleteMemoHistory(${idx})" class="w-7 h-7 flex items-center justify-center text-red-500 hover:bg-red-100 rounded-lg transition-all text-sm" title="削除">🗑️</button>
                             </div>
                             ` : ''}
@@ -17395,6 +17526,78 @@
                     </div>
                 </div>
             `}).join('');
+        }
+
+        // 履歴タイプを検出（既存データ対応）
+        function detectHistoryType(note) {
+            if (!note) return 'memo';
+            if (note.startsWith('📞 接続') || note.startsWith('📞接続')) return 'call_connected';
+            if (note.startsWith('📞 不在') || note.startsWith('📵') || note.startsWith('📞不在')) return 'call_absent';
+            if (note.startsWith('🏷️')) return 'status_change';
+            if (note.startsWith('🏠')) return 'survey_set';
+            return 'memo';
+        }
+
+        // 履歴タイプに応じたスタイル
+        function getHistoryStyle(type, note) {
+            switch(type) {
+                case 'call_connected':
+                    return { icon: '📞', label: '接続', bgColor: 'bg-green-100', textColor: 'text-green-700', dotColor: 'bg-green-400' };
+                case 'call_absent':
+                    return { icon: '📵', label: '不在', bgColor: 'bg-red-100', textColor: 'text-red-600', dotColor: 'bg-red-400' };
+                case 'status_change':
+                    // ステータスに応じた色
+                    const statusColor = getStatusColorFromNote(note);
+                    return { icon: statusColor.dot, label: 'ステータス', bgColor: statusColor.bg, textColor: statusColor.text, dotColor: statusColor.dotColor };
+                case 'survey_set':
+                    return { icon: '🏠', label: '現調', bgColor: 'bg-orange-100', textColor: 'text-orange-700', dotColor: 'bg-orange-400' };
+                case 'next_call_set':
+                    return { icon: '📅', label: '次回架電', bgColor: 'bg-blue-100', textColor: 'text-blue-700', dotColor: 'bg-blue-400' };
+                default:
+                    return { icon: '📋', label: 'メモ', bgColor: 'bg-amber-100', textColor: 'text-amber-700', dotColor: 'bg-gray-300' };
+            }
+        }
+
+        // ステータス変更の色を取得
+        function getStatusColorFromNote(note) {
+            if (!note) return { dot: '⚪', bg: 'bg-gray-100', text: 'text-gray-700', dotColor: 'bg-gray-400' };
+            // noteから変更後のステータスを抽出（「→ アポ済」など）
+            const match = note.match(/→\s*(.+)$/);
+            const newStatus = match ? match[1].trim() : '';
+
+            // statusStylesに合わせたカラー
+            switch(newStatus) {
+                case '新着':
+                case '未対応':
+                    return { dot: '🔵', bg: 'bg-blue-100', text: 'text-blue-800', dotColor: 'bg-blue-400' };
+                case '未アポ':
+                case '架電済/未アポ':
+                    return { dot: '🩷', bg: 'bg-pink-100', text: 'text-pink-700', dotColor: 'bg-pink-400' };
+                case 'アポ済':
+                    return { dot: '🟠', bg: 'bg-orange-100', text: 'text-orange-800', dotColor: 'bg-orange-400' };
+                case '現調済':
+                    return { dot: '🟣', bg: 'bg-purple-100', text: 'text-purple-800', dotColor: 'bg-purple-400' };
+                case '見積提出済み':
+                case '見積提出済':
+                    return { dot: '🟡', bg: 'bg-amber-100', text: 'text-amber-800', dotColor: 'bg-amber-400' };
+                case '入金予定':
+                    return { dot: '🔵', bg: 'bg-cyan-100', text: 'text-cyan-800', dotColor: 'bg-cyan-400' };
+                case '成約':
+                    return { dot: '🟢', bg: 'bg-green-100', text: 'text-green-800', dotColor: 'bg-green-400' };
+                case '入金済':
+                    return { dot: '🟢', bg: 'bg-emerald-100', text: 'text-emerald-800', dotColor: 'bg-emerald-400' };
+                case '現調前キャンセル':
+                case '他社契約済':
+                    return { dot: '⚪', bg: 'bg-gray-100', text: 'text-gray-600', dotColor: 'bg-gray-400' };
+                case '現調後失注':
+                    return { dot: '⚪', bg: 'bg-gray-200', text: 'text-gray-700', dotColor: 'bg-gray-500' };
+                case '別加盟店契約済':
+                    return { dot: '🟣', bg: 'bg-indigo-100', text: 'text-indigo-700', dotColor: 'bg-indigo-400' };
+                case 'クレーム':
+                    return { dot: '🔴', bg: 'bg-red-100', text: 'text-red-800', dotColor: 'bg-red-400' };
+                default:
+                    return { dot: '⚪', bg: 'bg-gray-100', text: 'text-gray-700', dotColor: 'bg-gray-400' };
+            }
         }
 
         // クイックメモ追加
@@ -17440,6 +17643,65 @@
             history.splice(index, 1);
             selectedMemoHistoryIndex = -1;
             // GASに保存
+            await saveCallHistoryToGAS();
+            loadMemoHistory();
+            renderCases();
+        }
+
+        // ラベル設定モーダル表示
+        let labelTargetIndex = -1;
+        function setMemoLabel(index) {
+            if (!currentMemoCase) return;
+            labelTargetIndex = index;
+            document.getElementById('labelModal').classList.remove('hidden');
+        }
+
+        function closeLabelModal() {
+            document.getElementById('labelModal').classList.add('hidden');
+            labelTargetIndex = -1;
+        }
+
+        async function applyLabel(labelText, labelColor) {
+            if (!currentMemoCase || labelTargetIndex < 0) return;
+            const history = currentMemoCase.callHistory || [];
+            if (!history[labelTargetIndex]) return;
+
+            // ラベルを履歴アイテムに設定
+            history[labelTargetIndex].label = labelText;
+            history[labelTargetIndex].labelColor = labelColor;
+
+            // 案件にもラベル情報を保持（最新のラベルをカードに表示用）
+            if (!currentMemoCase.labels) currentMemoCase.labels = [];
+            // 同じテキストのラベルがなければ追加
+            const existingIdx = currentMemoCase.labels.findIndex(l => l.text === labelText);
+            if (existingIdx === -1) {
+                currentMemoCase.labels.push({ text: labelText, color: labelColor });
+            }
+
+            closeLabelModal();
+            await saveCallHistoryToGAS();
+            loadMemoHistory();
+            renderCases();
+        }
+
+        async function removeLabel(index) {
+            if (!currentMemoCase) return;
+            const history = currentMemoCase.callHistory || [];
+            if (!history[index]) return;
+
+            const labelText = history[index].label;
+            delete history[index].label;
+            delete history[index].labelColor;
+
+            // 案件のラベルリストからも削除（そのラベルが他で使われていなければ）
+            if (currentMemoCase.labels && labelText) {
+                const stillUsed = history.some(h => h.label === labelText);
+                if (!stillUsed) {
+                    currentMemoCase.labels = currentMemoCase.labels.filter(l => l.text !== labelText);
+                }
+            }
+
+            selectedMemoHistoryIndex = -1;
             await saveCallHistoryToGAS();
             loadMemoHistory();
             renderCases();
@@ -18158,8 +18420,21 @@
             const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
             const cvId = currentStatusCase.cvId;
             const wasAfterCallMode = isAfterCallMode;
+            const oldStatus = currentStatusCase.detailStatus;
             console.log('[setCaseStatus] currentStatusCase:', currentStatusCase);
             console.log('[setCaseStatus] merchantId:', merchantId, 'cvId:', cvId, 'status:', newStatus, 'isAfterCallMode:', wasAfterCallMode);
+
+            // 履歴に追加（ステータス変更が実際に行われた場合のみ）
+            if (oldStatus !== newStatus) {
+                if (!currentStatusCase.callHistory) {
+                    currentStatusCase.callHistory = [];
+                }
+                currentStatusCase.callHistory.unshift({
+                    date: new Date().toLocaleString('ja-JP'),
+                    type: 'status_change',
+                    note: `🏷️ ${oldStatus || '新着'} → ${newStatus}`
+                });
+            }
 
             // 即座にローカルデータ更新＆モーダル閉じる
             currentStatusCase.detailStatus = newStatus;
@@ -18800,7 +19075,19 @@
 
             // 日時文字列を作成
             const d = selectedSurveyDate;
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
             const surveyDateTime = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${selectedSurveyHour}:${String(selectedSurveyMinute).padStart(2, '0')}`;
+            const surveyDateDisplay = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]}) ${selectedSurveyHour}:${String(selectedSurveyMinute).padStart(2, '0')}`;
+
+            // 履歴に追加
+            if (!c.callHistory) {
+                c.callHistory = [];
+            }
+            c.callHistory.unshift({
+                date: new Date().toLocaleString('ja-JP'),
+                type: 'survey_set',
+                note: `🏠 現調予定: ${surveyDateDisplay}`
+            });
 
             // ローカルデータ更新
             c.surveyDate = surveyDateTime;
@@ -19145,11 +19432,27 @@
                 return;
             }
 
+            // 日付表示用フォーマット
+            const d = new Date(dateValue);
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            const h = String(selectedNextCallHour).padStart(2, '0');
+            const m = String(selectedNextCallMinute).padStart(2, '0');
+            const nextCallDisplay = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]}) ${h}:${m}`;
+
             // 即閉じ＋バックグラウンド保存
             const saveCvId = nextCallTargetCvId;
             const caseData = merchantCasesData.find(c => String(c.cvId) === String(saveCvId));
             if (caseData) {
                 caseData.nextCallDate = dateTimeValue;
+                // 履歴に追加
+                if (!caseData.callHistory) {
+                    caseData.callHistory = [];
+                }
+                caseData.callHistory.unshift({
+                    date: new Date().toLocaleString('ja-JP'),
+                    type: 'next_call_set',
+                    note: `📅 次回架電: ${nextCallDisplay}`
+                });
             }
             renderCases();
             closeNextCallModal();
