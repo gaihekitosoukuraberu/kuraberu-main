@@ -132,7 +132,7 @@ function doGet(e) {
       result = AISearchSystem.handle(e.parameter);
     }
     // 加盟店向けシステム
-    else if (action.startsWith('merchant_') || action.startsWith('companyinfo_') || action === 'verifyFirstLoginUrl' || action === 'verifyFirstLogin' || action === 'setPassword' || action === 'resetPassword' || action === 'verifyLogin' || action === 'getMerchantData' || action === 'updateSalesPerson' || action === 'updateMerchantStatus' || action === 'getMerchantStatus' || action === 'checkUpdate' || action === 'getPreviewSettings' || action === 'loadPreviewSettings' || action === 'getConstructionExamples' || action === 'getMerchantUrlSlug' || action === 'generateStaticHTML' || action === 'generateStaticHTMLV2' || action === 'testSimple') {
+    else if (action.startsWith('merchant_') || action.startsWith('companyinfo_') || action === 'verifyFirstLoginUrl' || action === 'verifyFirstLogin' || action === 'setPassword' || action === 'resetPassword' || action === 'verifyLogin' || action === 'getMerchantData' || action === 'updateSalesPerson' || action === 'updateMerchantStatus' || action === 'getMerchantStatus' || action === 'checkUpdate' || action === 'getPreviewSettings' || action === 'loadPreviewSettings' || action === 'getConstructionExamples' || action === 'getMerchantUrlSlug' || action === 'generateStaticHTML' || action === 'generateStaticHTMLV2' || action === 'testSimple' || action === 'generateInviteLink' || action === 'verifyMemberInvite' || action === 'registerMember' || action === 'getMemberList') {
       console.log('[main.gs] ✅ GET routing to MerchantSystem for:', action);
       console.log('[main.gs] 🎯 MATCHED MerchantSystem condition!');
       try {
@@ -255,7 +255,7 @@ function doPost(e) {
       result = AdminSystem.handlePost(e, postData);
     }
     // 加盟店向けシステム
-    else if (action && (action.startsWith('merchant_') || action.startsWith('companyinfo_') || action === 'updateMerchantData' || action === 'setFirstPassword' || action === 'verifyLogin' || action === 'verifyFirstLogin' || action === 'setPassword' || action === 'resetPassword' || action === 'updateAutoDeliverySettings' || action === 'updatePauseSettings' || action === 'generateStaticHTML' || action === 'generateStaticHTMLV2' || action === 'savePreviewSettings' || action === 'getPreviewSettings' || action === 'loadPreviewSettings' || action === 'getConstructionExamples' || action === 'saveConstructionExample' || action === 'updateMerchantUrlAndPreviewHp' || action === 'getMerchantData' || action === 'getMerchantUrlSlug')) {
+    else if (action && (action.startsWith('merchant_') || action.startsWith('companyinfo_') || action === 'updateMerchantData' || action === 'setFirstPassword' || action === 'verifyLogin' || action === 'verifyFirstLogin' || action === 'setPassword' || action === 'resetPassword' || action === 'updateAutoDeliverySettings' || action === 'updatePauseSettings' || action === 'generateStaticHTML' || action === 'generateStaticHTMLV2' || action === 'savePreviewSettings' || action === 'getPreviewSettings' || action === 'loadPreviewSettings' || action === 'getConstructionExamples' || action === 'saveConstructionExample' || action === 'updateMerchantUrlAndPreviewHp' || action === 'getMerchantData' || action === 'getMerchantUrlSlug' || action === 'generateInviteLink' || action === 'verifyMemberInvite' || action === 'registerMember' || action === 'getMemberList')) {
       result = MerchantSystem.handlePost(e);
     }
     // CVデータ管理システム

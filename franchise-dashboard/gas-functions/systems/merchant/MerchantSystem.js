@@ -2365,4 +2365,275 @@ const MerchantSystem = {
       timestamp: new Date().toString()
     };
   },
+
+  // ====================================
+  // メンバー招待システム
+  // ====================================
+
+  /**
+   * 招待リンク生成
+   */
+  generateInviteLink: function(params) {
+    try {
+      const { merchantId, role, expiryHours, additionalPermissions } = params;
+
+      if (!merchantId) {
+        return { success: false, error: '加盟店IDが指定されていません' };
+      }
+
+      // メンバーID生成: ST + YYMMDDHHMMSS
+      const now = new Date();
+      const memberId = 'ST' + Utilities.formatDate(now, 'Asia/Tokyo', 'yyMMddHHmmss');
+
+      // 招待データ
+      const inviteData = {
+        merchantId: merchantId,
+        memberId: memberId,
+        role: role || 'standard',
+        permissions: additionalPermissions || {},
+        expiresAt: new Date(now.getTime() + (expiryHours || 24) * 60 * 60 * 1000).toISOString(),
+        createdAt: now.toISOString()
+      };
+
+      // 署名生成（シンプルなHMAC風）
+      const secret = PropertiesService.getScriptProperties().getProperty('INVITE_SECRET') || 'default-secret-key';
+      const dataStr = JSON.stringify(inviteData);
+      const signature = Utilities.base64Encode(
+        Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, dataStr + secret)
+      );
+
+      // 認証情報シートに招待レコード追加
+      const credSheet = this._getCredentialsSheet();
+      const headers = credSheet.getRange(1, 1, 1, credSheet.getLastColumn()).getValues()[0];
+
+      // 列インデックス取得
+      const colIndex = (name) => headers.indexOf(name) + 1;
+
+      // 新しい行を追加
+      const newRow = credSheet.getLastRow() + 1;
+      credSheet.getRange(newRow, colIndex('加盟店ID')).setValue(memberId);
+      credSheet.getRange(newRow, colIndex('メールアドレス')).setValue(''); // 後で設定
+      credSheet.getRange(newRow, colIndex('パスワードハッシュ')).setValue(''); // 後で設定
+
+      // 追加列（F列以降）
+      if (colIndex('親加盟店ID') > 0) credSheet.getRange(newRow, colIndex('親加盟店ID')).setValue(merchantId);
+      if (colIndex('役職') > 0) credSheet.getRange(newRow, colIndex('役職')).setValue(role || 'standard');
+      if (colIndex('追加権限JSON') > 0) credSheet.getRange(newRow, colIndex('追加権限JSON')).setValue(JSON.stringify(additionalPermissions || {}));
+      if (colIndex('ステータス') > 0) credSheet.getRange(newRow, colIndex('ステータス')).setValue('pending');
+      if (colIndex('招待有効期限') > 0) credSheet.getRange(newRow, colIndex('招待有効期限')).setValue(inviteData.expiresAt);
+      if (colIndex('招待作成日時') > 0) credSheet.getRange(newRow, colIndex('招待作成日時')).setValue(inviteData.createdAt);
+      if (colIndex('署名') > 0) credSheet.getRange(newRow, colIndex('署名')).setValue(signature);
+
+      // 招待リンク生成
+      const encodedData = Utilities.base64Encode(dataStr, Utilities.Charset.UTF_8);
+      const inviteLink = `https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/member-register.html?data=${encodeURIComponent(encodedData)}&sig=${encodeURIComponent(signature)}`;
+
+      return {
+        success: true,
+        inviteLink: inviteLink,
+        memberId: memberId,
+        expiresAt: inviteData.expiresAt
+      };
+
+    } catch (error) {
+      console.error('[MerchantSystem] generateInviteLink error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
+   * 招待トークン検証
+   */
+  verifyMemberInvite: function(params) {
+    try {
+      const { data, sig } = params;
+
+      if (!data || !sig) {
+        return { success: false, error: 'パラメータが不足しています' };
+      }
+
+      // データをデコード
+      const decodedData = Utilities.newBlob(Utilities.base64Decode(data)).getDataAsString();
+      const inviteData = JSON.parse(decodedData);
+
+      // 署名検証
+      const secret = PropertiesService.getScriptProperties().getProperty('INVITE_SECRET') || 'default-secret-key';
+      const expectedSig = Utilities.base64Encode(
+        Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, decodedData + secret)
+      );
+
+      if (sig !== expectedSig) {
+        return { success: false, error: '署名が無効です' };
+      }
+
+      // 有効期限チェック
+      if (new Date(inviteData.expiresAt) < new Date()) {
+        return { success: false, error: '招待リンクの有効期限が切れています' };
+      }
+
+      // 親加盟店の情報を取得
+      const regSheet = DataAccessLayer.getRegistrationSheet();
+      const regData = regSheet.getDataRange().getValues();
+      const regHeaders = regData[0];
+      const merchantIdCol = regHeaders.indexOf('登録ID');
+      const companyNameCol = regHeaders.indexOf('会社名');
+
+      let merchantName = '';
+      for (let i = 1; i < regData.length; i++) {
+        if (regData[i][merchantIdCol] === inviteData.merchantId) {
+          merchantName = regData[i][companyNameCol] || '';
+          break;
+        }
+      }
+
+      return {
+        success: true,
+        invite: {
+          merchantId: inviteData.merchantId,
+          memberId: inviteData.memberId,
+          role: inviteData.role,
+          merchantName: merchantName,
+          expiresAt: inviteData.expiresAt
+        }
+      };
+
+    } catch (error) {
+      console.error('[MerchantSystem] verifyMemberInvite error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
+   * メンバー登録
+   */
+  registerMember: function(params) {
+    try {
+      const { data, sig, name, password } = params;
+
+      // まず招待を検証
+      const verifyResult = this.verifyMemberInvite({ data, sig });
+      if (!verifyResult.success) {
+        return verifyResult;
+      }
+
+      const { memberId, role } = verifyResult.invite;
+
+      if (!name || !password) {
+        return { success: false, error: '氏名とパスワードは必須です' };
+      }
+
+      if (password.length < 8) {
+        return { success: false, error: 'パスワードは8文字以上必要です' };
+      }
+
+      // パスワードハッシュ化
+      const salt = Utilities.getUuid();
+      const hash = Utilities.base64Encode(
+        Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, password + salt)
+      );
+      const passwordHash = salt + ':' + hash;
+
+      // 認証情報シート更新
+      const credSheet = this._getCredentialsSheet();
+      const credData = credSheet.getDataRange().getValues();
+      const headers = credData[0];
+
+      const memberIdCol = headers.indexOf('加盟店ID') + 1;
+      const passwordCol = headers.indexOf('パスワードハッシュ') + 1;
+      const nameCol = headers.indexOf('氏名') + 1;
+      const statusCol = headers.indexOf('ステータス') + 1;
+      const registeredCol = headers.indexOf('登録日時') + 1;
+
+      // メンバーIDで行を探す
+      let targetRow = -1;
+      for (let i = 1; i < credData.length; i++) {
+        if (credData[i][memberIdCol - 1] === memberId) {
+          targetRow = i + 1;
+          break;
+        }
+      }
+
+      if (targetRow === -1) {
+        return { success: false, error: 'メンバーIDが見つかりません' };
+      }
+
+      // 更新
+      if (passwordCol > 0) credSheet.getRange(targetRow, passwordCol).setValue(passwordHash);
+      if (nameCol > 0) credSheet.getRange(targetRow, nameCol).setValue(name);
+      if (statusCol > 0) credSheet.getRange(targetRow, statusCol).setValue('active');
+      if (registeredCol > 0) credSheet.getRange(targetRow, registeredCol).setValue(new Date().toISOString());
+
+      return {
+        success: true,
+        memberId: memberId,
+        message: 'メンバー登録が完了しました'
+      };
+
+    } catch (error) {
+      console.error('[MerchantSystem] registerMember error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
+   * メンバーリスト取得
+   */
+  getMemberList: function(params) {
+    try {
+      const { merchantId } = params;
+
+      if (!merchantId) {
+        return { success: false, error: '加盟店IDが指定されていません' };
+      }
+
+      const credSheet = this._getCredentialsSheet();
+      const credData = credSheet.getDataRange().getValues();
+      const headers = credData[0];
+
+      const colIndex = (name) => headers.indexOf(name);
+
+      const members = [];
+      for (let i = 1; i < credData.length; i++) {
+        const parentId = credData[i][colIndex('親加盟店ID')];
+        if (parentId === merchantId) {
+          members.push({
+            memberId: credData[i][colIndex('加盟店ID')],
+            name: credData[i][colIndex('氏名')] || '',
+            role: credData[i][colIndex('役職')] || 'standard',
+            status: credData[i][colIndex('ステータス')] || 'pending',
+            registeredAt: credData[i][colIndex('登録日時')] || null
+          });
+        }
+      }
+
+      return {
+        success: true,
+        members: members
+      };
+
+    } catch (error) {
+      console.error('[MerchantSystem] getMemberList error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
+   * 認証情報シート取得（内部用）
+   */
+  _getCredentialsSheet: function() {
+    const ss = SpreadsheetApp.openById(DataAccessLayer.getSpreadsheetId());
+    let sheet = ss.getSheetByName('認証情報');
+
+    if (!sheet) {
+      // シートがなければ作成
+      sheet = ss.insertSheet('認証情報');
+      sheet.getRange(1, 1, 1, 14).setValues([[
+        '加盟店ID', 'メールアドレス', 'パスワードハッシュ', '最終ログイン', 'パスワード変更日',
+        '親加盟店ID', '氏名', '役職', '追加権限JSON', 'ステータス',
+        '招待有効期限', '招待作成日時', '登録日時', '署名'
+      ]]);
+    }
+
+    return sheet;
+  },
 };
