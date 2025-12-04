@@ -863,6 +863,127 @@
                     </div>
                 </div>
 
+                <!-- 現調日時設定モーダル（アポ済選択後） -->
+                <div id="surveyDateModal" class="fixed inset-0 z-50 hidden">
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSurveyDateModal()"></div>
+                    <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+                            <!-- ヘッダー -->
+                            <div class="p-4 border-b bg-gradient-to-r from-orange-500 to-orange-600 text-white flex-shrink-0">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-lg font-bold">📅 現調日時を設定</h3>
+                                    <button onclick="closeSurveyDateModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all -mr-2">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <p id="surveyTargetName" class="text-base font-bold text-white">---</p>
+                                <p id="surveyTargetAddress" class="text-sm text-orange-100 mt-0.5">---</p>
+                            </div>
+
+                            <!-- コンテンツ -->
+                            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                                <!-- 日付クイック選択 -->
+                                <div class="bg-gray-50 rounded-xl p-4">
+                                    <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                        <span>📅</span> 日付を選択
+                                    </h4>
+                                    <div class="grid grid-cols-4 gap-2 mb-3">
+                                        <button onclick="setSurveyDay(0)" data-survey-day="0" class="survey-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">今日</div>
+                                            <div id="surveyDayLabel0" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setSurveyDay(1)" data-survey-day="1" class="survey-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">明日</div>
+                                            <div id="surveyDayLabel1" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setSurveyDay(2)" data-survey-day="2" class="survey-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">明後日</div>
+                                            <div id="surveyDayLabel2" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setSurveyDay(3)" data-survey-day="3" class="survey-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">3日後</div>
+                                            <div id="surveyDayLabel3" class="text-base"></div>
+                                        </button>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-2 mb-3">
+                                        <button onclick="setSurveyDay(5)" data-survey-day="5" class="survey-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">5日後</div>
+                                            <div id="surveyDayLabel5" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setSurveyDay(7)" data-survey-day="7" class="survey-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">1週間後</div>
+                                            <div id="surveyDayLabel7" class="text-base"></div>
+                                        </button>
+                                        <button onclick="setSurveyDay(14)" data-survey-day="14" class="survey-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">2週間後</div>
+                                            <div id="surveyDayLabel14" class="text-base"></div>
+                                        </button>
+                                        <button onclick="toggleSurveyCustomDatePicker()" class="py-3 bg-white border-2 border-gray-200 text-gray-500 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">
+                                            <div class="text-xs text-gray-400">その他</div>
+                                            <div class="text-base">📆</div>
+                                        </button>
+                                    </div>
+                                    <!-- カスタム日付選択 -->
+                                    <div id="surveyCustomDatePicker" class="hidden">
+                                        <input type="date" id="surveyDateInput" class="w-full p-3 border-2 border-orange-300 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-center font-bold" onchange="onSurveyDateInputChange()">
+                                    </div>
+                                </div>
+
+                                <!-- 時間帯選択 -->
+                                <div class="bg-gray-50 rounded-xl p-4">
+                                    <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                        <span>⏰</span> 時間を選択
+                                    </h4>
+                                    <div class="grid grid-cols-4 gap-2 mb-3">
+                                        <button onclick="setSurveyTime(9)" data-survey-hour="9" class="survey-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">9時</button>
+                                        <button onclick="setSurveyTime(10)" data-survey-hour="10" class="survey-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">10時</button>
+                                        <button onclick="setSurveyTime(11)" data-survey-hour="11" class="survey-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">11時</button>
+                                        <button onclick="setSurveyTime(13)" data-survey-hour="13" class="survey-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">13時</button>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-2 mb-3">
+                                        <button onclick="setSurveyTime(14)" data-survey-hour="14" class="survey-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">14時</button>
+                                        <button onclick="setSurveyTime(15)" data-survey-hour="15" class="survey-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">15時</button>
+                                        <button onclick="setSurveyTime(16)" data-survey-hour="16" class="survey-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">16時</button>
+                                        <button onclick="setSurveyTime(17)" data-survey-hour="17" class="survey-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 font-bold text-sm transition-all">17時</button>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-gray-500">分：</span>
+                                        <select id="surveyMinute" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg text-center font-bold focus:border-orange-500 transition-all" onchange="updateSurveyPreview()">
+                                            <option value="0">00分</option>
+                                            <option value="30">30分</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- 選択結果プレビュー -->
+                                <div id="surveyPreview" class="bg-orange-50 rounded-xl p-4 border-2 border-orange-200 hidden">
+                                    <div class="flex items-center justify-center gap-3">
+                                        <span class="text-2xl">🏠</span>
+                                        <div class="text-center">
+                                            <div class="text-xs text-orange-600 font-medium">現調予定日時</div>
+                                            <div id="surveyPreviewText" class="text-xl font-bold text-orange-800">---</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- フッター -->
+                            <div class="p-4 border-t bg-gray-50 flex-shrink-0">
+                                <div class="flex gap-3">
+                                    <button onclick="skipSurveyDate()" class="flex-1 py-3 bg-white border-2 border-gray-300 text-gray-600 rounded-xl hover:bg-gray-100 font-bold transition-all">
+                                        スキップ
+                                    </button>
+                                    <button onclick="saveSurveyDate()" id="surveySaveBtn" class="flex-[2] py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 font-bold shadow-lg hover:shadow-xl transition-all disabled:bg-gray-300 disabled:shadow-none">
+                                        保存して次へ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 次回架電日設定モーダル -->
                 <div id="nextCallModal" class="fixed inset-0 z-50 hidden">
                     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeNextCallModal()"></div>
@@ -17620,8 +17741,9 @@
                 document.getElementById('connectionModal')?.classList.add('hidden');
 
                 if (cvId) {
-                    // メモモーダルを通話後モードで開く
-                    openMemoModalForCall(cvId);
+                    // ステータス選択モーダルを通話後モードで開く
+                    isAfterCallMode = true;
+                    openStatusModalForCall(cvId, currentCallCase?.customerName);
                 }
             } else {
                 // 不在時：通話モーダルを閉じて次回架電モーダルを開く
@@ -17933,6 +18055,7 @@
             currentStatusCase = null;
             selectedStatusValue = null;
             afterCallCase = null;
+            isAfterCallMode = false;
         }
 
         // ステータス選択UIをリセット（全て白に戻す）
@@ -17981,8 +18104,9 @@
 
             const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
             const cvId = currentStatusCase.cvId;
+            const wasAfterCallMode = isAfterCallMode;
             console.log('[setCaseStatus] currentStatusCase:', currentStatusCase);
-            console.log('[setCaseStatus] merchantId:', merchantId, 'cvId:', cvId, 'status:', newStatus);
+            console.log('[setCaseStatus] merchantId:', merchantId, 'cvId:', cvId, 'status:', newStatus, 'isAfterCallMode:', wasAfterCallMode);
 
             // 即座にローカルデータ更新＆モーダル閉じる
             currentStatusCase.detailStatus = newStatus;
@@ -18017,6 +18141,19 @@
                 console.error('[setCaseStatus] 通信エラー:', error);
                 showNotification('通信エラー', 'ステータスの保存に失敗しました', 'error');
             });
+
+            // 通話後フローの場合は条件分岐
+            if (wasAfterCallMode) {
+                isAfterCallMode = false;
+                if (newStatus === 'アポ済') {
+                    // アポ済 → 現調日時設定 → メモ（スキップ可）
+                    openSurveyDateModal(cvId);
+                } else if (newStatus === '未アポ') {
+                    // 未アポ → 次回架電日設定 → 終わり
+                    openNextCallModal(cvId);
+                }
+                // その他のステータス → 終わり（何もしない）
+            }
         }
 
         // 統計を再計算
@@ -18356,6 +18493,257 @@
         // 日付プリセット設定（将来用、現在はアラートで案内）
         function openDatePresetSettings() {
             showNotification('準備中', '日付プリセット設定は準備中です');
+        }
+
+        // ====================================
+        // 現調日時設定モーダル関連
+        // ====================================
+        let surveyTargetCvId = null;
+        let selectedSurveyDate = null;
+        let selectedSurveyHour = null;
+        let selectedSurveyMinute = 0;
+
+        function openSurveyDateModal(cvId) {
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            surveyTargetCvId = cvId;
+            selectedSurveyDate = null;
+            selectedSurveyHour = null;
+            selectedSurveyMinute = 0;
+
+            // 顧客名と住所を表示
+            const customerName = c.customerName || '-';
+            const customerKana = c.customerKana || '';
+            const nameDisplay = customerKana ? `${customerKana} 様` : `${customerName} 様`;
+            const addressDisplay = c.fullAddress || c.city || '-';
+
+            document.getElementById('surveyTargetName').textContent = nameDisplay;
+            document.getElementById('surveyTargetAddress').textContent = addressDisplay;
+
+            // 日付ラベルを生成
+            initSurveyDayLabels();
+
+            // 選択状態をリセット
+            resetSurveySelection();
+
+            document.getElementById('surveyDateModal').classList.remove('hidden');
+        }
+
+        function closeSurveyDateModal() {
+            document.getElementById('surveyDateModal').classList.add('hidden');
+            surveyTargetCvId = null;
+        }
+
+        function initSurveyDayLabels() {
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            const today = new Date();
+            [0, 1, 2, 3, 5, 7, 14].forEach(offset => {
+                const d = new Date(today);
+                d.setDate(d.getDate() + offset);
+                const label = document.getElementById(`surveyDayLabel${offset}`);
+                if (label) {
+                    label.textContent = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+                }
+            });
+        }
+
+        function resetSurveySelection() {
+            selectedSurveyDate = null;
+            selectedSurveyHour = null;
+            selectedSurveyMinute = 0;
+            document.querySelectorAll('.survey-day-btn').forEach(btn => {
+                btn.classList.remove('border-orange-500', 'bg-orange-100', 'text-orange-800');
+                btn.classList.add('border-gray-200', 'text-gray-700');
+            });
+            document.querySelectorAll('.survey-time-btn').forEach(btn => {
+                btn.classList.remove('border-orange-500', 'bg-orange-100', 'text-orange-800');
+                btn.classList.add('border-gray-200', 'text-gray-700');
+            });
+            document.getElementById('surveyPreview').classList.add('hidden');
+            document.getElementById('surveyCustomDatePicker').classList.add('hidden');
+            document.getElementById('surveyMinute').value = '0';
+        }
+
+        function setSurveyDay(offset) {
+            const today = new Date();
+            today.setDate(today.getDate() + offset);
+            selectedSurveyDate = today;
+
+            // ボタン状態更新
+            document.querySelectorAll('.survey-day-btn').forEach(btn => {
+                const btnOffset = btn.getAttribute('data-survey-day');
+                if (btnOffset === String(offset)) {
+                    btn.classList.add('border-orange-500', 'bg-orange-100', 'text-orange-800');
+                    btn.classList.remove('border-gray-200', 'text-gray-700');
+                } else {
+                    btn.classList.remove('border-orange-500', 'bg-orange-100', 'text-orange-800');
+                    btn.classList.add('border-gray-200', 'text-gray-700');
+                }
+            });
+
+            updateSurveyPreview();
+        }
+
+        function setSurveyTime(hour) {
+            selectedSurveyHour = hour;
+
+            // ボタン状態更新
+            document.querySelectorAll('.survey-time-btn').forEach(btn => {
+                const btnHour = btn.getAttribute('data-survey-hour');
+                if (btnHour === String(hour)) {
+                    btn.classList.add('border-orange-500', 'bg-orange-100', 'text-orange-800');
+                    btn.classList.remove('border-gray-200', 'text-gray-700');
+                } else {
+                    btn.classList.remove('border-orange-500', 'bg-orange-100', 'text-orange-800');
+                    btn.classList.add('border-gray-200', 'text-gray-700');
+                }
+            });
+
+            updateSurveyPreview();
+        }
+
+        function toggleSurveyCustomDatePicker() {
+            const picker = document.getElementById('surveyCustomDatePicker');
+            picker.classList.toggle('hidden');
+            if (!picker.classList.contains('hidden')) {
+                const input = document.getElementById('surveyDateInput');
+                const today = new Date();
+                input.min = today.toISOString().split('T')[0];
+                input.value = '';
+            }
+        }
+
+        function onSurveyDateInputChange() {
+            const input = document.getElementById('surveyDateInput');
+            if (input.value) {
+                selectedSurveyDate = new Date(input.value + 'T00:00:00');
+                // クイックボタンの選択解除
+                document.querySelectorAll('.survey-day-btn').forEach(btn => {
+                    btn.classList.remove('border-orange-500', 'bg-orange-100', 'text-orange-800');
+                    btn.classList.add('border-gray-200', 'text-gray-700');
+                });
+                updateSurveyPreview();
+            }
+        }
+
+        function updateSurveyPreview() {
+            selectedSurveyMinute = parseInt(document.getElementById('surveyMinute').value) || 0;
+
+            if (selectedSurveyDate && selectedSurveyHour !== null) {
+                const days = ['日', '月', '火', '水', '木', '金', '土'];
+                const d = selectedSurveyDate;
+                const dateStr = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+                const timeStr = `${selectedSurveyHour}:${String(selectedSurveyMinute).padStart(2, '0')}`;
+                document.getElementById('surveyPreviewText').textContent = `${dateStr} ${timeStr}`;
+                document.getElementById('surveyPreview').classList.remove('hidden');
+            } else {
+                document.getElementById('surveyPreview').classList.add('hidden');
+            }
+        }
+
+        function skipSurveyDate() {
+            // スキップ→メモモーダルへ（スキップ可能）
+            closeSurveyDateModal();
+            if (surveyTargetCvId) {
+                openMemoModalAfterSurvey(surveyTargetCvId);
+            }
+        }
+
+        function saveSurveyDate() {
+            if (!selectedSurveyDate || selectedSurveyHour === null) {
+                showNotification('入力エラー', '日付と時間を選択してください', 'warning');
+                return;
+            }
+
+            const cvId = surveyTargetCvId;
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            // 日時文字列を作成
+            const d = selectedSurveyDate;
+            const surveyDateTime = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${selectedSurveyHour}:${String(selectedSurveyMinute).padStart(2, '0')}`;
+
+            // ローカルデータ更新
+            c.surveyDate = surveyDateTime;
+            renderCases();
+
+            // バックグラウンドでGASに保存
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    system: 'merchant',
+                    subsystem: 'contract',
+                    action: 'updateSurveyDate',
+                    merchantId: merchantId,
+                    cvId: cvId,
+                    surveyDate: surveyDateTime
+                })
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    console.log('[saveSurveyDate] 保存完了:', surveyDateTime);
+                } else {
+                    console.error('[saveSurveyDate] 保存失敗:', result.error);
+                }
+            })
+            .catch(err => console.error('[saveSurveyDate] 通信エラー:', err));
+
+            closeSurveyDateModal();
+
+            // メモモーダルへ（スキップ可能）
+            openMemoModalAfterSurvey(cvId);
+        }
+
+        // 現調日時設定後のメモモーダル（スキップ可能）
+        function openMemoModalAfterSurvey(cvId) {
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            currentMemoCase = c;
+            isAfterCallMode = false; // 通話フロー終了
+
+            document.getElementById('memoTargetName').textContent = `${c.customerName || '-'} 様`;
+            document.getElementById('memoTargetAddress').textContent = c.fullAddress || c.city || '-';
+            document.getElementById('caseMemoTextarea').value = '';
+
+            // メモモーダルにスキップボタンを表示するフラグ
+            showMemoSkipButton(true);
+
+            document.getElementById('caseMemoModal').classList.remove('hidden');
+            loadMemoHistory();
+        }
+
+        // メモモーダルのスキップボタン表示/非表示
+        function showMemoSkipButton(show) {
+            let skipBtn = document.getElementById('memoSkipBtn');
+            if (show) {
+                if (!skipBtn) {
+                    // スキップボタンがなければ作成
+                    const memoInputArea = document.querySelector('#caseMemoModal .bg-amber-50');
+                    if (memoInputArea) {
+                        const btnContainer = document.createElement('div');
+                        btnContainer.id = 'memoSkipBtnContainer';
+                        btnContainer.className = 'mt-2';
+                        btnContainer.innerHTML = '<button id="memoSkipBtn" onclick="skipMemoAndClose()" class="w-full py-2 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200 transition-all">スキップして完了</button>';
+                        memoInputArea.appendChild(btnContainer);
+                    }
+                } else {
+                    skipBtn.parentElement.classList.remove('hidden');
+                }
+            } else {
+                const container = document.getElementById('memoSkipBtnContainer');
+                if (container) container.classList.add('hidden');
+            }
+        }
+
+        function skipMemoAndClose() {
+            closeMemoModal();
+            const container = document.getElementById('memoSkipBtnContainer');
+            if (container) container.remove();
         }
 
         function openNextCallModal(cvId) {

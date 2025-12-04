@@ -895,6 +895,82 @@ var MerchantContractReport = {
   },
 
   /**
+   * 現調日時更新
+   * @param {Object} params - { merchantId, cvId, surveyDate }
+   * @return {Object} - { success }
+   */
+  updateSurveyDate: function(params) {
+    const { merchantId, cvId, surveyDate } = params;
+    console.log('[MerchantContractReport] updateSurveyDate:', { merchantId, cvId, surveyDate });
+
+    if (!cvId) {
+      return { success: false, error: 'cvIdが不足しています' };
+    }
+
+    try {
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const deliverySheet = ss.getSheetByName('配信管理');
+      const data = deliverySheet.getDataRange().getValues();
+      const headers = data[0];
+
+      // ヘッダーマップ作成
+      const colIdx = {};
+      headers.forEach((h, i) => { colIdx[h] = i; });
+
+      const cvIdCol = colIdx['CV ID'];
+      const franchiseIdCol = colIdx['加盟店ID'];
+      const surveyDateCol = colIdx['現地調査希望日時'];
+
+      if (surveyDateCol === undefined) {
+        return { success: false, error: '現地調査希望日時列が見つかりません' };
+      }
+
+      // merchantIdがある場合は会社名も取得
+      let merchantCompanyName = '';
+      if (merchantId) {
+        const franchiseSheet = ss.getSheetByName('加盟店登録');
+        if (franchiseSheet) {
+          const franchiseData = franchiseSheet.getDataRange().getValues();
+          const franchiseHeaders = franchiseData[0];
+          const regIdCol = franchiseHeaders.indexOf('登録ID');
+          const companyNameCol = franchiseHeaders.indexOf('会社名');
+
+          for (let i = 1; i < franchiseData.length; i++) {
+            if (String(franchiseData[i][regIdCol]) === String(merchantId)) {
+              merchantCompanyName = franchiseData[i][companyNameCol];
+              break;
+            }
+          }
+        }
+      }
+      console.log('[MerchantContractReport] updateSurveyDate - merchantCompanyName:', merchantCompanyName);
+
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        const rowCvId = row[cvIdCol];
+        const rowFranchiseId = row[franchiseIdCol];
+
+        // CV IDが一致 AND (merchantIdなし OR 登録ID/会社名でマッチ)
+        const cvMatch = String(rowCvId) === String(cvId);
+        const merchantMatch = !merchantId || String(rowFranchiseId) === String(merchantId) || String(rowFranchiseId) === String(merchantCompanyName);
+
+        if (cvMatch && merchantMatch) {
+          deliverySheet.getRange(i + 1, surveyDateCol + 1).setValue(surveyDate || '');
+          console.log('[MerchantContractReport] updateSurveyDate - updated row', i + 1);
+          return { success: true };
+        }
+      }
+
+      return { success: false, error: '該当する案件が見つかりません (cvId: ' + cvId + ')' };
+
+    } catch (error) {
+      console.error('[MerchantContractReport] updateSurveyDate error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
    * 通話結果保存（接続/不在、メモ、ステータス、次回架電、電話回数）
    * @param {Object} params - { merchantId, cvId, connectionStatus, memo, newStatus, nextCallDateTime, operatorName }
    * @return {Object} - { success }
@@ -1106,6 +1182,10 @@ var MerchantContractReport = {
         return this.updateCallHistory(params);
       case 'saveCallResult':
         return this.saveCallResult(params);
+      case 'updateNextCallDate':
+        return this.updateNextCallDate(params);
+      case 'updateSurveyDate':
+        return this.updateSurveyDate(params);
       default:
         return {
           success: false,
