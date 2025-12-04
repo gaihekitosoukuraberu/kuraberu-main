@@ -303,7 +303,7 @@
                 <!-- 4. キャンセル申請 -->
                 <a href="#cancel" onclick="showSection('cancel'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 15.636 5.636m12.728 12.728L5.636 5.636"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"></path>
                     </svg>
                     キャンセル申請
                 </a>
@@ -14551,47 +14551,6 @@
                     initCalendar();
                 }, 100);
 
-                // 自動配信設定の保存ボタンにイベントリスナーを追加（スマホ対応）
-                setTimeout(() => {
-                    const saveBtn = document.getElementById('saveAutodeliveryBtn');
-                    if (saveBtn) {
-                        let isSaving = false;
-                        const handleSave = async function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-
-                            // 二重送信防止
-                            if (isSaving) {
-                                console.log('Already saving, ignoring duplicate event');
-                                return;
-                            }
-
-                            isSaving = true;
-                            console.log('Save button event triggered');
-
-                            // 視覚的フィードバック
-                            saveBtn.style.transform = 'scale(0.95)';
-                            setTimeout(() => {
-                                saveBtn.style.transform = '';
-                            }, 150);
-
-                            try {
-                                await saveAutoDeliverySettings();
-                            } catch (error) {
-                                console.error('Error in saveAutoDeliverySettings:', error);
-                                alert('エラー: ' + error.message);
-                            } finally {
-                                isSaving = false;
-                            }
-                        };
-
-                        // clickイベントのみ（touchendは削除して二重発火を防止）
-                        saveBtn.addEventListener('click', handleSave, { passive: false });
-                        console.log('Save button event listeners attached');
-                    } else {
-                        console.error('Save button not found!');
-                    }
-                }, 200);
             } else {
                 // 未ログイン - ログインページへリダイレクト
                 window.location.href = 'merchant-portal/login.html';
