@@ -676,12 +676,13 @@
                             <tr>
                                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
                                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">顧客情報</th>
-                                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">電話</th>
+                                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">架電</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">メモ</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">次回</th>
                                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">担当</th>
                                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">配信日</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">詳細</th>
+                                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">発信</th>
                             </tr>
                         </thead>
                         <tbody id="caseListBody" class="bg-white divide-y divide-gray-200">
@@ -17125,12 +17126,12 @@
                     <h3 class="font-bold text-xl mb-2">${escapeHtml(c.customerName || '-')}</h3>
                     <a href="${mapUrl}" target="_blank" class="text-base text-blue-600 hover:text-blue-800 hover:underline block mb-2" title="${escapeHtml(fullAddress)}">📍${escapeHtml(shortAddress)}</a>
                     ${propertyInfo ? `<p class="text-sm text-gray-500 mb-3">${escapeHtml(propertyInfo)}</p>` : ''}
-                    <!-- 📞📝🗓️ボタン -->
+                    <!-- 📞📋🗓️ボタン -->
                     <div class="flex items-center gap-4 mb-4">
-                        <a href="tel:${c.customerTel}" onclick="startPhoneCall('${c.cvId}')" class="text-lg text-blue-600 hover:text-blue-800 font-medium" title="電話: ${c.customerTel || '-'}">
+                        <button onclick="openConnectionModalDirect('${c.cvId}')" class="text-lg text-blue-600 hover:text-blue-800 font-medium" title="架電履歴を追加（電話アプリ外で架電した場合）">
                             ${getCallCountBadge(c)}
-                        </a>
-                        <button onclick="openMemoModal('${c.cvId}')" class="text-lg text-amber-600 hover:text-amber-800 font-medium" title="メモ">
+                        </button>
+                        <button onclick="openMemoModal('${c.cvId}')" class="text-lg text-amber-600 hover:text-amber-800 font-medium" title="メモ・履歴">
                             ${getMemoCountBadge(c)}
                         </button>
                         <button onclick="openNextCallModal('${c.cvId}')" class="text-lg text-gray-600 hover:text-blue-600 font-medium" title="次回架電日を設定">
@@ -17204,11 +17205,11 @@
                             }
                         </div>
                     </td>
-                    <!-- 電話（通話回数） -->
+                    <!-- 架電回数（タップで接続/不在記録） -->
                     <td class="px-2 py-3 text-center">
-                        <a href="tel:${c.customerTel}" onclick="startPhoneCall('${c.cvId}')" class="text-base font-medium text-blue-600 hover:text-blue-800 hover:underline" title="電話: ${c.customerTel || '-'}">
+                        <button onclick="openConnectionModalDirect('${c.cvId}')" class="text-base font-medium text-blue-600 hover:text-blue-800" title="架電履歴を追加">
                             ${getCallCountBadge(c)}
-                        </a>
+                        </button>
                     </td>
                     <!-- メモ（件数） -->
                     <td class="px-2 py-3 text-center">
@@ -17234,6 +17235,12 @@
                         <button onclick="openDetailModal('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
                             詳細
                         </button>
+                    </td>
+                    <!-- 発信（電話アプリ起動） -->
+                    <td class="px-2 py-3 text-center">
+                        <a href="tel:${c.customerTel}" onclick="startPhoneCall('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors inline-block">
+                            📞発信
+                        </a>
                     </td>
                 </tr>
             `;
@@ -17551,6 +17558,22 @@
             const counts = getCallAndMemoCounts(caseData);
             if (counts.memoTotal === 0) return '📝';
             return `📝${counts.memoTotal}件`;
+        }
+
+        // 📞マーク押下時：電話アプリ外で架電した人用（即接続/不在モーダル）
+        function openConnectionModalDirect(cvId) {
+            const c = findCaseByCvId(cvId);
+            if (!c) return;
+
+            currentCallCase = c;
+            connectionStatus = null;
+
+            // 通話結果モーダルを直接表示
+            document.getElementById('connectionBtnsContainer')?.classList.remove('hidden');
+            document.getElementById('memoSection')?.classList.add('hidden');
+            document.getElementById('statusSection')?.classList.add('hidden');
+            document.getElementById('nextCallQuickSettings')?.classList.add('hidden');
+            document.getElementById('connectionModal')?.classList.remove('hidden');
         }
 
         // 電話発信時の処理（通話中バー表示）
