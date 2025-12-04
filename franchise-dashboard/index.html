@@ -1,5 +1,21 @@
 <html lang="ja"><head>
     <meta charset="UTF-8">
+    <script>
+        // 最優先：未完了の招待があれば即リダイレクト
+        (function() {
+            var pending = localStorage.getItem('pendingInvite');
+            if (pending) {
+                try {
+                    var data = JSON.parse(pending);
+                    if (data.id && data.s) {
+                        window.location.replace('merchant-portal/member-register.html?id=' + data.id + '&s=' + data.s);
+                    }
+                } catch (e) {
+                    localStorage.removeItem('pendingInvite');
+                }
+            }
+        })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#3b82f6">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,24 +33,6 @@
   document.write("<script src=\"js/pwa-helper.js?v=" + cacheBuster + "\"><\/script>");
 })();
 </script>
-    <script>
-        // 未完了の招待があれば即リダイレクト（PWA/ブラウザ問わず）
-        (function() {
-            const pending = localStorage.getItem('pendingInvite');
-            if (pending) {
-                try {
-                    const { id, s } = JSON.parse(pending);
-                    if (id && s) {
-                        console.log('[App] Pending invite found, redirecting to member-register');
-                        window.location.href = `merchant-portal/member-register.html?id=${id}&s=${s}`;
-                    }
-                } catch (e) {
-                    console.error('[App] Failed to parse pendingInvite:', e);
-                    localStorage.removeItem('pendingInvite');
-                }
-            }
-        })();
-    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {

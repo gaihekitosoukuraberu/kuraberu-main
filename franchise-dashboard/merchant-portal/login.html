@@ -2,6 +2,22 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <script>
+        // 最優先：未完了の招待があれば即リダイレクト
+        (function() {
+            var pending = localStorage.getItem('pendingInvite');
+            if (pending) {
+                try {
+                    var data = JSON.parse(pending);
+                    if (data.id && data.s) {
+                        window.location.replace('member-register.html?id=' + data.id + '&s=' + data.s);
+                    }
+                } catch (e) {
+                    localStorage.removeItem('pendingInvite');
+                }
+            }
+        })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -22,24 +38,6 @@
   document.write("<script src=\"/js/env-loader.js?v=" + cacheBuster + "\"><\/script>");
 })();
 </script>
-    <script>
-        // 未完了の招待があれば即リダイレクト（PWA/ブラウザ問わず）
-        (function() {
-            const pending = localStorage.getItem('pendingInvite');
-            if (pending) {
-                try {
-                    const { id, s } = JSON.parse(pending);
-                    if (id && s) {
-                        console.log('[App] Pending invite found, redirecting to member-register');
-                        window.location.href = `member-register.html?id=${id}&s=${s}`;
-                    }
-                } catch (e) {
-                    console.error('[App] Failed to parse pendingInvite:', e);
-                    localStorage.removeItem('pendingInvite');
-                }
-            }
-        })();
-    </script>
     <style>
         body { font-family: 'Inter', system-ui, sans-serif; }
     </style>
