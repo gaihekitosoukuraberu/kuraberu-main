@@ -148,15 +148,15 @@
 
             <!-- 機種選択 -->
             <div id="pwaDeviceChoice" class="space-y-3 mb-4">
-                <p class="text-sm text-gray-600 text-center mb-2">お使いの機種は？</p>
+                <p class="text-sm text-gray-600 text-center mb-3">お使いのスマホはどちらですか？</p>
                 <button onclick="showIOSGuide()"
-                        class="w-full flex items-center justify-center gap-2 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors border border-gray-200">
-                    <span class="text-xl"></span>
+                        class="w-full flex items-center justify-center gap-2 py-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors border border-gray-200">
+                    <span class="text-2xl">📱</span>
                     <span>iPhone / iPad</span>
                 </button>
                 <button onclick="showAndroidGuide()"
-                        class="w-full flex items-center justify-center gap-2 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors border border-gray-200">
-                    <span class="text-xl">🤖</span>
+                        class="w-full flex items-center justify-center gap-2 py-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors border border-gray-200">
+                    <span class="text-2xl">🤖</span>
                     <span>Android</span>
                 </button>
             </div>
@@ -503,30 +503,44 @@
             };
         }
 
-        // PWA誘導表示
+        // PWA誘導表示（機種選択から開始）
         function showPWASection() {
             document.getElementById('loadingSection').classList.add('hidden');
             document.getElementById('deviceChoiceSection').classList.add('hidden');
 
-            const env = detectEnvironment();
-
-            // iOS
-            if (env.isIOS) {
-                document.getElementById('pwaIOSGuide').classList.remove('hidden');
-            }
-
-            // Android
-            if (env.isAndroid) {
-                if (deferredPrompt) {
-                    // ネイティブインストールプロンプト使用可能
-                    document.getElementById('pwaAndroidBtn').classList.remove('hidden');
-                } else {
-                    // フォールバック（手動手順）
-                    document.getElementById('pwaAndroidGuide').classList.remove('hidden');
-                }
-            }
+            // V2063: まず機種選択を表示
+            document.getElementById('pwaDeviceChoice').classList.remove('hidden');
+            document.getElementById('pwaIOSGuide').classList.add('hidden');
+            document.getElementById('pwaAndroidBtn').classList.add('hidden');
+            document.getElementById('pwaAndroidGuide').classList.add('hidden');
 
             document.getElementById('pwaSection').classList.remove('hidden');
+        }
+
+        // iPhone/iPad選択時
+        function showIOSGuide() {
+            document.getElementById('pwaDeviceChoice').classList.add('hidden');
+            document.getElementById('pwaIOSGuide').classList.remove('hidden');
+        }
+
+        // Android選択時
+        function showAndroidGuide() {
+            document.getElementById('pwaDeviceChoice').classList.add('hidden');
+            if (deferredPrompt) {
+                // ネイティブインストールプロンプト使用可能
+                document.getElementById('pwaAndroidBtn').classList.remove('hidden');
+            } else {
+                // フォールバック（手動手順）
+                document.getElementById('pwaAndroidGuide').classList.remove('hidden');
+            }
+        }
+
+        // 機種選択に戻る
+        function backToDeviceChoice() {
+            document.getElementById('pwaIOSGuide').classList.add('hidden');
+            document.getElementById('pwaAndroidBtn').classList.add('hidden');
+            document.getElementById('pwaAndroidGuide').classList.add('hidden');
+            document.getElementById('pwaDeviceChoice').classList.remove('hidden');
         }
 
         // PWAインストール実行（Android）
