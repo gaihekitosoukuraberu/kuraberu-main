@@ -1,4 +1,4 @@
-// V2052: メンバーログインパラメータ修正
+// V2053: getMerchantCases追加 + PWA再起動修正
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -12,7 +12,7 @@
  * 参照方法（PHP）:
  * このファイルを読み込んでGAS_URLを抽出
  *
- * @file-version V2052-MASTER-2025-12-05
+ * @file-version V2053-MASTER-2025-12-05
  * @last-update 2025-12-05
  */
 
@@ -21,14 +21,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V2052
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbysjez6kNfSpde9CDnK5N49cSvMYBkwSSfgWeGJAzI-ZPBT7dsm79-M25pbAiPDKNEplA/exec',
+  // プライマリGAS URL（メイン運用）- V2053
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwltZfJn4cdq0pvC9H1EwgFFqHRfREwZxsbTrlBRScMt9FTnkWd-8dIAqOKqZwGWucMlg/exec',
 
-  // フォールバックGAS URL（バックアップ）- V2052
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbysjez6kNfSpde9CDnK5N49cSvMYBkwSSfgWeGJAzI-ZPBT7dsm79-M25pbAiPDKNEplA/exec',
+  // フォールバックGAS URL（バックアップ）- V2053
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbwltZfJn4cdq0pvC9H1EwgFFqHRfREwZxsbTrlBRScMt9FTnkWd-8dIAqOKqZwGWucMlg/exec',
 
-  // 緊急時URL（最終フォールバック）- V2052
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbysjez6kNfSpde9CDnK5N49cSvMYBkwSSfgWeGJAzI-ZPBT7dsm79-M25pbAiPDKNEplA/exec',
+  // 緊急時URL（最終フォールバック）- V2053
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbwltZfJn4cdq0pvC9H1EwgFFqHRfREwZxsbTrlBRScMt9FTnkWd-8dIAqOKqZwGWucMlg/exec',
 
   // ============================================
   // 🔧 システム設定

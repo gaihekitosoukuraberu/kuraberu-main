@@ -243,6 +243,9 @@ const MerchantSystem = {
         case 'getMemberList':
           return this.getMemberList(params);
 
+        case 'getMerchantCases':
+          return this.getMerchantCases(params);
+
         default:
           return {
             success: false,
@@ -2692,6 +2695,109 @@ const MerchantSystem = {
 
     } catch (error) {
       console.error('[MerchantSystem] getMemberList error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
+   * 加盟店の案件一覧取得
+   */
+  getMerchantCases: function(params) {
+    try {
+      const merchantId = params.memberId || params.merchantId;
+
+      if (!merchantId) {
+        return { success: false, error: '加盟店IDが指定されていません' };
+      }
+
+      // メンバーの場合は親加盟店IDを取得
+      let targetMerchantId = merchantId;
+      if (merchantId.startsWith('ST') && merchantId.length === 14) {
+        const credSheet = this._getCredentialsSheet();
+        const credData = credSheet.getDataRange().getValues();
+        const headers = credData[0];
+        const memberIdCol = headers.indexOf('加盟店ID');
+        const parentIdCol = headers.indexOf('親加盟店ID');
+
+        for (let i = 1; i < credData.length; i++) {
+          if (credData[i][memberIdCol] === merchantId) {
+            targetMerchantId = credData[i][parentIdCol];
+            break;
+          }
+        }
+      }
+
+      // CV1シートから案件を取得
+      const ss = SpreadsheetApp.openById(DataAccessLayer.getSpreadsheetId());
+      const cv1Sheet = ss.getSheetByName('CV1_案件配信');
+
+      if (!cv1Sheet) {
+        return {
+          success: true,
+          cases: [],
+          stats: { total: 0, pending: 0, contracted: 0 }
+        };
+      }
+
+      const data = cv1Sheet.getDataRange().getValues();
+      if (data.length <= 1) {
+        return {
+          success: true,
+          cases: [],
+          stats: { total: 0, pending: 0, contracted: 0 }
+        };
+      }
+
+      const headers = data[0];
+      const rows = data.slice(1);
+
+      // 列インデックス取得
+      const colIndex = (name) => headers.indexOf(name);
+      const merchantIdCol = colIndex('配信先加盟店ID');
+      const statusCol = colIndex('ステータス');
+      const deliveryDateCol = colIndex('配信日時');
+      const nameCol = colIndex('お名前');
+      const phoneCol = colIndex('電話番号');
+      const addressCol = colIndex('住所');
+      const buildingTypeCol = colIndex('建物種別');
+
+      const cases = [];
+      let pending = 0;
+      let contracted = 0;
+
+      for (const row of rows) {
+        if (row[merchantIdCol] === targetMerchantId) {
+          const status = row[statusCol] || '未対応';
+          cases.push({
+            id: row[0],
+            name: row[nameCol] || '',
+            phone: row[phoneCol] || '',
+            address: row[addressCol] || '',
+            buildingType: row[buildingTypeCol] || '',
+            status: status,
+            deliveryDate: row[deliveryDateCol] || ''
+          });
+
+          if (status === '未対応' || status === '対応中') {
+            pending++;
+          } else if (status === '成約') {
+            contracted++;
+          }
+        }
+      }
+
+      return {
+        success: true,
+        cases: cases,
+        stats: {
+          total: cases.length,
+          pending: pending,
+          contracted: contracted
+        }
+      };
+
+    } catch (error) {
+      console.error('[MerchantSystem] getMerchantCases error:', error);
       return { success: false, error: error.toString() };
     }
   },
