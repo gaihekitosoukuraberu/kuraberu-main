@@ -620,10 +620,11 @@
                         resolve(data);
                     };
 
+                    // V2063: GAS側は data/sig を期待
                     const params = new URLSearchParams({
                         action: 'registerMember',
-                        id: inviteData.id,
-                        s: inviteData.s,
+                        data: inviteData.id,
+                        sig: inviteData.s,
                         name: memberName,
                         password: password,
                         callback: callbackName
