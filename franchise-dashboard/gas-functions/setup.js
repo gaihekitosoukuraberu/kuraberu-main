@@ -216,11 +216,9 @@ function setupAuthProperties() {
     console.log('ℹ️ SECRET_KEYはすでに設定済みです');
   }
 
-  // 初回ログインURLを設定
-  if (!scriptProperties.getProperty('FIRST_LOGIN_URL')) {
-    scriptProperties.setProperty('FIRST_LOGIN_URL', 'https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/first-login.html');
-    console.log('✅ FIRST_LOGIN_URLを設定しました');
-  }
+  // 初回ログインURLを設定（常に最新に更新）
+  scriptProperties.setProperty('FIRST_LOGIN_URL', 'https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/first-login.html');
+  console.log('✅ FIRST_LOGIN_URLを設定しました');
 
   // パスワードリセットURLを設定
   if (!scriptProperties.getProperty('PASSWORD_RESET_URL')) {
@@ -285,4 +283,20 @@ function removePauseResumeTimeTrigger() {
   });
 
   console.log(`✅ ${deletedCount}個のトリガーを削除しました`);
+}
+
+/**
+ * FIRST_LOGIN_URLを強制修正（GASコンソールから実行）
+ */
+function fixFirstLoginUrl() {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const correctUrl = 'https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/first-login.html';
+
+  const oldValue = scriptProperties.getProperty('FIRST_LOGIN_URL');
+  console.log('現在のFIRST_LOGIN_URL:', oldValue);
+
+  scriptProperties.setProperty('FIRST_LOGIN_URL', correctUrl);
+  console.log('✅ FIRST_LOGIN_URLを修正しました:', correctUrl);
+
+  return { oldValue: oldValue, newValue: correctUrl };
 }
