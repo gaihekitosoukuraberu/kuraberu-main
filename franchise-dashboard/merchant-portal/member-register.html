@@ -320,12 +320,14 @@
         // 招待情報を保持
         let inviteData = null;
 
-        // URLパラメータ取得（短縮リンク対応）
+        // URLパラメータ取得（短縮リンク対応 + data/sig対応）
+        // V2063: 招待リンクは data/sig を使用、短縮リンクは id/s を使用
         function getUrlParams() {
             const params = new URLSearchParams(window.location.search);
             return {
-                id: params.get('id'),
-                s: params.get('s')
+                // data/sig を優先、なければ id/s を使用
+                id: params.get('data') || params.get('id'),
+                s: params.get('sig') || params.get('s')
             };
         }
 
@@ -382,7 +384,8 @@
                     };
 
                     const script = document.createElement('script');
-                    script.src = `${GAS_URL}?action=verifyMemberInvite&id=${encodeURIComponent(id)}&s=${encodeURIComponent(s)}&callback=${callbackName}`;
+                    // V2063: GAS側は data/sig を期待
+                    script.src = `${GAS_URL}?action=verifyMemberInvite&data=${encodeURIComponent(id)}&sig=${encodeURIComponent(s)}&callback=${callbackName}`;
                     script.onerror = () => {
                         delete window[callbackName];
                         document.body.removeChild(script);
