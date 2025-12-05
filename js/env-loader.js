@@ -1,4 +1,4 @@
-// V2062: Device auto-detect + auth-manager fix
+// V2064: GAS URL fix + PWA device selection
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -22,13 +22,13 @@ const ENV = {
   // ============================================
 
   // プライマリGAS URL（メイン運用）- V2062
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbw2-k_kLvDpY0u5c-RcbsRoSS7lAcvt-RgPwvJWX40oeseu5hxUzEvw8iFeO3kjg3DmTA/exec',
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbzqgXyCCDj4JW6hOa0_rIwBrp_x4VfqGUpwzvLNvk5_uRlL785ajl5_ZmCfljzNZCW5OQ/exec',
 
   // フォールバックGAS URL（バックアップ）- V2062
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbw2-k_kLvDpY0u5c-RcbsRoSS7lAcvt-RgPwvJWX40oeseu5hxUzEvw8iFeO3kjg3DmTA/exec',
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbzqgXyCCDj4JW6hOa0_rIwBrp_x4VfqGUpwzvLNvk5_uRlL785ajl5_ZmCfljzNZCW5OQ/exec',
 
   // 緊急時URL（最終フォールバック）- V2062
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbw2-k_kLvDpY0u5c-RcbsRoSS7lAcvt-RgPwvJWX40oeseu5hxUzEvw8iFeO3kjg3DmTA/exec',
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbzqgXyCCDj4JW6hOa0_rIwBrp_x4VfqGUpwzvLNvk5_uRlL785ajl5_ZmCfljzNZCW5OQ/exec',
 
   // ============================================
   // 🔧 システム設定
