@@ -4,7 +4,17 @@
     <meta charset="UTF-8">
     <script>
         // 最優先: ログイン済みならダッシュボードへリダイレクト
+        // V2063: ただし初回ログインURLパラメータがある場合はスキップ
         (function() {
+            var params = new URLSearchParams(window.location.search);
+            var hasFirstLoginParams = params.get('data') && params.get('sig');
+
+            // 初回ログインパラメータがある場合はリダイレクトしない
+            if (hasFirstLoginParams) {
+                console.log('[first-login] 初回ログインパラメータ検出 - リダイレクトスキップ');
+                return;
+            }
+
             var isLoggedIn = localStorage.getItem('isLoggedIn') === 'true' ||
                              sessionStorage.getItem('isLoggedIn') === 'true';
             if (isLoggedIn) {
