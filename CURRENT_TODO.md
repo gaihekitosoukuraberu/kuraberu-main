@@ -207,4 +207,5 @@ N: 署名
 - [x] Phase2-C main.jsのSystemRouterに追加
 
 ### 次のアクション
+- [x] V2063: メンバー登録PWA誘導 - 機種選択UI追加（iPhone/Android選択→各手順表示）
 → デプロイ＆テスト（ボスに確認）
