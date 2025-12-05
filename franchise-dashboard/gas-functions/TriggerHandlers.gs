@@ -89,3 +89,13 @@ function syncDeliveryStatus(sheet, row, headers) {
     console.error('[syncDeliveryStatus] エラー:', error.toString());
   }
 }
+
+/**
+ * 放棄チェック（ダミー関数）
+ * ※トリガー設定が残っているため、エラー回避用
+ * TODO: GASコンソールでトリガーを確認し、不要なら削除
+ */
+function runAbandonmentCheck() {
+  console.log('[runAbandonmentCheck] called - dummy function');
+  // 何もしない
+}

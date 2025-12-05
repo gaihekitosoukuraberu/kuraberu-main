@@ -166,22 +166,25 @@ var AdminSystem = {
         return obj;
       });
 
-      // ステータスでフィルタ（承認ステータスカラムのみで判定）
-      const status = params.status || 'all';
+      // ステータスでフィルタ（承認ステータス優先）
+      const statusParam = params.status || 'all';
       const pending = registrations.filter(r => {
         const approvalStatus = r['承認ステータス'] || '';
-        const status = r['ステータス'] || '';
-        // 再審査のものも未審査リストに含める
-        return status === '再審査' ||
+        const rowStatus = r['ステータス'] || '';
+        // 承認済み・却下の場合は未審査リストから除外（最優先）
+        if (approvalStatus === '承認済み' || approvalStatus === '却下' || approvalStatus === '一時停止') {
+          return false;
+        }
+        // それ以外は未審査リストに含める
+        return rowStatus === '再審査' ||
                approvalStatus === '申請中' ||
                approvalStatus === '未審査' ||
                approvalStatus === '';
       });
       const approved = registrations.filter(r => {
         const approvalStatus = r['承認ステータス'] || '';
-        const status = r['ステータス'] || '';
-        // 承認済み、一時停止のみ（再審査は未審査リストへ）
-        return (approvalStatus === '承認済み' || approvalStatus === '一時停止') && status !== '再審査';
+        // 承認済み、一時停止のみ
+        return approvalStatus === '承認済み' || approvalStatus === '一時停止';
       });
       const rejected = registrations.filter(r => {
         const approvalStatus = r['承認ステータス'] || '';
