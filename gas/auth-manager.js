@@ -21,12 +21,11 @@ function generateFirstLoginUrl(merchantId) {
   // Base64エンコード
   const payload = Utilities.base64EncodeWebSafe(JSON.stringify(data));
 
-  // URL生成（プロパティから取得）
-  const baseUrl = PropertiesService.getScriptProperties().getProperty('FIRST_LOGIN_URL');
-  if (!baseUrl) {
-    throw new Error('FIRST_LOGIN_URLが設定されていません');
-  }
-  return `${baseUrl}?data=${payload}&sig=${signature}`;
+  // URL生成（V2061: 直接指定 - プロパティ設定ミス対策）
+  // FIRST_LOGIN_URLプロパティがlogin.htmlを指していたため、ハードコード
+  const CORRECT_FIRST_LOGIN_URL = 'https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/first-login.html';
+  console.log('[auth-manager] 🔗 生成URL:', CORRECT_FIRST_LOGIN_URL + '?data=...');
+  return `${CORRECT_FIRST_LOGIN_URL}?data=${payload}&sig=${signature}`;
 }
 
 // URL検証
