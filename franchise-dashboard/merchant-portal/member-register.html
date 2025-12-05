@@ -404,13 +404,22 @@
                     roleEl.textContent = roleLabels[result.invite.role] || '営業';
                     roleEl.className = `px-2 py-0.5 text-xs font-semibold rounded-full ${roleStyles[result.invite.role] || roleStyles.standard}`;
 
-                    // デバイス選択を表示（PWAとして起動中なら直接登録へ）
+                    // V2062: デバイス自動判別
                     const env = detectEnvironment();
+                    console.log('[member-register] デバイス判定:', env);
+
                     if (env.isStandalone || localStorage.getItem('pwaInstalled') === 'true') {
+                        // PWAとして起動中 → 直接登録
                         console.log('[member-register] Already PWA, skip to register');
                         showRegisterForm();
+                    } else if (env.isIOS || env.isAndroid) {
+                        // スマホ → PWA誘導
+                        console.log('[member-register] スマホ検出 → PWA誘導');
+                        showPWASection();
                     } else {
-                        showDeviceChoice();
+                        // PC → 直接登録フォーム
+                        console.log('[member-register] PC検出 → 直接登録');
+                        showRegisterForm();
                     }
                 } else {
                     showError(result.error || 'リンクが無効または期限切れです。');
