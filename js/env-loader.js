@@ -1,4 +1,4 @@
-// V2061: auth-manager FIRST_LOGIN_URL fix
+// V2062: Device auto-detect + auth-manager fix
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -12,7 +12,7 @@
  * 参照方法（PHP）:
  * このファイルを読み込んでGAS_URLを抽出
  *
- * @file-version V2061-MASTER-2025-12-05
+ * @file-version V2062-MASTER-2025-12-05
  * @last-update 2025-12-05
  */
 
@@ -21,14 +21,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V2061
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbyl6Jj0S47Zs-TzOkbtDjoxxZ6pbytzaVF9y9sPdaM6ZMouW_7mvJ9ILgIEuWOU7bGH3A/exec',
+  // プライマリGAS URL（メイン運用）- V2062
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbw2-k_kLvDpY0u5c-RcbsRoSS7lAcvt-RgPwvJWX40oeseu5hxUzEvw8iFeO3kjg3DmTA/exec',
 
-  // フォールバックGAS URL（バックアップ）- V2061
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbyl6Jj0S47Zs-TzOkbtDjoxxZ6pbytzaVF9y9sPdaM6ZMouW_7mvJ9ILgIEuWOU7bGH3A/exec',
+  // フォールバックGAS URL（バックアップ）- V2062
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbw2-k_kLvDpY0u5c-RcbsRoSS7lAcvt-RgPwvJWX40oeseu5hxUzEvw8iFeO3kjg3DmTA/exec',
 
-  // 緊急時URL（最終フォールバック）- V2061
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbyl6Jj0S47Zs-TzOkbtDjoxxZ6pbytzaVF9y9sPdaM6ZMouW_7mvJ9ILgIEuWOU7bGH3A/exec',
+  // 緊急時URL（最終フォールバック）- V2062
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbw2-k_kLvDpY0u5c-RcbsRoSS7lAcvt-RgPwvJWX40oeseu5hxUzEvw8iFeO3kjg3DmTA/exec',
 
   // ============================================
   // 🔧 システム設定
