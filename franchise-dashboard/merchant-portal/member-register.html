@@ -503,16 +503,24 @@
             };
         }
 
-        // PWA誘導表示（機種選択から開始）
+        // PWA誘導表示
         function showPWASection() {
             document.getElementById('loadingSection').classList.add('hidden');
             document.getElementById('deviceChoiceSection').classList.add('hidden');
 
-            // V2063: まず機種選択を表示
-            document.getElementById('pwaDeviceChoice').classList.remove('hidden');
+            // 全部非表示にしてから必要なものだけ表示
+            document.getElementById('pwaDeviceChoice').classList.add('hidden');
             document.getElementById('pwaIOSGuide').classList.add('hidden');
             document.getElementById('pwaAndroidBtn').classList.add('hidden');
             document.getElementById('pwaAndroidGuide').classList.add('hidden');
+
+            // V2063: Androidでワンタップ可能なら機種選択スキップ
+            if (deferredPrompt) {
+                document.getElementById('pwaAndroidBtn').classList.remove('hidden');
+            } else {
+                // それ以外は機種選択を表示
+                document.getElementById('pwaDeviceChoice').classList.remove('hidden');
+            }
 
             document.getElementById('pwaSection').classList.remove('hidden');
         }
