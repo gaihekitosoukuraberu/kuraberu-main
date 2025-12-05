@@ -4,7 +4,17 @@
     <meta charset="UTF-8">
     <script>
         // 最優先: ログイン済みならダッシュボードへリダイレクト
+        // V2063: ただし招待URLパラメータがある場合はスキップ
         (function() {
+            var params = new URLSearchParams(window.location.search);
+            var hasInviteParams = params.get('data') && params.get('sig');
+
+            // 招待パラメータがある場合はリダイレクトしない
+            if (hasInviteParams) {
+                console.log('[member-register] 招待パラメータ検出 - リダイレクトスキップ');
+                return;
+            }
+
             var isLoggedIn = localStorage.getItem('isLoggedIn') === 'true' ||
                              sessionStorage.getItem('isLoggedIn') === 'true';
             if (isLoggedIn) {
