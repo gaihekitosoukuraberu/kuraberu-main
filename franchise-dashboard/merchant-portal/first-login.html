@@ -332,13 +332,22 @@
                     merchantId = result.merchantId;
                     document.getElementById('merchantIdDisplay').textContent = merchantId;
 
-                    // PWAとして起動中なら直接パスワード設定へ
+                    // V2062: デバイス自動判別
                     const env = detectEnvironment();
+                    console.log('[first-login] デバイス判定:', env);
+
                     if (env.isStandalone || localStorage.getItem('pwaInstalled') === 'true') {
+                        // PWAとして起動中 → 直接パスワード設定
                         console.log('[first-login] Already PWA, skip to password form');
                         showPasswordForm();
+                    } else if (env.isIOS || env.isAndroid) {
+                        // スマホ → PWA誘導
+                        console.log('[first-login] スマホ検出 → PWA誘導');
+                        showPWASection();
                     } else {
-                        showDeviceChoice();
+                        // PC → 直接パスワード設定
+                        console.log('[first-login] PC検出 → 直接パスワード設定');
+                        showPasswordForm();
                     }
                 } else {
                     showError('リンクが無効または期限切れです。');
