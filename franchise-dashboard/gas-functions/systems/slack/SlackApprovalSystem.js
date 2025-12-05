@@ -36,14 +36,10 @@ const SlackApprovalSystem = {
       // Base64エンコード
       const payload = Utilities.base64EncodeWebSafe(JSON.stringify(data));
 
-      // URL生成（プロパティから取得）
-      const baseUrl = PropertiesService.getScriptProperties().getProperty('FIRST_LOGIN_URL');
-      if (!baseUrl) {
-        console.error('[SlackApproval._generateFirstLoginUrl] FIRST_LOGIN_URLが設定されていません');
-        return null;
-      }
-
+      // URL生成（直接指定 - V2060: プロパティ設定ミス対策）
+      const baseUrl = 'https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/first-login.html';
       const url = baseUrl + '?data=' + payload + '&sig=' + signature;
+      console.log('[SlackApproval._generateFirstLoginUrl] 🔗 生成URL:', url);
       console.log('[SlackApproval._generateFirstLoginUrl] URL生成成功:', merchantId);
       return url;
 

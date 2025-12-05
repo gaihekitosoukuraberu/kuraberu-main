@@ -852,8 +852,12 @@ var AdminSystem = {
     const payload = Utilities.base64EncodeWebSafe(JSON.stringify(data));
 
     // URL生成（直接指定 - プロパティ設定ミス対策）
+    // V2060: first-login.html を直接指定
     const CORRECT_FIRST_LOGIN_URL = 'https://gaihekikuraberu.com/franchise-dashboard/merchant-portal/first-login.html';
-    return `${CORRECT_FIRST_LOGIN_URL}?data=${payload}&sig=${signature}`;
+    const finalUrl = `${CORRECT_FIRST_LOGIN_URL}?data=${payload}&sig=${signature}`;
+    console.log('[AdminSystem] 🔗 生成された初回ログインURL:', finalUrl);
+    console.log('[AdminSystem] 🔗 ベースURL確認:', CORRECT_FIRST_LOGIN_URL);
+    return finalUrl;
   },
 
   /**

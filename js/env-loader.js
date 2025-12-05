@@ -1,4 +1,4 @@
-// V2059: FORCE first-login.html URL fix
+// V2060: FORCE first-login.html in ALL GAS files
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -12,7 +12,7 @@
  * 参照方法（PHP）:
  * このファイルを読み込んでGAS_URLを抽出
  *
- * @file-version V2059-MASTER-2025-12-05
+ * @file-version V2060-MASTER-2025-12-05
  * @last-update 2025-12-05
  */
 
@@ -21,14 +21,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V2059
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxa4mfSsS7ygOsjHLFdjuMFO86S2fWN6xT3Wb3D2T4yprm5I7ZUe-esJf-LFIrYafdDvg/exec',
+  // プライマリGAS URL（メイン運用）- V2060
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbyl7NMZ1UITBBWYniVoGQP54RuseDrQ35vmARYRL1IPqb1LOgMJk_e_2l1QNKSi8P70Lw/exec',
 
-  // フォールバックGAS URL（バックアップ）- V2059
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxa4mfSsS7ygOsjHLFdjuMFO86S2fWN6xT3Wb3D2T4yprm5I7ZUe-esJf-LFIrYafdDvg/exec',
+  // フォールバックGAS URL（バックアップ）- V2060
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbyl7NMZ1UITBBWYniVoGQP54RuseDrQ35vmARYRL1IPqb1LOgMJk_e_2l1QNKSi8P70Lw/exec',
 
-  // 緊急時URL（最終フォールバック）- V2059
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxa4mfSsS7ygOsjHLFdjuMFO86S2fWN6xT3Wb3D2T4yprm5I7ZUe-esJf-LFIrYafdDvg/exec',
+  // 緊急時URL（最終フォールバック）- V2060
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbyl7NMZ1UITBBWYniVoGQP54RuseDrQ35vmARYRL1IPqb1LOgMJk_e_2l1QNKSi8P70Lw/exec',
 
   // ============================================
   // 🔧 システム設定
