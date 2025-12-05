@@ -279,8 +279,10 @@ const MerchantMemberInvite = {
         return { success: false, error: '招待が見つかりません' };
       }
 
-      if (inviteRow[this.COL.STATUS] !== 'pending') {
-        return { success: false, error: 'この招待は既に使用されています' };
+      // V2063: 期限内なら何度でもアクセス可能に変更（管理者側と同じ仕様）
+      // 登録済み（active）でも期限内ならパスワード再設定可能
+      if (inviteRow[this.COL.STATUS] === 'disabled') {
+        return { success: false, error: 'この招待は無効化されています' };
       }
 
       // 加盟店名取得

@@ -297,13 +297,13 @@
                 </div>
             </div>
 
-            <p id="redirectCountdown" class="text-sm text-gray-500 mb-4">
-                <span id="countdownNum">3</span>秒後に自動でログイン画面へ移動します...
+            <p class="text-sm text-gray-500 mb-4">
+                上記の情報をスクリーンショットで保存してください
             </p>
 
             <a href="login.html"
                class="inline-block bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-200">
-                今すぐログインへ
+                ログインへ進む
             </a>
         </div>
     </div>
@@ -667,17 +667,7 @@
                     sessionStorage.setItem('tempMemberId', inviteData.memberId);
                     sessionStorage.setItem('tempMemberPassword', password);
 
-                    // カウントダウン＆自動遷移
-                    let countdown = 3;
-                    const countdownEl = document.getElementById('countdownNum');
-                    const countdownInterval = setInterval(() => {
-                        countdown--;
-                        if (countdownEl) countdownEl.textContent = countdown;
-                        if (countdown <= 0) {
-                            clearInterval(countdownInterval);
-                            window.location.href = 'login.html';
-                        }
-                    }, 1000);
+                    // V2063: 自動遷移を削除 - スクショ推奨のため手動でボタンを押させる
                 } else {
                     alert('エラー: ' + (result.error || '登録に失敗しました'));
                     submitBtn.disabled = false;
