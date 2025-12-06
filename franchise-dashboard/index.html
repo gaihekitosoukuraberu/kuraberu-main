@@ -59,6 +59,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SortableJS for drag & drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         body { font-family: 'Inter', system-ui, sans-serif; }
         .glass { backdrop-filter: blur(12px); }
@@ -221,6 +223,129 @@
             /* 特殊対応項目のグリッドレイアウトをモバイル用に調整 */
             #specialServicesEdit .grid-cols-1.md\\:grid-cols-2 {
                 grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+            }
+        }
+
+        /* ===== 案件振り分けカンバンパネル ===== */
+        .assign-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 85vw;
+            max-width: 1200px;
+            height: 100vh;
+            background: white;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+            transform: translateX(100%);
+            transition: transform 0.3s ease-out;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+        .assign-panel.open {
+            transform: translateX(0);
+        }
+        .assign-panel-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            z-index: 99;
+        }
+        .assign-panel-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .kanban-container {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 16px;
+            flex: 1;
+            min-height: 0;
+        }
+        .kanban-column {
+            min-width: 220px;
+            max-width: 280px;
+            flex: 1;
+            background: #f8fafc;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            max-height: 100%;
+        }
+        .kanban-column-header {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .kanban-column-body {
+            padding: 8px;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 100px;
+        }
+        .kanban-card {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            cursor: grab;
+            border: 2px solid transparent;
+            transition: all 0.15s;
+        }
+        .kanban-card:hover {
+            border-color: #a78bfa;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .kanban-card.sortable-ghost {
+            opacity: 0.4;
+            border-color: #8b5cf6;
+        }
+        .kanban-card.sortable-chosen {
+            cursor: grabbing;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        .kanban-card .card-title {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .kanban-card .card-meta {
+            font-size: 11px;
+            color: #64748b;
+        }
+        .kanban-card .recommend-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+        /* レスポンシブ対応 */
+        @media (max-width: 768px) {
+            .assign-panel {
+                width: 100vw;
+                max-width: none;
+            }
+            .kanban-column {
+                min-width: 160px;
+                max-width: 200px;
+            }
+            .kanban-card {
+                padding: 8px;
+            }
+            .kanban-card .card-title {
+                font-size: 12px;
             }
         }
     </style>
@@ -604,6 +729,12 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                                 <span id="unifiedFilterLabel">絞り込み</span>
                             </button>
+                            <!-- 案件振り分けボタン（カンバンパネルを開く） -->
+                            <button onclick="openAssignPanel()" class="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl shadow-md hover:from-purple-600 hover:to-indigo-600 transition-all font-bold whitespace-nowrap flex-shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span class="hidden sm:inline">案件振り分け</span>
+                                <span class="sm:hidden">振分</span>
+                            </button>
                         </div>
 
                         <!-- クイックフィルタ（全案件/要対応/成約） -->
@@ -884,7 +1015,69 @@
                     </div>
                 </div>
 
-                <!-- 担当者選択モーダル（リッチ版） -->
+                <!-- ===== 案件振り分けカンバンパネル（右スライド） ===== -->
+                <div id="assignPanelOverlay" class="assign-panel-overlay" onclick="closeAssignPanel()"></div>
+                <div id="assignPanel" class="assign-panel">
+                    <!-- ヘッダー -->
+                    <div class="p-4 border-b bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex justify-between items-center flex-shrink-0">
+                        <div>
+                            <h3 class="text-lg font-bold flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                案件振り分け
+                            </h3>
+                            <p class="text-sm text-purple-100 mt-1">ドラッグ＆ドロップで担当者に振り分け</p>
+                        </div>
+                        <button onclick="closeAssignPanel()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- フィルター/オプションバー -->
+                    <div class="p-3 border-b bg-gray-50 flex flex-wrap gap-2 items-center">
+                        <div class="flex gap-2 flex-wrap flex-1">
+                            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border rounded-lg cursor-pointer hover:bg-blue-50 transition-all text-sm">
+                                <input type="checkbox" id="sortByDistance" class="w-4 h-4 text-blue-600 rounded" onchange="updateKanbanSort()">
+                                <span>📍 距離順</span>
+                            </label>
+                            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border rounded-lg cursor-pointer hover:bg-blue-50 transition-all text-sm">
+                                <input type="checkbox" id="sortByArea" class="w-4 h-4 text-blue-600 rounded" onchange="updateKanbanSort()">
+                                <span>🗺️ エリア別</span>
+                            </label>
+                            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border rounded-lg cursor-pointer hover:bg-blue-50 transition-all text-sm">
+                                <input type="checkbox" id="showRecommend" class="w-4 h-4 text-blue-600 rounded" checked onchange="updateKanbanSort()">
+                                <span>🎯 おすすめ表示</span>
+                            </label>
+                        </div>
+                        <button onclick="autoAssignCases()" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 font-bold text-sm transition-all flex items-center gap-2 shadow">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            自動振り分け
+                        </button>
+                    </div>
+
+                    <!-- カンバンコンテナ -->
+                    <div id="kanbanContainer" class="kanban-container">
+                        <!-- 動的に生成される -->
+                        <div class="text-center text-gray-400 py-8 w-full">読み込み中...</div>
+                    </div>
+
+                    <!-- フッター（変更保存） -->
+                    <div class="p-3 border-t bg-gray-50 flex justify-between items-center flex-shrink-0">
+                        <div id="kanbanChangeCount" class="text-sm text-gray-600">
+                            <span class="font-medium">0</span>件の変更
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="resetKanbanChanges()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium text-sm transition-all">
+                                リセット
+                            </button>
+                            <button onclick="saveKanbanChanges()" id="saveKanbanBtn" class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-bold text-sm transition-all flex items-center gap-2 shadow disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                変更を保存
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 担当者選択モーダル（リッチ版）- 旧UI、カンバンから特定案件選択時に使用 -->
                 <div id="assignModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
                     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col">
                         <!-- ヘッダー -->
@@ -903,15 +1096,20 @@
 
                         <!-- コンテンツ -->
                         <div class="flex-1 overflow-y-auto p-4 space-y-4">
-                            <!-- この案件を振り分け -->
+                            <!-- この案件を振り分け（複数人対応） -->
                             <div class="bg-gray-50 rounded-xl p-4">
                                 <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
                                     <span class="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold">1</span>
-                                    この案件を振り分け
+                                    担当者を選択（複数可）
                                 </h4>
                                 <div id="assignStaffList" class="space-y-2">
                                     <!-- 動的に生成 -->
                                 </div>
+                                <!-- 確定ボタン -->
+                                <button onclick="confirmMultiAssign()" id="confirmAssignBtn" class="mt-4 w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl hover:from-purple-600 hover:to-indigo-600 font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    <span id="confirmAssignBtnText">担当者を選択してください</span>
+                                </button>
                             </div>
 
                             <!-- 区切り線 -->
@@ -20382,7 +20580,313 @@
             return merchantCasesData.filter(c => !c.assignee || c.assignee === '').length;
         }
 
-        // モーダルを開く
+        // ===== カンバン振り分けパネル =====
+        let kanbanChanges = {}; // { cvId: newAssignee } - 変更を追跡
+        let kanbanSortables = []; // SortableJSインスタンス
+        let originalAssignments = {}; // 元の担当者を記録
+
+        // カンバンパネルを開く
+        async function openAssignPanel() {
+            document.getElementById('assignPanelOverlay').classList.add('open');
+            document.getElementById('assignPanel').classList.add('open');
+            document.body.style.overflow = 'hidden'; // スクロール防止
+
+            // 変更をリセット
+            kanbanChanges = {};
+            originalAssignments = {};
+            updateKanbanChangeCount();
+
+            // カンバンを構築
+            await buildKanban();
+        }
+
+        // カンバンパネルを閉じる
+        function closeAssignPanel() {
+            document.getElementById('assignPanelOverlay').classList.remove('open');
+            document.getElementById('assignPanel').classList.remove('open');
+            document.body.style.overflow = '';
+
+            // SortableJSインスタンスを破棄
+            kanbanSortables.forEach(s => s.destroy());
+            kanbanSortables = [];
+        }
+
+        // カンバンを構築
+        async function buildKanban() {
+            const container = document.getElementById('kanbanContainer');
+            container.innerHTML = '<div class="text-center text-gray-400 py-8 w-full">読み込み中...</div>';
+
+            // メンバーリストと案件データを取得
+            const members = await getMemberListFromAPI();
+            const cases = merchantCasesData || [];
+
+            // 現在の担当者情報を取得（管理者自身も含める）
+            const adminName = window.franchiseUser?.name || '管理者';
+
+            // 元の割り当てを記録
+            cases.forEach(c => {
+                originalAssignments[c.cvId] = c.assignee || '';
+            });
+
+            // 未振り分け案件
+            const unassignedCases = cases.filter(c => !c.assignee || c.assignee === '');
+
+            // メンバー別の案件（管理者含む）
+            const allAssignees = [
+                { memberId: '__ADMIN__', name: adminName, role: 'admin' },
+                ...members
+            ];
+
+            // カンバンHTML構築
+            let html = '';
+
+            // 未振り分け列
+            html += `
+                <div class="kanban-column" style="background: linear-gradient(to bottom, #fef3c7, #fef9c3);">
+                    <div class="kanban-column-header text-amber-800">
+                        <span class="text-lg">📥</span>
+                        <span>未振り分け</span>
+                        <span class="ml-auto bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full text-xs font-bold" id="unassignedColumnCount">${unassignedCases.length}</span>
+                    </div>
+                    <div class="kanban-column-body" id="kanban-unassigned" data-assignee="">
+                        ${renderKanbanCards(unassignedCases)}
+                    </div>
+                </div>
+            `;
+
+            // 各メンバーの列
+            allAssignees.forEach(member => {
+                const memberCases = cases.filter(c => {
+                    const assignees = (c.assignee || '').split(',').map(a => a.trim());
+                    return assignees.includes(member.name);
+                });
+                const isAdmin = member.memberId === '__ADMIN__';
+                const bgStyle = isAdmin
+                    ? 'background: linear-gradient(to bottom, #dbeafe, #eff6ff);'
+                    : 'background: #f8fafc;';
+                const headerColor = isAdmin ? 'text-blue-800' : 'text-gray-700';
+                const countBg = isAdmin ? 'bg-blue-200 text-blue-800' : 'bg-gray-200 text-gray-700';
+
+                html += `
+                    <div class="kanban-column" style="${bgStyle}">
+                        <div class="kanban-column-header ${headerColor}">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br ${isAdmin ? 'from-blue-400 to-blue-600' : 'from-purple-400 to-indigo-500'} flex items-center justify-center text-white font-bold text-xs">
+                                ${member.name ? member.name.charAt(0) : '?'}
+                            </div>
+                            <span class="truncate">${member.name}</span>
+                            ${isAdmin ? '<span class="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">管理者</span>' : ''}
+                            <span class="ml-auto ${countBg} px-2 py-0.5 rounded-full text-xs font-bold" id="kanban-count-${member.memberId}">${memberCases.length}</span>
+                        </div>
+                        <div class="kanban-column-body" id="kanban-${member.memberId}" data-assignee="${member.name}">
+                            ${renderKanbanCards(memberCases)}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+            // SortableJS初期化
+            initKanbanSortables();
+        }
+
+        // カンバンカードをレンダリング
+        function renderKanbanCards(cases) {
+            if (cases.length === 0) {
+                return '<div class="text-center text-gray-400 text-xs py-4">案件なし</div>';
+            }
+
+            const showRecommend = document.getElementById('showRecommend')?.checked ?? true;
+
+            return cases.map(c => {
+                const address = c.address || c.city || '住所未設定';
+                const shortAddress = address.length > 15 ? address.substring(0, 15) + '...' : address;
+                // おすすめバッジ（距離が近い場合など - 将来拡張用）
+                const recommendBadge = showRecommend && !c.assignee ? '<span class="recommend-badge">🎯 おすすめ</span>' : '';
+
+                return `
+                    <div class="kanban-card" data-cv-id="${c.cvId}">
+                        <div class="card-title">${c.customerName || '名前未設定'}</div>
+                        <div class="card-meta">
+                            <div>${c.cvId}</div>
+                            <div class="truncate">${shortAddress}</div>
+                        </div>
+                        ${recommendBadge}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // SortableJS初期化
+        function initKanbanSortables() {
+            // 既存のインスタンスを破棄
+            kanbanSortables.forEach(s => s.destroy());
+            kanbanSortables = [];
+
+            // 全てのカラムボディにSortableを適用
+            const columnBodies = document.querySelectorAll('.kanban-column-body');
+            columnBodies.forEach(body => {
+                const sortable = new Sortable(body, {
+                    group: 'kanban-cases',
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    chosenClass: 'sortable-chosen',
+                    dragClass: 'sortable-drag',
+                    onEnd: function(evt) {
+                        const cvId = evt.item.dataset.cvId;
+                        const newAssignee = evt.to.dataset.assignee;
+                        const oldAssignee = evt.from.dataset.assignee;
+
+                        if (newAssignee !== oldAssignee) {
+                            // 変更を記録
+                            kanbanChanges[cvId] = newAssignee;
+                            updateKanbanChangeCount();
+                            updateColumnCounts();
+                        }
+                    }
+                });
+                kanbanSortables.push(sortable);
+            });
+        }
+
+        // 変更件数を更新
+        function updateKanbanChangeCount() {
+            const count = Object.keys(kanbanChanges).length;
+            document.getElementById('kanbanChangeCount').innerHTML = `<span class="font-medium">${count}</span>件の変更`;
+            document.getElementById('saveKanbanBtn').disabled = count === 0;
+        }
+
+        // 列のカウントを更新
+        function updateColumnCounts() {
+            const columnBodies = document.querySelectorAll('.kanban-column-body');
+            columnBodies.forEach(body => {
+                const assignee = body.dataset.assignee;
+                const count = body.querySelectorAll('.kanban-card').length;
+
+                // 未振り分け列
+                if (assignee === '') {
+                    const countEl = document.getElementById('unassignedColumnCount');
+                    if (countEl) countEl.textContent = count;
+                } else {
+                    // メンバー列を探す
+                    const members = [...document.querySelectorAll('.kanban-column-body')];
+                    members.forEach(m => {
+                        if (m.dataset.assignee === assignee) {
+                            const header = m.previousElementSibling;
+                            const countSpan = header?.querySelector('span[id^="kanban-count-"]');
+                            if (countSpan) countSpan.textContent = count;
+                        }
+                    });
+                }
+            });
+        }
+
+        // 変更をリセット
+        function resetKanbanChanges() {
+            kanbanChanges = {};
+            buildKanban(); // 再構築
+        }
+
+        // 変更を保存
+        async function saveKanbanChanges() {
+            const changes = Object.entries(kanbanChanges);
+            if (changes.length === 0) return;
+
+            const btn = document.getElementById('saveKanbanBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" class="opacity-75"></path></svg> 保存中...';
+
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const [cvId, newAssignee] of changes) {
+                try {
+                    const response = await fetch(GAS_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: 'updateCVData',
+                            merchantId: window.merchantId,
+                            cvId: cvId,
+                            data: { assignee: newAssignee }
+                        })
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // ローカルデータも更新
+                        const caseData = merchantCasesData.find(c => String(c.cvId) === String(cvId));
+                        if (caseData) {
+                            caseData.assignee = newAssignee;
+                        }
+                        successCount++;
+                    } else {
+                        errorCount++;
+                        console.error(`Failed to update ${cvId}:`, result.error);
+                    }
+                } catch (error) {
+                    errorCount++;
+                    console.error(`Error updating ${cvId}:`, error);
+                }
+            }
+
+            // 結果通知
+            if (errorCount === 0) {
+                showNotification('成功', `${successCount}件の振り分けを保存しました`, 'success');
+                kanbanChanges = {};
+                updateKanbanChangeCount();
+                renderCases(); // メインリストも更新
+            } else {
+                showNotification('警告', `${successCount}件成功、${errorCount}件失敗`, 'warning');
+            }
+
+            btn.disabled = Object.keys(kanbanChanges).length === 0;
+            btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> 変更を保存';
+        }
+
+        // 自動振り分け
+        async function autoAssignCases() {
+            const members = await getMemberListFromAPI();
+            if (members.length === 0) {
+                showNotification('エラー', 'メンバーが登録されていません', 'error');
+                return;
+            }
+
+            // 未振り分け案件を取得
+            const unassignedCards = document.querySelectorAll('#kanban-unassigned .kanban-card');
+            if (unassignedCards.length === 0) {
+                showNotification('情報', '振り分ける案件がありません', 'info');
+                return;
+            }
+
+            // 均等に振り分け
+            let memberIndex = 0;
+            unassignedCards.forEach(card => {
+                const cvId = card.dataset.cvId;
+                const targetMember = members[memberIndex % members.length];
+
+                // カードを移動
+                const targetColumn = document.getElementById(`kanban-${targetMember.memberId}`);
+                if (targetColumn) {
+                    targetColumn.appendChild(card);
+                    kanbanChanges[cvId] = targetMember.name;
+                }
+
+                memberIndex++;
+            });
+
+            updateKanbanChangeCount();
+            updateColumnCounts();
+            showNotification('自動振り分け', `${unassignedCards.length}件を${members.length}人に均等振り分けしました`, 'success');
+        }
+
+        // ソート/フィルター更新（将来拡張用）
+        function updateKanbanSort() {
+            // 現時点では再構築で対応
+            buildKanban();
+        }
+
+        // モーダルを開く（旧UI - 互換性のため残す）
         async function openAssignModal(cvId) {
             assignTargetCvId = cvId;
 
