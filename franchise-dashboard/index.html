@@ -15323,12 +15323,52 @@
             container.innerHTML = html || '<div class="text-center py-12 text-gray-400"><svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg><p class="text-lg">メンバーがいません</p><p class="text-sm mt-1">「メンバーを招待」から追加してください</p></div>';
         }
 
-        // 招待をキャンセル
-        function cancelInvite(inviteId) {
+        // 招待をキャンセル（GAS API連携）
+        async function cancelInvite(inviteId) {
             if (!confirm('この招待を取り消しますか？')) return;
-            pendingInvites = pendingInvites.filter(i => i.id !== inviteId);
-            renderMemberList();
-            showNotification('招待取消', '招待を取り消しました', 'success');
+
+            const merchantId = localStorage.getItem('merchantId') || sessionStorage.getItem('merchantId') || window.merchantId;
+            if (!merchantId) {
+                showToast('エラー: merchantIdが取得できません', 'error');
+                return;
+            }
+
+            try {
+                const result = await new Promise((resolve, reject) => {
+                    const callbackName = 'cancelInviteCallback_' + Date.now();
+                    const timeout = setTimeout(() => {
+                        delete window[callbackName];
+                        reject(new Error('タイムアウト'));
+                    }, 30000);
+
+                    window[callbackName] = function(response) {
+                        clearTimeout(timeout);
+                        delete window[callbackName];
+                        resolve(response);
+                    };
+
+                    const script = document.createElement('script');
+                    script.src = `${window.ENV.GAS_URL}?action=cancelInvite&memberId=${encodeURIComponent(inviteId)}&merchantId=${encodeURIComponent(merchantId)}&callback=${callbackName}`;
+                    script.onerror = () => {
+                        clearTimeout(timeout);
+                        delete window[callbackName];
+                        reject(new Error('スクリプト読み込みエラー'));
+                    };
+                    document.body.appendChild(script);
+                    script.onload = () => document.body.removeChild(script);
+                });
+
+                if (result.success) {
+                    pendingInvites = pendingInvites.filter(i => i.id !== inviteId);
+                    renderMemberList();
+                    showNotification('招待取消', '招待を取り消しました', 'success');
+                } else {
+                    showToast('招待取消エラー: ' + (result.error || '不明なエラー'), 'error');
+                }
+            } catch (error) {
+                console.error('[cancelInvite] 例外:', error);
+                showToast('招待取消に失敗しました', 'error');
+            }
         }
 
         // 招待リンクをコピー
