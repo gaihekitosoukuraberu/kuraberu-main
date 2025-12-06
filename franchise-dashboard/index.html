@@ -15129,11 +15129,24 @@
         let pendingInvites = [];
 
         // V2065: メンバーリストをGAS APIから取得
+        let memberListLoading = false;
         async function loadMemberList() {
             const merchantId = localStorage.getItem('merchantId') || sessionStorage.getItem('merchantId') || window.merchantId;
             if (!merchantId) {
                 console.error('[loadMemberList] merchantIdが取得できません');
                 return;
+            }
+
+            // ローディングスピナー表示
+            memberListLoading = true;
+            const container = document.getElementById('memberListBody');
+            if (container) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent"></div>
+                        <p class="mt-4 text-gray-500">メンバーを読み込み中...</p>
+                    </div>
+                `;
             }
 
             console.log('[loadMemberList] メンバー取得開始:', merchantId);
@@ -15184,13 +15197,18 @@
                     }));
 
                     console.log('[loadMemberList] activeメンバー:', memberList.length, 'pending:', pendingInvites.length);
+                    memberListLoading = false;
                     renderMemberList();
                 } else {
                     console.error('[loadMemberList] エラー:', result.error);
+                    memberListLoading = false;
+                    renderMemberList(); // 空の状態を表示
                     showToast('メンバー取得エラー: ' + (result.error || '不明なエラー'), 'error');
                 }
             } catch (error) {
                 console.error('[loadMemberList] 例外:', error);
+                memberListLoading = false;
+                renderMemberList(); // 空の状態を表示
                 showToast('メンバー取得に失敗しました', 'error');
             }
         }
