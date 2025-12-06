@@ -24505,19 +24505,7 @@
             });
         }
 
-        // 担当者を削除
-        function removeAssignee(button) {
-            const tag = button.closest('.assignee-tag');
-            const dropArea = tag.closest('.assignee-drop-area');
-            tag.remove();
-
-            // 担当者がいなくなったらプレースホルダーを表示
-            if (dropArea.querySelectorAll('.assignee-tag').length === 0) {
-                dropArea.innerHTML = '<p class="text-xs text-gray-400 text-center">担当者をここにドロップ</p>';
-                const caseCard = dropArea.closest('.case-drop-zone');
-                caseCard.classList.remove('border-blue-400');
-            }
-        }
+        // V2084: 旧removeAssignee関数は削除（新UIではremoveAssignee(cvId, memberName)を使用）
 
         // 振り分け方法変更時の推奨更新
         function updateAssignmentSuggestion() {
