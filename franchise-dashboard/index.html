@@ -18926,7 +18926,7 @@
                     <div class="flex justify-between items-center mb-4">
                         <button onclick="event.stopPropagation(); openStatusModal('${c.cvId}')" class="px-3 py-1.5 text-sm font-bold rounded-full ${style.bg} ${style.text} hover:opacity-80 transition-opacity cursor-pointer" title="タップでステータス変更">${status}</button>
                         ${assignee && assignee !== '-'
-                            ? `<span class="text-base text-gray-700 font-medium">${escapeHtml(assignee)}</span>`
+                            ? getAssigneeChipHtml(assignee)
                             : (isAdmin()
                                 ? `<button onclick="event.stopPropagation(); openAssignPanel()" class="px-3 py-1.5 text-sm font-bold text-amber-600 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors">未振り分け</button>`
                                 : (hasPermission('case.selfpick')
@@ -19207,7 +19207,7 @@
                     <!-- 担当 -->
                     <td class="px-3 py-3 text-sm text-center">
                         ${assignee && assignee !== '-'
-                            ? `<span class="text-gray-600">${escapeHtml(assignee)}</span>`
+                            ? getAssigneeChipHtml(assignee, true)
                             : (isAdmin()
                                 ? `<button onclick="openAssignPanel()" class="px-2 py-1 text-xs font-medium text-amber-600 bg-amber-50 rounded hover:bg-amber-100 transition-colors">未振り分け</button>`
                                 : (hasPermission('case.selfpick')
@@ -19241,6 +19241,53 @@
             return String(str).replace(/[&<>"']/g, s => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
             }[s]));
+        }
+
+        // V2080: 担当者チップHTML生成（管理者=紫系、メンバー=水色系）
+        function getAssigneeChipHtml(assigneeName, compact = false) {
+            if (!assigneeName || assigneeName === '-') return '';
+
+            // 管理者（オーナー）名と比較
+            const adminName = window.merchantData?.salesPerson || window.merchantData?.['営業担当者氏名'] || '';
+            const isAdminAssignee = adminName && assigneeName === adminName;
+
+            if (compact) {
+                // コンパクト版（リストビュー用）
+                if (isAdminAssignee) {
+                    return `
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-100 border border-purple-200">
+                            <span class="w-4 h-4 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white text-[10px] font-bold">${escapeHtml(assigneeName.charAt(0))}</span>
+                            <span class="text-xs font-medium text-purple-700">${escapeHtml(assigneeName)}</span>
+                        </span>
+                    `;
+                } else {
+                    return `
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-50 border border-cyan-200">
+                            <span class="w-4 h-4 rounded-full bg-gradient-to-br from-cyan-400 to-blue-400 flex items-center justify-center text-white text-[10px] font-bold">${escapeHtml(assigneeName.charAt(0))}</span>
+                            <span class="text-xs font-medium text-cyan-700">${escapeHtml(assigneeName)}</span>
+                        </span>
+                    `;
+                }
+            }
+
+            // 通常版（カードビュー用）
+            if (isAdminAssignee) {
+                // 管理者 = 紫系のチップ
+                return `
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-100 to-indigo-100 border border-purple-200">
+                        <span class="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white text-xs font-bold shadow-sm">${escapeHtml(assigneeName.charAt(0))}</span>
+                        <span class="text-sm font-medium text-purple-700">${escapeHtml(assigneeName)}</span>
+                    </span>
+                `;
+            } else {
+                // メンバー = 水色系のチップ
+                return `
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200">
+                        <span class="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-blue-400 flex items-center justify-center text-white text-xs font-bold shadow-sm">${escapeHtml(assigneeName.charAt(0))}</span>
+                        <span class="text-sm font-medium text-cyan-700">${escapeHtml(assigneeName)}</span>
+                    </span>
+                `;
+            }
         }
 
         // V2070: 権限チェック関数
@@ -20885,12 +20932,7 @@
                         <div class="card-address">📍 ${escapeHtml(shortAddress)}</div>
                         <div class="assignee-chips ${assignees.length > 0 ? 'has-assignees' : ''}" id="assignees-${c.cvId}">
                             ${assignees.length > 0
-                                ? assignees.map(name => `
-                                    <span class="assignee-chip">
-                                        ${escapeHtml(name)}
-                                        <span class="remove-btn" onclick="removeAssignee('${c.cvId}', '${name}')">×</span>
-                                    </span>
-                                `).join('')
+                                ? assignees.map(name => getAssigneePanelChipHtml(name, c.cvId)).join('')
                                 : '<span class="placeholder">👆 担当者をドラッグしてね</span>'
                             }
                         </div>
@@ -20981,18 +21023,37 @@
         }
 
         // 担当者チップUIを更新
+        // 振り分けパネル用のチップ生成（管理者=紫系、メンバー=水色系）
+        function getAssigneePanelChipHtml(name, cvId) {
+            const adminName = window.merchantData?.salesPerson || window.merchantData?.['営業担当者氏名'] || '';
+            const isAdminAssignee = adminName && name === adminName;
+
+            if (isAdminAssignee) {
+                return `
+                    <span class="assignee-chip" style="background: linear-gradient(135deg, #f3e8ff, #e0e7ff); border-color: #c4b5fd;">
+                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #a855f7, #6366f1); color: white; font-size: 10px; font-weight: bold; margin-right: 4px;">${escapeHtml(name.charAt(0))}</span>
+                        <span style="color: #7c3aed; font-weight: 500;">${escapeHtml(name)}</span>
+                        <span class="remove-btn" onclick="removeAssignee('${cvId}', '${name}')">×</span>
+                    </span>
+                `;
+            } else {
+                return `
+                    <span class="assignee-chip" style="background: linear-gradient(135deg, #ecfeff, #eff6ff); border-color: #a5f3fc;">
+                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #22d3ee, #60a5fa); color: white; font-size: 10px; font-weight: bold; margin-right: 4px;">${escapeHtml(name.charAt(0))}</span>
+                        <span style="color: #0891b2; font-weight: 500;">${escapeHtml(name)}</span>
+                        <span class="remove-btn" onclick="removeAssignee('${cvId}', '${name}')">×</span>
+                    </span>
+                `;
+            }
+        }
+
         function updateAssigneeChips(cvId, assignees) {
             const container = document.getElementById(`assignees-${cvId}`);
             if (!container) return;
 
             if (assignees.length > 0) {
                 container.classList.add('has-assignees');
-                container.innerHTML = assignees.map(name => `
-                    <span class="assignee-chip">
-                        ${escapeHtml(name)}
-                        <span class="remove-btn" onclick="removeAssignee('${cvId}', '${name}')">×</span>
-                    </span>
-                `).join('');
+                container.innerHTML = assignees.map(name => getAssigneePanelChipHtml(name, cvId)).join('');
             } else {
                 container.classList.remove('has-assignees');
                 container.innerHTML = '<span class="placeholder">👆 担当者をドラッグしてね</span>';
