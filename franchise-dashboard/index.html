@@ -20469,7 +20469,7 @@
                         action: 'updateCVData',
                         merchantId: window.merchantId,
                         cvId: assignTargetCvId,
-                        data: { assignee: staffName, assigneeId: memberId }
+                        data: { assignee: staffName }  // V2066: 担当者名のみ（複数人はカンマ区切り）
                     })
                 });
 
@@ -20481,7 +20481,6 @@
                     const caseData = merchantCasesData.find(c => String(c.cvId) === String(assignTargetCvId));
                     if (caseData) {
                         caseData.assignee = staffName;
-                        caseData.assigneeId = memberId;
                     }
                     // リスト再描画
                     if (typeof renderCaseList === 'function') {
@@ -20536,19 +20535,20 @@
                             action: 'updateCVData',
                             merchantId: window.merchantId,
                             cvId: caseData.cvId,
-                            data: { assignee: member.name, assigneeId: member.memberId }
+                            data: { assignee: member.name }  // V2066: 担当者名のみ
                         })
                     });
 
                     const result = await response.json();
                     if (result.success) {
                         caseData.assignee = member.name;
-                        caseData.assigneeId = member.memberId;
                         successCount++;
                     } else {
+                        console.error('[bulkAssignEqual] 失敗:', caseData.cvId, result.error);
                         errorCount++;
                     }
                 } catch (error) {
+                    console.error('[bulkAssignEqual] 例外:', error);
                     errorCount++;
                 }
             }
