@@ -284,11 +284,14 @@
                         storage.setItem('memberRole', member.role || 'standard');
                         storage.setItem('franchiseUser', merchantId); // V2065: メンバー自身のID（表示用）
                         storage.setItem('franchiseRole', member.role || 'standard');
+                        // V2070: 権限情報を保存（セルフピック等の判定用）
+                        storage.setItem('memberPermissions', JSON.stringify(member.permissions || {}));
                     } else {
-                        // オーナーログイン
+                        // オーナーログイン（全権限）
                         storage.setItem('merchantId', merchantId);
                         storage.setItem('franchiseUser', merchantId);
                         storage.setItem('franchiseRole', 'admin');
+                        storage.setItem('memberPermissions', JSON.stringify({ admin: true })); // 管理者は全権限
                     }
 
                     storage.setItem('isLoggedIn', 'true');

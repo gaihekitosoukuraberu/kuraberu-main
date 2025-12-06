@@ -7495,6 +7495,13 @@
                             </span>
                         </label>
                         <label class="flex items-center text-sm group relative">
+                            <input type="checkbox" class="permission-checkbox rounded" data-permission="case.selfpick">
+                            <span class="ml-2">セルフピック（案件取得）</span>
+                            <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                未振り分け案件を自分で担当できる権限
+                            </span>
+                        </label>
+                        <label class="flex items-center text-sm group relative">
                             <input type="checkbox" class="permission-checkbox rounded" data-permission="case.cancel">
                             <span class="ml-2">キャンセル申請</span>
                             <span class="invisible group-hover:visible absolute left-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
@@ -16189,9 +16196,9 @@
         function setPreset(preset) {
             const presets = {
                 office: ['case.cancel', 'case.contract', 'automail.view', 'report.self', 'company.view'],
-                standard: ['case.cancel', 'case.contract', 'automail.view', 'report.self', 'company.view'],
-                leader: ['case.view.all', 'case.edit', 'case.hide', 'case.delete', 'case.cancel', 'case.contract', 'finance.view', 'automail.view', 'automail.edit', 'report.self', 'report.all', 'report.export', 'company.view'],
-                admin: ['case.view.all', 'case.edit', 'case.hide', 'case.delete', 'case.cancel', 'case.contract', 'automail.view', 'automail.edit', 'finance.view', 'finance.export', 'report.self', 'report.all', 'report.export', 'sales.manage', 'company.view', 'company.edit']
+                standard: ['case.selfpick', 'case.cancel', 'case.contract', 'automail.view', 'report.self', 'company.view'],
+                leader: ['case.view.all', 'case.edit', 'case.hide', 'case.delete', 'case.selfpick', 'case.cancel', 'case.contract', 'finance.view', 'automail.view', 'automail.edit', 'report.self', 'report.all', 'report.export', 'company.view'],
+                admin: ['case.view.all', 'case.edit', 'case.hide', 'case.delete', 'case.selfpick', 'case.cancel', 'case.contract', 'automail.view', 'automail.edit', 'finance.view', 'finance.export', 'report.self', 'report.all', 'report.export', 'sales.manage', 'company.view', 'company.edit']
             };
             
             // すべてのチェックボックスをクリア
@@ -18893,7 +18900,13 @@
                         <button onclick="event.stopPropagation(); openStatusModal('${c.cvId}')" class="px-3 py-1.5 text-sm font-bold rounded-full ${style.bg} ${style.text} hover:opacity-80 transition-opacity cursor-pointer" title="タップでステータス変更">${status}</button>
                         ${assignee && assignee !== '-'
                             ? `<span class="text-base text-gray-700 font-medium">${escapeHtml(assignee)}</span>`
-                            : `<button onclick="event.stopPropagation(); openAssignPanel()" class="px-3 py-1.5 text-sm font-bold text-amber-600 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors">未振り分け</button>`
+                            : (isAdmin()
+                                ? `<button onclick="event.stopPropagation(); openAssignPanel()" class="px-3 py-1.5 text-sm font-bold text-amber-600 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors">未振り分け</button>`
+                                : (hasPermission('case.selfpick')
+                                    ? `<button onclick="event.stopPropagation(); selfPickCase('${c.cvId}')" class="px-3 py-1.5 text-sm font-bold text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">自分が担当</button>`
+                                    : `<span class="text-sm text-amber-500">未振り分け</span>`
+                                )
+                            )
                         }
                     </div>
                     <h3 class="font-bold text-xl mb-2">${escapeHtml(c.customerName || '-')}</h3>
@@ -19168,7 +19181,13 @@
                     <td class="px-3 py-3 text-sm text-center">
                         ${assignee && assignee !== '-'
                             ? `<span class="text-gray-600">${escapeHtml(assignee)}</span>`
-                            : `<button onclick="openAssignPanel()" class="px-2 py-1 text-xs font-medium text-amber-600 bg-amber-50 rounded hover:bg-amber-100 transition-colors">未振り分け</button>`
+                            : (isAdmin()
+                                ? `<button onclick="openAssignPanel()" class="px-2 py-1 text-xs font-medium text-amber-600 bg-amber-50 rounded hover:bg-amber-100 transition-colors">未振り分け</button>`
+                                : (hasPermission('case.selfpick')
+                                    ? `<button onclick="selfPickCase('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-green-600 bg-green-50 rounded hover:bg-green-100 transition-colors">自分が担当</button>`
+                                    : `<span class="text-xs text-amber-500">未振り分け</span>`
+                                )
+                            )
                         }
                     </td>
                     <!-- 配信日 -->
@@ -19195,6 +19214,89 @@
             return String(str).replace(/[&<>"']/g, s => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
             }[s]));
+        }
+
+        // V2070: 権限チェック関数
+        function hasPermission(permissionKey) {
+            // 管理者（オーナー）は全権限あり
+            const role = sessionStorage.getItem('franchiseRole') || localStorage.getItem('franchiseRole');
+            if (role === 'admin') return true;
+
+            // メンバーの権限をチェック
+            try {
+                const permStr = sessionStorage.getItem('memberPermissions') || localStorage.getItem('memberPermissions');
+                const permissions = permStr ? JSON.parse(permStr) : {};
+                // 配列形式: ['case.selfpick', 'case.cancel'] または オブジェクト形式: {case: {selfpick: true}}
+                if (Array.isArray(permissions)) {
+                    return permissions.includes(permissionKey);
+                }
+                // ドット記法でオブジェクト探索 (e.g., 'case.selfpick')
+                const keys = permissionKey.split('.');
+                let obj = permissions;
+                for (const key of keys) {
+                    if (obj && typeof obj === 'object' && key in obj) {
+                        obj = obj[key];
+                    } else {
+                        return false;
+                    }
+                }
+                return !!obj;
+            } catch (e) {
+                console.warn('[hasPermission] Error parsing permissions:', e);
+                return false;
+            }
+        }
+
+        // V2070: 現在のユーザーが管理者かどうか
+        function isAdmin() {
+            const role = sessionStorage.getItem('franchiseRole') || localStorage.getItem('franchiseRole');
+            return role === 'admin';
+        }
+
+        // V2070: 現在のユーザー名を取得
+        function getCurrentUserName() {
+            const memberName = sessionStorage.getItem('memberName') || localStorage.getItem('memberName');
+            if (memberName) return memberName;
+            // 管理者の場合は加盟店データの「営業担当者氏名」（X列）から取得
+            return window.merchantData?.salesPerson || window.merchantData?.['営業担当者氏名'] || window.franchiseUser?.name || '';
+        }
+
+        // V2070: セルフピック - 自分を案件担当者にする
+        async function selfPickCase(cvId) {
+            const userName = getCurrentUserName();
+            if (!userName) {
+                showNotification('エラー', 'ユーザー名を取得できませんでした。プロフィール設定をご確認ください。', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'updateCVData',
+                        merchantId: window.merchantId,
+                        cvId: cvId,
+                        data: { assignee: userName }
+                    })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    // ローカルデータも更新
+                    const caseData = merchantCasesData.find(c => String(c.cvId) === String(cvId));
+                    if (caseData) {
+                        caseData.assignee = userName;
+                    }
+                    showNotification('担当設定完了', `${userName}さんが担当になりました`, 'success');
+                    renderCases(); // リスト再描画
+                } else {
+                    showNotification('エラー', result.error || '担当設定に失敗しました', 'error');
+                }
+            } catch (error) {
+                console.error('[selfPickCase] Error:', error);
+                showNotification('エラー', '通信エラーが発生しました', 'error');
+            }
         }
 
         // 案件を CV ID で検索
@@ -20685,7 +20787,8 @@
 
             // メンバーリストを取得
             const members = await getMemberListFromAPI();
-            const adminName = window.franchiseUser?.name || '管理者';
+            // V2070: 管理者名は加盟店データの「営業担当者氏名」（X列）から取得
+            const adminName = window.merchantData?.salesPerson || window.merchantData?.['営業担当者氏名'] || window.franchiseUser?.name || '管理者';
 
             // 管理者を含めた全メンバー
             allMembers = [
