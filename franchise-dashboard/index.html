@@ -18893,7 +18893,7 @@
                         <button onclick="event.stopPropagation(); openStatusModal('${c.cvId}')" class="px-3 py-1.5 text-sm font-bold rounded-full ${style.bg} ${style.text} hover:opacity-80 transition-opacity cursor-pointer" title="タップでステータス変更">${status}</button>
                         ${assignee && assignee !== '-'
                             ? `<span class="text-base text-gray-700 font-medium">${escapeHtml(assignee)}</span>`
-                            : `<button onclick="event.stopPropagation(); openAssignModal('${c.cvId}')" class="px-3 py-1.5 text-sm font-bold text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">案件振り分け</button>`
+                            : `<button onclick="event.stopPropagation(); openAssignPanel()" class="px-3 py-1.5 text-sm font-bold text-amber-600 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors">未振り分け</button>`
                         }
                     </div>
                     <h3 class="font-bold text-xl mb-2">${escapeHtml(c.customerName || '-')}</h3>
@@ -19168,7 +19168,7 @@
                     <td class="px-3 py-3 text-sm text-center">
                         ${assignee && assignee !== '-'
                             ? `<span class="text-gray-600">${escapeHtml(assignee)}</span>`
-                            : `<button onclick="openAssignModal('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 rounded hover:bg-purple-100 transition-colors">案件振り分け</button>`
+                            : `<button onclick="openAssignPanel()" class="px-2 py-1 text-xs font-medium text-amber-600 bg-amber-50 rounded hover:bg-amber-100 transition-colors">未振り分け</button>`
                         }
                     </td>
                     <!-- 配信日 -->
