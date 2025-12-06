@@ -16378,8 +16378,11 @@
                 userRole = savedRole;
                 document.getElementById('mainApp').classList.remove('hidden');
 
+                // V2082: メンバーログインの場合は親の加盟店IDを使用
+                const actualMerchantId = localStorage.getItem('merchantId') || sessionStorage.getItem('merchantId') || savedUser;
+
                 // 加盟店データを取得してから表示を更新
-                fetchMerchantData(savedUser).then(() => {
+                fetchMerchantData(actualMerchantId).then(() => {
                     updateRoleDisplay();
                     showSection('dashboard');
                     initializeFirstLoginSettings();
