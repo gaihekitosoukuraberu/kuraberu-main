@@ -121,6 +121,8 @@ const MerchantSystem = {
           return MerchantMemberInvite.getMemberList(params);
         case 'verifyMemberLogin':
           return MerchantMemberInvite.verifyMemberLogin(params);
+        case 'cancelInvite':  // V2066: JSONP対応（GET）
+          return MerchantMemberInvite.cancelInvite(params);
 
         default:
           return {
