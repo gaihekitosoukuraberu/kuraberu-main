@@ -19499,6 +19499,8 @@
                 const note = item.note || '';
                 const date = item.date || '';
                 const type = item.type || detectHistoryType(note);
+                // V2087: 担当者名を取得（なければ空）
+                const staffName = item.staffName || '';
 
                 // 日付をフォーマット（MM/DD HH:mm形式）
                 let formattedDate = date;
@@ -19542,6 +19544,7 @@
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 mb-1 flex-wrap">
                                     <span class="text-xs text-gray-400 font-medium">${formattedDate}</span>
+                                    ${staffName ? `<span class="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">👤 ${escapeHtml(staffName)}</span>` : ''}
                                     <span class="text-xs px-1.5 py-0.5 rounded ${bgColor} ${textColor} font-medium">${icon} ${label}</span>
                                     ${itemLabel ? `<span class="text-xs px-1.5 py-0.5 rounded ${labelStyle.bg} ${labelStyle.text} font-medium flex items-center gap-1"><span class="w-2 h-2 rounded-full ${labelStyle.dot}"></span>${itemLabel}</span>` : ''}
                                 </div>
@@ -19779,6 +19782,8 @@
 
             const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
             const timestamp = new Date().toLocaleString('ja-JP');
+            // V2087: 誰がメモを追加したか記録
+            const staffName = getCurrentUserName() || '不明';
 
             // callHistoryに追加
             if (!currentMemoCase.callHistory) {
@@ -19786,7 +19791,8 @@
             }
             currentMemoCase.callHistory.unshift({
                 date: timestamp,
-                note: memo
+                note: memo,
+                staffName: staffName // V2087: 担当者名を追加
             });
 
             // 保存対象を退避（モーダル閉じる前に）
@@ -20038,9 +20044,12 @@
                     if (!currentCallCase.callHistory) {
                         currentCallCase.callHistory = [];
                     }
+                    // V2087: 誰が架電したか記録
+                    const staffName = getCurrentUserName() || '不明';
                     currentCallCase.callHistory.unshift({
                         date: new Date().toLocaleString('ja-JP'),
-                        note: '📞 接続'
+                        note: '📞 接続',
+                        staffName: staffName // V2087: 担当者名を追加
                     });
                     console.log('[selectConnectionStatus] callHistory updated:', currentCallCase.callHistory.length);
                     renderCases(); // UI即時反映
@@ -20102,9 +20111,12 @@
                     if (!currentCallCase.callHistory) {
                         currentCallCase.callHistory = [];
                     }
+                    // V2087: 誰が架電したか記録
+                    const staffName = getCurrentUserName() || '不明';
                     currentCallCase.callHistory.unshift({
                         date: new Date().toLocaleString('ja-JP'),
-                        note: '📞 不在'
+                        note: '📞 不在',
+                        staffName: staffName // V2087: 担当者名を追加
                     });
                     // 電話回数をインクリメント
                     currentCallCase.callCount = (parseInt(currentCallCase.callCount || 0) + 1);
@@ -20462,10 +20474,13 @@
                 if (!currentStatusCase.callHistory) {
                     currentStatusCase.callHistory = [];
                 }
+                // V2087: 誰がステータス変更したか記録
+                const staffName = getCurrentUserName() || '不明';
                 currentStatusCase.callHistory.unshift({
                     date: new Date().toLocaleString('ja-JP'),
                     type: 'status_change',
-                    note: `🏷️ ${oldStatus || '新着'} → ${newStatus}`
+                    note: `🏷️ ${oldStatus || '新着'} → ${newStatus}`,
+                    staffName: staffName
                 });
             }
 
@@ -20725,8 +20740,9 @@
             } else {
                 historyEl.innerHTML = memoRecords.slice(0, 3).map(item => `
                     <div class="text-xs bg-white rounded p-2 border border-amber-100">
-                        <div class="flex justify-between items-start">
+                        <div class="flex justify-between items-start gap-2">
                             <span class="text-gray-500">${item.date || ''}</span>
+                            ${item.staffName ? `<span class="text-gray-500">👤 ${escapeHtml(item.staffName)}</span>` : ''}
                         </div>
                         <p class="text-gray-700 mt-0.5 line-clamp-2">${escapeHtml(item.note || '')}</p>
                     </div>
@@ -20747,9 +20763,12 @@
             if (!currentDetailCase.callHistory) {
                 currentDetailCase.callHistory = [];
             }
+            // V2087: 誰がメモを追加したか記録
+            const staffName = getCurrentUserName() || '不明';
             currentDetailCase.callHistory.unshift({
                 date: new Date().toLocaleString('ja-JP'),
-                note: memo
+                note: memo,
+                staffName: staffName // V2087: 担当者名を追加
             });
 
             // UI更新
@@ -22047,10 +22066,13 @@
             if (!c.callHistory) {
                 c.callHistory = [];
             }
+            // V2087: 誰が現調設定したか記録
+            const staffName = getCurrentUserName() || '不明';
             c.callHistory.unshift({
                 date: new Date().toLocaleString('ja-JP'),
                 type: 'survey_set',
-                note: `🏠 現調予定: ${surveyDateDisplay}`
+                note: `🏠 現調予定: ${surveyDateDisplay}`,
+                staffName: staffName
             });
 
             // ローカルデータ更新
@@ -22161,10 +22183,13 @@
 
             // 履歴に追加
             if (!c.callHistory) c.callHistory = [];
+            // V2087: 誰が状況設定したか記録
+            const staffName = getCurrentUserName() || '不明';
             c.callHistory.unshift({
                 date: new Date().toLocaleString('ja-JP'),
                 type: 'situation',
-                note: displayText
+                note: displayText,
+                staffName: staffName
             });
 
             // GASに保存
@@ -22383,10 +22408,13 @@
 
             // 履歴に追加
             if (!c.callHistory) c.callHistory = [];
+            // V2087: 誰がフォロー設定したか記録
+            const staffName = getCurrentUserName() || '不明';
             c.callHistory.unshift({
                 date: new Date().toLocaleString('ja-JP'),
                 type: 'follow_set',
-                note: `📅 フォロー予定: ${displayStr}`
+                note: `📅 フォロー予定: ${displayStr}`,
+                staffName: staffName
             });
 
             // GASに保存
