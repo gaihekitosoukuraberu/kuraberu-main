@@ -133,6 +133,13 @@ const AdminSystem = {
         case 'revertRegistration':
           return this.revertRegistration(e.parameter);
 
+        // V2066: CV情報更新（案件振り分け等）
+        case 'updateCVData':
+          return this.updateCVData(postData);
+
+        case 'updateCVStatus':
+          return this.updateCVStatus(postData);
+
         default:
           return {
             success: false,
