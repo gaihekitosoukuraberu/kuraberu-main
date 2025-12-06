@@ -22587,10 +22587,13 @@
             if (!c.callHistory) {
                 c.callHistory = [];
             }
+            // V2087: 誰が商談設定したか記録
+            const staffName = getCurrentUserName() || '不明';
             c.callHistory.unshift({
                 date: new Date().toLocaleString('ja-JP'),
                 type: 'estimate_set',
-                note: `📋 商談予定: ${estimateDateDisplay}`
+                note: `📋 商談予定: ${estimateDateDisplay}`,
+                staffName: staffName
             });
 
             // ローカルデータ更新
@@ -22933,10 +22936,13 @@
                 if (!caseData.callHistory) {
                     caseData.callHistory = [];
                 }
+                // V2087: 誰が次回架電設定したか記録
+                const staffName = getCurrentUserName() || '不明';
                 caseData.callHistory.unshift({
                     date: new Date().toLocaleString('ja-JP'),
                     type: 'next_call_set',
-                    note: `📅 次回架電: ${nextCallDisplay}`
+                    note: `📅 次回架電: ${nextCallDisplay}`,
+                    staffName: staffName
                 });
             }
             renderCases();
