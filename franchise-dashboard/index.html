@@ -15777,6 +15777,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">引き継ぎ先</label>
                         <select id="reassignTo" class="w-full px-3 py-2 border rounded-lg">
                             <option value="">選択してください</option>
+                            <option value="__ADMIN__">🔄 管理者に返す（再振り分け）</option>
                             ${memberList.filter(m => m.name !== name).map(m => `<option value="${m.id}">${m.name}（${m.roleLabel}）</option>`).join('')}
                         </select>
                     </div>
@@ -24437,6 +24438,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">引き継ぎ先</label>
                         <select id="passToSelect" class="w-full p-2 border rounded-lg">
                             <option value="">選択してください</option>
+                            <option value="__ADMIN__">🔄 管理者に返す（再振り分け）</option>
                             ${memberList.map(m => `<option value="${m.id}">${m.name}（${m.roleLabel}）</option>`).join('')}
                         </select>
                     </div>
