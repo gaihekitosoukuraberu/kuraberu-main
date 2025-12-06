@@ -279,10 +279,10 @@
                         // メンバーログイン（result.memberから取得）
                         const member = result.member || {};
                         storage.setItem('memberId', merchantId);
-                        storage.setItem('merchantId', member.merchantId); // 親の加盟店ID
+                        storage.setItem('merchantId', member.merchantId); // 親の加盟店ID（API用）
                         storage.setItem('memberName', member.name || '');
                         storage.setItem('memberRole', member.role || 'standard');
-                        storage.setItem('franchiseUser', member.merchantId);
+                        storage.setItem('franchiseUser', merchantId); // V2065: メンバー自身のID（表示用）
                         storage.setItem('franchiseRole', member.role || 'standard');
                     } else {
                         // オーナーログイン
