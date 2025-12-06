@@ -510,7 +510,10 @@ var MerchantContractReport = {
           estimateDestination: row[userCol['見積もり送付先']] || '',
           homePostalCode: row[userCol['郵便番号（自宅）']] || '',
           homePrefecture: row[userCol['都道府県（自宅）']] || '',
-          homeAddressDetail: row[userCol['住所詳細（自宅）']] || ''
+          homeAddressDetail: row[userCol['住所詳細（自宅）']] || '',
+
+          // V2085: 担当者（案件振り分け）
+          assignee: row[userCol['担当者名']] || ''
         };
       }
 
@@ -674,7 +677,10 @@ var MerchantContractReport = {
 
           // === 現調・商談日時（配信管理シートから） ===
           surveyDate: row[delCol['現調日時']] || '',
-          estimateDate: row[delCol['商談日時']] || ''
+          estimateDate: row[delCol['商談日時']] || '',
+
+          // === V2085: 担当者（案件振り分け） ===
+          assignee: user.assignee || ''
         };
 
         cases.push(caseData);
