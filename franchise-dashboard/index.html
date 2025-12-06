@@ -19254,39 +19254,27 @@
             if (compact) {
                 // コンパクト版（リストビュー用）
                 if (isAdminAssignee) {
-                    return `
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-100 border border-purple-200">
-                            <span class="w-4 h-4 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white text-[10px] font-bold">${escapeHtml(assigneeName.charAt(0))}</span>
+                    return `<span class="inline-flex items-center px-2.5 py-1 rounded-full bg-purple-100 border border-purple-200">
                             <span class="text-xs font-medium text-purple-700">${escapeHtml(assigneeName)}</span>
-                        </span>
-                    `;
+                        </span>`;
                 } else {
-                    return `
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-50 border border-cyan-200">
-                            <span class="w-4 h-4 rounded-full bg-gradient-to-br from-cyan-400 to-blue-400 flex items-center justify-center text-white text-[10px] font-bold">${escapeHtml(assigneeName.charAt(0))}</span>
+                    return `<span class="inline-flex items-center px-2.5 py-1 rounded-full bg-cyan-50 border border-cyan-200">
                             <span class="text-xs font-medium text-cyan-700">${escapeHtml(assigneeName)}</span>
-                        </span>
-                    `;
+                        </span>`;
                 }
             }
 
             // 通常版（カードビュー用）
             if (isAdminAssignee) {
                 // 管理者 = 紫系のチップ
-                return `
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-100 to-indigo-100 border border-purple-200">
-                        <span class="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white text-xs font-bold shadow-sm">${escapeHtml(assigneeName.charAt(0))}</span>
+                return `<span class="inline-flex items-center px-3 py-1.5 rounded-full bg-purple-100 border border-purple-200">
                         <span class="text-sm font-medium text-purple-700">${escapeHtml(assigneeName)}</span>
-                    </span>
-                `;
+                    </span>`;
             } else {
                 // メンバー = 水色系のチップ
-                return `
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200">
-                        <span class="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-blue-400 flex items-center justify-center text-white text-xs font-bold shadow-sm">${escapeHtml(assigneeName.charAt(0))}</span>
+                return `<span class="inline-flex items-center px-3 py-1.5 rounded-full bg-cyan-50 border border-cyan-200">
                         <span class="text-sm font-medium text-cyan-700">${escapeHtml(assigneeName)}</span>
-                    </span>
-                `;
+                    </span>`;
             }
         }
 
@@ -21029,21 +21017,15 @@
             const isAdminAssignee = adminName && name === adminName;
 
             if (isAdminAssignee) {
-                return `
-                    <span class="assignee-chip" style="background: linear-gradient(135deg, #f3e8ff, #e0e7ff); border-color: #c4b5fd;">
-                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #a855f7, #6366f1); color: white; font-size: 10px; font-weight: bold; margin-right: 4px;">${escapeHtml(name.charAt(0))}</span>
+                return `<span class="assignee-chip" style="background: #f3e8ff; border-color: #c4b5fd;">
                         <span style="color: #7c3aed; font-weight: 500;">${escapeHtml(name)}</span>
                         <span class="remove-btn" onclick="removeAssignee('${cvId}', '${name}')">×</span>
-                    </span>
-                `;
+                    </span>`;
             } else {
-                return `
-                    <span class="assignee-chip" style="background: linear-gradient(135deg, #ecfeff, #eff6ff); border-color: #a5f3fc;">
-                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #22d3ee, #60a5fa); color: white; font-size: 10px; font-weight: bold; margin-right: 4px;">${escapeHtml(name.charAt(0))}</span>
+                return `<span class="assignee-chip" style="background: #ecfeff; border-color: #a5f3fc;">
                         <span style="color: #0891b2; font-weight: 500;">${escapeHtml(name)}</span>
                         <span class="remove-btn" onclick="removeAssignee('${cvId}', '${name}')">×</span>
-                    </span>
-                `;
+                    </span>`;
             }
         }
 
