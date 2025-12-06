@@ -15863,7 +15863,9 @@
         // 営業担当者を削除
         function deleteSales(name) {
             const reassignCases = document.getElementById('reassignCases').checked;
-            const reassignTo = document.getElementById('reassignTo').value;
+            const reassignSelect = document.getElementById('reassignTo');
+            const reassignTo = reassignSelect.value;
+            const reassignToName = reassignSelect.options[reassignSelect.selectedIndex]?.text || reassignTo;
 
             if (reassignCases && !reassignTo) {
                 alert('引き継ぎ先を選択してください');
@@ -15872,7 +15874,7 @@
 
             // 削除処理（実際にはAPIを呼ぶ）
             if (reassignCases) {
-                showNotification('削除完了', `${name}さんを削除し、案件を${reassignTo}さんに引き継ぎました`);
+                showNotification('削除完了', `${name}さんを削除し、案件を${reassignToName}に引き継ぎました`);
             } else {
                 showNotification('削除完了', `${name}さんを削除しました`);
             }
@@ -24501,7 +24503,9 @@
 
         // 引き継ぎ確定
         function confirmPass(caseId) {
-            const passTo = document.getElementById('passToSelect').value;
+            const passToSelect = document.getElementById('passToSelect');
+            const passTo = passToSelect.value;
+            const passToName = passToSelect.options[passToSelect.selectedIndex]?.text || passTo;
             const passMemo = document.getElementById('passMemo').value;
 
             if (!passTo) {
@@ -24510,7 +24514,7 @@
             }
 
             // 引き継ぎリクエストを送信
-            showNotification('引き継ぎリクエスト送信', `${passTo}へ承認依頼を送信しました`);
+            showNotification('引き継ぎリクエスト送信', `${passToName}へ承認依頼を送信しました`);
 
             // カードに承認待ちバッジを追加
             const card = document.querySelector(`[onclick="showCaseDetail(${caseId})"]`);
