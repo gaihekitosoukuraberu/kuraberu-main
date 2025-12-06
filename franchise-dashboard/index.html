@@ -15826,19 +15826,13 @@
                             <li>担当案件の割り当て（再割り当てが必要）</li>
                         </ul>
                     </div>
-                    <div class="flex items-center mb-4">
-                        <input type="checkbox" id="reassignCases" class="rounded mr-2">
-                        <label for="reassignCases" class="text-sm text-gray-700">
-                            担当案件を他の営業に引き継ぐ
-                        </label>
-                    </div>
-                    <div id="reassignSection" class="hidden mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">引き継ぎ先</label>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">担当案件の引き継ぎ先</label>
                         <select id="reassignTo" class="w-full px-3 py-2 border rounded-lg">
-                            <option value="">選択してください</option>
-                            <option value="__ADMIN__">🔄 管理者に返す（再振り分け）</option>
-                            ${memberList.filter(m => m.name !== name).map(m => `<option value="${m.id}">${m.name}（${m.roleLabel}）</option>`).join('')}
+                            <option value="__ADMIN__" selected>🔄 管理者に返す（再振り分け）</option>
+                            ${memberList.filter(m => m.name !== name).map(m => `<option value="${m.id}">${m.name}（${m.roleLabel || '営業'}）</option>`).join('')}
                         </select>
+                        <p class="text-xs text-gray-500 mt-1">※削除後、担当案件は選択した引き継ぎ先に移動します</p>
                     </div>
                     <div class="flex justify-end space-x-3">
                         <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
@@ -15851,24 +15845,6 @@
                 </div>
             `;
             document.body.appendChild(modal);
-
-            // 引き継ぎチェックボックスのイベント
-            document.getElementById('reassignCases').addEventListener('change', function(e) {
-                const reassignSection = document.getElementById('reassignSection');
-                if (e.target.checked) {
-                    reassignSection.classList.remove('hidden');
-                } else {
-                    reassignSection.classList.add('hidden');
-                }
-            });
-
-            // 削除対象を選択肢から除外
-            const reassignSelect = document.getElementById('reassignTo');
-            Array.from(reassignSelect.options).forEach(option => {
-                if (option.value === name) {
-                    option.remove();
-                }
-            });
         }
 
         // 削除モーダルを閉じる
@@ -15881,15 +15857,9 @@
 
         // 営業担当者を削除（V2066: GAS API連携）
         async function deleteSales(name) {
-            const reassignCases = document.getElementById('reassignCases').checked;
             const reassignSelect = document.getElementById('reassignTo');
-            const reassignTo = reassignSelect.value;
-            const reassignToName = reassignSelect.options[reassignSelect.selectedIndex]?.text || reassignTo;
-
-            if (reassignCases && !reassignTo) {
-                alert('引き継ぎ先を選択してください');
-                return;
-            }
+            const reassignTo = reassignSelect.value || '__ADMIN__'; // デフォルト: 管理者に返す
+            const reassignToName = reassignSelect.options[reassignSelect.selectedIndex]?.text || '管理者';
 
             // メンバーIDを取得
             const member = memberList.find(m => m.name === name);
@@ -15923,10 +15893,8 @@
                     };
 
                     const script = document.createElement('script');
-                    let url = `${window.ENV.GAS_URL}?action=deleteMember&memberId=${encodeURIComponent(member.id)}&merchantId=${encodeURIComponent(merchantId)}&callback=${callbackName}`;
-                    if (reassignCases && reassignTo) {
-                        url += `&reassignTo=${encodeURIComponent(reassignTo)}`;
-                    }
+                    // 常にreassignToを送信（デフォルト: __ADMIN__）
+                    const url = `${window.ENV.GAS_URL}?action=deleteMember&memberId=${encodeURIComponent(member.id)}&merchantId=${encodeURIComponent(merchantId)}&reassignTo=${encodeURIComponent(reassignTo)}&callback=${callbackName}`;
                     script.src = url;
                     script.onerror = () => {
                         clearTimeout(timeout);
@@ -15942,11 +15910,7 @@
                     memberList = memberList.filter(m => m.id !== member.id);
                     renderMemberList();
 
-                    if (reassignCases) {
-                        showNotification('削除完了', `${name}さんを削除し、案件を${reassignToName}に引き継ぎました`);
-                    } else {
-                        showNotification('削除完了', `${name}さんを削除しました`);
-                    }
+                    showNotification('削除完了', `${name}さんを削除し、案件を${reassignToName}に引き継ぎました`);
                 } else {
                     showToast('削除エラー: ' + (result.error || '不明なエラー'), 'error');
                 }
