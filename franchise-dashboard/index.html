@@ -389,19 +389,22 @@
             font-weight: 600;
         }
         .assignee-chip .remove-btn {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.3);
+            background: #ef4444;
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 10px;
+            font-size: 12px;
+            font-weight: bold;
             transition: background 0.15s;
+            margin-left: 4px;
         }
         .assignee-chip .remove-btn:hover {
-            background: rgba(255,255,255,0.5);
+            background: #dc2626;
         }
         /* レスポンシブ対応 */
         @media (max-width: 768px) {
@@ -803,8 +806,8 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                                 <span id="unifiedFilterLabel">絞り込み</span>
                             </button>
-                            <!-- 案件振り分けボタン（カンバンパネルを開く） -->
-                            <button onclick="openAssignPanel()" class="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl shadow-md hover:from-purple-600 hover:to-indigo-600 transition-all font-bold whitespace-nowrap flex-shrink-0">
+                            <!-- 案件振り分けボタン（カンバンパネルを開く）- 管理者のみ表示 -->
+                            <button id="assignPanelBtn" onclick="openAssignPanel()" class="hidden flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl shadow-md hover:from-purple-600 hover:to-indigo-600 transition-all font-bold whitespace-nowrap flex-shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 <span class="hidden sm:inline">案件振り分け</span>
                                 <span class="sm:hidden">振分</span>
@@ -16386,10 +16389,13 @@
                     updateRoleDisplay();
                     showSection('dashboard');
                     initializeFirstLoginSettings();
+                    // V2083: 管理者のみ振り分けボタンを表示
+                    updateAdminOnlyElements();
                 }).catch(error => {
                     updateRoleDisplay();
                     showSection('dashboard');
                     initializeFirstLoginSettings();
+                    updateAdminOnlyElements();
                 });
 
                 // 案件カードは V2007 で showSection('cases') 時に loadMerchantCases() で自動読み込み
@@ -19316,6 +19322,21 @@
         function isAdmin() {
             const role = sessionStorage.getItem('franchiseRole') || localStorage.getItem('franchiseRole');
             return role === 'admin';
+        }
+
+        // V2083: 管理者専用UI要素の表示/非表示を更新
+        function updateAdminOnlyElements() {
+            const isAdminUser = isAdmin();
+
+            // 案件振り分けボタン
+            const assignPanelBtn = document.getElementById('assignPanelBtn');
+            if (assignPanelBtn) {
+                if (isAdminUser) {
+                    assignPanelBtn.classList.remove('hidden');
+                } else {
+                    assignPanelBtn.classList.add('hidden');
+                }
+            }
         }
 
         // V2070: 現在のユーザー名を取得
