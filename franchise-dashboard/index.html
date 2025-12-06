@@ -15108,6 +15108,11 @@
                 if (sectionName === 'cases') {
                     loadMerchantCases();
                 }
+
+                // V2065: メンバー管理セクションの場合はメンバーリストを読み込み
+                if (sectionName === 'sales') {
+                    loadMemberList();
+                }
             }
 
             // メニューを閉じる
@@ -15117,15 +15122,78 @@
         // ====================================
         // メンバー管理データ
         // ====================================
-        // 既存メンバー（デモデータ）
-        let memberList = [
-            { id: 'm1', name: '田中太郎', role: 'leader', roleLabel: 'リーダー', status: 'active', contracts: 45, rate: '75%' },
-            { id: 'm2', name: '佐藤花子', role: 'standard', roleLabel: '営業', status: 'active', contracts: 28, rate: '62%' },
-            { id: 'm3', name: '鈴木次郎', role: 'office', roleLabel: '事務', status: 'active', contracts: '-', rate: '-' }
-        ];
+        // V2065: GAS APIから動的に取得（デモデータ削除）
+        let memberList = [];
 
         // 招待中メンバー
         let pendingInvites = [];
+
+        // V2065: メンバーリストをGAS APIから取得
+        async function loadMemberList() {
+            const merchantId = localStorage.getItem('merchantId') || sessionStorage.getItem('merchantId') || window.merchantId;
+            if (!merchantId) {
+                console.error('[loadMemberList] merchantIdが取得できません');
+                return;
+            }
+
+            console.log('[loadMemberList] メンバー取得開始:', merchantId);
+
+            try {
+                const result = await new Promise((resolve, reject) => {
+                    const callbackName = 'memberListCallback_' + Date.now();
+                    const timeout = setTimeout(() => {
+                        delete window[callbackName];
+                        reject(new Error('タイムアウト'));
+                    }, 30000);
+
+                    window[callbackName] = function(response) {
+                        clearTimeout(timeout);
+                        delete window[callbackName];
+                        resolve(response);
+                    };
+
+                    const script = document.createElement('script');
+                    script.src = `${window.ENV.GAS_URL}?action=getMemberList&merchantId=${encodeURIComponent(merchantId)}&callback=${callbackName}`;
+                    script.onerror = () => {
+                        clearTimeout(timeout);
+                        delete window[callbackName];
+                        reject(new Error('スクリプト読み込みエラー'));
+                    };
+                    document.body.appendChild(script);
+                    script.onload = () => document.body.removeChild(script);
+                });
+
+                console.log('[loadMemberList] レスポンス:', result);
+
+                if (result.success && result.data) {
+                    // activeメンバーとpendingメンバーを分離
+                    memberList = result.data.members.filter(m => m.status === 'active').map(m => ({
+                        id: m.id,
+                        name: m.name || '(未登録)',
+                        role: m.role || 'standard',
+                        roleLabel: m.role === 'leader' ? 'リーダー' : m.role === 'office' ? '事務' : '営業',
+                        status: m.status,
+                        contracts: '-',  // TODO: 実績データ連携
+                        rate: '-'
+                    }));
+
+                    pendingInvites = result.data.members.filter(m => m.status === 'pending').map(m => ({
+                        id: m.id,
+                        role: m.role || 'standard',
+                        expiry: m.inviteExpiry
+                    }));
+
+                    console.log('[loadMemberList] activeメンバー:', memberList.length, 'pending:', pendingInvites.length);
+                    renderMemberList();
+                } else {
+                    console.error('[loadMemberList] エラー:', result.error);
+                    showToast('メンバー取得エラー: ' + (result.error || '不明なエラー'), 'error');
+                }
+            } catch (error) {
+                console.error('[loadMemberList] 例外:', error);
+                showToast('メンバー取得に失敗しました', 'error');
+            }
+        }
 
         // 権限スタイル定義
         const roleStyles = {
