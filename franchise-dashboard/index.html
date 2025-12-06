@@ -226,7 +226,7 @@
             }
         }
 
-        /* ===== 案件振り分けカンバンパネル ===== */
+        /* ===== 案件振り分けパネル（人→案件ドラッグ方式） ===== */
         .assign-panel {
             position: fixed;
             top: 0;
@@ -258,78 +258,150 @@
             opacity: 1;
             visibility: visible;
         }
-        .kanban-container {
+        /* メンバーチップ（ドラッグ元） */
+        .member-chips-container {
             display: flex;
-            gap: 12px;
-            overflow-x: auto;
-            padding: 16px;
-            flex: 1;
-            min-height: 0;
-        }
-        .kanban-column {
-            min-width: 220px;
-            max-width: 280px;
-            flex: 1;
-            background: #f8fafc;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            max-height: 100%;
-        }
-        .kanban-column-header {
-            padding: 12px;
-            border-bottom: 1px solid #e2e8f0;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
+            flex-wrap: wrap;
             gap: 8px;
-            flex-shrink: 0;
+            padding: 12px 16px;
+            background: linear-gradient(to right, #f3e8ff, #e0e7ff);
+            border-bottom: 1px solid #e2e8f0;
         }
-        .kanban-column-body {
-            padding: 8px;
-            overflow-y: auto;
-            flex: 1;
-            min-height: 100px;
-        }
-        .kanban-card {
+        .member-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
             background: white;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #6b21a8;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             cursor: grab;
             border: 2px solid transparent;
             transition: all 0.15s;
+            user-select: none;
         }
-        .kanban-card:hover {
+        .member-chip:hover {
             border-color: #a78bfa;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            transform: translateY(-1px);
         }
-        .kanban-card.sortable-ghost {
-            opacity: 0.4;
-            border-color: #8b5cf6;
-        }
-        .kanban-card.sortable-chosen {
+        .member-chip.dragging {
+            opacity: 0.5;
             cursor: grabbing;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
         }
-        .kanban-card .card-title {
-            font-weight: 600;
-            font-size: 13px;
-            margin-bottom: 4px;
-        }
-        .kanban-card .card-meta {
-            font-size: 11px;
-            color: #64748b;
-        }
-        .kanban-card .recommend-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        .member-chip .chip-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a78bfa, #7c3aed);
             color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .member-chip.admin .chip-avatar {
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+        }
+        /* 案件カードリスト（ドロップ先） */
+        .case-cards-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+            align-content: start;
+        }
+        .assign-case-card {
+            background: white;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            border: 2px solid #e5e7eb;
+            transition: all 0.2s;
+        }
+        .assign-case-card:hover {
+            border-color: #a78bfa;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+        .assign-case-card.drag-over {
+            border-color: #7c3aed;
+            background: #faf5ff;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+        }
+        .assign-case-card .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .assign-case-card .card-title {
+            font-weight: 700;
+            font-size: 15px;
+            color: #1f2937;
+        }
+        .assign-case-card .card-id {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+        .assign-case-card .card-address {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+        /* 担当者チップ（カード内） */
+        .assignee-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-height: 32px;
+            padding: 8px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 2px dashed #d1d5db;
+        }
+        .assignee-chips.has-assignees {
+            border-style: solid;
+            border-color: #e5e7eb;
+            background: #f3f4f6;
+        }
+        .assignee-chips .placeholder {
+            color: #9ca3af;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .assignee-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: linear-gradient(135deg, #a78bfa, #7c3aed);
+            color: white;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .assignee-chip .remove-btn {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
             font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-top: 4px;
+            transition: background 0.15s;
+        }
+        .assignee-chip .remove-btn:hover {
+            background: rgba(255,255,255,0.5);
         }
         /* レスポンシブ対応 */
         @media (max-width: 768px) {
@@ -337,15 +409,17 @@
                 width: 100vw;
                 max-width: none;
             }
-            .kanban-column {
-                min-width: 160px;
-                max-width: 200px;
+            .case-cards-container {
+                grid-template-columns: 1fr;
             }
-            .kanban-card {
-                padding: 8px;
-            }
-            .kanban-card .card-title {
+            .member-chip {
+                padding: 6px 10px;
                 font-size: 12px;
+            }
+            .member-chip .chip-avatar {
+                width: 20px;
+                height: 20px;
+                font-size: 10px;
             }
         }
     </style>
@@ -1015,7 +1089,7 @@
                     </div>
                 </div>
 
-                <!-- ===== 案件振り分けカンバンパネル（右スライド） ===== -->
+                <!-- ===== 案件振り分けパネル（人→案件ドラッグ方式） ===== -->
                 <div id="assignPanelOverlay" class="assign-panel-overlay" onclick="closeAssignPanel()"></div>
                 <div id="assignPanel" class="assign-panel">
                     <!-- ヘッダー -->
@@ -1025,39 +1099,32 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                 案件振り分け
                             </h3>
-                            <p class="text-sm text-purple-100 mt-1">ドラッグ＆ドロップで担当者に振り分け</p>
+                            <p class="text-sm text-purple-100 mt-1">担当者を案件にドラッグして振り分け（複数人OK）</p>
                         </div>
                         <button onclick="closeAssignPanel()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
 
+                    <!-- メンバーチップ（ドラッグ元） -->
+                    <div id="memberChipsContainer" class="member-chips-container">
+                        <div class="text-gray-400 text-sm">読み込み中...</div>
+                    </div>
+
                     <!-- フィルター/オプションバー -->
                     <div class="p-3 border-b bg-gray-50 flex flex-wrap gap-2 items-center">
                         <div class="flex gap-2 flex-wrap flex-1">
-                            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border rounded-lg cursor-pointer hover:bg-blue-50 transition-all text-sm">
-                                <input type="checkbox" id="sortByDistance" class="w-4 h-4 text-blue-600 rounded" onchange="updateKanbanSort()">
-                                <span>📍 距離順</span>
-                            </label>
-                            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border rounded-lg cursor-pointer hover:bg-blue-50 transition-all text-sm">
-                                <input type="checkbox" id="sortByArea" class="w-4 h-4 text-blue-600 rounded" onchange="updateKanbanSort()">
-                                <span>🗺️ エリア別</span>
-                            </label>
-                            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border rounded-lg cursor-pointer hover:bg-blue-50 transition-all text-sm">
-                                <input type="checkbox" id="showRecommend" class="w-4 h-4 text-blue-600 rounded" checked onchange="updateKanbanSort()">
-                                <span>🎯 おすすめ表示</span>
-                            </label>
+                            <span class="text-sm text-gray-600">未振り分け: <span id="unassignedCountPanel" class="font-bold text-amber-600">0</span>件</span>
                         </div>
                         <button onclick="autoAssignCases()" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 font-bold text-sm transition-all flex items-center gap-2 shadow">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                            自動振り分け
+                            均等振り分け
                         </button>
                     </div>
 
-                    <!-- カンバンコンテナ -->
-                    <div id="kanbanContainer" class="kanban-container">
-                        <!-- 動的に生成される -->
-                        <div class="text-center text-gray-400 py-8 w-full">読み込み中...</div>
+                    <!-- 案件カードリスト（ドロップ先） -->
+                    <div id="caseCardsContainer" class="case-cards-container">
+                        <div class="text-center text-gray-400 py-8 col-span-full">読み込み中...</div>
                     </div>
 
                     <!-- フッター（変更保存） -->
@@ -20580,173 +20647,233 @@
             return merchantCasesData.filter(c => !c.assignee || c.assignee === '').length;
         }
 
-        // ===== カンバン振り分けパネル =====
-        let kanbanChanges = {}; // { cvId: newAssignee } - 変更を追跡
-        let kanbanSortables = []; // SortableJSインスタンス
+        // ===== 案件振り分けパネル（人→案件ドラッグ方式） =====
+        let kanbanChanges = {}; // { cvId: newAssigneeString } - 変更を追跡
         let originalAssignments = {}; // 元の担当者を記録
+        let draggedMember = null; // ドラッグ中のメンバー情報
+        let allMembers = []; // メンバーリストのキャッシュ
 
-        // カンバンパネルを開く
+        // パネルを開く
         async function openAssignPanel() {
             document.getElementById('assignPanelOverlay').classList.add('open');
             document.getElementById('assignPanel').classList.add('open');
-            document.body.style.overflow = 'hidden'; // スクロール防止
+            document.body.style.overflow = 'hidden';
 
             // 変更をリセット
             kanbanChanges = {};
             originalAssignments = {};
             updateKanbanChangeCount();
 
-            // カンバンを構築
-            await buildKanban();
+            // パネルを構築
+            await buildAssignPanel();
         }
 
-        // カンバンパネルを閉じる
+        // パネルを閉じる
         function closeAssignPanel() {
             document.getElementById('assignPanelOverlay').classList.remove('open');
             document.getElementById('assignPanel').classList.remove('open');
             document.body.style.overflow = '';
-
-            // SortableJSインスタンスを破棄
-            kanbanSortables.forEach(s => s.destroy());
-            kanbanSortables = [];
         }
 
-        // カンバンを構築
-        async function buildKanban() {
-            const container = document.getElementById('kanbanContainer');
-            container.innerHTML = '<div class="text-center text-gray-400 py-8 w-full">読み込み中...</div>';
+        // パネルを構築
+        async function buildAssignPanel() {
+            const chipsContainer = document.getElementById('memberChipsContainer');
+            const cardsContainer = document.getElementById('caseCardsContainer');
 
-            // メンバーリストと案件データを取得
+            chipsContainer.innerHTML = '<div class="text-gray-400 text-sm">読み込み中...</div>';
+            cardsContainer.innerHTML = '<div class="text-center text-gray-400 py-8 col-span-full">読み込み中...</div>';
+
+            // メンバーリストを取得
             const members = await getMemberListFromAPI();
-            const cases = merchantCasesData || [];
-
-            // 現在の担当者情報を取得（管理者自身も含める）
             const adminName = window.franchiseUser?.name || '管理者';
+
+            // 管理者を含めた全メンバー
+            allMembers = [
+                { memberId: '__ADMIN__', name: adminName, role: 'admin' },
+                ...members
+            ];
+
+            // 案件データ
+            const cases = merchantCasesData || [];
 
             // 元の割り当てを記録
             cases.forEach(c => {
                 originalAssignments[c.cvId] = c.assignee || '';
             });
 
-            // 未振り分け案件
-            const unassignedCases = cases.filter(c => !c.assignee || c.assignee === '');
-
-            // メンバー別の案件（管理者含む）
-            const allAssignees = [
-                { memberId: '__ADMIN__', name: adminName, role: 'admin' },
-                ...members
-            ];
-
-            // カンバンHTML構築
-            let html = '';
-
-            // 未振り分け列
-            html += `
-                <div class="kanban-column" style="background: linear-gradient(to bottom, #fef3c7, #fef9c3);">
-                    <div class="kanban-column-header text-amber-800">
-                        <span class="text-lg">📥</span>
-                        <span>未振り分け</span>
-                        <span class="ml-auto bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full text-xs font-bold" id="unassignedColumnCount">${unassignedCases.length}</span>
-                    </div>
-                    <div class="kanban-column-body" id="kanban-unassigned" data-assignee="">
-                        ${renderKanbanCards(unassignedCases)}
-                    </div>
-                </div>
-            `;
-
-            // 各メンバーの列
-            allAssignees.forEach(member => {
-                const memberCases = cases.filter(c => {
-                    const assignees = (c.assignee || '').split(',').map(a => a.trim());
-                    return assignees.includes(member.name);
-                });
-                const isAdmin = member.memberId === '__ADMIN__';
-                const bgStyle = isAdmin
-                    ? 'background: linear-gradient(to bottom, #dbeafe, #eff6ff);'
-                    : 'background: #f8fafc;';
-                const headerColor = isAdmin ? 'text-blue-800' : 'text-gray-700';
-                const countBg = isAdmin ? 'bg-blue-200 text-blue-800' : 'bg-gray-200 text-gray-700';
-
-                html += `
-                    <div class="kanban-column" style="${bgStyle}">
-                        <div class="kanban-column-header ${headerColor}">
-                            <div class="w-8 h-8 rounded-full bg-gradient-to-br ${isAdmin ? 'from-blue-400 to-blue-600' : 'from-purple-400 to-indigo-500'} flex items-center justify-center text-white font-bold text-xs">
-                                ${member.name ? member.name.charAt(0) : '?'}
-                            </div>
-                            <span class="truncate">${member.name}</span>
-                            ${isAdmin ? '<span class="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">管理者</span>' : ''}
-                            <span class="ml-auto ${countBg} px-2 py-0.5 rounded-full text-xs font-bold" id="kanban-count-${member.memberId}">${memberCases.length}</span>
-                        </div>
-                        <div class="kanban-column-body" id="kanban-${member.memberId}" data-assignee="${member.name}">
-                            ${renderKanbanCards(memberCases)}
-                        </div>
+            // メンバーチップを構築
+            chipsContainer.innerHTML = allMembers.map(m => {
+                const isAdmin = m.memberId === '__ADMIN__';
+                return `
+                    <div class="member-chip ${isAdmin ? 'admin' : ''}"
+                         draggable="true"
+                         data-member-id="${m.memberId}"
+                         data-member-name="${m.name}"
+                         ondragstart="handleMemberDragStart(event)"
+                         ondragend="handleMemberDragEnd(event)">
+                        <div class="chip-avatar">${m.name ? m.name.charAt(0) : '?'}</div>
+                        <span>${m.name}</span>
                     </div>
                 `;
-            });
+            }).join('');
 
-            container.innerHTML = html;
-
-            // SortableJS初期化
-            initKanbanSortables();
+            // 案件カードを構築
+            renderCaseCards(cases);
         }
 
-        // カンバンカードをレンダリング
-        function renderKanbanCards(cases) {
+        // 案件カードをレンダリング
+        function renderCaseCards(cases) {
+            const container = document.getElementById('caseCardsContainer');
+
             if (cases.length === 0) {
-                return '<div class="text-center text-gray-400 text-xs py-4">案件なし</div>';
+                container.innerHTML = '<div class="text-center text-gray-400 py-8 col-span-full">案件がありません</div>';
+                return;
             }
 
-            const showRecommend = document.getElementById('showRecommend')?.checked ?? true;
+            // 未振り分け件数を更新
+            const unassignedCount = cases.filter(c => !getEffectiveAssignee(c.cvId)).length;
+            document.getElementById('unassignedCountPanel').textContent = unassignedCount;
 
-            return cases.map(c => {
-                const address = c.address || c.city || '住所未設定';
-                const shortAddress = address.length > 15 ? address.substring(0, 15) + '...' : address;
-                // おすすめバッジ（距離が近い場合など - 将来拡張用）
-                const recommendBadge = showRecommend && !c.assignee ? '<span class="recommend-badge">🎯 おすすめ</span>' : '';
+            container.innerHTML = cases.map(c => {
+                const address = c.address || c.fullAddress || c.city || '住所未設定';
+                const shortAddress = address.length > 20 ? address.substring(0, 20) + '...' : address;
+                const effectiveAssignee = getEffectiveAssignee(c.cvId);
+                const assignees = effectiveAssignee ? effectiveAssignee.split(',').map(a => a.trim()).filter(a => a) : [];
 
                 return `
-                    <div class="kanban-card" data-cv-id="${c.cvId}">
-                        <div class="card-title">${c.customerName || '名前未設定'}</div>
-                        <div class="card-meta">
-                            <div>${c.cvId}</div>
-                            <div class="truncate">${shortAddress}</div>
+                    <div class="assign-case-card"
+                         data-cv-id="${c.cvId}"
+                         ondragover="handleCardDragOver(event)"
+                         ondragleave="handleCardDragLeave(event)"
+                         ondrop="handleCardDrop(event)">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">${escapeHtml(c.customerName || '名前未設定')}</div>
+                                <div class="card-id">${c.cvId}</div>
+                            </div>
                         </div>
-                        ${recommendBadge}
+                        <div class="card-address">📍 ${escapeHtml(shortAddress)}</div>
+                        <div class="assignee-chips ${assignees.length > 0 ? 'has-assignees' : ''}" id="assignees-${c.cvId}">
+                            ${assignees.length > 0
+                                ? assignees.map(name => `
+                                    <span class="assignee-chip">
+                                        ${escapeHtml(name)}
+                                        <span class="remove-btn" onclick="removeAssignee('${c.cvId}', '${name}')">×</span>
+                                    </span>
+                                `).join('')
+                                : '<span class="placeholder">👆 担当者をドラッグしてね</span>'
+                            }
+                        </div>
                     </div>
                 `;
             }).join('');
         }
 
-        // SortableJS初期化
-        function initKanbanSortables() {
-            // 既存のインスタンスを破棄
-            kanbanSortables.forEach(s => s.destroy());
-            kanbanSortables = [];
+        // 有効な担当者を取得（変更があればそれを、なければ元のデータ）
+        function getEffectiveAssignee(cvId) {
+            if (kanbanChanges.hasOwnProperty(cvId)) {
+                return kanbanChanges[cvId];
+            }
+            const caseData = merchantCasesData?.find(c => String(c.cvId) === String(cvId));
+            return caseData?.assignee || '';
+        }
 
-            // 全てのカラムボディにSortableを適用
-            const columnBodies = document.querySelectorAll('.kanban-column-body');
-            columnBodies.forEach(body => {
-                const sortable = new Sortable(body, {
-                    group: 'kanban-cases',
-                    animation: 150,
-                    ghostClass: 'sortable-ghost',
-                    chosenClass: 'sortable-chosen',
-                    dragClass: 'sortable-drag',
-                    onEnd: function(evt) {
-                        const cvId = evt.item.dataset.cvId;
-                        const newAssignee = evt.to.dataset.assignee;
-                        const oldAssignee = evt.from.dataset.assignee;
+        // ドラッグ開始
+        function handleMemberDragStart(e) {
+            draggedMember = {
+                id: e.target.dataset.memberId,
+                name: e.target.dataset.memberName
+            };
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'copy';
+        }
 
-                        if (newAssignee !== oldAssignee) {
-                            // 変更を記録
-                            kanbanChanges[cvId] = newAssignee;
-                            updateKanbanChangeCount();
-                            updateColumnCounts();
-                        }
-                    }
-                });
-                kanbanSortables.push(sortable);
-            });
+        // ドラッグ終了
+        function handleMemberDragEnd(e) {
+            draggedMember = null;
+            e.target.classList.remove('dragging');
+        }
+
+        // カードへのドラッグオーバー
+        function handleCardDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        // カードからのドラッグリーブ
+        function handleCardDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        // カードへのドロップ
+        function handleCardDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+
+            if (!draggedMember) return;
+
+            const cvId = e.currentTarget.dataset.cvId;
+            const memberName = draggedMember.name;
+
+            // 現在の担当者リストを取得
+            const currentAssignee = getEffectiveAssignee(cvId);
+            const assignees = currentAssignee ? currentAssignee.split(',').map(a => a.trim()).filter(a => a) : [];
+
+            // 既に含まれていなければ追加
+            if (!assignees.includes(memberName)) {
+                assignees.push(memberName);
+                const newAssignee = assignees.join(', ');
+                kanbanChanges[cvId] = newAssignee;
+                updateKanbanChangeCount();
+
+                // UIを更新
+                updateAssigneeChips(cvId, assignees);
+                updateUnassignedCount();
+            }
+        }
+
+        // 担当者を解除
+        function removeAssignee(cvId, memberName) {
+            const currentAssignee = getEffectiveAssignee(cvId);
+            const assignees = currentAssignee ? currentAssignee.split(',').map(a => a.trim()).filter(a => a) : [];
+
+            const index = assignees.indexOf(memberName);
+            if (index > -1) {
+                assignees.splice(index, 1);
+                const newAssignee = assignees.join(', ');
+                kanbanChanges[cvId] = newAssignee;
+                updateKanbanChangeCount();
+
+                // UIを更新
+                updateAssigneeChips(cvId, assignees);
+                updateUnassignedCount();
+            }
+        }
+
+        // 担当者チップUIを更新
+        function updateAssigneeChips(cvId, assignees) {
+            const container = document.getElementById(`assignees-${cvId}`);
+            if (!container) return;
+
+            if (assignees.length > 0) {
+                container.classList.add('has-assignees');
+                container.innerHTML = assignees.map(name => `
+                    <span class="assignee-chip">
+                        ${escapeHtml(name)}
+                        <span class="remove-btn" onclick="removeAssignee('${cvId}', '${name}')">×</span>
+                    </span>
+                `).join('');
+            } else {
+                container.classList.remove('has-assignees');
+                container.innerHTML = '<span class="placeholder">👆 担当者をドラッグしてね</span>';
+            }
+        }
+
+        // 未振り分け件数を更新
+        function updateUnassignedCount() {
+            const cases = merchantCasesData || [];
+            const unassignedCount = cases.filter(c => !getEffectiveAssignee(c.cvId)).length;
+            document.getElementById('unassignedCountPanel').textContent = unassignedCount;
         }
 
         // 変更件数を更新
@@ -20756,35 +20883,11 @@
             document.getElementById('saveKanbanBtn').disabled = count === 0;
         }
 
-        // 列のカウントを更新
-        function updateColumnCounts() {
-            const columnBodies = document.querySelectorAll('.kanban-column-body');
-            columnBodies.forEach(body => {
-                const assignee = body.dataset.assignee;
-                const count = body.querySelectorAll('.kanban-card').length;
-
-                // 未振り分け列
-                if (assignee === '') {
-                    const countEl = document.getElementById('unassignedColumnCount');
-                    if (countEl) countEl.textContent = count;
-                } else {
-                    // メンバー列を探す
-                    const members = [...document.querySelectorAll('.kanban-column-body')];
-                    members.forEach(m => {
-                        if (m.dataset.assignee === assignee) {
-                            const header = m.previousElementSibling;
-                            const countSpan = header?.querySelector('span[id^="kanban-count-"]');
-                            if (countSpan) countSpan.textContent = count;
-                        }
-                    });
-                }
-            });
-        }
-
         // 変更をリセット
         function resetKanbanChanges() {
             kanbanChanges = {};
-            buildKanban(); // 再構築
+            updateKanbanChangeCount();
+            renderCaseCards(merchantCasesData || []);
         }
 
         // 変更を保存
@@ -20844,7 +20947,7 @@
             btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> 変更を保存';
         }
 
-        // 自動振り分け
+        // 自動振り分け（均等配分）
         async function autoAssignCases() {
             const members = await getMemberListFromAPI();
             if (members.length === 0) {
@@ -20852,38 +20955,25 @@
                 return;
             }
 
-            // 未振り分け案件を取得
-            const unassignedCards = document.querySelectorAll('#kanban-unassigned .kanban-card');
-            if (unassignedCards.length === 0) {
+            const cases = merchantCasesData || [];
+            const unassignedCases = cases.filter(c => !getEffectiveAssignee(c.cvId));
+
+            if (unassignedCases.length === 0) {
                 showNotification('情報', '振り分ける案件がありません', 'info');
                 return;
             }
 
             // 均等に振り分け
             let memberIndex = 0;
-            unassignedCards.forEach(card => {
-                const cvId = card.dataset.cvId;
+            unassignedCases.forEach(c => {
                 const targetMember = members[memberIndex % members.length];
-
-                // カードを移動
-                const targetColumn = document.getElementById(`kanban-${targetMember.memberId}`);
-                if (targetColumn) {
-                    targetColumn.appendChild(card);
-                    kanbanChanges[cvId] = targetMember.name;
-                }
-
+                kanbanChanges[c.cvId] = targetMember.name;
                 memberIndex++;
             });
 
             updateKanbanChangeCount();
-            updateColumnCounts();
-            showNotification('自動振り分け', `${unassignedCards.length}件を${members.length}人に均等振り分けしました`, 'success');
-        }
-
-        // ソート/フィルター更新（将来拡張用）
-        function updateKanbanSort() {
-            // 現時点では再構築で対応
-            buildKanban();
+            renderCaseCards(cases); // UIを再描画
+            showNotification('自動振り分け', `${unassignedCases.length}件を${members.length}人に均等振り分けしました`, 'success');
         }
 
         // モーダルを開く（旧UI - 互換性のため残す）
