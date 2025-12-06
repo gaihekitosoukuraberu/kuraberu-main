@@ -21018,10 +21018,17 @@
 
         // 担当者を解除
         function removeAssignee(cvId, memberName) {
+            console.log('[removeAssignee] Called with cvId:', cvId, 'memberName:', memberName);
             const currentAssignee = getEffectiveAssignee(cvId);
+            console.log('[removeAssignee] currentAssignee:', currentAssignee);
             const assignees = currentAssignee ? currentAssignee.split(',').map(a => a.trim()).filter(a => a) : [];
+            console.log('[removeAssignee] assignees array:', assignees);
 
-            const index = assignees.indexOf(memberName);
+            // 完全一致またはトリム後の一致で検索
+            const trimmedName = memberName.trim();
+            const index = assignees.findIndex(a => a === trimmedName || a.trim() === trimmedName);
+            console.log('[removeAssignee] index found:', index);
+
             if (index > -1) {
                 assignees.splice(index, 1);
                 const newAssignee = assignees.join(', ');
@@ -21031,6 +21038,9 @@
                 // UIを更新
                 updateAssigneeChips(cvId, assignees);
                 updateUnassignedCount();
+                console.log('[removeAssignee] Removed successfully, new assignees:', assignees);
+            } else {
+                console.warn('[removeAssignee] Name not found in assignees');
             }
         }
 
@@ -21039,16 +21049,18 @@
         function getAssigneePanelChipHtml(name, cvId) {
             const adminName = window.merchantData?.salesPerson || window.merchantData?.['営業担当者氏名'] || '';
             const isAdminAssignee = adminName && name === adminName;
+            // onclickで使う名前をエスケープ（シングルクォート、ダブルクォート、バックスラッシュ）
+            const escapedName = name.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
             if (isAdminAssignee) {
                 return `<span class="assignee-chip" style="background: #f3e8ff; border-color: #c4b5fd;">
                         <span style="color: #7c3aed; font-weight: 500;">${escapeHtml(name)}</span>
-                        <span class="remove-btn" onclick="removeAssignee('${cvId}', '${name}')">×</span>
+                        <span class="remove-btn" onclick="removeAssignee('${cvId}', '${escapedName}')">×</span>
                     </span>`;
             } else {
                 return `<span class="assignee-chip" style="background: #ecfeff; border-color: #a5f3fc;">
                         <span style="color: #0891b2; font-weight: 500;">${escapeHtml(name)}</span>
-                        <span class="remove-btn" onclick="removeAssignee('${cvId}', '${name}')">×</span>
+                        <span class="remove-btn" onclick="removeAssignee('${cvId}', '${escapedName}')">×</span>
                     </span>`;
             }
         }
