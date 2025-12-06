@@ -1114,40 +1114,50 @@
                         <div class="text-gray-400 text-sm">読み込み中...</div>
                     </div>
 
-                    <!-- フィルター/オプションバー -->
-                    <div class="p-3 border-b bg-gray-50 flex flex-wrap gap-2 items-center">
-                        <div class="flex gap-2 flex-wrap flex-1 items-center">
-                            <span class="text-sm text-gray-600">未振り分け: <span id="unassignedCountPanel" class="font-bold text-amber-600">0</span>件</span>
-                        </div>
-                        <!-- 自動振り分けドロップダウン -->
-                        <div class="relative">
-                            <button onclick="toggleAutoAssignMenu()" id="autoAssignBtn" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 font-bold text-sm transition-all flex items-center gap-2 shadow">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                自動振り分け
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    <!-- V2086: タブ + フィルター/オプションバー -->
+                    <div class="p-3 border-b bg-gray-50">
+                        <!-- タブ -->
+                        <div class="flex gap-2 mb-3">
+                            <button id="assignTabUnassigned" onclick="switchAssignTab('unassigned')" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition-all bg-amber-500 text-white">
+                                未振り分け <span id="unassignedCountPanel" class="ml-1">0</span>件
                             </button>
-                            <div id="autoAssignMenu" class="hidden absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl border z-20 min-w-[200px]">
-                                <button onclick="autoAssignCases('equal')" class="w-full text-left px-4 py-3 text-sm hover:bg-purple-50 flex items-center gap-3 border-b">
-                                    <span class="text-lg">⚖️</span>
-                                    <div>
-                                        <div class="font-medium">均等振り分け</div>
-                                        <div class="text-xs text-gray-500">人数で均等に分配</div>
-                                    </div>
+                            <button id="assignTabAssigned" onclick="switchAssignTab('assigned')" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition-all bg-gray-200 text-gray-600 hover:bg-gray-300">
+                                振り分け済み <span id="assignedCountPanel" class="ml-1">0</span>件
+                            </button>
+                        </div>
+                        <!-- オプションバー -->
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <div class="flex-1"></div>
+                            <!-- 自動振り分けドロップダウン（未振り分けタブのみ表示） -->
+                            <div id="autoAssignBtnWrapper" class="relative">
+                                <button onclick="toggleAutoAssignMenu()" id="autoAssignBtn" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 font-bold text-sm transition-all flex items-center gap-2 shadow">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                    自動振り分け
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                 </button>
-                                <button onclick="autoAssignCases('workload')" class="w-full text-left px-4 py-3 text-sm hover:bg-purple-50 flex items-center gap-3 border-b">
-                                    <span class="text-lg">📊</span>
-                                    <div>
-                                        <div class="font-medium">件数均等</div>
-                                        <div class="text-xs text-gray-500">現在の担当件数考慮</div>
-                                    </div>
-                                </button>
-                                <button onclick="autoAssignCases('roundrobin')" class="w-full text-left px-4 py-3 text-sm hover:bg-purple-50 flex items-center gap-3 rounded-b-lg">
-                                    <span class="text-lg">🔄</span>
-                                    <div>
-                                        <div class="font-medium">ラウンドロビン</div>
-                                        <div class="text-xs text-gray-500">順番に1件ずつ</div>
-                                    </div>
-                                </button>
+                                <div id="autoAssignMenu" class="hidden absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl border z-20 min-w-[200px]">
+                                    <button onclick="autoAssignCases('equal')" class="w-full text-left px-4 py-3 text-sm hover:bg-purple-50 flex items-center gap-3 border-b">
+                                        <span class="text-lg">⚖️</span>
+                                        <div>
+                                            <div class="font-medium">均等振り分け</div>
+                                            <div class="text-xs text-gray-500">人数で均等に分配</div>
+                                        </div>
+                                    </button>
+                                    <button onclick="autoAssignCases('workload')" class="w-full text-left px-4 py-3 text-sm hover:bg-purple-50 flex items-center gap-3 border-b">
+                                        <span class="text-lg">📊</span>
+                                        <div>
+                                            <div class="font-medium">件数均等</div>
+                                            <div class="text-xs text-gray-500">現在の担当件数考慮</div>
+                                        </div>
+                                    </button>
+                                    <button onclick="autoAssignCases('roundrobin')" class="w-full text-left px-4 py-3 text-sm hover:bg-purple-50 flex items-center gap-3 rounded-b-lg">
+                                        <span class="text-lg">🔄</span>
+                                        <div>
+                                            <div class="font-medium">ラウンドロビン</div>
+                                            <div class="text-xs text-gray-500">順番に1件ずつ</div>
+                                        </div>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -20840,6 +20850,7 @@
         let originalAssignments = {}; // 元の担当者を記録
         let draggedMember = null; // ドラッグ中のメンバー情報
         let allMembers = []; // メンバーリストのキャッシュ
+        let currentAssignTab = 'unassigned'; // V2086: 現在のタブ（'unassigned' or 'assigned'）
 
         // パネルを開く
         async function openAssignPanel() {
@@ -20851,6 +20862,10 @@
             kanbanChanges = {};
             originalAssignments = {};
             updateKanbanChangeCount();
+
+            // V2086: タブを未振り分けにリセット
+            currentAssignTab = 'unassigned';
+            switchAssignTab('unassigned');
 
             // パネルを構築
             await buildAssignPanel();
@@ -20916,14 +20931,31 @@
 
             if (cases.length === 0) {
                 container.innerHTML = '<div class="text-center text-gray-400 py-8 col-span-full">案件がありません</div>';
+                document.getElementById('unassignedCountPanel').textContent = '0';
+                document.getElementById('assignedCountPanel').textContent = '0';
                 return;
             }
 
-            // 未振り分け件数を更新
-            const unassignedCount = cases.filter(c => !getEffectiveAssignee(c.cvId)).length;
-            document.getElementById('unassignedCountPanel').textContent = unassignedCount;
+            // V2086: 未振り分け・振り分け済み件数を計算
+            const unassignedCases = cases.filter(c => !getEffectiveAssignee(c.cvId));
+            const assignedCases = cases.filter(c => getEffectiveAssignee(c.cvId));
 
-            container.innerHTML = cases.map(c => {
+            // 件数を更新
+            document.getElementById('unassignedCountPanel').textContent = unassignedCases.length;
+            document.getElementById('assignedCountPanel').textContent = assignedCases.length;
+
+            // V2086: 現在のタブに応じて表示する案件をフィルタ
+            const displayCases = currentAssignTab === 'unassigned' ? unassignedCases : assignedCases;
+
+            if (displayCases.length === 0) {
+                const message = currentAssignTab === 'unassigned'
+                    ? '未振り分けの案件はありません 🎉'
+                    : '振り分け済みの案件はありません';
+                container.innerHTML = `<div class="text-center text-gray-400 py-8 col-span-full">${message}</div>`;
+                return;
+            }
+
+            container.innerHTML = displayCases.map(c => {
                 const address = c.address || c.fullAddress || c.city || '住所未設定';
                 const shortAddress = address.length > 20 ? address.substring(0, 20) + '...' : address;
                 const effectiveAssignee = getEffectiveAssignee(c.cvId);
@@ -20951,6 +20983,33 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        // V2086: タブ切り替え
+        function switchAssignTab(tab) {
+            currentAssignTab = tab;
+
+            // タブボタンのスタイル切り替え
+            const unassignedTab = document.getElementById('assignTabUnassigned');
+            const assignedTab = document.getElementById('assignTabAssigned');
+            const autoAssignWrapper = document.getElementById('autoAssignBtnWrapper');
+
+            if (tab === 'unassigned') {
+                unassignedTab.className = 'flex-1 py-2 px-4 rounded-lg font-bold text-sm transition-all bg-amber-500 text-white';
+                assignedTab.className = 'flex-1 py-2 px-4 rounded-lg font-bold text-sm transition-all bg-gray-200 text-gray-600 hover:bg-gray-300';
+                // 未振り分けタブでは自動振り分けボタンを表示
+                if (autoAssignWrapper) autoAssignWrapper.classList.remove('hidden');
+            } else {
+                unassignedTab.className = 'flex-1 py-2 px-4 rounded-lg font-bold text-sm transition-all bg-gray-200 text-gray-600 hover:bg-gray-300';
+                assignedTab.className = 'flex-1 py-2 px-4 rounded-lg font-bold text-sm transition-all bg-green-500 text-white';
+                // 振り分け済みタブでは自動振り分けボタンを非表示
+                if (autoAssignWrapper) autoAssignWrapper.classList.add('hidden');
+            }
+
+            // 案件リストを再レンダリング
+            if (merchantCasesData) {
+                renderCaseCards(merchantCasesData);
+            }
         }
 
         // 有効な担当者を取得（変更があればそれを、なければ元のデータ）
@@ -21010,9 +21069,10 @@
                 kanbanChanges[cvId] = newAssignee;
                 updateKanbanChangeCount();
 
-                // UIを更新
-                updateAssigneeChips(cvId, assignees);
-                updateUnassignedCount();
+                // V2086: タブ間でケースを移動するため、全体を再レンダリング
+                if (merchantCasesData) {
+                    renderCaseCards(merchantCasesData);
+                }
             }
         }
 
@@ -21035,9 +21095,10 @@
                 kanbanChanges[cvId] = newAssignee;
                 updateKanbanChangeCount();
 
-                // UIを更新
-                updateAssigneeChips(cvId, assignees);
-                updateUnassignedCount();
+                // V2086: タブ間でケースを移動するため、全体を再レンダリング
+                if (merchantCasesData) {
+                    renderCaseCards(merchantCasesData);
+                }
                 console.log('[removeAssignee] Removed successfully, new assignees:', assignees);
             } else {
                 console.warn('[removeAssignee] Name not found in assignees');
