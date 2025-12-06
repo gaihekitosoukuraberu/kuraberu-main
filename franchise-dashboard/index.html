@@ -20482,10 +20482,8 @@
                     if (caseData) {
                         caseData.assignee = staffName;
                     }
-                    // リスト再描画
-                    if (typeof renderCaseList === 'function') {
-                        renderCaseList();
-                    }
+                    // リスト再描画（V2066: 正しい関数名に修正）
+                    renderCases();
                     showNotification('成功', `${staffName}に振り分けました`, 'success');
                 } else {
                     console.error('[assignStaff] 失敗:', result.error);
@@ -20553,10 +20551,8 @@
                 }
             }
 
-            // リスト再描画
-            if (typeof renderCaseList === 'function') {
-                renderCaseList();
-            }
+            // リスト再描画（V2066: 正しい関数名に修正）
+            renderCases();
 
             closeAssignModal();
 
