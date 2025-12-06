@@ -20474,6 +20474,7 @@
                 });
 
                 const result = await response.json();
+                console.log('[assignStaff] API結果:', result);
 
                 if (result.success) {
                     // ローカルデータも更新
@@ -20488,7 +20489,8 @@
                     }
                     showNotification('成功', `${staffName}に振り分けました`, 'success');
                 } else {
-                    showNotification('エラー', '振り分けに失敗しました', 'error');
+                    console.error('[assignStaff] 失敗:', result.error);
+                    showNotification('エラー', result.error || '振り分けに失敗しました', 'error');
                 }
             } catch (error) {
                 console.error('担当者振り分けエラー:', error);
