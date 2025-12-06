@@ -1113,13 +1113,40 @@
 
                     <!-- フィルター/オプションバー -->
                     <div class="p-3 border-b bg-gray-50 flex flex-wrap gap-2 items-center">
-                        <div class="flex gap-2 flex-wrap flex-1">
+                        <div class="flex gap-2 flex-wrap flex-1 items-center">
                             <span class="text-sm text-gray-600">未振り分け: <span id="unassignedCountPanel" class="font-bold text-amber-600">0</span>件</span>
                         </div>
-                        <button onclick="autoAssignCases()" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 font-bold text-sm transition-all flex items-center gap-2 shadow">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                            均等振り分け
-                        </button>
+                        <!-- 自動振り分けドロップダウン -->
+                        <div class="relative">
+                            <button onclick="toggleAutoAssignMenu()" id="autoAssignBtn" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 font-bold text-sm transition-all flex items-center gap-2 shadow">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                自動振り分け
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div id="autoAssignMenu" class="hidden absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl border z-20 min-w-[200px]">
+                                <button onclick="autoAssignCases('equal')" class="w-full text-left px-4 py-3 text-sm hover:bg-purple-50 flex items-center gap-3 border-b">
+                                    <span class="text-lg">⚖️</span>
+                                    <div>
+                                        <div class="font-medium">均等振り分け</div>
+                                        <div class="text-xs text-gray-500">人数で均等に分配</div>
+                                    </div>
+                                </button>
+                                <button onclick="autoAssignCases('workload')" class="w-full text-left px-4 py-3 text-sm hover:bg-purple-50 flex items-center gap-3 border-b">
+                                    <span class="text-lg">📊</span>
+                                    <div>
+                                        <div class="font-medium">件数均等</div>
+                                        <div class="text-xs text-gray-500">現在の担当件数考慮</div>
+                                    </div>
+                                </button>
+                                <button onclick="autoAssignCases('roundrobin')" class="w-full text-left px-4 py-3 text-sm hover:bg-purple-50 flex items-center gap-3 rounded-b-lg">
+                                    <span class="text-lg">🔄</span>
+                                    <div>
+                                        <div class="font-medium">ラウンドロビン</div>
+                                        <div class="text-xs text-gray-500">順番に1件ずつ</div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- 案件カードリスト（ドロップ先） -->
@@ -21050,8 +21077,33 @@
             btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> 変更を保存';
         }
 
-        // 自動振り分け（均等配分）
-        async function autoAssignCases() {
+        // 自動振り分けメニューの表示/非表示
+        function toggleAutoAssignMenu() {
+            const menu = document.getElementById('autoAssignMenu');
+            menu.classList.toggle('hidden');
+
+            // クリック外でメニューを閉じる
+            if (!menu.classList.contains('hidden')) {
+                setTimeout(() => {
+                    document.addEventListener('click', closeAutoAssignMenuOnClickOutside);
+                }, 10);
+            }
+        }
+
+        function closeAutoAssignMenuOnClickOutside(e) {
+            const menu = document.getElementById('autoAssignMenu');
+            const btn = document.getElementById('autoAssignBtn');
+            if (!menu.contains(e.target) && !btn.contains(e.target)) {
+                menu.classList.add('hidden');
+                document.removeEventListener('click', closeAutoAssignMenuOnClickOutside);
+            }
+        }
+
+        // 自動振り分け（複数モード対応）
+        async function autoAssignCases(mode = 'equal') {
+            // メニューを閉じる
+            document.getElementById('autoAssignMenu')?.classList.add('hidden');
+
             const members = await getMemberListFromAPI();
             if (members.length === 0) {
                 showNotification('エラー', 'メンバーが登録されていません', 'error');
@@ -21066,17 +21118,77 @@
                 return;
             }
 
-            // 均等に振り分け
-            let memberIndex = 0;
-            unassignedCases.forEach(c => {
-                const targetMember = members[memberIndex % members.length];
-                kanbanChanges[c.cvId] = targetMember.name;
-                memberIndex++;
-            });
+            let modeLabel = '';
+
+            switch (mode) {
+                case 'equal':
+                    // 均等振り分け（順番に1件ずつ）
+                    modeLabel = '均等振り分け';
+                    let memberIndex = 0;
+                    unassignedCases.forEach(c => {
+                        const targetMember = members[memberIndex % members.length];
+                        kanbanChanges[c.cvId] = targetMember.name;
+                        memberIndex++;
+                    });
+                    break;
+
+                case 'workload':
+                    // 件数均等（現在の担当件数が少ない人から優先）
+                    modeLabel = '件数均等';
+                    const memberWorkload = {};
+                    members.forEach(m => { memberWorkload[m.name] = 0; });
+
+                    // 既存の担当件数をカウント
+                    cases.forEach(c => {
+                        const assignee = getEffectiveAssignee(c.cvId);
+                        if (assignee && memberWorkload.hasOwnProperty(assignee)) {
+                            memberWorkload[assignee]++;
+                        }
+                    });
+
+                    // 未振り分け案件を件数が少ない順に振り分け
+                    unassignedCases.forEach(c => {
+                        // 件数が最も少ないメンバーを選択
+                        let minMember = members[0];
+                        let minCount = memberWorkload[minMember.name] || 0;
+
+                        members.forEach(m => {
+                            const count = memberWorkload[m.name] || 0;
+                            if (count < minCount) {
+                                minCount = count;
+                                minMember = m;
+                            }
+                        });
+
+                        kanbanChanges[c.cvId] = minMember.name;
+                        memberWorkload[minMember.name]++;
+                    });
+                    break;
+
+                case 'roundrobin':
+                    // ラウンドロビン（登録順に順番に割り当て）
+                    modeLabel = 'ラウンドロビン';
+                    // 最後に割り当てたメンバーのインデックスを取得（なければ0から）
+                    let lastAssignedIdx = parseInt(sessionStorage.getItem('roundRobinIdx') || '0');
+
+                    unassignedCases.forEach(c => {
+                        const targetMember = members[lastAssignedIdx % members.length];
+                        kanbanChanges[c.cvId] = targetMember.name;
+                        lastAssignedIdx++;
+                    });
+
+                    // 次回用にインデックスを保存
+                    sessionStorage.setItem('roundRobinIdx', String(lastAssignedIdx % members.length));
+                    break;
+
+                default:
+                    showNotification('エラー', '不明な振り分けモードです', 'error');
+                    return;
+            }
 
             updateKanbanChangeCount();
             renderCaseCards(cases); // UIを再描画
-            showNotification('自動振り分け', `${unassignedCases.length}件を${members.length}人に均等振り分けしました`, 'success');
+            showNotification('自動振り分け', `${unassignedCases.length}件を${members.length}人に${modeLabel}しました`, 'success');
         }
 
         // モーダルを開く（旧UI - 互換性のため残す）
