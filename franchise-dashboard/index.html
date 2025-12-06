@@ -15879,8 +15879,8 @@
             }
         }
 
-        // 営業担当者を削除
-        function deleteSales(name) {
+        // 営業担当者を削除（V2066: GAS API連携）
+        async function deleteSales(name) {
             const reassignCases = document.getElementById('reassignCases').checked;
             const reassignSelect = document.getElementById('reassignTo');
             const reassignTo = reassignSelect.value;
@@ -15891,27 +15891,69 @@
                 return;
             }
 
-            // 削除処理（実際にはAPIを呼ぶ）
-            if (reassignCases) {
-                showNotification('削除完了', `${name}さんを削除し、案件を${reassignToName}に引き継ぎました`);
-            } else {
-                showNotification('削除完了', `${name}さんを削除しました`);
+            // メンバーIDを取得
+            const member = memberList.find(m => m.name === name);
+            if (!member) {
+                showToast('メンバーが見つかりません', 'error');
+                return;
+            }
+
+            const merchantId = localStorage.getItem('merchantId') || sessionStorage.getItem('merchantId') || window.merchantId;
+            if (!merchantId) {
+                showToast('エラー: merchantIdが取得できません', 'error');
+                return;
             }
 
             // モーダルを閉じる
             closeDeleteModal();
 
-            // テーブルから行を削除（デモ用）
-            const rows = document.querySelectorAll('#salesSection tbody tr');
-            rows.forEach(row => {
-                if (row.textContent.includes(name)) {
-                    row.style.transition = 'opacity 0.3s';
-                    row.style.opacity = '0';
-                    setTimeout(() => {
-                        row.remove();
-                    }, 300);
+            try {
+                // JSONP でAPI呼び出し
+                const result = await new Promise((resolve, reject) => {
+                    const callbackName = 'deleteMemberCallback_' + Date.now();
+                    const timeout = setTimeout(() => {
+                        delete window[callbackName];
+                        reject(new Error('タイムアウト'));
+                    }, 30000);
+
+                    window[callbackName] = function(response) {
+                        clearTimeout(timeout);
+                        delete window[callbackName];
+                        resolve(response);
+                    };
+
+                    const script = document.createElement('script');
+                    let url = `${window.ENV.GAS_URL}?action=deleteMember&memberId=${encodeURIComponent(member.id)}&merchantId=${encodeURIComponent(merchantId)}&callback=${callbackName}`;
+                    if (reassignCases && reassignTo) {
+                        url += `&reassignTo=${encodeURIComponent(reassignTo)}`;
+                    }
+                    script.src = url;
+                    script.onerror = () => {
+                        clearTimeout(timeout);
+                        delete window[callbackName];
+                        reject(new Error('スクリプト読み込みエラー'));
+                    };
+                    document.body.appendChild(script);
+                    script.onload = () => document.body.removeChild(script);
+                });
+
+                if (result.success) {
+                    // memberListから削除
+                    memberList = memberList.filter(m => m.id !== member.id);
+                    renderMemberList();
+
+                    if (reassignCases) {
+                        showNotification('削除完了', `${name}さんを削除し、案件を${reassignToName}に引き継ぎました`);
+                    } else {
+                        showNotification('削除完了', `${name}さんを削除しました`);
+                    }
+                } else {
+                    showToast('削除エラー: ' + (result.error || '不明なエラー'), 'error');
                 }
-            });
+            } catch (error) {
+                console.error('[deleteSales] 例外:', error);
+                showToast('削除に失敗しました', 'error');
+            }
         }
 
         // 権限プリセット設定

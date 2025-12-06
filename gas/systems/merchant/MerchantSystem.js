@@ -123,6 +123,8 @@ const MerchantSystem = {
           return MerchantMemberInvite.verifyMemberLogin(params);
         case 'cancelInvite':  // V2066: JSONP対応（GET）
           return MerchantMemberInvite.cancelInvite(params);
+        case 'deleteMember':  // V2066: メンバー削除
+          return MerchantMemberInvite.deleteMember(params);
 
         default:
           return {

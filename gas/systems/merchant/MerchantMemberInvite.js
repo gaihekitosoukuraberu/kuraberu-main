@@ -520,5 +520,50 @@ const MerchantMemberInvite = {
       console.error('[cancelInvite] Error:', error);
       return { success: false, error: error.toString() };
     }
+  },
+
+  // ====================================
+  // V2066: メンバー削除（ステータスをdisabledに変更）
+  // ====================================
+  deleteMember: function(params) {
+    try {
+      const memberId = params.memberId;
+      const merchantId = params.merchantId;
+      const reassignTo = params.reassignTo; // 引き継ぎ先（オプション）
+
+      if (!memberId || !merchantId) {
+        return { success: false, error: 'メンバーIDと加盟店IDが必要です' };
+      }
+
+      const sheet = this._getCredentialsSheet();
+      const data = sheet.getDataRange().getValues();
+
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        if (row[this.COL.ID] === memberId &&
+            row[this.COL.PARENT_ID] === merchantId &&
+            row[this.COL.STATUS] === 'active') {
+          // ステータスを disabled に変更（論理削除）
+          sheet.getRange(i + 1, this.COL.STATUS + 1).setValue('disabled');
+
+          console.log('[deleteMember] Success:', memberId, 'reassignTo:', reassignTo);
+
+          // TODO: 案件引き継ぎ処理（reassignToが指定されている場合）
+          // 配信管理シートの担当者列を更新する処理を追加予定
+
+          return {
+            success: true,
+            message: 'メンバーを削除しました',
+            reassignedTo: reassignTo || null
+          };
+        }
+      }
+
+      return { success: false, error: '該当するメンバーが見つかりません' };
+
+    } catch (error) {
+      console.error('[deleteMember] Error:', error);
+      return { success: false, error: error.toString() };
+    }
   }
 };
