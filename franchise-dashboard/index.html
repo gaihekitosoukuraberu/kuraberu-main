@@ -15165,10 +15165,10 @@
 
                 console.log('[loadMemberList] レスポンス:', result);
 
-                if (result.success && result.data) {
+                if (result.success && result.members) {
                     // activeメンバーとpendingメンバーを分離
-                    memberList = result.data.members.filter(m => m.status === 'active').map(m => ({
-                        id: m.id,
+                    memberList = result.members.filter(m => m.status === 'active').map(m => ({
+                        id: m.memberId,
                         name: m.name || '(未登録)',
                         role: m.role || 'standard',
                         roleLabel: m.role === 'leader' ? 'リーダー' : m.role === 'office' ? '事務' : '営業',
@@ -15177,8 +15177,8 @@
                         rate: '-'
                     }));
 
-                    pendingInvites = result.data.members.filter(m => m.status === 'pending').map(m => ({
-                        id: m.id,
+                    pendingInvites = result.members.filter(m => m.status === 'pending').map(m => ({
+                        id: m.memberId,
                         role: m.role || 'standard',
                         expiry: m.inviteExpiry
                     }));
