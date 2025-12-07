@@ -525,6 +525,14 @@
                     </svg>
                     カレンダー
                 </a>
+                <!-- V2092: 空き枠管理 -->
+                <a href="#availability" onclick="showSection('availability'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
+                    </svg>
+                    空き枠管理
+                </a>
                 <!-- 4. キャンセル申請 -->
                 <a href="#cancel" onclick="showSection('cancel'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -4220,7 +4228,183 @@
                     </div>
                 </div>
             </div><!-- calendarSectionの終了 -->
-            
+
+            <!-- V2092: 空き枠管理セクション -->
+            <div id="availabilitySection" class="section" style="display: none;">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">空き枠管理</h2>
+
+                <!-- スロット設定 -->
+                <div class="bg-white border-2 border-gray-200 rounded-xl p-6 mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                            <span>⚙️</span> スロット設定
+                        </h3>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <label class="text-sm font-medium text-gray-700">予約枠の単位:</label>
+                        <div class="flex gap-2">
+                            <button onclick="setSlotDuration(30)" id="slot30Btn" class="slot-duration-btn px-4 py-2 rounded-lg border-2 border-gray-300 text-gray-600 hover:border-blue-400 transition-all">
+                                30分
+                            </button>
+                            <button onclick="setSlotDuration(60)" id="slot60Btn" class="slot-duration-btn px-4 py-2 rounded-lg border-2 border-blue-500 bg-blue-50 text-blue-700 font-bold">
+                                1時間
+                            </button>
+                            <button onclick="setSlotDuration(90)" id="slot90Btn" class="slot-duration-btn px-4 py-2 rounded-lg border-2 border-gray-300 text-gray-600 hover:border-blue-400 transition-all">
+                                1.5時間
+                            </button>
+                            <button onclick="setSlotDuration(120)" id="slot120Btn" class="slot-duration-btn px-4 py-2 rounded-lg border-2 border-gray-300 text-gray-600 hover:border-blue-400 transition-all">
+                                2時間
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 週間カレンダー -->
+                <div class="bg-white border-2 border-gray-200 rounded-xl p-6 mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                            <span>📅</span> 週間スケジュール
+                        </h3>
+                        <div class="flex items-center gap-2">
+                            <button onclick="prevWeek()" class="p-2 hover:bg-gray-100 rounded-lg transition-all">
+                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </button>
+                            <span id="weekRangeLabel" class="font-medium text-gray-700 min-w-[200px] text-center">---</span>
+                            <button onclick="nextWeek()" class="p-2 hover:bg-gray-100 rounded-lg transition-all">
+                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                            <button onclick="goToCurrentWeek()" class="ml-2 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all">
+                                今週
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- カレンダーグリッド -->
+                    <div class="overflow-x-auto">
+                        <div class="min-w-[800px]">
+                            <!-- 曜日ヘッダー -->
+                            <div class="grid grid-cols-8 gap-1 mb-2">
+                                <div class="text-center text-sm font-medium text-gray-500 py-2">時間</div>
+                                <div id="dayHeader0" class="text-center text-sm font-medium text-gray-700 py-2 rounded-lg"></div>
+                                <div id="dayHeader1" class="text-center text-sm font-medium text-gray-700 py-2 rounded-lg"></div>
+                                <div id="dayHeader2" class="text-center text-sm font-medium text-gray-700 py-2 rounded-lg"></div>
+                                <div id="dayHeader3" class="text-center text-sm font-medium text-gray-700 py-2 rounded-lg"></div>
+                                <div id="dayHeader4" class="text-center text-sm font-medium text-gray-700 py-2 rounded-lg"></div>
+                                <div id="dayHeader5" class="text-center text-sm font-medium text-gray-700 py-2 rounded-lg"></div>
+                                <div id="dayHeader6" class="text-center text-sm font-medium text-gray-700 py-2 rounded-lg"></div>
+                            </div>
+
+                            <!-- 時間スロットグリッド -->
+                            <div id="availabilityGrid" class="space-y-1">
+                                <!-- JSで動的生成 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 凡例 -->
+                    <div class="mt-4 pt-4 border-t flex items-center gap-6 text-sm">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 bg-green-100 border-2 border-green-400 rounded"></div>
+                            <span class="text-gray-600">空き（予約可）</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 bg-blue-100 border-2 border-blue-400 rounded"></div>
+                            <span class="text-gray-600">予約済み</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 bg-gray-100 border-2 border-gray-300 rounded"></div>
+                            <span class="text-gray-600">設定なし</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 一括設定 -->
+                <div class="bg-white border-2 border-gray-200 rounded-xl p-6 mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                            <span>⚡</span> 一括設定
+                        </h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- 曜日ごとの設定 -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-medium text-gray-800 mb-3">曜日ごとに設定</h4>
+                            <div class="flex flex-wrap gap-2 mb-3">
+                                <button onclick="toggleBulkDay(0)" class="bulk-day-btn px-3 py-1 text-sm rounded-full border-2 border-gray-300 text-gray-600 hover:border-blue-400">日</button>
+                                <button onclick="toggleBulkDay(1)" class="bulk-day-btn px-3 py-1 text-sm rounded-full border-2 border-blue-500 bg-blue-50 text-blue-700">月</button>
+                                <button onclick="toggleBulkDay(2)" class="bulk-day-btn px-3 py-1 text-sm rounded-full border-2 border-blue-500 bg-blue-50 text-blue-700">火</button>
+                                <button onclick="toggleBulkDay(3)" class="bulk-day-btn px-3 py-1 text-sm rounded-full border-2 border-blue-500 bg-blue-50 text-blue-700">水</button>
+                                <button onclick="toggleBulkDay(4)" class="bulk-day-btn px-3 py-1 text-sm rounded-full border-2 border-blue-500 bg-blue-50 text-blue-700">木</button>
+                                <button onclick="toggleBulkDay(5)" class="bulk-day-btn px-3 py-1 text-sm rounded-full border-2 border-blue-500 bg-blue-50 text-blue-700">金</button>
+                                <button onclick="toggleBulkDay(6)" class="bulk-day-btn px-3 py-1 text-sm rounded-full border-2 border-gray-300 text-gray-600 hover:border-blue-400">土</button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <select id="bulkStartTime" class="px-3 py-2 border rounded-lg">
+                                    <option value="8">8:00</option>
+                                    <option value="9" selected>9:00</option>
+                                    <option value="10">10:00</option>
+                                    <option value="11">11:00</option>
+                                    <option value="12">12:00</option>
+                                    <option value="13">13:00</option>
+                                </select>
+                                <span class="text-gray-500">〜</span>
+                                <select id="bulkEndTime" class="px-3 py-2 border rounded-lg">
+                                    <option value="16">16:00</option>
+                                    <option value="17" selected>17:00</option>
+                                    <option value="18">18:00</option>
+                                    <option value="19">19:00</option>
+                                    <option value="20">20:00</option>
+                                    <option value="21">21:00</option>
+                                </select>
+                                <button onclick="applyBulkSettings()" class="ml-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all">
+                                    適用
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 今週分を複製 -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-medium text-gray-800 mb-3">定期設定</h4>
+                            <p class="text-sm text-gray-600 mb-3">今週の設定を翌週以降にも適用</p>
+                            <div class="flex items-center gap-2">
+                                <select id="copyWeeksCount" class="px-3 py-2 border rounded-lg">
+                                    <option value="1">1週間分</option>
+                                    <option value="2">2週間分</option>
+                                    <option value="4" selected>4週間分</option>
+                                    <option value="8">8週間分</option>
+                                </select>
+                                <button onclick="copyToFutureWeeks()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-all">
+                                    複製
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 予約一覧 -->
+                <div class="bg-white border-2 border-gray-200 rounded-xl p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                            <span>📋</span> 予約一覧
+                            <span id="bookingCount" class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-sm rounded-full">0件</span>
+                        </h3>
+                        <button onclick="refreshBookings()" class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            更新
+                        </button>
+                    </div>
+                    <div id="bookingsList" class="space-y-2">
+                        <p class="text-gray-500 text-center py-8">予約はまだありません</p>
+                    </div>
+                </div>
+            </div><!-- availabilitySectionの終了 -->
+
             <!-- 自動配信設定セクション -->
             <div id="autodeliverySection" class="section" style="display: none;">
                 <h2 class="text-2xl font-bold text-gray-900 mb-6">自動配信設定</h2>
@@ -17906,6 +18090,13 @@
                     }
                 }
             }
+
+            // V2092: 空き枠管理セクション
+            if (section === 'availability') {
+                if (typeof initAvailabilitySection === 'function') {
+                    initAvailabilitySection();
+                }
+            }
             // 案件管理セクションは originalShowSection で処理済み
         }
 
@@ -20868,6 +21059,527 @@
                 showNotification('エラー', '保存に失敗しました', 'error');
             }
         }
+
+        // ============================================
+        // V2092: 空き枠管理システム
+        // ============================================
+
+        // 空き枠管理の状態
+        let currentWeekStart = null;
+        let selectedSlotDuration = 60; // デフォルト1時間
+        let availabilityData = {}; // 日付 -> 時間帯配列
+        let bookingsData = [];
+        const bulkDays = [false, true, true, true, true, true, false]; // 日月火水木金土
+
+        // 初期化
+        function initAvailabilitySection() {
+            currentWeekStart = getWeekStart(new Date());
+            renderWeekCalendar();
+            loadAvailability();
+            loadBookings();
+        }
+
+        // 週の開始日を取得（日曜始まり）
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            d.setDate(d.getDate() - day);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+
+        // スロット時間を設定
+        function setSlotDuration(minutes) {
+            selectedSlotDuration = minutes;
+
+            // ボタンの状態を更新
+            document.querySelectorAll('.slot-duration-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-700', 'font-bold');
+                btn.classList.add('border-gray-300', 'text-gray-600');
+            });
+
+            const selectedBtn = document.getElementById(`slot${minutes}Btn`);
+            if (selectedBtn) {
+                selectedBtn.classList.remove('border-gray-300', 'text-gray-600');
+                selectedBtn.classList.add('border-blue-500', 'bg-blue-50', 'text-blue-700', 'font-bold');
+            }
+
+            // カレンダーを再描画
+            renderWeekCalendar();
+        }
+
+        // 前週へ
+        function prevWeek() {
+            currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            renderWeekCalendar();
+            loadAvailability();
+        }
+
+        // 次週へ
+        function nextWeek() {
+            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            renderWeekCalendar();
+            loadAvailability();
+        }
+
+        // 今週へ
+        function goToCurrentWeek() {
+            currentWeekStart = getWeekStart(new Date());
+            renderWeekCalendar();
+            loadAvailability();
+        }
+
+        // 週間カレンダーを描画
+        function renderWeekCalendar() {
+            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // 週の日付範囲を表示
+            const weekEnd = new Date(currentWeekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            document.getElementById('weekRangeLabel').textContent =
+                `${currentWeekStart.getMonth() + 1}/${currentWeekStart.getDate()} 〜 ${weekEnd.getMonth() + 1}/${weekEnd.getDate()}`;
+
+            // 曜日ヘッダーを更新
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(currentWeekStart);
+                date.setDate(date.getDate() + i);
+                const header = document.getElementById(`dayHeader${i}`);
+                if (header) {
+                    const isToday = date.getTime() === today.getTime();
+                    header.innerHTML = `
+                        <div class="${isToday ? 'bg-blue-500 text-white rounded-full px-2 py-1' : ''}">
+                            ${dayNames[i]}<br>
+                            <span class="text-xs">${date.getMonth() + 1}/${date.getDate()}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            // 時間スロットグリッドを生成
+            const grid = document.getElementById('availabilityGrid');
+            if (!grid) return;
+
+            const startHour = 8;
+            const endHour = 20;
+            let html = '';
+
+            for (let hour = startHour; hour < endHour; hour++) {
+                html += `<div class="grid grid-cols-8 gap-1">`;
+                html += `<div class="text-center text-sm text-gray-500 py-2">${hour}:00</div>`;
+
+                for (let day = 0; day < 7; day++) {
+                    const date = new Date(currentWeekStart);
+                    date.setDate(date.getDate() + day);
+                    const dateStr = formatDate(date);
+                    const timeStr = `${String(hour).padStart(2, '0')}:00`;
+                    const slotKey = `${dateStr}_${timeStr}`;
+
+                    const isPast = date < today;
+                    const slotStatus = getSlotStatus(dateStr, timeStr);
+
+                    let bgClass, borderClass, cursor;
+                    if (isPast) {
+                        bgClass = 'bg-gray-50';
+                        borderClass = 'border-gray-200';
+                        cursor = 'cursor-not-allowed opacity-50';
+                    } else if (slotStatus === 'booked') {
+                        bgClass = 'bg-blue-100';
+                        borderClass = 'border-blue-400';
+                        cursor = 'cursor-pointer';
+                    } else if (slotStatus === 'available') {
+                        bgClass = 'bg-green-100';
+                        borderClass = 'border-green-400';
+                        cursor = 'cursor-pointer';
+                    } else {
+                        bgClass = 'bg-gray-100';
+                        borderClass = 'border-gray-300';
+                        cursor = 'cursor-pointer hover:bg-green-50 hover:border-green-300';
+                    }
+
+                    html += `
+                        <div class="slot-cell ${bgClass} border-2 ${borderClass} rounded h-10 ${cursor} transition-all"
+                             data-date="${dateStr}" data-time="${timeStr}"
+                             onclick="${isPast ? '' : `toggleSlot('${dateStr}', '${timeStr}')`}">
+                        </div>
+                    `;
+                }
+
+                html += `</div>`;
+            }
+
+            grid.innerHTML = html;
+        }
+
+        // 日付をフォーマット (YYYY-MM-DD)
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // スロットの状態を取得
+        function getSlotStatus(dateStr, timeStr) {
+            if (availabilityData[dateStr]) {
+                const slot = availabilityData[dateStr].find(s => s.startTime === timeStr);
+                if (slot) {
+                    return slot.status;
+                }
+            }
+            return null; // 設定なし
+        }
+
+        // スロットをトグル
+        async function toggleSlot(dateStr, timeStr) {
+            const currentStatus = getSlotStatus(dateStr, timeStr);
+
+            if (currentStatus === 'booked') {
+                showNotification('予約済み', 'この枠は予約が入っています', 'warning');
+                return;
+            }
+
+            // 状態を切り替え
+            if (!availabilityData[dateStr]) {
+                availabilityData[dateStr] = [];
+            }
+
+            const existingIndex = availabilityData[dateStr].findIndex(s => s.startTime === timeStr);
+
+            if (existingIndex >= 0) {
+                // 削除（空き -> なし）
+                availabilityData[dateStr].splice(existingIndex, 1);
+            } else {
+                // 追加（なし -> 空き）
+                const endHour = parseInt(timeStr.split(':')[0]) + Math.floor(selectedSlotDuration / 60);
+                const endMinute = parseInt(timeStr.split(':')[1]) + (selectedSlotDuration % 60);
+                const endTime = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
+
+                availabilityData[dateStr].push({
+                    startTime: timeStr,
+                    endTime: endTime,
+                    status: 'available',
+                    slotDuration: selectedSlotDuration
+                });
+            }
+
+            // UIを即座に更新
+            renderWeekCalendar();
+
+            // バックグラウンドで保存
+            saveAvailability();
+        }
+
+        // 一括設定の曜日をトグル
+        function toggleBulkDay(dayIndex) {
+            bulkDays[dayIndex] = !bulkDays[dayIndex];
+
+            // ボタンの状態を更新
+            const btns = document.querySelectorAll('.bulk-day-btn');
+            btns[dayIndex].classList.toggle('border-blue-500', bulkDays[dayIndex]);
+            btns[dayIndex].classList.toggle('bg-blue-50', bulkDays[dayIndex]);
+            btns[dayIndex].classList.toggle('text-blue-700', bulkDays[dayIndex]);
+            btns[dayIndex].classList.toggle('border-gray-300', !bulkDays[dayIndex]);
+            btns[dayIndex].classList.toggle('text-gray-600', !bulkDays[dayIndex]);
+        }
+
+        // 一括設定を適用
+        function applyBulkSettings() {
+            const startHour = parseInt(document.getElementById('bulkStartTime').value);
+            const endHour = parseInt(document.getElementById('bulkEndTime').value);
+
+            if (startHour >= endHour) {
+                showNotification('エラー', '終了時間は開始時間より後に設定してください', 'error');
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // 今週の選択された曜日に適用
+            for (let day = 0; day < 7; day++) {
+                if (!bulkDays[day]) continue;
+
+                const date = new Date(currentWeekStart);
+                date.setDate(date.getDate() + day);
+
+                // 過去はスキップ
+                if (date < today) continue;
+
+                const dateStr = formatDate(date);
+
+                // 既存の空き枠をクリア（予約済み以外）
+                if (availabilityData[dateStr]) {
+                    availabilityData[dateStr] = availabilityData[dateStr].filter(s => s.status === 'booked');
+                } else {
+                    availabilityData[dateStr] = [];
+                }
+
+                // 新しい空き枠を追加
+                for (let hour = startHour; hour < endHour; hour++) {
+                    const timeStr = `${String(hour).padStart(2, '0')}:00`;
+                    const endTime = `${String(hour + 1).padStart(2, '0')}:00`;
+
+                    availabilityData[dateStr].push({
+                        startTime: timeStr,
+                        endTime: endTime,
+                        status: 'available',
+                        slotDuration: selectedSlotDuration
+                    });
+                }
+            }
+
+            renderWeekCalendar();
+            saveAvailability();
+            showNotification('設定完了', '一括設定を適用しました', 'success');
+        }
+
+        // 翌週以降に複製
+        async function copyToFutureWeeks() {
+            const weeksCount = parseInt(document.getElementById('copyWeeksCount').value);
+
+            // 今週のデータを取得
+            const thisWeekData = {};
+            for (let day = 0; day < 7; day++) {
+                const date = new Date(currentWeekStart);
+                date.setDate(date.getDate() + day);
+                const dateStr = formatDate(date);
+
+                if (availabilityData[dateStr] && availabilityData[dateStr].length > 0) {
+                    thisWeekData[day] = availabilityData[dateStr].filter(s => s.status === 'available');
+                }
+            }
+
+            // 翌週以降にコピー
+            for (let week = 1; week <= weeksCount; week++) {
+                for (let day = 0; day < 7; day++) {
+                    if (!thisWeekData[day]) continue;
+
+                    const date = new Date(currentWeekStart);
+                    date.setDate(date.getDate() + (week * 7) + day);
+                    const dateStr = formatDate(date);
+
+                    if (!availabilityData[dateStr]) {
+                        availabilityData[dateStr] = [];
+                    }
+
+                    // 既存の予約済み枠を保持
+                    const bookedSlots = availabilityData[dateStr].filter(s => s.status === 'booked');
+
+                    // 新しい空き枠をコピー
+                    const newSlots = thisWeekData[day].map(slot => ({
+                        ...slot,
+                        status: 'available'
+                    }));
+
+                    availabilityData[dateStr] = [...bookedSlots, ...newSlots];
+                }
+            }
+
+            saveAvailability();
+            showNotification('複製完了', `${weeksCount}週間分の設定を複製しました`, 'success');
+        }
+
+        // 空き枠を読み込み
+        async function loadAvailability() {
+            const merchantId = window.merchantId;
+            if (!merchantId) return;
+
+            // 週の開始日と終了日
+            const startDate = formatDate(currentWeekStart);
+            const endDate = formatDate(new Date(currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000));
+
+            try {
+                const url = `${GAS_URL}?action=getContractorAvailability&merchantId=${merchantId}&startDate=${startDate}&endDate=${endDate}`;
+
+                const result = await new Promise((resolve, reject) => {
+                    const callbackName = 'avail_' + Date.now();
+                    window[callbackName] = (data) => {
+                        delete window[callbackName];
+                        resolve(data);
+                    };
+
+                    const script = document.createElement('script');
+                    script.src = url + '&callback=' + callbackName;
+                    script.onerror = () => reject(new Error('Network error'));
+                    document.body.appendChild(script);
+                    setTimeout(() => {
+                        if (window[callbackName]) {
+                            delete window[callbackName];
+                            reject(new Error('Timeout'));
+                        }
+                    }, 10000);
+                });
+
+                if (result.success && result.slots) {
+                    // データを日付ごとにグループ化
+                    result.slots.forEach(slot => {
+                        if (!availabilityData[slot.date]) {
+                            availabilityData[slot.date] = [];
+                        }
+                        availabilityData[slot.date].push({
+                            startTime: slot.startTime,
+                            endTime: slot.endTime,
+                            status: slot.status,
+                            slotDuration: slot.slotDuration
+                        });
+                    });
+
+                    renderWeekCalendar();
+                }
+            } catch (err) {
+                console.error('[Availability] Load error:', err);
+            }
+        }
+
+        // 空き枠を保存
+        async function saveAvailability() {
+            const merchantId = window.merchantId;
+            if (!merchantId) return;
+
+            // 全データをフラット化
+            const slots = [];
+            for (const dateStr in availabilityData) {
+                const daySlots = availabilityData[dateStr];
+                daySlots.forEach(slot => {
+                    if (slot.status === 'available') {
+                        slots.push({
+                            date: dateStr,
+                            startTime: slot.startTime,
+                            endTime: slot.endTime,
+                            slotDuration: slot.slotDuration || selectedSlotDuration
+                        });
+                    }
+                });
+            }
+
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'setContractorAvailability',
+                        merchantId: merchantId,
+                        slots: slots
+                    })
+                });
+                console.log('[Availability] Saved', slots.length, 'slots');
+            } catch (err) {
+                console.error('[Availability] Save error:', err);
+            }
+        }
+
+        // 予約一覧を読み込み
+        async function loadBookings() {
+            const merchantId = window.merchantId;
+            if (!merchantId) return;
+
+            try {
+                const url = `${GAS_URL}?action=getBookings&merchantId=${merchantId}&status=confirmed`;
+
+                const result = await new Promise((resolve, reject) => {
+                    const callbackName = 'book_' + Date.now();
+                    window[callbackName] = (data) => {
+                        delete window[callbackName];
+                        resolve(data);
+                    };
+
+                    const script = document.createElement('script');
+                    script.src = url + '&callback=' + callbackName;
+                    script.onerror = () => reject(new Error('Network error'));
+                    document.body.appendChild(script);
+                });
+
+                if (result.success) {
+                    bookingsData = result.bookings || [];
+                    renderBookingsList();
+                }
+            } catch (err) {
+                console.error('[Bookings] Load error:', err);
+            }
+        }
+
+        // 予約一覧を表示
+        function renderBookingsList() {
+            const container = document.getElementById('bookingsList');
+            const countBadge = document.getElementById('bookingCount');
+
+            if (!container) return;
+
+            if (bookingsData.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">予約はまだありません</p>';
+                countBadge.textContent = '0件';
+                return;
+            }
+
+            countBadge.textContent = `${bookingsData.length}件`;
+
+            const html = bookingsData.map(booking => `
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center gap-4">
+                        <div class="text-center px-3 py-2 bg-blue-100 rounded-lg">
+                            <div class="text-sm text-blue-600">${booking.date.split('-').slice(1).join('/')}</div>
+                            <div class="font-bold text-blue-800">${booking.time}</div>
+                        </div>
+                        <div>
+                            <div class="font-medium text-gray-900">${booking.userName || '名前未入力'}</div>
+                            <div class="text-sm text-gray-500">${booking.phone || '電話番号未入力'}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                            確定
+                        </span>
+                        <button onclick="cancelBookingConfirm('${booking.bookingId}')" class="p-2 text-gray-400 hover:text-red-500 transition-all" title="キャンセル">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+
+        // 予約一覧を更新
+        function refreshBookings() {
+            loadBookings();
+            showNotification('更新完了', '予約一覧を更新しました', 'success');
+        }
+
+        // 予約キャンセル確認
+        function cancelBookingConfirm(bookingId) {
+            if (confirm('この予約をキャンセルしますか？')) {
+                cancelBookingAction(bookingId);
+            }
+        }
+
+        // 予約キャンセル実行
+        async function cancelBookingAction(bookingId) {
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'cancelBooking',
+                        bookingId: bookingId
+                    })
+                });
+
+                showNotification('キャンセル完了', '予約をキャンセルしました', 'success');
+                loadBookings();
+                loadAvailability();
+            } catch (err) {
+                console.error('[Booking] Cancel error:', err);
+                showNotification('エラー', 'キャンセルに失敗しました', 'error');
+            }
+        }
+
+        // ============================================
+        // 空き枠管理システム ここまで
+        // ============================================
 
         // ステータス変更モーダル
         function openStatusModal(cvId) {
