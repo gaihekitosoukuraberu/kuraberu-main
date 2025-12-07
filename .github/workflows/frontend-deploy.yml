@@ -8,6 +8,7 @@ on:
       - 'admin-dashboard/**'
       - 'franchise-dashboard/**'
       - 'franchise-register/**'
+      - 'booking/**'
       - 'lp/**'
       - 'js/**'
       - '.github/workflows/**'
@@ -241,6 +242,40 @@ jobs:
           sleep 5
           curl -f https://gaihekikuraberu.com/lp/ || exit 1
           echo "✅ LP deployed successfully"
+
+  deploy-booking:
+    name: Deploy Booking Page
+    runs-on: ubuntu-latest
+    needs: [deploy-js]
+    continue-on-error: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Pull latest changes
+        run: |
+          git pull origin main --rebase || true
+
+      - name: Deploy to FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./booking/
+          server-dir: gaihekikuraberu.com/public_html/booking/
+          dangerous-clean-slate: false
+
+      - name: Verify deployment
+        run: |
+          sleep 5
+          curl -f https://gaihekikuraberu.com/booking/ || exit 1
+          echo "✅ Booking page deployed successfully"
 
   deploy-js:
     name: Deploy JS (env-loader) - Updates cache buster for all frontend deploys
