@@ -15236,15 +15236,26 @@
             }
         }
 
-        // 通知表示
+        // 通知表示（PWA対応）
         function showNotification(title, body, type = 'info') {
-            // ブラウザ通知
+            // ブラウザ通知（Service Worker経由でPWA対応）
             if (Notification.permission === 'granted') {
-                new Notification(title, {
-                    body: body,
-                    icon: '/favicon.ico',
-                    badge: '/favicon.ico'
-                });
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.ready.then(registration => {
+                        registration.showNotification(title, {
+                            body: body,
+                            icon: '/franchise-dashboard/images/5.png',
+                            badge: '/franchise-dashboard/images/5.png',
+                            vibrate: [200, 100, 200],
+                            tag: 'kuraberu-' + Date.now()
+                        });
+                    });
+                } else {
+                    new Notification(title, {
+                        body: body,
+                        icon: '/franchise-dashboard/images/5.png'
+                    });
+                }
             }
 
             // インアプリ通知も表示
@@ -16762,7 +16773,7 @@
             };
 
             if (type === 'browser') {
-                showBrowserNotification('通知テスト', messages[type]);
+                showNotification('通知テスト', messages[type]);
             } else {
                 alert(messages[type] + '\n（デモ版のため実際には送信されません）');
             }
@@ -16814,7 +16825,7 @@
                     console.log('[Push] 通知許可されました');
                     await registerPushSubscription();
                     checkPushPermission();
-                    showBrowserNotification('通知設定完了', '新しい案件の通知を受け取れるようになりました！');
+                    showNotification('通知設定完了', '新しい案件の通知を受け取れるようになりました！', 'success');
                 } else {
                     console.log('[Push] 通知が拒否されました');
                     checkPushPermission();
@@ -16852,32 +16863,6 @@
 
             } catch (error) {
                 console.error('[Push] 購読登録エラー:', error);
-            }
-        }
-
-        // ブラウザ通知を表示
-        function showBrowserNotification(title, body) {
-            if (Notification.permission === 'granted') {
-                // Service Worker経由で通知（PWA対応）
-                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.ready.then(registration => {
-                        registration.showNotification(title, {
-                            body: body,
-                            icon: '/franchise-dashboard/images/5.png',
-                            badge: '/franchise-dashboard/images/5.png',
-                            vibrate: [200, 100, 200],
-                            tag: 'kuraberu-notification'
-                        });
-                    });
-                } else {
-                    // 通常のNotification API
-                    new Notification(title, {
-                        body: body,
-                        icon: '/franchise-dashboard/images/5.png'
-                    });
-                }
-            } else {
-                console.warn('[Push] 通知が許可されていません');
             }
         }
 
