@@ -16951,7 +16951,8 @@
                 }
 
                 // GASに保存
-                const response = await fetch(window.GAS_URL, {
+                const gasUrl = window.GAS_URL || window.ENV?.GAS_URL;
+                const response = await fetch(gasUrl, {
                     method: 'POST',
                     body: JSON.stringify({
                         action: 'saveFcmToken',
