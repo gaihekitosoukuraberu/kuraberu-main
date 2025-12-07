@@ -19252,16 +19252,16 @@
                     <h3 class="font-bold text-xl mb-2">${escapeHtml(c.customerName || '-')}</h3>
                     <a href="${mapUrl}" target="_blank" class="text-base text-blue-600 hover:text-blue-800 hover:underline block mb-2" title="${escapeHtml(fullAddress)}">📍${escapeHtml(shortAddress)}</a>
                     ${propertyInfo ? `<p class="text-sm text-gray-500 mb-3">${escapeHtml(propertyInfo)}</p>` : ''}
-                    <!-- 📞📋💬 アイコン行 -->
+                    <!-- 📞💬📋 アイコン行 -->
                     <div class="flex items-center gap-3 mb-3">
                         <button onclick="openConnectionModalDirect('${c.cvId}')" class="text-lg text-blue-600 hover:text-blue-800 font-medium" title="架電履歴を追加">
                             ${getCallCountBadge(c)}
                         </button>
-                        <button onclick="openMemoModal('${c.cvId}')" class="text-lg text-amber-600 hover:text-amber-800 font-medium" title="メモ・履歴">
-                            ${getMemoCountBadge(c)}
-                        </button>
                         <button onclick="openSmsModal('${c.cvId}')" class="text-lg text-teal-600 hover:text-teal-800 font-medium" title="SMS/メッセージ送信">
                             💬
+                        </button>
+                        <button onclick="openMemoModal('${c.cvId}')" class="text-lg text-amber-600 hover:text-amber-800 font-medium" title="メモ・履歴">
+                            ${getMemoCountBadge(c)}
                         </button>
                     </div>
                     <!-- 進捗表示エリア（PC版と同じロジック） -->
