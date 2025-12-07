@@ -94,6 +94,46 @@ git add CURRENT_TODO.md && git commit -m "TODO: 作業内容" && git push
 
 ---
 
+## 📊 スプレッドシート構造取得API
+
+**シート名やカラム名がわからない時は、このAPIを叩いて確認しろ：**
+
+```
+GAS_URL?action=getSpreadsheetStructure
+```
+
+### レスポンス例
+```json
+{
+  "success": true,
+  "structure": {
+    "spreadsheetName": "くらべる管理",
+    "sheets": [
+      {
+        "name": "配信管理",
+        "columns": [
+          {"index": 0, "name": "CV ID"},
+          {"index": 1, "name": "加盟店ID"},
+          {"index": 2, "name": "配信ステータス"}
+        ],
+        "rowCount": 500,
+        "columnCount": 20
+      }
+    ]
+  },
+  "fetchedAt": "2025-12-07T..."
+}
+```
+
+### 使うタイミング
+- 新しいシートにアクセスする処理を書く前
+- カラム名が不明な時
+- スプシ構造が変わった可能性がある時
+
+**CSVダウンロードは不要。このAPIで最新構造を確認できる。**
+
+---
+
 ## 詳細ワークフロー
 
 詳細は `.github/CLAUDE_WORKFLOW.md` を参照
