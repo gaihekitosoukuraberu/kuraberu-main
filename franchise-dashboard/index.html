@@ -7483,200 +7483,282 @@
 
                 <!-- 通知・アラート設定 -->
                 <div id="notificationSection" class="mt-6">
-                    <div class="bg-white shadow rounded-lg p-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">通知・アラート設定</h3>
-                        
-                        <!-- 通知方法 -->
-                        <div class="mb-6">
-                            <h4 class="text-sm font-medium text-gray-700 mb-3">通知方法</h4>
-                            <div class="space-y-3">
-                                <label class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-700">メール通知</span>
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="notifyEmail" class="toggle-switch" checked="">
-                                        <button onclick="testNotification('email')" class="ml-3 text-xs text-blue-600 hover:text-blue-800">テスト送信</button>
-                                    </div>
-                                </label>
-                                <label class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-700">SMS通知</span>
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="notifySms" class="toggle-switch">
-                                        <button onclick="testNotification('sms')" class="ml-3 text-xs text-blue-600 hover:text-blue-800">テスト送信</button>
-                                    </div>
-                                </label>
-                                <label class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-700">LINE通知</span>
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="notifyLine" class="toggle-switch">
-                                        <button onclick="testNotification('line')" class="ml-3 text-xs text-blue-600 hover:text-blue-800">テスト送信</button>
-                                    </div>
-                                </label>
-                                <label class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-700">ブラウザ通知</span>
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="notifyBrowser" class="toggle-switch" checked="">
-                                        <button onclick="testNotification('browser')" class="ml-3 text-xs text-blue-600 hover:text-blue-800">テスト送信</button>
-                                    </div>
-                                </label>
+                    <!-- セクションヘッダー -->
+                    <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-t-xl p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                                <span class="text-2xl">🔔</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white">通知・アラート設定</h3>
+                                <p class="text-amber-100 text-sm">リマインダーや通知の受け取り方を設定</p>
                             </div>
                         </div>
-                        
+                    </div>
+                    <div class="bg-white shadow-lg rounded-b-xl p-6">
+
+                        <!-- 通知方法 -->
+                        <div class="mb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="text-lg">📡</span>
+                                <h4 class="text-base font-bold text-gray-800">通知方法</h4>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">📧</span>
+                                        <span class="text-sm font-medium text-gray-700">メール通知</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="checkbox" id="notifyEmail" class="toggle-switch" checked="">
+                                        <button onclick="testNotification('email')" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">テスト</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">💬</span>
+                                        <span class="text-sm font-medium text-gray-700">SMS通知</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="checkbox" id="notifySms" class="toggle-switch">
+                                        <button onclick="testNotification('sms')" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">テスト</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-100">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">💚</span>
+                                        <span class="text-sm font-medium text-gray-700">LINE通知</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="checkbox" id="notifyLine" class="toggle-switch">
+                                        <button onclick="testNotification('line')" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">テスト</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl border border-purple-100">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">🖥️</span>
+                                        <span class="text-sm font-medium text-gray-700">ブラウザ通知</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="checkbox" id="notifyBrowser" class="toggle-switch" checked="">
+                                        <button onclick="testNotification('browser')" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">テスト</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- 通知種別 -->
-                        <div class="mb-6">
-                            <h4 class="text-sm font-medium text-gray-700 mb-3">通知種別</h4>
+                        <div class="mb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="text-lg">⏰</span>
+                                <h4 class="text-base font-bold text-gray-800">リマインダー設定</h4>
+                            </div>
                             <div class="space-y-3">
                                 <!-- アポイントリマインダー -->
-                                <div class="border rounded-lg p-3 bg-gray-50 group relative">
+                                <div class="border-l-4 border-blue-500 bg-gradient-to-r from-blue-50 to-white rounded-r-xl p-4 hover:shadow-md transition-shadow">
                                     <label class="flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <span class="text-lg mr-2">📋</span>
-                                            <span class="text-sm font-medium text-gray-700">現調前日リマインダー</span>
-                                            <span class="ml-1 text-gray-400 cursor-help">ⓘ</span>
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                                <span class="text-xl">📋</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-sm font-bold text-gray-800">現調前日リマインダー</span>
+                                                <p class="text-xs text-gray-500">現地調査の前日に通知します</p>
+                                            </div>
                                         </div>
-                                        <div class="flex items-center gap-2">
-                                            <input type="time" id="appointmentAlertTime" value="18:00" class="px-2 py-1 border rounded text-sm">
+                                        <div class="flex items-center gap-3">
+                                            <input type="time" id="appointmentAlertTime" value="18:00" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
                                             <input type="checkbox" id="appointmentReminder" class="toggle-switch" checked="" onchange="updateAlertSetting('appointment_reminder', this.checked)">
                                         </div>
                                     </label>
-                                    <div class="absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 z-10 whitespace-nowrap">
-                                        現地調査の前日に通知します
-                                    </div>
                                 </div>
 
                                 <!-- 架電リマインダー -->
-                                <div class="border rounded-lg p-3 bg-gray-50 group relative">
+                                <div class="border-l-4 border-green-500 bg-gradient-to-r from-green-50 to-white rounded-r-xl p-4 hover:shadow-md transition-shadow">
                                     <label class="flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <span class="text-lg mr-2">📞</span>
-                                            <span class="text-sm font-medium text-gray-700">架電リマインダー</span>
-                                            <span class="ml-1 text-gray-400 cursor-help">ⓘ</span>
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                                <span class="text-xl">📞</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-sm font-bold text-gray-800">架電リマインダー</span>
+                                                <p class="text-xs text-gray-500">次回架電日時に通知します</p>
+                                            </div>
                                         </div>
-                                        <div class="flex items-center gap-2">
-                                            <input type="time" id="callAlertTime" value="10:00" class="px-2 py-1 border rounded text-sm">
+                                        <div class="flex items-center gap-3">
+                                            <input type="time" id="callAlertTime" value="10:00" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500">
                                             <input type="checkbox" id="callReminder" class="toggle-switch" checked="" onchange="updateAlertSetting('call_reminder', this.checked)">
                                         </div>
                                     </label>
-                                    <div class="absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 z-10 whitespace-nowrap">
-                                        未対応案件の翌日に通知します
-                                    </div>
                                 </div>
 
                                 <!-- 見積フォロー -->
-                                <div class="border rounded-lg p-3 bg-gray-50 group relative">
+                                <div class="border-l-4 border-amber-500 bg-gradient-to-r from-amber-50 to-white rounded-r-xl p-4 hover:shadow-md transition-shadow">
                                     <label class="flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <span class="text-lg mr-2">📝</span>
-                                            <span class="text-sm font-medium text-gray-700">見積フォローアップ</span>
-                                            <span class="ml-1 text-gray-400 cursor-help">ⓘ</span>
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                                                <span class="text-xl">📝</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-sm font-bold text-gray-800">見積フォローアップ</span>
+                                                <p class="text-xs text-gray-500">見積提出後に自動で通知</p>
+                                            </div>
                                         </div>
-                                        <div class="flex items-center gap-2">
-                                            <input type="number" id="followupDays" value="7" min="1" max="30" class="w-16 px-2 py-1 border rounded text-sm">
-                                            <span class="text-sm text-gray-600">日後</span>
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex items-center gap-1">
+                                                <input type="number" id="followupDays" value="7" min="1" max="30" class="w-14 px-2 py-2 border border-gray-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-amber-500">
+                                                <span class="text-sm text-gray-600">日後</span>
+                                            </div>
                                             <input type="checkbox" id="estimateFollowup" class="toggle-switch" checked="" onchange="updateAlertSetting('estimate_followup', this.checked)">
                                         </div>
                                     </label>
-                                    <div class="absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 z-10 whitespace-nowrap">
-                                        見積提出後に自動でフォロー通知します
-                                    </div>
                                 </div>
 
                                 <!-- 入金確認 -->
-                                <div class="border rounded-lg p-3 bg-gray-50 group relative">
+                                <div class="border-l-4 border-purple-500 bg-gradient-to-r from-purple-50 to-white rounded-r-xl p-4 hover:shadow-md transition-shadow">
                                     <label class="flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <span class="text-lg mr-2">💰</span>
-                                            <span class="text-sm font-medium text-gray-700">入金確認アラート</span>
-                                            <span class="ml-1 text-gray-400 cursor-help">ⓘ</span>
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                                <span class="text-xl">💰</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-sm font-bold text-gray-800">入金確認アラート</span>
+                                                <p class="text-xs text-gray-500">入金予定日に通知します</p>
+                                            </div>
                                         </div>
                                         <input type="checkbox" id="paymentAlert" class="toggle-switch" checked="" onchange="updateAlertSetting('payment_alert', this.checked)">
                                     </label>
-                                    <div class="absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 z-10 whitespace-nowrap">
-                                        入金予定日に自動で通知します
-                                    </div>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- 通知時間・休日設定 -->
                         <div class="mb-6">
-                            <h4 class="text-sm font-medium text-gray-700 mb-3">通知時間・休日設定</h4>
-                            <div class="space-y-4">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="text-lg">📅</span>
+                                <h4 class="text-base font-bold text-gray-800">スケジュール設定</h4>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <!-- 休日設定 -->
-                                <div class="border rounded-lg p-4 bg-gray-50">
-                                    <label class="flex items-center">
-                                        <input type="checkbox" id="enableHolidays" onchange="toggleHolidaySettings()" checked="">
-                                        <span class="ml-2 text-sm font-medium text-gray-700">📅 休日設定（チェックした曜日は通知されません）</span>
+                                <div class="bg-gradient-to-br from-slate-50 to-gray-100 rounded-xl p-5 border border-gray-200">
+                                    <label class="flex items-center mb-4">
+                                        <input type="checkbox" id="enableHolidays" onchange="toggleHolidaySettings()" checked="" class="w-5 h-5 rounded text-orange-500 focus:ring-orange-500">
+                                        <span class="ml-3 text-sm font-bold text-gray-800">休日設定</span>
                                     </label>
-                                    <div id="holidaySettings" class="mt-3 flex flex-wrap gap-3">
-                                        <label class="flex items-center">
-                                            <input type="checkbox" id="holidayMon" class="mr-2">
-                                            <span class="text-sm">月</span>
+                                    <p class="text-xs text-gray-500 mb-3">チェックした曜日は通知されません</p>
+                                    <div id="holidaySettings" class="flex flex-wrap gap-2">
+                                        <label class="flex items-center justify-center w-10 h-10 rounded-lg bg-white border border-gray-200 cursor-pointer hover:border-gray-400 transition-colors has-[:checked]:bg-gray-700 has-[:checked]:text-white has-[:checked]:border-gray-700">
+                                            <input type="checkbox" id="holidayMon" class="sr-only">
+                                            <span class="text-sm font-medium">月</span>
                                         </label>
-                                        <label class="flex items-center">
-                                            <input type="checkbox" id="holidayTue" class="mr-2">
-                                            <span class="text-sm">火</span>
+                                        <label class="flex items-center justify-center w-10 h-10 rounded-lg bg-white border border-gray-200 cursor-pointer hover:border-gray-400 transition-colors has-[:checked]:bg-gray-700 has-[:checked]:text-white has-[:checked]:border-gray-700">
+                                            <input type="checkbox" id="holidayTue" class="sr-only">
+                                            <span class="text-sm font-medium">火</span>
                                         </label>
-                                        <label class="flex items-center">
-                                            <input type="checkbox" id="holidayWed" class="mr-2">
-                                            <span class="text-sm">水</span>
+                                        <label class="flex items-center justify-center w-10 h-10 rounded-lg bg-white border border-gray-200 cursor-pointer hover:border-gray-400 transition-colors has-[:checked]:bg-gray-700 has-[:checked]:text-white has-[:checked]:border-gray-700">
+                                            <input type="checkbox" id="holidayWed" class="sr-only">
+                                            <span class="text-sm font-medium">水</span>
                                         </label>
-                                        <label class="flex items-center">
-                                            <input type="checkbox" id="holidayThu" class="mr-2">
-                                            <span class="text-sm">木</span>
+                                        <label class="flex items-center justify-center w-10 h-10 rounded-lg bg-white border border-gray-200 cursor-pointer hover:border-gray-400 transition-colors has-[:checked]:bg-gray-700 has-[:checked]:text-white has-[:checked]:border-gray-700">
+                                            <input type="checkbox" id="holidayThu" class="sr-only">
+                                            <span class="text-sm font-medium">木</span>
                                         </label>
-                                        <label class="flex items-center">
-                                            <input type="checkbox" id="holidayFri" class="mr-2">
-                                            <span class="text-sm">金</span>
+                                        <label class="flex items-center justify-center w-10 h-10 rounded-lg bg-white border border-gray-200 cursor-pointer hover:border-gray-400 transition-colors has-[:checked]:bg-gray-700 has-[:checked]:text-white has-[:checked]:border-gray-700">
+                                            <input type="checkbox" id="holidayFri" class="sr-only">
+                                            <span class="text-sm font-medium">金</span>
                                         </label>
-                                        <label class="flex items-center">
-                                            <input type="checkbox" id="holidaySat" class="mr-2" checked="">
-                                            <span class="text-sm font-medium text-blue-600">土</span>
+                                        <label class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 cursor-pointer hover:border-blue-400 transition-colors has-[:checked]:bg-blue-600 has-[:checked]:text-white has-[:checked]:border-blue-600">
+                                            <input type="checkbox" id="holidaySat" class="sr-only" checked="">
+                                            <span class="text-sm font-medium">土</span>
                                         </label>
-                                        <label class="flex items-center">
-                                            <input type="checkbox" id="holidaySun" class="mr-2" checked="">
-                                            <span class="text-sm font-medium text-red-600">日</span>
+                                        <label class="flex items-center justify-center w-10 h-10 rounded-lg bg-red-50 border border-red-200 cursor-pointer hover:border-red-400 transition-colors has-[:checked]:bg-red-500 has-[:checked]:text-white has-[:checked]:border-red-500">
+                                            <input type="checkbox" id="holidaySun" class="sr-only" checked="">
+                                            <span class="text-sm font-medium">日</span>
                                         </label>
                                     </div>
                                 </div>
 
                                 <!-- 通知制限時間 -->
-                                <div class="border rounded-lg p-4 bg-gray-50">
-                                    <label class="flex items-center">
-                                        <input type="checkbox" id="enableQuietHours" onchange="toggleQuietHours()" checked="">
-                                        <span class="ml-2 text-sm font-medium text-gray-700">🔕 通知を制限する時間帯</span>
+                                <div class="bg-gradient-to-br from-slate-50 to-gray-100 rounded-xl p-5 border border-gray-200">
+                                    <label class="flex items-center mb-4">
+                                        <input type="checkbox" id="enableQuietHours" onchange="toggleQuietHours()" checked="" class="w-5 h-5 rounded text-orange-500 focus:ring-orange-500">
+                                        <span class="ml-3 text-sm font-bold text-gray-800">通知制限時間</span>
                                     </label>
-                                    <div id="quietHoursSettings" class="mt-3 space-y-2">
-                                        <div class="flex items-center space-x-2">
-                                            <input type="time" id="quietStart" value="22:00" class="px-3 py-2 border border-gray-300 rounded-lg">
-                                            <span class="text-sm text-gray-500">から</span>
-                                            <input type="time" id="quietEnd" value="08:00" class="px-3 py-2 border border-gray-300 rounded-lg">
-                                            <span class="text-sm text-gray-500">まで</span>
-                                        </div>
-                                        <p class="text-xs text-gray-500">この時間帯は通知を送信しません</p>
+                                    <p class="text-xs text-gray-500 mb-3">この時間帯は通知を送信しません</p>
+                                    <div id="quietHoursSettings" class="flex items-center gap-2">
+                                        <input type="time" id="quietStart" value="22:00" class="px-4 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                                        <span class="text-gray-400">〜</span>
+                                        <input type="time" id="quietEnd" value="08:00" class="px-4 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- 統合保存ボタン -->
-                    <div class="mt-6 flex justify-end">
-                        <button onclick="saveAllSettings()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
-                            設定を保存
-                        </button>
+                        <!-- 保存ボタン -->
+                        <div class="flex justify-end">
+                            <button onclick="saveAllSettings()" class="px-8 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl hover:from-orange-600 hover:to-amber-600 font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                設定を保存
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <!-- V2112: SMSテンプレート編集セクション -->
                 <div id="smsTemplateEditSection" class="mt-6">
-                    <div class="bg-white shadow rounded-lg p-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">💬 SMSテンプレート編集</h3>
-                        <p class="text-sm text-gray-500 mb-4">テンプレートの文言をカスタマイズできます。変数（青色）は自動で置換されます。</p>
+                    <!-- セクションヘッダー -->
+                    <div class="bg-gradient-to-r from-purple-500 to-violet-600 rounded-t-xl p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                                <span class="text-2xl">💬</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white">SMSテンプレート編集</h3>
+                                <p class="text-purple-100 text-sm">顧客への定型メッセージをカスタマイズ</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white shadow-lg rounded-b-xl p-6">
 
                         <!-- テンプレート選択 -->
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">編集するテンプレート</label>
-                            <select id="smsTemplateEditSelect" onchange="loadTemplateForEdit()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                        <div class="mb-6">
+                            <label class="block text-sm font-bold text-gray-800 mb-3">
+                                <span class="mr-2">📋</span>編集するテンプレート
+                            </label>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                <button onclick="selectSmsTemplate('call_missed')" class="sms-template-btn p-3 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left" data-template="call_missed">
+                                    <div class="text-lg mb-1">📞</div>
+                                    <div class="text-xs font-medium text-gray-700">不在後フォロー</div>
+                                </button>
+                                <button onclick="selectSmsTemplate('survey_confirm')" class="sms-template-btn p-3 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left" data-template="survey_confirm">
+                                    <div class="text-lg mb-1">📅</div>
+                                    <div class="text-xs font-medium text-gray-700">現調日確認</div>
+                                </button>
+                                <button onclick="selectSmsTemplate('survey_reminder')" class="sms-template-btn p-3 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left" data-template="survey_reminder">
+                                    <div class="text-lg mb-1">⏰</div>
+                                    <div class="text-xs font-medium text-gray-700">現調リマインド</div>
+                                </button>
+                                <button onclick="selectSmsTemplate('survey_thanks')" class="sms-template-btn p-3 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left" data-template="survey_thanks">
+                                    <div class="text-lg mb-1">🙏</div>
+                                    <div class="text-xs font-medium text-gray-700">現調お礼</div>
+                                </button>
+                                <button onclick="selectSmsTemplate('estimate_schedule')" class="sms-template-btn p-3 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left" data-template="estimate_schedule">
+                                    <div class="text-lg mb-1">📝</div>
+                                    <div class="text-xs font-medium text-gray-700">見積完成（日程調整）</div>
+                                </button>
+                                <button onclick="selectSmsTemplate('estimate_confirm')" class="sms-template-btn p-3 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left" data-template="estimate_confirm">
+                                    <div class="text-lg mb-1">✅</div>
+                                    <div class="text-xs font-medium text-gray-700">見積完成（日程確認）</div>
+                                </button>
+                                <button onclick="selectSmsTemplate('followup')" class="sms-template-btn p-3 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left" data-template="followup">
+                                    <div class="text-lg mb-1">💭</div>
+                                    <div class="text-xs font-medium text-gray-700">検討中フォロー</div>
+                                </button>
+                            </div>
+                            <!-- 非表示のselect（互換性維持） -->
+                            <select id="smsTemplateEditSelect" onchange="loadTemplateForEdit()" class="hidden">
                                 <option value="call_missed">不在後フォロー</option>
                                 <option value="survey_confirm">現調日確認</option>
                                 <option value="survey_reminder">現調リマインド</option>
@@ -7688,46 +7770,59 @@
                         </div>
 
                         <!-- 編集エリア -->
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">テンプレート内容</label>
+                        <div class="mb-6">
+                            <label class="block text-sm font-bold text-gray-800 mb-3">
+                                <span class="mr-2">✏️</span>テンプレート内容
+                            </label>
                             <div class="relative">
-                                <textarea id="smsTemplateEditText" rows="6" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono text-sm" oninput="updateTemplateEditPreview()"></textarea>
+                                <textarea id="smsTemplateEditText" rows="5" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono text-sm bg-gray-50" oninput="updateTemplateEditPreview()"></textarea>
                             </div>
-                            <div class="flex justify-between items-center mt-1">
-                                <p class="text-xs text-gray-500">
-                                    利用可能な変数:
-                                    <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{顧客名}')">{顧客名}</span>
-                                    <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{会社名}')">{会社名}</span>
-                                    <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{屋号}')">{屋号}</span>
-                                    <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{担当者名}')">{担当者名}</span>
-                                    <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{現調日}')">{現調日}</span>
-                                    <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{見積日}')">{見積日}</span>
-                                </p>
-                                <p id="smsTemplateEditCharCount" class="text-xs font-medium text-gray-500">0文字</p>
+                            <div class="mt-3 p-3 bg-purple-50 rounded-xl">
+                                <p class="text-xs text-gray-600 mb-2 font-medium">クリックで変数を挿入:</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="px-3 py-1 bg-white border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertVariable('{顧客名}')">{顧客名}</span>
+                                    <span class="px-3 py-1 bg-white border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertVariable('{会社名}')">{会社名}</span>
+                                    <span class="px-3 py-1 bg-white border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertVariable('{屋号}')">{屋号}</span>
+                                    <span class="px-3 py-1 bg-white border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertVariable('{担当者名}')">{担当者名}</span>
+                                    <span class="px-3 py-1 bg-white border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertVariable('{現調日}')">{現調日}</span>
+                                    <span class="px-3 py-1 bg-white border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertVariable('{見積日}')">{見積日}</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-end mt-2">
+                                <p id="smsTemplateEditCharCount" class="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">0文字</p>
                             </div>
                         </div>
 
                         <!-- プレビュー -->
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">プレビュー（実際の表示例）</label>
-                            <div id="smsTemplateEditPreview" class="p-3 bg-gray-100 rounded-lg text-sm whitespace-pre-wrap border-l-4 border-purple-500">
-                                プレビューがここに表示されます
+                        <div class="mb-6">
+                            <label class="block text-sm font-bold text-gray-800 mb-3">
+                                <span class="mr-2">👁️</span>プレビュー
+                            </label>
+                            <div class="bg-gradient-to-r from-gray-100 to-gray-50 rounded-xl p-4 border border-gray-200">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <span class="text-white text-sm">💬</span>
+                                    </div>
+                                    <div id="smsTemplateEditPreview" class="flex-1 bg-white rounded-2xl rounded-tl-none p-4 text-sm whitespace-pre-wrap shadow-sm border border-gray-100">
+                                        プレビューがここに表示されます
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <!-- ボタン -->
                         <div class="flex gap-3">
-                            <button onclick="resetTemplateEdit()" class="flex-1 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
-                                デフォルトに戻す
+                            <button onclick="resetTemplateEdit()" class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all border border-gray-200">
+                                🔄 デフォルトに戻す
                             </button>
-                            <button onclick="saveTemplateEdit()" class="flex-1 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors">
-                                保存する
+                            <button onclick="saveTemplateEdit()" class="flex-1 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-xl font-bold hover:from-purple-600 hover:to-violet-700 transition-all shadow-lg">
+                                💾 保存する
                             </button>
                         </div>
 
                         <!-- カスタマイズ済み表示 -->
-                        <div id="smsTemplateCustomizedBadge" class="hidden mt-3 text-center">
-                            <span class="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-700 text-sm rounded-full">
+                        <div id="smsTemplateCustomizedBadge" class="hidden mt-4 text-center">
+                            <span class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-100 to-violet-100 text-purple-700 text-sm rounded-full font-medium border border-purple-200">
                                 ✏️ このテンプレートはカスタマイズ済みです
                             </span>
                         </div>
@@ -20878,6 +20973,27 @@
         }
 
         // ===== V2112: SMSテンプレート編集機能（設定画面用） =====
+
+        // テンプレートボタンを選択
+        function selectSmsTemplate(templateKey) {
+            const select = document.getElementById('smsTemplateEditSelect');
+            select.value = templateKey;
+
+            // すべてのボタンの選択状態をクリア
+            document.querySelectorAll('.sms-template-btn').forEach(btn => {
+                btn.classList.remove('border-purple-500', 'bg-purple-50', 'ring-2', 'ring-purple-300');
+                btn.classList.add('border-gray-200');
+            });
+
+            // 選択されたボタンをハイライト
+            const selectedBtn = document.querySelector(`.sms-template-btn[data-template="${templateKey}"]`);
+            if (selectedBtn) {
+                selectedBtn.classList.remove('border-gray-200');
+                selectedBtn.classList.add('border-purple-500', 'bg-purple-50', 'ring-2', 'ring-purple-300');
+            }
+
+            loadTemplateForEdit();
+        }
 
         // テンプレートを編集用に読み込む
         function loadTemplateForEdit() {
