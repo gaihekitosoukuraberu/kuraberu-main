@@ -956,6 +956,45 @@ function doPost(e) {
           configured: isConfigured
         })).setMimeType(ContentService.MimeType.JSON);
       }
+
+      // ★ 統合通知: 加盟店向け（LINE優先→SMSフォールバック）
+      if (tempParse.action === 'notifyMerchant') {
+        console.log('[main.js] ✅ notifyMerchant action detected');
+        const result = UnifiedNotificationHandler.notifyMerchant(
+          tempParse.merchantId,
+          tempParse.message,
+          {
+            cvId: tempParse.cvId
+          }
+        );
+        return ContentService.createTextOutput(JSON.stringify(result))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      // ★ 統合通知: ユーザー向け（SMS固定）
+      if (tempParse.action === 'notifyUser') {
+        console.log('[main.js] ✅ notifyUser action detected');
+        const result = UnifiedNotificationHandler.notifyUser(
+          tempParse.phone,
+          tempParse.message,
+          {
+            cvId: tempParse.cvId,
+            merchantId: tempParse.merchantId
+          }
+        );
+        return ContentService.createTextOutput(JSON.stringify(result))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      // ★ 通知チャネル状態確認
+      if (tempParse.action === 'getNotificationStatus') {
+        console.log('[main.js] ✅ getNotificationStatus action detected');
+        const status = UnifiedNotificationHandler.getChannelStatus();
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          ...status
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
     } catch (parseErr) {
       // 続行
     }
