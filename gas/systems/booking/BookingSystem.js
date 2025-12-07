@@ -99,10 +99,18 @@ const BookingSystem = {
   // ============================================
 
   /**
+   * スプレッドシートを取得
+   */
+  getSpreadsheet: function() {
+    const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID') || CONFIG.SPREADSHEET_ID;
+    return SpreadsheetApp.openById(ssId);
+  },
+
+  /**
    * 空き枠シートを取得（なければ作成）
    */
   getAvailabilitySheet: function() {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = this.getSpreadsheet();
     let sheet = ss.getSheetByName(this.AVAILABILITY_SHEET_NAME);
 
     if (!sheet) {
@@ -123,7 +131,7 @@ const BookingSystem = {
    * 予約シートを取得（なければ作成）
    */
   getBookingSheet: function() {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = this.getSpreadsheet();
     let sheet = ss.getSheetByName(this.BOOKING_SHEET_NAME);
 
     if (!sheet) {
