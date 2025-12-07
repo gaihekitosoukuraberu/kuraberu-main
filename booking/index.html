@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="robots" content="noindex, nofollow">
-    <!-- V2123: 予約ページUI刷新 - 週間カレンダー＋ドラッグ選択 -->
-    <title>現調日時選択 - 外壁塗装くらべる</title>
+    <!-- V2124: 予約ページUI改善 - 30分刻み、連続時間まとめ表示 -->
+    <title>ユーザ希望日 - 外壁塗装くらべる</title>
     <link rel="icon" type="image/png" href="../franchise-dashboard/images/5.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -83,7 +83,7 @@
         /* 時間セル */
         .time-cell {
             background: white;
-            height: 44px;
+            height: 36px;
             cursor: pointer;
             transition: all 0.15s ease;
             position: relative;
@@ -169,7 +169,7 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold text-gray-800">現調希望日時</h1>
+                    <h1 class="text-lg font-bold text-gray-800">ユーザ希望日</h1>
                     <p class="text-xs text-gray-500">外壁塗装くらべる</p>
                 </div>
             </div>
@@ -235,7 +235,7 @@
             <!-- 週間カレンダー -->
             <div class="bg-white rounded-xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
-                    <div id="calendarGrid" class="calendar-grid min-w-[600px]" style="grid-template-columns: 50px repeat(12, 1fr);">
+                    <div id="calendarGrid" class="calendar-grid min-w-[800px]" style="grid-template-columns: 50px repeat(24, 1fr);">
                         <!-- JSで生成 -->
                     </div>
                 </div>
@@ -283,10 +283,11 @@
         let isSelecting = false; // ドラッグ選択中
         let selectionMode = null; // 'add' or 'remove'
 
-        // 時間帯（8:00〜19:00、1時間刻み）
+        // 時間帯（8:00〜19:30、30分刻み）
         const timeSlots = [];
         for (let h = 8; h < 20; h++) {
             timeSlots.push(`${h.toString().padStart(2, '0')}:00`);
+            timeSlots.push(`${h.toString().padStart(2, '0')}:30`);
         }
 
         // 曜日
@@ -303,12 +304,8 @@
                 return;
             }
 
-            // 今週の月曜日から開始
-            const today = new Date();
-            const dayOfWeek = today.getDay();
-            const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // 月曜日に合わせる
-            currentWeekStart = new Date(today);
-            currentWeekStart.setDate(today.getDate() + diff);
+            // 今日から開始
+            currentWeekStart = new Date();
             currentWeekStart.setHours(0, 0, 0, 0);
 
             loadData();
@@ -597,18 +594,74 @@
             document.getElementById('selectionBadge').classList.add('hidden');
             document.getElementById('completedState').classList.remove('hidden');
 
+            // 連続した時間帯をまとめる
+            const merged = mergeConsecutiveSlots(slots);
+
             // 送信したスロット一覧
             let html = '<div class="space-y-2">';
-            for (const slot of slots) {
-                const date = new Date(slot.date);
+            for (const range of merged) {
+                const date = new Date(range.date);
                 const dateLabel = `${date.getMonth() + 1}/${date.getDate()}(${weekdays[date.getDay()]})`;
                 html += `<div class="flex items-center gap-2 text-sm">
                     <span class="text-blue-600">✓</span>
-                    <span>${dateLabel} ${slot.time}〜</span>
+                    <span>${dateLabel} ${range.startTime}〜${range.endTime}</span>
                 </div>`;
             }
             html += '</div>';
             document.getElementById('submittedSlots').innerHTML = html;
+        }
+
+        // 連続した時間帯をマージ
+        function mergeConsecutiveSlots(slots) {
+            if (!slots || slots.length === 0) return [];
+
+            // 日付ごとにグループ化
+            const byDate = {};
+            for (const slot of slots) {
+                if (!byDate[slot.date]) byDate[slot.date] = [];
+                byDate[slot.date].push(slot.time);
+            }
+
+            const result = [];
+
+            for (const date of Object.keys(byDate).sort()) {
+                const times = byDate[date].sort();
+                let startTime = times[0];
+                let prevTime = times[0];
+
+                for (let i = 1; i <= times.length; i++) {
+                    const currentTime = times[i];
+                    const isConsecutive = currentTime && isNextSlot(prevTime, currentTime);
+
+                    if (!isConsecutive) {
+                        // 終了時間を計算（30分後）
+                        const endTime = addMinutes(prevTime, 30);
+                        result.push({ date, startTime, endTime });
+                        startTime = currentTime;
+                    }
+                    prevTime = currentTime;
+                }
+            }
+
+            return result;
+        }
+
+        // 次のスロットかどうか判定（30分後）
+        function isNextSlot(time1, time2) {
+            const [h1, m1] = time1.split(':').map(Number);
+            const [h2, m2] = time2.split(':').map(Number);
+            const mins1 = h1 * 60 + m1;
+            const mins2 = h2 * 60 + m2;
+            return mins2 - mins1 === 30;
+        }
+
+        // 分を追加
+        function addMinutes(time, mins) {
+            const [h, m] = time.split(':').map(Number);
+            const total = h * 60 + m + mins;
+            const newH = Math.floor(total / 60);
+            const newM = total % 60;
+            return `${newH.toString().padStart(2, '0')}:${newM.toString().padStart(2, '0')}`;
         }
 
         // エラー表示
