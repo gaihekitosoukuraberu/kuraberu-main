@@ -130,6 +130,56 @@
  * 2. 必要に応じてhandlePostメソッドを実装
  * 3. npm run check:impact main.js で影響範囲を確認
  */
+
+/**
+ * スプシ構造取得（開発用）
+ * 全シートのシート名とヘッダー行（カラム名）を返す
+ */
+function getSpreadsheetStructure() {
+  try {
+    const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID') || CONFIG.SPREADSHEET_ID;
+    const ss = SpreadsheetApp.openById(ssId);
+    const sheets = ss.getSheets();
+
+    const structure = {
+      spreadsheetId: ssId,
+      spreadsheetName: ss.getName(),
+      sheets: []
+    };
+
+    for (const sheet of sheets) {
+      const sheetName = sheet.getName();
+      // 最初の行（ヘッダー）だけ取得
+      const lastCol = sheet.getLastColumn();
+      let headers = [];
+      if (lastCol > 0) {
+        headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+      }
+
+      structure.sheets.push({
+        name: sheetName,
+        columns: headers.map((h, i) => ({
+          index: i,
+          name: h || `(空白_${i})`
+        })),
+        rowCount: sheet.getLastRow(),
+        columnCount: lastCol
+      });
+    }
+
+    return {
+      success: true,
+      structure: structure,
+      fetchedAt: new Date().toISOString()
+    };
+  } catch (e) {
+    return {
+      success: false,
+      error: e.message
+    };
+  }
+}
+
 const SystemRouter = {
   /**
    * アクション → システムのマッピング
@@ -139,6 +189,11 @@ const SystemRouter = {
     'health': {
       system: 'common',
       description: 'APIヘルスチェック'
+    },
+    // スプシ構造取得（開発用）
+    'getSpreadsheetStructure': {
+      system: 'common',
+      description: 'スプシ構造取得（シート名・カラム一覧）'
     },
 
     // 加盟店登録システム
@@ -774,14 +829,19 @@ function doGet(e) {
         hint: 'このアクションはSystemRouterに登録されていません'
       };
     } else if (system === 'common') {
-      // ヘルスチェック（共通処理）
-      result = {
-        success: true,
-        message: 'API is running',
-        version: '2.1.0',
-        timestamp: new Date().toString(),
-        router: 'SystemRouter enabled'
-      };
+      if (action === 'getSpreadsheetStructure') {
+        // スプシ構造取得（シート名 + ヘッダー一覧）
+        result = getSpreadsheetStructure();
+      } else {
+        // ヘルスチェック（共通処理）
+        result = {
+          success: true,
+          message: 'API is running',
+          version: '2.1.0',
+          timestamp: new Date().toString(),
+          router: 'SystemRouter enabled'
+        };
+      }
     } else if (action === 'broadcast_purchase' || action === 'broadcast_interest') {
       // V2006: 一斉配信のボタンクリック処理（HTMLを返す）
       console.log('[main.js] Routing to BroadcastSystem (HTML response):', action);
