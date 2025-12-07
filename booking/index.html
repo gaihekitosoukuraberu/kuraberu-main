@@ -438,8 +438,9 @@
         let isSelecting = false; // ドラッグ選択中
         let selectionMode = null; // 'add' or 'remove'
         let touchStartPos = null; // タッチ開始位置
-        let touchMoved = false; // タッチ中に動いたか
-        const SCROLL_THRESHOLD = 10; // この距離以上動いたらスクロールとみなす
+        let touchStartTime = null; // タッチ開始時間
+        const TAP_THRESHOLD = 15; // この距離以内ならタップ
+        const TAP_DURATION = 300; // この時間以内ならタップ（ms）
         let weatherData = {}; // 天気データ { "2024-12-10": { weatherCode, tempMax, tempMin, sunrise, sunset } }
         let userLocation = { lat: 35.6762, lon: 139.6503 }; // デフォルト: 東京
 
