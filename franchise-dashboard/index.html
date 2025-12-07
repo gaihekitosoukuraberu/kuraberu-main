@@ -20867,8 +20867,22 @@
                     text = text.replace(/{見積日}/g, '【要設定】');
                 }
 
-                // 予約リンク（後で実装）
-                text = text.replace(/{予約リンク}/g, '【予約システム準備中】');
+                // V2094: 予約リンクを自動生成
+                if (text.includes('{予約リンク}')) {
+                    const cvId = c.cvId;
+                    const secret = 'kuraberu2024';
+                    const input = cvId + secret;
+                    let hash = 0;
+                    for (let i = 0; i < input.length; i++) {
+                        const char = input.charCodeAt(i);
+                        hash = ((hash << 5) - hash) + char;
+                        hash = hash & hash;
+                    }
+                    const token = Math.abs(hash).toString(36);
+                    const baseUrl = window.location.origin + '/booking/';
+                    const bookingLink = `${baseUrl}?cvId=${cvId}&token=${token}`;
+                    text = text.replace(/{予約リンク}/g, bookingLink);
+                }
             }
 
             document.getElementById('smsMessageText').value = text;
@@ -20986,9 +21000,45 @@
             }).catch(err => console.error('[SMS] 履歴保存エラー:', err));
         }
 
-        // 予約リンクを挿入（Phase 4で実装）
+        // V2094: 予約リンクを生成して挿入
         function insertBookingLink() {
-            showNotification('準備中', '予約システムは現在構築中です', 'info');
+            if (!currentSmsCase || !currentSmsCase.cvId) {
+                showNotification('エラー', '案件が選択されていません', 'error');
+                return;
+            }
+
+            // トークンを生成（シンプルなハッシュ）
+            const cvId = currentSmsCase.cvId;
+            const secret = 'kuraberu2024';
+            const input = cvId + secret;
+            let hash = 0;
+            for (let i = 0; i < input.length; i++) {
+                const char = input.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            const token = Math.abs(hash).toString(36);
+
+            // 予約リンクを生成
+            const baseUrl = window.location.origin + '/booking/';
+            const bookingLink = `${baseUrl}?cvId=${cvId}&token=${token}`;
+
+            // テキストエリアに挿入
+            const textarea = document.getElementById('smsMessageText');
+            if (textarea) {
+                // {予約リンク}を置換、またはカーソル位置に挿入
+                const currentText = textarea.value;
+                if (currentText.includes('{予約リンク}')) {
+                    textarea.value = currentText.replace('{予約リンク}', bookingLink);
+                } else {
+                    // カーソル位置に挿入
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    textarea.value = currentText.substring(0, start) + '\n\n' + bookingLink + '\n\n' + currentText.substring(end);
+                }
+            }
+
+            showNotification('リンク挿入', '予約リンクを挿入しました', 'success');
         }
 
         // V2090: 次回架電日を保存してからSMS送信
