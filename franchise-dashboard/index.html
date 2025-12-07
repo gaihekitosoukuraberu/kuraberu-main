@@ -19204,25 +19204,25 @@
                 if (match) deliveryShort = `${match[2]}/${match[3]}`;
             }
 
-            // 現調日を短縮表示（MM/DD HH:mm）
+            // 現調日を短縮表示（MM/DD HH:mm、先頭ゼロ除去）
             let surveyShort = '-';
             if (c.surveyDate) {
                 const dateMatch = c.surveyDate.match(/(\d+)[-\/](\d+)[-\/](\d+)/);
                 const timeMatch = c.surveyDate.match(/(\d+):(\d+)/);
                 if (dateMatch) {
-                    surveyShort = `${dateMatch[2]}/${dateMatch[3]}`;
-                    if (timeMatch) surveyShort += ` ${timeMatch[1]}:${timeMatch[2]}`;
+                    surveyShort = `${parseInt(dateMatch[2])}/${parseInt(dateMatch[3])}`;
+                    if (timeMatch) surveyShort += ` ${parseInt(timeMatch[1])}:${timeMatch[2]}`;
                 }
             }
 
-            // 商談日を短縮表示（MM/DD HH:mm）
+            // 商談日を短縮表示（MM/DD HH:mm、先頭ゼロ除去）
             let estimateShort = '-';
             if (c.estimateDate) {
                 const dateMatch = c.estimateDate.match(/(\d+)[-\/](\d+)[-\/](\d+)/);
                 const timeMatch = c.estimateDate.match(/(\d+):(\d+)/);
                 if (dateMatch) {
-                    estimateShort = `${dateMatch[2]}/${dateMatch[3]}`;
-                    if (timeMatch) estimateShort += ` ${timeMatch[1]}:${timeMatch[2]}`;
+                    estimateShort = `${parseInt(dateMatch[2])}/${parseInt(dateMatch[3])}`;
+                    if (timeMatch) estimateShort += ` ${parseInt(timeMatch[1])}:${timeMatch[2]}`;
                 }
             }
 
