@@ -180,7 +180,8 @@ LINE連携を完了するには、ダッシュボードの設定画面に表示�
 
         return { success: true, merchantId, lineUserId };
       } else {
-        this.sendMessage(lineUserId, '連携処理中にエラーが発生しました。もう一度お試しください。');
+        console.error('[LineWebhookHandler] saveMerchantLineId failed:', saveResult);
+        this.sendMessage(lineUserId, `連携処理中にエラーが発生しました: ${saveResult.error || 'unknown'}`);
         return saveResult;
       }
 
@@ -255,13 +256,17 @@ LINE連携を完了するには、ダッシュボードの設定画面に表示�
    */
   saveMerchantLineId(merchantId, lineUserId) {
     try {
+      console.log('[LineWebhookHandler] saveMerchantLineId start:', merchantId, lineUserId);
       const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      console.log('[LineWebhookHandler] SPREADSHEET_ID:', SPREADSHEET_ID);
       const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       const sheet = ss.getSheetByName('加盟店登録');
 
       if (!sheet) {
+        console.error('[LineWebhookHandler] 加盟店登録シートが見つかりません');
         return { success: false, error: '加盟店登録シートが見つかりません' };
       }
+      console.log('[LineWebhookHandler] 加盟店登録シート found');
 
       const data = sheet.getDataRange().getValues();
       const headers = data[0];
@@ -276,10 +281,10 @@ LINE連携を完了するには、ダッシュボードの設定画面に表示�
         console.log('[LineWebhookHandler] Added LINE_USER_ID column at:', lineIdCol + 1);
       }
 
-      // 加盟店IDの列を探す
-      const merchantIdCol = headers.indexOf('加盟店ID');
+      // 加盟店IDの列を探す（登録ID）
+      const merchantIdCol = headers.indexOf('登録ID');
       if (merchantIdCol === -1) {
-        return { success: false, error: '加盟店ID列が見つかりません' };
+        return { success: false, error: '登録ID列が見つかりません' };
       }
 
       // 該当の加盟店を探してLINE IDを保存
