@@ -20319,6 +20319,37 @@
         // 通話後フロー用の状態管理
         let afterCallCase = null;
         let selectedStatusValue = null;
+        // SMS自動表示用フラグ
+        let afterCallSmsNeeded = false;
+        let afterCallSmsCvId = null;
+
+        // 通話後SMS自動表示
+        function showAfterCallSmsIfNeeded() {
+            if (afterCallSmsNeeded && afterCallSmsCvId) {
+                const cvId = afterCallSmsCvId;
+                const c = findCaseByCvId(cvId);
+                // フラグをリセット
+                afterCallSmsNeeded = false;
+                afterCallSmsCvId = null;
+
+                if (c) {
+                    // ステータスに応じたテンプレートを選択
+                    const status = c.detailStatus || '';
+                    let template = 'call_missed'; // デフォルト
+                    if (status === 'アポ済') {
+                        template = 'survey_confirm';
+                    } else if (status === '現調済') {
+                        template = 'estimate_schedule';
+                    } else if (status === '見積提出済') {
+                        template = 'followup';
+                    }
+                    // 少し遅延してSMSモーダルを開く（前のモーダルが閉じるのを待つ）
+                    setTimeout(() => {
+                        openSmsModal(cvId, template);
+                    }, 300);
+                }
+            }
+        }
 
         // 接続/不在を選択
         function selectConnectionStatus(status) {
@@ -20393,6 +20424,9 @@
                 if (cvId) {
                     // ステータス選択モーダルを通話後モードで開く
                     isAfterCallMode = true;
+                    // SMS自動表示フラグを設定
+                    afterCallSmsNeeded = true;
+                    afterCallSmsCvId = cvId;
                     openStatusModalForCall(cvId, currentCallCase?.customerName);
                 }
             } else {
@@ -20437,6 +20471,9 @@
 
                 // 次回架電モーダルを開く
                 if (cvId) {
+                    // SMS自動表示フラグを設定（不在後フォロー）
+                    afterCallSmsNeeded = true;
+                    afterCallSmsCvId = cvId;
                     currentCallCase = null;
                     openNextCallModal(cvId);
                 }
@@ -23439,6 +23476,9 @@
             saveCallHistoryToGAS(cvId, c.callHistory, c.callCount);
 
             closeSurveyDateModal();
+
+            // 通話後ならSMSモーダルを表示
+            showAfterCallSmsIfNeeded();
         }
 
         // ====================================
@@ -23777,6 +23817,9 @@
             closeLongTermFollowModal();
             renderCases();
             showNotification('保存完了', `${displayStr} にフォロー予定を設定しました`, 'success');
+
+            // 通話後ならSMSモーダルを表示
+            showAfterCallSmsIfNeeded();
         }
 
         // ====================================
@@ -23960,6 +24003,9 @@
             saveCallHistoryToGAS(cvId, c.callHistory, c.callCount);
 
             closeEstimateDateModal();
+
+            // 通話後ならSMSモーダルを表示
+            showAfterCallSmsIfNeeded();
         }
 
         // 見積提出日時設定後のメモモーダル（旧機能、現在不使用）
@@ -24279,6 +24325,9 @@
             }
             renderCases();
             closeNextCallModal();
+
+            // 通話後ならSMSモーダルを表示
+            showAfterCallSmsIfNeeded();
 
             // バックグラウンドで保存
             const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
