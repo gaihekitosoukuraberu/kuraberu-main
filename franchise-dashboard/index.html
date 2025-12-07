@@ -2308,7 +2308,8 @@
                                             <option value="booking_link">予約リンク送付</option>
                                             <option value="survey_confirm">現調日確認</option>
                                             <option value="survey_reminder">現調リマインド</option>
-                                            <option value="estimate_ready">見積完成お知らせ</option>
+                                            <option value="estimate_schedule">見積完成（日程調整）</option>
+                                            <option value="estimate_confirm">見積完成（日程確認）</option>
                                             <option value="followup">検討中フォロー</option>
                                             <option value="custom">カスタム（自由入力）</option>
                                         </select>
@@ -20725,8 +20726,15 @@
                 text: `{顧客名}様
 {会社名}です。明日{現調日}にお伺いさせていただきます。{顧客名}様にお会いできるのを楽しみにしております！`
             },
-            estimate_ready: {
-                name: '見積完成お知らせ',
+            estimate_schedule: {
+                name: '見積完成（日程調整）',
+                // 50文字+URL
+                text: `{顧客名}様
+{会社名}です。お待たせいたしました！お見積りが完成しました。下記よりお届け日時をお選びください。
+{予約リンク}`
+            },
+            estimate_confirm: {
+                name: '見積完成（日程確認）',
                 // 70文字
                 text: `{顧客名}様
 {会社名}です。お待たせいたしました！お見積りが完成しましたので{見積日}にお届けにお伺いさせていただきます。`
