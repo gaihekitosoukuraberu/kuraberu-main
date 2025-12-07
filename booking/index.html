@@ -437,6 +437,9 @@
         let merchantCount = 0; // 配信された業者数
         let isSelecting = false; // ドラッグ選択中
         let selectionMode = null; // 'add' or 'remove'
+        let touchStartPos = null; // タッチ開始位置
+        let touchMoved = false; // タッチ中に動いたか
+        const SCROLL_THRESHOLD = 10; // この距離以上動いたらスクロールとみなす
         let weatherData = {}; // 天気データ { "2024-12-10": { weatherCode, tempMax, tempMin, sunrise, sunset } }
         let userLocation = { lat: 35.6762, lon: 139.6503 }; // デフォルト: 東京
 
@@ -673,9 +676,9 @@
                         data-merchants="${slotInfo ? slotInfo.merchants.join(',') : ''}"
                         onmousedown="startSelect(event, '${slotKey}')"
                         onmouseenter="continueSelect(event, '${slotKey}')"
-                        ontouchstart="startSelect(event, '${slotKey}')"
+                        ontouchstart="handleTouchStart(event, '${slotKey}')"
                         ontouchmove="handleTouchMove(event)"
-                        onclick="showSlotDetail(event, '${slotKey}')">${countDisplay}</td>`;
+                        ontouchend="handleTouchEnd(event, '${slotKey}')">${countDisplay}</td>`;
                 }
 
                 html += '</tr>';
@@ -701,11 +704,63 @@
             return `${y}-${m}-${d}`;
         }
 
-        // 選択開始
+        // 選択開始（マウス）
         function startSelect(event, slotKey) {
-            event.preventDefault();
-            isSelecting = true;
+            // マウスの場合は即座に選択開始
+            if (event.type === 'mousedown') {
+                event.preventDefault();
+                isSelecting = true;
+                touchMoved = false;
+                doSelect(slotKey);
+            }
+        }
 
+        // タッチ開始
+        function handleTouchStart(event, slotKey) {
+            const touch = event.touches[0];
+            touchStartPos = { x: touch.clientX, y: touch.clientY };
+            touchMoved = false;
+            isSelecting = false; // まだ選択開始しない
+        }
+
+        // タッチ移動
+        function handleTouchMove(event) {
+            if (!touchStartPos) return;
+
+            const touch = event.touches[0];
+            const dx = Math.abs(touch.clientX - touchStartPos.x);
+            const dy = Math.abs(touch.clientY - touchStartPos.y);
+
+            // 一定距離以上動いたらスクロールモード
+            if (dx > SCROLL_THRESHOLD || dy > SCROLL_THRESHOLD) {
+                touchMoved = true;
+                isSelecting = false; // 選択キャンセル
+            }
+
+            // ドラッグ選択中の場合
+            if (isSelecting && !touchMoved) {
+                event.preventDefault();
+                const element = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (element && element.dataset.slot) {
+                    continueSelect(event, element.dataset.slot);
+                }
+            }
+        }
+
+        // タッチ終了
+        function handleTouchEnd(event, slotKey) {
+            // 動いてなければタップとして選択
+            if (!touchMoved && touchStartPos) {
+                doSelect(slotKey);
+            }
+            touchStartPos = null;
+            touchMoved = false;
+            isSelecting = false;
+            selectionMode = null;
+        }
+
+        // 実際の選択処理
+        function doSelect(slotKey) {
             if (selectedSlots.has(slotKey)) {
                 selectionMode = 'remove';
                 selectedSlots.delete(slotKey);
@@ -713,14 +768,14 @@
                 selectionMode = 'add';
                 selectedSlots.add(slotKey);
             }
-
+            isSelecting = true;
             updateCellUI(slotKey);
             updateSelectionUI();
         }
 
         // 選択継続（ドラッグ）
         function continueSelect(event, slotKey) {
-            if (!isSelecting) return;
+            if (!isSelecting || touchMoved) return;
 
             if (selectionMode === 'add') {
                 selectedSlots.add(slotKey);
@@ -732,26 +787,8 @@
             updateSelectionUI();
         }
 
-        // タッチムーブ処理
-        function handleTouchMove(event) {
-            if (!isSelecting) return;
-            event.preventDefault();
-
-            const touch = event.touches[0];
-            const element = document.elementFromPoint(touch.clientX, touch.clientY);
-
-            if (element && element.dataset.slot) {
-                continueSelect(event, element.dataset.slot);
-            }
-        }
-
-        // 選択終了
+        // 選択終了（マウス）
         document.addEventListener('mouseup', () => {
-            isSelecting = false;
-            selectionMode = null;
-        });
-
-        document.addEventListener('touchend', () => {
             isSelecting = false;
             selectionMode = null;
         });
