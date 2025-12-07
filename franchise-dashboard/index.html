@@ -2313,11 +2313,8 @@
                                             <option value="followup">検討中フォロー</option>
                                             <option value="custom">カスタム（自由入力）</option>
                                         </select>
-                                        <button onclick="saveSmsTemplate()" class="px-4 py-3 bg-amber-100 text-amber-700 rounded-xl font-bold hover:bg-amber-200 transition-all" title="現在の内容でテンプレートを上書き保存">
-                                            💾
-                                        </button>
                                     </div>
-                                    <p class="text-xs text-gray-400 mt-1">💾で編集内容をテンプレートに保存</p>
+                                    <p class="text-xs text-gray-400 mt-1">テンプレートは設定画面で編集できます</p>
                                 </div>
 
                                 <!-- メッセージプレビュー -->
@@ -7738,6 +7735,74 @@
                         <button onclick="saveAllSettings()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
                             設定を保存
                         </button>
+                    </div>
+                </div>
+
+                <!-- V2112: SMSテンプレート編集セクション -->
+                <div id="smsTemplateEditSection" class="mt-6">
+                    <div class="bg-white shadow rounded-lg p-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">💬 SMSテンプレート編集</h3>
+                        <p class="text-sm text-gray-500 mb-4">テンプレートの文言をカスタマイズできます。変数（青色）は自動で置換されます。</p>
+
+                        <!-- テンプレート選択 -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">編集するテンプレート</label>
+                            <select id="smsTemplateEditSelect" onchange="loadTemplateForEdit()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                <option value="call_missed">不在後フォロー</option>
+                                <option value="booking_link">予約リンク送付</option>
+                                <option value="survey_confirm">現調日確認</option>
+                                <option value="survey_reminder">現調リマインド</option>
+                                <option value="survey_thanks">現調お礼</option>
+                                <option value="estimate_schedule">見積完成（日程調整）</option>
+                                <option value="estimate_confirm">見積完成（日程確認）</option>
+                                <option value="followup">検討中フォロー</option>
+                            </select>
+                        </div>
+
+                        <!-- 編集エリア -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">テンプレート内容</label>
+                            <div class="relative">
+                                <textarea id="smsTemplateEditText" rows="6" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono text-sm" oninput="updateTemplateEditPreview()"></textarea>
+                            </div>
+                            <div class="flex justify-between items-center mt-1">
+                                <p class="text-xs text-gray-500">
+                                    利用可能な変数:
+                                    <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{顧客名}')">{顧客名}</span>
+                                    <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{会社名}')">{会社名}</span>
+                                    <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{担当者名}')">{担当者名}</span>
+                                    <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{現調日}')">{現調日}</span>
+                                    <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{見積日}')">{見積日}</span>
+                                    <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{予約リンク}')">{予約リンク}</span>
+                                </p>
+                                <p id="smsTemplateEditCharCount" class="text-xs font-medium text-gray-500">0文字</p>
+                            </div>
+                        </div>
+
+                        <!-- プレビュー -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">プレビュー（実際の表示例）</label>
+                            <div id="smsTemplateEditPreview" class="p-3 bg-gray-100 rounded-lg text-sm whitespace-pre-wrap border-l-4 border-purple-500">
+                                プレビューがここに表示されます
+                            </div>
+                        </div>
+
+                        <!-- ボタン -->
+                        <div class="flex gap-3">
+                            <button onclick="resetTemplateEdit()" class="flex-1 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                                デフォルトに戻す
+                            </button>
+                            <button onclick="saveTemplateEdit()" class="flex-1 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors">
+                                保存する
+                            </button>
+                        </div>
+
+                        <!-- カスタマイズ済み表示 -->
+                        <div id="smsTemplateCustomizedBadge" class="hidden mt-3 text-center">
+                            <span class="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-700 text-sm rounded-full">
+                                ✏️ このテンプレートはカスタマイズ済みです
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -15702,6 +15767,8 @@
                 // 設定セクションの場合はアカウント情報を更新
                 if (sectionName === 'settings') {
                     updateAccountInfo();
+                    // V2112: SMSテンプレートエディターを初期化
+                    setTimeout(() => initSmsTemplateEditor(), 100);
                 }
 
                 // V2007: 案件管理セクションの場合は案件データを読み込み
@@ -20850,6 +20917,153 @@
                 showNotification('エラー', '保存に失敗しました', 'error');
                 console.error('[SMS] テンプレート保存エラー:', e);
             }
+        }
+
+        // ===== V2112: SMSテンプレート編集機能（設定画面用） =====
+
+        // テンプレートを編集用に読み込む
+        function loadTemplateForEdit() {
+            const select = document.getElementById('smsTemplateEditSelect');
+            const textarea = document.getElementById('smsTemplateEditText');
+            const badge = document.getElementById('smsTemplateCustomizedBadge');
+            const key = select.value;
+
+            // カスタムがあればそれを、なければデフォルトを表示
+            if (customSmsTemplates[key]) {
+                textarea.value = customSmsTemplates[key];
+                badge.classList.remove('hidden');
+            } else {
+                const defaultTpl = defaultSmsTemplates[key];
+                textarea.value = defaultTpl ? defaultTpl.text : '';
+                badge.classList.add('hidden');
+            }
+
+            updateTemplateEditPreview();
+        }
+
+        // プレビューを更新（サンプルデータで変数を置換）
+        function updateTemplateEditPreview() {
+            const textarea = document.getElementById('smsTemplateEditText');
+            const preview = document.getElementById('smsTemplateEditPreview');
+            const charCount = document.getElementById('smsTemplateEditCharCount');
+
+            let text = textarea.value;
+
+            // サンプルデータで置換
+            const companyName = (window.merchantData && window.merchantData['会社名']) || '株式会社サンプル';
+            const staffName = (window.merchantData && window.merchantData['営業担当者氏名']) || '担当者';
+
+            text = text
+                .replace(/\{顧客名\}/g, '山田太郎')
+                .replace(/\{会社名\}/g, companyName)
+                .replace(/\{担当者名\}/g, staffName)
+                .replace(/\{現調日\}/g, '12月15日(日) 14:00')
+                .replace(/\{見積日\}/g, '12月20日(金) 10:00')
+                .replace(/\{予約リンク\}/g, 'https://is.gd/xxxxx');
+
+            preview.textContent = text;
+
+            // 文字数カウント（変数置換前）
+            const rawText = textarea.value;
+            const count = rawText.length;
+            const smsCount = Math.ceil(count / 70) || 1;
+            charCount.textContent = `${count}文字 (${smsCount}通)`;
+
+            // 70文字超えたら警告色
+            if (count > 70) {
+                charCount.classList.add('text-orange-500');
+                charCount.classList.remove('text-gray-500');
+            } else {
+                charCount.classList.remove('text-orange-500');
+                charCount.classList.add('text-gray-500');
+            }
+        }
+
+        // 変数を挿入
+        function insertVariable(variable) {
+            const textarea = document.getElementById('smsTemplateEditText');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+
+            textarea.value = text.substring(0, start) + variable + text.substring(end);
+            textarea.focus();
+            textarea.setSelectionRange(start + variable.length, start + variable.length);
+
+            updateTemplateEditPreview();
+        }
+
+        // デフォルトに戻す
+        function resetTemplateEdit() {
+            const select = document.getElementById('smsTemplateEditSelect');
+            const textarea = document.getElementById('smsTemplateEditText');
+            const badge = document.getElementById('smsTemplateCustomizedBadge');
+            const key = select.value;
+
+            const defaultTpl = defaultSmsTemplates[key];
+            if (defaultTpl) {
+                textarea.value = defaultTpl.text;
+                badge.classList.add('hidden');
+                updateTemplateEditPreview();
+                showNotification('リセット', 'デフォルトテンプレートに戻しました', 'info');
+            }
+        }
+
+        // テンプレートを保存（設定画面から）
+        async function saveTemplateEdit() {
+            const select = document.getElementById('smsTemplateEditSelect');
+            const textarea = document.getElementById('smsTemplateEditText');
+            const badge = document.getElementById('smsTemplateCustomizedBadge');
+            const key = select.value;
+            const text = textarea.value;
+
+            const merchantId = localStorage.getItem('merchantId') || sessionStorage.getItem('merchantId') || window.merchantId;
+            if (!merchantId) {
+                showNotification('エラー', '加盟店IDが設定されていません', 'error');
+                return;
+            }
+
+            // 変数チェック
+            const hasVariables = text.includes('{顧客名}') || text.includes('{会社名}');
+            if (!hasVariables) {
+                const confirmed = confirm('⚠️ テンプレートに変数（{顧客名}等）が含まれていません。\n\n変数がないと顧客名が自動入力されません。\n\nこのまま保存しますか？');
+                if (!confirmed) return;
+            }
+
+            try {
+                showNotification('保存中', 'テンプレートを保存しています...', 'info');
+
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        system: 'merchant',
+                        action: 'saveSmsTemplates',
+                        merchantId: merchantId,
+                        templateKey: key,
+                        templateText: text
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    customSmsTemplates[key] = text;
+                    badge.classList.remove('hidden');
+                    const templateName = defaultSmsTemplates[key]?.name || key;
+                    showNotification('保存完了', `「${templateName}」テンプレートを保存しました`, 'success');
+                } else {
+                    showNotification('エラー', result.error || '保存に失敗しました', 'error');
+                }
+            } catch (e) {
+                showNotification('エラー', '保存に失敗しました', 'error');
+                console.error('[SMS] テンプレート保存エラー:', e);
+            }
+        }
+
+        // 設定画面表示時に初期化
+        function initSmsTemplateEditor() {
+            loadTemplateForEdit();
         }
 
         // SMSモーダルを開く
