@@ -7698,6 +7698,7 @@
                                     利用可能な変数:
                                     <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{顧客名}')">{顧客名}</span>
                                     <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{会社名}')">{会社名}</span>
+                                    <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{屋号}')">{屋号}</span>
                                     <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{担当者名}')">{担当者名}</span>
                                     <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{現調日}')">{現調日}</span>
                                     <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{見積日}')">{見積日}</span>
@@ -20908,11 +20909,13 @@
 
             // サンプルデータで置換
             const companyName = (window.merchantData && window.merchantData['会社名']) || '株式会社サンプル';
+            const tradeName = (window.merchantData && window.merchantData['屋号']) || 'サンプルペイント';
             const staffName = (window.merchantData && window.merchantData['営業担当者氏名']) || '担当者';
 
             text = text
                 .replace(/\{顧客名\}/g, '山田太郎')
                 .replace(/\{会社名\}/g, companyName)
+                .replace(/\{屋号\}/g, tradeName)
                 .replace(/\{担当者名\}/g, staffName)
                 .replace(/\{現調日\}/g, '12月15日(日) 14:00')
                 .replace(/\{見積日\}/g, '12月20日(金) 10:00');
@@ -21125,10 +21128,14 @@
                 const companyName = (window.merchantData && window.merchantData['会社名'])
                     ? window.merchantData['会社名']
                     : '弊社';
+                const tradeName = (window.merchantData && window.merchantData['屋号'])
+                    ? window.merchantData['屋号']
+                    : companyName;
 
                 text = text.replace(/{顧客名}/g, c.customerName || 'お客様');
                 text = text.replace(/{担当者名}/g, staffName);
                 text = text.replace(/{会社名}/g, companyName);
+                text = text.replace(/{屋号}/g, tradeName);
 
                 // 現調日
                 if (c.surveyDate) {
