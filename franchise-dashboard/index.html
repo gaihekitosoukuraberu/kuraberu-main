@@ -20807,9 +20807,9 @@
                 const c = currentSmsCase;
                 const staffName = getCurrentUserName() || '担当者';
 
-                // V2095: 会社名を取得（merchantDataから）
-                const companyName = (window.merchantData && window.merchantData.companyName)
-                    ? window.merchantData.companyName
+                // V2099: 会社名を取得（merchantData['会社名']から）
+                const companyName = (window.merchantData && window.merchantData['会社名'])
+                    ? window.merchantData['会社名']
                     : '弊社';
 
                 text = text.replace(/{顧客名}/g, c.customerName || 'お客様');
