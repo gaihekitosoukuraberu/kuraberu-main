@@ -21092,6 +21092,144 @@
             }
         }
 
+        // ===== LINE連携機能 =====
+
+        let currentLineLinkCode = '';
+
+        // LINE連携状態を確認
+        async function checkLineLinkStatus() {
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            if (!merchantId) {
+                console.log('[LINE] merchantId未設定');
+                return;
+            }
+
+            try {
+                const response = await fetch(window.ENV.GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'merchant_getLineLinkStatus',
+                        merchantId: merchantId
+                    })
+                });
+                const result = await response.json();
+                console.log('[LINE] 連携状態:', result);
+
+                const notConnected = document.getElementById('lineNotConnected');
+                const connected = document.getElementById('lineConnected');
+                const steps = document.getElementById('lineConnectionSteps');
+
+                if (result.success && result.linked) {
+                    // 連携済み
+                    notConnected.classList.add('hidden');
+                    connected.classList.remove('hidden');
+                    steps.classList.add('hidden');
+                } else {
+                    // 未連携
+                    notConnected.classList.remove('hidden');
+                    connected.classList.add('hidden');
+                    steps.classList.remove('hidden');
+                    // 連携コードを取得
+                    await generateLineLinkCode();
+                }
+            } catch (error) {
+                console.error('[LINE] 状態確認エラー:', error);
+            }
+        }
+
+        // 連携コードを生成
+        async function generateLineLinkCode() {
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            if (!merchantId) return;
+
+            try {
+                const response = await fetch(window.ENV.GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'merchant_generateLineLinkCode',
+                        merchantId: merchantId
+                    })
+                });
+                const result = await response.json();
+                console.log('[LINE] 連携コード生成:', result);
+
+                if (result.success && result.code) {
+                    currentLineLinkCode = result.code;
+                    document.getElementById('lineLinkCodeDisplay').textContent = result.code;
+                }
+            } catch (error) {
+                console.error('[LINE] コード生成エラー:', error);
+                document.getElementById('lineLinkCodeDisplay').textContent = 'エラー';
+            }
+        }
+
+        // 新しい連携コードを発行
+        async function generateNewLineLinkCode() {
+            document.getElementById('lineLinkCodeDisplay').textContent = '発行中...';
+            await generateLineLinkCode();
+            showNotification('完了', '新しい連携コードを発行しました');
+        }
+
+        // 連携コードをコピー
+        function copyLineLinkCode() {
+            if (!currentLineLinkCode) {
+                showNotification('エラー', '連携コードがありません', 'error');
+                return;
+            }
+            navigator.clipboard.writeText(currentLineLinkCode).then(() => {
+                showNotification('コピー完了', '連携コードをコピーしました');
+            }).catch(err => {
+                console.error('[LINE] コピーエラー:', err);
+                // フォールバック
+                const textarea = document.createElement('textarea');
+                textarea.value = currentLineLinkCode;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showNotification('コピー完了', '連携コードをコピーしました');
+            });
+        }
+
+        // LINE連携解除
+        async function unlinkLine() {
+            if (!confirm('LINE連携を解除しますか？\n解除すると、LINEでの通知が届かなくなります。')) {
+                return;
+            }
+
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            if (!merchantId) return;
+
+            try {
+                const response = await fetch(window.ENV.GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'merchant_unlinkLine',
+                        merchantId: merchantId
+                    })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('完了', 'LINE連携を解除しました');
+                    await checkLineLinkStatus();
+                } else {
+                    showNotification('エラー', result.error || '解除に失敗しました', 'error');
+                }
+            } catch (error) {
+                console.error('[LINE] 連携解除エラー:', error);
+                showNotification('エラー', '通信エラーが発生しました', 'error');
+            }
+        }
+
+        // 設定画面表示時にLINE連携状態を確認
+        function initLineConnectionSection() {
+            checkLineLinkStatus();
+        }
+
         // ===== V2112: SMSテンプレート編集機能（設定画面用） =====
 
         // テンプレートボタンを選択
