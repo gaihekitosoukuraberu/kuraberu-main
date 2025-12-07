@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="robots" content="noindex, nofollow">
-    <!-- V2130: 予約ページ - 視覚的な時間帯表示パネル（選択時にバーで表示） -->
+    <!-- V2133: 予約ページ - 空き業者数を数字で表示、色グラデーション、タップで詳細 -->
     <title>ユーザ希望日 - 外壁塗装くらべる</title>
     <link rel="icon" type="image/png" href="../franchise-dashboard/images/5.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -309,15 +309,21 @@
                 <p class="text-gray-700 font-medium text-center">
                     ご都合の良い日時をタップ（ドラッグで複数選択OK）
                 </p>
-                <div id="legendArea" class="flex items-center justify-center gap-4 mt-3 text-xs text-gray-500">
+                <div id="legendArea" class="flex items-center justify-center gap-3 mt-3 text-xs text-gray-500 flex-wrap">
                     <!-- 業者空きがある場合のみ表示 -->
-                    <div id="legendAvailable" class="flex items-center gap-1.5 hidden">
-                        <div class="w-4 h-4 rounded bg-gradient-to-br from-emerald-200 to-emerald-400"></div>
-                        <span>業者空き</span>
+                    <div id="legendAvailable" class="flex items-center gap-2 hidden">
+                        <span class="text-gray-600">空き:</span>
+                        <div class="flex items-center gap-1">
+                            <div class="w-5 h-5 rounded bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center text-[10px] font-bold text-green-800">1</div>
+                            <div class="w-5 h-5 rounded bg-gradient-to-br from-green-200 to-green-300 flex items-center justify-center text-[10px] font-bold text-green-800">2</div>
+                            <div class="w-5 h-5 rounded bg-gradient-to-br from-green-300 to-green-400 flex items-center justify-center text-[10px] font-bold text-green-800">3</div>
+                            <div class="w-5 h-5 rounded bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center text-[10px] font-bold text-green-800">4</div>
+                        </div>
+                        <span class="text-gray-500">社</span>
                     </div>
                     <div class="flex items-center gap-1.5">
-                        <div class="w-4 h-4 rounded bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
-                            <span class="text-white text-[8px]">✓</span>
+                        <div class="w-5 h-5 rounded bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+                            <span class="text-white text-[9px]">✓</span>
                         </div>
                         <span>選択中</span>
                     </div>
