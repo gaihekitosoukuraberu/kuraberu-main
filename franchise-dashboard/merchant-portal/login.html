@@ -273,6 +273,16 @@
 
                 if (result.success) {
                     // ログイン成功
+                    // V2088: 前回のログインデータをBOTHストレージからクリア（重要！）
+                    const keysToClean = ['memberId', 'merchantId', 'memberName', 'memberRole',
+                                         'franchiseUser', 'franchiseRole', 'memberPermissions',
+                                         'isLoggedIn', 'loginTime',
+                                         'tempMemberId', 'tempMemberPassword', 'tempMerchantId', 'tempPassword'];
+                    keysToClean.forEach(key => {
+                        localStorage.removeItem(key);
+                        sessionStorage.removeItem(key);
+                    });
+
                     const storage = rememberMe ? localStorage : sessionStorage;
 
                     if (isMember) {
