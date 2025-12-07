@@ -21597,7 +21597,7 @@
             }
         }
 
-        // SMS送信（自動コピー + アプリ起動）
+        // SMS送信（スマホ: SMSアプリ起動、PC: Twilio送信）
         async function sendViaSms() {
             if (!currentSmsCase) return;
             let phone = currentSmsCase.customerTel || currentSmsCase.tel || '';
@@ -21616,7 +21616,7 @@
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
             if (isMobile) {
-                // SMS URLスキーム
+                // スマホ: SMSアプリを起動（加盟店の番号から送信）
                 let smsUrl;
                 if (isIOS) {
                     // iOS: sms:電話番号&body=メッセージ
@@ -21634,16 +21634,58 @@
                 recordSmsAction('sms');
                 setTimeout(() => closeSmsModal(), 300);
             } else {
-                // PC: コピーのみ
+                // PC: Twilio APIで自動送信
                 try {
-                    await navigator.clipboard.writeText(message);
-                } catch (err) {
-                    const textarea = document.getElementById('smsMessageText');
-                    textarea.select();
-                    document.execCommand('copy');
+                    showNotification('送信中', 'SMSを送信しています...', 'info');
+
+                    const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+                    const cvId = currentSmsCase.cvId || currentSmsCase.id || '';
+
+                    const response = await fetch(window.ENV.GAS_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            action: 'sendSmsTwilio',
+                            toPhone: phone,
+                            message: message,
+                            cvId: cvId,
+                            merchantId: merchantId
+                        })
+                    });
+
+                    const result = await response.json();
+                    console.log('[SMS] Twilio result:', result);
+
+                    if (result.success) {
+                        showNotification('送信完了', 'SMSを送信しました', 'success');
+                        recordSmsAction('sms_twilio');
+                        closeSmsModal();
+                    } else {
+                        // Twilioエラー時はコピーにフォールバック
+                        console.error('[SMS] Twilio error:', result.error);
+                        try {
+                            await navigator.clipboard.writeText(message);
+                        } catch (err) {
+                            const textarea = document.getElementById('smsMessageText');
+                            textarea.select();
+                            document.execCommand('copy');
+                        }
+                        showNotification('送信失敗', result.error + '\n\nメッセージをコピーしました。スマホから送信してください。', 'error');
+                        recordSmsAction('sms');
+                    }
+                } catch (error) {
+                    console.error('[SMS] Twilio fetch error:', error);
+                    // エラー時はコピーにフォールバック
+                    try {
+                        await navigator.clipboard.writeText(message);
+                    } catch (err) {
+                        const textarea = document.getElementById('smsMessageText');
+                        textarea.select();
+                        document.execCommand('copy');
+                    }
+                    showNotification('送信失敗', 'SMS送信に失敗しました。メッセージをコピーしました。', 'error');
+                    recordSmsAction('sms');
                 }
-                showNotification('コピー完了', 'スマホのSMSアプリに貼り付けて送信してください', 'success');
-                recordSmsAction('sms');
             }
         }
 

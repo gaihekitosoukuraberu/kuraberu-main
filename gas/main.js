@@ -931,6 +931,31 @@ function doPost(e) {
         return ContentService.createTextOutput(JSON.stringify(result))
           .setMimeType(ContentService.MimeType.JSON);
       }
+
+      // ★ Twilio SMS送信（PCからの送信用）
+      if (tempParse.action === 'sendSmsTwilio') {
+        console.log('[main.js] ✅ sendSmsTwilio action detected');
+        const result = TwilioSmsHandler.sendSms(
+          tempParse.toPhone,
+          tempParse.message,
+          {
+            cvId: tempParse.cvId,
+            merchantId: tempParse.merchantId
+          }
+        );
+        return ContentService.createTextOutput(JSON.stringify(result))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      // ★ Twilio設定確認
+      if (tempParse.action === 'checkTwilioConfig') {
+        console.log('[main.js] ✅ checkTwilioConfig action detected');
+        const isConfigured = TwilioSmsHandler.isConfigured();
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          configured: isConfigured
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
     } catch (parseErr) {
       // 続行
     }
