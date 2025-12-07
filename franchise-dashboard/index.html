@@ -2259,6 +2259,90 @@
                     </div>
                 </div>
 
+                <!-- V2089: SMS/メッセージ送信モーダル -->
+                <div id="smsModal" class="fixed inset-0 z-50 hidden">
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSmsModal()"></div>
+                    <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
+                            <!-- ヘッダー -->
+                            <div class="px-5 py-4 bg-gradient-to-r from-green-500 to-teal-500 flex-shrink-0">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                            <span>📱</span> メッセージ送信
+                                        </h3>
+                                        <p id="smsTargetInfo" class="text-sm text-green-100 mt-0.5">---</p>
+                                    </div>
+                                    <button onclick="closeSmsModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 本文 -->
+                            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                                <!-- テンプレート選択 -->
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">テンプレート</label>
+                                    <select id="smsTemplateSelect" onchange="applySmsTemplate()" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-base">
+                                        <option value="inquiry_thanks">お問い合わせお礼</option>
+                                        <option value="call_missed">不在後フォロー</option>
+                                        <option value="survey_confirm">現調日確認</option>
+                                        <option value="survey_reminder">現調リマインド</option>
+                                        <option value="estimate_ready">見積完成お知らせ</option>
+                                        <option value="followup">検討中フォロー</option>
+                                        <option value="booking_link">予約リンク送付</option>
+                                        <option value="custom">カスタム（自由入力）</option>
+                                    </select>
+                                </div>
+
+                                <!-- メッセージプレビュー -->
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">メッセージ内容</label>
+                                    <textarea id="smsMessageText" rows="8" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-base resize-none" placeholder="メッセージを入力..."></textarea>
+                                    <p class="text-xs text-gray-400 mt-1">※ 変数: {顧客名}, {担当者名}, {現調日}, {見積日} は自動置換されます</p>
+                                </div>
+
+                                <!-- 予約リンク挿入（予約システム用） -->
+                                <div id="smsBookingLinkSection" class="hidden">
+                                    <button onclick="insertBookingLink()" class="w-full py-2 px-4 bg-purple-100 text-purple-700 rounded-xl font-medium hover:bg-purple-200 transition-all flex items-center justify-center gap-2">
+                                        <span>📅</span> 予約リンクを挿入
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- アクションボタン -->
+                            <div class="p-4 border-t bg-gray-50 flex-shrink-0 space-y-3">
+                                <!-- コピーボタン（常に表示） -->
+                                <button onclick="copySmsMessage()" class="w-full py-3 bg-gray-200 text-gray-800 rounded-xl font-bold hover:bg-gray-300 transition-all flex items-center justify-center gap-2">
+                                    <span>📋</span> メッセージをコピー
+                                </button>
+
+                                <!-- 送信ボタン群 -->
+                                <div class="grid grid-cols-3 gap-2">
+                                    <!-- SMS（スマホのみ有効） -->
+                                    <button onclick="sendViaSms()" id="smsSendBtn" class="py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all flex flex-col items-center justify-center gap-1">
+                                        <span class="text-lg">💬</span>
+                                        <span class="text-xs">SMS</span>
+                                    </button>
+                                    <!-- LINE -->
+                                    <button onclick="sendViaLine()" class="py-3 bg-[#06C755] text-white rounded-xl font-bold hover:opacity-90 transition-all flex flex-col items-center justify-center gap-1">
+                                        <span class="text-lg">💚</span>
+                                        <span class="text-xs">LINE</span>
+                                    </button>
+                                    <!-- メール -->
+                                    <button onclick="sendViaEmail()" class="py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-all flex flex-col items-center justify-center gap-1">
+                                        <span class="text-lg">✉️</span>
+                                        <span class="text-xs">メール</span>
+                                    </button>
+                                </div>
+
+                                <p id="smsPlatformNote" class="text-xs text-center text-gray-400"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 統合絞り込みモーダル（ステータス＋配信日を合体） -->
                 <div id="unifiedFilterModal" class="fixed inset-0 z-50 hidden">
                     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeUnifiedFilterModal()"></div>
@@ -20377,6 +20461,333 @@
             '別加盟店契約済': { bg: 'bg-indigo-100', border: 'border-indigo-400', text: 'text-indigo-700' },
             'クレーム': { bg: 'bg-red-100', border: 'border-red-400', text: 'text-red-800' }
         };
+
+        // ===== V2089: SMS/メッセージ送信機能 =====
+        let currentSmsCase = null;
+
+        // SMSテンプレート定義
+        const smsTemplates = {
+            inquiry_thanks: {
+                name: 'お問い合わせお礼',
+                text: `{顧客名}様
+
+お世話になっております。
+外壁塗装くらべるの{担当者名}です。
+
+この度はお問い合わせいただき誠にありがとうございます。
+
+ご都合の良いお時間にお電話させていただきたく存じます。
+ご希望のお時間帯がございましたらお知らせください。
+
+何卒よろしくお願いいたします。`
+            },
+            call_missed: {
+                name: '不在後フォロー',
+                text: `{顧客名}様
+
+外壁塗装くらべるの{担当者名}です。
+先ほどお電話いたしましたがお繋がりできませんでした。
+
+改めてお電話させていただきます。
+ご都合の良いお時間帯がございましたらお知らせください。
+
+よろしくお願いいたします。`
+            },
+            survey_confirm: {
+                name: '現調日確認',
+                text: `{顧客名}様
+
+外壁塗装くらべるの{担当者名}です。
+
+現地調査の日程のご確認です。
+
+【日時】{現調日}
+
+上記日程でお伺いいたします。
+ご変更がございましたらお気軽にご連絡ください。
+
+当日お会いできることを楽しみにしております。`
+            },
+            survey_reminder: {
+                name: '現調リマインド',
+                text: `{顧客名}様
+
+外壁塗装くらべるの{担当者名}です。
+
+明日の現地調査のご確認です。
+
+【日時】{現調日}
+
+お忙しいところ恐れ入りますが、よろしくお願いいたします。`
+            },
+            estimate_ready: {
+                name: '見積完成お知らせ',
+                text: `{顧客名}様
+
+外壁塗装くらべるの{担当者名}です。
+
+お見積りの準備が整いました。
+
+【お届け予定】{見積日}
+
+ご都合が悪い場合はお気軽にご連絡ください。
+
+よろしくお願いいたします。`
+            },
+            followup: {
+                name: '検討中フォロー',
+                text: `{顧客名}様
+
+外壁塗装くらべるの{担当者名}です。
+
+先日はお時間をいただきありがとうございました。
+ご検討の状況はいかがでしょうか？
+
+ご不明な点がございましたら、お気軽にお問い合わせください。
+
+よろしくお願いいたします。`
+            },
+            booking_link: {
+                name: '予約リンク送付',
+                text: `{顧客名}様
+
+外壁塗装くらべるの{担当者名}です。
+
+下記リンクから現地調査のご予約が可能です。
+ご都合の良い日時をお選びください。
+
+▼ 予約ページ
+{予約リンク}
+
+ご不明点がございましたらお気軽にお申し付けください。`
+            },
+            custom: {
+                name: 'カスタム',
+                text: ''
+            }
+        };
+
+        // SMSモーダルを開く
+        function openSmsModal(cvId, templateKey = null) {
+            const c = findCaseByCvId(cvId);
+            if (!c) {
+                showNotification('エラー', '案件が見つかりません', 'error');
+                return;
+            }
+
+            currentSmsCase = c;
+
+            // ターゲット情報を表示
+            const phone = c.phone || c.tel || '電話番号なし';
+            document.getElementById('smsTargetInfo').textContent = `${c.customerName || '---'} 様 (${phone})`;
+
+            // テンプレート選択
+            const select = document.getElementById('smsTemplateSelect');
+            if (templateKey && smsTemplates[templateKey]) {
+                select.value = templateKey;
+            } else {
+                // ステータスに応じてデフォルトテンプレートを選択
+                const status = c.detailStatus || '';
+                if (status === '新着' || status === '未アポ') {
+                    select.value = 'inquiry_thanks';
+                } else if (status.includes('アポ') || status.includes('現調')) {
+                    select.value = 'survey_confirm';
+                } else if (status.includes('見積')) {
+                    select.value = 'estimate_ready';
+                } else if (status.includes('検討')) {
+                    select.value = 'followup';
+                } else {
+                    select.value = 'inquiry_thanks';
+                }
+            }
+
+            // テンプレート適用
+            applySmsTemplate();
+
+            // プラットフォーム判定
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            const noteEl = document.getElementById('smsPlatformNote');
+            const smsBtn = document.getElementById('smsSendBtn');
+
+            if (isMobile) {
+                noteEl.textContent = 'スマホからSMS/LINE送信できます';
+                smsBtn.disabled = false;
+                smsBtn.classList.remove('opacity-50');
+            } else {
+                noteEl.textContent = 'PCからはコピーしてスマホで送信してください';
+                smsBtn.disabled = true;
+                smsBtn.classList.add('opacity-50');
+            }
+
+            // モーダル表示
+            document.getElementById('smsModal').classList.remove('hidden');
+        }
+
+        // SMSモーダルを閉じる
+        function closeSmsModal() {
+            document.getElementById('smsModal').classList.add('hidden');
+            currentSmsCase = null;
+        }
+
+        // テンプレートを適用
+        function applySmsTemplate() {
+            const templateKey = document.getElementById('smsTemplateSelect').value;
+            const template = smsTemplates[templateKey];
+            if (!template) return;
+
+            let text = template.text;
+
+            // 変数を置換
+            if (currentSmsCase) {
+                const c = currentSmsCase;
+                const staffName = getCurrentUserName() || '担当者';
+
+                text = text.replace(/{顧客名}/g, c.customerName || 'お客様');
+                text = text.replace(/{担当者名}/g, staffName);
+
+                // 現調日
+                if (c.surveyDate) {
+                    const d = new Date(c.surveyDate);
+                    const days = ['日', '月', '火', '水', '木', '金', '土'];
+                    const formatted = `${d.getMonth()+1}/${d.getDate()}(${days[d.getDay()]}) ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+                    text = text.replace(/{現調日}/g, formatted);
+                } else {
+                    text = text.replace(/{現調日}/g, '【要設定】');
+                }
+
+                // 見積日
+                if (c.estimateDate) {
+                    const d = new Date(c.estimateDate);
+                    const days = ['日', '月', '火', '水', '木', '金', '土'];
+                    const formatted = `${d.getMonth()+1}/${d.getDate()}(${days[d.getDay()]}) ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+                    text = text.replace(/{見積日}/g, formatted);
+                } else {
+                    text = text.replace(/{見積日}/g, '【要設定】');
+                }
+
+                // 予約リンク（後で実装）
+                text = text.replace(/{予約リンク}/g, '【予約システム準備中】');
+            }
+
+            document.getElementById('smsMessageText').value = text;
+
+            // 予約リンクセクションの表示制御
+            const bookingSection = document.getElementById('smsBookingLinkSection');
+            if (templateKey === 'booking_link') {
+                bookingSection.classList.remove('hidden');
+            } else {
+                bookingSection.classList.add('hidden');
+            }
+        }
+
+        // メッセージをコピー
+        async function copySmsMessage() {
+            const text = document.getElementById('smsMessageText').value;
+            try {
+                await navigator.clipboard.writeText(text);
+                showNotification('コピー完了', 'メッセージをクリップボードにコピーしました', 'success');
+
+                // 履歴に記録
+                recordSmsAction('copy');
+            } catch (err) {
+                // フォールバック
+                const textarea = document.getElementById('smsMessageText');
+                textarea.select();
+                document.execCommand('copy');
+                showNotification('コピー完了', 'メッセージをコピーしました', 'success');
+                recordSmsAction('copy');
+            }
+        }
+
+        // SMS送信（スマホのみ）
+        function sendViaSms() {
+            if (!currentSmsCase) return;
+            const phone = currentSmsCase.phone || currentSmsCase.tel || '';
+            const message = document.getElementById('smsMessageText').value;
+
+            if (!phone) {
+                showNotification('エラー', '電話番号がありません', 'error');
+                return;
+            }
+
+            // SMS URIスキーム
+            const smsUrl = `sms:${phone}?body=${encodeURIComponent(message)}`;
+            window.location.href = smsUrl;
+
+            recordSmsAction('sms');
+            closeSmsModal();
+        }
+
+        // LINE送信
+        function sendViaLine() {
+            const message = document.getElementById('smsMessageText').value;
+            // LINE共有URL
+            const lineUrl = `https://line.me/R/share?text=${encodeURIComponent(message)}`;
+            window.open(lineUrl, '_blank');
+
+            recordSmsAction('line');
+        }
+
+        // メール送信
+        function sendViaEmail() {
+            if (!currentSmsCase) return;
+            const message = document.getElementById('smsMessageText').value;
+            const subject = `【外壁塗装くらべる】${currentSmsCase.customerName || 'お客'}様へのご連絡`;
+
+            const mailUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+            window.location.href = mailUrl;
+
+            recordSmsAction('email');
+        }
+
+        // 送信履歴を記録
+        function recordSmsAction(method) {
+            if (!currentSmsCase) return;
+
+            const methodLabels = {
+                copy: 'コピー',
+                sms: 'SMS送信',
+                line: 'LINE送信',
+                email: 'メール送信'
+            };
+
+            // callHistoryに追加
+            if (!currentSmsCase.callHistory) {
+                currentSmsCase.callHistory = [];
+            }
+
+            const staffName = getCurrentUserName() || '不明';
+            currentSmsCase.callHistory.unshift({
+                date: new Date().toLocaleString('ja-JP'),
+                type: 'message_sent',
+                note: `📱 ${methodLabels[method] || method}`,
+                staffName: staffName
+            });
+
+            // ローカルデータを更新
+            renderCases();
+
+            // バックグラウンドで保存
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    system: 'merchant',
+                    subsystem: 'contract',
+                    action: 'updateCallHistory',
+                    merchantId: merchantId,
+                    cvId: currentSmsCase.cvId,
+                    callHistory: currentSmsCase.callHistory,
+                    callCount: currentSmsCase.callCount || 0
+                })
+            }).catch(err => console.error('[SMS] 履歴保存エラー:', err));
+        }
+
+        // 予約リンクを挿入（Phase 4で実装）
+        function insertBookingLink() {
+            showNotification('準備中', '予約システムは現在構築中です', 'info');
+        }
 
         // ステータス変更モーダル
         function openStatusModal(cvId) {
