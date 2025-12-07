@@ -235,7 +235,7 @@
             <!-- 週間カレンダー -->
             <div class="bg-white rounded-xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
-                    <div id="calendarGrid" class="calendar-grid min-w-[800px]" style="grid-template-columns: 50px repeat(24, 1fr);">
+                    <div id="calendarGrid" class="calendar-grid min-w-[1100px]" style="grid-template-columns: 50px repeat(34, 1fr);">
                         <!-- JSで生成 -->
                     </div>
                 </div>
@@ -283,9 +283,9 @@
         let isSelecting = false; // ドラッグ選択中
         let selectionMode = null; // 'add' or 'remove'
 
-        // 時間帯（8:00〜19:30、30分刻み）
+        // 時間帯（5:00〜21:30、30分刻み）
         const timeSlots = [];
-        for (let h = 8; h < 20; h++) {
+        for (let h = 5; h < 22; h++) {
             timeSlots.push(`${h.toString().padStart(2, '0')}:00`);
             timeSlots.push(`${h.toString().padStart(2, '0')}:30`);
         }
@@ -373,8 +373,8 @@
             // ヘッダー行（時間 - 1時間おき、2セル分の幅）
             html += '<div class="calendar-header">';
             html += '<div></div>'; // 左上空白
-            for (let h = 8; h < 20; h++) {
-                html += `<div style="grid-column: span 2; text-align: center;">${h}</div>`;
+            for (let h = 5; h < 22; h++) {
+                html += `<div style="grid-column: span 2; text-align: center;">${h}時</div>`;
             }
             html += '</div>';
 
