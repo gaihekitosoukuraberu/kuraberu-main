@@ -288,6 +288,19 @@ const MerchantSystem = {
         case 'saveSmsTemplates':
           return this.saveSmsTemplates(params);
 
+        // LINE連携
+        case 'generateLineLinkCode':
+        case 'merchant_generateLineLinkCode':
+          return LineWebhookHandler.generateLinkCode(params.merchantId);
+
+        case 'getLineLinkStatus':
+        case 'merchant_getLineLinkStatus':
+          return LineWebhookHandler.getLinkStatus(params.merchantId);
+
+        case 'unlinkLine':
+        case 'merchant_unlinkLine':
+          return this.unlinkLine(params);
+
         default:
           return {
             success: false,
@@ -2611,6 +2624,52 @@ const MerchantSystem = {
 
     } catch (error) {
       console.error('[MerchantSystem] saveSmsTemplates error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
+   * LINE連携解除
+   * @param {Object} params - { merchantId }
+   */
+  unlinkLine: function(params) {
+    try {
+      const merchantId = params.merchantId;
+      if (!merchantId) {
+        return { success: false, error: '加盟店IDが必要です' };
+      }
+
+      const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+      const sheet = ss.getSheetByName('加盟店登録');
+      if (!sheet) {
+        return { success: false, error: '加盟店登録シートが見つかりません' };
+      }
+
+      const data = sheet.getDataRange().getValues();
+      const headers = data[0];
+
+      const merchantIdCol = headers.indexOf('加盟店ID') >= 0 ? headers.indexOf('加盟店ID') : headers.indexOf('登録ID');
+      const lineIdCol = headers.indexOf('LINE_USER_ID');
+
+      if (merchantIdCol === -1) {
+        return { success: false, error: '加盟店ID列が見つかりません' };
+      }
+      if (lineIdCol === -1) {
+        return { success: false, error: 'LINE_USER_ID列が見つかりません' };
+      }
+
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][merchantIdCol] === merchantId) {
+          sheet.getRange(i + 1, lineIdCol + 1).setValue('');
+          console.log('[MerchantSystem] LINE連携解除:', merchantId);
+          return { success: true, message: 'LINE連携を解除しました' };
+        }
+      }
+
+      return { success: false, error: '加盟店が見つかりません' };
+
+    } catch (error) {
+      console.error('[MerchantSystem] unlinkLine error:', error);
       return { success: false, error: error.toString() };
     }
   }

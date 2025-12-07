@@ -226,7 +226,11 @@ const SystemRouter = {
         'cancelInvite',
         'deleteMember',
         // AI振り分け
-        'aiAssignCases'
+        'aiAssignCases',
+        // LINE連携
+        'generateLineLinkCode',
+        'getLineLinkStatus',
+        'unlinkLine'
       ]
     },
 
@@ -938,6 +942,20 @@ function doPost(e) {
     }
 
     console.log('[main.js] ⚠️ No Slack payload found - continuing to general routing');
+
+    // LINE Webhook検出（eventsプロパティがある場合）
+    if (e.postData && e.postData.contents) {
+      try {
+        const tempParse = JSON.parse(e.postData.contents);
+        if (tempParse.events && Array.isArray(tempParse.events)) {
+          console.log('[main.js] ✅ LINE Webhook detected');
+          const lineResult = LineWebhookHandler.handleWebhook(tempParse);
+          return createJsonResponse(lineResult);
+        }
+      } catch (lineParseErr) {
+        // LINE webhookではない、続行
+      }
+    }
 
     // JSONボディがある場合はパース、URL-encodedの場合はe.parameterを使用
     let postData = {};
