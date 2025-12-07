@@ -20323,8 +20323,14 @@
         let afterCallSmsNeeded = false;
         let afterCallSmsCvId = null;
 
-        // 通話後SMS自動表示
+        // 通話後SMS自動表示（スマホ時のみ）
         function showAfterCallSmsIfNeeded() {
+            // PCでは表示しない（スマホ時のみ）
+            if (window.innerWidth >= 768) {
+                afterCallSmsNeeded = false;
+                afterCallSmsCvId = null;
+                return;
+            }
             if (afterCallSmsNeeded && afterCallSmsCvId) {
                 const cvId = afterCallSmsCvId;
                 const c = findCaseByCvId(cvId);
