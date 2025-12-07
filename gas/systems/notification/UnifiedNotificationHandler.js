@@ -3,12 +3,13 @@
  * 統合通知ハンドラー
  * ====================================
  *
- * LINE優先 → Web Push → SMSフォールバックの通知システム
+ * Web Push優先 → LINE → SMSフォールバックの通知システム
  *
- * 【優先順位】
- * 1. LINE連携済み → LINE送信（1円）
- * 2. Web Push購読済み → ブラウザ通知（無料）
- * 3. どちらもなし → SMS送信（8円〜）
+ * 【優先順位】コスト最適化
+ * 1. Web Push購読済み → ブラウザ通知（無料・リアルタイム）
+ * 2. LINE連携済み → LINE送信（1円）
+ * 3. メールアドレス登録済み → メール送信（無料・非リアルタイム）
+ * 4. どちらもなし → SMS送信（8円〜）
  *
  * - ユーザー向け: SMS固定（LINE連携なし）
  *
@@ -45,30 +46,7 @@ const UnifiedNotificationHandler = {
         };
       }
 
-      // ===== 優先度1: LINE =====
-      if (merchantInfo.lineUserId) {
-        console.log('[UnifiedNotification] LINE送信:', merchantInfo.lineUserId);
-        const lineResult = this.sendLine(merchantInfo.lineUserId, message);
-
-        if (lineResult.success) {
-          this.recordNotificationHistory({
-            channel: 'LINE',
-            merchantId,
-            message,
-            success: true,
-            ...options
-          });
-
-          return {
-            success: true,
-            channel: 'LINE',
-            message: 'LINE送信完了'
-          };
-        }
-        console.log('[UnifiedNotification] LINE送信失敗、次のチャネルへ');
-      }
-
-      // ===== 優先度2: Web Push（無料）=====
+      // ===== 優先度1: Web Push（無料）=====
       if (this.hasWebPushSubscription(merchantId)) {
         console.log('[UnifiedNotification] Web Push送信:', merchantId);
         const pushResult = this.sendWebPush(merchantId, message, options);
@@ -88,10 +66,57 @@ const UnifiedNotificationHandler = {
             message: 'ブラウザ通知送信完了'
           };
         }
-        console.log('[UnifiedNotification] Web Push送信失敗、SMSへフォールバック');
+        console.log('[UnifiedNotification] Web Push送信失敗、LINEへフォールバック');
       }
 
-      // ===== 優先度3: SMS（有料）=====
+      // ===== 優先度2: LINE（1円）=====
+      if (merchantInfo.lineUserId) {
+        console.log('[UnifiedNotification] LINE送信:', merchantInfo.lineUserId);
+        const lineResult = this.sendLine(merchantInfo.lineUserId, message);
+
+        if (lineResult.success) {
+          this.recordNotificationHistory({
+            channel: 'LINE',
+            merchantId,
+            message,
+            success: true,
+            ...options
+          });
+
+          return {
+            success: true,
+            channel: 'LINE',
+            message: 'LINE送信完了'
+          };
+        }
+        console.log('[UnifiedNotification] LINE送信失敗、メールへフォールバック');
+      }
+
+      // ===== 優先度3: Email（無料・非リアルタイム）=====
+      if (merchantInfo.email) {
+        console.log('[UnifiedNotification] メール送信:', merchantInfo.email);
+        const emailResult = this.sendEmail(merchantInfo.email, message, options);
+
+        if (emailResult.success) {
+          this.recordNotificationHistory({
+            channel: 'Email',
+            merchantId,
+            toEmail: merchantInfo.email,
+            message,
+            success: true,
+            ...options
+          });
+
+          return {
+            success: true,
+            channel: 'Email',
+            message: 'メール送信完了'
+          };
+        }
+        console.log('[UnifiedNotification] メール送信失敗、SMSへフォールバック');
+      }
+
+      // ===== 優先度4: SMS（8円〜）=====
       if (merchantInfo.phone) {
         console.log('[UnifiedNotification] SMS送信:', merchantInfo.phone);
         const smsResult = this.sendSms(merchantInfo.phone, message, {
@@ -120,7 +145,7 @@ const UnifiedNotificationHandler = {
       return {
         success: false,
         channel: null,
-        error: '連絡先（LINE/WebPush/電話番号）が登録されていません'
+        error: '連絡先（WebPush/LINE/メール/電話番号）が登録されていません'
       };
 
     } catch (error) {
@@ -194,6 +219,7 @@ const UnifiedNotificationHandler = {
       // カラムインデックスを取得
       const idCol = headers.indexOf('登録ID');
       const phoneCol = headers.indexOf('電話番号');
+      const emailCol = headers.indexOf('メールアドレス');
       const lineIdCol = headers.indexOf('LINE_USER_ID');
       const companyCol = headers.indexOf('会社名');
 
@@ -208,6 +234,7 @@ const UnifiedNotificationHandler = {
           return {
             merchantId: data[i][idCol],
             phone: phoneCol >= 0 ? data[i][phoneCol] : null,
+            email: emailCol >= 0 ? data[i][emailCol] : null,
             lineUserId: lineIdCol >= 0 ? data[i][lineIdCol] : null,
             companyName: companyCol >= 0 ? data[i][companyCol] : null
           };
@@ -272,6 +299,35 @@ const UnifiedNotificationHandler = {
 
     } catch (error) {
       console.error('[UnifiedNotification] LINE送信エラー:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  /**
+   * メール送信
+   * @param {string} email - メールアドレス
+   * @param {string} message - メッセージ本文
+   * @param {object} options - オプション
+   * @returns {object} 結果
+   */
+  sendEmail(email, message, options = {}) {
+    try {
+      const subject = options.subject || '【くらべる】新しい通知があります';
+      const body = `${message}
+
+---
+このメールは外壁塗装くらべるAIから自動送信されています。
+https://kuraberu.jp`;
+
+      GmailApp.sendEmail(email, subject, body, {
+        name: '外壁塗装くらべるAI'
+      });
+
+      console.log('[UnifiedNotification] メール送信成功:', email);
+      return { success: true };
+
+    } catch (error) {
+      console.error('[UnifiedNotification] メール送信エラー:', error);
       return { success: false, error: error.message };
     }
   },
@@ -379,20 +435,29 @@ const UnifiedNotificationHandler = {
    * @returns {object} 各チャネルの設定状態
    */
   getChannelStatus() {
-    const lineConfigured = !!PropertiesService.getScriptProperties().getProperty('LINE_ACCESS_TOKEN');
     const webPushConfigured = typeof WebPushHandler !== 'undefined' && WebPushHandler.isConfigured();
+    const lineConfigured = !!PropertiesService.getScriptProperties().getProperty('LINE_ACCESS_TOKEN');
+    const emailConfigured = true; // GASは常にメール送信可能
     const smsConfigured = typeof TwilioSmsHandler !== 'undefined' && TwilioSmsHandler.isConfigured();
 
     return {
-      line: {
-        configured: lineConfigured,
-        name: 'LINE',
-        cost: '1円/通'
-      },
       webPush: {
         configured: webPushConfigured,
         name: 'ブラウザ通知',
-        cost: '無料'
+        cost: '無料',
+        priority: 1
+      },
+      line: {
+        configured: lineConfigured,
+        name: 'LINE',
+        cost: '1円/通',
+        priority: 2
+      },
+      email: {
+        configured: emailConfigured,
+        name: 'メール',
+        cost: '無料',
+        priority: 3
       },
       sms: {
         configured: smsConfigured,
