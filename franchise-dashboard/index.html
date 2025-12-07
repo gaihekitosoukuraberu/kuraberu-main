@@ -19506,19 +19506,19 @@
                     </td>
                     <!-- 架電回数（タップで接続/不在記録） -->
                     <td class="px-2 py-3 text-center">
-                        <button onclick="openConnectionModalDirect('${c.cvId}')" class="text-base font-medium text-blue-600 hover:text-blue-800" title="架電履歴を追加">
+                        <button onclick="openConnectionModalDirect('${c.cvId}')" class="px-2 py-1 text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors" title="架電履歴を追加">
                             ${getCallCountBadge(c)}
                         </button>
                     </td>
                     <!-- SMS -->
                     <td class="px-2 py-3 text-center">
-                        <button onclick="openSmsModal('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-teal-700 bg-teal-100 rounded-lg hover:bg-teal-200 transition-colors" title="SMS/メッセージ送信">
+                        <button onclick="openSmsModal('${c.cvId}')" class="px-2 py-1 text-sm font-medium text-teal-700 bg-teal-100 rounded-lg hover:bg-teal-200 transition-colors" title="SMS/メッセージ送信">
                             💬
                         </button>
                     </td>
                     <!-- メモ（件数） -->
                     <td class="px-2 py-3 text-center">
-                        <button onclick="openMemoModal('${c.cvId}')" class="text-base font-medium text-amber-600 hover:text-amber-800" title="メモ/履歴">
+                        <button onclick="openMemoModal('${c.cvId}')" class="px-2 py-1 text-sm font-medium text-amber-700 bg-amber-100 rounded-lg hover:bg-amber-200 transition-colors" title="メモ/履歴">
                             ${getMemoCountBadge(c)}
                         </button>
                     </td>
