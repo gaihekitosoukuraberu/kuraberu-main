@@ -2301,16 +2301,22 @@
                                 <!-- テンプレート選択 -->
                                 <div>
                                     <label class="block text-sm font-bold text-gray-700 mb-2">テンプレート</label>
-                                    <select id="smsTemplateSelect" onchange="applySmsTemplate()" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-base">
-                                        <option value="inquiry_thanks">お問い合わせお礼</option>
-                                        <option value="call_missed">不在後フォロー</option>
-                                        <option value="survey_confirm">現調日確認</option>
-                                        <option value="survey_reminder">現調リマインド</option>
-                                        <option value="estimate_ready">見積完成お知らせ</option>
-                                        <option value="followup">検討中フォロー</option>
-                                        <option value="booking_link">予約リンク送付</option>
-                                        <option value="custom">カスタム（自由入力）</option>
-                                    </select>
+                                    <div class="flex gap-2">
+                                        <select id="smsTemplateSelect" onchange="applySmsTemplate()" class="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-base">
+                                            <option value="inquiry_thanks">お問い合わせお礼</option>
+                                            <option value="call_missed">不在後フォロー</option>
+                                            <option value="survey_confirm">現調日確認</option>
+                                            <option value="survey_reminder">現調リマインド</option>
+                                            <option value="estimate_ready">見積完成お知らせ</option>
+                                            <option value="followup">検討中フォロー</option>
+                                            <option value="booking_link">予約リンク送付</option>
+                                            <option value="custom">カスタム（自由入力）</option>
+                                        </select>
+                                        <button onclick="saveSmsTemplate()" class="px-4 py-3 bg-amber-100 text-amber-700 rounded-xl font-bold hover:bg-amber-200 transition-all" title="現在の内容でテンプレートを上書き保存">
+                                            💾
+                                        </button>
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-1">💾で編集内容をテンプレートに保存</p>
                                 </div>
 
                                 <!-- メッセージプレビュー -->
@@ -19246,13 +19252,16 @@
                     <h3 class="font-bold text-xl mb-2">${escapeHtml(c.customerName || '-')}</h3>
                     <a href="${mapUrl}" target="_blank" class="text-base text-blue-600 hover:text-blue-800 hover:underline block mb-2" title="${escapeHtml(fullAddress)}">📍${escapeHtml(shortAddress)}</a>
                     ${propertyInfo ? `<p class="text-sm text-gray-500 mb-3">${escapeHtml(propertyInfo)}</p>` : ''}
-                    <!-- 📞📋 + 日程表示 -->
+                    <!-- 📞📋💬 アイコン行 -->
                     <div class="flex items-center gap-3 mb-3">
                         <button onclick="openConnectionModalDirect('${c.cvId}')" class="text-lg text-blue-600 hover:text-blue-800 font-medium" title="架電履歴を追加">
                             ${getCallCountBadge(c)}
                         </button>
                         <button onclick="openMemoModal('${c.cvId}')" class="text-lg text-amber-600 hover:text-amber-800 font-medium" title="メモ・履歴">
                             ${getMemoCountBadge(c)}
+                        </button>
+                        <button onclick="openSmsModal('${c.cvId}')" class="text-lg text-teal-600 hover:text-teal-800 font-medium" title="SMS/メッセージ送信">
+                            💬
                         </button>
                     </div>
                     <!-- 進捗表示エリア（PC版と同じロジック） -->
@@ -19268,9 +19277,6 @@
                         <a href="tel:${c.customerTel}" onclick="startPhoneCall('${c.cvId}')" class="flex-1 px-4 py-3 bg-green-100 text-green-700 rounded-lg text-base font-bold hover:bg-green-200 transition-colors text-center">
                             📞 電話
                         </a>
-                        <button onclick="openSmsModal('${c.cvId}')" class="px-4 py-3 bg-teal-100 text-teal-700 rounded-lg text-base font-bold hover:bg-teal-200 transition-colors" title="SMS/メッセージ送信">
-                            💬
-                        </button>
                         <button onclick="openDetailModal('${c.cvId}')" class="flex-1 px-4 py-3 bg-blue-100 text-blue-700 rounded-lg text-base font-bold hover:bg-blue-200 transition-colors">
                             詳細
                         </button>
@@ -20678,9 +20684,24 @@
         // ===== V2089: SMS/メッセージ送信機能 =====
         let currentSmsCase = null;
 
+        // V2100: カスタムテンプレート（localStorageから読込）
+        let customSmsTemplates = {};
+        function loadCustomSmsTemplates() {
+            try {
+                const saved = localStorage.getItem('smsTemplates_custom');
+                if (saved) {
+                    customSmsTemplates = JSON.parse(saved);
+                    console.log('[SMS] カスタムテンプレート読込:', Object.keys(customSmsTemplates));
+                }
+            } catch (e) {
+                console.error('[SMS] カスタムテンプレート読込エラー:', e);
+            }
+        }
+        loadCustomSmsTemplates(); // 初期読込
+
         // V2095: SMSテンプレート定義（会社名変数対応 + 文字数最適化）
         // SMS文字数目安: 日本語70文字/通、長文は分割されコスト増
-        const smsTemplates = {
+        const defaultSmsTemplates = {
             inquiry_thanks: {
                 name: 'お問い合わせお礼',
                 // 約65文字
@@ -20732,6 +20753,46 @@
             }
         };
 
+        // V2100: テンプレート取得（カスタム優先）
+        function getSmsTemplate(key) {
+            if (customSmsTemplates[key]) {
+                return customSmsTemplates[key];
+            }
+            return defaultSmsTemplates[key] || defaultSmsTemplates.custom;
+        }
+
+        // V2100: テンプレート保存
+        function saveSmsTemplate() {
+            const select = document.getElementById('smsTemplateSelect');
+            const textarea = document.getElementById('smsMessageText');
+            const key = select.value;
+
+            if (key === 'custom') {
+                showNotification('エラー', 'カスタムテンプレートは保存できません', 'error');
+                return;
+            }
+
+            // 変数を元に戻す（置換されたものを復元）
+            let text = textarea.value;
+            // 置換された値を変数に戻すのは難しいので、現在の入力内容をそのまま保存
+            // ユーザーは変数（{顧客名}等）を含むテンプレートを書く必要がある
+
+            const templateName = defaultSmsTemplates[key]?.name || key;
+            customSmsTemplates[key] = {
+                name: templateName + '（編集済）',
+                text: text
+            };
+
+            try {
+                localStorage.setItem('smsTemplates_custom', JSON.stringify(customSmsTemplates));
+                showNotification('保存完了', `「${templateName}」テンプレートを保存しました`, 'success');
+                console.log('[SMS] テンプレート保存:', key, text.substring(0, 50) + '...');
+            } catch (e) {
+                showNotification('エラー', '保存に失敗しました', 'error');
+                console.error('[SMS] テンプレート保存エラー:', e);
+            }
+        }
+
         // SMSモーダルを開く
         function openSmsModal(cvId, templateKey = null) {
             const c = findCaseByCvId(cvId);
@@ -20748,7 +20809,7 @@
 
             // テンプレート選択
             const select = document.getElementById('smsTemplateSelect');
-            if (templateKey && smsTemplates[templateKey]) {
+            if (templateKey && defaultSmsTemplates[templateKey]) {
                 select.value = templateKey;
             } else {
                 // ステータスに応じてデフォルトテンプレートを選択
@@ -20797,7 +20858,7 @@
         // テンプレートを適用
         function applySmsTemplate() {
             const templateKey = document.getElementById('smsTemplateSelect').value;
-            const template = smsTemplates[templateKey];
+            const template = getSmsTemplate(templateKey);
             if (!template) return;
 
             let text = template.text;
