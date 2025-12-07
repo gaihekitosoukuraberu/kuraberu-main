@@ -49,6 +49,9 @@ const BookingSystem = {
         case 'getPublicAvailability':
           return this.getPublicAvailability(params);
 
+        case 'createBookingRequest':
+          return this.createBookingRequest(params);
+
         default:
           return { success: false, error: `Unknown booking action: ${action}` };
       }
@@ -376,6 +379,97 @@ const BookingSystem = {
       requestMode: slots.length === 0, // 空き枠なし = リクエスト方式
       message: slots.length === 0 ? 'ご希望の日時を選択してください' : '空き枠から選択してください'
     };
+  },
+
+  /**
+   * 予約リクエスト作成（ユーザーが希望日時を送信）
+   * @param {Object} params - { cvId, token, slots }
+   */
+  createBookingRequest: function(params) {
+    const { cvId, token, slots: slotsJson } = params;
+
+    if (!cvId || !token) {
+      return { success: false, error: 'cvId and token required' };
+    }
+
+    // トークン検証
+    const expectedToken = this.generateBookingToken(cvId);
+    if (token !== expectedToken) {
+      return { success: false, error: 'Invalid token' };
+    }
+
+    // slotsをパース
+    let slots;
+    try {
+      slots = typeof slotsJson === 'string' ? JSON.parse(slotsJson) : slotsJson;
+    } catch (e) {
+      return { success: false, error: 'Invalid slots format' };
+    }
+
+    if (!slots || slots.length === 0) {
+      return { success: false, error: 'No slots selected' };
+    }
+
+    // リクエストIDを生成
+    const requestId = 'REQ' + Date.now().toString(36).toUpperCase();
+    const now = new Date().toISOString();
+
+    // 予約リクエストシートに保存
+    const requestSheet = this.getRequestSheet();
+
+    for (const slot of slots) {
+      requestSheet.appendRow([
+        requestId,           // A: リクエストID
+        cvId,                // B: CV ID
+        slot.date,           // C: 希望日
+        slot.time,           // D: 希望時間
+        'pending',           // E: ステータス（pending/matched/cancelled）
+        '',                  // F: マッチした業者ID
+        now,                 // G: 作成日時
+        ''                   // H: マッチ日時
+      ]);
+    }
+
+    // 配信済み業者に通知
+    const merchantIds = this.getDeliveredMerchantsForCv(cvId);
+    if (merchantIds && merchantIds.length > 0) {
+      for (const merchantId of merchantIds) {
+        this.notifyMerchant(merchantId, {
+          type: 'booking_request',
+          cvId: cvId,
+          requestId: requestId,
+          slots: slots,
+          message: `新しい現調リクエストがあります。${slots.length}件の希望日時から選択してください。`
+        });
+      }
+    }
+
+    console.log(`[BookingSystem] Created booking request: ${requestId} with ${slots.length} slots`);
+
+    return {
+      success: true,
+      requestId: requestId,
+      slotsCount: slots.length
+    };
+  },
+
+  /**
+   * 予約リクエストシートを取得（なければ作成）
+   */
+  getRequestSheet: function() {
+    const ss = this.getSpreadsheet();
+    let sheet = ss.getSheetByName('予約リクエスト');
+
+    if (!sheet) {
+      sheet = ss.insertSheet('予約リクエスト');
+      sheet.getRange(1, 1, 1, 8).setValues([[
+        'リクエストID', 'CV ID', '希望日', '希望時間',
+        'ステータス', 'マッチ業者ID', '作成日時', 'マッチ日時'
+      ]]);
+      sheet.setFrozenRows(1);
+    }
+
+    return sheet;
   },
 
   // ============================================

@@ -627,6 +627,12 @@ const SystemRouter = {
       prefix: false,
       actions: ['getPublicAvailability']
     },
+    'createBookingRequest': {
+      system: 'BookingSystem',
+      description: '予約リクエスト作成（ユーザー希望日時送信）',
+      prefix: false,
+      actions: ['createBookingRequest']
+    },
     'setContractorAvailability': {
       system: 'BookingSystem',
       description: '空き枠登録',

@@ -2,10 +2,10 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="robots" content="noindex, nofollow">
-    <!-- V2093: ユーザー向け予約ページ -->
-    <title>日時選択 - 外壁塗装くらべる</title>
+    <!-- V2123: 予約ページUI刷新 - 週間カレンダー＋ドラッグ選択 -->
+    <title>現調日時選択 - 外壁塗装くらべる</title>
     <link rel="icon" type="image/png" href="../franchise-dashboard/images/5.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,16 +16,152 @@
 })();
 </script>
     <style>
-        body { font-family: 'Inter', system-ui, sans-serif; }
-        .slot-available { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); }
-        .slot-selected { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
-        .merchant-band { height: 48px; margin-bottom: 2px; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* カレンダーグリッド */
+        .calendar-grid {
+            display: grid;
+            gap: 1px;
+            background: #e5e7eb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .calendar-header {
+            display: contents;
+        }
+
+        .calendar-header > div {
+            background: #f3f4f6;
+            padding: 8px 4px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+        }
+
+        .calendar-row {
+            display: contents;
+        }
+
+        .date-label {
+            background: #f9fafb;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-width: 50px;
+        }
+
+        .date-label .day {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .date-label .weekday {
+            font-size: 10px;
+            color: #6b7280;
+        }
+
+        .date-label.today {
+            background: #dbeafe;
+        }
+
+        .date-label.today .day {
+            color: #2563eb;
+        }
+
+        /* 時間セル */
+        .time-cell {
+            background: white;
+            height: 44px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .time-cell:hover {
+            background: #f0f9ff;
+        }
+
+        .time-cell.available {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        }
+
+        .time-cell.available:hover {
+            background: linear-gradient(135deg, #bbf7d0 0%, #86efac 100%);
+        }
+
+        .time-cell.selected {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+        }
+
+        .time-cell.selected::after {
+            content: '✓';
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* 選択バッジ */
+        .selection-badge {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 999px;
+            font-weight: 600;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .selection-badge.hidden {
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+            pointer-events: none;
+        }
+
+        /* 固定送信ボタン */
+        .submit-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 16px;
+            z-index: 90;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .submit-bar.visible {
+            transform: translateY(0);
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
+<body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen pb-24">
     <!-- ヘッダー -->
     <header class="bg-white shadow-sm sticky top-0 z-40">
-        <div class="max-w-4xl mx-auto px-4 py-4">
+        <div class="max-w-2xl mx-auto px-4 py-3">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,7 +169,7 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold text-gray-800">日時選択</h1>
+                    <h1 class="text-lg font-bold text-gray-800">現調希望日時</h1>
                     <p class="text-xs text-gray-500">外壁塗装くらべる</p>
                 </div>
             </div>
@@ -41,7 +177,7 @@
     </header>
 
     <!-- メインコンテンツ -->
-    <main class="max-w-4xl mx-auto px-4 py-6">
+    <main class="max-w-2xl mx-auto px-3 py-4">
         <!-- ローディング -->
         <div id="loadingState" class="text-center py-20">
             <div class="inline-flex items-center gap-3 text-gray-600">
@@ -49,7 +185,7 @@
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span>空き状況を確認中...</span>
+                <span>読み込み中...</span>
             </div>
         </div>
 
@@ -66,167 +202,98 @@
         <!-- 予約完了 -->
         <div id="completedState" class="hidden text-center py-20">
             <div class="text-6xl mb-4">🎉</div>
-            <h2 class="text-xl font-bold text-gray-800 mb-2">予約が完了しました</h2>
-            <p class="text-gray-600 mb-6">ご予約ありがとうございます。<br>担当者より確認のご連絡をさせていただきます。</p>
-            <div id="bookingConfirmation" class="bg-white rounded-xl p-6 max-w-sm mx-auto shadow-lg mb-6">
-                <div class="text-left space-y-3">
-                    <div>
-                        <span class="text-sm text-gray-500">予約日時</span>
-                        <p id="confirmedDateTime" class="font-bold text-gray-800">---</p>
-                    </div>
-                    <div>
-                        <span class="text-sm text-gray-500">担当業者</span>
-                        <p id="confirmedMerchant" class="font-bold text-gray-800">---</p>
-                    </div>
-                </div>
+            <h2 class="text-xl font-bold text-gray-800 mb-2">送信完了！</h2>
+            <p class="text-gray-600 mb-6">
+                ご希望日時を受け付けました。<br>
+                業者から連絡がありますのでお待ちください。
+            </p>
+            <div id="submittedSlots" class="bg-white rounded-xl p-4 max-w-sm mx-auto shadow-lg text-left">
+                <!-- JSで生成 -->
             </div>
         </div>
 
-        <!-- 予約フォーム -->
-        <div id="bookingForm" class="hidden">
+        <!-- メインフォーム -->
+        <div id="mainForm" class="hidden">
             <!-- 説明 -->
-            <div class="bg-white rounded-xl p-4 mb-6 shadow-sm">
-                <p class="text-gray-700">
-                    ご希望の日時をお選びください。<br>
-                    <span class="text-sm text-gray-500">緑色の枠が予約可能です</span>
+            <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
+                <p class="text-gray-700 text-sm">
+                    <strong>現調可能な日時</strong>をタップして選択してください。<br>
+                    複数の時間帯を選べます。
                 </p>
-            </div>
-
-            <!-- 日付選択 -->
-            <div class="bg-white rounded-xl p-4 mb-6 shadow-sm">
-                <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <span>📅</span> 日付を選択
-                </h3>
-                <div id="dateSelector" class="flex gap-2 overflow-x-auto pb-2">
-                    <!-- JSで生成 -->
-                </div>
-            </div>
-
-            <!-- 時間選択（タイムライン） -->
-            <div class="bg-white rounded-xl p-4 mb-6 shadow-sm">
-                <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <span>⏰</span> 時間を選択
-                    <span id="selectedDateLabel" class="text-sm font-normal text-gray-500"></span>
-                </h3>
-
-                <!-- 凡例 -->
-                <div class="flex items-center gap-4 mb-4 text-sm">
-                    <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 rounded slot-available"></div>
-                        <span class="text-gray-600">予約可</span>
+                <div class="flex items-center gap-4 mt-3 text-xs">
+                    <div class="flex items-center gap-1">
+                        <div class="w-4 h-4 rounded bg-gradient-to-br from-green-200 to-green-300"></div>
+                        <span class="text-gray-600">業者空きあり</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 rounded bg-gray-200"></div>
-                        <span class="text-gray-600">予約不可</span>
+                    <div class="flex items-center gap-1">
+                        <div class="w-4 h-4 rounded bg-gradient-to-br from-blue-500 to-blue-600"></div>
+                        <span class="text-gray-600">選択中</span>
                     </div>
                 </div>
+            </div>
 
-                <!-- タイムラインヘッダー（時間軸） -->
+            <!-- 週間カレンダー -->
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
-                    <div class="min-w-[600px]">
-                        <div class="flex mb-2 pl-24">
-                            <div id="timelineHeader" class="flex flex-1">
-                                <!-- JSで生成 -->
-                            </div>
-                        </div>
-
-                        <!-- 業者ごとの空き枠バンド -->
-                        <div id="merchantTimelines" class="space-y-2">
-                            <!-- JSで生成 -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 空き枠がない場合 -->
-                <div id="noSlotsMessage" class="hidden text-center py-8 text-gray-500">
-                    この日は予約可能な枠がありません<br>
-                    <span class="text-sm">他の日付をお選びください</span>
-                </div>
-            </div>
-
-            <!-- 選択内容確認 -->
-            <div id="selectionConfirm" class="hidden bg-blue-50 rounded-xl p-4 mb-6 border-2 border-blue-200">
-                <h3 class="font-bold text-blue-800 mb-3 flex items-center gap-2">
-                    <span>✅</span> 選択内容
-                </h3>
-                <div class="bg-white rounded-lg p-4 space-y-2">
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">日付</span>
-                        <span id="confirmDate" class="font-medium text-gray-800">---</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">時間</span>
-                        <span id="confirmTime" class="font-medium text-gray-800">---</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">担当</span>
-                        <span id="confirmMerchant" class="font-medium text-gray-800">---</span>
+                    <div id="calendarGrid" class="calendar-grid min-w-[600px]" style="grid-template-columns: 50px repeat(12, 1fr);">
+                        <!-- JSで生成 -->
                     </div>
                 </div>
             </div>
 
-            <!-- 予約ボタン -->
-            <div id="bookingActions" class="hidden">
-                <button onclick="confirmBooking()" class="w-full py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl text-lg">
-                    この日時で予約する
+            <!-- 週切り替え -->
+            <div class="flex justify-between items-center mt-4">
+                <button onclick="prevWeek()" class="px-4 py-2 bg-white rounded-lg shadow-sm text-gray-600 hover:bg-gray-50 transition-all flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    前週
                 </button>
-                <p class="text-center text-sm text-gray-500 mt-3">
-                    予約後、担当者より確認のご連絡をいたします
-                </p>
+                <span id="weekLabel" class="text-sm text-gray-600 font-medium"></span>
+                <button onclick="nextWeek()" class="px-4 py-2 bg-white rounded-lg shadow-sm text-gray-600 hover:bg-gray-50 transition-all flex items-center gap-1">
+                    翌週
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
             </div>
         </div>
     </main>
 
-    <!-- 予約確認モーダル -->
-    <div id="confirmModal" class="fixed inset-0 z-50 hidden">
-        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeConfirmModal()"></div>
-        <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-                <h3 class="text-lg font-bold text-gray-900 mb-4 text-center">予約を確定しますか？</h3>
+    <!-- 選択バッジ -->
+    <div id="selectionBadge" class="selection-badge hidden">
+        <span id="selectionCount">0</span>件選択中
+    </div>
 
-                <div class="bg-gray-50 rounded-xl p-4 mb-6 space-y-2">
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">日時</span>
-                        <span id="modalDateTime" class="font-medium text-gray-800">---</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">担当</span>
-                        <span id="modalMerchant" class="font-medium text-gray-800">---</span>
-                    </div>
-                </div>
-
-                <div class="flex gap-3">
-                    <button onclick="closeConfirmModal()" class="flex-1 py-3 bg-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-300 transition-all">
-                        戻る
-                    </button>
-                    <button onclick="submitBooking()" id="submitBtn" class="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all">
-                        予約確定
-                    </button>
-                </div>
-            </div>
+    <!-- 送信バー -->
+    <div id="submitBar" class="submit-bar">
+        <div class="max-w-2xl mx-auto">
+            <button onclick="submitRequest()" class="w-full py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg text-lg flex items-center justify-center gap-2">
+                <span>📤</span>
+                希望日時を送信
+            </button>
         </div>
     </div>
 
     <script>
         const GAS_URL = ENV.GAS_URL;
 
-        // 状態管理
+        // 状態
         let cvId = null;
         let token = null;
-        let availabilityData = {}; // { 日付: { merchantId: [slots] } }
-        let merchantNames = {}; // merchantId -> 名前
-        let selectedDate = null;
-        let selectedSlot = null; // { merchantId, date, time }
+        let currentWeekStart = null; // 表示中の週の開始日
+        let selectedSlots = new Set(); // 選択中のスロット "YYYY-MM-DD_HH:MM" 形式
+        let merchantAvailability = {}; // 業者の空き枠データ
+        let isSelecting = false; // ドラッグ選択中
+        let selectionMode = null; // 'add' or 'remove'
 
-        // 業者カラー
-        const merchantColors = [
-            'bg-emerald-500', 'bg-blue-500', 'bg-purple-500', 'bg-orange-500',
-            'bg-pink-500', 'bg-teal-500', 'bg-indigo-500', 'bg-amber-500'
-        ];
+        // 時間帯（8:00〜19:00、1時間刻み）
+        const timeSlots = [];
+        for (let h = 8; h < 20; h++) {
+            timeSlots.push(`${h.toString().padStart(2, '0')}:00`);
+        }
+
+        // 曜日
+        const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
 
         // 初期化
         document.addEventListener('DOMContentLoaded', () => {
-            // URLパラメータを取得
             const params = new URLSearchParams(window.location.search);
             cvId = params.get('cvId');
             token = params.get('token');
@@ -236,315 +303,319 @@
                 return;
             }
 
-            loadAvailability();
+            // 今週の月曜日から開始
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // 月曜日に合わせる
+            currentWeekStart = new Date(today);
+            currentWeekStart.setDate(today.getDate() + diff);
+            currentWeekStart.setHours(0, 0, 0, 0);
+
+            loadData();
         });
 
-        // 空き枠データを読み込み
-        async function loadAvailability() {
+        // データ読み込み
+        async function loadData() {
             try {
                 const url = `${GAS_URL}?action=getPublicAvailability&cvId=${cvId}&token=${token}`;
 
-                const result = await new Promise((resolve, reject) => {
-                    const callbackName = 'public_' + Date.now();
-                    window[callbackName] = (data) => {
-                        delete window[callbackName];
-                        resolve(data);
-                    };
-
-                    const script = document.createElement('script');
-                    script.src = url + '&callback=' + callbackName;
-                    script.onerror = () => reject(new Error('Network error'));
-                    document.body.appendChild(script);
-
-                    setTimeout(() => {
-                        if (window[callbackName]) {
-                            delete window[callbackName];
-                            reject(new Error('Timeout'));
-                        }
-                    }, 15000);
-                });
+                const result = await fetchJSONP(url);
 
                 if (!result.success) {
-                    showError(result.error || '空き状況を取得できませんでした');
+                    showError(result.error || 'データを取得できませんでした');
                     return;
                 }
 
-                availabilityData = result.availability || {};
+                // 業者の空き枠があれば保存
+                merchantAvailability = result.slots || [];
 
-                // 業者名を設定（仮）
-                const allMerchants = new Set();
-                for (const dateStr in availabilityData) {
-                    for (const merchantId in availabilityData[dateStr]) {
-                        allMerchants.add(merchantId);
-                    }
-                }
-                let colorIndex = 0;
-                allMerchants.forEach(id => {
-                    merchantNames[id] = {
-                        name: `業者${colorIndex + 1}`,
-                        color: merchantColors[colorIndex % merchantColors.length]
-                    };
-                    colorIndex++;
-                });
-
-                // UIを表示
+                // UI表示
                 document.getElementById('loadingState').classList.add('hidden');
-                document.getElementById('bookingForm').classList.remove('hidden');
+                document.getElementById('mainForm').classList.remove('hidden');
 
-                renderDateSelector();
+                renderCalendar();
 
-                // 最初の日付を選択
-                const dates = Object.keys(availabilityData).sort();
-                if (dates.length > 0) {
-                    selectDate(dates[0]);
-                }
-
-            } catch (err) {
-                console.error('[Booking] Load error:', err);
+            } catch (error) {
+                console.error('Load error:', error);
                 showError('通信エラーが発生しました');
             }
+        }
+
+        // JSONP fetch
+        function fetchJSONP(url) {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'cb_' + Date.now() + '_' + Math.random().toString(36).substr(2);
+                window[callbackName] = (data) => {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    resolve(data);
+                };
+
+                const script = document.createElement('script');
+                script.src = url + '&callback=' + callbackName;
+                script.onerror = () => {
+                    delete window[callbackName];
+                    reject(new Error('Network error'));
+                };
+                document.body.appendChild(script);
+
+                setTimeout(() => {
+                    if (window[callbackName]) {
+                        delete window[callbackName];
+                        reject(new Error('Timeout'));
+                    }
+                }, 15000);
+            });
+        }
+
+        // カレンダー描画
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            let html = '';
+
+            // ヘッダー行（時間）
+            html += '<div class="calendar-header">';
+            html += '<div></div>'; // 左上空白
+            for (const time of timeSlots) {
+                html += `<div>${time.replace(':00', '')}</div>`;
+            }
+            html += '</div>';
+
+            // 7日分の行
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            for (let d = 0; d < 7; d++) {
+                const date = new Date(currentWeekStart);
+                date.setDate(currentWeekStart.getDate() + d);
+                const dateStr = formatDate(date);
+                const isToday = date.getTime() === today.getTime();
+                const isPast = date < today;
+
+                html += '<div class="calendar-row">';
+
+                // 日付ラベル
+                html += `<div class="date-label ${isToday ? 'today' : ''}">
+                    <span class="day">${date.getDate()}</span>
+                    <span class="weekday">${weekdays[date.getDay()]}</span>
+                </div>`;
+
+                // 時間セル
+                for (const time of timeSlots) {
+                    const slotKey = `${dateStr}_${time}`;
+                    const isSelected = selectedSlots.has(slotKey);
+                    const hasAvailability = checkMerchantAvailability(dateStr, time);
+                    const isDisabled = isPast;
+
+                    let cellClass = 'time-cell';
+                    if (isSelected) cellClass += ' selected';
+                    else if (hasAvailability) cellClass += ' available';
+                    if (isDisabled) cellClass += ' opacity-30 pointer-events-none';
+
+                    html += `<div class="${cellClass}"
+                        data-slot="${slotKey}"
+                        onmousedown="startSelect(event, '${slotKey}')"
+                        onmouseenter="continueSelect(event, '${slotKey}')"
+                        ontouchstart="startSelect(event, '${slotKey}')"
+                        ontouchmove="handleTouchMove(event)"></div>`;
+                }
+
+                html += '</div>';
+            }
+
+            grid.innerHTML = html;
+
+            // 週ラベル更新
+            const weekEnd = new Date(currentWeekStart);
+            weekEnd.setDate(currentWeekStart.getDate() + 6);
+            document.getElementById('weekLabel').textContent =
+                `${currentWeekStart.getMonth() + 1}/${currentWeekStart.getDate()} 〜 ${weekEnd.getMonth() + 1}/${weekEnd.getDate()}`;
+
+            updateSelectionUI();
+        }
+
+        // 業者の空き枠チェック
+        function checkMerchantAvailability(dateStr, time) {
+            if (!merchantAvailability || merchantAvailability.length === 0) return false;
+            return merchantAvailability.some(slot =>
+                slot.date === dateStr && slot.time === time && slot.status === 'available'
+            );
+        }
+
+        // 日付フォーマット
+        function formatDate(date) {
+            const y = date.getFullYear();
+            const m = (date.getMonth() + 1).toString().padStart(2, '0');
+            const d = date.getDate().toString().padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        // 選択開始
+        function startSelect(event, slotKey) {
+            event.preventDefault();
+            isSelecting = true;
+
+            if (selectedSlots.has(slotKey)) {
+                selectionMode = 'remove';
+                selectedSlots.delete(slotKey);
+            } else {
+                selectionMode = 'add';
+                selectedSlots.add(slotKey);
+            }
+
+            updateCellUI(slotKey);
+            updateSelectionUI();
+        }
+
+        // 選択継続（ドラッグ）
+        function continueSelect(event, slotKey) {
+            if (!isSelecting) return;
+
+            if (selectionMode === 'add') {
+                selectedSlots.add(slotKey);
+            } else {
+                selectedSlots.delete(slotKey);
+            }
+
+            updateCellUI(slotKey);
+            updateSelectionUI();
+        }
+
+        // タッチムーブ処理
+        function handleTouchMove(event) {
+            if (!isSelecting) return;
+            event.preventDefault();
+
+            const touch = event.touches[0];
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+
+            if (element && element.dataset.slot) {
+                continueSelect(event, element.dataset.slot);
+            }
+        }
+
+        // 選択終了
+        document.addEventListener('mouseup', () => {
+            isSelecting = false;
+            selectionMode = null;
+        });
+
+        document.addEventListener('touchend', () => {
+            isSelecting = false;
+            selectionMode = null;
+        });
+
+        // セルUI更新
+        function updateCellUI(slotKey) {
+            const cell = document.querySelector(`[data-slot="${slotKey}"]`);
+            if (!cell) return;
+
+            const [dateStr, time] = slotKey.split('_');
+            const hasAvailability = checkMerchantAvailability(dateStr, time);
+
+            cell.classList.remove('selected', 'available');
+
+            if (selectedSlots.has(slotKey)) {
+                cell.classList.add('selected');
+            } else if (hasAvailability) {
+                cell.classList.add('available');
+            }
+        }
+
+        // 選択状態UI更新
+        function updateSelectionUI() {
+            const count = selectedSlots.size;
+            const badge = document.getElementById('selectionBadge');
+            const submitBar = document.getElementById('submitBar');
+
+            document.getElementById('selectionCount').textContent = count;
+
+            if (count > 0) {
+                badge.classList.remove('hidden');
+                submitBar.classList.add('visible');
+            } else {
+                badge.classList.add('hidden');
+                submitBar.classList.remove('visible');
+            }
+        }
+
+        // 週切り替え
+        function prevWeek() {
+            currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            renderCalendar();
+        }
+
+        function nextWeek() {
+            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            renderCalendar();
+        }
+
+        // リクエスト送信
+        async function submitRequest() {
+            if (selectedSlots.size === 0) return;
+
+            const submitBtn = document.querySelector('#submitBar button');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>送信中...';
+
+            try {
+                // 選択したスロットを整理
+                const slots = Array.from(selectedSlots).map(key => {
+                    const [date, time] = key.split('_');
+                    return { date, time };
+                }).sort((a, b) => {
+                    if (a.date !== b.date) return a.date.localeCompare(b.date);
+                    return a.time.localeCompare(b.time);
+                });
+
+                const url = `${GAS_URL}?action=createBookingRequest&cvId=${cvId}&token=${token}&slots=${encodeURIComponent(JSON.stringify(slots))}`;
+
+                const result = await fetchJSONP(url);
+
+                if (!result.success) {
+                    alert(result.error || '送信に失敗しました');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<span>📤</span> 希望日時を送信';
+                    return;
+                }
+
+                // 完了画面表示
+                showCompleted(slots);
+
+            } catch (error) {
+                console.error('Submit error:', error);
+                alert('通信エラーが発生しました');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>📤</span> 希望日時を送信';
+            }
+        }
+
+        // 完了画面表示
+        function showCompleted(slots) {
+            document.getElementById('mainForm').classList.add('hidden');
+            document.getElementById('submitBar').classList.remove('visible');
+            document.getElementById('selectionBadge').classList.add('hidden');
+            document.getElementById('completedState').classList.remove('hidden');
+
+            // 送信したスロット一覧
+            let html = '<div class="space-y-2">';
+            for (const slot of slots) {
+                const date = new Date(slot.date);
+                const dateLabel = `${date.getMonth() + 1}/${date.getDate()}(${weekdays[date.getDay()]})`;
+                html += `<div class="flex items-center gap-2 text-sm">
+                    <span class="text-blue-600">✓</span>
+                    <span>${dateLabel} ${slot.time}〜</span>
+                </div>`;
+            }
+            html += '</div>';
+            document.getElementById('submittedSlots').innerHTML = html;
         }
 
         // エラー表示
         function showError(message) {
             document.getElementById('loadingState').classList.add('hidden');
-            document.getElementById('bookingForm').classList.add('hidden');
-            document.getElementById('errorMessage').textContent = message;
             document.getElementById('errorState').classList.remove('hidden');
-        }
-
-        // 日付セレクターを描画
-        function renderDateSelector() {
-            const container = document.getElementById('dateSelector');
-            const dates = Object.keys(availabilityData).sort();
-
-            if (dates.length === 0) {
-                container.innerHTML = '<p class="text-gray-500">予約可能な日がありません</p>';
-                return;
-            }
-
-            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
-
-            const html = dates.map(dateStr => {
-                const date = new Date(dateStr);
-                const day = dayNames[date.getDay()];
-                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                const dayColor = date.getDay() === 0 ? 'text-red-500' : (date.getDay() === 6 ? 'text-blue-500' : 'text-gray-600');
-
-                return `
-                    <button onclick="selectDate('${dateStr}')" data-date="${dateStr}"
-                            class="date-btn flex-shrink-0 w-16 py-3 rounded-xl border-2 border-gray-200 hover:border-blue-400 transition-all text-center">
-                        <div class="text-xs ${dayColor} font-medium">${day}</div>
-                        <div class="text-lg font-bold text-gray-800">${date.getDate()}</div>
-                        <div class="text-xs text-gray-500">${date.getMonth() + 1}月</div>
-                    </button>
-                `;
-            }).join('');
-
-            container.innerHTML = html;
-        }
-
-        // 日付を選択
-        function selectDate(dateStr) {
-            selectedDate = dateStr;
-            selectedSlot = null;
-
-            // 日付ボタンの状態を更新
-            document.querySelectorAll('.date-btn').forEach(btn => {
-                if (btn.dataset.date === dateStr) {
-                    btn.classList.remove('border-gray-200');
-                    btn.classList.add('border-blue-500', 'bg-blue-50');
-                } else {
-                    btn.classList.add('border-gray-200');
-                    btn.classList.remove('border-blue-500', 'bg-blue-50');
-                }
-            });
-
-            // 日付ラベルを更新
-            const date = new Date(dateStr);
-            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
-            document.getElementById('selectedDateLabel').textContent =
-                `${date.getMonth() + 1}/${date.getDate()}（${dayNames[date.getDay()]}）`;
-
-            // タイムラインを描画
-            renderTimeline(dateStr);
-
-            // 選択確認を非表示
-            document.getElementById('selectionConfirm').classList.add('hidden');
-            document.getElementById('bookingActions').classList.add('hidden');
-        }
-
-        // タイムラインを描画
-        function renderTimeline(dateStr) {
-            const dayData = availabilityData[dateStr] || {};
-            const merchantIds = Object.keys(dayData);
-
-            // 時間ヘッダー
-            const headerContainer = document.getElementById('timelineHeader');
-            const startHour = 8;
-            const endHour = 20;
-
-            let headerHtml = '';
-            for (let hour = startHour; hour < endHour; hour++) {
-                headerHtml += `<div class="flex-1 text-center text-xs text-gray-500 border-l border-gray-200">${hour}:00</div>`;
-            }
-            headerContainer.innerHTML = headerHtml;
-
-            // 業者タイムライン
-            const timelinesContainer = document.getElementById('merchantTimelines');
-
-            if (merchantIds.length === 0) {
-                timelinesContainer.innerHTML = '';
-                document.getElementById('noSlotsMessage').classList.remove('hidden');
-                return;
-            }
-
-            document.getElementById('noSlotsMessage').classList.add('hidden');
-
-            const timelinesHtml = merchantIds.map(merchantId => {
-                const merchant = merchantNames[merchantId] || { name: merchantId, color: 'bg-gray-500' };
-                const slots = dayData[merchantId] || [];
-
-                // スロットをタイムラインに配置
-                let slotsHtml = '';
-                for (let hour = startHour; hour < endHour; hour++) {
-                    const timeStr = `${String(hour).padStart(2, '0')}:00`;
-                    const slot = slots.find(s => s.startTime === timeStr);
-
-                    if (slot) {
-                        const isSelected = selectedSlot &&
-                            selectedSlot.merchantId === merchantId &&
-                            selectedSlot.time === timeStr;
-
-                        slotsHtml += `
-                            <div class="flex-1 h-full ${isSelected ? 'slot-selected' : 'slot-available'} rounded cursor-pointer hover:opacity-80 transition-all border-l border-white"
-                                 onclick="selectSlot('${merchantId}', '${dateStr}', '${timeStr}')">
-                            </div>
-                        `;
-                    } else {
-                        slotsHtml += `<div class="flex-1 h-full bg-gray-100 rounded border-l border-white"></div>`;
-                    }
-                }
-
-                return `
-                    <div class="flex items-center merchant-band">
-                        <div class="w-24 pr-2 flex-shrink-0">
-                            <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 rounded-full ${merchant.color}"></div>
-                                <span class="text-sm font-medium text-gray-700 truncate">${merchant.name}</span>
-                            </div>
-                        </div>
-                        <div class="flex flex-1 h-10 gap-0.5">
-                            ${slotsHtml}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            timelinesContainer.innerHTML = timelinesHtml;
-        }
-
-        // スロットを選択
-        function selectSlot(merchantId, dateStr, timeStr) {
-            selectedSlot = { merchantId, date: dateStr, time: timeStr };
-
-            // タイムラインを再描画
-            renderTimeline(dateStr);
-
-            // 確認表示を更新
-            const date = new Date(dateStr);
-            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
-            const merchant = merchantNames[merchantId] || { name: merchantId };
-
-            document.getElementById('confirmDate').textContent =
-                `${date.getMonth() + 1}/${date.getDate()}（${dayNames[date.getDay()]}）`;
-            document.getElementById('confirmTime').textContent = timeStr;
-            document.getElementById('confirmMerchant').textContent = merchant.name;
-
-            document.getElementById('selectionConfirm').classList.remove('hidden');
-            document.getElementById('bookingActions').classList.remove('hidden');
-
-            // スクロール
-            document.getElementById('selectionConfirm').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-
-        // 予約確認
-        function confirmBooking() {
-            if (!selectedSlot) return;
-
-            const date = new Date(selectedSlot.date);
-            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
-            const merchant = merchantNames[selectedSlot.merchantId] || { name: selectedSlot.merchantId };
-
-            document.getElementById('modalDateTime').textContent =
-                `${date.getMonth() + 1}/${date.getDate()}（${dayNames[date.getDay()]}）${selectedSlot.time}`;
-            document.getElementById('modalMerchant').textContent = merchant.name;
-
-            document.getElementById('confirmModal').classList.remove('hidden');
-        }
-
-        // モーダルを閉じる
-        function closeConfirmModal() {
-            document.getElementById('confirmModal').classList.add('hidden');
-        }
-
-        // 予約を送信
-        async function submitBooking() {
-            if (!selectedSlot) return;
-
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = '送信中...';
-
-            try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({
-                        action: 'createBooking',
-                        cvId: cvId,
-                        merchantId: selectedSlot.merchantId,
-                        date: selectedSlot.date,
-                        time: selectedSlot.time,
-                        token: token
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showCompletion();
-                } else {
-                    alert(result.error || '予約に失敗しました');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = '予約確定';
-                }
-
-            } catch (err) {
-                console.error('[Booking] Submit error:', err);
-                alert('通信エラーが発生しました');
-                submitBtn.disabled = false;
-                submitBtn.textContent = '予約確定';
-            }
-        }
-
-        // 完了画面を表示
-        function showCompletion() {
-            closeConfirmModal();
-
-            const date = new Date(selectedSlot.date);
-            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
-            const merchant = merchantNames[selectedSlot.merchantId] || { name: selectedSlot.merchantId };
-
-            document.getElementById('confirmedDateTime').textContent =
-                `${date.getMonth() + 1}/${date.getDate()}（${dayNames[date.getDay()]}）${selectedSlot.time}`;
-            document.getElementById('confirmedMerchant').textContent = merchant.name;
-
-            document.getElementById('bookingForm').classList.add('hidden');
-            document.getElementById('completedState').classList.remove('hidden');
-
-            // ページトップにスクロール
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.getElementById('errorMessage').textContent = message;
         }
     </script>
 </body>
