@@ -876,6 +876,7 @@
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">担当</th>
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">配信日</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">詳細</th>
+                                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">SMS</th>
                                 <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">発信</th>
                             </tr>
                         </thead>
@@ -19532,6 +19533,12 @@
                     <td class="px-2 py-3 text-center">
                         <button onclick="openDetailModal('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
                             詳細
+                        </button>
+                    </td>
+                    <!-- SMS -->
+                    <td class="px-2 py-3 text-center">
+                        <button onclick="openSmsModal('${c.cvId}')" class="px-2 py-1 text-xs font-medium text-teal-700 bg-teal-100 rounded-lg hover:bg-teal-200 transition-colors" title="SMS/メッセージ送信">
+                            💬
                         </button>
                     </td>
                     <!-- 発信（電話アプリ起動） -->
