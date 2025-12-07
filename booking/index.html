@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="robots" content="noindex, nofollow">
-    <!-- V2133: 予約ページ - 空き業者数を数字で表示、色グラデーション、タップで詳細 -->
+    <!-- V2135: 予約ページ - 天気予報＆日没時間表示（Open-Meteo API） -->
     <title>ユーザ希望日 - 外壁塗装くらべる</title>
     <link rel="icon" type="image/png" href="../franchise-dashboard/images/5.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -74,20 +74,40 @@
             box-shadow: 3px 0 6px rgba(0,0,0,0.08);
         }
 
+        .sticky-date .date-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .sticky-date .day {
-            display: block;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 800;
             color: #1e293b;
             line-height: 1.2;
         }
 
         .sticky-date .weekday {
-            display: block;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             color: #64748b;
-            margin-top: 2px;
+        }
+
+        .sticky-date .weather-info {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            margin-top: 4px;
+            font-size: 10px;
+        }
+
+        .sticky-date .weather-icon {
+            font-size: 14px;
+        }
+
+        .sticky-date .sunset {
+            color: #f59e0b;
+            font-size: 9px;
         }
 
         .sticky-date.today {
@@ -101,6 +121,31 @@
 
         .sticky-date.today .weekday {
             color: #3b82f6;
+        }
+
+        /* 雨の日 */
+        .sticky-date.rainy {
+            background: #fef3c7 !important;
+        }
+
+        .time-cell.rainy-day {
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 3px,
+                rgba(59, 130, 246, 0.08) 3px,
+                rgba(59, 130, 246, 0.08) 6px
+            ) !important;
+        }
+
+        /* 日没後 */
+        .time-cell.after-sunset {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+            opacity: 0.4;
+        }
+
+        .time-cell.after-sunset .avail-count {
+            color: #94a3b8;
         }
 
         /* 時間セル */
@@ -323,6 +368,10 @@
                         </div>
                         <span>選択中</span>
                     </div>
+                    <div class="flex items-center gap-1.5">
+                        <div class="w-5 h-5 rounded bg-gray-700 opacity-40"></div>
+                        <span>日没後</span>
+                    </div>
                 </div>
             </div>
 
@@ -485,6 +534,9 @@
         // データ読み込み
         async function loadData() {
             try {
+                // 天気データを並行して取得
+                fetchWeatherData();
+
                 const url = `${GAS_URL}?action=getPublicAvailability&cvId=${cvId}&token=${token}`;
 
                 const result = await fetchJSONP(url);
@@ -569,10 +621,22 @@
 
                 html += '<tr>';
 
-                // 日付ラベル（固定）
-                html += `<td class="sticky-date ${isToday ? 'today' : ''}">
-                    <span class="day">${date.getDate()}</span>
-                    <span class="weekday">${weekdays[date.getDay()]}</span>
+                // 天気情報
+                const weather = weatherData[dateStr];
+                const weatherIcon = weather ? (weatherIcons[weather.weatherCode] || '❓') : '';
+                const sunsetTime = weather ? weather.sunset : '';
+                const isRainy = isRainyDay(dateStr);
+
+                // 日付ラベル（固定）+ 天気
+                html += `<td class="sticky-date ${isToday ? 'today' : ''} ${isRainy ? 'rainy' : ''}">
+                    <div class="date-info">
+                        <span class="day">${date.getDate()}</span>
+                        <span class="weekday">${weekdays[date.getDay()]}</span>
+                    </div>
+                    ${weather ? `<div class="weather-info">
+                        <span class="weather-icon">${weatherIcon}</span>
+                        <span class="sunset">🌅${sunsetTime}</span>
+                    </div>` : ''}
                 </td>`;
 
                 // 時間セル
@@ -582,11 +646,14 @@
                     const slotInfo = slotSummary[slotKey]; // { count, merchants }
                     const availCount = slotInfo ? slotInfo.count : 0;
                     const isDisabled = isPast;
+                    const afterSunset = isAfterSunset(dateStr, time);
 
                     let cellClass = 'time-cell';
                     if (isSelected) cellClass += ' selected';
-                    else if (availCount > 0) cellClass += ` avail-${Math.min(availCount, 4)}`; // avail-1, avail-2, avail-3, avail-4
+                    else if (availCount > 0) cellClass += ` avail-${Math.min(availCount, 4)}`;
                     if (isDisabled) cellClass += ' disabled';
+                    if (afterSunset && !isDisabled) cellClass += ' after-sunset';
+                    if (isRainy && !isDisabled) cellClass += ' rainy-day';
 
                     // 空き業者数を表示（0は表示しない）
                     const countDisplay = availCount > 0 && !isSelected ? `<span class="avail-count">${availCount}</span>` : '';
