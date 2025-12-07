@@ -21353,8 +21353,8 @@
 
         // V2090: 次回架電日を保存してからSMS送信
         async function saveAndSendSms() {
-            // まず次回架電日を保存
-            const nextCallCvId = document.getElementById('nextCallModal').dataset.cvId;
+            // まず次回架電日を保存（nextCallTargetCvIdはopenNextCallModalで設定される）
+            const nextCallCvId = nextCallTargetCvId;
             if (!nextCallCvId) {
                 showNotification('エラー', '案件が選択されていません', 'error');
                 return;
