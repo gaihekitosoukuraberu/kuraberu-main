@@ -2237,79 +2237,177 @@
                             <div class="px-5 py-4 bg-gradient-to-r from-purple-500 to-purple-600 flex-shrink-0">
                                 <div class="flex justify-between items-center">
                                     <div>
-                                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                        <h3 id="smsModalTitle" class="text-lg font-bold text-white flex items-center gap-2">
                                             <span>💬</span> メッセージ送信
                                         </h3>
                                         <p id="smsTargetInfo" class="text-sm text-green-100 mt-0.5">---</p>
                                     </div>
-                                    <button onclick="closeSmsModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- 本文 -->
-                            <div class="flex-1 overflow-y-auto p-4 space-y-4">
-                                <!-- テンプレート選択 -->
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">テンプレート</label>
-                                    <div class="flex gap-2">
-                                        <select id="smsTemplateSelect" onchange="applySmsTemplate()" class="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-base">
-                                            <option value="call_missed">不在後フォロー</option>
-                                            <option value="survey_confirm">現調日確認</option>
-                                            <option value="survey_reminder">現調リマインド</option>
-                                            <option value="survey_thanks">現調お礼</option>
-                                            <option value="estimate_schedule">見積完成（日程調整）</option>
-                                            <option value="estimate_confirm">見積完成（日程確認）</option>
-                                            <option value="followup">検討中フォロー</option>
-                                            <option value="custom">カスタム（自由入力）</option>
-                                        </select>
-                                    </div>
-                                    <p class="text-xs text-gray-400 mt-1">テンプレートは設定画面で編集できます</p>
-                                </div>
-
-                                <!-- メッセージプレビュー -->
-                                <div>
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="text-sm font-bold text-gray-700">メッセージ内容</label>
-                                        <button onclick="copySmsMessage()" class="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all" title="メッセージをコピー">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                                            </svg>
+                                    <div class="flex items-center gap-2">
+                                        <!-- テンプレート編集ボタン -->
+                                        <button id="smsEditModeToggle" onclick="toggleSmsEditMode()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all" title="テンプレート編集">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                        </button>
+                                        <button onclick="closeSmsModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                         </button>
                                     </div>
-                                    <textarea id="smsMessageText" rows="8" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-base resize-none" placeholder="メッセージを入力..." oninput="updateSmsCharCount()"></textarea>
-                                    <!-- V2095: 文字数カウンター -->
-                                    <div class="flex justify-between items-center mt-1">
-                                        <p class="text-xs text-gray-400">※ 変数: {顧客名}, {会社名}, {担当者名} 等は自動置換</p>
-                                        <p id="smsCharCount" class="text-xs font-medium text-gray-500">0文字 (1通)</p>
+                                </div>
+                            </div>
+
+                            <!-- 送信モード（通常表示） -->
+                            <div id="smsSendMode">
+                                <!-- 本文 -->
+                                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                                    <!-- テンプレート選択 -->
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-2">テンプレート</label>
+                                        <div class="flex gap-2">
+                                            <select id="smsTemplateSelect" onchange="applySmsTemplate()" class="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-base">
+                                                <option value="call_missed">不在後フォロー</option>
+                                                <option value="survey_confirm">現調日確認</option>
+                                                <option value="survey_reminder">現調リマインド</option>
+                                                <option value="survey_thanks">現調お礼</option>
+                                                <option value="estimate_schedule">見積完成（日程調整）</option>
+                                                <option value="estimate_confirm">見積完成（日程確認）</option>
+                                                <option value="followup">検討中フォロー</option>
+                                                <option value="custom">カスタム（自由入力）</option>
+                                            </select>
+                                        </div>
+                                        <p class="text-xs text-gray-400 mt-1">⚙ ボタンでテンプレートを編集</p>
+                                    </div>
+
+                                    <!-- メッセージプレビュー -->
+                                    <div>
+                                        <div class="flex justify-between items-center mb-2">
+                                            <label class="text-sm font-bold text-gray-700">メッセージ内容</label>
+                                            <button onclick="copySmsMessage()" class="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all" title="メッセージをコピー">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <textarea id="smsMessageText" rows="8" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-base resize-none" placeholder="メッセージを入力..." oninput="updateSmsCharCount()"></textarea>
+                                        <!-- V2095: 文字数カウンター -->
+                                        <div class="flex justify-between items-center mt-1">
+                                            <p class="text-xs text-gray-400">※ 変数: {顧客名}, {会社名}, {担当者名} 等は自動置換</p>
+                                            <p id="smsCharCount" class="text-xs font-medium text-gray-500">0文字 (1通)</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- アクションボタン -->
+                                <div class="p-4 border-t bg-gray-50 flex-shrink-0 space-y-3">
+                                    <!-- 送信ボタン群（自動コピー付き） -->
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <!-- SMS -->
+                                        <button onclick="sendViaSms()" id="smsSendBtn" class="py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all flex flex-col items-center justify-center gap-1 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50">
+                                            <span class="text-lg">💬</span>
+                                            <span class="text-xs">SMS</span>
+                                        </button>
+                                        <!-- LINE -->
+                                        <button onclick="sendViaLine()" id="lineSendBtn" class="py-3 bg-[#06C755] text-white rounded-xl font-bold hover:opacity-90 transition-all flex flex-col items-center justify-center gap-1 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50">
+                                            <span class="text-lg">💚</span>
+                                            <span class="text-xs">LINE</span>
+                                        </button>
+                                        <!-- メール -->
+                                        <button onclick="sendViaEmail()" id="emailSendBtn" class="py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-all flex flex-col items-center justify-center gap-1 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50">
+                                            <span class="text-lg">✉️</span>
+                                            <span class="text-xs">メール</span>
+                                        </button>
+                                    </div>
+
+                                    <p id="smsSendNote" class="text-xs text-center text-gray-400 mt-2"></p>
+                                </div>
+                            </div>
+
+                            <!-- 編集モード（テンプレート編集） -->
+                            <div id="smsEditMode" class="hidden">
+                                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                                    <!-- テンプレート選択（グリッド） -->
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-2">編集するテンプレート</label>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <button onclick="selectModalTemplate('call_missed')" class="modal-template-btn p-2.5 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left flex items-center gap-2" data-template="call_missed">
+                                                <span class="text-base">📞</span>
+                                                <span class="text-xs font-medium text-gray-700">不在後フォロー</span>
+                                            </button>
+                                            <button onclick="selectModalTemplate('survey_confirm')" class="modal-template-btn p-2.5 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left flex items-center gap-2" data-template="survey_confirm">
+                                                <span class="text-base">📅</span>
+                                                <span class="text-xs font-medium text-gray-700">現調日確認</span>
+                                            </button>
+                                            <button onclick="selectModalTemplate('survey_reminder')" class="modal-template-btn p-2.5 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left flex items-center gap-2" data-template="survey_reminder">
+                                                <span class="text-base">⏰</span>
+                                                <span class="text-xs font-medium text-gray-700">現調リマインド</span>
+                                            </button>
+                                            <button onclick="selectModalTemplate('survey_thanks')" class="modal-template-btn p-2.5 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left flex items-center gap-2" data-template="survey_thanks">
+                                                <span class="text-base">🙏</span>
+                                                <span class="text-xs font-medium text-gray-700">現調お礼</span>
+                                            </button>
+                                            <button onclick="selectModalTemplate('estimate_schedule')" class="modal-template-btn p-2.5 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left flex items-center gap-2" data-template="estimate_schedule">
+                                                <span class="text-base">📝</span>
+                                                <span class="text-xs font-medium text-gray-700">見積（日程調整）</span>
+                                            </button>
+                                            <button onclick="selectModalTemplate('estimate_confirm')" class="modal-template-btn p-2.5 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left flex items-center gap-2" data-template="estimate_confirm">
+                                                <span class="text-base">✅</span>
+                                                <span class="text-xs font-medium text-gray-700">見積（日程確認）</span>
+                                            </button>
+                                            <button onclick="selectModalTemplate('followup')" class="modal-template-btn p-2.5 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left flex items-center gap-2 col-span-2" data-template="followup">
+                                                <span class="text-base">💭</span>
+                                                <span class="text-xs font-medium text-gray-700">検討中フォロー</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- テンプレート編集エリア -->
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-2">テンプレート内容</label>
+                                        <textarea id="modalTemplateText" rows="5" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-sm resize-none font-mono" oninput="updateModalTemplatePreview()"></textarea>
+                                        <!-- 変数ボタン -->
+                                        <div class="mt-2 flex flex-wrap gap-1.5">
+                                            <span class="px-2 py-1 bg-purple-50 border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertModalVariable('{顧客名}')">{顧客名}</span>
+                                            <span class="px-2 py-1 bg-purple-50 border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertModalVariable('{会社名}')">{会社名}</span>
+                                            <span class="px-2 py-1 bg-purple-50 border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertModalVariable('{屋号}')">{屋号}</span>
+                                            <span class="px-2 py-1 bg-purple-50 border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertModalVariable('{担当者名}')">{担当者名}</span>
+                                            <span class="px-2 py-1 bg-purple-50 border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertModalVariable('{現調日}')">{現調日}</span>
+                                            <span class="px-2 py-1 bg-purple-50 border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertModalVariable('{見積日}')">{見積日}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center mt-2">
+                                            <p id="modalTemplateCustomBadge" class="text-xs text-purple-600 hidden">✏️ 編集済み</p>
+                                            <p id="modalTemplateCharCount" class="text-xs font-medium text-gray-500">0文字</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- プレビュー -->
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-2">プレビュー</label>
+                                        <div class="bg-gray-50 rounded-xl p-3 border border-gray-200">
+                                            <div class="flex items-start gap-2">
+                                                <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <span class="text-white text-xs">💬</span>
+                                                </div>
+                                                <div id="modalTemplatePreview" class="flex-1 bg-white rounded-xl rounded-tl-none p-3 text-sm whitespace-pre-wrap shadow-sm border border-gray-100">
+                                                    プレビュー
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                            </div>
-
-                            <!-- アクションボタン -->
-                            <div class="p-4 border-t bg-gray-50 flex-shrink-0 space-y-3">
-                                <!-- 送信ボタン群（自動コピー付き） -->
-                                <div class="grid grid-cols-3 gap-2">
-                                    <!-- SMS -->
-                                    <button onclick="sendViaSms()" id="smsSendBtn" class="py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all flex flex-col items-center justify-center gap-1 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50">
-                                        <span class="text-lg">💬</span>
-                                        <span class="text-xs">SMS</span>
-                                    </button>
-                                    <!-- LINE -->
-                                    <button onclick="sendViaLine()" id="lineSendBtn" class="py-3 bg-[#06C755] text-white rounded-xl font-bold hover:opacity-90 transition-all flex flex-col items-center justify-center gap-1 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50">
-                                        <span class="text-lg">💚</span>
-                                        <span class="text-xs">LINE</span>
-                                    </button>
-                                    <!-- メール -->
-                                    <button onclick="sendViaEmail()" id="emailSendBtn" class="py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-all flex flex-col items-center justify-center gap-1 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50">
-                                        <span class="text-lg">✉️</span>
-                                        <span class="text-xs">メール</span>
+                                <!-- 編集モードボタン -->
+                                <div class="p-4 border-t bg-gray-50 flex-shrink-0 space-y-2">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <button onclick="resetModalTemplate()" class="py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all text-sm">
+                                            デフォルトに戻す
+                                        </button>
+                                        <button onclick="saveModalTemplate()" class="py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-xl font-bold hover:from-purple-600 hover:to-violet-700 transition-all text-sm">
+                                            保存する
+                                        </button>
+                                    </div>
+                                    <button onclick="toggleSmsEditMode()" class="w-full py-2 text-gray-500 hover:text-gray-700 text-sm transition-all">
+                                        ← メッセージ送信に戻る
                                     </button>
                                 </div>
-
-                                <p id="smsSendNote" class="text-xs text-center text-gray-400 mt-2"></p>
                             </div>
                         </div>
                     </div>
@@ -7702,129 +7800,6 @@
                                 </svg>
                                 設定を保存
                             </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- V2112: SMSテンプレート編集セクション -->
-                <div id="smsTemplateEditSection" class="mt-6">
-                    <!-- セクションヘッダー -->
-                    <div class="bg-gradient-to-r from-purple-500 to-violet-600 rounded-t-xl p-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                                <span class="text-2xl">💬</span>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-bold text-white">SMSテンプレート編集</h3>
-                                <p class="text-purple-100 text-sm">顧客への定型メッセージをカスタマイズ</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white shadow-lg rounded-b-xl p-6">
-
-                        <!-- テンプレート選択 -->
-                        <div class="mb-6">
-                            <label class="block text-sm font-bold text-gray-800 mb-3">
-                                <span class="mr-2">📋</span>編集するテンプレート
-                            </label>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                <button onclick="selectSmsTemplate('call_missed')" class="sms-template-btn p-3 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left" data-template="call_missed">
-                                    <div class="text-lg mb-1">📞</div>
-                                    <div class="text-xs font-medium text-gray-700">不在後フォロー</div>
-                                </button>
-                                <button onclick="selectSmsTemplate('survey_confirm')" class="sms-template-btn p-3 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left" data-template="survey_confirm">
-                                    <div class="text-lg mb-1">📅</div>
-                                    <div class="text-xs font-medium text-gray-700">現調日確認</div>
-                                </button>
-                                <button onclick="selectSmsTemplate('survey_reminder')" class="sms-template-btn p-3 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left" data-template="survey_reminder">
-                                    <div class="text-lg mb-1">⏰</div>
-                                    <div class="text-xs font-medium text-gray-700">現調リマインド</div>
-                                </button>
-                                <button onclick="selectSmsTemplate('survey_thanks')" class="sms-template-btn p-3 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left" data-template="survey_thanks">
-                                    <div class="text-lg mb-1">🙏</div>
-                                    <div class="text-xs font-medium text-gray-700">現調お礼</div>
-                                </button>
-                                <button onclick="selectSmsTemplate('estimate_schedule')" class="sms-template-btn p-3 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left" data-template="estimate_schedule">
-                                    <div class="text-lg mb-1">📝</div>
-                                    <div class="text-xs font-medium text-gray-700">見積完成（日程調整）</div>
-                                </button>
-                                <button onclick="selectSmsTemplate('estimate_confirm')" class="sms-template-btn p-3 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left" data-template="estimate_confirm">
-                                    <div class="text-lg mb-1">✅</div>
-                                    <div class="text-xs font-medium text-gray-700">見積完成（日程確認）</div>
-                                </button>
-                                <button onclick="selectSmsTemplate('followup')" class="sms-template-btn p-3 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all text-left" data-template="followup">
-                                    <div class="text-lg mb-1">💭</div>
-                                    <div class="text-xs font-medium text-gray-700">検討中フォロー</div>
-                                </button>
-                            </div>
-                            <!-- 非表示のselect（互換性維持） -->
-                            <select id="smsTemplateEditSelect" onchange="loadTemplateForEdit()" class="hidden">
-                                <option value="call_missed">不在後フォロー</option>
-                                <option value="survey_confirm">現調日確認</option>
-                                <option value="survey_reminder">現調リマインド</option>
-                                <option value="survey_thanks">現調お礼</option>
-                                <option value="estimate_schedule">見積完成（日程調整）</option>
-                                <option value="estimate_confirm">見積完成（日程確認）</option>
-                                <option value="followup">検討中フォロー</option>
-                            </select>
-                        </div>
-
-                        <!-- 編集エリア -->
-                        <div class="mb-6">
-                            <label class="block text-sm font-bold text-gray-800 mb-3">
-                                <span class="mr-2">✏️</span>テンプレート内容
-                            </label>
-                            <div class="relative">
-                                <textarea id="smsTemplateEditText" rows="5" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono text-sm bg-gray-50" oninput="updateTemplateEditPreview()"></textarea>
-                            </div>
-                            <div class="mt-3 p-3 bg-purple-50 rounded-xl">
-                                <p class="text-xs text-gray-600 mb-2 font-medium">クリックで変数を挿入:</p>
-                                <div class="flex flex-wrap gap-2">
-                                    <span class="px-3 py-1 bg-white border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertVariable('{顧客名}')">{顧客名}</span>
-                                    <span class="px-3 py-1 bg-white border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertVariable('{会社名}')">{会社名}</span>
-                                    <span class="px-3 py-1 bg-white border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertVariable('{屋号}')">{屋号}</span>
-                                    <span class="px-3 py-1 bg-white border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertVariable('{担当者名}')">{担当者名}</span>
-                                    <span class="px-3 py-1 bg-white border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertVariable('{現調日}')">{現調日}</span>
-                                    <span class="px-3 py-1 bg-white border border-purple-200 rounded-full text-xs text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors" onclick="insertVariable('{見積日}')">{見積日}</span>
-                                </div>
-                            </div>
-                            <div class="flex justify-end mt-2">
-                                <p id="smsTemplateEditCharCount" class="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">0文字</p>
-                            </div>
-                        </div>
-
-                        <!-- プレビュー -->
-                        <div class="mb-6">
-                            <label class="block text-sm font-bold text-gray-800 mb-3">
-                                <span class="mr-2">👁️</span>プレビュー
-                            </label>
-                            <div class="bg-gradient-to-r from-gray-100 to-gray-50 rounded-xl p-4 border border-gray-200">
-                                <div class="flex items-start gap-3">
-                                    <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <span class="text-white text-sm">💬</span>
-                                    </div>
-                                    <div id="smsTemplateEditPreview" class="flex-1 bg-white rounded-2xl rounded-tl-none p-4 text-sm whitespace-pre-wrap shadow-sm border border-gray-100">
-                                        プレビューがここに表示されます
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- ボタン -->
-                        <div class="flex gap-3">
-                            <button onclick="resetTemplateEdit()" class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all border border-gray-200">
-                                🔄 デフォルトに戻す
-                            </button>
-                            <button onclick="saveTemplateEdit()" class="flex-1 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-xl font-bold hover:from-purple-600 hover:to-violet-700 transition-all shadow-lg">
-                                💾 保存する
-                            </button>
-                        </div>
-
-                        <!-- カスタマイズ済み表示 -->
-                        <div id="smsTemplateCustomizedBadge" class="hidden mt-4 text-center">
-                            <span class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-100 to-violet-100 text-purple-700 text-sm rounded-full font-medium border border-purple-200">
-                                ✏️ このテンプレートはカスタマイズ済みです
-                            </span>
                         </div>
                     </div>
                 </div>
@@ -15910,8 +15885,6 @@
                 // 設定セクションの場合はアカウント情報を更新
                 if (sectionName === 'settings') {
                     updateAccountInfo();
-                    // V2112: SMSテンプレートエディターを初期化
-                    setTimeout(() => initSmsTemplateEditor(), 100);
                     // LINE連携セクションを初期化
                     setTimeout(() => initLineConnectionSection(), 100);
                 }
@@ -21255,11 +21228,13 @@
             loadTemplateForEdit();
         }
 
-        // テンプレートを編集用に読み込む
+        // テンプレートを編集用に読み込む（設定画面用 - 現在未使用）
         function loadTemplateForEdit() {
             const select = document.getElementById('smsTemplateEditSelect');
             const textarea = document.getElementById('smsTemplateEditText');
             const badge = document.getElementById('smsTemplateCustomizedBadge');
+            // 設定画面のテンプレートエディタが存在しない場合は何もしない
+            if (!select || !textarea) return;
             const key = select.value;
 
             // カスタムがあればそれを、なければデフォルトを表示
@@ -21275,11 +21250,13 @@
             updateTemplateEditPreview();
         }
 
-        // プレビューを更新（サンプルデータで変数を置換）
+        // プレビューを更新（設定画面用 - 現在未使用）
         function updateTemplateEditPreview() {
             const textarea = document.getElementById('smsTemplateEditText');
             const preview = document.getElementById('smsTemplateEditPreview');
             const charCount = document.getElementById('smsTemplateEditCharCount');
+            // 設定画面のテンプレートエディタが存在しない場合は何もしない
+            if (!textarea || !preview) return;
 
             let text = textarea.value;
 
@@ -21314,9 +21291,10 @@
             }
         }
 
-        // 変数を挿入
+        // 変数を挿入（設定画面用 - 現在未使用）
         function insertVariable(variable) {
             const textarea = document.getElementById('smsTemplateEditText');
+            if (!textarea) return;
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
             const text = textarea.value;
@@ -21328,17 +21306,18 @@
             updateTemplateEditPreview();
         }
 
-        // デフォルトに戻す
+        // デフォルトに戻す（設定画面用 - 現在未使用）
         function resetTemplateEdit() {
             const select = document.getElementById('smsTemplateEditSelect');
             const textarea = document.getElementById('smsTemplateEditText');
             const badge = document.getElementById('smsTemplateCustomizedBadge');
+            if (!select || !textarea) return;
             const key = select.value;
 
             const defaultTpl = defaultSmsTemplates[key];
             if (defaultTpl) {
                 textarea.value = defaultTpl.text;
-                badge.classList.add('hidden');
+                if (badge) badge.classList.add('hidden');
                 updateTemplateEditPreview();
                 showNotification('リセット', 'デフォルトテンプレートに戻しました', 'info');
             }
@@ -21399,6 +21378,204 @@
         // 設定画面表示時に初期化
         function initSmsTemplateEditor() {
             loadTemplateForEdit();
+        }
+
+        // ===== モーダル内テンプレート編集機能 =====
+        let currentModalTemplateKey = 'call_missed';
+        let smsEditModeActive = false;
+
+        // 編集モードのトグル
+        function toggleSmsEditMode() {
+            smsEditModeActive = !smsEditModeActive;
+            const sendMode = document.getElementById('smsSendMode');
+            const editMode = document.getElementById('smsEditMode');
+            const title = document.getElementById('smsModalTitle');
+            const toggleBtn = document.getElementById('smsEditModeToggle');
+            const targetInfo = document.getElementById('smsTargetInfo');
+
+            if (smsEditModeActive) {
+                // 編集モードに切り替え
+                sendMode.classList.add('hidden');
+                editMode.classList.remove('hidden');
+                title.innerHTML = '<span>⚙️</span> テンプレート編集';
+                targetInfo.textContent = '送信前にテンプレートをカスタマイズ';
+                toggleBtn.classList.add('bg-white/30');
+                // 最初のテンプレートを選択
+                selectModalTemplate('call_missed');
+            } else {
+                // 送信モードに戻す
+                sendMode.classList.remove('hidden');
+                editMode.classList.add('hidden');
+                title.innerHTML = '<span>💬</span> メッセージ送信';
+                if (currentSmsCase) {
+                    targetInfo.textContent = `${currentSmsCase.customerName || '---'} 様`;
+                } else {
+                    targetInfo.textContent = '---';
+                }
+                toggleBtn.classList.remove('bg-white/30');
+                // テンプレートを再適用（編集が反映されるように）
+                applySmsTemplate();
+            }
+        }
+
+        // モーダル内テンプレート選択
+        function selectModalTemplate(templateKey) {
+            currentModalTemplateKey = templateKey;
+
+            // すべてのボタンの選択状態をクリア
+            document.querySelectorAll('.modal-template-btn').forEach(btn => {
+                btn.classList.remove('border-purple-500', 'bg-purple-50', 'ring-2', 'ring-purple-300');
+                btn.classList.add('border-gray-200');
+            });
+
+            // 選択されたボタンをハイライト
+            const selectedBtn = document.querySelector(`.modal-template-btn[data-template="${templateKey}"]`);
+            if (selectedBtn) {
+                selectedBtn.classList.remove('border-gray-200');
+                selectedBtn.classList.add('border-purple-500', 'bg-purple-50', 'ring-2', 'ring-purple-300');
+            }
+
+            loadModalTemplate();
+        }
+
+        // モーダル内テンプレート読み込み
+        function loadModalTemplate() {
+            const textarea = document.getElementById('modalTemplateText');
+            const badge = document.getElementById('modalTemplateCustomBadge');
+            const key = currentModalTemplateKey;
+
+            // カスタムがあればそれを、なければデフォルトを表示
+            if (customSmsTemplates[key]) {
+                textarea.value = customSmsTemplates[key];
+                badge.classList.remove('hidden');
+            } else {
+                const defaultTpl = defaultSmsTemplates[key];
+                textarea.value = defaultTpl ? defaultTpl.text : '';
+                badge.classList.add('hidden');
+            }
+
+            updateModalTemplatePreview();
+        }
+
+        // モーダル内プレビュー更新
+        function updateModalTemplatePreview() {
+            const textarea = document.getElementById('modalTemplateText');
+            const preview = document.getElementById('modalTemplatePreview');
+            const charCount = document.getElementById('modalTemplateCharCount');
+
+            if (!textarea || !preview) return;
+
+            let text = textarea.value;
+
+            // サンプルデータで置換
+            const companyName = (window.merchantData && window.merchantData['会社名']) || '株式会社サンプル';
+            const tradeName = (window.merchantData && window.merchantData['屋号']) || 'サンプルペイント';
+            const staffName = (window.merchantData && window.merchantData['営業担当者氏名']) || '担当者';
+
+            text = text
+                .replace(/\{顧客名\}/g, '山田太郎')
+                .replace(/\{会社名\}/g, companyName)
+                .replace(/\{屋号\}/g, tradeName)
+                .replace(/\{担当者名\}/g, staffName)
+                .replace(/\{現調日\}/g, '12月15日(日) 14:00')
+                .replace(/\{見積日\}/g, '12月20日(金) 10:00');
+
+            preview.textContent = text;
+
+            // 文字数カウント
+            const rawText = textarea.value;
+            const count = rawText.length;
+            const smsCount = Math.ceil(count / 70) || 1;
+            charCount.textContent = `${count}文字 (${smsCount}通)`;
+
+            // 70文字超えたら警告色
+            if (count > 70) {
+                charCount.classList.add('text-orange-500');
+                charCount.classList.remove('text-gray-500');
+            } else {
+                charCount.classList.remove('text-orange-500');
+                charCount.classList.add('text-gray-500');
+            }
+        }
+
+        // モーダル内変数挿入
+        function insertModalVariable(variable) {
+            const textarea = document.getElementById('modalTemplateText');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+
+            textarea.value = text.substring(0, start) + variable + text.substring(end);
+            textarea.focus();
+            textarea.setSelectionRange(start + variable.length, start + variable.length);
+
+            updateModalTemplatePreview();
+        }
+
+        // モーダル内デフォルトに戻す
+        function resetModalTemplate() {
+            const textarea = document.getElementById('modalTemplateText');
+            const badge = document.getElementById('modalTemplateCustomBadge');
+            const key = currentModalTemplateKey;
+
+            const defaultTpl = defaultSmsTemplates[key];
+            if (defaultTpl) {
+                textarea.value = defaultTpl.text;
+                badge.classList.add('hidden');
+                updateModalTemplatePreview();
+                showNotification('リセット', 'デフォルトテンプレートに戻しました', 'info');
+            }
+        }
+
+        // モーダル内テンプレート保存
+        async function saveModalTemplate() {
+            const textarea = document.getElementById('modalTemplateText');
+            const badge = document.getElementById('modalTemplateCustomBadge');
+            const key = currentModalTemplateKey;
+            const text = textarea.value;
+
+            const merchantId = localStorage.getItem('merchantId') || sessionStorage.getItem('merchantId') || window.merchantId;
+            if (!merchantId) {
+                showNotification('エラー', '加盟店IDが設定されていません', 'error');
+                return;
+            }
+
+            // 変数チェック
+            const hasVariables = text.includes('{顧客名}') || text.includes('{会社名}');
+            if (!hasVariables) {
+                const confirmed = confirm('⚠️ テンプレートに変数（{顧客名}等）が含まれていません。\n\n変数がないと顧客名が自動入力されません。\n\nこのまま保存しますか？');
+                if (!confirmed) return;
+            }
+
+            try {
+                showNotification('保存中', 'テンプレートを保存しています...', 'info');
+
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        system: 'merchant',
+                        action: 'saveSmsTemplates',
+                        merchantId: merchantId,
+                        templateKey: key,
+                        templateText: text
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    customSmsTemplates[key] = text;
+                    badge.classList.remove('hidden');
+                    const templateName = defaultSmsTemplates[key]?.name || key;
+                    showNotification('保存完了', `「${templateName}」テンプレートを保存しました`, 'success');
+                } else {
+                    showNotification('エラー', result.error || '保存に失敗しました', 'error');
+                }
+            } catch (e) {
+                showNotification('エラー', '保存に失敗しました', 'error');
+                console.error('[SMS] テンプレート保存エラー:', e);
+            }
         }
 
         // SMSモーダルを開く
@@ -21485,6 +21662,14 @@
         function closeSmsModal() {
             document.getElementById('smsModal').classList.add('hidden');
             currentSmsCase = null;
+            // 編集モードをリセット
+            if (smsEditModeActive) {
+                smsEditModeActive = false;
+                document.getElementById('smsSendMode').classList.remove('hidden');
+                document.getElementById('smsEditMode').classList.add('hidden');
+                document.getElementById('smsModalTitle').innerHTML = '<span>💬</span> メッセージ送信';
+                document.getElementById('smsEditModeToggle').classList.remove('bg-white/30');
+            }
         }
 
         // テンプレートを適用
