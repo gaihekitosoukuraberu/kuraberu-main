@@ -566,6 +566,12 @@ const SystemRouter = {
       prefix: false,
       actions: ['getAvailableSlotsForCase']
     },
+    'getPublicAvailability': {
+      system: 'BookingSystem',
+      description: 'ユーザー向け空き枠取得（公開API）',
+      prefix: false,
+      actions: ['getPublicAvailability']
+    },
     'setContractorAvailability': {
       system: 'BookingSystem',
       description: '空き枠登録',
