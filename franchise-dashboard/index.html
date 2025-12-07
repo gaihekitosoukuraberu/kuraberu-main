@@ -525,14 +525,6 @@
                     </svg>
                     カレンダー
                 </a>
-                <!-- V2092: 空き枠管理 -->
-                <a href="#availability" onclick="showSection('availability'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
-                    </svg>
-                    空き枠管理
-                </a>
                 <!-- 4. キャンセル申請 -->
                 <a href="#cancel" onclick="showSection('cancel'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -603,13 +595,12 @@
                     </svg>
                     会社情報
                 </a>
-                <!-- 14. 設定 -->
+                <!-- 14. 通知設定 -->
                 <a href="#settings" onclick="showSection('settings'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                     </svg>
-                    設定
+                    通知設定
                 </a>
                 <!-- ログアウト -->
                 <a href="#" onclick="logout(); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-red-900/50 text-gray-400 hover:text-red-400 mt-4 border-t border-gray-700 pt-4">
@@ -4283,164 +4274,6 @@
                 </div>
             </div><!-- calendarSectionの終了 -->
 
-            <!-- V2092: 空き枠管理セクション -->
-            <div id="availabilitySection" class="section" style="display: none;">
-                <h2 class="text-2xl font-bold text-gray-900 mb-6">空き枠管理</h2>
-
-                <!-- スロット設定 -->
-                <div class="bg-white border-2 border-gray-200 rounded-xl p-6 mb-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                            <span>⚙️</span> スロット設定
-                        </h3>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <label class="text-sm font-medium text-gray-700">予約枠の単位:</label>
-                        <div class="flex gap-2">
-                            <button onclick="setSlotDuration(30)" id="slot30Btn" class="slot-duration-btn px-4 py-2 rounded-lg border-2 border-gray-300 text-gray-600 hover:border-blue-400 transition-all">
-                                30分
-                            </button>
-                            <button onclick="setSlotDuration(60)" id="slot60Btn" class="slot-duration-btn px-4 py-2 rounded-lg border-2 border-blue-500 bg-blue-50 text-blue-700 font-bold">
-                                1時間
-                            </button>
-                            <button onclick="setSlotDuration(90)" id="slot90Btn" class="slot-duration-btn px-4 py-2 rounded-lg border-2 border-gray-300 text-gray-600 hover:border-blue-400 transition-all">
-                                1.5時間
-                            </button>
-                            <button onclick="setSlotDuration(120)" id="slot120Btn" class="slot-duration-btn px-4 py-2 rounded-lg border-2 border-gray-300 text-gray-600 hover:border-blue-400 transition-all">
-                                2時間
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 週間カレンダー -->
-                <div class="bg-white border-2 border-gray-200 rounded-xl p-6 mb-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                            <span>📅</span> 週間スケジュール
-                        </h3>
-                        <div class="flex items-center gap-2">
-                            <button onclick="prevWeek()" class="p-2 hover:bg-gray-100 rounded-lg transition-all">
-                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                                </svg>
-                            </button>
-                            <span id="weekRangeLabel" class="font-medium text-gray-700 min-w-[200px] text-center">---</span>
-                            <button onclick="nextWeek()" class="p-2 hover:bg-gray-100 rounded-lg transition-all">
-                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </button>
-                            <button onclick="goToCurrentWeek()" class="ml-2 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all">
-                                今週
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- カレンダーグリッド -->
-                    <div class="overflow-x-auto">
-                        <div class="min-w-[800px]">
-                            <!-- 曜日ヘッダー -->
-                            <div class="grid grid-cols-8 gap-1 mb-2">
-                                <div class="text-center text-sm font-medium text-gray-500 py-2">時間</div>
-                                <div id="dayHeader0" class="text-center text-sm font-medium text-gray-700 py-2 rounded-lg"></div>
-                                <div id="dayHeader1" class="text-center text-sm font-medium text-gray-700 py-2 rounded-lg"></div>
-                                <div id="dayHeader2" class="text-center text-sm font-medium text-gray-700 py-2 rounded-lg"></div>
-                                <div id="dayHeader3" class="text-center text-sm font-medium text-gray-700 py-2 rounded-lg"></div>
-                                <div id="dayHeader4" class="text-center text-sm font-medium text-gray-700 py-2 rounded-lg"></div>
-                                <div id="dayHeader5" class="text-center text-sm font-medium text-gray-700 py-2 rounded-lg"></div>
-                                <div id="dayHeader6" class="text-center text-sm font-medium text-gray-700 py-2 rounded-lg"></div>
-                            </div>
-
-                            <!-- 時間スロットグリッド -->
-                            <div id="availabilityGrid" class="space-y-1">
-                                <!-- JSで動的生成 -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 凡例 -->
-                    <div class="mt-4 pt-4 border-t flex items-center gap-6 text-sm">
-                        <div class="flex items-center gap-2">
-                            <div class="w-6 h-6 bg-green-100 border-2 border-green-400 rounded"></div>
-                            <span class="text-gray-600">空き（予約可）</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-6 h-6 bg-blue-100 border-2 border-blue-400 rounded"></div>
-                            <span class="text-gray-600">予約済み</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-6 h-6 bg-gray-100 border-2 border-gray-300 rounded"></div>
-                            <span class="text-gray-600">設定なし</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 一括設定 -->
-                <div class="bg-white border-2 border-gray-200 rounded-xl p-6 mb-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                            <span>⚡</span> 一括設定
-                        </h3>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- 曜日ごとの設定 -->
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <h4 class="font-medium text-gray-800 mb-3">曜日ごとに設定</h4>
-                            <div class="flex flex-wrap gap-2 mb-3">
-                                <button onclick="toggleBulkDay(0)" class="bulk-day-btn px-3 py-1 text-sm rounded-full border-2 border-gray-300 text-gray-600 hover:border-blue-400">日</button>
-                                <button onclick="toggleBulkDay(1)" class="bulk-day-btn px-3 py-1 text-sm rounded-full border-2 border-blue-500 bg-blue-50 text-blue-700">月</button>
-                                <button onclick="toggleBulkDay(2)" class="bulk-day-btn px-3 py-1 text-sm rounded-full border-2 border-blue-500 bg-blue-50 text-blue-700">火</button>
-                                <button onclick="toggleBulkDay(3)" class="bulk-day-btn px-3 py-1 text-sm rounded-full border-2 border-blue-500 bg-blue-50 text-blue-700">水</button>
-                                <button onclick="toggleBulkDay(4)" class="bulk-day-btn px-3 py-1 text-sm rounded-full border-2 border-blue-500 bg-blue-50 text-blue-700">木</button>
-                                <button onclick="toggleBulkDay(5)" class="bulk-day-btn px-3 py-1 text-sm rounded-full border-2 border-blue-500 bg-blue-50 text-blue-700">金</button>
-                                <button onclick="toggleBulkDay(6)" class="bulk-day-btn px-3 py-1 text-sm rounded-full border-2 border-gray-300 text-gray-600 hover:border-blue-400">土</button>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <select id="bulkStartTime" class="px-3 py-2 border rounded-lg">
-                                    <option value="8">8:00</option>
-                                    <option value="9" selected>9:00</option>
-                                    <option value="10">10:00</option>
-                                    <option value="11">11:00</option>
-                                    <option value="12">12:00</option>
-                                    <option value="13">13:00</option>
-                                </select>
-                                <span class="text-gray-500">〜</span>
-                                <select id="bulkEndTime" class="px-3 py-2 border rounded-lg">
-                                    <option value="16">16:00</option>
-                                    <option value="17" selected>17:00</option>
-                                    <option value="18">18:00</option>
-                                    <option value="19">19:00</option>
-                                    <option value="20">20:00</option>
-                                    <option value="21">21:00</option>
-                                </select>
-                                <button onclick="applyBulkSettings()" class="ml-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all">
-                                    適用
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- 今週分を複製 -->
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <h4 class="font-medium text-gray-800 mb-3">定期設定</h4>
-                            <p class="text-sm text-gray-600 mb-3">今週の設定を翌週以降にも適用</p>
-                            <div class="flex items-center gap-2">
-                                <select id="copyWeeksCount" class="px-3 py-2 border rounded-lg">
-                                    <option value="1">1週間分</option>
-                                    <option value="2">2週間分</option>
-                                    <option value="4" selected>4週間分</option>
-                                    <option value="8">8週間分</option>
-                                </select>
-                                <button onclick="copyToFutureWeeks()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-all">
-                                    複製
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div><!-- availabilitySectionの終了 -->
-
             <!-- 自動配信設定セクション -->
             <div id="autodeliverySection" class="section" style="display: none;">
                 <h2 class="text-2xl font-bold text-gray-900 mb-6">自動配信設定</h2>
@@ -7521,9 +7354,9 @@
                 </div>
             </div>
 
-            <!-- 設定セクション -->
+            <!-- 通知設定セクション -->
             <div id="settingsSection" class="section" style="display: none;">
-                <h2 class="text-2xl font-bold text-gray-900 mb-6">設定</h2>
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">通知設定</h2>
 
                 <!-- アカウント情報（メンバー用） -->
                 <div id="accountInfoCard" class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 mb-6 text-white">
@@ -18288,12 +18121,6 @@
                 }
             }
 
-            // V2092: 空き枠管理セクション
-            if (section === 'availability') {
-                if (typeof initAvailabilitySection === 'function') {
-                    initAvailabilitySection();
-                }
-            }
             // 案件管理セクションは originalShowSection で処理済み
         }
 
@@ -21323,11 +21150,12 @@
             }
         }
 
-        // テンプレートを保存（設定画面から）
+        // テンプレートを保存（設定画面用 - 現在未使用）
         async function saveTemplateEdit() {
             const select = document.getElementById('smsTemplateEditSelect');
             const textarea = document.getElementById('smsTemplateEditText');
             const badge = document.getElementById('smsTemplateCustomizedBadge');
+            if (!select || !textarea) return;
             const key = select.value;
             const text = textarea.value;
 
@@ -21363,7 +21191,7 @@
 
                 if (result.success) {
                     customSmsTemplates[key] = text;
-                    badge.classList.remove('hidden');
+                    if (badge) badge.classList.remove('hidden');
                     const templateName = defaultSmsTemplates[key]?.name || key;
                     showNotification('保存完了', `「${templateName}」テンプレートを保存しました`, 'success');
                 } else {
@@ -21375,7 +21203,7 @@
             }
         }
 
-        // 設定画面表示時に初期化
+        // 設定画面表示時に初期化（現在未使用）
         function initSmsTemplateEditor() {
             loadTemplateForEdit();
         }
@@ -21910,7 +21738,7 @@
         }
 
         // ============================================
-        // V2092: 空き枠管理システム
+        // V2092: 空き枠管理システム（廃止 - コードは互換性のため残存）
         // ============================================
 
         // 空き枠管理の状態
@@ -21919,8 +21747,10 @@
         let availabilityData = {}; // 日付 -> 時間帯配列
         const bulkDays = [false, true, true, true, true, true, false]; // 日月火水木金土
 
-        // 初期化
+        // 初期化（セクション廃止のため早期リターン）
         function initAvailabilitySection() {
+            // セクションが削除されたため何もしない
+            if (!document.getElementById('availabilitySection')) return;
             currentWeekStart = getWeekStart(new Date());
             renderWeekCalendar();
             loadAvailability();
