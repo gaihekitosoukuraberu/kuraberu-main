@@ -341,6 +341,7 @@ const BookingSystem = {
 
   /**
    * 公開ページ用の空き枠取得（トークン認証）
+   * 業者の空き枠がなくてもリクエスト方式で予約可能
    */
   getPublicAvailability: function(params) {
     const { cvId, token } = params;
@@ -355,15 +356,26 @@ const BookingSystem = {
       return { success: false, error: 'Invalid token' };
     }
 
-    // 案件情報から配信済み業者を取得
+    // 案件情報から配信済み業者を取得（なくてもOK）
     const merchantIds = this.getDeliveredMerchantsForCv(cvId);
 
-    if (!merchantIds || merchantIds.length === 0) {
-      return { success: false, error: 'No merchants available for this case' };
+    // 業者の空き枠を取得（あれば）
+    let slots = [];
+    if (merchantIds && merchantIds.length > 0) {
+      const result = this.getAvailableSlotsForCase({ cvId, merchantIds });
+      if (result.success) {
+        slots = result.slots || [];
+      }
     }
 
-    // 各業者の空き枠を取得
-    return this.getAvailableSlotsForCase({ cvId, merchantIds });
+    // 空き枠がなくてもリクエスト方式で予約可能
+    return {
+      success: true,
+      cvId: cvId,
+      slots: slots,
+      requestMode: slots.length === 0, // 空き枠なし = リクエスト方式
+      message: slots.length === 0 ? 'ご希望の日時を選択してください' : '空き枠から選択してください'
+    };
   },
 
   // ============================================
@@ -609,23 +621,33 @@ const BookingSystem = {
    * 案件に配信された業者IDを取得
    */
   getDeliveredMerchantsForCv: function(cvId) {
-    // TODO: 実際の配信データから取得
-    // 今は仮実装
     try {
-      const ss = SpreadsheetApp.getActiveSpreadsheet();
-      const deliverySheet = ss.getSheetByName('配信履歴') || ss.getSheetByName('CV配信');
+      const ss = this.getSpreadsheet();
+      const deliverySheet = ss.getSheetByName('配信管理');
 
       if (!deliverySheet) {
-        console.log('[BookingSystem] Delivery sheet not found');
+        console.log('[BookingSystem] 配信管理シートが見つかりません');
         return [];
       }
 
       const data = deliverySheet.getDataRange().getValues();
-      const merchantIds = [];
+      const headers = data[0];
+      const rows = data.slice(1);
 
-      for (let i = 1; i < data.length; i++) {
-        if (data[i][1] === cvId) { // B列がcvIdと仮定
-          merchantIds.push(data[i][2]); // C列がmerchantIdと仮定
+      // カラムインデックス取得
+      const cvIdIdx = headers.indexOf('CV ID');
+      const merchantIdIdx = headers.indexOf('加盟店ID');
+
+      if (cvIdIdx === -1 || merchantIdIdx === -1) {
+        console.log('[BookingSystem] 必要なカラムが見つかりません');
+        return [];
+      }
+
+      const merchantIds = [];
+      for (let i = 0; i < rows.length; i++) {
+        if (rows[i][cvIdIdx] === cvId) {
+          const mid = rows[i][merchantIdIdx];
+          if (mid) merchantIds.push(mid);
         }
       }
 
