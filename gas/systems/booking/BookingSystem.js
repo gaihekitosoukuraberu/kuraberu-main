@@ -408,6 +408,9 @@ const BookingSystem = {
       }
     }
 
+    // 案件の郵便番号を取得（天気API用）
+    const postalCode = this.getPostalCodeForCv(cvId);
+
     return {
       success: true,
       cvId: cvId,
@@ -415,8 +418,42 @@ const BookingSystem = {
       slotSummary: slotSummary,      // 時間別の空き業者情報
       hasAnySlots: hasAnySlots,
       requestMode: !hasAnySlots,
+      postalCode: postalCode,        // 天気取得用の郵便番号
       message: !hasAnySlots ? 'ご希望の日時を選択してください' : '空き枠から選択してください'
     };
+  },
+
+  /**
+   * 案件の郵便番号を取得
+   */
+  getPostalCodeForCv: function(cvId) {
+    try {
+      const ss = this.getSpreadsheet();
+      const cvSheet = ss.getSheetByName('配信管理');
+
+      if (!cvSheet) return null;
+
+      const data = cvSheet.getDataRange().getValues();
+      const headers = data[0];
+      const rows = data.slice(1);
+
+      const cvIdIdx = headers.indexOf('CV ID');
+      const postalIdx = headers.indexOf('郵便番号');
+
+      if (cvIdIdx === -1 || postalIdx === -1) return null;
+
+      for (const row of rows) {
+        if (row[cvIdIdx] === cvId) {
+          const postal = row[postalIdx];
+          if (postal) return String(postal).replace('-', '').replace('〒', '').trim();
+        }
+      }
+
+      return null;
+    } catch (e) {
+      console.error('[BookingSystem] Error getting postal code:', e);
+      return null;
+    }
   },
 
   /**

@@ -463,16 +463,23 @@
         };
 
         // 天気データを取得（Open-Meteo API）
-        async function fetchWeatherData() {
+        async function fetchWeatherData(postalCode) {
             try {
-                // ユーザー位置を取得（失敗したらデフォルト使用）
-                try {
-                    const pos = await new Promise((resolve, reject) => {
-                        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 });
-                    });
-                    userLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-                } catch (e) {
-                    console.log('Using default location (Tokyo)');
+                // 郵便番号から緯度経度を取得
+                if (postalCode) {
+                    try {
+                        const geoUrl = `https://geoapi.heartrails.com/api/json?method=searchByPostal&postal=${postalCode}`;
+                        const geoRes = await fetch(geoUrl);
+                        const geoData = await geoRes.json();
+
+                        if (geoData.response && geoData.response.location && geoData.response.location.length > 0) {
+                            const loc = geoData.response.location[0];
+                            userLocation = { lat: parseFloat(loc.y), lon: parseFloat(loc.x) };
+                            console.log('Location from postal code:', postalCode, userLocation);
+                        }
+                    } catch (e) {
+                        console.log('Failed to geocode postal code, using default');
+                    }
                 }
 
                 const url = `https://api.open-meteo.com/v1/forecast?latitude=${userLocation.lat}&longitude=${userLocation.lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=Asia/Tokyo&forecast_days=14`;
@@ -492,6 +499,8 @@
                         };
                     }
                     console.log('Weather data loaded:', Object.keys(weatherData).length, 'days');
+                    // 天気取得後にカレンダー再描画
+                    renderCalendar();
                 }
             } catch (e) {
                 console.error('Failed to fetch weather:', e);
@@ -534,9 +543,6 @@
         // データ読み込み
         async function loadData() {
             try {
-                // 天気データを並行して取得
-                fetchWeatherData();
-
                 const url = `${GAS_URL}?action=getPublicAvailability&cvId=${cvId}&token=${token}`;
 
                 const result = await fetchJSONP(url);
@@ -560,6 +566,9 @@
                 document.getElementById('mainForm').classList.remove('hidden');
 
                 renderCalendar();
+
+                // 天気データを取得（郵便番号から位置情報を取得）
+                fetchWeatherData(result.postalCode);
 
             } catch (error) {
                 console.error('Load error:', error);
