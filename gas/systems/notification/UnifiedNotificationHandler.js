@@ -3,18 +3,18 @@
  * 統合通知ハンドラー
  * ====================================
  *
- * Web Push優先 → LINE → SMSフォールバックの通知システム
+ * FCM Push優先 → LINE → Email → SMSフォールバックの通知システム
  *
  * 【優先順位】コスト最適化
- * 1. Web Push購読済み → ブラウザ通知（無料・リアルタイム）
+ * 1. FCM登録済み → プッシュ通知（無料・リアルタイム）
  * 2. LINE連携済み → LINE送信（1円）
  * 3. メールアドレス登録済み → メール送信（無料・非リアルタイム）
- * 4. どちらもなし → SMS送信（8円〜）
+ * 4. どれもなし → SMS送信（8円〜）
  *
  * - ユーザー向け: SMS固定（LINE連携なし）
  *
  * 【使用例】
- * // 加盟店に通知（LINE優先）
+ * // 加盟店に通知（FCM優先）
  * UnifiedNotificationHandler.notifyMerchant('FC-123456-ABCD', '新規案件があります', { cvId: 'CV123' });
  *
  * // エンドユーザーに通知（SMS固定）
@@ -46,14 +46,14 @@ const UnifiedNotificationHandler = {
         };
       }
 
-      // ===== 優先度1: Web Push（無料）=====
-      if (this.hasWebPushSubscription(merchantId)) {
-        console.log('[UnifiedNotification] Web Push送信:', merchantId);
-        const pushResult = this.sendWebPush(merchantId, message, options);
+      // ===== 優先度1: FCM Push（無料）=====
+      if (this.hasFcmToken(merchantId)) {
+        console.log('[UnifiedNotification] FCM Push送信:', merchantId);
+        const pushResult = this.sendFcmPush(merchantId, message, options);
 
         if (pushResult.success) {
           this.recordNotificationHistory({
-            channel: 'WebPush',
+            channel: 'FCM',
             merchantId,
             message,
             success: true,
@@ -62,11 +62,11 @@ const UnifiedNotificationHandler = {
 
           return {
             success: true,
-            channel: 'WebPush',
-            message: 'ブラウザ通知送信完了'
+            channel: 'FCM',
+            message: 'プッシュ通知送信完了'
           };
         }
-        console.log('[UnifiedNotification] Web Push送信失敗、LINEへフォールバック');
+        console.log('[UnifiedNotification] FCM送信失敗、LINEへフォールバック');
       }
 
       // ===== 優先度2: LINE（1円）=====
@@ -145,7 +145,7 @@ const UnifiedNotificationHandler = {
       return {
         success: false,
         channel: null,
-        error: '連絡先（WebPush/LINE/メール/電話番号）が登録されていません'
+        error: '連絡先（プッシュ通知/LINE/メール/電話番号）が登録されていません'
       };
 
     } catch (error) {
@@ -333,27 +333,26 @@ https://kuraberu.jp`;
   },
 
   /**
-   * Web Push購読があるかチェック
+   * FCMトークンがあるかチェック
    * @param {string} merchantId - 加盟店ID
    * @returns {boolean}
    */
-  hasWebPushSubscription(merchantId) {
-    if (typeof WebPushHandler !== 'undefined') {
-      const subscriptions = WebPushHandler.getSubscriptions(merchantId);
-      return subscriptions.length > 0;
+  hasFcmToken(merchantId) {
+    if (typeof FcmHandler !== 'undefined') {
+      return FcmHandler.hasToken(merchantId);
     }
     return false;
   },
 
   /**
-   * Web Push送信
+   * FCM Push送信
    * @param {string} merchantId - 加盟店ID
    * @param {string} message - メッセージ本文
    * @param {object} options - オプション
    * @returns {object} 結果
    */
-  sendWebPush(merchantId, message, options = {}) {
-    if (typeof WebPushHandler !== 'undefined') {
+  sendFcmPush(merchantId, message, options = {}) {
+    if (typeof FcmHandler !== 'undefined') {
       const payload = {
         title: options.title || 'くらべる通知',
         body: message,
@@ -362,11 +361,11 @@ https://kuraberu.jp`;
           url: '/franchise-dashboard/index.html'
         }
       };
-      return WebPushHandler.sendPush(merchantId, payload);
+      return FcmHandler.sendPush(merchantId, payload);
     }
 
-    console.warn('[UnifiedNotification] WebPushHandlerが見つかりません');
-    return { success: false, error: 'Web Push未設定' };
+    console.warn('[UnifiedNotification] FcmHandlerが見つかりません');
+    return { success: false, error: 'FCM未設定' };
   },
 
   /**
@@ -435,15 +434,15 @@ https://kuraberu.jp`;
    * @returns {object} 各チャネルの設定状態
    */
   getChannelStatus() {
-    const webPushConfigured = typeof WebPushHandler !== 'undefined' && WebPushHandler.isConfigured();
+    const fcmConfigured = typeof FcmHandler !== 'undefined' && FcmHandler.isConfigured();
     const lineConfigured = !!PropertiesService.getScriptProperties().getProperty('LINE_ACCESS_TOKEN');
     const emailConfigured = true; // GASは常にメール送信可能
     const smsConfigured = typeof TwilioSmsHandler !== 'undefined' && TwilioSmsHandler.isConfigured();
 
     return {
-      webPush: {
-        configured: webPushConfigured,
-        name: 'ブラウザ通知',
+      fcm: {
+        configured: fcmConfigured,
+        name: 'プッシュ通知',
         cost: '無料',
         priority: 1
       },

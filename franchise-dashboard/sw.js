@@ -1,13 +1,22 @@
 /**
  * Service Worker for くらべる加盟店管理 PWA
+ * Firebase Cloud Messaging (FCM) 対応版
  */
 
-const CACHE_NAME = 'kuraberu-v1';
+// Firebase SDK をインポート（FCM用）
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+
+const CACHE_NAME = 'kuraberu-v2';
 const STATIC_ASSETS = [
   '/franchise-dashboard/index.html',
   '/franchise-dashboard/merchant-portal/login.html',
   '/franchise-dashboard/images/5.png'
 ];
+
+// Firebase設定（メッセージで受け取る）
+let firebaseConfig = null;
+let messaging = null;
 
 // インストール時にキャッシュ
 self.addEventListener('install', (event) => {
@@ -42,7 +51,58 @@ self.addEventListener('activate', (event) => {
 });
 
 // ====================================
-// Push通知受信
+// Firebase初期化（メッセージで設定を受け取る）
+// ====================================
+self.addEventListener('message', (event) => {
+  console.log('[SW] Message received:', event.data);
+
+  if (event.data && event.data.type === 'FIREBASE_CONFIG') {
+    firebaseConfig = event.data.config;
+    initializeFirebase();
+  }
+});
+
+function initializeFirebase() {
+  if (!firebaseConfig || !firebaseConfig.apiKey) {
+    console.warn('[SW] Firebase config not provided');
+    return;
+  }
+
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    messaging = firebase.messaging();
+
+    // バックグラウンドメッセージハンドラー
+    messaging.onBackgroundMessage((payload) => {
+      console.log('[SW] FCM Background message:', payload);
+
+      const notificationTitle = payload.notification?.title || 'くらべる通知';
+      const notificationOptions = {
+        body: payload.notification?.body || '新しい通知があります',
+        icon: '/franchise-dashboard/images/5.png',
+        badge: '/franchise-dashboard/images/5.png',
+        tag: 'kuraberu-fcm',
+        vibrate: [200, 100, 200],
+        data: payload.data || {},
+        actions: [
+          { action: 'open', title: '開く' },
+          { action: 'close', title: '閉じる' }
+        ]
+      };
+
+      return self.registration.showNotification(notificationTitle, notificationOptions);
+    });
+
+    console.log('[SW] Firebase initialized');
+  } catch (error) {
+    console.error('[SW] Firebase init error:', error);
+  }
+}
+
+// ====================================
+// Push通知受信（FCM以外のフォールバック）
 // ====================================
 self.addEventListener('push', (event) => {
   console.log('[SW] Push received');

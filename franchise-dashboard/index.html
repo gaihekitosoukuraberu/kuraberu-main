@@ -16780,8 +16780,83 @@
         }
 
         // ========================================
-        // ブラウザPush通知関連
+        // Firebase Cloud Messaging (FCM) 通知関連
         // ========================================
+
+        // Firebase設定（GASから取得、またはデフォルト）
+        let firebaseConfig = null;
+        let firebaseMessaging = null;
+
+        // Firebase SDKを動的ロード
+        async function loadFirebaseSDK() {
+            if (window.firebase) return true;
+
+            return new Promise((resolve) => {
+                const script1 = document.createElement('script');
+                script1.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js';
+                script1.onload = () => {
+                    const script2 = document.createElement('script');
+                    script2.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js';
+                    script2.onload = () => resolve(true);
+                    script2.onerror = () => resolve(false);
+                    document.head.appendChild(script2);
+                };
+                script1.onerror = () => resolve(false);
+                document.head.appendChild(script1);
+            });
+        }
+
+        // Firebase初期化
+        async function initializeFirebase() {
+            try {
+                // GASからFirebase設定を取得
+                const response = await fetch(window.GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'getFirebaseConfig' })
+                });
+                const result = await response.json();
+
+                if (!result.success || !result.config || !result.config.apiKey) {
+                    console.warn('[FCM] Firebase未設定');
+                    return false;
+                }
+
+                firebaseConfig = result.config;
+
+                // Firebase SDK読み込み
+                const loaded = await loadFirebaseSDK();
+                if (!loaded) {
+                    console.error('[FCM] Firebase SDK読み込み失敗');
+                    return false;
+                }
+
+                // Firebase初期化
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+
+                firebaseMessaging = firebase.messaging();
+
+                // Service Worker登録（sw.jsにFCM機能統合済み）
+                const registration = await navigator.serviceWorker.register('/franchise-dashboard/sw.js');
+                firebaseMessaging.useServiceWorker(registration);
+
+                // Service WorkerにFirebase設定を送信
+                if (registration.active) {
+                    registration.active.postMessage({
+                        type: 'FIREBASE_CONFIG',
+                        config: firebaseConfig
+                    });
+                }
+
+                console.log('[FCM] Firebase初期化完了');
+                return true;
+
+            } catch (error) {
+                console.error('[FCM] Firebase初期化エラー:', error);
+                return false;
+            }
+        }
 
         // Push通知の許可状態をチェック
         async function checkPushPermission() {
@@ -16802,8 +16877,8 @@
                 statusEl.className = 'ml-2 text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-600';
                 enableBtn.classList.add('hidden');
 
-                // Service Worker登録チェック & 購読
-                await registerPushSubscription();
+                // FCMトークン登録
+                await registerFcmToken();
             } else if (permission === 'denied') {
                 statusEl.textContent = 'ブロック中';
                 statusEl.className = 'ml-2 text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600';
@@ -16822,47 +16897,83 @@
                 const permission = await Notification.requestPermission();
 
                 if (permission === 'granted') {
-                    console.log('[Push] 通知許可されました');
-                    await registerPushSubscription();
+                    console.log('[FCM] 通知許可されました');
+                    await registerFcmToken();
                     checkPushPermission();
                     showNotification('通知設定完了', '新しい案件の通知を受け取れるようになりました！', 'success');
                 } else {
-                    console.log('[Push] 通知が拒否されました');
+                    console.log('[FCM] 通知が拒否されました');
                     checkPushPermission();
                 }
             } catch (error) {
-                console.error('[Push] 許可リクエストエラー:', error);
+                console.error('[FCM] 許可リクエストエラー:', error);
                 alert('通知の許可に失敗しました');
             }
         }
 
-        // Service Workerに購読を登録
-        async function registerPushSubscription() {
+        // FCMトークンを取得してGASに保存
+        async function registerFcmToken() {
             try {
                 if (!('serviceWorker' in navigator)) {
-                    console.warn('[Push] Service Worker非対応');
+                    console.warn('[FCM] Service Worker非対応');
                     return;
                 }
 
-                const registration = await navigator.serviceWorker.ready;
-
-                // 既存の購読をチェック
-                let subscription = await registration.pushManager.getSubscription();
-
-                if (!subscription) {
-                    console.log('[Push] 新規購読を作成');
-                    // VAPID公開鍵を取得（本番環境ではGASから取得）
-                    // 今は簡易実装としてローカル通知のみ
-                    // subscription = await registration.pushManager.subscribe({...});
+                // Firebase初期化
+                const initialized = await initializeFirebase();
+                if (!initialized || !firebaseMessaging) {
+                    console.warn('[FCM] Firebase未初期化、ローカル通知のみ使用');
+                    return;
                 }
 
-                // GASに購読情報を保存（VAPIDキー設定後に有効化）
-                // await savePushSubscriptionToServer(subscription);
+                // FCMトークン取得
+                const token = await firebaseMessaging.getToken({
+                    vapidKey: firebaseConfig.vapidKey
+                });
 
-                console.log('[Push] 購読登録完了');
+                if (!token) {
+                    console.warn('[FCM] トークン取得失敗');
+                    return;
+                }
+
+                console.log('[FCM] トークン取得:', token.substring(0, 20) + '...');
+
+                // 加盟店IDを取得
+                const merchantId = localStorage.getItem('currentMerchantId');
+                if (!merchantId) {
+                    console.warn('[FCM] 加盟店ID未設定、トークン保存スキップ');
+                    return;
+                }
+
+                // GASに保存
+                const response = await fetch(window.GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'saveFcmToken',
+                        merchantId: merchantId,
+                        token: token
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    console.log('[FCM] トークン保存完了');
+                } else {
+                    console.error('[FCM] トークン保存失敗:', result.error);
+                }
+
+                // フォアグラウンドメッセージハンドラー
+                firebaseMessaging.onMessage((payload) => {
+                    console.log('[FCM] フォアグラウンドメッセージ:', payload);
+                    showNotification(
+                        payload.notification?.title || 'くらべる通知',
+                        payload.notification?.body || '新しい通知があります',
+                        'info'
+                    );
+                });
 
             } catch (error) {
-                console.error('[Push] 購読登録エラー:', error);
+                console.error('[FCM] トークン登録エラー:', error);
             }
         }
 

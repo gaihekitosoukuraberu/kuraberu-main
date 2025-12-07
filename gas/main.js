@@ -996,7 +996,34 @@ function doPost(e) {
         })).setMimeType(ContentService.MimeType.JSON);
       }
 
-      // ★ Web Push: VAPID公開鍵取得
+      // ★ FCM: Firebase設定取得
+      if (tempParse.action === 'getFirebaseConfig') {
+        console.log('[main.js] ✅ getFirebaseConfig action detected');
+        const result = FcmHandler.getFirebaseConfig();
+        return ContentService.createTextOutput(JSON.stringify(result))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      // ★ FCM: トークン保存
+      if (tempParse.action === 'saveFcmToken') {
+        console.log('[main.js] ✅ saveFcmToken action detected');
+        const result = FcmHandler.saveToken(
+          tempParse.merchantId,
+          tempParse.token
+        );
+        return ContentService.createTextOutput(JSON.stringify(result))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      // ★ FCM: トークン削除
+      if (tempParse.action === 'removeFcmToken') {
+        console.log('[main.js] ✅ removeFcmToken action detected');
+        const result = FcmHandler.removeToken(tempParse.merchantId);
+        return ContentService.createTextOutput(JSON.stringify(result))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      // ★ Web Push: VAPID公開鍵取得（後方互換）
       if (tempParse.action === 'getVapidPublicKey') {
         console.log('[main.js] ✅ getVapidPublicKey action detected');
         const result = WebPushHandler.getPublicKey();
@@ -1004,7 +1031,7 @@ function doPost(e) {
           .setMimeType(ContentService.MimeType.JSON);
       }
 
-      // ★ Web Push: 購読保存
+      // ★ Web Push: 購読保存（後方互換）
       if (tempParse.action === 'savePushSubscription') {
         console.log('[main.js] ✅ savePushSubscription action detected');
         const result = WebPushHandler.saveSubscription(
@@ -1015,7 +1042,7 @@ function doPost(e) {
           .setMimeType(ContentService.MimeType.JSON);
       }
 
-      // ★ Web Push: 購読削除
+      // ★ Web Push: 購読削除（後方互換）
       if (tempParse.action === 'removePushSubscription') {
         console.log('[main.js] ✅ removePushSubscription action detected');
         const result = WebPushHandler.removeSubscription(
