@@ -995,6 +995,36 @@ function doPost(e) {
           ...status
         })).setMimeType(ContentService.MimeType.JSON);
       }
+
+      // ★ Web Push: VAPID公開鍵取得
+      if (tempParse.action === 'getVapidPublicKey') {
+        console.log('[main.js] ✅ getVapidPublicKey action detected');
+        const result = WebPushHandler.getPublicKey();
+        return ContentService.createTextOutput(JSON.stringify(result))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      // ★ Web Push: 購読保存
+      if (tempParse.action === 'savePushSubscription') {
+        console.log('[main.js] ✅ savePushSubscription action detected');
+        const result = WebPushHandler.saveSubscription(
+          tempParse.merchantId,
+          tempParse.subscription
+        );
+        return ContentService.createTextOutput(JSON.stringify(result))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      // ★ Web Push: 購読削除
+      if (tempParse.action === 'removePushSubscription') {
+        console.log('[main.js] ✅ removePushSubscription action detected');
+        const result = WebPushHandler.removeSubscription(
+          tempParse.merchantId,
+          tempParse.endpoint
+        );
+        return ContentService.createTextOutput(JSON.stringify(result))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
     } catch (parseErr) {
       // 続行
     }

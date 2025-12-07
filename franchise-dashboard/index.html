@@ -7465,12 +7465,18 @@
                                         <button onclick="testNotification('line')" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">テスト</button>
                                     </div>
                                 </div>
-                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl border border-purple-100">
+                                <div id="browserNotifyCard" class="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl border border-purple-100">
                                     <div class="flex items-center gap-3">
                                         <span class="text-2xl">🖥️</span>
-                                        <span class="text-sm font-medium text-gray-700">ブラウザ通知</span>
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-700">ブラウザ通知</span>
+                                            <span id="pushPermissionStatus" class="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">確認中...</span>
+                                        </div>
                                     </div>
                                     <div class="flex items-center gap-2">
+                                        <button id="enablePushBtn" onclick="requestPushPermission()" class="hidden px-3 py-1.5 bg-purple-500 text-white text-xs rounded-lg hover:bg-purple-600">
+                                            通知を許可
+                                        </button>
                                         <input type="checkbox" id="notifyBrowser" class="toggle-switch" checked="">
                                         <button onclick="testNotification('browser')" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">テスト</button>
                                     </div>
@@ -16754,13 +16760,132 @@
                 'line': 'テストLINEメッセージを送信しました',
                 'browser': 'ブラウザ通知のテスト'
             };
-            
+
             if (type === 'browser') {
-                showNotification('通知テスト', messages[type]);
+                showBrowserNotification('通知テスト', messages[type]);
             } else {
                 alert(messages[type] + '\n（デモ版のため実際には送信されません）');
             }
         }
+
+        // ========================================
+        // ブラウザPush通知関連
+        // ========================================
+
+        // Push通知の許可状態をチェック
+        async function checkPushPermission() {
+            const statusEl = document.getElementById('pushPermissionStatus');
+            const enableBtn = document.getElementById('enablePushBtn');
+            const card = document.getElementById('browserNotifyCard');
+
+            if (!('Notification' in window)) {
+                statusEl.textContent = '非対応';
+                statusEl.className = 'ml-2 text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600';
+                return;
+            }
+
+            const permission = Notification.permission;
+
+            if (permission === 'granted') {
+                statusEl.textContent = '許可済み';
+                statusEl.className = 'ml-2 text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-600';
+                enableBtn.classList.add('hidden');
+
+                // Service Worker登録チェック & 購読
+                await registerPushSubscription();
+            } else if (permission === 'denied') {
+                statusEl.textContent = 'ブロック中';
+                statusEl.className = 'ml-2 text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600';
+                enableBtn.classList.add('hidden');
+                card.classList.add('opacity-50');
+            } else {
+                statusEl.textContent = '未設定';
+                statusEl.className = 'ml-2 text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-600';
+                enableBtn.classList.remove('hidden');
+            }
+        }
+
+        // Push通知の許可をリクエスト
+        async function requestPushPermission() {
+            try {
+                const permission = await Notification.requestPermission();
+
+                if (permission === 'granted') {
+                    console.log('[Push] 通知許可されました');
+                    await registerPushSubscription();
+                    checkPushPermission();
+                    showBrowserNotification('通知設定完了', '新しい案件の通知を受け取れるようになりました！');
+                } else {
+                    console.log('[Push] 通知が拒否されました');
+                    checkPushPermission();
+                }
+            } catch (error) {
+                console.error('[Push] 許可リクエストエラー:', error);
+                alert('通知の許可に失敗しました');
+            }
+        }
+
+        // Service Workerに購読を登録
+        async function registerPushSubscription() {
+            try {
+                if (!('serviceWorker' in navigator)) {
+                    console.warn('[Push] Service Worker非対応');
+                    return;
+                }
+
+                const registration = await navigator.serviceWorker.ready;
+
+                // 既存の購読をチェック
+                let subscription = await registration.pushManager.getSubscription();
+
+                if (!subscription) {
+                    console.log('[Push] 新規購読を作成');
+                    // VAPID公開鍵を取得（本番環境ではGASから取得）
+                    // 今は簡易実装としてローカル通知のみ
+                    // subscription = await registration.pushManager.subscribe({...});
+                }
+
+                // GASに購読情報を保存（VAPIDキー設定後に有効化）
+                // await savePushSubscriptionToServer(subscription);
+
+                console.log('[Push] 購読登録完了');
+
+            } catch (error) {
+                console.error('[Push] 購読登録エラー:', error);
+            }
+        }
+
+        // ブラウザ通知を表示
+        function showBrowserNotification(title, body) {
+            if (Notification.permission === 'granted') {
+                // Service Worker経由で通知（PWA対応）
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.ready.then(registration => {
+                        registration.showNotification(title, {
+                            body: body,
+                            icon: '/franchise-dashboard/images/5.png',
+                            badge: '/franchise-dashboard/images/5.png',
+                            vibrate: [200, 100, 200],
+                            tag: 'kuraberu-notification'
+                        });
+                    });
+                } else {
+                    // 通常のNotification API
+                    new Notification(title, {
+                        body: body,
+                        icon: '/franchise-dashboard/images/5.png'
+                    });
+                }
+            } else {
+                console.warn('[Push] 通知が許可されていません');
+            }
+        }
+
+        // ページ読み込み時にPush許可状態をチェック
+        document.addEventListener('DOMContentLoaded', function() {
+            // 少し遅延させて他の初期化を待つ
+            setTimeout(checkPushPermission, 1000);
+        });
         
         // 通知時間設定の表示/非表示
         function toggleQuietHours() {

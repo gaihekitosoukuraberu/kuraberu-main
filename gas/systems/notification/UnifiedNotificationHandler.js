@@ -3,10 +3,13 @@
  * 統合通知ハンドラー
  * ====================================
  *
- * LINE優先 → SMSフォールバックの通知システム
+ * LINE優先 → Web Push → SMSフォールバックの通知システム
  *
- * 【ロジック】
- * - 加盟店向け: LINE連携済み → LINE送信（1円）、未連携 → SMS送信（8円〜）
+ * 【優先順位】
+ * 1. LINE連携済み → LINE送信（1円）
+ * 2. Web Push購読済み → ブラウザ通知（無料）
+ * 3. どちらもなし → SMS送信（8円〜）
+ *
  * - ユーザー向け: SMS固定（LINE連携なし）
  *
  * 【使用例】
@@ -42,13 +45,12 @@ const UnifiedNotificationHandler = {
         };
       }
 
-      // LINE連携済みかチェック
+      // ===== 優先度1: LINE =====
       if (merchantInfo.lineUserId) {
         console.log('[UnifiedNotification] LINE送信:', merchantInfo.lineUserId);
         const lineResult = this.sendLine(merchantInfo.lineUserId, message);
 
         if (lineResult.success) {
-          // LINE送信成功
           this.recordNotificationHistory({
             channel: 'LINE',
             merchantId,
@@ -63,12 +65,33 @@ const UnifiedNotificationHandler = {
             message: 'LINE送信完了'
           };
         }
-
-        // LINE送信失敗 → SMSにフォールバック
-        console.log('[UnifiedNotification] LINE送信失敗、SMSにフォールバック');
+        console.log('[UnifiedNotification] LINE送信失敗、次のチャネルへ');
       }
 
-      // SMS送信（LINE未連携 or LINE送信失敗）
+      // ===== 優先度2: Web Push（無料）=====
+      if (this.hasWebPushSubscription(merchantId)) {
+        console.log('[UnifiedNotification] Web Push送信:', merchantId);
+        const pushResult = this.sendWebPush(merchantId, message, options);
+
+        if (pushResult.success) {
+          this.recordNotificationHistory({
+            channel: 'WebPush',
+            merchantId,
+            message,
+            success: true,
+            ...options
+          });
+
+          return {
+            success: true,
+            channel: 'WebPush',
+            message: 'ブラウザ通知送信完了'
+          };
+        }
+        console.log('[UnifiedNotification] Web Push送信失敗、SMSへフォールバック');
+      }
+
+      // ===== 優先度3: SMS（有料）=====
       if (merchantInfo.phone) {
         console.log('[UnifiedNotification] SMS送信:', merchantInfo.phone);
         const smsResult = this.sendSms(merchantInfo.phone, message, {
@@ -97,7 +120,7 @@ const UnifiedNotificationHandler = {
       return {
         success: false,
         channel: null,
-        error: '連絡先（LINE/電話番号）が登録されていません'
+        error: '連絡先（LINE/WebPush/電話番号）が登録されていません'
       };
 
     } catch (error) {
@@ -254,6 +277,43 @@ const UnifiedNotificationHandler = {
   },
 
   /**
+   * Web Push購読があるかチェック
+   * @param {string} merchantId - 加盟店ID
+   * @returns {boolean}
+   */
+  hasWebPushSubscription(merchantId) {
+    if (typeof WebPushHandler !== 'undefined') {
+      const subscriptions = WebPushHandler.getSubscriptions(merchantId);
+      return subscriptions.length > 0;
+    }
+    return false;
+  },
+
+  /**
+   * Web Push送信
+   * @param {string} merchantId - 加盟店ID
+   * @param {string} message - メッセージ本文
+   * @param {object} options - オプション
+   * @returns {object} 結果
+   */
+  sendWebPush(merchantId, message, options = {}) {
+    if (typeof WebPushHandler !== 'undefined') {
+      const payload = {
+        title: options.title || 'くらべる通知',
+        body: message,
+        data: {
+          cvId: options.cvId || '',
+          url: '/franchise-dashboard/index.html'
+        }
+      };
+      return WebPushHandler.sendPush(merchantId, payload);
+    }
+
+    console.warn('[UnifiedNotification] WebPushHandlerが見つかりません');
+    return { success: false, error: 'Web Push未設定' };
+  },
+
+  /**
    * SMS送信（TwilioSmsHandler または MediaSmsHandler を使用）
    * @param {string} phone - 電話番号
    * @param {string} message - メッセージ本文
@@ -320,17 +380,25 @@ const UnifiedNotificationHandler = {
    */
   getChannelStatus() {
     const lineConfigured = !!PropertiesService.getScriptProperties().getProperty('LINE_ACCESS_TOKEN');
+    const webPushConfigured = typeof WebPushHandler !== 'undefined' && WebPushHandler.isConfigured();
     const smsConfigured = typeof TwilioSmsHandler !== 'undefined' && TwilioSmsHandler.isConfigured();
 
     return {
       line: {
         configured: lineConfigured,
-        name: 'LINE'
+        name: 'LINE',
+        cost: '1円/通'
+      },
+      webPush: {
+        configured: webPushConfigured,
+        name: 'ブラウザ通知',
+        cost: '無料'
       },
       sms: {
         configured: smsConfigured,
         provider: smsConfigured ? 'Twilio' : 'なし',
-        name: 'SMS'
+        name: 'SMS',
+        cost: '8円〜/通'
       }
     };
   }
