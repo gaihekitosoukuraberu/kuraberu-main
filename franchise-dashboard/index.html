@@ -2303,7 +2303,6 @@
                                     <label class="block text-sm font-bold text-gray-700 mb-2">テンプレート</label>
                                     <div class="flex gap-2">
                                         <select id="smsTemplateSelect" onchange="applySmsTemplate()" class="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-base">
-                                            <option value="inquiry_thanks">お問い合わせお礼</option>
                                             <option value="call_missed">不在後フォロー</option>
                                             <option value="booking_link">予約リンク送付</option>
                                             <option value="survey_confirm">現調日確認</option>
@@ -20703,17 +20702,11 @@
 
         // V2103: 全テンプレート70文字ギリギリまで活用 - 丁寧さ・温かみMAX
         const defaultSmsTemplates = {
-            inquiry_thanks: {
-                name: 'お問い合わせお礼',
-                // 70文字
-                text: `{顧客名}様
-{会社名}{担当者名}と申します。この度はお問い合わせいただき誠にありがとうございます！後ほどお電話させていただきます。`
-            },
             call_missed: {
                 name: '不在後フォロー',
                 // 70文字
                 text: `{顧客名}様
-{会社名}{担当者名}です。先ほどお電話させていただきましたがご不在でしたので改めてご連絡させていただきます。`
+{会社名}{担当者名}です。お問い合わせありがとうございます！お電話しましたがご不在でしたので改めてご連絡いたします。`
             },
             survey_confirm: {
                 name: '現調日確認',
