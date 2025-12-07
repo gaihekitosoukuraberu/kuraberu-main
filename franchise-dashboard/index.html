@@ -16945,10 +16945,20 @@
 
                 console.log('[FCM] トークン取得:', token.substring(0, 20) + '...');
 
-                // 加盟店IDを取得
-                const merchantId = localStorage.getItem('currentMerchantId')
+                // 加盟店IDを取得（merchantDataがロードされるまで待機）
+                let merchantId = localStorage.getItem('currentMerchantId')
                     || window.merchantData?.['加盟店ID']
                     || window.merchantData?.merchantId;
+
+                // merchantDataがまだない場合は少し待ってリトライ
+                if (!merchantId && !window.merchantData) {
+                    console.log('[FCM] merchantData待機中...');
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    merchantId = localStorage.getItem('currentMerchantId')
+                        || window.merchantData?.['加盟店ID']
+                        || window.merchantData?.merchantId;
+                }
+
                 if (!merchantId) {
                     console.warn('[FCM] 加盟店ID未設定、トークン保存スキップ');
                     return;
