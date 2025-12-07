@@ -20829,21 +20829,13 @@
                     text = text.replace(/{見積日}/g, '【要設定】');
                 }
 
-                // V2094: 予約リンクを自動生成
+                // V2096: 予約リンクを自動生成（短縮URL対応）
                 if (text.includes('{予約リンク}')) {
-                    const cvId = c.cvId;
-                    const secret = 'kuraberu2024';
-                    const input = cvId + secret;
-                    let hash = 0;
-                    for (let i = 0; i < input.length; i++) {
-                        const char = input.charCodeAt(i);
-                        hash = ((hash << 5) - hash) + char;
-                        hash = hash & hash;
-                    }
-                    const token = Math.abs(hash).toString(36);
-                    const baseUrl = window.location.origin + '/booking/';
-                    const bookingLink = `${baseUrl}?cvId=${cvId}&token=${token}`;
-                    text = text.replace(/{予約リンク}/g, bookingLink);
+                    // まず「短縮中...」を表示
+                    text = text.replace(/{予約リンク}/g, '【短縮中...】');
+
+                    // 非同期で短縮URLを取得して置換
+                    generateShortBookingLink(c.cvId);
                 }
             }
 
@@ -20858,6 +20850,73 @@
                 bookingSection.classList.remove('hidden');
             } else {
                 bookingSection.classList.add('hidden');
+            }
+        }
+
+        // V2096: 短縮予約リンクを生成
+        async function generateShortBookingLink(cvId) {
+            // トークン生成
+            const secret = 'kuraberu2024';
+            const input = cvId + secret;
+            let hash = 0;
+            for (let i = 0; i < input.length; i++) {
+                const char = input.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            const token = Math.abs(hash).toString(36);
+
+            // 元のURL
+            const baseUrl = window.location.origin + '/booking/';
+            const longUrl = `${baseUrl}?cvId=${cvId}&token=${token}`;
+
+            try {
+                // GAS経由でURL短縮（is.gd使用）
+                const result = await new Promise((resolve, reject) => {
+                    const callbackName = 'shorten_' + Date.now();
+                    window[callbackName] = (data) => {
+                        delete window[callbackName];
+                        resolve(data);
+                    };
+
+                    const url = `${GAS_URL}?action=shortenUrl&url=${encodeURIComponent(longUrl)}&callback=${callbackName}`;
+                    const script = document.createElement('script');
+                    script.src = url;
+                    script.onerror = () => {
+                        delete window[callbackName];
+                        reject(new Error('Network error'));
+                    };
+                    document.body.appendChild(script);
+
+                    // 5秒タイムアウト
+                    setTimeout(() => {
+                        if (window[callbackName]) {
+                            delete window[callbackName];
+                            reject(new Error('Timeout'));
+                        }
+                    }, 5000);
+                });
+
+                // 短縮URL取得成功
+                const shortUrl = result.shortUrl || longUrl;
+
+                // テキストエリアを更新
+                const textarea = document.getElementById('smsMessageText');
+                if (textarea) {
+                    textarea.value = textarea.value.replace('【短縮中...】', shortUrl);
+                    updateSmsCharCount();
+                }
+
+                console.log('[SMS] 短縮URL生成成功:', shortUrl);
+
+            } catch (err) {
+                console.error('[SMS] 短縮URL生成失敗:', err);
+                // フォールバック: 元のURLを使用
+                const textarea = document.getElementById('smsMessageText');
+                if (textarea) {
+                    textarea.value = textarea.value.replace('【短縮中...】', longUrl);
+                    updateSmsCharCount();
+                }
             }
         }
 
