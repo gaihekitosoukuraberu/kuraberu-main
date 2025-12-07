@@ -899,7 +899,32 @@ function doGet(e) {
  * POSTリクエスト処理（必ずここだけ）
  */
 function doPost(e) {
+  // ★ LINE Webhook を最優先で処理（タイムアウト防止 - 即座に200返す）
+  if (e.postData && e.postData.contents) {
+    try {
+      const tempParse = JSON.parse(e.postData.contents);
+      if (tempParse.events !== undefined) {
+        // まず200を返す準備（LINEは即座にレスポンスが必要）
+        const response = ContentService.createTextOutput('OK');
+
+        // イベントがあれば非同期的に処理
+        if (tempParse.events.length > 0) {
+          try {
+            LineWebhookHandler.handleWebhook(tempParse);
+          } catch (lineErr) {
+            console.error('[main.js] LINE handler error:', lineErr);
+          }
+        }
+
+        return response;
+      }
+    } catch (lineParseErr) {
+      // LINE webhookではない、続行
+    }
+  }
+
   try {
+
     // 🔍 詳細ロギング開始（console.log + Logger.log 両方使用）
     const logMsg = '[main.js] ========== POST REQUEST START ==========';
     console.log(logMsg);
@@ -942,20 +967,6 @@ function doPost(e) {
     }
 
     console.log('[main.js] ⚠️ No Slack payload found - continuing to general routing');
-
-    // LINE Webhook検出（eventsプロパティがある場合）
-    if (e.postData && e.postData.contents) {
-      try {
-        const tempParse = JSON.parse(e.postData.contents);
-        if (tempParse.events && Array.isArray(tempParse.events)) {
-          console.log('[main.js] ✅ LINE Webhook detected');
-          const lineResult = LineWebhookHandler.handleWebhook(tempParse);
-          return createJsonResponse(lineResult);
-        }
-      } catch (lineParseErr) {
-        // LINE webhookではない、続行
-      }
-    }
 
     // JSONボディがある場合はパース、URL-encodedの場合はe.parameterを使用
     let postData = {};
