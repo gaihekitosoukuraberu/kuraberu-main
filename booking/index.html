@@ -59,6 +59,9 @@
             justify-content: center;
             align-items: center;
             min-width: 50px;
+            position: sticky;
+            left: 0;
+            z-index: 10;
         }
 
         .date-label .day {
@@ -372,7 +375,7 @@
 
             // ヘッダー行（時間 - 1時間おき、2セル分の幅）
             html += '<div class="calendar-header">';
-            html += '<div></div>'; // 左上空白
+            html += '<div style="position: sticky; left: 0; z-index: 11; background: #f3f4f6;"></div>'; // 左上空白（固定）
             for (let h = 5; h < 22; h++) {
                 html += `<div style="grid-column: span 2; text-align: center;">${h}時</div>`;
             }
