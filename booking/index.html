@@ -388,6 +388,8 @@
         let merchantCount = 0; // 配信された業者数
         let isSelecting = false; // ドラッグ選択中
         let selectionMode = null; // 'add' or 'remove'
+        let weatherData = {}; // 天気データ { "2024-12-10": { weatherCode, tempMax, tempMin, sunrise, sunset } }
+        let userLocation = { lat: 35.6762, lon: 139.6503 }; // デフォルト: 東京
 
         // 時間帯（5:00〜21:30、30分刻み）
         const timeSlots = [];
@@ -398,6 +400,69 @@
 
         // 曜日
         const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+
+        // 天気コードからアイコンに変換
+        const weatherIcons = {
+            0: '☀️', // 快晴
+            1: '🌤️', 2: '⛅', 3: '☁️', // 晴れ〜曇り
+            45: '🌫️', 48: '🌫️', // 霧
+            51: '🌦️', 53: '🌦️', 55: '🌧️', // 霧雨
+            61: '🌧️', 63: '🌧️', 65: '🌧️', // 雨
+            71: '🌨️', 73: '🌨️', 75: '❄️', // 雪
+            80: '🌧️', 81: '🌧️', 82: '⛈️', // にわか雨
+            95: '⛈️', 96: '⛈️', 99: '⛈️'  // 雷雨
+        };
+
+        // 天気データを取得（Open-Meteo API）
+        async function fetchWeatherData() {
+            try {
+                // ユーザー位置を取得（失敗したらデフォルト使用）
+                try {
+                    const pos = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 });
+                    });
+                    userLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+                } catch (e) {
+                    console.log('Using default location (Tokyo)');
+                }
+
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${userLocation.lat}&longitude=${userLocation.lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=Asia/Tokyo&forecast_days=14`;
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.daily) {
+                    for (let i = 0; i < data.daily.time.length; i++) {
+                        const date = data.daily.time[i];
+                        weatherData[date] = {
+                            weatherCode: data.daily.weather_code[i],
+                            tempMax: Math.round(data.daily.temperature_2m_max[i]),
+                            tempMin: Math.round(data.daily.temperature_2m_min[i]),
+                            sunrise: data.daily.sunrise[i].split('T')[1].substring(0, 5),
+                            sunset: data.daily.sunset[i].split('T')[1].substring(0, 5)
+                        };
+                    }
+                    console.log('Weather data loaded:', Object.keys(weatherData).length, 'days');
+                }
+            } catch (e) {
+                console.error('Failed to fetch weather:', e);
+            }
+        }
+
+        // 雨予報かどうか
+        function isRainyDay(dateStr) {
+            const w = weatherData[dateStr];
+            if (!w) return false;
+            // 51以上は雨系
+            return w.weatherCode >= 51;
+        }
+
+        // 日没後かどうか
+        function isAfterSunset(dateStr, time) {
+            const w = weatherData[dateStr];
+            if (!w) return false;
+            return time >= w.sunset;
+        }
 
         // 初期化
         document.addEventListener('DOMContentLoaded', () => {
