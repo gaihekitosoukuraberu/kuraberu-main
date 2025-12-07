@@ -16786,6 +16786,7 @@
         // Firebase設定（GASから取得、またはデフォルト）
         let firebaseConfig = null;
         let firebaseMessaging = null;
+        let fcmSwRegistration = null;
 
         // Firebase SDKを動的ロード
         async function loadFirebaseSDK() {
@@ -16843,12 +16844,12 @@
                 firebaseMessaging = firebase.messaging();
 
                 // Service Worker登録（sw.jsにFCM機能統合済み）
-                const registration = await navigator.serviceWorker.register('/franchise-dashboard/sw.js');
-                firebaseMessaging.useServiceWorker(registration);
+                fcmSwRegistration = await navigator.serviceWorker.register('/franchise-dashboard/sw.js');
+                await navigator.serviceWorker.ready;
 
                 // Service WorkerにFirebase設定を送信
-                if (registration.active) {
-                    registration.active.postMessage({
+                if (fcmSwRegistration.active) {
+                    fcmSwRegistration.active.postMessage({
                         type: 'FIREBASE_CONFIG',
                         config: firebaseConfig
                     });
@@ -16933,7 +16934,8 @@
 
                 // FCMトークン取得
                 const token = await firebaseMessaging.getToken({
-                    vapidKey: firebaseConfig.vapidKey
+                    vapidKey: firebaseConfig.vapidKey,
+                    serviceWorkerRegistration: fcmSwRegistration
                 });
 
                 if (!token) {
