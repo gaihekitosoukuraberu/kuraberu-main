@@ -126,6 +126,10 @@ const MerchantSystem = {
         case 'deleteMember':  // V2066: メンバー削除
           return MerchantMemberInvite.deleteMember(params);
 
+        // V2109: SMSテンプレート
+        case 'getSmsTemplates':
+          return this.getSmsTemplates(params);
+
         default:
           return {
             success: false,
@@ -279,6 +283,10 @@ const MerchantSystem = {
         // AI振り分け（MerchantAIAssignに委譲）
         case 'aiAssignCases':
           return MerchantAIAssign.aiAssignCases(params);
+
+        // V2109: SMSテンプレート保存
+        case 'saveSmsTemplates':
+          return this.saveSmsTemplates(params);
 
         default:
           return {
