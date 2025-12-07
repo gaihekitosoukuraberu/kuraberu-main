@@ -24,72 +24,86 @@
             user-select: none;
         }
 
-        /* カレンダーグリッド */
-        .calendar-grid {
-            display: grid;
-            gap: 1px;
+        /* カレンダーテーブル */
+        #calendarTable {
+            border-collapse: separate;
+            border-spacing: 1px;
             background: #e5e7eb;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            overflow: hidden;
         }
 
-        .calendar-header {
-            display: contents;
+        #calendarTable th,
+        #calendarTable td {
+            background: white;
         }
 
-        .calendar-header > div {
-            background: #f3f4f6;
+        /* 左上角（固定） */
+        .sticky-corner {
+            position: sticky;
+            left: 0;
+            top: 0;
+            z-index: 20;
+            background: #f3f4f6 !important;
+            min-width: 55px;
+        }
+
+        /* 時間ヘッダー（上固定） */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #f3f4f6 !important;
             padding: 8px 4px;
             text-align: center;
             font-size: 11px;
             font-weight: 600;
             color: #6b7280;
+            white-space: nowrap;
         }
 
-        .calendar-row {
-            display: contents;
-        }
-
-        .date-label {
-            background: #f9fafb;
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-width: 50px;
+        /* 日付列（左固定） */
+        .sticky-date {
             position: sticky;
             left: 0;
-            z-index: 10;
+            z-index: 5;
+            background: #f9fafb !important;
+            padding: 8px;
+            text-align: center;
+            min-width: 55px;
         }
 
-        .date-label .day {
+        .sticky-date .day {
+            display: block;
             font-size: 18px;
             font-weight: 700;
             color: #1f2937;
         }
 
-        .date-label .weekday {
+        .sticky-date .weekday {
+            display: block;
             font-size: 10px;
             color: #6b7280;
         }
 
-        .date-label.today {
-            background: #dbeafe;
+        .sticky-date.today {
+            background: #dbeafe !important;
         }
 
-        .date-label.today .day {
+        .sticky-date.today .day {
             color: #2563eb;
         }
 
         /* 時間セル */
         .time-cell {
-            background: white;
-            height: 36px;
+            height: 40px;
+            min-width: 28px;
             cursor: pointer;
             transition: all 0.15s ease;
             position: relative;
+        }
+
+        .time-cell.disabled {
+            opacity: 0.3;
+            pointer-events: none;
         }
 
         .time-cell:hover {
@@ -237,21 +251,26 @@
 
             <!-- 週間カレンダー -->
             <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                <div class="overflow-x-auto">
-                    <div id="calendarGrid" class="calendar-grid min-w-[1100px]" style="grid-template-columns: 50px repeat(34, 1fr);">
+                <div id="calendarContainer" class="overflow-auto" style="max-height: 450px;">
+                    <table id="calendarTable" class="border-collapse" style="min-width: 1100px;">
                         <!-- JSで生成 -->
-                    </div>
+                    </table>
                 </div>
             </div>
 
-            <!-- 週切り替え -->
+            <!-- 週切り替え＆コピー -->
             <div class="flex justify-between items-center mt-4">
-                <button onclick="prevWeek()" class="px-4 py-2 bg-white rounded-lg shadow-sm text-gray-600 hover:bg-gray-50 transition-all flex items-center gap-1">
+                <button onclick="prevWeek()" class="px-3 py-2 bg-white rounded-lg shadow-sm text-gray-600 hover:bg-gray-50 transition-all flex items-center gap-1 text-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                     前週
                 </button>
-                <span id="weekLabel" class="text-sm text-gray-600 font-medium"></span>
-                <button onclick="nextWeek()" class="px-4 py-2 bg-white rounded-lg shadow-sm text-gray-600 hover:bg-gray-50 transition-all flex items-center gap-1">
+                <div class="flex items-center gap-2">
+                    <span id="weekLabel" class="text-sm text-gray-600 font-medium"></span>
+                    <button onclick="copyToNextWeek()" class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-all text-xs font-medium" title="選択を翌週にもコピー">
+                        📋 翌週もコピー
+                    </button>
+                </div>
+                <button onclick="nextWeek()" class="px-3 py-2 bg-white rounded-lg shadow-sm text-gray-600 hover:bg-gray-50 transition-all flex items-center gap-1 text-sm">
                     翌週
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </button>
@@ -368,20 +387,21 @@
             });
         }
 
-        // カレンダー描画
+        // カレンダー描画（テーブルベース）
         function renderCalendar() {
-            const grid = document.getElementById('calendarGrid');
+            const table = document.getElementById('calendarTable');
             let html = '';
 
-            // ヘッダー行（時間 - 1時間おき、2セル分の幅）
-            html += '<div class="calendar-header">';
-            html += '<div style="position: sticky; left: 0; z-index: 11; background: #f3f4f6;"></div>'; // 左上空白（固定）
+            // ヘッダー行（時間）
+            html += '<thead><tr>';
+            html += '<th class="sticky-corner"></th>'; // 左上
             for (let h = 5; h < 22; h++) {
-                html += `<div style="grid-column: span 2; text-align: center;">${h}時</div>`;
+                html += `<th colspan="2" class="sticky-header">${h}時</th>`;
             }
-            html += '</div>';
+            html += '</tr></thead>';
 
-            // 7日分の行
+            // データ行
+            html += '<tbody>';
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
@@ -392,13 +412,13 @@
                 const isToday = date.getTime() === today.getTime();
                 const isPast = date < today;
 
-                html += '<div class="calendar-row">';
+                html += '<tr>';
 
-                // 日付ラベル
-                html += `<div class="date-label ${isToday ? 'today' : ''}">
+                // 日付ラベル（固定）
+                html += `<td class="sticky-date ${isToday ? 'today' : ''}">
                     <span class="day">${date.getDate()}</span>
                     <span class="weekday">${weekdays[date.getDay()]}</span>
-                </div>`;
+                </td>`;
 
                 // 時間セル
                 for (const time of timeSlots) {
@@ -410,20 +430,21 @@
                     let cellClass = 'time-cell';
                     if (isSelected) cellClass += ' selected';
                     else if (hasAvailability) cellClass += ' available';
-                    if (isDisabled) cellClass += ' opacity-30 pointer-events-none';
+                    if (isDisabled) cellClass += ' disabled';
 
-                    html += `<div class="${cellClass}"
+                    html += `<td class="${cellClass}"
                         data-slot="${slotKey}"
                         onmousedown="startSelect(event, '${slotKey}')"
                         onmouseenter="continueSelect(event, '${slotKey}')"
                         ontouchstart="startSelect(event, '${slotKey}')"
-                        ontouchmove="handleTouchMove(event)"></div>`;
+                        ontouchmove="handleTouchMove(event)"></td>`;
                 }
 
-                html += '</div>';
+                html += '</tr>';
             }
+            html += '</tbody>';
 
-            grid.innerHTML = html;
+            table.innerHTML = html;
 
             // 週ラベル更新
             const weekEnd = new Date(currentWeekStart);
@@ -548,6 +569,37 @@
         function nextWeek() {
             currentWeekStart.setDate(currentWeekStart.getDate() + 7);
             renderCalendar();
+        }
+
+        // 翌週にコピー（曜日パターンをコピー）
+        function copyToNextWeek() {
+            const currentSlots = Array.from(selectedSlots);
+            if (currentSlots.length === 0) {
+                alert('コピーする選択がありません');
+                return;
+            }
+
+            let copiedCount = 0;
+            for (const slot of currentSlots) {
+                const [dateStr, time] = slot.split('_');
+                const date = new Date(dateStr);
+                // 7日後
+                date.setDate(date.getDate() + 7);
+                const newDateStr = formatDate(date);
+                const newSlotKey = `${newDateStr}_${time}`;
+
+                if (!selectedSlots.has(newSlotKey)) {
+                    selectedSlots.add(newSlotKey);
+                    copiedCount++;
+                }
+            }
+
+            if (copiedCount > 0) {
+                alert(`${copiedCount}件を翌週にコピーしました`);
+                renderCalendar();
+            } else {
+                alert('すでにコピー済みです');
+            }
         }
 
         // リクエスト送信
