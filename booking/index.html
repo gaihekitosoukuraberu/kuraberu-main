@@ -370,11 +370,11 @@
             const grid = document.getElementById('calendarGrid');
             let html = '';
 
-            // ヘッダー行（時間）
+            // ヘッダー行（時間 - 1時間おき、2セル分の幅）
             html += '<div class="calendar-header">';
             html += '<div></div>'; // 左上空白
-            for (const time of timeSlots) {
-                html += `<div>${time.replace(':00', '')}</div>`;
+            for (let h = 8; h < 20; h++) {
+                html += `<div style="grid-column: span 2; text-align: center;">${h}</div>`;
             }
             html += '</div>';
 
