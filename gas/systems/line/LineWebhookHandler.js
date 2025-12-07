@@ -134,7 +134,8 @@ LINE連携を完了するには、ダッシュボードの設定画面に表示�
     try {
       console.log('[LineWebhookHandler] Processing link code:', linkCode);
 
-      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       const linkSheet = ss.getSheetByName('LINE連携コード');
 
       if (!linkSheet) {
@@ -254,7 +255,8 @@ LINE連携を完了するには、ダッシュボードの設定画面に表示�
    */
   saveMerchantLineId(merchantId, lineUserId) {
     try {
-      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       const sheet = ss.getSheetByName('加盟店登録');
 
       if (!sheet) {
@@ -303,7 +305,8 @@ LINE連携を完了するには、ダッシュボードの設定画面に表示�
    */
   clearLineIdByUserId(lineUserId) {
     try {
-      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       const sheet = ss.getSheetByName('加盟店登録');
 
       if (!sheet) return;
@@ -398,7 +401,8 @@ LINE連携を完了するには、ダッシュボードの設定画面に表示�
       }
 
       // シートに保存
-      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       let sheet = ss.getSheetByName('LINE連携コード');
 
       if (!sheet) {
@@ -436,7 +440,8 @@ LINE連携を完了するには、ダッシュボードの設定画面に表示�
    */
   getLinkStatus(merchantId) {
     try {
-      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       const sheet = ss.getSheetByName('加盟店登録');
 
       if (!sheet) {

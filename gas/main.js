@@ -921,6 +921,19 @@ function doPost(e) {
     } catch (lineParseErr) {
       // LINE webhookではない、続行
     }
+
+    // ★ Cloud FunctionsからのLINE連携コード処理
+    try {
+      const tempParse = JSON.parse(e.postData.contents);
+      if (tempParse.action === 'processLineLinkCode') {
+        console.log('[main.js] ✅ processLineLinkCode action detected');
+        const result = LineWebhookHandler.processLinkCode(tempParse.lineUserId, tempParse.linkCode);
+        return ContentService.createTextOutput(JSON.stringify(result))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+    } catch (parseErr) {
+      // 続行
+    }
   }
 
   try {
