@@ -19441,36 +19441,36 @@
                 if (match) shortDate = `${match[2]}/${match[3]}`;
             }
 
-            // 次回架電日を短縮表示（MM/DD HH:mm）
+            // 次回架電日を短縮表示（MM/DD HH:mm、先頭ゼロ除去）
             let nextCallDisplay = '-';
             if (c.nextCallDate) {
                 const dateMatch = c.nextCallDate.match(/(\d+)[-\/](\d+)[-\/](\d+)/);
                 const timeMatch = c.nextCallDate.match(/(\d+):(\d+)/);
                 if (dateMatch) {
-                    nextCallDisplay = `${dateMatch[2]}/${dateMatch[3]}`;
-                    if (timeMatch) nextCallDisplay += ` ${timeMatch[1]}:${timeMatch[2]}`;
+                    nextCallDisplay = `${parseInt(dateMatch[2])}/${parseInt(dateMatch[3])}`;
+                    if (timeMatch) nextCallDisplay += ` ${parseInt(timeMatch[1])}:${timeMatch[2]}`;
                 }
             }
 
-            // 現調日を短縮表示（MM/DD HH:mm）
+            // 現調日を短縮表示（MM/DD HH:mm、先頭ゼロ除去）
             let surveyDisplay = '-';
             if (c.surveyDate) {
                 const dateMatch = c.surveyDate.match(/(\d+)[-\/](\d+)[-\/](\d+)/);
                 const timeMatch = c.surveyDate.match(/(\d+):(\d+)/);
                 if (dateMatch) {
-                    surveyDisplay = `${dateMatch[2]}/${dateMatch[3]}`;
-                    if (timeMatch) surveyDisplay += ` ${timeMatch[1]}:${timeMatch[2]}`;
+                    surveyDisplay = `${parseInt(dateMatch[2])}/${parseInt(dateMatch[3])}`;
+                    if (timeMatch) surveyDisplay += ` ${parseInt(timeMatch[1])}:${timeMatch[2]}`;
                 }
             }
 
-            // 商談日を短縮表示（MM/DD HH:mm）
+            // 商談日を短縮表示（MM/DD HH:mm、先頭ゼロ除去）
             let estimateDisplay = '-';
             if (c.estimateDate) {
                 const dateMatch = c.estimateDate.match(/(\d+)[-\/](\d+)[-\/](\d+)/);
                 const timeMatch = c.estimateDate.match(/(\d+):(\d+)/);
                 if (dateMatch) {
-                    estimateDisplay = `${dateMatch[2]}/${dateMatch[3]}`;
-                    if (timeMatch) estimateDisplay += ` ${timeMatch[1]}:${timeMatch[2]}`;
+                    estimateDisplay = `${parseInt(dateMatch[2])}/${parseInt(dateMatch[3])}`;
+                    if (timeMatch) estimateDisplay += ` ${parseInt(timeMatch[1])}:${timeMatch[2]}`;
                 }
             }
 
@@ -23514,7 +23514,26 @@
                 // 商談日時が決まっている → 見積提出日モーダル
                 openEstimateDateModal(cvId);
             } else if (action === 'nextcall') {
-                // 見積もり作成後に連絡 → 次回架電日モーダル（見積もり完成目処）
+                // 商談日決まってない → 次回架電日モーダル（見積完成目処）
+                // 既存の商談日をクリア
+                const c = findCaseByCvId(cvId);
+                if (c && c.estimateDate) {
+                    c.estimateDate = '';
+                    // GASにも反映
+                    const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+                    fetch(GAS_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            system: 'merchant',
+                            subsystem: 'contract',
+                            action: 'updateEstimateDate',
+                            merchantId: merchantId,
+                            cvId: cvId,
+                            estimateDate: ''
+                        })
+                    }).catch(err => console.error('商談日クリアエラー:', err));
+                }
                 openNextCallModal(cvId);
             }
         }
@@ -24347,7 +24366,7 @@
             .then(result => {
                 console.log('[次回架電] 保存結果:', result);
                 if (result.success) {
-                    showNotification('保存完了', '次回架電日を設定しました');
+                    // 成功時は何もしない（トースト不要）
                 } else {
                     // 失敗時はデータを元に戻して再描画
                     console.error('[次回架電] 保存失敗:', result.error);
@@ -24401,7 +24420,7 @@
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    showNotification('完了', '次回架電日をクリアしました');
+                    // 成功時は何もしない（トースト不要）
                 } else {
                     // 失敗時はデータを元に戻して再描画
                     if (caseData) {
