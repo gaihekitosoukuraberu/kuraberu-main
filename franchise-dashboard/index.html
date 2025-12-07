@@ -2315,8 +2315,12 @@
                                 <!-- メッセージプレビュー -->
                                 <div>
                                     <label class="block text-sm font-bold text-gray-700 mb-2">メッセージ内容</label>
-                                    <textarea id="smsMessageText" rows="8" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-base resize-none" placeholder="メッセージを入力..."></textarea>
-                                    <p class="text-xs text-gray-400 mt-1">※ 変数: {顧客名}, {担当者名}, {現調日}, {見積日} は自動置換されます</p>
+                                    <textarea id="smsMessageText" rows="8" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-base resize-none" placeholder="メッセージを入力..." oninput="updateSmsCharCount()"></textarea>
+                                    <!-- V2095: 文字数カウンター -->
+                                    <div class="flex justify-between items-center mt-1">
+                                        <p class="text-xs text-gray-400">※ 変数: {顧客名}, {会社名}, {担当者名} 等は自動置換</p>
+                                        <p id="smsCharCount" class="text-xs font-medium text-gray-500">0文字 (1通)</p>
+                                    </div>
                                 </div>
 
                                 <!-- 予約リンク挿入（予約システム用） -->
@@ -20667,101 +20671,53 @@
         // ===== V2089: SMS/メッセージ送信機能 =====
         let currentSmsCase = null;
 
-        // SMSテンプレート定義
+        // V2095: SMSテンプレート定義（会社名変数対応 + 文字数最適化）
+        // SMS文字数目安: 日本語70文字/通、長文は分割されコスト増
         const smsTemplates = {
             inquiry_thanks: {
                 name: 'お問い合わせお礼',
+                // 約65文字
                 text: `{顧客名}様
-
-お世話になっております。
-外壁塗装くらべるの{担当者名}です。
-
-この度はお問い合わせいただき誠にありがとうございます。
-
-ご都合の良いお時間にお電話させていただきたく存じます。
-ご希望のお時間帯がございましたらお知らせください。
-
-何卒よろしくお願いいたします。`
+{会社名}{担当者名}です。お問い合わせありがとうございます。ご都合の良い時間にお電話いたします。ご希望あればお知らせください。`
             },
             call_missed: {
                 name: '不在後フォロー',
+                // 約60文字
                 text: `{顧客名}様
-
-外壁塗装くらべるの{担当者名}です。
-先ほどお電話いたしましたがお繋がりできませんでした。
-
-改めてお電話させていただきます。
-ご都合の良いお時間帯がございましたらお知らせください。
-
-よろしくお願いいたします。`
+{会社名}{担当者名}です。先程お電話しましたが繋がりませんでした。改めてご連絡します。ご都合良い時間あればお知らせください。`
             },
             survey_confirm: {
                 name: '現調日確認',
+                // 約55文字
                 text: `{顧客名}様
-
-外壁塗装くらべるの{担当者名}です。
-
-現地調査の日程のご確認です。
-
-【日時】{現調日}
-
-上記日程でお伺いいたします。
-ご変更がございましたらお気軽にご連絡ください。
-
-当日お会いできることを楽しみにしております。`
+{会社名}{担当者名}です。現地調査のご確認です。
+{現調日}
+にお伺いします。変更あればご連絡ください。`
             },
             survey_reminder: {
                 name: '現調リマインド',
+                // 約45文字
                 text: `{顧客名}様
-
-外壁塗装くらべるの{担当者名}です。
-
-明日の現地調査のご確認です。
-
-【日時】{現調日}
-
-お忙しいところ恐れ入りますが、よろしくお願いいたします。`
+{会社名}です。明日{現調日}の現地調査、よろしくお願いいたします。`
             },
             estimate_ready: {
                 name: '見積完成お知らせ',
+                // 約50文字
                 text: `{顧客名}様
-
-外壁塗装くらべるの{担当者名}です。
-
-お見積りの準備が整いました。
-
-【お届け予定】{見積日}
-
-ご都合が悪い場合はお気軽にご連絡ください。
-
-よろしくお願いいたします。`
+{会社名}{担当者名}です。お見積りが完成しました。{見積日}にお届け予定です。変更あればご連絡ください。`
             },
             followup: {
                 name: '検討中フォロー',
+                // 約55文字
                 text: `{顧客名}様
-
-外壁塗装くらべるの{担当者名}です。
-
-先日はお時間をいただきありがとうございました。
-ご検討の状況はいかがでしょうか？
-
-ご不明な点がございましたら、お気軽にお問い合わせください。
-
-よろしくお願いいたします。`
+{会社名}{担当者名}です。先日はありがとうございました。ご検討状況いかがでしょうか？ご不明点あればお気軽にどうぞ。`
             },
             booking_link: {
                 name: '予約リンク送付',
+                // 約50文字 + URL
                 text: `{顧客名}様
-
-外壁塗装くらべるの{担当者名}です。
-
-下記リンクから現地調査のご予約が可能です。
-ご都合の良い日時をお選びください。
-
-▼ 予約ページ
-{予約リンク}
-
-ご不明点がございましたらお気軽にお申し付けください。`
+{会社名}です。下記から現調のご予約ができます。
+{予約リンク}`
             },
             custom: {
                 name: 'カスタム',
@@ -20844,8 +20800,14 @@
                 const c = currentSmsCase;
                 const staffName = getCurrentUserName() || '担当者';
 
+                // V2095: 会社名を取得（merchantDataから）
+                const companyName = (window.merchantData && window.merchantData.companyName)
+                    ? window.merchantData.companyName
+                    : '弊社';
+
                 text = text.replace(/{顧客名}/g, c.customerName || 'お客様');
                 text = text.replace(/{担当者名}/g, staffName);
+                text = text.replace(/{会社名}/g, companyName);
 
                 // 現調日
                 if (c.surveyDate) {
@@ -20887,6 +20849,9 @@
 
             document.getElementById('smsMessageText').value = text;
 
+            // V2095: 文字数を更新
+            updateSmsCharCount();
+
             // 予約リンクセクションの表示制御
             const bookingSection = document.getElementById('smsBookingLinkSection');
             if (templateKey === 'booking_link') {
@@ -20894,6 +20859,30 @@
             } else {
                 bookingSection.classList.add('hidden');
             }
+        }
+
+        // V2095: SMS文字数カウント＆通数計算
+        function updateSmsCharCount() {
+            const textarea = document.getElementById('smsMessageText');
+            const countEl = document.getElementById('smsCharCount');
+            if (!textarea || !countEl) return;
+
+            const len = textarea.value.length;
+            // 日本語SMS: 70文字/通、長文は67文字/通で分割
+            let msgCount;
+            if (len <= 70) {
+                msgCount = 1;
+            } else {
+                msgCount = Math.ceil(len / 67);
+            }
+
+            // 色分け: 1通=緑, 2通=黄, 3通以上=赤
+            let colorClass = 'text-green-600';
+            if (msgCount === 2) colorClass = 'text-yellow-600';
+            if (msgCount >= 3) colorClass = 'text-red-600';
+
+            countEl.className = `text-xs font-medium ${colorClass}`;
+            countEl.textContent = `${len}文字 (${msgCount}通)`;
         }
 
         // メッセージをコピー
