@@ -20689,7 +20689,7 @@
         let customSmsTemplates = {};
         async function loadCustomSmsTemplates() {
             try {
-                const merchantId = localStorage.getItem('merchantId');
+                const merchantId = localStorage.getItem('merchantId') || sessionStorage.getItem('merchantId') || window.merchantId;
                 if (!merchantId) {
                     console.log('[SMS] 加盟店ID未設定、テンプレート読込スキップ');
                     return;
@@ -20804,7 +20804,7 @@
                 return;
             }
 
-            const merchantId = localStorage.getItem('merchantId');
+            const merchantId = localStorage.getItem('merchantId') || sessionStorage.getItem('merchantId') || window.merchantId;
             if (!merchantId) {
                 showNotification('エラー', '加盟店IDが設定されていません', 'error');
                 return;
