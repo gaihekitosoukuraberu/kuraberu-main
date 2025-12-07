@@ -19222,14 +19222,14 @@
             // 物件情報の簡易表示（floorsにはそのまま「2階建て」等が入っている）
             const propertyInfo = [c.propertyType, c.floors].filter(v => v).join(' / ');
 
-            // 次回架電日の短縮表示（時刻込み）
+            // 次回架電日の短縮表示（時刻込み、先頭ゼロ除去）
             let nextCallShort = '-';
             if (c.nextCallDate) {
                 const dateMatch = c.nextCallDate.match(/(\d+)[-\/](\d+)[-\/](\d+)/);
                 const timeMatch = c.nextCallDate.match(/(\d+):(\d+)/);
                 if (dateMatch) {
-                    nextCallShort = `${dateMatch[2]}/${dateMatch[3]}`;
-                    if (timeMatch) nextCallShort += ` ${timeMatch[1]}:${timeMatch[2]}`;
+                    nextCallShort = `${parseInt(dateMatch[2])}/${parseInt(dateMatch[3])}`;
+                    if (timeMatch) nextCallShort += ` ${parseInt(timeMatch[1])}:${timeMatch[2]}`;
                 }
             }
 
@@ -19378,7 +19378,7 @@
                 if (nextCallDisplay !== '-') {
                     return {
                         html: `<button onclick="openNextCallModal('${c.cvId}')" class="flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors" title="次回架電日を変更">
-                            <span>📞</span><span class="font-medium">架電 ${nextCallDisplay}</span>
+                            <span>📞</span><span class="font-medium">次回架電 ${nextCallDisplay}</span>
                         </button>`
                     };
                 }
@@ -19451,7 +19451,7 @@
                 // 次回架電日があれば表示
                 if (nextCallDisplay !== '-') {
                     return {
-                        html: `<button onclick="openNextCallModal('${c.cvId}')" class="px-2 py-1 text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors" title="次回架電日を変更">📞架電 ${nextCallDisplay}</button>`
+                        html: `<button onclick="openNextCallModal('${c.cvId}')" class="px-2 py-1 text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors" title="次回架電日を変更">📞次回架電 ${nextCallDisplay}</button>`
                     };
                 }
                 return { html: '<span class="text-gray-300">-</span>' };
