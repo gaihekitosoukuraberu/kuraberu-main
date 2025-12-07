@@ -602,67 +602,6 @@ const SystemRouter = {
       actions: ['lp_contact_submit']
     },
 
-    // V2091: 予約システム（空き枠管理 & 予約管理）
-    'booking_': {
-      system: 'BookingSystem',
-      description: '予約システム',
-      prefix: true,
-      actions: ['booking_test']
-    },
-    'getContractorAvailability': {
-      system: 'BookingSystem',
-      description: '業者の空き枠取得',
-      prefix: false,
-      actions: ['getContractorAvailability']
-    },
-    'getAvailableSlotsForCase': {
-      system: 'BookingSystem',
-      description: '案件向け空き枠取得',
-      prefix: false,
-      actions: ['getAvailableSlotsForCase']
-    },
-    'getPublicAvailability': {
-      system: 'BookingSystem',
-      description: 'ユーザー向け空き枠取得（公開API）',
-      prefix: false,
-      actions: ['getPublicAvailability']
-    },
-    'createBookingRequest': {
-      system: 'BookingSystem',
-      description: '予約リクエスト作成（ユーザー希望日時送信）',
-      prefix: false,
-      actions: ['createBookingRequest']
-    },
-    'setContractorAvailability': {
-      system: 'BookingSystem',
-      description: '空き枠登録',
-      prefix: false,
-      actions: ['setContractorAvailability']
-    },
-    'createBooking': {
-      system: 'BookingSystem',
-      description: '予約作成',
-      prefix: false,
-      actions: ['createBooking']
-    },
-    'cancelBooking': {
-      system: 'BookingSystem',
-      description: '予約キャンセル',
-      prefix: false,
-      actions: ['cancelBooking']
-    },
-    'getBookings': {
-      system: 'BookingSystem',
-      description: '予約一覧取得',
-      prefix: false,
-      actions: ['getBookings']
-    },
-    'getPublicAvailability': {
-      system: 'BookingSystem',
-      description: '公開ページ用空き枠取得',
-      prefix: false,
-      actions: ['getPublicAvailability']
-    }
   },
 
   /**

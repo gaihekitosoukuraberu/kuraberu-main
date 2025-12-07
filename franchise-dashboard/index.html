@@ -2304,7 +2304,6 @@
                                     <div class="flex gap-2">
                                         <select id="smsTemplateSelect" onchange="applySmsTemplate()" class="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-base">
                                             <option value="call_missed">不在後フォロー</option>
-                                            <option value="booking_link">予約リンク送付</option>
                                             <option value="survey_confirm">現調日確認</option>
                                             <option value="survey_reminder">現調リマインド</option>
                                             <option value="survey_thanks">現調お礼</option>
@@ -2335,12 +2334,6 @@
                                     </div>
                                 </div>
 
-                                <!-- 予約リンク挿入（予約システム用） -->
-                                <div id="smsBookingLinkSection" class="hidden">
-                                    <button onclick="insertBookingLink()" class="w-full py-2 px-4 bg-purple-100 text-purple-700 rounded-xl font-medium hover:bg-purple-200 transition-all flex items-center justify-center gap-2">
-                                        <span>📅</span> 予約リンクを挿入
-                                    </button>
-                                </div>
                             </div>
 
                             <!-- アクションボタン -->
@@ -4396,24 +4389,6 @@
                     </div>
                 </div>
 
-                <!-- 予約一覧 -->
-                <div class="bg-white border-2 border-gray-200 rounded-xl p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                            <span>📋</span> 予約一覧
-                            <span id="bookingCount" class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-sm rounded-full">0件</span>
-                        </h3>
-                        <button onclick="refreshBookings()" class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all flex items-center gap-1">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                            </svg>
-                            更新
-                        </button>
-                    </div>
-                    <div id="bookingsList" class="space-y-2">
-                        <p class="text-gray-500 text-center py-8">予約はまだありません</p>
-                    </div>
-                </div>
             </div><!-- availabilitySectionの終了 -->
 
             <!-- 自動配信設定セクション -->
@@ -7751,7 +7726,6 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">編集するテンプレート</label>
                             <select id="smsTemplateEditSelect" onchange="loadTemplateForEdit()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                                 <option value="call_missed">不在後フォロー</option>
-                                <option value="booking_link">予約リンク送付</option>
                                 <option value="survey_confirm">現調日確認</option>
                                 <option value="survey_reminder">現調リマインド</option>
                                 <option value="survey_thanks">現調お礼</option>
@@ -7775,7 +7749,6 @@
                                     <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{担当者名}')">{担当者名}</span>
                                     <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{現調日}')">{現調日}</span>
                                     <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{見積日}')">{見積日}</span>
-                                    <span class="text-purple-600 cursor-pointer hover:underline" onclick="insertVariable('{予約リンク}')">{予約リンク}</span>
                                 </p>
                                 <p id="smsTemplateEditCharCount" class="text-xs font-medium text-gray-500">0文字</p>
                             </div>
@@ -20818,10 +20791,9 @@
             },
             estimate_schedule: {
                 name: '見積完成（日程調整）',
-                // 約40文字+URL
+                // 約45文字
                 text: `{顧客名}様
-{会社名}です。お見積りが完成しました！下記よりお届け日時をお選びください。
-{予約リンク}`
+{会社名}です。お見積りが完成しました！ご都合の良い日時をご返信ください。`
             },
             estimate_confirm: {
                 name: '見積完成（日程確認）',
@@ -20834,13 +20806,6 @@
                 // 約50文字
                 text: `{顧客名}様
 {会社名}です。先日はありがとうございました！ご不明点あればお気軽にどうぞ。`
-            },
-            booking_link: {
-                name: '予約リンク送付',
-                // 約40文字+URL
-                text: `{顧客名}様
-{会社名}です。下記より現調日時のご予約ができます。ご都合の良い日時をどうぞ！
-{予約リンク}`
             },
             custom: {
                 name: 'カスタム',
@@ -20960,8 +20925,7 @@
                 .replace(/\{会社名\}/g, companyName)
                 .replace(/\{担当者名\}/g, staffName)
                 .replace(/\{現調日\}/g, '12月15日(日) 14:00')
-                .replace(/\{見積日\}/g, '12月20日(金) 10:00')
-                .replace(/\{予約リンク\}/g, 'https://is.gd/xxxxx');
+                .replace(/\{見積日\}/g, '12月20日(金) 10:00');
 
             preview.textContent = text;
 
@@ -21196,95 +21160,12 @@
                     text = text.replace(/{見積日}/g, '【要設定】');
                 }
 
-                // V2096: 予約リンクを自動生成（短縮URL対応）
-                if (text.includes('{予約リンク}')) {
-                    // まず「短縮中...」を表示
-                    text = text.replace(/{予約リンク}/g, '【短縮中...】');
-
-                    // 非同期で短縮URLを取得して置換
-                    generateShortBookingLink(c.cvId);
-                }
             }
 
             document.getElementById('smsMessageText').value = text;
 
             // V2095: 文字数を更新
             updateSmsCharCount();
-
-            // 予約リンクセクションの表示制御
-            const bookingSection = document.getElementById('smsBookingLinkSection');
-            if (templateKey === 'booking_link') {
-                bookingSection.classList.remove('hidden');
-            } else {
-                bookingSection.classList.add('hidden');
-            }
-        }
-
-        // V2096: 短縮予約リンクを生成
-        async function generateShortBookingLink(cvId) {
-            // トークン生成
-            const secret = 'kuraberu2024';
-            const input = cvId + secret;
-            let hash = 0;
-            for (let i = 0; i < input.length; i++) {
-                const char = input.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash;
-            }
-            const token = Math.abs(hash).toString(36);
-
-            // 元のURL
-            const baseUrl = window.location.origin + '/booking/';
-            const longUrl = `${baseUrl}?cvId=${cvId}&token=${token}`;
-
-            try {
-                // GAS経由でURL短縮（is.gd使用）
-                const result = await new Promise((resolve, reject) => {
-                    const callbackName = 'shorten_' + Date.now();
-                    window[callbackName] = (data) => {
-                        delete window[callbackName];
-                        resolve(data);
-                    };
-
-                    const url = `${GAS_URL}?action=shortenUrl&url=${encodeURIComponent(longUrl)}&callback=${callbackName}`;
-                    const script = document.createElement('script');
-                    script.src = url;
-                    script.onerror = () => {
-                        delete window[callbackName];
-                        reject(new Error('Network error'));
-                    };
-                    document.body.appendChild(script);
-
-                    // 5秒タイムアウト
-                    setTimeout(() => {
-                        if (window[callbackName]) {
-                            delete window[callbackName];
-                            reject(new Error('Timeout'));
-                        }
-                    }, 5000);
-                });
-
-                // 短縮URL取得成功
-                const shortUrl = result.shortUrl || longUrl;
-
-                // テキストエリアを更新
-                const textarea = document.getElementById('smsMessageText');
-                if (textarea) {
-                    textarea.value = textarea.value.replace('【短縮中...】', shortUrl);
-                    updateSmsCharCount();
-                }
-
-                console.log('[SMS] 短縮URL生成成功:', shortUrl);
-
-            } catch (err) {
-                console.error('[SMS] 短縮URL生成失敗:', err);
-                // フォールバック: 元のURLを使用
-                const textarea = document.getElementById('smsMessageText');
-                if (textarea) {
-                    textarea.value = textarea.value.replace('【短縮中...】', longUrl);
-                    updateSmsCharCount();
-                }
-            }
         }
 
         // V2095: SMS文字数カウント＆通数計算
@@ -21470,47 +21351,6 @@
             }).catch(err => console.error('[SMS] 履歴保存エラー:', err));
         }
 
-        // V2094: 予約リンクを生成して挿入
-        function insertBookingLink() {
-            if (!currentSmsCase || !currentSmsCase.cvId) {
-                showNotification('エラー', '案件が選択されていません', 'error');
-                return;
-            }
-
-            // トークンを生成（シンプルなハッシュ）
-            const cvId = currentSmsCase.cvId;
-            const secret = 'kuraberu2024';
-            const input = cvId + secret;
-            let hash = 0;
-            for (let i = 0; i < input.length; i++) {
-                const char = input.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash;
-            }
-            const token = Math.abs(hash).toString(36);
-
-            // 予約リンクを生成
-            const baseUrl = window.location.origin + '/booking/';
-            const bookingLink = `${baseUrl}?cvId=${cvId}&token=${token}`;
-
-            // テキストエリアに挿入
-            const textarea = document.getElementById('smsMessageText');
-            if (textarea) {
-                // {予約リンク}を置換、またはカーソル位置に挿入
-                const currentText = textarea.value;
-                if (currentText.includes('{予約リンク}')) {
-                    textarea.value = currentText.replace('{予約リンク}', bookingLink);
-                } else {
-                    // カーソル位置に挿入
-                    const start = textarea.selectionStart;
-                    const end = textarea.selectionEnd;
-                    textarea.value = currentText.substring(0, start) + '\n\n' + bookingLink + '\n\n' + currentText.substring(end);
-                }
-            }
-
-            showNotification('リンク挿入', '予約リンクを挿入しました', 'success');
-        }
-
         // V2090: 次回架電日を保存してからSMS送信
         async function saveAndSendSms() {
             // まず次回架電日を保存
@@ -21588,7 +21428,6 @@
         let currentWeekStart = null;
         let selectedSlotDuration = 60; // デフォルト1時間
         let availabilityData = {}; // 日付 -> 時間帯配列
-        let bookingsData = [];
         const bulkDays = [false, true, true, true, true, true, false]; // 日月火水木金土
 
         // 初期化
@@ -21596,7 +21435,6 @@
             currentWeekStart = getWeekStart(new Date());
             renderWeekCalendar();
             loadAvailability();
-            loadBookings();
         }
 
         // 週の開始日を取得（日曜始まり）
@@ -21987,113 +21825,6 @@
                 console.log('[Availability] Saved', slots.length, 'slots');
             } catch (err) {
                 console.error('[Availability] Save error:', err);
-            }
-        }
-
-        // 予約一覧を読み込み
-        async function loadBookings() {
-            const merchantId = window.merchantId;
-            if (!merchantId) return;
-
-            try {
-                const url = `${GAS_URL}?action=getBookings&merchantId=${merchantId}&status=confirmed`;
-
-                const result = await new Promise((resolve, reject) => {
-                    const callbackName = 'book_' + Date.now();
-                    window[callbackName] = (data) => {
-                        delete window[callbackName];
-                        resolve(data);
-                    };
-
-                    const script = document.createElement('script');
-                    script.src = url + '&callback=' + callbackName;
-                    script.onerror = () => reject(new Error('Network error'));
-                    document.body.appendChild(script);
-                });
-
-                if (result.success) {
-                    bookingsData = result.bookings || [];
-                    renderBookingsList();
-                }
-            } catch (err) {
-                console.error('[Bookings] Load error:', err);
-            }
-        }
-
-        // 予約一覧を表示
-        function renderBookingsList() {
-            const container = document.getElementById('bookingsList');
-            const countBadge = document.getElementById('bookingCount');
-
-            if (!container) return;
-
-            if (bookingsData.length === 0) {
-                container.innerHTML = '<p class="text-gray-500 text-center py-8">予約はまだありません</p>';
-                countBadge.textContent = '0件';
-                return;
-            }
-
-            countBadge.textContent = `${bookingsData.length}件`;
-
-            const html = bookingsData.map(booking => `
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div class="flex items-center gap-4">
-                        <div class="text-center px-3 py-2 bg-blue-100 rounded-lg">
-                            <div class="text-sm text-blue-600">${booking.date.split('-').slice(1).join('/')}</div>
-                            <div class="font-bold text-blue-800">${booking.time}</div>
-                        </div>
-                        <div>
-                            <div class="font-medium text-gray-900">${booking.userName || '名前未入力'}</div>
-                            <div class="text-sm text-gray-500">${booking.phone || '電話番号未入力'}</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
-                            確定
-                        </span>
-                        <button onclick="cancelBookingConfirm('${booking.bookingId}')" class="p-2 text-gray-400 hover:text-red-500 transition-all" title="キャンセル">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-
-            container.innerHTML = html;
-        }
-
-        // 予約一覧を更新
-        function refreshBookings() {
-            loadBookings();
-            showNotification('更新完了', '予約一覧を更新しました', 'success');
-        }
-
-        // 予約キャンセル確認
-        function cancelBookingConfirm(bookingId) {
-            if (confirm('この予約をキャンセルしますか？')) {
-                cancelBookingAction(bookingId);
-            }
-        }
-
-        // 予約キャンセル実行
-        async function cancelBookingAction(bookingId) {
-            try {
-                await fetch(GAS_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({
-                        action: 'cancelBooking',
-                        bookingId: bookingId
-                    })
-                });
-
-                showNotification('キャンセル完了', '予約をキャンセルしました', 'success');
-                loadBookings();
-                loadAvailability();
-            } catch (err) {
-                console.error('[Booking] Cancel error:', err);
-                showNotification('エラー', 'キャンセルに失敗しました', 'error');
             }
         }
 
