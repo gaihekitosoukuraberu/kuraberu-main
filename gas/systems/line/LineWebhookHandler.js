@@ -172,22 +172,17 @@ LINE連携を完了するには、ダッシュボードの設定画面に表示�
         linkSheet.getRange(rowIndex, 5).setValue(new Date());
         linkSheet.getRange(rowIndex, 6).setValue(lineUserId);
 
-        this.sendMessage(lineUserId, `LINE連携が完了しました！
-
-加盟店ID: ${merchantId}
-
-今後、案件の通知などをこのLINEでお届けします。`);
-
+        // Cloud Functionsが返信するのでここではsendMessageしない
         return { success: true, merchantId, lineUserId };
       } else {
         console.error('[LineWebhookHandler] saveMerchantLineId failed:', saveResult);
-        this.sendMessage(lineUserId, `連携処理中にエラーが発生しました: ${saveResult.error || 'unknown'}`);
+        // Cloud Functionsがエラーメッセージを返信する
         return saveResult;
       }
 
     } catch (error) {
       console.error('[LineWebhookHandler] processLinkCode error:', error);
-      this.sendMessage(lineUserId, 'システムエラーが発生しました。');
+      // Cloud Functionsがエラーメッセージを返信する
       return { success: false, error: error.toString() };
     }
   },
