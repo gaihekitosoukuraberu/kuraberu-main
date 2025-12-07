@@ -345,6 +345,7 @@ const BookingSystem = {
   /**
    * 公開ページ用の空き枠取得（トークン認証）
    * 業者の空き枠がなくてもリクエスト方式で予約可能
+   * 業者別の空き情報を返す（何社空いてるか表示用）
    */
   getPublicAvailability: function(params) {
     const { cvId, token } = params;
@@ -361,24 +362,139 @@ const BookingSystem = {
 
     // 案件情報から配信済み業者を取得（なくてもOK）
     const merchantIds = this.getDeliveredMerchantsForCv(cvId);
+    const merchantCount = merchantIds ? merchantIds.length : 0;
+
+    // 業者名マップを取得
+    const merchantNames = this.getMerchantNames(merchantIds);
 
     // 業者の空き枠を取得（あれば）
-    let slots = [];
+    // availability: { "2024-12-10": { "M001": [{startTime, endTime}], "M002": [...] } }
+    let availability = {};
+    let hasAnySlots = false;
+
     if (merchantIds && merchantIds.length > 0) {
       const result = this.getAvailableSlotsForCase({ cvId, merchantIds });
-      if (result.success) {
-        slots = result.slots || [];
+      if (result.success && result.availability) {
+        availability = result.availability;
+        hasAnySlots = result.totalSlots > 0;
       }
     }
 
-    // 空き枠がなくてもリクエスト方式で予約可能
+    // 時間スロット別に何社空いてるか集計
+    // slots: { "2024-12-10_09:00": { count: 3, merchants: ["A社", "B社", "C社"] } }
+    const slotSummary = {};
+
+    for (const date of Object.keys(availability)) {
+      const merchantsOnDate = availability[date];
+      for (const merchantId of Object.keys(merchantsOnDate)) {
+        const slots = merchantsOnDate[merchantId];
+        const merchantName = merchantNames[merchantId] || merchantId;
+
+        for (const slot of slots) {
+          // 30分刻みでスロットを展開
+          const expandedTimes = this.expandTimeSlots(slot.startTime, slot.endTime);
+
+          for (const time of expandedTimes) {
+            const key = `${date}_${time}`;
+            if (!slotSummary[key]) {
+              slotSummary[key] = { count: 0, merchants: [] };
+            }
+            if (!slotSummary[key].merchants.includes(merchantName)) {
+              slotSummary[key].count++;
+              slotSummary[key].merchants.push(merchantName);
+            }
+          }
+        }
+      }
+    }
+
     return {
       success: true,
       cvId: cvId,
-      slots: slots,
-      requestMode: slots.length === 0, // 空き枠なし = リクエスト方式
-      message: slots.length === 0 ? 'ご希望の日時を選択してください' : '空き枠から選択してください'
+      merchantCount: merchantCount,  // 配信された業者数
+      slotSummary: slotSummary,      // 時間別の空き業者情報
+      hasAnySlots: hasAnySlots,
+      requestMode: !hasAnySlots,
+      message: !hasAnySlots ? 'ご希望の日時を選択してください' : '空き枠から選択してください'
     };
+  },
+
+  /**
+   * 時間範囲を30分刻みで展開
+   */
+  expandTimeSlots: function(startTime, endTime) {
+    const times = [];
+    const [startH, startM] = startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
+
+    let currentMins = startH * 60 + startM;
+    const endMins = endH * 60 + endM;
+
+    while (currentMins < endMins) {
+      const h = Math.floor(currentMins / 60);
+      const m = currentMins % 60;
+      times.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
+      currentMins += 30;
+    }
+
+    return times;
+  },
+
+  /**
+   * 業者名マップを取得
+   */
+  getMerchantNames: function(merchantIds) {
+    const names = {};
+    if (!merchantIds || merchantIds.length === 0) return names;
+
+    try {
+      const ss = this.getSpreadsheet();
+      const merchantSheet = ss.getSheetByName('加盟店マスタ');
+
+      if (!merchantSheet) {
+        // シートがなければIDをそのまま返す
+        merchantIds.forEach((id, i) => {
+          names[id] = String.fromCharCode(65 + i) + '社'; // A社, B社, C社...
+        });
+        return names;
+      }
+
+      const data = merchantSheet.getDataRange().getValues();
+      const headers = data[0];
+      const rows = data.slice(1);
+
+      const idIdx = headers.indexOf('加盟店ID');
+      const nameIdx = headers.indexOf('会社名') !== -1 ? headers.indexOf('会社名') : headers.indexOf('店舗名');
+
+      if (idIdx === -1) {
+        merchantIds.forEach((id, i) => {
+          names[id] = String.fromCharCode(65 + i) + '社';
+        });
+        return names;
+      }
+
+      for (const row of rows) {
+        const id = row[idIdx];
+        if (merchantIds.includes(id)) {
+          names[id] = nameIdx !== -1 ? row[nameIdx] : id;
+        }
+      }
+
+      // 見つからなかった業者はA社, B社...で埋める
+      merchantIds.forEach((id, i) => {
+        if (!names[id]) {
+          names[id] = String.fromCharCode(65 + i) + '社';
+        }
+      });
+
+    } catch (e) {
+      console.error('[BookingSystem] Error getting merchant names:', e);
+      merchantIds.forEach((id, i) => {
+        names[id] = String.fromCharCode(65 + i) + '社';
+      });
+    }
+
+    return names;
   },
 
   /**

@@ -129,14 +129,31 @@
             background: #f1f5f9 !important;
         }
 
-        .time-cell.available {
-            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-            box-shadow: inset 0 0 0 2px rgba(16, 185, 129, 0.3);
+        /* 空き業者数による色分け（1社〜4社） */
+        .time-cell.avail-1 {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        }
+        .time-cell.avail-2 {
+            background: linear-gradient(135deg, #bbf7d0 0%, #86efac 100%);
+        }
+        .time-cell.avail-3 {
+            background: linear-gradient(135deg, #86efac 0%, #4ade80 100%);
+        }
+        .time-cell.avail-4 {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
         }
 
-        .time-cell.available:hover {
-            background: linear-gradient(135deg, #a7f3d0 0%, #6ee7b7 100%);
+        .time-cell[class*="avail-"]:hover {
+            filter: brightness(0.95);
             box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+        }
+
+        /* 空き業者数の数字表示 */
+        .avail-count {
+            font-size: 11px;
+            font-weight: 800;
+            color: #166534;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.5);
         }
 
         .time-cell.selected {
@@ -158,6 +175,18 @@
 
         .time-cell.selected:hover {
             background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+        }
+
+        /* ツールチップ（業者詳細） */
+        .slot-tooltip {
+            position: absolute;
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border: 1px solid #e5e7eb;
+            z-index: 1000;
+            min-width: 120px;
         }
 
         /* 視覚的タイムバー（上部パネル内） */
@@ -353,7 +382,8 @@
         let token = null;
         let currentWeekStart = null; // 表示中の週の開始日
         let selectedSlots = new Set(); // 選択中のスロット "YYYY-MM-DD_HH:MM" 形式
-        let merchantAvailability = {}; // 業者の空き枠データ
+        let slotSummary = {}; // 時間別の空き業者情報 { "2024-12-10_09:00": { count: 3, merchants: ["A社", "B社"] } }
+        let merchantCount = 0; // 配信された業者数
         let isSelecting = false; // ドラッグ選択中
         let selectionMode = null; // 'add' or 'remove'
 
@@ -397,11 +427,12 @@
                     return;
                 }
 
-                // 業者の空き枠があれば保存
-                merchantAvailability = result.slots || [];
+                // 業者の空き枠情報を保存
+                slotSummary = result.slotSummary || {};
+                merchantCount = result.merchantCount || 0;
 
                 // 業者空きがあれば凡例を表示
-                if (merchantAvailability.length > 0) {
+                if (result.hasAnySlots) {
                     document.getElementById('legendAvailable').classList.remove('hidden');
                 }
 
@@ -481,20 +512,27 @@
                 for (const time of timeSlots) {
                     const slotKey = `${dateStr}_${time}`;
                     const isSelected = selectedSlots.has(slotKey);
-                    const hasAvailability = checkMerchantAvailability(dateStr, time);
+                    const slotInfo = slotSummary[slotKey]; // { count, merchants }
+                    const availCount = slotInfo ? slotInfo.count : 0;
                     const isDisabled = isPast;
 
                     let cellClass = 'time-cell';
                     if (isSelected) cellClass += ' selected';
-                    else if (hasAvailability) cellClass += ' available';
+                    else if (availCount > 0) cellClass += ` avail-${Math.min(availCount, 4)}`; // avail-1, avail-2, avail-3, avail-4
                     if (isDisabled) cellClass += ' disabled';
+
+                    // 空き業者数を表示（0は表示しない）
+                    const countDisplay = availCount > 0 && !isSelected ? `<span class="avail-count">${availCount}</span>` : '';
 
                     html += `<td class="${cellClass}"
                         data-slot="${slotKey}"
+                        data-count="${availCount}"
+                        data-merchants="${slotInfo ? slotInfo.merchants.join(',') : ''}"
                         onmousedown="startSelect(event, '${slotKey}')"
                         onmouseenter="continueSelect(event, '${slotKey}')"
                         ontouchstart="startSelect(event, '${slotKey}')"
-                        ontouchmove="handleTouchMove(event)"></td>`;
+                        ontouchmove="handleTouchMove(event)"
+                        onclick="showSlotDetail(event, '${slotKey}')">${countDisplay}</td>`;
                 }
 
                 html += '</tr>';
@@ -510,14 +548,6 @@
                 `${currentWeekStart.getMonth() + 1}/${currentWeekStart.getDate()} 〜 ${weekEnd.getMonth() + 1}/${weekEnd.getDate()}`;
 
             updateSelectionUI();
-        }
-
-        // 業者の空き枠チェック
-        function checkMerchantAvailability(dateStr, time) {
-            if (!merchantAvailability || merchantAvailability.length === 0) return false;
-            return merchantAvailability.some(slot =>
-                slot.date === dateStr && slot.time === time && slot.status === 'available'
-            );
         }
 
         // 日付フォーマット
@@ -588,17 +618,85 @@
             const cell = document.querySelector(`[data-slot="${slotKey}"]`);
             if (!cell) return;
 
-            const [dateStr, time] = slotKey.split('_');
-            const hasAvailability = checkMerchantAvailability(dateStr, time);
+            const availCount = parseInt(cell.dataset.count) || 0;
 
-            cell.classList.remove('selected', 'available');
+            // 既存クラスを削除
+            cell.classList.remove('selected', 'avail-1', 'avail-2', 'avail-3', 'avail-4');
 
             if (selectedSlots.has(slotKey)) {
                 cell.classList.add('selected');
-            } else if (hasAvailability) {
-                cell.classList.add('available');
+                cell.innerHTML = ''; // 数字を消してチェックマークに
+            } else if (availCount > 0) {
+                cell.classList.add(`avail-${Math.min(availCount, 4)}`);
+                cell.innerHTML = `<span class="avail-count">${availCount}</span>`;
+            } else {
+                cell.innerHTML = '';
             }
         }
+
+        // スロット詳細表示（タップ時）
+        function showSlotDetail(event, slotKey) {
+            // ドラッグ中は表示しない
+            if (isSelecting) return;
+
+            const cell = event.target.closest('.time-cell');
+            if (!cell) return;
+
+            const merchants = cell.dataset.merchants;
+            if (!merchants) return;
+
+            const merchantList = merchants.split(',').filter(m => m);
+            if (merchantList.length === 0) return;
+
+            // 時間を解析
+            const [dateStr, time] = slotKey.split('_');
+            const date = new Date(dateStr);
+            const dateLabel = `${date.getMonth() + 1}/${date.getDate()}(${weekdays[date.getDay()]}) ${time}`;
+
+            // ツールチップ表示
+            showTooltip(event, dateLabel, merchantList);
+        }
+
+        // ツールチップ表示
+        let tooltipEl = null;
+        function showTooltip(event, dateLabel, merchants) {
+            // 既存のツールチップを削除
+            if (tooltipEl) {
+                tooltipEl.remove();
+            }
+
+            tooltipEl = document.createElement('div');
+            tooltipEl.className = 'slot-tooltip';
+            tooltipEl.innerHTML = `
+                <div class="font-bold text-sm mb-2">${dateLabel}</div>
+                <div class="text-xs space-y-1">
+                    ${merchants.map(m => `<div class="flex items-center gap-1"><span class="text-green-500">●</span>${m}</div>`).join('')}
+                </div>
+            `;
+
+            document.body.appendChild(tooltipEl);
+
+            // 位置調整
+            const rect = event.target.getBoundingClientRect();
+            tooltipEl.style.left = `${rect.left + window.scrollX}px`;
+            tooltipEl.style.top = `${rect.bottom + window.scrollY + 8}px`;
+
+            // 3秒後に消える
+            setTimeout(() => {
+                if (tooltipEl) {
+                    tooltipEl.remove();
+                    tooltipEl = null;
+                }
+            }, 3000);
+        }
+
+        // タップ外でツールチップを閉じる
+        document.addEventListener('click', (e) => {
+            if (tooltipEl && !e.target.closest('.time-cell') && !e.target.closest('.slot-tooltip')) {
+                tooltipEl.remove();
+                tooltipEl = null;
+            }
+        });
 
         // 選択状態UI更新（視覚的なバー表示）
         function updateSelectionUI() {
