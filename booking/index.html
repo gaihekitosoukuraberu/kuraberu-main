@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="robots" content="noindex, nofollow">
-    <!-- V2124: 予約ページUI改善 - 30分刻み、連続時間まとめ表示 -->
+    <!-- V2130: 予約ページ - 視覚的な時間帯表示パネル（選択時にバーで表示） -->
     <title>ユーザ希望日 - 外壁塗装くらべる</title>
     <link rel="icon" type="image/png" href="../franchise-dashboard/images/5.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -27,8 +27,10 @@
         /* カレンダーテーブル */
         #calendarTable {
             border-collapse: separate;
-            border-spacing: 1px;
-            background: #e5e7eb;
+            border-spacing: 2px;
+            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+            border-radius: 12px;
+            overflow: hidden;
         }
 
         #calendarTable th,
@@ -42,8 +44,9 @@
             left: 0;
             top: 0;
             z-index: 20;
-            background: #f3f4f6 !important;
-            min-width: 55px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            min-width: 60px;
+            border-radius: 8px 0 0 0;
         }
 
         /* 時間ヘッダー（上固定） */
@@ -51,13 +54,14 @@
             position: sticky;
             top: 0;
             z-index: 10;
-            background: #f3f4f6 !important;
-            padding: 8px 4px;
+            background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%) !important;
+            padding: 12px 6px;
             text-align: center;
-            font-size: 11px;
-            font-weight: 600;
-            color: #6b7280;
+            font-size: 12px;
+            font-weight: 700;
+            color: #475569;
             white-space: nowrap;
+            border-bottom: 2px solid #cbd5e1;
         }
 
         /* 日付列（左固定） */
@@ -65,61 +69,79 @@
             position: sticky;
             left: 0;
             z-index: 5;
-            background: #f9fafb !important;
-            padding: 8px;
+            background: linear-gradient(90deg, #f8fafc 0%, #ffffff 100%) !important;
+            padding: 10px 8px;
             text-align: center;
-            min-width: 55px;
+            min-width: 60px;
+            border-right: 2px solid #e2e8f0;
         }
 
         .sticky-date .day {
             display: block;
-            font-size: 18px;
-            font-weight: 700;
-            color: #1f2937;
+            font-size: 20px;
+            font-weight: 800;
+            color: #1e293b;
+            line-height: 1.2;
         }
 
         .sticky-date .weekday {
             display: block;
-            font-size: 10px;
-            color: #6b7280;
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            margin-top: 2px;
         }
 
         .sticky-date.today {
-            background: #dbeafe !important;
+            background: linear-gradient(90deg, #dbeafe 0%, #bfdbfe 100%) !important;
+            border-right: 3px solid #3b82f6;
         }
 
         .sticky-date.today .day {
-            color: #2563eb;
+            color: #1d4ed8;
+        }
+
+        .sticky-date.today .weekday {
+            color: #3b82f6;
         }
 
         /* 時間セル */
         .time-cell {
-            height: 40px;
-            min-width: 28px;
+            height: 44px;
+            min-width: 30px;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: all 0.2s ease;
             position: relative;
-        }
-
-        .time-cell.disabled {
-            opacity: 0.3;
-            pointer-events: none;
+            border-radius: 4px;
         }
 
         .time-cell:hover {
-            background: #f0f9ff;
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%) !important;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .time-cell.disabled {
+            opacity: 0.25;
+            pointer-events: none;
+            background: #f1f5f9 !important;
         }
 
         .time-cell.available {
-            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            box-shadow: inset 0 0 0 2px rgba(16, 185, 129, 0.3);
         }
 
         .time-cell.available:hover {
-            background: linear-gradient(135deg, #bbf7d0 0%, #86efac 100%);
+            background: linear-gradient(135deg, #a7f3d0 0%, #6ee7b7 100%);
+            transform: scale(1.08);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
         }
 
         .time-cell.selected {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
+            transform: scale(1.02);
         }
 
         .time-cell.selected::after {
@@ -131,29 +153,65 @@
             justify-content: center;
             color: white;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 14px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
 
-        /* 選択バッジ */
-        .selection-badge {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1f2937;
+        .time-cell.selected:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+        }
+
+        /* 選択サマリーパネル */
+        #selectionPanel.visible {
+            transform: translateY(0) !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+
+        /* 視覚的タイムバー */
+        .time-range-bar {
+            background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
+            border-radius: 8px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             color: white;
-            padding: 12px 24px;
-            border-radius: 999px;
-            font-weight: 600;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            z-index: 100;
-            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
         }
 
-        .selection-badge.hidden {
-            opacity: 0;
-            transform: translateX(-50%) translateY(20px);
-            pointer-events: none;
+        .time-range-bar .date-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .time-range-bar .time-visual {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .time-range-bar .time-block {
+            height: 24px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            min-width: 20px;
+        }
+
+        .time-range-bar .time-label {
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
         }
 
         /* 固定送信ボタン */
@@ -232,19 +290,35 @@
         <!-- メインフォーム -->
         <div id="mainForm" class="hidden">
             <!-- 説明 -->
-            <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
-                <p class="text-gray-700 text-sm">
-                    <strong>現調可能な日時</strong>をタップして選択してください。<br>
-                    複数の時間帯を選べます。
-                </p>
-                <div class="flex items-center gap-4 mt-3 text-xs">
-                    <div class="flex items-center gap-1">
-                        <div class="w-4 h-4 rounded bg-gradient-to-br from-green-200 to-green-300"></div>
-                        <span class="text-gray-600">業者空きあり</span>
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-5 mb-5 shadow-sm border border-blue-100">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <span class="text-white text-lg">👆</span>
                     </div>
-                    <div class="flex items-center gap-1">
-                        <div class="w-4 h-4 rounded bg-gradient-to-br from-blue-500 to-blue-600"></div>
-                        <span class="text-gray-600">選択中</span>
+                    <div>
+                        <p class="text-gray-800 font-medium mb-1">
+                            ご都合の良い日時をタップしてください
+                        </p>
+                        <p class="text-gray-500 text-sm">
+                            1マス＝30分（1社あたり約30分が目安）<br>
+                            複数選択OK！ドラッグでまとめて選択もできます
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-6 mt-4 pt-4 border-t border-blue-200">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-md bg-gradient-to-br from-emerald-200 to-emerald-400 shadow-sm"></div>
+                        <span class="text-gray-700 text-sm font-medium">業者空きあり</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-md bg-gradient-to-br from-blue-500 to-blue-700 shadow-sm flex items-center justify-center">
+                            <span class="text-white text-xs">✓</span>
+                        </div>
+                        <span class="text-gray-700 text-sm font-medium">選択中</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-md bg-gray-200 shadow-sm"></div>
+                        <span class="text-gray-700 text-sm font-medium">選択可能</span>
                     </div>
                 </div>
             </div>
@@ -278,9 +352,15 @@
         </div>
     </main>
 
-    <!-- 選択バッジ -->
-    <div id="selectionBadge" class="selection-badge hidden">
-        <span id="selectionCount">0</span>件選択中
+    <!-- 選択サマリーパネル（視覚的に時間帯を表示） -->
+    <div id="selectionPanel" class="fixed bottom-24 left-4 right-4 max-w-md mx-auto bg-white rounded-2xl shadow-2xl p-4 z-100 transition-all duration-300 transform translate-y-full opacity-0 pointer-events-none border border-gray-200">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-bold text-gray-800">📅 選択中の時間帯</span>
+            <span id="selectionCount" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">0件</span>
+        </div>
+        <div id="selectionVisual" class="space-y-2 max-h-40 overflow-y-auto">
+            <!-- ここに視覚的なバーが入る -->
+        </div>
     </div>
 
     <!-- 送信バー -->
@@ -543,21 +623,80 @@
             }
         }
 
-        // 選択状態UI更新
+        // 選択状態UI更新（視覚的なバー表示）
         function updateSelectionUI() {
             const count = selectedSlots.size;
-            const badge = document.getElementById('selectionBadge');
+            const panel = document.getElementById('selectionPanel');
             const submitBar = document.getElementById('submitBar');
+            const visualContainer = document.getElementById('selectionVisual');
 
-            document.getElementById('selectionCount').textContent = count;
+            document.getElementById('selectionCount').textContent = count + '件';
 
             if (count > 0) {
-                badge.classList.remove('hidden');
+                panel.classList.add('visible');
                 submitBar.classList.add('visible');
+
+                // 選択をまとめて視覚的にレンダリング
+                const slots = Array.from(selectedSlots).map(key => {
+                    const [date, time] = key.split('_');
+                    return { date, time };
+                }).sort((a, b) => {
+                    if (a.date !== b.date) return a.date.localeCompare(b.date);
+                    return a.time.localeCompare(b.time);
+                });
+
+                const merged = mergeConsecutiveSlots(slots);
+
+                let html = '';
+                for (const range of merged) {
+                    const date = new Date(range.date);
+                    const dateLabel = `${date.getMonth() + 1}/${date.getDate()}`;
+                    const weekdayLabel = weekdays[date.getDay()];
+
+                    // 時間幅を計算（30分単位の数）
+                    const slotCount = countSlotsBetween(range.startTime, range.endTime);
+
+                    html += `
+                        <div class="time-range-bar">
+                            <div class="date-badge">${dateLabel}(${weekdayLabel})</div>
+                            <div class="time-visual">
+                                ${renderTimeBlocks(slotCount)}
+                            </div>
+                            <div class="time-label">${range.startTime}〜${range.endTime}</div>
+                        </div>
+                    `;
+                }
+
+                visualContainer.innerHTML = html;
+
             } else {
-                badge.classList.add('hidden');
+                panel.classList.remove('visible');
                 submitBar.classList.remove('visible');
+                visualContainer.innerHTML = '';
             }
+        }
+
+        // 時間ブロックを視覚的にレンダリング
+        function renderTimeBlocks(count) {
+            const maxBlocks = 6; // 表示する最大ブロック数
+            const displayCount = Math.min(count, maxBlocks);
+            let html = '';
+            for (let i = 0; i < displayCount; i++) {
+                html += '<div class="time-block"></div>';
+            }
+            if (count > maxBlocks) {
+                html += `<span class="text-xs opacity-70">+${count - maxBlocks}</span>`;
+            }
+            return html;
+        }
+
+        // 開始〜終了時間のスロット数をカウント
+        function countSlotsBetween(startTime, endTime) {
+            const [h1, m1] = startTime.split(':').map(Number);
+            const [h2, m2] = endTime.split(':').map(Number);
+            const mins1 = h1 * 60 + m1;
+            const mins2 = h2 * 60 + m2;
+            return (mins2 - mins1) / 30;
         }
 
         // 週切り替え
