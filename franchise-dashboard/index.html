@@ -20809,8 +20809,8 @@
             currentSmsCase = c;
 
             // ターゲット情報を表示
-            const phone = c.phone || c.tel || '電話番号なし';
-            document.getElementById('smsTargetInfo').textContent = `${c.customerName || '---'} 様 (${phone})`;
+            const phone = c.customerTel || c.tel || c.phone || '';
+            document.getElementById('smsTargetInfo').textContent = `${c.customerName || '---'} 様`;
 
             // テンプレート選択
             const select = document.getElementById('smsTemplateSelect');
