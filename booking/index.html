@@ -28,9 +28,7 @@
         #calendarTable {
             border-collapse: separate;
             border-spacing: 2px;
-            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
-            border-radius: 12px;
-            overflow: hidden;
+            background: #e2e8f0;
         }
 
         #calendarTable th,
@@ -43,38 +41,37 @@
             position: sticky;
             left: 0;
             top: 0;
-            z-index: 20;
+            z-index: 100;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-            min-width: 60px;
-            border-radius: 8px 0 0 0;
+            min-width: 55px;
+            width: 55px;
         }
 
         /* 時間ヘッダー（上固定） */
         .sticky-header {
             position: sticky;
             top: 0;
-            z-index: 10;
-            background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%) !important;
-            padding: 10px 4px;
+            z-index: 50;
+            background: #f1f5f9 !important;
+            padding: 8px 2px;
             text-align: center;
             font-size: 11px;
             font-weight: 700;
             color: #475569;
             white-space: nowrap;
-            border-bottom: 2px solid #cbd5e1;
         }
 
         /* 日付列（左固定） */
         .sticky-date {
-            position: sticky !important;
-            left: 0 !important;
-            z-index: 15 !important;
+            position: sticky;
+            left: 0;
+            z-index: 60;
             background: #f8fafc !important;
-            padding: 10px 8px;
+            padding: 8px 6px;
             text-align: center;
-            min-width: 60px;
-            border-right: 2px solid #cbd5e1;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+            min-width: 55px;
+            width: 55px;
+            box-shadow: 3px 0 6px rgba(0,0,0,0.08);
         }
 
         .sticky-date .day {
@@ -95,8 +92,7 @@
 
         .sticky-date.today {
             background: #dbeafe !important;
-            border-right: 3px solid #3b82f6;
-            box-shadow: 2px 0 8px rgba(59,130,246,0.2);
+            box-shadow: 3px 0 6px rgba(59,130,246,0.15);
         }
 
         .sticky-date.today .day {
@@ -342,9 +338,9 @@
             </div>
 
             <!-- 週間カレンダー -->
-            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                <div id="calendarContainer" class="overflow-auto" style="max-height: 450px;">
-                    <table id="calendarTable" class="border-collapse" style="min-width: 1100px;">
+            <div class="bg-white rounded-xl shadow-sm">
+                <div id="calendarContainer" class="overflow-auto" style="max-height: 400px; position: relative;">
+                    <table id="calendarTable">
                         <!-- JSで生成 -->
                     </table>
                 </div>
