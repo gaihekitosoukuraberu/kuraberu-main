@@ -1923,14 +1923,6 @@
                                         保存する
                                     </button>
                                 </div>
-                                <!-- V2090: 保存後SMS送信オプション -->
-                                <div class="mt-3 pt-3 border-t border-gray-200">
-                                    <button onclick="saveAndSendSms()" class="w-full py-3 bg-teal-500 text-white rounded-xl hover:bg-teal-600 font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
-                                        <span>💬</span>
-                                        <span>保存してSMS送信</span>
-                                    </button>
-                                    <p class="text-xs text-gray-500 text-center mt-2">不在フォローのSMSを送信します</p>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -21349,75 +21341,6 @@
                     callCount: currentSmsCase.callCount || 0
                 })
             }).catch(err => console.error('[SMS] 履歴保存エラー:', err));
-        }
-
-        // V2090: 次回架電日を保存してからSMS送信
-        async function saveAndSendSms() {
-            // まず次回架電日を保存（nextCallTargetCvIdはopenNextCallModalで設定される）
-            const nextCallCvId = nextCallTargetCvId;
-            if (!nextCallCvId) {
-                showNotification('エラー', '案件が選択されていません', 'error');
-                return;
-            }
-
-            // 日時の取得
-            const dateInput = document.getElementById('nextCallDateInput');
-            const hourSelect = document.getElementById('nextCallHour');
-            const minuteSelect = document.getElementById('nextCallMinute');
-
-            const selectedDate = dateInput.value;
-            const selectedHour = hourSelect.value;
-            const selectedMinute = minuteSelect.value;
-
-            if (!selectedDate) {
-                showNotification('日付を選択してください', '', 'warning');
-                return;
-            }
-
-            // 案件を取得
-            const c = findCaseByCvId(nextCallCvId);
-            if (!c) {
-                showNotification('エラー', '案件が見つかりません', 'error');
-                return;
-            }
-
-            // 次回架電日時を設定
-            let nextCallDateTime = selectedDate;
-            if (selectedHour) {
-                nextCallDateTime += ` ${selectedHour}:${String(selectedMinute || 0).padStart(2, '0')}`;
-            }
-
-            c.nextCallDate = nextCallDateTime;
-
-            // 保存
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
-            try {
-                await fetch(GAS_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({
-                        system: 'merchant',
-                        subsystem: 'contract',
-                        action: 'updateNextCall',
-                        merchantId: merchantId,
-                        cvId: nextCallCvId,
-                        nextCallDate: nextCallDateTime
-                    })
-                });
-
-                // モーダルを閉じる
-                closeNextCallModal();
-
-                // 再描画
-                renderCases();
-
-                // SMS送信モーダルを開く（不在後フォローテンプレート）
-                openSmsModal(nextCallCvId, 'call_missed');
-
-            } catch (err) {
-                console.error('[SaveAndSMS] Error:', err);
-                showNotification('エラー', '保存に失敗しました', 'error');
-            }
         }
 
         // ============================================
