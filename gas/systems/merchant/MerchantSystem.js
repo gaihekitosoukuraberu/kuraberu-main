@@ -2476,5 +2476,142 @@ const MerchantSystem = {
         error: error.toString()
       };
     }
+  },
+
+  // =========================================
+  // V2109: SMSテンプレート管理
+  // =========================================
+
+  /**
+   * SMSテンプレートを取得
+   * @param {Object} params - { merchantId }
+   */
+  getSmsTemplates: function(params) {
+    try {
+      const merchantId = params.merchantId;
+      if (!merchantId) {
+        return { success: false, error: '加盟店IDが必要です' };
+      }
+
+      const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+      const sheet = ss.getSheetByName('加盟店登録');
+      if (!sheet) {
+        return { success: false, error: '加盟店登録シートが見つかりません' };
+      }
+
+      const data = sheet.getDataRange().getValues();
+      const headers = data[0];
+
+      // SMSテンプレート列を探す（なければ作成）
+      let templateColIndex = headers.indexOf('SMSテンプレート');
+      if (templateColIndex === -1) {
+        // 列を追加
+        templateColIndex = headers.length;
+        sheet.getRange(1, templateColIndex + 1).setValue('SMSテンプレート');
+      }
+
+      // 登録ID列を探す
+      const idColIndex = headers.indexOf('登録ID');
+      if (idColIndex === -1) {
+        return { success: false, error: '登録ID列が見つかりません' };
+      }
+
+      // 該当行を探す
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][idColIndex] === merchantId) {
+          const templateJson = data[i][templateColIndex] || '{}';
+          let templates = {};
+          try {
+            templates = JSON.parse(templateJson);
+          } catch (e) {
+            templates = {};
+          }
+          return {
+            success: true,
+            templates: templates
+          };
+        }
+      }
+
+      return { success: true, templates: {} };
+
+    } catch (error) {
+      console.error('[MerchantSystem] getSmsTemplates error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
+   * SMSテンプレートを保存
+   * @param {Object} params - { merchantId, templateKey, templateText }
+   */
+  saveSmsTemplates: function(params) {
+    try {
+      const merchantId = params.merchantId;
+      const templateKey = params.templateKey;
+      const templateText = params.templateText;
+
+      if (!merchantId) {
+        return { success: false, error: '加盟店IDが必要です' };
+      }
+      if (!templateKey) {
+        return { success: false, error: 'テンプレートキーが必要です' };
+      }
+
+      const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+      const sheet = ss.getSheetByName('加盟店登録');
+      if (!sheet) {
+        return { success: false, error: '加盟店登録シートが見つかりません' };
+      }
+
+      const data = sheet.getDataRange().getValues();
+      const headers = data[0];
+
+      // SMSテンプレート列を探す（なければ作成）
+      let templateColIndex = headers.indexOf('SMSテンプレート');
+      if (templateColIndex === -1) {
+        templateColIndex = headers.length;
+        sheet.getRange(1, templateColIndex + 1).setValue('SMSテンプレート');
+      }
+
+      // 登録ID列を探す
+      const idColIndex = headers.indexOf('登録ID');
+      if (idColIndex === -1) {
+        return { success: false, error: '登録ID列が見つかりません' };
+      }
+
+      // 該当行を探す
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][idColIndex] === merchantId) {
+          // 既存テンプレートを取得
+          let templates = {};
+          try {
+            templates = JSON.parse(data[i][templateColIndex] || '{}');
+          } catch (e) {
+            templates = {};
+          }
+
+          // テンプレートを更新
+          templates[templateKey] = templateText;
+
+          // 保存
+          sheet.getRange(i + 1, templateColIndex + 1).setValue(JSON.stringify(templates));
+
+          console.log('[MerchantSystem] SMSテンプレート保存:', merchantId, templateKey);
+
+          return {
+            success: true,
+            message: 'テンプレートを保存しました',
+            templates: templates
+          };
+        }
+      }
+
+      return { success: false, error: '加盟店が見つかりません' };
+
+    } catch (error) {
+      console.error('[MerchantSystem] saveSmsTemplates error:', error);
+      return { success: false, error: error.toString() };
+    }
   }
 };
