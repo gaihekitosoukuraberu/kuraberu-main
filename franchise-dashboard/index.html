@@ -21326,7 +21326,7 @@
         // SMS送信（自動コピー + アプリ起動）
         async function sendViaSms() {
             if (!currentSmsCase) return;
-            const phone = currentSmsCase.customerTel || currentSmsCase.tel || '';
+            let phone = currentSmsCase.customerTel || currentSmsCase.tel || '';
             const message = document.getElementById('smsMessageText').value;
 
             if (!phone) {
@@ -21334,39 +21334,43 @@
                 return;
             }
 
-            // 先にコピー
-            try {
-                await navigator.clipboard.writeText(message);
-            } catch (err) {
-                // フォールバック
-                const textarea = document.getElementById('smsMessageText');
-                textarea.select();
-                document.execCommand('copy');
-            }
+            // 電話番号をクリーン（ハイフン・スペース・括弧を除去）
+            phone = phone.replace(/[-\s()（）]/g, '');
 
             // モバイル判定
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
             if (isMobile) {
-                showNotification('コピー済み', 'SMSアプリを開きます', 'success');
+                // SMS URLスキーム
+                let smsUrl;
+                if (isIOS) {
+                    // iOS: sms:電話番号&body=メッセージ
+                    smsUrl = `sms:${phone}&body=${encodeURIComponent(message)}`;
+                } else {
+                    // Android: sms:電話番号?body=メッセージ
+                    smsUrl = `sms:${phone}?body=${encodeURIComponent(message)}`;
+                }
 
-                // iOS/Android両対応のSMS URLスキーム
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-                const separator = isIOS ? '&' : '?';
-                const smsUrl = `sms:${phone}${separator}body=${encodeURIComponent(message)}`;
+                console.log('[SMS] URL:', smsUrl);
 
-                // リンク要素を使って開く（より確実）
-                const link = document.createElement('a');
-                link.href = smsUrl;
-                link.click();
+                // 直接遷移（最もシンプルで確実）
+                window.location.href = smsUrl;
 
-                setTimeout(() => closeSmsModal(), 500);
+                recordSmsAction('sms');
+                setTimeout(() => closeSmsModal(), 300);
             } else {
                 // PC: コピーのみ
+                try {
+                    await navigator.clipboard.writeText(message);
+                } catch (err) {
+                    const textarea = document.getElementById('smsMessageText');
+                    textarea.select();
+                    document.execCommand('copy');
+                }
                 showNotification('コピー完了', 'スマホのSMSアプリに貼り付けて送信してください', 'success');
+                recordSmsAction('sms');
             }
-
-            recordSmsAction('sms');
         }
 
         // LINE送信（自動コピー + LINE起動）
