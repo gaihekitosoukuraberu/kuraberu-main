@@ -2348,24 +2348,24 @@
 
                                 <!-- 送信ボタン群 -->
                                 <div class="grid grid-cols-3 gap-2">
-                                    <!-- SMS（スマホのみ有効） -->
-                                    <button onclick="sendViaSms()" id="smsSendBtn" class="py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all flex flex-col items-center justify-center gap-1">
+                                    <!-- SMS -->
+                                    <button onclick="sendViaSms()" id="smsSendBtn" class="py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all flex flex-col items-center justify-center gap-1 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50">
                                         <span class="text-lg">💬</span>
                                         <span class="text-xs">SMS</span>
                                     </button>
                                     <!-- LINE -->
-                                    <button onclick="sendViaLine()" class="py-3 bg-[#06C755] text-white rounded-xl font-bold hover:opacity-90 transition-all flex flex-col items-center justify-center gap-1">
+                                    <button onclick="sendViaLine()" id="lineSendBtn" class="py-3 bg-[#06C755] text-white rounded-xl font-bold hover:opacity-90 transition-all flex flex-col items-center justify-center gap-1 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50">
                                         <span class="text-lg">💚</span>
                                         <span class="text-xs">LINE</span>
                                     </button>
                                     <!-- メール -->
-                                    <button onclick="sendViaEmail()" class="py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-all flex flex-col items-center justify-center gap-1">
+                                    <button onclick="sendViaEmail()" id="emailSendBtn" class="py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-all flex flex-col items-center justify-center gap-1 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50">
                                         <span class="text-lg">✉️</span>
                                         <span class="text-xs">メール</span>
                                     </button>
                                 </div>
 
-                                <p id="smsPlatformNote" class="text-xs text-center text-gray-400"></p>
+                                <p id="smsSendNote" class="text-xs text-center text-gray-400 mt-2"></p>
                             </div>
                         </div>
                     </div>
@@ -20820,34 +20820,58 @@
                 // ステータスに応じてデフォルトテンプレートを選択
                 const status = c.detailStatus || '';
                 if (status === '新着' || status === '未アポ') {
-                    select.value = 'inquiry_thanks';
+                    select.value = 'call_missed';  // 不在後フォロー（お問い合わせお礼統合済み）
                 } else if (status.includes('アポ') || status.includes('現調')) {
                     select.value = 'survey_confirm';
                 } else if (status.includes('見積')) {
-                    select.value = 'estimate_ready';
+                    select.value = 'estimate_schedule';
                 } else if (status.includes('検討')) {
                     select.value = 'followup';
                 } else {
-                    select.value = 'inquiry_thanks';
+                    select.value = 'call_missed';
                 }
             }
 
             // テンプレート適用
             applySmsTemplate();
 
-            // プラットフォーム判定
-            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-            const noteEl = document.getElementById('smsPlatformNote');
+            // ボタン状態を更新
             const smsBtn = document.getElementById('smsSendBtn');
+            const lineBtn = document.getElementById('lineSendBtn');
+            const emailBtn = document.getElementById('emailSendBtn');
+            const noteEl = document.getElementById('smsSendNote');
 
-            if (isMobile) {
-                noteEl.textContent = 'スマホからSMS/LINE送信できます';
-                smsBtn.disabled = false;
-                smsBtn.classList.remove('opacity-50');
+            const hasPhone = !!(c.customerTel || c.tel);
+            const hasEmail = !!(c.customerEmail || c.email);
+            // LINEは共有URLなので顧客LINE ID不要、常に有効
+
+            // SMS: 電話番号必須
+            smsBtn.disabled = !hasPhone;
+            if (!hasPhone) {
+                smsBtn.title = '電話番号がありません';
             } else {
-                noteEl.textContent = 'PCからはコピーしてスマホで送信してください';
-                smsBtn.disabled = true;
-                smsBtn.classList.add('opacity-50');
+                smsBtn.title = '';
+            }
+
+            // LINE: 常に有効（共有URL）
+            lineBtn.disabled = false;
+
+            // メール: メールアドレス必須
+            emailBtn.disabled = !hasEmail;
+            if (!hasEmail) {
+                emailBtn.title = 'メールアドレスがありません';
+            } else {
+                emailBtn.title = '';
+            }
+
+            // 注記
+            const missing = [];
+            if (!hasPhone) missing.push('電話番号');
+            if (!hasEmail) missing.push('メール');
+            if (missing.length > 0) {
+                noteEl.textContent = `※ ${missing.join('・')}が未登録のためグレーアウト`;
+            } else {
+                noteEl.textContent = 'ボタンを押すと自動でコピーされます';
             }
 
             // モーダル表示
@@ -21036,16 +21060,28 @@
             }
         }
 
-        // SMS送信（スマホのみ）
-        function sendViaSms() {
+        // SMS送信（自動コピー + アプリ起動）
+        async function sendViaSms() {
             if (!currentSmsCase) return;
-            const phone = currentSmsCase.phone || currentSmsCase.tel || '';
+            const phone = currentSmsCase.customerTel || currentSmsCase.tel || '';
             const message = document.getElementById('smsMessageText').value;
 
             if (!phone) {
                 showNotification('エラー', '電話番号がありません', 'error');
                 return;
             }
+
+            // 先にコピー
+            try {
+                await navigator.clipboard.writeText(message);
+            } catch (err) {
+                // フォールバック
+                const textarea = document.getElementById('smsMessageText');
+                textarea.select();
+                document.execCommand('copy');
+            }
+
+            showNotification('コピー済み', 'SMSアプリを開きます', 'success');
 
             // SMS URIスキーム
             const smsUrl = `sms:${phone}?body=${encodeURIComponent(message)}`;
@@ -21055,9 +21091,21 @@
             closeSmsModal();
         }
 
-        // LINE送信
-        function sendViaLine() {
+        // LINE送信（自動コピー + LINE起動）
+        async function sendViaLine() {
             const message = document.getElementById('smsMessageText').value;
+
+            // 先にコピー
+            try {
+                await navigator.clipboard.writeText(message);
+            } catch (err) {
+                const textarea = document.getElementById('smsMessageText');
+                textarea.select();
+                document.execCommand('copy');
+            }
+
+            showNotification('コピー済み', 'LINEを開きます', 'success');
+
             // LINE共有URL
             const lineUrl = `https://line.me/R/share?text=${encodeURIComponent(message)}`;
             window.open(lineUrl, '_blank');
@@ -21065,13 +21113,25 @@
             recordSmsAction('line');
         }
 
-        // メール送信
-        function sendViaEmail() {
+        // メール送信（自動コピー + メーラー起動）
+        async function sendViaEmail() {
             if (!currentSmsCase) return;
             const message = document.getElementById('smsMessageText').value;
+            const email = currentSmsCase.email || currentSmsCase.customerEmail || '';
             const subject = `【外壁塗装くらべる】${currentSmsCase.customerName || 'お客'}様へのご連絡`;
 
-            const mailUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+            // 先にコピー
+            try {
+                await navigator.clipboard.writeText(message);
+            } catch (err) {
+                const textarea = document.getElementById('smsMessageText');
+                textarea.select();
+                document.execCommand('copy');
+            }
+
+            showNotification('コピー済み', 'メーラーを開きます', 'success');
+
+            const mailUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
             window.location.href = mailUrl;
 
             recordSmsAction('email');
