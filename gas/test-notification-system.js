@@ -448,3 +448,38 @@ function processRejectionQueue() {
 
   return result;
 }
+
+/**
+ * FCMプッシュ通知テスト
+ * GASエディタでこの関数を選択して実行
+ */
+function testFcmPush() {
+  console.log('===== FCMプッシュ通知テスト開始 =====\n');
+
+  const merchantId = 'FR251205120627';
+
+  // FCMトークンの確認
+  const token = FcmHandler.getToken(merchantId);
+  if (!token) {
+    console.error('❌ FCMトークンが見つかりません: ' + merchantId);
+    return false;
+  }
+  console.log('✅ FCMトークン確認:', token.substring(0, 30) + '...');
+
+  // プッシュ通知送信
+  const result = FcmHandler.sendPush(merchantId, {
+    title: '🔔 テスト通知',
+    body: 'FCMプッシュ通知のテストです。正常に受信できていれば成功です！'
+  });
+
+  console.log('\n===== 送信結果 =====');
+  console.log('成功:', result.success ? '✅' : '❌');
+  console.log('メッセージ:', result.message || result.error);
+
+  if (result.success) {
+    console.log('\n🎉 プッシュ通知を送信しました！');
+    console.log('ブラウザで通知が表示されるか確認してください');
+  }
+
+  return result.success;
+}
