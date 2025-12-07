@@ -280,8 +280,9 @@
                 <p class="text-gray-700 font-medium text-center">
                     ご都合の良い日時をタップ（ドラッグで複数選択OK）
                 </p>
-                <div class="flex items-center justify-center gap-4 mt-3 text-xs text-gray-500">
-                    <div class="flex items-center gap-1.5">
+                <div id="legendArea" class="flex items-center justify-center gap-4 mt-3 text-xs text-gray-500">
+                    <!-- 業者空きがある場合のみ表示 -->
+                    <div id="legendAvailable" class="flex items-center gap-1.5 hidden">
                         <div class="w-4 h-4 rounded bg-gradient-to-br from-emerald-200 to-emerald-400"></div>
                         <span>業者空き</span>
                     </div>
@@ -398,6 +399,11 @@
 
                 // 業者の空き枠があれば保存
                 merchantAvailability = result.slots || [];
+
+                // 業者空きがあれば凡例を表示
+                if (merchantAvailability.length > 0) {
+                    document.getElementById('legendAvailable').classList.remove('hidden');
+                }
 
                 // UI表示
                 document.getElementById('loadingState').classList.add('hidden');
