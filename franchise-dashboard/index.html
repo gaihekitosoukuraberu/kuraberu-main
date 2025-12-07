@@ -20323,14 +20323,8 @@
         let afterCallSmsNeeded = false;
         let afterCallSmsCvId = null;
 
-        // 通話後SMS自動表示（スマホ時のみ）
+        // 通話後SMS自動表示（スマホ or メアドある場合）
         function showAfterCallSmsIfNeeded() {
-            // PCでは表示しない（スマホ時のみ）
-            if (window.innerWidth >= 768) {
-                afterCallSmsNeeded = false;
-                afterCallSmsCvId = null;
-                return;
-            }
             if (afterCallSmsNeeded && afterCallSmsCvId) {
                 const cvId = afterCallSmsCvId;
                 const c = findCaseByCvId(cvId);
@@ -20339,6 +20333,12 @@
                 afterCallSmsCvId = null;
 
                 if (c) {
+                    const hasEmail = !!(c.customerEmail || c.email);
+                    const isMobile = window.innerWidth < 768;
+                    // PCでメアドなし → 表示しない
+                    if (!isMobile && !hasEmail) {
+                        return;
+                    }
                     // ステータスに応じたテンプレートを選択
                     const status = c.detailStatus || '';
                     let template = 'call_missed'; // デフォルト
