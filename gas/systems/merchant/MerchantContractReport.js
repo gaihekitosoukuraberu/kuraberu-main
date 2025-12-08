@@ -1339,11 +1339,237 @@ var MerchantContractReport = {
         return this.updateSurveyDate(params);
       case 'updateEstimateDate':
         return this.updateEstimateDate(params);
+      // V2094: 成約・入金・工事進捗API
+      case 'updateContractPayment':
+        return this.updateContractPayment(params);
+      case 'updateContractConstruction':
+        return this.updateContractConstruction(params);
+      case 'reportClaim':
+        return this.reportClaim(params);
       default:
         return {
           success: false,
           error: 'Unknown action: ' + action
         };
+    }
+  },
+
+  // ============================================
+  // V2094: 成約・入金・工事進捗API
+  // ============================================
+
+  /**
+   * 入金情報を更新
+   * @param {Object} params - { cvId, paymentScheduleDate?, paymentConfirmedDate?, paymentAmount?, merchantId }
+   * @return {Object} - { success: boolean }
+   */
+  updateContractPayment: function(params) {
+    try {
+      const cvId = params.cvId;
+      // merchantIdは認証用（将来的に検証追加可能）
+
+      if (!cvId) {
+        return { success: false, error: 'CV IDが指定されていません' };
+      }
+
+      console.log('[V2094] updateContractPayment:', params);
+
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const deliverySheet = ss.getSheetByName('配信管理');
+
+      if (!deliverySheet) {
+        return { success: false, error: '配信管理シートが見つかりません' };
+      }
+
+      // 配信管理シートから該当案件を検索
+      const deliveryData = deliverySheet.getDataRange().getValues();
+      const headers = deliveryData[0];
+
+      const cvIdIdx = headers.indexOf('CV ID');
+      const paymentScheduleIdx = headers.indexOf('入金予定日');
+      const paymentConfirmedIdx = headers.indexOf('入金確認日');
+      const paymentAmountIdx = headers.indexOf('入金額');
+
+      // 該当行を検索
+      let rowIndex = -1;
+      for (let i = 1; i < deliveryData.length; i++) {
+        if (String(deliveryData[i][cvIdIdx]) === String(cvId)) {
+          rowIndex = i + 1; // 1-indexed
+          break;
+        }
+      }
+
+      if (rowIndex === -1) {
+        return { success: false, error: '案件が見つかりません: ' + cvId };
+      }
+
+      // 更新するカラムがシートに存在しない場合は追加
+      const updateFields = [];
+      if (params.paymentScheduleDate && paymentScheduleIdx >= 0) {
+        updateFields.push({ col: paymentScheduleIdx + 1, value: params.paymentScheduleDate });
+      }
+      if (params.paymentConfirmedDate && paymentConfirmedIdx >= 0) {
+        updateFields.push({ col: paymentConfirmedIdx + 1, value: params.paymentConfirmedDate });
+      }
+      if (params.paymentAmount && paymentAmountIdx >= 0) {
+        updateFields.push({ col: paymentAmountIdx + 1, value: params.paymentAmount });
+      }
+
+      // 各フィールドを更新
+      updateFields.forEach(function(field) {
+        deliverySheet.getRange(rowIndex, field.col).setValue(field.value);
+      });
+
+      console.log('[V2094] 入金情報更新完了:', { cvId: cvId, rowIndex: rowIndex, updateFields: updateFields.length });
+
+      return { success: true };
+    } catch (error) {
+      console.error('[V2094] updateContractPayment error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
+   * 工事進捗情報を更新
+   * @param {Object} params - { cvId, constructionStartDate?, constructionEndDate?, constructionCompletedDate?, constructionStatus?, merchantId }
+   * @return {Object} - { success: boolean }
+   */
+  updateContractConstruction: function(params) {
+    try {
+      const cvId = params.cvId;
+
+      if (!cvId) {
+        return { success: false, error: 'CV IDが指定されていません' };
+      }
+
+      console.log('[V2094] updateContractConstruction:', params);
+
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const deliverySheet = ss.getSheetByName('配信管理');
+
+      if (!deliverySheet) {
+        return { success: false, error: '配信管理シートが見つかりません' };
+      }
+
+      // 配信管理シートから該当案件を検索
+      const deliveryData = deliverySheet.getDataRange().getValues();
+      const headers = deliveryData[0];
+
+      const cvIdIdx = headers.indexOf('CV ID');
+      const constructionStartIdx = headers.indexOf('工事開始予定日');
+      const constructionEndIdx = headers.indexOf('工事完了予定日');
+      const constructionCompletedIdx = headers.indexOf('工事完了日');
+      const constructionStatusIdx = headers.indexOf('工事ステータス');
+
+      // 該当行を検索
+      let rowIndex = -1;
+      for (let i = 1; i < deliveryData.length; i++) {
+        if (String(deliveryData[i][cvIdIdx]) === String(cvId)) {
+          rowIndex = i + 1; // 1-indexed
+          break;
+        }
+      }
+
+      if (rowIndex === -1) {
+        return { success: false, error: '案件が見つかりません: ' + cvId };
+      }
+
+      // 更新するフィールド
+      const updateFields = [];
+      if (params.constructionStartDate && constructionStartIdx >= 0) {
+        updateFields.push({ col: constructionStartIdx + 1, value: params.constructionStartDate });
+      }
+      if (params.constructionEndDate && constructionEndIdx >= 0) {
+        updateFields.push({ col: constructionEndIdx + 1, value: params.constructionEndDate });
+      }
+      if (params.constructionCompletedDate && constructionCompletedIdx >= 0) {
+        updateFields.push({ col: constructionCompletedIdx + 1, value: params.constructionCompletedDate });
+      }
+      if (params.constructionStatus && constructionStatusIdx >= 0) {
+        updateFields.push({ col: constructionStatusIdx + 1, value: params.constructionStatus });
+      }
+
+      // 各フィールドを更新
+      updateFields.forEach(function(field) {
+        deliverySheet.getRange(rowIndex, field.col).setValue(field.value);
+      });
+
+      console.log('[V2094] 工事進捗更新完了:', { cvId: cvId, rowIndex: rowIndex, updateFields: updateFields.length });
+
+      return { success: true };
+    } catch (error) {
+      console.error('[V2094] updateContractConstruction error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
+   * クレーム報告
+   * @param {Object} params - { cvId, claimReason, merchantId }
+   * @return {Object} - { success: boolean }
+   */
+  reportClaim: function(params) {
+    try {
+      const cvId = params.cvId;
+      const claimReason = params.claimReason;
+
+      if (!cvId) {
+        return { success: false, error: 'CV IDが指定されていません' };
+      }
+      if (!claimReason) {
+        return { success: false, error: 'クレーム内容が指定されていません' };
+      }
+
+      console.log('[V2094] reportClaim:', params);
+
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const deliverySheet = ss.getSheetByName('配信管理');
+
+      if (!deliverySheet) {
+        return { success: false, error: '配信管理シートが見つかりません' };
+      }
+
+      // 配信管理シートから該当案件を検索
+      const deliveryData = deliverySheet.getDataRange().getValues();
+      const headers = deliveryData[0];
+
+      const cvIdIdx = headers.indexOf('CV ID');
+      const claimReasonIdx = headers.indexOf('クレーム理由');
+      const claimDateIdx = headers.indexOf('クレーム報告日');
+      const detailStatusIdx = headers.indexOf('詳細ステータス');
+
+      // 該当行を検索
+      let rowIndex = -1;
+      for (let i = 1; i < deliveryData.length; i++) {
+        if (String(deliveryData[i][cvIdIdx]) === String(cvId)) {
+          rowIndex = i + 1; // 1-indexed
+          break;
+        }
+      }
+
+      if (rowIndex === -1) {
+        return { success: false, error: '案件が見つかりません: ' + cvId };
+      }
+
+      // クレーム情報を更新
+      const now = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
+
+      if (claimReasonIdx >= 0) {
+        deliverySheet.getRange(rowIndex, claimReasonIdx + 1).setValue(claimReason);
+      }
+      if (claimDateIdx >= 0) {
+        deliverySheet.getRange(rowIndex, claimDateIdx + 1).setValue(now);
+      }
+      if (detailStatusIdx >= 0) {
+        deliverySheet.getRange(rowIndex, detailStatusIdx + 1).setValue('クレーム');
+      }
+
+      console.log('[V2094] クレーム報告完了:', { cvId: cvId, rowIndex: rowIndex });
+
+      return { success: true };
+    } catch (error) {
+      console.error('[V2094] reportClaim error:', error);
+      return { success: false, error: error.toString() };
     }
   }
 };

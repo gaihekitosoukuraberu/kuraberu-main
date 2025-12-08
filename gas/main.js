@@ -558,6 +558,26 @@ const SystemRouter = {
       actions: ['updateMerchantCaseSituation']
     },
 
+    // V2094: 成約・入金・工事進捗API
+    'updateContractPayment': {
+      system: 'MerchantContractReport',
+      description: '入金情報更新',
+      prefix: false,
+      actions: ['updateContractPayment']
+    },
+    'updateContractConstruction': {
+      system: 'MerchantContractReport',
+      description: '工事進捗更新',
+      prefix: false,
+      actions: ['updateContractConstruction']
+    },
+    'reportClaim': {
+      system: 'MerchantContractReport',
+      description: 'クレーム報告',
+      prefix: false,
+      actions: ['reportClaim']
+    },
+
     // キャンセル承認システム（管理者用）
     'approveCancelReport': {
       system: 'AdminCancelSystem',

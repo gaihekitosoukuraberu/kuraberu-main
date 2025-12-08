@@ -923,11 +923,11 @@
                     </div>
                 </div>
 
-                <!-- ステータス変更モーダル -->
+                <!-- V2094: ステータス変更モーダル（左右分割：左=離脱、右=正規ルート） -->
                 <div id="caseStatusModal" class="fixed inset-0 z-50 hidden">
                     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeStatusModal()"></div>
-                    <div class="fixed inset-x-0 top-4 bottom-0 flex items-start justify-center p-0 sm:p-4">
-                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md overflow-hidden flex flex-col">
+                    <div class="fixed inset-x-0 top-4 bottom-0 flex items-start justify-center p-0 sm:p-4 overflow-y-auto">
+                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl overflow-hidden flex flex-col my-auto">
                             <!-- ヘッダー -->
                             <div class="p-4 pb-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white relative">
                                 <button onclick="closeStatusModal()" class="absolute top-3 right-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
@@ -939,61 +939,99 @@
                                 <p id="statusTargetName" class="text-sm text-purple-200 mt-1">---</p>
                             </div>
 
-                            <!-- ステータス選択エリア -->
-                            <div class="flex-1 p-3 bg-gray-50">
-                                <!-- 営業進捗フロー -->
-                                <div class="flex flex-col items-center mb-2" id="statusDetailGrid">
-                                    <p class="text-sm text-gray-500 mb-1.5 font-medium w-28 text-center">📞 営業進捗</p>
-                                    <div class="flex items-start">
-                                        <div class="flex flex-col items-center w-28">
-                                            <button onclick="selectDetailStatus('新着')" data-status="新着" class="status-btn w-full py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-base hover:bg-blue-100 hover:border-blue-300 hover:text-blue-800 transition-all">新着</button>
-                                            <span class="text-gray-300 text-base">↓</span>
-                                        </div>
-                                        <span class="text-sm text-gray-400 whitespace-nowrap ml-3 w-32 py-2">未着手</span>
-                                    </div>
-                                    <div class="flex items-start">
-                                        <div class="flex flex-col items-center w-28">
-                                            <button onclick="selectDetailStatus('未アポ')" data-status="未アポ" class="status-btn w-full py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-base hover:bg-pink-100 hover:border-pink-300 hover:text-pink-700 transition-all">未アポ</button>
-                                            <span class="text-gray-300 text-base">↓</span>
-                                        </div>
-                                        <span class="text-sm text-gray-400 whitespace-nowrap ml-3 w-32 py-2">電話したがアポ取れず</span>
-                                    </div>
-                                    <div class="flex items-start">
-                                        <div class="flex flex-col items-center w-28">
-                                            <button onclick="selectDetailStatus('アポ済')" data-status="アポ済" class="status-btn w-full py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-base hover:bg-orange-100 hover:border-orange-300 hover:text-orange-800 transition-all">アポ済</button>
-                                            <span class="text-gray-300 text-base">↓</span>
-                                        </div>
-                                        <span class="text-sm text-gray-400 whitespace-nowrap ml-3 w-32 py-2">現調日時確定</span>
-                                    </div>
-                                    <div class="flex items-start">
-                                        <div class="flex flex-col items-center w-28">
-                                            <button onclick="selectDetailStatus('現調済')" data-status="現調済" class="status-btn w-full py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-base hover:bg-purple-100 hover:border-purple-300 hover:text-purple-800 transition-all">現調済</button>
-                                            <span class="text-gray-300 text-base">↓</span>
-                                        </div>
-                                        <span class="text-sm text-gray-400 whitespace-nowrap ml-3 w-32 py-2">現地調査完了</span>
-                                    </div>
-                                    <div class="flex items-start">
-                                        <div class="flex flex-col items-center w-28">
-                                            <button onclick="selectDetailStatus('見積提出済')" data-status="見積提出済" class="status-btn w-full py-2 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-base hover:bg-amber-100 hover:border-amber-300 hover:text-amber-800 transition-all">見積提出済</button>
-                                        </div>
-                                        <span class="text-sm text-gray-400 whitespace-nowrap ml-3 w-32 py-2">見積書を顧客に提出</span>
+                            <!-- ステータス選択エリア（左右分割） -->
+                            <div class="flex-1 p-3 bg-gray-50 flex flex-col sm:flex-row gap-3">
+                                <!-- 左側：離脱・キャンセル系 -->
+                                <div class="sm:w-1/3 bg-gray-100 rounded-xl p-3">
+                                    <p class="text-sm text-gray-500 mb-2 font-bold text-center border-b border-gray-300 pb-2">❌ 離脱・キャンセル</p>
+                                    <div class="flex flex-col gap-1.5">
+                                        <button onclick="selectDetailStatus('現調前キャンセル')" data-status="現調前キャンセル" class="status-btn py-2 px-2 bg-white border-2 border-gray-200 rounded-lg text-gray-600 font-bold text-sm hover:bg-gray-200 hover:border-gray-400 transition-all text-left">
+                                            🚫 現調前キャンセル
+                                            <span class="block text-xs text-gray-400 font-normal">アポ後に顧客都合でキャンセル</span>
+                                        </button>
+                                        <button onclick="selectDetailStatus('現調後失注')" data-status="現調後失注" class="status-btn py-2 px-2 bg-white border-2 border-gray-200 rounded-lg text-gray-600 font-bold text-sm hover:bg-gray-300 hover:border-gray-400 transition-all text-left">
+                                            😢 現調後失注
+                                            <span class="block text-xs text-gray-400 font-normal">現調後に断られた・連絡不通</span>
+                                        </button>
+                                        <button onclick="selectDetailStatus('他社契約済')" data-status="他社契約済" class="status-btn py-2 px-2 bg-white border-2 border-gray-200 rounded-lg text-gray-600 font-bold text-sm hover:bg-gray-200 hover:border-gray-400 transition-all text-left">
+                                            🏢 他社契約済
+                                            <span class="block text-xs text-gray-400 font-normal">くらべる以外で契約</span>
+                                        </button>
+                                        <button onclick="selectDetailStatus('別加盟店契約済')" data-status="別加盟店契約済" class="status-btn py-2 px-2 bg-white border-2 border-gray-200 rounded-lg text-gray-600 font-bold text-sm hover:bg-indigo-50 hover:border-indigo-300 transition-all text-left">
+                                            🤝 別加盟店契約済
+                                            <span class="block text-xs text-gray-400 font-normal">くらべるの他加盟店で契約</span>
+                                        </button>
+                                        <button onclick="selectDetailStatus('クレーム')" data-status="クレーム" class="status-btn py-2 px-2 bg-white border-2 border-gray-200 rounded-lg text-gray-600 font-bold text-sm hover:bg-red-50 hover:border-red-300 transition-all text-left">
+                                            ⚠️ クレーム
+                                            <span class="block text-xs text-gray-400 font-normal">問題発生・対応必要</span>
+                                        </button>
                                     </div>
                                 </div>
 
-                                <!-- 成約・入金系の説明 -->
-                                <div class="bg-amber-50 border border-amber-200 rounded-lg p-1.5 text-center mb-2">
-                                    <p class="text-sm text-amber-700">💡 成約時は「成約報告」よりお手続きください</p>
-                                </div>
+                                <!-- 右側：正規ルート（営業進捗→成約→完了） -->
+                                <div class="sm:w-2/3 flex flex-col gap-2">
+                                    <!-- 営業進捗フロー -->
+                                    <div class="bg-blue-50 rounded-xl p-3">
+                                        <p class="text-sm text-blue-600 mb-2 font-bold text-center border-b border-blue-200 pb-2">📞 営業進捗</p>
+                                        <div class="flex flex-col items-center" id="statusDetailGrid">
+                                            <div class="flex items-center gap-2 w-full">
+                                                <button onclick="selectDetailStatus('新着')" data-status="新着" class="status-btn flex-1 py-1.5 bg-white border-2 border-gray-200 rounded-lg text-gray-600 font-bold text-sm hover:bg-blue-100 hover:border-blue-300 transition-all">新着</button>
+                                                <span class="text-blue-300">→</span>
+                                                <button onclick="selectDetailStatus('未アポ')" data-status="未アポ" class="status-btn flex-1 py-1.5 bg-white border-2 border-gray-200 rounded-lg text-gray-600 font-bold text-sm hover:bg-pink-100 hover:border-pink-300 transition-all">未アポ</button>
+                                                <span class="text-blue-300">→</span>
+                                                <button onclick="selectDetailStatus('アポ済')" data-status="アポ済" class="status-btn flex-1 py-1.5 bg-white border-2 border-gray-200 rounded-lg text-gray-600 font-bold text-sm hover:bg-orange-100 hover:border-orange-300 transition-all">アポ済</button>
+                                            </div>
+                                            <span class="text-blue-300 text-lg my-0.5">↓</span>
+                                            <div class="flex items-center gap-2 w-full">
+                                                <button onclick="selectDetailStatus('現調済')" data-status="現調済" class="status-btn flex-1 py-1.5 bg-white border-2 border-gray-200 rounded-lg text-gray-600 font-bold text-sm hover:bg-purple-100 hover:border-purple-300 transition-all">現調済</button>
+                                                <span class="text-blue-300">→</span>
+                                                <button onclick="selectDetailStatus('見積提出済')" data-status="見積提出済" class="status-btn flex-1 py-1.5 bg-white border-2 border-gray-200 rounded-lg text-gray-600 font-bold text-sm hover:bg-amber-100 hover:border-amber-300 transition-all">見積提出済</button>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                <!-- 離脱ステータス -->
-                                <div class="flex flex-col items-center" id="statusDetailGrid2">
-                                    <p class="text-sm text-gray-500 mb-1.5 font-medium w-28 text-center">✖️ 離脱・その他</p>
-                                    <div class="grid grid-cols-3 gap-1.5 w-[17rem]">
-                                        <button onclick="selectDetailStatus('現調前キャンセル')" data-status="現調前キャンセル" title="現調前に顧客都合でキャンセル" class="status-btn py-1.5 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-sm hover:bg-gray-200 hover:border-gray-400 hover:text-gray-700 transition-all leading-tight">現調前<br>キャンセル</button>
-                                        <button onclick="selectDetailStatus('現調後失注')" data-status="現調後失注" title="現調後断られた" class="status-btn py-1.5 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-sm hover:bg-gray-300 hover:border-gray-500 hover:text-gray-800 transition-all leading-tight">現調後<br>失注</button>
-                                        <button onclick="selectDetailStatus('他社契約済')" data-status="他社契約済" title="他の一般業者で契約" class="status-btn py-1.5 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-sm hover:bg-gray-200 hover:border-gray-400 hover:text-gray-700 transition-all leading-tight">他社<br>契約済</button>
-                                        <button onclick="selectDetailStatus('別加盟店契約済')" data-status="別加盟店契約済" title="他の加盟店で契約" class="status-btn py-1.5 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-sm hover:bg-indigo-100 hover:border-indigo-300 hover:text-indigo-700 transition-all leading-tight">別加盟店<br>契約済</button>
-                                        <button onclick="selectDetailStatus('クレーム')" data-status="クレーム" title="問題発生または失注" class="status-btn py-1.5 px-1 bg-white border-2 border-gray-200 rounded-lg text-gray-500 font-bold text-sm hover:bg-red-100 hover:border-red-300 hover:text-red-800 transition-all leading-tight">クレーム</button>
+                                    <!-- 成約フロー -->
+                                    <div class="bg-green-50 rounded-xl p-3">
+                                        <p class="text-sm text-green-600 mb-2 font-bold text-center border-b border-green-200 pb-2">🎉 成約・入金</p>
+                                        <div class="flex flex-col items-center">
+                                            <div class="flex items-center gap-2 w-full">
+                                                <button onclick="selectDetailStatus('成約')" data-status="成約" class="status-btn flex-1 py-2 bg-white border-2 border-green-200 rounded-lg text-green-700 font-bold text-sm hover:bg-green-100 hover:border-green-400 transition-all">
+                                                    🎊 成約
+                                                    <span class="block text-xs text-green-500 font-normal">契約確定</span>
+                                                </button>
+                                                <span class="text-green-300">→</span>
+                                                <button onclick="selectDetailStatus('入金予定')" data-status="入金予定" class="status-btn flex-1 py-2 bg-white border-2 border-cyan-200 rounded-lg text-cyan-700 font-bold text-sm hover:bg-cyan-100 hover:border-cyan-400 transition-all">
+                                                    💰 入金予定
+                                                    <span class="block text-xs text-cyan-500 font-normal">入金待ち</span>
+                                                </button>
+                                                <span class="text-green-300">→</span>
+                                                <button onclick="selectDetailStatus('入金済')" data-status="入金済" class="status-btn flex-1 py-2 bg-white border-2 border-emerald-200 rounded-lg text-emerald-700 font-bold text-sm hover:bg-emerald-100 hover:border-emerald-400 transition-all">
+                                                    ✅ 入金済
+                                                    <span class="block text-xs text-emerald-500 font-normal">入金完了</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 工事進捗フロー -->
+                                    <div class="bg-orange-50 rounded-xl p-3">
+                                        <p class="text-sm text-orange-600 mb-2 font-bold text-center border-b border-orange-200 pb-2">🔧 工事進捗</p>
+                                        <div class="flex items-center gap-2 w-full">
+                                            <button onclick="selectDetailStatus('未着工')" data-status="未着工" class="status-btn flex-1 py-2 bg-white border-2 border-orange-200 rounded-lg text-orange-700 font-bold text-sm hover:bg-orange-100 hover:border-orange-400 transition-all">
+                                                🏗️ 未着工
+                                                <span class="block text-xs text-orange-500 font-normal">工事開始前</span>
+                                            </button>
+                                            <span class="text-orange-300">→</span>
+                                            <button onclick="selectDetailStatus('施工中')" data-status="施工中" class="status-btn flex-1 py-2 bg-white border-2 border-yellow-200 rounded-lg text-yellow-700 font-bold text-sm hover:bg-yellow-100 hover:border-yellow-400 transition-all">
+                                                🔨 施工中
+                                                <span class="block text-xs text-yellow-600 font-normal">工事進行中</span>
+                                            </button>
+                                            <span class="text-orange-300">→</span>
+                                            <button onclick="selectDetailStatus('完了')" data-status="完了" class="status-btn flex-1 py-2 bg-white border-2 border-teal-200 rounded-lg text-teal-700 font-bold text-sm hover:bg-teal-100 hover:border-teal-400 transition-all">
+                                                🏆 完了
+                                                <span class="block text-xs text-teal-600 font-normal">全工程完了</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -23797,6 +23835,36 @@
                 // 未アポなら次回架電日設定
                 openNextCallModal(cvId);
             }
+            // V2094: 成約系ステータス
+            else if (newStatus === '成約') {
+                // 成約なら成約報告モーダル
+                openContractReportFromStatus(cvId);
+            } else if (newStatus === '入金予定') {
+                // 入金予定なら入金予定日モーダル
+                openPaymentScheduleModal(cvId);
+            } else if (newStatus === '入金済') {
+                // 入金済なら入金確認モーダル
+                openPaymentConfirmModal(cvId);
+            }
+            // V2094: 工事進捗ステータス
+            else if (newStatus === '未着工') {
+                // 未着工なら工事開始予定日モーダル
+                openConstructionScheduleModal(cvId, 'start');
+            } else if (newStatus === '施工中') {
+                // 施工中なら工事完了予定日モーダル
+                openConstructionScheduleModal(cvId, 'progress');
+            } else if (newStatus === '完了') {
+                // 完了なら工事完了確認モーダル
+                openConstructionCompleteModal(cvId);
+            }
+            // V2094: キャンセル系ステータス
+            else if (newStatus === '現調前キャンセル' || newStatus === '現調後失注' || newStatus === '他社契約済' || newStatus === '別加盟店契約済') {
+                // キャンセル系なら理由入力モーダル
+                openCancelReasonFromStatus(cvId, newStatus);
+            } else if (newStatus === 'クレーム') {
+                // クレームならクレーム報告モーダル
+                openClaimReportModal(cvId);
+            }
         }
 
         // 統計を再計算
@@ -32030,6 +32098,386 @@
                 }
             }
         });
+
+        // ============================================
+        // V2094: ステータスモーダルからの連携関数群
+        // ============================================
+
+        // 成約報告モーダルを開く（ステータスモーダルから）
+        window.openContractReportFromStatus = function(cvId) {
+            console.log('[V2094] openContractReportFromStatus:', cvId);
+
+            // 案件データを取得
+            const caseData = findCaseByCvId(cvId);
+            if (!caseData) {
+                alert('案件情報が見つかりません');
+                return;
+            }
+
+            // selectedContractCaseに設定（既存の成約報告フローで使用）
+            selectedContractCase = {
+                cvId: caseData.cvId,
+                customerName: caseData.customerName,
+                address: caseData.fullAddress || caseData.address,
+                tel: caseData.tel
+            };
+
+            // 質問フローをリセット
+            contractAnswers = [];
+
+            // 顧客情報を表示
+            const customerInfo = document.getElementById('contractCustomerInfo');
+            const customerName = document.getElementById('contractCustomerName');
+            const customerAddress = document.getElementById('contractCustomerAddress');
+
+            if (customerName) customerName.textContent = selectedContractCase.customerName || '';
+            if (customerAddress) customerAddress.textContent = selectedContractCase.address || '';
+            if (customerInfo) customerInfo.classList.remove('hidden');
+
+            // フォームフェーズをリセット
+            const questionContainer = document.getElementById('contractQuestionContainer');
+            const formPhase = document.getElementById('contractFormPhase');
+            if (questionContainer) questionContainer.classList.remove('hidden');
+            if (formPhase) formPhase.classList.add('hidden');
+
+            // 成約報告モーダルを開く
+            document.getElementById('contractModal').classList.remove('hidden');
+
+            // 質問フローを開始
+            showContractQuestion(0);
+        };
+
+        // キャンセル理由モーダルを開く（ステータスモーダルから）
+        window.openCancelReasonFromStatus = function(cvId, cancelStatus) {
+            console.log('[V2094] openCancelReasonFromStatus:', cvId, cancelStatus);
+
+            // 案件データを取得
+            const caseData = findCaseByCvId(cvId);
+            if (!caseData) {
+                alert('案件情報が見つかりません');
+                return;
+            }
+
+            // cancelSelectedCaseに設定（既存のキャンセル申請フローで使用）
+            cancelSelectedCase = {
+                cvId: caseData.cvId,
+                customerName: caseData.customerName,
+                address: caseData.fullAddress || caseData.address,
+                tel: caseData.tel,
+                deliveredAt: caseData.deliveredAt
+            };
+
+            // AI生成回数をリセット
+            cancelAiGenerationCount = 0;
+            // テキスト履歴をリセット
+            textHistory = [];
+            textHistoryIndex = -1;
+            // textareaをクリア
+            const textarea = document.getElementById('cancelApplicationText');
+            if (textarea) textarea.value = '';
+
+            // モーダルを表示してStep 1（理由カテゴリ選択）へ
+            document.getElementById('cancelModal').classList.remove('hidden');
+            cancelGoToStep(1);
+
+            // キャンセルステータスに応じて初期カテゴリを自動選択
+            // 現調前キャンセル → 顧客都合
+            // 現調後失注 → 価格不満 or 他社比較
+            // 他社契約済 → 他社決定
+            // 別加盟店契約済 → 他社決定（くらべる内）
+            // ※自動選択は複雑なため、ユーザーに選んでもらう形で保持
+        };
+
+        // 入金予定日モーダルを開く
+        window.openPaymentScheduleModal = function(cvId) {
+            console.log('[V2094] openPaymentScheduleModal:', cvId);
+
+            // 案件データを取得
+            const caseData = findCaseByCvId(cvId);
+            if (!caseData) {
+                alert('案件情報が見つかりません');
+                return;
+            }
+
+            // 入金予定日入力モーダルを表示
+            const modal = document.getElementById('paymentScheduleModal');
+            if (!modal) {
+                // モーダルが存在しない場合は簡易的なpromptで対応
+                const date = prompt('入金予定日を入力してください（例: 2025-01-15）');
+                if (date) {
+                    savePaymentSchedule(cvId, date);
+                }
+                return;
+            }
+
+            modal.dataset.cvId = cvId;
+            modal.classList.remove('hidden');
+        };
+
+        // 入金予定日を保存
+        window.savePaymentSchedule = async function(cvId, date) {
+            console.log('[V2094] savePaymentSchedule:', cvId, date);
+
+            try {
+                const params = new URLSearchParams({
+                    action: 'updateContractPayment',
+                    cvId: cvId,
+                    paymentScheduleDate: date,
+                    merchantId: window.merchantId
+                });
+
+                const response = await fetch(ENV.GAS_URL + '?' + params.toString());
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('保存完了', '入金予定日を保存しました', 'success');
+                    // ローカルデータを更新
+                    const caseData = findCaseByCvId(cvId);
+                    if (caseData) {
+                        caseData.paymentScheduleDate = date;
+                    }
+                } else {
+                    showNotification('エラー', result.error || '保存に失敗しました', 'error');
+                }
+            } catch (error) {
+                console.error('[V2094] savePaymentSchedule error:', error);
+                showNotification('エラー', '通信エラーが発生しました', 'error');
+            }
+        };
+
+        // 入金確認モーダルを開く
+        window.openPaymentConfirmModal = function(cvId) {
+            console.log('[V2094] openPaymentConfirmModal:', cvId);
+
+            // 案件データを取得
+            const caseData = findCaseByCvId(cvId);
+            if (!caseData) {
+                alert('案件情報が見つかりません');
+                return;
+            }
+
+            // 入金確認モーダルを表示
+            const modal = document.getElementById('paymentConfirmModal');
+            if (!modal) {
+                // モーダルが存在しない場合は確認ダイアログで対応
+                const confirmed = confirm('入金確認を行いますか？\n\n顧客名: ' + (caseData.customerName || '') + '\n入金予定日: ' + (caseData.paymentScheduleDate || '未設定'));
+                if (confirmed) {
+                    const amount = prompt('入金額を入力してください（例: 1500000）');
+                    if (amount) {
+                        savePaymentConfirm(cvId, amount);
+                    }
+                }
+                return;
+            }
+
+            modal.dataset.cvId = cvId;
+            modal.classList.remove('hidden');
+        };
+
+        // 入金確認を保存
+        window.savePaymentConfirm = async function(cvId, amount) {
+            console.log('[V2094] savePaymentConfirm:', cvId, amount);
+
+            try {
+                const params = new URLSearchParams({
+                    action: 'updateContractPayment',
+                    cvId: cvId,
+                    paymentConfirmedDate: new Date().toISOString().split('T')[0],
+                    paymentAmount: amount,
+                    merchantId: window.merchantId
+                });
+
+                const response = await fetch(ENV.GAS_URL + '?' + params.toString());
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('保存完了', '入金確認を保存しました', 'success');
+                    // ローカルデータを更新
+                    const caseData = findCaseByCvId(cvId);
+                    if (caseData) {
+                        caseData.paymentConfirmedDate = new Date().toISOString().split('T')[0];
+                        caseData.paymentAmount = amount;
+                    }
+                } else {
+                    showNotification('エラー', result.error || '保存に失敗しました', 'error');
+                }
+            } catch (error) {
+                console.error('[V2094] savePaymentConfirm error:', error);
+                showNotification('エラー', '通信エラーが発生しました', 'error');
+            }
+        };
+
+        // 工事スケジュールモーダルを開く
+        window.openConstructionScheduleModal = function(cvId, type) {
+            console.log('[V2094] openConstructionScheduleModal:', cvId, type);
+
+            // 案件データを取得
+            const caseData = findCaseByCvId(cvId);
+            if (!caseData) {
+                alert('案件情報が見つかりません');
+                return;
+            }
+
+            // type: 'start' = 工事開始予定日、'progress' = 工事完了予定日
+            const label = type === 'start' ? '工事開始予定日' : '工事完了予定日';
+
+            const modal = document.getElementById('constructionScheduleModal');
+            if (!modal) {
+                // モーダルが存在しない場合は簡易的なpromptで対応
+                const date = prompt(label + 'を入力してください（例: 2025-02-01）');
+                if (date) {
+                    saveConstructionSchedule(cvId, type, date);
+                }
+                return;
+            }
+
+            modal.dataset.cvId = cvId;
+            modal.dataset.type = type;
+            modal.classList.remove('hidden');
+        };
+
+        // 工事スケジュールを保存
+        window.saveConstructionSchedule = async function(cvId, type, date) {
+            console.log('[V2094] saveConstructionSchedule:', cvId, type, date);
+
+            const fieldName = type === 'start' ? 'constructionStartDate' : 'constructionEndDate';
+
+            try {
+                const params = new URLSearchParams({
+                    action: 'updateContractConstruction',
+                    cvId: cvId,
+                    [fieldName]: date,
+                    merchantId: window.merchantId
+                });
+
+                const response = await fetch(ENV.GAS_URL + '?' + params.toString());
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('保存完了', '工事スケジュールを保存しました', 'success');
+                    // ローカルデータを更新
+                    const caseData = findCaseByCvId(cvId);
+                    if (caseData) {
+                        caseData[fieldName] = date;
+                    }
+                } else {
+                    showNotification('エラー', result.error || '保存に失敗しました', 'error');
+                }
+            } catch (error) {
+                console.error('[V2094] saveConstructionSchedule error:', error);
+                showNotification('エラー', '通信エラーが発生しました', 'error');
+            }
+        };
+
+        // 工事完了確認モーダルを開く
+        window.openConstructionCompleteModal = function(cvId) {
+            console.log('[V2094] openConstructionCompleteModal:', cvId);
+
+            // 案件データを取得
+            const caseData = findCaseByCvId(cvId);
+            if (!caseData) {
+                alert('案件情報が見つかりません');
+                return;
+            }
+
+            const modal = document.getElementById('constructionCompleteModal');
+            if (!modal) {
+                // モーダルが存在しない場合は確認ダイアログで対応
+                const confirmed = confirm('工事完了を報告しますか？\n\n顧客名: ' + (caseData.customerName || ''));
+                if (confirmed) {
+                    saveConstructionComplete(cvId);
+                }
+                return;
+            }
+
+            modal.dataset.cvId = cvId;
+            modal.classList.remove('hidden');
+        };
+
+        // 工事完了を保存
+        window.saveConstructionComplete = async function(cvId) {
+            console.log('[V2094] saveConstructionComplete:', cvId);
+
+            try {
+                const params = new URLSearchParams({
+                    action: 'updateContractConstruction',
+                    cvId: cvId,
+                    constructionCompletedDate: new Date().toISOString().split('T')[0],
+                    constructionStatus: '完了',
+                    merchantId: window.merchantId
+                });
+
+                const response = await fetch(ENV.GAS_URL + '?' + params.toString());
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('保存完了', '工事完了を報告しました', 'success');
+                    // ローカルデータを更新
+                    const caseData = findCaseByCvId(cvId);
+                    if (caseData) {
+                        caseData.constructionCompletedDate = new Date().toISOString().split('T')[0];
+                        caseData.constructionStatus = '完了';
+                    }
+                } else {
+                    showNotification('エラー', result.error || '保存に失敗しました', 'error');
+                }
+            } catch (error) {
+                console.error('[V2094] saveConstructionComplete error:', error);
+                showNotification('エラー', '通信エラーが発生しました', 'error');
+            }
+        };
+
+        // クレーム報告モーダルを開く
+        window.openClaimReportModal = function(cvId) {
+            console.log('[V2094] openClaimReportModal:', cvId);
+
+            // 案件データを取得
+            const caseData = findCaseByCvId(cvId);
+            if (!caseData) {
+                alert('案件情報が見つかりません');
+                return;
+            }
+
+            const modal = document.getElementById('claimReportModal');
+            if (!modal) {
+                // モーダルが存在しない場合は簡易的なpromptで対応
+                const reason = prompt('クレーム内容を入力してください');
+                if (reason) {
+                    saveClaimReport(cvId, reason);
+                }
+                return;
+            }
+
+            modal.dataset.cvId = cvId;
+            modal.classList.remove('hidden');
+        };
+
+        // クレーム報告を保存
+        window.saveClaimReport = async function(cvId, reason) {
+            console.log('[V2094] saveClaimReport:', cvId, reason);
+
+            try {
+                const params = new URLSearchParams({
+                    action: 'reportClaim',
+                    cvId: cvId,
+                    claimReason: reason,
+                    merchantId: window.merchantId
+                });
+
+                const response = await fetch(ENV.GAS_URL + '?' + params.toString());
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('報告完了', 'クレームを報告しました', 'success');
+                } else {
+                    showNotification('エラー', result.error || '報告に失敗しました', 'error');
+                }
+            } catch (error) {
+                console.error('[V2094] saveClaimReport error:', error);
+                showNotification('エラー', '通信エラーが発生しました', 'error');
+            }
+        };
+
     </script>
     <style>
         @keyframes slide-in {
