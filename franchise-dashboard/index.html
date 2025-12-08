@@ -17036,6 +17036,8 @@
             window[callbackName] = function(result) {
                 try {
                     if (result.success) {
+                        // V2082: 保存成功時にヘッダー名も更新
+                        updateHeaderName(profile.name);
                         alert('プロフィールを保存しました');
                     } else {
                         console.error('[saveProfile] API error:', result.error);
@@ -17165,6 +17167,11 @@
                 document.body.appendChild(script);
             }
 
+            // V2082: ヘッダー名も更新
+            if (profile.name) {
+                updateHeaderName(profile.name);
+            }
+
             // モーダルを閉じる
             hideProfileSetupModal();
             alert('プロフィールを設定しました！');
@@ -17218,6 +17225,11 @@
                         document.getElementById('profilePostalCode').value = profile.postalCode || '';
                         // ローカルにも同期
                         localStorage.setItem('userProfile', JSON.stringify(profile));
+
+                        // V2082: ヘッダーに名前を反映（通知設定シートから動的アサイン）
+                        if (profile.name) {
+                            updateHeaderName(profile.name);
+                        }
 
                         // V2080: 電話番号または郵便番号が未入力なら初期設定モーダルを表示
                         const needsProfileSetup = !profile.phone || !profile.postalCode;
