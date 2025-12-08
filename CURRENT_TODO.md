@@ -1,84 +1,79 @@
-# 現在の作業TODO - スケジューリング & SMS機能
+# 現在の作業TODO - 通知設定 & プロフィールスプシ連携
 
-**作業開始**: 2025-12-07
-**完了**: 2025-12-07
+**作業開始**: 2025-12-08
+**完了**: 2025-12-08
 
 ---
 
 ## 全体構成
 ```
-Phase 1: SMS送信機能（テンプレート） ✅完了
-Phase 2: データ構造 & GASバックエンド ✅完了
-Phase 3: 業者側 - 空き枠管理UI ✅完了
-Phase 4: ユーザー側 - 予約ページ ✅完了
-Phase 5: 統合 ✅完了
+Phase 1: 通知設定シートにプロフィールカラム追加 ✅完了
+Phase 2: GAS APIルーティング追加 ✅完了
+Phase 3: フロントエンドAPI連携 ✅完了
 ```
 
 ---
 
-## Phase 1: SMS送信機能 ✅完了
-- [x] 1-1. SMSモーダルHTML作成 (V2089)
-- [x] 1-2. テンプレート定義（ステータス別）
-- [x] 1-3. 変数置換ロジック（顧客名、日付等）
-- [x] 1-4. コピー/SMS/LINE/メール送信ボタン
-- [x] 1-5. 送信履歴記録（callHistory）
-- [x] 1-6. 架電後フローに組み込み (V2090)
+## Phase 1: 通知設定シートにプロフィールカラム追加 ✅完了
+- [x] 1-1. NotificationSettingsManager.js 修正
+  - COLインデックス定義追加（10カラム対応）
+  - getSheet(): 新カラム構造でシート作成
+  - migrateSheet(): 既存シートのマイグレーション関数
+  - getSettings(): プロフィール含むデータ取得
+  - saveSettings(): プロフィール含むデータ保存
+  - saveProfile(): プロフィールのみ更新
+  - getMerchantUsers(): 新カラム構造対応
+  - handle(): SystemRouter用エントリーポイント
 
-## Phase 2: データ構造 & GASバックエンド ✅完了
-- [x] 2-1. スプシ設計（空き枠シート、予約シート）
-- [x] 2-2. BookingSystem.js 作成 (V2091)
-- [x] 2-3. setContractorAvailability() - 空き枠登録
-- [x] 2-4. getContractorAvailability() - 業者の空き取得
-- [x] 2-5. getAvailableSlotsForCase() - 案件向け全業者の空き
-- [x] 2-6. createBooking() - 予約作成
-- [x] 2-7. getBookings() - 予約一覧取得
+## Phase 2: GAS APIルーティング追加 ✅完了
+- [x] 2-1. main.js SystemRouterに4アクション追加
+  - getNotificationSettings: 通知設定取得
+  - saveNotificationSettings: 通知設定保存
+  - saveUserProfile: プロフィール保存
+  - migrateNotificationSheet: シートマイグレーション
 
-## Phase 3: 業者側 - 空き枠管理UI ✅完了
-- [x] 3-1. 設定セクション追加（スロット時間: 30分/1時間選択）(V2092)
-- [x] 3-2. 週間カレンダービュー
-- [x] 3-3. 時間帯バンド（タップ/ドラッグで範囲設定）
-- [x] 3-4. 空き枠の保存API連携
-- [x] 3-5. 既存予約の表示
-
-## Phase 4: ユーザー向け予約ページ ✅完了
-- [x] 4-1. /booking/index.html 新規作成 (V2093)
-- [x] 4-2. URLパラメータで案件特定（cvId + token）
-- [x] 4-3. 日付セレクター + タイムラインUI
-- [x] 4-4. 業者ごとの空き枠バンド表示（色分け）
-- [x] 4-5. 枠タップで予約確認モーダル
-- [x] 4-6. 予約完了画面 & 通知
-
-## Phase 5: 統合 ✅完了
-- [x] 5-1. SMSテンプレートに予約リンク自動生成 (V2094)
-- [x] 5-2. 予約完了時の業者通知 (BookingSystem.js内)
-- [ ] 5-3. 案件カードに予約状況表示 (後日実装)
+## Phase 3: フロントエンドAPI連携 ✅完了
+- [x] 3-1. franchise-dashboard/index.html 修正
+  - saveProfile(): API連携（ローカル+サーバー同期）
+  - saveNotificationSettings(): API連携
+  - loadUserSettings(): 設定画面表示時にAPIから読み込み
+  - loadSettingsFromLocalStorage(): オフラインフォールバック
+  - showSection('settings')時にloadUserSettings()呼び出し
 
 ---
 
-## ファイル構成（実装済み）
+## 新しいシート構造（通知設定シート）
 ```
-/franchise-dashboard/
-  index.html          ← 業者側UI
-    - SMSモーダル
-    - 空き枠管理セクション
-    - 週間カレンダー
-    - 一括設定
+| ユーザーID | 加盟店ID | 氏名 | 電話番号 | メールアドレス | メール通知 | LINE通知 | ブラウザ通知 | 詳細設定JSON | 最終更新 |
+```
 
-/booking/
-  index.html          ← ユーザー向け予約ページ（新規）
+## マイグレーション方法
+既存シートがある場合、以下のAPIを1回実行：
+```
+GAS_URL?action=migrateNotificationSheet
+```
 
+---
+
+## 過去の作業履歴
+
+### スケジューリング & SMS機能 (2025-12-07完了)
+- Phase 1: SMS送信機能（テンプレート）
+- Phase 2: データ構造 & GASバックエンド
+- Phase 3: 業者側 - 空き枠管理UI
+- Phase 4: ユーザー側 - 予約ページ
+- Phase 5: 統合
+
+---
+
+## ファイル構成（今回の変更）
+```
 /gas/
   systems/
-    booking/
-      BookingSystem.js  ← 予約関連API（新規）
-  main.js              ← ルーティング追加済み
+    notification/
+      NotificationSettingsManager.js  ← プロフィール対応追加
+  main.js              ← ルーティング追加
+
+/franchise-dashboard/
+  index.html          ← API連携追加
 ```
-
----
-
-## コミット履歴
-- V2090: SMS送信モーダル完成 - 架電後フロー統合
-- V2091: BookingSystem.js - 予約システムGASバックエンド
-- V2092: 業者側 空き枠管理UI完成
-- V2093: ユーザー向け予約ページ完成
-- V2094: 統合 - SMSテンプレート予約リンク自動生成

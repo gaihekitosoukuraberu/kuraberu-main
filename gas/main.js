@@ -606,6 +606,32 @@ const SystemRouter = {
       actions: ['lp_contact_submit']
     },
 
+    // 通知設定・プロフィール管理
+    'getNotificationSettings': {
+      system: 'NotificationSettingsManager',
+      description: '通知設定取得',
+      prefix: false,
+      actions: ['getNotificationSettings']
+    },
+    'saveNotificationSettings': {
+      system: 'NotificationSettingsManager',
+      description: '通知設定保存',
+      prefix: false,
+      actions: ['saveNotificationSettings']
+    },
+    'saveUserProfile': {
+      system: 'NotificationSettingsManager',
+      description: 'プロフィール保存',
+      prefix: false,
+      actions: ['saveUserProfile']
+    },
+    'migrateNotificationSheet': {
+      system: 'NotificationSettingsManager',
+      description: '通知設定シートマイグレーション',
+      prefix: false,
+      actions: ['migrateNotificationSheet']
+    },
+
   },
 
   /**

@@ -15763,6 +15763,8 @@
                     updateAccountInfo();
                     // LINE連携セクションを初期化
                     setTimeout(() => initLineConnectionSection(), 100);
+                    // プロフィール・通知設定をAPIから読み込み
+                    setTimeout(() => loadUserSettings(), 150);
                 }
 
                 // V2007: 案件管理セクションの場合は案件データを読み込み
@@ -17041,19 +17043,108 @@
             settings.classList.toggle('hidden', !enabled);
         }
         
-        // プロフィール保存
-        function saveProfile() {
+        // プロフィール保存（API連携）
+        async function saveProfile() {
             const profile = {
                 name: document.getElementById('profileName').value,
                 phone: document.getElementById('profilePhone').value,
                 email: document.getElementById('profileEmail').value
             };
+
+            // ローカルにも保存（オフライン対応）
             localStorage.setItem('userProfile', JSON.stringify(profile));
-            alert('プロフィールを保存しました');
+
+            // API連携
+            try {
+                const userId = localStorage.getItem('userId') || 'master';
+                const merchantId = localStorage.getItem('merchantId') || '';
+
+                if (!merchantId) {
+                    alert('加盟店IDが見つかりません。再ログインしてください。');
+                    return;
+                }
+
+                const response = await fetch(`${window.ENV?.GAS_URL || GAS_URL}&action=saveUserProfile&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}&profile=${encodeURIComponent(JSON.stringify(profile))}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('プロフィールを保存しました');
+                } else {
+                    console.error('[saveProfile] API error:', result.error);
+                    alert('プロフィールをローカルに保存しました（サーバー同期に失敗）');
+                }
+            } catch (error) {
+                console.error('[saveProfile] Error:', error);
+                alert('プロフィールをローカルに保存しました（サーバー同期に失敗）');
+            }
         }
-        
-        // 通知設定保存
-        function saveNotificationSettings() {
+
+        // プロフィール・通知設定をAPIから読み込み
+        async function loadUserSettings() {
+            try {
+                const userId = localStorage.getItem('userId') || 'master';
+                const merchantId = localStorage.getItem('merchantId') || '';
+
+                if (!merchantId) {
+                    console.log('[loadUserSettings] merchantId not found, using localStorage');
+                    loadSettingsFromLocalStorage();
+                    return;
+                }
+
+                const response = await fetch(`${window.ENV?.GAS_URL || GAS_URL}&action=getNotificationSettings&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}`);
+                const result = await response.json();
+
+                if (result.success && result.settings) {
+                    const settings = result.settings;
+
+                    // プロフィール情報を反映
+                    if (settings.profile) {
+                        document.getElementById('profileName').value = settings.profile.name || '';
+                        document.getElementById('profilePhone').value = settings.profile.phone || '';
+                        document.getElementById('profileEmail').value = settings.profile.email || '';
+                        // ローカルにも同期
+                        localStorage.setItem('userProfile', JSON.stringify(settings.profile));
+                    }
+
+                    // 通知設定を反映
+                    if (document.getElementById('notifyEmail')) {
+                        document.getElementById('notifyEmail').checked = settings.email !== false;
+                    }
+                    if (document.getElementById('notifyLine')) {
+                        document.getElementById('notifyLine').checked = settings.line === true;
+                    }
+                    if (document.getElementById('notifyBrowser')) {
+                        document.getElementById('notifyBrowser').checked = settings.browser !== false;
+                    }
+
+                    console.log('[loadUserSettings] Loaded from API:', settings);
+                } else {
+                    console.log('[loadUserSettings] API returned no data, using localStorage');
+                    loadSettingsFromLocalStorage();
+                }
+            } catch (error) {
+                console.error('[loadUserSettings] Error:', error);
+                loadSettingsFromLocalStorage();
+            }
+        }
+
+        // ローカルストレージから設定を復元
+        function loadSettingsFromLocalStorage() {
+            const savedProfile = localStorage.getItem('userProfile');
+            if (savedProfile) {
+                try {
+                    const profile = JSON.parse(savedProfile);
+                    document.getElementById('profileName').value = profile.name || '';
+                    document.getElementById('profilePhone').value = profile.phone || '';
+                    document.getElementById('profileEmail').value = profile.email || '';
+                } catch (e) {
+                    console.error('[loadSettingsFromLocalStorage] Error:', e);
+                }
+            }
+        }
+
+        // 通知設定保存（API連携）
+        async function saveNotificationSettings() {
             const settings = {
                 email: document.getElementById('notifyEmail').checked,
                 sms: document.getElementById('notifySms').checked,
@@ -17092,7 +17183,29 @@
                     end: document.getElementById('quietEnd').value
                 }
             };
+
+            // ローカルにも保存（オフライン対応）
             localStorage.setItem('notificationSettings', JSON.stringify(settings));
+
+            // API連携
+            try {
+                const userId = localStorage.getItem('userId') || 'master';
+                const merchantId = localStorage.getItem('merchantId') || '';
+
+                if (!merchantId) {
+                    console.warn('[saveNotificationSettings] merchantId not found');
+                    return;
+                }
+
+                const response = await fetch(`${window.ENV?.GAS_URL || GAS_URL}&action=saveNotificationSettings&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}&email=${settings.email}&line=${settings.line}&browser=${settings.browser}&alerts=${encodeURIComponent(JSON.stringify(settings.alerts))}`);
+                const result = await response.json();
+
+                if (!result.success) {
+                    console.error('[saveNotificationSettings] API error:', result.error);
+                }
+            } catch (error) {
+                console.error('[saveNotificationSettings] Error:', error);
+            }
         }
         
         // 表示設定保存
