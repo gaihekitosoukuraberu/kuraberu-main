@@ -17105,6 +17105,23 @@
             }
         }
 
+        // V2083: プロフィール設定フォームの入力チェック（両方入力されたらボタン活性化）
+        function checkProfileSetupForm() {
+            const phone = document.getElementById('setupProfilePhone').value.trim();
+            const postalCode = document.getElementById('setupProfilePostalCode').value.trim();
+            const btn = document.getElementById('setupProfileSaveBtn');
+
+            if (phone && postalCode) {
+                // 両方入力済み → ボタン活性化（青）
+                btn.disabled = false;
+                btn.className = 'w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all font-bold text-lg shadow-lg cursor-pointer';
+            } else {
+                // 未入力あり → ボタン非活性（グレー）
+                btn.disabled = true;
+                btn.className = 'w-full px-6 py-4 bg-gray-300 text-gray-500 rounded-xl transition-all font-bold text-lg cursor-not-allowed';
+            }
+        }
+
         // V2080: プロフィール初期設定を保存
         function saveProfileSetup() {
             const phone = document.getElementById('setupProfilePhone').value.trim();
@@ -17174,7 +17191,8 @@
 
             // モーダルを閉じる
             hideProfileSetupModal();
-            alert('プロフィールを設定しました！');
+            // V2083: alertからトーストに変更
+            showToast('プロフィールを設定しました', 'success');
         }
 
         // プロフィール・通知設定をAPIから読み込み
@@ -33367,7 +33385,7 @@
                                 携帯電話番号 <span class="text-red-500">*</span>
                             </span>
                         </label>
-                        <input type="tel" id="setupProfilePhone" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg" placeholder="090-1234-5678">
+                        <input type="tel" id="setupProfilePhone" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg" placeholder="090-1234-5678" oninput="checkProfileSetupForm()">
                         <p class="text-xs text-gray-500 mt-1">SMS通知に使用します（会社代表番号ではなく個人携帯）</p>
                     </div>
                     <!-- 郵便番号 -->
@@ -33381,11 +33399,11 @@
                                 郵便番号 <span class="text-red-500">*</span>
                             </span>
                         </label>
-                        <input type="text" id="setupProfilePostalCode" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg" placeholder="123-4567" maxlength="8">
+                        <input type="text" id="setupProfilePostalCode" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg" placeholder="123-4567" maxlength="8" oninput="checkProfileSetupForm()">
                         <p class="text-xs text-gray-500 mt-1">案件の距離順振り分けに使用します（ご自宅の郵便番号）</p>
                     </div>
-                    <!-- ボタン -->
-                    <button onclick="saveProfileSetup()" class="w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all font-bold text-lg shadow-lg">
+                    <!-- ボタン V2083: 変更時のみ活性化 -->
+                    <button id="setupProfileSaveBtn" onclick="saveProfileSetup()" disabled class="w-full px-6 py-4 bg-gray-300 text-gray-500 rounded-xl transition-all font-bold text-lg cursor-not-allowed">
                         設定を保存して始める
                     </button>
                     <p class="text-xs text-gray-400 text-center mt-4">※ 後から設定画面で変更できます</p>
