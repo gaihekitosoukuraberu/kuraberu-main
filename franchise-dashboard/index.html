@@ -493,8 +493,8 @@
                     </button>
                     <div class="text-center min-w-0">
                         <div id="userName" class="hidden sm:block text-sm text-gray-300 truncate max-w-[100px] md:max-w-none">読込中...</div>
-                        <div id="userRole" class="ml-2 text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-500" onclick="editSalesPerson()" title="クリックして編集">読込中...</div>
-                        <input id="userRoleInput" class="hidden text-xs text-gray-900 bg-white border border-gray-300 rounded px-2 py-1 w-[120px]" onblur="saveSalesPerson()" onkeydown="if(event.key==='Enter') saveSalesPerson()">
+                        <!-- V2082: ヘッダーの名前は表示専用（通知設定シートのプロフィールから自動アサイン） -->
+                        <div id="userRole" class="ml-2 text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-500">読込中...</div>
                     </div>
                 </div>
             </div>
@@ -9717,71 +9717,16 @@
             });
         }
 
-        // 営業担当者名編集
-        function editSalesPerson() {
+        // V2082: 編集機能削除（ヘッダーの名前は通知設定シートから自動アサイン）
+        // editSalesPerson, saveSalesPerson は廃止
+
+        // V2082: ヘッダーの名前を更新（通知設定シートのプロフィールまたはlocalStorageから）
+        function updateHeaderName(name) {
             const userRoleDiv = document.getElementById('userRole');
-            const userRoleInput = document.getElementById('userRoleInput');
-
-            userRoleInput.value = userRoleDiv.textContent;
-            userRoleDiv.classList.add('hidden');
-            userRoleInput.classList.remove('hidden');
-            userRoleInput.focus();
-            userRoleInput.select();
-        }
-
-        // 営業担当者名保存
-        async function saveSalesPerson() {
-            const userRoleDiv = document.getElementById('userRole');
-            const userRoleInput = document.getElementById('userRoleInput');
-            const newSalesPerson = userRoleInput.value.trim();
-
-            if (!newSalesPerson) {
-                alert('営業担当者氏名を入力してください');
-                return;
+            if (userRoleDiv && name) {
+                userRoleDiv.textContent = name;
+                console.log('[updateHeaderName] Updated to:', name);
             }
-
-            try {
-                // JSONP でデータ保存
-                const result = await new Promise((resolve, reject) => {
-                    const callbackName = 'jsonp_sales_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                    const script = document.createElement('script');
-
-                    window[callbackName] = (data) => {
-                        delete window[callbackName];
-                        if (script.parentNode) {
-                            script.parentNode.removeChild(script);
-                        }
-                        resolve(data);
-                    };
-
-                    script.src = `${window.ENV.GAS_URL}?action=updateSalesPerson&merchantId=${encodeURIComponent(currentUser)}&salesPerson=${encodeURIComponent(newSalesPerson)}&callback=${callbackName}`;
-                    script.onerror = () => {
-                        delete window[callbackName];
-                        if (script.parentNode) {
-                            script.parentNode.removeChild(script);
-                        }
-                        reject(new Error('JSONP request failed'));
-                    };
-                    document.body.appendChild(script);
-                });
-
-                if (result.success) {
-                    // 成功 - 表示を更新
-                    userRoleDiv.textContent = newSalesPerson;
-                    if (window.merchantData) {
-                        window.merchantData.salesPerson = newSalesPerson;
-                    }
-                } else {
-                    // 失敗 - 元に戻す
-                    console.error('Save failed:', result.error);
-                }
-            } catch (error) {
-                console.error('Save error:', error);
-            }
-
-            // 入力欄を非表示、テキストを表示
-            userRoleInput.classList.add('hidden');
-            userRoleDiv.classList.remove('hidden');
         }
 
         // ロール表示更新
