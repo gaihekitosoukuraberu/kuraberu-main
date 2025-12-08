@@ -23743,8 +23743,9 @@
             // キャンセル系ステータスの場合 → キャンセル理由モーダルへ
             const cancelStatuses = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', 'クレーム'];
             if (cancelStatuses.includes(selectedStatusValue)) {
+                const cancelStatus = selectedStatusValue; // closeStatusModal前に保存
                 closeStatusModal();
-                openCancelReasonFromStatus(cvId, selectedStatusValue);
+                openCancelReasonFromStatus(cvId, cancelStatus);
                 return;
             }
 
@@ -31835,6 +31836,42 @@
                 const result = await response.json();
 
                 if (result.success) {
+                    // ステータスモーダルから来た場合はステータスを変更
+                    if (cancelSelectedCase.targetStatus) {
+                        const targetStatus = cancelSelectedCase.targetStatus;
+                        const caseData = findCaseByCvId(cancelSelectedCase.cvId);
+                        if (caseData) {
+                            const oldStatus = caseData.detailStatus;
+                            caseData.detailStatus = targetStatus;
+                            // 履歴に追加
+                            if (!caseData.callHistory) caseData.callHistory = [];
+                            const staffName = getCurrentUserName() || '不明';
+                            caseData.callHistory.unshift({
+                                date: new Date().toLocaleString('ja-JP'),
+                                type: 'status_change',
+                                note: `🏷️ ${oldStatus || '新着'} → ${targetStatus}`,
+                                staffName: staffName
+                            });
+                            // UIを更新
+                            recalculateStats();
+                            updateCasesStats();
+                            renderCases();
+                            // GASに保存（バックグラウンド）
+                            fetch(GAS_URL, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'text/plain' },
+                                body: JSON.stringify({
+                                    system: 'merchant',
+                                    subsystem: 'contract',
+                                    action: 'updateCaseStatus',
+                                    merchantId: window.merchantId,
+                                    cvId: cancelSelectedCase.cvId,
+                                    status: targetStatus,
+                                    oldStatus: oldStatus || '新着'
+                                })
+                            }).catch(e => console.error('[キャンセル申請] ステータス保存エラー:', e));
+                        }
+                    }
                     alert('キャンセル申請を提出しました');
                     closeCancelModal();
                     // 審査中タブに切り替えて表示
@@ -32188,7 +32225,8 @@
                 customerName: caseData.customerName,
                 address: caseData.fullAddress || caseData.address,
                 tel: caseData.tel,
-                deliveredAt: caseData.deliveredAt
+                deliveredAt: caseData.deliveredAt,
+                targetStatus: cancelStatus // 申請成功後に設定するステータス
             };
 
             // AI生成回数をリセット
