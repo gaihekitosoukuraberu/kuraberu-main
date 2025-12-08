@@ -25260,7 +25260,9 @@
         function onSurveyDateInputChange() {
             const input = document.getElementById('surveyDateInput');
             if (input.value) {
-                selectedSurveyDate = new Date(input.value + 'T00:00:00');
+                // V2093: クロスブラウザ対応の日付パース
+                const parts = input.value.split('-');
+                selectedSurveyDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
                 // クイックボタンの選択解除
                 document.querySelectorAll('.survey-day-btn').forEach(btn => {
                     btn.classList.remove('border-orange-500', 'bg-orange-100', 'text-orange-800');
@@ -25611,7 +25613,9 @@
             const input = document.getElementById('longTermDateInput');
             if (!input.value) return;
 
-            selectedLongTermDate = new Date(input.value);
+            // V2093: クロスブラウザ対応の日付パース
+            const parts = input.value.split('-');
+            selectedLongTermDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
 
             // ボタンスタイルリセット
             document.querySelectorAll('.long-term-day-btn').forEach(btn => {
@@ -25814,7 +25818,9 @@
         function onEstimateDateInputChange() {
             const input = document.getElementById('estimateDateInput');
             if (input.value) {
-                selectedEstimateDate = new Date(input.value + 'T00:00:00');
+                // V2093: クロスブラウザ対応の日付パース
+                const parts = input.value.split('-');
+                selectedEstimateDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
                 // クイックボタンの選択解除
                 document.querySelectorAll('.estimate-day-btn').forEach(btn => {
                     btn.classList.remove('border-emerald-500', 'bg-emerald-100', 'text-emerald-800');
@@ -26151,15 +26157,30 @@
                 return;
             }
 
-            const date = new Date(selectedNextCallDate);
+            // V2093: 日付パースを安定化（YYYY-MM-DD形式をローカル時間で解釈）
+            let date;
+            if (typeof selectedNextCallDate === 'string' && selectedNextCallDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                // YYYY-MM-DD形式の場合、ローカル時間として解釈
+                const parts = selectedNextCallDate.split('-');
+                date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            } else {
+                date = new Date(selectedNextCallDate);
+            }
+
+            // 日付が無効な場合はプレビューを非表示
+            if (isNaN(date.getTime())) {
+                preview.classList.add('hidden');
+                return;
+            }
+
             const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
             const m = date.getMonth() + 1;
             const d = date.getDate();
             const dayName = dayNames[date.getDay()];
 
             let text = `${m}/${d}(${dayName})`;
-            if (selectedNextCallHour !== null) {
-                const min = String(selectedNextCallMinute).padStart(2, '0');
+            if (selectedNextCallHour !== null && selectedNextCallHour !== undefined) {
+                const min = String(selectedNextCallMinute || 0).padStart(2, '0');
                 text += ` ${selectedNextCallHour}:${min}`;
             }
 
