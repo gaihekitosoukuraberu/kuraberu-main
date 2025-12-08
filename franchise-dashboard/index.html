@@ -23674,19 +23674,42 @@
             });
         }
 
+        // ステータスごとの選択色（背景塗りつぶし用）
+        const statusFillColors = {
+            '新着': 'bg-blue-500',
+            '未アポ': 'bg-pink-500',
+            'アポ済': 'bg-orange-500',
+            '現調済': 'bg-purple-500',
+            '見積提出済': 'bg-amber-500',
+            '成約': 'bg-green-500',
+            '入金予定': 'bg-cyan-500',
+            '入金済': 'bg-emerald-500',
+            '未着工': 'bg-orange-500',
+            '施工中': 'bg-yellow-500',
+            '完了': 'bg-teal-500',
+            '現調前キャンセル': 'bg-gray-500',
+            '現調後失注': 'bg-gray-500',
+            '他社契約済': 'bg-gray-500',
+            '別加盟店契約済': 'bg-indigo-500',
+            'クレーム': 'bg-red-500'
+        };
+
         // 詳細ステータス選択
         function selectDetailStatus(status) {
             selectedStatusValue = status;
             // caseStatusModal内の全ボタンをリセット（背景白に戻す）
             document.querySelectorAll('#caseStatusModal .status-btn').forEach(btn => {
-                btn.classList.remove('bg-purple-500', 'text-white', 'border-purple-500');
+                Object.values(statusFillColors).forEach(color => {
+                    btn.classList.remove(color, 'text-white');
+                });
                 btn.classList.add('bg-white');
             });
-            // 選択したボタンに背景色適用（紫）
+            // 選択したボタンにステータスカラーで塗りつぶし
             const selectedBtn = document.querySelector(`#caseStatusModal [data-status="${status}"]`);
-            if (selectedBtn) {
+            const fillColor = statusFillColors[status];
+            if (selectedBtn && fillColor) {
                 selectedBtn.classList.remove('bg-white');
-                selectedBtn.classList.add('bg-purple-500', 'text-white', 'border-purple-500');
+                selectedBtn.classList.add(fillColor, 'text-white');
             }
             // 旧モーダル用のリセット（互換性維持）
             document.querySelectorAll('#statusDetailGrid .status-btn, #statusDetailGrid2 .status-btn').forEach(btn => {
