@@ -23733,6 +23733,43 @@
                 showNotification('選択してください', 'ステータスを選択してください', 'warning');
                 return;
             }
+
+            const cvId = currentStatusCase?.cvId;
+            if (!cvId) {
+                showNotification('エラー', '案件情報が見つかりません', 'error');
+                return;
+            }
+
+            // キャンセル系ステータスの場合 → キャンセル理由モーダルへ
+            const cancelStatuses = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', 'クレーム'];
+            if (cancelStatuses.includes(selectedStatusValue)) {
+                closeStatusModal();
+                openCancelReasonFromStatus(cvId, selectedStatusValue);
+                return;
+            }
+
+            // 成約の場合 → 成約報告モーダルへ
+            if (selectedStatusValue === '成約') {
+                closeStatusModal();
+                openContractReportFromStatus(cvId);
+                return;
+            }
+
+            // 入金予定の場合 → 入金予定日モーダルへ
+            if (selectedStatusValue === '入金予定') {
+                closeStatusModal();
+                openPaymentScheduleModal(cvId);
+                return;
+            }
+
+            // 入金済の場合 → 入金確認処理
+            if (selectedStatusValue === '入金済') {
+                closeStatusModal();
+                openPaymentConfirmModal(cvId);
+                return;
+            }
+
+            // その他のステータスは通常処理
             setCaseStatus(selectedStatusValue);
         }
 
