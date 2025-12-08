@@ -17081,7 +17081,7 @@
             // API連携
             try {
                 const userId = localStorage.getItem('userId') || 'master';
-                const merchantId = localStorage.getItem('merchantId') || '';
+                const merchantId = window.merchantId || localStorage.getItem('merchantId') || '';
 
                 if (!merchantId) {
                     alert('加盟店IDが見つかりません。再ログインしてください。');
@@ -17107,13 +17107,14 @@
         async function loadUserSettings() {
             try {
                 const userId = localStorage.getItem('userId') || 'master';
-                const merchantId = localStorage.getItem('merchantId') || '';
+                const merchantId = window.merchantId || localStorage.getItem('merchantId') || '';
 
                 if (!merchantId) {
                     console.log('[loadUserSettings] merchantId not found, using localStorage');
                     loadSettingsFromLocalStorage();
                     return;
                 }
+                console.log('[loadUserSettings] Loading settings for:', { userId, merchantId });
 
                 const response = await fetch(`${window.ENV?.GAS_URL || GAS_URL}?action=getNotificationSettings&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}`);
                 const result = await response.json();
