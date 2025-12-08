@@ -307,6 +307,7 @@ const MerchantMemberInvite = {
 
   // ====================================
   // メンバー登録（JSONP対応）
+  // V2075: 電話番号・メールアドレス追加
   // ====================================
   registerMember: function(params) {
     try {
@@ -314,6 +315,8 @@ const MerchantMemberInvite = {
         hasData: !!params.data,
         hasSig: !!params.sig,
         hasName: !!params.name,
+        hasPhone: !!params.phone,
+        hasEmail: !!params.email,
         hasPassword: !!params.password,
         passwordLength: params.password ? params.password.length : 0
       }));
@@ -321,6 +324,8 @@ const MerchantMemberInvite = {
       const encodedData = params.data;
       const signature = params.sig;
       const memberName = params.name;
+      const memberPhone = params.phone || '';
+      const memberEmail = params.email || '';
       const password = params.password;
 
       if (!encodedData || !signature || !memberName || !password) {

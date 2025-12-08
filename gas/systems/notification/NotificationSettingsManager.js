@@ -31,11 +31,12 @@ const NotificationSettingsManager = {
     NAME: 2,
     PHONE: 3,
     EMAIL_ADDRESS: 4,
-    EMAIL_ENABLED: 5,
-    LINE_ENABLED: 6,
-    BROWSER_ENABLED: 7,
-    DETAILS_JSON: 8,
-    LAST_UPDATED: 9
+    POSTAL_CODE: 5,    // V2075: 郵便番号追加（距離順振り分け用）
+    EMAIL_ENABLED: 6,
+    LINE_ENABLED: 7,
+    BROWSER_ENABLED: 8,
+    DETAILS_JSON: 9,
+    LAST_UPDATED: 10
   },
 
   /**
@@ -70,13 +71,14 @@ const NotificationSettingsManager = {
       console.log('[NotificationSettings] シート作成中:', this.SHEET_NAME);
       sheet = ss.insertSheet(this.SHEET_NAME);
 
-      // ヘッダー設定（プロフィールカラム追加版）
+      // ヘッダー設定（プロフィールカラム追加版 V2075: 郵便番号追加）
       const headers = [
         'ユーザーID',
         '加盟店ID',
         '氏名',
         '電話番号',
         'メールアドレス',
+        '郵便番号',
         'メール通知',
         'LINE通知',
         'ブラウザ通知',
@@ -149,11 +151,12 @@ const NotificationSettingsManager = {
           const settings = {
             userId: rowUserId,
             merchantId: rowMerchantId,
-            // プロフィール
+            // プロフィール（V2075: 郵便番号追加）
             profile: {
               name: row[COL.NAME] || '',
               phone: row[COL.PHONE] || '',
-              email: row[COL.EMAIL_ADDRESS] || ''
+              email: row[COL.EMAIL_ADDRESS] || '',
+              postalCode: row[COL.POSTAL_CODE] || ''
             },
             // 通知設定
             email: row[COL.EMAIL_ENABLED] === true || row[COL.EMAIL_ENABLED] === 'TRUE' || row[COL.EMAIL_ENABLED] === 'ON',
@@ -173,7 +176,7 @@ const NotificationSettingsManager = {
       return {
         userId: userId,
         merchantId: merchantId,
-        profile: { name: '', phone: '', email: '' },
+        profile: { name: '', phone: '', email: '', postalCode: '' },
         ...this.DEFAULT_SETTINGS
       };
 
@@ -182,7 +185,7 @@ const NotificationSettingsManager = {
       return {
         userId: userId,
         merchantId: merchantId,
-        profile: { name: '', phone: '', email: '' },
+        profile: { name: '', phone: '', email: '', postalCode: '' },
         ...this.DEFAULT_SETTINGS
       };
     }
@@ -215,7 +218,7 @@ const NotificationSettingsManager = {
 
       const detailsJSON = JSON.stringify(settings.alerts || this.DEFAULT_SETTINGS.alerts);
 
-      // プロフィールは既存値をマージ（部分更新対応）
+      // プロフィールは既存値をマージ（部分更新対応）V2075: 郵便番号追加
       const profile = settings.profile || {};
 
       const rowData = [
@@ -224,6 +227,7 @@ const NotificationSettingsManager = {
         profile.name !== undefined ? profile.name : (existingRow ? existingRow[COL.NAME] : ''),
         profile.phone !== undefined ? profile.phone : (existingRow ? existingRow[COL.PHONE] : ''),
         profile.email !== undefined ? profile.email : (existingRow ? existingRow[COL.EMAIL_ADDRESS] : ''),
+        profile.postalCode !== undefined ? profile.postalCode : (existingRow ? existingRow[COL.POSTAL_CODE] : ''),
         settings.email === true ? 'ON' : 'OFF',
         settings.line === true ? 'ON' : 'OFF',
         settings.browser === true ? 'ON' : 'OFF',
@@ -323,7 +327,8 @@ const NotificationSettingsManager = {
             profile: {
               name: row[COL.NAME] || '',
               phone: row[COL.PHONE] || '',
-              email: row[COL.EMAIL_ADDRESS] || ''
+              email: row[COL.EMAIL_ADDRESS] || '',
+              postalCode: row[COL.POSTAL_CODE] || ''
             },
             email: row[COL.EMAIL_ENABLED] === 'ON',
             line: row[COL.LINE_ENABLED] === 'ON',

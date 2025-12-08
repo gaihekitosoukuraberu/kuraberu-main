@@ -900,6 +900,14 @@ const MerchantSystem = {
           resetLoginAttempts(merchantId);
         }
 
+        // V2075: マスター管理者の場合、プロフィール自動アサイン
+        // 通知設定シートにデータがなければ、加盟店登録シートから初期値をコピー
+        try {
+          this._autoAssignMasterProfile(merchantId);
+        } catch (profileError) {
+          console.error('[verifyLogin] プロフィール自動アサインエラー（続行）:', profileError);
+        }
+
         return {
           success: true,
           message: 'ログイン成功',
@@ -2275,6 +2283,74 @@ const MerchantSystem = {
     }
 
     return isValid;
+  },
+
+  /**
+   * V2075: マスター管理者のプロフィール自動アサイン
+   * 通知設定シートにデータがなければ、加盟店登録シートから初期値をコピー
+   * @param {String} merchantId - 加盟店ID
+   */
+  _autoAssignMasterProfile: function(merchantId) {
+    console.log('[_autoAssignMasterProfile] 開始:', merchantId);
+
+    // NotificationSettingsManagerが存在するか確認
+    if (typeof NotificationSettingsManager === 'undefined') {
+      console.log('[_autoAssignMasterProfile] NotificationSettingsManagerが見つかりません');
+      return;
+    }
+
+    // 既存の設定を確認
+    const existingSettings = NotificationSettingsManager.getSettings('master', merchantId);
+
+    // 既にプロフィールが設定されている場合はスキップ
+    if (existingSettings.profile && (existingSettings.profile.name || existingSettings.profile.phone || existingSettings.profile.email)) {
+      console.log('[_autoAssignMasterProfile] 既にプロフィール設定済み、スキップ');
+      return;
+    }
+
+    // 加盟店登録シートからデータを取得
+    const registrationSheet = DataAccessLayer.getRegistrationSheet();
+    const data = registrationSheet.getDataRange().getValues();
+    const headers = data[0];
+
+    // カラムインデックスを取得
+    const colIndex = {
+      merchantId: headers.indexOf('登録ID'),
+      salesPersonName: headers.indexOf('営業担当者氏名'),
+      phone: headers.indexOf('電話番号'),
+      salesEmail: headers.indexOf('営業用メールアドレス')
+    };
+
+    // 該当する加盟店を検索
+    let franchiseRow = null;
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][colIndex.merchantId] === merchantId) {
+        franchiseRow = data[i];
+        break;
+      }
+    }
+
+    if (!franchiseRow) {
+      console.log('[_autoAssignMasterProfile] 加盟店データが見つかりません:', merchantId);
+      return;
+    }
+
+    // プロフィール情報を取得
+    const profile = {
+      name: franchiseRow[colIndex.salesPersonName] || '',
+      phone: franchiseRow[colIndex.phone] || '',
+      email: franchiseRow[colIndex.salesEmail] || ''
+    };
+
+    console.log('[_autoAssignMasterProfile] 取得したプロフィール:', profile);
+
+    // 通知設定シートに保存
+    if (profile.name || profile.phone || profile.email) {
+      NotificationSettingsManager.saveProfile('master', merchantId, profile);
+      console.log('[_autoAssignMasterProfile] プロフィール自動アサイン完了');
+    } else {
+      console.log('[_autoAssignMasterProfile] アサインするデータがありません');
+    }
   },
 
   /**
