@@ -31844,6 +31844,10 @@
                     merchantName: merchantName,
                     applicantName: applicantName,
                     cvId: cancelSelectedCase.cvId,
+                    customerName: cancelSelectedCase.customerName || '',
+                    tel: cancelSelectedCase.tel || '',
+                    address: cancelSelectedCase.address || '',
+                    deliveredAt: cancelSelectedCase.deliveredAt || '', // V2109: 配信日時を渡す
                     cancelReasonCategory: category.label,
                     cancelReasonDetail: subCategory.label,
                     reasonData: JSON.stringify({

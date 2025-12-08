@@ -517,29 +517,42 @@ var MerchantCancelReport = {
         };
       }
 
-      // 配信管理シートから配信日時を取得
-      const deliveryData = deliverySheet.getDataRange().getValues();
-      const deliveryHeaders = deliveryData[0];
-      const deliveryRows = deliveryData.slice(1);
+      // V2109: パラメータで配信日時が渡された場合はそれを使用（ステータスモーダルからの申請）
+      let deliveredAt = params.deliveredAt || null;
 
-      const delCvIdIdx = deliveryHeaders.indexOf('CV ID');
-      const delMerchantIdIdx = deliveryHeaders.indexOf('加盟店ID');
-      const delDeliveredAtIdx = deliveryHeaders.indexOf('配信日時');
-
-      let deliveredAt = null;
-      for (let i = 0; i < deliveryRows.length; i++) {
-        if (deliveryRows[i][delCvIdIdx] === cvId &&
-            (deliveryRows[i][delMerchantIdIdx] === merchantId || deliveryRows[i][delMerchantIdIdx] === String(merchantId))) {
-          deliveredAt = deliveryRows[i][delDeliveredAtIdx];
-          break;
-        }
-      }
-
+      // 配信日時がない場合のみ、配信管理シートから取得
       if (!deliveredAt) {
-        return {
-          success: false,
-          error: 'この案件の配信情報が見つかりません'
-        };
+        const deliveryData = deliverySheet.getDataRange().getValues();
+        const deliveryHeaders = deliveryData[0];
+        const deliveryRows = deliveryData.slice(1);
+
+        const delCvIdIdx = deliveryHeaders.indexOf('CV ID');
+        const delMerchantIdIdx = deliveryHeaders.indexOf('加盟店ID');
+        const delDeliveredAtIdx = deliveryHeaders.indexOf('配信日時');
+
+        // V2109: CV IDのみで検索（加盟店IDの形式が異なる可能性があるため）
+        for (let i = 0; i < deliveryRows.length; i++) {
+          if (deliveryRows[i][delCvIdIdx] === cvId) {
+            const rowMerchantId = deliveryRows[i][delMerchantIdIdx];
+            console.log('[MerchantCancelReport] 配信管理シート検索: CV ID=' + cvId + ', シートの加盟店ID=' + rowMerchantId + ', リクエストの加盟店ID=' + merchantId);
+
+            // 加盟店IDの照合（完全一致、または部分一致）
+            if (rowMerchantId === merchantId ||
+                rowMerchantId === String(merchantId) ||
+                String(rowMerchantId).includes(merchantId) ||
+                String(merchantId).includes(rowMerchantId)) {
+              deliveredAt = deliveryRows[i][delDeliveredAtIdx];
+              break;
+            }
+          }
+        }
+
+        if (!deliveredAt) {
+          return {
+            success: false,
+            error: 'この案件の配信情報が見つかりません（CV ID: ' + cvId + ', 加盟店ID: ' + merchantId + '）'
+          };
+        }
       }
 
       // ユーザー登録シートからCV IDで情報取得
@@ -581,11 +594,21 @@ var MerchantCancelReport = {
         }
       }
 
+      // V2109: ユーザー登録シートに見つからない場合、パラメータから取得（ステータスモーダルからの申請）
       if (targetUserRow === -1) {
-        return {
-          success: false,
-          error: '指定されたCV IDが見つかりません: ' + cvId
-        };
+        // パラメータに顧客情報がある場合はそれを使用
+        if (params.customerName) {
+          customerName = params.customerName || '';
+          tel = params.tel || '';
+          address = params.address || '';
+          // targetUserRowは-1のままだが、顧客情報はパラメータから取得済み
+          console.log('[MerchantCancelReport] ユーザー登録にCV IDなし、パラメータから顧客情報を使用:', cvId);
+        } else {
+          return {
+            success: false,
+            error: '指定されたCV IDが見つかりません: ' + cvId
+          };
+        }
       }
 
       const deliveredDate = new Date(deliveredAt);
