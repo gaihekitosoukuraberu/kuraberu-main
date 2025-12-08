@@ -92,6 +92,9 @@ function initializeFirebase() {
         ]
       };
 
+      // バッジを表示（未読数をインクリメント）
+      incrementBadge();
+
       return self.registration.showNotification(notificationTitle, notificationOptions);
     });
 
@@ -148,10 +151,38 @@ self.addEventListener('push', (event) => {
     ]
   };
 
+  // バッジを表示
+  incrementBadge();
+
   event.waitUntil(
     self.registration.showNotification(data.title, options)
   );
 });
+
+// ====================================
+// バッジ管理
+// ====================================
+let badgeCount = 0;
+
+function incrementBadge() {
+  badgeCount++;
+  if ('setAppBadge' in navigator) {
+    navigator.setAppBadge(badgeCount).catch(err => {
+      console.warn('[SW] Badge error:', err);
+    });
+  }
+  console.log('[SW] Badge incremented:', badgeCount);
+}
+
+function clearBadge() {
+  badgeCount = 0;
+  if ('clearAppBadge' in navigator) {
+    navigator.clearAppBadge().catch(err => {
+      console.warn('[SW] Clear badge error:', err);
+    });
+  }
+  console.log('[SW] Badge cleared');
+}
 
 // ====================================
 // 通知クリック処理
@@ -160,6 +191,7 @@ self.addEventListener('notificationclick', (event) => {
   console.log('[SW] Notification clicked:', event.action);
 
   event.notification.close();
+  clearBadge();
 
   if (event.action === 'close') {
     return;
