@@ -32253,6 +32253,11 @@
             const modal = document.getElementById('cancelModal');
             console.log('[V2107] cancelModal element:', modal);
             if (modal) {
+                // 親要素がdisplay:noneの場合があるので、bodyに移動
+                if (modal.parentElement !== document.body) {
+                    document.body.appendChild(modal);
+                    console.log('[V2107] cancelModal moved to body');
+                }
                 modal.classList.remove('hidden');
                 console.log('[V2107] cancelModal opened');
             } else {
