@@ -23656,22 +23656,31 @@
             });
         }
 
-        // 詳細ステータス選択
+        // 詳細ステータス選択（V2095: 単一選択のみ・選択中ハイライト）
         function selectDetailStatus(status) {
             selectedStatusValue = status;
-            // 全ボタンをリセット
+            // caseStatusModal内の全ボタンをリセット（選択中のリング削除）
+            document.querySelectorAll('#caseStatusModal .status-btn').forEach(btn => {
+                btn.classList.remove('ring-4', 'ring-purple-500', 'ring-offset-1', 'scale-105');
+            });
+            // 旧モーダル用のリセット（互換性維持）
             document.querySelectorAll('#statusDetailGrid .status-btn, #statusDetailGrid2 .status-btn').forEach(btn => {
                 Object.values(statusSelectedStyles).forEach(style => {
                     btn.classList.remove(style.bg, style.border, style.text);
                 });
                 btn.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
             });
-            // 選択したボタンに色を適用
-            const selectedBtn = document.querySelector(`[data-status="${status}"]`);
+            // 選択したボタンにハイライト適用
+            const selectedBtn = document.querySelector(`#caseStatusModal [data-status="${status}"]`);
+            if (selectedBtn) {
+                selectedBtn.classList.add('ring-4', 'ring-purple-500', 'ring-offset-1', 'scale-105');
+            }
+            // 旧モーダル用（互換性維持）
+            const oldSelectedBtn = document.querySelector(`#statusDetailGrid [data-status="${status}"], #statusDetailGrid2 [data-status="${status}"]`);
             const style = statusSelectedStyles[status];
-            if (selectedBtn && style) {
-                selectedBtn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
-                selectedBtn.classList.add(style.bg, style.border, style.text);
+            if (oldSelectedBtn && style) {
+                oldSelectedBtn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
+                oldSelectedBtn.classList.add(style.bg, style.border, style.text);
             }
         }
 
