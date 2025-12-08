@@ -15701,6 +15701,19 @@
             updateAlertCount(todayTasks.length + tomorrowTasks.length + autoAlerts.length);
         }
 
+        // V2091: アラートバッジ更新
+        function updateAlertCount(count) {
+            const badge = document.getElementById('alertBadge');
+            if (badge) {
+                if (count > 0) {
+                    badge.textContent = count > 99 ? '99+' : count;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+        }
+
         // V2088: スヌーズ管理
         let snoozedTasks = JSON.parse(localStorage.getItem('snoozedTasks') || '{}');
 
