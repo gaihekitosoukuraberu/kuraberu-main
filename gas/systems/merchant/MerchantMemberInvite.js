@@ -390,6 +390,22 @@ const MerchantMemberInvite = {
       sheet.getRange(rowIndex, this.COL.STATUS + 1).setValue('active'); // J列
       sheet.getRange(rowIndex, this.COL.REGISTERED_AT + 1).setValue(now); // M列
 
+      // V2075: 通知設定シートにもプロフィール保存
+      try {
+        if (typeof NotificationSettingsManager !== 'undefined') {
+          const memberPostalCode = params.postalCode || '';
+          NotificationSettingsManager.saveProfile(inviteData.memberId, inviteData.merchantId, {
+            name: memberName,
+            phone: memberPhone,
+            email: memberEmail,
+            postalCode: memberPostalCode
+          });
+          console.log('[registerMember] 通知設定にプロフィール保存完了');
+        }
+      } catch (profileError) {
+        console.error('[registerMember] 通知設定保存エラー（続行）:', profileError);
+      }
+
       console.log('[registerMember] Success:', inviteData.memberId);
 
       return {

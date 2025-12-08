@@ -245,6 +245,38 @@
                            placeholder="山田 太郎">
                 </div>
 
+                <!-- V2075: 電話番号 -->
+                <div class="mb-4">
+                    <label for="memberPhone" class="block text-gray-700 text-sm font-bold mb-2">
+                        携帯電話番号 <span class="text-red-500">*</span>
+                    </label>
+                    <input type="tel" id="memberPhone" name="memberPhone" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="090-1234-5678">
+                    <p class="text-xs text-gray-500 mt-1">※ 通知の送信先として使用します</p>
+                </div>
+
+                <!-- V2075: メールアドレス -->
+                <div class="mb-4">
+                    <label for="memberEmail" class="block text-gray-700 text-sm font-bold mb-2">
+                        メールアドレス <span class="text-red-500">*</span>
+                    </label>
+                    <input type="email" id="memberEmail" name="memberEmail" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="yamada@example.com">
+                </div>
+
+                <!-- V2075: 郵便番号 -->
+                <div class="mb-4">
+                    <label for="memberPostalCode" class="block text-gray-700 text-sm font-bold mb-2">
+                        郵便番号 <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="memberPostalCode" name="memberPostalCode" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="123-4567" maxlength="8">
+                    <p class="text-xs text-gray-500 mt-1">※ 案件の距離順振り分けに使用します</p>
+                </div>
+
                 <!-- パスワード -->
                 <div class="mb-4">
                     <label for="password" class="block text-gray-700 text-sm font-bold mb-2">
@@ -620,12 +652,30 @@
             e.preventDefault();
 
             const memberName = document.getElementById('memberName').value.trim();
+            const memberPhone = document.getElementById('memberPhone').value.trim();
+            const memberEmail = document.getElementById('memberEmail').value.trim();
+            const memberPostalCode = document.getElementById('memberPostalCode').value.trim();
             const password = document.getElementById('password').value;
             const passwordConfirm = document.getElementById('passwordConfirm').value;
 
             // バリデーション
             if (!memberName) {
                 alert('氏名を入力してください。');
+                return;
+            }
+
+            if (!memberPhone) {
+                alert('電話番号を入力してください。');
+                return;
+            }
+
+            if (!memberEmail) {
+                alert('メールアドレスを入力してください。');
+                return;
+            }
+
+            if (!memberPostalCode) {
+                alert('郵便番号を入力してください。');
                 return;
             }
 
@@ -657,11 +707,15 @@
                     };
 
                     // V2063: GAS側は data/sig を期待
+                    // V2075: 電話・メール・郵便番号追加
                     const params = new URLSearchParams({
                         action: 'registerMember',
                         data: inviteData.id,
                         sig: inviteData.s,
                         name: memberName,
+                        phone: memberPhone,
+                        email: memberEmail,
+                        postalCode: memberPostalCode,
                         password: password,
                         callback: callbackName
                     });
