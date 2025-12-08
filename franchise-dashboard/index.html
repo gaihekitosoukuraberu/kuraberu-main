@@ -32358,6 +32358,12 @@
                 return;
             }
 
+            // 電話回数はcallCountプロパティから取得、SMS回数は履歴から計算
+            const history = caseData.callHistory || [];
+            const phoneCallCount = parseInt(caseData.callCount || 0);
+            const smsCount = history.filter(h => h.type === 'message_sent' || (h.note && h.note.includes('💬'))).length;
+            const lastContactDate = history.length > 0 ? history[0].date : null;
+
             // cancelSelectedCaseに設定（既存のキャンセル申請フローで使用）
             cancelSelectedCase = {
                 cvId: caseData.cvId,
@@ -32365,7 +32371,10 @@
                 address: caseData.fullAddress || caseData.address,
                 tel: caseData.tel,
                 deliveredAt: caseData.deliveredAt,
-                targetStatus: cancelStatus // 申請成功後に設定するステータス
+                targetStatus: cancelStatus, // 申請成功後に設定するステータス
+                phoneCallCount: phoneCallCount,
+                smsCount: smsCount,
+                lastContactDate: lastContactDate
             };
 
             // AI生成回数をリセット
