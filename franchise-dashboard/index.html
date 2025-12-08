@@ -7541,33 +7541,61 @@
                             </div>
                         </div>
 
-                        <!-- 通知種別 -->
+                        <!-- V2087: まとめ通知 -->
                         <div class="mb-8">
                             <div class="flex items-center gap-2 mb-4">
-                                <span class="text-lg">⏰</span>
-                                <h4 class="text-base font-bold text-gray-800">リマインダー設定</h4>
+                                <span class="text-lg">📅</span>
+                                <h4 class="text-base font-bold text-gray-800">まとめ通知</h4>
                             </div>
                             <div class="space-y-3">
-                                <!-- アポイントリマインダー -->
-                                <div class="border-l-4 border-blue-500 bg-gradient-to-r from-blue-50 to-white rounded-r-xl p-4 hover:shadow-md transition-shadow">
+                                <!-- 前日まとめ通知 -->
+                                <div class="border-l-4 border-yellow-500 bg-gradient-to-r from-yellow-50 to-white rounded-r-xl p-4 hover:shadow-md transition-shadow">
                                     <label class="flex items-center justify-between">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                                <span class="text-xl">📋</span>
+                                            <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                                <span class="text-xl">🌙</span>
                                             </div>
                                             <div>
-                                                <span class="text-sm font-bold text-gray-800">現調前日リマインダー</span>
-                                                <p class="text-xs text-gray-500">現地調査の前日に通知します</p>
+                                                <span class="text-sm font-bold text-gray-800">前日まとめ通知</span>
+                                                <p class="text-xs text-gray-500">明日の予定を前日にまとめて通知</p>
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-3">
-                                            <input type="time" id="appointmentAlertTime" value="18:00" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
-                                            <input type="checkbox" id="appointmentReminder" class="toggle-switch" checked="" onchange="updateAlertSetting('appointment_reminder', this.checked)">
+                                            <input type="time" id="summaryEveningTime" value="18:00" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500">
+                                            <input type="checkbox" id="summaryEvening" class="toggle-switch" checked="">
                                         </div>
                                     </label>
                                 </div>
+                                <!-- 当日まとめ通知 -->
+                                <div class="border-l-4 border-orange-500 bg-gradient-to-r from-orange-50 to-white rounded-r-xl p-4 hover:shadow-md transition-shadow">
+                                    <label class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                                                <span class="text-xl">☀️</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-sm font-bold text-gray-800">当日まとめ通知</span>
+                                                <p class="text-xs text-gray-500">今日の予定を朝にまとめて通知</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <input type="time" id="summaryMorningTime" value="09:00" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500">
+                                            <input type="checkbox" id="summaryMorning" class="toggle-switch" checked="">
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
 
-                                <!-- 架電リマインダー V2086: 分数入力に変更 -->
+                        <!-- V2087: 直前リマインダー -->
+                        <div class="mb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="text-lg">⏰</span>
+                                <h4 class="text-base font-bold text-gray-800">直前リマインダー</h4>
+                                <span class="text-xs text-gray-500">（お客様情報・電話/SMS/案件リンク付き）</span>
+                            </div>
+                            <div class="space-y-3">
+                                <!-- 架電リマインダー -->
                                 <div class="border-l-4 border-green-500 bg-gradient-to-r from-green-50 to-white rounded-r-xl p-4 hover:shadow-md transition-shadow">
                                     <label class="flex items-center justify-between">
                                         <div class="flex items-center gap-3">
@@ -7584,11 +7612,62 @@
                                                 <input type="number" id="callAlertTime" value="10" min="5" max="60" class="w-14 px-2 py-2 border border-gray-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-green-500">
                                                 <span class="text-sm text-gray-600">分前</span>
                                             </div>
-                                            <input type="checkbox" id="callReminder" class="toggle-switch" checked="" onchange="updateAlertSetting('call_reminder', this.checked)">
+                                            <input type="checkbox" id="callReminder" class="toggle-switch" checked="">
                                         </div>
                                     </label>
                                 </div>
+                                <!-- 現調リマインダー -->
+                                <div class="border-l-4 border-blue-500 bg-gradient-to-r from-blue-50 to-white rounded-r-xl p-4 hover:shadow-md transition-shadow">
+                                    <label class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                                <span class="text-xl">🏠</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-sm font-bold text-gray-800">現調リマインダー</span>
+                                                <p class="text-xs text-gray-500">現地調査の指定分前に通知</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex items-center gap-1">
+                                                <input type="number" id="inspectionAlertTime" value="30" min="5" max="120" class="w-14 px-2 py-2 border border-gray-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500">
+                                                <span class="text-sm text-gray-600">分前</span>
+                                            </div>
+                                            <input type="checkbox" id="inspectionReminder" class="toggle-switch" checked="">
+                                        </div>
+                                    </label>
+                                </div>
+                                <!-- 商談リマインダー -->
+                                <div class="border-l-4 border-indigo-500 bg-gradient-to-r from-indigo-50 to-white rounded-r-xl p-4 hover:shadow-md transition-shadow">
+                                    <label class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                                <span class="text-xl">🤝</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-sm font-bold text-gray-800">商談リマインダー</span>
+                                                <p class="text-xs text-gray-500">商談予定の指定分前に通知</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex items-center gap-1">
+                                                <input type="number" id="meetingAlertTime" value="30" min="5" max="120" class="w-14 px-2 py-2 border border-gray-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-indigo-500">
+                                                <span class="text-sm text-gray-600">分前</span>
+                                            </div>
+                                            <input type="checkbox" id="meetingReminder" class="toggle-switch" checked="">
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
 
+                        <!-- V2087: 自動リマインダー -->
+                        <div class="mb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="text-lg">🔔</span>
+                                <h4 class="text-base font-bold text-gray-800">自動リマインダー</h4>
+                            </div>
+                            <div class="space-y-3">
                                 <!-- 見積フォロー -->
                                 <div class="border-l-4 border-amber-500 bg-gradient-to-r from-amber-50 to-white rounded-r-xl p-4 hover:shadow-md transition-shadow">
                                     <label class="flex items-center justify-between">
@@ -7606,11 +7685,10 @@
                                                 <input type="number" id="followupDays" value="7" min="1" max="30" class="w-14 px-2 py-2 border border-gray-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-amber-500">
                                                 <span class="text-sm text-gray-600">日後</span>
                                             </div>
-                                            <input type="checkbox" id="estimateFollowup" class="toggle-switch" checked="" onchange="updateAlertSetting('estimate_followup', this.checked)">
+                                            <input type="checkbox" id="estimateFollowup" class="toggle-switch" checked="">
                                         </div>
                                     </label>
                                 </div>
-
                                 <!-- 入金確認 -->
                                 <div class="border-l-4 border-purple-500 bg-gradient-to-r from-purple-50 to-white rounded-r-xl p-4 hover:shadow-md transition-shadow">
                                     <label class="flex items-center justify-between">
@@ -7623,7 +7701,7 @@
                                                 <p class="text-xs text-gray-500">入金予定日に通知します</p>
                                             </div>
                                         </div>
-                                        <input type="checkbox" id="paymentAlert" class="toggle-switch" checked="" onchange="updateAlertSetting('payment_alert', this.checked)">
+                                        <input type="checkbox" id="paymentAlert" class="toggle-switch" checked="">
                                     </label>
                                 </div>
                             </div>
