@@ -23674,24 +23674,24 @@
             });
         }
 
-        // ステータスごとの選択色（背景塗りつぶし用）
+        // ステータスごとの選択色（ボーダー色と同じ系統で塗りつぶし）
         const statusFillColors = {
-            '新着': 'bg-blue-500',
-            '未アポ': 'bg-pink-500',
-            'アポ済': 'bg-orange-500',
-            '現調済': 'bg-purple-500',
-            '見積提出済': 'bg-amber-500',
-            '成約': 'bg-green-500',
-            '入金予定': 'bg-cyan-500',
-            '入金済': 'bg-emerald-500',
-            '未着工': 'bg-orange-500',
-            '施工中': 'bg-yellow-500',
-            '完了': 'bg-teal-500',
-            '現調前キャンセル': 'bg-gray-500',
-            '現調後失注': 'bg-gray-500',
-            '他社契約済': 'bg-gray-500',
-            '別加盟店契約済': 'bg-indigo-500',
-            'クレーム': 'bg-red-500'
+            '新着': 'bg-blue-200',
+            '未アポ': 'bg-pink-200',
+            'アポ済': 'bg-orange-200',
+            '現調済': 'bg-purple-200',
+            '見積提出済': 'bg-amber-200',
+            '成約': 'bg-green-300',
+            '入金予定': 'bg-cyan-200',
+            '入金済': 'bg-emerald-300',
+            '未着工': 'bg-orange-200',
+            '施工中': 'bg-yellow-300',
+            '完了': 'bg-teal-300',
+            '現調前キャンセル': 'bg-gray-200',
+            '現調後失注': 'bg-gray-200',
+            '他社契約済': 'bg-gray-200',
+            '別加盟店契約済': 'bg-gray-200',
+            'クレーム': 'bg-red-200'
         };
 
         // 詳細ステータス選択
@@ -23704,12 +23704,12 @@
                 });
                 btn.classList.add('bg-white');
             });
-            // 選択したボタンにステータスカラーで塗りつぶし
+            // 選択したボタンにステータスカラーで塗りつぶし（テキスト色は維持）
             const selectedBtn = document.querySelector(`#caseStatusModal [data-status="${status}"]`);
             const fillColor = statusFillColors[status];
             if (selectedBtn && fillColor) {
                 selectedBtn.classList.remove('bg-white');
-                selectedBtn.classList.add(fillColor, 'text-white');
+                selectedBtn.classList.add(fillColor);
             }
             // 旧モーダル用のリセット（互換性維持）
             document.querySelectorAll('#statusDetailGrid .status-btn, #statusDetailGrid2 .status-btn').forEach(btn => {
