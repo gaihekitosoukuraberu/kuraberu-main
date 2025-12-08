@@ -43,22 +43,7 @@ const CancelReasons = {
       {
         id: 'no_contact_at_all',
         label: '電話・SMS共に一度も繋がらない',
-        questions: [
-          {
-            id: 'phone_attempts',
-            label: '電話は何回くらい架けましたか？',
-            type: 'number',
-            required: true,
-            min: 1
-          },
-          {
-            id: 'sms_attempts',
-            label: 'SMSは何回くらいしましたか？',
-            type: 'number',
-            required: true,
-            min: 0
-          }
-        ]
+        questions: []
       },
       {
         id: 'phone_connected_then_lost',
@@ -70,42 +55,13 @@ const CancelReasons = {
             type: 'select',
             required: true,
             dynamicOptions: 'past7days' // 過去7日間の日付を動的生成
-          },
-          {
-            id: 'phone_attempts',
-            label: '電話は何回くらい架けましたか？',
-            type: 'number',
-            required: true,
-            min: 1
-          },
-          {
-            id: 'sms_attempts',
-            label: 'SMSは何回くらいしましたか？',
-            type: 'number',
-            required: true,
-            min: 0
           }
         ]
       },
       {
         id: 'sms_response_no_appointment',
         label: 'SMS返信あるもアポ取れず電話不通',
-        questions: [
-          {
-            id: 'phone_attempts',
-            label: '電話は何回くらい架けましたか？',
-            type: 'number',
-            required: true,
-            min: 1
-          },
-          {
-            id: 'sms_attempts',
-            label: 'SMSは何回くらいしましたか？',
-            type: 'number',
-            required: true,
-            min: 0
-          }
-        ]
+        questions: []
       },
       {
         id: 'sms_declined',
@@ -145,20 +101,6 @@ const CancelReasons = {
             type: 'select',
             required: true,
             dynamicOptions: 'past7days' // 過去7日間の日付を動的生成
-          },
-          {
-            id: 'phone_attempts',
-            label: '電話は何回くらい架けましたか？',
-            type: 'number',
-            required: true,
-            min: 1
-          },
-          {
-            id: 'sms_attempts',
-            label: 'SMSは何回くらいしましたか？',
-            type: 'number',
-            required: true,
-            min: 0
           }
         ]
       }
