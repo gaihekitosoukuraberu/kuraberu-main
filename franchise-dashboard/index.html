@@ -17067,7 +17067,7 @@
         }
         
         // プロフィール保存（API連携）V2075: 郵便番号追加
-        async function saveProfile() {
+        function saveProfile() {
             const profile = {
                 name: document.getElementById('profileName').value,
                 phone: document.getElementById('profilePhone').value,
@@ -17078,80 +17078,107 @@
             // ローカルにも保存（オフライン対応）
             localStorage.setItem('userProfile', JSON.stringify(profile));
 
-            // API連携
-            try {
-                const userId = localStorage.getItem('userId') || 'master';
-                const merchantId = window.merchantId || localStorage.getItem('merchantId') || '';
+            const userId = localStorage.getItem('userId') || 'master';
+            const merchantId = window.merchantId || localStorage.getItem('merchantId') || '';
 
-                if (!merchantId) {
-                    alert('加盟店IDが見つかりません。再ログインしてください。');
-                    return;
-                }
-
-                const response = await fetch(`${window.ENV?.GAS_URL || GAS_URL}?action=saveUserProfile&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}&profile=${encodeURIComponent(JSON.stringify(profile))}`);
-                const result = await response.json();
-
-                if (result.success) {
-                    alert('プロフィールを保存しました');
-                } else {
-                    console.error('[saveProfile] API error:', result.error);
-                    alert('プロフィールをローカルに保存しました（サーバー同期に失敗）');
-                }
-            } catch (error) {
-                console.error('[saveProfile] Error:', error);
-                alert('プロフィールをローカルに保存しました（サーバー同期に失敗）');
+            if (!merchantId) {
+                alert('加盟店IDが見つかりません。再ログインしてください。');
+                return;
             }
+
+            // JSONP方式でAPI呼び出し
+            const callbackName = 'saveProfileCallback_' + Date.now();
+            window[callbackName] = function(result) {
+                try {
+                    if (result.success) {
+                        alert('プロフィールを保存しました');
+                    } else {
+                        console.error('[saveProfile] API error:', result.error);
+                        alert('プロフィールをローカルに保存しました（サーバー同期に失敗）');
+                    }
+                } catch (error) {
+                    console.error('[saveProfile] Callback error:', error);
+                    alert('プロフィールをローカルに保存しました（サーバー同期に失敗）');
+                } finally {
+                    delete window[callbackName];
+                    script.remove();
+                }
+            };
+
+            const script = document.createElement('script');
+            script.src = `${window.ENV?.GAS_URL}?action=saveUserProfile&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}&profile=${encodeURIComponent(JSON.stringify(profile))}&callback=${callbackName}`;
+            script.onerror = function() {
+                console.error('[saveProfile] Script load error');
+                alert('プロフィールをローカルに保存しました（サーバー同期に失敗）');
+                delete window[callbackName];
+                script.remove();
+            };
+            document.body.appendChild(script);
         }
 
         // プロフィール・通知設定をAPIから読み込み
-        async function loadUserSettings() {
-            try {
-                const userId = localStorage.getItem('userId') || 'master';
-                const merchantId = window.merchantId || localStorage.getItem('merchantId') || '';
+        function loadUserSettings() {
+            const userId = localStorage.getItem('userId') || 'master';
+            const merchantId = window.merchantId || localStorage.getItem('merchantId') || '';
 
-                if (!merchantId) {
-                    console.log('[loadUserSettings] merchantId not found, using localStorage');
-                    loadSettingsFromLocalStorage();
-                    return;
-                }
-                console.log('[loadUserSettings] Loading settings for:', { userId, merchantId });
-
-                const response = await fetch(`${window.ENV?.GAS_URL || GAS_URL}?action=getNotificationSettings&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}`);
-                const result = await response.json();
-
-                if (result.success && result.settings) {
-                    const settings = result.settings;
-
-                    // プロフィール情報を反映（V2075: 郵便番号追加）
-                    if (settings.profile) {
-                        document.getElementById('profileName').value = settings.profile.name || '';
-                        document.getElementById('profilePhone').value = settings.profile.phone || '';
-                        document.getElementById('profileEmail').value = settings.profile.email || '';
-                        document.getElementById('profilePostalCode').value = settings.profile.postalCode || '';
-                        // ローカルにも同期
-                        localStorage.setItem('userProfile', JSON.stringify(settings.profile));
-                    }
-
-                    // 通知設定を反映
-                    if (document.getElementById('notifyEmail')) {
-                        document.getElementById('notifyEmail').checked = settings.email !== false;
-                    }
-                    if (document.getElementById('notifyLine')) {
-                        document.getElementById('notifyLine').checked = settings.line === true;
-                    }
-                    if (document.getElementById('notifyBrowser')) {
-                        document.getElementById('notifyBrowser').checked = settings.browser !== false;
-                    }
-
-                    console.log('[loadUserSettings] Loaded from API:', settings);
-                } else {
-                    console.log('[loadUserSettings] API returned no data, using localStorage');
-                    loadSettingsFromLocalStorage();
-                }
-            } catch (error) {
-                console.error('[loadUserSettings] Error:', error);
+            if (!merchantId) {
+                console.log('[loadUserSettings] merchantId not found, using localStorage');
                 loadSettingsFromLocalStorage();
+                return;
             }
+            console.log('[loadUserSettings] Loading settings for:', { userId, merchantId });
+
+            // JSONP方式でAPI呼び出し
+            const callbackName = 'loadUserSettingsCallback_' + Date.now();
+            window[callbackName] = function(result) {
+                try {
+                    if (result.success && result.settings) {
+                        const settings = result.settings;
+
+                        // プロフィール情報を反映（V2075: 郵便番号追加）
+                        if (settings.profile) {
+                            document.getElementById('profileName').value = settings.profile.name || '';
+                            document.getElementById('profilePhone').value = settings.profile.phone || '';
+                            document.getElementById('profileEmail').value = settings.profile.email || '';
+                            document.getElementById('profilePostalCode').value = settings.profile.postalCode || '';
+                            // ローカルにも同期
+                            localStorage.setItem('userProfile', JSON.stringify(settings.profile));
+                        }
+
+                        // 通知設定を反映
+                        if (document.getElementById('notifyEmail')) {
+                            document.getElementById('notifyEmail').checked = settings.email !== false;
+                        }
+                        if (document.getElementById('notifyLine')) {
+                            document.getElementById('notifyLine').checked = settings.line === true;
+                        }
+                        if (document.getElementById('notifyBrowser')) {
+                            document.getElementById('notifyBrowser').checked = settings.browser !== false;
+                        }
+
+                        console.log('[loadUserSettings] Loaded from API:', settings);
+                    } else {
+                        console.log('[loadUserSettings] API returned no data, using localStorage');
+                        loadSettingsFromLocalStorage();
+                    }
+                } catch (error) {
+                    console.error('[loadUserSettings] Callback error:', error);
+                    loadSettingsFromLocalStorage();
+                } finally {
+                    delete window[callbackName];
+                    script.remove();
+                }
+            };
+
+            const script = document.createElement('script');
+            script.src = `${window.ENV?.GAS_URL}?action=getNotificationSettings&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}&callback=${callbackName}`;
+            script.onerror = function() {
+                console.error('[loadUserSettings] Script load error');
+                loadSettingsFromLocalStorage();
+                delete window[callbackName];
+                script.remove();
+            };
+            document.body.appendChild(script);
         }
 
         // ローカルストレージから設定を復元（V2075: 郵便番号追加）
@@ -17224,7 +17251,7 @@
                     return;
                 }
 
-                const response = await fetch(`${window.ENV?.GAS_URL || GAS_URL}&action=saveNotificationSettings&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}&email=${settings.email}&line=${settings.line}&browser=${settings.browser}&alerts=${encodeURIComponent(JSON.stringify(settings.alerts))}`);
+                const response = await fetch(`${window.ENV?.GAS_URL || GAS_URL}?action=saveNotificationSettings&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}&email=${settings.email}&line=${settings.line}&browser=${settings.browser}&alerts=${encodeURIComponent(JSON.stringify(settings.alerts))}`);
                 const result = await response.json();
 
                 if (!result.success) {
