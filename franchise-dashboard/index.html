@@ -15464,71 +15464,466 @@
             }
         }
 
-        // アラート読み込み
+        // V2088: アラート読み込み（実データから動的生成）
         function loadAlerts() {
-            const today = new Date();
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
+            const dayAfterTomorrow = new Date(tomorrow);
+            dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
 
-            // 今日のタスク
-            const todayTasks = [
-                { time: '10:00', text: '田中様へ架電', type: 'call', caseId: 1 },
-                { time: '14:00', text: '佐藤様 現地調査', type: 'appointment', caseId: 2 },
-                { time: '16:00', text: '鈴木様 見積書提出期限', type: 'estimate', caseId: 3 }
-            ];
+            // merchantCasesDataからタスクを抽出
+            const cases = merchantCasesData || [];
+            const todayTasks = [];
+            const tomorrowTasks = [];
+            const autoAlerts = [];
 
-            const todayTasksHtml = todayTasks.map(task => `
-                <div class="flex items-center justify-between p-2 bg-red-50 rounded-lg hover:bg-red-100 cursor-pointer"
-                     onclick="handleAlertClick(${task.caseId}, '${task.type}')">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-medium text-red-600">${task.time}</span>
-                        <span class="text-sm">${task.text}</span>
+            cases.forEach(c => {
+                // 次回架電日時をチェック
+                if (c.nextCallDate) {
+                    const callDate = parseTaskDate(c.nextCallDate);
+                    if (callDate) {
+                        const task = {
+                            datetime: callDate,
+                            time: formatTaskTime(callDate),
+                            customerName: c.customerName || '---',
+                            customerTel: c.customerTel || '',
+                            address: c.fullAddress || c.city || '',
+                            type: 'call',
+                            cvId: c.cvId,
+                            icon: '📞',
+                            label: '架電'
+                        };
+                        if (isToday(callDate, today)) {
+                            todayTasks.push(task);
+                        } else if (isTomorrow(callDate, tomorrow, dayAfterTomorrow)) {
+                            tomorrowTasks.push(task);
+                        }
+                    }
+                }
+
+                // 現調日時をチェック
+                if (c.surveyDate) {
+                    const surveyDate = parseTaskDate(c.surveyDate);
+                    if (surveyDate) {
+                        const task = {
+                            datetime: surveyDate,
+                            time: formatTaskTime(surveyDate),
+                            customerName: c.customerName || '---',
+                            customerTel: c.customerTel || '',
+                            address: c.fullAddress || c.city || '',
+                            type: 'survey',
+                            cvId: c.cvId,
+                            icon: '🏠',
+                            label: '現調'
+                        };
+                        if (isToday(surveyDate, today)) {
+                            todayTasks.push(task);
+                        } else if (isTomorrow(surveyDate, tomorrow, dayAfterTomorrow)) {
+                            tomorrowTasks.push(task);
+                        }
+                    }
+                }
+
+                // 商談日時をチェック
+                if (c.estimateDate) {
+                    const estDate = parseTaskDate(c.estimateDate);
+                    if (estDate) {
+                        const task = {
+                            datetime: estDate,
+                            time: formatTaskTime(estDate),
+                            customerName: c.customerName || '---',
+                            customerTel: c.customerTel || '',
+                            address: c.fullAddress || c.city || '',
+                            type: 'meeting',
+                            cvId: c.cvId,
+                            icon: '📋',
+                            label: '商談'
+                        };
+                        if (isToday(estDate, today)) {
+                            todayTasks.push(task);
+                        } else if (isTomorrow(estDate, tomorrow, dayAfterTomorrow)) {
+                            tomorrowTasks.push(task);
+                        }
+                    }
+                }
+            });
+
+            // 時間順にソート
+            todayTasks.sort((a, b) => a.datetime - b.datetime);
+            tomorrowTasks.sort((a, b) => a.datetime - b.datetime);
+
+            // 今日のタスクHTML生成
+            const todayTasksHtml = todayTasks.map(task => renderAlertTask(task, 'red')).join('');
+            document.getElementById('todayTasks').innerHTML = todayTasksHtml || '<div class="text-sm text-gray-500 text-center py-2">今日のタスクはありません</div>';
+
+            // 明日の予定HTML生成
+            const tomorrowTasksHtml = tomorrowTasks.map(task => renderAlertTask(task, 'yellow')).join('');
+            document.getElementById('tomorrowTasks').innerHTML = tomorrowTasksHtml || '<div class="text-sm text-gray-500 text-center py-2">明日の予定はありません</div>';
+
+            // 自動リマインダー生成
+            generateAutoAlerts(cases, autoAlerts);
+            const autoAlertsHtml = autoAlerts.map(alert => {
+                // V2088: cvIdがある場合はアクションボタン付きの詳細表示
+                if (alert.cvId) {
+                    return `
+                        <div class="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg">${alert.icon}</span>
+                                    <span class="text-sm font-medium">${alert.text}</span>
+                                </div>
+                                <button onclick="dismissAlert(this.closest('.p-3'))" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="flex gap-2 mt-2">
+                                <button onclick="openDetailModal('${alert.cvId}'); toggleAlertPanel();"
+                                        class="flex-1 px-2 py-1.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200">
+                                    📄 詳細
+                                </button>
+                                ${alert.type === 'survey_followup' || alert.type === 'meeting_followup' ? `
+                                    <button onclick="openThankYouEmailReminder('${alert.cvId}', '${alert.type}')"
+                                            class="flex-1 px-2 py-1.5 text-xs font-medium text-green-700 bg-green-100 rounded-lg hover:bg-green-200">
+                                        ✉️ お礼メール
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                // 通常のシンプルな表示
+                return `
+                    <div class="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <span>${alert.icon}</span>
+                            <span class="text-sm">${alert.text}</span>
+                        </div>
+                        <button onclick="dismissAlert(this.closest('.flex'))" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
                     </div>
-                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </div>
-            `).join('');
-            document.getElementById('todayTasks').innerHTML = todayTasksHtml || '<div class="text-sm text-gray-500">タスクなし</div>';
+                `;
+            }).join('');
+            document.getElementById('autoAlerts').innerHTML = autoAlertsHtml || '<div class="text-sm text-gray-500 text-center py-2">リマインダーなし</div>';
 
-            // 明日の予定
-            const tomorrowTasks = [
-                { time: '11:00', text: '山田様 アポイント', type: 'appointment', caseId: 4 },
-                { time: '15:00', text: '高橋様 フォローアップ', type: 'followup', caseId: 5 }
-            ];
+            // バッジ更新
+            updateAlertCount(todayTasks.length + tomorrowTasks.length + autoAlerts.length);
+        }
 
-            const tomorrowTasksHtml = tomorrowTasks.map(task => `
-                <div class="flex items-center justify-between p-2 bg-yellow-50 rounded-lg hover:bg-yellow-100 cursor-pointer"
-                     onclick="handleAlertClick(${task.caseId}, '${task.type}')">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-medium text-yellow-600">${task.time}</span>
-                        <span class="text-sm">${task.text}</span>
+        // V2088: スヌーズ管理
+        let snoozedTasks = JSON.parse(localStorage.getItem('snoozedTasks') || '{}');
+
+        // タスクカードのHTML生成（電話/SMS/案件リンク/スヌーズボタン付き）
+        function renderAlertTask(task, color) {
+            const colorClass = color === 'red' ? 'red' : 'yellow';
+            const bgClass = color === 'red' ? 'bg-red-50 hover:bg-red-100' : 'bg-yellow-50 hover:bg-yellow-100';
+            const timeClass = color === 'red' ? 'text-red-600' : 'text-yellow-600';
+            const taskKey = `${task.cvId}_${task.type}`;
+
+            // スヌーズ中かチェック
+            const snoozeInfo = snoozedTasks[taskKey];
+            const isSnoozed = snoozeInfo && new Date(snoozeInfo.until) > new Date();
+
+            if (isSnoozed) {
+                return ''; // スヌーズ中は非表示
+            }
+
+            return `
+                <div class="p-3 ${bgClass} rounded-lg border border-${colorClass}-200" data-task-key="${taskKey}">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">${task.icon}</span>
+                            <div>
+                                <div class="font-medium text-gray-900">${escapeHtml(task.customerName)}様</div>
+                                <div class="text-xs text-gray-500">${task.label}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold ${timeClass}">${task.time}</span>
+                            <button onclick="event.stopPropagation(); openSnoozeMenu('${taskKey}', this)"
+                                    class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded" title="スヌーズ">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
+                    ${task.address ? `<div class="text-xs text-gray-500 mb-2 truncate" title="${escapeHtml(task.address)}">📍 ${escapeHtml(task.address)}</div>` : ''}
+                    <div class="flex gap-2">
+                        ${task.customerTel ? `
+                            <a href="tel:${task.customerTel}" onclick="event.stopPropagation(); startPhoneCall('${task.cvId}')"
+                               class="flex-1 px-2 py-1.5 text-xs font-medium text-green-700 bg-green-100 rounded-lg hover:bg-green-200 text-center">
+                                📞 電話
+                            </a>
+                            <button onclick="event.stopPropagation(); openSmsModal('${task.cvId}')"
+                                    class="flex-1 px-2 py-1.5 text-xs font-medium text-purple-700 bg-purple-100 rounded-lg hover:bg-purple-200">
+                                💬 SMS
+                            </button>
+                        ` : ''}
+                        <button onclick="event.stopPropagation(); openDetailModal('${task.cvId}'); toggleAlertPanel();"
+                                class="flex-1 px-2 py-1.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200">
+                            📄 詳細
+                        </button>
+                    </div>
                 </div>
-            `).join('');
-            document.getElementById('tomorrowTasks').innerHTML = tomorrowTasksHtml || '<div class="text-sm text-gray-500">予定なし</div>';
+            `;
+        }
 
-            // 自動アラート
-            const autoAlerts = [
-                { text: '未対応案件3件あります', type: 'warning' },
-                { text: '見積提出後7日経過: 2件', type: 'info' },
-                { text: '入金予定日: 田中様', type: 'payment' }
-            ];
+        // スヌーズメニューを開く
+        function openSnoozeMenu(taskKey, buttonEl) {
+            // 既存のメニューを閉じる
+            closeSnoozeMenu();
 
-            const autoAlertsHtml = autoAlerts.map(alert => `
-                <div class="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
-                    <span class="text-sm">${alert.text}</span>
-                    <button onclick="dismissAlert(this)" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
+            const menu = document.createElement('div');
+            menu.id = 'snoozeMenu';
+            menu.className = 'absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-xl border z-50';
+            menu.innerHTML = `
+                <div class="p-2">
+                    <div class="text-xs font-medium text-gray-500 px-2 py-1">スヌーズ</div>
+                    <button onclick="snoozeTask('${taskKey}', 30)" class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded flex items-center gap-2">
+                        <span>⏰</span> 30分後
+                    </button>
+                    <button onclick="snoozeTask('${taskKey}', 60)" class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded flex items-center gap-2">
+                        <span>⏰</span> 1時間後
+                    </button>
+                    <button onclick="snoozeTask('${taskKey}', 180)" class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded flex items-center gap-2">
+                        <span>⏰</span> 3時間後
+                    </button>
+                    <button onclick="snoozeTaskTomorrow('${taskKey}')" class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded flex items-center gap-2">
+                        <span>🌅</span> 明日の朝(9:00)
                     </button>
                 </div>
-            `).join('');
-            document.getElementById('autoAlerts').innerHTML = autoAlertsHtml || '<div class="text-sm text-gray-500">アラートなし</div>';
+            `;
+
+            // ボタンの位置を取得してメニューを配置
+            const rect = buttonEl.getBoundingClientRect();
+            menu.style.position = 'fixed';
+            menu.style.top = (rect.bottom + 5) + 'px';
+            menu.style.right = (window.innerWidth - rect.right) + 'px';
+
+            document.body.appendChild(menu);
+
+            // クリック外でメニューを閉じる
+            setTimeout(() => {
+                document.addEventListener('click', closeSnoozeMenuOnOutsideClick);
+            }, 10);
+        }
+
+        // スヌーズメニューを閉じる
+        function closeSnoozeMenu() {
+            const menu = document.getElementById('snoozeMenu');
+            if (menu) menu.remove();
+            document.removeEventListener('click', closeSnoozeMenuOnOutsideClick);
+        }
+
+        function closeSnoozeMenuOnOutsideClick(e) {
+            const menu = document.getElementById('snoozeMenu');
+            if (menu && !menu.contains(e.target)) {
+                closeSnoozeMenu();
+            }
+        }
+
+        // タスクをスヌーズ（分数指定）
+        function snoozeTask(taskKey, minutes) {
+            const until = new Date(Date.now() + minutes * 60 * 1000);
+            snoozedTasks[taskKey] = { until: until.toISOString() };
+            localStorage.setItem('snoozedTasks', JSON.stringify(snoozedTasks));
+
+            closeSnoozeMenu();
+            loadAlerts(); // アラート再読み込み
+
+            showToast(`${minutes}分後にリマインドします`, 'info');
+        }
+
+        // タスクを明日の朝にスヌーズ
+        function snoozeTaskTomorrow(taskKey) {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(9, 0, 0, 0);
+
+            snoozedTasks[taskKey] = { until: tomorrow.toISOString() };
+            localStorage.setItem('snoozedTasks', JSON.stringify(snoozedTasks));
+
+            closeSnoozeMenu();
+            loadAlerts();
+
+            showToast('明日の朝9:00にリマインドします', 'info');
+        }
+
+        // 期限切れスヌーズをクリーンアップ
+        function cleanupExpiredSnoozes() {
+            const now = new Date();
+            let changed = false;
+            Object.keys(snoozedTasks).forEach(key => {
+                if (new Date(snoozedTasks[key].until) <= now) {
+                    delete snoozedTasks[key];
+                    changed = true;
+                }
+            });
+            if (changed) {
+                localStorage.setItem('snoozedTasks', JSON.stringify(snoozedTasks));
+            }
+        }
+
+        // 定期的にスヌーズをチェック（1分ごと）
+        setInterval(() => {
+            cleanupExpiredSnoozes();
+            loadAlerts();
+        }, 60000);
+
+        // 日付パース（様々なフォーマットに対応）
+        function parseTaskDate(dateStr) {
+            if (!dateStr) return null;
+            try {
+                // "2025-12-08 10:00" or "2025/12/08 10:00" 形式
+                const match = dateStr.match(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})(?:\s+(\d{1,2}):(\d{2}))?/);
+                if (match) {
+                    const year = parseInt(match[1]);
+                    const month = parseInt(match[2]) - 1;
+                    const day = parseInt(match[3]);
+                    const hour = match[4] ? parseInt(match[4]) : 9;
+                    const minute = match[5] ? parseInt(match[5]) : 0;
+                    return new Date(year, month, day, hour, minute);
+                }
+                return null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // 時間フォーマット
+        function formatTaskTime(date) {
+            if (!date) return '--:--';
+            const h = date.getHours();
+            const m = date.getMinutes();
+            return `${h}:${m.toString().padStart(2, '0')}`;
+        }
+
+        // 今日かどうか判定
+        function isToday(date, today) {
+            return date >= today && date < new Date(today.getTime() + 24 * 60 * 60 * 1000);
+        }
+
+        // 明日かどうか判定
+        function isTomorrow(date, tomorrow, dayAfterTomorrow) {
+            return date >= tomorrow && date < dayAfterTomorrow;
+        }
+
+        // 自動リマインダー生成
+        function generateAutoAlerts(cases, autoAlerts) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            // 未対応案件（担当者未割当）
+            const unassigned = cases.filter(c => !c.assignee || c.assignee === '');
+            if (unassigned.length > 0) {
+                autoAlerts.push({
+                    icon: '⚠️',
+                    text: `未対応案件が${unassigned.length}件あります`,
+                    type: 'warning'
+                });
+            }
+
+            // V2088: 現調後フォローアップ（現調日が今日までで、商談日未設定）
+            const surveyFollowupCases = cases.filter(c => {
+                if (!c.surveyDate || c.estimateDate) return false;
+                const surveyDate = parseTaskDate(c.surveyDate);
+                if (!surveyDate) return false;
+                // 現調日が今日以前で、商談日が未設定
+                return surveyDate < now && c.status !== '成約' && c.status !== '失注';
+            });
+            if (surveyFollowupCases.length > 0) {
+                surveyFollowupCases.forEach(c => {
+                    autoAlerts.push({
+                        icon: '🏠',
+                        text: `${c.customerName || '---'}様 現調後→商談日設定`,
+                        type: 'survey_followup',
+                        cvId: c.cvId
+                    });
+                });
+            }
+
+            // V2088: 商談後フォローアップ（商談日が今日までで、見積未提出または成約待ち）
+            const meetingFollowupCases = cases.filter(c => {
+                if (!c.estimateDate) return false;
+                const meetingDate = parseTaskDate(c.estimateDate);
+                if (!meetingDate) return false;
+                // 商談日が今日以前で、成約/失注でない
+                return meetingDate < now && c.status !== '成約' && c.status !== '失注';
+            });
+            if (meetingFollowupCases.length > 0) {
+                meetingFollowupCases.forEach(c => {
+                    autoAlerts.push({
+                        icon: '📋',
+                        text: `${c.customerName || '---'}様 商談後→次アクション`,
+                        type: 'meeting_followup',
+                        cvId: c.cvId
+                    });
+                });
+            }
+
+            // 見積フォローアップ（見積提出後7日以上経過）
+            const followupCases = cases.filter(c => {
+                if (!c.estimateSubmitDate) return false;
+                const submitDate = parseTaskDate(c.estimateSubmitDate);
+                if (!submitDate) return false;
+                const daysPassed = Math.floor((now - submitDate) / (1000 * 60 * 60 * 24));
+                return daysPassed >= 7 && c.status !== '成約' && c.status !== '失注';
+            });
+            if (followupCases.length > 0) {
+                autoAlerts.push({
+                    icon: '📝',
+                    text: `見積提出後7日経過: ${followupCases.length}件`,
+                    type: 'followup'
+                });
+            }
+
+            // 入金確認（成約後入金待ち）
+            const paymentPending = cases.filter(c => c.status === '成約' && !c.paymentConfirmed);
+            if (paymentPending.length > 0) {
+                autoAlerts.push({
+                    icon: '💰',
+                    text: `入金確認待ち: ${paymentPending.length}件`,
+                    type: 'payment'
+                });
+            }
+        }
+
+        // V2088: お礼メールリマインダーを開く
+        function openThankYouEmailReminder(cvId, type) {
+            const caseData = merchantCasesData.find(c => String(c.cvId) === String(cvId));
+            if (!caseData) {
+                showToast('案件データが見つかりません', 'error');
+                return;
+            }
+
+            const customerName = caseData.customerName || '---';
+            const actionType = type === 'survey_followup' ? '現調' : '商談';
+
+            // メールテンプレートを表示
+            const subject = `【${actionType}のお礼】${customerName}様`;
+            const body = `${customerName}様
+
+本日は${actionType}にお時間をいただき、誠にありがとうございました。
+
+ご質問やご不明な点がございましたら、
+いつでもお気軽にご連絡ください。
+
+今後ともよろしくお願いいたします。`;
+
+            // メールアプリを開く
+            const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.open(mailtoUrl, '_blank');
+
+            // リマインダーを消去
+            showToast(`${customerName}様へのお礼メールを作成しました`, 'success');
+            toggleAlertPanel();
         }
 
         // アラートクリック処理
@@ -15587,46 +15982,64 @@
             }
         }
 
-        // カレンダーの自動同期（案件データから自動的にカレンダーイベントを生成）
+        // V2088: カレンダーの自動同期（merchantCasesDataから実際の日付でカレンダーイベントを生成）
         function autoSyncToCalendar() {
             // 既存の案件由来イベントをクリア
             calendarEvents = calendarEvents.filter(event => !event.fromCase);
 
-            // 全案件からネクストステップを取得してカレンダーに追加
-            const allCases = getCasesData();
+            // merchantCasesDataから日程を取得してカレンダーに追加
+            const cases = merchantCasesData || [];
 
-            allCases.forEach(caseItem => {
-                // ネクストステップがある場合
-                if (caseItem.nextAction) {
-                    const today = new Date();
-                    const eventDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + Math.floor(Math.random() * 7));
-                    const eventTitle = `${caseItem.nextAction}: ${caseItem.customer}様`;
-
-                    // イベントタイプを判定
-                    let eventType = 'todo';
-                    let eventColor = '#6b7280';
-
-                    if (caseItem.nextAction.includes('現調') || caseItem.nextAction.includes('アポ')) {
-                        eventType = 'meeting';
-                        eventColor = '#3b82f6';
-                    } else if (caseItem.nextAction.includes('架電') || caseItem.nextAction.includes('電話')) {
-                        eventType = 'call';
-                        eventColor = '#10b981';
-                    } else if (caseItem.nextAction.includes('見積')) {
-                        eventType = 'estimate';
-                        eventColor = '#f59e0b';
+            cases.forEach(c => {
+                // 次回架電日時
+                if (c.nextCallDate) {
+                    const parsedDate = parseCalendarDate(c.nextCallDate);
+                    if (parsedDate) {
+                        calendarEvents.push({
+                            id: `call-${c.cvId}`,
+                            title: `📞 ${c.customerName || '---'}様 架電`,
+                            date: parsedDate.date,
+                            time: parsedDate.time,
+                            type: 'call',
+                            color: '#10b981',
+                            fromCase: true,
+                            cvId: c.cvId
+                        });
                     }
+                }
 
-                    calendarEvents.push({
-                        id: `case-${caseItem.id}`,
-                        title: eventTitle,
-                        date: eventDate.toISOString().split('T')[0],
-                        time: '10:00',
-                        type: eventType,
-                        color: eventColor,
-                        fromCase: true,  // 案件由来のイベントマーク
-                        caseId: caseItem.id
-                    });
+                // 現調日時
+                if (c.surveyDate) {
+                    const parsedDate = parseCalendarDate(c.surveyDate);
+                    if (parsedDate) {
+                        calendarEvents.push({
+                            id: `survey-${c.cvId}`,
+                            title: `🏠 ${c.customerName || '---'}様 現調`,
+                            date: parsedDate.date,
+                            time: parsedDate.time,
+                            type: 'survey',
+                            color: '#f59e0b',
+                            fromCase: true,
+                            cvId: c.cvId
+                        });
+                    }
+                }
+
+                // 商談日時
+                if (c.estimateDate) {
+                    const parsedDate = parseCalendarDate(c.estimateDate);
+                    if (parsedDate) {
+                        calendarEvents.push({
+                            id: `meeting-${c.cvId}`,
+                            title: `📋 ${c.customerName || '---'}様 商談`,
+                            date: parsedDate.date,
+                            time: parsedDate.time,
+                            type: 'meeting',
+                            color: '#3b82f6',
+                            fromCase: true,
+                            cvId: c.cvId
+                        });
+                    }
                 }
             });
 
@@ -15636,6 +16049,28 @@
             }
             if (typeof renderMiniCalendar !== 'undefined') {
                 renderMiniCalendar();
+            }
+        }
+
+        // 日付文字列をカレンダー用にパース
+        function parseCalendarDate(dateStr) {
+            if (!dateStr) return null;
+            try {
+                const match = dateStr.match(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})(?:\s+(\d{1,2}):(\d{2}))?/);
+                if (match) {
+                    const year = match[1];
+                    const month = match[2].padStart(2, '0');
+                    const day = match[3].padStart(2, '0');
+                    const hour = match[4] ? match[4].padStart(2, '0') : '09';
+                    const minute = match[5] ? match[5] : '00';
+                    return {
+                        date: `${year}-${month}-${day}`,
+                        time: `${hour}:${minute}`
+                    };
+                }
+                return null;
+            } catch (e) {
+                return null;
             }
         }
 
@@ -18919,6 +19354,9 @@
                     updateCasesStats();
                     updateQuickFilterStats();  // 新UI用統計
                     renderCases();
+                    // V2088: アラートとカレンダーを同期
+                    loadAlerts();
+                    autoSyncToCalendar();
                 } else {
                     showNotification('エラー', result.error || '案件データの取得に失敗しました', 'error');
                 }

@@ -156,13 +156,23 @@ const NotificationSettingsManager = {
 
         // ユーザーIDでマッチ（加盟店IDは任意）
         if (rowUserId === userId && (!merchantId || rowMerchantId === merchantId)) {
+          // V2088: 電話番号の先頭'を除去（スプシ保存時に付加した分）
+          let phoneValue = row[COL.PHONE] || '';
+          if (typeof phoneValue === 'string' && phoneValue.startsWith("'")) {
+            phoneValue = phoneValue.substring(1);
+          }
+          // 数値として読み込まれた場合は先頭0を復元
+          if (typeof phoneValue === 'number') {
+            phoneValue = '0' + String(phoneValue);
+          }
+
           const settings = {
             userId: rowUserId,
             merchantId: rowMerchantId,
-            // プロフィール（V2075: 郵便番号追加）
+            // プロフィール（V2075: 郵便番号追加, V2088: 電話番号0対応）
             profile: {
               name: row[COL.NAME] || '',
-              phone: row[COL.PHONE] || '',
+              phone: phoneValue,
               email: row[COL.EMAIL_ADDRESS] || '',
               postalCode: row[COL.POSTAL_CODE] || ''
             },
@@ -241,11 +251,22 @@ const NotificationSettingsManager = {
       // プロフィールは既存値をマージ（部分更新対応）V2075: 郵便番号追加
       const profile = settings.profile || {};
 
+      // V2088: 電話番号の先頭0を保持するため文字列として保存
+      let phoneValue = profile.phone !== undefined ? profile.phone : (existingRow ? existingRow[COL.PHONE] : '');
+      // 数値として解釈されていた場合の復元（例: 9012345678 → 09012345678）
+      if (phoneValue && typeof phoneValue === 'number') {
+        phoneValue = '0' + String(phoneValue);
+      }
+      // 文字列で、数字のみで始まる場合は先頭に ' を付けてスプシの自動変換を防ぐ
+      if (phoneValue && /^[0-9]/.test(String(phoneValue))) {
+        phoneValue = "'" + String(phoneValue);
+      }
+
       const rowData = [
         userId,
         merchantId,
         profile.name !== undefined ? profile.name : (existingRow ? existingRow[COL.NAME] : ''),
-        profile.phone !== undefined ? profile.phone : (existingRow ? existingRow[COL.PHONE] : ''),
+        phoneValue,
         profile.email !== undefined ? profile.email : (existingRow ? existingRow[COL.EMAIL_ADDRESS] : ''),
         profile.postalCode !== undefined ? profile.postalCode : (existingRow ? existingRow[COL.POSTAL_CODE] : ''),
         settings.email === true ? 'ON' : 'OFF',
@@ -341,12 +362,21 @@ const NotificationSettingsManager = {
       for (let i = 1; i < data.length; i++) {
         const row = data[i];
         if (row[COL.MERCHANT_ID] === merchantId) {
+          // V2088: 電話番号の先頭0対応
+          let phoneValue = row[COL.PHONE] || '';
+          if (typeof phoneValue === 'string' && phoneValue.startsWith("'")) {
+            phoneValue = phoneValue.substring(1);
+          }
+          if (typeof phoneValue === 'number') {
+            phoneValue = '0' + String(phoneValue);
+          }
+
           users.push({
             userId: row[COL.USER_ID],
             merchantId: row[COL.MERCHANT_ID],
             profile: {
               name: row[COL.NAME] || '',
-              phone: row[COL.PHONE] || '',
+              phone: phoneValue,
               email: row[COL.EMAIL_ADDRESS] || '',
               postalCode: row[COL.POSTAL_CODE] || ''
             },
