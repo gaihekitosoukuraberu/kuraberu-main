@@ -21617,7 +21617,7 @@
         let pendingMemo = '';
         let pendingStatus = null;
 
-        // 通話回数とメモ件数をカウント
+        // V2110: 通話回数・SMS回数・メモ件数をカウント
         function getCallAndMemoCounts(caseData) {
             const history = caseData.callHistory || [];
 
@@ -21633,16 +21633,28 @@
                 return note.startsWith('📞 不在') || note.startsWith('📵');
             });
 
-            // メモ記録（架電記録以外）
+            // メッセージ送信回数（SMS・LINE・メール全部カウント）
+            const messageRecords = history.filter(item => {
+                const note = item.note || '';
+                return note.includes('💬 SMS送信') || note.includes('💬SMS送信') ||
+                       note.includes('💬 LINE送信') || note.includes('💬LINE送信') ||
+                       note.includes('💬 メール送信') || note.includes('💬メール送信');
+            });
+
+            // メモ記録（架電・SMS以外の手入力メモ）
             const memoRecords = history.filter(item => {
                 const note = item.note || '';
-                return !note.startsWith('📞') && !note.startsWith('📵') && note.trim() !== '';
+                const isCall = note.startsWith('📞') || note.startsWith('📵');
+                const isSms = note.includes('💬');
+                const isSystem = note.startsWith('🏷️') || note.startsWith('📅') || note.startsWith('🏠') || note.startsWith('📋');
+                return !isCall && !isSms && !isSystem && note.trim() !== '';
             });
 
             return {
                 connectedCount: connectedRecords.length,
                 absentCount: absentRecords.length,
                 callTotal: connectedRecords.length + absentRecords.length,
+                messageCount: messageRecords.length,
                 memoTotal: memoRecords.length
             };
         }
@@ -21652,6 +21664,13 @@
             const counts = getCallAndMemoCounts(caseData);
             if (counts.callTotal === 0) return '📞';
             return `📞${counts.connectedCount}接続/${counts.callTotal}架電`;
+        }
+
+        // メッセージ送信回数表示（💬3通 形式）
+        function getMessageCountBadge(caseData) {
+            const counts = getCallAndMemoCounts(caseData);
+            if (counts.messageCount === 0) return '💬';
+            return `💬${counts.messageCount}通`;
         }
 
         // メモカウント表示（📝2件 形式）
