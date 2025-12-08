@@ -17267,6 +17267,68 @@
                             document.getElementById('notifyBrowser').checked = settings.browser !== false;
                         }
 
+                        // V2084: 詳細設定（alerts, holidays, quietHours, sms）を反映
+                        const details = settings.details || {};
+
+                        // SMS
+                        if (document.getElementById('notifySms')) {
+                            document.getElementById('notifySms').checked = details.sms === true;
+                        }
+
+                        // アラート設定
+                        const alerts = details.alerts || {};
+                        if (alerts.appointment_reminder && document.getElementById('appointmentReminder')) {
+                            document.getElementById('appointmentReminder').checked = alerts.appointment_reminder.enabled !== false;
+                            if (document.getElementById('appointmentAlertTime')) {
+                                document.getElementById('appointmentAlertTime').value = alerts.appointment_reminder.time || '30';
+                            }
+                        }
+                        if (alerts.call_reminder && document.getElementById('callReminder')) {
+                            document.getElementById('callReminder').checked = alerts.call_reminder.enabled !== false;
+                            if (document.getElementById('callAlertTime')) {
+                                document.getElementById('callAlertTime').value = alerts.call_reminder.time || '15';
+                            }
+                        }
+                        if (alerts.estimate_followup && document.getElementById('estimateFollowup')) {
+                            document.getElementById('estimateFollowup').checked = alerts.estimate_followup.enabled === true;
+                            if (document.getElementById('followupDays')) {
+                                document.getElementById('followupDays').value = alerts.estimate_followup.days || '7';
+                            }
+                        }
+                        if (alerts.payment_alert && document.getElementById('paymentAlert')) {
+                            document.getElementById('paymentAlert').checked = alerts.payment_alert.enabled !== false;
+                        }
+
+                        // 定休日設定
+                        const holidays = details.holidays || {};
+                        if (document.getElementById('enableHolidays')) {
+                            document.getElementById('enableHolidays').checked = holidays.enabled === true;
+                        }
+                        ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].forEach(day => {
+                            const el = document.getElementById('holiday' + day.charAt(0).toUpperCase() + day.slice(1));
+                            if (el) el.checked = holidays[day] === true;
+                        });
+
+                        // おやすみモード
+                        const quietHours = details.quietHours || {};
+                        if (document.getElementById('enableQuietHours')) {
+                            document.getElementById('enableQuietHours').checked = quietHours.enabled === true;
+                        }
+                        if (document.getElementById('quietStart')) {
+                            document.getElementById('quietStart').value = quietHours.start || '22:00';
+                        }
+                        if (document.getElementById('quietEnd')) {
+                            document.getElementById('quietEnd').value = quietHours.end || '08:00';
+                        }
+
+                        // ローカルにも同期
+                        localStorage.setItem('notificationSettings', JSON.stringify({
+                            email: settings.email,
+                            line: settings.line,
+                            browser: settings.browser,
+                            ...details
+                        }));
+
                         console.log('[loadUserSettings] Loaded from API:', settings);
                     } else {
                         console.log('[loadUserSettings] API returned no data, using localStorage');
@@ -17352,21 +17414,34 @@
             // ローカルにも保存（オフライン対応）
             localStorage.setItem('notificationSettings', JSON.stringify(settings));
 
-            // API連携
+            // V2084: API連携 - 全設定をJSONで送信
             try {
                 const userId = localStorage.getItem('userId') || 'master';
-                const merchantId = localStorage.getItem('merchantId') || '';
+                const merchantId = window.merchantId || localStorage.getItem('merchantId') || '';
 
                 if (!merchantId) {
                     console.warn('[saveNotificationSettings] merchantId not found');
                     return;
                 }
 
-                const response = await fetch(`${window.ENV?.GAS_URL || GAS_URL}?action=saveNotificationSettings&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}&email=${settings.email}&line=${settings.line}&browser=${settings.browser}&alerts=${encodeURIComponent(JSON.stringify(settings.alerts))}`);
+                // 詳細設定を1つのJSONにまとめる
+                const detailsJson = JSON.stringify({
+                    alerts: settings.alerts,
+                    holidays: settings.holidays,
+                    quietHours: settings.quietHours,
+                    sms: settings.sms
+                });
+
+                const url = `${window.ENV?.GAS_URL}?action=saveNotificationSettings&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}&email=${settings.email}&line=${settings.line}&browser=${settings.browser}&details=${encodeURIComponent(detailsJson)}`;
+
+                console.log('[saveNotificationSettings] Saving to API:', { userId, merchantId });
+                const response = await fetch(url);
                 const result = await response.json();
 
                 if (!result.success) {
                     console.error('[saveNotificationSettings] API error:', result.error);
+                } else {
+                    console.log('[saveNotificationSettings] Saved successfully');
                 }
             } catch (error) {
                 console.error('[saveNotificationSettings] Error:', error);

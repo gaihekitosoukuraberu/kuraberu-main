@@ -162,7 +162,8 @@ const NotificationSettingsManager = {
             email: row[COL.EMAIL_ENABLED] === true || row[COL.EMAIL_ENABLED] === 'TRUE' || row[COL.EMAIL_ENABLED] === 'ON',
             line: row[COL.LINE_ENABLED] === true || row[COL.LINE_ENABLED] === 'TRUE' || row[COL.LINE_ENABLED] === 'ON',
             browser: row[COL.BROWSER_ENABLED] === true || row[COL.BROWSER_ENABLED] === 'TRUE' || row[COL.BROWSER_ENABLED] === 'ON',
-            details: row[COL.DETAILS_JSON] ? this._parseJSON(row[COL.DETAILS_JSON]) : this.DEFAULT_SETTINGS.alerts,
+            // V2084: 詳細設定JSON（alerts, holidays, quietHours, sms）
+            details: row[COL.DETAILS_JSON] ? this._parseJSON(row[COL.DETAILS_JSON]) : { alerts: this.DEFAULT_SETTINGS.alerts, quietHours: this.DEFAULT_SETTINGS.quietHours },
             lastUpdated: row[COL.LAST_UPDATED]
           };
 
@@ -216,7 +217,18 @@ const NotificationSettingsManager = {
         }
       }
 
-      const detailsJSON = JSON.stringify(settings.alerts || this.DEFAULT_SETTINGS.alerts);
+      // V2084: details（全設定JSON）を優先、なければalertsのみ、どちらもなければデフォルト
+      let detailsJSON;
+      if (settings.details) {
+        // 新形式: alerts, holidays, quietHours, sms を含む
+        detailsJSON = JSON.stringify(settings.details);
+      } else if (settings.alerts) {
+        // 旧形式: alertsのみ（後方互換）
+        detailsJSON = JSON.stringify({ alerts: settings.alerts });
+      } else {
+        // デフォルト
+        detailsJSON = JSON.stringify({ alerts: this.DEFAULT_SETTINGS.alerts, quietHours: this.DEFAULT_SETTINGS.quietHours });
+      }
 
       // プロフィールは既存値をマージ（部分更新対応）V2075: 郵便番号追加
       const profile = settings.profile || {};
@@ -382,10 +394,14 @@ const NotificationSettingsManager = {
           };
 
         case 'saveNotificationSettings':
+          // V2084: 全設定をdetails JSONで受け取る
           const settingsToSave = {
             email: params.email === 'true' || params.email === true,
             line: params.line === 'true' || params.line === true,
             browser: params.browser === 'true' || params.browser === true,
+            // details: alerts, holidays, quietHours, sms を含むJSON
+            details: params.details ? (typeof params.details === 'string' ? JSON.parse(params.details) : params.details) : undefined,
+            // 後方互換: 旧alertsパラメータも受け付ける
             alerts: params.alerts ? (typeof params.alerts === 'string' ? JSON.parse(params.alerts) : params.alerts) : undefined,
             profile: params.profile ? (typeof params.profile === 'string' ? JSON.parse(params.profile) : params.profile) : undefined
           };
