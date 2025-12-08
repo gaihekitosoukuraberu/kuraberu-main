@@ -15469,7 +15469,7 @@
         // 加盟店ステータス更新
         // updateMerchantStatus関数は削除（ステータスは読み取り専用、スプレッドシートから動的取得）
 
-        // バッジカウントを統合更新
+        // V2091: バッジカウントを統合更新（notificationBadgeに統一）
         function updateTotalBadgeCount() {
             // 未割当案件数を取得
             const unassignedBadge = document.getElementById('unassignedBadge');
@@ -15480,15 +15480,17 @@
             // アラート数を取得
             const alertItems = document.querySelectorAll('#todayAlerts .alert-item').length || 0;
 
-            // 合計をベルマークに表示
+            // 合計をベルマークに表示（V2091: notificationBadgeに統一）
             const totalCount = unassignedCount + alertItems;
-            const alertCountBadge = document.getElementById('alertCount');
+            const badge = document.getElementById('notificationBadge');
 
-            if (totalCount > 0) {
-                alertCountBadge.textContent = totalCount;
-                alertCountBadge.classList.remove('hidden');
-            } else {
-                alertCountBadge.classList.add('hidden');
+            if (badge) {
+                if (totalCount > 0) {
+                    badge.textContent = totalCount > 99 ? '99+' : totalCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
             }
         }
 
