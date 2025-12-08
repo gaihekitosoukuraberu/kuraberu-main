@@ -32210,10 +32210,11 @@
 
         // キャンセル理由モーダルを開く（ステータスモーダルから）
         window.openCancelReasonFromStatus = function(cvId, cancelStatus) {
-            console.log('[V2094] openCancelReasonFromStatus:', cvId, cancelStatus);
+            console.log('[V2107] openCancelReasonFromStatus:', cvId, cancelStatus);
 
             // 案件データを取得
             const caseData = findCaseByCvId(cvId);
+            console.log('[V2107] caseData:', caseData);
             if (!caseData) {
                 alert('案件情報が見つかりません');
                 return;
@@ -32228,6 +32229,7 @@
                 deliveredAt: caseData.deliveredAt,
                 targetStatus: cancelStatus // 申請成功後に設定するステータス
             };
+            console.log('[V2107] cancelSelectedCase:', cancelSelectedCase);
 
             // AI生成回数をリセット
             cancelAiGenerationCount = 0;
@@ -32239,8 +32241,16 @@
             if (textarea) textarea.value = '';
 
             // モーダルを表示してStep 1（理由カテゴリ選択）へ
-            document.getElementById('cancelModal').classList.remove('hidden');
+            const modal = document.getElementById('cancelModal');
+            console.log('[V2107] cancelModal element:', modal);
+            if (modal) {
+                modal.classList.remove('hidden');
+                console.log('[V2107] cancelModal opened');
+            } else {
+                console.error('[V2107] cancelModal not found!');
+            }
             cancelGoToStep(1);
+            console.log('[V2107] cancelGoToStep(1) called');
 
             // キャンセルステータスに応じて初期カテゴリを自動選択
             // 現調前キャンセル → 顧客都合
