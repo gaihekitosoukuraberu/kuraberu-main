@@ -15586,9 +15586,9 @@
                                     📄 詳細
                                 </button>
                                 ${alert.type === 'survey_followup' || alert.type === 'meeting_followup' ? `
-                                    <button onclick="openThankYouEmailReminder('${alert.cvId}', '${alert.type}')"
-                                            class="flex-1 px-2 py-1.5 text-xs font-medium text-green-700 bg-green-100 rounded-lg hover:bg-green-200">
-                                        ✉️ お礼メール
+                                    <button onclick="openFollowupActionModal('${alert.cvId}', '${alert.type}')"
+                                            class="flex-1 px-2 py-1.5 text-xs font-medium text-orange-700 bg-orange-100 rounded-lg hover:bg-orange-200">
+                                        ⚡ 次アクション
                                     </button>
                                 ` : ''}
                             </div>
@@ -15895,35 +15895,17 @@
             }
         }
 
-        // V2088: お礼メールリマインダーを開く
-        function openThankYouEmailReminder(cvId, type) {
-            const caseData = merchantCasesData.find(c => String(c.cvId) === String(cvId));
-            if (!caseData) {
-                showToast('案件データが見つかりません', 'error');
-                return;
-            }
-
-            const customerName = caseData.customerName || '---';
-            const actionType = type === 'survey_followup' ? '現調' : '商談';
-
-            // メールテンプレートを表示
-            const subject = `【${actionType}のお礼】${customerName}様`;
-            const body = `${customerName}様
-
-本日は${actionType}にお時間をいただき、誠にありがとうございました。
-
-ご質問やご不明な点がございましたら、
-いつでもお気軽にご連絡ください。
-
-今後ともよろしくお願いいたします。`;
-
-            // メールアプリを開く
-            const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            window.open(mailtoUrl, '_blank');
-
-            // リマインダーを消去
-            showToast(`${customerName}様へのお礼メールを作成しました`, 'success');
+        // V2088: 次アクション設定モーダルを開く（現調後・商談後のフォローアップ用）
+        function openFollowupActionModal(cvId, type) {
+            // アラートパネルを閉じる
             toggleAlertPanel();
+
+            // ステータスモーダルを開く（次のアクション設定へ誘導）
+            openStatusModal(cvId);
+
+            // フォローアップタイプに応じたトースト表示
+            const actionType = type === 'survey_followup' ? '現調' : '商談';
+            showToast(`${actionType}後の次アクションを設定してください`, 'info');
         }
 
         // アラートクリック処理
