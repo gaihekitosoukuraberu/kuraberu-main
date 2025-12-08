@@ -32362,10 +32362,12 @@
                 return;
             }
 
-            // 電話回数はcallCountプロパティから取得、SMS回数は履歴から計算
+            // V2110: 電話回数・SMS回数を履歴から正確にカウント
             const history = caseData.callHistory || [];
-            const phoneCallCount = parseInt(caseData.callCount || 0);
-            const smsCount = history.filter(h => h.type === 'message_sent' || (h.note && h.note.includes('💬'))).length;
+            // 電話回数: 📞を含むメモをカウント（接続・不在両方）
+            const phoneCallCount = history.filter(h => h.note && (h.note.includes('📞') || h.note.includes('📵'))).length;
+            // SMS回数: 💬 SMS送信のみカウント（コピー、LINE、メールは除外）
+            const smsCount = history.filter(h => h.note && h.note.includes('💬 SMS送信')).length;
             const lastContactDate = history.length > 0 ? history[0].date : null;
 
             // cancelSelectedCaseに設定（既存のキャンセル申請フローで使用）
