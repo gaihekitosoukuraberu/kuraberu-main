@@ -36,6 +36,21 @@ function parseCallHistoryJSON(jsonStr) {
   }
 }
 
+/**
+ * V2091: 日付値をフォーマットするヘルパー関数
+ * スプレッドシートから取得したDateオブジェクトを日本時間の文字列に変換
+ * @param {Date|string} value - 日付値
+ * @return {string} - フォーマット済み文字列（yyyy/M/d H:mm形式）
+ */
+function formatDateValue(value) {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  if (value instanceof Date) {
+    return Utilities.formatDate(value, 'Asia/Tokyo', 'yyyy/M/d H:mm');
+  }
+  return String(value);
+}
+
 var MerchantContractReport = {
   /**
    * 配信済み案件一覧を取得（成約報告対象）
@@ -605,7 +620,8 @@ var MerchantContractReport = {
           deliveredAt: row[delCol['配信日時']] ? Utilities.formatDate(new Date(row[delCol['配信日時']]), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm') : '',
           merchantMemo: row[delCol['加盟店メモ']] || '',
           callHistory: parseCallHistoryJSON(row[delCol['連絡履歴JSON']]),
-          nextCallDate: row[delCol['次回連絡予定日時']] || '',
+          // V2091: Dateオブジェクトを文字列に変換（タイムゾーン問題回避）
+          nextCallDate: formatDateValue(row[delCol['次回連絡予定日時']]),
           callCount: row[delCol['電話回数']] || 0,
 
           // === お客様情報 ===
@@ -676,8 +692,9 @@ var MerchantContractReport = {
           homeAddressDetail: user.homeAddressDetail,
 
           // === 現調・商談日時（配信管理シートから） ===
-          surveyDate: row[delCol['現調日時']] || '',
-          estimateDate: row[delCol['商談日時']] || '',
+          // V2091: Dateオブジェクトを文字列に変換（タイムゾーン問題回避）
+          surveyDate: formatDateValue(row[delCol['現調日時']]),
+          estimateDate: formatDateValue(row[delCol['商談日時']]),
 
           // === V2085: 担当者（案件振り分け） ===
           assignee: user.assignee || ''
