@@ -942,12 +942,7 @@
                             <!-- ステータス選択エリア（左右分割：左=キャンセル、右=縦フロー） -->
                             <div class="flex-1 p-2 bg-gray-50 flex flex-row gap-2">
                                 <!-- 左側：キャンセル系（アポ済と下部ライン合わせ） -->
-                                <div class="w-2/5 bg-gray-100 rounded-xl p-2 flex flex-col justify-between">
-                                    <!-- 選択中ステータス表示 -->
-                                    <div class="text-center mb-2">
-                                        <p class="text-xs text-gray-500">選択中</p>
-                                        <p id="selectedStatusDisplay" class="text-sm font-bold text-purple-600">---</p>
-                                    </div>
+                                <div class="w-2/5 bg-gray-100 rounded-xl p-2 flex flex-col justify-end">
                                     <div class="flex flex-col gap-2">
                                         <button onclick="selectDetailStatus('現調前キャンセル')" data-status="現調前キャンセル" class="status-btn py-2 px-2 bg-white border-2 border-gray-200 rounded-lg text-gray-600 font-bold text-sm hover:bg-gray-200 transition-all text-center leading-tight">現調前<br>キャンセル</button>
                                         <button onclick="selectDetailStatus('現調後失注')" data-status="現調後失注" class="status-btn py-2.5 px-2 bg-white border-2 border-gray-200 rounded-lg text-gray-600 font-bold text-sm hover:bg-gray-200 transition-all text-center">現調後失注</button>
@@ -23682,17 +23677,16 @@
         // 詳細ステータス選択
         function selectDetailStatus(status) {
             selectedStatusValue = status;
-            // 選択中表示を更新
-            const display = document.getElementById('selectedStatusDisplay');
-            if (display) display.textContent = status;
-            // caseStatusModal内の全ボタンをリセット
+            // caseStatusModal内の全ボタンをリセット（背景白に戻す）
             document.querySelectorAll('#caseStatusModal .status-btn').forEach(btn => {
-                btn.classList.remove('ring-2', 'ring-purple-500');
+                btn.classList.remove('bg-purple-500', 'text-white', 'border-purple-500');
+                btn.classList.add('bg-white');
             });
-            // 選択したボタンにリング適用
+            // 選択したボタンに背景色適用（紫）
             const selectedBtn = document.querySelector(`#caseStatusModal [data-status="${status}"]`);
             if (selectedBtn) {
-                selectedBtn.classList.add('ring-2', 'ring-purple-500');
+                selectedBtn.classList.remove('bg-white');
+                selectedBtn.classList.add('bg-purple-500', 'text-white', 'border-purple-500');
             }
             // 旧モーダル用のリセット（互換性維持）
             document.querySelectorAll('#statusDetailGrid .status-btn, #statusDetailGrid2 .status-btn').forEach(btn => {
