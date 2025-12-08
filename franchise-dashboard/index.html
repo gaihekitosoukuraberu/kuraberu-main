@@ -17116,6 +17116,30 @@
             document.body.appendChild(script);
         }
 
+        // V2081: プロフィールをAPIに自動保存（バックグラウンド）
+        function autoSaveProfileToAPI(userId, merchantId, profile) {
+            console.log('[autoSaveProfile] Saving to API:', { userId, merchantId, profile });
+            const callbackName = 'autoSaveProfileCallback_' + Date.now();
+            window[callbackName] = function(result) {
+                if (result.success) {
+                    console.log('[autoSaveProfile] Saved successfully');
+                } else {
+                    console.error('[autoSaveProfile] API error:', result.error);
+                }
+                delete window[callbackName];
+                script.remove();
+            };
+
+            const script = document.createElement('script');
+            script.src = `${window.ENV?.GAS_URL}?action=saveUserProfile&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}&profile=${encodeURIComponent(JSON.stringify(profile))}&callback=${callbackName}`;
+            script.onerror = function() {
+                console.error('[autoSaveProfile] Script load error');
+                delete window[callbackName];
+                script.remove();
+            };
+            document.body.appendChild(script);
+        }
+
         // V2080: プロフィール初期設定モーダルを表示
         function showProfileSetupModal() {
             const modal = document.getElementById('profileSetupModal');
@@ -17237,6 +17261,10 @@
                                 email: window.merchantData['営業用メールアドレス'] || window.merchantData.salesEmail || '',
                                 postalCode: '' // 本人の自宅郵便番号を入力（距離順振り分け用）
                             };
+                            // V2081: 自動フィル時にAPIにも保存（通知設定シートに登録）
+                            if (profile.name || profile.email) {
+                                autoSaveProfileToAPI(userId, merchantId, profile);
+                            }
                         }
 
                         document.getElementById('profileName').value = profile.name || '';
