@@ -7404,10 +7404,6 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
                                 <input type="email" id="profileEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="tanaka@example.com">
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">LINE ID</label>
-                                <input type="text" id="profileLineId" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="@tanaka_taro">
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -17020,8 +17016,7 @@
             const profile = {
                 name: document.getElementById('profileName').value,
                 phone: document.getElementById('profilePhone').value,
-                email: document.getElementById('profileEmail').value,
-                lineId: document.getElementById('profileLineId').value
+                email: document.getElementById('profileEmail').value
             };
             localStorage.setItem('userProfile', JSON.stringify(profile));
             alert('プロフィールを保存しました');
