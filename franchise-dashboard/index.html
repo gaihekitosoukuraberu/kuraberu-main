@@ -17144,12 +17144,13 @@
 
                         if (isProfileEmpty && window.merchantData) {
                             // 加盟店登録シートから初期値を取得
+                            // 電話番号・郵便番号は本人の個人情報が必要なので空欄
                             console.log('[loadUserSettings] Profile empty, auto-filling from merchantData');
                             profile = {
                                 name: window.merchantData['営業担当者氏名'] || window.merchantData.salesPersonName || '',
-                                phone: '', // 個人携帯は別途入力が必要
+                                phone: '', // 個人携帯は別途入力
                                 email: window.merchantData['営業用メールアドレス'] || window.merchantData.salesEmail || '',
-                                postalCode: window.merchantData['郵便番号'] || ''
+                                postalCode: '' // 本人の自宅郵便番号を入力（距離順振り分け用）
                             };
                         }
 
