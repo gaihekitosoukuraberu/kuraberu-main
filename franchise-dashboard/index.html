@@ -31685,8 +31685,11 @@
 
             let generatedText = '';
 
-            // 基本情報
-            generatedText += `${cancelSelectedCase.customerName}様（${cancelSelectedCase.tel}、${cancelSelectedCase.address}）について、`;
+            // 基本情報（電話番号がない場合は住所のみ表示）
+            const tel = cancelSelectedCase.tel || '';
+            const address = cancelSelectedCase.address || '';
+            const locationInfo = tel && address ? `${tel}、${address}` : (address || tel || '');
+            generatedText += `${cancelSelectedCase.customerName}様${locationInfo ? `（${locationInfo}）` : ''}について、`;
             generatedText += `キャンセル申請をいたします。\n\n`;
 
             // フォローアップ状況
