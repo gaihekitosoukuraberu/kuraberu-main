@@ -15978,65 +15978,18 @@
 
         // お礼SMSモーダルを開く（完了確認フロー用）
         function openThankYouSmsModal(cvId, completionType) {
-            const c = findCaseByCvId(cvId);
-            if (!c) {
-                showToast('案件情報が見つかりません', 'warning');
-                window.completionChainMode = null;
-                return;
-            }
-
-            const phone = c.customerTel || c.phone;
-            if (!phone) {
-                showToast('電話番号がありません', 'warning');
-                window.completionChainMode = null;
-                return;
-            }
-
-            // SMSモーダルを開く（テンプレート選択済み）
-            sendSMS(phone, c.id);
-
-            // お礼テンプレートを自動選択（少し遅延させる）
-            setTimeout(() => {
-                const template = completionType === 'survey' ? 'thank_survey' : 'thank_estimate';
-                const textarea = document.getElementById('smsMessage');
-                if (textarea) {
-                    const customerName = c.customerName || 'お客様';
-                    if (completionType === 'survey') {
-                        textarea.value = `${customerName}様、本日は現地調査にご協力いただきありがとうございました。見積書が完成次第ご連絡いたします。`;
-                    } else {
-                        textarea.value = `${customerName}様、本日はお時間いただきありがとうございました。ご不明点がございましたらお気軽にご連絡ください。`;
-                    }
-                    updateCharCount();
-                }
-            }, 500);
+            // 既存のメッセージ送信モーダルを適切なテンプレートで開く
+            const templateKey = completionType === 'survey' ? 'survey_thanks' : 'estimate_thanks';
+            openSmsModal(cvId, templateKey);
+            // 完了確認フロー終了
+            window.completionChainMode = null;
+            showToast('全ての設定が完了しました！', 'success');
         }
 
         // V2091: 現調お礼SMSモーダルを開く（通常フロー用）
         function openSurveyThanksSmsModal(cvId) {
-            const c = findCaseByCvId(cvId);
-            if (!c) {
-                showToast('案件情報が見つかりません', 'warning');
-                return;
-            }
-
-            const phone = c.customerTel || c.phone;
-            if (!phone) {
-                showToast('電話番号がありません。SMSをスキップします。', 'info');
-                return;
-            }
-
-            // SMSモーダルを開く
-            sendSMS(phone, c.id);
-
-            // 現調お礼テンプレートを自動選択（少し遅延させる）
-            setTimeout(() => {
-                const textarea = document.getElementById('smsMessage');
-                if (textarea) {
-                    const customerName = c.customerName || 'お客様';
-                    textarea.value = `${customerName}様、本日は現地調査にご協力いただきありがとうございました。見積書が完成次第ご連絡いたします。`;
-                    updateCharCount();
-                }
-            }, 500);
+            // 既存のメッセージ送信モーダルを「現調お礼」テンプレートで開く
+            openSmsModal(cvId, 'survey_thanks');
         }
 
         // V2091: アラートから完了確認モーダルを開く
