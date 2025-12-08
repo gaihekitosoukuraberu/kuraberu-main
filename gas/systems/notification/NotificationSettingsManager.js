@@ -51,8 +51,8 @@ const NotificationSettingsManager = {
     browser: true,
     sms: false,
     alerts: {
-      appointment_reminder: { enabled: true, time: '30' },
-      call_reminder: { enabled: true, time: '15' },
+      appointment_reminder: { enabled: true, time: '18:00' },  // 前日の時刻
+      call_reminder: { enabled: true, time: '10' },  // V2086: 分前
       estimate_followup: { enabled: true, days: '7' },
       payment_alert: { enabled: true }
     },

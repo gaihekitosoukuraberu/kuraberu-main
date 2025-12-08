@@ -7567,7 +7567,7 @@
                                     </label>
                                 </div>
 
-                                <!-- 架電リマインダー -->
+                                <!-- 架電リマインダー V2086: 分数入力に変更 -->
                                 <div class="border-l-4 border-green-500 bg-gradient-to-r from-green-50 to-white rounded-r-xl p-4 hover:shadow-md transition-shadow">
                                     <label class="flex items-center justify-between">
                                         <div class="flex items-center gap-3">
@@ -7576,11 +7576,14 @@
                                             </div>
                                             <div>
                                                 <span class="text-sm font-bold text-gray-800">架電リマインダー</span>
-                                                <p class="text-xs text-gray-500">次回架電日時に通知します</p>
+                                                <p class="text-xs text-gray-500">架電予定の指定分前に通知</p>
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-3">
-                                            <input type="time" id="callAlertTime" value="10:00" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500">
+                                            <div class="flex items-center gap-1">
+                                                <input type="number" id="callAlertTime" value="10" min="5" max="60" class="w-14 px-2 py-2 border border-gray-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-green-500">
+                                                <span class="text-sm text-gray-600">分前</span>
+                                            </div>
                                             <input type="checkbox" id="callReminder" class="toggle-switch" checked="" onchange="updateAlertSetting('call_reminder', this.checked)">
                                         </div>
                                     </label>
@@ -17294,7 +17297,7 @@
                         if (alerts.call_reminder && document.getElementById('callReminder')) {
                             document.getElementById('callReminder').checked = alerts.call_reminder.enabled !== false;
                             if (document.getElementById('callAlertTime')) {
-                                document.getElementById('callAlertTime').value = alerts.call_reminder.time || '15';
+                                document.getElementById('callAlertTime').value = alerts.call_reminder.time || '10';
                             }
                         }
                         if (alerts.estimate_followup && document.getElementById('estimateFollowup')) {
