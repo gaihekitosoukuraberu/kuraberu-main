@@ -531,16 +531,18 @@ var MerchantCancelReport = {
         const delDeliveredAtIdx = deliveryHeaders.indexOf('配信日時');
 
         // V2109: CV IDのみで検索（加盟店IDの形式が異なる可能性があるため）
+        // 注意: 配信管理シートの「加盟店ID」列には実際は会社名が入っている場合がある
         for (let i = 0; i < deliveryRows.length; i++) {
           if (deliveryRows[i][delCvIdIdx] === cvId) {
-            const rowMerchantId = deliveryRows[i][delMerchantIdIdx];
-            console.log('[MerchantCancelReport] 配信管理シート検索: CV ID=' + cvId + ', シートの加盟店ID=' + rowMerchantId + ', リクエストの加盟店ID=' + merchantId);
+            const rowMerchantIdOrName = deliveryRows[i][delMerchantIdIdx];
+            console.log('[MerchantCancelReport] 配信管理シート検索: CV ID=' + cvId + ', シートの加盟店ID/名=' + rowMerchantIdOrName + ', リクエストの加盟店ID=' + merchantId + ', 加盟店名=' + merchantName);
 
-            // 加盟店IDの照合（完全一致、または部分一致）
-            if (rowMerchantId === merchantId ||
-                rowMerchantId === String(merchantId) ||
-                String(rowMerchantId).includes(merchantId) ||
-                String(merchantId).includes(rowMerchantId)) {
+            // 加盟店IDまたは会社名で照合
+            if (rowMerchantIdOrName === merchantId ||
+                rowMerchantIdOrName === String(merchantId) ||
+                rowMerchantIdOrName === merchantName ||  // 会社名で照合
+                String(rowMerchantIdOrName).includes(merchantId) ||
+                String(merchantId).includes(rowMerchantIdOrName)) {
               deliveredAt = deliveryRows[i][delDeliveredAtIdx];
               break;
             }
