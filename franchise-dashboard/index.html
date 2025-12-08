@@ -7355,8 +7355,16 @@
             </div>
 
             <!-- 通知設定セクション -->
-            <div id="settingsSection" class="section" style="display: none;">
+            <div id="settingsSection" class="section relative" style="display: none;">
                 <h2 class="text-2xl font-bold text-gray-900 mb-6">通知設定</h2>
+
+                <!-- V2085: 設定読み込み中オーバーレイ -->
+                <div id="settingsLoadingOverlay" class="absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg">
+                    <div class="text-center">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                        <p class="text-sm text-gray-500">設定を読み込み中...</p>
+                    </div>
+                </div>
 
                 <!-- アカウント情報（メンバー用） -->
                 <div id="accountInfoCard" class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 mb-6 text-white">
@@ -7672,7 +7680,7 @@
                                     </label>
                                     <p class="text-xs text-gray-500 mb-3">この時間帯は通知を送信しません</p>
                                     <div id="quietHoursSettings" class="flex items-center gap-2">
-                                        <input type="time" id="quietStart" value="22:00" class="px-4 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                                        <input type="time" id="quietStart" value="21:00" class="px-4 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
                                         <span class="text-gray-400">〜</span>
                                         <input type="time" id="quietEnd" value="08:00" class="px-4 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
                                     </div>
@@ -17330,13 +17338,18 @@
                         }));
 
                         console.log('[loadUserSettings] Loaded from API:', settings);
+
+                        // V2085: ローディングオーバーレイを非表示
+                        hideSettingsLoading();
                     } else {
                         console.log('[loadUserSettings] API returned no data, using localStorage');
                         loadSettingsFromLocalStorage();
+                        hideSettingsLoading();
                     }
                 } catch (error) {
                     console.error('[loadUserSettings] Callback error:', error);
                     loadSettingsFromLocalStorage();
+                    hideSettingsLoading();
                 } finally {
                     delete window[callbackName];
                     script.remove();
@@ -17348,10 +17361,19 @@
             script.onerror = function() {
                 console.error('[loadUserSettings] Script load error');
                 loadSettingsFromLocalStorage();
+                hideSettingsLoading();
                 delete window[callbackName];
                 script.remove();
             };
             document.body.appendChild(script);
+        }
+
+        // V2085: 設定ローディングオーバーレイを非表示
+        function hideSettingsLoading() {
+            const overlay = document.getElementById('settingsLoadingOverlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
         }
 
         // ローカルストレージから設定を復元（V2075: 郵便番号追加）

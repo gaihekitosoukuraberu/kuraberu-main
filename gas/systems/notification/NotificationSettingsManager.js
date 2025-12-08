@@ -40,21 +40,29 @@ const NotificationSettingsManager = {
   },
 
   /**
-   * デフォルト設定
+   * デフォルト設定 V2085: 推奨デフォルト値
+   * - 休日設定なし
+   * - 通知制限時間 21:00-08:00 ON
+   * - 通知方法: メール・ブラウザ ON / LINE・SMS OFF
    */
   DEFAULT_SETTINGS: {
     email: true,
     line: false,
     browser: true,
+    sms: false,
     alerts: {
-      cancelApplication: true,
-      deadlineExtension: true,
-      appointmentReminder: true,
-      callReminder: true
+      appointment_reminder: { enabled: true, time: '30' },
+      call_reminder: { enabled: true, time: '15' },
+      estimate_followup: { enabled: true, days: '7' },
+      payment_alert: { enabled: true }
+    },
+    holidays: {
+      enabled: false,
+      mon: false, tue: false, wed: false, thu: false, fri: false, sat: false, sun: false
     },
     quietHours: {
-      enabled: false,
-      start: '22:00',
+      enabled: true,
+      start: '21:00',
       end: '08:00'
     }
   },
