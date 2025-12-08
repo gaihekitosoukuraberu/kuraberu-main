@@ -17088,7 +17088,7 @@
                     return;
                 }
 
-                const response = await fetch(`${window.ENV?.GAS_URL || GAS_URL}&action=saveUserProfile&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}&profile=${encodeURIComponent(JSON.stringify(profile))}`);
+                const response = await fetch(`${window.ENV?.GAS_URL || GAS_URL}?action=saveUserProfile&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}&profile=${encodeURIComponent(JSON.stringify(profile))}`);
                 const result = await response.json();
 
                 if (result.success) {
@@ -17115,7 +17115,7 @@
                     return;
                 }
 
-                const response = await fetch(`${window.ENV?.GAS_URL || GAS_URL}&action=getNotificationSettings&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}`);
+                const response = await fetch(`${window.ENV?.GAS_URL || GAS_URL}?action=getNotificationSettings&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}`);
                 const result = await response.json();
 
                 if (result.success && result.settings) {
