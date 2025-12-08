@@ -1522,6 +1522,61 @@
                     </div>
                 </div>
 
+                <!-- V2091: 完了確認モーダル（現調/商談の1時間後に表示） -->
+                <div id="completionCheckModal" class="fixed inset-0 z-50 hidden">
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeCompletionCheckModal()"></div>
+                    <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md overflow-hidden">
+                            <!-- ヘッダー -->
+                            <div id="completionCheckHeader" class="p-4 border-b bg-gradient-to-r from-orange-500 to-amber-500 text-white">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 id="completionCheckTitle" class="text-lg font-bold">現調完了確認</h3>
+                                    <button onclick="closeCompletionCheckModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all -mr-2">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <p id="completionCheckCustomer" class="text-base font-bold text-white">---様</p>
+                                <p id="completionCheckQuestion" class="text-sm text-orange-100 mt-1">現調は完了しましたか？</p>
+                            </div>
+
+                            <!-- 選択肢 -->
+                            <div class="p-4 space-y-3">
+                                <button onclick="handleCompletionAction('completed')" class="w-full p-4 bg-green-50 border-2 border-green-200 rounded-xl hover:border-green-400 hover:bg-green-100 transition-all text-left group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">✅</span>
+                                        <div>
+                                            <div class="font-bold text-green-800 group-hover:text-green-900" id="completionBtnLabel">現調完了</div>
+                                            <div class="text-sm text-green-600">次のアクションを設定します</div>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                <button onclick="handleCompletionAction('snooze_evening')" class="w-full p-4 bg-blue-50 border-2 border-blue-200 rounded-xl hover:border-blue-400 hover:bg-blue-100 transition-all text-left group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">🌙</span>
+                                        <div>
+                                            <div class="font-bold text-blue-800 group-hover:text-blue-900">夜に再通知</div>
+                                            <div class="text-sm text-blue-600">18:00にもう一度お知らせします</div>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                <button onclick="handleCompletionAction('other')" class="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-xl hover:border-gray-400 hover:bg-gray-100 transition-all text-left group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">📋</span>
+                                        <div>
+                                            <div class="font-bold text-gray-800 group-hover:text-gray-900">その他</div>
+                                            <div class="text-sm text-gray-600">キャンセル等、案件詳細を確認</div>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 状況選択モーダル（見積提出済選択後） -->
                 <div id="situationModal" class="fixed inset-0 z-50 hidden">
                     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSituationModal()"></div>
@@ -15756,6 +15811,176 @@
             showToast('明日の朝9:00にリマインドします', 'info');
         }
 
+        // ============================================
+        // V2091: 完了確認モーダル（現調/商談の1時間後）
+        // ============================================
+        let currentCompletionCheck = null; // 現在の完了確認対象
+
+        // 完了確認モーダルを開く
+        function openCompletionCheckModal(checkData) {
+            // checkData: { cvId, customerName, type: 'survey' | 'estimate', scheduledTime }
+            currentCompletionCheck = checkData;
+
+            const typeLabel = checkData.type === 'survey' ? '現調' : '商談';
+            document.getElementById('completionCheckTitle').textContent = `${typeLabel}完了確認`;
+            document.getElementById('completionCheckCustomer').textContent = `${checkData.customerName || '---'}様`;
+            document.getElementById('completionCheckQuestion').textContent = `${typeLabel}は完了しましたか？`;
+            document.getElementById('completionBtnLabel').textContent = `${typeLabel}完了`;
+
+            // ヘッダー色を変更（現調=オレンジ、商談=紫）
+            const header = document.getElementById('completionCheckHeader');
+            if (checkData.type === 'survey') {
+                header.className = 'p-4 border-b bg-gradient-to-r from-orange-500 to-amber-500 text-white';
+            } else {
+                header.className = 'p-4 border-b bg-gradient-to-r from-purple-500 to-pink-500 text-white';
+            }
+
+            document.getElementById('completionCheckModal').classList.remove('hidden');
+        }
+
+        // 完了確認モーダルを閉じる
+        function closeCompletionCheckModal() {
+            document.getElementById('completionCheckModal').classList.add('hidden');
+            currentCompletionCheck = null;
+        }
+
+        // 完了確認アクションを処理
+        function handleCompletionAction(action) {
+            if (!currentCompletionCheck) {
+                closeCompletionCheckModal();
+                return;
+            }
+
+            const cvId = currentCompletionCheck.cvId;
+            const customerName = currentCompletionCheck.customerName;
+            const type = currentCompletionCheck.type;
+            const typeLabel = type === 'survey' ? '現調' : '商談';
+
+            closeCompletionCheckModal();
+
+            switch (action) {
+                case 'completed':
+                    // 完了 → ステータスモーダル → 次回架電モーダル → SMSモーダル（お礼）の連鎖
+                    showToast(`${typeLabel}完了を記録します`, 'success');
+                    // モーダル連鎖フラグをセット
+                    window.completionChainMode = {
+                        cvId: cvId,
+                        type: type,
+                        step: 'status' // status → nextCall → sms
+                    };
+                    // ステータスモーダルを開く（完了時にnextCallModalを自動で開く）
+                    openStatusModalForCompletion(cvId, customerName, type);
+                    break;
+
+                case 'snooze_evening':
+                    // 夜(18:00)に再通知
+                    const evening = new Date();
+                    evening.setHours(18, 0, 0, 0);
+                    if (evening <= new Date()) {
+                        // 既に18時過ぎなら明日の18時
+                        evening.setDate(evening.getDate() + 1);
+                    }
+                    const key = `completion_${cvId}_${type}`;
+                    snoozedTasks[key] = { until: evening.toISOString() };
+                    localStorage.setItem('snoozedTasks', JSON.stringify(snoozedTasks));
+                    showToast('18:00に再通知します', 'info');
+                    loadAlerts();
+                    break;
+
+                case 'other':
+                    // その他 → 案件詳細モーダルを開く
+                    const caseData = findCaseByCvId(cvId);
+                    if (caseData) {
+                        openCaseDetailModal(caseData);
+                    } else {
+                        showToast('案件情報が見つかりません', 'warning');
+                    }
+                    break;
+            }
+        }
+
+        // 完了フロー用のステータスモーダル（連鎖対応）
+        function openStatusModalForCompletion(cvId, customerName, completionType) {
+            const c = findCaseByCvId(cvId);
+            if (!c) {
+                currentStatusCase = { cvId, customerName };
+            } else {
+                currentStatusCase = c;
+            }
+            document.getElementById('statusTargetName').textContent = `${customerName || '-'} 様`;
+            document.getElementById('caseStatusModal').classList.remove('hidden');
+            resetStatusSelection();
+
+            // 完了タイプに応じたデフォルト選択
+            if (completionType === 'survey') {
+                selectDetailStatus('現調済');
+            } else if (completionType === 'estimate') {
+                selectDetailStatus('見積提出済');
+            } else if (c && c.detailStatus) {
+                selectDetailStatus(c.detailStatus);
+            }
+        }
+
+        // 完了後の次モーダルを開く（ステータス確定後に呼ばれる）
+        function proceedCompletionChain() {
+            if (!window.completionChainMode) return;
+
+            const { cvId, type, step } = window.completionChainMode;
+
+            if (step === 'status') {
+                // ステータス完了 → 次回架電モーダルへ
+                window.completionChainMode.step = 'nextCall';
+                setTimeout(() => {
+                    openNextCallModal(cvId);
+                }, 300);
+            } else if (step === 'nextCall') {
+                // 次回架電完了 → お礼SMSモーダルへ
+                window.completionChainMode.step = 'sms';
+                setTimeout(() => {
+                    openThankYouSmsModal(cvId, type);
+                }, 300);
+            } else if (step === 'sms') {
+                // SMS完了 → 連鎖終了
+                window.completionChainMode = null;
+                showToast('全ての設定が完了しました！', 'success');
+            }
+        }
+
+        // お礼SMSモーダルを開く
+        function openThankYouSmsModal(cvId, completionType) {
+            const c = findCaseByCvId(cvId);
+            if (!c) {
+                showToast('案件情報が見つかりません', 'warning');
+                window.completionChainMode = null;
+                return;
+            }
+
+            const phone = c.customerTel || c.phone;
+            if (!phone) {
+                showToast('電話番号がありません', 'warning');
+                window.completionChainMode = null;
+                return;
+            }
+
+            // SMSモーダルを開く（テンプレート選択済み）
+            sendSMS(phone, c.id);
+
+            // お礼テンプレートを自動選択（少し遅延させる）
+            setTimeout(() => {
+                const template = completionType === 'survey' ? 'thank_survey' : 'thank_estimate';
+                const textarea = document.getElementById('smsMessage');
+                if (textarea) {
+                    const customerName = c.customerName || 'お客様';
+                    if (completionType === 'survey') {
+                        textarea.value = `${customerName}様、本日は現地調査にご協力いただきありがとうございました。見積書が完成次第ご連絡いたします。`;
+                    } else {
+                        textarea.value = `${customerName}様、本日はお時間いただきありがとうございました。ご不明点がございましたらお気軽にご連絡ください。`;
+                    }
+                    updateCharCount();
+                }
+            }, 500);
+        }
+
         // 期限切れスヌーズをクリーンアップ
         function cleanupExpiredSnoozes() {
             const now = new Date();
@@ -15819,6 +16044,54 @@
         function generateAutoAlerts(cases, autoAlerts) {
             const now = new Date();
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            // V2091: 完了確認通知（現調/商談の予定時刻から1時間経過）
+            cases.forEach(c => {
+                // 現調の完了確認
+                if (c.surveyDate) {
+                    const surveyDate = parseTaskDate(c.surveyDate);
+                    if (surveyDate) {
+                        const minutesSince = (now - surveyDate) / (1000 * 60);
+                        // 1時間〜3時間経過（スヌーズでない）
+                        const completionKey = `completion_${c.cvId}_survey`;
+                        const snoozeInfo = snoozedTasks[completionKey];
+                        const isSnoozed = snoozeInfo && new Date(snoozeInfo.until) > now;
+                        if (minutesSince >= 60 && minutesSince < 180 && !isSnoozed && c.detailStatus !== '現調済' && c.detailStatus !== '見積提出済' && c.detailStatus !== '成約' && c.detailStatus !== '失注') {
+                            autoAlerts.push({
+                                icon: '🏠',
+                                text: `${c.customerName || '---'}様 現調は完了しましたか？`,
+                                type: 'completion_check_survey',
+                                cvId: c.cvId,
+                                customerName: c.customerName,
+                                scheduledTime: surveyDate,
+                                completionType: 'survey'
+                            });
+                        }
+                    }
+                }
+                // 商談の完了確認
+                if (c.estimateDate) {
+                    const estDate = parseTaskDate(c.estimateDate);
+                    if (estDate) {
+                        const minutesSince = (now - estDate) / (1000 * 60);
+                        // 1時間〜3時間経過（スヌーズでない）
+                        const completionKey = `completion_${c.cvId}_estimate`;
+                        const snoozeInfo = snoozedTasks[completionKey];
+                        const isSnoozed = snoozeInfo && new Date(snoozeInfo.until) > now;
+                        if (minutesSince >= 60 && minutesSince < 180 && !isSnoozed && c.detailStatus !== '見積提出済' && c.detailStatus !== '成約' && c.detailStatus !== '失注') {
+                            autoAlerts.push({
+                                icon: '📋',
+                                text: `${c.customerName || '---'}様 商談は完了しましたか？`,
+                                type: 'completion_check_estimate',
+                                cvId: c.cvId,
+                                customerName: c.customerName,
+                                scheduledTime: estDate,
+                                completionType: 'estimate'
+                            });
+                        }
+                    }
+                }
+            });
 
             // 未対応案件（担当者未割当）
             const unassigned = cases.filter(c => !c.assignee || c.assignee === '');
@@ -23479,6 +23752,13 @@
                 isAfterCallMode = false;
             }
 
+            // V2091: 完了確認フローの連鎖処理
+            if (window.completionChainMode && window.completionChainMode.step === 'status') {
+                // 完了確認フロー中はステータスに関係なく次の連鎖へ
+                proceedCompletionChain();
+                return;
+            }
+
             // ステータスに応じて次のモーダルを表示
             if (newStatus === 'アポ済') {
                 // アポ済なら現調日時設定モーダル
@@ -25931,8 +26211,14 @@
             renderCases();
             closeNextCallModal();
 
-            // 通話後ならSMSモーダルを表示
-            showAfterCallSmsIfNeeded();
+            // V2091: 完了確認フローの連鎖処理
+            const isCompletionChain = window.completionChainMode && window.completionChainMode.step === 'nextCall';
+            if (isCompletionChain) {
+                proceedCompletionChain();
+            } else {
+                // 通話後ならSMSモーダルを表示（完了確認フローでない場合のみ）
+                showAfterCallSmsIfNeeded();
+            }
 
             // バックグラウンドで保存
             const merchantId = window.merchantId || sessionStorage.getItem('currentUser');

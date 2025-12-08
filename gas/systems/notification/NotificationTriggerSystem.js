@@ -259,8 +259,11 @@ const NotificationTriggerSystem = {
         const surveyDate = this._parseDate(row[colIndex.surveyDate]);
         if (surveyDate) {
           const minutesUntil = Math.floor((surveyDate - now) / (1000 * 60));
+          const minutesSince = Math.floor((now - surveyDate) / (1000 * 60));
           const reminderKey = `survey-${cvId}-${surveyDate.getTime()}`;
+          const completionKey = `survey-complete-${cvId}-${surveyDate.getTime()}`;
 
+          // 30分前リマインダー
           if (minutesUntil <= 30 && minutesUntil > 0 && !sentReminders[reminderKey]) {
             this._sendNotificationToMerchant(
               merchantId,
@@ -269,14 +272,23 @@ const NotificationTriggerSystem = {
             );
             sentReminders[reminderKey] = now.getTime();
           }
+
+          // V2091: 完了確認通知（予定時刻の1時間後）
+          if (minutesSince >= 60 && minutesSince < 120 && !sentReminders[completionKey]) {
+            this._sendCompletionCheckNotification(merchantId, cvId, customerName, 'survey');
+            sentReminders[completionKey] = now.getTime();
+          }
         }
 
         // 商談リマインダー（30分前）
         const meetingDate = this._parseDate(row[colIndex.estimateDate]);
         if (meetingDate) {
           const minutesUntil = Math.floor((meetingDate - now) / (1000 * 60));
+          const minutesSince = Math.floor((now - meetingDate) / (1000 * 60));
           const reminderKey = `meeting-${cvId}-${meetingDate.getTime()}`;
+          const completionKey = `meeting-complete-${cvId}-${meetingDate.getTime()}`;
 
+          // 30分前リマインダー
           if (minutesUntil <= 30 && minutesUntil > 0 && !sentReminders[reminderKey]) {
             this._sendNotificationToMerchant(
               merchantId,
@@ -284,6 +296,12 @@ const NotificationTriggerSystem = {
               `${minutesUntil}分後に${customerName}様との商談予定です\n📱 ${customerTel}`
             );
             sentReminders[reminderKey] = now.getTime();
+          }
+
+          // V2091: 完了確認通知（予定時刻の1時間後）
+          if (minutesSince >= 60 && minutesSince < 120 && !sentReminders[completionKey]) {
+            this._sendCompletionCheckNotification(merchantId, cvId, customerName, 'meeting');
+            sentReminders[completionKey] = now.getTime();
           }
         }
       }
@@ -339,6 +357,34 @@ const NotificationTriggerSystem = {
     } catch (error) {
       console.error('[NotificationTrigger] 通知送信エラー:', merchantId, error);
     }
+  },
+
+  /**
+   * V2091: 完了確認通知を送信
+   */
+  _sendCompletionCheckNotification(merchantId, cvId, customerName, type) {
+    const typeLabel = type === 'survey' ? '現調' : '商談';
+    const title = `${typeLabel}完了確認`;
+    const message = `${customerName}様の${typeLabel}は完了しましたか？\n\n` +
+      `アプリを開いて確認してください。\n` +
+      `[完了] [夜に再通知] [その他]`;
+
+    // 完了確認用のデータをPropertiesに保存（フロント側で取得用）
+    const props = PropertiesService.getScriptProperties();
+    const pendingChecks = JSON.parse(props.getProperty('pendingCompletionChecks') || '{}');
+
+    const checkKey = `${type}-${cvId}`;
+    pendingChecks[checkKey] = {
+      merchantId: merchantId,
+      cvId: cvId,
+      customerName: customerName,
+      type: type,
+      createdAt: new Date().toISOString()
+    };
+    props.setProperty('pendingCompletionChecks', JSON.stringify(pendingChecks));
+
+    this._sendNotificationToMerchant(merchantId, title, message);
+    console.log('[NotificationTrigger] 完了確認通知送信:', customerName, type);
   },
 
   /**
@@ -420,4 +466,53 @@ function sendEveningSummary() {
 
 function checkImmediateReminders() {
   return NotificationTriggerSystem.checkImmediateReminders();
+}
+
+// V2091: 完了確認待ちリストを取得
+function getPendingCompletionChecks(merchantId) {
+  const props = PropertiesService.getScriptProperties();
+  const pendingChecks = JSON.parse(props.getProperty('pendingCompletionChecks') || '{}');
+
+  // 指定された加盟店のチェックのみフィルタ
+  const result = [];
+  Object.keys(pendingChecks).forEach(key => {
+    const check = pendingChecks[key];
+    if (check.merchantId === merchantId) {
+      result.push({ key, ...check });
+    }
+  });
+
+  return { success: true, checks: result };
+}
+
+// V2091: 完了確認を処理
+function handleCompletionCheck(checkKey, action) {
+  const props = PropertiesService.getScriptProperties();
+  const pendingChecks = JSON.parse(props.getProperty('pendingCompletionChecks') || '{}');
+
+  if (!pendingChecks[checkKey]) {
+    return { success: false, error: '該当する確認が見つかりません' };
+  }
+
+  const check = pendingChecks[checkKey];
+
+  if (action === 'completed') {
+    // 完了 → リストから削除
+    delete pendingChecks[checkKey];
+    props.setProperty('pendingCompletionChecks', JSON.stringify(pendingChecks));
+    return { success: true, action: 'completed', check };
+  } else if (action === 'snooze_evening') {
+    // 夜に再通知 → 18:00まで保持
+    check.snoozedUntil = '18:00';
+    pendingChecks[checkKey] = check;
+    props.setProperty('pendingCompletionChecks', JSON.stringify(pendingChecks));
+    return { success: true, action: 'snoozed', check };
+  } else if (action === 'other') {
+    // その他 → リストから削除（案件詳細で対応）
+    delete pendingChecks[checkKey];
+    props.setProperty('pendingCompletionChecks', JSON.stringify(pendingChecks));
+    return { success: true, action: 'other', check };
+  }
+
+  return { success: false, error: '不明なアクション' };
 }
