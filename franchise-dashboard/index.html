@@ -23744,8 +23744,11 @@
             const cancelStatuses = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', 'クレーム'];
             if (cancelStatuses.includes(selectedStatusValue)) {
                 const cancelStatus = selectedStatusValue; // closeStatusModal前に保存
+                console.log('[V2107] closeStatusModal呼び出し前');
                 closeStatusModal();
+                console.log('[V2107] closeStatusModal呼び出し後, caseStatusModal hidden:', document.getElementById('caseStatusModal').classList.contains('hidden'));
                 openCancelReasonFromStatus(cvId, cancelStatus);
+                console.log('[V2107] openCancelReasonFromStatus完了後');
                 return;
             }
 
@@ -30874,11 +30877,17 @@
 
         // ステップ移動
         window.cancelGoToStep = function(step) {
+            console.log('[V2107] cancelGoToStep開始, step:', step);
             // 現在のステップを非表示
             document.querySelectorAll('.cancel-step').forEach(el => el.classList.add('hidden'));
 
             // 新しいステップを表示
-            document.getElementById(`cancelStep${step}`).classList.remove('hidden');
+            const stepEl = document.getElementById(`cancelStep${step}`);
+            console.log('[V2107] cancelStep' + step + ' element:', stepEl);
+            if (stepEl) {
+                stepEl.classList.remove('hidden');
+                console.log('[V2107] cancelStep' + step + ' hidden removed');
+            }
             cancelCurrentStep = step;
 
             // インジケーター更新（3段階に変更）
