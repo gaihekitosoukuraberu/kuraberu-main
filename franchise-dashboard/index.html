@@ -17138,14 +17138,27 @@
                         const settings = result.settings;
 
                         // プロフィール情報を反映（V2075: 郵便番号追加）
-                        if (settings.profile) {
-                            document.getElementById('profileName').value = settings.profile.name || '';
-                            document.getElementById('profilePhone').value = settings.profile.phone || '';
-                            document.getElementById('profileEmail').value = settings.profile.email || '';
-                            document.getElementById('profilePostalCode').value = settings.profile.postalCode || '';
-                            // ローカルにも同期
-                            localStorage.setItem('userProfile', JSON.stringify(settings.profile));
+                        // V2078: プロフィールが空の場合、window.merchantDataから自動セット
+                        let profile = settings.profile || {};
+                        const isProfileEmpty = !profile.name && !profile.phone && !profile.email;
+
+                        if (isProfileEmpty && window.merchantData) {
+                            // 加盟店登録シートから初期値を取得
+                            console.log('[loadUserSettings] Profile empty, auto-filling from merchantData');
+                            profile = {
+                                name: window.merchantData['営業担当者氏名'] || window.merchantData.salesPersonName || '',
+                                phone: '', // 個人携帯は別途入力が必要
+                                email: window.merchantData['営業用メールアドレス'] || window.merchantData.salesEmail || '',
+                                postalCode: window.merchantData['郵便番号'] || ''
+                            };
                         }
+
+                        document.getElementById('profileName').value = profile.name || '';
+                        document.getElementById('profilePhone').value = profile.phone || '';
+                        document.getElementById('profileEmail').value = profile.email || '';
+                        document.getElementById('profilePostalCode').value = profile.postalCode || '';
+                        // ローカルにも同期
+                        localStorage.setItem('userProfile', JSON.stringify(profile));
 
                         // 通知設定を反映
                         if (document.getElementById('notifyEmail')) {
