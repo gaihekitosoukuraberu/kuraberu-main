@@ -20761,7 +20761,15 @@
                     if (sitEntry) sitDisplay = sitEntry.note;
                 }
                 if (sitDisplay) {
-                    let shortSit = sitDisplay.replace('検討中', '').replace('相談中', '');
+                    // V2093: 状況表示を分かりやすく（「契約」だけだと確約に見える問題を修正）
+                    let shortSit = sitDisplay
+                        .replace('🔥契約検討中', '🔥契約検討')
+                        .replace('😡比較検討中', '😡比較検討')
+                        .replace('😐家族相談中', '😐家族相談')
+                        .replace('💰予算次第', '💰予算悩')
+                        .replace('⏳時期次第', '⏳時期悩')
+                        .replace('➕保留・連絡待ち', '➕保留')
+                        .replace('❄️見込み薄', '❄️見込薄');
                     let followPart = nextCallDisplay !== '-' ? `📞${nextCallDisplay}` : '';
                     let displayText = followPart ? `${shortSit}/${followPart}` : shortSit;
                     return {
@@ -20835,8 +20843,15 @@
 
                 // 状況＋フォロー日を表示
                 if (sitDisplay) {
-                    // 状況の短縮表示（絵文字＋短縮テキスト）
-                    let shortSit = sitDisplay.replace('検討中', '').replace('相談中', '');
+                    // V2093: 状況の短縮表示（「契約」だけだと確約に見える問題を修正）
+                    let shortSit = sitDisplay
+                        .replace('🔥契約検討中', '🔥契約検討')
+                        .replace('😡比較検討中', '😡比較検討')
+                        .replace('😐家族相談中', '😐家族相談')
+                        .replace('💰予算次第', '💰予算悩')
+                        .replace('⏳時期次第', '⏳時期悩')
+                        .replace('➕保留・連絡待ち', '➕保留')
+                        .replace('❄️見込み薄', '❄️見込薄');
                     let followPart = nextCallDisplay !== '-' ? `📞${nextCallDisplay}` : '';
                     let displayText = followPart ? `${shortSit}/${followPart}` : shortSit;
 
