@@ -20715,7 +20715,7 @@
                             ${getCallCountBadge(c)}
                         </button>
                         <button onclick="openSmsModal('${c.cvId}')" class="px-2 py-1 text-sm font-medium text-purple-700 bg-purple-100 rounded-lg hover:bg-purple-200 transition-colors" title="SMS/メッセージ送信">
-                            💬
+                            ${getMessageCountBadge(c)}
                         </button>
                         <button onclick="openMemoModal('${c.cvId}')" class="px-2 py-1 text-sm font-medium text-amber-700 bg-amber-100 rounded-lg hover:bg-amber-200 transition-colors" title="メモ・履歴">
                             ${getMemoCountBadge(c)}
@@ -20985,7 +20985,7 @@
                     <!-- SMS -->
                     <td class="px-2 py-3 text-center">
                         <button onclick="openSmsModal('${c.cvId}')" class="px-2 py-1 text-sm font-medium text-purple-700 bg-purple-100 rounded-lg hover:bg-purple-200 transition-colors" title="SMS/メッセージ送信">
-                            💬
+                            ${getMessageCountBadge(c)}
                         </button>
                     </td>
                     <!-- メモ（件数） -->
@@ -31157,13 +31157,13 @@
                 return;
             }
 
-            // 電話回数・SMS回数を自動表示（控えめに）
+            // 電話回数・メッセージ回数を自動表示（控えめに）
             const phoneCallCount = cancelSelectedCase.phoneCallCount || 0;
-            const smsCount = cancelSelectedCase.smsCount || 0;
+            const messageCount = cancelSelectedCase.messageCount || 0;
 
             let formHtml = `<div class="space-y-4">`;
 
-            // 参考情報として電話・SMS回数を表示
+            // 参考情報として電話・メッセージ回数を表示
             formHtml += `
                 <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
                     <div class="flex items-center">
@@ -31173,7 +31173,7 @@
                         <p class="text-sm font-semibold text-blue-800">参考：システム集計</p>
                     </div>
                     <p class="text-sm text-blue-700 mt-2 ml-7">
-                        電話: <span class="font-bold">${phoneCallCount}回</span>、SMS: <span class="font-bold">${smsCount}回</span>
+                        電話: <span class="font-bold">${phoneCallCount}回</span>、メッセージ: <span class="font-bold">${messageCount}通</span>
                     </p>
                 </div>
             `;
@@ -31826,7 +31826,7 @@
 
                 // 架電履歴から自動取得したデータを使用
                 const phoneCount = cancelSelectedCase.phoneCallCount || 0;
-                const smsCount = cancelSelectedCase.smsCount || 0;
+                const messageCount = cancelSelectedCase.messageCount || 0;
                 const lastContactDate = cancelSelectedCase.lastContactDate || new Date().toISOString();
 
                 const merchantId = window.merchantId;
@@ -31876,7 +31876,7 @@
                     }),
                     additionalInfo1: applicationText,
                     phoneCallCount: phoneCount,
-                    smsCount: smsCount,
+                    smsCount: messageCount, // GAS側は引き続きsmsCountで受け取る
                     lastContactDate: lastContactDate
                 };
 
@@ -32381,12 +32381,16 @@
                 return;
             }
 
-            // V2110: 電話回数・SMS回数を履歴から正確にカウント
+            // V2110: 電話回数・メッセージ回数を履歴から正確にカウント
             const history = caseData.callHistory || [];
-            // 電話回数: 📞を含むメモをカウント（接続・不在両方）
+            // 電話回数: 📞/📵を含むメモをカウント（接続・不在両方）
             const phoneCallCount = history.filter(h => h.note && (h.note.includes('📞') || h.note.includes('📵'))).length;
-            // SMS回数: 💬 SMS送信のみカウント（コピー、LINE、メールは除外）
-            const smsCount = history.filter(h => h.note && h.note.includes('💬 SMS送信')).length;
+            // メッセージ回数: SMS・LINE・メール全部カウント
+            const messageCount = history.filter(h => h.note && (
+                h.note.includes('💬 SMS送信') || h.note.includes('💬SMS送信') ||
+                h.note.includes('💬 LINE送信') || h.note.includes('💬LINE送信') ||
+                h.note.includes('💬 メール送信') || h.note.includes('💬メール送信')
+            )).length;
             const lastContactDate = history.length > 0 ? history[0].date : null;
 
             // cancelSelectedCaseに設定（既存のキャンセル申請フローで使用）
@@ -32398,7 +32402,7 @@
                 deliveredAt: caseData.deliveredAt,
                 targetStatus: cancelStatus, // 申請成功後に設定するステータス
                 phoneCallCount: phoneCallCount,
-                smsCount: smsCount,
+                messageCount: messageCount,
                 lastContactDate: lastContactDate
             };
 
