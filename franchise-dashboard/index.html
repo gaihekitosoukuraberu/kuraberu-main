@@ -17130,9 +17130,11 @@
 
             // JSONP方式でAPI呼び出し
             const callbackName = 'loadUserSettingsCallback_' + Date.now();
+            console.log('[loadUserSettings] JSONP callback registered:', callbackName);
             window[callbackName] = function(result) {
+                console.log('[loadUserSettings] Callback received:', result);
                 try {
-                    if (result.success && result.settings) {
+                    if (result && result.success && result.settings) {
                         const settings = result.settings;
 
                         // プロフィール情報を反映（V2075: 郵便番号追加）
