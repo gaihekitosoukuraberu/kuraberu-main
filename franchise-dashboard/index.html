@@ -15620,6 +15620,36 @@
             // 自動リマインダー生成
             generateAutoAlerts(cases, autoAlerts);
             const autoAlertsHtml = autoAlerts.map(alert => {
+                // V2091: 完了確認通知は専用表示
+                if (alert.type === 'completion_check_survey' || alert.type === 'completion_check_estimate') {
+                    const bgColor = alert.completionType === 'survey' ? 'bg-orange-50 border-orange-200' : 'bg-purple-50 border-purple-200';
+                    const btnColor = alert.completionType === 'survey' ? 'text-orange-700 bg-orange-100 hover:bg-orange-200' : 'text-purple-700 bg-purple-100 hover:bg-purple-200';
+                    return `
+                        <div class="p-3 ${bgColor} rounded-lg border">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg">${alert.icon}</span>
+                                    <span class="text-sm font-medium">${alert.text}</span>
+                                </div>
+                                <button onclick="dismissAlert(this.closest('.p-3'))" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="flex gap-2 mt-2">
+                                <button onclick="openCompletionCheckFromAlert('${alert.cvId}', '${alert.customerName}', '${alert.completionType}')"
+                                        class="flex-1 px-2 py-1.5 text-xs font-medium ${btnColor} rounded-lg">
+                                    ✅ 完了確認
+                                </button>
+                                <button onclick="openDetailModal('${alert.cvId}'); toggleAlertPanel();"
+                                        class="flex-1 px-2 py-1.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200">
+                                    📄 詳細
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
                 // V2088: cvIdがある場合はアクションボタン付きの詳細表示
                 if (alert.cvId) {
                     return `
@@ -15946,7 +15976,7 @@
             }
         }
 
-        // お礼SMSモーダルを開く
+        // お礼SMSモーダルを開く（完了確認フロー用）
         function openThankYouSmsModal(cvId, completionType) {
             const c = findCaseByCvId(cvId);
             if (!c) {
@@ -15979,6 +16009,44 @@
                     updateCharCount();
                 }
             }, 500);
+        }
+
+        // V2091: 現調お礼SMSモーダルを開く（通常フロー用）
+        function openSurveyThanksSmsModal(cvId) {
+            const c = findCaseByCvId(cvId);
+            if (!c) {
+                showToast('案件情報が見つかりません', 'warning');
+                return;
+            }
+
+            const phone = c.customerTel || c.phone;
+            if (!phone) {
+                showToast('電話番号がありません。SMSをスキップします。', 'info');
+                return;
+            }
+
+            // SMSモーダルを開く
+            sendSMS(phone, c.id);
+
+            // 現調お礼テンプレートを自動選択（少し遅延させる）
+            setTimeout(() => {
+                const textarea = document.getElementById('smsMessage');
+                if (textarea) {
+                    const customerName = c.customerName || 'お客様';
+                    textarea.value = `${customerName}様、本日は現地調査にご協力いただきありがとうございました。見積書が完成次第ご連絡いたします。`;
+                    updateCharCount();
+                }
+            }, 500);
+        }
+
+        // V2091: アラートから完了確認モーダルを開く
+        function openCompletionCheckFromAlert(cvId, customerName, completionType) {
+            toggleAlertPanel(); // アラートパネルを閉じる
+            openCompletionCheckModal({
+                cvId: cvId,
+                customerName: customerName,
+                type: completionType
+            });
         }
 
         // 期限切れスヌーズをクリーンアップ
@@ -25376,6 +25444,9 @@
 
             if (!cvId) return;
 
+            // V2091: 現調後お礼SMS連鎖フラグをセット
+            window.postSurveyChainCvId = cvId;
+
             if (action === 'estimate') {
                 // 商談日時が決まっている → 見積提出日モーダル
                 openEstimateDateModal(cvId);
@@ -25889,6 +25960,15 @@
 
             closeEstimateDateModal();
 
+            // V2091: 現調後連鎖ならお礼SMSモーダルを表示
+            if (window.postSurveyChainCvId === cvId) {
+                window.postSurveyChainCvId = null;
+                setTimeout(() => {
+                    openSurveyThanksSmsModal(cvId);
+                }, 300);
+                return;
+            }
+
             // 通話後ならSMSモーダルを表示
             showAfterCallSmsIfNeeded();
         }
@@ -26215,6 +26295,12 @@
             const isCompletionChain = window.completionChainMode && window.completionChainMode.step === 'nextCall';
             if (isCompletionChain) {
                 proceedCompletionChain();
+            } else if (window.postSurveyChainCvId === saveCvId) {
+                // V2091: 現調後連鎖ならお礼SMSモーダルを表示
+                window.postSurveyChainCvId = null;
+                setTimeout(() => {
+                    openSurveyThanksSmsModal(saveCvId);
+                }, 300);
             } else {
                 // 通話後ならSMSモーダルを表示（完了確認フローでない場合のみ）
                 showAfterCallSmsIfNeeded();

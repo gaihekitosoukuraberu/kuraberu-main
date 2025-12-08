@@ -12,8 +12,8 @@
  * 参照方法（PHP）:
  * このファイルを読み込んでGAS_URLを抽出
  *
- * @file-version V2065-MASTER-2025-12-05
- * @last-update 2025-12-05
+ * @file-version V2091-MASTER-2025-12-08
+ * @last-update 2025-12-08
  */
 
 const ENV = {
