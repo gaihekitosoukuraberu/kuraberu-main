@@ -496,6 +496,12 @@ const SystemRouter = {
       prefix: false,
       actions: ['submitContractReport']
     },
+    'uploadContractFile': {
+      system: 'MerchantContractReport',
+      description: 'V2162: 契約書ファイルアップロード',
+      prefix: false,
+      actions: ['uploadContractFile']
+    },
 
     // V2007: 案件管理システム（加盟店用）- MerchantSystemが委譲処理
     'getMerchantCases': {

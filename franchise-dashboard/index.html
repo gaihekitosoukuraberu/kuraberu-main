@@ -7306,16 +7306,86 @@
                                             </div>
                                         </div>
 
-                                        <!-- 完工日 -->
-                                        <div class="min-w-0 flex-1">
-                                            <label class="block text-sm font-medium text-gray-700 mb-2" id="completionDateLabel">完工予定日</label>
-                                            <input type="date" id="completionDate" class="w-full px-3 py-2 border rounded-lg" required="">
+                                        <!-- V2162: 入金状況 -->
+                                        <div class="md:col-span-2">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">入金状況</label>
+                                            <div class="flex gap-4 mb-3">
+                                                <label class="flex items-center cursor-pointer">
+                                                    <input type="radio" name="paymentStatus" value="paid" class="mr-2" onchange="togglePaymentFields()">
+                                                    <span class="text-sm">入金済み</span>
+                                                </label>
+                                                <label class="flex items-center cursor-pointer">
+                                                    <input type="radio" name="paymentStatus" value="unpaid" class="mr-2" checked onchange="togglePaymentFields()">
+                                                    <span class="text-sm">未入金</span>
+                                                </label>
+                                            </div>
+                                            <!-- 入金済みの場合 -->
+                                            <div id="paidFields" class="hidden grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-xs text-gray-600 mb-1">入金確認日</label>
+                                                    <input type="date" id="paymentConfirmDate" class="w-full px-3 py-2 border rounded-lg">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs text-gray-600 mb-1">入金額</label>
+                                                    <div class="flex items-center">
+                                                        <span class="mr-2 text-sm">¥</span>
+                                                        <input type="number" id="paymentAmount" class="flex-1 px-3 py-2 border rounded-lg" placeholder="契約金額と同じ場合は空欄">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- 未入金の場合 -->
+                                            <div id="unpaidFields" class="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-xs text-gray-600 mb-1">入金予定日（任意）</label>
+                                                    <input type="date" id="paymentDate" class="w-full px-3 py-2 border rounded-lg">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs text-gray-600 mb-1">入金予定が不明な場合</label>
+                                                    <select id="paymentEstimate" class="w-full px-3 py-2 border rounded-lg">
+                                                        <option value="">日付を選択済み</option>
+                                                        <option value="1week">1週間以内</option>
+                                                        <option value="2weeks">2週間以内</option>
+                                                        <option value="1month">1ヶ月以内</option>
+                                                        <option value="unknown">未定</option>
+                                                    </select>
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <!-- 着金日 -->
-                                        <div class="min-w-0 flex-1">
-                                            <label class="block text-sm font-medium text-gray-700 mb-2" id="paymentDateLabel">着金予定日</label>
-                                            <input type="date" id="paymentDate" class="w-full px-3 py-2 border rounded-lg" required="">
+                                        <!-- V2162: 工事予定 -->
+                                        <div class="md:col-span-2">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">工事予定</label>
+                                            <div class="flex gap-4 mb-3">
+                                                <label class="flex items-center cursor-pointer">
+                                                    <input type="radio" name="constructionStatus" value="scheduled" class="mr-2" onchange="toggleConstructionFields()">
+                                                    <span class="text-sm">日程決定済み</span>
+                                                </label>
+                                                <label class="flex items-center cursor-pointer">
+                                                    <input type="radio" name="constructionStatus" value="undecided" class="mr-2" checked onchange="toggleConstructionFields()">
+                                                    <span class="text-sm">未定</span>
+                                                </label>
+                                            </div>
+                                            <!-- 日程決定済みの場合 -->
+                                            <div id="scheduledFields" class="hidden grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-xs text-gray-600 mb-1">工事開始予定日</label>
+                                                    <input type="date" id="constructionStartDate" class="w-full px-3 py-2 border rounded-lg">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs text-gray-600 mb-1">工事完了予定日</label>
+                                                    <input type="date" id="completionDate" class="w-full px-3 py-2 border rounded-lg">
+                                                </div>
+                                            </div>
+                                            <!-- 未定の場合 -->
+                                            <div id="undecidedFields">
+                                                <label class="block text-xs text-gray-600 mb-1">いつ頃決まりそうですか？</label>
+                                                <select id="constructionEstimate" class="w-full px-3 py-2 border rounded-lg">
+                                                    <option value="1week">1週間以内</option>
+                                                    <option value="2weeks">2週間以内</option>
+                                                    <option value="1month">1ヶ月以内</option>
+                                                    <option value="unknown">未定</option>
+                                                </select>
+                                            </div>
                                         </div>
 
                                         <!-- 対象物件種別 -->
@@ -7444,6 +7514,36 @@
                                                 </label>
                                             </div>
                                             <textarea id="workDetails" class="w-full px-3 py-2 border rounded-lg hidden" rows="3" placeholder="その他の施工内容を入力"></textarea>
+                                        </div>
+
+                                        <!-- V2162: 契約書アップロード -->
+                                        <div class="md:col-span-2">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">📄 契約書（任意）</label>
+                                            <div class="border-2 border-dashed border-green-300 rounded-lg p-4 text-center bg-green-50">
+                                                <input type="file" id="contractFile" accept="image/*,application/pdf" class="hidden" onchange="handleContractFileUpload(event)">
+                                                <div id="contractUploadArea">
+                                                    <svg class="w-12 h-12 text-green-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                    </svg>
+                                                    <button type="button" onclick="document.getElementById('contractFile').click()" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                                                        契約書をアップロード
+                                                    </button>
+                                                    <p class="text-xs text-gray-500 mt-2">画像またはPDF（Google Driveに保存されます）</p>
+                                                </div>
+                                                <div id="contractFilePreview" class="hidden">
+                                                    <div class="flex items-center justify-center gap-3">
+                                                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                        </svg>
+                                                        <span id="contractFileName" class="text-sm font-medium text-gray-700"></span>
+                                                        <button type="button" onclick="removeContractFile()" class="text-red-500 hover:text-red-700">
+                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <!-- 見積書アップロード -->
@@ -31286,6 +31386,47 @@
             resetContractForm();
         }
 
+        // V2162: 入金状況トグル
+        window.togglePaymentFields = function() {
+            const paid = document.querySelector('input[name="paymentStatus"]:checked')?.value === 'paid';
+            document.getElementById('paidFields').classList.toggle('hidden', !paid);
+            document.getElementById('unpaidFields').classList.toggle('hidden', paid);
+        }
+
+        // V2162: 工事予定トグル
+        window.toggleConstructionFields = function() {
+            const scheduled = document.querySelector('input[name="constructionStatus"]:checked')?.value === 'scheduled';
+            document.getElementById('scheduledFields').classList.toggle('hidden', !scheduled);
+            document.getElementById('undecidedFields').classList.toggle('hidden', scheduled);
+        }
+
+        // V2162: 契約書ファイルアップロード
+        window.handleContractFileUpload = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const preview = document.getElementById('contractFilePreview');
+            const fileName = document.getElementById('contractFileName');
+
+            // プレビュー表示
+            preview.classList.remove('hidden');
+            fileName.textContent = file.name;
+
+            // ファイルサイズチェック（10MB制限）
+            if (file.size > 10 * 1024 * 1024) {
+                alert('ファイルサイズは10MB以下にしてください');
+                event.target.value = '';
+                preview.classList.add('hidden');
+                return;
+            }
+        }
+
+        // V2162: 契約書ファイル削除
+        window.removeContractFile = function() {
+            document.getElementById('contractFile').value = '';
+            document.getElementById('contractFilePreview').classList.add('hidden');
+        }
+
         // キャンセル質問表示
         function showCancelQuestions() {
             const container = document.getElementById('cancelQuestionContainer');
@@ -32228,10 +32369,36 @@
 
                 // フォームデータを収集
                 const contractAmount = document.getElementById('contractAmount').value;
-                const paymentDate = document.getElementById('paymentDate').value;
-                const completionDate = document.getElementById('completionDate').value;
                 const buildingFloors = document.getElementById('buildingFloors').value;
                 const workDetails = document.getElementById('workDetails').value;
+
+                // V2162: 入金状況
+                const paymentStatus = document.querySelector('input[name="paymentStatus"]:checked')?.value || 'unpaid';
+                let paymentConfirmDate = '';
+                let paymentAmount = '';
+                let paymentDueDate = '';
+                let paymentSchedule = '';
+
+                if (paymentStatus === 'paid') {
+                    paymentConfirmDate = document.getElementById('paymentConfirmDate')?.value || '';
+                    paymentAmount = document.getElementById('paymentAmount')?.value || '';
+                } else {
+                    paymentDueDate = document.getElementById('paymentDueDate')?.value || '';
+                    paymentSchedule = document.getElementById('paymentScheduleSelect')?.value || '';
+                }
+
+                // V2162: 工事予定
+                const constructionStatus = document.querySelector('input[name="constructionStatus"]:checked')?.value || 'undecided';
+                let constructionStartDate = '';
+                let constructionEndDate = '';
+                let constructionScheduleEstimate = '';
+
+                if (constructionStatus === 'scheduled') {
+                    constructionStartDate = document.getElementById('constructionStartDate')?.value || '';
+                    constructionEndDate = document.getElementById('constructionEndDate')?.value || '';
+                } else {
+                    constructionScheduleEstimate = document.getElementById('constructionScheduleSelect')?.value || '';
+                }
 
                 // バリデーション
                 if (!contractAmount || contractAmount <= 0) {
@@ -32250,13 +32417,59 @@
                 const reportType = contractAnswers[0] || '成約報告';
                 const currentStatus = contractAnswers[1] || '契約後・工事前';
 
+                // V2162: ステータス自動決定
+                let newStatus = '成約';
+                if (paymentStatus === 'paid') {
+                    newStatus = '入金済';
+                } else if (paymentDueDate || paymentSchedule) {
+                    newStatus = '入金予定';
+                }
+
                 console.log('[Contract] 成約報告送信:', {
                     cvId: selectedContractCase.cvId,
                     merchantId,
                     reportType,
                     currentStatus,
-                    contractAmount
+                    contractAmount,
+                    newStatus,
+                    paymentStatus,
+                    constructionStatus
                 });
+
+                // V2162: 契約書ファイルアップロード
+                let contractFileUrl = '';
+                const contractFileInput = document.getElementById('contractFile');
+                if (contractFileInput && contractFileInput.files && contractFileInput.files[0]) {
+                    const file = contractFileInput.files[0];
+                    try {
+                        // ファイルをBase64に変換
+                        const base64 = await fileToBase64(file);
+                        // まずファイルをアップロード
+                        const uploadParams = new URLSearchParams({
+                            action: 'uploadContractFile',
+                            fileName: file.name,
+                            fileType: file.type,
+                            fileData: base64,
+                            cvId: selectedContractCase.cvId,
+                            merchantId: merchantId
+                        });
+
+                        const uploadResponse = await fetchWithRetry(CANCEL_API_URL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: uploadParams.toString()
+                        });
+                        const uploadResult = await uploadResponse.json();
+                        if (uploadResult.success && uploadResult.fileUrl) {
+                            contractFileUrl = uploadResult.fileUrl;
+                        }
+                    } catch (uploadError) {
+                        console.error('[Contract] ファイルアップロードエラー:', uploadError);
+                        // アップロード失敗しても成約報告は続行
+                    }
+                }
 
                 // API呼び出し
                 const params = new URLSearchParams({
@@ -32267,11 +32480,23 @@
                     reportType: reportType,
                     currentStatus: currentStatus,
                     contractAmount: contractAmount,
-                    constructionEndDate: completionDate || '',
-                    paymentDueDate: paymentDate || '',
+                    // V2162: 入金状況
+                    paymentStatus: paymentStatus,
+                    paymentConfirmDate: paymentConfirmDate,
+                    paymentAmount: paymentAmount,
+                    paymentDueDate: paymentDueDate,
+                    paymentSchedule: paymentSchedule,
+                    // V2162: 工事予定
+                    constructionStatus: constructionStatus,
+                    constructionStartDate: constructionStartDate,
+                    constructionEndDate: constructionEndDate,
+                    constructionScheduleEstimate: constructionScheduleEstimate,
+                    // その他
                     propertyType: propertyType,
                     floors: buildingFloors || '',
-                    workContent: JSON.stringify(workContent)
+                    workContent: JSON.stringify(workContent),
+                    newStatus: newStatus,
+                    contractFileUrl: contractFileUrl
                 });
 
                 const response = await fetchWithRetry(CANCEL_API_URL, {
@@ -32298,6 +32523,20 @@
             } finally {
                 isSubmittingContract = false;
             }
+        }
+
+        // V2162: ファイルをBase64に変換
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => {
+                    // data:image/png;base64,xxxxx から base64部分のみ抽出
+                    const base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = error => reject(error);
+            });
         }
 
         // キャンセル申請可能案件を読み込み

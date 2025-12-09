@@ -245,7 +245,17 @@ var MerchantContractReport = {
         floors,
         workContent,
         estimateFileUrl,
-        receiptFileUrl
+        receiptFileUrl,
+        // V2162: 新規パラメータ
+        paymentStatus,
+        paymentConfirmDate,
+        paymentAmount,
+        paymentSchedule,
+        constructionStatus: constructionStatusParam,
+        constructionStartDate,
+        constructionScheduleEstimate,
+        newStatus,
+        contractFileUrl
       } = params;
 
       // バリデーション
@@ -263,7 +273,7 @@ var MerchantContractReport = {
         };
       }
 
-      console.log('[MerchantContractReport] submitContractReport - CV ID:', cvId, '加盟店ID:', merchantId);
+      console.log('[MerchantContractReport] submitContractReport - CV ID:', cvId, '加盟店ID:', merchantId, 'V2162 newStatus:', newStatus);
 
       const ss = SpreadsheetApp.getActiveSpreadsheet();
       const userSheet = ss.getSheetByName('ユーザー登録');
@@ -295,6 +305,10 @@ var MerchantContractReport = {
       const propertyTypeIdx = headers.indexOf('Q1_物件種別');
       const floorsIdx = headers.indexOf('Q2_階数');
       const contractReportDateIdx = headers.indexOf('成約報告日');
+      // V2162: 追加カラム
+      const paymentConfirmDateIdx = headers.indexOf('入金確認日');
+      const paymentAmountIdx = headers.indexOf('入金額');
+      const constructionStartDateIdx = headers.indexOf('工事開始予定日');
 
       // CV IDで行を検索
       let targetRow = -1;
@@ -326,21 +340,27 @@ var MerchantContractReport = {
         }
       }
 
-      // 現在の状況から管理ステータスと工事進捗ステータスを判定
-      let newManagementStatus = '入金予定';
+      // V2162: 管理ステータスを決定（newStatusを優先）
+      let newManagementStatus = newStatus || '成約';
       let constructionStatus = '';
 
-      if (currentStatus === '契約前・口頭確約済') {
-        newManagementStatus = '商談中';
+      // V2162: 入金済みの場合
+      if (paymentStatus === 'paid') {
+        newManagementStatus = '入金済';
+      } else if (paymentDueDate || paymentSchedule) {
+        newManagementStatus = '入金予定';
+      }
+
+      // 工事進捗ステータス判定
+      if (constructionStatusParam === 'scheduled') {
+        constructionStatus = '工事予定';
+      } else if (currentStatus === '契約前・口頭確約済') {
         constructionStatus = '契約前';
       } else if (currentStatus === '契約後・工事前') {
-        newManagementStatus = '入金予定';
         constructionStatus = '工事前';
       } else if (currentStatus === '工事中') {
-        newManagementStatus = '入金予定';
         constructionStatus = '工事中';
       } else if (currentStatus === '工事完了後') {
-        newManagementStatus = '完了';
         constructionStatus = '工事完了';
       }
 
@@ -366,10 +386,26 @@ var MerchantContractReport = {
         userSheet.getRange(targetRow, workContentIdx + 1).setValue(workContent);
       }
 
-      if (paymentDueDate) {
-        userSheet.getRange(targetRow, paymentDueDateIdx + 1).setValue(paymentDueDate);
+      // V2162: 入金関連
+      if (paymentStatus === 'paid') {
+        // 入金済み
+        if (paymentConfirmDate && paymentConfirmDateIdx !== -1) {
+          userSheet.getRange(targetRow, paymentConfirmDateIdx + 1).setValue(paymentConfirmDate);
+        }
+        if (paymentAmount && paymentAmountIdx !== -1) {
+          userSheet.getRange(targetRow, paymentAmountIdx + 1).setValue(paymentAmount);
+        }
+      } else {
+        // 未入金
+        if (paymentDueDate) {
+          userSheet.getRange(targetRow, paymentDueDateIdx + 1).setValue(paymentDueDate);
+        }
       }
 
+      // V2162: 工事予定関連
+      if (constructionStartDate && constructionStartDateIdx !== -1) {
+        userSheet.getRange(targetRow, constructionStartDateIdx + 1).setValue(constructionStartDate);
+      }
       if (constructionEndDate) {
         userSheet.getRange(targetRow, constructionEndDateIdx + 1).setValue(constructionEndDate);
       }
@@ -395,7 +431,29 @@ var MerchantContractReport = {
       // 管理ステータス更新
       userSheet.getRange(targetRow, managementStatusIdx + 1).setValue(newManagementStatus);
 
-      console.log('[MerchantContractReport] submitContractReport - 成約報告完了:', cvId, '報告種別:', reportType);
+      // V2162: 成約データシートにも登録
+      this._saveToContractSheet(ss, {
+        cvId,
+        merchantId,
+        merchantName,
+        contractAmount,
+        paymentStatus,
+        paymentConfirmDate,
+        paymentAmount,
+        paymentDueDate,
+        paymentSchedule,
+        constructionStatusParam,
+        constructionStartDate,
+        constructionEndDate,
+        constructionScheduleEstimate,
+        propertyType,
+        floors,
+        workContent,
+        contractFileUrl,
+        newManagementStatus
+      });
+
+      console.log('[MerchantContractReport] submitContractReport - 成約報告完了:', cvId, '報告種別:', reportType, 'ステータス:', newManagementStatus);
 
       const successMessage = isAdditionalWork ? '追加工事報告を登録しました' : '成約報告を登録しました';
 
@@ -415,6 +473,175 @@ var MerchantContractReport = {
         success: false,
         error: error.toString()
       };
+    }
+  },
+
+  /**
+   * V2162: 成約データシートへの保存
+   */
+  _saveToContractSheet: function(ss, data) {
+    try {
+      const contractSheet = ss.getSheetByName('成約データ');
+      if (!contractSheet) {
+        console.log('[MerchantContractReport] 成約データシートが見つかりません');
+        return;
+      }
+
+      const headers = contractSheet.getRange(1, 1, 1, contractSheet.getLastColumn()).getValues()[0];
+
+      // カラムインデックス取得
+      const getIdx = (name) => headers.indexOf(name);
+
+      // CV IDで既存行を検索
+      const cvIdIdx = getIdx('CV ID');
+      if (cvIdIdx === -1) {
+        console.log('[MerchantContractReport] CV IDカラムが見つかりません');
+        return;
+      }
+
+      const allData = contractSheet.getDataRange().getValues();
+      let targetRow = -1;
+      for (let i = 1; i < allData.length; i++) {
+        if (allData[i][cvIdIdx] === data.cvId) {
+          targetRow = i + 1;
+          break;
+        }
+      }
+
+      // 更新するデータを準備
+      const updates = {
+        'CV ID': data.cvId,
+        '成約加盟店ID': data.merchantId,
+        '成約加盟店名': data.merchantName || '',
+        '成約報告日': new Date(),
+        '成約金額': data.contractAmount,
+        '管理ステータス': data.newManagementStatus,
+        '入金確認日': data.paymentConfirmDate || '',
+        '入金額': data.paymentAmount || '',
+        '入金予定日': data.paymentDueDate || '',
+        '工事開始予定日': data.constructionStartDate || '',
+        '工事完了予定日': data.constructionEndDate || '',
+        '契約書URL': data.contractFileUrl || ''
+      };
+
+      // 施工内容
+      if (data.workContent) {
+        const workContentStr = Array.isArray(data.workContent) ? data.workContent.join('、') : data.workContent;
+        updates['見積工事内容'] = workContentStr;
+      }
+
+      if (targetRow === -1) {
+        // 新規行追加
+        targetRow = contractSheet.getLastRow() + 1;
+        console.log('[MerchantContractReport] 成約データ新規追加:', targetRow);
+      }
+
+      // 各カラムを更新
+      for (const [colName, value] of Object.entries(updates)) {
+        const colIdx = getIdx(colName);
+        if (colIdx !== -1 && value !== undefined) {
+          contractSheet.getRange(targetRow, colIdx + 1).setValue(value);
+        }
+      }
+
+      console.log('[MerchantContractReport] 成約データシート更新完了:', data.cvId);
+    } catch (error) {
+      console.error('[MerchantContractReport] _saveToContractSheet error:', error);
+    }
+  },
+
+  /**
+   * V2162: 契約書ファイルをGoogle Driveにアップロード
+   * @param {Object} params - { fileName, fileType, fileData, cvId, merchantId }
+   * @return {Object} - { success, fileUrl }
+   */
+  uploadContractFile: function(params) {
+    try {
+      const { fileName, fileType, fileData, cvId, merchantId } = params;
+
+      if (!fileName || !fileData) {
+        return {
+          success: false,
+          error: 'ファイル名またはファイルデータが不足しています'
+        };
+      }
+
+      console.log('[MerchantContractReport] uploadContractFile - CV ID:', cvId, 'ファイル名:', fileName);
+
+      // Base64デコード
+      const blob = Utilities.newBlob(
+        Utilities.base64Decode(fileData),
+        fileType || 'application/octet-stream',
+        fileName
+      );
+
+      // 契約書保存用フォルダを取得または作成
+      const folderId = this._getOrCreateContractFolder();
+      const folder = DriveApp.getFolderById(folderId);
+
+      // ファイル名にCV IDを付与
+      const timestamp = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyyMMdd_HHmmss');
+      const newFileName = `${cvId}_${timestamp}_${fileName}`;
+
+      // ファイルを作成
+      const file = folder.createFile(blob.setName(newFileName));
+
+      // 共有設定（リンクを知っている人は閲覧可能）
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+      const fileUrl = file.getUrl();
+
+      console.log('[MerchantContractReport] uploadContractFile - 成功:', fileUrl);
+
+      return {
+        success: true,
+        fileUrl: fileUrl,
+        fileName: newFileName
+      };
+
+    } catch (error) {
+      console.error('[MerchantContractReport] uploadContractFile error:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * V2162: 契約書保存用フォルダを取得または作成
+   * @return {string} - フォルダID
+   */
+  _getOrCreateContractFolder: function() {
+    const ROOT_FOLDER_NAME = 'くらべる管理';
+    const CONTRACT_FOLDER_NAME = '契約書';
+
+    try {
+      // ルートフォルダを検索
+      const rootFolders = DriveApp.getFoldersByName(ROOT_FOLDER_NAME);
+      let rootFolder;
+
+      if (rootFolders.hasNext()) {
+        rootFolder = rootFolders.next();
+      } else {
+        // ルートフォルダ作成
+        rootFolder = DriveApp.createFolder(ROOT_FOLDER_NAME);
+      }
+
+      // 契約書フォルダを検索
+      const contractFolders = rootFolder.getFoldersByName(CONTRACT_FOLDER_NAME);
+
+      if (contractFolders.hasNext()) {
+        return contractFolders.next().getId();
+      } else {
+        // 契約書フォルダ作成
+        const newFolder = rootFolder.createFolder(CONTRACT_FOLDER_NAME);
+        return newFolder.getId();
+      }
+
+    } catch (error) {
+      console.error('[MerchantContractReport] _getOrCreateContractFolder error:', error);
+      throw error;
     }
   },
 
@@ -1382,6 +1609,8 @@ var MerchantContractReport = {
         return this.getDeliveredCases(params);
       case 'submitContractReport':
         return this.submitContractReport(params);
+      case 'uploadContractFile':
+        return this.uploadContractFile(params);
       case 'getMerchantCases':
         return this.getMerchantCases(params);
       case 'updateCaseStatus':
