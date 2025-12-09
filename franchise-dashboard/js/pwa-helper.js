@@ -94,17 +94,17 @@ const PWAHelper = {
   },
 
   /**
-   * 初回ログイン後に呼び出すメイン関数
-   * @param {boolean} force - trueなら条件チェックをスキップして強制表示
+   * インストールプロンプトを表示
    */
-  showInstallPrompt: function(force = false) {
-    if (!force && !this.shouldShowPrompt()) {
-      console.log('[PWA] Prompt not needed');
-      return;
-    }
-
+  showInstallPrompt: function() {
     const env = this.detectEnvironment();
     console.log('[PWA] Environment:', env);
+
+    // 既にPWAとして起動中なら何もしない
+    if (env.isStandalone) {
+      console.log('[PWA] Already running as PWA');
+      return;
+    }
 
     if (env.isLine) {
       // LINEブラウザ → 外部ブラウザ誘導
