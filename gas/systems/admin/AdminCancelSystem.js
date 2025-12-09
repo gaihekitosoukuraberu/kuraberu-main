@@ -457,6 +457,7 @@ var AdminCancelSystem = {
       userSheet.getRange(targetRow, managementStatusIdx + 1).setValue('配信後未成約');
 
       // V2039: 配信管理シートから該当レコードを削除（ステータスを「キャンセル承認済み」に更新）
+      // V2155: 詳細ステータスも自動更新（現調前→現調前キャンセル、現調済以降→現調後失注）
       const ss = userSheet.getParent();
       const deliverySheet = ss.getSheetByName('配信管理');
       if (deliverySheet) {
@@ -465,11 +466,26 @@ var AdminCancelSystem = {
         const cvIdColIdx = deliveryHeaders.indexOf('CV ID');
         const franchiseIdColIdx = deliveryHeaders.indexOf('加盟店ID');
         const statusColIdx = deliveryHeaders.indexOf('配信ステータス');
+        const detailStatusColIdx = deliveryHeaders.indexOf('詳細ステータス');
 
         // 該当レコードを検索してステータス更新
         for (let i = 1; i < deliveryData.length; i++) {
           if (deliveryData[i][cvIdColIdx] === cvId && deliveryData[i][franchiseIdColIdx] === merchantId) {
             deliverySheet.getRange(i + 1, statusColIdx + 1).setValue('キャンセル承認済み');
+
+            // V2155: 詳細ステータスを自動更新
+            if (detailStatusColIdx !== -1) {
+              const currentStatus = deliveryData[i][detailStatusColIdx] || '';
+              // 現調前のステータス（新着、未アポ、アポ済）→ 現調前キャンセル
+              // 現調済以降のステータス → 現調後失注
+              const preInspectionStatuses = ['新着', '未アポ', '架電済/未アポ', 'アポ済', '未対応'];
+              const newDetailStatus = preInspectionStatuses.includes(currentStatus)
+                ? '現調前キャンセル'
+                : '現調後失注';
+              deliverySheet.getRange(i + 1, detailStatusColIdx + 1).setValue(newDetailStatus);
+              console.log('[AdminCancelSystem] 詳細ステータス更新:', currentStatus, '→', newDetailStatus);
+            }
+
             console.log('[AdminCancelSystem] 配信管理シート更新: CV', cvId, '加盟店', merchantId, '→ キャンセル承認済み');
             break;
           }
