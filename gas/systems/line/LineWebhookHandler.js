@@ -440,11 +440,14 @@ LINE連携を完了するには、ダッシュボードの設定画面に表示�
    */
   getLinkStatus(merchantId) {
     try {
+      console.log('[LineWebhookHandler] getLinkStatus called with merchantId:', merchantId);
+
       const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
       const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       const sheet = ss.getSheetByName('加盟店登録');
 
       if (!sheet) {
+        console.log('[LineWebhookHandler] Sheet "加盟店登録" not found');
         return { success: false, linked: false, error: 'Sheet not found' };
       }
 
@@ -453,6 +456,9 @@ LINE連携を完了するには、ダッシュボードの設定画面に表示�
       const merchantIdCol = headers.indexOf('加盟店ID');
       const lineIdCol = headers.indexOf('LINE_USER_ID');
 
+      console.log('[LineWebhookHandler] Headers:', headers.join(', '));
+      console.log('[LineWebhookHandler] merchantIdCol:', merchantIdCol, ', lineIdCol:', lineIdCol);
+
       if (merchantIdCol === -1) {
         return { success: false, linked: false, error: 'Merchant ID column not found' };
       }
@@ -460,6 +466,7 @@ LINE連携を完了するには、ダッシュボードの設定画面に表示�
       for (let i = 1; i < data.length; i++) {
         if (data[i][merchantIdCol] === merchantId) {
           const lineUserId = lineIdCol >= 0 ? data[i][lineIdCol] : '';
+          console.log('[LineWebhookHandler] Found merchant, lineUserId:', lineUserId);
           return {
             success: true,
             linked: !!lineUserId,
@@ -468,6 +475,7 @@ LINE連携を完了するには、ダッシュボードの設定画面に表示�
         }
       }
 
+      console.log('[LineWebhookHandler] Merchant not found:', merchantId);
       return { success: false, linked: false, error: 'Merchant not found' };
 
     } catch (error) {
