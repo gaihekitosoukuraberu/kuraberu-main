@@ -444,39 +444,43 @@ LINE連携を完了するには、ダッシュボードの設定画面に表示�
 
       const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
       const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-      const sheet = ss.getSheetByName('加盟店登録');
 
-      if (!sheet) {
-        console.log('[LineWebhookHandler] Sheet "加盟店登録" not found');
-        return { success: false, linked: false, error: 'Sheet not found' };
+      // LINE連携コードシートから連携状態を確認（使用済みのコードがあれば連携済み）
+      const linkSheet = ss.getSheetByName('LINE連携コード');
+
+      if (!linkSheet) {
+        console.log('[LineWebhookHandler] Sheet "LINE連携コード" not found');
+        return { success: false, linked: false, error: 'Link sheet not found' };
       }
 
-      const data = sheet.getDataRange().getValues();
+      const data = linkSheet.getDataRange().getValues();
       const headers = data[0];
       const merchantIdCol = headers.indexOf('加盟店ID');
+      const statusCol = headers.indexOf('ステータス');
       const lineIdCol = headers.indexOf('LINE_USER_ID');
 
       console.log('[LineWebhookHandler] Headers:', headers.join(', '));
-      console.log('[LineWebhookHandler] merchantIdCol:', merchantIdCol, ', lineIdCol:', lineIdCol);
+      console.log('[LineWebhookHandler] merchantIdCol:', merchantIdCol, ', statusCol:', statusCol, ', lineIdCol:', lineIdCol);
 
       if (merchantIdCol === -1) {
         return { success: false, linked: false, error: 'Merchant ID column not found' };
       }
 
+      // 使用済みのコードを探す（連携完了の証拠）
       for (let i = 1; i < data.length; i++) {
-        if (data[i][merchantIdCol] === merchantId) {
+        if (data[i][merchantIdCol] === merchantId && data[i][statusCol] === '使用済み') {
           const lineUserId = lineIdCol >= 0 ? data[i][lineIdCol] : '';
-          console.log('[LineWebhookHandler] Found merchant, lineUserId:', lineUserId);
+          console.log('[LineWebhookHandler] Found linked merchant, lineUserId:', lineUserId);
           return {
             success: true,
-            linked: !!lineUserId,
+            linked: true,
             lineUserId: lineUserId || null
           };
         }
       }
 
-      console.log('[LineWebhookHandler] Merchant not found:', merchantId);
-      return { success: false, linked: false, error: 'Merchant not found' };
+      console.log('[LineWebhookHandler] No linked code found for:', merchantId);
+      return { success: true, linked: false, lineUserId: null };
 
     } catch (error) {
       console.error('[LineWebhookHandler] getLinkStatus error:', error);
