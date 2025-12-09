@@ -18139,15 +18139,44 @@
         }
 
         // ローカルストレージから設定を復元（V2075: 郵便番号追加）
+        // V2115: APIが失敗した場合でも、現在のフォームの値を上書きしないように修正
         function loadSettingsFromLocalStorage() {
+            // V2115: プロフィールフォームに既に値がある場合は上書きしない
+            // （APIからロードされた後にこの関数が呼ばれた場合の保護）
+            const currentName = document.getElementById('profileName')?.value || '';
+            const currentPhone = document.getElementById('profilePhone')?.value || '';
+            const currentEmail = document.getElementById('profileEmail')?.value || '';
+            const currentPostalCode = document.getElementById('profilePostalCode')?.value || '';
+
+            // 現在のフォームに有効な値が1つでもあれば上書きしない
+            if (currentName || currentPhone || currentEmail || currentPostalCode) {
+                console.log('[loadSettingsFromLocalStorage] Form already has values, skipping profile restore');
+                return;
+            }
+
             const savedProfile = localStorage.getItem('userProfile');
             if (savedProfile) {
                 try {
                     const profile = JSON.parse(savedProfile);
+
+                    // V2115: テストデータっぽい値はスキップ（開発時のゴミデータ対策）
+                    const testPatterns = ['テスト', 'test', 'sample', 'example', 'dummy'];
+                    const isTestData = testPatterns.some(pattern =>
+                        (profile.name && profile.name.toLowerCase().includes(pattern)) ||
+                        (profile.email && profile.email.toLowerCase().includes(pattern))
+                    );
+                    if (isTestData) {
+                        console.log('[loadSettingsFromLocalStorage] Detected test data, skipping');
+                        // テストデータをLocalStorageから削除
+                        localStorage.removeItem('userProfile');
+                        return;
+                    }
+
                     document.getElementById('profileName').value = profile.name || '';
                     document.getElementById('profilePhone').value = profile.phone || '';
                     document.getElementById('profileEmail').value = profile.email || '';
                     document.getElementById('profilePostalCode').value = profile.postalCode || '';
+                    console.log('[loadSettingsFromLocalStorage] Restored profile from localStorage');
                 } catch (e) {
                     console.error('[loadSettingsFromLocalStorage] Error:', e);
                 }
