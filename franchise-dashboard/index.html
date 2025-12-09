@@ -2387,7 +2387,19 @@
                                                 <option value="custom">カスタム（自由入力）</option>
                                             </select>
                                         </div>
-                                        <p class="text-xs text-gray-400 mt-1">⚙ ボタンでテンプレートを編集</p>
+                                        <!-- V2159: 文章スタイル切り替えトグル -->
+                                        <div class="mt-3 flex items-center gap-2">
+                                            <span class="text-xs text-gray-500">文章スタイル:</span>
+                                            <div class="flex bg-gray-100 rounded-lg p-0.5">
+                                                <button id="msgStyleShort" onclick="switchMessageStyle('sms')" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all bg-white text-gray-800 shadow-sm">
+                                                    📱 SMS用（短）
+                                                </button>
+                                                <button id="msgStyleLong" onclick="switchMessageStyle('long')" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all text-gray-500 hover:text-gray-700">
+                                                    📧 メール・LINE用（長）
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <p class="text-xs text-gray-400 mt-2">⚙ ボタンでテンプレートを編集</p>
                                     </div>
 
                                     <!-- メッセージプレビュー -->
@@ -23232,6 +23244,25 @@
 
         // V2158: 現在の送信チャネル（sms/line/email）
         let currentSendChannel = 'sms';
+
+        // V2159: 文章スタイル切り替え（sms=短、long=長）
+        function switchMessageStyle(style) {
+            const shortBtn = document.getElementById('msgStyleShort');
+            const longBtn = document.getElementById('msgStyleLong');
+
+            if (style === 'sms') {
+                currentSendChannel = 'sms';
+                shortBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md transition-all bg-white text-gray-800 shadow-sm';
+                longBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md transition-all text-gray-500 hover:text-gray-700';
+            } else {
+                currentSendChannel = 'line'; // long = line/email用
+                shortBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md transition-all text-gray-500 hover:text-gray-700';
+                longBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md transition-all bg-white text-gray-800 shadow-sm';
+            }
+
+            // テンプレートを再適用
+            applySmsTemplate();
+        }
 
         // V2158: テンプレート取得（チャネル別対応）
         // channel: 'sms' | 'line' | 'email'
