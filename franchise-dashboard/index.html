@@ -7555,57 +7555,113 @@
                     </div>
                     <div class="bg-white shadow-lg rounded-b-xl p-6">
 
-                        <!-- 通知方法 -->
+                        <!-- V2113: 通知方法（連携済みバッジ + 展開式） -->
                         <div class="mb-8">
                             <div class="flex items-center gap-2 mb-4">
                                 <span class="text-lg">📡</span>
                                 <h4 class="text-base font-bold text-gray-800">通知方法</h4>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-2xl">📧</span>
-                                        <span class="text-sm font-medium text-gray-700">メール通知</span>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <input type="checkbox" id="notifyEmail" class="toggle-switch" checked="">
-                                        <button onclick="testNotification('email')" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">テスト</button>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-2xl">💬</span>
-                                        <span class="text-sm font-medium text-gray-700">SMS通知</span>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <input type="checkbox" id="notifySms" class="toggle-switch">
-                                        <button onclick="testNotification('sms')" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">テスト</button>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-100">
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-2xl">💚</span>
-                                        <span class="text-sm font-medium text-gray-700">LINE通知</span>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <input type="checkbox" id="notifyLine" class="toggle-switch">
-                                        <button onclick="testNotification('line')" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">テスト</button>
-                                    </div>
-                                </div>
-                                <div id="browserNotifyCard" class="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl border border-purple-100">
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-2xl">🖥️</span>
-                                        <div>
-                                            <span class="text-sm font-medium text-gray-700">ブラウザ通知</span>
-                                            <span id="pushPermissionStatus" class="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">確認中...</span>
+                            <div class="space-y-3">
+                                <!-- メール通知 -->
+                                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 overflow-hidden">
+                                    <div class="flex items-center justify-between p-4">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-2xl">📧</span>
+                                            <span class="text-sm font-medium text-gray-700">メール通知</span>
+                                            <span id="emailLinkedBadge" class="hidden text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">連携済み ✓</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" id="notifyEmail" class="toggle-switch" checked="" onchange="toggleNotifyEmailPanel()">
+                                            <button onclick="testNotification('email')" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">テスト</button>
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-2">
-                                        <button id="enablePushBtn" onclick="requestPushPermission()" class="hidden px-3 py-1.5 bg-purple-500 text-white text-xs rounded-lg hover:bg-purple-600">
-                                            通知を許可
-                                        </button>
-                                        <input type="checkbox" id="notifyBrowser" class="toggle-switch" checked="">
-                                        <button onclick="testNotification('browser')" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">テスト</button>
+                                    <!-- 展開パネル：メアド未登録時 -->
+                                    <div id="emailLinkPanel" class="hidden border-t border-blue-200 bg-white p-4">
+                                        <p class="text-sm text-gray-600 mb-3">メール通知を受け取るにはメールアドレスを登録してください</p>
+                                        <div class="flex gap-2">
+                                            <input type="email" id="notifyEmailInput" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="example@mail.com">
+                                            <button onclick="saveNotifyEmail()" class="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600">登録</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- SMS通知 -->
+                                <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100 overflow-hidden">
+                                    <div class="flex items-center justify-between p-4">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-2xl">💬</span>
+                                            <span class="text-sm font-medium text-gray-700">SMS通知</span>
+                                            <span id="smsLinkedBadge" class="hidden text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">連携済み ✓</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" id="notifySms" class="toggle-switch" onchange="toggleNotifySmsPanel()">
+                                            <button onclick="testNotification('sms')" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">テスト</button>
+                                        </div>
+                                    </div>
+                                    <!-- 展開パネル：電話番号未登録時 -->
+                                    <div id="smsLinkPanel" class="hidden border-t border-green-200 bg-white p-4">
+                                        <p class="text-sm text-gray-600 mb-3">SMS通知を受け取るには電話番号を登録してください</p>
+                                        <div class="flex gap-2">
+                                            <input type="tel" id="notifySmsInput" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="090-1234-5678">
+                                            <button onclick="saveNotifySms()" class="px-4 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600">登録</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- LINE通知 -->
+                                <div class="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-100 overflow-hidden">
+                                    <div class="flex items-center justify-between p-4">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-2xl">💚</span>
+                                            <span class="text-sm font-medium text-gray-700">LINE通知</span>
+                                            <span id="lineLinkedBadge" class="hidden text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">連携済み ✓</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" id="notifyLine" class="toggle-switch" onchange="toggleNotifyLinePanel()">
+                                            <button onclick="testNotification('line')" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">テスト</button>
+                                        </div>
+                                    </div>
+                                    <!-- 展開パネル：LINE未連携時 -->
+                                    <div id="lineLinkPanel" class="hidden border-t border-emerald-200 bg-white p-4">
+                                        <p class="text-sm text-gray-600 mb-3">LINE通知を受け取るにはLINE連携してください</p>
+                                        <!-- ステップ1: 連携コード -->
+                                        <div class="mb-4">
+                                            <p class="text-xs font-bold text-gray-700 mb-2">① 連携コードをコピー</p>
+                                            <div class="flex items-center gap-2">
+                                                <div id="lineLinkCodeDisplay2" class="flex-1 px-3 py-2 bg-gray-100 rounded-lg font-mono text-sm font-bold text-center">読み込み中...</div>
+                                                <button onclick="copyLineLinkCode()" class="px-3 py-2 bg-emerald-500 text-white text-sm rounded-lg hover:bg-emerald-600">コピー</button>
+                                            </div>
+                                        </div>
+                                        <!-- ステップ2: 友達追加 -->
+                                        <div>
+                                            <p class="text-xs font-bold text-gray-700 mb-2">② 友達追加してコードを送信</p>
+                                            <div class="flex items-center gap-3">
+                                                <img id="lineQrCode2" src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=https://line.me/R/ti/p/@052izwwi" alt="LINE QR" class="w-20 h-20 hidden md:block">
+                                                <a href="https://line.me/R/ti/p/@052izwwi" target="_blank" class="md:hidden inline-flex items-center gap-2 px-4 py-2 bg-[#06C755] text-white rounded-lg text-sm font-bold">
+                                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+                                                    友だち追加
+                                                </a>
+                                                <button onclick="checkLineLinkStatus()" class="px-3 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300">連携確認</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- ブラウザ通知 -->
+                                <div id="browserNotifyCard" class="bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl border border-purple-100 overflow-hidden">
+                                    <div class="flex items-center justify-between p-4">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-2xl">🖥️</span>
+                                            <span class="text-sm font-medium text-gray-700">ブラウザ通知</span>
+                                            <span id="pushPermissionStatus" class="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">確認中...</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <button id="enablePushBtn" onclick="requestPushPermission()" class="hidden px-3 py-1.5 bg-purple-500 text-white text-xs rounded-lg hover:bg-purple-600">
+                                                通知を許可
+                                            </button>
+                                            <input type="checkbox" id="notifyBrowser" class="toggle-switch" checked="">
+                                            <button onclick="testNotification('browser')" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">テスト</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -22452,9 +22508,143 @@
             }
         }
 
-        // ===== LINE連携機能 =====
+        // ===== V2113: 通知方法の連携状態管理 =====
 
         let currentLineLinkCode = '';
+        let isLineLinked = false;
+        let isEmailLinked = false;
+        let isSmsLinked = false;
+
+        // V2113: メール通知パネルの展開/閉じ
+        function toggleNotifyEmailPanel() {
+            const checkbox = document.getElementById('notifyEmail');
+            const panel = document.getElementById('emailLinkPanel');
+            const badge = document.getElementById('emailLinkedBadge');
+
+            if (checkbox.checked && !isEmailLinked) {
+                // ONにしたが未連携 → パネル展開
+                panel.classList.remove('hidden');
+            } else {
+                panel.classList.add('hidden');
+            }
+            saveNotificationSettings();
+        }
+
+        // V2113: SMS通知パネルの展開/閉じ
+        function toggleNotifySmsPanel() {
+            const checkbox = document.getElementById('notifySms');
+            const panel = document.getElementById('smsLinkPanel');
+
+            if (checkbox.checked && !isSmsLinked) {
+                // ONにしたが未連携 → パネル展開
+                panel.classList.remove('hidden');
+            } else {
+                panel.classList.add('hidden');
+            }
+            saveNotificationSettings();
+        }
+
+        // V2113: LINE通知パネルの展開/閉じ
+        function toggleNotifyLinePanel() {
+            const checkbox = document.getElementById('notifyLine');
+            const panel = document.getElementById('lineLinkPanel');
+
+            if (checkbox.checked && !isLineLinked) {
+                // ONにしたが未連携 → パネル展開
+                panel.classList.remove('hidden');
+                // コードを生成
+                generateLineLinkCode();
+            } else {
+                panel.classList.add('hidden');
+            }
+            saveNotificationSettings();
+        }
+
+        // V2113: メールアドレス登録
+        async function saveNotifyEmail() {
+            const email = document.getElementById('notifyEmailInput').value.trim();
+            if (!email) {
+                showNotification('エラー', 'メールアドレスを入力してください', 'error');
+                return;
+            }
+            // プロフィールのメアドに同期
+            document.getElementById('profileEmail').value = email;
+            saveProfile();
+            isEmailLinked = true;
+            updateNotifyLinkBadges();
+            showNotification('登録完了', 'メールアドレスを登録しました');
+        }
+
+        // V2113: 電話番号登録
+        async function saveNotifySms() {
+            const phone = document.getElementById('notifySmsInput').value.trim();
+            if (!phone) {
+                showNotification('エラー', '電話番号を入力してください', 'error');
+                return;
+            }
+            // プロフィールの電話番号に同期
+            document.getElementById('profilePhone').value = phone;
+            saveProfile();
+            isSmsLinked = true;
+            updateNotifyLinkBadges();
+            showNotification('登録完了', '電話番号を登録しました');
+        }
+
+        // V2113: 連携済みバッジの更新
+        function updateNotifyLinkBadges() {
+            // メール
+            const emailBadge = document.getElementById('emailLinkedBadge');
+            const emailPanel = document.getElementById('emailLinkPanel');
+            if (isEmailLinked) {
+                emailBadge?.classList.remove('hidden');
+                emailPanel?.classList.add('hidden');
+            } else {
+                emailBadge?.classList.add('hidden');
+            }
+
+            // SMS
+            const smsBadge = document.getElementById('smsLinkedBadge');
+            const smsPanel = document.getElementById('smsLinkPanel');
+            if (isSmsLinked) {
+                smsBadge?.classList.remove('hidden');
+                smsPanel?.classList.add('hidden');
+            } else {
+                smsBadge?.classList.add('hidden');
+            }
+
+            // LINE
+            const lineBadge = document.getElementById('lineLinkedBadge');
+            const linePanel = document.getElementById('lineLinkPanel');
+            if (isLineLinked) {
+                lineBadge?.classList.remove('hidden');
+                linePanel?.classList.add('hidden');
+            } else {
+                lineBadge?.classList.add('hidden');
+            }
+        }
+
+        // V2113: 連携状態の初期化（設定画面表示時に呼ばれる）
+        function initNotifyLinkStatus() {
+            // プロフィールから連携状態を判定
+            const profileEmail = document.getElementById('profileEmail')?.value || '';
+            const profilePhone = document.getElementById('profilePhone')?.value || '';
+
+            isEmailLinked = !!profileEmail;
+            isSmsLinked = !!profilePhone;
+
+            // 入力欄にも値をセット
+            if (profileEmail && document.getElementById('notifyEmailInput')) {
+                document.getElementById('notifyEmailInput').value = profileEmail;
+            }
+            if (profilePhone && document.getElementById('notifySmsInput')) {
+                document.getElementById('notifySmsInput').value = profilePhone;
+            }
+
+            updateNotifyLinkBadges();
+
+            // LINE連携状態を確認
+            checkLineLinkStatus();
+        }
 
         // LINE連携状態を確認
         async function checkLineLinkStatus() {
@@ -22476,20 +22666,25 @@
                 const result = await response.json();
                 console.log('[LINE] 連携状態:', result);
 
+                // V2113: 新しいUI対応
+                isLineLinked = result.success && result.linked;
+                updateNotifyLinkBadges();
+
+                // 旧UIの要素がある場合は更新（後方互換）
                 const notConnected = document.getElementById('lineNotConnected');
                 const connected = document.getElementById('lineConnected');
                 const steps = document.getElementById('lineConnectionSteps');
 
-                if (result.success && result.linked) {
+                if (isLineLinked) {
                     // 連携済み
-                    notConnected.classList.add('hidden');
-                    connected.classList.remove('hidden');
-                    steps.classList.add('hidden');
+                    notConnected?.classList.add('hidden');
+                    connected?.classList.remove('hidden');
+                    steps?.classList.add('hidden');
                 } else {
                     // 未連携
-                    notConnected.classList.remove('hidden');
-                    connected.classList.add('hidden');
-                    steps.classList.remove('hidden');
+                    notConnected?.classList.remove('hidden');
+                    connected?.classList.add('hidden');
+                    steps?.classList.remove('hidden');
                     // 連携コードを取得
                     await generateLineLinkCode();
                 }
@@ -22517,11 +22712,18 @@
 
                 if (result.success && result.code) {
                     currentLineLinkCode = result.code;
-                    document.getElementById('lineLinkCodeDisplay').textContent = result.code;
+                    // 両方のコード表示欄を更新
+                    const display1 = document.getElementById('lineLinkCodeDisplay');
+                    const display2 = document.getElementById('lineLinkCodeDisplay2');
+                    if (display1) display1.textContent = result.code;
+                    if (display2) display2.textContent = result.code;
                 }
             } catch (error) {
                 console.error('[LINE] コード生成エラー:', error);
-                document.getElementById('lineLinkCodeDisplay').textContent = 'エラー';
+                const display1 = document.getElementById('lineLinkCodeDisplay');
+                const display2 = document.getElementById('lineLinkCodeDisplay2');
+                if (display1) display1.textContent = 'エラー';
+                if (display2) display2.textContent = 'エラー';
             }
         }
 
@@ -22587,7 +22789,8 @@
 
         // 設定画面表示時にLINE連携状態を確認
         function initLineConnectionSection() {
-            checkLineLinkStatus();
+            // V2113: 通知方法の連携状態を初期化
+            initNotifyLinkStatus();
         }
 
         // ===== V2112: SMSテンプレート編集機能（設定画面用） =====
