@@ -15821,8 +15821,25 @@
         // V2088: スヌーズ管理
         let snoozedTasks = JSON.parse(localStorage.getItem('snoozedTasks') || '{}');
 
+        // V2140: ステータスカラーマップ（グローバル参照用）
+        const taskStatusColorMap = {
+            '新着': { bg: 'bg-blue-100', text: 'text-blue-800' },
+            '未アポ': { bg: 'bg-pink-100', text: 'text-pink-700' },
+            'アポ済': { bg: 'bg-orange-100', text: 'text-orange-800' },
+            '現調済': { bg: 'bg-purple-100', text: 'text-purple-800' },
+            '見積提出済': { bg: 'bg-amber-100', text: 'text-amber-800' },
+            '入金予定': { bg: 'bg-cyan-100', text: 'text-cyan-800' },
+            '成約': { bg: 'bg-green-100', text: 'text-green-800' },
+            '入金済': { bg: 'bg-emerald-100', text: 'text-emerald-800' },
+            '現調前キャンセル': { bg: 'bg-gray-100', text: 'text-gray-600' },
+            '現調後失注': { bg: 'bg-gray-200', text: 'text-gray-700' },
+            '他社契約済': { bg: 'bg-gray-100', text: 'text-gray-600' },
+            '別加盟店契約済': { bg: 'bg-indigo-100', text: 'text-indigo-700' },
+            'クレーム': { bg: 'bg-red-100', text: 'text-red-800' }
+        };
+
         // タスクカードのHTML生成（電話/SMS/案件リンク/スヌーズボタン付き）
-        // V2137: 色分け - urgent(赤点滅), orange(オレンジ), yellow(黄色)
+        // V2140: ステータス＆ネクストアクション表示追加
         function renderAlertTask(task, color) {
             let colorClass, bgClass, timeClass, borderClass;
 
@@ -15858,16 +15875,14 @@
                 return ''; // スヌーズ中は非表示
             }
 
+            // V2140: ステータスの色を取得
+            const statusColors = taskStatusColorMap[task.status] || { bg: 'bg-gray-100', text: 'text-gray-700' };
+
             return `
                 <div class="p-3 ${bgClass} rounded-lg border ${borderClass}" data-task-key="${taskKey}">
-                    <div class="flex items-start justify-between mb-2">
-                        <div class="flex items-center gap-2">
-                            <span class="text-lg">${task.icon}</span>
-                            <div>
-                                <div class="font-medium text-gray-900">${escapeHtml(task.customerName)}様</div>
-                                <div class="text-xs text-gray-500">${task.label}</div>
-                            </div>
-                        </div>
+                    <!-- V2140: ステータス＆時刻ヘッダー -->
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="px-2 py-0.5 text-xs font-bold rounded-full ${statusColors.bg} ${statusColors.text}">${task.status || '---'}</span>
                         <div class="flex items-center gap-2">
                             <span class="text-sm font-bold ${timeClass}">${task.time}</span>
                             <button onclick="event.stopPropagation(); openSnoozeMenu('${taskKey}', this)"
@@ -15878,6 +15893,19 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- 顧客名 -->
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-lg">${task.icon}</span>
+                        <div class="font-bold text-gray-900">${escapeHtml(task.customerName)}様</div>
+                    </div>
+
+                    <!-- V2140: ネクストアクション -->
+                    <div class="flex items-center gap-1 mb-2 text-sm text-gray-700 bg-white/50 rounded px-2 py-1">
+                        <span class="text-base">${task.nextAction?.icon || '📋'}</span>
+                        <span class="font-medium">→ ${task.nextAction?.text || '対応する'}</span>
+                    </div>
+
                     ${task.address ? `<div class="text-xs text-gray-500 mb-2 truncate" title="${escapeHtml(task.address)}">📍 ${escapeHtml(task.address)}</div>` : ''}
                     <div class="flex gap-2">
                         ${task.customerTel ? `
