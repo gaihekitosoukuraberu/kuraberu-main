@@ -60,6 +60,12 @@ self.addEventListener('message', (event) => {
     firebaseConfig = event.data.config;
     initializeFirebase();
   }
+
+  // V2120: アプリが開かれた時にバッジをクリア
+  if (event.data && event.data.type === 'CLEAR_BADGE') {
+    clearBadge();
+    console.log('[SW] Badge cleared by app open');
+  }
 });
 
 function initializeFirebase() {
@@ -79,16 +85,19 @@ function initializeFirebase() {
       console.log('[SW] FCM Background message:', payload);
 
       const notificationTitle = payload.notification?.title || 'くらべる通知';
+      // V2120: アクションを明確に
+      const actionTitle = payload.data?.actionTitle || '詳細を確認';
       const notificationOptions = {
         body: payload.notification?.body || '新しい通知があります',
         icon: '/franchise-dashboard/images/5.png',
         badge: '/franchise-dashboard/images/5.png',
         tag: 'kuraberu-fcm',
         vibrate: [200, 100, 200],
+        requireInteraction: true, // V2120: ユーザーが操作するまで表示を維持
         data: payload.data || {},
         actions: [
-          { action: 'open', title: '開く' },
-          { action: 'close', title: '閉じる' }
+          { action: 'open', title: actionTitle },
+          { action: 'close', title: '後で' }
         ]
       };
 
@@ -137,6 +146,8 @@ self.addEventListener('push', (event) => {
     }
   }
 
+  // V2120: アクションを明確に（通知タイプに応じて変更）
+  const actionTitle = data.data?.actionTitle || '詳細を確認';
   const options = {
     body: data.body,
     icon: data.icon,
@@ -144,10 +155,10 @@ self.addEventListener('push', (event) => {
     tag: data.tag,
     data: data.data,
     vibrate: [200, 100, 200],
-    requireInteraction: false,
+    requireInteraction: true, // V2120: ユーザーが操作するまで表示を維持
     actions: [
-      { action: 'open', title: '開く' },
-      { action: 'close', title: '閉じる' }
+      { action: 'open', title: actionTitle },
+      { action: 'close', title: '後で' }
     ]
   };
 

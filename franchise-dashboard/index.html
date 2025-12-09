@@ -17651,6 +17651,10 @@
                         type: 'FIREBASE_CONFIG',
                         config: firebaseConfig
                     });
+                    // V2120: アプリ起動時にPWAバッジをクリア
+                    fcmSwRegistration.active.postMessage({
+                        type: 'CLEAR_BADGE'
+                    });
                 }
 
                 console.log('[FCM] Firebase初期化完了');
