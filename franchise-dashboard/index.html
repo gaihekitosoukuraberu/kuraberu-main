@@ -7915,45 +7915,15 @@
                                     <h4 class="text-base font-bold text-gray-800">LINE連携の手順</h4>
                                 </div>
 
-                                <!-- ステップ1: 友達追加 -->
-                                <div class="border-l-4 border-green-500 bg-gradient-to-r from-green-50 to-white rounded-r-xl p-4 mb-4">
+                                <!-- ステップ1: 連携コードをコピー -->
+                                <div class="border-l-4 border-blue-500 bg-gradient-to-r from-blue-50 to-white rounded-r-xl p-4 mb-4">
                                     <div class="flex items-start gap-4">
-                                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
                                             <span class="text-white font-bold text-sm">1</span>
                                         </div>
                                         <div class="flex-1">
-                                            <p class="font-bold text-gray-800 mb-2">LINE公式アカウントを友達追加</p>
-
-                                            <!-- PC用：QRコード -->
-                                            <div id="lineQrArea" class="hidden md:block mb-4">
-                                                <p class="text-sm text-gray-600 mb-3">スマホでQRコードを読み取ってください</p>
-                                                <div class="inline-block p-3 bg-white rounded-xl shadow-md border">
-                                                    <img id="lineQrCode" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://line.me/R/ti/p/@052izwwi" alt="LINE QRコード" class="w-36 h-36">
-                                                </div>
-                                            </div>
-
-                                            <!-- スマホ用：友達追加ボタン -->
-                                            <div id="lineAddButton" class="md:hidden">
-                                                <a href="https://line.me/R/ti/p/@052izwwi" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 bg-[#06C755] text-white rounded-xl font-bold hover:bg-[#05b34d] transition-colors shadow-lg">
-                                                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                                                        <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
-                                                    </svg>
-                                                    友だち追加
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- ステップ2: 連携コード送信 -->
-                                <div class="border-l-4 border-blue-500 bg-gradient-to-r from-blue-50 to-white rounded-r-xl p-4">
-                                    <div class="flex items-start gap-4">
-                                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <span class="text-white font-bold text-sm">2</span>
-                                        </div>
-                                        <div class="flex-1">
-                                            <p class="font-bold text-gray-800 mb-2">連携コードをLINEで送信</p>
-                                            <p class="text-sm text-gray-600 mb-3">下の連携コードをコピーして、LINEのチャットに送信してください</p>
+                                            <p class="font-bold text-gray-800 mb-2">連携コードをコピー</p>
+                                            <p class="text-sm text-gray-600 mb-3">まず下の連携コードをコピーしてください</p>
 
                                             <div class="flex items-center gap-3">
                                                 <div id="lineLinkCodeDisplay" class="flex-1 px-4 py-3 bg-gray-100 rounded-xl font-mono text-lg font-bold text-center tracking-wider">
@@ -7970,6 +7940,37 @@
                                             <button onclick="generateNewLineLinkCode()" class="mt-3 text-sm text-blue-600 hover:text-blue-800 hover:underline">
                                                 新しい連携コードを発行
                                             </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- ステップ2: 友達追加してコード送信 -->
+                                <div class="border-l-4 border-green-500 bg-gradient-to-r from-green-50 to-white rounded-r-xl p-4">
+                                    <div class="flex items-start gap-4">
+                                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <span class="text-white font-bold text-sm">2</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="font-bold text-gray-800 mb-2">LINE公式アカウントを友達追加してコードを送信</p>
+                                            <p class="text-sm text-gray-600 mb-3">友達追加後、コピーしたコードをLINEのチャットに送信してください</p>
+
+                                            <!-- PC用：QRコード -->
+                                            <div id="lineQrArea" class="hidden md:block mb-4">
+                                                <div class="inline-block p-3 bg-white rounded-xl shadow-md border">
+                                                    <img id="lineQrCode" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://line.me/R/ti/p/@052izwwi" alt="LINE QRコード" class="w-36 h-36">
+                                                </div>
+                                                <p class="text-xs text-gray-500 mt-2">スマホでQRコードを読み取ってください</p>
+                                            </div>
+
+                                            <!-- スマホ用：友達追加ボタン -->
+                                            <div id="lineAddButton" class="md:hidden">
+                                                <a href="https://line.me/R/ti/p/@052izwwi" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 bg-[#06C755] text-white rounded-xl font-bold hover:bg-[#05b34d] transition-colors shadow-lg">
+                                                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+                                                    </svg>
+                                                    友だち追加
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
