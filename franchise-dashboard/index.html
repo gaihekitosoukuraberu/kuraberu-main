@@ -15827,10 +15827,9 @@
             // 自動リマインダー生成
             generateAutoAlerts(cases, autoAlerts);
             const autoAlertsHtml = autoAlerts.map(alert => {
-                // V2091: 完了確認通知は専用表示
+                // V2145: 完了確認＆お礼リマインド（📤お礼を送る、📝ステータス変更）
                 if (alert.type === 'completion_check_survey' || alert.type === 'completion_check_estimate') {
                     const bgColor = alert.completionType === 'survey' ? 'bg-orange-50 border-orange-200' : 'bg-purple-50 border-purple-200';
-                    const btnColor = alert.completionType === 'survey' ? 'text-orange-700 bg-orange-100 hover:bg-orange-200' : 'text-purple-700 bg-purple-100 hover:bg-purple-200';
                     return `
                         <div class="p-3 ${bgColor} rounded-lg border">
                             <div class="flex items-center justify-between mb-2">
@@ -15845,13 +15844,13 @@
                                 </button>
                             </div>
                             <div class="flex gap-2 mt-2">
-                                <button onclick="openCompletionCheckFromAlert('${alert.cvId}', '${alert.customerName}', '${alert.completionType}')"
-                                        class="flex-1 px-2 py-1.5 text-xs font-medium ${btnColor} rounded-lg">
-                                    ✅ 完了確認
+                                <button onclick="openSmsModal('${alert.cvId}', '${alert.templateKey || ''}'); toggleAlertPanel();"
+                                        class="flex-1 px-2 py-1.5 text-xs font-medium text-green-700 bg-green-100 rounded-lg hover:bg-green-200">
+                                    📤 お礼を送る
                                 </button>
-                                <button onclick="openDetailModal('${alert.cvId}'); toggleAlertPanel();"
-                                        class="flex-1 px-2 py-1.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200">
-                                    📄 詳細
+                                <button onclick="openStatusModal('${alert.cvId}'); toggleAlertPanel();"
+                                        class="flex-1 px-2 py-1.5 text-xs font-medium text-purple-700 bg-purple-100 rounded-lg hover:bg-purple-200">
+                                    📝 ステータス
                                 </button>
                             </div>
                         </div>
@@ -16484,48 +16483,52 @@
             const now = new Date();
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-            // V2091: 完了確認通知（現調/商談の予定時刻から1時間経過）
+            // V2145: 完了確認＆お礼リマインド（現調/商談の1.5時間後）
             cases.forEach(c => {
-                // 現調の完了確認
+                // 現調の完了確認＆お礼リマインド
                 if (c.surveyDate) {
                     const surveyDate = parseTaskDate(c.surveyDate);
                     if (surveyDate) {
                         const minutesSince = (now - surveyDate) / (1000 * 60);
-                        // 1時間〜3時間経過（スヌーズでない）
+                        // 1.5時間〜6時間経過（スヌーズでない）
                         const completionKey = `completion_${c.cvId}_survey`;
                         const snoozeInfo = snoozedTasks[completionKey];
                         const isSnoozed = snoozeInfo && new Date(snoozeInfo.until) > now;
-                        if (minutesSince >= 60 && minutesSince < 180 && !isSnoozed && c.detailStatus !== '現調済' && c.detailStatus !== '見積提出済' && c.detailStatus !== '成約' && c.detailStatus !== '失注') {
+                        // ステータスが現調済/見積提出済/成約/失注でなければ表示
+                        if (minutesSince >= 90 && minutesSince < 360 && !isSnoozed && c.detailStatus !== '現調済' && c.detailStatus !== '見積提出済' && c.detailStatus !== '成約' && c.detailStatus !== '失注') {
                             autoAlerts.push({
                                 icon: '🏠',
-                                text: `${c.customerName || '---'}様 現調は完了しましたか？`,
+                                text: `${c.customerName || '---'}様 現調完了`,
                                 type: 'completion_check_survey',
                                 cvId: c.cvId,
                                 customerName: c.customerName,
                                 scheduledTime: surveyDate,
-                                completionType: 'survey'
+                                completionType: 'survey',
+                                templateKey: 'survey_thanks'
                             });
                         }
                     }
                 }
-                // 商談の完了確認
+                // 商談の完了確認＆お礼リマインド
                 if (c.estimateDate) {
                     const estDate = parseTaskDate(c.estimateDate);
                     if (estDate) {
                         const minutesSince = (now - estDate) / (1000 * 60);
-                        // 1時間〜3時間経過（スヌーズでない）
+                        // 1.5時間〜6時間経過（スヌーズでない）
                         const completionKey = `completion_${c.cvId}_estimate`;
                         const snoozeInfo = snoozedTasks[completionKey];
                         const isSnoozed = snoozeInfo && new Date(snoozeInfo.until) > now;
-                        if (minutesSince >= 60 && minutesSince < 180 && !isSnoozed && c.detailStatus !== '見積提出済' && c.detailStatus !== '成約' && c.detailStatus !== '失注') {
+                        // ステータスが見積提出済/成約/失注でなければ表示
+                        if (minutesSince >= 90 && minutesSince < 360 && !isSnoozed && c.detailStatus !== '見積提出済' && c.detailStatus !== '成約' && c.detailStatus !== '失注') {
                             autoAlerts.push({
                                 icon: '📋',
-                                text: `${c.customerName || '---'}様 商談は完了しましたか？`,
+                                text: `${c.customerName || '---'}様 商談完了`,
                                 type: 'completion_check_estimate',
                                 cvId: c.cvId,
                                 customerName: c.customerName,
                                 scheduledTime: estDate,
-                                completionType: 'estimate'
+                                completionType: 'estimate',
+                                templateKey: 'estimate_thanks'
                             });
                         }
                     }
