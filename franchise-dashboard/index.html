@@ -15642,7 +15642,8 @@
                 }
             }
 
-            // V2141: ステータス・タスクタイプ・条件に応じたネクストアクションを定義
+            // V2141/V2144: ステータス・タスクタイプ・条件に応じたネクストアクションを定義
+            // V2144: templateKeyを追加（メッセージ系のネクストアクション用）
             function getNextAction(caseData, taskType, taskDate) {
                 const status = caseData.detailStatus || caseData.status || '新着';
                 const hasEstimateDate = !!caseData.estimateDate; // 商談アポ取れてるか
@@ -15705,9 +15706,9 @@
                     if (status === 'アポ済' || !hasEstimateDate) {
                         return { tag: '[🏠現調]', text: '現地調査を実施' };
                     }
-                    // 現調後で商談アポ取れてる場合
+                    // 現調後で商談アポ取れてる場合 → お礼メッセージ推奨
                     if (hasEstimateDate) {
-                        return { tag: '[📤メッセージ]', text: '現調後のお礼メール' };
+                        return { tag: '[📤メッセージ]', text: '現調後のお礼メール', templateKey: 'survey_thanks' };
                     }
                     return { tag: '[📞架電]', text: 'お礼 ▷ 商談アポ取り' };
                 }
@@ -16051,7 +16052,7 @@
                                class="flex-1 px-2 py-1.5 text-xs font-medium text-green-700 bg-green-100 rounded-lg hover:bg-green-200 text-center">
                                 📞 電話
                             </a>
-                            <button onclick="event.stopPropagation(); openSmsModal('${task.cvId}')"
+                            <button onclick="event.stopPropagation(); openSmsModal('${task.cvId}'${task.nextAction?.templateKey ? `, '${task.nextAction.templateKey}'` : ''})"
                                     class="flex-1 px-2 py-1.5 text-xs font-medium text-purple-700 bg-purple-100 rounded-lg hover:bg-purple-200">
                                 💬 メッセージ
                             </button>
@@ -23955,24 +23956,13 @@
             const phone = c.customerTel || c.tel || c.phone || '';
             document.getElementById('smsTargetInfo').textContent = `${c.customerName || '---'} 様`;
 
-            // テンプレート選択
+            // V2144: テンプレート選択（templateKeyが渡されればそれを使用、なければデフォルト）
             const select = document.getElementById('smsTemplateSelect');
             if (templateKey && defaultSmsTemplates[templateKey]) {
                 select.value = templateKey;
             } else {
-                // ステータスに応じてデフォルトテンプレートを選択
-                const status = c.detailStatus || '';
-                if (status === '新着' || status === '未アポ') {
-                    select.value = 'call_missed';  // 不在後フォロー（お問い合わせお礼統合済み）
-                } else if (status.includes('アポ') || status.includes('現調')) {
-                    select.value = 'survey_confirm';
-                } else if (status.includes('見積')) {
-                    select.value = 'estimate_schedule';
-                } else if (status.includes('検討')) {
-                    select.value = 'followup';
-                } else {
-                    select.value = 'call_missed';
-                }
+                // デフォルトはcall_missed（不在後フォロー）
+                select.value = 'call_missed';
             }
 
             // テンプレート適用
