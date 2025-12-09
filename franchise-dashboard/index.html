@@ -15608,7 +15608,32 @@
                 }
             }
 
+            // V2140: ステータスに応じたネクストアクションを定義
+            function getNextAction(status, taskType) {
+                const actionMap = {
+                    '新着': { icon: '📞', text: '初回架電する' },
+                    '未アポ': { icon: '📞', text: '再架電してアポを取る' },
+                    'アポ済': { icon: '🏠', text: '現調を実施する' },
+                    '現調済': { icon: '📝', text: '見積を作成・提出する' },
+                    '見積提出済': { icon: '🤝', text: 'クロージングする' },
+                    '入金予定': { icon: '💰', text: '入金確認する' },
+                    '成約': { icon: '🎉', text: '工事準備を進める' },
+                    '入金済': { icon: '✅', text: '完了' }
+                };
+                // タスクタイプに応じて上書き
+                if (taskType === 'call') {
+                    return { icon: '📞', text: '架電する' };
+                } else if (taskType === 'survey') {
+                    return { icon: '🏠', text: '現調を実施する' };
+                } else if (taskType === 'meeting') {
+                    return { icon: '🤝', text: '商談・見積提出する' };
+                }
+                return actionMap[status] || { icon: '📋', text: '対応する' };
+            }
+
             cases.forEach(c => {
+                const status = c.detailStatus || c.status || '新着';
+
                 // 次回架電日時をチェック
                 if (c.nextCallDate) {
                     const callDate = parseTaskDate(c.nextCallDate);
@@ -15622,7 +15647,9 @@
                             type: 'call',
                             cvId: c.cvId,
                             icon: '📞',
-                            label: '架電'
+                            label: '架電',
+                            status: status,
+                            nextAction: getNextAction(status, 'call')
                         };
                         classifyTask(callDate, task, callAlertMin);
                     }
@@ -15641,7 +15668,9 @@
                             type: 'survey',
                             cvId: c.cvId,
                             icon: '🏠',
-                            label: '現調'
+                            label: '現調',
+                            status: status,
+                            nextAction: getNextAction(status, 'survey')
                         };
                         classifyTask(surveyDate, task, inspectionAlertMin);
                     }
@@ -15660,7 +15689,9 @@
                             type: 'meeting',
                             cvId: c.cvId,
                             icon: '📋',
-                            label: '商談'
+                            label: '商談',
+                            status: status,
+                            nextAction: getNextAction(status, 'meeting')
                         };
                         classifyTask(estDate, task, meetingAlertMin);
                     }
