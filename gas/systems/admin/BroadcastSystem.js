@@ -318,6 +318,34 @@ var BroadcastSystem = {
       // GAS WebアプリURL取得
       const scriptUrl = ScriptApp.getService().getUrl();
 
+      // V2119: 通知設定シートから担当者ごとのcaseMail設定を取得
+      const notificationSheet = ss.getSheetByName('通知設定');
+      const caseMailOptOutEmails = new Set(); // 案件メールOFFの担当者メアドセット
+      if (notificationSheet) {
+        const notifData = notificationSheet.getDataRange().getValues();
+        const notifHeaders = notifData[0];
+        const emailCol = notifHeaders.indexOf('メールアドレス');
+        const detailsCol = notifHeaders.indexOf('詳細設定JSON');
+
+        for (let i = 1; i < notifData.length; i++) {
+          const email = notifData[i][emailCol];
+          const detailsJson = notifData[i][detailsCol];
+          if (email && detailsJson) {
+            try {
+              const details = JSON.parse(detailsJson);
+              // caseMail が明示的に false の場合のみ除外
+              if (details.caseMail === false) {
+                caseMailOptOutEmails.add(email.toLowerCase());
+                console.log('[sendBroadcast] 案件メールOFF:', email);
+              }
+            } catch (e) {
+              // JSONパースエラーは無視
+            }
+          }
+        }
+      }
+      console.log('[sendBroadcast] 案件メールOFF担当者数:', caseMailOptOutEmails.size);
+
       // 各加盟店にメール送信 & レスポンスシートにトークン記録
       let sentCount = 0;
       const sentFranchises = [];
@@ -325,6 +353,12 @@ var BroadcastSystem = {
       availableFranchises.forEach((franchise, index) => {
         if (!franchise.email) {
           console.warn('[sendBroadcast] メールなし:', franchise.name);
+          return;
+        }
+
+        // V2119: 案件メールをOFFにしている担当者は除外
+        if (caseMailOptOutEmails.has(franchise.email.toLowerCase())) {
+          console.log('[sendBroadcast] 案件メールOFFのため除外:', franchise.name, franchise.email);
           return;
         }
 
