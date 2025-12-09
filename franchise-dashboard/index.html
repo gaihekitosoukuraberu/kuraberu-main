@@ -1064,6 +1064,40 @@
                     </div>
                 </div>
 
+                <!-- V2126: ブラウザ通知許可モーダル -->
+                <div id="browserNotifyPermissionModal" class="fixed inset-0 bg-black bg-opacity-50 z-[60] hidden flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl">
+                        <div class="px-6 py-4 bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-t-2xl">
+                            <h3 class="text-lg font-bold">ブラウザ通知の設定</h3>
+                            <p class="text-sm text-purple-100">新着案件をすぐにお知らせします</p>
+                        </div>
+                        <div class="p-6">
+                            <div class="text-center mb-4">
+                                <span class="text-5xl">🔔</span>
+                            </div>
+                            <p class="text-gray-700 mb-2 text-center font-bold">プッシュ通知を有効にしますか？</p>
+                            <p class="text-gray-500 text-sm mb-6 text-center">
+                                新しい案件が配信されたとき、すぐにお知らせを受け取れます。<br>
+                                通知はいつでもOFFにできます。
+                            </p>
+                            <div id="browserNotifyPermissionDenied" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                <p class="text-sm text-red-700 font-bold mb-1">通知がブロックされています</p>
+                                <p class="text-xs text-red-600">ブラウザの設定から通知を許可してください。</p>
+                                <p class="text-xs text-gray-500 mt-2">Safari: 設定 → Webサイト → 通知<br>Chrome: アドレスバー左の鍵アイコン → 通知を許可</p>
+                            </div>
+                            <div class="space-y-3">
+                                <button onclick="acceptBrowserNotifyPermission()" class="w-full py-3 px-4 bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-xl font-bold hover:opacity-90 shadow-md transition-all flex items-center justify-center gap-2">
+                                    <span>🔔</span>
+                                    <span>通知を許可する</span>
+                                </button>
+                                <button onclick="closeBrowserNotifyPermissionModal()" class="w-full py-2 text-gray-500 hover:text-gray-700 text-sm">
+                                    あとで設定する
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 案件詳細モーダル（V2022 全情報対応） -->
                 <div id="caseDetailModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
                     <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
@@ -7670,7 +7704,7 @@
                                             <button id="enablePushBtn" onclick="requestPushPermission()" class="hidden px-3 py-1.5 bg-purple-500 text-white text-xs rounded-lg hover:bg-purple-600">
                                                 通知を許可
                                             </button>
-                                            <input type="checkbox" id="notifyBrowser" class="toggle-switch" checked="">
+                                            <input type="checkbox" id="notifyBrowser" class="toggle-switch" checked="" onchange="toggleNotifyBrowserPanel()">
                                             <button onclick="testNotification('browser')" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">テスト</button>
                                         </div>
                                     </div>
@@ -16545,6 +16579,8 @@
                     setTimeout(() => initLineConnectionSection(), 100);
                     // プロフィール・通知設定をAPIから読み込み
                     setTimeout(() => loadUserSettings(), 150);
+                    // V2126: ブラウザ通知許可チェック（未設定の場合モーダル表示）
+                    setTimeout(() => checkBrowserNotifyOnSettingsOpen(), 300);
                 }
 
                 // V2007: 案件管理セクションの場合は案件データを読み込み
@@ -22659,7 +22695,7 @@
             }
         }
 
-        // V2124: 連携解除確認モーダル表示
+        // V2126: 連携解除確認モーダル表示（LINE対応追加）
         function showUnlinkConfirmModal(type) {
             pendingUnlinkType = type;
             const modal = document.getElementById('unlinkConfirmModal');
@@ -22672,6 +22708,9 @@
             } else if (type === 'sms') {
                 titleEl.textContent = 'SMS通知';
                 msgEl.textContent = '登録されている電話番号の連携を解除しますか？';
+            } else if (type === 'line') {
+                titleEl.textContent = 'LINE通知';
+                msgEl.textContent = '登録されているLINE連携を解除しますか？';
             }
             modal.classList.remove('hidden');
         }
@@ -22720,25 +22759,132 @@
                     showNotification('通知OFF', 'SMS通知をOFFにしました');
                 }
                 panel.classList.add('hidden');
+            } else if (type === 'line') {
+                const checkbox = document.getElementById('notifyLine');
+                const panel = document.getElementById('lineLinkPanel');
+                checkbox.checked = false;
+                if (shouldUnlink) {
+                    // 連携解除 → LINE連携解除API呼び出し（確認なしで直接解除）
+                    isLineLinked = false;
+                    updateNotifyLinkBadges();
+                    unlinkLineDirectly(); // 確認なしで直接解除
+                    showNotification('解除完了', 'LINE連携を解除しました');
+                } else {
+                    // 通知だけOFF
+                    showNotification('通知OFF', 'LINE通知をOFFにしました');
+                }
+                panel.classList.add('hidden');
             }
             saveNotificationSettings();
             saveProfile(); // プロフィールも保存
         }
 
-        // V2113: LINE通知パネルの展開/閉じ
+        // V2126: LINE通知パネルの展開/閉じ + 連携解除確認
         function toggleNotifyLinePanel() {
             const checkbox = document.getElementById('notifyLine');
             const panel = document.getElementById('lineLinkPanel');
 
-            if (checkbox.checked && !isLineLinked) {
-                // ONにしたが未連携 → パネル展開
-                panel.classList.remove('hidden');
-                // コードを生成
-                generateLineLinkCode();
+            if (checkbox.checked) {
+                // ONにした
+                if (!isLineLinked) {
+                    // 未連携 → パネル展開
+                    panel.classList.remove('hidden');
+                    // コードを生成
+                    generateLineLinkCode();
+                } else {
+                    // 連携済み → パネル閉じる
+                    panel.classList.add('hidden');
+                }
+                saveNotificationSettings();
             } else {
-                panel.classList.add('hidden');
+                // OFFにしようとした
+                if (isLineLinked) {
+                    // 連携済みなのでOFF → 連携解除確認モーダル表示
+                    checkbox.checked = true; // 一旦戻す
+                    showUnlinkConfirmModal('line');
+                } else {
+                    // 未連携なら単純にOFF
+                    panel.classList.add('hidden');
+                    saveNotificationSettings();
+                }
             }
-            saveNotificationSettings();
+        }
+
+        // V2126: ブラウザ通知トグルの変更ハンドラ
+        function toggleNotifyBrowserPanel() {
+            const checkbox = document.getElementById('notifyBrowser');
+
+            if (checkbox.checked) {
+                // ONにしようとした場合、許可されていなければ許可モーダル表示
+                if ('Notification' in window && Notification.permission !== 'granted') {
+                    checkbox.checked = false; // 一旦戻す
+                    showBrowserNotifyPermissionModal();
+                } else {
+                    saveNotificationSettings();
+                }
+            } else {
+                // OFFにした
+                saveNotificationSettings();
+            }
+        }
+
+        // V2126: ブラウザ通知許可モーダルを表示
+        function showBrowserNotifyPermissionModal() {
+            const modal = document.getElementById('browserNotifyPermissionModal');
+            const deniedSection = document.getElementById('browserNotifyPermissionDenied');
+
+            // ブロック中の場合は案内を表示
+            if ('Notification' in window && Notification.permission === 'denied') {
+                deniedSection.classList.remove('hidden');
+            } else {
+                deniedSection.classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        // V2126: ブラウザ通知許可モーダルを閉じる
+        function closeBrowserNotifyPermissionModal() {
+            const modal = document.getElementById('browserNotifyPermissionModal');
+            modal.classList.add('hidden');
+        }
+
+        // V2126: ブラウザ通知許可を承諾
+        async function acceptBrowserNotifyPermission() {
+            try {
+                const permission = await Notification.requestPermission();
+
+                if (permission === 'granted') {
+                    console.log('[Notify] ブラウザ通知許可されました');
+                    document.getElementById('notifyBrowser').checked = true;
+                    await registerFcmToken();
+                    checkPushPermission();
+                    showNotification('通知設定完了', '新しい案件の通知を受け取れるようになりました！', 'success');
+                    saveNotificationSettings();
+                } else if (permission === 'denied') {
+                    console.log('[Notify] ブラウザ通知が拒否されました');
+                    // ブロック案内を表示
+                    document.getElementById('browserNotifyPermissionDenied').classList.remove('hidden');
+                    checkPushPermission();
+                    return; // モーダルを閉じない
+                }
+
+                closeBrowserNotifyPermissionModal();
+            } catch (error) {
+                console.error('[Notify] 許可リクエストエラー:', error);
+                showNotification('エラー', '通知の許可に失敗しました', 'error');
+            }
+        }
+
+        // V2126: 設定セクション表示時のブラウザ通知チェック
+        function checkBrowserNotifyOnSettingsOpen() {
+            // ブラウザが通知をサポートしていて、許可されていない場合にモーダル表示
+            if ('Notification' in window && Notification.permission === 'default') {
+                // 少し遅延させて自然な流れで表示
+                setTimeout(() => {
+                    showBrowserNotifyPermissionModal();
+                }, 500);
+            }
         }
 
         // V2113: メールアドレス登録
@@ -22965,6 +23111,31 @@
             } catch (error) {
                 console.error('[LINE] 連携解除エラー:', error);
                 showNotification('エラー', '通信エラーが発生しました', 'error');
+            }
+        }
+
+        // V2126: LINE連携を確認なしで直接解除（confirmUnlinkから呼ばれる）
+        async function unlinkLineDirectly() {
+            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            if (!merchantId) return;
+
+            try {
+                const response = await fetch(window.ENV.GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'merchant_unlinkLine',
+                        merchantId: merchantId
+                    })
+                });
+                const result = await response.json();
+                console.log('[LINE] 連携解除（直接）:', result);
+
+                if (result.success) {
+                    await checkLineLinkStatus();
+                }
+            } catch (error) {
+                console.error('[LINE] 連携解除エラー:', error);
             }
         }
 
