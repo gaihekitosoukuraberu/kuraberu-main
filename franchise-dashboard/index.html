@@ -7613,7 +7613,7 @@
                                         <div class="flex items-center gap-2 sm:gap-3">
                                             <span class="text-xl sm:text-2xl">📧</span>
                                             <span class="text-xs sm:text-sm font-medium text-gray-700">メール通知</span>
-                                            <span id="emailLinkedBadge" class="hidden text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">連携済み ✓</span>
+                                            <span id="emailLinkedBadge" onclick="confirmUnlinkEmail()" class="hidden text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 cursor-pointer hover:bg-red-100 hover:text-red-700">連携済み ✓</span>
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <input type="checkbox" id="notifyEmail" class="toggle-switch" checked="" onchange="toggleNotifyEmailPanel()">
@@ -7636,7 +7636,7 @@
                                         <div class="flex items-center gap-2 sm:gap-3">
                                             <span class="text-xl sm:text-2xl">💬</span>
                                             <span class="text-xs sm:text-sm font-medium text-gray-700">SMS通知</span>
-                                            <span id="smsLinkedBadge" class="hidden text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">連携済み ✓</span>
+                                            <span id="smsLinkedBadge" onclick="confirmUnlinkSms()" class="hidden text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 cursor-pointer hover:bg-red-100 hover:text-red-700">連携済み ✓</span>
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <input type="checkbox" id="notifySms" class="toggle-switch" onchange="toggleNotifySmsPanel()">
@@ -7659,7 +7659,7 @@
                                         <div class="flex items-center gap-2 sm:gap-3">
                                             <span class="text-xl sm:text-2xl">💚</span>
                                             <span class="text-xs sm:text-sm font-medium text-gray-700">LINE通知</span>
-                                            <span id="lineLinkedBadge" class="hidden text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">連携済み ✓</span>
+                                            <span id="lineLinkedBadge" onclick="confirmUnlinkLine()" class="hidden text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 cursor-pointer hover:bg-red-100 hover:text-red-700">連携済み ✓</span>
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <input type="checkbox" id="notifyLine" class="toggle-switch" onchange="toggleNotifyLinePanel()">
@@ -22671,7 +22671,47 @@
             saveNotificationSettings();
         }
 
-        // V2132: 連携解除確認モーダル表示
+        // V2134: メール連携解除確認
+        function confirmUnlinkEmail() {
+            if (confirm('メールアドレスの連携を解除しますか？\n\n解除すると、再度ONにした際に登録が必要です。')) {
+                document.getElementById('profileEmail').value = '';
+                document.getElementById('notifyEmailInput').value = '';
+                document.getElementById('notifyEmail').checked = false;
+                isEmailLinked = false;
+                updateNotifyLinkBadges();
+                saveNotificationSettings();
+                saveProfile();
+                showNotification('解除完了', 'メールアドレスの連携を解除しました');
+            }
+        }
+
+        // V2134: SMS連携解除確認
+        function confirmUnlinkSms() {
+            if (confirm('電話番号の連携を解除しますか？\n\n解除すると、再度ONにした際に登録が必要です。')) {
+                document.getElementById('profilePhone').value = '';
+                document.getElementById('notifySmsInput').value = '';
+                document.getElementById('notifySms').checked = false;
+                isSmsLinked = false;
+                updateNotifyLinkBadges();
+                saveNotificationSettings();
+                saveProfile();
+                showNotification('解除完了', '電話番号の連携を解除しました');
+            }
+        }
+
+        // V2134: LINE連携解除確認
+        function confirmUnlinkLine() {
+            if (confirm('LINE連携を解除しますか？\n\n解除すると、再度ONにした際に連携が必要です。')) {
+                document.getElementById('notifyLine').checked = false;
+                isLineLinked = false;
+                updateNotifyLinkBadges();
+                unlinkLineDirectly();
+                saveNotificationSettings();
+                showNotification('解除完了', 'LINE連携を解除しました');
+            }
+        }
+
+        // V2132: 連携解除確認モーダル表示（未使用だが残す）
         function showUnlinkConfirmModal(type) {
             console.log('[Unlink] showModal:', type);
             pendingUnlinkType = type;

@@ -7,7 +7,7 @@
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
-const CACHE_NAME = 'kuraberu-v6';
+const CACHE_NAME = 'kuraberu-v7';
 const STATIC_ASSETS = [
   '/franchise-dashboard/index.html',
   '/franchise-dashboard/merchant-portal/login.html',
