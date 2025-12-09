@@ -7674,19 +7674,37 @@
                                 <span class="text-base sm:text-lg">📨</span>
                                 <h4 class="text-sm sm:text-base font-bold text-gray-800">案件配信通知</h4>
                             </div>
-                            <div class="border-l-4 border-blue-500 bg-gradient-to-r from-blue-50 to-white rounded-r-lg sm:rounded-r-xl p-3 sm:p-4 hover:shadow-md transition-shadow">
-                                <label class="flex items-center justify-between">
-                                    <div class="flex items-center gap-2 sm:gap-3">
-                                        <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                            <span class="text-lg sm:text-xl">🔔</span>
+                            <div class="space-y-2 sm:space-y-3">
+                                <!-- 新規案件の通知 -->
+                                <div class="border-l-4 border-blue-500 bg-gradient-to-r from-blue-50 to-white rounded-r-lg sm:rounded-r-xl p-3 sm:p-4 hover:shadow-md transition-shadow">
+                                    <label class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2 sm:gap-3">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                                <span class="text-lg sm:text-xl">🔔</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-xs sm:text-sm font-bold text-gray-800">新規案件の通知</span>
+                                                <p class="text-xs text-gray-500 hidden sm:block">新しい案件が配信された時にプッシュ通知を受け取る</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span class="text-xs sm:text-sm font-bold text-gray-800">新規案件の通知</span>
-                                            <p class="text-xs text-gray-500 hidden sm:block">新しい案件が配信された時にプッシュ通知を受け取る</p>
+                                        <input type="checkbox" id="notifyCaseDelivery" class="toggle-switch" checked="">
+                                    </label>
+                                </div>
+                                <!-- V2119: 案件メールの受信ON/OFF -->
+                                <div class="border-l-4 border-purple-500 bg-gradient-to-r from-purple-50 to-white rounded-r-lg sm:rounded-r-xl p-3 sm:p-4 hover:shadow-md transition-shadow">
+                                    <label class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2 sm:gap-3">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                                <span class="text-lg sm:text-xl">📧</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-xs sm:text-sm font-bold text-gray-800">案件メール</span>
+                                                <p class="text-xs text-gray-500 hidden sm:block">運営からのおすすめ案件メールを受け取る</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <input type="checkbox" id="notifyCaseDelivery" class="toggle-switch" checked="">
-                                </label>
+                                        <input type="checkbox" id="notifyCaseMail" class="toggle-switch" checked="">
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
@@ -18111,6 +18129,12 @@
                             document.getElementById('notifyCaseDelivery').checked = details.caseDelivery !== false;
                         }
 
+                        // V2119: 案件メール受信ON/OFF
+                        if (document.getElementById('notifyCaseMail')) {
+                            // デフォルトはON（true）
+                            document.getElementById('notifyCaseMail').checked = details.caseMail !== false;
+                        }
+
                         // ローカルにも同期
                         localStorage.setItem('notificationSettings', JSON.stringify({
                             email: settings.email,
@@ -18220,6 +18244,8 @@
                 browser: getChecked('notifyBrowser'),
                 // V2111: 案件配信通知のON/OFF
                 caseDelivery: getChecked('notifyCaseDelivery'),
+                // V2119: 案件メール受信ON/OFF
+                caseMail: getChecked('notifyCaseMail'),
                 alerts: {
                     appointment_reminder: {
                         enabled: getChecked('appointmentReminder'),
