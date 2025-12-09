@@ -4088,26 +4088,50 @@ window.addEventListener('beforeunload', function(e) {
                             <p class="text-gray-600">加盟店からのキャンセル申請を処理</p>
                         </div>
 
-                        <!-- 統計カード -->
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-6">
-                            <div class="bg-white rounded-lg p-2 md:p-4 border border-gray-200">
-                                <div class="text-xs text-gray-500">未処理</div>
-                                <div id="cancelStatPending" class="text-lg md:text-2xl font-bold text-purple-600">-</div>
+                        <!-- 統計カード（スマホ: 1列4カード / PC: グリッド） -->
+                        <!-- スマホ用: 1列に4カード横並び -->
+                        <div class="md:hidden grid grid-cols-4 gap-1.5 mb-4">
+                            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-2 text-white shadow">
+                                <div class="text-[10px] opacity-80">未処理</div>
+                                <div id="cancelStatPendingMobile" class="text-lg font-bold leading-tight">-</div>
+                                <div class="text-[9px] opacity-90">要対応</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-2 text-white shadow">
+                                <div class="text-[10px] opacity-80">承認</div>
+                                <div id="cancelStatApprovedMobile" class="text-lg font-bold leading-tight">-</div>
+                                <div id="cancelStatApprovedSubMobile" class="text-[9px] opacity-75">先月-</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-lg p-2 text-white shadow">
+                                <div class="text-[10px] opacity-80">却下</div>
+                                <div id="cancelStatRejectedMobile" class="text-lg font-bold leading-tight">-</div>
+                                <div id="cancelStatRejectedSubMobile" class="text-[9px] opacity-75">先月-</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg p-2 text-white shadow">
+                                <div class="text-[10px] opacity-80">合計</div>
+                                <div id="cancelStatTotalMobile" class="text-lg font-bold leading-tight">-</div>
+                                <div id="cancelStatTotalSubMobile" class="text-[9px] text-blue-200">率-%</div>
+                            </div>
+                        </div>
+                        <!-- PC用: グリッド -->
+                        <div class="hidden md:grid grid-cols-4 gap-4 mb-6">
+                            <div class="bg-white rounded-lg p-4 border border-gray-200">
+                                <div class="text-sm text-gray-500">未処理</div>
+                                <div id="cancelStatPending" class="text-2xl font-bold text-purple-600">-</div>
                                 <div class="text-xs text-red-600">要対応</div>
                             </div>
-                            <div class="bg-white rounded-lg p-2 md:p-4 border border-gray-200">
-                                <div class="text-xs text-gray-500">承認済み</div>
-                                <div id="cancelStatApproved" class="text-lg md:text-2xl font-bold text-green-600">-</div>
+                            <div class="bg-white rounded-lg p-4 border border-gray-200">
+                                <div class="text-sm text-gray-500">承認済み</div>
+                                <div id="cancelStatApproved" class="text-2xl font-bold text-green-600">-</div>
                                 <div id="cancelStatApprovedSub" class="text-xs text-gray-400">先月 -件</div>
                             </div>
-                            <div class="bg-white rounded-lg p-2 md:p-4 border border-gray-200">
-                                <div class="text-xs text-gray-500">却下</div>
-                                <div id="cancelStatRejected" class="text-lg md:text-2xl font-bold text-red-600">-</div>
+                            <div class="bg-white rounded-lg p-4 border border-gray-200">
+                                <div class="text-sm text-gray-500">却下</div>
+                                <div id="cancelStatRejected" class="text-2xl font-bold text-red-600">-</div>
                                 <div id="cancelStatRejectedSub" class="text-xs text-gray-400">先月 -件</div>
                             </div>
-                            <div class="bg-white rounded-lg p-2 md:p-4 border border-gray-200">
-                                <div class="text-xs text-gray-500">合計</div>
-                                <div id="cancelStatTotal" class="text-lg md:text-2xl font-bold text-gray-800">-</div>
+                            <div class="bg-white rounded-lg p-4 border border-gray-200">
+                                <div class="text-sm text-gray-500">合計</div>
+                                <div id="cancelStatTotal" class="text-2xl font-bold text-gray-800">-</div>
                                 <div id="cancelStatTotalSub" class="text-xs text-blue-500">承認率 -%</div>
                             </div>
                         </div>
@@ -6306,26 +6330,27 @@ window.addEventListener('beforeunload', function(e) {
                 cancelRequestsData = result.requests || [];
                 const stats = result.stats || { pending: 0, approved: 0, rejected: 0, total: 0, approvalRate: 0, thisMonth: {}, lastMonth: {} };
 
-                // 基本統計を更新
-                const pendingStat = document.getElementById('cancelStatPending');
-                const approvedStat = document.getElementById('cancelStatApproved');
-                const rejectedStat = document.getElementById('cancelStatRejected');
-                const totalStat = document.getElementById('cancelStatTotal');
-
-                if (pendingStat) pendingStat.textContent = stats.pending;
-                if (approvedStat) approvedStat.textContent = stats.approved;
-                if (rejectedStat) rejectedStat.textContent = stats.rejected;
-                if (totalStat) totalStat.textContent = stats.total;
-
-                // V2149: サブテキスト（先月◯件、承認率◯%）
+                // V2150: 統計を更新（PC用・モバイル用両方）
                 const lastMonth = stats.lastMonth || {};
-                const approvedSub = document.getElementById('cancelStatApprovedSub');
-                const rejectedSub = document.getElementById('cancelStatRejectedSub');
-                const totalSub = document.getElementById('cancelStatTotalSub');
 
-                if (approvedSub) approvedSub.textContent = `先月 ${lastMonth.approved || 0}件`;
-                if (rejectedSub) rejectedSub.textContent = `先月 ${lastMonth.rejected || 0}件`;
-                if (totalSub) totalSub.textContent = `承認率 ${stats.approvalRate || 0}%`;
+                // PC用
+                const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+                setEl('cancelStatPending', stats.pending);
+                setEl('cancelStatApproved', stats.approved);
+                setEl('cancelStatRejected', stats.rejected);
+                setEl('cancelStatTotal', stats.total);
+                setEl('cancelStatApprovedSub', `先月 ${lastMonth.approved || 0}件`);
+                setEl('cancelStatRejectedSub', `先月 ${lastMonth.rejected || 0}件`);
+                setEl('cancelStatTotalSub', `承認率 ${stats.approvalRate || 0}%`);
+
+                // モバイル用
+                setEl('cancelStatPendingMobile', stats.pending);
+                setEl('cancelStatApprovedMobile', stats.approved);
+                setEl('cancelStatRejectedMobile', stats.rejected);
+                setEl('cancelStatTotalMobile', stats.total);
+                setEl('cancelStatApprovedSubMobile', `先月 ${lastMonth.approved || 0}件`);
+                setEl('cancelStatRejectedSubMobile', `先月 ${lastMonth.rejected || 0}件`);
+                setEl('cancelStatTotalSubMobile', `承認率 ${stats.approvalRate || 0}%`);
 
                 // 未処理と処理済みを分離
                 const pending = cancelRequestsData.filter(r => r.status === '申請中' || r.status === '未処理');
