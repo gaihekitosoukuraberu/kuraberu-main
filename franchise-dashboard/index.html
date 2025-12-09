@@ -504,12 +504,11 @@
                     ダッシュボード
                 </a>
                 <!-- 2. 案件管理 -->
-                <a href="#cases" onclick="showSection('cases'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100 relative">
+                <a href="#cases" onclick="showSection('cases'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                     </svg>
                     案件管理
-                    <span id="unassignedBadge" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5 min-w-[20px] text-center">3</span>
                 </a>
                 <!-- 3. カレンダー -->
                 <a href="#calendar" onclick="showSection('calendar'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
@@ -8350,6 +8349,20 @@
                 </div>
             </div>
 
+            <!-- V2142: 未対応タスク（過去分）- 最重要 -->
+            <div id="overdueTasksSection" class="border-b hidden">
+                <div class="p-4 bg-red-100">
+                    <h4 class="font-bold text-red-800 mb-3 flex items-center gap-2">
+                        <span class="w-3 h-3 bg-red-600 rounded-full animate-pulse"></span>
+                        ⚠️ 未対応タスク
+                        <span id="overdueCount" class="ml-auto px-2 py-0.5 bg-red-600 text-white text-xs rounded-full"></span>
+                    </h4>
+                    <div id="overdueTasks" class="space-y-2">
+                        <!-- 動的に生成 -->
+                    </div>
+                </div>
+            </div>
+
             <!-- V2137: 今すぐ対応（時間が来たタスク） -->
             <div id="urgentTasksSection" class="border-b hidden">
                 <div class="p-4 bg-red-50">
@@ -15544,19 +15557,13 @@
         // 加盟店ステータス更新
         // updateMerchantStatus関数は削除（ステータスは読み取り専用、スプレッドシートから動的取得）
 
-        // V2091: バッジカウントを統合更新（notificationBadgeに統一）
+        // V2091/V2142: バッジカウントを統合更新（notificationBadgeに統一）
         function updateTotalBadgeCount() {
-            // 未割当案件数を取得
-            const unassignedBadge = document.getElementById('unassignedBadge');
-            const unassignedCount = unassignedBadge && !unassignedBadge.classList.contains('hidden')
-                ? parseInt(unassignedBadge.textContent) || 0
-                : 0;
-
             // アラート数を取得
             const alertItems = document.querySelectorAll('#todayAlerts .alert-item').length || 0;
 
             // 合計をベルマークに表示（V2091: notificationBadgeに統一）
-            const totalCount = unassignedCount + alertItems;
+            const totalCount = alertItems;
             const badge = document.getElementById('notificationBadge');
 
             if (badge) {
@@ -15572,6 +15579,7 @@
         }
 
         // V2088: アラート読み込み（実データから動的生成）
+        // V2142: 過去タスク（未対応）セクション追加
         function loadAlerts() {
             const now = new Date();
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -15582,6 +15590,7 @@
 
             // merchantCasesDataからタスクを抽出
             const cases = merchantCasesData || [];
+            const overdueTasks = []; // V2142: 過去の未対応タスク
             const urgentTasks = []; // V2137: 今すぐ対応（時間が来た/過ぎたタスク）
             const todayTasks = [];
             const tomorrowTasks = [];
@@ -15592,8 +15601,33 @@
             const inspectionAlertMin = parseInt(document.getElementById('inspectionAlertTime')?.value) || 30;
             const meetingAlertMin = parseInt(document.getElementById('meetingAlertTime')?.value) || 30;
 
-            // V2138: タスクを分類するヘルパー関数（設定の分数を使用）
+            // V2142: 日数経過を計算するヘルパー
+            function getDaysOverdue(taskDate) {
+                const taskDay = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+                const diffMs = today - taskDay;
+                return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            }
+
+            // V2142: 過去タスクの強調レベルを取得
+            function getOverdueLevel(daysOverdue) {
+                if (daysOverdue >= 7) return 'critical'; // 7日以上: 最重要
+                if (daysOverdue >= 3) return 'high';     // 3日以上: 高
+                if (daysOverdue >= 1) return 'medium';   // 1日以上: 中
+                return 'low';
+            }
+
+            // V2138/V2142: タスクを分類するヘルパー関数
             function classifyTask(taskDate, task, alertMinutes) {
+                const daysOverdue = getDaysOverdue(taskDate);
+
+                // V2142: 過去のタスク（昨日以前）
+                if (daysOverdue >= 1) {
+                    task.daysOverdue = daysOverdue;
+                    task.overdueLevel = getOverdueLevel(daysOverdue);
+                    overdueTasks.push(task);
+                    return;
+                }
+
                 if (isToday(taskDate, today)) {
                     // 時間が過ぎている or 設定の分数以内 → 今すぐ対応
                     const diffMinutes = (now - taskDate) / (1000 * 60);
@@ -15753,10 +15787,24 @@
                 }
             });
 
+            // V2142: 過去タスクを日数経過順（多い順）でソート
+            overdueTasks.sort((a, b) => b.daysOverdue - a.daysOverdue);
+
             // 時間順にソート
             urgentTasks.sort((a, b) => a.datetime - b.datetime);
             todayTasks.sort((a, b) => a.datetime - b.datetime);
             tomorrowTasks.sort((a, b) => a.datetime - b.datetime);
+
+            // V2142: 未対応タスク（過去分）HTML生成
+            const overdueSection = document.getElementById('overdueTasksSection');
+            if (overdueTasks.length > 0) {
+                const overdueTasksHtml = overdueTasks.map(task => renderAlertTask(task, 'overdue')).join('');
+                document.getElementById('overdueTasks').innerHTML = overdueTasksHtml;
+                document.getElementById('overdueCount').textContent = overdueTasks.length + '件';
+                overdueSection.classList.remove('hidden');
+            } else {
+                overdueSection.classList.add('hidden');
+            }
 
             // V2137: 今すぐ対応HTML生成（赤い点滅カード）
             const urgentSection = document.getElementById('urgentTasksSection');
@@ -15856,8 +15904,8 @@
             }).join('');
             document.getElementById('autoAlerts').innerHTML = autoAlertsHtml || '<div class="text-sm text-gray-500 text-center py-2">リマインダーなし</div>';
 
-            // バッジ更新（V2137: urgentTasksも含める）
-            updateAlertCount(urgentTasks.length + todayTasks.length + tomorrowTasks.length + autoAlerts.length);
+            // バッジ更新（V2142: overdueTasksも含める）
+            updateAlertCount(overdueTasks.length + urgentTasks.length + todayTasks.length + tomorrowTasks.length + autoAlerts.length);
         }
 
         // V2091: 統合通知バッジ更新
@@ -15895,10 +15943,32 @@
 
         // タスクカードのHTML生成（電話/SMS/案件リンク/スヌーズボタン付き）
         // V2140: ステータス＆ネクストアクション表示追加
+        // V2142: 過去タスク用の色パターン追加（日数経過で変化）
         function renderAlertTask(task, color) {
-            let colorClass, bgClass, timeClass, borderClass;
+            let colorClass, bgClass, timeClass, borderClass, overdueLabel = '';
 
             switch (color) {
+                case 'overdue':
+                    // V2142: 過去タスクは日数経過で色が変わる
+                    const days = task.daysOverdue || 1;
+                    if (days >= 7) {
+                        // 7日以上: 最重要（濃い赤）
+                        bgClass = 'bg-red-200 hover:bg-red-300';
+                        borderClass = 'border-red-600 border-2';
+                        overdueLabel = `<span class="px-2 py-0.5 text-xs font-bold bg-red-600 text-white rounded-full animate-pulse">🔴 ${days}日経過</span>`;
+                    } else if (days >= 3) {
+                        // 3日以上: 高（赤）
+                        bgClass = 'bg-red-100 hover:bg-red-200';
+                        borderClass = 'border-red-500 border-2';
+                        overdueLabel = `<span class="px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full">🔴 ${days}日経過</span>`;
+                    } else {
+                        // 1-2日: 中（オレンジ）
+                        bgClass = 'bg-orange-100 hover:bg-orange-200';
+                        borderClass = 'border-orange-400 border-2';
+                        overdueLabel = `<span class="px-2 py-0.5 text-xs font-bold bg-orange-500 text-white rounded-full">🟠 ${days}日経過</span>`;
+                    }
+                    timeClass = 'text-gray-500';
+                    break;
                 case 'urgent':
                     colorClass = 'red';
                     bgClass = 'bg-red-100 hover:bg-red-200 animate-pulse';
@@ -15933,20 +16003,33 @@
             // V2140: ステータスの色を取得
             const statusColors = taskStatusColorMap[task.status] || { bg: 'bg-gray-100', text: 'text-gray-700' };
 
+            // V2142: 過去タスクの場合は経過日数バッジを表示
+            const headerRight = color === 'overdue'
+                ? `<div class="flex items-center gap-2">
+                       ${overdueLabel}
+                       <button onclick="event.stopPropagation(); openSnoozeMenu('${taskKey}', this)"
+                               class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded" title="スヌーズ">
+                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                           </svg>
+                       </button>
+                   </div>`
+                : `<div class="flex items-center gap-2">
+                       <span class="text-sm font-bold ${timeClass}">${task.time}</span>
+                       <button onclick="event.stopPropagation(); openSnoozeMenu('${taskKey}', this)"
+                               class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded" title="スヌーズ">
+                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                           </svg>
+                       </button>
+                   </div>`;
+
             return `
                 <div class="p-3 ${bgClass} rounded-lg border ${borderClass}" data-task-key="${taskKey}">
-                    <!-- V2140: ステータス＆時刻ヘッダー -->
+                    <!-- V2140/V2142: ステータス＆時刻/経過日数ヘッダー -->
                     <div class="flex items-center justify-between mb-2">
                         <span class="px-2 py-0.5 text-xs font-bold rounded-full ${statusColors.bg} ${statusColors.text}">${task.status || '---'}</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm font-bold ${timeClass}">${task.time}</span>
-                            <button onclick="event.stopPropagation(); openSnoozeMenu('${taskKey}', this)"
-                                    class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded" title="スヌーズ">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                            </button>
-                        </div>
+                        ${headerRight}
                     </div>
 
                     <!-- 顧客名 -->
@@ -20626,13 +20709,6 @@
             setIfExists('stat-total', merchantCasesData.length);
             setIfExists('stat-pending', pending);
             setIfExists('stat-contracted', contracted);
-
-            // サイドメニューの案件管理バッジを新着数で更新
-            const badge = document.getElementById('unassignedBadge');
-            if (badge) {
-                badge.textContent = newCount;
-                badge.style.display = newCount > 0 ? 'block' : 'none';
-            }
 
             // ヘッダーのベルアイコンバッジを新着数で更新
             const notifBadge = document.getElementById('notificationCount');
