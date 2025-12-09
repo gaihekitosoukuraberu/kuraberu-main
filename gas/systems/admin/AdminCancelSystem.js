@@ -531,6 +531,7 @@ var AdminCancelSystem = {
       const merchantNameIdx = getIdx('加盟店名');
       const customerNameIdx = getIdx('顧客名');
       const customerAreaIdx = getIdx('住所'); // CSVでは「住所」
+      const phoneIdx = getIdx('電話番号');
       const reasonIdx = getIdx('キャンセル理由カテゴリ'); // CSVカラム名に合わせる
       const detailIdx = getIdx('キャンセル理由詳細'); // CSVカラム名に合わせる
       const statusIdx = getIdx('承認ステータス');
@@ -538,6 +539,12 @@ var AdminCancelSystem = {
       const approvalDateIdx = getIdx('承認日時');
       const rejectReasonIdx = getIdx('却下理由');
       const createdAtIdx = getIdx('タイムスタンプ'); // CSVでは「タイムスタンプ」
+      const deliveryDateIdx = getIdx('配信日時');
+      const phoneCountIdx = getIdx('電話回数');
+      const smsCountIdx = getIdx('SMS回数');
+      const lastContactIdx = getIdx('最終連絡日時');
+      const cancelTextIdx = getIdx('キャンセル申請文');
+      const applicantIdx = getIdx('申請担当者');
 
       const requests = [];
       let pendingCount = 0;
@@ -566,6 +573,9 @@ var AdminCancelSystem = {
         const createdAt = row[createdAtIdx];
         const approvalDate = row[approvalDateIdx];
 
+        const deliveryDate = row[deliveryDateIdx];
+        const lastContact = row[lastContactIdx];
+
         requests.push({
           applicationId: row[appIdIdx] || '',
           cvId: row[cvIdIdx] || '',
@@ -573,6 +583,7 @@ var AdminCancelSystem = {
           merchantName: row[merchantNameIdx] || '',
           customerName: row[customerNameIdx] || '',
           customerArea: row[customerAreaIdx] || '',
+          phone: row[phoneIdx] || '',
           reason: row[reasonIdx] || '',
           detail: row[detailIdx] || '',
           status: reqStatus,
@@ -580,6 +591,13 @@ var AdminCancelSystem = {
           approvalDate: approvalDate ? Utilities.formatDate(new Date(approvalDate), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm') : '',
           rejectReason: row[rejectReasonIdx] || '',
           createdAt: createdAt ? Utilities.formatDate(new Date(createdAt), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm') : '',
+          // 追加情報
+          deliveryDate: deliveryDate ? Utilities.formatDate(new Date(deliveryDate), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm') : '',
+          phoneCount: row[phoneCountIdx] || 0,
+          smsCount: row[smsCountIdx] || 0,
+          lastContact: lastContact ? Utilities.formatDate(new Date(lastContact), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm') : '',
+          cancelText: row[cancelTextIdx] || '',
+          applicant: row[applicantIdx] || '',
           // 経過時間計算（未処理のみ）
           elapsedMinutes: (reqStatus === '申請中' || reqStatus === '未処理') && createdAt
             ? Math.floor((new Date() - new Date(createdAt)) / (1000 * 60))

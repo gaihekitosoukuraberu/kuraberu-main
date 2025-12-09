@@ -6375,6 +6375,7 @@ window.addEventListener('beforeunload', function(e) {
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         <div class="flex gap-2 justify-center">
+                                            <button onclick="showCancelDetailModal('${req.applicationId}')" class="px-3 py-1.5 bg-gray-600 text-white text-xs rounded hover:bg-gray-700">詳細</button>
                                             <button onclick="approveCancelRequest('${req.applicationId}')" class="px-3 py-1.5 bg-purple-600 text-white text-xs rounded hover:bg-purple-700">承認</button>
                                             <button onclick="showRejectCancelModal('${req.applicationId}')" class="px-3 py-1.5 bg-red-600 text-white text-xs rounded hover:bg-red-700">却下</button>
                                         </div>
@@ -6527,6 +6528,91 @@ window.addEventListener('beforeunload', function(e) {
             notification.textContent = message;
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 3000);
+        }
+
+        // V2147: キャンセル申請詳細モーダル
+        function showCancelDetailModal(applicationId) {
+            const req = cancelRequestsData.find(r => r.applicationId === applicationId);
+            if (!req) {
+                alert('申請データが見つかりません');
+                return;
+            }
+
+            const modal = document.createElement('div');
+            modal.id = 'cancelDetailModal';
+            modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">キャンセル申請詳細</h3>
+                        <button onclick="closeCancelDetailModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                    </div>
+
+                    <!-- 顧客情報 -->
+                    <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                        <h4 class="font-semibold text-blue-800 mb-2">顧客情報</h4>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div><span class="text-gray-600">顧客名:</span> <strong>${req.customerName || '-'}</strong></div>
+                            <div><span class="text-gray-600">CV ID:</span> <span class="text-blue-600">${req.cvId || '-'}</span></div>
+                            <div><span class="text-gray-600">電話番号:</span> ${req.phone || '-'}</div>
+                            <div><span class="text-gray-600">住所:</span> ${req.customerArea || '-'}</div>
+                        </div>
+                    </div>
+
+                    <!-- 加盟店・申請情報 -->
+                    <div class="bg-orange-50 p-4 rounded-lg mb-4">
+                        <h4 class="font-semibold text-orange-800 mb-2">加盟店・申請情報</h4>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div><span class="text-gray-600">加盟店:</span> <strong>${req.merchantName || req.merchantId || '-'}</strong></div>
+                            <div><span class="text-gray-600">申請担当者:</span> ${req.applicant || '-'}</div>
+                            <div><span class="text-gray-600">配信日時:</span> ${req.deliveryDate || '-'}</div>
+                            <div><span class="text-gray-600">申請日時:</span> ${req.createdAt || '-'}</div>
+                        </div>
+                    </div>
+
+                    <!-- フォローアップ履歴 -->
+                    <div class="bg-green-50 p-4 rounded-lg mb-4">
+                        <h4 class="font-semibold text-green-800 mb-2">フォローアップ履歴</h4>
+                        <div class="grid grid-cols-3 gap-2 text-sm">
+                            <div><span class="text-gray-600">電話回数:</span> <strong>${req.phoneCount || 0}回</strong></div>
+                            <div><span class="text-gray-600">SMS回数:</span> <strong>${req.smsCount || 0}回</strong></div>
+                            <div><span class="text-gray-600">最終連絡:</span> ${req.lastContact || '-'}</div>
+                        </div>
+                    </div>
+
+                    <!-- キャンセル理由 -->
+                    <div class="bg-purple-50 p-4 rounded-lg mb-4">
+                        <h4 class="font-semibold text-purple-800 mb-2">キャンセル理由</h4>
+                        <div class="text-sm mb-2">
+                            <span class="text-gray-600">カテゴリ:</span> <strong>${req.reason || '-'}</strong>
+                        </div>
+                        <div class="text-sm">
+                            <span class="text-gray-600">詳細:</span> ${req.detail || '-'}
+                        </div>
+                    </div>
+
+                    <!-- 申請文 -->
+                    ${req.cancelText ? `
+                    <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                        <h4 class="font-semibold text-gray-800 mb-2">申請文</h4>
+                        <pre class="text-sm whitespace-pre-wrap text-gray-700 bg-white p-3 rounded border">${req.cancelText}</pre>
+                    </div>
+                    ` : ''}
+
+                    <!-- アクションボタン -->
+                    <div class="flex gap-3 mt-6">
+                        <button onclick="closeCancelDetailModal(); approveCancelRequest('${applicationId}')" class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">承認する</button>
+                        <button onclick="closeCancelDetailModal(); showRejectCancelModal('${applicationId}')" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">却下する</button>
+                        <button onclick="closeCancelDetailModal()" class="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">閉じる</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function closeCancelDetailModal() {
+            const modal = document.getElementById('cancelDetailModal');
+            if (modal) modal.remove();
         }
 
         // 加盟店登録申請を承認
