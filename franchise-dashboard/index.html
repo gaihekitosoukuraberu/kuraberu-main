@@ -1033,8 +1033,8 @@
                     </div>
                 </div>
 
-                <!-- V2124: 連携解除確認モーダル（メール・SMS通知OFF時） -->
-                <div id="unlinkConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 z-[60] hidden flex items-center justify-center p-4">
+                <!-- V2132: 連携解除確認モーダル（メール・SMS・LINE・ブラウザ通知OFF時） -->
+                <div id="unlinkConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4" style="display: none;">
                     <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl">
                         <div class="px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-t-2xl">
                             <h3 class="text-lg font-bold" id="unlinkConfirmTitle">通知設定</h3>
@@ -22637,7 +22637,7 @@
         // V2124: 連携解除確認用の一時保存
         let pendingUnlinkType = null; // 'email' | 'sms'
 
-        // V2131: メール通知パネルの展開/閉じ + 連携解除確認
+        // V2132: メール通知パネルの展開/閉じ + 連携解除確認
         function toggleNotifyEmailPanel() {
             const checkbox = document.getElementById('notifyEmail');
             const panel = document.getElementById('emailLinkPanel');
@@ -22654,19 +22654,13 @@
                 }
                 saveNotificationSettings();
             } else {
-                // OFFにしようとした → confirmで確認
-                if (confirm('メール通知をOFFにしますか？\n\n「OK」→ 通知OFF\n「キャンセル」→ 戻る')) {
-                    // OFFにする
-                    panel.classList.add('hidden');
-                    saveNotificationSettings();
-                } else {
-                    // キャンセル → ONに戻す
-                    checkbox.checked = true;
-                }
+                // OFFにしようとした → モーダルで確認
+                checkbox.checked = true; // 一旦戻す
+                showUnlinkConfirmModal('email');
             }
         }
 
-        // V2131: SMS通知パネルの展開/閉じ + 連携解除確認
+        // V2132: SMS通知パネルの展開/閉じ + 連携解除確認
         function toggleNotifySmsPanel() {
             const checkbox = document.getElementById('notifySms');
             const panel = document.getElementById('smsLinkPanel');
@@ -22683,19 +22677,13 @@
                 }
                 saveNotificationSettings();
             } else {
-                // OFFにしようとした → confirmで確認
-                if (confirm('SMS通知をOFFにしますか？\n\n「OK」→ 通知OFF\n「キャンセル」→ 戻る')) {
-                    // OFFにする
-                    panel.classList.add('hidden');
-                    saveNotificationSettings();
-                } else {
-                    // キャンセル → ONに戻す
-                    checkbox.checked = true;
-                }
+                // OFFにしようとした → モーダルで確認
+                checkbox.checked = true; // 一旦戻す
+                showUnlinkConfirmModal('sms');
             }
         }
 
-        // V2127: 連携解除確認モーダル表示（LINE対応追加）
+        // V2132: 連携解除確認モーダル表示
         function showUnlinkConfirmModal(type) {
             console.log('[Unlink] showModal:', type);
             pendingUnlinkType = type;
@@ -22712,39 +22700,39 @@
             const offBtn = document.getElementById('unlinkConfirmOffBtn');
             const noteEl = document.getElementById('unlinkConfirmNote');
 
+            // ボタンテキストをリセット
+            offBtn.innerHTML = '<span>🔕</span><span>通知だけOFFにする</span>';
+
             if (type === 'email') {
                 titleEl.textContent = 'メール通知';
                 msgEl.textContent = '連携を解除しますか？それとも通知だけOFFにしますか？';
-                unlinkBtn.classList.remove('hidden');
-                offBtn.classList.remove('hidden');
-                noteEl.classList.remove('hidden');
+                unlinkBtn.style.display = 'flex';
+                noteEl.style.display = 'block';
             } else if (type === 'sms') {
                 titleEl.textContent = 'SMS通知';
                 msgEl.textContent = '連携を解除しますか？それとも通知だけOFFにしますか？';
-                unlinkBtn.classList.remove('hidden');
-                offBtn.classList.remove('hidden');
-                noteEl.classList.remove('hidden');
+                unlinkBtn.style.display = 'flex';
+                noteEl.style.display = 'block';
             } else if (type === 'line') {
                 titleEl.textContent = 'LINE通知';
                 msgEl.textContent = '連携を解除しますか？それとも通知だけOFFにしますか？';
-                unlinkBtn.classList.remove('hidden');
-                offBtn.classList.remove('hidden');
-                noteEl.classList.remove('hidden');
+                unlinkBtn.style.display = 'flex';
+                noteEl.style.display = 'block';
             } else if (type === 'browser') {
                 titleEl.textContent = 'ブラウザ通知';
                 msgEl.textContent = 'ブラウザ通知をOFFにしますか？';
-                unlinkBtn.classList.add('hidden'); // ブラウザは連携解除ボタン不要
+                unlinkBtn.style.display = 'none'; // ブラウザは連携解除ボタン不要
                 offBtn.innerHTML = '<span>🔕</span><span>OFFにする</span>';
-                noteEl.classList.add('hidden');
+                noteEl.style.display = 'none';
             }
-            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
             console.log('[Unlink] Modal shown');
         }
 
-        // V2128: 連携解除確認モーダルを閉じる
+        // V2132: 連携解除確認モーダルを閉じる
         function closeUnlinkConfirmModal() {
             const modal = document.getElementById('unlinkConfirmModal');
-            modal.classList.add('hidden');
+            modal.style.display = 'none';
             // ボタンテキストを元に戻す
             const offBtn = document.getElementById('unlinkConfirmOffBtn');
             offBtn.innerHTML = '<span>🔕</span><span>通知だけOFFにする</span>';
@@ -22818,7 +22806,7 @@
             saveProfile(); // プロフィールも保存
         }
 
-        // V2131: LINE通知パネルの展開/閉じ + 連携解除確認
+        // V2132: LINE通知パネルの展開/閉じ + 連携解除確認
         function toggleNotifyLinePanel() {
             const checkbox = document.getElementById('notifyLine');
             const panel = document.getElementById('lineLinkPanel');
@@ -22837,19 +22825,13 @@
                 }
                 saveNotificationSettings();
             } else {
-                // OFFにしようとした → confirmで確認
-                if (confirm('LINE通知をOFFにしますか？\n\n「OK」→ 通知OFF\n「キャンセル」→ 戻る')) {
-                    // OFFにする
-                    panel.classList.add('hidden');
-                    saveNotificationSettings();
-                } else {
-                    // キャンセル → ONに戻す
-                    checkbox.checked = true;
-                }
+                // OFFにしようとした → モーダルで確認
+                checkbox.checked = true; // 一旦戻す
+                showUnlinkConfirmModal('line');
             }
         }
 
-        // V2131: ブラウザ通知トグルの変更ハンドラ
+        // V2132: ブラウザ通知トグルの変更ハンドラ
         function toggleNotifyBrowserPanel() {
             const checkbox = document.getElementById('notifyBrowser');
             console.log('[Browser] toggle:', checkbox.checked);
@@ -22868,14 +22850,9 @@
                     saveNotificationSettings();
                 }
             } else {
-                // OFFにしようとした → confirmで確認
-                if (confirm('ブラウザ通知をOFFにしますか？\n\n「OK」→ 通知OFF\n「キャンセル」→ 戻る')) {
-                    // OFFにする
-                    saveNotificationSettings();
-                } else {
-                    // キャンセル → ONに戻す
-                    checkbox.checked = true;
-                }
+                // OFFにしようとした → モーダルで確認
+                checkbox.checked = true; // 一旦戻す
+                showUnlinkConfirmModal('browser');
             }
         }
 
