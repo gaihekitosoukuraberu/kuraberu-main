@@ -487,5 +487,157 @@ var AdminCancelSystem = {
         error: error.toString()
       };
     }
+  },
+
+  /**
+   * V2146: キャンセル申請一覧を取得（管理者ダッシュボード用）
+   * @param {Object} params - {
+   *   status: 'pending' | 'approved' | 'rejected' | 'all' (デフォルト: 'all')
+   * }
+   * @return {Object} - { success: boolean, requests: Array }
+   */
+  getCancelRequests: function(params) {
+    try {
+      const status = params?.status || 'all';
+      console.log('[AdminCancelSystem] getCancelRequests - ステータス:', status);
+
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const cancelSheet = ss.getSheetByName('キャンセル申請');
+
+      if (!cancelSheet) {
+        return {
+          success: false,
+          error: 'キャンセル申請シートが見つかりません'
+        };
+      }
+
+      const cancelData = cancelSheet.getDataRange().getValues();
+      if (cancelData.length <= 1) {
+        return {
+          success: true,
+          requests: [],
+          stats: { pending: 0, approved: 0, rejected: 0, total: 0 }
+        };
+      }
+
+      const headers = cancelData[0];
+      const rows = cancelData.slice(1);
+
+      // カラムインデックス取得
+      const getIdx = (name) => headers.indexOf(name);
+      const appIdIdx = getIdx('申請ID');
+      const cvIdIdx = getIdx('CV ID');
+      const merchantIdIdx = getIdx('加盟店ID');
+      const merchantNameIdx = getIdx('加盟店名');
+      const customerNameIdx = getIdx('顧客名');
+      const customerAreaIdx = getIdx('顧客エリア');
+      const reasonIdx = getIdx('キャンセル理由');
+      const detailIdx = getIdx('詳細理由');
+      const statusIdx = getIdx('承認ステータス');
+      const approverIdx = getIdx('承認者');
+      const approvalDateIdx = getIdx('承認日時');
+      const rejectReasonIdx = getIdx('却下理由');
+      const createdAtIdx = getIdx('申請日時');
+
+      const requests = [];
+      let pendingCount = 0;
+      let approvedCount = 0;
+      let rejectedCount = 0;
+
+      rows.forEach(row => {
+        const reqStatus = row[statusIdx] || '申請中';
+
+        // ステータスカウント
+        if (reqStatus === '申請中' || reqStatus === '未処理') {
+          pendingCount++;
+        } else if (reqStatus === '承認済み') {
+          approvedCount++;
+        } else if (reqStatus === '却下') {
+          rejectedCount++;
+        }
+
+        // フィルタリング
+        if (status !== 'all') {
+          if (status === 'pending' && reqStatus !== '申請中' && reqStatus !== '未処理') return;
+          if (status === 'approved' && reqStatus !== '承認済み') return;
+          if (status === 'rejected' && reqStatus !== '却下') return;
+        }
+
+        const createdAt = row[createdAtIdx];
+        const approvalDate = row[approvalDateIdx];
+
+        requests.push({
+          applicationId: row[appIdIdx] || '',
+          cvId: row[cvIdIdx] || '',
+          merchantId: row[merchantIdIdx] || '',
+          merchantName: row[merchantNameIdx] || '',
+          customerName: row[customerNameIdx] || '',
+          customerArea: row[customerAreaIdx] || '',
+          reason: row[reasonIdx] || '',
+          detail: row[detailIdx] || '',
+          status: reqStatus,
+          approver: row[approverIdx] || '',
+          approvalDate: approvalDate ? Utilities.formatDate(new Date(approvalDate), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm') : '',
+          rejectReason: row[rejectReasonIdx] || '',
+          createdAt: createdAt ? Utilities.formatDate(new Date(createdAt), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm') : '',
+          // 経過時間計算（未処理のみ）
+          elapsedMinutes: (reqStatus === '申請中' || reqStatus === '未処理') && createdAt
+            ? Math.floor((new Date() - new Date(createdAt)) / (1000 * 60))
+            : 0
+        });
+      });
+
+      // 申請日時の新しい順にソート
+      requests.sort((a, b) => {
+        if (!a.createdAt) return 1;
+        if (!b.createdAt) return -1;
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+
+      console.log('[AdminCancelSystem] getCancelRequests - 取得件数:', requests.length);
+
+      return {
+        success: true,
+        requests: requests,
+        stats: {
+          pending: pendingCount,
+          approved: approvedCount,
+          rejected: rejectedCount,
+          total: rows.length
+        }
+      };
+
+    } catch (error) {
+      console.error('[AdminCancelSystem] getCancelRequests error:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * V2146: リクエストハンドラー
+   */
+  handle: function(params) {
+    const action = params.action;
+
+    switch (action) {
+      case 'getCancelRequests':
+        return this.getCancelRequests(params);
+      case 'approveCancelReport':
+        return this.approveCancelReport(params);
+      case 'rejectCancelReport':
+        return this.rejectCancelReport(params);
+      case 'approveExtensionRequest':
+        return this.approveExtensionRequest(params);
+      case 'rejectExtensionRequest':
+        return this.rejectExtensionRequest(params);
+      default:
+        return {
+          success: false,
+          error: 'Unknown action: ' + action
+        };
+    }
   }
 };

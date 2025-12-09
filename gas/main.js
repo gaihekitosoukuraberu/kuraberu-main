@@ -579,6 +579,12 @@ const SystemRouter = {
     },
 
     // キャンセル承認システム（管理者用）
+    'getCancelRequests': {
+      system: 'AdminCancelSystem',
+      description: 'キャンセル申請一覧取得',
+      prefix: false,
+      actions: ['getCancelRequests']
+    },
     'approveCancelReport': {
       system: 'AdminCancelSystem',
       description: 'キャンセル申請承認',
