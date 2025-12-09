@@ -24500,6 +24500,12 @@
                 return;
             }
 
+            // V2160: SMS 70文字制限チェック
+            if (message.length > 70) {
+                showNotification('文字数オーバー', `SMSは70文字以内にしてください（現在${message.length}文字）`, 'error');
+                return;
+            }
+
             // 電話番号をクリーン（ハイフン・スペース・括弧を除去）
             phone = phone.replace(/[-\s()（）]/g, '');
 
