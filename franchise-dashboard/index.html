@@ -15931,6 +15931,108 @@
             }
         }
 
+        // ===== V2161: 通知優先度管理システム =====
+        // 優先度: red（今すぐ対応）, yellow（確認推奨）, green（スルーOK）
+        // バッジカウント: red + yellow のみ
+        // ベル開いたら: yellow は既読扱い、red は対処完了まで残る
+
+        // 通知データ管理
+        let notificationStore = {
+            red: JSON.parse(localStorage.getItem('notifications_red') || '[]'),
+            yellow: JSON.parse(localStorage.getItem('notifications_yellow') || '[]'),
+            green: [] // 緑は保存しない（その場限り）
+        };
+
+        // 通知を追加
+        function addNotification(priority, notification) {
+            const id = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            const item = { id, ...notification, createdAt: new Date().toISOString() };
+
+            if (priority === 'red') {
+                notificationStore.red.push(item);
+                localStorage.setItem('notifications_red', JSON.stringify(notificationStore.red));
+            } else if (priority === 'yellow') {
+                notificationStore.yellow.push(item);
+                localStorage.setItem('notifications_yellow', JSON.stringify(notificationStore.yellow));
+            }
+            // greenはストアに追加しない
+
+            updateUnifiedBadge();
+            return id;
+        }
+
+        // 赤通知を対処完了で削除
+        function resolveRedNotification(id) {
+            notificationStore.red = notificationStore.red.filter(n => n.id !== id);
+            localStorage.setItem('notifications_red', JSON.stringify(notificationStore.red));
+            updateUnifiedBadge();
+        }
+
+        // 特定条件で赤通知を削除（cvId + type で検索）
+        function resolveRedNotificationByCase(cvId, type) {
+            notificationStore.red = notificationStore.red.filter(n => !(n.cvId === cvId && n.type === type));
+            localStorage.setItem('notifications_red', JSON.stringify(notificationStore.red));
+            updateUnifiedBadge();
+        }
+
+        // ベル開いた時に黄色を全消し
+        function clearYellowNotifications() {
+            notificationStore.yellow = [];
+            localStorage.setItem('notifications_yellow', JSON.stringify([]));
+            updateUnifiedBadge();
+        }
+
+        // 統合バッジ更新（ヘッダー + PWA同期）
+        function updateUnifiedBadge() {
+            const redCount = notificationStore.red.length;
+            const yellowCount = notificationStore.yellow.length;
+            const totalCount = redCount + yellowCount;
+
+            // ヘッダーベル更新
+            const badge = document.getElementById('notificationBadge');
+            if (badge) {
+                if (totalCount > 0) {
+                    badge.textContent = totalCount > 99 ? '99+' : totalCount;
+                    badge.classList.remove('hidden');
+                    // 赤があれば赤背景、黄色のみなら黄色背景
+                    if (redCount > 0) {
+                        badge.className = 'absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center';
+                    } else {
+                        badge.className = 'absolute -top-1 -right-1 bg-yellow-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center';
+                    }
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+
+            // PWAバッジ同期
+            syncPwaBadge(totalCount);
+        }
+
+        // PWAバッジ同期
+        function syncPwaBadge(count) {
+            if ('setAppBadge' in navigator) {
+                if (count > 0) {
+                    navigator.setAppBadge(count).catch(err => console.warn('[Badge] PWA badge error:', err));
+                } else {
+                    navigator.clearAppBadge().catch(err => console.warn('[Badge] PWA clear error:', err));
+                }
+            }
+        }
+
+        // 古い黄色通知をクリーンアップ（24時間以上前）
+        function cleanupOldYellowNotifications() {
+            const cutoff = Date.now() - (24 * 60 * 60 * 1000);
+            notificationStore.yellow = notificationStore.yellow.filter(n => {
+                return new Date(n.createdAt).getTime() > cutoff;
+            });
+            localStorage.setItem('notifications_yellow', JSON.stringify(notificationStore.yellow));
+        }
+
+        // 初期化時にクリーンアップ
+        cleanupOldYellowNotifications();
+        // ===== V2161: 通知優先度管理システム END =====
+
         // V2088: スヌーズ管理
         let snoozedTasks = JSON.parse(localStorage.getItem('snoozedTasks') || '{}');
 
