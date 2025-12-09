@@ -22637,11 +22637,11 @@
         // V2124: 連携解除確認用の一時保存
         let pendingUnlinkType = null; // 'email' | 'sms'
 
-        // V2127: メール通知パネルの展開/閉じ + 連携解除確認
+        // V2129: メール通知パネルの展開/閉じ + 連携解除確認
         function toggleNotifyEmailPanel() {
             const checkbox = document.getElementById('notifyEmail');
             const panel = document.getElementById('emailLinkPanel');
-            console.log('[Email] toggle:', checkbox.checked, 'isLinked:', isEmailLinked);
+            console.log('[Email] toggle called, checked:', checkbox.checked, 'isLinked:', isEmailLinked);
 
             if (checkbox.checked) {
                 // ONにした
@@ -22831,23 +22831,38 @@
             }
         }
 
-        // V2128: ブラウザ通知トグルの変更ハンドラ
+        // V2129: ブラウザ通知トグルの変更ハンドラ
         function toggleNotifyBrowserPanel() {
             const checkbox = document.getElementById('notifyBrowser');
             console.log('[Browser] toggle:', checkbox.checked);
 
             if (checkbox.checked) {
-                // ONにしようとした場合、許可されていなければ許可モーダル表示
-                if ('Notification' in window && Notification.permission !== 'granted') {
+                // ONにしようとした
+                if (!('Notification' in window)) {
+                    // Safari等で非対応 → PWA追加を促す
+                    checkbox.checked = false; // 一旦戻す
+                    showPwaInstallPromptModal();
+                } else if (Notification.permission !== 'granted') {
+                    // 許可されていない → 許可モーダル表示
                     checkbox.checked = false; // 一旦戻す
                     showBrowserNotifyPermissionModal();
                 } else {
                     saveNotificationSettings();
                 }
             } else {
-                // OFFにしようとした → 連携解除するか確認
+                // OFFにしようとした → 確認モーダル
                 checkbox.checked = true; // 一旦戻す
                 showUnlinkConfirmModal('browser');
+            }
+        }
+
+        // V2129: PWA追加促進モーダル（Safari非対応時）
+        function showPwaInstallPromptModal() {
+            // PWAHelperのinstallPromptを呼び出す
+            if (typeof PWAHelper !== 'undefined') {
+                PWAHelper.showInstallPrompt();
+            } else {
+                showNotification('お知らせ', 'ブラウザ通知を使うにはホーム画面に追加してください', 'info');
             }
         }
 
