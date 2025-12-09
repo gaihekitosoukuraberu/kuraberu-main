@@ -8351,12 +8351,26 @@
                 </div>
             </div>
 
+            <!-- V2137: 今すぐ対応（時間が来たタスク） -->
+            <div id="urgentTasksSection" class="border-b hidden">
+                <div class="p-4 bg-red-50">
+                    <h4 class="font-semibold text-red-700 mb-3 flex items-center gap-2">
+                        <span class="w-3 h-3 bg-red-500 rounded-full animate-ping"></span>
+                        <span class="w-3 h-3 bg-red-500 rounded-full absolute"></span>
+                        🔔 今すぐ対応
+                    </h4>
+                    <div id="urgentTasks" class="space-y-2">
+                        <!-- 動的に生成 -->
+                    </div>
+                </div>
+            </div>
+
             <!-- 今日のタスク -->
             <div class="border-b">
                 <div class="p-4">
                     <h4 class="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                        <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                        今日のタスク
+                        <span class="w-2 h-2 bg-orange-500 rounded-full"></span>
+                        📅 今日のタスク
                     </h4>
                     <div id="todayTasks" class="space-y-2">
                         <!-- 動的に生成 -->
@@ -8369,7 +8383,7 @@
                 <div class="p-4">
                     <h4 class="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                         <span class="w-2 h-2 bg-yellow-500 rounded-full"></span>
-                        明日の予定
+                        📆 明日の予定
                     </h4>
                     <div id="tomorrowTasks" class="space-y-2">
                         <!-- 動的に生成 -->
@@ -15567,9 +15581,26 @@
 
             // merchantCasesDataからタスクを抽出
             const cases = merchantCasesData || [];
+            const urgentTasks = []; // V2137: 今すぐ対応（時間が来た/過ぎたタスク）
             const todayTasks = [];
             const tomorrowTasks = [];
             const autoAlerts = [];
+
+            // V2137: タスクを分類するヘルパー関数
+            function classifyTask(taskDate, task) {
+                if (isToday(taskDate, today)) {
+                    // 時間が過ぎている or ±10分以内 → 今すぐ対応
+                    const diffMinutes = (now - taskDate) / (1000 * 60);
+                    if (diffMinutes >= -10) {
+                        task.isUrgent = true;
+                        urgentTasks.push(task);
+                    } else {
+                        todayTasks.push(task);
+                    }
+                } else if (isTomorrow(taskDate, tomorrow, dayAfterTomorrow)) {
+                    tomorrowTasks.push(task);
+                }
+            }
 
             cases.forEach(c => {
                 // 次回架電日時をチェック
@@ -15587,11 +15618,7 @@
                             icon: '📞',
                             label: '架電'
                         };
-                        if (isToday(callDate, today)) {
-                            todayTasks.push(task);
-                        } else if (isTomorrow(callDate, tomorrow, dayAfterTomorrow)) {
-                            tomorrowTasks.push(task);
-                        }
+                        classifyTask(callDate, task);
                     }
                 }
 
@@ -15610,11 +15637,7 @@
                             icon: '🏠',
                             label: '現調'
                         };
-                        if (isToday(surveyDate, today)) {
-                            todayTasks.push(task);
-                        } else if (isTomorrow(surveyDate, tomorrow, dayAfterTomorrow)) {
-                            tomorrowTasks.push(task);
-                        }
+                        classifyTask(surveyDate, task);
                     }
                 }
 
@@ -15633,24 +15656,31 @@
                             icon: '📋',
                             label: '商談'
                         };
-                        if (isToday(estDate, today)) {
-                            todayTasks.push(task);
-                        } else if (isTomorrow(estDate, tomorrow, dayAfterTomorrow)) {
-                            tomorrowTasks.push(task);
-                        }
+                        classifyTask(estDate, task);
                     }
                 }
             });
 
             // 時間順にソート
+            urgentTasks.sort((a, b) => a.datetime - b.datetime);
             todayTasks.sort((a, b) => a.datetime - b.datetime);
             tomorrowTasks.sort((a, b) => a.datetime - b.datetime);
 
-            // 今日のタスクHTML生成
-            const todayTasksHtml = todayTasks.map(task => renderAlertTask(task, 'red')).join('');
+            // V2137: 今すぐ対応HTML生成（赤い点滅カード）
+            const urgentSection = document.getElementById('urgentTasksSection');
+            if (urgentTasks.length > 0) {
+                const urgentTasksHtml = urgentTasks.map(task => renderAlertTask(task, 'urgent')).join('');
+                document.getElementById('urgentTasks').innerHTML = urgentTasksHtml;
+                urgentSection.classList.remove('hidden');
+            } else {
+                urgentSection.classList.add('hidden');
+            }
+
+            // 今日のタスクHTML生成（オレンジカード）
+            const todayTasksHtml = todayTasks.map(task => renderAlertTask(task, 'orange')).join('');
             document.getElementById('todayTasks').innerHTML = todayTasksHtml || '<div class="text-sm text-gray-500 text-center py-2">今日のタスクはありません</div>';
 
-            // 明日の予定HTML生成
+            // 明日の予定HTML生成（黄色カード）
             const tomorrowTasksHtml = tomorrowTasks.map(task => renderAlertTask(task, 'yellow')).join('');
             document.getElementById('tomorrowTasks').innerHTML = tomorrowTasksHtml || '<div class="text-sm text-gray-500 text-center py-2">明日の予定はありません</div>';
 
@@ -15734,8 +15764,8 @@
             }).join('');
             document.getElementById('autoAlerts').innerHTML = autoAlertsHtml || '<div class="text-sm text-gray-500 text-center py-2">リマインダーなし</div>';
 
-            // バッジ更新
-            updateAlertCount(todayTasks.length + tomorrowTasks.length + autoAlerts.length);
+            // バッジ更新（V2137: urgentTasksも含める）
+            updateAlertCount(urgentTasks.length + todayTasks.length + tomorrowTasks.length + autoAlerts.length);
         }
 
         // V2091: 統合通知バッジ更新
@@ -15755,10 +15785,32 @@
         let snoozedTasks = JSON.parse(localStorage.getItem('snoozedTasks') || '{}');
 
         // タスクカードのHTML生成（電話/SMS/案件リンク/スヌーズボタン付き）
+        // V2137: 色分け - urgent(赤点滅), orange(オレンジ), yellow(黄色)
         function renderAlertTask(task, color) {
-            const colorClass = color === 'red' ? 'red' : 'yellow';
-            const bgClass = color === 'red' ? 'bg-red-50 hover:bg-red-100' : 'bg-yellow-50 hover:bg-yellow-100';
-            const timeClass = color === 'red' ? 'text-red-600' : 'text-yellow-600';
+            let colorClass, bgClass, timeClass, borderClass;
+
+            switch (color) {
+                case 'urgent':
+                    colorClass = 'red';
+                    bgClass = 'bg-red-100 hover:bg-red-200 animate-pulse';
+                    timeClass = 'text-red-700 font-bold';
+                    borderClass = 'border-red-400 border-2';
+                    break;
+                case 'orange':
+                    colorClass = 'orange';
+                    bgClass = 'bg-orange-50 hover:bg-orange-100';
+                    timeClass = 'text-orange-600';
+                    borderClass = 'border-orange-200';
+                    break;
+                case 'yellow':
+                default:
+                    colorClass = 'yellow';
+                    bgClass = 'bg-yellow-50 hover:bg-yellow-100';
+                    timeClass = 'text-yellow-600';
+                    borderClass = 'border-yellow-200';
+                    break;
+            }
+
             const taskKey = `${task.cvId}_${task.type}`;
 
             // スヌーズ中かチェック
@@ -15770,7 +15822,7 @@
             }
 
             return `
-                <div class="p-3 ${bgClass} rounded-lg border border-${colorClass}-200" data-task-key="${taskKey}">
+                <div class="p-3 ${bgClass} rounded-lg border ${borderClass}" data-task-key="${taskKey}">
                     <div class="flex items-start justify-between mb-2">
                         <div class="flex items-center gap-2">
                             <span class="text-lg">${task.icon}</span>
