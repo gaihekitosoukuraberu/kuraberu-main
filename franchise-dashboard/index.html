@@ -23233,26 +23233,8 @@
         };
 
         // V2158: 現在の送信チャネル（sms/line/email）
-        let currentSendChannel = 'sms';
-
-        // V2159: 文章スタイル切り替え（sms=短、long=長）
-        function switchMessageStyle(style) {
-            const shortBtn = document.getElementById('msgStyleShort');
-            const longBtn = document.getElementById('msgStyleLong');
-
-            if (style === 'sms') {
-                currentSendChannel = 'sms';
-                shortBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md transition-all bg-white text-gray-800 shadow-sm';
-                longBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md transition-all text-gray-500 hover:text-gray-700';
-            } else {
-                currentSendChannel = 'line'; // long = line/email用
-                shortBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md transition-all text-gray-500 hover:text-gray-700';
-                longBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md transition-all bg-white text-gray-800 shadow-sm';
-            }
-
-            // テンプレートを再適用
-            applySmsTemplate();
-        }
+        // V2160: デフォルトはline（ロング文章）、SMSボタン押下時のみsmsに切替
+        let currentSendChannel = 'line';
 
         // V2158: テンプレート取得（チャネル別対応）
         // channel: 'sms' | 'line' | 'email'
@@ -24500,6 +24482,16 @@
         // SMS送信（スマホ: SMSアプリ起動、PC: Twilio送信）
         async function sendViaSms() {
             if (!currentSmsCase) return;
+
+            // V2160: SMSボタン押下時、ロング文章だったらショートに切り替えて確認
+            if (currentSendChannel !== 'sms') {
+                currentSendChannel = 'sms';
+                applySmsTemplate(); // ショート文章に切替
+                document.getElementById('smsStyleHint').classList.remove('hidden'); // ヒント表示
+                showNotification('確認', 'SMSは70文字以内の短縮版で送信されます。内容を確認して再度SMSボタンを押してください。', 'info');
+                return; // 一旦確認のため中断
+            }
+
             let phone = currentSmsCase.customerTel || currentSmsCase.tel || '';
             const message = document.getElementById('smsMessageText').value;
 
@@ -24591,6 +24583,12 @@
 
         // V2159: LINE送信（自動コピー + LINE起動 + モーダル閉じる）
         async function sendViaLine() {
+            // V2160: SMSモードだったらロングに戻す
+            if (currentSendChannel === 'sms') {
+                currentSendChannel = 'line';
+                applySmsTemplate();
+                document.getElementById('smsStyleHint').classList.add('hidden');
+            }
             const message = document.getElementById('smsMessageText').value;
 
             // コピー
@@ -24617,6 +24615,12 @@
         // V2159: メール送信（自動コピー + メーラー起動 + モーダル閉じる）
         async function sendViaEmail() {
             if (!currentSmsCase) return;
+            // V2160: SMSモードだったらロングに戻す
+            if (currentSendChannel === 'sms') {
+                currentSendChannel = 'line';
+                applySmsTemplate();
+                document.getElementById('smsStyleHint').classList.add('hidden');
+            }
             const message = document.getElementById('smsMessageText').value;
             const email = currentSmsCase.email || currentSmsCase.customerEmail || '';
 
