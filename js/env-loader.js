@@ -1,4 +1,4 @@
-// V2065: CV2保存修正 - 最新コード強制push
+// V2162: 成約報告モーダル - 入金状況/工事予定/契約書アップロード
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -12,8 +12,8 @@
  * 参照方法（PHP）:
  * このファイルを読み込んでGAS_URLを抽出
  *
- * @file-version V2091-MASTER-2025-12-08
- * @last-update 2025-12-08
+ * @file-version V2162-MASTER-2025-12-10
+ * @last-update 2025-12-10
  */
 
 const ENV = {
@@ -21,14 +21,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V2161
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbyUfgQkenubgDzAL0XtrzLlVh9VcIb-OpzWC6KFheVGbA4TZm6NQze5MJuigHgebkTysQ/exec',
+  // プライマリGAS URL（メイン運用）- V2162
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwi5kgmzOph8I3lHMHzvAqeQwQMebbVQYEsTR9XLamlA77XtNKp2sy6qrjeV2PY84bcNg/exec',
 
-  // フォールバックGAS URL（バックアップ）- V2161
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbyUfgQkenubgDzAL0XtrzLlVh9VcIb-OpzWC6KFheVGbA4TZm6NQze5MJuigHgebkTysQ/exec',
+  // フォールバックGAS URL（バックアップ）- V2162
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbwi5kgmzOph8I3lHMHzvAqeQwQMebbVQYEsTR9XLamlA77XtNKp2sy6qrjeV2PY84bcNg/exec',
 
-  // 緊急時URL（最終フォールバック）- V2161
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbyUfgQkenubgDzAL0XtrzLlVh9VcIb-OpzWC6KFheVGbA4TZm6NQze5MJuigHgebkTysQ/exec',
+  // 緊急時URL（最終フォールバック）- V2162
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbwi5kgmzOph8I3lHMHzvAqeQwQMebbVQYEsTR9XLamlA77XtNKp2sy6qrjeV2PY84bcNg/exec',
 
   // ============================================
   // 🔧 システム設定
