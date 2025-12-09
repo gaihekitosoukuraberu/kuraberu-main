@@ -460,7 +460,8 @@
                         </svg>
                     </button>
                     <div class="flex items-center space-x-2">
-                        <div id="companyLogo" class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(118, 75, 162) 100%);">
+                        <!-- V2121: クリックでLocalStorageクリア＆リロード -->
+                        <div id="companyLogo" onclick="clearCacheAndReload()" class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity" style="background: linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(118, 75, 162) 100%);" title="タップでリロード">
                             <span class="text-gray-100 font-bold">加</span>
                         </div>
                         <span id="systemTitle" class="hidden lg:inline text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent whitespace-nowrap">加盟店管理システム</span>
@@ -14781,6 +14782,17 @@
             }
             // 該当なしの場合は「全域」
             return ['全域'];
+        }
+
+        // V2121: ヘッダーの「加」クリックでキャッシュクリア＆リロード
+        function clearCacheAndReload() {
+            console.log('[V2121] キャッシュクリア＆リロード開始');
+            // userProfileを強制削除
+            localStorage.removeItem('userProfile');
+            localStorage.removeItem('notificationSettings');
+            console.log('[V2121] LocalStorage削除完了、リロード...');
+            // ページをリロード（キャッシュ無視）
+            location.reload(true);
         }
 
         // V2118: PWAのLocalStorageからテストデータを強制削除
