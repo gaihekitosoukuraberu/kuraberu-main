@@ -15973,7 +15973,7 @@
                                 💬 メッセージ
                             </button>
                         ` : ''}
-                        <button onclick="event.stopPropagation(); openDetailModal('${task.cvId}'); toggleAlertPanel();"
+                        <button onclick="event.stopPropagation(); toggleNotificationPanel(); openDetailModal('${task.cvId}');"
                                 class="flex-1 px-2 py-1.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200">
                             📄 詳細
                         </button>
