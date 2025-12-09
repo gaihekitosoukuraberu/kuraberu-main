@@ -551,8 +551,23 @@ var AdminCancelSystem = {
       let approvedCount = 0;
       let rejectedCount = 0;
 
+      // V2148: 月間統計用
+      const now = new Date();
+      const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+
+      let thisMonthTotal = 0;
+      let thisMonthApproved = 0;
+      let thisMonthRejected = 0;
+      let lastMonthTotal = 0;
+      let lastMonthApproved = 0;
+      let lastMonthRejected = 0;
+
       rows.forEach(row => {
         const reqStatus = row[statusIdx] || '申請中';
+        const createdAt = row[createdAtIdx];
+        const createdDate = createdAt ? new Date(createdAt) : null;
 
         // ステータスカウント
         if (reqStatus === '申請中' || reqStatus === '未処理') {
@@ -563,6 +578,22 @@ var AdminCancelSystem = {
           rejectedCount++;
         }
 
+        // 月間統計（申請日基準）
+        if (createdDate) {
+          // 今月
+          if (createdDate >= thisMonthStart) {
+            thisMonthTotal++;
+            if (reqStatus === '承認済み') thisMonthApproved++;
+            if (reqStatus === '却下') thisMonthRejected++;
+          }
+          // 先月
+          else if (createdDate >= lastMonthStart && createdDate <= lastMonthEnd) {
+            lastMonthTotal++;
+            if (reqStatus === '承認済み') lastMonthApproved++;
+            if (reqStatus === '却下') lastMonthRejected++;
+          }
+        }
+
         // フィルタリング
         if (status !== 'all') {
           if (status === 'pending' && reqStatus !== '申請中' && reqStatus !== '未処理') return;
@@ -570,9 +601,7 @@ var AdminCancelSystem = {
           if (status === 'rejected' && reqStatus !== '却下') return;
         }
 
-        const createdAt = row[createdAtIdx];
         const approvalDate = row[approvalDateIdx];
-
         const deliveryDate = row[deliveryDateIdx];
         const lastContact = row[lastContactIdx];
 
@@ -614,6 +643,14 @@ var AdminCancelSystem = {
 
       console.log('[AdminCancelSystem] getCancelRequests - 取得件数:', requests.length);
 
+      // V2148: 承認率計算（処理済み件数で算出）
+      const totalProcessed = approvedCount + rejectedCount;
+      const approvalRate = totalProcessed > 0 ? Math.round((approvedCount / totalProcessed) * 100) : 0;
+      const thisMonthProcessed = thisMonthApproved + thisMonthRejected;
+      const thisMonthApprovalRate = thisMonthProcessed > 0 ? Math.round((thisMonthApproved / thisMonthProcessed) * 100) : 0;
+      const lastMonthProcessed = lastMonthApproved + lastMonthRejected;
+      const lastMonthApprovalRate = lastMonthProcessed > 0 ? Math.round((lastMonthApproved / lastMonthProcessed) * 100) : 0;
+
       return {
         success: true,
         requests: requests,
@@ -621,7 +658,22 @@ var AdminCancelSystem = {
           pending: pendingCount,
           approved: approvedCount,
           rejected: rejectedCount,
-          total: rows.length
+          total: rows.length,
+          // V2148: 拡張統計
+          approvalRate: approvalRate,
+          thisMonth: {
+            total: thisMonthTotal,
+            approved: thisMonthApproved,
+            rejected: thisMonthRejected,
+            pending: thisMonthTotal - thisMonthApproved - thisMonthRejected,
+            approvalRate: thisMonthApprovalRate
+          },
+          lastMonth: {
+            total: lastMonthTotal,
+            approved: lastMonthApproved,
+            rejected: lastMonthRejected,
+            approvalRate: lastMonthApprovalRate
+          }
         }
       };
 

@@ -4088,24 +4088,48 @@ window.addEventListener('beforeunload', function(e) {
                             <p class="text-gray-600">加盟店からのキャンセル申請を処理</p>
                         </div>
 
-                        <!-- 統計カード -->
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6">
-                            <div class="bg-white rounded-lg p-3 md:p-6 border border-gray-200">
-                                <div class="text-xs md:text-sm text-gray-500">未処理</div>
-                                <div id="cancelStatPending" class="text-xl md:text-2xl font-bold text-purple-600">-</div>
+                        <!-- 統計カード（2段構成） -->
+                        <!-- 1段目: 全体統計 -->
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 mb-3">
+                            <div class="bg-white rounded-lg p-2 md:p-4 border border-gray-200">
+                                <div class="text-xs text-gray-500">未処理</div>
+                                <div id="cancelStatPending" class="text-lg md:text-2xl font-bold text-purple-600">-</div>
                                 <div class="text-xs text-red-600">要対応</div>
                             </div>
-                            <div class="bg-white rounded-lg p-3 md:p-6 border border-gray-200">
-                                <div class="text-xs md:text-sm text-gray-500">承認済み</div>
-                                <div id="cancelStatApproved" class="text-xl md:text-2xl font-bold text-gray-800">-</div>
+                            <div class="bg-white rounded-lg p-2 md:p-4 border border-gray-200">
+                                <div class="text-xs text-gray-500">承認済み</div>
+                                <div id="cancelStatApproved" class="text-lg md:text-2xl font-bold text-green-600">-</div>
                             </div>
-                            <div class="bg-white rounded-lg p-3 md:p-6 border border-gray-200">
-                                <div class="text-xs md:text-sm text-gray-500">却下</div>
-                                <div id="cancelStatRejected" class="text-xl md:text-2xl font-bold text-gray-800">-</div>
+                            <div class="bg-white rounded-lg p-2 md:p-4 border border-gray-200">
+                                <div class="text-xs text-gray-500">却下</div>
+                                <div id="cancelStatRejected" class="text-lg md:text-2xl font-bold text-red-600">-</div>
                             </div>
-                            <div class="bg-white rounded-lg p-3 md:p-6 border border-gray-200">
-                                <div class="text-xs md:text-sm text-gray-500">合計</div>
-                                <div id="cancelStatTotal" class="text-xl md:text-2xl font-bold text-gray-800">-</div>
+                            <div class="bg-white rounded-lg p-2 md:p-4 border border-gray-200">
+                                <div class="text-xs text-gray-500">合計</div>
+                                <div id="cancelStatTotal" class="text-lg md:text-2xl font-bold text-gray-800">-</div>
+                            </div>
+                            <div class="bg-white rounded-lg p-2 md:p-4 border border-gray-200 col-span-2 md:col-span-1">
+                                <div class="text-xs text-gray-500">承認率</div>
+                                <div id="cancelStatApprovalRate" class="text-lg md:text-2xl font-bold text-blue-600">-%</div>
+                            </div>
+                        </div>
+                        <!-- 2段目: 月間統計 -->
+                        <div class="grid grid-cols-2 gap-2 md:gap-4 mb-6">
+                            <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-2 md:p-4 border border-blue-200">
+                                <div class="text-xs text-blue-700 font-medium mb-1">今月</div>
+                                <div class="flex items-baseline gap-2 flex-wrap">
+                                    <span id="cancelStatThisMonthTotal" class="text-lg md:text-xl font-bold text-blue-800">-</span>
+                                    <span class="text-xs text-blue-600">件</span>
+                                    <span class="text-xs text-gray-500">（承認<span id="cancelStatThisMonthApproved" class="font-medium text-green-600">-</span> / 却下<span id="cancelStatThisMonthRejected" class="font-medium text-red-600">-</span> / 率<span id="cancelStatThisMonthRate" class="font-medium text-blue-600">-%</span>）</span>
+                                </div>
+                            </div>
+                            <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-2 md:p-4 border border-gray-200">
+                                <div class="text-xs text-gray-600 font-medium mb-1">先月</div>
+                                <div class="flex items-baseline gap-2 flex-wrap">
+                                    <span id="cancelStatLastMonthTotal" class="text-lg md:text-xl font-bold text-gray-700">-</span>
+                                    <span class="text-xs text-gray-500">件</span>
+                                    <span class="text-xs text-gray-500">（承認<span id="cancelStatLastMonthApproved" class="font-medium text-green-600">-</span> / 却下<span id="cancelStatLastMonthRejected" class="font-medium text-red-600">-</span> / 率<span id="cancelStatLastMonthRate" class="font-medium text-gray-600">-%</span>）</span>
+                                </div>
                             </div>
                         </div>
 
@@ -6301,18 +6325,44 @@ window.addEventListener('beforeunload', function(e) {
                 }
 
                 cancelRequestsData = result.requests || [];
-                const stats = result.stats || { pending: 0, approved: 0, rejected: 0, total: 0 };
+                const stats = result.stats || { pending: 0, approved: 0, rejected: 0, total: 0, approvalRate: 0, thisMonth: {}, lastMonth: {} };
 
-                // 統計を更新
+                // 基本統計を更新
                 const pendingStat = document.getElementById('cancelStatPending');
                 const approvedStat = document.getElementById('cancelStatApproved');
                 const rejectedStat = document.getElementById('cancelStatRejected');
                 const totalStat = document.getElementById('cancelStatTotal');
+                const approvalRateStat = document.getElementById('cancelStatApprovalRate');
 
                 if (pendingStat) pendingStat.textContent = stats.pending;
                 if (approvedStat) approvedStat.textContent = stats.approved;
                 if (rejectedStat) rejectedStat.textContent = stats.rejected;
                 if (totalStat) totalStat.textContent = stats.total;
+                if (approvalRateStat) approvalRateStat.textContent = stats.approvalRate + '%';
+
+                // V2148: 月間統計を更新
+                const thisMonth = stats.thisMonth || {};
+                const lastMonth = stats.lastMonth || {};
+
+                const thisMonthTotal = document.getElementById('cancelStatThisMonthTotal');
+                const thisMonthApproved = document.getElementById('cancelStatThisMonthApproved');
+                const thisMonthRejected = document.getElementById('cancelStatThisMonthRejected');
+                const thisMonthRate = document.getElementById('cancelStatThisMonthRate');
+
+                if (thisMonthTotal) thisMonthTotal.textContent = thisMonth.total || 0;
+                if (thisMonthApproved) thisMonthApproved.textContent = thisMonth.approved || 0;
+                if (thisMonthRejected) thisMonthRejected.textContent = thisMonth.rejected || 0;
+                if (thisMonthRate) thisMonthRate.textContent = (thisMonth.approvalRate || 0) + '%';
+
+                const lastMonthTotal = document.getElementById('cancelStatLastMonthTotal');
+                const lastMonthApproved = document.getElementById('cancelStatLastMonthApproved');
+                const lastMonthRejected = document.getElementById('cancelStatLastMonthRejected');
+                const lastMonthRate = document.getElementById('cancelStatLastMonthRate');
+
+                if (lastMonthTotal) lastMonthTotal.textContent = lastMonth.total || 0;
+                if (lastMonthApproved) lastMonthApproved.textContent = lastMonth.approved || 0;
+                if (lastMonthRejected) lastMonthRejected.textContent = lastMonth.rejected || 0;
+                if (lastMonthRate) lastMonthRate.textContent = (lastMonth.approvalRate || 0) + '%';
 
                 // 未処理と処理済みを分離
                 const pending = cancelRequestsData.filter(r => r.status === '申請中' || r.status === '未処理');
