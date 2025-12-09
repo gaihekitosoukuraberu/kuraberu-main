@@ -6,8 +6,6 @@
  * プレビューHTML構造を一字一句完全コピー
  * スプレッドシートデータ動的バインディング対応
  * レスポンシブ挙動まで完全一致
- *
- * V1865: プレビューHP問い合わせモーダル - ローディング表示 + 二重送信防止 (2025-11-26)
  */
 
 /**
@@ -85,7 +83,7 @@ function generateStaticHTML(data) {
     const email = 'info@gaihekikuraberu.com';
     const address = data['住所'] || '';
     const websiteUrl = data['ウェブサイトURL'] || '';
-    let kuraberuScore = parseFloat(data['くらべるスコア'] || '4.2'); // V1836: 初期値、後で6項目平均で上書き
+    const kuraberuScore = parseFloat(data['くらべるスコア'] || '4.2');
 
     // 🔥 メインビジュアルURLは「加盟店登録」シートから取得し、thumbnail形式に変換
     const mainVisualUrl = convertToThumbnailUrl(data['メインビジュアル'] || '', 'w1200');
@@ -201,21 +199,6 @@ function generateStaticHTML(data) {
     } catch (error) {
       console.error('[generateStaticHTML] 評価データ取得エラー:', error);
       finalRatings = calculateRatings(data);
-    }
-
-    // V1836: 総合評価を6項目の平均値で上書き
-    if (finalRatings) {
-      const ratingsArray = [
-        finalRatings.pricing,        // コストバランス
-        finalRatings.communication,  // 人柄・対応力
-        finalRatings.technology,     // 技術・品質
-        finalRatings.schedule,       // 対応スピード
-        finalRatings.service,        // アフターサポート
-        finalRatings.quality         // 顧客満足度
-      ];
-      const sum = ratingsArray.reduce((acc, val) => acc + val, 0);
-      kuraberuScore = Math.round((sum / ratingsArray.length) * 10) / 10; // 小数点1桁
-      console.log('[V1836] 総合評価（6項目平均）:', kuraberuScore, '項目:', ratingsArray);
     }
 
     // 会社名表示形式の決定（プレビュー設定に基づく）
@@ -389,140 +372,6 @@ function generateStaticHTML(data) {
                 goToExample(currentExampleIndex - 1);
             } else if (direction === 'right' && currentExampleIndex < examples.length - 1) {
                 goToExample(currentExampleIndex + 1);
-            }
-        }
-
-        // V1835: 二重挙動ロジック（モーダル内 vs 独立HP）
-        const COMPANY_NAME = '${companyName}';
-
-        function handleEstimateRequest() {
-            console.log('[EstimateRequest] 見積もり依頼:', COMPANY_NAME);
-
-            // iframe内かどうかを判定
-            const isInIframe = window.parent !== window;
-            console.log('[EstimateRequest] iframe内:', isInIframe);
-
-            if (isInIframe && window.parent.keepManager) {
-                // モーダル内 → キープに追加
-                console.log('[EstimateRequest] モーダル内検出 - キープに追加');
-                try {
-                    if (window.parent.keepManager.addByName(COMPANY_NAME)) {
-                        console.log('[EstimateRequest] キープ追加成功 - モーダルを閉じます');
-                        // V1923: alert削除（タップスルー問題回避）- ボタン状態変更で十分
-                        // 親ウィンドウの業者詳細モーダルを閉じる（IDで特定）
-                        const previewModal = window.parent.document.querySelector('#preview-iframe')?.closest('.fixed.inset-0');
-                        if (previewModal) {
-                            previewModal.remove();
-                            console.log('[EstimateRequest] 業者詳細モーダルを閉じました');
-                        }
-                    } else {
-                        console.log('[EstimateRequest] 既にキープ済みまたは追加失敗');
-                    }
-                } catch (error) {
-                    console.error('[EstimateRequest] キープ追加エラー:', error);
-                }
-            } else {
-                // 独立HP → フォームモーダル表示
-                console.log('[EstimateRequest] 独立HP検出 - フォームモーダル表示');
-                showContactFormModal();
-            }
-        }
-
-        function showContactFormModal() {
-            // モーダル作成
-            const modal = document.createElement('div');
-            modal.id = 'contact-form-modal';
-            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
-            modal.innerHTML = \`
-                <div class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-2xl font-bold">無料見積もり依頼</h3>
-                        <button onclick="closeContactFormModal()" class="text-gray-500 hover:text-gray-700">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <form id="contact-form" class="km_form" method="post" action="https://gaihekikuraberu.com/lp/mail.php" onsubmit="return handleContactFormSubmit(event)">
-                        <dl class="space-y-4">
-                            <dt class="font-bold">お名前<span class="text-red-500 text-sm ml-2">必須</span></dt>
-                            <dd><input class="w-full border border-gray-300 rounded px-3 py-2" type="text" name="お名前" placeholder="山田 太郎" required /></dd>
-
-                            <dt class="font-bold">メールアドレス<span class="text-red-500 text-sm ml-2">必須</span></dt>
-                            <dd><input class="w-full border border-gray-300 rounded px-3 py-2" type="email" name="メールアドレス" placeholder="aaa@gmail.co.jp" required /></dd>
-
-                            <dt class="font-bold">電話番号<span class="text-red-500 text-sm ml-2">必須</span></dt>
-                            <dd><input class="w-full border border-gray-300 rounded px-3 py-2" type="tel" name="電話番号" placeholder="000-0000-0000" required /></dd>
-
-                            <dt class="font-bold">郵便番号<span class="text-gray-500 text-sm ml-2">任意</span></dt>
-                            <dd><input class="w-full border border-gray-300 rounded px-3 py-2" type="text" name="郵便番号" placeholder="100-0001" /></dd>
-
-                            <dt class="font-bold">お問い合わせ内容（複数回答可）<span class="text-red-500 text-sm ml-2">必須</span></dt>
-                            <dd class="space-y-2">
-                                <label class="flex items-center"><input type="checkbox" name="お問い合わせ内容[]" value="助成金が利用できるか知りたい" class="mr-2" /> 助成金が利用できるか知りたい</label>
-                                <label class="flex items-center"><input type="checkbox" name="お問い合わせ内容[]" value="自分に合った業者をすぐに知りたい" class="mr-2" /> 自分に合った業者をすぐに知りたい</label>
-                                <label class="flex items-center"><input type="checkbox" name="お問い合わせ内容[]" value="とりあえず色々相談したい" class="mr-2" /> とりあえず色々相談したい</label>
-                                <label class="flex items-center"><input type="checkbox" name="お問い合わせ内容[]" value="その他" class="mr-2" /> その他</label>
-                            </dd>
-                        </dl>
-
-                        <div class="mt-4">
-                            <label class="flex items-start">
-                                <input type="checkbox" name="当社規定のプライバシーポリシーへの同意します。" value="はい" required class="mt-1 mr-2" />
-                                <span class="text-sm">当社規定のプライバシーポリシーへの同意します。</span>
-                            </label>
-                        </div>
-
-                        <div class="mt-6 flex gap-3">
-                            <button type="button" onclick="closeContactFormModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-3 rounded-lg font-bold">キャンセル</button>
-                            <button type="submit" id="contact-form-submit-btn" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-lg font-bold">送信する</button>
-                        </div>
-                        <input type="hidden" name="希望業者" value="\${COMPANY_NAME}" />
-                    </form>
-                </div>
-            \`;
-
-            document.body.appendChild(modal);
-
-            // 背景スクロール防止
-            document.body.style.overflow = 'hidden';
-        }
-
-        function handleContactFormSubmit(event) {
-            event.preventDefault();
-
-            const submitBtn = document.getElementById('contact-form-submit-btn');
-            const form = document.getElementById('contact-form');
-
-            // 二重送信防止: ボタンを無効化
-            if (submitBtn.disabled) {
-                return false;
-            }
-
-            // ローディング表示
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = \`
-                <div class="flex items-center justify-center gap-2">
-                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>送信中...</span>
-                </div>
-            \`;
-
-            // フォーム送信
-            form.submit();
-
-            return false;
-        }
-
-        function closeContactFormModal() {
-            const modal = document.getElementById('contact-form-modal');
-            if (modal) {
-                modal.remove();
-                document.body.style.overflow = '';
             }
         }
     </script>
@@ -986,8 +835,8 @@ function generateContactHtml(phone, email) {
                     </div>
                     <div class="overflow-hidden min-w-0">
                         <p class="text-sm text-gray-600">メールでのお問い合わせ</p>
-                        <a href="javascript:void(0);" onclick="showContactFormModal()" class="text-sm sm:text-base font-semibold text-blue-600 hover:text-blue-800 break-all cursor-pointer transition-colors">${email}</a>
-                        <p class="text-xs text-gray-500">24時間受付中（フォームからお問い合わせ）</p>
+                        <a href="mailto:${email}" class="text-sm sm:text-base font-semibold text-blue-600 hover:text-blue-800 break-all cursor-pointer transition-colors">${email}</a>
+                        <p class="text-xs text-gray-500">24時間受付中</p>
                     </div>
                 </div>
             </div>
@@ -1111,7 +960,7 @@ function generateNineBenefitsHtml() {
 
         <!-- CTA -->
         <div class="text-center">
-            <button id="estimate-btn" onclick="handleEstimateRequest()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors shadow-lg">
+            <button class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors shadow-lg">
                 今すぐ無料見積もりを依頼
             </button>
         </div>
@@ -1571,7 +1420,7 @@ function generateBasicInfoHtml(companyName, representativeName, address, establi
             <h4 class="text-sm font-medium text-gray-600 mb-2">アクセス</h4>
             <div class="w-full h-64 bg-gray-200 rounded-lg overflow-hidden">
                 <iframe width="100%" height="100%" frameborder="0" style="border:0"
-                    src="https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=${encodedAddress}&zoom=16"
+                    src="https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=${encodedAddress}&zoom=15"
                     allowfullscreen="">
                 </iframe>
             </div>
@@ -1606,10 +1455,10 @@ function generateBranchMapsHtml(branchNames, branchAddresses, googleMapsApiKey) 
             </svg>
             ${address}
         </p>
-        ${googleMapsApiKey && address ? `
+        ${googleMapsApiKey ? `
         <div class="w-full h-64 bg-gray-200 rounded-lg overflow-hidden">
             <iframe width="100%" height="100%" frameborder="0" style="border:0"
-                src="https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=${encodedAddress}&zoom=16"
+                src="https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=${encodedAddress}&zoom=15"
                 allowfullscreen="">
             </iframe>
         </div>
