@@ -18204,6 +18204,8 @@
             if (overlay) {
                 overlay.style.display = 'none';
             }
+            // V2112: 設定読み込み完了後に自動保存を有効化
+            initNotificationAutoSave();
         }
 
         // ローカルストレージから設定を復元（V2075: 郵便番号追加）
@@ -18302,7 +18304,57 @@
                 console.error('[saveNotificationSettings] Error:', error);
             }
         }
-        
+
+        // V2112: 通知設定の自動保存を初期化
+        function initNotificationAutoSave() {
+            // 通知設定に関連する全入力要素のID
+            const notificationInputIds = [
+                'notifyEmail', 'notifySms', 'notifyLine', 'notifyBrowser', 'notifyCaseDelivery',
+                'appointmentReminder', 'appointmentAlertTime', 'callReminder', 'callAlertTime',
+                'estimateFollowup', 'followupDays', 'paymentAlert',
+                'enableHolidays', 'holidayMon', 'holidayTue', 'holidayWed', 'holidayThu', 'holidayFri', 'holidaySat', 'holidaySun',
+                'enableQuietHours', 'quietStart', 'quietEnd',
+                'enableDailySummary', 'summaryTime', 'enableMorningSummary', 'morningSummaryTime'
+            ];
+
+            notificationInputIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('change', () => {
+                        console.log('[autoSave] Setting changed:', id);
+                        saveNotificationSettings();
+                        // 控えめなフィードバック
+                        showAutoSaveIndicator();
+                    });
+                }
+            });
+
+            console.log('[initNotificationAutoSave] Auto-save initialized');
+        }
+
+        // V2112: 自動保存インジケーター表示
+        let autoSaveTimeout = null;
+        function showAutoSaveIndicator() {
+            // 既存のインジケーターを削除
+            let indicator = document.getElementById('autoSaveIndicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'autoSaveIndicator';
+                indicator.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 8px 16px; border-radius: 8px; font-size: 14px; z-index: 9999; opacity: 0; transition: opacity 0.3s;';
+                indicator.innerHTML = '✓ 自動保存しました';
+                document.body.appendChild(indicator);
+            }
+
+            // 表示
+            setTimeout(() => indicator.style.opacity = '1', 10);
+
+            // 2秒後に非表示
+            if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                indicator.style.opacity = '0';
+            }, 2000);
+        }
+
         // 表示設定保存
         function saveDisplaySettings() {
             alert('表示設定を保存しました');
