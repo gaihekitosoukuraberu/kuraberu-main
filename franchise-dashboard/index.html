@@ -24377,7 +24377,7 @@
             if (missing.length > 0) {
                 noteEl.textContent = `※ ${missing.join('・')}が未登録のためグレーアウト`;
             } else {
-                noteEl.textContent = 'ボタンを押すと自動でコピーされます';
+                noteEl.textContent = 'コピー後、各アプリが開きます。送信はご自身で行ってください';
             }
 
             // モーダル表示
@@ -24589,21 +24589,9 @@
             }
         }
 
-        // V2158: LINE送信（長文版確認 + 自動コピー + LINE起動）
+        // V2159: LINE送信（自動コピー + LINE起動 + モーダル閉じる）
         async function sendViaLine() {
-            let message = document.getElementById('smsMessageText').value;
-            const templateKey = document.getElementById('smsTemplateSelect').value;
-
-            // V2158: 短文版が表示されている場合、長文版への切り替えを提案
-            const defaultTpl = defaultSmsTemplates[templateKey];
-            if (defaultTpl && defaultTpl.long && message.length < 100) {
-                const useLong = confirm('📝 LINEでは丁寧な長文版を送信できます。\n\n長文版に切り替えますか？\n\n「OK」→ 長文版\n「キャンセル」→ 現在の文章のまま');
-                if (useLong) {
-                    currentSendChannel = 'line';
-                    applySmsTemplate('line');
-                    message = document.getElementById('smsMessageText').value;
-                }
-            }
+            const message = document.getElementById('smsMessageText').value;
 
             // コピー
             try {
@@ -24614,32 +24602,23 @@
                 document.execCommand('copy');
             }
 
-            showNotification('コピー済み', 'LINEを開きます', 'success');
+            showNotification('コピー済み', 'LINEを開きます。貼り付けて送信してください。', 'success');
 
             // LINE共有URL
             const lineUrl = `https://line.me/R/share?text=${encodeURIComponent(message)}`;
             window.open(lineUrl, '_blank');
 
             recordSmsAction('line');
+
+            // V2159: モーダルを閉じる
+            setTimeout(() => closeSmsModal(), 500);
         }
 
-        // V2158: メール送信（長文版確認 + 自動コピー + メーラー起動）
+        // V2159: メール送信（自動コピー + メーラー起動 + モーダル閉じる）
         async function sendViaEmail() {
             if (!currentSmsCase) return;
-            let message = document.getElementById('smsMessageText').value;
+            const message = document.getElementById('smsMessageText').value;
             const email = currentSmsCase.email || currentSmsCase.customerEmail || '';
-            const templateKey = document.getElementById('smsTemplateSelect').value;
-
-            // V2158: 短文版が表示されている場合、長文版への切り替えを提案
-            const defaultTpl = defaultSmsTemplates[templateKey];
-            if (defaultTpl && defaultTpl.long && message.length < 100) {
-                const useLong = confirm('📝 メールでは丁寧な長文版を送信できます。\n\n長文版に切り替えますか？\n\n「OK」→ 長文版\n「キャンセル」→ 現在の文章のまま');
-                if (useLong) {
-                    currentSendChannel = 'email';
-                    applySmsTemplate('email');
-                    message = document.getElementById('smsMessageText').value;
-                }
-            }
 
             // V2158: 件名から「くらべる」を削除、業者名メインに
             const companyName = (window.merchantData && window.merchantData['会社名'])
@@ -24656,12 +24635,15 @@
                 document.execCommand('copy');
             }
 
-            showNotification('コピー済み', 'メーラーを開きます', 'success');
+            showNotification('コピー済み', 'メーラーを開きます。送信ボタンを押してください。', 'success');
 
             const mailUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
             window.location.href = mailUrl;
 
             recordSmsAction('email');
+
+            // V2159: モーダルを閉じる
+            setTimeout(() => closeSmsModal(), 500);
         }
 
         // 送信履歴を記録
