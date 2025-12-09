@@ -87,22 +87,27 @@ function initializeFirebase() {
       const notificationTitle = payload.notification?.title || 'くらべる通知';
       // V2120: アクションを明確に
       const actionTitle = payload.data?.actionTitle || '詳細を確認';
+      // V2161: 優先度を取得（red/yellow/green、デフォルトはyellow）
+      const priority = payload.data?.priority || 'yellow';
+
       const notificationOptions = {
         body: payload.notification?.body || '新しい通知があります',
         icon: '/franchise-dashboard/images/5.png',
         badge: '/franchise-dashboard/images/5.png',
         tag: 'kuraberu-fcm',
         vibrate: [200, 100, 200],
-        requireInteraction: true, // V2120: ユーザーが操作するまで表示を維持
-        data: payload.data || {},
+        requireInteraction: priority === 'red', // V2161: 赤のみ操作必須
+        data: { ...payload.data, priority } || { priority },
         actions: [
           { action: 'open', title: actionTitle },
           { action: 'close', title: '後で' }
         ]
       };
 
-      // バッジを表示（未読数をインクリメント）
-      incrementBadge();
+      // V2161: 緑（green）はバッジ加算しない
+      if (priority !== 'green') {
+        incrementBadge();
+      }
 
       return self.registration.showNotification(notificationTitle, notificationOptions);
     });
@@ -148,22 +153,27 @@ self.addEventListener('push', (event) => {
 
   // V2120: アクションを明確に（通知タイプに応じて変更）
   const actionTitle = data.data?.actionTitle || '詳細を確認';
+  // V2161: 優先度を取得（red/yellow/green、デフォルトはyellow）
+  const priority = data.data?.priority || 'yellow';
+
   const options = {
     body: data.body,
     icon: data.icon,
     badge: data.badge,
     tag: data.tag,
-    data: data.data,
+    data: { ...data.data, priority },
     vibrate: [200, 100, 200],
-    requireInteraction: true, // V2120: ユーザーが操作するまで表示を維持
+    requireInteraction: priority === 'red', // V2161: 赤のみ操作必須
     actions: [
       { action: 'open', title: actionTitle },
       { action: 'close', title: '後で' }
     ]
   };
 
-  // バッジを表示
-  incrementBadge();
+  // V2161: 緑（green）はバッジ加算しない
+  if (priority !== 'green') {
+    incrementBadge();
+  }
 
   event.waitUntil(
     self.registration.showNotification(data.title, options)

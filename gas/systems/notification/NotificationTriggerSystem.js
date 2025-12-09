@@ -189,8 +189,10 @@ const NotificationTriggerSystem = {
           });
         }
 
-        // 加盟店のユーザーに通知送信
-        this._sendNotificationToMerchant(merchantId, `${label}の予定（${totalTasks}件）`, message);
+        // V2161: まとめ通知は緑（前日）or 黄色（当日朝）
+        // label が「明日」なら前日夜 → green、「本日」なら当日朝 → yellow
+        const priority = label === '明日' ? 'green' : 'yellow';
+        this._sendNotificationToMerchant(merchantId, `${label}の予定（${totalTasks}件）`, message, priority);
       });
 
       console.log('[NotificationTrigger] まとめ通知完了');
@@ -239,7 +241,7 @@ const NotificationTriggerSystem = {
         const customerName = row[colIndex.customerName] || '---';
         const customerTel = row[colIndex.customerTel] || '';
 
-        // 架電リマインダー（10分前）
+        // V2161: 架電リマインダー（10分前）→ 赤（今すぐ対応）
         const callDate = this._parseDate(row[colIndex.nextCallDate]);
         if (callDate) {
           const minutesUntil = Math.floor((callDate - now) / (1000 * 60));
@@ -249,13 +251,14 @@ const NotificationTriggerSystem = {
             this._sendNotificationToMerchant(
               merchantId,
               `📞 架電リマインダー`,
-              `${minutesUntil}分後に${customerName}様への架電予定です\n📱 ${customerTel}`
+              `${minutesUntil}分後に${customerName}様への架電予定です\n📱 ${customerTel}`,
+              'red' // V2161: 10分前は赤
             );
             sentReminders[reminderKey] = now.getTime();
           }
         }
 
-        // 現調リマインダー（30分前）
+        // V2161: 現調リマインダー（30分前）→ 赤（今すぐ対応）
         const surveyDate = this._parseDate(row[colIndex.surveyDate]);
         if (surveyDate) {
           const minutesUntil = Math.floor((surveyDate - now) / (1000 * 60));
@@ -268,7 +271,8 @@ const NotificationTriggerSystem = {
             this._sendNotificationToMerchant(
               merchantId,
               `🏠 現調リマインダー`,
-              `${minutesUntil}分後に${customerName}様の現調予定です\n📱 ${customerTel}`
+              `${minutesUntil}分後に${customerName}様の現調予定です\n📱 ${customerTel}`,
+              'red' // V2161: 直前は赤
             );
             sentReminders[reminderKey] = now.getTime();
           }
@@ -280,7 +284,7 @@ const NotificationTriggerSystem = {
           }
         }
 
-        // 商談リマインダー（30分前）
+        // V2161: 商談リマインダー（30分前）→ 赤（今すぐ対応）
         const meetingDate = this._parseDate(row[colIndex.estimateDate]);
         if (meetingDate) {
           const minutesUntil = Math.floor((meetingDate - now) / (1000 * 60));
@@ -293,7 +297,8 @@ const NotificationTriggerSystem = {
             this._sendNotificationToMerchant(
               merchantId,
               `📋 商談リマインダー`,
-              `${minutesUntil}分後に${customerName}様との商談予定です\n📱 ${customerTel}`
+              `${minutesUntil}分後に${customerName}様との商談予定です\n📱 ${customerTel}`,
+              'red' // V2161: 直前は赤
             );
             sentReminders[reminderKey] = now.getTime();
           }
@@ -324,15 +329,19 @@ const NotificationTriggerSystem = {
 
   /**
    * 加盟店のユーザーに通知を送信
+   * V2161: priority追加（red/yellow/green）
+   * - red: 今すぐ対応必須（10分前リマインダー、新規案件、キャンセル申請）
+   * - yellow: 確認推奨（当日朝リマインド）
+   * - green: スルーOK（まとめ通知、前日リマインド）
    */
-  _sendNotificationToMerchant(merchantId, title, message) {
+  _sendNotificationToMerchant(merchantId, title, message, priority = 'yellow') {
     try {
       // 加盟店のユーザー設定を取得
       const users = NotificationSettingsManager.getMerchantUsers(merchantId);
 
       users.forEach(user => {
-        // 通知制限時間をチェック
-        if (this._isQuietHours(user)) {
+        // 通知制限時間をチェック（ただしredは制限時間でも送る）
+        if (priority !== 'red' && this._isQuietHours(user)) {
           console.log('[NotificationTrigger] 通知制限時間中のためスキップ:', user.userId);
           return;
         }
@@ -340,12 +349,14 @@ const NotificationTriggerSystem = {
         // メール通知
         if (user.email && user.profile?.email) {
           try {
+            // V2161: 優先度をメール件名に反映
+            const priorityPrefix = priority === 'red' ? '【緊急】' : (priority === 'yellow' ? '【確認】' : '');
             MailApp.sendEmail({
               to: user.profile.email,
-              subject: `[くらべる] ${title}`,
+              subject: `${priorityPrefix}[くらべる] ${title}`,
               body: message
             });
-            console.log('[NotificationTrigger] メール送信:', user.profile.email);
+            console.log('[NotificationTrigger] メール送信:', user.profile.email, 'priority:', priority);
           } catch (e) {
             console.error('[NotificationTrigger] メール送信エラー:', e);
           }
@@ -353,6 +364,7 @@ const NotificationTriggerSystem = {
 
         // ブラウザ通知（WebPush）は別途実装が必要
         // LINE通知は別途LINEWebhookHandlerで実装
+        // V2161: FCM送信時にはdata.priorityを含める
       });
     } catch (error) {
       console.error('[NotificationTrigger] 通知送信エラー:', merchantId, error);

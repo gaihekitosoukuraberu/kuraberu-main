@@ -15516,8 +15516,8 @@
                 panel.classList.remove('hidden');
                 loadNotifications();
                 loadAlerts();
-                // V2136: 通知パネルを開いたらPWAバッジをクリア
-                if (typeof clearPwaBadge === 'function') clearPwaBadge();
+                // V2161: ベル開いたら黄色通知を消す（赤は残る）
+                clearYellowNotifications();
             } else {
                 panel.classList.add('hidden');
             }
