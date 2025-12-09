@@ -15608,27 +15608,82 @@
                 }
             }
 
-            // V2140: ステータスに応じたネクストアクションを定義
-            function getNextAction(status, taskType) {
-                const actionMap = {
-                    '新着': { icon: '📞', text: '初回架電する' },
-                    '未アポ': { icon: '📞', text: '再架電してアポを取る' },
-                    'アポ済': { icon: '🏠', text: '現調を実施する' },
-                    '現調済': { icon: '📝', text: '見積を作成・提出する' },
-                    '見積提出済': { icon: '🤝', text: 'クロージングする' },
-                    '入金予定': { icon: '💰', text: '入金確認する' },
-                    '成約': { icon: '🎉', text: '工事準備を進める' },
-                    '入金済': { icon: '✅', text: '完了' }
-                };
-                // タスクタイプに応じて上書き
+            // V2141: ステータス・タスクタイプ・条件に応じたネクストアクションを定義
+            function getNextAction(caseData, taskType, taskDate) {
+                const status = caseData.detailStatus || caseData.status || '新着';
+                const hasEstimateDate = !!caseData.estimateDate; // 商談アポ取れてるか
+                const hasSurveyDate = !!caseData.surveyDate; // 現調アポ取れてるか
+
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const isToday = taskDate >= today && taskDate < tomorrow;
+                const isTomorrow = taskDate >= tomorrow && taskDate < new Date(tomorrow.getTime() + 24*60*60*1000);
+                const timeStr = formatTaskTime(taskDate);
+
+                // 架電タスクの場合
                 if (taskType === 'call') {
-                    return { icon: '📞', text: '架電する' };
-                } else if (taskType === 'survey') {
-                    return { icon: '🏠', text: '現調を実施する' };
-                } else if (taskType === 'meeting') {
-                    return { icon: '🤝', text: '商談・見積提出する' };
+                    switch (status) {
+                        case '新着':
+                            return { tag: '[📞架電]', text: '初回架電でアポを取る' };
+                        case '未アポ':
+                            return { tag: '[📞架電]', text: '再架電でアポを取る' };
+                        case 'アポ済':
+                            // 現調日のリマインド
+                            if (hasSurveyDate) {
+                                const surveyDate = parseTaskDate(caseData.surveyDate);
+                                const surveyTime = formatTaskTime(surveyDate);
+                                const surveyIsToday = surveyDate >= today && surveyDate < tomorrow;
+                                const surveyIsTomorrow = surveyDate >= tomorrow && surveyDate < new Date(tomorrow.getTime() + 24*60*60*1000);
+                                if (surveyIsToday) return { tag: '[📢お知らせ]', text: `本日${surveyTime}から現調` };
+                                if (surveyIsTomorrow) return { tag: '[📢お知らせ]', text: `明日${surveyTime}から現調` };
+                            }
+                            return { tag: '[📢お知らせ]', text: '現調予定を確認' };
+                        case '現調済':
+                            // 商談アポ取れてるか
+                            if (hasEstimateDate) {
+                                const estDate = parseTaskDate(caseData.estimateDate);
+                                const estTime = formatTaskTime(estDate);
+                                const estIsToday = estDate >= today && estDate < tomorrow;
+                                const estIsTomorrow = estDate >= tomorrow && estDate < new Date(tomorrow.getTime() + 24*60*60*1000);
+                                if (estIsToday) return { tag: '[📢お知らせ]', text: `本日${estTime}から商談` };
+                                if (estIsTomorrow) return { tag: '[📢お知らせ]', text: `明日${estTime}から商談` };
+                                return { tag: '[📢お知らせ]', text: '商談予定を確認' };
+                            }
+                            return { tag: '[📞架電]', text: '見積完成目処 ▷ 商談アポ取り' };
+                        case '見積提出済':
+                            return { tag: '[📞架電]', text: '検討状況を確認' };
+                        case '成約':
+                            // TODO: 工事日・入金ステータス分岐（後日対応）
+                            return { tag: '[📞架電]', text: '工事日程を調整' };
+                        case '入金予定':
+                            return { tag: '[📞架電]', text: '入金予定を確認' };
+                        case '入金済':
+                            return { tag: '[✅完了]', text: '対応完了' };
+                        default:
+                            return { tag: '[📞架電]', text: '状況確認' };
+                    }
                 }
-                return actionMap[status] || { icon: '📋', text: '対応する' };
+
+                // 現調タスクの場合
+                if (taskType === 'survey') {
+                    if (status === 'アポ済' || !hasEstimateDate) {
+                        return { tag: '[🏠現調]', text: '現地調査を実施' };
+                    }
+                    // 現調後で商談アポ取れてる場合
+                    if (hasEstimateDate) {
+                        return { tag: '[📤メッセージ]', text: '現調後のお礼メール' };
+                    }
+                    return { tag: '[📞架電]', text: 'お礼 ▷ 商談アポ取り' };
+                }
+
+                // 商談タスクの場合
+                if (taskType === 'meeting') {
+                    return { tag: '[🤝商談]', text: '見積提出 ▷ クロージング' };
+                }
+
+                return { tag: '[📋対応]', text: '確認する' };
             }
 
             cases.forEach(c => {
@@ -15649,7 +15704,7 @@
                             icon: '📞',
                             label: '架電',
                             status: status,
-                            nextAction: getNextAction(status, 'call')
+                            nextAction: getNextAction(c, 'call', callDate)
                         };
                         classifyTask(callDate, task, callAlertMin);
                     }
@@ -15670,7 +15725,7 @@
                             icon: '🏠',
                             label: '現調',
                             status: status,
-                            nextAction: getNextAction(status, 'survey')
+                            nextAction: getNextAction(c, 'survey', surveyDate)
                         };
                         classifyTask(surveyDate, task, inspectionAlertMin);
                     }
@@ -15691,7 +15746,7 @@
                             icon: '📋',
                             label: '商談',
                             status: status,
-                            nextAction: getNextAction(status, 'meeting')
+                            nextAction: getNextAction(c, 'meeting', estDate)
                         };
                         classifyTask(estDate, task, meetingAlertMin);
                     }
@@ -15900,10 +15955,10 @@
                         <div class="font-bold text-gray-900">${escapeHtml(task.customerName)}様</div>
                     </div>
 
-                    <!-- V2140: ネクストアクション -->
-                    <div class="flex items-center gap-1 mb-2 text-sm text-gray-700 bg-white/50 rounded px-2 py-1">
-                        <span class="text-base">${task.nextAction?.icon || '📋'}</span>
-                        <span class="font-medium">→ ${task.nextAction?.text || '対応する'}</span>
+                    <!-- V2141: ネクストアクション [タグ] テキスト形式 -->
+                    <div class="mb-2 text-sm bg-white/60 rounded px-2 py-1.5 border-l-4 border-gray-400">
+                        <span class="font-bold text-gray-800">${task.nextAction?.tag || '[📋対応]'}</span>
+                        <span class="text-gray-700 ml-1">${task.nextAction?.text || '確認する'}</span>
                     </div>
 
                     ${task.address ? `<div class="text-xs text-gray-500 mb-2 truncate" title="${escapeHtml(task.address)}">📍 ${escapeHtml(task.address)}</div>` : ''}
@@ -15915,7 +15970,7 @@
                             </a>
                             <button onclick="event.stopPropagation(); openSmsModal('${task.cvId}')"
                                     class="flex-1 px-2 py-1.5 text-xs font-medium text-purple-700 bg-purple-100 rounded-lg hover:bg-purple-200">
-                                💬 SMS
+                                💬 メッセージ
                             </button>
                         ` : ''}
                         <button onclick="event.stopPropagation(); openDetailModal('${task.cvId}'); toggleAlertPanel();"
