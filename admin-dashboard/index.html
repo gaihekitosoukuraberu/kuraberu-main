@@ -6445,6 +6445,9 @@ window.addEventListener('beforeunload', function(e) {
         async function approveCancelRequest(applicationId) {
             if (!confirm('このキャンセル申請を承認しますか？')) return;
 
+            // スピナー表示
+            showProcessingSpinner('承認中...');
+
             try {
                 const approverName = sessionStorage.getItem('adminName') || localStorage.getItem('adminName') || '管理者';
                 const result = await window.apiClient.jsonpRequest('approveCancelReport', {
@@ -6453,6 +6456,8 @@ window.addEventListener('beforeunload', function(e) {
                 });
                 console.log('[CancelRequests] Approve result:', result);
 
+                hideProcessingSpinner();
+
                 if (result.success) {
                     showNotification('キャンセル申請を承認しました', 'success');
                     loadCancelRequests(); // 再読み込み
@@ -6460,6 +6465,7 @@ window.addEventListener('beforeunload', function(e) {
                     throw new Error(result.error || '承認処理に失敗しました');
                 }
             } catch (error) {
+                hideProcessingSpinner();
                 console.error('[CancelRequests] Approve error:', error);
                 showNotification('エラー: ' + error.message, 'error');
             }
@@ -6499,6 +6505,10 @@ window.addEventListener('beforeunload', function(e) {
                 return;
             }
 
+            closeRejectCancelModal();
+            // スピナー表示
+            showProcessingSpinner('却下中...');
+
             try {
                 const approverName = sessionStorage.getItem('adminName') || localStorage.getItem('adminName') || '管理者';
                 const result = await window.apiClient.jsonpRequest('rejectCancelReport', {
@@ -6508,17 +6518,41 @@ window.addEventListener('beforeunload', function(e) {
                 });
                 console.log('[CancelRequests] Reject result:', result);
 
+                hideProcessingSpinner();
+
                 if (result.success) {
-                    closeRejectCancelModal();
                     showNotification('キャンセル申請を却下しました', 'success');
                     loadCancelRequests(); // 再読み込み
                 } else {
                     throw new Error(result.error || '却下処理に失敗しました');
                 }
             } catch (error) {
+                hideProcessingSpinner();
                 console.error('[CancelRequests] Reject error:', error);
                 showNotification('エラー: ' + error.message, 'error');
             }
+        }
+
+        // V2147: 処理中スピナー
+        function showProcessingSpinner(message = '処理中...') {
+            const existing = document.getElementById('processingSpinner');
+            if (existing) existing.remove();
+
+            const spinner = document.createElement('div');
+            spinner.id = 'processingSpinner';
+            spinner.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50';
+            spinner.innerHTML = `
+                <div class="bg-white rounded-xl p-6 flex flex-col items-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-4 border-purple-200 border-t-purple-600 mb-4"></div>
+                    <div class="text-gray-700 font-medium">${message}</div>
+                </div>
+            `;
+            document.body.appendChild(spinner);
+        }
+
+        function hideProcessingSpinner() {
+            const spinner = document.getElementById('processingSpinner');
+            if (spinner) spinner.remove();
         }
 
         function showNotification(message, type = 'success') {
