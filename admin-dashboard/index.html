@@ -6372,11 +6372,36 @@ window.addEventListener('beforeunload', function(e) {
             if (!container) return;
 
             if (requests.length === 0) {
-                container.innerHTML = '<div class="p-8 text-center text-gray-500">未処理の申請はありません</div>';
+                container.innerHTML = '<div class="p-4 text-center text-gray-500">未処理の申請はありません</div>';
                 return;
             }
 
-            const html = `
+            // スマホ用カード式
+            const mobileCards = requests.map(req => {
+                const elapsedHours = Math.floor(req.elapsedMinutes / 60);
+                const urgencyClass = elapsedHours >= 24 ? 'bg-red-100 text-red-800' : elapsedHours >= 4 ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800';
+                const elapsedText = elapsedHours >= 24 ? `${Math.floor(elapsedHours/24)}日` : `${elapsedHours}h`;
+                return `
+                    <div class="p-3 border-b border-gray-100 last:border-b-0">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-medium text-gray-900 truncate">${req.customerName || '不明'}</div>
+                                <div class="text-xs text-gray-500">${req.merchantName || ''}</div>
+                            </div>
+                            <span class="ml-2 px-1.5 py-0.5 text-[10px] font-medium rounded ${urgencyClass}">${elapsedText}</span>
+                        </div>
+                        <div class="text-xs text-gray-600 mb-2 line-clamp-1">${req.reason || '-'}</div>
+                        <div class="flex gap-1.5">
+                            <button onclick="showCancelDetailModal('${req.applicationId}')" class="flex-1 px-2 py-1.5 bg-gray-100 text-gray-700 text-xs rounded">詳細</button>
+                            <button onclick="approveCancelRequest('${req.applicationId}')" class="flex-1 px-2 py-1.5 bg-purple-600 text-white text-xs rounded">承認</button>
+                            <button onclick="showRejectCancelModal('${req.applicationId}')" class="flex-1 px-2 py-1.5 bg-red-600 text-white text-xs rounded">却下</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // PC用テーブル
+            const pcTable = `
                 <table class="w-full">
                     <thead class="bg-gray-50">
                         <tr>
@@ -6424,7 +6449,11 @@ window.addEventListener('beforeunload', function(e) {
                     </tbody>
                 </table>
             `;
-            container.innerHTML = html;
+
+            container.innerHTML = `
+                <div class="md:hidden">${mobileCards}</div>
+                <div class="hidden md:block">${pcTable}</div>
+            `;
         }
 
         function renderProcessedCancelRequests(requests) {
@@ -6432,14 +6461,36 @@ window.addEventListener('beforeunload', function(e) {
             if (!container) return;
 
             if (requests.length === 0) {
-                container.innerHTML = '<div class="p-8 text-center text-gray-500">処理済みの申請はありません</div>';
+                container.innerHTML = '<div class="p-4 text-center text-gray-500">処理済みの申請はありません</div>';
                 return;
             }
 
-            // 最新20件のみ表示
-            const recentRequests = requests.slice(0, 20);
+            // 最新10件のみ表示（スマホ用）、PC用は20件
+            const mobileRequests = requests.slice(0, 10);
+            const pcRequests = requests.slice(0, 20);
 
-            const html = `
+            // スマホ用カード式
+            const mobileCards = mobileRequests.map(req => {
+                const isApproved = req.status === '承認済み';
+                const statusBadge = isApproved
+                    ? '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-green-100 text-green-800">承認</span>'
+                    : '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-red-100 text-red-800">却下</span>';
+                return `
+                    <div class="p-3 border-b border-gray-100 last:border-b-0">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-medium text-gray-900 truncate">${req.customerName || '不明'}</div>
+                                <div class="text-xs text-gray-500">${req.merchantName || ''}</div>
+                            </div>
+                            ${statusBadge}
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">${req.approvalDate || ''}</div>
+                    </div>
+                `;
+            }).join('');
+
+            // PC用テーブル
+            const pcTable = `
                 <table class="w-full">
                     <thead class="bg-gray-50">
                         <tr>
@@ -6452,7 +6503,7 @@ window.addEventListener('beforeunload', function(e) {
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
-                        ${recentRequests.map(req => {
+                        ${pcRequests.map(req => {
                             const statusBadge = req.status === '承認済み'
                                 ? '<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">承認</span>'
                                 : '<span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">却下</span>';
@@ -6477,7 +6528,13 @@ window.addEventListener('beforeunload', function(e) {
                 </table>
                 ${requests.length > 20 ? `<div class="p-4 text-center text-gray-500 text-sm">他 ${requests.length - 20} 件</div>` : ''}
             `;
-            container.innerHTML = html;
+
+            const mobileMore = requests.length > 10 ? `<div class="p-2 text-center text-gray-400 text-xs">他 ${requests.length - 10} 件</div>` : '';
+
+            container.innerHTML = `
+                <div class="md:hidden">${mobileCards}${mobileMore}</div>
+                <div class="hidden md:block">${pcTable}</div>
+            `;
         }
 
         async function approveCancelRequest(applicationId) {
