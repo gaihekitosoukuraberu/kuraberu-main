@@ -14765,6 +14765,27 @@
             return ['全域'];
         }
 
+        // V2118: PWAのLocalStorageからテストデータを強制削除
+        (function cleanupTestData() {
+            try {
+                const savedProfile = localStorage.getItem('userProfile');
+                if (savedProfile) {
+                    const profile = JSON.parse(savedProfile);
+                    const testPatterns = ['テスト', 'test', 'sample', 'example', 'dummy'];
+                    const isTestData = testPatterns.some(pattern =>
+                        (profile.name && profile.name.toLowerCase().includes(pattern)) ||
+                        (profile.email && profile.email.toLowerCase().includes(pattern))
+                    );
+                    if (isTestData) {
+                        console.log('[V2118] テストデータを検出、LocalStorageから削除:', profile);
+                        localStorage.removeItem('userProfile');
+                    }
+                }
+            } catch (e) {
+                console.error('[V2118] cleanup error:', e);
+            }
+        })();
+
         // ページ読み込み時に都道府県ボタンを生成
         document.addEventListener('DOMContentLoaded', function() {
             initializeAreaSelection();
