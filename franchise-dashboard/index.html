@@ -517,13 +517,7 @@
                     </svg>
                     カレンダー
                 </a>
-                <!-- 4. キャンセル申請 -->
-                <a href="#cancel" onclick="showSection('cancel'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"></path>
-                    </svg>
-                    キャンセル申請
-                </a>
+                <!-- V2153: キャンセル申請メニュー削除（案件管理のステータス変更から申請するため） -->
                 <!-- 5. 期限延長申請 -->
                 <a href="#extension" onclick="showSection('extension'); return false;" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2629,6 +2623,26 @@
                                             <span class="text-gray-400 font-bold">〜</span>
                                             <input type="date" id="ufModalDateTo" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 transition-all">
                                         </div>
+                                    </div>
+                                </div>
+
+                                <!-- V2153: キャンセル申請ステータス絞り込み -->
+                                <div class="pt-4 border-t border-gray-200">
+                                    <h4 class="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        キャンセル申請で絞り込む
+                                        <span id="ufCancelFilterLabel" class="ml-auto text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium">すべて</span>
+                                    </h4>
+                                    <div class="flex gap-2">
+                                        <button id="uf-cancel-pending" onclick="ufSetCancelFilter('申請中')" class="flex-1 px-3 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-yellow-400 transition-all font-bold text-sm">
+                                            🔄 審査中
+                                        </button>
+                                        <button id="uf-cancel-approved" onclick="ufSetCancelFilter('承認済み')" class="flex-1 px-3 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-green-400 transition-all font-bold text-sm">
+                                            ✓ 承認済
+                                        </button>
+                                        <button id="uf-cancel-rejected" onclick="ufSetCancelFilter('却下')" class="flex-1 px-3 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl hover:border-red-400 transition-all font-bold text-sm">
+                                            ❌ 却下
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -20353,6 +20367,10 @@
                 }
             }
 
+            // V2153: キャンセルフィルターの状態更新
+            ufUpdateCancelButtonStates();
+            ufUpdateCancelFilterLabel();
+
             // ヘッダーのステータス表示更新
             ufUpdateFilterStatusText();
         }
@@ -20561,6 +20579,14 @@
             } else if (ufCurrentPeriod === 'lastmonth') {
                 parts.push('先月');
             }
+            // V2153: キャンセルフィルター
+            if (ufCancelFilter === '申請中') {
+                parts.push('CN審査中');
+            } else if (ufCancelFilter === '承認済み') {
+                parts.push('CN承認済');
+            } else if (ufCancelFilter === '却下') {
+                parts.push('CN却下');
+            }
 
             const statusEl = document.getElementById('unifiedFilterStatus');
             if (statusEl) {
@@ -20568,6 +20594,73 @@
             }
 
             ufUpdateDateLabel();
+        }
+
+        // V2153: キャンセル申請ステータスフィルター変数
+        let ufCancelFilter = null;  // null=すべて, '申請中', '承認済み', '却下'
+
+        // V2153: キャンセルフィルター設定
+        function ufSetCancelFilter(status) {
+            // 同じボタンをもう一度押したらクリア
+            if (ufCancelFilter === status) {
+                ufCancelFilter = null;
+            } else {
+                ufCancelFilter = status;
+            }
+            ufUpdateCancelButtonStates();
+            ufUpdateCancelFilterLabel();
+        }
+
+        // V2153: キャンセルフィルターボタンの状態更新
+        function ufUpdateCancelButtonStates() {
+            const pendingBtn = document.getElementById('uf-cancel-pending');
+            const approvedBtn = document.getElementById('uf-cancel-approved');
+            const rejectedBtn = document.getElementById('uf-cancel-rejected');
+
+            const baseClass = 'flex-1 px-3 py-3 border-2 rounded-xl transition-all font-bold text-sm';
+            const inactiveClass = 'bg-white text-gray-600 border-gray-300';
+
+            if (pendingBtn) {
+                if (ufCancelFilter === '申請中') {
+                    pendingBtn.className = `${baseClass} bg-yellow-100 text-yellow-700 border-yellow-300 shadow-md`;
+                } else {
+                    pendingBtn.className = `${baseClass} ${inactiveClass} hover:border-yellow-400`;
+                }
+            }
+            if (approvedBtn) {
+                if (ufCancelFilter === '承認済み') {
+                    approvedBtn.className = `${baseClass} bg-green-100 text-green-700 border-green-300 shadow-md`;
+                } else {
+                    approvedBtn.className = `${baseClass} ${inactiveClass} hover:border-green-400`;
+                }
+            }
+            if (rejectedBtn) {
+                if (ufCancelFilter === '却下') {
+                    rejectedBtn.className = `${baseClass} bg-red-100 text-red-700 border-red-300 shadow-md`;
+                } else {
+                    rejectedBtn.className = `${baseClass} ${inactiveClass} hover:border-red-400`;
+                }
+            }
+        }
+
+        // V2153: キャンセルフィルターラベル更新
+        function ufUpdateCancelFilterLabel() {
+            const labelEl = document.getElementById('ufCancelFilterLabel');
+            if (!labelEl) return;
+
+            if (ufCancelFilter === '申請中') {
+                labelEl.textContent = '審査中';
+                labelEl.className = 'ml-auto text-xs px-2 py-0.5 bg-yellow-100 text-yellow-600 rounded-full font-medium';
+            } else if (ufCancelFilter === '承認済み') {
+                labelEl.textContent = '承認済';
+                labelEl.className = 'ml-auto text-xs px-2 py-0.5 bg-green-100 text-green-600 rounded-full font-medium';
+            } else if (ufCancelFilter === '却下') {
+                labelEl.textContent = '却下';
+                labelEl.className = 'ml-auto text-xs px-2 py-0.5 bg-red-100 text-red-600 rounded-full font-medium';
+            } else {
+                labelEl.textContent = 'すべて';
+                labelEl.className = 'ml-auto text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium';
+            }
         }
 
         // クリア
@@ -20578,6 +20671,7 @@
             ufDateTo = null;
             ufCurrentPreset = null;
             ufCurrentPeriod = 'all';
+            ufCancelFilter = null;  // V2153: キャンセルフィルターもクリア
             initUnifiedFilterModal();
         }
 
@@ -20597,8 +20691,8 @@
 
             closeUnifiedFilterModal();
 
-            // 絞り込みが有効かチェック
-            const hasFilter = ufSelectedStatuses.length > 0 || ufCurrentPeriod !== 'all';
+            // 絞り込みが有効かチェック（V2153: キャンセルフィルター追加）
+            const hasFilter = ufSelectedStatuses.length > 0 || ufCurrentPeriod !== 'all' || ufCancelFilter !== null;
 
             if (hasFilter) {
                 // 絞り込みモードに切り替え（クイックフィルターは非アクティブに）
@@ -20616,6 +20710,14 @@
                         parts.push('今月');
                     } else if (ufCurrentPeriod === 'lastmonth') {
                         parts.push('先月');
+                    }
+                    // V2153: キャンセルフィルター表示
+                    if (ufCancelFilter === '申請中') {
+                        parts.push('審査中');
+                    } else if (ufCancelFilter === '承認済み') {
+                        parts.push('CN承認');
+                    } else if (ufCancelFilter === '却下') {
+                        parts.push('CN却下');
                     }
                     label.textContent = parts.length > 0 ? parts.join('・') : '絞り込み';
                 }
@@ -20664,6 +20766,14 @@
                 const deliveryDate = caseItem.deliveryDate || '';
                 if (ufDateFrom && deliveryDate < ufDateFrom) return false;
                 if (ufDateTo && deliveryDate > ufDateTo) return false;
+            }
+
+            // V2153: キャンセル申請ステータスフィルター
+            if (ufCancelFilter) {
+                const cancelStatus = caseItem.cancelStatus || null;
+                if (cancelStatus !== ufCancelFilter) {
+                    return false;
+                }
             }
 
             return true;
@@ -20737,6 +20847,7 @@
             ufDateTo = null;
             ufCurrentPreset = null;
             ufCurrentPeriod = 'all';
+            ufCancelFilter = null;  // V2153: キャンセルフィルターもクリア
             selectedStatuses = [];
             dateFilterFrom = null;
             dateFilterTo = null;
@@ -21316,10 +21427,23 @@
             // PC版と同じ進捗表示ロジックを使用
             const progressDisplay = getProgressDisplayForCard(c, status, surveyShort, estimateShort, nextCallShort);
 
+            // V2153: キャンセル申請ステータスのバッジ
+            let cancelBadge = '';
+            if (c.cancelStatus === '申請中') {
+                cancelBadge = '<span class="ml-2 px-2 py-0.5 text-xs font-bold bg-yellow-100 text-yellow-700 rounded-full">🔄審査中</span>';
+            } else if (c.cancelStatus === '承認済み') {
+                cancelBadge = '<span class="ml-2 px-2 py-0.5 text-xs font-bold bg-green-100 text-green-700 rounded-full">✓キャンセル済</span>';
+            } else if (c.cancelStatus === '却下') {
+                cancelBadge = `<span class="ml-2 px-2 py-0.5 text-xs font-bold bg-red-100 text-red-700 rounded-full cursor-pointer" onclick="event.stopPropagation(); showCancelRejectInfo('${c.cvId}')" title="${escapeHtml(c.cancelRejectReason || '理由なし')}">❌却下</span>`;
+            }
+
             return `
-                <div class="bg-white rounded-xl shadow-lg border-2 border-gray-200 p-5 hover:shadow-xl transition-shadow" data-cv-id="${c.cvId}">
+                <div class="bg-white rounded-xl shadow-lg border-2 ${c.cancelStatus === '承認済み' ? 'border-green-300 bg-green-50' : 'border-gray-200'} p-5 hover:shadow-xl transition-shadow" data-cv-id="${c.cvId}">
                     <div class="flex justify-between items-center mb-4">
-                        <button onclick="event.stopPropagation(); openStatusModal('${c.cvId}')" class="px-3 py-1.5 text-sm font-bold rounded-full ${style.bg} ${style.text} hover:opacity-80 transition-opacity cursor-pointer" title="タップでステータス変更">${status}</button>
+                        <div class="flex items-center flex-wrap gap-1">
+                            <button onclick="event.stopPropagation(); openStatusModal('${c.cvId}')" class="px-3 py-1.5 text-sm font-bold rounded-full ${style.bg} ${style.text} hover:opacity-80 transition-opacity cursor-pointer" title="タップでステータス変更">${status}</button>
+                            ${cancelBadge}
+                        </div>
                         ${assignee && assignee !== '-'
                             ? getAssigneeChipHtml(assignee)
                             : (isAdmin()
@@ -21652,6 +21776,73 @@
                     </td>
                 </tr>
             `;
+        }
+
+        // V2153: キャンセル申請却下理由を表示＆再申請ボタン
+        function showCancelRejectInfo(cvId) {
+            const caseItem = merchantCasesData.find(c => c.cvId === cvId);
+            if (!caseItem) {
+                alert('案件が見つかりません');
+                return;
+            }
+
+            const rejectReason = caseItem.cancelRejectReason || '理由が記録されていません';
+            const customerName = caseItem.customerName || '顧客名不明';
+
+            // モーダルHTMLを動的に生成
+            const modalHtml = `
+                <div id="cancelRejectModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeCancelRejectModal()"></div>
+                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md relative z-10 overflow-hidden">
+                        <div class="px-5 py-4 bg-gradient-to-r from-red-400 to-red-600">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h3 class="text-lg font-bold text-white">❌ キャンセル申請却下</h3>
+                                    <p class="text-sm text-red-200 mt-0.5">${escapeHtml(customerName)}</p>
+                                </div>
+                                <button onclick="closeCancelRejectModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <div class="mb-4">
+                                <p class="text-sm font-bold text-gray-700 mb-2">却下理由</p>
+                                <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-gray-800">
+                                    ${escapeHtml(rejectReason)}
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mb-4">
+                                却下理由を確認の上、必要に応じてステータスを変更するか、再度キャンセル申請を行ってください。
+                            </p>
+                            <div class="flex gap-3">
+                                <button onclick="closeCancelRejectModal()" class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors">
+                                    閉じる
+                                </button>
+                                <button onclick="closeCancelRejectModal(); openStatusModal('${cvId}')" class="flex-1 px-4 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors">
+                                    ステータス変更
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // 既存のモーダルがあれば削除
+            const existingModal = document.getElementById('cancelRejectModal');
+            if (existingModal) existingModal.remove();
+
+            // モーダルを追加
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCancelRejectModal() {
+            const modal = document.getElementById('cancelRejectModal');
+            if (modal) modal.remove();
+            document.body.style.overflow = '';
         }
 
         // HTML エスケープ

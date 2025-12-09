@@ -603,7 +603,11 @@ var MerchantContractReport = {
         visited: 0,
         quoted: 0,
         contracted: 0,
-        cancelled: 0
+        cancelled: 0,
+        // V2153: キャンセル申請関連
+        cancelPending: 0,    // 審査中
+        cancelApproved: 0,   // 承認済み
+        cancelRejected: 0    // 却下
       };
 
       const cases = [];
@@ -638,6 +642,18 @@ var MerchantContractReport = {
           stats.visited++;
         } else {
           stats.pending++;
+        }
+
+        // V2153: キャンセル申請ステータスで統計
+        const cancelInfo = cancelMap[cvId];
+        if (cancelInfo) {
+          if (cancelInfo.cancelStatus === '申請中') {
+            stats.cancelPending++;
+          } else if (cancelInfo.cancelStatus === '承認済み') {
+            stats.cancelApproved++;
+          } else if (cancelInfo.cancelStatus === '却下') {
+            stats.cancelRejected++;
+          }
         }
 
         // ユーザー登録から顧客情報取得
@@ -734,7 +750,13 @@ var MerchantContractReport = {
           estimateDate: formatDateValue(row[delCol['商談日時']]),
 
           // === V2085: 担当者（案件振り分け） ===
-          assignee: user.assignee || ''
+          assignee: user.assignee || '',
+
+          // === V2153: キャンセル申請ステータス ===
+          cancelStatus: cancelMap[cvId]?.cancelStatus || null,
+          cancelRejectReason: cancelMap[cvId]?.cancelRejectReason || '',
+          cancelAppliedAt: cancelMap[cvId]?.cancelAppliedAt || '',
+          cancelApprovedAt: cancelMap[cvId]?.cancelApprovedAt || ''
         };
 
         cases.push(caseData);
