@@ -15586,12 +15586,17 @@
             const tomorrowTasks = [];
             const autoAlerts = [];
 
-            // V2137: タスクを分類するヘルパー関数
-            function classifyTask(taskDate, task) {
+            // V2138: 設定から各リマインダーの分数を取得
+            const callAlertMin = parseInt(document.getElementById('callAlertTime')?.value) || 10;
+            const inspectionAlertMin = parseInt(document.getElementById('inspectionAlertTime')?.value) || 30;
+            const meetingAlertMin = parseInt(document.getElementById('meetingAlertTime')?.value) || 30;
+
+            // V2138: タスクを分類するヘルパー関数（設定の分数を使用）
+            function classifyTask(taskDate, task, alertMinutes) {
                 if (isToday(taskDate, today)) {
-                    // 時間が過ぎている or ±10分以内 → 今すぐ対応
+                    // 時間が過ぎている or 設定の分数以内 → 今すぐ対応
                     const diffMinutes = (now - taskDate) / (1000 * 60);
-                    if (diffMinutes >= -10) {
+                    if (diffMinutes >= -alertMinutes) {
                         task.isUrgent = true;
                         urgentTasks.push(task);
                     } else {
@@ -15618,7 +15623,7 @@
                             icon: '📞',
                             label: '架電'
                         };
-                        classifyTask(callDate, task);
+                        classifyTask(callDate, task, callAlertMin);
                     }
                 }
 
@@ -15637,7 +15642,7 @@
                             icon: '🏠',
                             label: '現調'
                         };
-                        classifyTask(surveyDate, task);
+                        classifyTask(surveyDate, task, inspectionAlertMin);
                     }
                 }
 
@@ -15656,7 +15661,7 @@
                             icon: '📋',
                             label: '商談'
                         };
-                        classifyTask(estDate, task);
+                        classifyTask(estDate, task, meetingAlertMin);
                     }
                 }
             });
@@ -16122,45 +16127,56 @@
         // V2136: 通知済みタスク管理（重複通知防止）
         let notifiedTasks = JSON.parse(sessionStorage.getItem('notifiedTasks') || '{}');
 
-        // V2136: タスク時刻が来たら通知を出す
+        // V2138: タスク時刻が来たら通知を出す（設定の「〇分前」を使用）
         function checkTaskNotifications() {
             const now = new Date();
             const cases = merchantCasesData || [];
 
+            // 設定から各リマインダーの分数とON/OFFを取得
+            const callEnabled = document.getElementById('callReminder')?.checked ?? true;
+            const callMinutes = parseInt(document.getElementById('callAlertTime')?.value) || 10;
+            const inspectionEnabled = document.getElementById('inspectionReminder')?.checked ?? true;
+            const inspectionMinutes = parseInt(document.getElementById('inspectionAlertTime')?.value) || 30;
+            const meetingEnabled = document.getElementById('meetingReminder')?.checked ?? true;
+            const meetingMinutes = parseInt(document.getElementById('meetingAlertTime')?.value) || 30;
+
             cases.forEach(c => {
                 // 次回架電日時をチェック
-                if (c.nextCallDate) {
-                    checkAndNotifyTask(c, 'call', c.nextCallDate, '📞 架電の時間です', now);
+                if (c.nextCallDate && callEnabled) {
+                    checkAndNotifyTask(c, 'call', c.nextCallDate, '📞 架電の時間です', now, callMinutes);
                 }
                 // 現調日時をチェック
-                if (c.surveyDate) {
-                    checkAndNotifyTask(c, 'survey', c.surveyDate, '🏠 現調の時間です', now);
+                if (c.surveyDate && inspectionEnabled) {
+                    checkAndNotifyTask(c, 'survey', c.surveyDate, '🏠 現調の時間です', now, inspectionMinutes);
                 }
                 // 商談日時をチェック
-                if (c.estimateDate) {
-                    checkAndNotifyTask(c, 'meeting', c.estimateDate, '📋 商談の時間です', now);
+                if (c.estimateDate && meetingEnabled) {
+                    checkAndNotifyTask(c, 'meeting', c.estimateDate, '📋 商談の時間です', now, meetingMinutes);
                 }
             });
         }
 
-        // V2136: 個別タスクの時刻チェック＆通知
-        function checkAndNotifyTask(caseData, type, dateStr, message, now) {
+        // V2138: 個別タスクの時刻チェック＆通知（設定の分数でジャスト通知）
+        function checkAndNotifyTask(caseData, type, dateStr, message, now, alertMinutes) {
             const taskDate = parseTaskDate(dateStr);
             if (!taskDate) return;
 
-            const taskKey = `${caseData.cvId}_${type}_${dateStr}`;
+            // 通知タイミング = タスク時刻 - 設定の分数
+            const notifyTime = new Date(taskDate.getTime() - alertMinutes * 60 * 1000);
+            const taskKey = `${caseData.cvId}_${type}_${dateStr}_${alertMinutes}min`;
             const snoozeInfo = snoozedTasks[`${caseData.cvId}_${type}`];
             const isSnoozed = snoozeInfo && new Date(snoozeInfo.until) > now;
 
             // 既に通知済み or スヌーズ中なら何もしない
             if (notifiedTasks[taskKey] || isSnoozed) return;
 
-            // 時刻チェック：±5分以内なら通知
-            const diffMinutes = (now - taskDate) / (1000 * 60);
-            if (diffMinutes >= -5 && diffMinutes <= 5) {
-                // 通知実行
+            // 時刻チェック：通知時刻から±1分以内ならジャストで通知
+            const diffMinutes = (now - notifyTime) / (1000 * 60);
+            if (diffMinutes >= 0 && diffMinutes <= 1) {
+                // 通知実行（〇分前であることを明記）
                 const title = message;
-                const body = `${caseData.customerName || '---'}様`;
+                const timeStr = formatTaskTime(taskDate);
+                const body = `${caseData.customerName || '---'}様 (${timeStr}予定・${alertMinutes}分前)`;
 
                 // ブラウザ通知
                 if (Notification.permission === 'granted') {
