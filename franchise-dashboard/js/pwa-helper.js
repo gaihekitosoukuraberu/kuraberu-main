@@ -95,9 +95,10 @@ const PWAHelper = {
 
   /**
    * 初回ログイン後に呼び出すメイン関数
+   * @param {boolean} force - trueなら条件チェックをスキップして強制表示
    */
-  showInstallPrompt: function() {
-    if (!this.shouldShowPrompt()) {
+  showInstallPrompt: function(force = false) {
+    if (!force && !this.shouldShowPrompt()) {
       console.log('[PWA] Prompt not needed');
       return;
     }
