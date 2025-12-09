@@ -22637,15 +22637,16 @@
         // V2124: 連携解除確認用の一時保存
         let pendingUnlinkType = null; // 'email' | 'sms'
 
-        // V2124: メール通知パネルの展開/閉じ + 連携解除確認
+        // V2127: メール通知パネルの展開/閉じ + 連携解除確認
         function toggleNotifyEmailPanel() {
             const checkbox = document.getElementById('notifyEmail');
             const panel = document.getElementById('emailLinkPanel');
+            console.log('[Email] toggle:', checkbox.checked, 'isLinked:', isEmailLinked);
 
             if (checkbox.checked) {
                 // ONにした
                 if (!isEmailLinked) {
-                    // 未連携 → パネル展開
+                    // 未連携 → パネル展開して入力させる
                     panel.classList.remove('hidden');
                 } else {
                     // 連携済み → パネル閉じる
@@ -22653,28 +22654,22 @@
                 }
                 saveNotificationSettings();
             } else {
-                // OFFにしようとした
-                if (isEmailLinked) {
-                    // 連携済みなのでOFF → 連携解除確認モーダル表示
-                    checkbox.checked = true; // 一旦戻す
-                    showUnlinkConfirmModal('email');
-                } else {
-                    // 未連携なら単純にOFF
-                    panel.classList.add('hidden');
-                    saveNotificationSettings();
-                }
+                // OFFにしようとした → 連携解除するか確認
+                checkbox.checked = true; // 一旦戻す
+                showUnlinkConfirmModal('email');
             }
         }
 
-        // V2124: SMS通知パネルの展開/閉じ + 連携解除確認
+        // V2127: SMS通知パネルの展開/閉じ + 連携解除確認
         function toggleNotifySmsPanel() {
             const checkbox = document.getElementById('notifySms');
             const panel = document.getElementById('smsLinkPanel');
+            console.log('[SMS] toggle:', checkbox.checked, 'isLinked:', isSmsLinked);
 
             if (checkbox.checked) {
                 // ONにした
                 if (!isSmsLinked) {
-                    // 未連携 → パネル展開
+                    // 未連携 → パネル展開して入力させる
                     panel.classList.remove('hidden');
                 } else {
                     // 連携済み → パネル閉じる
@@ -22682,37 +22677,37 @@
                 }
                 saveNotificationSettings();
             } else {
-                // OFFにしようとした
-                if (isSmsLinked) {
-                    // 連携済みなのでOFF → 連携解除確認モーダル表示
-                    checkbox.checked = true; // 一旦戻す
-                    showUnlinkConfirmModal('sms');
-                } else {
-                    // 未連携なら単純にOFF
-                    panel.classList.add('hidden');
-                    saveNotificationSettings();
-                }
+                // OFFにしようとした → 連携解除するか確認
+                checkbox.checked = true; // 一旦戻す
+                showUnlinkConfirmModal('sms');
             }
         }
 
-        // V2126: 連携解除確認モーダル表示（LINE対応追加）
+        // V2127: 連携解除確認モーダル表示（LINE対応追加）
         function showUnlinkConfirmModal(type) {
+            console.log('[Unlink] showModal:', type);
             pendingUnlinkType = type;
             const modal = document.getElementById('unlinkConfirmModal');
             const titleEl = document.getElementById('unlinkConfirmType');
             const msgEl = document.getElementById('unlinkConfirmMessage');
 
+            if (!modal) {
+                console.error('[Unlink] Modal not found!');
+                return;
+            }
+
             if (type === 'email') {
                 titleEl.textContent = 'メール通知';
-                msgEl.textContent = '登録されているメールアドレスの連携を解除しますか？';
+                msgEl.textContent = '連携を解除しますか？それとも通知だけOFFにしますか？';
             } else if (type === 'sms') {
                 titleEl.textContent = 'SMS通知';
-                msgEl.textContent = '登録されている電話番号の連携を解除しますか？';
+                msgEl.textContent = '連携を解除しますか？それとも通知だけOFFにしますか？';
             } else if (type === 'line') {
                 titleEl.textContent = 'LINE通知';
-                msgEl.textContent = '登録されているLINE連携を解除しますか？';
+                msgEl.textContent = '連携を解除しますか？それとも通知だけOFFにしますか？';
             }
             modal.classList.remove('hidden');
+            console.log('[Unlink] Modal shown');
         }
 
         // V2124: 連携解除確認モーダルを閉じる
@@ -22779,15 +22774,16 @@
             saveProfile(); // プロフィールも保存
         }
 
-        // V2126: LINE通知パネルの展開/閉じ + 連携解除確認
+        // V2127: LINE通知パネルの展開/閉じ + 連携解除確認
         function toggleNotifyLinePanel() {
             const checkbox = document.getElementById('notifyLine');
             const panel = document.getElementById('lineLinkPanel');
+            console.log('[LINE] toggle:', checkbox.checked, 'isLinked:', isLineLinked);
 
             if (checkbox.checked) {
                 // ONにした
                 if (!isLineLinked) {
-                    // 未連携 → パネル展開
+                    // 未連携 → パネル展開して連携方法を表示
                     panel.classList.remove('hidden');
                     // コードを生成
                     generateLineLinkCode();
@@ -22797,16 +22793,9 @@
                 }
                 saveNotificationSettings();
             } else {
-                // OFFにしようとした
-                if (isLineLinked) {
-                    // 連携済みなのでOFF → 連携解除確認モーダル表示
-                    checkbox.checked = true; // 一旦戻す
-                    showUnlinkConfirmModal('line');
-                } else {
-                    // 未連携なら単純にOFF
-                    panel.classList.add('hidden');
-                    saveNotificationSettings();
-                }
+                // OFFにしようとした → 連携解除するか確認
+                checkbox.checked = true; // 一旦戻す
+                showUnlinkConfirmModal('line');
             }
         }
 
