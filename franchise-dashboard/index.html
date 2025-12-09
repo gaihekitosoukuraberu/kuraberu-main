@@ -17369,7 +17369,7 @@
             btn.disabled = true;
             btn.textContent = '発行中...';
 
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
 
             try {
                 const response = await fetch(GAS_URL, {
@@ -17476,7 +17476,7 @@
             btn.textContent = '生成中...';
 
             const expiry = 24; // 固定：24時間
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
 
             // 追加権限の取得
             const additionalPerms = {
@@ -20175,12 +20175,12 @@
 
             // 自動配信設定セクション
             if (section === 'autodelivery') {
-                const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+                const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
 
                 if (merchantId && window.merchantData) {
                     window.loadAutodeliverySettings(window.merchantData);
                 } else {
-                    const savedUser = sessionStorage.getItem('currentUser');
+                    const savedUser = sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
                     if (savedUser) {
                         window.merchantId = savedUser;
                         fetchMerchantDataForAutodelivery(savedUser);
@@ -20236,7 +20236,7 @@
 
         // 案件データをAPIから取得
         async function loadMerchantCases() {
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
             if (!merchantId) {
                 console.warn('[案件管理] merchantId が見つかりません');
                 return;
@@ -21798,7 +21798,7 @@
 
         // 履歴をGASに保存（統計用）
         function saveCallHistoryToGAS(cvId, callHistory, callCount) {
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
             fetch(GAS_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain' },
@@ -22137,7 +22137,7 @@
         // 通話履歴をGASに保存
         async function saveCallHistoryToGAS() {
             if (!currentMemoCase) return;
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
 
             try {
                 const response = await fetch(GAS_URL, {
@@ -22171,7 +22171,7 @@
                 return;
             }
 
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
             const timestamp = new Date().toLocaleString('ja-JP');
             // V2087: 誰がメモを追加したか記録
             const staffName = getCurrentUserName() || '不明';
@@ -22483,7 +22483,7 @@
                 // 接続時：通話結果モーダルを閉じて、新しいメモモーダルを開く
                 const cvId = currentCallCase?.cvId;
                 afterCallCase = currentCallCase;
-                const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+                const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
                 console.log('[selectConnectionStatus] connected - cvId:', cvId, 'merchantId:', merchantId);
 
                 // 接続履歴を追加（ローカル）
@@ -22572,7 +22572,7 @@
                     currentCallCase.callCount = (parseInt(currentCallCase.callCount || 0) + 1);
 
                     // バックグラウンドでGASに保存
-                    const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+                    const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
                     fetch(GAS_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'text/plain' },
@@ -22730,7 +22730,7 @@
         async function confirmConnectionResult(skipNextCall = false) {
             if (!currentCallCase) return;
 
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
 
             // ログインユーザー情報を取得（親アカウントの名前）
             const merchantData = window.merchantData || {};
@@ -23397,7 +23397,7 @@
 
         // LINE連携状態を確認
         async function checkLineLinkStatus() {
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
             if (!merchantId) {
                 console.log('[LINE] merchantId未設定');
                 return;
@@ -23444,7 +23444,7 @@
 
         // 連携コードを生成
         async function generateLineLinkCode() {
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
             if (!merchantId) return;
 
             try {
@@ -23510,7 +23510,7 @@
                 return;
             }
 
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
             if (!merchantId) return;
 
             try {
@@ -23538,7 +23538,7 @@
 
         // V2126: LINE連携を確認なしで直接解除（confirmUnlinkから呼ばれる）
         async function unlinkLineDirectly() {
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
             if (!merchantId) return;
 
             try {
@@ -24173,7 +24173,7 @@
                 try {
                     showNotification('送信中', 'SMSを送信しています...', 'info');
 
-                    const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+                    const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
                     const cvId = currentSmsCase.cvId || currentSmsCase.id || '';
 
                     const response = await fetch(window.ENV.GAS_URL, {
@@ -24298,7 +24298,7 @@
             renderCases();
 
             // バックグラウンドで保存
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
             fetch(GAS_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain' },
@@ -24884,7 +24884,7 @@
         function setCaseStatus(newStatus) {
             if (!currentStatusCase) return;
 
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
             const cvId = currentStatusCase.cvId;
             const wasAfterCallMode = isAfterCallMode;
             const oldStatus = currentStatusCase.detailStatus;
@@ -25235,7 +25235,7 @@
             renderCases();
 
             // GASに保存（バックグラウンド）
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
             fetch(GAS_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain' },
@@ -26541,7 +26541,7 @@
             renderCases();
 
             // バックグラウンドでGASに保存
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
             fetch(GAS_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain' },
@@ -26615,7 +26615,7 @@
                 if (c && c.estimateDate) {
                     c.estimateDate = '';
                     // GASにも反映
-                    const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+                    const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
                     fetch(GAS_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'text/plain' },
@@ -26679,7 +26679,7 @@
             });
 
             // GASに保存
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
             saveSituationToGAS(merchantId, cvId, displayText);
 
             closeSituationModal();
@@ -26906,7 +26906,7 @@
             });
 
             // GASに保存
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
             fetch(GAS_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain' },
@@ -27094,7 +27094,7 @@
             renderCases();
 
             // バックグラウンドでGASに保存
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
             fetch(GAS_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain' },
@@ -27484,7 +27484,7 @@
             }
 
             // バックグラウンドで保存
-            const merchantId = window.merchantId || sessionStorage.getItem('currentUser');
+            const merchantId = window.merchantId || sessionStorage.getItem('merchantId') || localStorage.getItem('merchantId');
             fetch(window.ENV.GAS_URL, {
                 method: 'POST',
                 headers: {
