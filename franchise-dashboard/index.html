@@ -7611,6 +7611,28 @@
                             </div>
                         </div>
 
+                        <!-- V2111: 案件配信通知のON/OFF -->
+                        <div class="mb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="text-lg">📨</span>
+                                <h4 class="text-base font-bold text-gray-800">案件配信通知</h4>
+                            </div>
+                            <div class="border-l-4 border-blue-500 bg-gradient-to-r from-blue-50 to-white rounded-r-xl p-4 hover:shadow-md transition-shadow">
+                                <label class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                            <span class="text-xl">🔔</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-sm font-bold text-gray-800">新規案件の通知</span>
+                                            <p class="text-xs text-gray-500">新しい案件が配信された時にプッシュ通知を受け取る</p>
+                                        </div>
+                                    </div>
+                                    <input type="checkbox" id="notifyCaseDelivery" class="toggle-switch" checked="">
+                                </label>
+                            </div>
+                        </div>
+
                         <!-- V2087: まとめ通知 -->
                         <div class="mb-8">
                             <div class="flex items-center gap-2 mb-4">
@@ -18131,6 +18153,12 @@
                             document.getElementById('quietEnd').value = quietHours.end || '08:00';
                         }
 
+                        // V2111: 案件配信通知のON/OFF
+                        if (document.getElementById('notifyCaseDelivery')) {
+                            // デフォルトはON（true）
+                            document.getElementById('notifyCaseDelivery').checked = details.caseDelivery !== false;
+                        }
+
                         // ローカルにも同期
                         localStorage.setItem('notificationSettings', JSON.stringify({
                             email: settings.email,
@@ -18201,6 +18229,8 @@
                 sms: document.getElementById('notifySms').checked,
                 line: document.getElementById('notifyLine').checked,
                 browser: document.getElementById('notifyBrowser').checked,
+                // V2111: 案件配信通知のON/OFF
+                caseDelivery: document.getElementById('notifyCaseDelivery').checked,
                 alerts: {
                     appointment_reminder: {
                         enabled: document.getElementById('appointmentReminder').checked,
@@ -18253,7 +18283,8 @@
                     alerts: settings.alerts,
                     holidays: settings.holidays,
                     quietHours: settings.quietHours,
-                    sms: settings.sms
+                    sms: settings.sms,
+                    caseDelivery: settings.caseDelivery  // V2111: 案件配信通知
                 });
 
                 const url = `${window.ENV?.GAS_URL}?action=saveNotificationSettings&userId=${encodeURIComponent(userId)}&merchantId=${encodeURIComponent(merchantId)}&email=${settings.email}&line=${settings.line}&browser=${settings.browser}&details=${encodeURIComponent(detailsJson)}`;
