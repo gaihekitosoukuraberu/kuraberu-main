@@ -1043,16 +1043,16 @@
                         <div class="p-6">
                             <p class="text-gray-700 mb-6 text-center" id="unlinkConfirmMessage">連携を解除しますか？</p>
                             <div class="space-y-3">
-                                <button onclick="confirmUnlink(true)" class="w-full py-3 px-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-bold hover:opacity-90 shadow-md transition-all flex items-center justify-center gap-2">
+                                <button id="unlinkConfirmUnlinkBtn" onclick="confirmUnlink(true)" class="w-full py-3 px-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-bold hover:opacity-90 shadow-md transition-all flex items-center justify-center gap-2">
                                     <span>🗑️</span>
                                     <span>連携を解除する</span>
                                 </button>
-                                <button onclick="confirmUnlink(false)" class="w-full py-3 px-4 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl font-bold hover:opacity-90 shadow-md transition-all flex items-center justify-center gap-2">
+                                <button id="unlinkConfirmOffBtn" onclick="confirmUnlink(false)" class="w-full py-3 px-4 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl font-bold hover:opacity-90 shadow-md transition-all flex items-center justify-center gap-2">
                                     <span>🔕</span>
                                     <span>通知だけOFFにする</span>
                                 </button>
                             </div>
-                            <p class="text-xs text-gray-500 mt-4 text-center">
+                            <p id="unlinkConfirmNote" class="text-xs text-gray-500 mt-4 text-center">
                                 連携を解除すると、再度ONにした際に登録が必要です
                             </p>
                         </div>
@@ -22696,24 +22696,46 @@
                 return;
             }
 
+            const unlinkBtn = document.getElementById('unlinkConfirmUnlinkBtn');
+            const offBtn = document.getElementById('unlinkConfirmOffBtn');
+            const noteEl = document.getElementById('unlinkConfirmNote');
+
             if (type === 'email') {
                 titleEl.textContent = 'メール通知';
                 msgEl.textContent = '連携を解除しますか？それとも通知だけOFFにしますか？';
+                unlinkBtn.classList.remove('hidden');
+                offBtn.classList.remove('hidden');
+                noteEl.classList.remove('hidden');
             } else if (type === 'sms') {
                 titleEl.textContent = 'SMS通知';
                 msgEl.textContent = '連携を解除しますか？それとも通知だけOFFにしますか？';
+                unlinkBtn.classList.remove('hidden');
+                offBtn.classList.remove('hidden');
+                noteEl.classList.remove('hidden');
             } else if (type === 'line') {
                 titleEl.textContent = 'LINE通知';
                 msgEl.textContent = '連携を解除しますか？それとも通知だけOFFにしますか？';
+                unlinkBtn.classList.remove('hidden');
+                offBtn.classList.remove('hidden');
+                noteEl.classList.remove('hidden');
+            } else if (type === 'browser') {
+                titleEl.textContent = 'ブラウザ通知';
+                msgEl.textContent = 'ブラウザ通知をOFFにしますか？';
+                unlinkBtn.classList.add('hidden'); // ブラウザは連携解除ボタン不要
+                offBtn.innerHTML = '<span>🔕</span><span>OFFにする</span>';
+                noteEl.classList.add('hidden');
             }
             modal.classList.remove('hidden');
             console.log('[Unlink] Modal shown');
         }
 
-        // V2124: 連携解除確認モーダルを閉じる
+        // V2128: 連携解除確認モーダルを閉じる
         function closeUnlinkConfirmModal() {
             const modal = document.getElementById('unlinkConfirmModal');
             modal.classList.add('hidden');
+            // ボタンテキストを元に戻す
+            const offBtn = document.getElementById('unlinkConfirmOffBtn');
+            offBtn.innerHTML = '<span>🔕</span><span>通知だけOFFにする</span>';
             pendingUnlinkType = null;
         }
 
@@ -22769,6 +22791,16 @@
                     showNotification('通知OFF', 'LINE通知をOFFにしました');
                 }
                 panel.classList.add('hidden');
+            } else if (type === 'browser') {
+                const checkbox = document.getElementById('notifyBrowser');
+                checkbox.checked = false;
+                if (shouldUnlink) {
+                    // ブラウザ通知は解除=OFFと同じ
+                    showNotification('通知OFF', 'ブラウザ通知をOFFにしました');
+                } else {
+                    // 通知だけOFF
+                    showNotification('通知OFF', 'ブラウザ通知をOFFにしました');
+                }
             }
             saveNotificationSettings();
             saveProfile(); // プロフィールも保存
@@ -22799,9 +22831,10 @@
             }
         }
 
-        // V2126: ブラウザ通知トグルの変更ハンドラ
+        // V2128: ブラウザ通知トグルの変更ハンドラ
         function toggleNotifyBrowserPanel() {
             const checkbox = document.getElementById('notifyBrowser');
+            console.log('[Browser] toggle:', checkbox.checked);
 
             if (checkbox.checked) {
                 // ONにしようとした場合、許可されていなければ許可モーダル表示
@@ -22812,8 +22845,9 @@
                     saveNotificationSettings();
                 }
             } else {
-                // OFFにした
-                saveNotificationSettings();
+                // OFFにしようとした → 連携解除するか確認
+                checkbox.checked = true; // 一旦戻す
+                showUnlinkConfirmModal('browser');
             }
         }
 
