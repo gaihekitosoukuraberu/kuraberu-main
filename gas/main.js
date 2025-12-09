@@ -480,19 +480,8 @@ const SystemRouter = {
       actions: ['getArchivedCases']
     },
 
-    // 期限延長申請システム
-    'getExtensionEligibleCases': {
-      system: 'MerchantDeadlineExtension',
-      description: '期限延長申請可能案件取得',
-      prefix: false,
-      actions: ['getExtensionEligibleCases']
-    },
-    'submitExtensionRequest': {
-      system: 'MerchantDeadlineExtension',
-      description: '期限延長申請登録',
-      prefix: false,
-      actions: ['submitExtensionRequest']
-    },
+    // V2156: 期限延長申請システム削除（架電履歴で判断できるため不要）
+    // 'getExtensionEligibleCases', 'submitExtensionRequest' は廃止
 
     // 成約報告システム
     'getDeliveredCases': {
@@ -597,18 +586,8 @@ const SystemRouter = {
       prefix: false,
       actions: ['rejectCancelReport']
     },
-    'approveExtensionRequest': {
-      system: 'AdminCancelSystem',
-      description: '期限延長申請承認',
-      prefix: false,
-      actions: ['approveExtensionRequest']
-    },
-    'rejectExtensionRequest': {
-      system: 'AdminCancelSystem',
-      description: '期限延長申請却下',
-      prefix: false,
-      actions: ['rejectExtensionRequest']
-    },
+    // V2156: 期限延長申請の承認・却下も廃止
+    // 'approveExtensionRequest', 'rejectExtensionRequest' は廃止
 
     // テストデータ管理（開発用）
     'recreateTestData': {

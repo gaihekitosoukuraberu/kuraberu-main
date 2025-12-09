@@ -5,12 +5,14 @@
  *
  * 【機能】
  * - キャンセル申請の承認・却下
- * - 期限延長申請の承認・却下
  * - 承認時の自動処理（ユーザー登録シート更新、配信先業者削除）
+ * - V2155: 承認時に詳細ステータス自動更新
+ *
+ * 【V2156で廃止】
+ * - 期限延長申請の承認・却下（架電履歴で判断できるため不要）
  *
  * 【依存関係】
  * - キャンセル申請シート（読み取り・書き込み）
- * - キャンセル期限延長申請シート（読み取り・書き込み）
  * - ユーザー登録シート（書き込み）
  *
  * 【影響範囲】
@@ -234,191 +236,10 @@ var AdminCancelSystem = {
     }
   },
 
-  /**
-   * 期限延長申請を承認
-   * @param {Object} params - {
-   *   extensionId: 申請ID,
-   *   approverName: 承認者名
-   * }
-   * @return {Object} - { success: boolean }
-   */
-  approveExtensionRequest: function(params) {
-    try {
-      const { extensionId, approverName } = params;
-
-      if (!extensionId) {
-        return {
-          success: false,
-          error: '申請IDが指定されていません'
-        };
-      }
-
-      console.log('[AdminCancelSystem] approveExtensionRequest - 申請ID:', extensionId);
-
-      const ss = SpreadsheetApp.getActiveSpreadsheet();
-      const extensionSheet = ss.getSheetByName('キャンセル期限延長申請');
-
-      if (!extensionSheet) {
-        return {
-          success: false,
-          error: 'キャンセル期限延長申請シートが見つかりません'
-        };
-      }
-
-      // 期限延長申請シートから申請データを取得
-      const extData = extensionSheet.getDataRange().getValues();
-      const extHeaders = extData[0];
-      const extRows = extData.slice(1);
-
-      const extIdIdx = extHeaders.indexOf('申請ID');
-      const cvIdIdx = extHeaders.indexOf('CV ID');
-      const statusIdx = extHeaders.indexOf('承認ステータス');
-      const approverIdx = extHeaders.indexOf('承認者');
-      const approvalDateIdx = extHeaders.indexOf('承認日時');
-      const lastUpdateIdx = extHeaders.indexOf('最終更新日時');
-
-      let targetRow = -1;
-      let cvId = '';
-
-      for (let i = 0; i < extRows.length; i++) {
-        if (extRows[i][extIdIdx] === extensionId) {
-          targetRow = i + 2; // ヘッダー分+1、0-indexed分+1
-          cvId = extRows[i][cvIdIdx];
-          break;
-        }
-      }
-
-      if (targetRow === -1) {
-        return {
-          success: false,
-          error: '指定された申請IDが見つかりません: ' + extensionId
-        };
-      }
-
-      // 承認ステータス更新
-      const now = new Date();
-      extensionSheet.getRange(targetRow, statusIdx + 1).setValue('承認済み');
-      extensionSheet.getRange(targetRow, approverIdx + 1).setValue(approverName || '管理者');
-      extensionSheet.getRange(targetRow, approvalDateIdx + 1).setValue(now);
-      extensionSheet.getRange(targetRow, lastUpdateIdx + 1).setValue(now);
-
-      console.log('[AdminCancelSystem] 期限延長申請承認完了:', extensionId);
-
-      return {
-        success: true,
-        message: 'キャンセル期限延長申請を承認しました',
-        data: {
-          extensionId: extensionId,
-          cvId: cvId
-        }
-      };
-
-    } catch (error) {
-      console.error('[AdminCancelSystem] approveExtensionRequest error:', error);
-      return {
-        success: false,
-        error: error.toString()
-      };
-    }
-  },
-
-  /**
-   * 期限延長申請を却下
-   * @param {Object} params - {
-   *   extensionId: 申請ID,
-   *   approverName: 承認者名,
-   *   rejectReason: 却下理由
-   * }
-   * @return {Object} - { success: boolean }
-   */
-  rejectExtensionRequest: function(params) {
-    try {
-      const { extensionId, approverName, rejectReason } = params;
-
-      if (!extensionId) {
-        return {
-          success: false,
-          error: '申請IDが指定されていません'
-        };
-      }
-
-      if (!rejectReason) {
-        return {
-          success: false,
-          error: '却下理由を入力してください'
-        };
-      }
-
-      console.log('[AdminCancelSystem] rejectExtensionRequest - 申請ID:', extensionId);
-
-      const ss = SpreadsheetApp.getActiveSpreadsheet();
-      const extensionSheet = ss.getSheetByName('キャンセル期限延長申請');
-
-      if (!extensionSheet) {
-        return {
-          success: false,
-          error: 'キャンセル期限延長申請シートが見つかりません'
-        };
-      }
-
-      // 期限延長申請シートから申請データを取得
-      const extData = extensionSheet.getDataRange().getValues();
-      const extHeaders = extData[0];
-      const extRows = extData.slice(1);
-
-      const extIdIdx = extHeaders.indexOf('申請ID');
-      const cvIdIdx = extHeaders.indexOf('CV ID');
-      const statusIdx = extHeaders.indexOf('承認ステータス');
-      const approverIdx = extHeaders.indexOf('承認者');
-      const approvalDateIdx = extHeaders.indexOf('承認日時');
-      const rejectReasonIdx = extHeaders.indexOf('却下理由');
-      const lastUpdateIdx = extHeaders.indexOf('最終更新日時');
-
-      let targetRow = -1;
-      let cvId = '';
-
-      for (let i = 0; i < extRows.length; i++) {
-        if (extRows[i][extIdIdx] === extensionId) {
-          targetRow = i + 2; // ヘッダー分+1、0-indexed分+1
-          cvId = extRows[i][cvIdIdx];
-          break;
-        }
-      }
-
-      if (targetRow === -1) {
-        return {
-          success: false,
-          error: '指定された申請IDが見つかりません: ' + extensionId
-        };
-      }
-
-      // 却下ステータス更新
-      const now = new Date();
-      extensionSheet.getRange(targetRow, statusIdx + 1).setValue('却下');
-      extensionSheet.getRange(targetRow, approverIdx + 1).setValue(approverName || '管理者');
-      extensionSheet.getRange(targetRow, approvalDateIdx + 1).setValue(now);
-      extensionSheet.getRange(targetRow, rejectReasonIdx + 1).setValue(rejectReason);
-      extensionSheet.getRange(targetRow, lastUpdateIdx + 1).setValue(now);
-
-      console.log('[AdminCancelSystem] 期限延長申請却下完了:', extensionId);
-
-      return {
-        success: true,
-        message: 'キャンセル期限延長申請を却下しました',
-        data: {
-          extensionId: extensionId,
-          cvId: cvId
-        }
-      };
-
-    } catch (error) {
-      console.error('[AdminCancelSystem] rejectExtensionRequest error:', error);
-      return {
-        success: false,
-        error: error.toString()
-      };
-    }
-  },
+  // ============================================================
+  // V2156: 以下の期限延長申請関連関数は廃止（架電履歴で判断できるため不要）
+  // approveExtensionRequest, rejectExtensionRequest は削除済み
+  // ============================================================
 
   /**
    * V2039: ユーザー登録シートを更新（キャンセル承認時）
