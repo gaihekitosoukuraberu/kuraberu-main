@@ -6292,16 +6292,8 @@ window.addEventListener('beforeunload', function(e) {
             if (processedTable) processedTable.innerHTML = '<div class="p-8 text-center text-gray-500">読み込み中...</div>';
 
             try {
-                const response = await fetch(ENV.GAS_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'getCancelRequests',
-                        status: 'all'
-                    })
-                });
-
-                const result = await response.json();
+                // JSONP経由でAPI呼び出し（CORS回避）
+                const result = await window.apiClient.jsonpRequest('getCancelRequests', { status: 'all' });
                 console.log('[CancelRequests] Result:', result);
 
                 if (!result.success) {
@@ -6453,17 +6445,11 @@ window.addEventListener('beforeunload', function(e) {
             if (!confirm('このキャンセル申請を承認しますか？')) return;
 
             try {
-                const response = await fetch(ENV.GAS_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'approveCancelReport',
-                        applicationId: applicationId,
-                        approverName: sessionStorage.getItem('adminName') || localStorage.getItem('adminName') || '管理者'
-                    })
+                const approverName = sessionStorage.getItem('adminName') || localStorage.getItem('adminName') || '管理者';
+                const result = await window.apiClient.jsonpRequest('approveCancelReport', {
+                    applicationId: applicationId,
+                    approverName: approverName
                 });
-
-                const result = await response.json();
                 console.log('[CancelRequests] Approve result:', result);
 
                 if (result.success) {
@@ -6513,18 +6499,12 @@ window.addEventListener('beforeunload', function(e) {
             }
 
             try {
-                const response = await fetch(ENV.GAS_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'rejectCancelReport',
-                        applicationId: applicationId,
-                        approverName: sessionStorage.getItem('adminName') || localStorage.getItem('adminName') || '管理者',
-                        rejectReason: reason
-                    })
+                const approverName = sessionStorage.getItem('adminName') || localStorage.getItem('adminName') || '管理者';
+                const result = await window.apiClient.jsonpRequest('rejectCancelReport', {
+                    applicationId: applicationId,
+                    approverName: approverName,
+                    rejectReason: reason
                 });
-
-                const result = await response.json();
                 console.log('[CancelRequests] Reject result:', result);
 
                 if (result.success) {
