@@ -18031,15 +18031,28 @@
                             // 加盟店登録シートから初期値を取得
                             // 電話番号・郵便番号は本人の個人情報が必要なので空欄
                             console.log('[loadUserSettings] Profile empty, auto-filling from merchantData');
-                            profile = {
-                                name: window.merchantData['営業担当者氏名'] || window.merchantData.salesPersonName || '',
-                                phone: '', // 個人携帯は別途入力
-                                email: window.merchantData['営業用メールアドレス'] || window.merchantData.salesEmail || '',
-                                postalCode: '' // 本人の自宅郵便番号を入力（距離順振り分け用）
-                            };
-                            // V2081: 自動フィル時にAPIにも保存（通知設定シートに登録）
-                            if (profile.name || profile.email) {
-                                autoSaveProfileToAPI(userId, merchantId, profile);
+                            const candidateName = window.merchantData['営業担当者氏名'] || window.merchantData.salesPersonName || '';
+                            const candidateEmail = window.merchantData['営業用メールアドレス'] || window.merchantData.salesEmail || '';
+
+                            // V2122: テストデータっぽい値は自動フィルしない
+                            const testPatterns = ['テスト', 'test', 'sample', 'example', 'dummy'];
+                            const isTestName = testPatterns.some(p => candidateName.toLowerCase().includes(p));
+                            const isTestEmail = testPatterns.some(p => candidateEmail.toLowerCase().includes(p));
+
+                            if (isTestName || isTestEmail) {
+                                console.log('[loadUserSettings] テストデータ検出、自動フィルをスキップ:', { candidateName, candidateEmail });
+                                profile = { name: '', phone: '', email: '', postalCode: '' };
+                            } else {
+                                profile = {
+                                    name: candidateName,
+                                    phone: '', // 個人携帯は別途入力
+                                    email: candidateEmail,
+                                    postalCode: '' // 本人の自宅郵便番号を入力（距離順振り分け用）
+                                };
+                                // V2081: 自動フィル時にAPIにも保存（通知設定シートに登録）
+                                if (profile.name || profile.email) {
+                                    autoSaveProfileToAPI(userId, merchantId, profile);
+                                }
                             }
                         }
 
