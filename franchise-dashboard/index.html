@@ -1033,6 +1033,37 @@
                     </div>
                 </div>
 
+                <!-- V2124: 連携解除確認モーダル（メール・SMS通知OFF時） -->
+                <div id="unlinkConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 z-[60] hidden flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl">
+                        <div class="px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-t-2xl">
+                            <h3 class="text-lg font-bold" id="unlinkConfirmTitle">通知設定</h3>
+                            <p class="text-sm text-amber-100" id="unlinkConfirmType">---</p>
+                        </div>
+                        <div class="p-6">
+                            <p class="text-gray-700 mb-6 text-center" id="unlinkConfirmMessage">連携を解除しますか？</p>
+                            <div class="space-y-3">
+                                <button onclick="confirmUnlink(true)" class="w-full py-3 px-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-bold hover:opacity-90 shadow-md transition-all flex items-center justify-center gap-2">
+                                    <span>🗑️</span>
+                                    <span>連携を解除する</span>
+                                </button>
+                                <button onclick="confirmUnlink(false)" class="w-full py-3 px-4 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl font-bold hover:opacity-90 shadow-md transition-all flex items-center justify-center gap-2">
+                                    <span>🔕</span>
+                                    <span>通知だけOFFにする</span>
+                                </button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-4 text-center">
+                                連携を解除すると、再度ONにした際に登録が必要です
+                            </p>
+                        </div>
+                        <div class="px-6 py-3 bg-gray-50 rounded-b-2xl">
+                            <button onclick="closeUnlinkConfirmModal()" class="w-full py-2 text-gray-500 hover:text-gray-700 text-sm">
+                                キャンセル
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 案件詳細モーダル（V2022 全情報対応） -->
                 <div id="caseDetailModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
                     <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
@@ -7477,9 +7508,10 @@
                                 プロフィール情報
                             </h3>
                         </div>
+                        <!-- V2124: 電話番号・メアドは通知設定に統合。ここは氏名と郵便番号のみ -->
                         <div class="p-4 sm:p-6">
-                            <!-- 1行目: 氏名・電話番号 -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-3 sm:mb-4">
+                            <!-- V2124: 氏名・郵便番号のみ -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-600">
                                         <span class="flex items-center gap-1">
@@ -7495,31 +7527,6 @@
                                     <label class="block text-sm font-medium text-gray-600">
                                         <span class="flex items-center gap-1">
                                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                                            </svg>
-                                            電話番号
-                                        </span>
-                                    </label>
-                                    <input type="tel" id="profilePhone" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="090-1234-5678">
-                                </div>
-                            </div>
-                            <!-- 2行目: メールアドレス・郵便番号 -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-600">
-                                        <span class="flex items-center gap-1">
-                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                                            </svg>
-                                            メールアドレス
-                                        </span>
-                                    </label>
-                                    <input type="email" id="profileEmail" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="tanaka@example.com">
-                                </div>
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-600">
-                                        <span class="flex items-center gap-1">
-                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                             </svg>
@@ -7530,6 +7537,9 @@
                                     <p class="text-xs text-gray-500">※ 案件の距離順振り分けに使用します</p>
                                 </div>
                             </div>
+                            <!-- V2124: 隠しフィールド（互換性維持、通知設定から同期） -->
+                            <input type="hidden" id="profilePhone">
+                            <input type="hidden" id="profileEmail">
                             <!-- プロフィール保存ボタン -->
                             <div class="mt-4 flex justify-end">
                                 <button onclick="saveProfile()" class="px-6 py-2.5 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg hover:from-slate-700 hover:to-slate-800 transition-all font-medium shadow-md">
@@ -17894,11 +17904,91 @@
         }
 
         // V2080: プロフィール初期設定モーダルを表示
+        // V2124: 初期設定モーダルを表示
         function showProfileSetupModal() {
             const modal = document.getElementById('profileSetupModal');
             if (modal) {
                 modal.classList.remove('hidden');
                 console.log('[ProfileSetup] Modal shown');
+
+                // V2124: ブラウザ通知の状態を確認
+                updateSetupPushStatus();
+
+                // V2124: 管理者の場合は電話番号を自動アサイン
+                if (isAdmin()) {
+                    const phoneSection = document.getElementById('setupPhoneSection');
+                    const phoneInput = document.getElementById('setupProfilePhone');
+
+                    // 加盟店登録シートから電話番号を取得
+                    const adminPhone = window.merchantData?.['電話番号'] ||
+                                      window.merchantData?.['代表電話番号'] ||
+                                      window.merchantData?.['携帯電話番号'] ||
+                                      window.merchantData?.phone || '';
+
+                    if (adminPhone) {
+                        // 電話番号が加盟店登録にある場合は自動セットして入力欄を非表示
+                        phoneInput.value = adminPhone;
+                        phoneSection.classList.add('hidden');
+                        console.log('[ProfileSetup] Admin phone auto-assigned:', adminPhone);
+                    }
+                    // 電話番号がない場合は入力を求める
+                }
+
+                // フォームの状態をチェック
+                checkProfileSetupForm();
+            }
+        }
+
+        // V2124: 初期設定モーダルのブラウザ通知ステータスを更新
+        function updateSetupPushStatus() {
+            const statusEl = document.getElementById('setupPushStatus');
+            const btn = document.getElementById('setupPushBtn');
+
+            if (!statusEl || !btn) return;
+
+            if (!('Notification' in window)) {
+                statusEl.textContent = '非対応';
+                statusEl.className = 'text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-600';
+                btn.classList.add('hidden');
+                return;
+            }
+
+            if (Notification.permission === 'granted') {
+                statusEl.textContent = '許可済み ✓';
+                statusEl.className = 'text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700';
+                btn.textContent = '✓ 通知ON';
+                btn.className = 'w-full px-4 py-2.5 bg-green-100 text-green-700 rounded-lg font-medium flex items-center justify-center gap-2 cursor-default';
+                btn.disabled = true;
+            } else if (Notification.permission === 'denied') {
+                statusEl.textContent = 'ブロック中';
+                statusEl.className = 'text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700';
+                btn.innerHTML = '<span>⚠️</span> ブラウザ設定から許可してください';
+                btn.className = 'w-full px-4 py-2.5 bg-gray-100 text-gray-600 rounded-lg font-medium flex items-center justify-center gap-2 cursor-not-allowed';
+                btn.disabled = true;
+            } else {
+                statusEl.textContent = '未設定';
+                statusEl.className = 'text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700';
+            }
+        }
+
+        // V2124: 初期設定モーダルからブラウザ通知を許可
+        async function requestSetupPushPermission() {
+            try {
+                const permission = await Notification.requestPermission();
+                updateSetupPushStatus();
+
+                if (permission === 'granted') {
+                    showToast('ブラウザ通知を許可しました', 'success');
+                    // FCM登録も試行
+                    if (typeof registerPushNotification === 'function') {
+                        registerPushNotification();
+                    }
+                } else if (permission === 'denied') {
+                    showToast('通知がブロックされました。ブラウザ設定から許可できます。', 'warning');
+                }
+            } catch (error) {
+                console.error('[ProfileSetup] Push permission error:', error);
+                showToast('通知の設定に失敗しました', 'error');
             }
         }
 
@@ -17912,13 +18002,20 @@
         }
 
         // V2083: プロフィール設定フォームの入力チェック（両方入力されたらボタン活性化）
+        // V2124: フォームバリデーション（管理者は電話番号不要の場合あり）
         function checkProfileSetupForm() {
             const phone = document.getElementById('setupProfilePhone').value.trim();
             const postalCode = document.getElementById('setupProfilePostalCode').value.trim();
             const btn = document.getElementById('setupProfileSaveBtn');
+            const phoneSection = document.getElementById('setupPhoneSection');
 
-            if (phone && postalCode) {
-                // 両方入力済み → ボタン活性化（青）
+            // 電話番号セクションが非表示（管理者で自動アサイン済み）の場合、電話番号チェックをスキップ
+            const phoneRequired = phoneSection && !phoneSection.classList.contains('hidden');
+
+            const isValid = postalCode && (phone || !phoneRequired);
+
+            if (isValid) {
+                // 条件を満たしている → ボタン活性化（青）
                 btn.disabled = false;
                 btn.className = 'w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all font-bold text-lg shadow-lg cursor-pointer';
             } else {
@@ -17929,12 +18026,15 @@
         }
 
         // V2080: プロフィール初期設定を保存
+        // V2124: 管理者は電話番号自動アサイン対応
         function saveProfileSetup() {
             const phone = document.getElementById('setupProfilePhone').value.trim();
             const postalCode = document.getElementById('setupProfilePostalCode').value.trim();
+            const phoneSection = document.getElementById('setupPhoneSection');
+            const phoneRequired = phoneSection && !phoneSection.classList.contains('hidden');
 
             // バリデーション
-            if (!phone) {
+            if (phoneRequired && !phone) {
                 alert('携帯電話番号を入力してください。');
                 document.getElementById('setupProfilePhone').focus();
                 return;
@@ -18069,7 +18169,12 @@
                         }
 
                         // V2080: 電話番号または郵便番号が未入力なら初期設定モーダルを表示
-                        const needsProfileSetup = !profile.phone || !profile.postalCode;
+                        // V2124: 管理者は電話番号を加盟店登録シートから自動アサインするので郵便番号だけチェック
+                        let needsProfileSetup = !profile.postalCode;
+                        if (!isAdmin() && !profile.phone) {
+                            // 子ユーザーは電話番号も必須
+                            needsProfileSetup = true;
+                        }
                         if (needsProfileSetup) {
                             console.log('[loadUserSettings] Profile incomplete, showing setup modal');
                             setTimeout(() => showProfileSetupModal(), 500);
@@ -18128,10 +18233,10 @@
                             if (el) el.checked = holidays[day] === true;
                         });
 
-                        // おやすみモード
+                        // おやすみモード（V2123: デフォルトON）
                         const quietHours = details.quietHours || {};
                         if (document.getElementById('enableQuietHours')) {
-                            document.getElementById('enableQuietHours').checked = quietHours.enabled === true;
+                            document.getElementById('enableQuietHours').checked = quietHours.enabled !== false;
                         }
                         if (document.getElementById('quietStart')) {
                             document.getElementById('quietStart').value = quietHours.start || '22:00';
@@ -22493,32 +22598,131 @@
         let isSmsLinked = false;
 
         // V2113: メール通知パネルの展開/閉じ
+        // V2124: 連携解除確認用の一時保存
+        let pendingUnlinkType = null; // 'email' | 'sms'
+
+        // V2124: メール通知パネルの展開/閉じ + 連携解除確認
         function toggleNotifyEmailPanel() {
             const checkbox = document.getElementById('notifyEmail');
             const panel = document.getElementById('emailLinkPanel');
-            const badge = document.getElementById('emailLinkedBadge');
 
-            if (checkbox.checked && !isEmailLinked) {
-                // ONにしたが未連携 → パネル展開
-                panel.classList.remove('hidden');
+            if (checkbox.checked) {
+                // ONにした
+                if (!isEmailLinked) {
+                    // 未連携 → パネル展開
+                    panel.classList.remove('hidden');
+                } else {
+                    // 連携済み → パネル閉じる
+                    panel.classList.add('hidden');
+                }
+                saveNotificationSettings();
             } else {
-                panel.classList.add('hidden');
+                // OFFにしようとした
+                if (isEmailLinked) {
+                    // 連携済みなのでOFF → 連携解除確認モーダル表示
+                    checkbox.checked = true; // 一旦戻す
+                    showUnlinkConfirmModal('email');
+                } else {
+                    // 未連携なら単純にOFF
+                    panel.classList.add('hidden');
+                    saveNotificationSettings();
+                }
             }
-            saveNotificationSettings();
         }
 
-        // V2113: SMS通知パネルの展開/閉じ
+        // V2124: SMS通知パネルの展開/閉じ + 連携解除確認
         function toggleNotifySmsPanel() {
             const checkbox = document.getElementById('notifySms');
             const panel = document.getElementById('smsLinkPanel');
 
-            if (checkbox.checked && !isSmsLinked) {
-                // ONにしたが未連携 → パネル展開
-                panel.classList.remove('hidden');
+            if (checkbox.checked) {
+                // ONにした
+                if (!isSmsLinked) {
+                    // 未連携 → パネル展開
+                    panel.classList.remove('hidden');
+                } else {
+                    // 連携済み → パネル閉じる
+                    panel.classList.add('hidden');
+                }
+                saveNotificationSettings();
             } else {
+                // OFFにしようとした
+                if (isSmsLinked) {
+                    // 連携済みなのでOFF → 連携解除確認モーダル表示
+                    checkbox.checked = true; // 一旦戻す
+                    showUnlinkConfirmModal('sms');
+                } else {
+                    // 未連携なら単純にOFF
+                    panel.classList.add('hidden');
+                    saveNotificationSettings();
+                }
+            }
+        }
+
+        // V2124: 連携解除確認モーダル表示
+        function showUnlinkConfirmModal(type) {
+            pendingUnlinkType = type;
+            const modal = document.getElementById('unlinkConfirmModal');
+            const titleEl = document.getElementById('unlinkConfirmType');
+            const msgEl = document.getElementById('unlinkConfirmMessage');
+
+            if (type === 'email') {
+                titleEl.textContent = 'メール通知';
+                msgEl.textContent = '登録されているメールアドレスの連携を解除しますか？';
+            } else if (type === 'sms') {
+                titleEl.textContent = 'SMS通知';
+                msgEl.textContent = '登録されている電話番号の連携を解除しますか？';
+            }
+            modal.classList.remove('hidden');
+        }
+
+        // V2124: 連携解除確認モーダルを閉じる
+        function closeUnlinkConfirmModal() {
+            const modal = document.getElementById('unlinkConfirmModal');
+            modal.classList.add('hidden');
+            pendingUnlinkType = null;
+        }
+
+        // V2124: 連携解除確認の結果処理
+        function confirmUnlink(shouldUnlink) {
+            const type = pendingUnlinkType;
+            closeUnlinkConfirmModal();
+
+            if (type === 'email') {
+                const checkbox = document.getElementById('notifyEmail');
+                const panel = document.getElementById('emailLinkPanel');
+                checkbox.checked = false;
+                if (shouldUnlink) {
+                    // 連携解除 → メアドをクリア
+                    document.getElementById('profileEmail').value = '';
+                    document.getElementById('notifyEmailInput').value = '';
+                    isEmailLinked = false;
+                    updateNotifyLinkBadges();
+                    showNotification('解除完了', 'メールアドレスの連携を解除しました');
+                } else {
+                    // 通知だけOFF
+                    showNotification('通知OFF', 'メール通知をOFFにしました');
+                }
+                panel.classList.add('hidden');
+            } else if (type === 'sms') {
+                const checkbox = document.getElementById('notifySms');
+                const panel = document.getElementById('smsLinkPanel');
+                checkbox.checked = false;
+                if (shouldUnlink) {
+                    // 連携解除 → 電話番号をクリア
+                    document.getElementById('profilePhone').value = '';
+                    document.getElementById('notifySmsInput').value = '';
+                    isSmsLinked = false;
+                    updateNotifyLinkBadges();
+                    showNotification('解除完了', '電話番号の連携を解除しました');
+                } else {
+                    // 通知だけOFF
+                    showNotification('通知OFF', 'SMS通知をOFFにしました');
+                }
                 panel.classList.add('hidden');
             }
             saveNotificationSettings();
+            saveProfile(); // プロフィールも保存
         }
 
         // V2113: LINE通知パネルの展開/閉じ
@@ -35250,30 +35454,40 @@
     <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <!-- V2080: プロフィール初期設定モーダル（電話番号・郵便番号が未入力時に表示） -->
+    <!-- V2124: 初期設定モーダル（ブラウザ通知許可 + 電話番号/郵便番号） -->
     <div id="profileSetupModal" class="fixed inset-0 z-[100] hidden">
         <div class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
-        <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="fixed inset-0 flex items-center justify-center p-4 overflow-y-auto">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden my-4">
                 <!-- ヘッダー -->
                 <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-5">
                     <div class="flex items-center gap-3">
                         <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                            <span class="text-2xl">👤</span>
+                            <span class="text-2xl">⚙️</span>
                         </div>
                         <div>
-                            <h3 class="text-xl font-bold text-white">プロフィール設定</h3>
-                            <p class="text-blue-100 text-sm">通知機能のご利用に必要です</p>
+                            <h3 class="text-xl font-bold text-white">初期設定</h3>
+                            <p class="text-blue-100 text-sm">快適にご利用いただくための設定です</p>
                         </div>
                     </div>
                 </div>
                 <!-- コンテンツ -->
                 <div class="p-6">
-                    <p class="text-gray-600 mb-6">
-                        案件通知や距離順振り分けを利用するため、<br>
-                        <strong>携帯電話番号</strong>と<strong>ご自宅の郵便番号</strong>を入力してください。
-                    </p>
-                    <!-- 電話番号 -->
-                    <div class="mb-4">
+                    <!-- V2124: ブラウザ通知の許可 -->
+                    <div class="mb-6 bg-purple-50 rounded-xl p-4 border border-purple-200">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xl">🔔</span>
+                            <span class="font-bold text-gray-800">ブラウザ通知</span>
+                            <span id="setupPushStatus" class="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">確認中...</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">新しい案件が届いたらすぐにお知らせします</p>
+                        <button id="setupPushBtn" onclick="requestSetupPushPermission()" class="w-full px-4 py-2.5 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all font-medium flex items-center justify-center gap-2">
+                            <span>🔔</span> 通知を許可する
+                        </button>
+                    </div>
+
+                    <!-- V2124: 電話番号（子ユーザーのみ表示、管理者は自動アサイン） -->
+                    <div id="setupPhoneSection" class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             <span class="flex items-center gap-1">
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -35283,8 +35497,9 @@
                             </span>
                         </label>
                         <input type="tel" id="setupProfilePhone" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg" placeholder="090-1234-5678" oninput="checkProfileSetupForm()">
-                        <p class="text-xs text-gray-500 mt-1">SMS通知に使用します（会社代表番号ではなく個人携帯）</p>
+                        <p class="text-xs text-gray-500 mt-1">SMS通知に使用します（個人携帯）</p>
                     </div>
+
                     <!-- 郵便番号 -->
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -35299,6 +35514,7 @@
                         <input type="text" id="setupProfilePostalCode" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg" placeholder="123-4567" maxlength="8" oninput="checkProfileSetupForm()">
                         <p class="text-xs text-gray-500 mt-1">案件の距離順振り分けに使用します（ご自宅の郵便番号）</p>
                     </div>
+
                     <!-- ボタン V2083: 変更時のみ活性化 -->
                     <button id="setupProfileSaveBtn" onclick="saveProfileSetup()" disabled class="w-full px-6 py-4 bg-gray-300 text-gray-500 rounded-xl transition-all font-bold text-lg cursor-not-allowed">
                         設定を保存して始める
