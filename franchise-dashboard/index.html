@@ -793,9 +793,10 @@
                                     </svg>
                                 </button>
                             </div>
-                            <button onclick="openUnifiedFilterModal()" id="unifiedFilterBtn" class="flex items-center gap-2 px-4 py-2.5 bg-purple-50 text-purple-600 border-2 border-purple-200 rounded-xl shadow-md hover:bg-purple-100 transition-all font-bold whitespace-nowrap flex-shrink-0">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                                <span id="unifiedFilterLabel">絞り込み</span>
+                            <button onclick="openUnifiedFilterModal()" id="unifiedFilterBtn" class="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2.5 bg-purple-50 text-purple-600 border-2 border-purple-200 rounded-xl shadow-md hover:bg-purple-100 transition-all font-bold whitespace-nowrap flex-shrink-0">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                                <span id="unifiedFilterLabel" class="hidden sm:inline">絞り込み</span>
+                                <span class="sm:hidden text-sm">絞込</span>
                             </button>
                             <!-- 案件振り分けボタン（カンバンパネルを開く）- 管理者のみ表示 -->
                             <button id="assignPanelBtn" onclick="openAssignPanel()" class="hidden flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl shadow-md hover:from-purple-600 hover:to-indigo-600 transition-all font-bold whitespace-nowrap flex-shrink-0">

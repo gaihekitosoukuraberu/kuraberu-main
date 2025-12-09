@@ -436,6 +436,7 @@ var MerchantContractReport = {
       const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
       const deliverySheet = ss.getSheetByName('配信管理');
       const userSheet = ss.getSheetByName('ユーザー登録');
+      const cancelSheet = ss.getSheetByName('キャンセル申請');
 
       if (!deliverySheet) {
         return { success: false, error: '配信管理シートが見つかりません' };
@@ -443,6 +444,42 @@ var MerchantContractReport = {
       if (!userSheet) {
         return { success: false, error: 'ユーザー登録シートが見つかりません' };
       }
+
+      // ============================================
+      // V2153: キャンセル申請シートからCV ID → 申請ステータスマップ作成
+      // ============================================
+      const cancelMap = {};
+      if (cancelSheet) {
+        const cancelData = cancelSheet.getDataRange().getValues();
+        const cancelHeaders = cancelData[0];
+        const cancelCol = {};
+        cancelHeaders.forEach((h, i) => { cancelCol[h] = i; });
+
+        for (let i = 1; i < cancelData.length; i++) {
+          const row = cancelData[i];
+          const cvId = row[cancelCol['CV ID']];
+          const rowMerchantId = row[cancelCol['加盟店ID']];
+          if (!cvId) continue;
+          // この加盟店の申請のみ
+          if (String(rowMerchantId) !== String(merchantId)) continue;
+
+          const status = row[cancelCol['承認ステータス']] || '申請中';
+          const rejectReason = row[cancelCol['却下理由']] || '';
+          const appliedAt = row[cancelCol['タイムスタンプ']];
+          const approvedAt = row[cancelCol['承認日時']];
+
+          // 同じCV IDで複数申請がある場合は最新を優先
+          if (!cancelMap[cvId] || new Date(appliedAt) > new Date(cancelMap[cvId].appliedAt)) {
+            cancelMap[cvId] = {
+              cancelStatus: status,
+              cancelRejectReason: rejectReason,
+              cancelAppliedAt: appliedAt ? Utilities.formatDate(new Date(appliedAt), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm') : '',
+              cancelApprovedAt: approvedAt ? Utilities.formatDate(new Date(approvedAt), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm') : ''
+            };
+          }
+        }
+      }
+      console.log('[MerchantContractReport] キャンセル申請マップ件数:', Object.keys(cancelMap).length);
 
       // ============================================
       // 1. ユーザー登録シートからCV ID → 顧客情報マップ作成
