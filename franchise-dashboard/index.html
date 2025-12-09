@@ -18219,44 +18219,48 @@
 
         // 通知設定保存（API連携）
         async function saveNotificationSettings() {
+            // ヘルパー関数：要素が存在する場合のみ値を取得
+            const getChecked = (id) => document.getElementById(id)?.checked ?? false;
+            const getValue = (id, defaultVal = '') => document.getElementById(id)?.value ?? defaultVal;
+
             const settings = {
-                email: document.getElementById('notifyEmail').checked,
-                sms: document.getElementById('notifySms').checked,
-                line: document.getElementById('notifyLine').checked,
-                browser: document.getElementById('notifyBrowser').checked,
+                email: getChecked('notifyEmail'),
+                sms: getChecked('notifySms'),
+                line: getChecked('notifyLine'),
+                browser: getChecked('notifyBrowser'),
                 // V2111: 案件配信通知のON/OFF
-                caseDelivery: document.getElementById('notifyCaseDelivery').checked,
+                caseDelivery: getChecked('notifyCaseDelivery'),
                 alerts: {
                     appointment_reminder: {
-                        enabled: document.getElementById('appointmentReminder').checked,
-                        time: document.getElementById('appointmentAlertTime').value
+                        enabled: getChecked('appointmentReminder'),
+                        time: getValue('appointmentAlertTime', '09:00')
                     },
                     call_reminder: {
-                        enabled: document.getElementById('callReminder').checked,
-                        time: document.getElementById('callAlertTime').value
+                        enabled: getChecked('callReminder'),
+                        time: getValue('callAlertTime', '09:00')
                     },
                     estimate_followup: {
-                        enabled: document.getElementById('estimateFollowup').checked,
-                        days: document.getElementById('followupDays').value
+                        enabled: getChecked('estimateFollowup'),
+                        days: getValue('followupDays', '3')
                     },
                     payment_alert: {
-                        enabled: document.getElementById('paymentAlert').checked
+                        enabled: getChecked('paymentAlert')
                     }
                 },
                 holidays: {
-                    enabled: document.getElementById('enableHolidays').checked,
-                    mon: document.getElementById('holidayMon').checked,
-                    tue: document.getElementById('holidayTue').checked,
-                    wed: document.getElementById('holidayWed').checked,
-                    thu: document.getElementById('holidayThu').checked,
-                    fri: document.getElementById('holidayFri').checked,
-                    sat: document.getElementById('holidaySat').checked,
-                    sun: document.getElementById('holidaySun').checked
+                    enabled: getChecked('enableHolidays'),
+                    mon: getChecked('holidayMon'),
+                    tue: getChecked('holidayTue'),
+                    wed: getChecked('holidayWed'),
+                    thu: getChecked('holidayThu'),
+                    fri: getChecked('holidayFri'),
+                    sat: getChecked('holidaySat'),
+                    sun: getChecked('holidaySun')
                 },
                 quietHours: {
-                    enabled: document.getElementById('enableQuietHours').checked,
-                    start: document.getElementById('quietStart').value,
-                    end: document.getElementById('quietEnd').value
+                    enabled: getChecked('enableQuietHours'),
+                    start: getValue('quietStart', '22:00'),
+                    end: getValue('quietEnd', '08:00')
                 }
             };
 
