@@ -25531,6 +25531,8 @@
                 selectedStatusValue = null;
                 enablePostContractArea();
                 highlightStatusButton('成約');
+                // V2168: 成約選択時にガイド表示
+                showNotification('入金・工事状況を選択', '下の入金状況と工事状況をそれぞれ選んでください', 'info');
                 // 成約単体ではselectedStatusValueは設定しない（入金/工事選択待ち）
                 return;
             }
@@ -25759,18 +25761,24 @@
             console.log('[V2168] selectedWorkStatus:', selectedWorkStatus);
             console.log('[V2168] currentStatusCase:', currentStatusCase);
 
-            // V2168: 入金系/工事系を片方だけ選んだ場合はエラー
-            if (selectedPaymentStatus && !selectedWorkStatus) {
-                showNotification('工事状況を選択', '工事状況（未着工/施工中/工事済）も選択してください', 'warning');
-                return;
-            }
-            if (!selectedPaymentStatus && selectedWorkStatus) {
-                showNotification('入金状況を選択', '入金状況（入金予定/入金済）も選択してください', 'warning');
-                return;
+            // V2168: 成約後は入金・工事の両方が必須
+            if (isContractSelected) {
+                if (!selectedPaymentStatus && !selectedWorkStatus) {
+                    showNotification('入金・工事状況を選択', '入金状況と工事状況の両方を選んでください', 'warning');
+                    return;
+                }
+                if (selectedPaymentStatus && !selectedWorkStatus) {
+                    showNotification('工事状況を選択', '工事状況（未着工/施工中/工事済）も選んでください', 'warning');
+                    return;
+                }
+                if (!selectedPaymentStatus && selectedWorkStatus) {
+                    showNotification('入金状況を選択', '入金状況（入金予定/入金済）も選んでください', 'warning');
+                    return;
+                }
             }
 
             if (!selectedStatusValue) {
-                showNotification('選択してください', 'ステータスを選択してください', 'warning');
+                showNotification('ステータス未選択', 'ステータスを選択してください', 'warning');
                 return;
             }
 
