@@ -31409,31 +31409,39 @@
             document.getElementById('undecidedFields').classList.toggle('hidden', scheduled);
         }
 
-        // V2162: 契約書ファイルアップロード
+        // V2166: 契約書ファイルアップロード（修正版）
         window.handleContractFileUpload = function(event) {
             const file = event.target.files[0];
             if (!file) return;
 
+            const uploadArea = document.getElementById('contractUploadArea');
             const preview = document.getElementById('contractFilePreview');
             const fileName = document.getElementById('contractFileName');
-
-            // プレビュー表示
-            preview.classList.remove('hidden');
-            fileName.textContent = file.name;
 
             // ファイルサイズチェック（10MB制限）
             if (file.size > 10 * 1024 * 1024) {
                 alert('ファイルサイズは10MB以下にしてください');
                 event.target.value = '';
-                preview.classList.add('hidden');
                 return;
             }
+
+            // アップロードエリアを隠してプレビュー表示
+            if (uploadArea) uploadArea.classList.add('hidden');
+            if (preview) preview.classList.remove('hidden');
+            if (fileName) fileName.textContent = file.name;
+
+            console.log('[FileUpload] 契約書ファイル選択:', file.name);
         }
 
-        // V2162: 契約書ファイル削除
+        // V2166: 契約書ファイル削除（修正版）
         window.removeContractFile = function() {
-            document.getElementById('contractFile').value = '';
-            document.getElementById('contractFilePreview').classList.add('hidden');
+            const input = document.getElementById('contractFile');
+            const uploadArea = document.getElementById('contractUploadArea');
+            const preview = document.getElementById('contractFilePreview');
+
+            if (input) input.value = '';
+            if (uploadArea) uploadArea.classList.remove('hidden');
+            if (preview) preview.classList.add('hidden');
         }
 
         // キャンセル質問表示
