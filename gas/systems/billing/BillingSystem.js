@@ -1150,15 +1150,17 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
     }
 
     // 加盟店のfreee取引先IDを取得
-    const partnerId = this._getFreeePartnerId(fee.merchantId);
+    let partnerId = this._getFreeePartnerId(fee.merchantId);
     if (!partnerId) {
-      console.warn('[BillingSystem] freee取引先IDが見つかりません:', fee.merchantId);
+      console.warn('[BillingSystem] freee取引先IDが見つかりません:', fee.merchantName);
       // 取引先が存在しない場合は作成
       const newPartner = this._createFreeePartner(fee.merchantId, fee.merchantName);
       if (!newPartner?.partner?.id) {
         console.error('[BillingSystem] freee取引先作成失敗');
         return null;
       }
+      partnerId = newPartner.partner.id;
+      console.log('[BillingSystem] freee取引先作成成功 ID:', partnerId);
     }
 
     // 加盟店のメールアドレス取得
@@ -1214,7 +1216,7 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
 
     // freee請求書作成
     const invoiceData = {
-      partnerId: this._getFreeePartnerId(fee.merchantId),
+      partnerId: partnerId,
       invoiceNumber: invoiceId,
       title: `${targetMonth} ${fee.type === 'commission' ? '成約手数料' : '紹介料'}請求書`,
       dueDate: dueDate,
