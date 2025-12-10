@@ -50,7 +50,7 @@ const BillingSystem = {
       case 'billing_generateInvoices':
         return this.generateInvoices(params.month, params.type);
       case 'billing_getInvoices':
-        return this.getInvoices(params.month, params.status);
+        return this.getInvoices(params.month, params.status, params.merchantId);
       case 'billing_updateInvoiceStatus':
         return this.updateInvoiceStatus(params.invoiceId, params.status, params.paymentDate);
       case 'billing_checkPayments':
@@ -496,7 +496,7 @@ const BillingSystem = {
   /**
    * 請求一覧取得
    */
-  getInvoices: function(month, status) {
+  getInvoices: function(month, status, merchantId) {
     try {
       const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
       const ss = SpreadsheetApp.openById(ssId);
@@ -523,6 +523,10 @@ const BillingSystem = {
       }
       if (status) {
         invoices = invoices.filter(inv => inv['ステータス'] === status);
+      }
+      // フランチャイズ用: 加盟店IDでフィルタ
+      if (merchantId) {
+        invoices = invoices.filter(inv => inv['加盟店ID'] === merchantId);
       }
 
       return {

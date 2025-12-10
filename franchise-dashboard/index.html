@@ -31,6 +31,7 @@
   document.write("<script src=\"/js/env-loader.js?v=" + cacheBuster + "\"><\/script>");
   document.write("<script src=\"merchant-portal/cancel-reasons.js?v=" + cacheBuster + "\"><\/script>");
   document.write("<script src=\"js/pwa-helper.js?v=" + cacheBuster + "\"><\/script>");
+  document.write("<script src=\"js/billing-manager.js?v=" + cacheBuster + "\"><\/script>");
 })();
 </script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17213,6 +17214,13 @@
                     setTimeout(() => loadUserSettings(), 150);
                     // V2126: ブラウザ通知許可チェック（未設定の場合モーダル表示）
                     setTimeout(() => checkBrowserNotifyOnSettingsOpen(), 300);
+                }
+
+                // 財務管理セクションの場合は請求データを読み込み
+                if (sectionName === 'billing') {
+                    if (typeof loadFranchiseBillingData === 'function') {
+                        setTimeout(() => loadFranchiseBillingData(), 100);
+                    }
                 }
 
                 // V2007: 案件管理セクションの場合は案件データを読み込み
