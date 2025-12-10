@@ -32326,7 +32326,8 @@
             console.log('[V2169] prefillFromContractSheet開始:', cvId);
 
             try {
-                const response = await fetch(GAS_URL, {
+                const gasUrl = window.ENV ? window.ENV.GAS_URL : ENV.GAS_URL;
+                const response = await fetch(gasUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({
