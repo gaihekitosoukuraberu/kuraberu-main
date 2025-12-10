@@ -22862,6 +22862,9 @@
         // 通話後フロー用の状態管理
         let afterCallCase = null;
         let selectedStatusValue = null;
+        // V2168: 複合ステータス用（入金/工事の2軸選択）
+        let selectedPaymentStatus = null;  // 入金予定 / 入金済
+        let selectedWorkStatus = null;     // 未着工 / 施工中 / 工事済
         // SMS自動表示用フラグ
         let afterCallSmsNeeded = false;
         let afterCallSmsCvId = null;
@@ -25422,36 +25425,83 @@
             'クレーム': 'bg-red-100'
         };
 
+        // V2168: 入金系・工事系のステータス定義
+        const paymentStatuses = ['入金予定', '入金済'];
+        const workStatuses = ['未着工', '施工中', '工事済'];
+
         // 詳細ステータス選択
         function selectDetailStatus(status) {
-            selectedStatusValue = status;
-            // caseStatusModal内の全ボタンをリセット（背景白に戻す）
+            // V2168: 入金系/工事系は別変数に保存
+            if (paymentStatuses.includes(status)) {
+                selectedPaymentStatus = status;
+                // 入金系ボタンだけリセットして選択
+                resetStatusButtons(paymentStatuses);
+                highlightStatusButton(status);
+            } else if (workStatuses.includes(status)) {
+                selectedWorkStatus = status;
+                // 工事系ボタンだけリセットして選択
+                resetStatusButtons(workStatuses);
+                highlightStatusButton(status);
+            } else {
+                // 通常ステータス（成約前、キャンセル系、完了）
+                selectedStatusValue = status;
+                selectedPaymentStatus = null;
+                selectedWorkStatus = null;
+                // 全ボタンリセットして選択
+                resetAllStatusButtons();
+                highlightStatusButton(status);
+            }
+
+            // V2168: 入金+工事の両方選択されたら複合ステータスを生成
+            updateCompositeStatus();
+        }
+
+        // V2168: 複合ステータスを生成・更新
+        function updateCompositeStatus() {
+            if (selectedPaymentStatus && selectedWorkStatus) {
+                // 入金済 + 工事済 = 完了
+                if (selectedPaymentStatus === '入金済' && selectedWorkStatus === '工事済') {
+                    selectedStatusValue = '完了';
+                    // 完了ボタンもハイライト
+                    highlightStatusButton('完了');
+                } else {
+                    // 複合ステータス生成
+                    selectedStatusValue = `${selectedPaymentStatus}・${selectedWorkStatus}`;
+                }
+                console.log('[V2168] 複合ステータス生成:', selectedStatusValue);
+            }
+        }
+
+        // 指定ステータス群のボタンをリセット
+        function resetStatusButtons(statuses) {
+            statuses.forEach(s => {
+                const btn = document.querySelector(`#caseStatusModal [data-status="${s}"]`);
+                if (btn) {
+                    Object.values(statusFillColors).forEach(color => {
+                        btn.classList.remove(color);
+                    });
+                    btn.classList.add('bg-white');
+                }
+            });
+        }
+
+        // 全ボタンリセット
+        function resetAllStatusButtons() {
             document.querySelectorAll('#caseStatusModal .status-btn').forEach(btn => {
                 Object.values(statusFillColors).forEach(color => {
                     btn.classList.remove(color, 'text-white');
                 });
                 btn.classList.add('bg-white');
             });
-            // 選択したボタンにステータスカラーで塗りつぶし（テキスト色は維持）
+        }
+
+        // ボタンをハイライト
+        function highlightStatusButton(status) {
             const selectedBtn = document.querySelector(`#caseStatusModal [data-status="${status}"]`);
-            const fillColor = statusFillColors[status];
-            if (selectedBtn && fillColor) {
+            const fillColor = statusFillColors[status] || 'bg-green-100';
+            if (selectedBtn) {
                 selectedBtn.classList.remove('bg-white');
                 selectedBtn.classList.add(fillColor);
-            }
-            // 旧モーダル用のリセット（互換性維持）
-            document.querySelectorAll('#statusDetailGrid .status-btn, #statusDetailGrid2 .status-btn').forEach(btn => {
-                Object.values(statusSelectedStyles).forEach(style => {
-                    btn.classList.remove(style.bg, style.border, style.text);
-                });
-                btn.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
-            });
-            // 旧モーダル用
-            const oldSelectedBtn = document.querySelector(`#statusDetailGrid [data-status="${status}"], #statusDetailGrid2 [data-status="${status}"]`);
-            const style = statusSelectedStyles[status];
-            if (oldSelectedBtn && style) {
-                oldSelectedBtn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
-                oldSelectedBtn.classList.add(style.bg, style.border, style.text);
             }
         }
 
