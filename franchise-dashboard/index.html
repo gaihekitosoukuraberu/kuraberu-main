@@ -25565,15 +25565,15 @@
                 selectedPaymentStatus = '入金済';
                 selectedWorkStatus = '工事済';
 
-                // 全ボタン白にする
-                document.querySelectorAll('#caseStatusModal .payment-btn').forEach(btn => {
-                    btn.style.backgroundColor = 'white';
+                // 入金・工事・完了のボタンを全てdata-statusで直接指定してリセット
+                const allPaymentWorkStatuses = ['入金予定', '入金済', '未着工', '施工中', '工事済', '完了'];
+                allPaymentWorkStatuses.forEach(s => {
+                    const btn = document.querySelector(`#caseStatusModal [data-status="${s}"]`);
+                    if (btn) {
+                        btn.style.backgroundColor = 'white';
+                        console.log('[V2168] 完了リセット:', s);
+                    }
                 });
-                document.querySelectorAll('#caseStatusModal .work-btn').forEach(btn => {
-                    btn.style.backgroundColor = 'white';
-                });
-                const kanryoBtnReset = document.querySelector('#caseStatusModal [data-status="完了"]');
-                if (kanryoBtnReset) kanryoBtnReset.style.backgroundColor = 'white';
 
                 // 入金済・工事済・完了だけ色付け
                 const nyukinBtn = document.querySelector('#caseStatusModal [data-status="入金済"]');
@@ -25765,23 +25765,36 @@
 
         // ボタンをハイライト
         // V2168: style.backgroundColorで統一（classListとの混在を排除）
+        // statusFillColorsと完全一致（Tailwind→色コード変換）
         const statusColorCodes = {
-            '成約': '#ccfbf1',        // teal-100
-            '入金予定': '#d1fae5',    // emerald-100
-            '入金済': '#d1fae5',      // emerald-100
-            '未着工': '#fef3c7',      // amber-100
-            '施工中': '#fef3c7',      // amber-100
-            '工事済': '#fef3c7',      // amber-100
-            '完了': '#ccfbf1',        // teal-100
-            '現調前キャンセル': '#fee2e2', // red-100
-            '現調後失注': '#fecaca',  // red-200
-            '他社契約済': '#fef3c7',  // amber-100
-            '別加盟店契約済': '#e0e7ff', // indigo-100
-            'クレーム': '#fecaca'     // red-200
+            '新着': '#dbeafe',           // blue-100
+            '未アポ': '#fce7f3',         // pink-100
+            'アポ済': '#ffedd5',         // orange-100
+            '現調済': '#f3e8ff',         // purple-100
+            '見積提出済': '#fef3c7',     // amber-100
+            '成約': '#dcfce7',           // green-100
+            '入金予定': '#cffafe',       // cyan-100
+            '入金済': '#d1fae5',         // emerald-100
+            '未着工': '#ffedd5',         // orange-100
+            '施工中': '#fef9c3',         // yellow-100
+            '工事済': '#fef3c7',         // amber-100
+            '完了': '#ccfbf1',           // teal-100
+            // 複合ステータス
+            '入金予定・未着工': '#cffafe',   // cyan-100
+            '入金予定・施工中': '#e0f2fe',   // sky-100
+            '入金予定・工事済': '#dbeafe',   // blue-100
+            '入金済・未着工': '#d1fae5',     // emerald-100
+            '入金済・施工中': '#dcfce7',     // green-100
+            // キャンセル系
+            '現調前キャンセル': '#f3f4f6',   // gray-100
+            '現調後失注': '#e5e7eb',         // gray-200
+            '他社契約済': '#f3f4f6',         // gray-100
+            '別加盟店契約済': '#e0e7ff',     // indigo-100
+            'クレーム': '#fee2e2'            // red-100
         };
         function highlightStatusButton(status) {
             const selectedBtn = document.querySelector(`#caseStatusModal [data-status="${status}"]`);
-            const colorCode = statusColorCodes[status] || '#d1fae5'; // デフォルトemerald-100
+            const colorCode = statusColorCodes[status] || '#dcfce7'; // デフォルトgreen-100
             if (selectedBtn) {
                 selectedBtn.style.backgroundColor = colorCode;
                 console.log('[V2168] highlightStatusButton:', status, colorCode);
