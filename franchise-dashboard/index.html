@@ -25707,23 +25707,33 @@
 
         // 指定ステータス群のボタンをリセット
         function resetStatusButtons(statuses) {
+            console.log('[V2168] resetStatusButtons呼び出し:', statuses);
             statuses.forEach(s => {
                 const btn = document.querySelector(`#caseStatusModal [data-status="${s}"]`);
+                console.log('[V2168] リセット対象ボタン:', s, btn);
                 if (btn) {
-                    Object.values(statusFillColors).forEach(color => {
-                        btn.classList.remove(color);
-                    });
+                    // 全ての背景色を削除
+                    const allBgColors = ['bg-white', 'bg-cyan-100', 'bg-emerald-100', 'bg-orange-100',
+                                         'bg-yellow-100', 'bg-amber-100', 'bg-teal-100', 'bg-green-100',
+                                         'bg-blue-100', 'bg-pink-100', 'bg-purple-100', 'bg-sky-100',
+                                         'bg-gray-100', 'bg-gray-200', 'bg-red-100', 'bg-indigo-100'];
+                    allBgColors.forEach(color => btn.classList.remove(color));
                     btn.classList.add('bg-white');
+                    console.log('[V2168] リセット後のクラス:', btn.className);
                 }
             });
         }
 
         // 全ボタンリセット
         function resetAllStatusButtons() {
+            console.log('[V2168] resetAllStatusButtons呼び出し');
+            const allBgColors = ['bg-white', 'bg-cyan-100', 'bg-emerald-100', 'bg-orange-100',
+                                 'bg-yellow-100', 'bg-amber-100', 'bg-teal-100', 'bg-green-100',
+                                 'bg-blue-100', 'bg-pink-100', 'bg-purple-100', 'bg-sky-100',
+                                 'bg-gray-100', 'bg-gray-200', 'bg-red-100', 'bg-indigo-100'];
             document.querySelectorAll('#caseStatusModal .status-btn').forEach(btn => {
-                Object.values(statusFillColors).forEach(color => {
-                    btn.classList.remove(color, 'text-white');
-                });
+                allBgColors.forEach(color => btn.classList.remove(color));
+                btn.classList.remove('text-white');
                 btn.classList.add('bg-white');
             });
         }
