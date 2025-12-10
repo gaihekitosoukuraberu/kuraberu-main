@@ -25424,12 +25424,17 @@
 
         // ステータス確定
         function confirmStatusSelection() {
+            console.log('[V2164] confirmStatusSelection開始');
+            console.log('[V2164] selectedStatusValue:', selectedStatusValue);
+            console.log('[V2164] currentStatusCase:', currentStatusCase);
+
             if (!selectedStatusValue) {
                 showNotification('選択してください', 'ステータスを選択してください', 'warning');
                 return;
             }
 
             const cvId = currentStatusCase?.cvId;
+            console.log('[V2164] cvId:', cvId);
             if (!cvId) {
                 showNotification('エラー', '案件情報が見つかりません', 'error');
                 return;
@@ -25446,8 +25451,11 @@
 
             // 成約の場合 → 成約報告モーダルへ
             if (selectedStatusValue === '成約') {
+                console.log('[V2164] 成約を選択 → openContractReportFromStatus呼び出し');
                 closeStatusModal();
+                console.log('[V2164] closeStatusModal完了');
                 openContractReportFromStatus(cvId);
+                console.log('[V2164] openContractReportFromStatus完了');
                 return;
             }
 
