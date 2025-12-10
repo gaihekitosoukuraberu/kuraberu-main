@@ -32938,9 +32938,11 @@
             contractAnswers.push(answer);
 
             // V2168: ステータスモーダルから来た場合、ステップ1回答後すぐフォームへ
-            if (window.pendingContractStatus && contractAnswers.length === 1) {
+            // pendingContractStatusがセットされている or selectedContractCaseにselectedStatusがある場合
+            const pendingStatus = window.pendingContractStatus || (selectedContractCase && selectedContractCase.selectedStatus);
+            if (pendingStatus && contractAnswers.length === 1) {
                 // 選択されたステータスから工事状況を自動判定してステップ2回答を追加
-                const selectedStatus = window.pendingContractStatus;
+                const selectedStatus = pendingStatus;
                 if (selectedStatus.includes('工事済') || selectedStatus === '完了') {
                     contractAnswers.push('工事完了後');
                 } else if (selectedStatus.includes('施工中')) {
