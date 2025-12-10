@@ -20468,10 +20468,21 @@
             '現調済': { bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-300' },
             '見積提出済み': { bg: 'bg-amber-100', text: 'text-amber-800', border: 'border-amber-300' },
             '見積提出済': { bg: 'bg-amber-100', text: 'text-amber-800', border: 'border-amber-300' },
-            '入金予定': { bg: 'bg-cyan-100', text: 'text-cyan-800', border: 'border-cyan-300' },
             // ゴール
             '成約': { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-300' },
+            // V2168: 複合ステータス（入金×工事）
+            '入金予定・未着工': { bg: 'bg-cyan-100', text: 'text-cyan-800', border: 'border-cyan-300' },
+            '入金予定・施工中': { bg: 'bg-sky-100', text: 'text-sky-800', border: 'border-sky-300' },
+            '入金予定・工事済': { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-300' },
+            '入金済・未着工': { bg: 'bg-emerald-100', text: 'text-emerald-800', border: 'border-emerald-300' },
+            '入金済・施工中': { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-300' },
+            '完了': { bg: 'bg-teal-100', text: 'text-teal-700', border: 'border-teal-300' },
+            // 旧ステータス（互換性維持）
+            '入金予定': { bg: 'bg-cyan-100', text: 'text-cyan-800', border: 'border-cyan-300' },
             '入金済': { bg: 'bg-emerald-100', text: 'text-emerald-800', border: 'border-emerald-300' },
+            '未着工': { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-300' },
+            '施工中': { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300' },
+            '工事済': { bg: 'bg-amber-100', text: 'text-amber-800', border: 'border-amber-300' },
             // ネガティブ終了
             '現調前キャンセル': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-300' },
             '現調後失注': { bg: 'bg-gray-200', text: 'text-gray-700', border: 'border-gray-400' },
@@ -20626,9 +20637,21 @@
             'アポ済': { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-300' },
             '現調済': { bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-300' },
             '見積提出済': { bg: 'bg-amber-100', text: 'text-amber-800', border: 'border-amber-300' },
-            '入金予定': { bg: 'bg-cyan-100', text: 'text-cyan-800', border: 'border-cyan-300' },
             '成約': { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-300' },
+            // V2168: 複合ステータス（入金×工事）
+            '入金予定・未着工': { bg: 'bg-cyan-100', text: 'text-cyan-800', border: 'border-cyan-300' },
+            '入金予定・施工中': { bg: 'bg-sky-100', text: 'text-sky-800', border: 'border-sky-300' },
+            '入金予定・工事済': { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-300' },
+            '入金済・未着工': { bg: 'bg-emerald-100', text: 'text-emerald-800', border: 'border-emerald-300' },
+            '入金済・施工中': { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-300' },
+            '完了': { bg: 'bg-teal-100', text: 'text-teal-700', border: 'border-teal-300' },
+            // 旧ステータス（互換性維持）
+            '入金予定': { bg: 'bg-cyan-100', text: 'text-cyan-800', border: 'border-cyan-300' },
             '入金済': { bg: 'bg-emerald-100', text: 'text-emerald-800', border: 'border-emerald-300' },
+            '未着工': { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-300' },
+            '施工中': { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300' },
+            '工事済': { bg: 'bg-amber-100', text: 'text-amber-800', border: 'border-amber-300' },
+            // キャンセル系
             '現調前キャンセル': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-300' },
             '現調後失注': { bg: 'bg-gray-200', text: 'text-gray-700', border: 'border-gray-400' },
             '他社契約済': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-300' },
@@ -25395,6 +25418,19 @@
         // ステータス選択UIをリセット（全て白に戻す）
         function resetStatusSelection() {
             selectedStatusValue = null;
+            // V2168: 複合ステータス用変数もリセット
+            selectedPaymentStatus = null;
+            selectedWorkStatus = null;
+
+            // 新モーダル用リセット
+            document.querySelectorAll('#caseStatusModal .status-btn').forEach(btn => {
+                Object.values(statusFillColors).forEach(color => {
+                    btn.classList.remove(color);
+                });
+                btn.classList.add('bg-white');
+            });
+
+            // 旧モーダル用リセット
             document.querySelectorAll('#statusDetailGrid .status-btn, #statusDetailGrid2 .status-btn').forEach(btn => {
                 // 選択状態のクラスを削除
                 Object.values(statusSelectedStyles).forEach(style => {
@@ -25417,7 +25453,15 @@
             '入金済': 'bg-emerald-100',
             '未着工': 'bg-orange-100',
             '施工中': 'bg-yellow-100',
+            '工事済': 'bg-amber-100',
             '完了': 'bg-teal-100',
+            // V2168: 複合ステータス
+            '入金予定・未着工': 'bg-cyan-100',
+            '入金予定・施工中': 'bg-sky-100',
+            '入金予定・工事済': 'bg-blue-100',
+            '入金済・未着工': 'bg-emerald-100',
+            '入金済・施工中': 'bg-green-100',
+            // キャンセル系
             '現調前キャンセル': 'bg-gray-100',
             '現調後失注': 'bg-gray-200',
             '他社契約済': 'bg-gray-100',
@@ -25507,9 +25551,21 @@
 
         // ステータス確定
         function confirmStatusSelection() {
-            console.log('[V2164] confirmStatusSelection開始');
-            console.log('[V2164] selectedStatusValue:', selectedStatusValue);
-            console.log('[V2164] currentStatusCase:', currentStatusCase);
+            console.log('[V2168] confirmStatusSelection開始');
+            console.log('[V2168] selectedStatusValue:', selectedStatusValue);
+            console.log('[V2168] selectedPaymentStatus:', selectedPaymentStatus);
+            console.log('[V2168] selectedWorkStatus:', selectedWorkStatus);
+            console.log('[V2168] currentStatusCase:', currentStatusCase);
+
+            // V2168: 入金系/工事系を片方だけ選んだ場合はエラー
+            if (selectedPaymentStatus && !selectedWorkStatus) {
+                showNotification('工事状況を選択', '工事状況（未着工/施工中/工事済）も選択してください', 'warning');
+                return;
+            }
+            if (!selectedPaymentStatus && selectedWorkStatus) {
+                showNotification('入金状況を選択', '入金状況（入金予定/入金済）も選択してください', 'warning');
+                return;
+            }
 
             if (!selectedStatusValue) {
                 showNotification('選択してください', 'ステータスを選択してください', 'warning');
@@ -25517,7 +25573,7 @@
             }
 
             const cvId = currentStatusCase?.cvId;
-            console.log('[V2164] cvId:', cvId);
+            console.log('[V2168] cvId:', cvId);
             if (!cvId) {
                 showNotification('エラー', '案件情報が見つかりません', 'error');
                 return;
@@ -25534,27 +25590,17 @@
 
             // 成約の場合 → 成約報告モーダルへ
             if (selectedStatusValue === '成約') {
-                console.log('[V2164] 成約を選択 → openContractReportFromStatus呼び出し');
+                console.log('[V2168] 成約を選択 → openContractReportFromStatus呼び出し');
                 closeStatusModal();
-                console.log('[V2164] closeStatusModal完了');
+                console.log('[V2168] closeStatusModal完了');
                 openContractReportFromStatus(cvId);
-                console.log('[V2164] openContractReportFromStatus完了');
+                console.log('[V2168] openContractReportFromStatus完了');
                 return;
             }
 
-            // 入金予定の場合 → 入金予定日モーダルへ
-            if (selectedStatusValue === '入金予定') {
-                closeStatusModal();
-                openPaymentScheduleModal(cvId);
-                return;
-            }
-
-            // 入金済の場合 → 入金確認処理
-            if (selectedStatusValue === '入金済') {
-                closeStatusModal();
-                openPaymentConfirmModal(cvId);
-                return;
-            }
+            // V2168: 複合ステータスの場合（入金予定/入金済 + 未着工/施工中/工事済）
+            // → 通常処理で保存
+            // ※入金予定・入金済単体の特殊処理は複合ステータスでは不要
 
             // その他のステータスは通常処理
             setCaseStatus(selectedStatusValue);
