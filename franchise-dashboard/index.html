@@ -34063,19 +34063,21 @@
 
             // 成約報告モーダルを開く
             const contractModal = document.getElementById('contractModal');
-            console.log('[V2094] contractModal element:', contractModal);
-            console.log('[V2094] contractModal classes before:', contractModal?.className);
+            console.log('[V2164] contractModal element:', contractModal);
             if (contractModal) {
-                contractModal.classList.remove('hidden');
-                console.log('[V2094] contractModal classes after:', contractModal.className);
-                console.log('[V2094] モーダルを表示しました - offsetHeight:', contractModal.offsetHeight, 'offsetWidth:', contractModal.offsetWidth);
+                // V2164: モーダルがcontractSection内にあると非表示になるため、body直下に移動
+                if (contractModal.parentElement && contractModal.parentElement.id === 'contractSection') {
+                    console.log('[V2164] モーダルをbody直下に移動');
+                    document.body.appendChild(contractModal);
+                }
 
-                // 強制的に表示を確認
+                contractModal.classList.remove('hidden');
                 contractModal.style.display = 'flex';
                 contractModal.style.visibility = 'visible';
                 contractModal.style.opacity = '1';
+                console.log('[V2164] モーダル表示完了 - offsetHeight:', contractModal.offsetHeight, 'offsetWidth:', contractModal.offsetWidth);
             } else {
-                console.error('[V2094] contractModalが見つかりません！');
+                console.error('[V2164] contractModalが見つかりません！');
                 alert('成約報告モーダルが見つかりません');
                 return;
             }
