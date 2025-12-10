@@ -25859,19 +25859,19 @@
                 return;
             }
 
-            // 成約の場合 → 成約報告モーダルへ
-            if (selectedStatusValue === '成約') {
-                console.log('[V2168] 成約を選択 → openContractReportFromStatus呼び出し');
+            // V2168: 成約系ステータス（成約、複合ステータス、完了）→ 成約報告モーダルへ
+            const contractRelatedStatuses = [
+                '成約', '完了',
+                '入金予定・未着工', '入金予定・施工中', '入金予定・工事済',
+                '入金済・未着工', '入金済・施工中', '入金済・工事済'
+            ];
+            if (contractRelatedStatuses.includes(selectedStatusValue) || isContractSelected) {
+                console.log('[V2168] 成約系ステータス選択 → openContractReportFromStatus呼び出し:', selectedStatusValue);
                 closeStatusModal();
-                console.log('[V2168] closeStatusModal完了');
-                openContractReportFromStatus(cvId);
-                console.log('[V2168] openContractReportFromStatus完了');
+                // 成約報告モーダルに選択したステータスを渡す
+                openContractReportFromStatus(cvId, selectedStatusValue);
                 return;
             }
-
-            // V2168: 複合ステータスの場合（入金予定/入金済 + 未着工/施工中/工事済）
-            // → 通常処理で保存
-            // ※入金予定・入金済単体の特殊処理は複合ステータスでは不要
 
             // その他のステータスは通常処理
             setCaseStatus(selectedStatusValue);
@@ -34625,25 +34625,28 @@
         // ============================================
 
         // 成約報告モーダルを開く（ステータスモーダルから）
-        window.openContractReportFromStatus = function(cvId) {
-            console.log('[V2094] openContractReportFromStatus:', cvId);
+        // V2168: selectedStatusを受け取って成約モーダルで使用
+        window.openContractReportFromStatus = function(cvId, selectedStatus) {
+            console.log('[V2168] openContractReportFromStatus:', cvId, 'selectedStatus:', selectedStatus);
 
             // 案件データを取得
             const caseData = findCaseByCvId(cvId);
-            console.log('[V2094] caseData:', caseData);
+            console.log('[V2168] caseData:', caseData);
             if (!caseData) {
                 alert('案件情報が見つかりません');
                 return;
             }
 
             // selectedContractCaseに設定（既存の成約報告フローで使用）
+            // V2168: 選択されたステータスも保存
             selectedContractCase = {
                 cvId: caseData.cvId,
                 customerName: caseData.customerName,
                 address: caseData.fullAddress || caseData.address,
-                tel: caseData.tel
+                tel: caseData.tel,
+                selectedStatus: selectedStatus || '成約'  // V2168: 選択ステータス
             };
-            console.log('[V2094] selectedContractCase:', selectedContractCase);
+            console.log('[V2168] selectedContractCase:', selectedContractCase);
 
             // 質問フローをリセット
             contractAnswers = [];
