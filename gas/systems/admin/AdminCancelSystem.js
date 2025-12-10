@@ -128,6 +128,9 @@ var AdminCancelSystem = {
         console.log('[AdminCancelSystem] 請求取り消し完了:', billingResult.message);
       }
 
+      // V2184: 承認成功時のSlack通知
+      this._sendApprovalNotification(applicationId, cvId, merchantId, approverName, billingResult);
+
       return {
         success: true,
         message: 'キャンセル申請を承認しました',
@@ -653,6 +656,70 @@ var AdminCancelSystem = {
     } catch (e) {
       console.error('[AdminCancelSystem] cancelBillingForCV error:', e);
       return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * V2184: キャンセル承認成功時のSlack通知
+   */
+  _sendApprovalNotification: function(applicationId, cvId, merchantId, approverName, billingResult) {
+    try {
+      const webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
+      if (!webhookUrl) {
+        console.log('[AdminCancelSystem] Slack Webhook未設定、通知スキップ');
+        return;
+      }
+
+      // 加盟店名取得
+      let merchantName = merchantId;
+      try {
+        const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+        const ss = SpreadsheetApp.openById(ssId);
+        const masterSheet = ss.getSheetByName('加盟店マスタ') || ss.getSheetByName('加盟店登録');
+        if (masterSheet) {
+          const data = masterSheet.getDataRange().getValues();
+          const headers = data[0];
+          const idIdx = headers.indexOf('加盟店ID') !== -1 ? headers.indexOf('加盟店ID') : headers.indexOf('店舗ID');
+          const nameIdx = headers.indexOf('会社名') !== -1 ? headers.indexOf('会社名') : headers.indexOf('店舗名');
+          for (let i = 1; i < data.length; i++) {
+            if (data[i][idIdx] === merchantId) {
+              merchantName = data[i][nameIdx] || merchantId;
+              break;
+            }
+          }
+        }
+      } catch (e) {
+        console.log('[AdminCancelSystem] 加盟店名取得失敗:', e);
+      }
+
+      const billingInfo = billingResult.success ? billingResult.message : '取り消し対象なし';
+
+      const payload = {
+        attachments: [{
+          color: '#36a64f',
+          title: '✅ キャンセル申請承認完了',
+          fields: [
+            { title: '申請ID', value: applicationId, short: true },
+            { title: 'CV ID', value: cvId, short: true },
+            { title: '加盟店', value: merchantName, short: true },
+            { title: '承認者', value: approverName || '管理者', short: true },
+            { title: '請求処理', value: billingInfo, short: false }
+          ],
+          ts: Math.floor(Date.now() / 1000)
+        }]
+      };
+
+      UrlFetchApp.fetch(webhookUrl, {
+        method: 'post',
+        contentType: 'application/json',
+        payload: JSON.stringify(payload)
+      });
+
+      console.log('[AdminCancelSystem] 承認通知送信完了');
+
+    } catch (e) {
+      console.error('[AdminCancelSystem] Slack通知エラー:', e);
+      // 通知失敗しても処理は続行
     }
   }
 };
