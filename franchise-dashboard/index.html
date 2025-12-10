@@ -25736,14 +25736,14 @@
                 const btn = document.querySelector(`#caseStatusModal [data-status="${s}"]`);
                 console.log('[V2168] リセット対象ボタン:', s, btn);
                 if (btn) {
-                    // 全ての背景色を削除
+                    // クラスと style 両方をリセット
                     const allBgColors = ['bg-white', 'bg-cyan-100', 'bg-emerald-100', 'bg-orange-100',
                                          'bg-yellow-100', 'bg-amber-100', 'bg-teal-100', 'bg-green-100',
                                          'bg-blue-100', 'bg-pink-100', 'bg-purple-100', 'bg-sky-100',
                                          'bg-gray-100', 'bg-gray-200', 'bg-red-100', 'bg-indigo-100'];
                     allBgColors.forEach(color => btn.classList.remove(color));
-                    btn.classList.add('bg-white');
-                    console.log('[V2168] リセット後のクラス:', btn.className);
+                    btn.style.backgroundColor = 'white';
+                    console.log('[V2168] リセット後:', btn.className, 'style:', btn.style.backgroundColor);
                 }
             });
         }
@@ -25758,17 +25758,33 @@
             document.querySelectorAll('#caseStatusModal .status-btn').forEach(btn => {
                 allBgColors.forEach(color => btn.classList.remove(color));
                 btn.classList.remove('text-white');
-                btn.classList.add('bg-white');
+                // V2168: style.backgroundColorで確実にリセット
+                btn.style.backgroundColor = 'white';
             });
         }
 
         // ボタンをハイライト
+        // V2168: style.backgroundColorで統一（classListとの混在を排除）
+        const statusColorCodes = {
+            '成約': '#ccfbf1',        // teal-100
+            '入金予定': '#d1fae5',    // emerald-100
+            '入金済': '#d1fae5',      // emerald-100
+            '未着工': '#fef3c7',      // amber-100
+            '施工中': '#fef3c7',      // amber-100
+            '工事済': '#fef3c7',      // amber-100
+            '完了': '#ccfbf1',        // teal-100
+            '現調前キャンセル': '#fee2e2', // red-100
+            '現調後失注': '#fecaca',  // red-200
+            '他社契約済': '#fef3c7',  // amber-100
+            '別加盟店契約済': '#e0e7ff', // indigo-100
+            'クレーム': '#fecaca'     // red-200
+        };
         function highlightStatusButton(status) {
             const selectedBtn = document.querySelector(`#caseStatusModal [data-status="${status}"]`);
-            const fillColor = statusFillColors[status] || 'bg-green-100';
+            const colorCode = statusColorCodes[status] || '#d1fae5'; // デフォルトemerald-100
             if (selectedBtn) {
-                selectedBtn.classList.remove('bg-white');
-                selectedBtn.classList.add(fillColor);
+                selectedBtn.style.backgroundColor = colorCode;
+                console.log('[V2168] highlightStatusButton:', status, colorCode);
             }
         }
 
