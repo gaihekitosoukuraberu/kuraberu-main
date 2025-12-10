@@ -322,3 +322,22 @@ function listBillingTriggers() {
   console.log('請求関連トリガー:', JSON.stringify(billingTriggers, null, 2));
   return billingTriggers;
 }
+
+/**
+ * freee取引先一覧を確認（デバッグ用）
+ */
+function testListFreeePartners() {
+  console.log('========== freee取引先一覧 ==========');
+  const partners = FreeeAPI.getPartners();
+
+  if (partners.partners) {
+    console.log('取引先数:', partners.partners.length);
+    partners.partners.forEach(p => {
+      console.log('  ID:', p.id, '| 名前:', p.name, '| コード:', p.shortcut1 || '(なし)');
+    });
+  } else {
+    console.log('取引先なし or エラー');
+  }
+
+  return partners;
+}
