@@ -457,6 +457,7 @@ var MerchantContractReport = {
         cvId,
         merchantId,
         merchantName,
+        contractDate, // V2169: 成約日追加
         contractAmount,
         paymentStatus,
         paymentConfirmDate,
@@ -550,23 +551,78 @@ var MerchantContractReport = {
         workContentStr = Array.isArray(data.workContent) ? data.workContent.join('、') : data.workContent;
       }
 
+      // V2169: 目安選択肢を日本語に変換
+      const scheduleMap = {
+        '1week': '1週間以内',
+        '2weeks': '2週間以内',
+        '1month': '1ヶ月以内',
+        'unknown': '未定'
+      };
+
+      // 入金予定日（日付 or 目安）
+      let paymentDueDateValue = '';
+      if (data.paymentDueDate) {
+        paymentDueDateValue = data.paymentDueDate;
+      } else if (data.paymentSchedule) {
+        paymentDueDateValue = scheduleMap[data.paymentSchedule] || data.paymentSchedule;
+      }
+
+      // 工事完了予定日（日付 or 目安）
+      let constructionEndDateValue = '';
+      if (data.constructionEndDate) {
+        constructionEndDateValue = data.constructionEndDate;
+      } else if (data.constructionScheduleEstimate) {
+        constructionEndDateValue = scheduleMap[data.constructionScheduleEstimate] || data.constructionScheduleEstimate;
+      }
+
       // 工事進捗ステータス判定
       let constructionProgressStatus = '';
       if (data.constructionStatusParam === 'scheduled') {
         constructionProgressStatus = '工事予定';
       } else if (data.constructionScheduleEstimate) {
-        constructionProgressStatus = data.constructionScheduleEstimate;
+        constructionProgressStatus = scheduleMap[data.constructionScheduleEstimate] || data.constructionScheduleEstimate;
+      }
+
+      // V2169: ユーザー登録シートから追加情報を取得
+      let registrationDate = '';
+      let deliveryDate = '';
+      let deliveredMerchants = '';
+      try {
+        const userSheet = ss.getSheetByName('ユーザー登録');
+        if (userSheet) {
+          const userData = userSheet.getDataRange().getValues();
+          const userHeaders = userData[0];
+          const cvIdIdx = userHeaders.indexOf('CV ID');
+          const regDateIdx = userHeaders.indexOf('登録日時');
+          const delDateIdx = userHeaders.indexOf('配信日時');
+          const delMerchantsIdx = userHeaders.indexOf('配信先業者一覧');
+
+          for (let i = 1; i < userData.length; i++) {
+            if (userData[i][cvIdIdx] === data.cvId) {
+              if (regDateIdx !== -1) registrationDate = userData[i][regDateIdx] || '';
+              if (delDateIdx !== -1) deliveryDate = userData[i][delDateIdx] || '';
+              if (delMerchantsIdx !== -1) deliveredMerchants = userData[i][delMerchantsIdx] || '';
+              break;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[MerchantContractReport] ユーザー登録情報取得エラー:', e);
       }
 
       const updates = {
-        // 基本情報
+        // 基本情報（ユーザー登録から取得）
         'CV ID': data.cvId,
+        '登録日時': registrationDate,
         '管理ステータス': data.newManagementStatus || '成約',
+        '配信日時': deliveryDate,
+        '配信先業者一覧': deliveredMerchants,
 
         // 成約加盟店情報
         '成約加盟店ID': data.merchantId,
         '成約加盟店名': data.merchantName || '',
         '成約報告日': new Date(),
+        '成約日': data.contractDate || '', // V2169: 成約日追加
         '成約金額': data.contractAmount,
 
         // 施工内容
@@ -574,13 +630,13 @@ var MerchantContractReport = {
         '実施工事内容': workContentStr, // 見積時点では同じ
 
         // 入金関連
-        '入金予定日': data.paymentDueDate || data.paymentSchedule || '',
+        '入金予定日': paymentDueDateValue,
         '入金確認日': data.paymentConfirmDate || '',
         '入金額': data.paymentAmount || '',
 
         // 工事関連
         '工事開始予定日': data.constructionStartDate || '',
-        '工事完了予定日': data.constructionEndDate || data.constructionScheduleEstimate || '',
+        '工事完了予定日': constructionEndDateValue,
         '工事進捗ステータス': constructionProgressStatus,
 
         // ファイル
