@@ -33375,7 +33375,9 @@
                         // V2169: 全書類URL
                         contractFileUrl: contractFileUrl,
                         estimateFileUrl: estimateFileUrl,
-                        receiptFileUrl: receiptFileUrl
+                        receiptFileUrl: receiptFileUrl,
+                        // V2169: 登録者（ログインユーザー名）
+                        reporterName: document.getElementById('userName')?.textContent || ''
                     })
                 });
 

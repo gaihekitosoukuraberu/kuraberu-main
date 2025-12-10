@@ -309,7 +309,9 @@ var MerchantContractReport = {
         constructionStartDate,
         constructionScheduleEstimate,
         newStatus,
-        contractFileUrl
+        contractFileUrl,
+        // V2169: 登録者（管理者名 or 小ユーザー名）
+        reporterName
       } = params;
 
       // バリデーション
@@ -529,7 +531,8 @@ var MerchantContractReport = {
         estimateFileUrl, // V2169: 見積書URL追加
         receiptFileUrl, // V2169: 領収書URL追加
         newManagementStatus,
-        reportType // V2169: 追加工事判定用
+        reportType, // V2169: 追加工事判定用
+        reporterName // V2169: 登録者（管理者名 or 小ユーザー名）
       });
 
       // V2169: 配信管理シートの成約日時・成約金額も更新
@@ -642,11 +645,8 @@ var MerchantContractReport = {
         constructionProgressStatus = scheduleMap[data.constructionScheduleEstimate] || data.constructionScheduleEstimate;
       }
 
-      // V2169: ユーザー登録シートから追加情報を取得
+      // V2169: ユーザー登録シートから登録日時を取得
       let registrationDate = '';
-      let deliveryDate = '';
-      let deliveredMerchants = '';
-      let nonContractMerchants = ''; // 不成約業者一覧
       try {
         const userSheet = ss.getSheetByName('ユーザー登録');
         if (userSheet) {
@@ -654,20 +654,63 @@ var MerchantContractReport = {
           const userHeaders = userData[0];
           const cvIdIdx = userHeaders.indexOf('CV ID');
           const regDateIdx = userHeaders.indexOf('登録日時');
-          const delDateIdx = userHeaders.indexOf('配信日時');
-          const delMerchantsIdx = userHeaders.indexOf('配信先業者一覧');
 
           for (let i = 1; i < userData.length; i++) {
             if (userData[i][cvIdIdx] === data.cvId) {
               if (regDateIdx !== -1) registrationDate = userData[i][regDateIdx] || '';
-              if (delDateIdx !== -1) deliveryDate = userData[i][delDateIdx] || '';
-              if (delMerchantsIdx !== -1) deliveredMerchants = userData[i][delMerchantsIdx] || '';
               break;
             }
           }
         }
       } catch (e) {
         console.warn('[MerchantContractReport] ユーザー登録情報取得エラー:', e);
+      }
+
+      // V2169: 配信管理シートから配信先業者一覧・配信日時・成約加盟店名を取得
+      let deliveryDate = '';
+      let deliveredMerchants = ''; // 配信先業者一覧（配信管理の同じCV IDの全加盟店ID）
+      let nonContractMerchants = ''; // 不成約業者一覧
+      let contractMerchantName = ''; // 成約加盟店名（配信管理の加盟店IDカラム = 会社名）
+      try {
+        const deliverySheet = ss.getSheetByName('配信管理');
+        if (deliverySheet) {
+          const deliveryData = deliverySheet.getDataRange().getValues();
+          const deliveryHeaders = deliveryData[0];
+          const cvIdIdx = deliveryHeaders.indexOf('CV ID');
+          const merchantIdIdx = deliveryHeaders.indexOf('加盟店ID'); // これが会社名
+          const deliveryDateIdx = deliveryHeaders.indexOf('配信日時');
+
+          const allMerchants = []; // 全配信先業者
+          let firstDeliveryDate = '';
+
+          for (let i = 1; i < deliveryData.length; i++) {
+            if (deliveryData[i][cvIdIdx] === data.cvId) {
+              const merchantCompanyName = deliveryData[i][merchantIdIdx] || '';
+              if (merchantCompanyName) {
+                allMerchants.push(merchantCompanyName);
+              }
+              // 最初の配信日時を取得
+              if (!firstDeliveryDate && deliveryDateIdx !== -1) {
+                firstDeliveryDate = deliveryData[i][deliveryDateIdx] || '';
+              }
+              // 成約加盟店の会社名を取得（merchantIdで照合）
+              // 配信管理の加盟店IDは会社名なので、data.merchantNameと比較
+              if (merchantCompanyName === data.merchantName) {
+                contractMerchantName = merchantCompanyName;
+              }
+            }
+          }
+
+          deliveryDate = firstDeliveryDate;
+          deliveredMerchants = allMerchants.join('、');
+
+          // 不成約業者一覧 = 配信先から成約加盟店を除外
+          nonContractMerchants = allMerchants
+            .filter(m => m !== data.merchantName)
+            .join('、');
+        }
+      } catch (e) {
+        console.warn('[MerchantContractReport] 配信管理情報取得エラー:', e);
       }
 
       // V2169: 加盟店ステータスを加盟店シートから取得
@@ -691,14 +734,6 @@ var MerchantContractReport = {
         console.warn('[MerchantContractReport] 加盟店ステータス取得エラー:', e);
       }
 
-      // V2169: 不成約業者一覧を生成（配信先業者から成約加盟店を除外）
-      if (deliveredMerchants && data.merchantName) {
-        const merchantsArray = deliveredMerchants.split(/[,、\n]/);
-        nonContractMerchants = merchantsArray
-          .filter(m => m.trim() && m.trim() !== data.merchantName)
-          .join('、');
-      }
-
       const updates = {
         // 基本情報（ユーザー登録から取得）
         'CV ID': data.cvId,
@@ -709,7 +744,7 @@ var MerchantContractReport = {
 
         // 成約加盟店情報
         '成約加盟店ID': data.merchantId,
-        '成約加盟店名': data.merchantName || '',
+        '成約加盟店名': contractMerchantName || data.merchantName || '', // 配信管理シートの加盟店ID（会社名）
         '加盟店ステータス': merchantStatus,
         '成約報告日': new Date(),
         '成約日': data.contractDate || '', // V2169: 成約日追加
@@ -729,12 +764,12 @@ var MerchantContractReport = {
         '工事完了予定日': constructionEndDateValue,
         '工事進捗ステータス': constructionProgressStatus,
 
-        // V2169: 不成約業者一覧
+        // V2169: 不成約業者一覧（配信先から成約加盟店を除外）
         '不成約業者一覧': nonContractMerchants,
 
-        // V2169: 備考・登録者
+        // V2169: 備考・登録者（登録者はログインユーザー名）
         '備考': data.notes || '',
-        '登録者': data.merchantName || '', // 成約報告者 = 成約加盟店名
+        '登録者': data.reporterName || '', // 管理者名 or 小ユーザー名
 
         // ファイル（V2169: 見積書・領収書追加）
         '契約書URL': data.contractFileUrl || '',
@@ -2184,6 +2219,10 @@ var MerchantContractReport = {
       const merchantIdCol = headers.indexOf('加盟店ID');
       const contractDateCol = headers.indexOf('成約日時');
       const contractAmountCol = headers.indexOf('成約金額');
+      const deliveryStatusCol = headers.indexOf('配信ステータス');
+      const detailStatusCol = headers.indexOf('詳細ステータス');
+      const statusUpdateCol = headers.indexOf('ステータス更新日時');
+      const lastUpdateCol = headers.indexOf('最終更新日時');
 
       if (cvIdCol === -1 || merchantIdCol === -1) {
         console.warn('[MerchantContractReport] _updateDeliverySheetContract - 必要なカラムが見つかりません');
@@ -2217,14 +2256,31 @@ var MerchantContractReport = {
           const merchantMatch = String(rowMerchantId) === String(merchantId) ||
                                String(rowMerchantId) === String(merchantCompanyName);
           if (merchantMatch) {
+            const now = new Date();
             // 成約日時を更新
             if (contractDateCol !== -1) {
-              const contractDateTime = contractDate || new Date();
+              const contractDateTime = contractDate || now;
               deliverySheet.getRange(i + 1, contractDateCol + 1).setValue(contractDateTime);
             }
             // 成約金額を更新
             if (contractAmountCol !== -1 && contractAmount) {
               deliverySheet.getRange(i + 1, contractAmountCol + 1).setValue(contractAmount);
+            }
+            // V2169: 配信ステータスを「成約」に更新
+            if (deliveryStatusCol !== -1) {
+              deliverySheet.getRange(i + 1, deliveryStatusCol + 1).setValue('成約');
+            }
+            // V2169: 詳細ステータスを「成約」に更新
+            if (detailStatusCol !== -1) {
+              deliverySheet.getRange(i + 1, detailStatusCol + 1).setValue('成約');
+            }
+            // V2169: ステータス更新日時を更新
+            if (statusUpdateCol !== -1) {
+              deliverySheet.getRange(i + 1, statusUpdateCol + 1).setValue(now);
+            }
+            // V2169: 最終更新日時を更新
+            if (lastUpdateCol !== -1) {
+              deliverySheet.getRange(i + 1, lastUpdateCol + 1).setValue(now);
             }
             updatedCount++;
             console.log('[MerchantContractReport] _updateDeliverySheetContract - 更新行:', i + 1);
