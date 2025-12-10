@@ -269,38 +269,40 @@ const FreeeAPI = {
     const invoiceNumber = invoiceData.invoiceNumber ||
       `INV-${Utilities.formatDate(today, 'Asia/Tokyo', 'yyyyMMdd')}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
 
-    // 明細データ構築
-    const invoiceContents = invoiceData.items.map((item, index) => ({
-      order: index + 1,
+    // 明細データ構築（freee請求書API形式: lines）
+    const lines = invoiceData.items.map((item, index) => ({
       type: 'normal',
-      name: item.name,
-      quantity: item.quantity || 1,
+      description: item.name,
+      quantity: String(item.quantity || 1),
       unit: item.unit || '件',
-      unit_price: item.unitPrice,
+      unit_price: String(item.unitPrice),
       tax_rate: 10,
-      description: item.description || ''
+      is_withholding_tax_target: false
     }));
 
+    // freee請求書API（/iv/invoices）用のペイロード
     const payload = {
       company_id: companyId,
       partner_id: invoiceData.partnerId,
-      issue_date: issueDate,
-      due_date: dueDate,
+      billing_date: issueDate,
+      payment_date: dueDate,
+      payment_type: 'transfer',  // 振込
       invoice_number: invoiceNumber,
-      title: invoiceData.title || '請求書',
-      invoice_status: 'issue',  // 発行済みで作成
-      invoice_layout: 'default_classic',
-      tax_entry_method: 'exclusive',  // 税抜
-      invoice_contents: invoiceContents,
-      // メッセージ
-      message: invoiceData.message || 'いつもお世話になっております。\n下記の通りご請求申し上げます。',
-      notes: invoiceData.notes || ''
+      subject: invoiceData.title || '請求書',
+      tax_entry_method: 'out',  // 税抜（out=外税）
+      tax_fraction: 'round',  // 四捨五入
+      withholding_tax_entry_method: 'out',
+      partner_title: '御中',
+      lines: lines,
+      invoice_note: invoiceData.message || 'いつもお世話になっております。\n下記の通りご請求申し上げます。',
+      memo: invoiceData.notes || ''
     };
 
-    console.log('[FreeeAPI] 請求書作成リクエスト:', JSON.stringify(payload, null, 2));
+    console.log('[FreeeAPI] 請求書作成リクエスト（freee請求書API）:', JSON.stringify(payload, null, 2));
 
     try {
-      const result = this.request('POST', '/api/1/invoices', payload);
+      // freee請求書API（新）を使用
+      const result = this.request('POST', '/iv/invoices', payload);
       console.log('[FreeeAPI] 請求書作成成功:', result.invoice?.id);
 
       // メール送信フラグがあれば送信
@@ -310,8 +312,8 @@ const FreeeAPI = {
 
       return result;
     } catch (e) {
-      console.error('[FreeeAPI] 請求書API失敗:', e.message);
-      // 請求書APIが使えない場合は取引（収入）として作成
+      console.error('[FreeeAPI] freee請求書API失敗:', e.message);
+      // freee請求書APIが使えない場合は取引（収入）として作成
       console.log('[FreeeAPI] 取引として作成を試行');
       return this.createDeal(invoiceData);
     }
@@ -325,26 +327,22 @@ const FreeeAPI = {
   sendInvoiceEmail: function(invoiceId, email) {
     const companyId = parseInt(this.getCompanyId());
 
-    const payload = {
-      invoice_id: invoiceId,
-      company_id: companyId,
-      email: email,
-      subject: '【くらべる】請求書送付のご案内',
-      body: 'いつもお世話になっております。\n\n請求書をお送りいたします。\nご確認のほど、よろしくお願いいたします。\n\n株式会社くらべる'
-    };
-
     console.log('[FreeeAPI] 請求書メール送信:', invoiceId, '->', email);
 
     try {
-      // freee請求書メール送信API
-      const result = this.request('POST', `/api/1/invoices/${invoiceId}/send`, {
-        company_id: companyId
+      // freee請求書API - 請求書送信エンドポイント
+      const result = this.request('POST', `/iv/invoices/${invoiceId}/delivery`, {
+        company_id: companyId,
+        sending_method: 'email',  // メール送信
+        email_to: email,
+        email_subject: '【くらべる】請求書送付のご案内',
+        email_body: 'いつもお世話になっております。\n\n請求書をお送りいたします。\nご確認のほど、よろしくお願いいたします。\n\n株式会社くらべる'
       });
       console.log('[FreeeAPI] メール送信成功');
       return result;
     } catch (e) {
       console.error('[FreeeAPI] メール送信失敗:', e.message);
-      // freeeメール送信が失敗した場合、GmailAPIで送信
+      // freeeメール送信が失敗した場合、Gmailで送信
       this.sendInvoiceEmailViaGmail(invoiceId, email);
     }
   },
