@@ -1,4 +1,4 @@
-// V2166: カラムインデックスエラー修正
+// V2169: CORSエラー修正 - 最新デプロイURL
 /**
  * 🔥 環境変数ローダー - マスターファイル（全システム共通） 🔥
  * .envファイルの代わりにJavaScriptで定数管理
@@ -12,7 +12,7 @@
  * 参照方法（PHP）:
  * このファイルを読み込んでGAS_URLを抽出
  *
- * @file-version V2166-MASTER-2025-12-10
+ * @file-version V2169-MASTER-2025-12-10
  * @last-update 2025-12-10
  */
 
@@ -21,14 +21,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V2166
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbwc-kYUEUFeEVwdW65GEsPzjiswMvAQWbnKDb5rAdky0G5W87ZMVWmCnx7-dlZrrl17cQ/exec',
+  // プライマリGAS URL（メイン運用）- V2169 @2138
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbxS4BjowTuL7Hal8PL6VvtL75e-7RMpiR1jmBvIywAs3WQdabZjcigsLUd5dF1dq3Tchg/exec',
 
-  // フォールバックGAS URL（バックアップ）- V2166
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbwc-kYUEUFeEVwdW65GEsPzjiswMvAQWbnKDb5rAdky0G5W87ZMVWmCnx7-dlZrrl17cQ/exec',
+  // フォールバックGAS URL（バックアップ）- V2169 @2138
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxS4BjowTuL7Hal8PL6VvtL75e-7RMpiR1jmBvIywAs3WQdabZjcigsLUd5dF1dq3Tchg/exec',
 
-  // 緊急時URL（最終フォールバック）- V2166
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbwc-kYUEUFeEVwdW65GEsPzjiswMvAQWbnKDb5rAdky0G5W87ZMVWmCnx7-dlZrrl17cQ/exec',
+  // 緊急時URL（最終フォールバック）- V2169 @2138
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxS4BjowTuL7Hal8PL6VvtL75e-7RMpiR1jmBvIywAs3WQdabZjcigsLUd5dF1dq3Tchg/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V2168 - 強制更新）
-  CACHE_BUSTER: 'v1765368288' + Date.now()
+  // キャッシュバスター（V2169 - 強制更新）
+  CACHE_BUSTER: 'v2169' + Date.now()
 };
 
 // グローバルに公開（全てのファイルから参照可能）
