@@ -25555,25 +25555,29 @@
                 resetStatusButtons(['完了']);
                 highlightStatusButton(status);
             } else if (status === '完了') {
-                // 完了は入金済+工事済の場合のみ（自動選択される）
+                // 完了は入金済+工事済の場合のみ
                 if (!isContractSelected) return;
-                // 完了を直接選んだ場合は入金済+工事済を自動設定
                 selectedPaymentStatus = '入金済';
                 selectedWorkStatus = '工事済';
 
-                // 入金・工事エリアの全ボタンを強制リセット（style属性で白に上書き）
-                document.querySelectorAll('.payment-btn, .work-btn, [data-status="完了"]').forEach(btn => {
+                // 全ボタン白にする
+                document.querySelectorAll('#caseStatusModal .payment-btn').forEach(btn => {
                     btn.style.backgroundColor = 'white';
                 });
+                document.querySelectorAll('#caseStatusModal .work-btn').forEach(btn => {
+                    btn.style.backgroundColor = 'white';
+                });
+                const kanryoBtnReset = document.querySelector('#caseStatusModal [data-status="完了"]');
+                if (kanryoBtnReset) kanryoBtnReset.style.backgroundColor = 'white';
 
-                // 入金済・工事済・完了だけハイライト（style属性で直接色指定）
-                const nyukinBtn = document.querySelector('[data-status="入金済"]');
-                const koujiBtn = document.querySelector('[data-status="工事済"]');
-                const kanryoBtn = document.querySelector('[data-status="完了"]');
+                // 入金済・工事済・完了だけ色付け
+                const nyukinBtn = document.querySelector('#caseStatusModal [data-status="入金済"]');
+                const koujiBtn = document.querySelector('#caseStatusModal [data-status="工事済"]');
+                const kanryoBtn = document.querySelector('#caseStatusModal [data-status="完了"]');
 
-                if (nyukinBtn) nyukinBtn.style.backgroundColor = '#d1fae5'; // emerald-100
-                if (koujiBtn) koujiBtn.style.backgroundColor = '#fef3c7';  // amber-100
-                if (kanryoBtn) kanryoBtn.style.backgroundColor = '#ccfbf1'; // teal-100
+                if (nyukinBtn) nyukinBtn.style.backgroundColor = '#d1fae5';
+                if (koujiBtn) koujiBtn.style.backgroundColor = '#fef3c7';
+                if (kanryoBtn) kanryoBtn.style.backgroundColor = '#ccfbf1';
 
                 selectedStatusValue = '完了';
                 return;
