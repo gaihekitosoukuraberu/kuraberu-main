@@ -31394,10 +31394,17 @@
 
         // 成約モーダルを閉じる
         window.closeContractModal = function() {
-            document.getElementById('contractModal').classList.add('hidden');
-            document.getElementById('contractQuestionContainer').classList.remove('hidden');
-            document.getElementById('contractFormPhase').classList.add('hidden');
-            document.getElementById('contractCustomerInfo').classList.add('hidden');
+            const modal = document.getElementById('contractModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                // V2167: display/visibility/opacityもリセット（開く時に直接設定しているため）
+                modal.style.display = '';
+                modal.style.visibility = '';
+                modal.style.opacity = '';
+            }
+            document.getElementById('contractQuestionContainer')?.classList.remove('hidden');
+            document.getElementById('contractFormPhase')?.classList.add('hidden');
+            document.getElementById('contractCustomerInfo')?.classList.add('hidden');
             selectedContractCase = null;
             contractAnswers = [];
             resetContractForm();
