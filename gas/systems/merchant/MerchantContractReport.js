@@ -329,14 +329,22 @@ var MerchantContractReport = {
       // 報告種別に応じた処理
       const isAdditionalWork = reportType === '追加工事報告';
 
-      // 追加工事報告でない場合のみ成約加盟店IDをチェック
+      // V2169: 成約報告済みでも同じ加盟店なら更新を許可
+      // 追加工事報告でない場合、他の加盟店が成約済みならエラー
+      let isUpdate = false;
       if (!isAdditionalWork) {
         const currentContractMerchantId = rows[targetRow - 2][contractMerchantIdIdx];
         if (currentContractMerchantId && currentContractMerchantId !== '') {
-          return {
-            success: false,
-            error: 'この案件はすでに成約報告済みです（加盟店ID: ' + currentContractMerchantId + '）'
-          };
+          if (currentContractMerchantId !== merchantId) {
+            // 他の加盟店が成約済み → エラー
+            return {
+              success: false,
+              error: 'この案件は他の加盟店が成約済みです（加盟店ID: ' + currentContractMerchantId + '）'
+            };
+          }
+          // 同じ加盟店が成約済み → 更新として処理
+          isUpdate = true;
+          console.log('[MerchantContractReport] 成約報告更新モード: CV ID=' + cvId);
         }
       }
 
@@ -467,7 +475,15 @@ var MerchantContractReport = {
 
       console.log('[MerchantContractReport] submitContractReport - 成約報告完了:', cvId, '報告種別:', reportType, 'ステータス:', newManagementStatus);
 
-      const successMessage = isAdditionalWork ? '追加工事報告を登録しました' : '成約報告を登録しました';
+      // V2169: 更新の場合はメッセージを変える
+      let successMessage;
+      if (isAdditionalWork) {
+        successMessage = '追加工事報告を登録しました';
+      } else if (isUpdate) {
+        successMessage = '成約報告を更新しました';
+      } else {
+        successMessage = '成約報告を登録しました';
+      }
 
       return {
         success: true,
@@ -490,13 +506,18 @@ var MerchantContractReport = {
 
   /**
    * V2162: 成約データシートへの保存
+   * V2169: シートが存在しない場合は自動作成
    */
   _saveToContractSheet: function(ss, data) {
     try {
-      const contractSheet = ss.getSheetByName('成約データ');
+      let contractSheet = ss.getSheetByName('成約データ');
       if (!contractSheet) {
-        console.log('[MerchantContractReport] 成約データシートが見つかりません');
-        return;
+        console.log('[MerchantContractReport] 成約データシートが見つかりません - 新規作成します');
+        contractSheet = this._createContractDataSheet(ss);
+        if (!contractSheet) {
+          console.error('[MerchantContractReport] 成約データシート作成に失敗しました');
+          return;
+        }
       }
 
       const headers = contractSheet.getRange(1, 1, 1, contractSheet.getLastColumn()).getValues()[0];
