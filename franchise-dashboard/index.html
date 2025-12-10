@@ -25524,9 +25524,13 @@
 
             // V2168: 成約を押したら入金/工事エリアを活性化
             if (status === '成約') {
+                // 全ボタンリセットしてから成約だけハイライト
+                resetAllStatusButtons();
                 isContractSelected = true;
+                selectedPaymentStatus = null;
+                selectedWorkStatus = null;
+                selectedStatusValue = null;
                 enablePostContractArea();
-                // 成約ボタンをハイライト（他はリセットしない）
                 highlightStatusButton('成約');
                 // 成約単体ではselectedStatusValueは設定しない（入金/工事選択待ち）
                 return;
