@@ -32902,14 +32902,12 @@
 
             if (currentQuestion) {
                 console.log('[V2164] 質問を表示します');
-                // V2165: 質問フェーズのリッチデザイン
-                const icons = ['📋', '📊', '🎯', '✨'];
+                // V2168: 質問フェーズのシンプルデザイン（ステップ表示なし）
                 container.innerHTML = `
                     <div class="text-center py-6">
                         <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                            <span class="text-3xl">${questionIndex === 0 ? '📋' : '📊'}</span>
+                            <span class="text-3xl">📋</span>
                         </div>
-                        <h4 class="text-lg font-bold text-gray-800 mb-2">ステップ ${questionIndex + 1}/${contractQuestions.length}</h4>
                         <p class="text-gray-600 mb-6">${currentQuestion.question}</p>
                         <div class="grid grid-cols-1 gap-3 max-w-sm mx-auto">
                             ${currentQuestion.options.map((option, idx) => `
