@@ -196,10 +196,18 @@ const FreeeAPI = {
       name: partnerData.name,
       shortcut1: partnerData.code || '', // 加盟店ID
       long_name: partnerData.longName || partnerData.name,
-      default_title: '御中',
-      partner_bank_account_attributes: partnerData.bankAccount || null,
-      address_attributes: partnerData.address || null
+      default_title: '御中'
     };
+
+    // 銀行口座情報がある場合のみ追加（nullだとエラー）
+    if (partnerData.bankAccount) {
+      payload.partner_bank_account_attributes = partnerData.bankAccount;
+    }
+
+    // 住所情報がある場合のみ追加
+    if (partnerData.address) {
+      payload.address_attributes = partnerData.address;
+    }
 
     return this.request('POST', '/api/1/partners', payload);
   },
