@@ -656,6 +656,11 @@ const SystemRouter = {
       return { system: 'common', route: this.routes['health'] };
     }
 
+    // スプシ構造取得（開発用）
+    if (action === 'getSpreadsheetStructure') {
+      return { system: 'common', route: this.routes['getSpreadsheetStructure'] };
+    }
+
     // プレフィックスマッチング
     for (const routeKey in this.routes) {
       const route = this.routes[routeKey];
