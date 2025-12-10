@@ -472,6 +472,8 @@ var MerchantContractReport = {
         floors,
         workContent,
         contractFileUrl,
+        estimateFileUrl, // V2169: 見積書URL追加
+        receiptFileUrl, // V2169: 領収書URL追加
         newManagementStatus,
         reportType // V2169: 追加工事判定用
       });
@@ -639,8 +641,10 @@ var MerchantContractReport = {
         '工事完了予定日': constructionEndDateValue,
         '工事進捗ステータス': constructionProgressStatus,
 
-        // ファイル
+        // ファイル（V2169: 見積書・領収書追加）
         '契約書URL': data.contractFileUrl || '',
+        '見積書URL': data.estimateFileUrl || '',
+        '領収書URL': data.receiptFileUrl || '',
 
         // 最終更新
         '最終更新日時': new Date()
@@ -719,7 +723,9 @@ var MerchantContractReport = {
         '備考',
         '登録者',
         '最終更新日時',
-        '契約書URL'
+        '契約書URL',
+        '見積書URL',
+        '領収書URL'
       ];
 
       // ヘッダー行を書き込み

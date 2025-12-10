@@ -33133,16 +33133,13 @@
                     constructionStatus
                 });
 
-                // V2165: 契約書ファイルアップロード（JSON形式に修正）
-                let contractFileUrl = '';
-                const contractFileInput = document.getElementById('contractFile');
-                if (contractFileInput && contractFileInput.files && contractFileInput.files[0]) {
-                    const file = contractFileInput.files[0];
+                // V2169: ファイルアップロード共通関数
+                async function uploadFile(fileInput, fileType) {
+                    if (!fileInput || !fileInput.files || !fileInput.files[0]) return '';
+                    const file = fileInput.files[0];
                     try {
-                        // ファイルをBase64に変換
                         const base64 = await fileToBase64(file);
-                        console.log('[Contract] ファイルアップロード開始:', file.name);
-
+                        console.log(`[Contract] ${fileType}アップロード開始:`, file.name);
                         const uploadResponse = await fetch(GAS_URL, {
                             method: 'POST',
                             headers: { 'Content-Type': 'text/plain' },
@@ -33154,19 +33151,27 @@
                                 fileType: file.type,
                                 fileData: base64,
                                 cvId: selectedContractCase.cvId,
-                                merchantId: merchantId
+                                merchantId: merchantId,
+                                docType: fileType // V2169: ドキュメントタイプ追加
                             })
                         });
                         const uploadResult = await uploadResponse.json();
-                        console.log('[Contract] ファイルアップロード結果:', uploadResult);
+                        console.log(`[Contract] ${fileType}アップロード結果:`, uploadResult);
                         if (uploadResult.success && uploadResult.fileUrl) {
-                            contractFileUrl = uploadResult.fileUrl;
+                            return uploadResult.fileUrl;
                         }
                     } catch (uploadError) {
-                        console.error('[Contract] ファイルアップロードエラー:', uploadError);
-                        // アップロード失敗しても成約報告は続行
+                        console.error(`[Contract] ${fileType}アップロードエラー:`, uploadError);
                     }
+                    return '';
                 }
+
+                // V2169: 契約書・見積書・領収書を並列アップロード
+                const [contractFileUrl, estimateFileUrl, receiptFileUrl] = await Promise.all([
+                    uploadFile(document.getElementById('contractFile'), 'contract'),
+                    uploadFile(document.getElementById('estimateFile'), 'estimate'),
+                    uploadFile(document.getElementById('receiptFile'), 'receipt')
+                ]);
 
                 // V2165: API呼び出し（JSON形式に修正）
                 console.log('[Contract] 成約報告API送信開始');
@@ -33201,7 +33206,10 @@
                         floors: buildingFloors || '',
                         workContent: workContent,
                         newStatus: newStatus,
-                        contractFileUrl: contractFileUrl
+                        // V2169: 全書類URL
+                        contractFileUrl: contractFileUrl,
+                        estimateFileUrl: estimateFileUrl,
+                        receiptFileUrl: receiptFileUrl
                     })
                 });
 
