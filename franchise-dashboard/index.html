@@ -33202,7 +33202,8 @@
 
             try {
                 const merchantId = window.merchantId;
-                const merchantName = window.merchantName || '';
+                // V2169: merchantNameはmerchantDataの会社名から取得
+                const merchantName = window.merchantData?.['会社名'] || '';
 
                 if (!merchantId || !selectedContractCase) {
                     alert('必要な情報が不足しています');

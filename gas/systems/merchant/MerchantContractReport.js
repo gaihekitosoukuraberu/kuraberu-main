@@ -643,6 +643,7 @@ var MerchantContractReport = {
       let registrationDate = '';
       let deliveryDate = '';
       let deliveredMerchants = '';
+      let nonContractMerchants = ''; // 不成約業者一覧
       try {
         const userSheet = ss.getSheetByName('ユーザー登録');
         if (userSheet) {
@@ -666,6 +667,35 @@ var MerchantContractReport = {
         console.warn('[MerchantContractReport] ユーザー登録情報取得エラー:', e);
       }
 
+      // V2169: 加盟店ステータスを加盟店シートから取得
+      let merchantStatus = '';
+      try {
+        const merchantSheet = ss.getSheetByName('加盟店');
+        if (merchantSheet) {
+          const merchantData = merchantSheet.getDataRange().getValues();
+          const merchantHeaders = merchantData[0];
+          const merchantIdIdx = merchantHeaders.indexOf('加盟店ID');
+          const statusIdx = merchantHeaders.indexOf('運用ステータス');
+
+          for (let i = 1; i < merchantData.length; i++) {
+            if (merchantData[i][merchantIdIdx] === data.merchantId) {
+              if (statusIdx !== -1) merchantStatus = merchantData[i][statusIdx] || '';
+              break;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[MerchantContractReport] 加盟店ステータス取得エラー:', e);
+      }
+
+      // V2169: 不成約業者一覧を生成（配信先業者から成約加盟店を除外）
+      if (deliveredMerchants && data.merchantName) {
+        const merchantsArray = deliveredMerchants.split(/[,、\n]/);
+        nonContractMerchants = merchantsArray
+          .filter(m => m.trim() && m.trim() !== data.merchantName)
+          .join('、');
+      }
+
       const updates = {
         // 基本情報（ユーザー登録から取得）
         'CV ID': data.cvId,
@@ -677,6 +707,7 @@ var MerchantContractReport = {
         // 成約加盟店情報
         '成約加盟店ID': data.merchantId,
         '成約加盟店名': data.merchantName || '',
+        '加盟店ステータス': merchantStatus,
         '成約報告日': new Date(),
         '成約日': data.contractDate || '', // V2169: 成約日追加
         '成約金額': data.contractAmount,
@@ -694,6 +725,13 @@ var MerchantContractReport = {
         '工事開始予定日': data.constructionStartDate || '',
         '工事完了予定日': constructionEndDateValue,
         '工事進捗ステータス': constructionProgressStatus,
+
+        // V2169: 不成約業者一覧
+        '不成約業者一覧': nonContractMerchants,
+
+        // V2169: 備考・登録者
+        '備考': data.notes || '',
+        '登録者': data.merchantName || '', // 成約報告者 = 成約加盟店名
 
         // ファイル（V2169: 見積書・領収書追加）
         '契約書URL': data.contractFileUrl || '',
