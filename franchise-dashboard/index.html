@@ -25507,16 +25507,29 @@
                 return;
             }
 
-            // V2168: 完了ステータスの復元処理（入金済・工事済として復元）
+            // V2168: 完了ステータスの復元処理（入金済・工事済・完了のみハイライト）
             if (status === '完了') {
                 isContractSelected = true;
                 enablePostContractArea();
                 highlightStatusButton('成約');
                 selectedPaymentStatus = '入金済';
                 selectedWorkStatus = '工事済';
-                highlightStatusButton('入金済');
-                highlightStatusButton('工事済');
-                highlightStatusButton('完了');
+
+                // 入金・工事・完了を全て白にリセットしてから、入金済・工事済・完了だけ色付け
+                const allPaymentWorkStatuses = ['入金予定', '入金済', '未着工', '施工中', '工事済', '完了'];
+                allPaymentWorkStatuses.forEach(s => {
+                    const btn = document.querySelector(`#caseStatusModal [data-status="${s}"]`);
+                    if (btn) btn.style.backgroundColor = 'white';
+                });
+
+                // 入金済・工事済・完了だけ色付け
+                const nyukinBtn = document.querySelector('#caseStatusModal [data-status="入金済"]');
+                const koujiBtn = document.querySelector('#caseStatusModal [data-status="工事済"]');
+                const kanryoBtn = document.querySelector('#caseStatusModal [data-status="完了"]');
+                if (nyukinBtn) nyukinBtn.style.backgroundColor = '#d1fae5';
+                if (koujiBtn) koujiBtn.style.backgroundColor = '#fef3c7';
+                if (kanryoBtn) kanryoBtn.style.backgroundColor = '#ccfbf1';
+
                 selectedStatusValue = '完了';
                 return;
             }
