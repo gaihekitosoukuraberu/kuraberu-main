@@ -7495,15 +7495,23 @@
                                             </div>
                                         </div>
 
-                                        <!-- 施工内容 -->
+                                        <!-- 施工内容（加盟時の選択肢と統一） -->
                                         <div class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
                                             <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
                                                 <span class="text-lg">🎨</span> 施工内容（複数選択可）
                                             </label>
-                                            <div class="grid grid-cols-3 gap-2 mb-3">
+                                            <div class="grid grid-cols-2 gap-2 mb-3">
                                                 <label class="relative cursor-pointer">
                                                     <input type="checkbox" name="workType" value="外壁塗装" class="peer sr-only">
                                                     <div class="py-2 px-1 rounded-lg border-2 border-gray-200 text-center text-xs font-medium transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:text-purple-700 hover:bg-gray-50">外壁塗装</div>
+                                                </label>
+                                                <label class="relative cursor-pointer">
+                                                    <input type="checkbox" name="workType" value="外壁カバー工法" class="peer sr-only">
+                                                    <div class="py-2 px-1 rounded-lg border-2 border-gray-200 text-center text-xs font-medium transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:text-purple-700 hover:bg-gray-50">外壁カバー工法</div>
+                                                </label>
+                                                <label class="relative cursor-pointer">
+                                                    <input type="checkbox" name="workType" value="外壁張替え" class="peer sr-only">
+                                                    <div class="py-2 px-1 rounded-lg border-2 border-gray-200 text-center text-xs font-medium transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:text-purple-700 hover:bg-gray-50">外壁張替え</div>
                                                 </label>
                                                 <label class="relative cursor-pointer">
                                                     <input type="checkbox" name="workType" value="屋根塗装" class="peer sr-only">
@@ -7514,28 +7522,24 @@
                                                     <div class="py-2 px-1 rounded-lg border-2 border-gray-200 text-center text-xs font-medium transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:text-purple-700 hover:bg-gray-50">屋上防水</div>
                                                 </label>
                                                 <label class="relative cursor-pointer">
-                                                    <input type="checkbox" name="workType" value="外壁カバー" class="peer sr-only">
-                                                    <div class="py-2 px-1 rounded-lg border-2 border-gray-200 text-center text-xs font-medium transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:text-purple-700 hover:bg-gray-50">外壁カバー</div>
+                                                    <input type="checkbox" name="workType" value="屋根葺き替え" class="peer sr-only">
+                                                    <div class="py-2 px-1 rounded-lg border-2 border-gray-200 text-center text-xs font-medium transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:text-purple-700 hover:bg-gray-50">屋根葺き替え</div>
                                                 </label>
                                                 <label class="relative cursor-pointer">
-                                                    <input type="checkbox" name="workType" value="屋根カバー" class="peer sr-only">
-                                                    <div class="py-2 px-1 rounded-lg border-2 border-gray-200 text-center text-xs font-medium transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:text-purple-700 hover:bg-gray-50">屋根カバー</div>
-                                                </label>
-                                                <label class="relative cursor-pointer">
-                                                    <input type="checkbox" name="workType" value="葺き替え" class="peer sr-only">
-                                                    <div class="py-2 px-1 rounded-lg border-2 border-gray-200 text-center text-xs font-medium transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:text-purple-700 hover:bg-gray-50">葺き替え</div>
+                                                    <input type="checkbox" name="workType" value="屋根カバー工法" class="peer sr-only">
+                                                    <div class="py-2 px-1 rounded-lg border-2 border-gray-200 text-center text-xs font-medium transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:text-purple-700 hover:bg-gray-50">屋根カバー工法</div>
                                                 </label>
                                                 <label class="relative cursor-pointer">
                                                     <input type="checkbox" name="workType" value="外壁補修" class="peer sr-only">
                                                     <div class="py-2 px-1 rounded-lg border-2 border-gray-200 text-center text-xs font-medium transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:text-purple-700 hover:bg-gray-50">外壁補修</div>
                                                 </label>
                                                 <label class="relative cursor-pointer">
-                                                    <input type="checkbox" name="workType" value="ベランダ防水" class="peer sr-only">
-                                                    <div class="py-2 px-1 rounded-lg border-2 border-gray-200 text-center text-xs font-medium transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:text-purple-700 hover:bg-gray-50">ベランダ防水</div>
+                                                    <input type="checkbox" name="workType" value="屋根補修" class="peer sr-only">
+                                                    <div class="py-2 px-1 rounded-lg border-2 border-gray-200 text-center text-xs font-medium transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:text-purple-700 hover:bg-gray-50">屋根補修</div>
                                                 </label>
                                                 <label class="relative cursor-pointer">
-                                                    <input type="checkbox" name="workType" value="雨漏り修繕" class="peer sr-only">
-                                                    <div class="py-2 px-1 rounded-lg border-2 border-gray-200 text-center text-xs font-medium transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:text-purple-700 hover:bg-gray-50">雨漏り修繕</div>
+                                                    <input type="checkbox" name="workType" value="ベランダ防水" class="peer sr-only">
+                                                    <div class="py-2 px-1 rounded-lg border-2 border-gray-200 text-center text-xs font-medium transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:text-purple-700 hover:bg-gray-50">ベランダ防水</div>
                                                 </label>
                                                 <label class="relative cursor-pointer">
                                                     <input type="checkbox" name="workType" value="内装水回り" class="peer sr-only">
@@ -7545,7 +7549,7 @@
                                                     <input type="checkbox" name="workType" value="内装" class="peer sr-only">
                                                     <div class="py-2 px-1 rounded-lg border-2 border-gray-200 text-center text-xs font-medium transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:text-purple-700 hover:bg-gray-50">内装</div>
                                                 </label>
-                                                <label class="relative cursor-pointer">
+                                                <label class="relative cursor-pointer col-span-2">
                                                     <input type="checkbox" name="workType" value="その他" class="peer sr-only" onchange="toggleOtherWorkDetails()">
                                                     <div class="py-2 px-1 rounded-lg border-2 border-gray-200 text-center text-xs font-medium transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:text-purple-700 hover:bg-gray-50">その他</div>
                                                 </label>
