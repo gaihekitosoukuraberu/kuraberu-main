@@ -25560,10 +25560,16 @@
                 // 完了を直接選んだ場合は入金済+工事済を自動設定
                 selectedPaymentStatus = '入金済';
                 selectedWorkStatus = '工事済';
-                // 入金・工事・完了の全ボタンをリセットしてから必要なものだけハイライト
-                resetStatusButtons(paymentStatuses);
-                resetStatusButtons(workStatuses);
-                resetStatusButtons(['完了']);
+
+                // 入金・工事エリアの全ボタンを直接リセット
+                const allBgColors = ['bg-cyan-100', 'bg-emerald-100', 'bg-orange-100',
+                                     'bg-yellow-100', 'bg-amber-100', 'bg-teal-100', 'bg-green-100'];
+                document.querySelectorAll('.payment-btn, .work-btn, [data-status="完了"]').forEach(btn => {
+                    allBgColors.forEach(color => btn.classList.remove(color));
+                    btn.classList.add('bg-white');
+                });
+
+                // 入金済・工事済・完了だけハイライト
                 highlightStatusButton('入金済');
                 highlightStatusButton('工事済');
                 highlightStatusButton('完了');
