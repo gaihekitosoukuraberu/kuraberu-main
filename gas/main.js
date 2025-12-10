@@ -643,6 +643,23 @@ const SystemRouter = {
       actions: ['migrateNotificationSheet']
     },
 
+    // 請求管理システム（V2170）
+    'billing_': {
+      system: 'BillingSystem',
+      description: '請求管理（紹介料・成約手数料）',
+      prefix: true,
+      actions: [
+        'getReferralFees',
+        'getCommissionFees',
+        'generateInvoices',
+        'getInvoices',
+        'updateInvoiceStatus',
+        'checkPayments',
+        'sendReminders',
+        'setupSheets'
+      ]
+    },
+
   },
 
   /**
