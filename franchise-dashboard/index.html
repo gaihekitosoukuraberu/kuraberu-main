@@ -31729,18 +31729,147 @@
             if (form) {
                 form.reset();
             }
-            document.getElementById('workDetails').classList.add('hidden');
-            document.getElementById('otherPropertyDetails').classList.add('hidden');
-            document.getElementById('estimatePreview').innerHTML = `
-                <svg class="w-12 h-12 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-            `;
-            document.getElementById('receiptPreview').innerHTML = `
-                <svg class="w-12 h-12 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-            `;
+            document.getElementById('workDetails')?.classList.add('hidden');
+            document.getElementById('otherPropertyDetails')?.classList.add('hidden');
+
+            // V2165: 新デザイン対応のリセット
+            const estimateUpload = document.getElementById('estimateUploadArea');
+            const estimatePreview = document.getElementById('estimateFilePreview');
+            const receiptUpload = document.getElementById('receiptUploadArea');
+            const receiptPreview = document.getElementById('receiptFilePreview');
+            const contractUpload = document.getElementById('contractUploadArea');
+            const contractPreview = document.getElementById('contractFilePreview');
+
+            if (estimateUpload) estimateUpload.classList.remove('hidden');
+            if (estimatePreview) estimatePreview.classList.add('hidden');
+            if (receiptUpload) receiptUpload.classList.remove('hidden');
+            if (receiptPreview) receiptPreview.classList.add('hidden');
+            if (contractUpload) contractUpload.classList.remove('hidden');
+            if (contractPreview) contractPreview.classList.add('hidden');
+        }
+
+        // V2166: 案件データから成約報告フォームを自動入力
+        window.prefillContractForm = function(caseData) {
+            if (!caseData) return;
+            console.log('[V2166] prefillContractForm - caseData:', caseData);
+
+            // 物件種別の自動チェック
+            const propertyType = caseData.propertyType || '';
+            console.log('[V2166] propertyType:', propertyType);
+
+            // 物件種別のマッピング（案件データ → チェックボックス値）
+            const propertyMapping = {
+                '戸建て': '戸建て',
+                '戸建': '戸建て',
+                '一戸建て': '戸建て',
+                'アパート': 'アパート',
+                'マンション': 'マンション',
+                'アパート・マンション': ['アパート', 'マンション'],
+                '店舗': '店舗',
+                '事務所': '事務所',
+                '工場': '工場',
+                '倉庫': '倉庫'
+            };
+
+            // まず全チェックを外す
+            document.querySelectorAll('#contractReportForm input[name="propertyType"]').forEach(cb => {
+                cb.checked = false;
+                // 新デザイン対応：親要素のスタイル更新
+                const parentDiv = cb.closest('label')?.querySelector('div');
+                if (parentDiv) {
+                    parentDiv.classList.remove('border-green-500', 'bg-green-50', 'text-green-700');
+                    parentDiv.classList.add('border-gray-200');
+                }
+            });
+
+            // マッチする物件種別をチェック
+            for (const [key, value] of Object.entries(propertyMapping)) {
+                if (propertyType.includes(key)) {
+                    const values = Array.isArray(value) ? value : [value];
+                    values.forEach(v => {
+                        const checkbox = document.querySelector(`#contractReportForm input[name="propertyType"][value="${v}"]`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                            // 新デザイン対応：親要素のスタイル更新
+                            const parentDiv = checkbox.closest('label')?.querySelector('div');
+                            if (parentDiv) {
+                                parentDiv.classList.add('border-green-500', 'bg-green-50', 'text-green-700');
+                                parentDiv.classList.remove('border-gray-200');
+                            }
+                        }
+                    });
+                    break; // 最初にマッチしたものだけ
+                }
+            }
+
+            // 階数の自動選択
+            const floors = caseData.floors || '';
+            console.log('[V2166] floors:', floors);
+            const floorsSelect = document.getElementById('buildingFloors');
+            if (floorsSelect && floors) {
+                // 「2階建て」→「2F」等のマッピング
+                const floorMatch = floors.match(/(\d+)/);
+                if (floorMatch) {
+                    const floorNum = parseInt(floorMatch[1]);
+                    if (floorNum >= 4) {
+                        floorsSelect.value = '4F以上';
+                    } else {
+                        floorsSelect.value = floorNum + 'F';
+                    }
+                }
+            }
+
+            // 施工内容の自動チェック（見積希望箇所・外壁工事希望・屋根工事希望から）
+            const estimateAreas = caseData.estimateAreas || '';
+            const exteriorWork = caseData.exteriorWorkRequest || '';
+            const roofWork = caseData.roofWorkRequest || '';
+            const allWorkInfo = [estimateAreas, exteriorWork, roofWork].join(' ');
+            console.log('[V2166] workInfo:', allWorkInfo);
+
+            // 施工内容のマッピング
+            const workMapping = {
+                '外壁塗装': ['外壁塗装', '塗装'],
+                '屋根塗装': ['屋根塗装'],
+                '屋上防水': ['屋上防水', '防水'],
+                '外壁カバー': ['外壁カバー', 'カバー工法'],
+                '屋根カバー': ['屋根カバー'],
+                '葺き替え': ['葺き替え', '張替え', '張り替え'],
+                '外壁補修': ['外壁補修', '補修'],
+                'ベランダ防水': ['ベランダ防水', 'バルコニー'],
+                '雨漏り修繕': ['雨漏り', '漏水'],
+                '内装水回り': ['水回り', 'キッチン', 'バス', 'トイレ'],
+                '内装': ['内装', 'クロス', 'フローリング', '床']
+            };
+
+            // まず全チェックを外す
+            document.querySelectorAll('#contractReportForm input[name="workType"]').forEach(cb => {
+                cb.checked = false;
+                const parentDiv = cb.closest('label')?.querySelector('div');
+                if (parentDiv) {
+                    parentDiv.classList.remove('border-purple-500', 'bg-purple-50', 'text-purple-700');
+                    parentDiv.classList.add('border-gray-200');
+                }
+            });
+
+            // マッチする施工内容をチェック
+            for (const [checkboxValue, keywords] of Object.entries(workMapping)) {
+                for (const keyword of keywords) {
+                    if (allWorkInfo.includes(keyword)) {
+                        const checkbox = document.querySelector(`#contractReportForm input[name="workType"][value="${checkboxValue}"]`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                            const parentDiv = checkbox.closest('label')?.querySelector('div');
+                            if (parentDiv) {
+                                parentDiv.classList.add('border-purple-500', 'bg-purple-50', 'text-purple-700');
+                                parentDiv.classList.remove('border-gray-200');
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+            console.log('[V2166] prefillContractForm完了');
         }
 
         // 成約報告フォーム送信
@@ -34085,6 +34214,9 @@
             const formPhase = document.getElementById('contractFormPhase');
             if (questionContainer) questionContainer.classList.remove('hidden');
             if (formPhase) formPhase.classList.add('hidden');
+
+            // V2166: 案件データから自動チェック設定
+            prefillContractForm(caseData);
 
             // 成約報告モーダルを開く
             const contractModal = document.getElementById('contractModal');
