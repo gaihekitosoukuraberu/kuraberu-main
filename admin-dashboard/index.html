@@ -3755,7 +3755,7 @@ window.addEventListener('beforeunload', function(e) {
                 }
 
             } else if (sectionName === 'financial') {
-                // 請求・財務セクション
+                // 請求・財務セクション（API連携版）
                 const mainContent = document.querySelector('main');
                 window.location.href = '#financial';
                 mainContent.innerHTML = `
@@ -3764,202 +3764,136 @@ window.addEventListener('beforeunload', function(e) {
                             <h1 class="text-3xl font-bold text-gray-800 mb-2">請求・財務管理</h1>
                             <p class="text-gray-600">紹介料計算・請求書管理・財務レポート</p>
                         </div>
-                        
+
+                        <!-- ローディング -->
+                        <div id="billing-loading" class="text-center py-8" style="display:none;">
+                            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                            <p class="mt-2 text-gray-600">データを読み込み中...</p>
+                        </div>
+
+                        <!-- エラー表示 -->
+                        <div id="billing-error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" style="display:none;"></div>
+
                         <!-- 概要カード -->
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                            <div class="bg-white rounded-xl p-6 border border-gray-200">
-                                <div class="text-sm text-gray-500 mb-2">今月請求額</div>
-                                <div class="text-2xl font-bold text-gray-800">¥1,280,000</div>
-                                <div class="text-xs text-green-600 mt-1">前月比 +15%</div>
-                            </div>
-                            <div class="bg-white rounded-xl p-6 border border-gray-200">
-                                <div class="text-sm text-gray-500 mb-2">未処理請求</div>
-                                <div class="text-2xl font-bold text-yellow-600">3件</div>
-                                <div class="text-xs text-gray-500 mt-1">合計 ¥320,000</div>
-                            </div>
-                            <div class="bg-white rounded-xl p-6 border border-gray-200">
-                                <div class="text-sm text-gray-500 mb-2">入金待ち</div>
-                                <div class="text-2xl font-bold text-blue-600">5件</div>
-                                <div class="text-xs text-gray-500 mt-1">合計 ¥850,000</div>
-                            </div>
-                            <div class="bg-white rounded-xl p-6 border border-gray-200">
-                                <div class="text-sm text-gray-500 mb-2">今月入金済</div>
-                                <div class="text-2xl font-bold text-green-600">¥2,150,000</div>
-                                <div class="text-xs text-gray-500 mt-1">12件完了</div>
+                        <div id="billing-summary-cards">
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                                <div class="bg-white rounded-xl p-6 border border-gray-200 animate-pulse">
+                                    <div class="h-4 bg-gray-200 rounded w-20 mb-2"></div>
+                                    <div class="h-8 bg-gray-200 rounded w-32"></div>
+                                </div>
+                                <div class="bg-white rounded-xl p-6 border border-gray-200 animate-pulse">
+                                    <div class="h-4 bg-gray-200 rounded w-20 mb-2"></div>
+                                    <div class="h-8 bg-gray-200 rounded w-24"></div>
+                                </div>
+                                <div class="bg-white rounded-xl p-6 border border-gray-200 animate-pulse">
+                                    <div class="h-4 bg-gray-200 rounded w-20 mb-2"></div>
+                                    <div class="h-8 bg-gray-200 rounded w-24"></div>
+                                </div>
+                                <div class="bg-white rounded-xl p-6 border border-gray-200 animate-pulse">
+                                    <div class="h-4 bg-gray-200 rounded w-20 mb-2"></div>
+                                    <div class="h-8 bg-gray-200 rounded w-32"></div>
+                                </div>
                             </div>
                         </div>
-                        
+
                         <!-- タブナビゲーション -->
                         <div class="bg-white rounded-t-xl border border-gray-200 border-b-0">
                             <div class="flex border-b" id="financialTabs">
                                 <button onclick="switchFinancialTab('referral')" class="px-6 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600 tab-btn" data-tab="referral">紹介料請求</button>
-                                <button onclick="switchFinancialTab('success')" class="px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-800 tab-btn" data-tab="success">成約手数料</button>
                                 <button onclick="switchFinancialTab('invoices')" class="px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-800 tab-btn" data-tab="invoices">請求書一覧</button>
-                                <button onclick="switchFinancialTab('payment')" class="px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-800 tab-btn" data-tab="payment">支払予定</button>
                             </div>
                         </div>
-                        
+
                         <!-- 紹介料タブ -->
                         <div id="referralTab" class="financial-tab-content">
                             <div class="bg-white rounded-b-xl border border-gray-200 border-t-0">
                                 <div class="p-6">
-                                    <div class="grid grid-cols-4 gap-4 mb-6">
-                                        <div class="bg-blue-50 p-4 rounded-lg">
-                                            <div class="text-sm text-gray-600">今月請求予定</div>
-                                            <div class="text-2xl font-bold text-blue-600">¥385,000</div>
-                                            <div class="text-xs text-gray-500">税込（35件）</div>
-                                        </div>
-                                        <div class="bg-green-50 p-4 rounded-lg">
-                                            <div class="text-sm text-gray-600">入金済み</div>
-                                            <div class="text-2xl font-bold text-green-600">¥2,750,000</div>
-                                            <div class="text-xs text-gray-500">今月分</div>
-                                        </div>
-                                        <div class="bg-yellow-50 p-4 rounded-lg">
-                                            <div class="text-sm text-gray-600">未入金</div>
-                                            <div class="text-2xl font-bold text-yellow-600">¥110,000</div>
-                                            <div class="text-xs text-gray-500">遅延1件</div>
-                                        </div>
-                                        <div class="bg-purple-50 p-4 rounded-lg">
-                                            <div class="text-sm text-gray-600">今月紹介数</div>
-                                            <div class="text-2xl font-bold text-purple-600">42件</div>
-                                            <div class="text-xs text-gray-500">前月比 +8</div>
-                                        </div>
-                                    </div>
                                     <div class="mb-4 flex justify-between items-center">
                                         <div class="flex gap-2">
-                                            <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                                                <i class="fas fa-file-invoice mr-2"></i>請求書一括発行
+                                            <button onclick="BillingManager.generateInvoices('referral')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                                <i class="fas fa-file-invoice mr-2"></i>請求書一括生成
                                             </button>
-                                            <button class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                                                <i class="fas fa-download mr-2"></i>CSVエクスポート
+                                            <button onclick="BillingManager.loadFinancialSection()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                                                <i class="fas fa-sync mr-2"></i>更新
                                             </button>
                                         </div>
-                                        <div class="flex gap-2">
-                                            <select class="px-3 py-2 border rounded-lg">
-                                                <option>全期間</option>
-                                                <option>今月</option>
-                                                <option>先月</option>
-                                                <option>過去3ヶ月</option>
-                                            </select>
-                                            <select class="px-3 py-2 border rounded-lg">
-                                                <option>全ステータス</option>
-                                                <option>未請求</option>
-                                                <option>請求済み</option>
-                                                <option>入金済み</option>
-                                                <option>遅延</option>
-                                            </select>
+                                    </div>
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full">
+                                            <thead>
+                                                <tr class="border-b bg-gray-50">
+                                                    <th class="text-left py-3 px-4">
+                                                        <input type="checkbox" class="rounded" id="select-all-referral">
+                                                    </th>
+                                                    <th class="text-left py-3 px-4">加盟店名</th>
+                                                    <th class="text-left py-3 px-4">件数</th>
+                                                    <th class="text-left py-3 px-4">対象CV</th>
+                                                    <th class="text-right py-3 px-4">紹介料<br><span class="text-xs text-gray-500">(税抜)</span></th>
+                                                    <th class="text-right py-3 px-4">消費税</th>
+                                                    <th class="text-right py-3 px-4">請求額<br><span class="text-xs text-gray-500">(税込)</span></th>
+                                                    <th class="text-center py-3 px-4">ステータス</th>
+                                                    <th class="text-center py-3 px-4">操作</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="referral-table-body">
+                                                <tr>
+                                                    <td colspan="9" class="py-8 text-center text-gray-500">
+                                                        <div class="animate-pulse">読み込み中...</div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="p-4 bg-gray-50">
+                                        <div class="flex justify-between items-center">
+                                            <div id="referral-total" class="text-sm text-gray-600">
+                                                紹介料合計: <span class="font-bold text-blue-600 mr-4">-</span>
+                                                請求総額: <span class="font-bold text-purple-600 text-lg">-</span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <table class="w-full">
-                                        <thead>
-                                            <tr class="border-b bg-gray-50">
-                                                <th class="text-left py-3 px-4">
-                                                    <input type="checkbox" class="rounded">
-                                                </th>
-                                                <th class="text-left py-3 px-4">加盟店名</th>
-                                                <th class="text-left py-3 px-4">案件ID</th>
-                                                <th class="text-left py-3 px-4">顧客名</th>
-                                                <th class="text-left py-3 px-4">建物種別</th>
-                                                <th class="text-right py-3 px-4">紹介料<br><span class="text-xs text-gray-500">(税抜)</span></th>
-                                                <th class="text-right py-3 px-4">消費税<br><span class="text-xs text-gray-500">(10%)</span></th>
-                                                <th class="text-right py-3 px-4">請求額<br><span class="text-xs text-gray-500">(税込)</span></th>
-                                                <th class="text-left py-3 px-4">支払日</th>
-                                                <th class="text-center py-3 px-4">ステータス</th>
-                                                <th class="text-center py-3 px-4">操作</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr class="border-b hover:bg-gray-50">
-                                                <td class="py-3 px-4">
-                                                    <input type="checkbox" class="rounded">
-                                                </td>
-                                                <td class="py-3 px-4 font-medium">田中ホームテック</td>
-                                                <td class="py-3 px-4">C-2025-0142</td>
-                                                <td class="py-3 px-4">山田太郎</td>
-                                                <td class="py-3 px-4"><span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">戸建て</span></td>
-                                                <td class="text-right py-3 px-4 font-semibold">¥20,000</td>
-                                                <td class="text-right py-3 px-4 text-gray-600">¥2,000</td>
-                                                <td class="text-right py-3 px-4 font-bold text-blue-600">¥22,000</td>
-                                                <td class="py-3 px-4">2025/02/15</td>
-                                                <td class="text-center py-3 px-4">
-                                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">未請求</span>
-                                                </td>
-                                                <td class="text-center py-3 px-4">
-                                                    <button class="text-blue-600 hover:text-blue-800 text-sm">請求書作成</button>
-                                                </td>
-                                    </tr>
-                                    <tr class="border-b hover:bg-gray-50">
-                                        <td class="py-3 px-4">
-                                            <input type="checkbox" class="rounded">
-                                        </td>
-                                        <td class="py-3 px-4 font-medium">山田ペイント</td>
-                                        <td class="py-3 px-4">C-2025-0847</td>
-                                        <td class="py-3 px-4">鈴木花子</td>
-                                        <td class="py-3 px-4"><span class="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">マンション</span></td>
-                                        <td class="text-right py-3 px-4 font-semibold">¥30,000</td>
-                                        <td class="text-right py-3 px-4 text-gray-600">¥3,000</td>
-                                        <td class="text-right py-3 px-4 font-bold text-blue-600">¥33,000</td>
-                                        <td class="py-3 px-4">2025/02/15</td>
-                                        <td class="text-center py-3 px-4">
-                                            <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">未請求</span>
-                                        </td>
-                                        <td class="text-center py-3 px-4">
-                                            <button class="text-blue-600 hover:text-blue-800 text-sm">請求書作成</button>
-                                        </td>
-                                    </tr>
-                                    <tr class="border-b hover:bg-gray-50">
-                                        <td class="py-3 px-4">
-                                            <input type="checkbox" class="rounded">
-                                        </td>
-                                        <td class="py-3 px-4 font-medium">佐藤塗装店</td>
-                                        <td class="py-3 px-4">C-2025-0849</td>
-                                        <td class="py-3 px-4">高橋次郎</td>
-                                        <td class="py-3 px-4"><span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">戸建て</span></td>
-                                        <td class="text-right py-3 px-4 font-semibold">¥10,000</td>
-                                        <td class="text-right py-3 px-4 text-gray-600">¥1,000</td>
-                                        <td class="text-right py-3 px-4 font-bold text-blue-600">¥11,000</td>
-                                        <td class="py-3 px-4">2025/02/27</td>
-                                        <td class="text-center py-3 px-4">
-                                            <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">請求済み</span>
-                                        </td>
-                                        <td class="text-center py-3 px-4">
-                                            <button class="text-gray-400 text-sm" disabled>発行済み</button>
-                                        </td>
-                                    </tr>
-                                    <tr class="border-b hover:bg-gray-50">
-                                        <td class="py-3 px-4">
-                                            <input type="checkbox" class="rounded">
-                                        </td>
-                                        <td class="py-3 px-4 font-medium">鈴木建装</td>
-                                        <td class="py-3 px-4">C-2025-0850</td>
-                                        <td class="py-3 px-4">伊藤美咲</td>
-                                        <td class="py-3 px-4"><span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">戸建て</span></td>
-                                        <td class="text-right py-3 px-4 font-semibold">¥5,000</td>
-                                        <td class="text-right py-3 px-4 text-gray-600">¥500</td>
-                                        <td class="text-right py-3 px-4 font-bold text-blue-600">¥5,500</td>
-                                        <td class="py-3 px-4">2025/02/15</td>
-                                        <td class="text-center py-3 px-4">
-                                            <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">未請求</span>
-                                        </td>
-                                        <td class="text-center py-3 px-4">
-                                            <button class="text-blue-600 hover:text-blue-800 text-sm">請求書作成</button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <div class="p-4 bg-gray-50">
-                                <div class="flex justify-between items-center">
-                                    <div class="text-sm text-gray-600">
-                                        紹介料合計: <span class="font-bold text-blue-600 mr-4">¥65,000</span>
-                                        成約手数料合計: <span class="font-bold text-green-600 mr-4">¥250,000</span>
-                                        請求総額: <span class="font-bold text-purple-600 text-lg">¥315,000</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 請求書一覧タブ -->
+                        <div id="invoicesTab" class="financial-tab-content" style="display:none;">
+                            <div class="bg-white rounded-b-xl border border-gray-200 border-t-0">
+                                <div class="p-6">
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full">
+                                            <thead>
+                                                <tr class="border-b bg-gray-50">
+                                                    <th class="text-left py-3 px-4">請求ID</th>
+                                                    <th class="text-left py-3 px-4">加盟店名</th>
+                                                    <th class="text-left py-3 px-4">種別</th>
+                                                    <th class="text-left py-3 px-4">対象期間</th>
+                                                    <th class="text-right py-3 px-4">請求額</th>
+                                                    <th class="text-left py-3 px-4">支払期限</th>
+                                                    <th class="text-left py-3 px-4">発行日</th>
+                                                    <th class="text-center py-3 px-4">ステータス</th>
+                                                    <th class="text-center py-3 px-4">操作</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="invoices-table-body">
+                                                <tr>
+                                                    <td colspan="9" class="py-8 text-center text-gray-500">
+                                                        <div class="animate-pulse">読み込み中...</div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
-                                    <button class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">一括請求書作成</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 `;
+
+                // データ読み込み
+                if (window.BillingManager) {
+                    BillingManager.loadFinancialSection();
+                }
             } else if (sectionName === 'registrationRequests') {
                 // 加盟店登録申請セクション
                 const mainContent = document.querySelector('main');
@@ -12791,7 +12725,7 @@ window.addEventListener('beforeunload', function(e) {
     <script src="js/data-formatter.js?v=v1765371044"></script>
     <script src="js/registration-requests.js?v=v1765371044"></script>
     <script src="js/franchise-management.js?v=v1765371044"></script>
-    <!-- V1938: 動的キャッシュバスター改善 - ワークフローsed回避 (?t=使用) - 2025-11-27 JST -->
+    <script src="js/billing-manager.js?v=v1765371044"></script>    <!-- V1938: 動的キャッシュバスター改善 - ワークフローsed回避 (?t=使用) - 2025-11-27 JST -->
     <script>
     (function() {
       const timestamp = Date.now();
