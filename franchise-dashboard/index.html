@@ -32914,6 +32914,58 @@
         window.answerContractQuestion = function(answer) {
             contractAnswers.push(answer);
 
+            // V2168: ステータスモーダルから来た場合、ステップ1回答後すぐフォームへ
+            if (window.pendingContractStatus && contractAnswers.length === 1) {
+                // 選択されたステータスから工事状況を自動判定してステップ2回答を追加
+                const selectedStatus = window.pendingContractStatus;
+                if (selectedStatus.includes('工事済') || selectedStatus === '完了') {
+                    contractAnswers.push('工事完了後');
+                } else if (selectedStatus.includes('施工中')) {
+                    contractAnswers.push('工事中');
+                } else {
+                    contractAnswers.push('契約後・工事前');
+                }
+
+                // フォームフェーズに移行
+                document.getElementById('contractQuestionContainer').classList.add('hidden');
+                document.getElementById('contractFormPhase').classList.remove('hidden');
+
+                // V2166: 案件データから自動チェック設定
+                if (selectedContractCase && selectedContractCase.cvId) {
+                    const caseData = findCaseByCvId(selectedContractCase.cvId);
+                    if (caseData) prefillContractForm(caseData);
+                }
+
+                // V2168: 選択されたステータスに基づいて入金・工事状況をプリセット
+                if (selectedStatus.includes('入金済') || selectedStatus === '完了') {
+                    const paidRadio = document.querySelector('input[name="paymentStatus"][value="paid"]');
+                    if (paidRadio) {
+                        paidRadio.checked = true;
+                        togglePaymentFields();
+                    }
+                } else if (selectedStatus.includes('入金予定')) {
+                    const unpaidRadio = document.querySelector('input[name="paymentStatus"][value="unpaid"]');
+                    if (unpaidRadio) {
+                        unpaidRadio.checked = true;
+                        togglePaymentFields();
+                    }
+                }
+                if (selectedStatus.includes('工事済') || selectedStatus === '完了') {
+                    const scheduledRadio = document.querySelector('input[name="constructionStatus"][value="scheduled"]');
+                    if (scheduledRadio) {
+                        scheduledRadio.checked = true;
+                        toggleConstructionFields();
+                    }
+                }
+
+                // 契約状況に応じて日付ラベルを変更
+                updateDateLabels(contractAnswers[1]);
+
+                // pendingStatusをクリア
+                window.pendingContractStatus = null;
+                return;
+            }
+
             if (contractAnswers.length < contractQuestions.length) {
                 showContractQuestion(contractAnswers.length);
             } else {
@@ -34664,54 +34716,17 @@
             }
             if (customerInfo) customerInfo.classList.remove('hidden');
 
-            // V2168: 質問フローをスキップしてフォームに直接進む
-            // ステータスモーダルで既に選択済みなので質問は不要
+            // V2168: 報告種別だけ質問してからフォームへ
             const questionContainer = document.getElementById('contractQuestionContainer');
             const formPhase = document.getElementById('contractFormPhase');
-            if (questionContainer) questionContainer.classList.add('hidden'); // 質問を非表示
-            if (formPhase) formPhase.classList.remove('hidden'); // フォームを表示
+            if (questionContainer) questionContainer.classList.remove('hidden');
+            if (formPhase) formPhase.classList.add('hidden');
 
-            // V2168: 選択されたステータスに基づいて回答を自動設定
-            contractAnswers = ['成約報告']; // 報告種別は成約報告固定
-            if (selectedStatus) {
-                // 複合ステータスから工事状況を判定
-                if (selectedStatus.includes('工事済') || selectedStatus === '完了') {
-                    contractAnswers.push('工事完了後');
-                } else if (selectedStatus.includes('施工中')) {
-                    contractAnswers.push('工事中');
-                } else {
-                    contractAnswers.push('契約後・工事前');
-                }
-            }
+            // V2168: 選択されたステータスを保存（フォーム表示時に使用）
+            window.pendingContractStatus = selectedStatus;
 
-            // V2166: 案件データから自動チェック設定
-            prefillContractForm(caseData);
-
-            // V2168: 選択されたステータスに基づいて入金・工事状況をプリセット
-            if (selectedStatus) {
-                // 入金状況
-                if (selectedStatus.includes('入金済') || selectedStatus === '完了') {
-                    const paidRadio = document.querySelector('input[name="paymentStatus"][value="paid"]');
-                    if (paidRadio) {
-                        paidRadio.checked = true;
-                        togglePaymentFields();
-                    }
-                } else if (selectedStatus.includes('入金予定')) {
-                    const unpaidRadio = document.querySelector('input[name="paymentStatus"][value="unpaid"]');
-                    if (unpaidRadio) {
-                        unpaidRadio.checked = true;
-                        togglePaymentFields();
-                    }
-                }
-                // 工事状況
-                if (selectedStatus.includes('工事済') || selectedStatus === '完了') {
-                    const scheduledRadio = document.querySelector('input[name="constructionStatus"][value="scheduled"]');
-                    if (scheduledRadio) {
-                        scheduledRadio.checked = true;
-                        toggleConstructionFields();
-                    }
-                }
-            }
+            // V2168: 回答リセット
+            contractAnswers = [];
 
             // 成約報告モーダルを開く
             const contractModal = document.getElementById('contractModal');
@@ -34727,6 +34742,9 @@
                 contractModal.style.display = 'flex';
                 contractModal.style.visibility = 'visible';
                 contractModal.style.opacity = '1';
+
+                // V2168: 報告種別の質問（ステップ1）を表示
+                showContractQuestion(0);
                 console.log('[V2168] モーダル表示完了');
             } else {
                 console.error('[V2168] contractModalが見つかりません！');
