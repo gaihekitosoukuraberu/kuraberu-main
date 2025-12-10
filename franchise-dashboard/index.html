@@ -34051,9 +34051,16 @@
             // 成約報告モーダルを開く
             const contractModal = document.getElementById('contractModal');
             console.log('[V2094] contractModal element:', contractModal);
+            console.log('[V2094] contractModal classes before:', contractModal?.className);
             if (contractModal) {
                 contractModal.classList.remove('hidden');
-                console.log('[V2094] モーダルを表示しました');
+                console.log('[V2094] contractModal classes after:', contractModal.className);
+                console.log('[V2094] モーダルを表示しました - offsetHeight:', contractModal.offsetHeight, 'offsetWidth:', contractModal.offsetWidth);
+
+                // 強制的に表示を確認
+                contractModal.style.display = 'flex';
+                contractModal.style.visibility = 'visible';
+                contractModal.style.opacity = '1';
             } else {
                 console.error('[V2094] contractModalが見つかりません！');
                 alert('成約報告モーダルが見つかりません');
@@ -34061,7 +34068,9 @@
             }
 
             // 質問フローを開始
+            console.log('[V2094] showContractQuestion(0) 呼び出し前');
             showContractQuestion(0);
+            console.log('[V2094] showContractQuestion(0) 呼び出し後');
         };
 
         // ============================================
