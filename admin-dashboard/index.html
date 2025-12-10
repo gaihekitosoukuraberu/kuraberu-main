@@ -3807,18 +3807,20 @@ window.addEventListener('beforeunload', function(e) {
                         <!-- 紹介料タブ -->
                         <div id="referralTab" class="financial-tab-content">
                             <div class="bg-white rounded-b-xl border border-gray-200 border-t-0">
-                                <div class="p-6">
-                                    <div class="mb-4 flex justify-between items-center">
-                                        <div class="flex gap-2">
-                                            <button onclick="BillingManager.generateInvoices('referral')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                                                <i class="fas fa-file-invoice mr-2"></i>請求書一括生成
+                                <div class="p-4 md:p-6">
+                                    <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                        <div class="flex gap-2 flex-wrap">
+                                            <button onclick="BillingManager.generateInvoices('referral')" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                                                <i class="fas fa-file-invoice mr-1"></i>請求書一括生成
                                             </button>
-                                            <button onclick="BillingManager.loadFinancialSection()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
-                                                <i class="fas fa-sync mr-2"></i>更新
+                                            <button onclick="BillingManager.loadFinancialSection()" class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm">
+                                                <i class="fas fa-sync mr-1"></i>更新
                                             </button>
                                         </div>
                                     </div>
-                                    <div class="overflow-x-auto">
+
+                                    <!-- PC用テーブル -->
+                                    <div class="hidden md:block overflow-x-auto">
                                         <table class="w-full">
                                             <thead>
                                                 <tr class="border-b bg-gray-50">
@@ -3844,12 +3846,16 @@ window.addEventListener('beforeunload', function(e) {
                                             </tbody>
                                         </table>
                                     </div>
-                                    <div class="p-4 bg-gray-50">
-                                        <div class="flex justify-between items-center">
-                                            <div id="referral-total" class="text-sm text-gray-600">
-                                                紹介料合計: <span class="font-bold text-blue-600 mr-4">-</span>
-                                                請求総額: <span class="font-bold text-purple-600 text-lg">-</span>
-                                            </div>
+
+                                    <!-- スマホ用カード -->
+                                    <div id="referral-cards-mobile" class="md:hidden space-y-3">
+                                        <div class="animate-pulse bg-gray-100 rounded-lg p-4 h-32"></div>
+                                    </div>
+
+                                    <div class="p-4 bg-gray-50 mt-4 rounded-lg">
+                                        <div id="referral-total" class="text-sm text-gray-600 text-center md:text-left">
+                                            紹介料合計: <span class="font-bold text-blue-600 mr-2">-</span>
+                                            請求総額: <span class="font-bold text-purple-600 text-lg">-</span>
                                         </div>
                                     </div>
                                 </div>
@@ -3859,8 +3865,10 @@ window.addEventListener('beforeunload', function(e) {
                         <!-- 請求書一覧タブ -->
                         <div id="invoicesTab" class="financial-tab-content" style="display:none;">
                             <div class="bg-white rounded-b-xl border border-gray-200 border-t-0">
-                                <div class="p-6">
-                                    <div class="overflow-x-auto">
+                                <div class="p-4 md:p-6">
+
+                                    <!-- PC用テーブル -->
+                                    <div class="hidden md:block overflow-x-auto">
                                         <table class="w-full">
                                             <thead>
                                                 <tr class="border-b bg-gray-50">
@@ -3883,6 +3891,11 @@ window.addEventListener('beforeunload', function(e) {
                                                 </tr>
                                             </tbody>
                                         </table>
+                                    </div>
+
+                                    <!-- スマホ用カード -->
+                                    <div id="invoices-cards-mobile" class="md:hidden space-y-3">
+                                        <div class="animate-pulse bg-gray-100 rounded-lg p-4 h-32"></div>
                                     </div>
                                 </div>
                             </div>

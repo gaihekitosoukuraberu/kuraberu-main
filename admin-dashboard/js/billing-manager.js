@@ -170,11 +170,15 @@ const BillingManager = {
       if (tbody) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="8" class="py-8 text-center text-gray-500">
+            <td colspan="9" class="py-8 text-center text-gray-500">
               今月の紹介料データがありません
             </td>
           </tr>
         `;
+      }
+      const mobileContainer = document.getElementById('referral-cards-mobile');
+      if (mobileContainer) {
+        mobileContainer.innerHTML = `<div class="text-center text-gray-500 py-8">今月の紹介料データがありません</div>`;
       }
       return;
     }
@@ -183,6 +187,7 @@ const BillingManager = {
     let totalTax = 0;
     let totalWithTax = 0;
 
+    // PC用テーブル行
     const rows = data.map((item, index) => {
       totalTaxExcluded += item.totalAmount || 0;
       totalTax += item.tax || 0;
@@ -217,12 +222,43 @@ const BillingManager = {
       tbody.innerHTML = rows;
     }
 
+    // スマホ用カード
+    const cards = data.map(item => `
+      <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <div class="font-semibold text-gray-800">${item.merchantName || item.merchantId}</div>
+            <div class="text-xs text-gray-500">${item.count}件</div>
+          </div>
+          <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">未請求</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-sm mb-3">
+          <div>
+            <div class="text-gray-500 text-xs">紹介料（税抜）</div>
+            <div class="font-semibold">¥${(item.totalAmount || 0).toLocaleString()}</div>
+          </div>
+          <div>
+            <div class="text-gray-500 text-xs">請求額（税込）</div>
+            <div class="font-bold text-blue-600">¥${(item.totalWithTax || 0).toLocaleString()}</div>
+          </div>
+        </div>
+        <div class="text-xs text-gray-400 mb-3 truncate">CV: ${item.cvIds?.slice(0, 2).join(', ')}${item.cvIds?.length > 2 ? '...' : ''}</div>
+        <button onclick="BillingManager.createInvoice('${item.merchantId}', 'referral')" class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+          請求書作成
+        </button>
+      </div>
+    `).join('');
+
+    const mobileContainer = document.getElementById('referral-cards-mobile');
+    if (mobileContainer) {
+      mobileContainer.innerHTML = cards;
+    }
+
     // 合計更新
     const totalContainer = document.getElementById('referral-total');
     if (totalContainer) {
       totalContainer.innerHTML = `
-        紹介料合計: <span class="font-bold text-blue-600 mr-4">¥${totalTaxExcluded.toLocaleString()}</span>
-        消費税: <span class="font-bold text-gray-600 mr-4">¥${totalTax.toLocaleString()}</span>
+        紹介料合計: <span class="font-bold text-blue-600 mr-2">¥${totalTaxExcluded.toLocaleString()}</span>
         請求総額: <span class="font-bold text-purple-600 text-lg">¥${totalWithTax.toLocaleString()}</span>
       `;
     }
@@ -245,9 +281,14 @@ const BillingManager = {
           </tr>
         `;
       }
+      const mobileContainer = document.getElementById('invoices-cards-mobile');
+      if (mobileContainer) {
+        mobileContainer.innerHTML = `<div class="text-center text-gray-500 py-8">請求データがありません</div>`;
+      }
       return;
     }
 
+    // PC用テーブル
     const rows = invoices.map(inv => {
       const status = inv['ステータス'] || '未発行';
       const statusClass = this.getStatusClass(status);
@@ -281,6 +322,61 @@ const BillingManager = {
     if (tbody) {
       tbody.innerHTML = rows;
     }
+
+    // スマホ用カード
+    const cards = invoices.map(inv => {
+      const status = inv['ステータス'] || '未発行';
+      const statusClass = this.getStatusClass(status);
+      const dueDate = inv['支払期限'] ? new Date(inv['支払期限']).toLocaleDateString('ja-JP') : '-';
+      const invoiceId = inv['請求ID'];
+
+      return `
+        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <div class="font-semibold text-gray-800">${inv['加盟店名']}</div>
+              <div class="text-xs text-gray-500 font-mono">${invoiceId}</div>
+            </div>
+            <span class="px-2 py-1 ${statusClass} rounded text-xs">${status}</span>
+          </div>
+          <div class="flex justify-between items-center mb-2">
+            <span class="px-2 py-1 ${inv['請求種別'] === '紹介料' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'} rounded text-xs">
+              ${inv['請求種別']}
+            </span>
+            <div class="text-right">
+              <div class="font-bold text-lg text-blue-600">¥${Number(inv['税込金額'] || 0).toLocaleString()}</div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs text-gray-500 mb-3">
+            <div>対象: ${inv['対象期間']}</div>
+            <div>期限: ${dueDate}</div>
+          </div>
+          ${this.getMobileActionButton(inv)}
+        </div>
+      `;
+    }).join('');
+
+    const mobileContainer = document.getElementById('invoices-cards-mobile');
+    if (mobileContainer) {
+      mobileContainer.innerHTML = cards;
+    }
+  },
+
+  /**
+   * スマホ用アクションボタン
+   */
+  getMobileActionButton: function(invoice) {
+    const status = invoice['ステータス'];
+    const invoiceId = invoice['請求ID'];
+
+    if (status === '未発行') {
+      return `<button onclick="BillingManager.issueInvoice('${invoiceId}')" class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">発行する</button>`;
+    } else if (status === '発行済み' || status === '未入金') {
+      return `<button onclick="BillingManager.confirmPayment('${invoiceId}')" class="w-full py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">入金確認</button>`;
+    } else if (status === '入金済み') {
+      return `<div class="text-center text-gray-400 text-sm py-2">完了</div>`;
+    }
+    return '';
   },
 
   /**
