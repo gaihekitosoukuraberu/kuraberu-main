@@ -341,3 +341,143 @@ function testListFreeePartners() {
 
   return partners;
 }
+
+// ========================================
+// V2183: キャンセル時の請求取り消しテスト
+// ========================================
+
+/**
+ * キャンセル承認済みCV一覧を確認
+ */
+function testGetCancelledCVs() {
+  console.log('========== キャンセル承認済みCV一覧 ==========');
+
+  const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  const ss = SpreadsheetApp.openById(ssId);
+  const cancelledCVs = BillingSystem._getCancelledCVs(ss);
+
+  console.log('キャンセル承認済みCV数:', cancelledCVs.size);
+  if (cancelledCVs.size > 0) {
+    console.log('CV一覧:', Array.from(cancelledCVs));
+  }
+
+  console.log('========== 完了 ==========');
+  return Array.from(cancelledCVs);
+}
+
+/**
+ * 紹介料集計でキャンセル済みCVが除外されることを確認
+ */
+function testReferralFeesWithCancelCheck() {
+  console.log('========== 紹介料集計（キャンセル除外確認）==========');
+
+  // まずキャンセル済みCVを確認
+  const cancelledCVs = testGetCancelledCVs();
+  console.log('\n');
+
+  // 紹介料集計
+  const result = BillingSystem.getReferralFees();
+  if (!result.success) {
+    console.log('エラー:', result.error);
+    return;
+  }
+
+  console.log('集計結果:');
+  console.log('  加盟店数:', result.summary.totalMerchants);
+  console.log('  総件数:', result.summary.totalCount);
+  console.log('  総額（税込）:', result.summary.totalWithTax);
+
+  // キャンセル済みCVが含まれていないか確認
+  let foundCancelledCV = false;
+  for (const fee of result.data) {
+    for (const cvId of fee.cvIds) {
+      if (cancelledCVs.includes(cvId)) {
+        console.log('⚠️ 警告: キャンセル済みCVが含まれています:', cvId);
+        foundCancelledCV = true;
+      }
+    }
+  }
+
+  if (!foundCancelledCV && cancelledCVs.length > 0) {
+    console.log('✓ OK: キャンセル済みCVは正しく除外されています');
+  }
+
+  console.log('========== 完了 ==========');
+  return result;
+}
+
+/**
+ * 請求取り消し処理の単体テスト（ドライラン）
+ * 実際には更新せず、対象請求を確認
+ */
+function testCancelBillingDryRun() {
+  console.log('========== 請求取り消しドライラン ==========');
+
+  // テスト用CV ID（実際に存在するキャンセル済みCVを指定）
+  const testCvId = 'CV-TEST-001'; // ← 実際のCV IDに変更
+  const testMerchantId = 'TESTHOUSEKAI'; // ← 実際の加盟店IDに変更
+
+  console.log('テスト対象:');
+  console.log('  CV ID:', testCvId);
+  console.log('  加盟店ID:', testMerchantId);
+
+  const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  const ss = SpreadsheetApp.openById(ssId);
+  const billingSheet = ss.getSheetByName('請求管理');
+
+  if (!billingSheet) {
+    console.log('請求管理シートがありません');
+    return;
+  }
+
+  const data = billingSheet.getDataRange().getValues();
+  const headers = data[0];
+  const invoiceIdIdx = headers.indexOf('請求ID');
+  const merchantIdIdx = headers.indexOf('加盟店ID');
+  const cvIdsIdx = headers.indexOf('対象CV ID');
+  const statusIdx = headers.indexOf('ステータス');
+
+  console.log('\n該当する請求:');
+  let found = false;
+  for (let i = 1; i < data.length; i++) {
+    const rowMerchantId = data[i][merchantIdIdx];
+    const rowCvIds = data[i][cvIdsIdx] || '';
+    const rowStatus = data[i][statusIdx];
+
+    if (rowMerchantId === testMerchantId && rowCvIds.includes(testCvId)) {
+      found = true;
+      console.log('  請求ID:', data[i][invoiceIdIdx]);
+      console.log('  ステータス:', rowStatus);
+      console.log('  対象CV:', rowCvIds);
+      console.log('  → 取り消し可能:', rowStatus !== '入金済み' ? 'はい' : 'いいえ（入金済み）');
+    }
+  }
+
+  if (!found) {
+    console.log('  該当なし');
+  }
+
+  console.log('========== 完了 ==========');
+}
+
+/**
+ * AdminCancelSystemの請求取り消し処理テスト
+ * ※ 実際に更新する。テスト後はスプシを確認
+ */
+function testCancelBillingForCV() {
+  console.log('========== 請求取り消し処理テスト ==========');
+
+  // テスト用（実際のCV IDと加盟店IDに変更してください）
+  const testCvId = 'CV-TEST-001';
+  const testMerchantId = 'TESTHOUSEKAI';
+
+  console.log('対象:');
+  console.log('  CV ID:', testCvId);
+  console.log('  加盟店ID:', testMerchantId);
+
+  const result = AdminCancelSystem.cancelBillingForCV(testCvId, testMerchantId);
+  console.log('結果:', JSON.stringify(result, null, 2));
+
+  console.log('========== 完了 ==========');
+  return result;
+}
