@@ -72,10 +72,131 @@ function testGetInvoices() {
 
 /**
  * 7. 未入金督促テスト
+ * ※ 支払期限を過ぎた発行済み/未入金の請求に督促メールを送信
  */
 function testSendReminders() {
   console.log('========== 未入金督促テスト ==========');
   const result = BillingSystem.sendReminders();
+  console.log('結果:', JSON.stringify(result, null, 2));
+  console.log('========== 完了 ==========');
+  return result;
+}
+
+/**
+ * 8. 入金確認テスト
+ * ※ 請求IDを指定して入金を記録し、Slack通知を送信
+ */
+function testConfirmPayment() {
+  console.log('========== 入金確認テスト ==========');
+
+  // まず請求一覧を取得
+  const invoices = BillingSystem.getInvoices();
+  if (!invoices.success || invoices.invoices.length === 0) {
+    console.log('請求がありません');
+    return;
+  }
+
+  // 最初の発行済み or 未入金の請求をテスト対象に
+  const targetInvoice = invoices.invoices.find(inv =>
+    inv['ステータス'] === '発行済み' || inv['ステータス'] === '未入金'
+  );
+
+  if (!targetInvoice) {
+    console.log('発行済み/未入金の請求がありません');
+    console.log('既存の請求:', invoices.invoices.map(inv => ({
+      id: inv['請求ID'],
+      status: inv['ステータス'],
+      amount: inv['税込金額']
+    })));
+    return;
+  }
+
+  console.log('テスト対象請求:', {
+    id: targetInvoice['請求ID'],
+    merchant: targetInvoice['加盟店名'],
+    amount: targetInvoice['税込金額'],
+    status: targetInvoice['ステータス']
+  });
+
+  // 入金確認（全額入金をシミュレート）
+  const result = BillingSystem.confirmPayment(
+    targetInvoice['請求ID'],
+    targetInvoice['税込金額'], // 全額入金
+    new Date()
+  );
+
+  console.log('結果:', JSON.stringify(result, null, 2));
+  console.log('========== 完了 ==========');
+  return result;
+}
+
+/**
+ * 9. 督促ルール確認テスト（ドライラン）
+ * メール送信せず、どの請求が督促対象かを確認
+ */
+function testCheckOverdueInvoices() {
+  console.log('========== 督促対象確認（ドライラン）==========');
+
+  const invoices = BillingSystem.getInvoices();
+  if (!invoices.success) {
+    console.log('エラー:', invoices.error);
+    return;
+  }
+
+  const now = new Date();
+  const overdueList = [];
+
+  for (const inv of invoices.invoices) {
+    const status = inv['ステータス'];
+    if (status !== '発行済み' && status !== '未入金') continue;
+
+    const dueDate = new Date(inv['支払期限']);
+    if (dueDate >= now) continue;
+
+    const daysPastDue = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24));
+    const reminderCount = inv['督促回数'] || 0;
+
+    overdueList.push({
+      請求ID: inv['請求ID'],
+      加盟店名: inv['加盟店名'],
+      税込金額: inv['税込金額'],
+      支払期限: inv['支払期限'],
+      経過日数: daysPastDue + '日',
+      督促回数: reminderCount,
+      次回督促: reminderCount === 0 ? '1日後' :
+                reminderCount === 1 ? '3日後' :
+                reminderCount === 2 ? '7日後' : '7日ごと'
+    });
+  }
+
+  console.log('期限超過請求:', overdueList.length + '件');
+  console.log(JSON.stringify(overdueList, null, 2));
+  console.log('========== 完了 ==========');
+  return overdueList;
+}
+
+/**
+ * 10. 請求ステータス更新テスト（発行済みに変更）
+ */
+function testUpdateInvoiceStatus() {
+  console.log('========== 請求ステータス更新テスト ==========');
+
+  const invoices = BillingSystem.getInvoices();
+  if (!invoices.success || invoices.invoices.length === 0) {
+    console.log('請求がありません');
+    return;
+  }
+
+  // 未発行の請求を発行済みに
+  const pending = invoices.invoices.find(inv => inv['ステータス'] === '未発行');
+  if (!pending) {
+    console.log('未発行の請求がありません');
+    return;
+  }
+
+  console.log('対象:', pending['請求ID'], pending['加盟店名']);
+
+  const result = BillingSystem.updateInvoiceStatus(pending['請求ID'], '発行済み');
   console.log('結果:', JSON.stringify(result, null, 2));
   console.log('========== 完了 ==========');
   return result;
@@ -100,4 +221,104 @@ function runAllBillingTests() {
   console.log('請求生成は testGenerateReferralInvoices / testGenerateCommissionInvoices を個別実行してください');
 
   console.log('★★★★★ 全テスト完了 ★★★★★');
+}
+
+// ========================================
+// 自動実行トリガー関連
+// ========================================
+
+/**
+ * 毎日実行: 未入金督促チェック
+ * トリガーで毎日9:00に実行
+ */
+function dailyBillingReminders() {
+  console.log('[DailyTrigger] 未入金督促チェック開始');
+  const result = BillingSystem.sendReminders();
+  console.log('[DailyTrigger] 結果:', JSON.stringify(result, null, 2));
+  return result;
+}
+
+/**
+ * 月次実行: 紹介料請求生成
+ * トリガーで毎月1日に実行（前月分）
+ */
+function monthlyReferralBilling() {
+  console.log('[MonthlyTrigger] 紹介料請求生成開始');
+
+  // 前月を計算
+  const now = new Date();
+  const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const month = `${prevMonth.getFullYear()}-${String(prevMonth.getMonth() + 1).padStart(2, '0')}`;
+
+  console.log('[MonthlyTrigger] 対象月:', month);
+
+  const result = BillingSystem.generateInvoices(month, 'referral');
+  console.log('[MonthlyTrigger] 結果:', JSON.stringify(result, null, 2));
+  return result;
+}
+
+/**
+ * 請求システムのトリガーをセットアップ
+ */
+function setupBillingTriggers() {
+  console.log('========== 請求システムトリガーセットアップ ==========');
+
+  // 既存の関連トリガーを削除
+  const triggers = ScriptApp.getProjectTriggers();
+  let deletedCount = 0;
+  for (const trigger of triggers) {
+    const funcName = trigger.getHandlerFunction();
+    if (funcName === 'dailyBillingReminders' || funcName === 'monthlyReferralBilling') {
+      ScriptApp.deleteTrigger(trigger);
+      deletedCount++;
+    }
+  }
+  console.log('削除した既存トリガー:', deletedCount + '件');
+
+  // 毎日9:00に督促チェック
+  ScriptApp.newTrigger('dailyBillingReminders')
+    .timeBased()
+    .everyDays(1)
+    .atHour(9)
+    .create();
+  console.log('作成: dailyBillingReminders (毎日 9:00)');
+
+  // 毎月1日 10:00に紹介料請求生成
+  ScriptApp.newTrigger('monthlyReferralBilling')
+    .timeBased()
+    .onMonthDay(1)
+    .atHour(10)
+    .create();
+  console.log('作成: monthlyReferralBilling (毎月1日 10:00)');
+
+  console.log('========== トリガーセットアップ完了 ==========');
+
+  return {
+    success: true,
+    triggers: [
+      { name: 'dailyBillingReminders', schedule: '毎日 9:00' },
+      { name: 'monthlyReferralBilling', schedule: '毎月1日 10:00' }
+    ]
+  };
+}
+
+/**
+ * 請求システムのトリガー一覧表示
+ */
+function listBillingTriggers() {
+  const triggers = ScriptApp.getProjectTriggers();
+  const billingTriggers = [];
+
+  for (const trigger of triggers) {
+    const funcName = trigger.getHandlerFunction();
+    if (funcName.includes('Billing') || funcName.includes('billing')) {
+      billingTriggers.push({
+        function: funcName,
+        type: trigger.getEventType().toString()
+      });
+    }
+  }
+
+  console.log('請求関連トリガー:', JSON.stringify(billingTriggers, null, 2));
+  return billingTriggers;
 }

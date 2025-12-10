@@ -57,6 +57,8 @@ const BillingSystem = {
         return this.checkPayments();
       case 'billing_sendReminders':
         return this.sendReminders();
+      case 'billing_confirmPayment':
+        return this.confirmPayment(params.invoiceId, params.paymentAmount, params.paymentDate);
       case 'billing_setupSheets':
         return this.setupBillingSheets();
       default:
@@ -592,34 +594,443 @@ const BillingSystem = {
 
   /**
    * 未入金督促送信
+   * 支払期限超過の請求に対して督促メール/Slack通知を送信
    */
   sendReminders: function() {
     try {
-      const invoices = this.getInvoices(null, '未入金');
-      if (!invoices.success) return invoices;
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+      const billingSheet = ss.getSheetByName(this.SHEETS.BILLING);
 
-      const overdue = invoices.invoices.filter(inv => {
+      if (!billingSheet) {
+        return { success: false, error: '請求管理シートが見つかりません' };
+      }
+
+      // 発行済み or 未入金 の請求を取得
+      const invoicesResult = this.getInvoices();
+      if (!invoicesResult.success) return invoicesResult;
+
+      const now = new Date();
+      const overdueInvoices = [];
+      const sentReminders = [];
+
+      for (const inv of invoicesResult.invoices) {
+        const status = inv['ステータス'];
+        // 発行済み or 未入金 のみ対象
+        if (status !== '発行済み' && status !== '未入金') continue;
+
         const dueDate = new Date(inv['支払期限']);
-        return dueDate < new Date();
-      });
+        if (dueDate >= now) continue; // まだ期限内
 
-      // TODO: Slack/メール通知実装
+        const daysPastDue = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24));
+        const reminderCount = inv['督促回数'] || 0;
+        const lastReminderDate = inv['最終督促日'] ? new Date(inv['最終督促日']) : null;
+
+        // 督促ルール
+        // 1回目: 期限翌日
+        // 2回目: 期限3日後
+        // 3回目: 期限7日後
+        // 以降: 7日ごと
+        let shouldRemind = false;
+        if (reminderCount === 0 && daysPastDue >= 1) {
+          shouldRemind = true;
+        } else if (reminderCount === 1 && daysPastDue >= 3) {
+          shouldRemind = true;
+        } else if (reminderCount === 2 && daysPastDue >= 7) {
+          shouldRemind = true;
+        } else if (reminderCount >= 3) {
+          // 前回から7日経過
+          if (lastReminderDate) {
+            const daysSinceLastReminder = Math.floor((now - lastReminderDate) / (1000 * 60 * 60 * 24));
+            if (daysSinceLastReminder >= 7) {
+              shouldRemind = true;
+            }
+          }
+        }
+
+        overdueInvoices.push({
+          ...inv,
+          daysPastDue: daysPastDue,
+          reminderCount: reminderCount,
+          shouldRemind: shouldRemind
+        });
+
+        if (shouldRemind) {
+          // 督促送信
+          const reminderResult = this._sendReminderNotification(inv, reminderCount + 1, daysPastDue);
+
+          if (reminderResult.success) {
+            // シート更新: 督促回数++、最終督促日更新、ステータスを未入金に
+            this._updateReminderStatus(billingSheet, inv.rowIndex, reminderCount + 1, now);
+
+            sentReminders.push({
+              invoiceId: inv['請求ID'],
+              merchantName: inv['加盟店名'],
+              amount: inv['税込金額'],
+              daysPastDue: daysPastDue,
+              reminderNumber: reminderCount + 1
+            });
+          }
+        }
+      }
+
+      // 管理者へサマリー通知
+      if (overdueInvoices.length > 0) {
+        this._sendAdminSummary(overdueInvoices, sentReminders);
+      }
+
       return {
         success: true,
-        overdueCount: overdue.length,
-        message: `${overdue.length}件の未入金請求があります`,
-        overdueInvoices: overdue.map(inv => ({
+        overdueCount: overdueInvoices.length,
+        sentRemindersCount: sentReminders.length,
+        message: `${overdueInvoices.length}件の未入金請求、${sentReminders.length}件の督促を送信`,
+        overdueInvoices: overdueInvoices.map(inv => ({
           invoiceId: inv['請求ID'],
           merchantName: inv['加盟店名'],
           amount: inv['税込金額'],
-          dueDate: inv['支払期限']
-        }))
+          dueDate: inv['支払期限'],
+          daysPastDue: inv.daysPastDue,
+          reminderCount: inv.reminderCount
+        })),
+        sentReminders: sentReminders
       };
 
     } catch (e) {
       console.error('[BillingSystem] sendReminders error:', e);
       return { success: false, error: e.message };
     }
+  },
+
+  /**
+   * 督促通知送信（メール + Slack）
+   */
+  _sendReminderNotification: function(invoice, reminderNumber, daysPastDue) {
+    try {
+      const merchantEmail = invoice['請求先メールアドレス'] || this._getMerchantEmail(invoice['加盟店ID']);
+
+      // メール送信
+      if (merchantEmail) {
+        const subject = reminderNumber === 1
+          ? `【ご確認】お支払い期限超過のご案内 - ${invoice['請求ID']}`
+          : `【${reminderNumber}回目】お支払いのお願い - ${invoice['請求ID']}`;
+
+        const urgencyText = reminderNumber >= 3 ? '【至急】' : '';
+        const body = `
+${invoice['加盟店名']} 御中
+
+${urgencyText}下記請求について、お支払い期限を${daysPastDue}日経過しておりますのでご確認をお願いいたします。
+
+━━━━━━━━━━━━━━━━━━━━
+■ 請求内容
+━━━━━━━━━━━━━━━━━━━━
+請求ID: ${invoice['請求ID']}
+請求種別: ${invoice['請求種別']}
+対象期間: ${invoice['対象期間']}
+ご請求金額: ${Number(invoice['税込金額']).toLocaleString()}円（税込）
+お支払期限: ${this._formatDate(invoice['支払期限'])}
+━━━━━━━━━━━━━━━━━━━━
+
+${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となります。\nお早めのご対応をお願いいたします。\n\n' : ''}
+既にお支払い済みの場合は、本メールは行き違いとなりますのでご容赦ください。
+
+ご不明点がございましたら、下記までお問い合わせください。
+
+━━━━━━━━━━━━━━━━━━━━
+くらべる 運営事務局
+━━━━━━━━━━━━━━━━━━━━
+`;
+
+        GmailApp.sendEmail(merchantEmail, subject, body);
+        console.log('[BillingSystem] 督促メール送信:', invoice['請求ID'], merchantEmail);
+      }
+
+      // Slack通知（社内向け）
+      this._sendSlackNotification({
+        type: 'reminder_sent',
+        invoiceId: invoice['請求ID'],
+        merchantName: invoice['加盟店名'],
+        amount: invoice['税込金額'],
+        daysPastDue: daysPastDue,
+        reminderNumber: reminderNumber
+      });
+
+      return { success: true };
+
+    } catch (e) {
+      console.error('[BillingSystem] _sendReminderNotification error:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * 督促ステータス更新
+   */
+  _updateReminderStatus: function(sheet, rowIndex, newReminderCount, reminderDate) {
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const statusIdx = headers.indexOf('ステータス');
+    const reminderCountIdx = headers.indexOf('督促回数');
+    const lastReminderIdx = headers.indexOf('最終督促日');
+    const lastUpdateIdx = headers.indexOf('最終更新日時');
+
+    if (statusIdx !== -1) {
+      sheet.getRange(rowIndex, statusIdx + 1).setValue('未入金');
+    }
+    if (reminderCountIdx !== -1) {
+      sheet.getRange(rowIndex, reminderCountIdx + 1).setValue(newReminderCount);
+    }
+    if (lastReminderIdx !== -1) {
+      sheet.getRange(rowIndex, lastReminderIdx + 1).setValue(reminderDate);
+    }
+    if (lastUpdateIdx !== -1) {
+      sheet.getRange(rowIndex, lastUpdateIdx + 1).setValue(reminderDate);
+    }
+  },
+
+  /**
+   * 管理者へのサマリー通知
+   */
+  _sendAdminSummary: function(overdueInvoices, sentReminders) {
+    const totalOverdueAmount = overdueInvoices.reduce((sum, inv) => sum + Number(inv['税込金額'] || 0), 0);
+
+    const blocks = [
+      {
+        type: 'header',
+        text: {
+          type: 'plain_text',
+          text: '💰 未入金請求サマリー',
+          emoji: true
+        }
+      },
+      {
+        type: 'section',
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: `*未入金件数:* ${overdueInvoices.length}件`
+          },
+          {
+            type: 'mrkdwn',
+            text: `*未入金合計:* ¥${totalOverdueAmount.toLocaleString()}`
+          },
+          {
+            type: 'mrkdwn',
+            text: `*本日督促送信:* ${sentReminders.length}件`
+          }
+        ]
+      }
+    ];
+
+    // 高額または長期未入金をハイライト
+    const critical = overdueInvoices.filter(inv => inv.daysPastDue >= 14 || Number(inv['税込金額']) >= 100000);
+    if (critical.length > 0) {
+      blocks.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: '*⚠️ 要注意（14日以上 or 10万円以上）:*\n' + critical.map(inv =>
+            `• ${inv['加盟店名']} - ¥${Number(inv['税込金額']).toLocaleString()} (${inv.daysPastDue}日超過)`
+          ).join('\n')
+        }
+      });
+    }
+
+    this._sendSlackNotification({
+      type: 'admin_summary',
+      blocks: blocks
+    });
+  },
+
+  /**
+   * 入金確認時の通知
+   */
+  confirmPayment: function(invoiceId, paymentAmount, paymentDate) {
+    try {
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+      const billingSheet = ss.getSheetByName(this.SHEETS.BILLING);
+
+      if (!billingSheet) {
+        return { success: false, error: '請求管理シートが見つかりません' };
+      }
+
+      const data = billingSheet.getDataRange().getValues();
+      const headers = data[0];
+      const invoiceIdIdx = headers.indexOf('請求ID');
+      const statusIdx = headers.indexOf('ステータス');
+      const paymentDateIdx = headers.indexOf('入金確認日');
+      const paymentAmountIdx = headers.indexOf('入金額');
+      const lastUpdateIdx = headers.indexOf('最終更新日時');
+      const merchantNameIdx = headers.indexOf('加盟店名');
+      const taxAmountIdx = headers.indexOf('税込金額');
+
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][invoiceIdIdx] === invoiceId) {
+          const merchantName = data[i][merchantNameIdx];
+          const expectedAmount = Number(data[i][taxAmountIdx]);
+          const actualAmount = Number(paymentAmount);
+          const pDate = paymentDate || new Date();
+
+          // ステータス判定
+          let newStatus = '入金済み';
+          let note = '';
+          if (actualAmount < expectedAmount) {
+            newStatus = '一部入金';
+            note = `差額: ¥${(expectedAmount - actualAmount).toLocaleString()}`;
+          } else if (actualAmount > expectedAmount) {
+            note = `過入金: ¥${(actualAmount - expectedAmount).toLocaleString()}`;
+          }
+
+          // シート更新
+          billingSheet.getRange(i + 1, statusIdx + 1).setValue(newStatus);
+          billingSheet.getRange(i + 1, paymentDateIdx + 1).setValue(pDate);
+          billingSheet.getRange(i + 1, paymentAmountIdx + 1).setValue(actualAmount);
+          billingSheet.getRange(i + 1, lastUpdateIdx + 1).setValue(new Date());
+
+          // 通知
+          this._sendPaymentConfirmNotification({
+            invoiceId: invoiceId,
+            merchantName: merchantName,
+            expectedAmount: expectedAmount,
+            actualAmount: actualAmount,
+            status: newStatus,
+            note: note
+          });
+
+          return {
+            success: true,
+            message: `請求 ${invoiceId} の入金を確認しました`,
+            status: newStatus,
+            note: note
+          };
+        }
+      }
+
+      return { success: false, error: '請求IDが見つかりません: ' + invoiceId };
+
+    } catch (e) {
+      console.error('[BillingSystem] confirmPayment error:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * 入金確認通知
+   */
+  _sendPaymentConfirmNotification: function(data) {
+    const emoji = data.status === '入金済み' ? '✅' : '⚠️';
+    const color = data.status === '入金済み' ? 'good' : 'warning';
+
+    this._sendSlackNotification({
+      type: 'payment_confirmed',
+      text: `${emoji} 入金確認: ${data.merchantName}`,
+      attachments: [{
+        color: color,
+        fields: [
+          { title: '請求ID', value: data.invoiceId, short: true },
+          { title: 'ステータス', value: data.status, short: true },
+          { title: '請求金額', value: `¥${data.expectedAmount.toLocaleString()}`, short: true },
+          { title: '入金額', value: `¥${data.actualAmount.toLocaleString()}`, short: true }
+        ],
+        footer: data.note || ''
+      }]
+    });
+  },
+
+  /**
+   * Slack通知送信
+   */
+  _sendSlackNotification: function(data) {
+    try {
+      const webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_BILLING_WEBHOOK_URL')
+        || PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
+
+      if (!webhookUrl) {
+        console.log('[BillingSystem] Slack webhook URLが設定されていません');
+        return;
+      }
+
+      let payload = {};
+
+      if (data.type === 'admin_summary' && data.blocks) {
+        payload = { blocks: data.blocks };
+      } else if (data.type === 'payment_confirmed') {
+        payload = {
+          text: data.text,
+          attachments: data.attachments
+        };
+      } else if (data.type === 'reminder_sent') {
+        payload = {
+          text: `📨 督促送信（${data.reminderNumber}回目）`,
+          attachments: [{
+            color: data.reminderNumber >= 3 ? 'danger' : 'warning',
+            fields: [
+              { title: '請求ID', value: data.invoiceId, short: true },
+              { title: '加盟店', value: data.merchantName, short: true },
+              { title: '金額', value: `¥${Number(data.amount).toLocaleString()}`, short: true },
+              { title: '超過日数', value: `${data.daysPastDue}日`, short: true }
+            ]
+          }]
+        };
+      }
+
+      UrlFetchApp.fetch(webhookUrl, {
+        method: 'POST',
+        contentType: 'application/json',
+        payload: JSON.stringify(payload),
+        muteHttpExceptions: true
+      });
+
+      console.log('[BillingSystem] Slack通知送信完了:', data.type);
+
+    } catch (e) {
+      console.error('[BillingSystem] Slack通知エラー:', e);
+    }
+  },
+
+  /**
+   * 加盟店のメールアドレス取得
+   */
+  _getMerchantEmail: function(merchantId) {
+    try {
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+      const masterSheet = ss.getSheetByName(this.SHEETS.MERCHANT_MASTER);
+
+      if (!masterSheet) return null;
+
+      const data = masterSheet.getDataRange().getValues();
+      const headers = data[0];
+      const idIdx = headers.indexOf('加盟店ID');
+      const emailIdx = headers.indexOf('請求先メールアドレス');
+      const contactEmailIdx = headers.indexOf('メールアドレス'); // フォールバック
+
+      if (idIdx === -1) return null;
+
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][idIdx] === merchantId) {
+          if (emailIdx !== -1 && data[i][emailIdx]) {
+            return data[i][emailIdx];
+          }
+          if (contactEmailIdx !== -1 && data[i][contactEmailIdx]) {
+            return data[i][contactEmailIdx];
+          }
+        }
+      }
+      return null;
+
+    } catch (e) {
+      console.error('[BillingSystem] _getMerchantEmail error:', e);
+      return null;
+    }
+  },
+
+  /**
+   * 日付フォーマット
+   */
+  _formatDate: function(date) {
+    if (!date) return '';
+    const d = new Date(date);
+    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
   },
 
   // ========== ヘルパー関数 ==========
