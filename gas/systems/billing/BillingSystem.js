@@ -65,6 +65,11 @@ const BillingSystem = {
         return this.sendInvoicePdf(params.invoiceId);
       case 'billing_autoGenerateMonthly':
         return this.autoGenerateMonthlyInvoices();
+      // フランチャイズダッシュボード向けAPI
+      case 'billing_getReferralHistory':
+        return this.getReferralHistory(params.merchantId, params.month);
+      case 'billing_getFinancialSummary':
+        return this.getFinancialSummary(params.merchantId);
       default:
         return { success: false, error: 'Unknown billing action: ' + action };
     }
@@ -1713,6 +1718,298 @@ const GmoAozoraIntegration = {
       message: 'GMOあおぞら入金確認（未実装）',
       deposits: []
     };
+  },
+
+  // ========================================
+  // フランチャイズダッシュボード向けAPI
+  // ========================================
+
+  /**
+   * 紹介料履歴取得（加盟店向け）
+   * 配信管理シート + ユーザー登録シートから案件単位のデータを取得
+   */
+  getReferralHistory: function(merchantId, month) {
+    try {
+      if (!merchantId) {
+        return { success: false, error: '加盟店IDが指定されていません' };
+      }
+
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+
+      // 配信管理シート
+      const deliverySheet = ss.getSheetByName(this.SHEETS.DELIVERY);
+      if (!deliverySheet) {
+        return { success: false, error: '配信管理シートが見つかりません' };
+      }
+
+      // ユーザー登録シート（CV情報）
+      const userSheet = ss.getSheetByName('ユーザー登録');
+      if (!userSheet) {
+        return { success: false, error: 'ユーザー登録シートが見つかりません' };
+      }
+
+      // 請求管理シート（支払状況）
+      const billingSheet = ss.getSheetByName(this.SHEETS.BILLING);
+
+      // 配信管理データ取得
+      const deliveryData = deliverySheet.getDataRange().getValues();
+      const deliveryHeaders = deliveryData[0];
+      const dIdx = {
+        cvId: deliveryHeaders.indexOf('CV ID'),
+        merchantId: deliveryHeaders.indexOf('加盟店ID'),
+        deliveryDate: deliveryHeaders.indexOf('配信日時'),
+        deliveryStatus: deliveryHeaders.indexOf('配信ステータス'),
+        deliveryAmount: deliveryHeaders.indexOf('配信金額'),
+        contractAmount: deliveryHeaders.indexOf('成約金額'),
+        contractDate: deliveryHeaders.indexOf('成約日時')
+      };
+
+      // ユーザー登録データ取得（CV情報用）
+      const userData = userSheet.getDataRange().getValues();
+      const userHeaders = userData[0];
+      const uIdx = {
+        cvId: userHeaders.indexOf('CV ID'),
+        name: userHeaders.indexOf('氏名'),
+        propertyType: userHeaders.indexOf('物件種別'),
+        workContent: userHeaders.indexOf('Q9_希望工事内容_外壁')
+      };
+
+      // CV情報をマップ化
+      const cvInfoMap = {};
+      for (let i = 1; i < userData.length; i++) {
+        const cvId = userData[i][uIdx.cvId];
+        if (cvId) {
+          cvInfoMap[cvId] = {
+            customerName: userData[i][uIdx.name] || '名前なし',
+            propertyType: userData[i][uIdx.propertyType] || '-',
+            workContent: userData[i][uIdx.workContent] || '-'
+          };
+        }
+      }
+
+      // 請求データをマップ化（CV ID → 支払状況）
+      const paymentStatusMap = {};
+      if (billingSheet) {
+        const billingData = billingSheet.getDataRange().getValues();
+        const billingHeaders = billingData[0];
+        const bIdx = {
+          merchantId: billingHeaders.indexOf('加盟店ID'),
+          cvIds: billingHeaders.indexOf('対象CV ID'),
+          status: billingHeaders.indexOf('ステータス'),
+          paymentDue: billingHeaders.indexOf('支払期限')
+        };
+
+        for (let i = 1; i < billingData.length; i++) {
+          const bMerchantId = billingData[i][bIdx.merchantId];
+          if (bMerchantId !== merchantId) continue;
+
+          const cvIdsStr = billingData[i][bIdx.cvIds] || '';
+          const status = billingData[i][bIdx.status];
+          const paymentDue = billingData[i][bIdx.paymentDue];
+
+          cvIdsStr.split(', ').forEach(cvId => {
+            if (cvId) {
+              paymentStatusMap[cvId] = {
+                status: status,
+                paymentDue: paymentDue
+              };
+            }
+          });
+        }
+      }
+
+      // 対象月のフィルタ
+      let targetYear, targetMonth;
+      if (month) {
+        const parts = month.split('-');
+        targetYear = parseInt(parts[0]);
+        targetMonth = parseInt(parts[1]);
+      }
+
+      // 紹介料履歴を構築
+      const history = [];
+      for (let i = 1; i < deliveryData.length; i++) {
+        const row = deliveryData[i];
+        const rowMerchantId = row[dIdx.merchantId];
+
+        // 加盟店IDでフィルタ
+        if (rowMerchantId !== merchantId) continue;
+
+        // 配信済みのみ
+        const status = row[dIdx.deliveryStatus];
+        if (status !== '配信済み' && status !== '成約') continue;
+
+        const deliveryDate = row[dIdx.deliveryDate];
+        if (!deliveryDate) continue;
+
+        // 月フィルタ
+        const date = new Date(deliveryDate);
+        if (targetYear && targetMonth) {
+          if (date.getFullYear() !== targetYear || (date.getMonth() + 1) !== targetMonth) continue;
+        }
+
+        const cvId = row[dIdx.cvId];
+        const cvInfo = cvInfoMap[cvId] || {};
+        const paymentInfo = paymentStatusMap[cvId] || {};
+
+        const referralFee = row[dIdx.deliveryAmount] || this.DEFAULTS.REFERRAL_FEE;
+        const contractAmount = row[dIdx.contractAmount] || 0;
+        const contractDate = row[dIdx.contractDate];
+
+        // ROI計算（成約時のみ）
+        let roi = null;
+        if (contractAmount && referralFee) {
+          roi = Math.round((contractAmount / referralFee) * 100);
+        }
+
+        history.push({
+          cvId: cvId,
+          referralDate: this._formatDateForApi(date),
+          customerName: this._maskName(cvInfo.customerName),
+          propertyType: cvInfo.propertyType,
+          workContent: cvInfo.workContent,
+          referralFee: referralFee,
+          paymentDue: this._formatDateForApi(paymentInfo.paymentDue),
+          paymentStatus: paymentInfo.status || '請求待ち',
+          contractAmount: contractAmount,
+          contractDate: this._formatDateForApi(contractDate),
+          roi: roi
+        });
+      }
+
+      // 日付降順でソート
+      history.sort((a, b) => new Date(b.referralDate) - new Date(a.referralDate));
+
+      return {
+        success: true,
+        merchantId: merchantId,
+        month: month || 'all',
+        count: history.length,
+        history: history
+      };
+
+    } catch (e) {
+      console.error('[BillingSystem] getReferralHistory error:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * 財務サマリー取得（加盟店向け）
+   */
+  getFinancialSummary: function(merchantId) {
+    try {
+      if (!merchantId) {
+        return { success: false, error: '加盟店IDが指定されていません' };
+      }
+
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+
+      // 請求管理シートから集計
+      const billingSheet = ss.getSheetByName(this.SHEETS.BILLING);
+      if (!billingSheet) {
+        return { success: false, error: '請求管理シートが見つかりません' };
+      }
+
+      const data = billingSheet.getDataRange().getValues();
+      const headers = data[0];
+      const idx = {
+        merchantId: headers.indexOf('加盟店ID'),
+        type: headers.indexOf('請求種別'),
+        period: headers.indexOf('対象期間'),
+        taxIncluded: headers.indexOf('税込金額'),
+        status: headers.indexOf('ステータス')
+      };
+
+      const now = new Date();
+      const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      const currentYear = now.getFullYear();
+
+      let monthlyReferral = 0;
+      let monthlyCommission = 0;
+      let monthlyReferralCount = 0;
+      let monthlyCommissionCount = 0;
+      let yearlyProfit = 0;
+      let totalPaid = 0;
+
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        if (row[idx.merchantId] !== merchantId) continue;
+
+        const type = row[idx.type];
+        const period = row[idx.period];
+        const amount = row[idx.taxIncluded] || 0;
+        const status = row[idx.status];
+
+        // 今月の紹介料
+        if (type === '紹介料' && period === currentMonth) {
+          monthlyReferral += amount;
+          monthlyReferralCount++;
+        }
+
+        // 今月の成約手数料
+        if (type === '成約手数料' && period === currentMonth) {
+          monthlyCommission += amount;
+          monthlyCommissionCount++;
+        }
+
+        // 年間累計（入金済みのみ）
+        if (status === '入金済み' && period && period.startsWith(String(currentYear))) {
+          yearlyProfit += amount;
+        }
+
+        // 総入金額
+        if (status === '入金済み') {
+          totalPaid += amount;
+        }
+      }
+
+      // ROI計算（仮：前月比など）
+      // TODO: 実際のROI計算ロジック
+
+      return {
+        success: true,
+        merchantId: merchantId,
+        currentMonth: currentMonth,
+        summary: {
+          monthlyReferral: monthlyReferral,
+          monthlyReferralCount: monthlyReferralCount,
+          monthlyCommission: monthlyCommission,
+          monthlyCommissionCount: monthlyCommissionCount,
+          yearlyProfit: yearlyProfit,
+          totalPaid: totalPaid,
+          roi: yearlyProfit > 0 ? Math.round((yearlyProfit / (monthlyReferral || 1)) * 100) : 0
+        }
+      };
+
+    } catch (e) {
+      console.error('[BillingSystem] getFinancialSummary error:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * 日付をAPI用にフォーマット
+   */
+  _formatDateForApi: function(date) {
+    if (!date) return null;
+    try {
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return null;
+      return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  /**
+   * 名前をマスク（プライバシー保護）
+   */
+  _maskName: function(name) {
+    if (!name || name.length < 2) return name || '名前なし';
+    return name.charAt(0) + '○様';
   }
 };
 

@@ -2937,107 +2937,19 @@
                         </nav>
                     </div>
 
-                    <!-- 紹介料履歴タブ -->
-                    <div id="purchaseTab" class="billing-tab-content p-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold">紹介料支払履歴</h3>
-                            <div class="flex items-center space-x-4">
-                                <div class="text-sm bg-blue-50 px-3 py-1 rounded">
-                                    <span class="text-gray-600">デポジット残高:</span>
-                                    <span class="font-bold text-blue-600">¥440,000</span>
-                                    <span class="text-gray-500">(20件分)</span>
-                                </div>
-                                <input type="month" value="2025-01" onchange="updateFinancialData(this.value)" class="border rounded px-3 py-1 text-sm">
-                            </div>
+                    <!-- 紹介料履歴タブ（JSで動的に生成） -->
+                    <div id="purchaseTab" class="billing-tab-content p-4 md:p-6">
+                        <!-- ローディング -->
+                        <div id="billingLoader" class="flex justify-center items-center py-12" style="display: none;">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                            <span class="ml-3 text-gray-600">読み込み中...</span>
                         </div>
-
-                        <!-- 支払いスケジュール情報 -->
-                        <div class="bg-blue-50 p-3 rounded-lg mb-4 text-sm">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <span class="font-medium text-blue-800">支払条件:</span>
-                                    <span class="text-blue-700 ml-2">月末締め</span>
-                                </div>
-                                <div class="text-right">
-                                    <span class="text-blue-700">振込: 翌月15日 / 口座引落: 翌月27日</span>
-                                    <span class="text-gray-600 text-xs ml-2">(土日祝は翌営業日)</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">紹介日</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">案件ID</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">顧客名</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">物件種別</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">工事内容</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">紹介料</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払予定日</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払状況</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">成約額/ROI</th>
-                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">詳細</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/15</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#C2025-001</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">田中様</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">戸建て</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">外壁塗装・屋根塗装</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥22,000</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2/15(土)→17(月)</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">請求待ち</span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">交渉中</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                            <button onclick="showCaseDetail(1)" class="text-blue-600 hover:text-blue-900">詳細</button>
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50 bg-green-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/10</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#C2025-002</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">佐藤様</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">一戸建て</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">外壁塗装</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥22,000</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2/15(土)→17(月)</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">支払済</span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            <div class="text-xs">¥1.2M</div>
-                                            <div class="text-green-600 font-bold text-xs">3636%</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                            <button onclick="showCaseDetail(2)" class="text-blue-600 hover:text-blue-900">詳細</button>
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50 bg-green-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/08</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#C2025-003</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">鈴木様</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">戸建て</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">屋根葺き替え（瓦）</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">¥22,000</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2/27(木)</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">支払済</span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            <div class="text-xs">¥800K</div>
-                                            <div class="text-green-600 font-bold text-xs">3636%</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                            <button onclick="showCaseDetail(3)" class="text-blue-600 hover:text-blue-900">詳細</button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <!-- 初期表示（API読み込み前のプレースホルダー） -->
+                        <div class="text-center py-8 text-gray-500">
+                            <svg class="w-12 h-12 mx-auto mb-4 text-gray-300 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p class="text-sm">データを読み込んでいます...</p>
                         </div>
                     </div>
 
